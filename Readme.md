@@ -28,6 +28,26 @@ Do macros always get a `continuation`? Or are they just allowed to `return`? ...
 
 
 ## Effects
+
+Question: can I unify "effect definitions" with something else?
+- record definition? not really. enum? also no
+- modular implicit? 🤔 there definitely seems to be something similar here.
+- but in this case the thing I'm accessing is Global
+  > ok so the big deal here is ... hm so for unison, the big deal is mutation
+  > because otherwise there's no mutation.
+  > but I'll have single-owner mutation, right?
+  > so async is the big win, I think?
+  > I mean, hmmm
+  > yeah if we have modular implicits too, some of the wins are less for effects.
+  > but yeah, IO. so you can mock it out. especially to do the asynclyness
+
+Ok is there another layer of "dependency injection" that I want to capture?
+maybe, but I'll think about it later.
+
+
+
+
+
 so, continuation passing style
 what do handlers look like?
 am I still adding something to the "global" handler stack?

@@ -15,6 +15,13 @@ export type Term =
           is: Type;
       }
     | {
+          type: 'raise';
+          ref: Reference;
+          args: Array<Term>;
+          effects: Array<Reference>;
+          is: Type;
+      }
+    | {
           type: 'var';
           sym: Symbol;
           is: Type;
@@ -34,24 +41,42 @@ export type Term =
     | {
           type: 'sequence';
           sts: Array<Term>;
+          effects: Array<Reference>;
           is: Type;
       }
     | {
           type: 'apply';
           target: Term;
+          effects: Array<Reference>;
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };
 
-export type Type =
+export const getEffects = (t: Term): Array<Reference> => {
+    if (t.type === 'apply') {
+        return t.effects;
+    } else if (t.type === 'sequence') {
+        return t.effects;
+    } else if (t.type === 'raise') {
+        return t.effects;
+    } else {
+        return [];
+    }
+};
+
+export type TypeRef =
     | {
           type: 'ref';
           ref: Reference;
       }
+    | { type: 'var'; sym: Symbol };
+export type Type =
+    | TypeRef
     | {
           type: 'lambda';
           // TODO optional arguments!
           args: Array<Type>;
+          effects: Array<Reference>;
           rest: Type | null;
           res: Type;
       };
@@ -64,6 +89,9 @@ export type Env = {
     typeNames: { [key: string]: Id };
     builtinTypes: { [key: string]: number };
     types: { [key: string]: number };
+
+    effectNames: { [key: string]: { hash: string; idx: number } };
+    effects: { [key: string]: Array<Type> };
     // oh here's where we would do kind?
     // like args n stuff?
 
@@ -78,6 +106,10 @@ export const newEnv = (): Env => ({
     builtinTypes: {},
     typeNames: {},
     types: {},
+
+    effectNames: {},
+    effects: {},
+
     locals: {},
 });
 export const subEnv = (env: Env): Env => ({
@@ -88,6 +120,9 @@ export const subEnv = (env: Env): Env => ({
     builtinTypes: { ...env.builtinTypes },
     types: { ...env.types },
     locals: { ...env.locals },
+
+    effectNames: { ...env.effectNames },
+    effects: { ...env.effects },
 });
 
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
@@ -123,7 +158,7 @@ const fitsExpectation = (t: Type, target: Type) => {
     }
 };
 
-const typeType = (env: Env, type: ParseType): Type => {
+export const typeType = (env: Env, type: ParseType): Type => {
     switch (type.type) {
         case 'id': {
             if (env.typeNames[type.text] != null) {
@@ -148,6 +183,11 @@ const typeType = (env: Env, type: ParseType): Type => {
             return {
                 type: 'lambda',
                 args: type.args.map((a) => typeType(env, a)),
+                effects: [], // TODO what um. Do all Terms need an effect?
+                // like, these are the effects ... of executing this term?
+                // and then a lamhda has none?
+                // ok so just apply and sequence I should think, right?
+                // the other ones don't?
                 res: typeType(env, type.res),
                 rest: null,
             };
@@ -181,6 +221,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             if (is.args.length !== expr.terms.length - 1) {
                 throw new Error(`Wrong number of arguments`);
             }
+            const effects = [];
             const args = [];
             expr.terms.slice(1).forEach((term, i) => {
                 const t = typeExpr(env, term, is.args[i]);
@@ -192,12 +233,14 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     );
                 }
                 args.push(t);
+                effects.push(...getEffects(t));
             });
 
             return {
                 type: 'apply',
                 target,
                 args,
+                effects,
                 is: is.res,
             };
         }
@@ -254,10 +297,52 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 body,
                 is: {
                     type: 'lambda',
+                    effects: getEffects(body),
                     args: argst,
                     rest: null,
                     res: body.is,
                 },
+            };
+        }
+        case 'raise': {
+            const effid = env.effectNames[expr.id.text];
+            if (!effid) {
+                throw new Error(`Unknown effect ${expr.id.text}`);
+            }
+            const eff = env.effects[effid.hash][effid.idx];
+            if (eff.type !== 'lambda') {
+                throw new Error(
+                    `Non-lambda effect constructor ${JSON.stringify(eff)}`,
+                );
+            }
+            if (eff.args.length !== expr.args.length) {
+                throw new Error(`Effect constructor wrong number of args`);
+            }
+            const ref: Reference = {
+                type: 'user',
+                id: { hash: effid.hash, size: 1, pos: 0 },
+            };
+            const effects: Array<Reference> = [ref];
+            const args = [];
+            expr.args.forEach((term, i) => {
+                const t = typeExpr(env, term, eff.args[i]);
+                if (!fitsExpectation(t.is, eff.args[i])) {
+                    throw new Error(
+                        `Wrong type for arg ${i}: ${JSON.stringify(
+                            t.is,
+                        )}, expected ${JSON.stringify(eff.args[i])}`,
+                    );
+                }
+                args.push(t);
+                effects.push(...getEffects(t));
+            });
+
+            return {
+                type: 'raise',
+                ref,
+                effects,
+                args,
+                is: eff.res,
             };
         }
         default:
@@ -273,6 +358,7 @@ const maybeSeq = (env: Env, sts): Term => {
     return {
         type: 'sequence',
         sts: inner,
+        effects: [].concat(...inner.map(getEffects)),
         is: inner[inner.length - 1].is,
     };
 };

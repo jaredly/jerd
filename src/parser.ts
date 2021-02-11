@@ -26,7 +26,12 @@ export type Defenum = {
     id: Identifier;
     attrs: Array<{ id: Identifier; args: Array<Type> }>;
 };
-export type Expression = Literal | Apply | Lambda;
+export type Expression = Literal | Apply | Lambda | Raise;
+export type Raise = {
+    type: 'raise';
+    id: Identifier;
+    args: Array<Expression>;
+};
 export type Lambda = {
     type: 'lambda';
     args: Array<{ id: Identifier; type: Type }>;

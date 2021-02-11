@@ -7,8 +7,8 @@ import hash from 'hash-sum';
 import { type } from 'os';
 import cloner from 'rfdc';
 import parse, { Expression, Define, Toplevel } from './parser';
-import { printTerm } from './printer';
-import typeExpr, { newEnv, Type } from './typer';
+import { printTerm, printType } from './printer';
+import typeExpr, { newEnv, Type, typeType } from './typer';
 
 const clone = cloner();
 
@@ -76,7 +76,7 @@ and thats ok
 
 const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
 
-const main = (fname: string) => {
+const main = (fname: string, dest: string) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
@@ -84,9 +84,11 @@ const main = (fname: string) => {
     env.builtins['+'] = {
         type: 'lambda',
         args: [int, int],
+        effects: [],
         rest: null,
         res: int,
     };
+    env.builtinTypes['unit'] = 0;
     env.builtinTypes['int'] = 0;
     env.builtinTypes['text'] = 0;
 
@@ -97,11 +99,24 @@ const main = (fname: string) => {
             const h: string = hash(t);
             env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
             env.terms[h] = t;
-            // console.log(h, t);
+            out.push(`// ${printType(env, t.is)}`);
             out.push(`const hash_${h} = ` + printTerm(env, t));
+        } else if (item.type === 'deffect') {
+            const h: string = hash(item);
+            const constrs = [];
+            item.constrs.forEach((constr, i) => {
+                env.effectNames[constr.id.text] = { hash: h, idx: i };
+                constrs.push(typeType(env, constr.type));
+            });
+            env.effects[h] = constrs;
         }
     }
-    fs.writeFileSync(fname + '.js', out.join('\n'));
+    if (dest === '-' || !dest) {
+        console.log(out.join('\n'));
+    } else {
+        fs.writeFileSync(dest, out.join('\n'));
+    }
+    fs.writeFileSync('./env.json', JSON.stringify(env, null, 2));
 };
 
-main(process.argv[2]);
+main(process.argv[2], process.argv[3]);

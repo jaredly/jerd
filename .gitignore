@@ -2,3 +2,4 @@
 node_modules
 main.js
 *.jd.js
+env.json

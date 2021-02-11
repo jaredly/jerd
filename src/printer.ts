@@ -1,7 +1,30 @@
-import { Term, Env } from './typer';
+import { Term, Env, Type } from './typer';
 
 const printSym = (sym) => sym.name + '_' + sym.unique;
 const printId = (id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
+
+export const printType = (env: Env, type: Type): string => {
+    switch (type.type) {
+        case 'ref':
+            if (type.ref.type === 'builtin') {
+                return type.ref.name;
+            } else {
+                return type.ref.id.hash;
+            }
+        case 'lambda': {
+            let args = type.args.map((t) => printType(env, t)).join(', ');
+            if (type.rest) {
+                args += ', ...' + printType(env, type.rest);
+            }
+            const effects = type.effects
+                .map((t) => printType(env, { type: 'ref', ref: t }))
+                .join(', ');
+            return `(${args}) =${
+                effects ? '(' + effects + ')' : ''
+            }> ${printType(env, type.res)}`;
+        }
+    }
+};
 
 export const printTerm = (env: Env, term: Term): string => {
     switch (term.type) {
@@ -41,6 +64,8 @@ export const printTerm = (env: Env, term: Term): string => {
             return `${target}(${term.args
                 .map((arg) => printTerm(env, arg))
                 .join(', ')})`;
+        case 'raise':
+            return `throw new Error("what")`;
         default:
             throw new Error(`Cannot print ${term.type}`);
     }

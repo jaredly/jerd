@@ -19,9 +19,10 @@ Deffect = "(" _ "deffect" __ id:Identifier _
     _ ")" {
 	return {type: 'deffect', id, constrs: constrs.map(a => ({id: a[2], type: a[4]})), location: location()}}
 
-Expression = Literal / Lambda / Apply
+Expression = Literal / Lambda / Raise / Apply
 Literal = Int / Identifier / Text
 
+Raise = "(" _ "raise!" __ "(" id: Identifier _ args:(Expression _)+ ")" _ ")" {return {type: 'raise', id, args: args.map(a => a[0])}}
 Lambda = "(" _ "lambda" __ "(" args:(Arg _)* ")" _ sts:(Expression _)+ ")" {
 	return {type: 'lambda', args: args.map(i => i[0]), sts: sts.map(s => s[0])}
 }
