@@ -1,10 +1,12 @@
-import { Expression } from './parser';
+import { Expression, Type as ParseType } from './parser';
 import deepEqual from 'fast-deep-equal';
 
 export type Id = { hash: string; size: number; pos: number };
 export type Reference =
     | { type: 'builtin'; name: string }
     | { type: 'user'; id: Id };
+
+export type Symbol = { name: string; unique: number };
 
 export type Term =
     | {
@@ -14,13 +16,24 @@ export type Term =
       }
     | {
           type: 'var';
-          name: string;
-          unique: number;
+          sym: Symbol;
           is: Type;
       }
     | {
           type: 'int';
           value: number; // TODO other builtin types
+          is: Type;
+      }
+    | { type: 'text'; text: string; is: Type }
+    | {
+          type: 'lambda';
+          args: Array<Symbol>;
+          body: Term;
+          is: Type;
+      }
+    | {
+          type: 'sequence';
+          sts: Array<Term>;
           is: Type;
       }
     | {
@@ -47,9 +60,35 @@ export type Env = {
     names: { [key: string]: Id };
     terms: { [key: string]: Term };
     builtins: { [key: string]: Type };
+
+    typeNames: { [key: string]: Id };
+    builtinTypes: { [key: string]: number };
+    types: { [key: string]: number };
+    // oh here's where we would do kind?
+    // like args n stuff?
+
+    // builtinTypes: { [key: string]: Type };
+    locals: { [key: string]: { sym: Symbol; type: Type } };
 };
 
-export const newEnv = (): Env => ({ names: {}, terms: {}, builtins: {} });
+export const newEnv = (): Env => ({
+    names: {},
+    terms: {},
+    builtins: {},
+    builtinTypes: {},
+    typeNames: {},
+    types: {},
+    locals: {},
+});
+export const subEnv = (env: Env): Env => ({
+    names: { ...env.names },
+    terms: { ...env.terms },
+    builtins: { ...env.builtins },
+    typeNames: { ...env.typeNames },
+    builtinTypes: { ...env.builtinTypes },
+    types: { ...env.types },
+    locals: { ...env.locals },
+});
 
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
@@ -84,6 +123,37 @@ const fitsExpectation = (t: Type, target: Type) => {
     }
 };
 
+const typeType = (env: Env, type: ParseType): Type => {
+    switch (type.type) {
+        case 'id': {
+            if (env.typeNames[type.text] != null) {
+                return {
+                    type: 'ref',
+                    ref: {
+                        type: 'user',
+                        id: env.typeNames[type.text],
+                    },
+                };
+            }
+            if (env.builtinTypes[type.text] != null) {
+                return {
+                    type: 'ref',
+                    ref: { type: 'builtin', name: type.text },
+                };
+            }
+            throw new Error(`Unknown type "${type.text}"`);
+        }
+
+        case 'lambda':
+            return {
+                type: 'lambda',
+                args: type.args.map((a) => typeType(env, a)),
+                res: typeType(env, type.res),
+                rest: null,
+            };
+    }
+};
+
 const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
     switch (expr.type) {
         case 'int':
@@ -91,6 +161,12 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'int',
                 value: expr.value,
                 is: { type: 'ref', ref: { type: 'builtin', name: 'int' } },
+            };
+        case 'text':
+            return {
+                type: 'text',
+                text: expr.text,
+                is: { type: 'ref', ref: { type: 'builtin', name: 'text' } },
             };
         case 'apply': {
             const target = typeExpr(env, expr.terms[0]);
@@ -109,7 +185,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             expr.terms.slice(1).forEach((term, i) => {
                 const t = typeExpr(env, term, is.args[i]);
                 if (!fitsExpectation(t.is, is.args[i])) {
-                    throw new Error(`Wrong type for arg ${i}`);
+                    throw new Error(
+                        `Wrong type for arg ${i}: ${JSON.stringify(
+                            t.is,
+                        )}, expected ${JSON.stringify(is.args[i])}`,
+                    );
                 }
                 args.push(t);
             });
@@ -143,8 +223,60 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     ref: { type: 'builtin', name: expr.text },
                 };
             }
+            if (env.locals[expr.text]) {
+                const { sym, type } = env.locals[expr.text];
+                return {
+                    type: 'var',
+                    sym,
+                    is: type,
+                };
+            }
+            console.log(env.locals);
             throw new Error(`Undefined identifier ${expr.text}`);
+        case 'lambda': {
+            // ok here's where we do a little bit of inference?
+            // or do I just say "all is specified, we can infer in the IDE"?
+            const inner = subEnv(env);
+            const args = [];
+            const argst = [];
+            expr.args.forEach(({ id, type: rawType }) => {
+                const type = typeType(env, rawType);
+                const unique = Object.keys(inner.locals).length;
+                const sym = { name: id.text, unique };
+                inner.locals[id.text] = { sym, type };
+                args.push(sym);
+                argst.push(type);
+            });
+            const body = maybeSeq(inner, expr.sts);
+            return {
+                type: 'lambda',
+                args,
+                body,
+                is: {
+                    type: 'lambda',
+                    args: argst,
+                    rest: null,
+                    res: body.is,
+                },
+            };
+        }
+        default:
+            throw new Error(`Unexpected parse type ${expr.type}`);
     }
 };
+
+const maybeSeq = (env: Env, sts): Term => {
+    if (sts.length === 1) {
+        return typeExpr(env, sts[0]);
+    }
+    const inner = sts.map((s) => typeExpr(env, s));
+    return {
+        type: 'sequence',
+        sts: inner,
+        is: inner[inner.length - 1].is,
+    };
+};
+
+const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
 
 export default typeExpr;

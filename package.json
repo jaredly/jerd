@@ -5,8 +5,9 @@
     "author": "Jared Forsyth <jared@jaredforsyth.com>",
     "license": "MIT",
     "scripts": {
-        "peg": "pegjs --plugin ts-pegjs src/simple-grammar.pegjs",
-        "watch": "esbuild --bundle src/main.ts --platform=node --watch --outfile=main.js"
+        "peg": "pegjs --plugin ts-pegjs -o src/simple-grammar.ts src/simple-grammar.pegjs",
+        "watch": "esbuild --bundle src/main.ts --platform=node --watch --outfile=main.js",
+        "test": "node main.js simple.jd"
     },
     "dependencies": {
         "esbuild": "^0.8.43",

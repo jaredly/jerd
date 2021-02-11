@@ -87,6 +87,8 @@ const main = (fname: string) => {
         rest: null,
         res: int,
     };
+    env.builtinTypes['int'] = 0;
+    env.builtinTypes['text'] = 0;
 
     for (const item of parsed) {
         const t = typeExpr(env, item.exp);
@@ -94,7 +96,6 @@ const main = (fname: string) => {
         env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
         env.terms[h] = t;
         console.log(h, t);
-        // console.log(hash);
     }
 };
 
