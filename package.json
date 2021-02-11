@@ -1,0 +1,13 @@
+{
+  "name": "jerd",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Jared Forsyth <jared@jaredforsyth.com>",
+  "license": "MIT",
+  "dependencies": {
+    "esbuild": "^0.8.43",
+    "hash-sum": "^2.0.0",
+    "pegjs": "^0.10.0",
+    "ts-pegjs": "^0.3.1"
+  }
+}
