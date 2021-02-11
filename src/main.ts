@@ -6,6 +6,7 @@ import fs from 'fs';
 import hash from 'hash-sum';
 import cloner from 'rfdc';
 import parse, { Expression, Define } from './parser';
+import { printTerm } from './printer';
 import typeExpr, { newEnv, Type } from './typer';
 
 const clone = cloner();
@@ -90,13 +91,16 @@ const main = (fname: string) => {
     env.builtinTypes['int'] = 0;
     env.builtinTypes['text'] = 0;
 
+    const out = [];
     for (const item of parsed) {
         const t = typeExpr(env, item.exp);
         const h: string = hash(t);
         env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
         env.terms[h] = t;
-        console.log(h, t);
+        // console.log(h, t);
+        out.push(`const hash_${h} = ` + printTerm(env, t));
     }
+    fs.writeFileSync(fname + '.js', out.join('\n'));
 };
 
 main(process.argv[2]);
