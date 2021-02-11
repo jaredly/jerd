@@ -72,3 +72,15 @@ const maybeThrow = (v, handlerStack, k) => {
 Yeah I feel like that should work?
 
 Ok so this means that we're going to need an IR that probably loses some type definition? but we want to do something source-mappy (a DFS traversal visit ID of the node in the TypedTree that we came from, probably).
+
+Also the handler stack, each handler will be annotated with the effects
+that it can handle. and it'll get skipped if it can't.
+And if none can, then we get to skip right to the builtin implementation potentially.
+
+----
+
+yeah ok let's see if we can get effects working
+
+<<<<>>>><<<<>>>>
+
+

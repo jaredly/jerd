@@ -4,8 +4,9 @@
 
 import fs from 'fs';
 import hash from 'hash-sum';
+import { type } from 'os';
 import cloner from 'rfdc';
-import parse, { Expression, Define } from './parser';
+import parse, { Expression, Define, Toplevel } from './parser';
 import { printTerm } from './printer';
 import typeExpr, { newEnv, Type } from './typer';
 
@@ -46,40 +47,38 @@ and thats ok
 
 // herm being able to fmap over these automagically would be super nice
 
-const walk = (t: Expression, visitor) => {
-    switch (t.type) {
-        case 'type':
-            visitor.type(t);
-            return;
-        case 'int':
-            visitor.int(t);
-            return;
-        case 'id':
-            visitor.id(t);
-            return;
-        case 'apply':
-            visitor.apply(t);
-            t.terms.forEach((t) => walk(t, visitor));
-            return;
-    }
-};
-
-const rmloc = (t: any) => (t.location = null);
-const locationRemover = { type: rmloc, int: rmloc, id: rmloc, apply: rmloc };
-
-const hashDefine = (d: Define) => {
-    const res = clone(d);
-    walk(res.id, locationRemover);
-    walk(res.exp, locationRemover);
-    res.location = null;
-    return hash(res);
-};
+// const walk = (t: Expression, visitor) => {
+//     switch (t.type) {
+//         case 'text':
+//             visitor.type(t);
+//             return;
+//         case 'int':
+//             visitor.int(t);
+//             return;
+//         case 'id':
+//             visitor.id(t);
+//             return;
+//         case 'apply':
+//             visitor.apply(t);
+//             t.terms.forEach((t) => walk(t, visitor));
+//             return;
+//     }
+// };
+// const rmloc = (t: any) => (t.location = null);
+// const locationRemover = { type: rmloc, int: rmloc, id: rmloc, apply: rmloc };
+// const hashDefine = (d: Define) => {
+//     const res = clone(d);
+//     walk(res.id, locationRemover);
+//     walk(res.exp, locationRemover);
+//     res.location = null;
+//     return hash(res);
+// };
 
 const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
 
 const main = (fname: string) => {
     const raw = fs.readFileSync(fname, 'utf8');
-    const parsed: Array<Define> = parse(raw);
+    const parsed: Array<Toplevel> = parse(raw);
 
     const env = newEnv();
     env.builtins['+'] = {
@@ -93,12 +92,14 @@ const main = (fname: string) => {
 
     const out = [];
     for (const item of parsed) {
-        const t = typeExpr(env, item.exp);
-        const h: string = hash(t);
-        env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
-        env.terms[h] = t;
-        // console.log(h, t);
-        out.push(`const hash_${h} = ` + printTerm(env, t));
+        if (item.type === 'define') {
+            const t = typeExpr(env, item.exp);
+            const h: string = hash(t);
+            env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
+            env.terms[h] = t;
+            // console.log(h, t);
+            out.push(`const hash_${h} = ` + printTerm(env, t));
+        }
     }
     fs.writeFileSync(fname + '.js', out.join('\n'));
 };
