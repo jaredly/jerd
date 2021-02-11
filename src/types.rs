@@ -4,7 +4,7 @@
 struct Id {
     hash: String,
     size: usize,
-    int: usize,
+    pos: usize,
 }
 
 // All terms can have annotations (comments).

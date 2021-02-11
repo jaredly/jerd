@@ -1,5 +1,5 @@
 // A very simple one
-File = s:(Statement _)+ {return s.map(s => s[0])}
+File = s:(Define _)+ {return s.map(s => s[0])}
 Statement = Define / Expression
 Define = "(" _ "define" __ id:Identifier __ exp:Expression _ ")" {
 	return {type: 'define', id, exp, location: location()}}
