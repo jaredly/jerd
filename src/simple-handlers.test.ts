@@ -1,6 +1,21 @@
 // ok
 
-const handleSimple = (fn, handleEffect, handlePure) => {
+// This is a function that allows you to handle
+// effects of type `{ eff () -> Get }` and a function
+// of type `() -> R` (written in direct, non-CPS style)
+const handleSimple = <Get, R>(
+    fn: (
+        handler: (returnIntoFn: (value: Get) => void) => void,
+        cb: (fnReturnValue: R) => void,
+    ) => void,
+    handleEffect: (
+        cb: (
+            gotten: Get,
+            returnIntoHandler: (fnReturnValue: R) => void,
+        ) => void,
+    ) => void,
+    handlePure: (fnReturnValue: R) => void,
+) => {
     let fnsReturnPointer = handlePure;
     fn(
         (returnIntoFn) => {
@@ -13,8 +28,36 @@ const handleSimple = (fn, handleEffect, handlePure) => {
     );
 };
 
+// This is a function that allows you to handle
+// effects of type `{ eff () -> R }`
+const handleBidirectional = <Get, Set, R>(
+    fn: (
+        handler: (toSet: Set, returnIntoFn: (value: Get) => void) => void,
+        cb: (fnReturnValue: R) => void,
+    ) => void,
+    handleEffect: (
+        toSet: Set,
+        cb: (
+            gotten: Get,
+            returnIntoHandler: (fnReturnValue: R) => void,
+        ) => void,
+    ) => void,
+    handlePure: (fnReturnValue: R) => void,
+) => {
+    let fnsReturnPointer = handlePure;
+    fn(
+        (toSet, returnIntoFn) => {
+            handleEffect(toSet, (handlersValueToSend, returnIntoHandler) => {
+                fnsReturnPointer = returnIntoHandler;
+                returnIntoFn(handlersValueToSend);
+            });
+        },
+        (fnsReturnValue) => fnsReturnPointer(fnsReturnValue),
+    );
+};
+
 describe('ok', () => {
-    it('lets go', () => {
+    it('simple "get" handler', () => {
         const x = (currentHandler, done) => z(currentHandler, (r) => done(r));
         const z = (currentHandler, done) => currentHandler((v) => done(v + 2));
         const m = (_currentHandler, done) => done(21);
@@ -37,6 +80,34 @@ describe('ok', () => {
         const k2 = jest.fn();
         myHandler(x, k2);
         expect(k2).toBeCalledWith([7, 'handled']);
+    });
+
+    it('bidirectional, love it', () => {
+        const x = (currentHandler, done) => z(currentHandler, (r) => done(r));
+        const z = (currentHandler, done) =>
+            currentHandler(42, (v) => done([...v, 'z done']));
+        const m = (_currentHandler, done) => done(21);
+
+        const myTimes5 = (fn, done) => {
+            handleBidirectional<Array<any>, number, Array<any>>(
+                fn,
+                (value, resumeExecution) =>
+                    resumeExecution(
+                        [5 * value, 'sent'],
+                        (finalExecutionValue) =>
+                            done([...finalExecutionValue, 'handled']),
+                    ),
+                (pureValue) => done([pureValue, 'pure']),
+            );
+        };
+
+        const k = jest.fn();
+        myTimes5(m, k);
+        expect(k).toBeCalledWith([21, 'pure']);
+
+        const k2 = jest.fn();
+        myTimes5(x, k2);
+        expect(k2).toBeCalledWith([210, 'sent', 'z done', 'handled']);
     });
 
     // it('handle multiple by recursion', () => {
