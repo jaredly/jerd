@@ -38,7 +38,7 @@
 // I think it probably should?
 // Yeah because if the pure function wants to do anything
 // effecty... it would need that.
-const handle = (handlers, key, handler, kont, f) => {
+const handle_ = (handlers, key, handler, kont, f) => {
     f({ ...handlers, [key]: handler }, (_handlers, v) => {
         // it shouldn't be the inner handlers, right?
         kont(handlers, v);

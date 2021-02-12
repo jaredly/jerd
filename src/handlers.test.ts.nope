@@ -6,35 +6,40 @@
 // I think it probably should?
 // Yeah because if the pure function wants to do anything
 // effecty... it would need that.
-const handle = (handlers, key, handler, pure, f, kont) => {
-    let triggered = false;
+const handle = (handlers, key, handler, pure, f) => {
+    let kont = pure;
     f(
         {
             ...handlers,
             [key]: (eff, _, k) => {
-                if (triggered) {
+                if (kont !== pure) {
                     throw new Error('handler called twice');
                 }
-                triggered = true;
-                // hrm do I need this? or is the handler's kont that I was missing?
-                // no I don't think that's what it was.
-                if (eff.type === 'pure') {
-                    pure(eff.value, kont);
-                } else {
-                    handler(eff.value, (handlers, result, newk) => {
-                        triggered = newk;
-                        k(handlers, result);
-                    });
-                }
+                handler(eff, (v, newk) => {
+                    kont = newk;
+                    k(handlers, v);
+                });
+                // triggered = true;
+                // // hrm do I need this? or is the handler's kont that I was missing?
+                // // no I don't think that's what it was.
+                // if (eff.type === 'pure') {
+                //     pure(eff.value, kont);
+                // } else {
+                //     handler(eff.value, (handlers, result, newk) => {
+                //         triggered = newk;
+                //         k(handlers, result);
+                //     });
+                // }
             },
         },
         (_handlers, v) => {
-            if (triggered) {
-                triggered(v); // "resume" the handler's continuation
-            } else {
-                // um then what do I do here?
-                pure(v, kont);
-            }
+            kont(v);
+            // if (triggered) {
+            //     triggered(v); // "resume" the handler's continuation
+            // } else {
+            //     // um then what do I do here?
+            //     pure(v, kont);
+            // }
         },
     );
 };
@@ -49,28 +54,28 @@ const call = (handlers, effect, arg, k) => {
     if (!handlers[effect]) {
         throw new Error('no handlers for ' + effect);
     }
-    handlers[effect]({ type: 'eff', value: arg }, handlers, k);
+    handlers[effect](arg, handlers, k);
 };
 
 const printA = (handlers, k) => {
     call(handlers, 'print', 'A', (handlers) => k(handlers, undefined));
 };
 
-const onPrint = (record, f, handlers = {}, k) => {
-    handle(
-        handlers,
-        'print',
-        (v, ki) => {
-            record(v);
-            k(handlers, ki);
-        },
-        (res, k) => {
-            k(['pure', res]);
-        },
-        f,
-        (v) => k(['final', ...v]),
-    );
-};
+// const onPrint = (record, f, handlers = {}, k) => {
+//     handle(
+//         handlers,
+//         'print',
+//         (v, ki) => {
+//             record(v);
+//             k(handlers, ki);
+//         },
+//         (res, k) => {
+//             k(['pure', res]);
+//         },
+//         f,
+//         (v) => k(['final', ...v]),
+//     );
+// };
 
 /* OK I think this is the part that's weirding me out.
 Why do handlers expect to be able to access the return value
@@ -143,12 +148,11 @@ const recording = (kind, f, handlers, k) => {
             //     handlers,
             //     k,
             // );
-            ki(handlers, ['called', kind, v], k);
+            ki(['called', kind, v], k);
             // k(handlers, ['called', kind, v]);
         },
-        (v, k) => k(handlers, ['pure', v]),
+        (v) => k(handlers, ['pure', v]),
         f,
-        k,
     );
 };
 
@@ -204,81 +208,82 @@ describe('Handle', () => {
         ).toEqual(['wat', 'print', 'Hello']);
     });
 
-    it('should call pure if nothing else', () => {
-        let called = false;
-        let finalCall = false;
-        handle(
-            {},
-            'print',
-            (_, __, ___) => {},
-            (_, k) => {
-                called = true;
-                k();
-            },
-            (h, k) => k(h, null),
-            () => {
-                finalCall = true;
-            },
-        );
-        expect(called).toBeTruthy();
-        expect(finalCall).toBeTruthy();
-    });
+    // it('should call pure if nothing else', () => {
+    //     let called = false;
+    //     let finalCall = false;
+    //     const fn = jest.fn()
+    //     handle(
+    //         {},
+    //         'print',
+    //         (_, __, ___) => {},
+    //         (_, k) => {
+    //             called = true;
+    //             k();
+    //         },
+    //         (h, k) => k(h, null),
+    //         () => {
+    //             finalCall = true;
+    //         },
+    //     );
+    //     expect(called).toBeTruthy();
+    //     expect(finalCall).toBeTruthy();
+    // });
 
-    it('should not call pure something was handled', () => {
-        let called = false;
-        let pure = false;
-        let finalCall = false;
-        handle(
-            {},
-            'print',
-            (_, __, k) => {
-                called = true;
-                k({});
-            },
-            (_, k) => {
-                pure = true;
-                k();
-            },
-            (h, k) => call(h, 'print', 'yo', k),
-            () => {
-                finalCall = true;
-            },
-        );
-        expect(called).toBeTruthy();
-        expect(finalCall).toBeTruthy();
-        expect(pure).toBeFalsy();
-    });
+    // it('should not call pure something was handled', () => {
+    //     let called = false;
+    //     let pure = false;
+    //     let finalCall = false;
+    //     handle(
+    //         {},
+    //         'print',
+    //         (_, __, k) => {
+    //             called = true;
+    //             k({});
+    //         },
+    //         (_, k) => {
+    //             pure = true;
+    //             k();
+    //         },
+    //         (h, k) => call(h, 'print', 'yo', k),
+    //         () => {
+    //             finalCall = true;
+    //         },
+    //     );
+    //     expect(called).toBeTruthy();
+    //     expect(finalCall).toBeTruthy();
+    //     expect(pure).toBeFalsy();
+    // });
 
-    it('should not call pure something was handled', () => {
-        let called = false;
-        let pure = false;
-        let finalCall = false;
-        handle(
-            {},
-            'print',
-            (_, __, k) => {
-                called = true;
-                k({});
-            },
-            (_, k) => {
-                pure = true;
-                k();
-            },
-            (h, k) => call(h, 'print', 'yo', k),
-            () => {
-                finalCall = true;
-            },
-        );
-        expect(called).toBeTruthy();
-        expect(finalCall).toBeTruthy();
-        expect(pure).toBeFalsy();
-    });
+    // it('should not call pure something was handled', () => {
+    //     let called = false;
+    //     let pure = false;
+    //     let finalCall = false;
+    //     handle(
+    //         {},
+    //         'print',
+    //         (_, __, k) => {
+    //             called = true;
+    //             k({});
+    //         },
+    //         (_, k) => {
+    //             pure = true;
+    //             k();
+    //         },
+    //         (h, k) => call(h, 'print', 'yo', k),
+    //         () => {
+    //             finalCall = true;
+    //         },
+    //     );
+    //     expect(called).toBeTruthy();
+    //     expect(finalCall).toBeTruthy();
+    //     expect(pure).toBeFalsy();
+    // });
 
-    // ohh yeah I need to be maintaining a full stack of pures.
-    // and then remove that pure when this is handled?
-    // is that it?
-    it('should work and finish with pure', () => {
-        // let arg = false
-        // handle({}, 'print', (a, k) => {arg = a}))
-    });
+    // // ohh yeah I need to be maintaining a full stack of pures.
+    // // and then remove that pure when this is handled?
+    // // is that it?
+    // it('should work and finish with pure', () => {
+    //     // let arg = false
+    //     // handle({}, 'print', (a, k) => {arg = a}))
+    // });
 });
