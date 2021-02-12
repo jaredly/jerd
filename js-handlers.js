@@ -38,16 +38,17 @@
 // I think it probably should?
 // Yeah because if the pure function wants to do anything
 // effecty... it would need that.
-const handle = (handlers, key, handler, pure, f) => {
-    f({ ...handlers, [key]: handler, pure }, (handlers, v) => {
-        handlers.pure(handlers, v);
+const handle = (handlers, key, handler, kont, f) => {
+    f({ ...handlers, [key]: handler }, (_handlers, v) => {
+        // it shouldn't be the inner handlers, right?
+        kont(handlers, v);
     });
 };
 
 const abc = (handlers, k) => {
     handlers.print('A', (handlers) => {
         handlers.print('B', (handlers) => {
-            console.log('final k', k + '');
+            // console.log('final k', k + '');
             handlers.print('C', k);
         });
     });
@@ -95,7 +96,7 @@ const reverse = (f, handlers, kont) => {
                 });
             });
         },
-        (handlers, x) => kont(handlers, x),
+        kont,
         f,
         // kont,
     );
@@ -115,6 +116,7 @@ const logger = (f) => {
     );
 };
 
+logger(abc);
 logger((handlers, k) => reverse(abc, handlers, k));
 console.log(concat(abc));
 // console.log(concat((handlers, k) => reverse(abc, handlers, k)));

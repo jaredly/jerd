@@ -18,6 +18,7 @@
         "ts-pegjs": "^0.3.1"
     },
     "devDependencies": {
-        "@types/node": "^14.14.25"
+        "@types/node": "^14.14.25",
+        "jest": "^26.6.3"
     }
 }
