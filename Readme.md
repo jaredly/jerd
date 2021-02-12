@@ -59,6 +59,88 @@ So, I'm thinking the handlers are ... something that's passed along with context
 yeah I should definitely figure out what I want to be doing there.
 
 
+
+Ok so I need to capture
+um
+wait ok so what do handlers look like? that's where cps might start, right?
+
+```
+
+ok but I really need to graph this out.
+and maybe I can just construct a bunch of tests with the current runner?
+and add tracing?
+
+
+
+
+
+; ('a, () ={Store 'a, 'e}> 'b) ={'e}> 'b
+(define (withInitialValue v f)
+    (handle! f
+        (get () => k) => (withInitialValue v '(k v))
+        (set (v) => k) => (withInitialValue v '(k v))
+        (pure x) => x
+        )
+)
+
+
+
+
+
+
+
+// This is the "impure" version; with higher handlers
+const withInitialValue = (v, f, handlers, kont) => {
+    // ermmm maybe this is hard?
+    let res;
+    f([{
+        get: (k) => {
+
+        },
+        set: (v, k) => {
+
+        }
+    }, ...handlers], v => {
+        kont(v)
+    })
+}
+
+const addFive = (handlers, k) => {
+    /* set(get + 5); 12 */
+    // ummm I think we need a new k? hm yeah.
+    // hm what happens to the old k?
+    handlers.get((v, k) => handlers.set(v + 5, (_, k) => k(12)))
+}
+
+
+
+
+
+
+
+
+
+// This is the "pure" version; no higher handlers
+const withInitialValue = (v, f) => {
+    // ermmm maybe this is hard?
+    let res;
+    f([{
+        get: (k) => {
+
+        },
+        set: (v, k) => {
+
+        }
+    }], v => {
+        // this is the "pure" maybe?
+    })
+}
+
+
+```
+
+
+
 So, is it easier to think of transforming to call/cc and then to cps?
 or just directly?
 
