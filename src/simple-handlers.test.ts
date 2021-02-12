@@ -1,40 +1,42 @@
 // ok
 
-const handleSimple = (fn, handler, pure) => {
-    let kont = pure;
+const handleSimple = (fn, handleEffect, handlePure) => {
+    let fnsReturnPointer = handlePure;
     fn(
-        (backk) => {
-            handler((v, newk) => {
-                kont = newk;
-                backk(v);
+        (returnIntoFn) => {
+            handleEffect((handlersValueToSend, returnIntoHandler) => {
+                fnsReturnPointer = returnIntoHandler;
+                returnIntoFn(handlersValueToSend);
             });
         },
-        (res) => kont(res),
+        (fnsReturnValue) => fnsReturnPointer(fnsReturnValue),
     );
 };
 
 describe('ok', () => {
     it('lets go', () => {
-        const x = (h, k) => y(h, (r) => k(r));
-        const y = (h, k) => z(h, (r) => k(r));
-        const z = (h, k) => h((v) => m(h, (r) => k(v + 2 + r)));
-        const m = (h, k) => k(21);
+        const x = (currentHandler, done) => z(currentHandler, (r) => done(r));
+        const z = (currentHandler, done) => currentHandler((v) => done(v + 2));
+        const m = (_currentHandler, done) => done(21);
 
-        const h = (x, k) => {
+        const myHandler = (fn, done) => {
             handleSimple(
-                x,
-                (ki) => ki(5, (r) => k([r, 4])),
-                (a) => k([a, 2]),
+                fn,
+                (resumeExecution) =>
+                    resumeExecution(5, (finalExecutionValue) =>
+                        done([finalExecutionValue, 'handled']),
+                    ),
+                (pureValue) => done([pureValue, 'pure']),
             );
         };
 
         const k = jest.fn();
-        h(m, k);
-        expect(k).toBeCalledWith([21, 2]);
+        myHandler(m, k);
+        expect(k).toBeCalledWith([21, 'pure']);
 
         const k2 = jest.fn();
-        h(x, k2);
-        expect(k2).toBeCalledWith([28, 4]);
+        myHandler(x, k2);
+        expect(k2).toBeCalledWith([7, 'handled']);
     });
 
     // it('handle multiple by recursion', () => {
