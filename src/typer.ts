@@ -18,6 +18,7 @@ export type Term =
           type: 'raise';
           ref: Reference;
           args: Array<Term>;
+          argsEffects: Array<Reference>;
           effects: Array<Reference>;
           is: Type;
       }
@@ -68,17 +69,18 @@ export type Term =
           type: 'apply';
           target: Term;
           argsEffects: Array<Reference>;
+          effects: Array<Reference>;
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };
 
 export const getEffects = (t: Term): Array<Reference> => {
     if (t.type === 'apply') {
-        return t.argsEffects.concat(getEffects(t.target));
+        return t.argsEffects.concat(t.effects);
     } else if (t.type === 'sequence') {
         return t.effects;
     } else if (t.type === 'raise') {
-        return t.effects;
+        return t.effects.concat(t.argsEffects);
     } else {
         return [];
     }
@@ -317,6 +319,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     type: 'apply',
                     target,
                     args: resArgs,
+                    effects: is.effects,
                     argsEffects: effects,
                     is: is.res,
                 };
@@ -496,7 +499,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'user',
                 id: { hash: effid.hash, size: 1, pos: 0 },
             };
-            const effects: Array<Reference> = [ref];
+            const argsEffects: Array<Reference> = [];
             const args = [];
             expr.args.forEach((term, i) => {
                 const t = typeExpr(env, term, eff.args[i]);
@@ -508,13 +511,14 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     );
                 }
                 args.push(t);
-                effects.push(...getEffects(t));
+                argsEffects.push(...getEffects(t));
             });
 
             return {
                 type: 'raise',
                 ref,
-                effects,
+                argsEffects,
+                effects: [ref],
                 args,
                 is: eff.ret,
             };
