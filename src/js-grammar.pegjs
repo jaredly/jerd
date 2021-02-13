@@ -12,13 +12,13 @@ ok nvm, no go. would be cool though.
 
 File = _ s:(Toplevel _)+ {return s.map(s => s[0])}
 
-Toplevel = Const / Effect
+Toplevel = Const / Effect / Expression
 
 Const = "const" __ id:Identifier __ "=" __ expr:Expression {return {type: 'define', id, expr}}
 
-Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}"
+Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {type: 'effect', id, constrs: constrs.map(c => c[0])}}
 
-EfConstr = id:Identifier _ ":" _ LambdaType
+EfConstr = id:Identifier _ ":" _ type:LambdaType {return {id, type}}
 
 Expression = first:Binsub rest:(_ binop _ Binsub)* {
     if (rest.length) {
@@ -27,15 +27,22 @@ Expression = first:Binsub rest:(_ binop _ Binsub)* {
         return first
     }
 }
-Binsub = Literal / Lambda / Handle / Raise / Apply / Block
+Binsub = sub:Apsub args:("(" _ CommaExpr? _ ")")* {
+	if (args.length) {
+    	return {type: 'apply', target: sub, args: args.map(a => a[2])}
+    } else {
+    	return sub
+    }
+}
+Apsub = Block / Lambda / Handle / Raise / Literal
 
-Block = "{" one:Toplevel rest:(_ ";" _ Toplevel)* ";"? "}" {
+Block = "{" _ one:Toplevel rest:(_ ";" _ Toplevel)* ";"? _ "}" {
     return {type: 'block', items: [one, ...rest.map(r => r[3])]}
 }
 
 Raise = "raise!" _ "(" name:Identifier "." constr:Identifier _ "(" args:CommaExpr? ")" _ ")" {return {type: 'raise', name, constr, args}}
 
-Handle = "handle!" _ target:Expression _ "{" _ cases:Case+ _ "}" {return {type: 'handle', target, cases}}
+Handle = "handle!" _ target:Expression _ "{" _ cases:(Case _)+ _ "}" {return {type: 'handle', target, cases: cases.map(c => c[0])}}
 
 Case = name:Identifier "." constr:Identifier _ "(" _ "(" _ args:CommaPat? _ ")" _ "=>" _ k:Identifier _ ")" _ "=>" _ body:Expression _ "," {
 	return {type: 'case', name, constr, args, k, body}
@@ -45,9 +52,9 @@ CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map(r => r[3])]
 
 CommaExpr = first:Expression rest:(_ "," _ Expression)* {return [first, ...rest.map(r => r[3])]}
 
-Lambda = "(" _ args:Args? _ ")" _ "=>" _ Expression
-Args = Arg (_ "," _ Arg)*
-Arg = id:Identifier _ t:(":" _ Type)?
+Lambda = "(" _ args:Args? _ ")" _ "=>" _ body:Expression {return {type: 'lambda', args, body}}
+Args = first:Arg rest:(_ "," _ Arg)* {return [first, ...rest.map(r => r[3])]}
+Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null}}
 
 binop = "+" / "-" / "*" / "/" / "^" / "|"
 
@@ -63,8 +70,7 @@ Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 Text = "\"" ( "\\" . / [^"\\])+ "\"" {return {type: 'text', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
 Identifier = [0-9a-zA-Z_]+ {return {type: "id", text: text(), location: location()}}
-Apply = "(" terms:(Expression _)+ ")" {
-	return {type: 'apply', terms: terms.map(m => m[0]), location: location()}}
+
 
 
 _ "whitespace"

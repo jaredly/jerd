@@ -145,6 +145,31 @@ const handleSimpleShallow = <Get, R>(
     );
 };
 
+/*
+
+effect Stdio {
+    read: () => string,
+    write: (string) => unit,
+}
+
+const respondWith = (responseValue: text) => (fn) => {
+    handle! fn {
+        Stdio.read(() => k) => k(text),
+        Stdio.write((v) => k) => {
+            log(v);
+            k()
+        },
+    }
+}
+
+const test1 = () => {
+    respondWith("hello")(() => {
+        raise!(Stdio.read())
+    })
+}
+
+*/
+
 describe('handleSimpleShallow', () => {
     it('should work', () => {
         const x = (currentHandler, done) => z(currentHandler, (r) => done(r));
@@ -192,9 +217,12 @@ describe('handleSimpleShallow', () => {
         ]);
     });
 
+    // um what do I mean? oh two different handlers
     it('double stack', () => {
         // print and get maybe
     });
 
     it('Store.get/set', () => {});
 });
+
+describe('multiple effects', () => {});
