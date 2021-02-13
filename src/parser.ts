@@ -65,6 +65,10 @@ export type Handle = {
         k: Identifier;
         body: Expression;
     }>;
+    pure: {
+        arg: Identifier;
+        body: Expression;
+    };
 };
 export type Lambda = {
     type: 'lambda';
