@@ -4,6 +4,14 @@ effect Stdio {
     write: (text) => void,
 }
 
+const hello = () => {
+    "hello world"
+}
+
+const sayHi = () => {
+    log(hello())
+}
+
 const respondWith = (responseValue: text) => (fn: () ={Stdio}> void) => {
     handle! fn {
         Stdio.read(() => k) => k(responseValue),
@@ -21,3 +29,5 @@ const test1 = () => {
         log("Dones")
     })
 }
+
+sayHi()

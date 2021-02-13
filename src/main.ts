@@ -102,7 +102,7 @@ const main = (fname: string, dest: string) => {
     env.builtinTypes['int'] = 0;
     env.builtinTypes['text'] = 0;
 
-    const out = [];
+    const out = ['const log = console.log'];
     for (const item of parsed) {
         if (item.type === 'define') {
             const t = typeExpr(env, item.expr);
@@ -136,6 +136,10 @@ const main = (fname: string, dest: string) => {
                 env.effectConstructors[c.id.text] = { idx: i, hash: h };
             });
             env.effects[h] = constrs;
+        } else {
+            const t = typeExpr(env, item);
+            out.push(`// ${printType(env, t.is)}`);
+            out.push(printTerm(env, t));
         }
     }
     if (dest === '-' || !dest) {

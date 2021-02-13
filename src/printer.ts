@@ -65,9 +65,9 @@ export const printTerm = (env: Env, term: Term): string => {
                 .map((arg) => printTerm(env, arg))
                 .join(', ')})`;
         case 'raise':
-            return `throw new Error("what")`;
+            return `new Error("what")`;
         case 'handle':
-            return 'throw new Error("Handline")';
+            return 'new Error("Handline")';
         default:
             throw new Error(`Cannot print ${term.type}`);
     }
