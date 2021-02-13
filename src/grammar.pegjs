@@ -71,8 +71,6 @@ Int "int"
 Text = "\"" ( "\\" . / [^"\\])+ "\"" {return {type: 'text', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
 Identifier = [0-9a-zA-Z_]+ {return {type: "id", text: text(), location: location()}}
 
-
-
 _ "whitespace"
   = [ \t\n\r]*
 __ "whitespace"

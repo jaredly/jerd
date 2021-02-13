@@ -1,4 +1,4 @@
-import { parse } from './simple-grammar';
+import { parse } from './grammar';
 
 export type Toplevel = Define | Deffect | Deftype;
 export type Loc = { offset: number; line: number; column: number };

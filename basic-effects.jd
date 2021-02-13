@@ -1,0 +1,21 @@
+
+effect Stdio {
+    read: () => string,
+    write: (string) => unit,
+}
+
+const respondWith = (responseValue: text) => (fn) => {
+    handle! fn {
+        Stdio.read(() => k) => k(text),
+        Stdio.write((v) => k) => {
+            log(v);
+            k()
+        },
+    }
+}
+
+const test1 = () => {
+    respondWith("hello")(() => {
+        raise!(Stdio.read())
+    })
+}
