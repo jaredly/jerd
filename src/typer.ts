@@ -56,7 +56,7 @@ export type Term =
           type: 'lambda';
           args: Array<Symbol>;
           body: Term;
-          is: Type;
+          is: LambdaType;
       }
     | {
           type: 'sequence';
@@ -67,14 +67,14 @@ export type Term =
     | {
           type: 'apply';
           target: Term;
-          effects: Array<Reference>;
+          argsEffects: Array<Reference>;
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };
 
 export const getEffects = (t: Term): Array<Reference> => {
     if (t.type === 'apply') {
-        return t.effects;
+        return t.argsEffects.concat(getEffects(t.target));
     } else if (t.type === 'sequence') {
         return t.effects;
     } else if (t.type === 'raise') {
@@ -91,18 +91,18 @@ export type TypeRef =
       }
     | { type: 'var'; sym: Symbol };
 
-export type Type =
-    | TypeRef
-    | {
-          type: 'lambda';
-          // TODO type variables!
-          // TODO optional arguments!
-          // TODO modular implicits!
-          args: Array<Type>;
-          effects: Array<Reference>;
-          rest: Type | null;
-          res: Type;
-      };
+export type Type = TypeRef | LambdaType;
+
+export type LambdaType = {
+    type: 'lambda';
+    // TODO type variables!
+    // TODO optional arguments!
+    // TODO modular implicits!
+    args: Array<Type>;
+    effects: Array<Reference>;
+    rest: Type | null;
+    res: Type;
+};
 
 export type Env = {
     names: { [key: string]: Id };
@@ -317,7 +317,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     type: 'apply',
                     target,
                     args: resArgs,
-                    effects,
+                    argsEffects: effects,
                     is: is.res,
                 };
             }

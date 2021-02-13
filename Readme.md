@@ -15,6 +15,10 @@ Basic idea:
 - at the end, try to unify all constraints. This can be polynomial time or something, it's fine.
 
 
+## CPS how do we do it now.
+
+So basically I'm thinking: Every function is either CPS or Pure.
+Some functions are generic, so can be both. And those will have a hash_XYZ_pure and hash_XYZ.
 
 ## Code is referenced by-hash, not by-name
 

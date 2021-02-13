@@ -1,6 +1,9 @@
 
+# Status
 
+Ok I think simple-handlers.test.ts has stuff
 
+Ok string concat.
 
 
 # Mapping out how abilities work
@@ -11,7 +14,7 @@ Raise's are the source of effects.
 
 There are a couple ways to do it.
 
-It looks like Eff captures the state explicitly in the effect execution context.
+It looks like Eff-Idris captures the state explicitly in the effect execution context.
 
 ```
 instance Handler State m where
@@ -21,6 +24,9 @@ instance Handler State m where
 
 So `put` actually creates the context ...
 and ... well handlers are registered globally, which is difficult.
+
+
+
 
 Ok so what unison does, is:
 
@@ -56,6 +62,58 @@ t = eq (outer '(Two.two, One.one)) ("outer", "inner")
 
 
 
+Ok so I'll want to implement the examples from the eff paper https://www.eff-lang.org/handlers-tutorial.pdf so ensure that I'm handling things correctly.
+
+A good example that exercises the re-entrance of the `k` is:
+
+
+```
+(define (choose a b)
+    (if (decide)
+        a
+        b)
+
+(define (chooseDiff)
+    (let [x (choose 15 30)
+          y (choose 5 10)]
+        (- x y)))
+
+(define (pickMax f)
+    (handle! f
+        (decide () => k) =>
+            (let [t (pickMax '(k true))
+                  f (pickMax '(k false))]
+                (max t f))
+        x => x))
+
+(define test (pickMax chooseDiff))
+```
+
+Ok what would this look like in js?
+
+```
+
+const choose = (a, b, handlers, k) => {
+    return handlers.decide(v => k(v ? a : b))
+}
+
+const chooseDiff = (handlers, k) => {
+    return choose(15, 30, handlers, x => {
+        reutrn choose(5, 10, handlers, y => {
+            return k(x - y)
+        })
+    })
+}
+
+const pickMax = f => {
+    f({decide: (k) => {
+        const t = pickMax((handlers, k2) => k2(k(true)));
+        const f = pickMax((handlers, k2) => k2(k(false)));
+        return Math.max(t, f)
+    }}, x => x)
+}
+
+```
 
 
 
