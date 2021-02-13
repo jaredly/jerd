@@ -22,6 +22,26 @@ export type Term =
           is: Type;
       }
     | {
+          type: 'handle';
+          target: Term; // this must needs be typed as a LambdaType
+          // These are the target's effects minus the one that is handled here.
+          effects: Array<Reference>;
+          effect: Reference;
+          cases: Array<{
+              constr: number; // the index
+              args: Array<Symbol>;
+              k: Symbol;
+              body: Term;
+          }>;
+          pure: {
+              arg: Symbol;
+              body: Term;
+          };
+          // this is the type of the bodies of the cases
+          // also of the pure, which is maybe simplest
+          is: Type;
+      }
+    | {
           type: 'var';
           sym: Symbol;
           is: Type;
@@ -70,11 +90,14 @@ export type TypeRef =
           ref: Reference;
       }
     | { type: 'var'; sym: Symbol };
+
 export type Type =
     | TypeRef
     | {
           type: 'lambda';
+          // TODO type variables!
           // TODO optional arguments!
+          // TODO modular implicits!
           args: Array<Type>;
           effects: Array<Reference>;
           rest: Type | null;
@@ -90,8 +113,14 @@ export type Env = {
     builtinTypes: { [key: string]: number };
     types: { [key: string]: number };
 
-    effectNames: { [key: string]: { hash: string; idx: number } };
-    effects: { [key: string]: Array<Type> };
+    effectNames: { [key: string]: string };
+    effectConstructors: { [key: string]: { hash: string; idx: number } };
+    effects: {
+        [key: string]: {
+            args: Array<Type>;
+            ret: Type;
+        };
+    };
     // oh here's where we would do kind?
     // like args n stuff?
 
@@ -108,6 +137,7 @@ export const newEnv = (): Env => ({
     types: {},
 
     effectNames: {},
+    effectConstructors: {},
     effects: {},
 
     locals: {},
@@ -122,6 +152,7 @@ export const subEnv = (env: Env): Env => ({
     locals: { ...env.locals },
 
     effectNames: { ...env.effectNames },
+    effectConstructors: { ...env.effectConstructors },
     effects: { ...env.effects },
 });
 
@@ -325,10 +356,95 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 },
             };
         }
+        case 'handle': {
+            const target = typeExpr(env, expr.target);
+            let effName = expr.cases[0].name;
+            if (expr.cases.some((c) => c.name.text !== effName.text)) {
+                throw new Error(
+                    `Can't handle multiple effects in one handler.`,
+                );
+            }
+            const effId = env.effectNames[effName.text];
+            if (!effId) {
+                throw new Error(`No effect named ${effName.text}`);
+            }
+            const constrs = env.effects[effId];
+            const effect: Reference = {
+                type: 'user',
+                id: { hash: effId, size: 1, pos: 0 },
+            };
+            const effects = getEffects(target).filter(
+                (e) => !deepEqual(effect, e),
+            );
+
+            if (target.is.type !== 'lambda') {
+                throw new Error(`Target of a handle must be a lambda`);
+            }
+            if (target.is.args.length !== 0) {
+                throw new Error(`Target of a handle must take 0 args`);
+            }
+            const targetReturn = target.is.res;
+
+            // but then, effects found in the bodies also get added.
+            // so we'll need some deduping
+            const inner = subEnv(env);
+            const unique = Object.keys(inner.locals).length;
+            const sym = { name: expr.pure.arg.text, unique };
+            inner.locals[expr.pure.arg.text] = { sym, type: targetReturn };
+            const pure = typeExpr(inner, expr.pure.body);
+
+            effects.push(...getEffects(pure));
+
+            const cases = [];
+            expr.cases.forEach((kase) => {
+                const constr = env.effectConstructors[kase.constr.text];
+                const inner = subEnv(env);
+                const args = kase.args.map((id, i) => {
+                    const unique = Object.keys(inner.locals).length;
+                    const sym = { name: id.text, unique };
+                    inner.locals[id.text] = {
+                        sym,
+                        type: constrs[constr.idx].args[i],
+                    };
+                });
+                const unique = Object.keys(inner.locals).length;
+                const k = { name: kase.k.text, unique };
+                inner.locals[k.name] = {
+                    sym: k,
+                    type: constrs[constr.idx].ret,
+                };
+
+                const body = typeExpr(inner, kase.body);
+                if (!deepEqual(body.is, pure.is)) {
+                    throw new Error(
+                        `All case arms must have the same return type`,
+                    );
+                }
+
+                cases.push({
+                    constr: constr.idx,
+                    args,
+                    k,
+                    body,
+                });
+            });
+
+            // STOPSHIP START HERE
+            return {
+                type: 'handle',
+                target,
+                effect,
+                effects: dedupEffects(effects),
+                cases,
+                pure: { arg: sym, body: pure },
+                is: pure.is,
+            };
+        }
         case 'raise': {
-            const effid = env.effectNames[expr.id.text];
+            // um id vs constr?
+            const effid = env.effectConstructors[expr.constr.text];
             if (!effid) {
-                throw new Error(`Unknown effect ${expr.id.text}`);
+                throw new Error(`Unknown effect ${expr.constr.text}`);
             }
             const eff = env.effects[effid.hash][effid.idx];
             if (eff.type !== 'lambda') {
@@ -369,6 +485,18 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         default:
             throw new Error(`Unexpected parse type ${expr.type}`);
     }
+};
+
+const dedupEffects = (effects) => {
+    const used = {};
+    return effects.filter((e) => {
+        const k = e.type === 'builtin' ? e.name : e.id.hash;
+        if (used[k]) {
+            return false;
+        }
+        used[k] = true;
+        return true;
+    });
 };
 
 const maybeSeq = (env: Env, sts): Term => {

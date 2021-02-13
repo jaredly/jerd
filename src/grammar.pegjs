@@ -43,7 +43,15 @@ Block = "{" _ one:Expression rest:(_ ";" _ Expression)* ";"? _ "}" {
 
 Raise = "raise!" _ "(" name:Identifier "." constr:Identifier _ "(" args:CommaExpr? ")" _ ")" {return {type: 'raise', name, constr, args}}
 
-Handle = "handle!" _ target:Expression _ "{" _ cases:(Case _)+ _ "}" {return {type: 'handle', target, cases: cases.map(c => c[0])}}
+Handle = "handle!" _ target:Expression _ "{" _
+cases:(Case _)+ _
+"pure" _ "(" _ pureId:Identifier _ ")" _ "=>" _ pureBody:Expression _
+"}" {return {
+    type: 'handle',
+    target,
+    cases: cases.map(c => c[0]),
+    pure: {arg: pureId, body: pureBody},
+    }}
 
 Case = name:Identifier "." constr:Identifier _ "(" _ "(" _ args:CommaPat? _ ")" _ "=>" _ k:Identifier _ ")" _ "=>" _ body:Expression _ "," {
 	return {type: 'case', name, constr, args, k, body}

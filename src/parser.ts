@@ -33,7 +33,14 @@ export type Define = {
 //     attrs: Array<{ id: Identifier; args: Array<Type> }>;
 // };
 
-export type Expression = Literal | Apply | Lambda | Raise | Ops | Block;
+export type Expression =
+    | Literal
+    | Apply
+    | Lambda
+    | Raise
+    | Ops
+    | Block
+    | Handle;
 export type Ops = {
     type: 'ops';
     first: Expression;

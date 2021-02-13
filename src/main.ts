@@ -109,6 +109,8 @@ const main = (fname: string, dest: string) => {
             //         constrs.push(typeType(env, constr.type));
             //     });
             //     env.effects[h] = constrs;
+        } else if (item.type === 'effect') {
+            throw new Error('TODO');
         }
     }
     if (dest === '-' || !dest) {
