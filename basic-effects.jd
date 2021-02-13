@@ -1,12 +1,12 @@
 
 effect Stdio {
-    read: () => string,
-    write: (string) => unit,
+    read: () => text,
+    write: (text) => void,
 }
 
-const respondWith = (responseValue: text) => (fn) => {
+const respondWith = (responseValue: text) => (fn: () => void) => {
     handle! fn {
-        Stdio.read(() => k) => k(text),
+        Stdio.read(() => k) => k(responseValue),
         Stdio.write((v) => k) => {
             log(v);
             k()

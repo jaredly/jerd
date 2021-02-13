@@ -4,6 +4,7 @@ export type Toplevel = Define | Effect | Expression;
 
 export type Effect = {
     type: 'effect';
+    // TODO type variables!
     id: Identifier;
     constrs: Array<{ id: Identifier; type: LambdaType }>;
 };

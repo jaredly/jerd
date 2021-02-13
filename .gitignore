@@ -1,5 +1,6 @@
 /target
 node_modules
 main.js
+main.js.map
 *.jd.js
 env.json

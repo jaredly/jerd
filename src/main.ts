@@ -75,6 +75,8 @@ and thats ok
 // };
 
 const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
+const text: Type = { type: 'ref', ref: { type: 'builtin', name: 'text' } };
+const void_: Type = { type: 'ref', ref: { type: 'builtin', name: 'void' } };
 
 const main = (fname: string, dest: string) => {
     const raw = fs.readFileSync(fname, 'utf8');
@@ -88,7 +90,15 @@ const main = (fname: string, dest: string) => {
         rest: null,
         res: int,
     };
+    env.builtins['log'] = {
+        type: 'lambda',
+        args: [text],
+        effects: [],
+        rest: null,
+        res: void_,
+    };
     env.builtinTypes['unit'] = 0;
+    env.builtinTypes['void'] = 0;
     env.builtinTypes['int'] = 0;
     env.builtinTypes['text'] = 0;
 
@@ -110,7 +120,22 @@ const main = (fname: string, dest: string) => {
             //     });
             //     env.effects[h] = constrs;
         } else if (item.type === 'effect') {
-            throw new Error('TODO');
+            console.log(item.constrs);
+            // throw new Error('TODO');
+            const constrs = item.constrs.map(({ type }) => {
+                return {
+                    args: type.args
+                        ? type.args.map((a) => typeType(env, a))
+                        : [],
+                    ret: typeType(env, type.res),
+                };
+            });
+            const h: string = hash(constrs);
+            env.effectNames[item.id.text] = h;
+            item.constrs.forEach((c, i) => {
+                env.effectConstructors[c.id.text] = { idx: i, hash: h };
+            });
+            env.effects[h] = constrs;
         }
     }
     if (dest === '-' || !dest) {

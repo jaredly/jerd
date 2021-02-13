@@ -196,7 +196,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c22 = peg$literalExpectation(")", false);
   const peg$c23 = function(sub: any, args: any): any {
   	if (args.length) {
-      	return {type: 'apply', target: sub, args: args.map(a => a[2])}
+      	return {type: 'apply', target: sub, args: args.map(a => a[2] || [])}
       } else {
       	return sub
       }
@@ -210,7 +210,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c28 = peg$literalExpectation("raise!", false);
   const peg$c29 = ".";
   const peg$c30 = peg$literalExpectation(".", false);
-  const peg$c31 = function(name: any, constr: any, args: any): any {return {type: 'raise', name, constr, args}};
+  const peg$c31 = function(name: any, constr: any, args: any): any {return {type: 'raise', name, constr, args: args || []}};
   const peg$c32 = "handle!";
   const peg$c33 = peg$literalExpectation("handle!", false);
   const peg$c34 = "pure";
@@ -224,10 +224,10 @@ function peg$parse(input: string, options?: IParseOptions) {
       pure: {arg: pureId, body: pureBody},
       }};
   const peg$c39 = function(name: any, constr: any, args: any, k: any, body: any): any {
-  	return {type: 'case', name, constr, args, k, body}
+  	return {type: 'case', name, constr, args: args || [], k, body}
   };
   const peg$c40 = function(first: any, rest: any): any {return [first, ...rest.map(r => r[3])]};
-  const peg$c41 = function(args: any, body: any): any {return {type: 'lambda', args, body}};
+  const peg$c41 = function(args: any, body: any): any {return {type: 'lambda', args: args || [], body}};
   const peg$c42 = function(id: any, type: any): any {return {id, type: type ? type[2] : null}};
   const peg$c43 = "+";
   const peg$c44 = peg$literalExpectation("+", false);
@@ -241,7 +241,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c52 = peg$literalExpectation("^", false);
   const peg$c53 = "|";
   const peg$c54 = peg$literalExpectation("|", false);
-  const peg$c55 = function(args: any, res: any): any { return {type: 'lambda', args, res} };
+  const peg$c55 = function(args: any, res: any): any { return {type: 'lambda', args: args || [], res} };
   const peg$c56 = peg$otherExpectation("int");
   const peg$c57 = /^[0-9]/;
   const peg$c58 = peg$classExpectation([["0", "9"]], false, false);

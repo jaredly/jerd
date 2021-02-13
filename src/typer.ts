@@ -116,10 +116,10 @@ export type Env = {
     effectNames: { [key: string]: string };
     effectConstructors: { [key: string]: { hash: string; idx: number } };
     effects: {
-        [key: string]: {
+        [key: string]: Array<{
             args: Array<Type>;
             ret: Type;
-        };
+        }>;
     };
     // oh here's where we would do kind?
     // like args n stuff?
@@ -263,13 +263,19 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const { is } = target;
                 if (is.type !== 'lambda') {
                     throw new Error(
-                        `Trying to call ${JSON.stringify(expr)} but its a ${
-                            is.type
-                        }`,
+                        `Trying to call ${JSON.stringify(
+                            expr.target,
+                        )} but its a ${is.type} : ${JSON.stringify(is)}`,
                     );
                 }
-                if (is.args.length !== args.length - 1) {
-                    throw new Error(`Wrong number of arguments`);
+                if (is.args.length !== args.length) {
+                    throw new Error(
+                        `Wrong number of arguments ${JSON.stringify(
+                            expr,
+                            null,
+                            2,
+                        )}`,
+                    );
                 }
                 const effects = [];
                 const resArgs = [];
@@ -358,6 +364,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         }
         case 'handle': {
             const target = typeExpr(env, expr.target);
+            console.log(target);
             let effName = expr.cases[0].name;
             if (expr.cases.some((c) => c.name.text !== effName.text)) {
                 throw new Error(
@@ -376,6 +383,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const effects = getEffects(target).filter(
                 (e) => !deepEqual(effect, e),
             );
+            const otherEffects = effects.slice();
 
             if (target.is.type !== 'lambda') {
                 throw new Error(`Target of a handle must be a lambda`);
@@ -397,21 +405,28 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
 
             const cases = [];
             expr.cases.forEach((kase) => {
-                const constr = env.effectConstructors[kase.constr.text];
+                const idx = env.effectConstructors[kase.constr.text].idx;
+                const constr = constrs[idx];
                 const inner = subEnv(env);
                 const args = kase.args.map((id, i) => {
                     const unique = Object.keys(inner.locals).length;
                     const sym = { name: id.text, unique };
                     inner.locals[id.text] = {
                         sym,
-                        type: constrs[constr.idx].args[i],
+                        type: constr.args[i],
                     };
                 });
                 const unique = Object.keys(inner.locals).length;
                 const k = { name: kase.k.text, unique };
                 inner.locals[k.name] = {
                     sym: k,
-                    type: constrs[constr.idx].ret,
+                    type: {
+                        type: 'lambda',
+                        args: isVoid(constr.ret) ? [] : [constr.ret],
+                        effects: otherEffects,
+                        rest: null,
+                        res: targetReturn,
+                    },
                 };
 
                 const body = typeExpr(inner, kase.body);
@@ -422,7 +437,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 }
 
                 cases.push({
-                    constr: constr.idx,
+                    constr: idx,
                     args,
                     k,
                     body,
@@ -447,11 +462,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 throw new Error(`Unknown effect ${expr.constr.text}`);
             }
             const eff = env.effects[effid.hash][effid.idx];
-            if (eff.type !== 'lambda') {
-                throw new Error(
-                    `Non-lambda effect constructor ${JSON.stringify(eff)}`,
-                );
-            }
+            // if (eff.type !== 'lambda') {
+            //     throw new Error(
+            //         `Non-lambda effect constructor ${JSON.stringify(eff)}`,
+            //     );
+            // }
             if (eff.args.length !== expr.args.length) {
                 throw new Error(`Effect constructor wrong number of args`);
             }
@@ -479,12 +494,18 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 ref,
                 effects,
                 args,
-                is: eff.res,
+                is: eff.ret,
             };
         }
         default:
             throw new Error(`Unexpected parse type ${expr.type}`);
     }
+};
+
+const isVoid = (x: Type) => {
+    return (
+        x.type === 'ref' && x.ref.type === 'builtin' && x.ref.name === 'void'
+    );
 };
 
 const dedupEffects = (effects) => {
