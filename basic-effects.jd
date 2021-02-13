@@ -4,7 +4,7 @@ effect Stdio {
     write: (text) => void,
 }
 
-const respondWith = (responseValue: text) => (fn: () => void) => {
+const respondWith = (responseValue: text) => (fn: () ={Stdio}> void) => {
     handle! fn {
         Stdio.read(() => k) => k(responseValue),
         Stdio.write((v) => k) => {
@@ -17,6 +17,7 @@ const respondWith = (responseValue: text) => (fn: () => void) => {
 
 const test1 = () => {
     respondWith("hello")(() => {
-        raise!(Stdio.read())
+        raise!(Stdio.read());
+        log("Dones")
     })
 }

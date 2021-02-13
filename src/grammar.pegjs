@@ -29,7 +29,7 @@ Expression = first:Binsub rest:(_ binop _ Binsub)* {
 }
 Binsub = sub:Apsub args:("(" _ CommaExpr? _ ")")* {
 	if (args.length) {
-    	return {type: 'apply', target: sub, args: args.map(a => a[2] || [])}
+    	return {type: 'apply', target: sub, args: args.map(a => a[2] || []), location: location()}
     } else {
     	return sub
     }
@@ -44,8 +44,8 @@ Block = "{" _ one:Expression rest:(_ ";" _ Expression)* ";"? _ "}" {
 Raise = "raise!" _ "(" name:Identifier "." constr:Identifier _ "(" args:CommaExpr? ")" _ ")" {return {type: 'raise', name, constr, args: args || []}}
 
 Handle = "handle!" _ target:Expression _ "{" _
-cases:(Case _)+ _
-"pure" _ "(" _ pureId:Identifier _ ")" _ "=>" _ pureBody:Expression _
+    cases:(Case _)+ _
+    "pure" _ "(" _ pureId:Identifier _ ")" _ "=>" _ pureBody:Expression _
 "}" {return {
     type: 'handle',
     target,
@@ -74,7 +74,13 @@ Binop = Expression
 
 Type = LambdaType / Identifier
 CommaType = first:Type rest:(_ "," _ Type)* {return [first, ...rest.map(r => r[3])]}
-LambdaType = "(" _ args:CommaType? _ ")" _ "=>" _ res:Type { return {type: 'lambda', args: args || [], res} }
+
+LambdaType = "(" _ args:CommaType? _ ")" _ "="
+    effects:("{" _ CommaEffects? _ "}")?
+">" _ res:Type { return {type: 'lambda', args: args || [], effects: effects ? effects[2] || [] : [] , res} }
+CommaEffects =
+    first:Identifier rest:(_ "," _ Identifier)* {return [first, ...rest.map(r => r[3])]}
+
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 Text = "\"" ( "\\" . / [^"\\])+ "\"" {return {type: 'text', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}

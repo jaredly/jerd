@@ -66,6 +66,8 @@ export const printTerm = (env: Env, term: Term): string => {
                 .join(', ')})`;
         case 'raise':
             return `throw new Error("what")`;
+        case 'handle':
+            return 'throw new Error("Handline")';
         default:
             throw new Error(`Cannot print ${term.type}`);
     }

@@ -80,6 +80,7 @@ export type Type = Identifier | LambdaType;
 export type LambdaType = {
     type: 'lambda';
     args: Array<Type>;
+    effects: Array<Identifier>;
     res: Type;
 };
 // {
@@ -94,6 +95,7 @@ export type Apply = {
     type: 'apply';
     target: Expression;
     args: Array<Array<Expression>>;
+    location: { start: Loc; end: Loc };
 };
 
 export default (raw: string): Array<Toplevel> => parse(raw);

@@ -180,6 +180,7 @@ const fitsExpectation = (t: Type, target: Type) => {
             if (!fitsExpectation(t.res, target.res)) {
                 return false;
             }
+            // STOPSHIP: verify the effects!
             for (let i = 0; i < t.args.length; i++) {
                 if (!fitsExpectation(t.args[i], target.args[i])) {
                     return false;
@@ -193,6 +194,7 @@ export const typeType = (env: Env, type: ParseType): Type => {
     if (!type) {
         return null;
     }
+    // console.log('TYPEING TYPE', type);
     switch (type.type) {
         case 'id': {
             if (env.typeNames[type.text] != null) {
@@ -214,10 +216,23 @@ export const typeType = (env: Env, type: ParseType): Type => {
         }
 
         case 'lambda':
+            // console.log('LAM', type);
             return {
                 type: 'lambda',
                 args: type.args.map((a) => typeType(env, a)),
-                effects: [], // TODO what um. Do all Terms need an effect?
+                effects: type.effects.map((id) => {
+                    if (!env.effectNames[id.text]) {
+                        throw new Error(`No effect named ${id.text}`);
+                    }
+                    return {
+                        type: 'user',
+                        id: {
+                            hash: env.effectNames[id.text],
+                            pos: 0,
+                            size: 1,
+                        },
+                    };
+                }), // TODO what um. Do all Terms need an effect?
                 // like, these are the effects ... of executing this term?
                 // and then a lamhda has none?
                 // ok so just apply and sequence I should think, right?
@@ -283,9 +298,15 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     const t = typeExpr(env, term, is.args[i]);
                     if (!fitsExpectation(t.is, is.args[i])) {
                         throw new Error(
-                            `Wrong type for arg ${i}: ${JSON.stringify(
+                            `Wrong type for arg ${i}: \n${JSON.stringify(
                                 t.is,
-                            )}, expected ${JSON.stringify(is.args[i])}`,
+                                null,
+                                2,
+                            )}, expected \n${JSON.stringify(
+                                is.args[i],
+                                null,
+                                2,
+                            )} : ${JSON.stringify(expr.location)}`,
                         );
                     }
                     resArgs.push(t);
@@ -302,7 +323,15 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             }
             return target;
         }
-        case 'id':
+        case 'id': {
+            if (env.locals[expr.text]) {
+                const { sym, type } = env.locals[expr.text];
+                return {
+                    type: 'var',
+                    sym,
+                    is: type,
+                };
+            }
             if (env.names[expr.text]) {
                 const id = env.names[expr.text];
                 const term = env.terms[id.hash];
@@ -324,16 +353,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     ref: { type: 'builtin', name: expr.text },
                 };
             }
-            if (env.locals[expr.text]) {
-                const { sym, type } = env.locals[expr.text];
-                return {
-                    type: 'var',
-                    sym,
-                    is: type,
-                };
-            }
             console.log(env.locals);
             throw new Error(`Undefined identifier ${expr.text}`);
+        }
         case 'lambda': {
             // ok here's where we do a little bit of inference?
             // or do I just say "all is specified, we can infer in the IDE"?

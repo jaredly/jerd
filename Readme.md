@@ -5,6 +5,17 @@ a language, I think
 
 Features:
 
+## Some local type inference
+
+because I'll need it I assume.
+
+Basic idea:
+- whenever I come across an undetermined type, add a type arg to the local env
+- when I encounter a constraint on the type, add that constraint to a list
+- at the end, try to unify all constraints. This can be polynomial time or something, it's fine.
+
+
+
 ## Code is referenced by-hash, not by-name
 
 - renames don't break things
@@ -73,6 +84,17 @@ and add tracing?
 
 
 
+the type of raise! is
+Effect<'b> => 'b
+
+the type of handle!<Effect<'a>>
+(
+    () ={'a, e}> 'b,
+    'a ={f}> 'c, // impure case. where does 'b go here?
+    'b ={g}> 'c  // pure case
+) ={e + f + g}> 'c
+
+
 
 ; ('a, () ={Store 'a, 'e}> 'b) ={'e}> 'b
 (define (withInitialValue v f)
@@ -82,6 +104,49 @@ and add tracing?
         (pure x) => x
         )
 )
+
+; () ={Store int}> int
+(define (example)
+    (raise! (set (+ (raise! (get)) 4)))
+    (raise! (get))
+    )
+
+(define test1 
+    (==
+        5
+        (withInitialValue 1 example)))
+
+
+// if there's a way to do pure
+const test1 = 5 == withInitialValue_pure(1, example)
+
+// otherwise, everything has a continuation, ugh
+const test1 = k => withInitialValue(1, example, [], res => k(5 == res))
+
+const example = ()
+
+
+
+
+
+
+const withInitialState = (v, f, handlers, k) => {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
