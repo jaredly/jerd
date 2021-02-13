@@ -12,9 +12,9 @@ ok nvm, no go. would be cool though.
 
 File = _ s:(Toplevel _)+ {return s.map(s => s[0])}
 
-Toplevel = Const / Effect / Expression
+Toplevel = Define / Effect / Expression
 
-Const = "const" __ id:Identifier __ "=" __ expr:Expression {return {type: 'define', id, expr}}
+Define = "const" __ id:Identifier __ "=" __ expr:Expression {return {type: 'define', id, expr}}
 
 Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {type: 'effect', id, constrs: constrs.map(c => c[0])}}
 
@@ -36,7 +36,8 @@ Binsub = sub:Apsub args:("(" _ CommaExpr? _ ")")* {
 }
 Apsub = Block / Lambda / Handle / Raise / Literal
 
-Block = "{" _ one:Toplevel rest:(_ ";" _ Toplevel)* ";"? _ "}" {
+// TODO: Allow 'const' declarations n stuff in a block
+Block = "{" _ one:Expression rest:(_ ";" _ Expression)* ";"? _ "}" {
     return {type: 'block', items: [one, ...rest.map(r => r[3])]}
 }
 

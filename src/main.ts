@@ -95,20 +95,20 @@ const main = (fname: string, dest: string) => {
     const out = [];
     for (const item of parsed) {
         if (item.type === 'define') {
-            const t = typeExpr(env, item.exp);
+            const t = typeExpr(env, item.expr);
             const h: string = hash(t);
             env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
             env.terms[h] = t;
             out.push(`// ${printType(env, t.is)}`);
             out.push(`const hash_${h} = ` + printTerm(env, t));
-        } else if (item.type === 'deffect') {
-            const h: string = hash(item);
-            const constrs = [];
-            item.constrs.forEach((constr, i) => {
-                env.effectNames[constr.id.text] = { hash: h, idx: i };
-                constrs.push(typeType(env, constr.type));
-            });
-            env.effects[h] = constrs;
+            // } else if (item.type === 'deffect') {
+            //     const h: string = hash(item);
+            //     const constrs = [];
+            //     item.constrs.forEach((constr, i) => {
+            //         env.effectNames[constr.id.text] = { hash: h, idx: i };
+            //         constrs.push(typeType(env, constr.type));
+            //     });
+            //     env.effects[h] = constrs;
         }
     }
     if (dest === '-' || !dest) {

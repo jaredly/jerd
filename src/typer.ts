@@ -159,6 +159,9 @@ const fitsExpectation = (t: Type, target: Type) => {
 };
 
 export const typeType = (env: Env, type: ParseType): Type => {
+    if (!type) {
+        return null;
+    }
     switch (type.type) {
         case 'id': {
             if (env.typeNames[type.text] != null) {
@@ -208,41 +211,59 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 text: expr.text,
                 is: { type: 'ref', ref: { type: 'builtin', name: 'text' } },
             };
+        case 'block': {
+            // TODO: maybeSeq?
+            const inner = expr.items.map((s) => typeExpr(env, s));
+            return {
+                type: 'sequence',
+                sts: inner,
+                effects: [].concat(...inner.map(getEffects)),
+                is: inner[inner.length - 1].is,
+            };
+
+            // return {
+            //     type: 'sequence',
+            //     sts: []
+            // }
+        }
         case 'apply': {
-            const target = typeExpr(env, expr.terms[0]);
-            const { is } = target;
-            if (is.type !== 'lambda') {
-                throw new Error(
-                    `Trying to call ${JSON.stringify(expr)} but its a ${
-                        is.type
-                    }`,
-                );
-            }
-            if (is.args.length !== expr.terms.length - 1) {
-                throw new Error(`Wrong number of arguments`);
-            }
-            const effects = [];
-            const args = [];
-            expr.terms.slice(1).forEach((term, i) => {
-                const t = typeExpr(env, term, is.args[i]);
-                if (!fitsExpectation(t.is, is.args[i])) {
+            let target = typeExpr(env, expr.target);
+            for (let args of expr.args) {
+                const { is } = target;
+                if (is.type !== 'lambda') {
                     throw new Error(
-                        `Wrong type for arg ${i}: ${JSON.stringify(
-                            t.is,
-                        )}, expected ${JSON.stringify(is.args[i])}`,
+                        `Trying to call ${JSON.stringify(expr)} but its a ${
+                            is.type
+                        }`,
                     );
                 }
-                args.push(t);
-                effects.push(...getEffects(t));
-            });
+                if (is.args.length !== args.length - 1) {
+                    throw new Error(`Wrong number of arguments`);
+                }
+                const effects = [];
+                const resArgs = [];
+                args.forEach((term, i) => {
+                    const t = typeExpr(env, term, is.args[i]);
+                    if (!fitsExpectation(t.is, is.args[i])) {
+                        throw new Error(
+                            `Wrong type for arg ${i}: ${JSON.stringify(
+                                t.is,
+                            )}, expected ${JSON.stringify(is.args[i])}`,
+                        );
+                    }
+                    resArgs.push(t);
+                    effects.push(...getEffects(t));
+                });
 
-            return {
-                type: 'apply',
-                target,
-                args,
-                effects,
-                is: is.res,
-            };
+                target = {
+                    type: 'apply',
+                    target,
+                    args: resArgs,
+                    effects,
+                    is: is.res,
+                };
+            }
+            return target;
         }
         case 'id':
             if (env.names[expr.text]) {
@@ -290,7 +311,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 args.push(sym);
                 argst.push(type);
             });
-            const body = maybeSeq(inner, expr.sts);
+            const body = typeExpr(inner, expr.body);
             return {
                 type: 'lambda',
                 args,
