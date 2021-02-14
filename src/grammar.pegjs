@@ -87,6 +87,7 @@ Text = "\"" ( "\\" . / [^"\\])+ "\"" {return {type: 'text', text: JSON.parse(tex
 Identifier = [0-9a-zA-Z_]+ {return {type: "id", text: text(), location: location()}}
 
 _ "whitespace"
-  = [ \t\n\r]*
+  = [ \t\n\r]* (comment _)*
 __ "whitespace"
-  = [ \t\n\r]+
+  = [ \t\n\r]+ (comment _)*
+comment = "/*" (!"*/" .)* "*/"

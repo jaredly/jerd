@@ -23,11 +23,32 @@ const respondWith = (responseValue: text) => (fn: () ={Stdio}> void) => {
     }
 }
 
-const test1 = () => {
-    respondWith("hello")(() => {
-        raise!(Stdio.read());
-        log("Dones")
+/*
+should become
+const inner = (handlers, done) => {
+    log("getting");
+    raise(handlers, "hash", 0, (handlers, arg1) => {
+        const arg2 = " and ";
+        raise(handlers, "hash", 0, (handlers, arg2) => {
+            log(arg1 + arg2 + arg3);
+            const arg1 = "And then ";
+            raise(handlers, "hash", 0, (handlers, arg2) => {
+                log(arg1 + arg2)
+                log("Dones");
+            })
+        })
     })
+}
+*/
+const inner = () => {
+    log("getting");
+    log(raise!(Stdio.read()) ++ " and " ++ raise!(Stdio.read()));
+    log("And then " ++ raise!(Stdio.read()))
+    log("Dones")
+}
+
+const test1 = () => {
+    respondWith("hello")(inner)
 }
 
 sayHi()
