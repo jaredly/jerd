@@ -12,6 +12,7 @@ export type CPSAble =
     | {
           type: 'raise';
           ref: Reference;
+          idx: number;
           args: Array<Term>;
           argsEffects: Array<Reference>;
           effects: Array<Reference>;
@@ -441,7 +442,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const effects = getEffects(target).filter(
                 (e) => !deepEqual(effect, e),
             );
-            const otherEffects = effects.slice();
+            const otherEffects = effects.concat(effect);
+            // const otherEffects = effects.slice();
 
             if (target.is.type !== 'lambda') {
                 throw new Error(`Target of a handle must be a lambda`);
@@ -473,9 +475,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         sym,
                         type: constr.args[i],
                     };
+                    return sym;
                 });
                 const unique = Object.keys(inner.locals).length;
                 const k = { name: kase.k.text, unique };
+                console.log('effects', otherEffects);
                 inner.locals[k.name] = {
                     sym: k,
                     type: {
@@ -550,6 +554,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return {
                 type: 'raise',
                 ref,
+                idx: effid.idx,
                 argsEffects,
                 effects: [ref],
                 args,

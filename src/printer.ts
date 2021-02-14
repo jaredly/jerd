@@ -192,6 +192,7 @@ export const termToAstCPS = (
             const args: Array<t.Expression> = [
                 t.identifier('handlers'),
                 t.stringLiteral(term.ref.id.hash),
+                t.numericLiteral(term.idx),
             ];
             if (term.args.length === 0) {
                 args.push(t.nullLiteral());
@@ -390,10 +391,42 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             //     .join(', ')})`;
         }
         case 'raise':
-            return t.identifier('raise_wat');
+            throw new Error(
+                `Cannot print a "raise" outside of CPS. Effect tracking must have messed up.`,
+            );
+        // return t.identifier('raise_wat');
         // return `new Error("what")`;
         case 'handle':
-            return t.identifier('handle_wat');
+            return t.callExpression(t.identifier('handleSimpleShallow2'), [
+                t.stringLiteral(printRef(term.effect)),
+                printTerm(env, term.target),
+                t.arrayExpression(
+                    term.cases
+                        .sort((a, b) => a.constr - b.constr)
+                        .map(({ args, k, body }) => {
+                            return t.arrowFunctionExpression(
+                                [
+                                    args.length === 0
+                                        ? t.identifier('_')
+                                        : args.length === 1
+                                        ? t.identifier(printSym(args[0]))
+                                        : t.arrayPattern(
+                                              args.map((s) =>
+                                                  t.identifier(printSym(s)),
+                                              ),
+                                          ),
+                                    t.identifier(printSym(k)),
+                                ],
+                                printLambdaBody(env, body, null),
+                            );
+                        }),
+                ),
+                t.arrowFunctionExpression(
+                    [t.identifier(printSym(term.pure.arg))],
+                    printTerm(env, term.pure.body),
+                ),
+            ]);
+        // return t.identifier('handle_wat');
         // return 'new Error("Handline")';
         case 'sequence':
             // IIFE
@@ -415,3 +448,5 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             throw new Error(`Cannot print ${(term as any).type}`);
     }
 };
+
+const printRef = (ref) => (ref.type === 'builtin' ? ref.name : ref.id.hash);

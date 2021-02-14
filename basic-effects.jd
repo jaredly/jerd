@@ -14,10 +14,10 @@ const sayHi = () => {
 
 const respondWith = (responseValue: string) => (fn: () ={Stdio}> void) => {
     handle! fn {
-        Stdio.read(() => k) => k(responseValue),
+        Stdio.read(() => k) => respondWith(responseValue)(() => k(responseValue)),
         Stdio.write((v) => k) => {
             log(v);
-            k()
+            respondWith(responseValue)(() => k())
         },
         pure(a) => a
     }
@@ -105,4 +105,4 @@ const test1 = () => {
 }
 
 sayHi()
-test1();
+test1()

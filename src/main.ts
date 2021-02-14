@@ -111,12 +111,20 @@ const main = (fname: string, dest: string) => {
 
     const out = [
         'const log = console.log',
-        `const handleSimpleShallow2 = <Get, R>(
-            fn: (handler: ShallowHandler<Get>, cb: (fnReturnValue: R) => void) => void,
+        `const raise = (handlers, hash, idx, args, done) => {
+            handlers[hash](idx, args, done)
+        }`,
+        `type ShallowHandler<Get, Set> = (
+            args: Set,
+            returnIntoFn: (newHandler: ShallowHandler<Get>, value: Get) => void,
+        ) => void;`,
+        `const handleSimpleShallow2 = <Get, Set, R>(
+            hash: string,
+            fn: (handler: ShallowHandler<Get, Set>, cb: (fnReturnValue: R) => void) => void,
             handleEffect: (
                 cb: (
                     gotten: Get,
-                    newHandler: ShallowHandler<Get>,
+                    newHandler: ShallowHandler<Get, Set>,
                     returnIntoHandler: (fnReturnValue: R) => void,
                 ) => void,
             ) => void,
@@ -124,14 +132,15 @@ const main = (fname: string, dest: string) => {
         ) => {
             let fnsReturnPointer = handlePure;
             fn(
-                (returnIntoFn) => {
-                    handleEffect(
+                {[hash]: (idx, args, returnIntoFn) => {
+                    handleEffect[idx](
+                        args,
                         (handlersValueToSend, newHandler, returnIntoHandler) => {
                             fnsReturnPointer = returnIntoHandler;
                             returnIntoFn(newHandler, handlersValueToSend);
                         },
                     );
-                },
+                }},
                 (fnsReturnValue) => fnsReturnPointer(fnsReturnValue),
             );
         };`,
