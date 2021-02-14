@@ -268,11 +268,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 effects: [].concat(...inner.map(getEffects)),
                 is: inner[inner.length - 1].is,
             };
-
-            // return {
-            //     type: 'sequence',
-            //     sts: []
-            // }
         }
         case 'ops': {
             // ok, left associative, right? I think so.
@@ -374,7 +369,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             if (env.names[expr.text]) {
                 const id = env.names[expr.text];
                 const term = env.terms[id.hash];
-                // oh wait also check locals, TODO
                 return {
                     type: 'ref',
                     ref: {
@@ -560,7 +554,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
         }
         default:
-            throw new Error(`Unexpected parse type ${expr.type}`);
+            let _x: never = expr;
+            throw new Error(`Unexpected parse type ${(expr as any).type}`);
     }
 };
 
