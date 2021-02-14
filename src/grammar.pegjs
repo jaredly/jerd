@@ -10,7 +10,7 @@ ok nvm, no go. would be cool though.
 
 */
 
-File = _ s:(Statement _)+ {return s.map(s => s[0])}
+File = _ s:(Toplevel _)+ {return s.map(s => s[0])}
 
 Toplevel = Effect / Statement
 

@@ -80,7 +80,7 @@ and thats ok
 // };
 
 const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
-const text: Type = { type: 'ref', ref: { type: 'builtin', name: 'text' } };
+const string: Type = { type: 'ref', ref: { type: 'builtin', name: 'string' } };
 const void_: Type = { type: 'ref', ref: { type: 'builtin', name: 'void' } };
 
 const main = (fname: string, dest: string) => {
@@ -90,10 +90,10 @@ const main = (fname: string, dest: string) => {
     const env = newEnv();
     env.builtins['++'] = {
         type: 'lambda',
-        args: [text, text],
+        args: [string, string],
         effects: [],
         rest: null,
-        res: text,
+        res: string,
     };
     env.builtins['+'] = {
         type: 'lambda',
@@ -104,7 +104,7 @@ const main = (fname: string, dest: string) => {
     };
     env.builtins['log'] = {
         type: 'lambda',
-        args: [text],
+        args: [string],
         effects: [],
         rest: null,
         res: void_,

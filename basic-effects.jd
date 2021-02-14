@@ -1,7 +1,7 @@
 
 effect Stdio {
-    read: () => text,
-    write: (text) => void,
+    read: () => string,
+    write: (string) => void,
 }
 
 const hello = () => {
@@ -12,7 +12,7 @@ const sayHi = () => {
     log(hello())
 }
 
-const respondWith = (responseValue: text) => (fn: () ={Stdio}> void) => {
+const respondWith = (responseValue: string) => (fn: () ={Stdio}> void) => {
     handle! fn {
         Stdio.read(() => k) => k(responseValue),
         Stdio.write((v) => k) => {

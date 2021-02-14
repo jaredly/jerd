@@ -257,7 +257,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return {
                 type: 'string',
                 text: expr.text,
-                is: { type: 'ref', ref: { type: 'builtin', name: 'text' } },
+                is: { type: 'ref', ref: { type: 'builtin', name: 'string' } },
             };
         case 'block': {
             // TODO: maybeSeq?
