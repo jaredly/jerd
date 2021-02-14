@@ -1,6 +1,7 @@
 import { Term, Env, Type, getEffects, CPSAble } from './typer';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
+import prettier from 'prettier';
 
 const printSym = (sym) => sym.name + '_' + sym.unique;
 const printId = (id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
@@ -70,7 +71,7 @@ export const printLambdaBody = (
     env: Env,
     term: Term,
     // cps: null | { body: t.Expression; bind: t.Identifier },
-    cps: null | t.Identifier,
+    cps: null | t.Expression,
 ): t.BlockStatement | t.Expression => {
     if (cps == null) {
         if (term.type === 'sequence') {
@@ -113,27 +114,53 @@ export const declarationToString = (
     hash: string,
     term: Term,
 ): string => {
-    return generate(
-        t.variableDeclaration('const', [
-            t.variableDeclarator(
-                {
-                    ...t.identifier('hash_' + hash),
-                    typeAnnotation: t.tsTypeAnnotation(typeToAst(env, term.is)),
-                },
-                printTerm(env, term),
-            ),
-        ]),
-    ).code;
+    const ast = t.variableDeclaration('const', [
+        t.variableDeclarator(
+            {
+                ...t.identifier('hash_' + hash),
+                // typeAnnotation: t.tsTypeAnnotation(typeToAst(env, term.is)),
+            },
+            printTerm(env, term),
+        ),
+    ]);
+    // return prettier.format('.', { parser: () => ast });
+    return generate(ast).code;
 };
 
+const isSimple = (arg: Term) => {
+    switch (arg.type) {
+        case 'int':
+        case 'string':
+        case 'ref':
+        case 'var':
+            return true;
+        default:
+            if (
+                arg.type === 'apply' &&
+                arg.args.every(isSimple) &&
+                arg.target.type === 'ref' &&
+                arg.target.ref.type === 'builtin' &&
+                isSimpleBuiltin(arg.target.ref.name)
+            ) {
+                return true;
+            }
+            return false;
+    }
+};
+
+const isSimpleBuiltin = (name) => {
+    return ['+', '++', '-'].includes(name);
+};
+
+// cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 export const termToAstCPS = (
     env: Env,
     term: Term,
-    done: t.Identifier,
+    done: t.Expression,
 ): t.Expression => {
     if (!getEffects(term).length) {
         return t.callExpression(done, [
-            t.identifier('handlers'),
+            // t.identifier('handlers'),
             printTerm(env, term),
         ]);
     }
@@ -167,14 +194,61 @@ export const termToAstCPS = (
             return t.callExpression(t.identifier('raise'), args);
         }
         case 'apply': {
-            if (term.argsEffects.length > 0) {
-                return t.identifier('args effects');
-            }
             if (getEffects(term.target).length) {
                 return t.identifier('target effects');
             }
+            if (term.argsEffects.length > 0) {
+                const target = printTerm(env, term.target);
+                let inner: t.Expression = done;
+                if (term.effects.length > 0) {
+                    inner = callOrBinop(
+                        target,
+                        term.args
+                            .map((arg, i) =>
+                                isSimple(arg)
+                                    ? printTerm(env, arg)
+                                    : t.identifier('arg_' + i),
+                            )
+                            .concat([t.identifier('handlers'), inner as any]),
+                    );
+                } else {
+                    inner = t.callExpression(done, [
+                        // so here is where we want to
+                        // put the "body"
+                        // which might include inverting it.
+                        callOrBinop(
+                            target,
+                            term.args.map((arg, i) =>
+                                isSimple(arg)
+                                    ? printTerm(env, arg)
+                                    : t.identifier('arg_' + i),
+                            ),
+                        ),
+                    ]);
+                }
+                for (let i = term.args.length - 1; i >= 0; i--) {
+                    if (isSimple(term.args[i])) {
+                        continue;
+                    }
+                    inner = termToAstCPS(
+                        env,
+                        term.args[i],
+                        t.arrowFunctionExpression(
+                            [t.identifier('arg_' + i)],
+                            inner,
+                        ),
+                    );
+                }
+                return inner;
+                // return termToAstCPS(
+                //     env,
+                //     term.args[0],
+                //     t.arrowFunctionExpression([t.identifier('value')], inner),
+                // );
+                // return t.identifier('args effects');
+            }
             const target = printTerm(env, term.target);
-            return t.callExpression(
+            return callOrBinop(
                 target,
                 term.args
                     .map((arg) => printTerm(env, arg))
@@ -184,10 +258,20 @@ export const termToAstCPS = (
         default:
             // return t.identifier(term.type);
             return t.callExpression(done, [
-                t.identifier('handlers'),
+                // t.identifier('handlers'),
                 printTerm(env, term),
             ]);
     }
+};
+
+const callOrBinop = (target, args) => {
+    if (
+        t.isIdentifier(target) &&
+        (target.name === '+' || target.name === '++')
+    ) {
+        return t.binaryExpression('+', args[0], args[1]);
+    }
+    return t.callExpression(target, args);
 };
 
 export const printTerm = (env: Env, term: Term): t.Expression => {
