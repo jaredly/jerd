@@ -65,7 +65,7 @@ Lambda = "(" _ args:Args? _ ")" _ "=>" _ body:Expression {return {type: 'lambda'
 Args = first:Arg rest:(_ "," _ Arg)* {return [first, ...rest.map(r => r[3])]}
 Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null}}
 
-binop = "+" / "-" / "*" / "/" / "^" / "|"
+binop = "++" / "+" / "-" / "*" / "/" / "^" / "|"
 
 Literal = Int / Identifier / Text
 

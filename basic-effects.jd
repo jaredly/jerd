@@ -39,11 +39,15 @@ const inner = (handlers, done) => {
         })
     })
 }
+
+also I should account for ... ???
+
 */
+
 const inner = () => {
     log("getting");
     log(raise!(Stdio.read()) ++ " and " ++ raise!(Stdio.read()));
-    log("And then " ++ raise!(Stdio.read()))
+    log("And then " ++ raise!(Stdio.read()));
     log("Dones")
 }
 

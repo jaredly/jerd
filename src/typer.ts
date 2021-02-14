@@ -274,6 +274,42 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             //     sts: []
             // }
         }
+        case 'ops': {
+            // ok, left associative, right? I think so.
+            let left: Term = typeExpr(env, expr.first);
+            expr.rest.forEach(({ op, right }) => {
+                const is = env.builtins[op];
+                if (!is) {
+                    throw new Error(`Unexpected boolean op ${op}`);
+                }
+                if (is.type !== 'lambda') {
+                    throw new Error(`${op} is not a function`);
+                }
+                if (is.args.length !== 2) {
+                    throw new Error(`${op} is not a binary function`);
+                }
+                const rarg = typeExpr(env, right);
+                if (!fitsExpectation(left.is, is.args[0])) {
+                    throw new Error(`first arg to ${op} wrong type`);
+                }
+                if (!fitsExpectation(rarg.is, is.args[1])) {
+                    throw new Error(`second arg to ${op} wrong type`);
+                }
+                left = {
+                    type: 'apply',
+                    target: {
+                        type: 'ref',
+                        ref: { type: 'builtin', name: op },
+                        is,
+                    },
+                    effects: is.effects,
+                    argsEffects: getEffects(left).concat(getEffects(rarg)),
+                    args: [left, rarg],
+                    is: is.res,
+                };
+            });
+            return left;
+        }
         case 'apply': {
             let target = typeExpr(env, expr.target);
             for (let args of expr.args) {

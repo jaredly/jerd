@@ -7,7 +7,7 @@ import hash from 'hash-sum';
 import { type } from 'os';
 import cloner from 'rfdc';
 import parse, { Expression, Define, Toplevel } from './parser';
-import { printTerm, printType } from './printer';
+import { printTerm, printType, termToString } from './printer';
 import typeExpr, { newEnv, Type, typeType } from './typer';
 
 const clone = cloner();
@@ -83,6 +83,13 @@ const main = (fname: string, dest: string) => {
     const parsed: Array<Toplevel> = parse(raw);
 
     const env = newEnv();
+    env.builtins['++'] = {
+        type: 'lambda',
+        args: [text, text],
+        effects: [],
+        rest: null,
+        res: text,
+    };
     env.builtins['+'] = {
         type: 'lambda',
         args: [int, int],
@@ -110,7 +117,7 @@ const main = (fname: string, dest: string) => {
             env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
             env.terms[h] = t;
             out.push(`// ${printType(env, t.is)}`);
-            out.push(`const hash_${h} = ` + printTerm(env, t));
+            out.push(`const hash_${h} = ` + termToString(env, t));
             // } else if (item.type === 'deffect') {
             //     const h: string = hash(item);
             //     const constrs = [];
@@ -139,7 +146,7 @@ const main = (fname: string, dest: string) => {
         } else {
             const t = typeExpr(env, item);
             out.push(`// ${printType(env, t.is)}`);
-            out.push(printTerm(env, t));
+            out.push(termToString(env, t));
         }
     }
     if (dest === '-' || !dest) {
