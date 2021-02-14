@@ -8,12 +8,7 @@ export type Reference =
 
 export type Symbol = { name: string; unique: number };
 
-export type Term =
-    | {
-          type: 'ref';
-          ref: Reference;
-          is: Type;
-      }
+export type CPSAble =
     | {
           type: 'raise';
           ref: Reference;
@@ -43,6 +38,28 @@ export type Term =
           is: Type;
       }
     | {
+          type: 'sequence';
+          sts: Array<Term>;
+          effects: Array<Reference>;
+          is: Type;
+      }
+    | {
+          type: 'apply';
+          target: Term;
+          argsEffects: Array<Reference>;
+          effects: Array<Reference>;
+          args: Array<Term>;
+          is: Type; // this matches the return type of target
+      };
+
+export type Term =
+    | CPSAble
+    | {
+          type: 'ref';
+          ref: Reference;
+          is: Type;
+      }
+    | {
           type: 'var';
           sym: Symbol;
           is: Type;
@@ -58,20 +75,6 @@ export type Term =
           args: Array<Symbol>;
           body: Term;
           is: LambdaType;
-      }
-    | {
-          type: 'sequence';
-          sts: Array<Term>;
-          effects: Array<Reference>;
-          is: Type;
-      }
-    | {
-          type: 'apply';
-          target: Term;
-          argsEffects: Array<Reference>;
-          effects: Array<Reference>;
-          args: Array<Term>;
-          is: Type; // this matches the return type of target
       };
 
 export const getEffects = (t: Term): Array<Reference> => {

@@ -40,19 +40,46 @@ const inner = (handlers, done) => {
     })
 }
 
-also I should account for ... ???
+ok, so we have a block (sequence)
+and the first one is a `log`
+neither it nor any params are CPS, so it prints normally.
+next, we have something with an arg that has arg effects.
+so first lets do the unoptimized version.
+log ( ++ (++ (raise, "and"), raise))
+so the log says
+"arg 1, do your thing, assign yourself to "arg1"", then get back to me?
+erm or log constructs itself as it would like to be treated
+and then passes itself as the continuation?
+and then what about the next bit?
+the next bit says "here's me"
+because this apply doesn't need anything special
+yeah.
+
+log(farther("Farther"))
+becomes
+farther("Farther", handlers, (handlers, value) => {
+    log(value);
+    // do the rest
+})
 
 */
 
-const inner = () => {
+const farther = (name: string) => {
+    log("farther " ++ name);
+    raise!(Stdio.read())
+}
+
+const inner = (name: string) => {
+    log(farther("Farther"));
     log("getting");
+    log(name);
     log(raise!(Stdio.read()) ++ " and " ++ raise!(Stdio.read()));
     log("And then " ++ raise!(Stdio.read()));
     log("Dones")
 }
 
 const test1 = () => {
-    respondWith("hello")(inner)
+    respondWith("hello")(() => inner("Yes"))
 }
 
 sayHi()

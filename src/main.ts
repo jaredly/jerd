@@ -7,12 +7,7 @@ import hash from 'hash-sum';
 import { type } from 'os';
 import cloner from 'rfdc';
 import parse, { Expression, Define, Toplevel } from './parser';
-import {
-    declarationToString,
-    printTerm,
-    printType,
-    termToString,
-} from './printer';
+import { declarationToString, printType, termToString } from './printer';
 import typeExpr, { newEnv, Type, typeType } from './typer';
 
 const clone = cloner();
