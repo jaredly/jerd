@@ -92,16 +92,33 @@ export const printLambdaBody = (
             // and we know what we want to bind to, right? or something?
             // in what case would we want to CPS something that
             // can't be CPSd?
-            let pre = [];
-            for (let s of term.sts) {
-                if (getEffects(s).length === 0) {
-                    console.log('ok', s);
-                    pre.push(t.expressionStatement(printTerm(env, s)));
+            // const last = term.sts[term.sts.length - 1];
+            let inner = cps;
+            for (let i = term.sts.length - 1; i >= 0; i--) {
+                if (i > 0) {
+                    inner = t.arrowFunctionExpression(
+                        [t.identifier('_ignored')],
+                        t.blockStatement([
+                            t.expressionStatement(
+                                termToAstCPS(env, term.sts[i], inner),
+                            ),
+                        ]),
+                    );
                 } else {
-                    pre.push(t.expressionStatement(termToAstCPS(env, s, cps)));
+                    inner = termToAstCPS(env, term.sts[i], inner);
                 }
             }
-            return t.blockStatement(pre);
+            return inner;
+            // let pre = [];
+            // for (let s of term.sts) {
+            //     if (getEffects(s).length === 0) {
+            //         console.log('ok', s);
+            //         pre.push(t.expressionStatement(printTerm(env, s)));
+            //     } else {
+            //         pre.push(t.expressionStatement(termToAstCPS(env, s, cps)));
+            //     }
+            // }
+            // return t.blockStatement(pre);
         } else {
             return termToAstCPS(env, term, cps);
         }

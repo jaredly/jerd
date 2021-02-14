@@ -109,7 +109,33 @@ const main = (fname: string, dest: string) => {
     env.builtinTypes['int'] = 0;
     env.builtinTypes['string'] = 0;
 
-    const out = ['const log = console.log'];
+    const out = [
+        'const log = console.log',
+        `const handleSimpleShallow2 = <Get, R>(
+            fn: (handler: ShallowHandler<Get>, cb: (fnReturnValue: R) => void) => void,
+            handleEffect: (
+                cb: (
+                    gotten: Get,
+                    newHandler: ShallowHandler<Get>,
+                    returnIntoHandler: (fnReturnValue: R) => void,
+                ) => void,
+            ) => void,
+            handlePure: (fnReturnValue: R) => void,
+        ) => {
+            let fnsReturnPointer = handlePure;
+            fn(
+                (returnIntoFn) => {
+                    handleEffect(
+                        (handlersValueToSend, newHandler, returnIntoHandler) => {
+                            fnsReturnPointer = returnIntoHandler;
+                            returnIntoFn(newHandler, handlersValueToSend);
+                        },
+                    );
+                },
+                (fnsReturnValue) => fnsReturnPointer(fnsReturnValue),
+            );
+        };`,
+    ];
     for (const item of parsed) {
         if (item.type === 'define') {
             const t = typeExpr(env, item.expr);

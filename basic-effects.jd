@@ -55,7 +55,29 @@ the next bit says "here's me"
 because this apply doesn't need anything special
 yeah.
 
-log(farther("Farther"))
+ok so usually people solve this by doing a-reduction or whatnot.
+but while that is "clean" from an impl standpoint, the resulting
+code is ridiculous.
+
+party("one", log("awesome", farther("Farther")))
+->
+let p = party
+let o = "one"
+
+let l = log
+let a = "awesome"
+
+let f = farther
+let fa = "Farther "
+
+let fafa = farther("Farhter")
+
+let lo = l(a, fafa)
+
+let po = p(o, lo)
+
+f(fa, (handlers, value) => p(o, l(a, value)))
+
 becomes
 farther("Farther", handlers, (handlers, value) => {
     log(value);
@@ -83,3 +105,4 @@ const test1 = () => {
 }
 
 sayHi()
+test1();
