@@ -352,6 +352,12 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             // I'm saying, cps should be ?{body: Expression, name: Identifier}
             // let's try that.
 
+            if (term.argsEffects.length || term.effects.length) {
+                throw new Error(
+                    `This apply has effects, but isn't in a CPS context.`,
+                );
+            }
+
             // Pure, love it.
             const target = printTerm(env, term.target);
             if (
