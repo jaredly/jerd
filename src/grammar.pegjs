@@ -10,9 +10,11 @@ ok nvm, no go. would be cool though.
 
 */
 
-File = _ s:(Toplevel _)+ {return s.map(s => s[0])}
+File = _ s:(Statement _)+ {return s.map(s => s[0])}
 
-Toplevel = Define / Effect / Expression
+Toplevel = Effect / Statement
+
+Statement = Define / Expression
 
 Define = "const" __ id:Identifier __ "=" __ expr:Expression {return {type: 'define', id, expr}}
 
@@ -36,8 +38,7 @@ Binsub = sub:Apsub args:("(" _ CommaExpr? _ ")")* {
 }
 Apsub = Block / Lambda / Handle / Raise / Literal
 
-// TODO: Allow 'const' declarations n stuff in a block
-Block = "{" _ one:Expression rest:(_ ";" _ Expression)* ";"? _ "}" {
+Block = "{" _ one:Statement rest:(_ ";" _ Statement)* ";"? _ "}" {
     return {type: 'block', items: [one, ...rest.map(r => r[3])]}
 }
 
@@ -67,7 +68,7 @@ Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : nul
 
 binop = "++" / "+" / "-" / "*" / "/" / "^" / "|"
 
-Literal = Int / Identifier / Text
+Literal = Int / Identifier / String
 
 Binop = Expression
 
@@ -83,7 +84,7 @@ CommaEffects =
 
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
-Text = "\"" ( "\\" . / [^"\\])+ "\"" {return {type: 'text', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
+String = "\"" ( "\\" . / [^"\\])+ "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
 Identifier = [0-9a-zA-Z_]+ {return {type: "id", text: text(), location: location()}}
 
 _ "whitespace"

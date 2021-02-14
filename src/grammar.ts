@@ -257,7 +257,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c68 = peg$anyExpectation();
   const peg$c69 = /^[^"\\]/;
   const peg$c70 = peg$classExpectation(["\"", "\\"], true, false);
-  const peg$c71 = function(): any {return {type: 'text', text: JSON.parse(text().replace('\n', '\\n')), location: location()}};
+  const peg$c71 = function(): any {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}};
   const peg$c72 = /^[0-9a-zA-Z_]/;
   const peg$c73 = peg$classExpectation([["0", "9"], ["a", "z"], ["A", "Z"], "_"], false, false);
   const peg$c74 = function(): any {return {type: "id", text: text(), location: location()}};
@@ -419,7 +419,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     if (s1 !== peg$FAILED) {
       s2 = [];
       s3 = peg$currPos;
-      s4 = peg$parseToplevel();
+      s4 = peg$parseStatement();
       if (s4 !== peg$FAILED) {
         s5 = peg$parse_();
         if (s5 !== peg$FAILED) {
@@ -437,7 +437,7 @@ function peg$parse(input: string, options?: IParseOptions) {
         while (s3 !== peg$FAILED) {
           s2.push(s3);
           s3 = peg$currPos;
-          s4 = peg$parseToplevel();
+          s4 = peg$parseStatement();
           if (s4 !== peg$FAILED) {
             s5 = peg$parse_();
             if (s5 !== peg$FAILED) {
@@ -474,12 +474,20 @@ function peg$parse(input: string, options?: IParseOptions) {
   function peg$parseToplevel(): any {
     let s0;
 
+    s0 = peg$parseEffect();
+    if (s0 === peg$FAILED) {
+      s0 = peg$parseStatement();
+    }
+
+    return s0;
+  }
+
+  function peg$parseStatement(): any {
+    let s0;
+
     s0 = peg$parseDefine();
     if (s0 === peg$FAILED) {
-      s0 = peg$parseEffect();
-      if (s0 === peg$FAILED) {
-        s0 = peg$parseExpression();
-      }
+      s0 = peg$parseExpression();
     }
 
     return s0;
@@ -983,7 +991,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     if (s1 !== peg$FAILED) {
       s2 = peg$parse_();
       if (s2 !== peg$FAILED) {
-        s3 = peg$parseExpression();
+        s3 = peg$parseStatement();
         if (s3 !== peg$FAILED) {
           s4 = [];
           s5 = peg$currPos;
@@ -999,7 +1007,7 @@ function peg$parse(input: string, options?: IParseOptions) {
             if (s7 !== peg$FAILED) {
               s8 = peg$parse_();
               if (s8 !== peg$FAILED) {
-                s9 = peg$parseExpression();
+                s9 = peg$parseStatement();
                 if (s9 !== peg$FAILED) {
                   s6 = [s6, s7, s8, s9];
                   s5 = s6;
@@ -1034,7 +1042,7 @@ function peg$parse(input: string, options?: IParseOptions) {
               if (s7 !== peg$FAILED) {
                 s8 = peg$parse_();
                 if (s8 !== peg$FAILED) {
-                  s9 = peg$parseExpression();
+                  s9 = peg$parseStatement();
                   if (s9 !== peg$FAILED) {
                     s6 = [s6, s7, s8, s9];
                     s5 = s6;
@@ -2145,7 +2153,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     if (s0 === peg$FAILED) {
       s0 = peg$parseIdentifier();
       if (s0 === peg$FAILED) {
-        s0 = peg$parseText();
+        s0 = peg$parseString();
       }
     }
 
@@ -2551,7 +2559,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return s0;
   }
 
-  function peg$parseText(): any {
+  function peg$parseString(): any {
     let s0, s1, s2, s3, s4, s5;
 
     s0 = peg$currPos;

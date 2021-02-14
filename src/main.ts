@@ -7,7 +7,12 @@ import hash from 'hash-sum';
 import { type } from 'os';
 import cloner from 'rfdc';
 import parse, { Expression, Define, Toplevel } from './parser';
-import { printTerm, printType, termToString } from './printer';
+import {
+    declarationToString,
+    printTerm,
+    printType,
+    termToString,
+} from './printer';
 import typeExpr, { newEnv, Type, typeType } from './typer';
 
 const clone = cloner();
@@ -107,7 +112,7 @@ const main = (fname: string, dest: string) => {
     env.builtinTypes['unit'] = 0;
     env.builtinTypes['void'] = 0;
     env.builtinTypes['int'] = 0;
-    env.builtinTypes['text'] = 0;
+    env.builtinTypes['string'] = 0;
 
     const out = ['const log = console.log'];
     for (const item of parsed) {
@@ -117,7 +122,8 @@ const main = (fname: string, dest: string) => {
             env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
             env.terms[h] = t;
             out.push(`// ${printType(env, t.is)}`);
-            out.push(`const hash_${h} = ` + termToString(env, t));
+            out.push(declarationToString(env, h, t));
+            // out.push(`const hash_${h} = ` + termToString(env, t));
             // } else if (item.type === 'deffect') {
             //     const h: string = hash(item);
             //     const constrs = [];

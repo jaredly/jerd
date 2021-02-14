@@ -52,7 +52,7 @@ export type Term =
           value: number; // TODO other builtin types
           is: Type;
       }
-    | { type: 'text'; text: string; is: Type }
+    | { type: 'string'; text: string; is: Type }
     | {
           type: 'lambda';
           args: Array<Symbol>;
@@ -253,9 +253,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 value: expr.value,
                 is: { type: 'ref', ref: { type: 'builtin', name: 'int' } },
             };
-        case 'text':
+        case 'string':
             return {
-                type: 'text',
+                type: 'string',
                 text: expr.text,
                 is: { type: 'ref', ref: { type: 'builtin', name: 'text' } },
             };

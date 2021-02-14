@@ -87,10 +87,10 @@ export type LambdaType = {
 //     type: 'type';
 //     contents: Expression;
 // };
-export type Literal = Int | Identifier | Text;
+export type Literal = Int | Identifier | String;
 export type Identifier = { type: 'id'; text: string; location: Location };
 export type Int = { type: 'int'; value: number; location: Location };
-export type Text = { type: 'text'; text: string; location: Location };
+export type String = { type: 'string'; text: string; location: Location };
 export type Apply = {
     type: 'apply';
     target: Expression;
