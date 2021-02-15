@@ -142,7 +142,8 @@ const flattenImmediateCallsToLets = (ast) => {
                         : 'unknown';
                 if (
                     path.node.callee.body.type === 'BlockStatement' &&
-                    path.parent.type === 'ExpressionStatement'
+                    path.parent.type === 'ExpressionStatement' &&
+                    t.isExpression(path.node.arguments[0])
                 ) {
                     path.parentPath.replaceWithMultiple([
                         name === '_ignored'
@@ -402,7 +403,10 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                         }))
                         // .map((arg) => t.identifier(printSym(arg)))
                         .concat([
-                            t.identifier('handlers'),
+                            {
+                                ...t.identifier('handlers'),
+                                typeAnnotation: null,
+                            },
                             {
                                 ...t.identifier('done'),
                                 typeAnnotation: t.tsTypeAnnotation(
