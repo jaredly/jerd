@@ -1,7 +1,7 @@
 import { Term, Env, Type, getEffects, CPSAble } from './typer';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
-// import prettier from 'prettier';
+import prettier from 'prettier';
 import traverse, { Scope } from '@babel/traverse';
 
 const printSym = (sym) => sym.name + '_' + sym.unique;
@@ -47,13 +47,53 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
                 return t.tsTypeReference(t.identifier('t_' + type.ref.id.hash));
             }
         case 'lambda': {
+            const res = t.tsTypeAnnotation(typeToAst(env, type.res));
             return t.tsFunctionType(
                 null,
-                type.args.map((arg, i) => ({
-                    ...t.identifier('arg_' + i),
-                    typeAnnotation: t.tsTypeAnnotation(typeToAst(env, arg)),
-                })),
-                t.tsTypeAnnotation(typeToAst(env, type.res)),
+                type.args
+                    .map((arg, i) => ({
+                        ...t.identifier('arg_' + i),
+                        typeAnnotation: t.tsTypeAnnotation(typeToAst(env, arg)),
+                    }))
+                    .concat(
+                        type.effects.length
+                            ? [
+                                  {
+                                      ...t.identifier('handlers'),
+                                      typeAnnotation: t.tsTypeAnnotation(
+                                          t.tsAnyKeyword(),
+                                      ),
+                                  },
+                                  {
+                                      ...t.identifier('done'),
+                                      typeAnnotation: t.tsTypeAnnotation(
+                                          t.tsFunctionType(
+                                              null,
+                                              [
+                                                  {
+                                                      ...t.identifier('result'),
+                                                      typeAnnotation: res,
+                                                  },
+                                              ],
+                                              t.tsTypeAnnotation(
+                                                  t.tsVoidKeyword(),
+                                              ),
+                                          ),
+                                      ),
+                                      //   typeToAst(env, {
+                                      //       type: 'lambda',
+                                      //       args: [res]
+                                      //   })
+                                      /*t.tsTypeAnnotation(
+                                          t.tsAnyKeyword(),
+                                      )*/
+                                  },
+                              ]
+                            : [],
+                    ),
+                type.effects.length
+                    ? t.tsTypeAnnotation(t.tsVoidKeyword())
+                    : res,
             );
         }
     }
@@ -195,17 +235,23 @@ export const declarationToString = (
     term: Term,
 ): string => {
     const ast = t.file(
-        t.program([
-            t.variableDeclaration('const', [
-                t.variableDeclarator(
-                    {
-                        ...t.identifier('hash_' + hash),
-                        // typeAnnotation: t.tsTypeAnnotation(typeToAst(env, term.is)),
-                    },
-                    printTerm(env, term),
-                ),
-            ]),
-        ]),
+        t.program(
+            [
+                t.variableDeclaration('const', [
+                    t.variableDeclarator(
+                        {
+                            ...t.identifier('hash_' + hash),
+                            typeAnnotation: t.tsTypeAnnotation(
+                                typeToAst(env, term.is),
+                            ),
+                        },
+                        printTerm(env, term),
+                    ),
+                ]),
+            ],
+            [],
+            'script',
+        ),
     );
     flattenImmediateCallsToLets(ast);
     removeBlocksWithNoDeclarations(ast);
