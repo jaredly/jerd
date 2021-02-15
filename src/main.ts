@@ -139,6 +139,13 @@ const main = (fname: string, dest: string) => {
                     handleEffect[idx](
                         args,
                         (handlersValueToSend, newHandler, returnIntoHandler) => {
+                            if (returnIntoHandler === undefined) {
+                                /// @ts-ignore
+                                returnIntoHandler = newHandler
+                                /// @ts-ignore
+                                newHandler = handlersValueToSend
+                                handlersValueToSend = null
+                            }
                             fnsReturnPointer = returnIntoHandler;
                             returnIntoFn(newHandler, handlersValueToSend);
                         },

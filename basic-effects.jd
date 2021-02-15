@@ -20,7 +20,7 @@ const respondWith:
         Stdio.read(() => k) => respondWith(responseValue ++ ".")(() => k(responseValue)),
         Stdio.write((v) => k) => {
             log(v);
-            respondWith(responseValue ++ "-")(() => k())
+            respondWith(responseValue ++ "-")(k)
         },
         pure(a) => a
     }
