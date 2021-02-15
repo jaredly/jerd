@@ -7,6 +7,13 @@ export type Reference =
 
 export type Symbol = { name: string; unique: number };
 
+export type Case = {
+    constr: number; // the index
+    args: Array<Symbol>;
+    k: Symbol;
+    body: Term;
+};
+
 export type CPSAble =
     | {
           type: 'raise';
@@ -23,12 +30,7 @@ export type CPSAble =
           // These are the target's effects minus the one that is handled here.
           effects: Array<Reference>;
           effect: Reference;
-          cases: Array<{
-              constr: number; // the index
-              args: Array<Symbol>;
-              k: Symbol;
-              body: Term;
-          }>;
+          cases: Array<Case>;
           pure: {
               arg: Symbol;
               body: Term;
@@ -126,12 +128,16 @@ export type LocalEnv = {
     // builtinTypes: { [key: string]: Type };
     locals: { [key: string]: { sym: Symbol; type: Type } };
     typeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
+    // manual type variables can't have constriaints, right? or can they?
+    // I can figure that out later.
 };
 
-export type TypeConstraint = {
-    smaller: Type; // the sub type
-    larger: Type;
-};
+export type TypeConstraint =
+    | {
+          type: 'smaller-than';
+          other: Type; // the super type
+      }
+    | { type: 'larger-than'; other: Type }; // the sub type
 
 export type Env = {
     // oh here's where we would do kind?
@@ -178,7 +184,7 @@ export const subEnv = (env: Env): Env => ({
         self: env.local.self,
         locals: { ...env.local.locals },
         unique: env.local.unique,
-        typeVbls: {},
+        typeVbls: env.local.typeVbls,
     },
 });
 
@@ -194,8 +200,8 @@ export const getEffects = (t: Term): Array<Reference> => {
     }
 };
 
-export const dedupEffects = (effects) => {
-    const used = {};
+export const dedupEffects = (effects: Array<Reference>) => {
+    const used: { [key: string]: boolean } = {};
     return effects.filter((e) => {
         const k = e.type === 'builtin' ? e.name : e.id.hash;
         if (used[k]) {

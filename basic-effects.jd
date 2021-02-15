@@ -15,7 +15,7 @@ const sayHi = () => {
 // TODO when I've got type arguments, make this generic.
 const respondWith:
     (string) => (() ={Stdio}> void) => void
- = (responseValue: string) => (fn: () ={Stdio}> void) => {
+ = (responseValue) => (fn: () ={Stdio}> void) => {
     handle! fn {
         Stdio.read(() => k) => respondWith(responseValue ++ ".")(() => k(responseValue)),
         Stdio.write((v) => k) => {

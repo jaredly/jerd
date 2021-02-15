@@ -1,11 +1,11 @@
-import { Term, Env, Type, getEffects, CPSAble } from './types';
+import { Term, Env, Type, getEffects, CPSAble, Symbol, Id } from './types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import prettier from 'prettier';
 import traverse, { Scope } from '@babel/traverse';
 
-const printSym = (sym) => sym.name + '_' + sym.unique;
-const printId = (id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
+const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
+const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
 
 export const termToString = (env: Env, term: Term): string => {
     return generate(printTerm(env, term)).code;
@@ -31,6 +31,10 @@ export const printType = (env: Env, type: Type): string => {
                 effects ? '(' + effects + ')' : ''
             }> ${printType(env, type.res)}`;
         }
+        case 'var':
+            return `type-var-${type.sym.name}`;
+        default:
+            throw new Error(`Cannot print`);
     }
 };
 
@@ -46,6 +50,8 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
             } else {
                 return t.tsTypeReference(t.identifier('t_' + type.ref.id.hash));
             }
+        case 'var':
+            return t.tsTypeReference(t.identifier(type.sym.name));
         case 'lambda': {
             const res = t.tsTypeAnnotation(typeToAst(env, type.res));
             return t.tsFunctionType(
@@ -169,7 +175,7 @@ export const printLambdaBody = (
     }
 };
 
-const flattenImmediateCallsToLets = (ast) => {
+const flattenImmediateCallsToLets = (ast: t.File) => {
     traverse(ast, {
         CallExpression(path) {
             if (
@@ -202,11 +208,11 @@ const flattenImmediateCallsToLets = (ast) => {
     });
 };
 
-const removeBlocksWithNoDeclarations = (ast) => {
+const removeBlocksWithNoDeclarations = (ast: t.File) => {
     traverse(ast, {
         BlockStatement(path) {
             const node = path.node;
-            const res = [];
+            const res: Array<t.Statement> = [];
             let changed = false;
             node.body.forEach((node) => {
                 if (node.type !== 'BlockStatement') {
@@ -280,7 +286,7 @@ const isSimple = (arg: Term) => {
     }
 };
 
-const isSimpleBuiltin = (name) => {
+const isSimpleBuiltin = (name: string) => {
     return ['+', '++', '-'].includes(name);
 };
 
@@ -407,7 +413,7 @@ export const termToAstCPS = (
     }
 };
 
-const callOrBinop = (target, args) => {
+const callOrBinop = (target: t.Expression, args: Array<t.Expression>) => {
     if (
         t.isIdentifier(target) &&
         (target.name === '+' || target.name === '++')

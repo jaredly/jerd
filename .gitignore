@@ -1,4 +1,5 @@
 /target
+_out
 node_modules
 main.js
 main.js.map

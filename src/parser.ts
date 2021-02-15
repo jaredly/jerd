@@ -18,6 +18,7 @@ export type Define = {
     expr: Expression;
     ann: Type | null;
 };
+
 // export type Deffect = {
 //     type: 'deffect';
 //     id: Identifier;
@@ -63,7 +64,7 @@ export type Handle = {
         type: 'case';
         name: Identifier;
         constr: Identifier;
-        args: Array<Identifier> | null;
+        args: Array<Identifier>;
         k: Identifier;
         body: Expression;
     }>;
@@ -74,7 +75,7 @@ export type Handle = {
 };
 export type Lambda = {
     type: 'lambda';
-    args: Array<{ id: Identifier; type: Type }>;
+    args: Array<{ id: Identifier; type: null }>;
     rettype: Type | null;
     body: Expression;
 };

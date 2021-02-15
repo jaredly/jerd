@@ -1,4 +1,13 @@
-import { Env, Type, Term, Reference, dedupEffects, getEffects } from './types';
+import {
+    Env,
+    Type,
+    Term,
+    Reference,
+    dedupEffects,
+    getEffects,
+    Symbol,
+    Case,
+} from './types';
 import { Expression } from './parser';
 import deepEqual from 'fast-deep-equal';
 import { subEnv } from './types';
@@ -37,7 +46,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return {
                 type: 'sequence',
                 sts: inner,
-                effects: dedupEffects([].concat(...inner.map(getEffects))),
+                effects: dedupEffects(
+                    ([] as Array<Reference>).concat(...inner.map(getEffects)),
+                ),
                 is: inner[inner.length - 1].is,
             };
         }
@@ -56,10 +67,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     throw new Error(`${op} is not a binary function`);
                 }
                 const rarg = typeExpr(env, right);
-                if (!fitsExpectation(left.is, is.args[0])) {
+                if (!fitsExpectation(env, left.is, is.args[0])) {
                     throw new Error(`first arg to ${op} wrong type`);
                 }
-                if (!fitsExpectation(rarg.is, is.args[1])) {
+                if (!fitsExpectation(env, rarg.is, is.args[1])) {
                     throw new Error(`second arg to ${op} wrong type`);
                 }
                 left = {
@@ -97,11 +108,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         )}`,
                     );
                 }
-                const effects = [];
-                const resArgs = [];
+                const effects: Array<Reference> = [];
+                const resArgs: Array<Term> = [];
                 args.forEach((term, i) => {
                     const t = typeExpr(env, term, is.args[i]);
-                    if (!fitsExpectation(t.is, is.args[i])) {
+                    if (!fitsExpectation(env, t.is, is.args[i])) {
                         throw new Error(
                             `Wrong type for arg ${i}: \n${JSON.stringify(
                                 t.is,
@@ -171,19 +182,21 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             // ok here's where we do a little bit of inference?
             // or do I just say "all is specified, we can infer in the IDE"?
             const inner = subEnv(env);
-            const args = [];
-            const argst = [];
+            const args: Array<Symbol> = [];
+            const argst: Array<Type> = [];
             expr.args.forEach(({ id, type: rawType }) => {
                 const type = typeType(env, rawType);
                 const unique = Object.keys(inner.local.locals).length;
-                const sym = { name: id.text, unique };
+                const sym: Symbol = { name: id.text, unique };
                 inner.local.locals[id.text] = { sym, type };
                 args.push(sym);
                 argst.push(type);
             });
             const body = typeExpr(inner, expr.body);
             if (expr.rettype) {
-                if (!fitsExpectation(body.is, typeType(env, expr.rettype))) {
+                if (
+                    !fitsExpectation(env, body.is, typeType(env, expr.rettype))
+                ) {
                     throw new Error(
                         `Return type of lambda doesn't fit type declaration`,
                     );
@@ -247,7 +260,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
 
             effects.push(...getEffects(pure));
 
-            const cases = [];
+            const cases: Array<Case> = [];
             expr.cases.forEach((kase) => {
                 const idx = env.global.effectConstructors[kase.constr.text].idx;
                 const constr = constrs[idx];
@@ -319,10 +332,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 id: { hash: effid.hash, size: 1, pos: 0 },
             };
             const argsEffects: Array<Reference> = [];
-            const args = [];
+            const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
                 const t = typeExpr(env, term, eff.args[i]);
-                if (!fitsExpectation(t.is, eff.args[i])) {
+                if (!fitsExpectation(env, t.is, eff.args[i])) {
                     throw new Error(
                         `Wrong type for arg ${i}: ${JSON.stringify(
                             t.is,
@@ -359,10 +372,27 @@ const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
 
 // `t` is being passed as an argument to a function that expects `target`.
 // Is it valid?
-const fitsExpectation = (t: Type, target: Type) => {
+const fitsExpectation = (env: Env, t: Type, target: Type): boolean => {
+    if (t.type === 'var') {
+        console.log('Got', t, target, env.local.typeVbls);
+        env.local.typeVbls[t.sym.unique].push({
+            type: 'smaller-than',
+            other: target,
+        });
+        // TODO check if it's obviously broken
+        return true;
+    }
+    if (target.type === 'var') {
+        env.local.typeVbls[target.sym.unique].push({
+            type: 'larger-than',
+            other: t,
+        });
+        // TODO check if it's obviously broken
+        return true;
+    }
     if (t.type !== target.type) {
         // um there's a chance we'd need to resolve something? maybe?
-        return;
+        return false;
     }
     switch (t.type) {
         case 'ref':
@@ -376,7 +406,7 @@ const fitsExpectation = (t: Type, target: Type) => {
             if (target.args.length !== t.args.length) {
                 return false;
             }
-            if (!fitsExpectation(t.res, target.res)) {
+            if (!fitsExpectation(env, t.res, target.res)) {
                 return false;
             }
             // Is target allowed to have more, or fewer effects than t?
@@ -391,7 +421,7 @@ const fitsExpectation = (t: Type, target: Type) => {
                 }
             });
             for (let i = 0; i < t.args.length; i++) {
-                if (!fitsExpectation(t.args[i], target.args[i])) {
+                if (!fitsExpectation(env, t.args[i], target.args[i])) {
                     return false;
                 }
             }

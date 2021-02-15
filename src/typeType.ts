@@ -6,9 +6,12 @@ import deepEqual from 'fast-deep-equal';
 // because we'll need it in a web ui.
 import { Env, Type } from './types';
 
-const typeType = (env: Env, type: ParseType): Type => {
-    if (!type) {
-        return null;
+const typeType = (env: Env, type: ParseType | null): Type => {
+    if (type == null) {
+        const unique = Object.keys(env.local.typeVbls).length;
+        env.local.typeVbls[unique] = [];
+        console.log('New type just dropped', unique);
+        return { type: 'var', sym: { unique, name: 'var_' + unique } };
     }
     // console.log('TYPEING TYPE', type);
     switch (type.type) {
