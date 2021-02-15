@@ -110,24 +110,27 @@ const main = (fname: string, dest: string) => {
     env.builtinTypes['string'] = 0;
 
     const out = [
+        `export {}`,
         'const log = console.log',
         `const raise = (handlers, hash, idx, args, done) => {
             handlers[hash](idx, args, done)
         }`,
         `type ShallowHandler<Get, Set> = (
+            idx: number,
             args: Set,
-            returnIntoFn: (newHandler: ShallowHandler<Get>, value: Get) => void,
+            returnIntoFn: (newHandler: {[hash: string]: ShallowHandler<Get, Set>}, value: Get) => void,
         ) => void;`,
         `const handleSimpleShallow2 = <Get, Set, R>(
             hash: string,
-            fn: (handler: ShallowHandler<Get, Set>, cb: (fnReturnValue: R) => void) => void,
-            handleEffect: (
+            fn: (handler: {[hash: string]: ShallowHandler<Get, Set>}, cb: (fnReturnValue: R) => void) => void,
+            handleEffect: Array<(
+                value: Set,
                 cb: (
                     gotten: Get,
-                    newHandler: ShallowHandler<Get, Set>,
+                    newHandler: {[hash: string]: ShallowHandler<Get, Set>},
                     returnIntoHandler: (fnReturnValue: R) => void,
                 ) => void,
-            ) => void,
+            ) => void>,
             handlePure: (fnReturnValue: R) => void,
         ) => {
             let fnsReturnPointer = handlePure;
