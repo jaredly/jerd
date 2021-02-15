@@ -1,7 +1,8 @@
 import { Term, Env, Type, getEffects, CPSAble } from './typer';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
-import prettier from 'prettier';
+// import prettier from 'prettier';
+import traverse, { Scope } from '@babel/traverse';
 
 const printSym = (sym) => sym.name + '_' + sym.unique;
 const printId = (id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
@@ -108,7 +109,7 @@ export const printLambdaBody = (
                     inner = termToAstCPS(env, term.sts[i], inner);
                 }
             }
-            return inner;
+            return t.blockStatement([t.expressionStatement(inner)]);
             // let pre = [];
             // for (let s of term.sts) {
             //     if (getEffects(s).length === 0) {
@@ -120,10 +121,71 @@ export const printLambdaBody = (
             // }
             // return t.blockStatement(pre);
         } else {
-            return termToAstCPS(env, term, cps);
+            return t.blockStatement([
+                t.expressionStatement(termToAstCPS(env, term, cps)),
+            ]);
         }
         // return t.identifier(term.type);
     }
+};
+
+const flattenImmediateCallsToLets = (ast) => {
+    traverse(ast, {
+        CallExpression(path) {
+            if (
+                path.node.arguments.length === 1 &&
+                path.node.callee.type === 'ArrowFunctionExpression'
+            ) {
+                const name =
+                    path.node.callee.params[0].type === 'Identifier'
+                        ? path.node.callee.params[0].name
+                        : 'unknown';
+                if (
+                    path.node.callee.body.type === 'BlockStatement' &&
+                    path.parent.type === 'ExpressionStatement'
+                ) {
+                    path.parentPath.replaceWithMultiple([
+                        name === '_ignored'
+                            ? t.expressionStatement(path.node.arguments[0])
+                            : t.variableDeclaration('const', [
+                                  t.variableDeclarator(
+                                      t.identifier(name),
+                                      path.node.arguments[0],
+                                  ),
+                              ]),
+                        path.node.callee.body,
+                    ]);
+                }
+            }
+        },
+    });
+};
+
+const removeBlocksWithNoDeclarations = (ast) => {
+    traverse(ast, {
+        BlockStatement(path) {
+            const node = path.node;
+            const res = [];
+            let changed = false;
+            node.body.forEach((node) => {
+                if (node.type !== 'BlockStatement') {
+                    return res.push(node);
+                }
+                const hasDeclares = node.body.some(
+                    (n) => n.type === 'VariableDeclaration',
+                );
+                if (hasDeclares) {
+                    return res.push(node);
+                }
+                changed = true;
+                res.push(...node.body);
+            });
+            // node.body = res;
+            if (changed) {
+                path.replaceWith(t.blockStatement(res));
+            }
+        },
+    });
 };
 
 export const declarationToString = (
@@ -131,15 +193,21 @@ export const declarationToString = (
     hash: string,
     term: Term,
 ): string => {
-    const ast = t.variableDeclaration('const', [
-        t.variableDeclarator(
-            {
-                ...t.identifier('hash_' + hash),
-                // typeAnnotation: t.tsTypeAnnotation(typeToAst(env, term.is)),
-            },
-            printTerm(env, term),
-        ),
-    ]);
+    const ast = t.file(
+        t.program([
+            t.variableDeclaration('const', [
+                t.variableDeclarator(
+                    {
+                        ...t.identifier('hash_' + hash),
+                        // typeAnnotation: t.tsTypeAnnotation(typeToAst(env, term.is)),
+                    },
+                    printTerm(env, term),
+                ),
+            ]),
+        ]),
+    );
+    flattenImmediateCallsToLets(ast);
+    removeBlocksWithNoDeclarations(ast);
     // return prettier.format('.', { parser: () => ast });
     return generate(ast).code;
 };
@@ -215,21 +283,31 @@ export const termToAstCPS = (
             if (getEffects(term.target).length) {
                 return t.identifier('target effects');
             }
+            const u = env.unique++;
             if (term.argsEffects.length > 0) {
                 const target = printTerm(env, term.target);
                 let inner: t.Expression = done;
                 if (term.effects.length > 0) {
+                    // ok so the thing is,
+                    // i only need to cps it out if the arg
+                    // is an apply that does cps.
+                    // but not if that arg has an arg that does cps,
+                    // right?
                     inner = callOrBinop(
                         target,
                         term.args
                             .map((arg, i) =>
                                 isSimple(arg)
                                     ? printTerm(env, arg)
-                                    : t.identifier('arg_' + i),
+                                    : t.identifier(`arg_${i}_${u}`),
                             )
                             .concat([t.identifier('handlers'), inner as any]),
                     );
                 } else {
+                    // hm. I feel like I need to introspect `done`.
+                    // and have a way to flatten out immediate calls.
+                    // or I could do that post-hoc?
+                    // I mean that might make things simpler tbh.
                     inner = t.callExpression(done, [
                         // so here is where we want to
                         // put the "body"
@@ -239,7 +317,7 @@ export const termToAstCPS = (
                             term.args.map((arg, i) =>
                                 isSimple(arg)
                                     ? printTerm(env, arg)
-                                    : t.identifier('arg_' + i),
+                                    : t.identifier(`arg_${i}_${u}`),
                             ),
                         ),
                     ]);
@@ -252,8 +330,8 @@ export const termToAstCPS = (
                         env,
                         term.args[i],
                         t.arrowFunctionExpression(
-                            [t.identifier('arg_' + i)],
-                            inner,
+                            [t.identifier(`arg_${i}_${u}`)],
+                            t.blockStatement([t.expressionStatement(inner)]),
                         ),
                     );
                 }
@@ -316,10 +394,33 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             if (term.is.effects.length > 0) {
                 return t.arrowFunctionExpression(
                     term.args
-                        .map((arg) => t.identifier(printSym(arg)))
+                        .map((arg, i) => ({
+                            ...t.identifier(printSym(arg)),
+                            typeAnnotation: t.tsTypeAnnotation(
+                                typeToAst(env, term.is.args[i]),
+                            ),
+                        }))
+                        // .map((arg) => t.identifier(printSym(arg)))
                         .concat([
                             t.identifier('handlers'),
-                            t.identifier('done'),
+                            {
+                                ...t.identifier('done'),
+                                typeAnnotation: t.tsTypeAnnotation(
+                                    typeToAst(env, {
+                                        type: 'lambda',
+                                        args: [term.is.res],
+                                        effects: [],
+                                        rest: null,
+                                        res: {
+                                            type: 'ref',
+                                            ref: {
+                                                type: 'builtin',
+                                                name: 'void',
+                                            },
+                                        },
+                                    }),
+                                ),
+                            },
                         ]),
                     // why not pass in "thing to call"?
                     // like, that's better right?

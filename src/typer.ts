@@ -81,11 +81,11 @@ export type Term =
 
 export const getEffects = (t: Term): Array<Reference> => {
     if (t.type === 'apply') {
-        return t.argsEffects.concat(t.effects);
+        return dedupEffects(t.argsEffects.concat(t.effects));
     } else if (t.type === 'sequence') {
         return t.effects;
     } else if (t.type === 'raise') {
-        return t.effects.concat(t.argsEffects);
+        return dedupEffects(t.effects.concat(t.argsEffects));
     } else {
         return [];
     }
@@ -131,6 +131,7 @@ export type Env = {
     // oh here's where we would do kind?
     // like args n stuff?
 
+    unique: number;
     self: null | {
         name: string;
         type: Type;
@@ -146,6 +147,7 @@ export const newEnv = (): Env => ({
     builtinTypes: {},
     typeNames: {},
     types: {},
+    unique: 0,
 
     effectNames: {},
     effectConstructors: {},
@@ -155,6 +157,7 @@ export const newEnv = (): Env => ({
     locals: {},
 });
 export const subEnv = (env: Env): Env => ({
+    unique: env.unique,
     names: { ...env.names },
     terms: { ...env.terms },
     builtins: { ...env.builtins },
@@ -288,7 +291,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return {
                 type: 'sequence',
                 sts: inner,
-                effects: [].concat(...inner.map(getEffects)),
+                effects: dedupEffects([].concat(...inner.map(getEffects))),
                 is: inner[inner.length - 1].is,
             };
         }

@@ -86,6 +86,18 @@ Do macros always get a `continuation`? Or are they just allowed to `return`? ...
 
 ## Effects
 
+OPEN ISSUES:
+- the handleSimpleEffects2 has this hack where if you don't pass any arguments, and therefore it only gets 2 args intead of three, it knows the first one should have been a null. This is a hack and I should fix it.
+options include:
+- effects can't return void, they can return `unit`. which ends up being null.
+  but would that mean that any zero-arg calls have to be passing unit around?
+  that's a pain.
+  or that `k()` turns into `k(())`, which is also awkward.
+  is there a way to, at the place where I produce the `k`, make it a lambda
+  yeah idk.
+
+
+
 Question: can I unify "effect definitions" with something else?
 - record definition? not really. enum? also no
 - modular implicit? 🤔 there definitely seems to be something similar here.
