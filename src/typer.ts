@@ -111,7 +111,7 @@ export type LambdaType = {
     res: Type;
 };
 
-export type Env = {
+export type GlobalEnv = {
     names: { [key: string]: Id };
     terms: { [key: string]: Term };
     builtins: { [key: string]: Type };
@@ -128,9 +128,9 @@ export type Env = {
             ret: Type;
         }>;
     };
-    // oh here's where we would do kind?
-    // like args n stuff?
+};
 
+export type LocalEnv = {
     unique: number;
     self: null | {
         name: string;
@@ -138,38 +138,60 @@ export type Env = {
     };
     // builtinTypes: { [key: string]: Type };
     locals: { [key: string]: { sym: Symbol; type: Type } };
+    typeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
+};
+
+export type TypeConstraint = {
+    smaller: Type; // the sub type
+    larger: Type;
+};
+
+export type Env = {
+    // oh here's where we would do kind?
+    // like args n stuff?
+    global: GlobalEnv;
+    local: LocalEnv;
 };
 
 export const newEnv = (): Env => ({
-    names: {},
-    terms: {},
-    builtins: {},
-    builtinTypes: {},
-    typeNames: {},
-    types: {},
-    unique: 0,
+    global: {
+        names: {},
+        terms: {},
+        builtins: {},
+        builtinTypes: {},
+        typeNames: {},
+        types: {},
 
-    effectNames: {},
-    effectConstructors: {},
-    effects: {},
+        effectNames: {},
+        effectConstructors: {},
+        effects: {},
+    },
+    local: {
+        unique: 0,
 
-    self: null,
-    locals: {},
+        self: null,
+        locals: {},
+        typeVbls: {},
+    },
 });
 export const subEnv = (env: Env): Env => ({
-    unique: env.unique,
-    names: { ...env.names },
-    terms: { ...env.terms },
-    builtins: { ...env.builtins },
-    typeNames: { ...env.typeNames },
-    builtinTypes: { ...env.builtinTypes },
-    types: { ...env.types },
-    self: env.self,
-    locals: { ...env.locals },
-
-    effectNames: { ...env.effectNames },
-    effectConstructors: { ...env.effectConstructors },
-    effects: { ...env.effects },
+    global: {
+        names: { ...env.global.names },
+        terms: { ...env.global.terms },
+        builtins: { ...env.global.builtins },
+        typeNames: { ...env.global.typeNames },
+        builtinTypes: { ...env.global.builtinTypes },
+        types: { ...env.global.types },
+        effectNames: { ...env.global.effectNames },
+        effectConstructors: { ...env.global.effectConstructors },
+        effects: { ...env.global.effects },
+    },
+    local: {
+        self: env.local.self,
+        locals: { ...env.local.locals },
+        unique: env.local.unique,
+        typeVbls: {},
+    },
 });
 
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
@@ -225,16 +247,16 @@ export const typeType = (env: Env, type: ParseType): Type => {
     // console.log('TYPEING TYPE', type);
     switch (type.type) {
         case 'id': {
-            if (env.typeNames[type.text] != null) {
+            if (env.global.typeNames[type.text] != null) {
                 return {
                     type: 'ref',
                     ref: {
                         type: 'user',
-                        id: env.typeNames[type.text],
+                        id: env.global.typeNames[type.text],
                     },
                 };
             }
-            if (env.builtinTypes[type.text] != null) {
+            if (env.global.builtinTypes[type.text] != null) {
                 return {
                     type: 'ref',
                     ref: { type: 'builtin', name: type.text },
@@ -249,13 +271,13 @@ export const typeType = (env: Env, type: ParseType): Type => {
                 type: 'lambda',
                 args: type.args.map((a) => typeType(env, a)),
                 effects: type.effects.map((id) => {
-                    if (!env.effectNames[id.text]) {
+                    if (!env.global.effectNames[id.text]) {
                         throw new Error(`No effect named ${id.text}`);
                     }
                     return {
                         type: 'user',
                         id: {
-                            hash: env.effectNames[id.text],
+                            hash: env.global.effectNames[id.text],
                             pos: 0,
                             size: 1,
                         },
@@ -299,7 +321,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             // ok, left associative, right? I think so.
             let left: Term = typeExpr(env, expr.first);
             expr.rest.forEach(({ op, right }) => {
-                const is = env.builtins[op];
+                const is = env.global.builtins[op];
                 if (!is) {
                     throw new Error(`Unexpected boolean op ${op}`);
                 }
@@ -384,23 +406,23 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return target;
         }
         case 'id': {
-            if (env.self && expr.text === env.self.name) {
+            if (env.local.self && expr.text === env.local.self.name) {
                 return {
                     type: 'self',
-                    is: env.self.type,
+                    is: env.local.self.type,
                 };
             }
-            if (env.locals[expr.text]) {
-                const { sym, type } = env.locals[expr.text];
+            if (env.local.locals[expr.text]) {
+                const { sym, type } = env.local.locals[expr.text];
                 return {
                     type: 'var',
                     sym,
                     is: type,
                 };
             }
-            if (env.names[expr.text]) {
-                const id = env.names[expr.text];
-                const term = env.terms[id.hash];
+            if (env.global.names[expr.text]) {
+                const id = env.global.names[expr.text];
+                const term = env.global.terms[id.hash];
                 return {
                     type: 'ref',
                     ref: {
@@ -410,15 +432,15 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     is: term.is,
                 };
             }
-            if (env.builtins[expr.text]) {
-                const type = env.builtins[expr.text];
+            if (env.global.builtins[expr.text]) {
+                const type = env.global.builtins[expr.text];
                 return {
                     type: 'ref',
                     is: type,
                     ref: { type: 'builtin', name: expr.text },
                 };
             }
-            console.log(env.locals);
+            console.log(env.local.locals);
             throw new Error(`Undefined identifier ${expr.text}`);
         }
         case 'lambda': {
@@ -429,9 +451,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const argst = [];
             expr.args.forEach(({ id, type: rawType }) => {
                 const type = typeType(env, rawType);
-                const unique = Object.keys(inner.locals).length;
+                const unique = Object.keys(inner.local.locals).length;
                 const sym = { name: id.text, unique };
-                inner.locals[id.text] = { sym, type };
+                inner.local.locals[id.text] = { sym, type };
                 args.push(sym);
                 argst.push(type);
             });
@@ -465,11 +487,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     `Can't handle multiple effects in one handler.`,
                 );
             }
-            const effId = env.effectNames[effName.text];
+            const effId = env.global.effectNames[effName.text];
             if (!effId) {
                 throw new Error(`No effect named ${effName.text}`);
             }
-            const constrs = env.effects[effId];
+            const constrs = env.global.effects[effId];
             const effect: Reference = {
                 type: 'user',
                 id: { hash: effId, size: 1, pos: 0 },
@@ -491,30 +513,33 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             // but then, effects found in the bodies also get added.
             // so we'll need some deduping
             const inner = subEnv(env);
-            const unique = Object.keys(inner.locals).length;
+            const unique = Object.keys(inner.local.locals).length;
             const sym = { name: expr.pure.arg.text, unique };
-            inner.locals[expr.pure.arg.text] = { sym, type: targetReturn };
+            inner.local.locals[expr.pure.arg.text] = {
+                sym,
+                type: targetReturn,
+            };
             const pure = typeExpr(inner, expr.pure.body);
 
             effects.push(...getEffects(pure));
 
             const cases = [];
             expr.cases.forEach((kase) => {
-                const idx = env.effectConstructors[kase.constr.text].idx;
+                const idx = env.global.effectConstructors[kase.constr.text].idx;
                 const constr = constrs[idx];
                 const inner = subEnv(env);
                 const args = kase.args.map((id, i) => {
-                    const unique = Object.keys(inner.locals).length;
+                    const unique = Object.keys(inner.local.locals).length;
                     const sym = { name: id.text, unique };
-                    inner.locals[id.text] = {
+                    inner.local.locals[id.text] = {
                         sym,
                         type: constr.args[i],
                     };
                     return sym;
                 });
-                const unique = Object.keys(inner.locals).length;
+                const unique = Object.keys(inner.local.locals).length;
                 const k = { name: kase.k.text, unique };
-                inner.locals[k.name] = {
+                inner.local.locals[k.name] = {
                     sym: k,
                     type: {
                         type: 'lambda',
@@ -552,11 +577,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         }
         case 'raise': {
             // um id vs constr?
-            const effid = env.effectConstructors[expr.constr.text];
+            const effid = env.global.effectConstructors[expr.constr.text];
             if (!effid) {
                 throw new Error(`Unknown effect ${expr.constr.text}`);
             }
-            const eff = env.effects[effid.hash][effid.idx];
+            const eff = env.global.effects[effid.hash][effid.idx];
             // if (eff.type !== 'lambda') {
             //     throw new Error(
             //         `Non-lambda effect constructor ${JSON.stringify(eff)}`,

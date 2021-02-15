@@ -83,31 +83,31 @@ const main = (fname: string, dest: string) => {
     const parsed: Array<Toplevel> = parse(raw);
 
     const env = newEnv();
-    env.builtins['++'] = {
+    env.global.builtins['++'] = {
         type: 'lambda',
         args: [string, string],
         effects: [],
         rest: null,
         res: string,
     };
-    env.builtins['+'] = {
+    env.global.builtins['+'] = {
         type: 'lambda',
         args: [int, int],
         effects: [],
         rest: null,
         res: int,
     };
-    env.builtins['log'] = {
+    env.global.builtins['log'] = {
         type: 'lambda',
         args: [string],
         effects: [],
         rest: null,
         res: void_,
     };
-    env.builtinTypes['unit'] = 0;
-    env.builtinTypes['void'] = 0;
-    env.builtinTypes['int'] = 0;
-    env.builtinTypes['string'] = 0;
+    env.global.builtinTypes['unit'] = 0;
+    env.global.builtinTypes['void'] = 0;
+    env.global.builtinTypes['int'] = 0;
+    env.global.builtinTypes['string'] = 0;
 
     const out = [
         `export {}`,
@@ -167,16 +167,22 @@ const main = (fname: string, dest: string) => {
                       type: typeType(env, item.ann),
                   }
                 : null;
-            const t = typeExpr({ ...env, self }, item.expr);
+            const t = typeExpr(
+                { ...env, local: { ...env.local, self } },
+                item.expr,
+            );
             const h: string = hash(t);
-            env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
-            env.terms[h] = t;
+            env.global.names[item.id.text] = { hash: h, size: 1, pos: 0 };
+            env.global.terms[h] = t;
             out.push(`// ${printType(env, t.is)}`);
             out.push(
                 declarationToString(
                     {
                         ...env,
-                        self: { name: h, type: self ? self.type : null },
+                        local: {
+                            ...env.local,
+                            self: { name: h, type: self ? self.type : null },
+                        },
                     },
                     h,
                     t,
@@ -203,11 +209,11 @@ const main = (fname: string, dest: string) => {
                 };
             });
             const h: string = hash(constrs);
-            env.effectNames[item.id.text] = h;
+            env.global.effectNames[item.id.text] = h;
             item.constrs.forEach((c, i) => {
-                env.effectConstructors[c.id.text] = { idx: i, hash: h };
+                env.global.effectConstructors[c.id.text] = { idx: i, hash: h };
             });
-            env.effects[h] = constrs;
+            env.global.effects[h] = constrs;
         } else {
             const t = typeExpr(env, item);
             out.push(`// ${printType(env, t.is)}`);

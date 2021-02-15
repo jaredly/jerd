@@ -36,10 +36,26 @@ Features:
 - scheme
 - clojure
 
+## What do I want to build?
+
+A web party thing for making fun animated gifs.
+You will have a canvas
+and such.
+
+What's the method for interacting with the canvas?
+some pure functional description of a scene?
+or mutable stuffs?
+
+hmm.
+inspired by http://www.quil.info/ probably?
+also reprocessing to some extent.
+
+
 ## Status
 
 - [x] working on getting a basic effects setup going
 - [x] need to support self-recursive functions.
+- [ ] some type inference would be great!
 - then probably need to support `let`, b/c that's important
 - at some point, letrec
 - I also want to get type inference going

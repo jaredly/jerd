@@ -330,7 +330,7 @@ export const termToAstCPS = (
             if (getEffects(term.target).length) {
                 return t.identifier('target effects');
             }
-            const u = env.unique++;
+            const u = env.local.unique++;
             if (term.argsEffects.length > 0) {
                 const target = printTerm(env, term.target);
                 let inner: t.Expression = done;
@@ -421,7 +421,7 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
     switch (term.type) {
         // these will never need effects, immediate is fine
         case 'self':
-            return t.identifier(`hash_${env.self.name}`);
+            return t.identifier(`hash_${env.local.self.name}`);
         case 'int':
             return t.numericLiteral(term.value);
         case 'ref':
