@@ -4,6 +4,48 @@ a language, I think
 
 
 Features:
+- algebraic effects
+- affine types for safe mutability
+- compile to readable javascript
+- code is hashed typed AST in a database, not text in files
+    - for convenience of reading and stuff, there will be a readable
+      file format. It will not be the main method of development though.
+      but it's also super useful for showing examples, and project templates,
+      and runtime tests.
+- typed macros
+- modular implicits
+- structured editor
+- sum & product types (rich enums & structs/records)
+- generics
+- well type-checked interface with typescript
+- "partial" types for WIP development
+    - if you have a type error, you can still compile, but your function
+      will now require the "type error" effect, which isn't something you can
+      handle in user code, meaning you can only run this code inside of the
+      dev env.
+      inspured by that one language, that maybe was a color? or a nut?
+      had a structured editor.
+
+
+## Inspirations
+
+- unison
+- rust
+- ocaml/rescript
+- shem/golem
+- scheme
+- clojure
+
+## Status
+
+- working on getting a basic effects setup going
+- need to support self-recursive functions.
+- then probably need to support `let`, b/c that's important
+- at some point, letrec
+- I also want to get type inference going
+- but generics are probably more important.
+- and modular implicits. (well kindof explicits? idk.)
+
 
 ## Some local type inference
 
@@ -255,3 +297,42 @@ yeah ok let's see if we can get effects working
 <<<<>>>><<<<>>>>
 
 
+## Javascript Runtime Representation
+
+The goal is to enable easy interop with TS/Flow
+
+- string - string
+- int/float - number
+- array - array
+- list - linked-list via array tuples
+
+enum Something {
+    One(int, text),
+    Two{name: string, age: int},
+    Three,
+}
+
+```ts
+type Something = 
+    | {type: 'One', args: [int, text]}
+    | {type: 'Two', name: string, age: int}
+    | {type: 'Three'}
+```
+
+hrmmmmmm do I do hashes though intead of text names? hrmmmm how much do I care about
+being rename-resiliant?
+
+hrmmmm
+interop vs ... trend setting or something
+like, not having to refactor if you rename something is neat I guess
+but is that such a huge issue?
+I mean sure, internally changing names of arguments or whatever, sure.
+that doesn't need to be externally observable.
+
+but if we want interop, which I do,
+then yeah. not sure about that one.
+
+Because if I want to go whole-hog, then it doesn't make sense
+to try to match a typescript type. just convert to & from at the border.
+
+ok and then the record type is the same dealio.

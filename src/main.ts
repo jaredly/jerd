@@ -147,12 +147,31 @@ const main = (fname: string, dest: string) => {
     ];
     for (const item of parsed) {
         if (item.type === 'define') {
-            const t = typeExpr(env, item.expr);
+            // ugh.
+            // I really just need type inference? right?
+            // or I mean
+            // I could just shallowly check
+            const self = item.ann
+                ? {
+                      name: item.id.text,
+                      type: typeType(env, item.ann),
+                  }
+                : null;
+            const t = typeExpr({ ...env, self }, item.expr);
             const h: string = hash(t);
             env.names[item.id.text] = { hash: h, size: 1, pos: 0 };
             env.terms[h] = t;
             out.push(`// ${printType(env, t.is)}`);
-            out.push(declarationToString(env, h, t));
+            out.push(
+                declarationToString(
+                    {
+                        ...env,
+                        self: { name: h, type: self ? self.type : null },
+                    },
+                    h,
+                    t,
+                ),
+            );
             // out.push(`const hash_${h} = ` + termToString(env, t));
             // } else if (item.type === 'deffect') {
             //     const h: string = hash(item);

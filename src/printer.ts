@@ -295,6 +295,8 @@ const callOrBinop = (target, args) => {
 export const printTerm = (env: Env, term: Term): t.Expression => {
     switch (term.type) {
         // these will never need effects, immediate is fine
+        case 'self':
+            return t.identifier(`hash_${env.self.name}`);
         case 'int':
             return t.numericLiteral(term.value);
         case 'ref':

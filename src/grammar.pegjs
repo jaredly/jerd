@@ -16,7 +16,8 @@ Toplevel = Effect / Statement
 
 Statement = Define / Expression
 
-Define = "const" __ id:Identifier __ "=" __ expr:Expression {return {type: 'define', id, expr}}
+Define = "const" __ id:Identifier ann:(_ ":" _ Type)? __ "=" __ expr:Expression {return {
+    type: 'define', id, expr, ann: ann ? ann[3] : null}}
 
 Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {type: 'effect', id, constrs: constrs.map(c => c[0])}}
 
@@ -62,7 +63,12 @@ CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map(r => r[3])]
 
 CommaExpr = first:Expression rest:(_ "," _ Expression)* {return [first, ...rest.map(r => r[3])]}
 
-Lambda = "(" _ args:Args? _ ")" _ "=>" _ body:Expression {return {type: 'lambda', args: args || [], body}}
+Lambda = "(" _ args:Args? _ ")" _ rettype:(":" _ Type _)? "=>" _ body:Expression {return {
+    type: 'lambda',
+    args: args || [],
+    rettype: rettype ? rettype[2] : null,
+    body,
+}}
 Args = first:Arg rest:(_ "," _ Arg)* {return [first, ...rest.map(r => r[3])]}
 Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null}}
 
@@ -91,4 +97,6 @@ _ "whitespace"
   = [ \t\n\r]* (comment _)*
 __ "whitespace"
   = [ \t\n\r]+ (comment _)*
-comment = "/*" (!"*/" .)* "*/"
+comment = multiLineComment / lineComment
+multiLineComment = "/*" (!"*/" .)* "*/"
+lineComment = "//" (!"\n" .)* "\n"

@@ -55,6 +55,7 @@ export type CPSAble =
 
 export type Term =
     | CPSAble
+    | { type: 'self'; is: Type }
     | {
           type: 'ref';
           ref: Reference;
@@ -130,6 +131,10 @@ export type Env = {
     // oh here's where we would do kind?
     // like args n stuff?
 
+    self: null | {
+        name: string;
+        type: Type;
+    };
     // builtinTypes: { [key: string]: Type };
     locals: { [key: string]: { sym: Symbol; type: Type } };
 };
@@ -146,6 +151,7 @@ export const newEnv = (): Env => ({
     effectConstructors: {},
     effects: {},
 
+    self: null,
     locals: {},
 });
 export const subEnv = (env: Env): Env => ({
@@ -155,6 +161,7 @@ export const subEnv = (env: Env): Env => ({
     typeNames: { ...env.typeNames },
     builtinTypes: { ...env.builtinTypes },
     types: { ...env.types },
+    self: env.self,
     locals: { ...env.locals },
 
     effectNames: { ...env.effectNames },
@@ -166,6 +173,8 @@ export const subEnv = (env: Env): Env => ({
 // that doesn't mean keeping track of column & line.
 // because we'll need it in a web ui.
 
+// `t` is being passed as an argument to a function that expects `target`.
+// Is it valid?
 const fitsExpectation = (t: Type, target: Type) => {
     if (t.type !== target.type) {
         // um there's a chance we'd need to resolve something? maybe?
@@ -186,7 +195,17 @@ const fitsExpectation = (t: Type, target: Type) => {
             if (!fitsExpectation(t.res, target.res)) {
                 return false;
             }
-            // STOPSHIP: verify the effects!
+            // Is target allowed to have more, or fewer effects than t?
+            // more. t's effects list must be a strict subset.
+            t.effects.forEach((e) => {
+                if (!target.effects.some((ef) => deepEqual(ef, e))) {
+                    throw new Error(
+                        `Argument has effect ${JSON.stringify(
+                            e,
+                        )}, which was not expected.`,
+                    );
+                }
+            });
             for (let i = 0; i < t.args.length; i++) {
                 if (!fitsExpectation(t.args[i], target.args[i])) {
                     return false;
@@ -362,6 +381,12 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return target;
         }
         case 'id': {
+            if (env.self && expr.text === env.self.name) {
+                return {
+                    type: 'self',
+                    is: env.self.type,
+                };
+            }
             if (env.locals[expr.text]) {
                 const { sym, type } = env.locals[expr.text];
                 return {
@@ -408,6 +433,13 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 argst.push(type);
             });
             const body = typeExpr(inner, expr.body);
+            if (expr.rettype) {
+                if (!fitsExpectation(body.is, typeType(env, expr.rettype))) {
+                    throw new Error(
+                        `Return type of lambda doesn't fit type declaration`,
+                    );
+                }
+            }
             return {
                 type: 'lambda',
                 args,
@@ -506,7 +538,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 });
             });
 
-            // STOPSHIP START HERE
             return {
                 type: 'handle',
                 target,
