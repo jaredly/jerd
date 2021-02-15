@@ -38,13 +38,36 @@ Features:
 
 ## Status
 
-- working on getting a basic effects setup going
-- need to support self-recursive functions.
+- [x] working on getting a basic effects setup going
+- [x] need to support self-recursive functions.
 - then probably need to support `let`, b/c that's important
 - at some point, letrec
 - I also want to get type inference going
 - but generics are probably more important.
 - and modular implicits. (well kindof explicits? idk.)
+
+What am I trying to build?
+As my example project?
+A webserver? idk.
+Oh whats my react interop gonna look like?
+The type of react fns will definitely be required pure. so that's fine.
+ehm
+also do I actually want to try to build a go backend?
+i wonder what i would do with it.
+
+um
+like
+yeah what was I goung to build with this
+I wanted to do a proof of concept
+um
+of like
+what abilities in js would look like
+yeah that was basically it
+and then
+I guess I could try building an app or something
+like, hometowndb is getting most of my thoughts at the moment.
+
+I could always go navel-gazey and try self-hosting. would that even make sense?
 
 
 ## Some local type inference
@@ -348,3 +371,79 @@ Because if I want to go whole-hog, then it doesn't make sense
 to try to match a typescript type. just convert to & from at the border.
 
 ok and then the record type is the same dealio.
+
+ooooh ok so what if you could specify certain types as "ffi" types?
+like "nomangle"?
+And so they would have the normal names.
+but then you wouldn't be able to rename stuff without a migration.
+which is reasonable.
+
+Ok so we have
+- normal (structural) types
+    - memory representation is an implementation detail. could be an array, or an object, or whatever.
+    - names are not used in computing the hash, nor do they appear in generated code (other than as comments probably).
+    - might do disc unions for typescript's checker's sake, but with `type: hash + idx` instead of a normal name.
+- unique structural types
+    - like normal ones, but with a few bytes of random hash to prevent conflicts I guess
+- ffi (nomangle) types
+    - layout done to mirror typescript/flow discriminated unions, names are used in hashing, and at runtime. so, super easy to get data in and out.
+
+Beyond that, what does FFI look like?
+How do I declare an external function?
+- I mean probably with a type and a reference, right?
+    - the default is for all js-sourced args to be validated, because untrustworthy. also for js functions to be wrapped in a try/catch(?). You can annotate with `@unchecked` to opt out and just rely on typescript's type checking.
+
+// umm do I enforce npm versions? no that would cause so much sadness.
+```
+import createElement from "react" : <T>(string) => ReactElement
+```
+
+hm so I need a way to declare foreign types too. that is, foreign opaque types.
+
+herm so when I say ffi, that does let messyness into the program. right? purity is lost.
+which we don't love.
+hmm.
+the other option is to require that all ffi happen through effects.
+which gets in the way of react.createElement, thats for sure.
+
+hmmm we could have a `jsExn` effect that is an escape-continuation effect, that gets auto added to your functions if you're using javascript ffi.
+well so the jsExn is one thing, and you could do a try/catch to "remove" it, which is nice.
+but I feel like I still want a way to indicate that this function is "unsafe" in a general way.
+and maybe an effect isn't quite the right way to do it.
+
+but as long as I'm tracking stuff, might as well track a lack of safety, right?
+
+hrmmm I wonder how escape-continuations would play with my cps stuff.
+feels like it might be weird.
+
+So:
+- if we are in a CPS context, escape continuations can use the same mechanisms as other ones
+- if we are not, they can use try/catch
+- buut if I've like resumed a normal k, and then I throw, probably weird things happen?
+  well I guess I would have re-set up the try/catch when I'm dealing with the new k, right? because you have to re-wrap in the handlers ....
+
+Ok but like I definitely want to be able to write react components.
+and it would just be that they're unsafe? branded? I can live with that.
+
+ok, so jsffi is a special escape-effect that can't be handled.
+operationally speaking, it's as easy as having all ffi functions have the jsffi effect on them.
+
+```
+ffi type ReactElement ; // ffi types are Unique as well. but they can have type variables
+import createElement from "react" : <T>(string) ={jsffi, jsexn}> ReactElement
+```
+
+you can
+`import createElement from ":global"`
+if you want to probably
+
+or `import "hello" as goodbyw from ":global" : <T>(string) ={jsffi, jsexn}> string`
+
+and if you're importing something from `go`, then it would have the `{goffi}` effect on it.
+same with scheme.
+
+Does that make sense? what we don't want to allow things to be switched out?
+Of course, if things are implemented via a modular implicit ....
+hmm ....
+maybe just `{ffi}` is what it should be called.
+or maybe ffi unifies the different runtimes?
