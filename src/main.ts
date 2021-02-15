@@ -8,7 +8,9 @@ import { type } from 'os';
 import cloner from 'rfdc';
 import parse, { Expression, Define, Toplevel } from './parser';
 import { declarationToString, printType, termToString } from './printer';
-import typeExpr, { newEnv, Type, typeType } from './typer';
+import typeExpr from './typeExpr';
+import typeType from './typeType';
+import { newEnv, Type } from './types';
 
 const clone = cloner();
 

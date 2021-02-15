@@ -1,4 +1,4 @@
-import { Term, Env, Type, getEffects, CPSAble } from './typer';
+import { Term, Env, Type, getEffects, CPSAble } from './types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import prettier from 'prettier';
