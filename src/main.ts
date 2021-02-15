@@ -182,7 +182,7 @@ const main = (fname: string, dest: string) => {
             //     });
             //     env.effects[h] = constrs;
         } else if (item.type === 'effect') {
-            console.log(item.constrs);
+            // console.log(item.constrs);
             // throw new Error('TODO');
             const constrs = item.constrs.map(({ type }) => {
                 return {

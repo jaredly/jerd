@@ -15,14 +15,12 @@ const sayHi = () => {
 // TODO when I've got type arguments, make this generic.
 const respondWith:
     (string) => (() ={Stdio}> void) => void
- = (responseValue: string)
-: (() ={Stdio}> void) => void
-=> (fn: () ={Stdio}> void) => {
+ = (responseValue: string) => (fn: () ={Stdio}> void) => {
     handle! fn {
-        Stdio.read(() => k) => respondWith(responseValue)(() => k(responseValue)),
+        Stdio.read(() => k) => respondWith(responseValue ++ ".")(() => k(responseValue)),
         Stdio.write((v) => k) => {
             log(v);
-            respondWith(responseValue)(() => k())
+            respondWith(responseValue ++ "-")(() => k())
         },
         pure(a) => a
     }
@@ -92,12 +90,12 @@ farther("Farther", handlers, (handlers, value) => {
 */
 
 const farther = (name: string) => {
-    log("farther " ++ name);
+    log("yes please " ++ name);
     raise!(Stdio.read())
 }
 
 const inner = (name: string) => {
-    log(farther("Farther"));
+    log(farther("Folks") ++ " from farther");
     log("getting");
     log(name);
     log(raise!(Stdio.read()) ++ " and " ++ raise!(Stdio.read()));
@@ -106,8 +104,8 @@ const inner = (name: string) => {
 }
 
 const test1 = () => {
-    respondWith("hello")(() => inner("Yes"))
+    respondWith("<read>")(() => inner("Yes"))
 }
 
-sayHi()
+// sayHi()
 test1()

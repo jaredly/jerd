@@ -455,7 +455,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         }
         case 'handle': {
             const target = typeExpr(env, expr.target);
-            console.log(target);
+            // console.log(target);
             let effName = expr.cases[0].name;
             if (expr.cases.some((c) => c.name.text !== effName.text)) {
                 throw new Error(
@@ -511,7 +511,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 });
                 const unique = Object.keys(inner.locals).length;
                 const k = { name: kase.k.text, unique };
-                console.log('effects', otherEffects);
                 inner.locals[k.name] = {
                     sym: k,
                     type: {
