@@ -14,7 +14,7 @@ export const printType = (env: Env, type: Type): string => {
     switch (type.type) {
         case 'ref':
             if (type.ref.type === 'builtin') {
-                return type.ref.name;
+                return type.ref.name === 'int' ? 'number' : type.ref.name;
             } else {
                 return type.ref.id.hash;
             }
@@ -45,7 +45,11 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
     switch (type.type) {
         case 'ref':
             if (type.ref.type === 'builtin') {
-                return t.tsTypeReference(t.identifier(type.ref.name));
+                return t.tsTypeReference(
+                    t.identifier(
+                        type.ref.name === 'int' ? 'number' : type.ref.name,
+                    ),
+                );
             } else {
                 return t.tsTypeReference(t.identifier('t_' + type.ref.id.hash));
             }
@@ -53,8 +57,34 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
             return t.tsTypeReference(t.identifier(type.sym.name));
         case 'lambda': {
             const res = t.tsTypeAnnotation(typeToAst(env, type.res));
+
+            const findTypeVariables = (type: Type): Array<Symbol> => {
+                switch (type.type) {
+                    case 'var':
+                        return [type.sym];
+                    case 'ref':
+                        return [];
+                    case 'lambda':
+                        return ([] as Array<Symbol>)
+                            .concat(...type.args.map(findTypeVariables))
+                            .concat(findTypeVariables(type.res));
+                    default:
+                        return [];
+                }
+            };
+
+            const vbls = dedup(findTypeVariables(type).map((m) => `${m.name}`));
+            // hrmmm a function type should really keep track of its own type variables.
+            // like, explicitly.
+            // so that we know the difference between
+            // <T, R>(x: T, () => R) => T
+            // and
+            // <T>(x: T, <R>() => R) => T
+
             return t.tsFunctionType(
-                null,
+                t.tsTypeParameterDeclaration(
+                    vbls.map((name) => t.tsTypeParameter(null, null, name)),
+                ),
                 type.args
                     .map((arg, i) => ({
                         ...t.identifier('arg_' + i),
@@ -618,3 +648,8 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
 
 const printRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : ref.id.hash;
+
+const dedup = (items: Array<string>): Array<string> => {
+    const used: { [key: string]: boolean } = {};
+    return items.filter((r) => (used[r] ? false : ((used[r] = true), true)));
+};

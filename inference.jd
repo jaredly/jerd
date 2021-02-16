@@ -1,7 +1,16 @@
 // Yes please
 
-// START HERE: why doesn't the output have inferred
-// resolved type variables?
+// START HERE: functions need to own their type variables.
+// Default to put them at the closest lambda.
+
+// At the end of unification, all type variables need a home.
+// Also, have the "unique" for type variables
+// be global maybe? or no, rewrite the type
+// variables to new ones when bringing in a term
+// that contains type variables.
+// Also note that we should be able to call
+// a generic function multiple times
+// with different instantiations of the types.
 const callOne = (f) => f(2, "hi")
 // const test2 = () => callOne((a, b) => log(b))
 // const inferrRecur = (count) => inferrRecur(count + 4)
