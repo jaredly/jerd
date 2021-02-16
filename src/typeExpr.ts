@@ -132,6 +132,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         res: newTypeVbl(env),
                         rest: null, // STOPSHIP(rest)
                     };
+                    if (!fitsExpectation(env, is, target.is)) {
+                        throw new Error('we literally just created this');
+                    }
                 } else {
                     if (target.is.type !== 'lambda') {
                         throw new Error(

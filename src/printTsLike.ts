@@ -113,7 +113,8 @@ export const termToPretty = (term: Term): PP => {
                 ),
             ]);
         default:
-            return atom('not yet printable: ' + term.type);
+            let _x: never = term;
+            return atom('not yet printable: ' + JSON.stringify(term));
     }
 };
 

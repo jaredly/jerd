@@ -3,5 +3,5 @@
 // START HERE: why doesn't the output have inferred
 // resolved type variables?
 const callOne = (f) => f(2, "hi")
-const test2 = () => callOne((a, b) => log(b))
-const inferrRecur = (count) => inferrRecur(count + 4)
+// const test2 = () => callOne((a, b) => log(b))
+// const inferrRecur = (count) => inferrRecur(count + 4)
