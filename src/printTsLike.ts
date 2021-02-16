@@ -2,7 +2,7 @@
 // mostly for debugging
 //
 
-import { Id, Reference, Symbol, Term, Type } from './types';
+import { Case, Id, Reference, Symbol, Term, Type } from './types';
 import { PP, items, args, block, atom } from './printer';
 
 export const refToPretty = (ref: Reference) =>
@@ -92,10 +92,41 @@ export const termToPretty = (term: Term): PP => {
             return refToPretty(term.ref);
         case 'var':
             return symToPretty(term.sym);
+        case 'handle':
+            return items([
+                atom('handle! '),
+                termToPretty(term.target),
+                atom(' '),
+                args(
+                    term.cases
+                        .map(caseToPretty)
+                        .concat([
+                            items([
+                                atom('pure('),
+                                symToPretty(term.pure.arg),
+                                atom(') => '),
+                                termToPretty(term.pure.body),
+                            ]),
+                        ]),
+                    '{',
+                    '}',
+                ),
+            ]);
         default:
-            return atom('not yet printable');
+            return atom('not yet printable: ' + term.type);
     }
 };
+
+const caseToPretty = (kase: Case): PP =>
+    items([
+        atom(kase.constr.toString()),
+        atom('('),
+        args(kase.args.map(symToPretty)),
+        atom(' => '),
+        symToPretty(kase.k),
+        atom(') => '),
+        termToPretty(kase.body),
+    ]);
 
 const isBinOp = (term: Term) =>
     term.type === 'ref' &&
