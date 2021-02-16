@@ -11,13 +11,15 @@ import {
     declarationToString,
     printType,
     termToString,
+    typeToString,
 } from './typeScriptPrinter';
-import typeExpr, { walkTerm } from './typeExpr';
-import typeType, { newTypeVbl, walkType } from './typeType';
-import { newEnv, Type, TypeConstraint } from './types';
-import unify, { unifyInTerm, unifyInType } from './unify';
+import typeExpr, { fitsExpectation } from './typeExpr';
+import typeType, { newTypeVbl } from './typeType';
+import { Env, newEnv, Term, Type, TypeConstraint } from './types';
+import { unifyInTerm, unifyInType, unifyVariables } from './unify';
 import { printToString } from './printer';
 import { declarationToPretty, termToPretty } from './printTsLike';
+import deepEqual from 'fast-deep-equal';
 
 const clone = cloner();
 
@@ -135,7 +137,7 @@ const prelude = [
         };`,
 ];
 
-function typeFile(parsed: Toplevel[]) {
+function presetEnv() {
     const env = newEnv({
         name: 'global',
         type: { type: 'ref', ref: { type: 'builtin', name: 'never' } },
@@ -166,6 +168,56 @@ function typeFile(parsed: Toplevel[]) {
     env.global.builtinTypes['int'] = 0;
     env.global.builtinTypes['string'] = 0;
 
+    return env;
+}
+
+const testInference = (parsed: Toplevel[]) => {
+    const env = presetEnv();
+    for (const item of parsed) {
+        if (item.type === 'define') {
+            const typeVbls: { [key: string]: Array<TypeConstraint> } = {};
+            const subEnv = { ...env, local: { ...env.local, typeVbls } };
+            // TODO only do it
+            const self = {
+                name: item.id.text,
+                type: newTypeVbl(subEnv),
+                // type: item.ann ? typeType(env, item.ann) : newTypeVbl(subEnv),
+            };
+            subEnv.local.self = self;
+            const term = typeExpr(subEnv, item.expr);
+            if (fitsExpectation(subEnv, term.is, self.type) !== true) {
+                throw new Error(`Term's type doesn't match annotation`);
+            }
+            // So for self-recursive things, the final
+            // thing should be exactly the same, not just
+            // larger or smaller, right?
+            const unified = unifyVariables(typeVbls);
+            if (Object.keys(unified).length) {
+                unifyInTerm(unified, term);
+            }
+            const hash: string = hashObject(term);
+            env.global.names[item.id.text] = { hash: hash, size: 1, pos: 0 };
+            env.global.terms[hash] = term;
+
+            const declared = typeType(env, item.ann);
+            if (!deepEqual(declared, term.is)) {
+                console.log(`Inference Test failed!`);
+                console.log('Expected:');
+                console.log(typeToString(env, declared));
+                console.log('Inferred:');
+                console.log(typeToString(env, term.is));
+            } else {
+                console.log('Passed!');
+                console.log(typeToString(env, declared));
+                console.log(typeToString(env, term.is));
+            }
+        }
+    }
+};
+
+function typeFile(parsed: Toplevel[]) {
+    const env = presetEnv();
+
     // const
     const expressions = [];
 
@@ -177,56 +229,55 @@ function typeFile(parsed: Toplevel[]) {
             // or I mean
             // I could just shallowly check
             const typeVbls: { [key: string]: Array<TypeConstraint> } = {};
-            const subEnv = {
-                ...env,
-                local: {
-                    ...env.local,
-                    // self,
-                    typeVbls,
-                },
+            const subEnv = { ...env, local: { ...env.local, typeVbls } };
+            const self = {
+                name: item.id.text,
+                type: item.ann ? typeType(env, item.ann) : newTypeVbl(subEnv),
             };
-            const self = item.ann
-                ? {
-                      name: item.id.text,
-                      type: typeType(env, item.ann),
-                  }
-                : { name: item.id.text, type: newTypeVbl(subEnv) };
             subEnv.local.self = self;
             const term = typeExpr(subEnv, item.expr);
-            const unified: { [key: string]: Type | null } = {};
-            for (let key of Object.keys(typeVbls)) {
-                unified[key] = typeVbls[key].reduce(unify, null);
+            if (fitsExpectation(subEnv, term.is, self.type) !== true) {
+                throw new Error(`Term's type doesn't match annotation`);
             }
-            let didChange = true;
-            let iter = 0;
-            while (didChange) {
-                if (iter++ > 100) {
-                    throw new Error(
-                        `Something is a miss in the state of unification.`,
-                    );
-                }
-                didChange = false;
-                Object.keys(unified).forEach((id) => {
-                    const t = unified[id];
-                    if (t != null) {
-                        const changed = unifyInType(unified, t);
-                        if (changed != null) {
-                            // console.log(
-                            //     `${JSON.stringify(
-                            //         unified[id],
-                            //         null,
-                            //         2,
-                            //     )}\n==>\n${JSON.stringify(changed, null, 2)}`,
-                            // );
-                            didChange = true;
-                            unified[id] = changed;
-                        }
-                    }
-                });
-            }
+            // Ok so we need to be able to handle second- and nth-level
+            // indirection I imagine.
+            // hmm
+            // is this where things get undecidable?
+            // I mean, how bad could it get?
+            // for (let key of Object.keys(typeVbls)) {
+            //     unified[key] = typeVbls[key].reduce(unify, null);
+            // }
+            const unified = unifyVariables(typeVbls);
+            // let didChange = true;
+            // let iter = 0;
+            // while (didChange) {
+            //     if (iter++ > 100) {
+            //         throw new Error(
+            //             `Something is a miss in the state of unification.`,
+            //         );
+            //     }
+            //     didChange = false;
+            //     Object.keys(unified).forEach((id) => {
+            //         const t = unified[id];
+            //         if (t != null) {
+            //             const changed = unifyInType(unified, t);
+            //             if (changed != null) {
+            //                 // console.log(
+            //                 //     `${JSON.stringify(
+            //                 //         unified[id],
+            //                 //         null,
+            //                 //         2,
+            //                 //     )}\n==>\n${JSON.stringify(changed, null, 2)}`,
+            //                 // );
+            //                 didChange = true;
+            //                 unified[id] = changed;
+            //             }
+            //         }
+            //     });
+            // }
             if (Object.keys(unified).length) {
                 unifyInTerm(unified, term);
-                self.type = unifyInType(unified, self.type) || self.type;
+                // self.type = unifyInType(unified, self.type) || self.type;
             }
             // console.log('vbls', JSON.stringify(typeVbls, null, 2));
             // console.log('unified', JSON.stringify(unified, null, 2));
@@ -273,18 +324,13 @@ function typeFile(parsed: Toplevel[]) {
     return { expressions, env };
 }
 
-const main = (fname: string, dest: string) => {
-    const raw = fs.readFileSync(fname, 'utf8');
-    const parsed: Array<Toplevel> = parse(raw);
-
-    const { expressions, env } = typeFile(parsed);
-
+const fileToTypescript = (expressions: Array<Term>, env: Env) => {
     const out = prelude.slice();
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
 
         out.push(
-            `/*\n${printToString(
+            `\n/*\n${printToString(
                 declarationToPretty(
                     {
                         hash: hash,
@@ -319,11 +365,29 @@ const main = (fname: string, dest: string) => {
         out.push(termToString(env, term));
     });
 
+    return out.join('\n');
+};
+
+const main = (fname: string, dest: string) => {
+    const raw = fs.readFileSync(fname, 'utf8');
+    const parsed: Array<Toplevel> = parse(raw);
+
+    const { expressions, env } = typeFile(parsed);
+    const text = fileToTypescript(expressions, env);
+
     if (dest === '-' || !dest) {
-        console.log(out.join('\n'));
+        console.log(text);
     } else {
-        fs.writeFileSync(dest, out.join('\n'));
+        fs.writeFileSync(dest, text);
     }
     fs.writeFileSync('./env.json', JSON.stringify(env, null, 2));
 };
-main(process.argv[2], process.argv[3]);
+
+const runTests = () => {
+    const raw = fs.readFileSync('inference-tests.jd', 'utf8');
+    const parsed: Array<Toplevel> = parse(raw);
+    testInference(parsed);
+};
+
+// main(process.argv[2], process.argv[3]);
+runTests();

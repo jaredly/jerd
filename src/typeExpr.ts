@@ -34,12 +34,6 @@ export const walkTerm = (term: Term, handle: (term: Term) => void): void => {
     }
 };
 
-// export const replaceTypeVbls = (term: Term, vbls: {[unique: number]: Type}) => {
-//     switch (term.type) {
-//         case 'ref':
-//     }
-// }
-
 // const maybeSeq = (env: Env, sts): Term => {
 //     if (sts.length === 1) {
 //         return typeExpr(env, sts[0]);
@@ -94,10 +88,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     throw new Error(`${op} is not a binary function`);
                 }
                 const rarg = typeExpr(env, right);
-                if (!fitsExpectation(env, left.is, is.args[0])) {
+                if (fitsExpectation(env, left.is, is.args[0]) !== true) {
                     throw new Error(`first arg to ${op} wrong type`);
                 }
-                if (!fitsExpectation(env, rarg.is, is.args[1])) {
+                if (fitsExpectation(env, rarg.is, is.args[1]) !== true) {
                     throw new Error(`second arg to ${op} wrong type`);
                 }
                 left = {
@@ -132,7 +126,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         res: newTypeVbl(env),
                         rest: null, // STOPSHIP(rest)
                     };
-                    if (!fitsExpectation(env, is, target.is)) {
+                    if (fitsExpectation(env, is, target.is) !== true) {
                         throw new Error('we literally just created this');
                     }
                 } else {
@@ -161,7 +155,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const resArgs: Array<Term> = [];
                 args.forEach((term, i) => {
                     const t = typeExpr(env, term, is.args[i]);
-                    if (!fitsExpectation(env, t.is, is.args[i])) {
+                    if (fitsExpectation(env, t.is, is.args[i]) !== true) {
                         throw new Error(
                             `Wrong type for arg ${i}: \n${JSON.stringify(
                                 t.is,
@@ -244,7 +238,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const body = typeExpr(inner, expr.body);
             if (expr.rettype) {
                 if (
-                    !fitsExpectation(env, body.is, typeType(env, expr.rettype))
+                    fitsExpectation(
+                        env,
+                        body.is,
+                        typeType(env, expr.rettype),
+                    ) !== true
                 ) {
                     throw new Error(
                         `Return type of lambda doesn't fit type declaration`,
@@ -384,7 +382,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
                 const t = typeExpr(env, term, eff.args[i]);
-                if (!fitsExpectation(env, t.is, eff.args[i])) {
+                if (fitsExpectation(env, t.is, eff.args[i]) !== true) {
                     throw new Error(
                         `Wrong type for arg ${i}: ${JSON.stringify(
                             t.is,
@@ -419,15 +417,16 @@ const isVoid = (x: Type) => {
 
 const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
 
+type UnificationResult = true | false | Symbol;
+
 // `t` is being passed as an argument to a function that expects `target`.
 // Is it valid?
 export const fitsExpectation = (
     env: Env | null,
     t: Type,
     target: Type,
-): boolean => {
+): UnificationResult => {
     if (t.type === 'var' && env != null) {
-        // console.log('Got', t, target, env.local.typeVbls);
         env.local.typeVbls[t.sym.unique].push({
             type: 'smaller-than',
             other: target,
@@ -436,7 +435,6 @@ export const fitsExpectation = (
         return true;
     }
     if (target.type === 'var' && env != null) {
-        // console.log(target);
         env.local.typeVbls[target.sym.unique].push({
             type: 'larger-than',
             other: t,
@@ -450,6 +448,14 @@ export const fitsExpectation = (
     }
     switch (t.type) {
         case 'var':
+            if (target.type === 'var') {
+                if (!deepEqual(t.sym, target.sym)) {
+                    return target.sym;
+                }
+                return true;
+            }
+            // if (deepEqual(t.sym, other))
+            console.log('env is null I guess');
             return false;
         case 'ref':
             return deepEqual(t, target);
@@ -460,10 +466,13 @@ export const fitsExpectation = (
             // unless there's optional arguments going on here, stay tuned?
             // I guess. maybe.
             if (target.args.length !== t.args.length) {
+                console.log('arglen');
                 return false;
             }
-            if (!fitsExpectation(env, t.res, target.res)) {
-                return false;
+            const res = fitsExpectation(env, t.res, target.res);
+            if (res !== true) {
+                console.log('resoff', t.res, target.res);
+                return res;
             }
             // Is target allowed to have more, or fewer effects than t?
             // more. t's effects list must be a strict subset.
@@ -477,8 +486,11 @@ export const fitsExpectation = (
                 }
             });
             for (let i = 0; i < t.args.length; i++) {
-                if (!fitsExpectation(env, t.args[i], target.args[i])) {
-                    return false;
+                const arg = fitsExpectation(env, t.args[i], target.args[i]);
+                if (arg !== true) {
+                    console.log('Arg is off', i);
+                    console.log(t.args[i], target.args[i]);
+                    return arg;
                 }
             }
             return true;

@@ -4,6 +4,179 @@ import { Term, Type, TypeConstraint } from './types';
 import { fitsExpectation, walkTerm } from './typeExpr';
 import { walkType } from './typeType';
 
+// const
+/*
+
+Ok so what are the constraints on a type?
+Theoretically, I think we're establishing upper & lower bounds ;)
+
+also I don't remember much type theory
+
+smallest bound = a concrete type
+largest bound = ???
+
+but like
+
+uh
+
+yeah I need some type theory I think
+
+A) X smaller-than Y means "I found a var(x) when I expected a Y"
+B) X larger-than  Y means "I found a Y      when I expected a var(y)"
+
+What kinds of things can be found?
+- concrete types (int, string, float, char, unit, non-generic user types)
+- generic types (including list, record, enums etc.) with args
+- a forall
+- functions! Are these no different than generic types? I think so?
+
+concrete types cannot be exchanged for each other.
+
+if A.Y is a concrete type, var(x) must be exactly that concrete type.
+if A.Y is a forall, var(x) must be forall as well
+if A.Y is a generic type, var(x) must be that same type, and the args must also satisfy smaller-than
+
+if B.Y is a concrete type, var(x) must be exactly that, or a forall
+if B.Y is a generic type, var(x) must be ... exactly that, or a forall, and the args the same?
+
+Like passing Array<int> to a fucntion expecting 'a is fine or Array<'a> or Array<int>
+
+So, we need to check:
+> do we have Upper bounds?
+> if not, forall is fine, why not, right?
+
+yeah I think so.
+
+and smaller & larger-thans should be transitive.
+
+So first pass:
+- go through all the smaller-thans, go concrete
+- then go through constraints and replace and vbls
+- then go through again
+
+so if you have (x, f) => f(x)
+
+
+
+
+*/
+
+const unifyInner = (
+    initialTypeVbls: { [unique: string]: Array<TypeConstraint> },
+    // round = 0,
+) => {
+    const unified: { [unique: string]: Type } = {};
+    const typeVbls = { ...initialTypeVbls };
+
+    for (let round = 0; round < 10; round++) {
+        // TODO detect loops
+        for (let key of Object.keys(typeVbls)) {
+            // If we have a 'larger-than' that's a function
+            // it's really a smaller-than?
+            // or like, we should treat it as such?
+            // because the arg vbls will already be taken care of, right?
+            // I think so.
+            // let's try it.
+            const smallers = typeVbls[key].filter(
+                (c) => c.type === 'smaller-than' && c.other.type !== 'var',
+                // (c.other.type !== 'var' ||
+                //     unified[c.other.sym.unique] != null),
+            );
+            // .map((c) =>
+            //     c.other.type === 'var'
+            //         ? { ...c, other: unified[c.other.sym.unique] }
+            //         : c,
+            // );
+            if (!smallers.length) {
+                const largerFns = typeVbls[key].filter(
+                    (c) =>
+                        c.type === 'larger-than' && c.other.type === 'lambda',
+                );
+                if (largerFns.length > 0) {
+                    // uh
+                    unified[key] = largerFns[0].other;
+                    delete typeVbls[key];
+                }
+                // oh for functions it'll be "larger-than" I guess?
+                console.log(`maybe no constraints on ${key}`);
+                continue;
+            }
+            // const sm0 = smallers[0].other;
+            const final = smallers.reduce(unify, null)!;
+            typeVbls[key].forEach((c) => {
+                if (c.type === 'larger-than') {
+                    if (fitsExpectation(null, c.other, final) !== true) {
+                        throw new Error(`Unable to unify constraints`);
+                    }
+                }
+            });
+            unified[key] = final;
+            delete typeVbls[key];
+
+            // for (let constraint of typeVbls[key]) {
+            //     // do a basic check
+            //     // "int" can be "smaller than" a vbl ...
+            //     // but it can't be "larger" than a vbl. Right?
+            //     // or wait.
+            //     // a => a + 2
+            //     // a needs to be smaller than int
+            //     // a starts as a vbl
+            //     // manual type variables have a "forall" constraint.
+            //     // a . a => a + 2
+            //     // forall can't be smaller than int
+            //     // ugh how do I hmmm
+            //     // how do constraints work?
+            //     // like
+            // }
+        }
+        if (Object.keys(typeVbls).length === 0) {
+            break;
+        }
+        Object.keys(typeVbls).forEach((key) => [
+            (typeVbls[key] = typeVbls[key].map((c) =>
+                c.other.type === 'var' && unified[c.other.sym.unique]
+                    ? unified[c.other.sym.unique]
+                    : c,
+            )),
+        ]);
+        // console.log(JSON.stringify(unified));
+        // console.log(JSON.stringify(typeVbls));
+        if (round >= 9) {
+            console.log(JSON.stringify(typeVbls));
+            console.log(JSON.stringify(unified));
+            throw new Error(`Probably bad news in unification land.`);
+        }
+    }
+
+    // for (let key of Object.keys(typeVbls)) {
+    //     unified[key] = typeVbls[key].reduce(unify, null);
+    // }
+
+    return unified;
+};
+
+export const unifyVariables = (typeVbls: {
+    [unique: string]: Array<TypeConstraint>;
+}) => {
+    // const copy = {};
+    // Object.keys(typeVbls).forEach((k) => (copy[k] = typeVbls[k].slice()));
+    // const unified: { [key: string]: Type } = {};
+    console.log(JSON.stringify(typeVbls, null, 2));
+    return unifyInner(typeVbls);
+    // ok so if we have some constraints
+    // and they go in multiple directions
+    // uh maybe that's where constraint solvers come in?
+    // am I gonna build a dumb constraint solver?
+
+    // I guess one question is: can I reduce my thing to 3sat? if so, it's NP-hard
+    // ok so basically, if I come to a loop, it needs to collapse, right?
+
+    // the simplest would be:
+    // make fitsExpectation indicate what kind of failure we're dealing with
+    // if it's a "two vars" failure, wait until next round?
+    // return unified;
+};
+
 export const unifyInTerm = (
     unified: { [key: string]: Type | null },
     term: Term,
@@ -49,17 +222,19 @@ const unify = (one: Type | null, constraint: TypeConstraint): Type => {
     // TODO functions with args that are vars will die.
     // or rather, they need to be updated.
     if (constraint.type === 'larger-than') {
-        if (!fitsExpectation(null, constraint.other, one)) {
+        if (fitsExpectation(null, constraint.other, one) !== true) {
             throw new Error(
-                `Unification error folks ${JSON.stringify(
+                `Unification error folks larger ${JSON.stringify(
                     one,
-                )} : ${JSON.stringify(constraint)}`,
+                    null,
+                    2,
+                )} : ${JSON.stringify(constraint, null, 2)}`,
             );
         }
     } else {
-        if (!fitsExpectation(null, one, constraint.other)) {
+        if (fitsExpectation(null, one, constraint.other) !== true) {
             throw new Error(
-                `Unification error folks ${JSON.stringify(
+                `Unification error folks smaller ${JSON.stringify(
                     one,
                 )} : ${JSON.stringify(constraint)}`,
             );
@@ -67,5 +242,3 @@ const unify = (one: Type | null, constraint: TypeConstraint): Type => {
     }
     return one;
 };
-
-export default unify;
