@@ -16,6 +16,8 @@ import typeExpr, { walkTerm } from './typeExpr';
 import typeType, { newTypeVbl, walkType } from './typeType';
 import { newEnv, Type, TypeConstraint } from './types';
 import unify from './unify';
+import { printToString } from './printer';
+import { declarationToPretty, termToPretty } from './printTsLike';
 
 const clone = cloner();
 
@@ -219,7 +221,24 @@ const main = (fname: string, dest: string) => {
             const h: string = hash(t);
             env.global.names[item.id.text] = { hash: h, size: 1, pos: 0 };
             env.global.terms[h] = t;
-            out.push(`// ${printType(env, t.is)}`);
+            // out.push(`// ${printType(env, t.is)}`);
+            out.push(
+                `/*\n${printToString(
+                    declarationToPretty(
+                        {
+                            hash: h,
+                            size: 1,
+                            pos: 0,
+                        },
+                        t,
+                    ),
+                    100,
+                    {
+                        indent: 0,
+                        pos: 0,
+                    },
+                )}\n*/`,
+            );
             out.push(
                 declarationToString(
                     {
