@@ -3,7 +3,7 @@
 // we want to parse things I guess?
 
 import fs from 'fs';
-import hash from 'hash-sum';
+import hashObject from 'hash-sum';
 import { type } from 'os';
 import cloner from 'rfdc';
 import parse, { Expression, Define, Toplevel } from './parser';
@@ -87,10 +87,55 @@ const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
 const string: Type = { type: 'ref', ref: { type: 'builtin', name: 'string' } };
 const void_: Type = { type: 'ref', ref: { type: 'builtin', name: 'void' } };
 
-const main = (fname: string, dest: string) => {
-    const raw = fs.readFileSync(fname, 'utf8');
-    const parsed: Array<Toplevel> = parse(raw);
+const prelude = [
+    `export {}`,
+    'const log = console.log',
+    `const raise = (handlers, hash, idx, args, done) => {
+            handlers[hash](idx, args, done)
+        }`,
+    `type ShallowHandler<Get, Set> = (
+            idx: number,
+            args: Set,
+            returnIntoFn: (newHandler: {[hash: string]: ShallowHandler<Get, Set>}, value: Get) => void,
+        ) => void;`,
+    `const handleSimpleShallow2 = <Get, Set, R>(
+            hash: string,
+            fn: (handler: {[hash: string]: ShallowHandler<Get, Set>}, cb: (fnReturnValue: R) => void) => void,
+            handleEffect: Array<(
+                value: Set,
+                cb: (
+                    gotten: Get,
+                    newHandler: {[hash: string]: ShallowHandler<Get, Set>},
+                    returnIntoHandler: (fnReturnValue: R) => void,
+                ) => void,
+            ) => void>,
+            handlePure: (fnReturnValue: R) => void,
+        ) => {
+            let fnsReturnPointer = handlePure;
+            fn(
+                {[hash]: (idx, args, returnIntoFn) => {
+                    handleEffect[idx](
+                        args,
+                        (handlersValueToSend, newHandler, returnIntoHandler) => {
+                            if (returnIntoHandler === undefined) {
+                                /// @ts-ignore
+                                returnIntoHandler = newHandler
+                                /// @ts-ignore
+                                newHandler = handlersValueToSend
+                                /// @ts-ignore
+                                handlersValueToSend = null
+                            }
+                            fnsReturnPointer = returnIntoHandler;
+                            returnIntoFn(newHandler, handlersValueToSend);
+                        },
+                    );
+                }},
+                (fnsReturnValue) => fnsReturnPointer(fnsReturnValue),
+            );
+        };`,
+];
 
+function typeFile(parsed: Toplevel[]) {
     const env = newEnv({
         name: 'global',
         type: { type: 'ref', ref: { type: 'builtin', name: 'never' } },
@@ -121,52 +166,10 @@ const main = (fname: string, dest: string) => {
     env.global.builtinTypes['int'] = 0;
     env.global.builtinTypes['string'] = 0;
 
-    const out = [
-        `export {}`,
-        'const log = console.log',
-        `const raise = (handlers, hash, idx, args, done) => {
-            handlers[hash](idx, args, done)
-        }`,
-        `type ShallowHandler<Get, Set> = (
-            idx: number,
-            args: Set,
-            returnIntoFn: (newHandler: {[hash: string]: ShallowHandler<Get, Set>}, value: Get) => void,
-        ) => void;`,
-        `const handleSimpleShallow2 = <Get, Set, R>(
-            hash: string,
-            fn: (handler: {[hash: string]: ShallowHandler<Get, Set>}, cb: (fnReturnValue: R) => void) => void,
-            handleEffect: Array<(
-                value: Set,
-                cb: (
-                    gotten: Get,
-                    newHandler: {[hash: string]: ShallowHandler<Get, Set>},
-                    returnIntoHandler: (fnReturnValue: R) => void,
-                ) => void,
-            ) => void>,
-            handlePure: (fnReturnValue: R) => void,
-        ) => {
-            let fnsReturnPointer = handlePure;
-            fn(
-                {[hash]: (idx, args, returnIntoFn) => {
-                    handleEffect[idx](
-                        args,
-                        (handlersValueToSend, newHandler, returnIntoHandler) => {
-                            if (returnIntoHandler === undefined) {
-                                /// @ts-ignore
-                                returnIntoHandler = newHandler
-                                /// @ts-ignore
-                                newHandler = handlersValueToSend
-                                handlersValueToSend = null
-                            }
-                            fnsReturnPointer = returnIntoHandler;
-                            returnIntoFn(newHandler, handlersValueToSend);
-                        },
-                    );
-                }},
-                (fnsReturnValue) => fnsReturnPointer(fnsReturnValue),
-            );
-        };`,
-    ];
+    // const
+    const expressions = [];
+
+    // const out = prelude.slice();
     for (const item of parsed) {
         if (item.type === 'define') {
             // ugh.
@@ -189,7 +192,7 @@ const main = (fname: string, dest: string) => {
                   }
                 : { name: item.id.text, type: newTypeVbl(subEnv) };
             subEnv.local.self = self;
-            const t = typeExpr(subEnv, item.expr);
+            const term = typeExpr(subEnv, item.expr);
             const unified: { [key: string]: Type | null } = {};
             for (let key of Object.keys(typeVbls)) {
                 unified[key] = typeVbls[key].reduce(unify, null);
@@ -222,45 +225,16 @@ const main = (fname: string, dest: string) => {
                 });
             }
             if (Object.keys(unified).length) {
-                unifyInTerm(unified, t);
+                unifyInTerm(unified, term);
                 self.type = unifyInType(unified, self.type) || self.type;
             }
             // console.log('vbls', JSON.stringify(typeVbls, null, 2));
             // console.log('unified', JSON.stringify(unified, null, 2));
-            const h: string = hash(t);
-            env.global.names[item.id.text] = { hash: h, size: 1, pos: 0 };
-            env.global.terms[h] = t;
+            const hash: string = hashObject(term);
+            env.global.names[item.id.text] = { hash: hash, size: 1, pos: 0 };
+            env.global.terms[hash] = term;
             // out.push(`// ${printType(env, t.is)}`);
-            out.push(
-                `/*\n${printToString(
-                    declarationToPretty(
-                        {
-                            hash: h,
-                            size: 1,
-                            pos: 0,
-                        },
-                        t,
-                    ),
-                    100,
-                    {
-                        indent: 0,
-                        pos: 0,
-                    },
-                )}\n*/`,
-            );
-            out.push(
-                declarationToString(
-                    {
-                        ...env,
-                        local: {
-                            ...env.local,
-                            self: { name: h, type: self.type },
-                        },
-                    },
-                    h,
-                    t,
-                ),
-            );
+
             // out.push(`const hash_${h} = ` + termToString(env, t));
             // } else if (item.type === 'deffect') {
             //     const h: string = hash(item);
@@ -281,18 +255,70 @@ const main = (fname: string, dest: string) => {
                     ret: typeType(env, type.res),
                 };
             });
-            const h: string = hash(constrs);
-            env.global.effectNames[item.id.text] = h;
+            const hash: string = hashObject(constrs);
+            env.global.effectNames[item.id.text] = hash;
             item.constrs.forEach((c, i) => {
-                env.global.effectConstructors[c.id.text] = { idx: i, hash: h };
+                env.global.effectConstructors[c.id.text] = {
+                    idx: i,
+                    hash: hash,
+                };
             });
-            env.global.effects[h] = constrs;
+            env.global.effects[hash] = constrs;
         } else {
-            const t = typeExpr(env, item);
-            out.push(`// ${printType(env, t.is)}`);
-            out.push(termToString(env, t));
+            // A standalone expression
+            const term = typeExpr(env, item);
+            expressions.push(term);
         }
     }
+    return { expressions, env };
+}
+
+const main = (fname: string, dest: string) => {
+    const raw = fs.readFileSync(fname, 'utf8');
+    const parsed: Array<Toplevel> = parse(raw);
+
+    const { expressions, env } = typeFile(parsed);
+
+    const out = prelude.slice();
+    Object.keys(env.global.terms).forEach((hash) => {
+        const term = env.global.terms[hash];
+
+        out.push(
+            `/*\n${printToString(
+                declarationToPretty(
+                    {
+                        hash: hash,
+                        size: 1,
+                        pos: 0,
+                    },
+                    term,
+                ),
+                100,
+                {
+                    indent: 0,
+                    pos: 0,
+                },
+            )}\n*/`,
+        );
+        out.push(
+            declarationToString(
+                {
+                    ...env,
+                    local: {
+                        ...env.local,
+                        self: { name: hash, type: term.is },
+                    },
+                },
+                hash,
+                term,
+            ),
+        );
+    });
+    expressions.forEach((term) => {
+        out.push(`// ${printType(env, term.is)}`);
+        out.push(termToString(env, term));
+    });
+
     if (dest === '-' || !dest) {
         console.log(out.join('\n'));
     } else {
@@ -300,5 +326,4 @@ const main = (fname: string, dest: string) => {
     }
     fs.writeFileSync('./env.json', JSON.stringify(env, null, 2));
 };
-
 main(process.argv[2], process.argv[3]);
