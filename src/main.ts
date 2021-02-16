@@ -85,7 +85,10 @@ const main = (fname: string, dest: string) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
-    const env = newEnv();
+    const env = newEnv({
+        name: 'global',
+        type: { type: 'ref', ref: { type: 'builtin', name: 'never' } },
+    });
     env.global.builtins['++'] = {
         type: 'lambda',
         args: [string, string],

@@ -1,8 +1,7 @@
-import { Term, Env, Type, getEffects, CPSAble, Symbol, Id } from './types';
+import { Term, Env, Type, getEffects, Symbol, Id, Reference } from './types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
-import prettier from 'prettier';
-import traverse, { Scope } from '@babel/traverse';
+import traverse from '@babel/traverse';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
@@ -457,7 +456,10 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                         .concat([
                             {
                                 ...t.identifier('handlers'),
-                                typeAnnotation: null,
+                                typeAnnotation: t.tsTypeAnnotation(
+                                    // STOPSHIP: Actually type this
+                                    t.tsAnyKeyword(),
+                                ),
                             },
                             {
                                 ...t.identifier('done'),
@@ -614,4 +616,5 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
     }
 };
 
-const printRef = (ref) => (ref.type === 'builtin' ? ref.name : ref.id.hash);
+const printRef = (ref: Reference) =>
+    ref.type === 'builtin' ? ref.name : ref.id.hash;

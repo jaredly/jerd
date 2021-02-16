@@ -121,7 +121,7 @@ export type GlobalEnv = {
 
 export type LocalEnv = {
     unique: number;
-    self: null | {
+    self: {
         name: string;
         type: Type;
     };
@@ -146,7 +146,7 @@ export type Env = {
     local: LocalEnv;
 };
 
-export const newEnv = (): Env => ({
+export const newEnv = (self: { name: string; type: Type }): Env => ({
     global: {
         names: {},
         terms: {},
@@ -161,8 +161,7 @@ export const newEnv = (): Env => ({
     },
     local: {
         unique: 0,
-
-        self: null,
+        self,
         locals: {},
         typeVbls: {},
     },
