@@ -7,11 +7,38 @@ import {
     getEffects,
     Symbol,
     Case,
+    LambdaType,
 } from './types';
 import { Expression } from './parser';
 import deepEqual from 'fast-deep-equal';
 import { subEnv } from './types';
-import typeType from './typeType';
+import typeType, { newTypeVbl } from './typeType';
+
+export const walkTerm = (term: Term, handle: (term: Term) => void): void => {
+    handle(term);
+    switch (term.type) {
+        case 'raise':
+            return term.args.forEach((t) => walkTerm(t, handle));
+        case 'handle':
+            walkTerm(term.target, handle);
+            walkTerm(term.pure.body, handle);
+            term.cases.forEach((kase) => walkTerm(kase.body, handle));
+            return;
+        case 'sequence':
+            return term.sts.forEach((t) => walkTerm(t, handle));
+        case 'apply':
+            walkTerm(term.target, handle);
+            return term.args.forEach((t) => walkTerm(t, handle));
+        case 'lambda':
+            return walkTerm(term.body, handle);
+    }
+};
+
+// export const replaceTypeVbls = (term: Term, vbls: {[unique: number]: Type}) => {
+//     switch (term.type) {
+//         case 'ref':
+//     }
+// }
 
 // const maybeSeq = (env: Env, sts): Term => {
 //     if (sts.length === 1) {
@@ -91,23 +118,42 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         case 'apply': {
             let target = typeExpr(env, expr.target);
             for (let args of expr.args) {
-                const { is } = target;
-                if (is.type !== 'lambda') {
-                    throw new Error(
-                        `Trying to call ${JSON.stringify(
-                            expr.target,
-                        )} but its a ${is.type} : ${JSON.stringify(is)}`,
-                    );
+                // const { is } = target;
+                let is: LambdaType;
+                if (target.is.type === 'var') {
+                    const argTypes: Array<Type> = [];
+                    for (let i = 0; i < args.length; i++) {
+                        argTypes.push(newTypeVbl(env));
+                    }
+                    is = {
+                        type: 'lambda',
+                        args: argTypes,
+                        effects: [], // STOPSHIP add effect vbls
+                        res: newTypeVbl(env),
+                        rest: null, // STOPSHIP(rest)
+                    };
+                } else {
+                    if (target.is.type !== 'lambda') {
+                        throw new Error(
+                            `Trying to call ${JSON.stringify(
+                                expr.target,
+                            )} but its a ${target.is.type} : ${JSON.stringify(
+                                target.is,
+                            )}`,
+                        );
+                    }
+                    if (target.is.args.length !== args.length) {
+                        throw new Error(
+                            `Wrong number of arguments ${JSON.stringify(
+                                expr,
+                                null,
+                                2,
+                            )}`,
+                        );
+                    }
+                    is = target.is;
                 }
-                if (is.args.length !== args.length) {
-                    throw new Error(
-                        `Wrong number of arguments ${JSON.stringify(
-                            expr,
-                            null,
-                            2,
-                        )}`,
-                    );
-                }
+
                 const effects: Array<Reference> = [];
                 const resArgs: Array<Term> = [];
                 args.forEach((term, i) => {
@@ -372,9 +418,13 @@ const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
 
 // `t` is being passed as an argument to a function that expects `target`.
 // Is it valid?
-const fitsExpectation = (env: Env, t: Type, target: Type): boolean => {
-    if (t.type === 'var') {
-        console.log('Got', t, target, env.local.typeVbls);
+export const fitsExpectation = (
+    env: Env | null,
+    t: Type,
+    target: Type,
+): boolean => {
+    if (t.type === 'var' && env != null) {
+        // console.log('Got', t, target, env.local.typeVbls);
         env.local.typeVbls[t.sym.unique].push({
             type: 'smaller-than',
             other: target,
@@ -382,7 +432,8 @@ const fitsExpectation = (env: Env, t: Type, target: Type): boolean => {
         // TODO check if it's obviously broken
         return true;
     }
-    if (target.type === 'var') {
+    if (target.type === 'var' && env != null) {
+        // console.log(target);
         env.local.typeVbls[target.sym.unique].push({
             type: 'larger-than',
             other: t,
@@ -395,6 +446,8 @@ const fitsExpectation = (env: Env, t: Type, target: Type): boolean => {
         return false;
     }
     switch (t.type) {
+        case 'var':
+            return false;
         case 'ref':
             return deepEqual(t, target);
         case 'lambda':

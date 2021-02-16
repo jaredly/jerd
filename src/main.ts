@@ -8,9 +8,10 @@ import { type } from 'os';
 import cloner from 'rfdc';
 import parse, { Expression, Define, Toplevel } from './parser';
 import { declarationToString, printType, termToString } from './printer';
-import typeExpr from './typeExpr';
-import typeType from './typeType';
-import { newEnv, Type } from './types';
+import typeExpr, { walkTerm } from './typeExpr';
+import typeType, { newTypeVbl, walkType } from './typeType';
+import { newEnv, Type, TypeConstraint } from './types';
+import unify from './unify';
 
 const clone = cloner();
 
@@ -163,16 +164,51 @@ const main = (fname: string, dest: string) => {
             // I really just need type inference? right?
             // or I mean
             // I could just shallowly check
+            const typeVbls: { [key: string]: Array<TypeConstraint> } = {};
+            const subEnv = {
+                ...env,
+                local: {
+                    ...env.local,
+                    // self,
+                    typeVbls,
+                },
+            };
             const self = item.ann
                 ? {
                       name: item.id.text,
                       type: typeType(env, item.ann),
                   }
-                : null;
-            const t = typeExpr(
-                { ...env, local: { ...env.local, self } },
-                item.expr,
-            );
+                : { name: item.id.text, type: newTypeVbl(subEnv) };
+            subEnv.local.self = self;
+            const t = typeExpr(subEnv, item.expr);
+            const unified: { [key: string]: Type | null } = {};
+            for (let key of Object.keys(typeVbls)) {
+                unified[key] = typeVbls[key].reduce(unify, null);
+            }
+            if (Object.keys(unified).length) {
+                walkTerm(t, (term) => {
+                    const changed = walkType(term.is, (t: Type) => {
+                        if (t.type === 'var' && unified[t.sym.unique] != null) {
+                            return unified[t.sym.unique];
+                        }
+                        return null;
+                    });
+                    if (changed) {
+                        term.is = changed;
+                    }
+                });
+                const changed = walkType(self.type, (t: Type) => {
+                    if (t.type === 'var' && unified[t.sym.unique] != null) {
+                        return unified[t.sym.unique];
+                    }
+                    return null;
+                });
+                if (changed) {
+                    self.type = changed;
+                }
+            }
+            console.log('vbls', JSON.stringify(typeVbls, null, 2));
+            console.log('unified', JSON.stringify(unified, null, 2));
             const h: string = hash(t);
             env.global.names[item.id.text] = { hash: h, size: 1, pos: 0 };
             env.global.terms[h] = t;
@@ -183,7 +219,7 @@ const main = (fname: string, dest: string) => {
                         ...env,
                         local: {
                             ...env.local,
-                            self: { name: h, type: self ? self.type : null },
+                            self: { name: h, type: self.type },
                         },
                     },
                     h,
