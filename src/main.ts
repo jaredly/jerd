@@ -7,7 +7,11 @@ import hash from 'hash-sum';
 import { type } from 'os';
 import cloner from 'rfdc';
 import parse, { Expression, Define, Toplevel } from './parser';
-import { declarationToString, printType, termToString } from './printer';
+import {
+    declarationToString,
+    printType,
+    termToString,
+} from './typeScriptPrinter';
 import typeExpr, { walkTerm } from './typeExpr';
 import typeType, { newTypeVbl, walkType } from './typeType';
 import { newEnv, Type, TypeConstraint } from './types';

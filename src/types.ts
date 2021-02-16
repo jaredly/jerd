@@ -125,7 +125,6 @@ export type LocalEnv = {
         name: string;
         type: Type;
     };
-    // builtinTypes: { [key: string]: Type };
     locals: { [key: string]: { sym: Symbol; type: Type } };
     typeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
     // manual type variables can't have constriaints, right? or can they?
