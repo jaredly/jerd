@@ -11,6 +11,9 @@ export const walkType = (
 ): Type | null => {
     const changed = handle(term);
     if (changed) {
+        // console.log(
+        //     `Term: ${JSON.stringify(term)} became ${JSON.stringify(changed)}`,
+        // );
         return changed;
     }
     if (term.type === 'lambda') {
@@ -20,11 +23,21 @@ export const walkType = (
             const neww = walkType(arg, handle);
             if (neww != null) {
                 changed = true;
+                // console.log(
+                //     `Arg: ${JSON.stringify(arg)} became ${JSON.stringify(
+                //         neww,
+                //     )}`,
+                // );
                 newArgs[i] = neww;
             }
         });
         const newres = walkType(term.res, handle);
         if (newres != null) {
+            // console.log(
+            //     `Res: ${JSON.stringify(term.res)} became ${JSON.stringify(
+            //         newres,
+            //     )}`,
+            // );
             changed = true;
         }
         if (changed) {

@@ -15,7 +15,7 @@ import {
 import typeExpr, { walkTerm } from './typeExpr';
 import typeType, { newTypeVbl, walkType } from './typeType';
 import { newEnv, Type, TypeConstraint } from './types';
-import unify from './unify';
+import unify, { unifyInTerm, unifyInType } from './unify';
 import { printToString } from './printer';
 import { declarationToPretty, termToPretty } from './printTsLike';
 
@@ -194,30 +194,39 @@ const main = (fname: string, dest: string) => {
             for (let key of Object.keys(typeVbls)) {
                 unified[key] = typeVbls[key].reduce(unify, null);
             }
-            if (Object.keys(unified).length) {
-                walkTerm(t, (term) => {
-                    const changed = walkType(term.is, (t: Type) => {
-                        if (t.type === 'var' && unified[t.sym.unique] != null) {
-                            return unified[t.sym.unique];
-                        }
-                        return null;
-                    });
-                    if (changed) {
-                        term.is = changed;
-                    }
-                });
-                const changed = walkType(self.type, (t: Type) => {
-                    if (t.type === 'var' && unified[t.sym.unique] != null) {
-                        return unified[t.sym.unique];
-                    }
-                    return null;
-                });
-                if (changed) {
-                    self.type = changed;
+            let didChange = true;
+            let iter = 0;
+            while (didChange) {
+                if (iter++ > 100) {
+                    throw new Error(
+                        `Something is a miss in the state of unification.`,
+                    );
                 }
+                didChange = false;
+                Object.keys(unified).forEach((id) => {
+                    const t = unified[id];
+                    if (t != null) {
+                        const changed = unifyInType(unified, t);
+                        if (changed != null) {
+                            // console.log(
+                            //     `${JSON.stringify(
+                            //         unified[id],
+                            //         null,
+                            //         2,
+                            //     )}\n==>\n${JSON.stringify(changed, null, 2)}`,
+                            // );
+                            didChange = true;
+                            unified[id] = changed;
+                        }
+                    }
+                });
             }
-            console.log('vbls', JSON.stringify(typeVbls, null, 2));
-            console.log('unified', JSON.stringify(unified, null, 2));
+            if (Object.keys(unified).length) {
+                unifyInTerm(unified, t);
+                self.type = unifyInType(unified, self.type) || self.type;
+            }
+            // console.log('vbls', JSON.stringify(typeVbls, null, 2));
+            // console.log('unified', JSON.stringify(unified, null, 2));
             const h: string = hash(t);
             env.global.names[item.id.text] = { hash: h, size: 1, pos: 0 };
             env.global.terms[h] = t;

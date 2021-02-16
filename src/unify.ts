@@ -1,7 +1,37 @@
 // Unify it all
 
-import { Type, TypeConstraint } from './types';
-import { fitsExpectation } from './typeExpr';
+import { Term, Type, TypeConstraint } from './types';
+import { fitsExpectation, walkTerm } from './typeExpr';
+import { walkType } from './typeType';
+
+export const unifyInTerm = (
+    unified: { [key: string]: Type | null },
+    term: Term,
+) => {
+    walkTerm(term, (term) => {
+        const changed = walkType(term.is, (t: Type) => {
+            if (t.type === 'var' && unified[t.sym.unique] != null) {
+                return unified[t.sym.unique];
+            }
+            return null;
+        });
+        if (changed) {
+            term.is = changed;
+        }
+    });
+};
+
+export const unifyInType = (
+    unified: { [key: string]: Type | null },
+    type: Type,
+): Type | null => {
+    return walkType(type, (t: Type) => {
+        if (t.type === 'var' && unified[t.sym.unique] != null) {
+            return unified[t.sym.unique];
+        }
+        return null;
+    });
+};
 
 const unify = (one: Type | null, constraint: TypeConstraint): Type => {
     if (one == null) {

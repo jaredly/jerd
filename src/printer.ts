@@ -45,21 +45,25 @@ export const printToString = (
     current: { indent: number; pos: number },
 ): string => {
     if (pp.type === 'atom') {
+        current.pos += pp.text.length;
         return pp.text;
     }
     if (pp.type === 'block') {
         let res = '{';
-        const indent = current.indent + 4;
+        current.indent += 4;
         pp.contents.forEach((item) => {
             res +=
                 '\n' +
-                white(indent) +
-                printToString(item, maxWidth, { indent, pos: indent }) +
+                white(current.indent) +
+                printToString(item, maxWidth, current) +
                 ';';
         });
+        current.indent -= 4;
         if (res.length > 1) {
             res += '\n' + white(current.indent);
+            current.pos = current.indent;
         }
+        current.pos += 1;
         res += '}';
         return res;
     }
@@ -68,47 +72,44 @@ export const printToString = (
         // const full = pp.contents.reduce((w, x) => w + width(x), 0)
         if (current.pos + full <= maxWidth) {
             let res = pp.left;
-            let at = current.pos + 1;
+            current.pos += 1;
             pp.contents.forEach((child, i) => {
                 if (i !== 0) {
                     res += ', ';
-                    at += 2;
+                    current.pos += 2;
                 }
-                const ctext = printToString(child, maxWidth, {
-                    indent: current.indent,
-                    pos: at,
-                });
-                at += ctext.length;
+                const ctext = printToString(child, maxWidth, current);
+                // current.pos += ctext.length;
                 res += ctext;
             });
+            current.pos += 1;
             return res + pp.right;
         }
 
         let res = pp.left;
-        const indent = current.indent + 4;
+        current.pos += 1;
+        current.indent += 4;
         pp.contents.forEach((item) => {
+            current.pos = current.indent;
             res +=
                 '\n' +
-                white(indent) +
-                printToString(item, maxWidth, { indent, pos: indent }) +
+                white(current.indent) +
+                printToString(item, maxWidth, current) +
                 ',';
         });
+        current.indent -= 4;
         if (res.length > 1) {
             res += '\n' + white(current.indent);
+            current.pos = current.indent;
         }
+        current.pos += 1;
         res += pp.right;
         return res;
     }
     if (pp.type === 'items') {
         let res = '';
-        let at = current.pos;
         pp.items.forEach((item) => {
-            const text = printToString(item, maxWidth, {
-                indent: current.indent,
-                pos: at,
-            });
-            at += text.length;
-            res += text;
+            res += printToString(item, maxWidth, current);
         });
         return res;
     }
