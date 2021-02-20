@@ -74,3 +74,69 @@ so, you know, a little wonky.
 but maybe not a huge perf hole.
 
 
+Ok but actually can't I just use interfaces for this?
+
+```go
+
+interface HasName {
+    GetName() string
+    SetName(string)
+}
+
+interface HasAge {
+    GetAge() int
+    SetAge(int)
+}
+
+type Person struct {
+    Name string
+    Age int
+}
+func (p *Person) GetName() string {
+    return p.Name
+}
+func (p *Person) SetName(name string) {
+    p.Name = name
+}
+```
+
+And then for extending stuff, you clone first and do a bunch of sets.
+
+I'll want to pass almost everything around as pointers, which might be interesting.
+
+
+So the really trickyness with go will be effect handlers, right?
+Like, what's the type of `handlers`? A Map? I guess it could be. Might have some sad perf impacts, but what do you do.
+So you query it for a handler, and then coerce it to the expected signature.
+That might not work out too bad.
+
+Ok but also we need immutable updating, right? So a vec might be better?
+I mean maybe its just as bad. I mean a linked list?
+yeah a singly linked list sounds about right.
+
+```go
+type Handlers struct {
+    Name string
+    Fn interface{}
+    Tail *Handlers
+}
+func (h *Handlers) GetHandler(name string) interface{} {
+    if (h.Name == name) {
+        return h.Fn
+    }
+    if Tail == nil {
+        return nil
+    }
+    return Tail.GetHandler(name)
+}
+func (h *Handlers) Add(name string, fn interface{}) Handlers {
+    return Handlers {
+        Name: name,
+        Fn: fn,
+        Tail: h,
+    }
+}
+```
+
+Yeah I recon that's enough to get things going. Dunno what perf would be like though.
+

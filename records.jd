@@ -1,0 +1,38 @@
+
+type Person = {
+    name: string,
+    age: int
+}
+
+type Counter<T> = {
+    item: T,
+    count: int,
+}
+
+type Employee = {
+    ...Person,
+    joined: int,
+}
+
+type FancyCounter<T, E> = {
+    ...Counter<T>,
+    fancy: E,
+}
+
+type Caller{e} = {
+  callMe: () ={e}> int,
+}
+
+type FancyCaller{e} = {
+  ...Caller{e},
+  more: int
+}
+
+type Monad{re, be, me}<T: * -> *> = {
+    return: <Item,>(Item) ={re}> T<Item>, // so this one ... well I guess could be anything
+    // and these could also
+    bind: <Item, Changed>(T<Item>, (Item) ={e}> T<Changed>) ={e, be}> T<Changed>,
+    // as with this.
+    map:  <Item, Changed>(T<Item>, (Item) ={e}> Changed) ={e, me}> T<Changed>,
+}
+

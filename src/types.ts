@@ -89,6 +89,14 @@ export type TypeRef =
 
 export type Type = TypeRef | LambdaType;
 
+// Here's the basics folks
+// kind lambdas can't have effects, thank goodness
+// So when we're resolving type declarations, we'll probably
+// have to do some inferency-looking stuff for types?
+export type Kind =
+    | { type: 'concrete' }
+    | { type: 'lambda'; arg: Kind; reult: Kind };
+
 export type LambdaType = {
     type: 'lambda';
     // TODO type variables!
