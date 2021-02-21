@@ -1,3 +1,25 @@
+# Current plan
+
+maybe I just pause on type inference?
+b/c I'm not quite sure how I want to do generics?
+although maybe I have an idea now.
+
+but like, I feel like I want to get type checking really solid first?
+
+Ok, so steps:
+- fixture tests with parsing type declarations, and like internal consistency verification (no undeclared free variables, checking that the Kind is as expected)
+- then, try to figure out record types, again fully declared, no inference needed. And so my inference pass is just "if there is anything not declared, fail hard"
+
+Oh also, we have effect variables, right?
+
+
+
+
+
+
+
+
+
 # Type inference
 
 Functions can have type variables.
@@ -157,4 +179,15 @@ ok well I'm not 100% sure about how handlers will work. or rather, how they'll p
 
 hm so handlers, could be synchronous in a number of cases, if they don't do anything fancy.
 But also, I should determine how much of a hit it actually is to introduce a handler. maybe it's not a big deal.
+
+
+
+/// Ok, thinking about type-parameterized record objects
+/// Is it essentially the same as type-parameterized functions?
+/// For both of them, it's basically a `forall a` at the start of the value.
+/// And when you want tp _use_ the value in any way, you have to bind the variable
+/// to something.
+
+So, how do we deal with functions?
+ok anyway let's get the types out of the way first?
 

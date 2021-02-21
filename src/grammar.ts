@@ -265,7 +265,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c70 = "|";
   const peg$c71 = peg$literalExpectation("|", false);
   const peg$c72 = function(id: any, effects: any, args: any): any {return {id, effects: effects ? effects[2] : [], args: args ? args[2] : []}};
-  const peg$c73 = function(typevbls: any, args: any, effects: any, res: any): any { return {type: 'lambda', typevbls: tyepvbls ? typevbls[2] : [], args: args || [], effects: effects ? effects[2] || [] : [] , res} };
+  const peg$c73 = function(typevbls: any, args: any, effects: any, res: any): any { return {type: 'lambda', typevbls: typevbls ? typevbls[2] : [], args: args || [], effects: effects ? effects[2] || [] : [] , res} };
   const peg$c74 = peg$otherExpectation("int");
   const peg$c75 = /^[0-9]/;
   const peg$c76 = peg$classExpectation([["0", "9"]], false, false);

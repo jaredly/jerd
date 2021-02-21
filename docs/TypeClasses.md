@@ -490,7 +490,10 @@ const OkMonad: <Err>Monad{}<Result<_, Err>> = <Err>{
         Fail(x) => Fail(x),
         Ok(x) => Ok(op(x)),
     },
-    bind: <Ok, Ok2>(v: Result<Ok, Err>, op: (Ok) ={e}> Result<Ok2, Err>): Result<Ok2, Err> ={e}> switch v {
+    bind: <Ok, Ok2>(
+        v: Result<Ok, Err>,
+        op: (Ok) ={e}> Result<Ok2, Err>,
+    ): Result<Ok2, Err> ={e}> switch v {
         Fail(x) => Fail(x),
         Ok(x) => op(x),
     },

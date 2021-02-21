@@ -36,3 +36,62 @@ type Monad{re, be, me}<T: * -> *> = {
     map:  <Item, Changed>(T<Item>, (Item) ={e}> Changed) ={e, me}> T<Changed>,
 }
 
+type AnyFn<A> = <A>(x: A) => A
+
+// ok but like what's the algebra of this
+// I feel like it's inconsistent
+
+
+// So if
+type Counter<T> = {item: T}
+// is basically
+type Counter = T =>> {item: T}
+// and
+type AnyFn<A> = (x: A) => A
+// is um
+type AnyFn = A =>> (x: A) => A
+// also known as...
+type AnyFn = <A>(x: A) => A
+//
+:kind AnyFn = * -> *
+:kind Counter = * -> *
+
+const id: <A>(x: A) => A = (x: A):A => x
+:type id = <A>(x: A) => A
+:kind :type id = * -> *
+
+// so basically
+// Monad is like "If you give me a T with a single arg, I'll give you a record"
+
+// So here's I'm "instantiating" the type with effects args, and the requested type arg.
+const MyMonad = Monad{}<Option>{
+    return: <E,>(v: E) ={}> Some(v),
+    bind: <Item, Changed>(t: T<Item>, fn: (i: Item) ={e}> T<Changed>): T<Changed> ={e}> switch t {
+        None => None,
+        Some(v) => fn(v)
+    },
+    map: <Item, Changed>(t: T<Item>, fn: (i: Item) ={e}> Changed): T<Changed> ={e}> switch t {
+        None => None,
+        Some(v) => Some(fn(v))
+    },
+}
+
+// So like this is a value that we're saying requires a type argument
+// before you can use it.
+// which is maybe a little wild?
+// but like here you go, right?
+
+const OkMonad = <Err,>Monad{}<Result<_, Err>>{
+    return: <Ok,>(c: Ok): Result<Ok, Err> ={}> Ok(c),
+    map: <Ok, Ok2>(v: Result<Ok, Err>, op: (Ok) ={e}> Ok2): Result<Ok2, Err> ={e}> switch v {
+        Fail(x) => Fail(x),
+        Ok(x) => Ok(op(x)),
+    },
+    bind: <Ok, Ok2>(
+        v: Result<Ok, Err>,
+        op: (Ok) ={e}> Result<Ok2, Err>,
+    ): Result<Ok2, Err> ={e}> switch v {
+        Fail(x) => Fail(x),
+        Ok(x) => op(x),
+    },
+}

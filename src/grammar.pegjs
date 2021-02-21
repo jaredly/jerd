@@ -91,7 +91,7 @@ TypeConstr = id:Identifier effects:("{" _ CommaEffects? _ "}")? args:("<" _ Comm
 
 LambdaType = typevbls:("<" _ TypeVblCommas ","? _ ">")? "(" _ args:CommaType? _ ")" _ "="
     effects:("{" _ CommaEffects? _ "}")?
-">" _ res:Type { return {type: 'lambda', typevbls: tyepvbls ? typevbls[2] : [], args: args || [], effects: effects ? effects[2] || [] : [] , res} }
+">" _ res:Type { return {type: 'lambda', typevbls: typevbls ? typevbls[2] : [], args: args || [], effects: effects ? effects[2] || [] : [] , res} }
 CommaEffects =
     first:Identifier rest:(_ "," _ Identifier)* {return [first, ...rest.map(r => r[3])]}
 

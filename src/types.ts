@@ -80,6 +80,62 @@ export type Term =
           is: LambdaType;
       };
 
+// from thih
+// type Type_ = TVar (Tyvar Id Kind)
+// | TCon (Tycon Id Kind)
+// | TAp Type_ Type_
+
+// tUnit = TCon (Tycon “()” Star )
+// tChar = TCon (Tycon “Char” Star )
+// tInt = TCon (Tycon “Int” Star )
+// tInteger = TCon (Tycon “Integer” Star )
+// tFloat = TCon (Tycon “Float” Star )
+// tDouble = TCon (Tycon “Double” Star )
+// tList = TCon (Tycon “[]” (Kfun Star Star ))
+// tArrow = TCon (Tycon “(->)” (Kfun Star (Kfun Star Star )))
+// tTuple2 = TCon (Tycon “(,)” (Kfun Star (Kfun Star Star )))
+
+// Can values have kinds?
+// does that even make sense?
+// What if I just sayd "these are unbound variables"?
+// like these are "forall"s, that'll have to be resolved....
+
+// so <X> before a type reference means "arg" and <X> after a type reference means "apply", right?
+// maybe too confusing. but I get it at least at the moment.
+// So when parsing a type.
+// some things are args, some things are application, right?
+//
+
+export type TypeExpr = {
+    inner: Type;
+    applied: Array<TypeExpr>;
+    paramed: Array<TypeExpr>;
+};
+// | { type: 'atom'; inner: Type }
+// | { type: 'apply'; inner: TypeExpr; args: Array<TypeExpr> }
+// | { type: 'lambda'; inner: TypeExpr; args: Array<Symbol> };
+
+// So then we reduce the things and things
+// now, we don't really allow anonymous record or enum types
+// but maybe that doesn't matter.
+// maybe the internals of a Type
+// uh
+// ok so when I'm type checking
+// and I'm like "this value has this type"
+// what's that type?
+// like
+// is it a typeexpr?
+// b/c that's maybe a little much
+// idk
+// like A reference can have things we're applying to it
+// but can it really have lambdas too?
+// and do we nest them?
+// I really don't think we nest them.
+// Yeah I'm thinking it's just one layer, that's all you get folks.
+// ok I think that should be enought to capture it.
+// T<A> => applied[A]
+// T<A<B>> => applied[A applied [B]]
+
 export type TypeRef =
     | {
           type: 'ref';
@@ -99,7 +155,7 @@ export type Kind =
 
 export type LambdaType = {
     type: 'lambda';
-    // TODO type variables!
+    // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
     // TODO modular implicits!
     args: Array<Type>;
