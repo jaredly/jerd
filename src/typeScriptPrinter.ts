@@ -501,6 +501,7 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                                     typeToAst(env, {
                                         type: 'lambda',
                                         args: [term.is.res],
+                                        typeVbls: [],
                                         effects: [],
                                         rest: null,
                                         res: {

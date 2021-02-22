@@ -12,7 +12,8 @@ import {
 import { Expression } from './parser';
 import deepEqual from 'fast-deep-equal';
 import { subEnv } from './types';
-import typeType, { newTypeVbl } from './typeType';
+import typeType, { newTypeVbl, walkType } from './typeType';
+import { showType } from './unify';
 
 export const walkTerm = (term: Term, handle: (term: Term) => void): void => {
     handle(term);
@@ -46,6 +47,92 @@ export const walkTerm = (term: Term, handle: (term: Term) => void): void => {
 //         is: inner[inner.length - 1].is,
 //     };
 // };
+
+// TODO type-directed resolution pleaseeeee
+const resolveIdentifier = (env: Env, text: string): Term | null => {
+    if (env.local.self && text === env.local.self.name) {
+        return {
+            type: 'self',
+            is: env.local.self.type,
+        };
+    }
+    if (env.local.locals[text]) {
+        const { sym, type } = env.local.locals[text];
+        return {
+            type: 'var',
+            sym,
+            is: type,
+        };
+    }
+    if (env.global.names[text]) {
+        const id = env.global.names[text];
+        const term = env.global.terms[id.hash];
+        console.log(`${text} : its a global: ${showType(term.is)}`);
+        return {
+            type: 'ref',
+            ref: {
+                type: 'user',
+                id,
+            },
+            is: term.is,
+        };
+    }
+    if (env.global.builtins[text]) {
+        const type = env.global.builtins[text];
+        return {
+            type: 'ref',
+            is: type,
+            ref: { type: 'builtin', name: text },
+        };
+    }
+    return null;
+};
+
+const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
+    return (
+        walkType(t, (t) => {
+            if (t.type === 'var') {
+                if (vbls[t.sym.unique]) {
+                    console.log('SUBST', vbls[t.sym.unique]);
+                    return vbls[t.sym.unique];
+                }
+                return t;
+            }
+            if (t.type === 'ref') {
+                throw new Error(`Not support yet`);
+            }
+            return null;
+        }) || t
+    );
+};
+
+const applyTypeVariables = (env: Env, type: Type, vbls: Array<Type>): Type => {
+    if (type.type === 'lambda') {
+        const t: LambdaType = type as LambdaType;
+
+        const mapping: { [unique: number]: Type } = {};
+        if (vbls.length !== t.typeVbls.length) {
+            console.log('the ones', t.typeVbls);
+            throw new Error(
+                `Wrong number of type variables: ${vbls.length} : ${t.typeVbls.length}`,
+            );
+        }
+        vbls.forEach((typ, i) => {
+            mapping[t.typeVbls[i]] = typ;
+        });
+        return {
+            ...type,
+            typeVbls: [], // TODO allow partial application!
+            args: type.args.map((t) => subtTypeVars(t, vbls)),
+            // TODO effects with type vars!
+            rest: null, // TODO rest args
+            res: subtTypeVars(type.res, vbls),
+        };
+    }
+    // should I go full-on whatsit? maybe not yet.
+    throw new Error(`Can't apply variables to non-lambdas just yet`);
+    // return type;
+};
 
 const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
     switch (expr.type) {
@@ -121,6 +208,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     }
                     is = {
                         type: 'lambda',
+                        typeVbls: [],
                         args: argTypes,
                         effects: [], // STOPSHIP add effect vbls
                         res: newTypeVbl(env),
@@ -157,14 +245,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     const t = typeExpr(env, term, is.args[i]);
                     if (fitsExpectation(env, t.is, is.args[i]) !== true) {
                         throw new Error(
-                            `Wrong type for arg ${i}: \n${JSON.stringify(
+                            `Wrong type for arg ${i}: \nFound: ${showType(
                                 t.is,
-                                null,
-                                2,
-                            )}, expected \n${JSON.stringify(
+                            )}\nbut expected ${showType(
                                 is.args[i],
-                                null,
-                                2,
                             )} : ${JSON.stringify(expr.location)}`,
                         );
                     }
@@ -184,51 +268,59 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return target;
         }
         case 'id': {
-            if (env.local.self && expr.text === env.local.self.name) {
-                return {
-                    type: 'self',
-                    is: env.local.self.type,
-                };
-            }
-            if (env.local.locals[expr.text]) {
-                const { sym, type } = env.local.locals[expr.text];
-                return {
-                    type: 'var',
-                    sym,
-                    is: type,
-                };
-            }
-            if (env.global.names[expr.text]) {
-                const id = env.global.names[expr.text];
-                const term = env.global.terms[id.hash];
-                return {
-                    type: 'ref',
-                    ref: {
-                        type: 'user',
-                        id,
-                    },
-                    is: term.is,
-                };
-            }
-            if (env.global.builtins[expr.text]) {
-                const type = env.global.builtins[expr.text];
-                return {
-                    type: 'ref',
-                    is: type,
-                    ref: { type: 'builtin', name: expr.text },
-                };
+            const term = resolveIdentifier(env, expr.text);
+            if (term != null) {
+                console.log(`${expr.text} : ${showType(term.is)}`);
+                return term;
             }
             console.log(env.local.locals);
             throw new Error(`Undefined identifier ${expr.text}`);
         }
+        case 'IdentifierWithType':
+            const term = resolveIdentifier(env, expr.id.text);
+            if (term == null) {
+                console.log(env.local.locals);
+                throw new Error(`Undefined identifier ${expr.id.text}`);
+            }
+            console.log(`${expr.id.text} : ${showType(term.is)}`);
+
+            if (term.type === 'lambda') {
+                return {
+                    ...term,
+                    is: applyTypeVariables(
+                        env,
+                        term.is,
+                        expr.vbls.map((t) => typeType(env, t)),
+                    ) as LambdaType,
+                };
+            }
+
+            return {
+                ...term,
+                is: applyTypeVariables(
+                    env,
+                    term.is,
+                    expr.vbls.map((t) => typeType(env, t)),
+                ),
+            };
         case 'lambda': {
+            const typeInner = expr.typevbls.length ? subEnv(env) : env;
+            const typeVbls: Array<number> = [];
+            expr.typevbls.forEach((id) => {
+                const unique = Object.keys(typeInner.local.typeVbls).length;
+                const sym: Symbol = { name: id.text, unique };
+                typeInner.local.typeVbls[id.text] = sym;
+                typeVbls.push(sym.unique);
+            });
+
             // ok here's where we do a little bit of inference?
             // or do I just say "all is specified, we can infer in the IDE"?
-            const inner = subEnv(env);
+            const inner = subEnv(typeInner);
             const args: Array<Symbol> = [];
             const argst: Array<Type> = [];
+
             expr.args.forEach(({ id, type: rawType }) => {
-                const type = typeType(env, rawType);
+                const type = typeType(typeInner, rawType);
                 const unique = Object.keys(inner.local.locals).length;
                 const sym: Symbol = { name: id.text, unique };
                 inner.local.locals[id.text] = { sym, type };
@@ -239,9 +331,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             if (expr.rettype) {
                 if (
                     fitsExpectation(
-                        env,
+                        typeInner,
                         body.is,
-                        typeType(env, expr.rettype),
+                        typeType(typeInner, expr.rettype),
                     ) !== true
                 ) {
                     throw new Error(
@@ -249,12 +341,14 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     );
                 }
             }
+            console.log('VBLS', typeVbls);
             return {
                 type: 'lambda',
                 args,
                 body,
                 is: {
                     type: 'lambda',
+                    typeVbls,
                     effects: getEffects(body),
                     args: argst,
                     rest: null,
@@ -312,7 +406,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const idx = env.global.effectConstructors[kase.constr.text].idx;
                 const constr = constrs[idx];
                 const inner = subEnv(env);
-                const args = kase.args.map((id, i) => {
+                const args = (kase.args || []).map((id, i) => {
                     const unique = Object.keys(inner.local.locals).length;
                     const sym = { name: id.text, unique };
                     inner.local.locals[id.text] = {
@@ -327,6 +421,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     sym: k,
                     type: {
                         type: 'lambda',
+                        typeVbls: [],
                         args: isVoid(constr.ret) ? [] : [constr.ret],
                         effects: otherEffects,
                         rest: null,
@@ -427,7 +522,7 @@ export const fitsExpectation = (
     target: Type,
 ): UnificationResult => {
     if (t.type === 'var' && env != null) {
-        env.local.typeVbls[t.sym.unique].push({
+        env.local.tmpTypeVbls[t.sym.unique].push({
             type: 'smaller-than',
             other: target,
         });
@@ -435,7 +530,7 @@ export const fitsExpectation = (
         return true;
     }
     if (target.type === 'var' && env != null) {
-        env.local.typeVbls[target.sym.unique].push({
+        env.local.tmpTypeVbls[target.sym.unique].push({
             type: 'larger-than',
             other: t,
         });

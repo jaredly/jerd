@@ -180,6 +180,9 @@ export type Kind =
 
 export type LambdaType = {
     type: 'lambda';
+    // TODO: this shouldn't be an array,
+    // we don't have to be order dependent here.
+    typeVbls: Array<number>; // TODO: kind, row etc.
     // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
     // TODO modular implicits!
@@ -215,7 +218,8 @@ export type LocalEnv = {
         type: Type;
     };
     locals: { [key: string]: { sym: Symbol; type: Type } };
-    typeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
+    typeVbls: { [key: string]: Symbol }; // TODO: this will include kind or row constraint
+    tmpTypeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
     // manual type variables can't have constriaints, right? or can they?
     // I can figure that out later.
 };
@@ -252,6 +256,7 @@ export const newEnv = (self: { name: string; type: Type }): Env => ({
         self,
         locals: {},
         typeVbls: {},
+        tmpTypeVbls: {},
     },
 });
 
@@ -271,7 +276,8 @@ export const subEnv = (env: Env): Env => ({
         self: env.local.self,
         locals: { ...env.local.locals },
         unique: env.local.unique,
-        typeVbls: env.local.typeVbls,
+        typeVbls: { ...env.local.typeVbls },
+        tmpTypeVbls: env.local.tmpTypeVbls,
     },
 });
 

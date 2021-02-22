@@ -74,6 +74,7 @@ export type Handle = {
 };
 export type Lambda = {
     type: 'lambda';
+    typevbls: Array<Identifier>;
     args: Array<{ id: Identifier; type: Type }>;
     rettype: Type | null;
     body: Expression;
@@ -89,7 +90,12 @@ export type LambdaType = {
 //     type: 'type';
 //     contents: Expression;
 // };
-export type Literal = Int | Identifier | String;
+export type Literal = Int | IdentifierWithType | Identifier | String;
+export type IdentifierWithType = {
+    type: 'IdentifierWithType';
+    id: Identifier;
+    vbls: Array<Type>;
+};
 export type Identifier = { type: 'id'; text: string; location: Location };
 export type Int = { type: 'int'; value: number; location: Location };
 export type String = { type: 'string'; text: string; location: Location };

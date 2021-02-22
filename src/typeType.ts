@@ -43,6 +43,7 @@ export const walkType = (
         if (changed) {
             return {
                 type: 'lambda',
+                typeVbls: term.typeVbls.slice(),
                 args: newArgs,
                 effects: term.effects, // STOPSHIP bring them in
                 res: newres || term.res,
@@ -54,8 +55,8 @@ export const walkType = (
 };
 
 export const newTypeVbl = (env: Env): Type => {
-    const unique = Object.keys(env.local.typeVbls).length;
-    env.local.typeVbls[unique] = [];
+    const unique = Object.keys(env.local.tmpTypeVbls).length;
+    env.local.tmpTypeVbls[unique] = [];
     // console.log('New type just dropped', unique);
     return { type: 'var', sym: { unique, name: 'var_' + unique } };
 };
@@ -67,6 +68,12 @@ const typeType = (env: Env, type: ParseType | null): Type => {
     // console.log('TYPEING TYPE', type);
     switch (type.type) {
         case 'id': {
+            if (env.local.typeVbls[type.text] != null) {
+                return {
+                    type: 'var',
+                    sym: env.local.typeVbls[type.text],
+                };
+            }
             if (env.global.typeNames[type.text] != null) {
                 return {
                     type: 'ref',
@@ -86,10 +93,10 @@ const typeType = (env: Env, type: ParseType | null): Type => {
         }
 
         case 'lambda':
-            // console.log('LAM', type);
             return {
                 type: 'lambda',
                 args: type.args.map((a) => typeType(env, a)),
+                typeVbls: [], // TODO allow specifying these too
                 effects: type.effects.map((id) => {
                     if (!env.global.effectNames[id.text]) {
                         throw new Error(`No effect named ${id.text}`);

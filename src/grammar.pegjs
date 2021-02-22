@@ -63,8 +63,9 @@ CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map(r => r[3])]
 
 CommaExpr = first:Expression rest:(_ "," _ Expression)* {return [first, ...rest.map(r => r[3])]}
 
-Lambda = "(" _ args:Args? _ ")" _ rettype:(":" _ Type _)? "=>" _ body:Expression {return {
+Lambda = typevbls:TypeVbls? "(" _ args:Args? _ ")" _ rettype:(":" _ Type _)? "=>" _ body:Expression {return {
     type: 'lambda',
+    typevbls: typevbls || [],
     args: args || [],
     rettype: rettype ? rettype[2] : null,
     body,
@@ -72,9 +73,17 @@ Lambda = "(" _ args:Args? _ ")" _ rettype:(":" _ Type _)? "=>" _ body:Expression
 Args = first:Arg rest:(_ "," _ Arg)* {return [first, ...rest.map(r => r[3])]}
 Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null}}
 
+TypeVbls = "<" _ first:Identifier rest:(_ "," _ Identifier)* _ ","? _ ">" {
+    return [first, ...rest.map(r => r[3])]
+}
+
 binop = "++" / "+" / "-" / "*" / "/" / "^" / "|"
 
-Literal = Int / Identifier / String
+Literal = Int / IdentifierWithType / String
+
+IdentifierWithType = id:Identifier vbls:("<" _ CommaType _ ">")? {
+    return vbls ? {type: 'IdentifierWithType', id, vbls: vbls[2]} : id
+}
 
 Binop = Expression
 

@@ -3,6 +3,8 @@
 import { Term, Type, TypeConstraint } from './types';
 import { fitsExpectation, walkTerm } from './typeExpr';
 import { walkType } from './typeType';
+import { printToString } from './printer';
+import { typeToPretty } from './printTsLike';
 
 // const
 /*
@@ -218,6 +220,9 @@ export const unifyInType = (
     });
 };
 
+export const showType = (t: Type): string =>
+    printToString(typeToPretty(t), 100);
+
 const unify = (one: Type | null, constraint: TypeConstraint): Type => {
     if (one == null) {
         return constraint.other;
@@ -236,19 +241,17 @@ const unify = (one: Type | null, constraint: TypeConstraint): Type => {
     if (constraint.type === 'larger-than') {
         if (fitsExpectation(null, constraint.other, one) !== true) {
             throw new Error(
-                `Unification error folks larger ${JSON.stringify(
-                    one,
-                    null,
-                    2,
-                )} : ${JSON.stringify(constraint, null, 2)}`,
+                `Unification error folks larger ${showType(one)} : ${showType(
+                    constraint.other,
+                )}`,
             );
         }
     } else {
         if (fitsExpectation(null, one, constraint.other) !== true) {
             throw new Error(
-                `Unification error folks smaller ${JSON.stringify(
-                    one,
-                )} : ${JSON.stringify(constraint)}`,
+                `Unification error folks smaller ${showType(one)} : ${showType(
+                    constraint.other,
+                )}`,
             );
         }
     }

@@ -42,7 +42,7 @@ const width = (x: PP): number => {
 export const printToString = (
     pp: PP,
     maxWidth: number,
-    current: { indent: number; pos: number },
+    current: { indent: number; pos: number } = { indent: 0, pos: 0 },
 ): string => {
     if (pp.type === 'atom') {
         current.pos += pp.text.length;

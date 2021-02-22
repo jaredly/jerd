@@ -16,7 +16,7 @@ import {
 import typeExpr, { fitsExpectation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
 import { Env, newEnv, Term, Type, TypeConstraint } from './types';
-import { unifyInTerm, unifyInType, unifyVariables } from './unify';
+import { showType, unifyInTerm, unifyInType, unifyVariables } from './unify';
 import { printToString } from './printer';
 import { declarationToPretty, termToPretty } from './printTsLike';
 import deepEqual from 'fast-deep-equal';
@@ -144,6 +144,7 @@ function presetEnv() {
     });
     env.global.builtins['++'] = {
         type: 'lambda',
+        typeVbls: [],
         args: [string, string],
         effects: [],
         rest: null,
@@ -151,6 +152,7 @@ function presetEnv() {
     };
     env.global.builtins['+'] = {
         type: 'lambda',
+        typeVbls: [],
         args: [int, int],
         effects: [],
         rest: null,
@@ -158,6 +160,7 @@ function presetEnv() {
     };
     env.global.builtins['log'] = {
         type: 'lambda',
+        typeVbls: [],
         args: [string],
         effects: [],
         rest: null,
@@ -175,8 +178,11 @@ const testInference = (parsed: Toplevel[]) => {
     const env = presetEnv();
     for (const item of parsed) {
         if (item.type === 'define') {
-            const typeVbls: { [key: string]: Array<TypeConstraint> } = {};
-            const subEnv = { ...env, local: { ...env.local, typeVbls } };
+            const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
+            const subEnv: Env = {
+                ...env,
+                local: { ...env.local, tmpTypeVbls },
+            };
             // TODO only do it
             const self = {
                 name: item.id.text,
@@ -191,7 +197,7 @@ const testInference = (parsed: Toplevel[]) => {
             // So for self-recursive things, the final
             // thing should be exactly the same, not just
             // larger or smaller, right?
-            const unified = unifyVariables(typeVbls);
+            const unified = unifyVariables(tmpTypeVbls);
             if (Object.keys(unified).length) {
                 unifyInTerm(unified, term);
             }
@@ -224,61 +230,68 @@ function typeFile(parsed: Toplevel[]) {
     // const out = prelude.slice();
     for (const item of parsed) {
         if (item.type === 'define') {
+            console.log('>> A define', item.id.text);
             // ugh.
             // I really just need type inference? right?
             // or I mean
             // I could just shallowly check
-            const typeVbls: { [key: string]: Array<TypeConstraint> } = {};
-            const subEnv = { ...env, local: { ...env.local, typeVbls } };
+            const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
+            const subEnv: Env = {
+                ...env,
+                local: { ...env.local, tmpTypeVbls },
+            };
             const self = {
                 name: item.id.text,
                 type: item.ann ? typeType(env, item.ann) : newTypeVbl(subEnv),
             };
             subEnv.local.self = self;
             const term = typeExpr(subEnv, item.expr);
+            console.log('< type', showType(term.is));
             if (fitsExpectation(subEnv, term.is, self.type) !== true) {
                 throw new Error(`Term's type doesn't match annotation`);
             }
-            // Ok so we need to be able to handle second- and nth-level
-            // indirection I imagine.
-            // hmm
-            // is this where things get undecidable?
-            // I mean, how bad could it get?
-            // for (let key of Object.keys(typeVbls)) {
-            //     unified[key] = typeVbls[key].reduce(unify, null);
+            // // Ok so we need to be able to handle second- and nth-level
+            // // indirection I imagine.
+            // // hmm
+            // // is this where things get undecidable?
+            // // I mean, how bad could it get?
+            // // for (let key of Object.keys(typeVbls)) {
+            // //     unified[key] = typeVbls[key].reduce(unify, null);
+            // // }
+            // const unified = unifyVariables(tmpTypeVbls);
+            // // let didChange = true;
+            // // let iter = 0;
+            // // while (didChange) {
+            // //     if (iter++ > 100) {
+            // //         throw new Error(
+            // //             `Something is a miss in the state of unification.`,
+            // //         );
+            // //     }
+            // //     didChange = false;
+            // //     Object.keys(unified).forEach((id) => {
+            // //         const t = unified[id];
+            // //         if (t != null) {
+            // //             const changed = unifyInType(unified, t);
+            // //             if (changed != null) {
+            // //                 // console.log(
+            // //                 //     `${JSON.stringify(
+            // //                 //         unified[id],
+            // //                 //         null,
+            // //                 //         2,
+            // //                 //     )}\n==>\n${JSON.stringify(changed, null, 2)}`,
+            // //                 // );
+            // //                 didChange = true;
+            // //                 unified[id] = changed;
+            // //             }
+            // //         }
+            // //     });
+            // // }
+            // if (Object.keys(unified).length) {
+            //     console.log(unified);
+            //     unifyInTerm(unified, term);
+            //     // self.type = unifyInType(unified, self.type) || self.type;
             // }
-            const unified = unifyVariables(typeVbls);
-            // let didChange = true;
-            // let iter = 0;
-            // while (didChange) {
-            //     if (iter++ > 100) {
-            //         throw new Error(
-            //             `Something is a miss in the state of unification.`,
-            //         );
-            //     }
-            //     didChange = false;
-            //     Object.keys(unified).forEach((id) => {
-            //         const t = unified[id];
-            //         if (t != null) {
-            //             const changed = unifyInType(unified, t);
-            //             if (changed != null) {
-            //                 // console.log(
-            //                 //     `${JSON.stringify(
-            //                 //         unified[id],
-            //                 //         null,
-            //                 //         2,
-            //                 //     )}\n==>\n${JSON.stringify(changed, null, 2)}`,
-            //                 // );
-            //                 didChange = true;
-            //                 unified[id] = changed;
-            //             }
-            //         }
-            //     });
-            // }
-            if (Object.keys(unified).length) {
-                unifyInTerm(unified, term);
-                // self.type = unifyInType(unified, self.type) || self.type;
-            }
+            console.log('< unified type', showType(term.is));
             // console.log('vbls', JSON.stringify(typeVbls, null, 2));
             // console.log('unified', JSON.stringify(unified, null, 2));
             const hash: string = hashObject(term);
@@ -340,10 +353,6 @@ const fileToTypescript = (expressions: Array<Term>, env: Env) => {
                     term,
                 ),
                 100,
-                {
-                    indent: 0,
-                    pos: 0,
-                },
             )}\n*/`,
         );
         out.push(
@@ -384,10 +393,14 @@ const main = (fname: string, dest: string) => {
 };
 
 const runTests = () => {
-    const raw = fs.readFileSync('inference-tests.jd', 'utf8');
+    const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
     testInference(parsed);
 };
 
-main(process.argv[2], process.argv[3]);
+if (process.argv[2] === '--test') {
+    runTests();
+} else {
+    main(process.argv[2], process.argv[3]);
+}
 // runTests();
