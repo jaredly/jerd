@@ -61,6 +61,18 @@ so if you have (x, f) => f(x)
 
 */
 
+const unifySimple = (
+    initialTypeVbls: { [unique: string]: Array<TypeConstraint> },
+    // round = 0,
+) => {
+    const unified: { [unique: string]: Type } = {};
+    // const typeVbls = { ...initialTypeVbls };
+    for (let key of Object.keys(initialTypeVbls)) {
+        unified[key] = initialTypeVbls[key].reduce(unify, null)!;
+    }
+    return unified;
+};
+
 const unifyInner = (
     initialTypeVbls: { [unique: string]: Array<TypeConstraint> },
     // round = 0,
@@ -161,8 +173,8 @@ export const unifyVariables = (typeVbls: {
     // const copy = {};
     // Object.keys(typeVbls).forEach((k) => (copy[k] = typeVbls[k].slice()));
     // const unified: { [key: string]: Type } = {};
-    console.log(JSON.stringify(typeVbls, null, 2));
-    return unifyInner(typeVbls);
+    // console.log(JSON.stringify(typeVbls, null, 2));
+    return unifySimple(typeVbls);
     // ok so if we have some constraints
     // and they go in multiple directions
     // uh maybe that's where constraint solvers come in?

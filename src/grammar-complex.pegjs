@@ -1,20 +1,28 @@
 
-/*
+File = _ s:(Toplevel _)+ comment* _ {return s.map(s => s[0])}
 
-uh should I just go with literally babel?
-like, use their parse tree already?
-erm I'm pretty sure yeah there are some
-type signature things that definitely wouldn't work.
-
-ok nvm, no go. would be cool though.
-
-*/
-
-File = _ s:(Toplevel _)+ {return s.map(s => s[0])}
-
-Toplevel = Effect / Statement
+Toplevel = Effect / TypeDef / Statement
 
 Statement = Define / Expression
+
+TypeDef = "type" __ id:Identifier _ 
+	effects:("{" _ CommaEffects? _ "}")? _ 
+    vbls:("<" _ TypeVblCommas _ ">")? _ 
+    "=" _ decl:TypeDecl {return {type: 'TypeDef', id, effects: effects ? effects[2] : [], vbls: vbls ? vbls[2] : [], decl}}
+
+TypeDecl = RecordDecl
+RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || []]}}
+RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map(r => r[3])]}
+RecordLine = RecordSpread / RecordItem
+RecordSpread = "..." constr:TypeConstr {return {type: 'Spread', constr}}
+RecordItem = id:Identifier _ ":" _ type:Type {return {type: 'Row', id, rtype: type}}
+
+TypeVblCommas = first:TypeVbl rest:(_ "," _ TypeVbl)* {return [first, ...rest.map(r => r[3])]}
+TypeVbl = id:Identifier kind:(_ ":" _ Kind)? {return {id, kind: kind ? kind[3] : null}}
+Kind = first:KindInner rest:(_ "->" _ KindInner)* {return [first, ...rest.map(r => r[3])]}
+KindInner = Star / ArrowKind
+Star = "*" {return {type: 'star'}}
+ArrowKind = "(" _ kind:Kind _ ")" {return kind}
 
 Define = "const" __ id:Identifier ann:(_ ":" _ Type)? __ "=" __ expr:Expression {return {
     type: 'define', id, expr, ann: ann ? ann[3] : null}}
@@ -78,13 +86,14 @@ Literal = Int / Identifier / String
 
 Binop = Expression
 
-
-Type = LambdaType / Identifier
+Type = LambdaType / TypeConstr
 CommaType = first:Type rest:(_ "," _ Type)* {return [first, ...rest.map(r => r[3])]}
 
-LambdaType = "(" _ args:CommaType? _ ")" _ "="
+TypeConstr = id:Identifier effects:("{" _ CommaEffects? _ "}")? args:("<" _ CommaType? _ ">")? {return {id, effects: effects ? effects[2] : [], args: args ? args[2] : []}}
+
+LambdaType = typevbls:("<" _ TypeVblCommas ","? _ ">")? "(" _ args:CommaType? _ ")" _ "="
     effects:("{" _ CommaEffects? _ "}")?
-">" _ res:Type { return {type: 'lambda', args: args || [], effects: effects ? effects[2] || [] : [] , res} }
+">" _ res:Type { return {type: 'lambda', typevbls: typevbls ? typevbls[2] : [], args: args || [], effects: effects ? effects[2] || [] : [] , res} }
 CommaEffects =
     first:Identifier rest:(_ "," _ Identifier)* {return [first, ...rest.map(r => r[3])]}
 

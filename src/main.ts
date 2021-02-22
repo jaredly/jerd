@@ -389,5 +389,5 @@ const runTests = () => {
     testInference(parsed);
 };
 
-// main(process.argv[2], process.argv[3]);
-runTests();
+main(process.argv[2], process.argv[3]);
+// runTests();

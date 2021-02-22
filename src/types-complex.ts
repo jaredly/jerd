@@ -130,10 +130,9 @@ Now I'm trying to add like a dozen things at once.
 - record types
 - generics
 - etc.
-
-NEW PLAN:
 - hm yeah what if I just added generic functions first
-- and then added records?
+- and then added (generic) records?
+- or even just records
 - and then support spreading / row polymorphism (hey generics thx)
 - and then made them genericable?
 - yeah that sounds much better.

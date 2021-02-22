@@ -82,9 +82,13 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
             // <T>(x: T, <R>() => R) => T
 
             return t.tsFunctionType(
-                t.tsTypeParameterDeclaration(
-                    vbls.map((name) => t.tsTypeParameter(null, null, name)),
-                ),
+                vbls.length
+                    ? t.tsTypeParameterDeclaration(
+                          vbls.map((name) =>
+                              t.tsTypeParameter(null, null, name),
+                          ),
+                      )
+                    : null,
                 type.args
                     .map((arg, i) => ({
                         ...t.identifier('arg_' + i),
