@@ -54,7 +54,7 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
                 return t.tsTypeReference(t.identifier('t_' + type.ref.id.hash));
             }
         case 'var':
-            return t.tsTypeReference(t.identifier(type.sym.name));
+            return t.tsTypeReference(t.identifier(`T_${type.sym.unique}`));
         case 'lambda': {
             const res = t.tsTypeAnnotation(typeToAst(env, type.res));
 
@@ -73,7 +73,7 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
                 }
             };
 
-            const vbls = dedup(findTypeVariables(type).map((m) => `${m.name}`));
+            // const vbls = dedup(findTypeVariables(type).map((m) => `${m.name}`));
             // hrmmm a function type should really keep track of its own type variables.
             // like, explicitly.
             // so that we know the difference between
@@ -82,10 +82,10 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
             // <T>(x: T, <R>() => R) => T
 
             return t.tsFunctionType(
-                vbls.length
+                type.typeVbls.length
                     ? t.tsTypeParameterDeclaration(
-                          vbls.map((name) =>
-                              t.tsTypeParameter(null, null, name),
+                          type.typeVbls.map((name) =>
+                              t.tsTypeParameter(null, null, `T_${name}`),
                           ),
                       )
                     : null,

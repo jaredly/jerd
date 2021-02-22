@@ -312,6 +312,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 typeInner.local.typeVbls[id.text] = sym;
                 typeVbls.push(sym.unique);
             });
+            // console.log('Lambda type vbls', typeVbls);
 
             // ok here's where we do a little bit of inference?
             // or do I just say "all is specified, we can infer in the IDE"?

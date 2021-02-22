@@ -7,7 +7,7 @@ const callme = <T,>(x: (T) => T, arg: T): T => x(arg)
 
 const addTwo = (one: int): int => one + 2
 
-// const callIt = callme<int>(addTwo, 5)
+const callIt = callme<int>(addTwo, 5)
 
 // Ok how's this for a unification algorithm:
 // Construct a directed graph of type variables and constraints
