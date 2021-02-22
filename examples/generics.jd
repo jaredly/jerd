@@ -1,0 +1,8 @@
+
+const identity = (x) => x
+const get2 = identity(2)
+
+// const callOne = (f) => f(2, "hi")
+// const test2 = () => callOne((a, b) => log(b))
+
+

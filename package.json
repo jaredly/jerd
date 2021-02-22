@@ -8,7 +8,7 @@
         "peg": "pegjs --plugin ts-pegjs -o src/grammar.ts src/grammar.pegjs",
         "peg-simple": "pegjs --plugin ts-pegjs -o src/simple-grammar.ts src/simple-grammar.pegjs",
         "watch": "esbuild --sourcemap --bundle src/main.ts --platform=node --watch --outfile=main.js",
-        "test": "node main.js simple.jd"
+        "test": "node --enable-source-maps main.js examples/generics.jd examples/build/generics.ts"
     },
     "dependencies": {
         "@babel/generator": "^7.12.15",

@@ -103,7 +103,7 @@ const inner = (name) => {
     log("Dones")
 }
 
-// const callOne = (f) => f(2, "hi")
+const callOne = (f) => f(2, "hi")
 // const test2 = () => callOne((a, b) => log(b))
 
 const test1 = () => {
