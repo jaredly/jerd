@@ -1,6 +1,29 @@
 import { parse } from './grammar';
 
-export type Toplevel = Define | Effect | Expression;
+export type Toplevel = Define | Effect | Expression | TypeDef;
+
+export type TypeDef = {
+    type: 'TypeDef';
+    id: Identifier;
+    effects: Array<Identifier>;
+    vbls: Array<TypeVbl>;
+    decl: TypeDecl;
+};
+
+export type TypeDecl = RecordDecl;
+
+export type RecordDecl = {
+    type: 'Record';
+    items: Array<RecordSpread | RecordItem>;
+};
+export type RecordSpread = { type: 'Spread'; constr: TypeConstr };
+export type RecordItem = { type: 'Row'; id: Identifier; rtype: Type };
+
+export type TypeVbl = {
+    id: Identifier;
+    kind: Kind | null;
+};
+export type Kind = Array<{ type: 'star' } | Kind>;
 
 export type Effect = {
     type: 'effect';
@@ -79,7 +102,14 @@ export type Lambda = {
     rettype: Type | null;
     body: Expression;
 };
-export type Type = Identifier | LambdaType;
+export type Type = TypeConstr | LambdaType;
+
+export type TypeConstr = {
+    id: Identifier;
+    effects: Array<Identifier>;
+    args: Array<Type>;
+};
+
 export type LambdaType = {
     type: 'lambda';
     args: Array<Type>;

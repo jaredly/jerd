@@ -111,9 +111,33 @@ export type TypeExpr = {
     applied: Array<TypeExpr>;
     paramed: Array<TypeExpr>;
 };
+// START HERE: and maybe try to typecheck some of records?
+// I guess we need a `TypeDecl` type. yeah.
+
 // | { type: 'atom'; inner: Type }
 // | { type: 'apply'; inner: TypeExpr; args: Array<TypeExpr> }
 // | { type: 'lambda'; inner: TypeExpr; args: Array<Symbol> };
+
+/*
+So here is a thing.
+I want to be grounded in real-world use cases,
+so that I'm not spinning in circles
+but the real world use cases I'm chasing
+are quite complicated.
+
+My first pass had effects working! So good!
+Now I'm trying to add like a dozen things at once.
+- record types
+- generics
+- etc.
+- hm yeah what if I just added generic functions first
+- and then added (generic) records?
+- or even just records
+- and then support spreading / row polymorphism (hey generics thx)
+- and then made them genericable?
+- yeah that sounds much better.
+- but yeah, at the moment I've got an idea of what I'm shooting for, which is nice.
+*/
 
 // So then we reduce the things and things
 // now, we don't really allow anonymous record or enum types

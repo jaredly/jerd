@@ -11,16 +11,18 @@ TypeDef = "type" __ id:Identifier _
     "=" _ decl:TypeDecl {return {type: 'TypeDef', id, effects: effects ? effects[2] : [], vbls: vbls ? vbls[2] : [], decl}}
 
 TypeDecl = RecordDecl
-RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items}}
+RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || []]}}
 RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map(r => r[3])]}
 RecordLine = RecordSpread / RecordItem
 RecordSpread = "..." constr:TypeConstr {return {type: 'Spread', constr}}
 RecordItem = id:Identifier _ ":" _ type:Type {return {type: 'Row', id, rtype: type}}
 
-TypeVblCommas = TypeVbl (_ "," _ TypeVbl)*
+TypeVblCommas = first:TypeVbl rest:(_ "," _ TypeVbl)* {return [first, ...rest.map(r => r[3])]}
 TypeVbl = id:Identifier kind:(_ ":" _ Kind)? {return {id, kind: kind ? kind[3] : null}}
-Kind = KindInner (_ "->" _ KindInner)*
-KindInner = "*" / "(" _ Kind _ ")"
+Kind = first:KindInner rest:(_ "->" _ KindInner)* {return [first, ...rest.map(r => r[3])]}
+KindInner = Star / ArrowKind
+Star = "*" {return {type: 'star'}}
+ArrowKind = "(" _ kind:Kind _ ")" {return kind}
 
 Define = "const" __ id:Identifier ann:(_ ":" _ Type)? __ "=" __ expr:Expression {return {
     type: 'define', id, expr, ann: ann ? ann[3] : null}}
