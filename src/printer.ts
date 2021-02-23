@@ -52,6 +52,7 @@ export const printToString = (
         let res = '{';
         current.indent += 4;
         pp.contents.forEach((item) => {
+            current.pos = current.indent;
             res +=
                 '\n' +
                 white(current.indent) +

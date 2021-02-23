@@ -47,9 +47,7 @@ const hash_24c99d82: (arg_0: T_0) => (arg_0: (handlers: any, done: (result: void
 
 // .jd
 const hash_06940090_0: (string) ={hash_a690a6f2_0}> string = (name_0: string) => {
-    log(
-        "yes please " ++ name_0,
-    );
+    log("yes please " ++ name_0);
     raise!(hash_a690a6f2_0());
 }
 
@@ -61,15 +59,11 @@ const hash_06940090: (arg_0: string, handlers: any, done: (result: string) => vo
 
 // .jd
 const hash_23000f78_0: (string) ={hash_a690a6f2_0}> void = (name_0: string) => {
-    log(
-        hash_06940090_0("Folks") ++ " from farther",
-    );
+    log(hash_06940090_0("Folks") ++ " from farther");
     log("getting");
     log(name_0);
     log(raise!(hash_a690a6f2_0()) ++ " and " ++ raise!(hash_a690a6f2_0()));
-    log(
-        "And then " ++ raise!(hash_a690a6f2_0()),
-    );
+    log("And then " ++ raise!(hash_a690a6f2_0()));
     log("Dones");
 }
 
@@ -110,9 +104,7 @@ const hash_d89d5050: () => void = () => {
 // .jd
 const hash_42a3a912_0: (bool) ={hash_a690a6f2_0}> string = (shouldRaise_0: bool) => {
     if shouldRaise_0 {
-        raise!(
-            hash_a690a6f2_0(),
-        );
+        raise!(hash_a690a6f2_0());
     } else {
         "didn't raise";
     };
@@ -129,9 +121,7 @@ const hash_42a3a912: (arg_0: bool, handlers: any, done: (result: string) => void
 
 // .jd
 const hash_2cdabf70_0: () ={}> void = () => {
-    hash_24c99d82_0("<read>")(
-        () => log(hash_42a3a912_0(true) ++ hash_42a3a912_0(false)),
-    );
+    hash_24c99d82_0("<read>")(() => log(hash_42a3a912_0(true) ++ hash_42a3a912_0(false)));
 }
 
 // .ts
@@ -148,9 +138,7 @@ const hash_2cdabf70: () => void = () => {
 
 // .jd
 const hash_e01931d2_0: (string) ={hash_a690a6f2_0}> string = (check_0: string) => {
-    if raise!(
-        hash_a690a6f2_0(),
-    ) == check_0 {
+    if raise!(hash_a690a6f2_0()) == check_0 {
         raise!(hash_a690a6f2_0());
     } else {
         "didn't raise";
@@ -172,9 +160,7 @@ const hash_e01931d2: (arg_0: string, handlers: any, done: (result: string) => vo
 
 // .jd
 const hash_83d5c38a_0: () ={}> void = () => {
-    hash_24c99d82_0("<read>")(
-        () => log(hash_e01931d2_0("<read>")),
-    );
+    hash_24c99d82_0("<read>")(() => log(hash_e01931d2_0("<read>")));
 }
 
 // .ts
@@ -189,9 +175,7 @@ const hash_83d5c38a: () => void = () => {
 // .jd
 const hash_700366ea_0: () ={hash_a690a6f2_0}> void = () => {
     const x_0 = raise!(hash_a690a6f2_0());
-    log(
-        x_0 ++ "Hello",
-    );
+    log(x_0 ++ "Hello");
 }
 
 // .ts
