@@ -1,2 +1,3 @@
 *.ts
 *.js
+!*.test.ts

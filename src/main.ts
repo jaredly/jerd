@@ -20,7 +20,7 @@ import { showType, unifyInTerm, unifyInType, unifyVariables } from './unify';
 import { printToString } from './printer';
 import { declarationToPretty, termToPretty } from './printTsLike';
 import deepEqual from 'fast-deep-equal';
-import { typeDefine } from './env';
+import { typeDefine, typeEffect } from './env';
 
 import { presetEnv, prelude } from './preset';
 
@@ -148,23 +148,7 @@ function typeFile(parsed: Toplevel[]) {
             const { term } = typeDefine(env, item);
             console.log('< unified type', showType(term.is));
         } else if (item.type === 'effect') {
-            const constrs = item.constrs.map(({ type }) => {
-                return {
-                    args: type.args
-                        ? type.args.map((a) => typeType(env, a))
-                        : [],
-                    ret: typeType(env, type.res),
-                };
-            });
-            const hash: string = hashObject(constrs);
-            env.global.effectNames[item.id.text] = hash;
-            item.constrs.forEach((c, i) => {
-                env.global.effectConstructors[c.id.text] = {
-                    idx: i,
-                    hash: hash,
-                };
-            });
-            env.global.effects[hash] = constrs;
+            typeEffect(env, item);
         } else {
             // A standalone expression
             const term = typeExpr(env, item);

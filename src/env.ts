@@ -1,11 +1,29 @@
 // Ok
 
 import hashObject from 'hash-sum';
-import parse, { Expression, Define, Toplevel } from './parser';
+import parse, { Expression, Define, Toplevel, Effect } from './parser';
 import typeExpr, { fitsExpectation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
 import { Env, Term, Type, TypeConstraint } from './types';
 import { showType, unifyInTerm, unifyInType, unifyVariables } from './unify';
+
+export const typeEffect = (env: Env, item: Effect) => {
+    const constrs = item.constrs.map(({ type }) => {
+        return {
+            args: type.args ? type.args.map((a) => typeType(env, a)) : [],
+            ret: typeType(env, type.res),
+        };
+    });
+    const hash: string = hashObject(constrs);
+    env.global.effectNames[item.id.text] = hash;
+    item.constrs.forEach((c, i) => {
+        env.global.effectConstructors[c.id.text] = {
+            idx: i,
+            hash: hash,
+        };
+    });
+    env.global.effects[hash] = constrs;
+};
 
 export const typeDefine = (env: Env, item: Define) => {
     const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};

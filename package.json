@@ -10,6 +10,11 @@
         "watch": "esbuild --sourcemap --bundle src/main.ts --platform=node --watch --outfile=main.js",
         "test": "node --enable-source-maps main.js examples/generics.jd examples/build/generics.ts"
     },
+    "jest": {
+        "snapshotSerializers": [
+            "jest-snapshot-serializer-raw"
+        ]
+    },
     "dependencies": {
         "@babel/generator": "^7.12.15",
         "@babel/traverse": "^7.12.13",
@@ -17,6 +22,7 @@
         "esbuild": "^0.8.43",
         "fast-deep-equal": "^3.1.3",
         "hash-sum": "^2.0.0",
+        "jest-snapshot-serializer-raw": "^1.1.0",
         "pegjs": "^0.10.0",
         "prettier": "^2.2.1",
         "rfdc": "^1.2.0",
