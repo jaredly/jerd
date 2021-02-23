@@ -51,7 +51,7 @@ const hash_24c99d82: (arg_0: T_0) => (arg_0: (handlers: any, done: (result: void
 `;
 
 exports[`Example files basic-effects.jd: 4-jd 1`] = `
-const hash_a5120a10_0: (var_1_1) ={hash_a690a6f2_0}> string = (name_0: var_1_1) => {
+const hash_06940090_0: (string) ={hash_a690a6f2_0}> string = (name_0: string) => {
     log(
         "yes please " ++ name_0,
     );
@@ -60,16 +60,16 @@ const hash_a5120a10_0: (var_1_1) ={hash_a690a6f2_0}> string = (name_0: var_1_1) 
 `;
 
 exports[`Example files basic-effects.jd: 4-ts 1`] = `
-const hash_a5120a10: (arg_0: T_1, handlers: any, done: (result: string) => void) => void = (name_0: T_1, handlers: any, done: (arg_0: string) => void) => {
+const hash_06940090: (arg_0: string, handlers: any, done: (result: string) => void) => void = (name_0: string, handlers: any, done: (arg_0: string) => void) => {
   log("yes please " + name_0);
   raise(handlers, "a690a6f2", 0, null, (handlers, value) => done(value));
 };
 `;
 
 exports[`Example files basic-effects.jd: 5-jd 1`] = `
-const hash_68ac6690_0: (var_1_1) ={hash_a690a6f2_0}> void = (name_0: var_1_1) => {
+const hash_23000f78_0: (string) ={hash_a690a6f2_0}> void = (name_0: string) => {
     log(
-        hash_a5120a10_0("Folks") ++ " from farther",
+        hash_06940090_0("Folks") ++ " from farther",
     );
     log("getting");
     log(name_0);
@@ -82,8 +82,8 @@ const hash_68ac6690_0: (var_1_1) ={hash_a690a6f2_0}> void = (name_0: var_1_1) =>
 `;
 
 exports[`Example files basic-effects.jd: 5-ts 1`] = `
-const hash_68ac6690: (arg_0: T_1, handlers: any, done: (result: void) => void) => void = (name_0: T_1, handlers: any, done: (arg_0: void) => void) => {
-  hash_a5120a10("Folks", handlers, arg_0_7 => {
+const hash_23000f78: (arg_0: string, handlers: any, done: (result: void) => void) => void = (name_0: string, handlers: any, done: (arg_0: void) => void) => {
+  hash_06940090("Folks", handlers, arg_0_7 => {
     const arg_0_6 = arg_0_7 + " from farther";
     log(arg_0_6);
     log("getting");
@@ -104,9 +104,19 @@ const hash_68ac6690: (arg_0: T_1, handlers: any, done: (result: void) => void) =
 };
 `;
 
-exports[`Example files basic-effects.jd: 6-jd 1`] = `const hash_39b4b364_0: (var_1_1) ={}> var_4_4 = (f_0: var_1_1) => f_0(2, "hi")`;
+exports[`Example files basic-effects.jd: 6-jd 1`] = `
+const hash_d89d5050_0: () ={}> void = () => {
+    hash_24c99d82_0("<read>")(() => hash_23000f78_0("Yes"));
+}
+`;
 
-exports[`Example files basic-effects.jd: 6-ts 1`] = `const hash_39b4b364: (arg_0: T_1) => T_4 = f_0 => f_0(2, "hi");`;
+exports[`Example files basic-effects.jd: 6-ts 1`] = `
+const hash_d89d5050: () => void = () => {
+  return hash_24c99d82("<read>")((handlers: any, done: (arg_0: void) => void) => {
+    hash_23000f78("Yes", handlers, done);
+  });
+};
+`;
 
 exports[`Example files generics.jd: 0-jd 1`] = `const hash_ef13ad00_0: (T_0) ={}> T_0 = (x_0: T_0) => x_0`;
 

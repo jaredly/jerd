@@ -89,12 +89,12 @@ farther("Farther", handlers, (handlers, value) => {
 
 */
 
-const farther = (name) => {
+const farther = (name: string): string => {
     log("yes please " ++ name);
     raise!(Stdio.read())
 }
 
-const inner = (name) => {
+const inner = (name: string): void => {
     log(farther("Folks") ++ " from farther");
     log("getting");
     log(name);
@@ -103,7 +103,7 @@ const inner = (name) => {
     log("Dones")
 }
 
-const callOne = (f) => f(2, "hi")
+// const callOne = (f) => f(2, "hi")
 // const test2 = () => callOne((a, b) => log(b))
 
 const test1 = () => {
