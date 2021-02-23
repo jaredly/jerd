@@ -13,10 +13,15 @@ Features:
       but it's also super useful for showing examples, and project templates,
       and runtime tests.
 - typed macros
-- modular implicits
+    - also untyepd macros I guess for when you want to make changes before the typing has happened.
+    - but macros are written in this language, and so are referenced by hash, so you can run them once and store the results right? well I guess if they have access to the typing env, then it's possible for them to be less reproducible. I'll need to make sure they are deterministic.
+- modular implicits (type classes)
+- higher kinded types
 - structured editor
+    - you can annotate an AST node with a "log me please" thing that will be interpreted by the dev env, but doesn't impact the hash. For debugging.
 - sum & product types (rich enums & structs/records)
-- generics
+- "row polymophism"-ish. subtyping on both enums and structs
+- generics (and higher kinded types)
 - well type-checked interface with typescript
 - "partial" types for WIP development
     - if you have a type error, you can still compile, but your function

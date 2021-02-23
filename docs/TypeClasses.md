@@ -603,7 +603,15 @@ type Monad{re}<T> = {
 // so when I call `Thing.return<string>` where thing is a `Monad{re=0}<Option>`, I know we're getting an Option<string>, with no effects.
 
 const MyMonad = Monad{}<Option>{
-    return: <E>(v: E) ={}> Some(v),
+    return: <Ok>(v: Ok) ={}> Some(v),
+    map: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Ok2): Option<Ok2> ={e}> switch v {
+        None => None,
+        Ok(x) => Ok(op(x)),
+    },
+    bind: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Option<Ok2>): Result<Ok2, Err> ={e}> switch v {
+        None => None,
+        Ok(x) => op(x),
+    },
 }
 
 const MyMonad = Monad{}<Result<_, int>>{

@@ -1,6 +1,6 @@
 // Yes please
 
-// START HERE: functions need to own their type variables.
+// functions need to own their type variables.
 // Default to put them at the closest lambda.
 
 // At the end of unification, all type variables need a home.
