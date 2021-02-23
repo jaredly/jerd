@@ -133,29 +133,21 @@ const hash_cdfc6438_0: int = not yet printable: {"type":"if","cond":{"type":"app
 
 const hash_cdfc6438: number = (() => {
   if (10 > 2) {
-    return (() => {
-      return 5;
-    })();
+    return 5;
   } else {
-    return (() => {
-      return 4;
-    })();
+    return 4;
   }
 })();
 
 const hash_220633d2_0: (int) ={}> int = (h_0: int) => not yet printable: {"type":"if","cond":{"type":"apply","target":{"type":"ref","ref":{"type":"builtin","name":"<"},"is":{"type":"lambda","typeVbls":[],"args":[{"type":"ref","ref":{"type":"builtin","name":"int"}},{"type":"ref","ref":{"type":"builtin","name":"int"}}],"effects":[],"rest":null,"res":{"type":"ref","ref":{"type":"builtin","name":"bool"}}}},"effects":[],"argsEffects":[],"args":[{"type":"var","sym":{"name":"h","unique":0},"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},{"type":"int","value":10,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"is":{"type":"ref","ref":{"type":"builtin","name":"bool"}}},"yes":{"type":"sequence","sts":[{"type":"apply","target":{"type":"ref","ref":{"type":"builtin","name":"/"},"is":{"type":"lambda","typeVbls":[],"args":[{"type":"ref","ref":{"type":"builtin","name":"int"}},{"type":"ref","ref":{"type":"builtin","name":"int"}}],"effects":[],"rest":null,"res":{"type":"ref","ref":{"type":"builtin","name":"int"}}}},"effects":[],"argsEffects":[],"args":[{"type":"var","sym":{"name":"h","unique":0},"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},{"type":"int","value":2,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"effects":[],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},"no":{"type":"sequence","sts":[{"type":"apply","target":{"type":"ref","ref":{"type":"builtin","name":"*"},"is":{"type":"lambda","typeVbls":[],"args":[{"type":"ref","ref":{"type":"builtin","name":"int"}},{"type":"ref","ref":{"type":"builtin","name":"int"}}],"effects":[],"rest":null,"res":{"type":"ref","ref":{"type":"builtin","name":"int"}}}},"effects":[],"argsEffects":[],"args":[{"type":"var","sym":{"name":"h","unique":0},"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},{"type":"int","value":3,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"effects":[],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},"effects":[],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}
 
-const hash_220633d2: (arg_0: number) => number = h_0 => (() => {
+const hash_220633d2: (arg_0: number) => number = h_0 => {
   if (h_0 < 10) {
-    return (() => {
-      return h_0 / 2;
-    })();
+    return h_0 / 2;
   } else {
-    return (() => {
-      return h_0 * 3;
-    })();
+    return h_0 * 3;
   }
-})();
+};
 `;
 
 exports[`Example files inference.jd 1`] = `

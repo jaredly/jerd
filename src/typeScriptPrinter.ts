@@ -209,6 +209,34 @@ export const printLambdaBody = (
     }
 };
 
+const unwrapIFFEs = (ast: t.File) => {
+    traverse(ast, {
+        CallExpression(path) {
+            if (
+                path.node.arguments.length === 0 &&
+                path.node.callee.type === 'ArrowFunctionExpression'
+            ) {
+                // if we're in a return statement, we can just back up
+                // although need to ensure that CPS doesn't break
+                if (path.parent.type === 'ReturnStatement') {
+                    if (path.node.callee.body.type === 'BlockStatement') {
+                        path.parentPath.replaceWithMultiple(
+                            path.node.callee.body.body,
+                        );
+                    } else {
+                        path.parentPath.replaceWith(
+                            t.returnStatement(path.node.callee.body),
+                        );
+                    }
+                } else if (path.parent.type === 'ArrowFunctionExpression') {
+                    path.replaceWith(path.node.callee.body);
+                }
+                // if we're the body if a lambda, we can just replace with self
+            }
+        },
+    });
+};
+
 const flattenImmediateCallsToLets = (ast: t.File) => {
     traverse(ast, {
         CallExpression(path) {
@@ -295,6 +323,7 @@ export const declarationToString = (
     );
     flattenImmediateCallsToLets(ast);
     removeBlocksWithNoDeclarations(ast);
+    unwrapIFFEs(ast);
     // return prettier.format('.', { parser: () => ast });
     return generate(ast).code;
 };
