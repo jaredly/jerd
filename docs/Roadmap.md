@@ -5,7 +5,25 @@
 - [x] binops
 - [x] validate basic effects setup (CPS etc)
 - [x] basic generics!
+- [ ] if, simple-let. gotta have it
 - [ ] records
+  - [ ] basic
+  - [ ] generic
+  - [ ] row polymorphic
+- [ ] enums
+  - [ ] basic
+  - [ ] generic
+  - [ ] row polymorphic
+- [ ] match
+- [ ] let & function arg destructuring of records
+- [ ] tuples please
+- [ ] array types, literals, indexers
+  - what do I think about "index out of range"? Should I allow "panics"?
+  - or should I be perfectly safe 🤔
+  - I guess it could be a "pseudo-effect" as well, like "ffi".
+  - or it could be the same as "ffi"? naw, might as well distinguish.
+  - so yeah, have a builtin `panic` effect, and the unchecked versions of array and map access use it.
+    - or should I use something other than effects? like it might be weird/confusing to have these "special" effects that don't trigger CPS, but aren't pure. ah lets have them be combined, at least for now. like my goodness.
 - [ ] type classes (inferred-ish? dunno how to dance that)
 - [ ] affine types prolly, once type classes are a thing
 
