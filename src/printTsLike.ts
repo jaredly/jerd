@@ -2,8 +2,9 @@
 // mostly for debugging
 //
 
-import { Case, Id, Reference, Symbol, Term, Type } from './types';
+import { Case, Id, Let, Reference, Symbol, Term, Type } from './types';
 import { PP, items, args, block, atom } from './printer';
+import { termToAstCPS } from './typeScriptPrinter';
 
 export const refToPretty = (ref: Reference) =>
     atom(ref.type === 'builtin' ? ref.name : idToString(ref.id));
@@ -40,8 +41,15 @@ export const typeToPretty = (type: Type): PP => {
     }
 };
 
-export const termToPretty = (term: Term): PP => {
+export const termToPretty = (term: Term | Let): PP => {
     switch (term.type) {
+        case 'Let':
+            return items([
+                atom('const '),
+                symToPretty(term.binding),
+                atom(' = '),
+                termToPretty(term.value),
+            ]);
         case 'int':
             return atom(term.value.toString());
         case 'string':

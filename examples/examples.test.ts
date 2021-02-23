@@ -16,35 +16,12 @@ const toTest = [
     'inference.jd',
     'generics.jd',
     'ifs.jd',
+    'lets.jd',
 ];
 
 describe('Example files', () => {
-    // beforeAll(() => {
-    //     base = null;
-    //     foundImages = [];
-    //     // This makes the snapshot be put in the file corresponding to our fixture file,
-    //     // not this snapshots.test.js file
-    //     const updateSnapshot = (expect: any).getState().snapshotState
-    //         ._updateSnapshot;
-    //     const snapshotState = new SnapshotState(snapshotPath, {
-    //         updateSnapshot,
-    //     });
-    //     (expect: any).setState({snapshotState});
-    // });
-
     toTest.forEach((name) => {
         it(name, () => {
-            // const snapshotPath = `__snapshots__/${name}.snap`;
-            // const updateSnapshot = (expect as any).getState().snapshotState
-            //     ._updateSnapshot;
-            // // const currentState = (expect as any).getState().snapshotState;
-            // // currentState._snapshotPath = snapshotPath;
-            // const snapshotState = new SnapshotState(snapshotPath, {
-            //     updateSnapshot,
-            // } as any);
-            // (expect as any).setState({ snapshotState });
-            // // expect.addSnapshotSerializer(serializerRaw);
-
             const env = presetEnv();
             const raw = fs.readFileSync(__dirname + '/' + name, 'utf8');
 
@@ -68,15 +45,10 @@ describe('Example files', () => {
                     } catch (err) {
                         items.push(`// ERROR ${err}`);
                     }
-                    // expect(serializerRaw.wrap(jd)).toMatchSnapshot(`${i}-jd`);
-                    // expect(serializerRaw.wrap(ts)).toMatchSnapshot(`${i}-ts`);
                 }
             });
 
             expect(serializerRaw.wrap(items.join('\n\n'))).toMatchSnapshot();
-
-            // Saving the snapshot we just took, if need be
-            // (expect as any).getState().snapshotState.save();
         });
     });
 });

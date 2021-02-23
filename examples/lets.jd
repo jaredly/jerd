@@ -1,0 +1,10 @@
+
+const x = {
+    const y = 10;
+    y
+}
+
+const z = (n: int) => {
+    const m = n + 2;
+    m - 1
+}

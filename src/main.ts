@@ -23,6 +23,7 @@ import deepEqual from 'fast-deep-equal';
 import { typeDefine, typeEffect } from './env';
 
 import { presetEnv, prelude } from './preset';
+import { execSync } from 'child_process';
 
 // const clone = cloner();
 
@@ -209,6 +210,7 @@ const main = (fname: string, dest: string) => {
         console.log(text);
     } else {
         fs.writeFileSync(dest, text);
+        execSync(`yarn -s esbuild ${dest} > ${dest}.js`);
     }
     fs.writeFileSync('./env.json', JSON.stringify(env, null, 2));
 };

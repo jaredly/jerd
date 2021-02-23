@@ -51,7 +51,7 @@ export type CPSAble =
       }
     | {
           type: 'sequence';
-          sts: Array<Term>;
+          sts: Array<Term | Let>;
           effects: Array<EffectRef>;
           is: Type;
       }
@@ -63,6 +63,13 @@ export type CPSAble =
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };
+
+export type Let = {
+    type: 'Let';
+    binding: Symbol; // TODO patterns folks
+    value: Term;
+    is: Type;
+};
 
 export type Term =
     | CPSAble
@@ -291,8 +298,10 @@ export const subEnv = (env: Env): Env => ({
     },
 });
 
-export const getEffects = (t: Term): Array<Reference> => {
+export const getEffects = (t: Term | Let): Array<Reference> => {
     switch (t.type) {
+        case 'Let':
+            return getEffects(t.value);
         case 'apply':
             return dedupEffects(t.argsEffects.concat(t.effects));
         case 'sequence':

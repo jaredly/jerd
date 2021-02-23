@@ -64,7 +64,7 @@ export const prelude = [
         };`,
 ];
 
-export const binOps = ['++', '+', '>', '<', '/', '*', '=='];
+export const binOps = ['++', '+', '>', '<', '/', '*', '==', '-'];
 
 export function presetEnv() {
     const env = newEnv({
@@ -106,6 +106,14 @@ export function presetEnv() {
         res: bool,
     };
     env.global.builtins['+'] = {
+        type: 'lambda',
+        typeVbls: [],
+        args: [int, int],
+        effects: [],
+        rest: null,
+        res: int,
+    };
+    env.global.builtins['-'] = {
         type: 'lambda',
         typeVbls: [],
         args: [int, int],

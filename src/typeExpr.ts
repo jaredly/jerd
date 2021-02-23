@@ -8,17 +8,23 @@ import {
     Symbol,
     Case,
     LambdaType,
+    Let,
 } from './types';
-import { Expression } from './parser';
+import { Expression, Statement } from './parser';
 import deepEqual from 'fast-deep-equal';
 import { subEnv } from './types';
 import typeType, { newTypeVbl, walkType } from './typeType';
 import { showType } from './unify';
 import { void_, bool } from './preset';
 
-export const walkTerm = (term: Term, handle: (term: Term) => void): void => {
+export const walkTerm = (
+    term: Term | Let,
+    handle: (term: Term | Let) => void,
+): void => {
     handle(term);
     switch (term.type) {
+        case 'Let':
+            return walkTerm(term.value, handle);
         case 'raise':
             return term.args.forEach((t) => walkTerm(t, handle));
         case 'handle':
@@ -135,6 +141,17 @@ const applyTypeVariables = (env: Env, type: Type, vbls: Array<Type>): Type => {
     // return type;
 };
 
+// const typeStatement = (env: Env, expr: Statement): Term | Let => {
+//     if (expr.type === 'define') {
+//         return {
+//             type: 'Let',
+//             binding: expr.id.text,
+//         };
+//     } else {
+//         return typeExpr(env, expr);
+//     }
+// };
+
 const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
     switch (expr.type) {
         case 'int':
@@ -150,8 +167,30 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 is: { type: 'ref', ref: { type: 'builtin', name: 'string' } },
             };
         case 'block': {
+            const inner: Array<Term | Let> = [];
+            let innerEnv = env;
+            for (let item of expr.items) {
+                if (item.type === 'define') {
+                    const value = typeExpr(innerEnv, item.expr);
+                    innerEnv = subEnv(innerEnv);
+                    // innerEnv.local.locals
+
+                    const type = typeType(innerEnv, item.ann);
+                    const unique = Object.keys(innerEnv.local.locals).length;
+                    const sym: Symbol = { name: item.id.text, unique };
+                    innerEnv.local.locals[item.id.text] = { sym, type };
+                    inner.push({
+                        type: 'Let',
+                        binding: sym,
+                        value,
+                        is: void_,
+                    });
+                } else {
+                    inner.push(typeExpr(innerEnv, item));
+                }
+            }
             // TODO: maybeSeq?
-            const inner = expr.items.map((s) => typeExpr(env, s));
+            // const inner = expr.items.map((s) => typeExpr(env, s));
             return {
                 type: 'sequence',
                 sts: inner,

@@ -1,4 +1,13 @@
-import { Term, Env, Type, getEffects, Symbol, Id, Reference } from './types';
+import {
+    Term,
+    Env,
+    Type,
+    getEffects,
+    Symbol,
+    Id,
+    Reference,
+    Let,
+} from './types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import traverse from '@babel/traverse';
@@ -158,7 +167,14 @@ export const printLambdaBody = (
         if (term.type === 'sequence') {
             return t.blockStatement(
                 term.sts.map((s, i) =>
-                    i === term.sts.length - 1
+                    s.type === 'Let'
+                        ? t.variableDeclaration('const', [
+                              t.variableDeclarator(
+                                  t.identifier(printSym(s.binding)),
+                                  printTerm(env, s.value),
+                              ),
+                          ])
+                        : i === term.sts.length - 1
                         ? t.returnStatement(printTerm(env, s))
                         : t.expressionStatement(printTerm(env, s)),
                 ),
@@ -370,16 +386,27 @@ const isSimpleBuiltin = (name: string) => {
 // cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 export const termToAstCPS = (
     env: Env,
-    term: Term,
+    term: Term | Let,
     done: t.Expression,
 ): t.Expression => {
-    if (!getEffects(term).length) {
+    if (!getEffects(term).length && term.type !== 'Let') {
         return t.callExpression(done, [
             // t.identifier('handlers'),
             printTerm(env, term),
         ]);
     }
     switch (term.type) {
+        case 'Let': {
+            return termToAstCPS(
+                env,
+                term.value,
+                t.arrowFunctionExpression(
+                    [t.identifier(printSym(term.binding))],
+                    t.callExpression(done, []),
+                    // t.blockStatement([t.expressionStatement(inner)]),
+                ),
+            );
+        }
         case 'raise': {
             if (term.argsEffects.length > 0) {
                 return t.identifier('raise args effects');
@@ -741,14 +768,21 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             ]);
         // return t.identifier('handle_wat');
         // return 'new Error("Handline")';
-        case 'sequence':
+        case 'sequence': {
             // IIFE
             return t.callExpression(
                 t.arrowFunctionExpression(
                     [],
                     t.blockStatement(
                         term.sts.map((s, i) =>
-                            i === term.sts.length - 1
+                            s.type === 'Let'
+                                ? t.variableDeclaration('const', [
+                                      t.variableDeclarator(
+                                          t.identifier(printSym(s.binding)),
+                                          printTerm(env, s.value),
+                                      ),
+                                  ])
+                                : i === term.sts.length - 1
                                 ? t.returnStatement(printTerm(env, s))
                                 : t.expressionStatement(printTerm(env, s)),
                         ),
@@ -756,6 +790,7 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                 ),
                 [],
             );
+        }
         default:
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type}`);

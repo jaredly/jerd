@@ -185,6 +185,31 @@ const hash_83d5c38a: () => void = () => {
     });
   });
 };
+
+// .jd
+const hash_700366ea_0: () ={hash_a690a6f2_0}> void = () => {
+    const x_0 = raise!(hash_a690a6f2_0());
+    log(
+        x_0 ++ "Hello",
+    );
+}
+
+// .ts
+const hash_700366ea: (handlers: any, done: (result: void) => void) => void = (handlers: any, done: (arg_0: void) => void) => {
+  raise(handlers, "a690a6f2", 0, null, (handlers, value) => (x_0 => {
+    done(log(x_0 + "Hello"));
+  })(value));
+};
+
+// .jd
+const hash_9224b65c_0: () ={}> void = () => {
+    hash_24c99d82_0("<read>")(hash_700366ea_0);
+}
+
+// .ts
+const hash_9224b65c: () => void = () => {
+  return hash_24c99d82("<read>")(hash_700366ea);
+};
 `;
 
 exports[`Example files generics.jd 1`] = `
@@ -279,4 +304,30 @@ const hash_7181c45a_0: (var_1_1) ={}> var_3_3 = (count_0: var_1_1) => <self>(cou
 
 // .ts
 const hash_7181c45a: (arg_0: T_1) => T_3 = count_0 => hash_global(count_0 + 4);
+`;
+
+exports[`Example files lets.jd 1`] = `
+// .jd
+const hash_2d8073d9_0: var_1_1 = {
+    const y_0 = 10;
+    y_0;
+}
+
+// .ts
+const hash_2d8073d9: T_1 = (() => {
+  const y_0 = 10;
+  return y_0;
+})();
+
+// .jd
+const hash_3266cb12_0: (int) ={}> int = (n_0: int) => {
+    const m_1 = n_0 + 2;
+    m_1 - 1;
+}
+
+// .ts
+const hash_3266cb12: (arg_0: number) => number = n_0 => {
+  const m_1 = n_0 + 2;
+  return m_1 - 1;
+};
 `;

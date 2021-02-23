@@ -49,7 +49,7 @@ export type Ops = {
     first: Expression;
     rest: Array<{ op: string; right: Expression }>;
 };
-export type Block = { type: 'block'; items: Array<Expression> };
+export type Block = { type: 'block'; items: Array<Statement> };
 
 export type If = { type: 'If'; cond: Expression; yes: Block; no: Block };
 
