@@ -20,8 +20,11 @@ import { showType, unifyInTerm, unifyInType, unifyVariables } from './unify';
 import { printToString } from './printer';
 import { declarationToPretty, termToPretty } from './printTsLike';
 import deepEqual from 'fast-deep-equal';
+import { typeDefine } from './env';
 
-const clone = cloner();
+import { presetEnv, prelude } from './preset';
+
+// const clone = cloner();
 
 // ok gonna do some pegjs I think for parsin
 
@@ -85,95 +88,6 @@ and thats ok
 //     return hash(res);
 // };
 
-const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
-const string: Type = { type: 'ref', ref: { type: 'builtin', name: 'string' } };
-const void_: Type = { type: 'ref', ref: { type: 'builtin', name: 'void' } };
-
-const prelude = [
-    `export {}`,
-    'const log = console.log',
-    `const raise = (handlers, hash, idx, args, done) => {
-            handlers[hash](idx, args, done)
-        }`,
-    `type ShallowHandler<Get, Set> = (
-            idx: number,
-            args: Set,
-            returnIntoFn: (newHandler: {[hash: string]: ShallowHandler<Get, Set>}, value: Get) => void,
-        ) => void;`,
-    `const handleSimpleShallow2 = <Get, Set, R>(
-            hash: string,
-            fn: (handler: {[hash: string]: ShallowHandler<Get, Set>}, cb: (fnReturnValue: R) => void) => void,
-            handleEffect: Array<(
-                value: Set,
-                cb: (
-                    gotten: Get,
-                    newHandler: {[hash: string]: ShallowHandler<Get, Set>},
-                    returnIntoHandler: (fnReturnValue: R) => void,
-                ) => void,
-            ) => void>,
-            handlePure: (fnReturnValue: R) => void,
-        ) => {
-            let fnsReturnPointer = handlePure;
-            fn(
-                {[hash]: (idx, args, returnIntoFn) => {
-                    handleEffect[idx](
-                        args,
-                        (handlersValueToSend, newHandler, returnIntoHandler) => {
-                            if (returnIntoHandler === undefined) {
-                                /// @ts-ignore
-                                returnIntoHandler = newHandler
-                                /// @ts-ignore
-                                newHandler = handlersValueToSend
-                                /// @ts-ignore
-                                handlersValueToSend = null
-                            }
-                            fnsReturnPointer = returnIntoHandler;
-                            returnIntoFn(newHandler, handlersValueToSend);
-                        },
-                    );
-                }},
-                (fnsReturnValue) => fnsReturnPointer(fnsReturnValue),
-            );
-        };`,
-];
-
-function presetEnv() {
-    const env = newEnv({
-        name: 'global',
-        type: { type: 'ref', ref: { type: 'builtin', name: 'never' } },
-    });
-    env.global.builtins['++'] = {
-        type: 'lambda',
-        typeVbls: [],
-        args: [string, string],
-        effects: [],
-        rest: null,
-        res: string,
-    };
-    env.global.builtins['+'] = {
-        type: 'lambda',
-        typeVbls: [],
-        args: [int, int],
-        effects: [],
-        rest: null,
-        res: int,
-    };
-    env.global.builtins['log'] = {
-        type: 'lambda',
-        typeVbls: [],
-        args: [string],
-        effects: [],
-        rest: null,
-        res: void_,
-    };
-    env.global.builtinTypes['unit'] = 0;
-    env.global.builtinTypes['void'] = 0;
-    env.global.builtinTypes['int'] = 0;
-    env.global.builtinTypes['string'] = 0;
-
-    return env;
-}
-
 const testInference = (parsed: Toplevel[]) => {
     const env = presetEnv();
     for (const item of parsed) {
@@ -231,86 +145,9 @@ function typeFile(parsed: Toplevel[]) {
     for (const item of parsed) {
         if (item.type === 'define') {
             console.log('>> A define', item.id.text);
-            // ugh.
-            // I really just need type inference? right?
-            // or I mean
-            // I could just shallowly check
-            const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
-            const subEnv: Env = {
-                ...env,
-                local: { ...env.local, tmpTypeVbls },
-            };
-            const self = {
-                name: item.id.text,
-                type: item.ann ? typeType(env, item.ann) : newTypeVbl(subEnv),
-            };
-            subEnv.local.self = self;
-            const term = typeExpr(subEnv, item.expr);
-            console.log('< type', showType(term.is));
-            if (fitsExpectation(subEnv, term.is, self.type) !== true) {
-                throw new Error(`Term's type doesn't match annotation`);
-            }
-            // // Ok so we need to be able to handle second- and nth-level
-            // // indirection I imagine.
-            // // hmm
-            // // is this where things get undecidable?
-            // // I mean, how bad could it get?
-            // // for (let key of Object.keys(typeVbls)) {
-            // //     unified[key] = typeVbls[key].reduce(unify, null);
-            // // }
-            // const unified = unifyVariables(tmpTypeVbls);
-            // // let didChange = true;
-            // // let iter = 0;
-            // // while (didChange) {
-            // //     if (iter++ > 100) {
-            // //         throw new Error(
-            // //             `Something is a miss in the state of unification.`,
-            // //         );
-            // //     }
-            // //     didChange = false;
-            // //     Object.keys(unified).forEach((id) => {
-            // //         const t = unified[id];
-            // //         if (t != null) {
-            // //             const changed = unifyInType(unified, t);
-            // //             if (changed != null) {
-            // //                 // console.log(
-            // //                 //     `${JSON.stringify(
-            // //                 //         unified[id],
-            // //                 //         null,
-            // //                 //         2,
-            // //                 //     )}\n==>\n${JSON.stringify(changed, null, 2)}`,
-            // //                 // );
-            // //                 didChange = true;
-            // //                 unified[id] = changed;
-            // //             }
-            // //         }
-            // //     });
-            // // }
-            // if (Object.keys(unified).length) {
-            //     console.log(unified);
-            //     unifyInTerm(unified, term);
-            //     // self.type = unifyInType(unified, self.type) || self.type;
-            // }
+            const { term } = typeDefine(env, item);
             console.log('< unified type', showType(term.is));
-            // console.log('vbls', JSON.stringify(typeVbls, null, 2));
-            // console.log('unified', JSON.stringify(unified, null, 2));
-            const hash: string = hashObject(term);
-            env.global.names[item.id.text] = { hash: hash, size: 1, pos: 0 };
-            env.global.terms[hash] = term;
-            // out.push(`// ${printType(env, t.is)}`);
-
-            // out.push(`const hash_${h} = ` + termToString(env, t));
-            // } else if (item.type === 'deffect') {
-            //     const h: string = hash(item);
-            //     const constrs = [];
-            //     item.constrs.forEach((constr, i) => {
-            //         env.effectNames[constr.id.text] = { hash: h, idx: i };
-            //         constrs.push(typeType(env, constr.type));
-            //     });
-            //     env.effects[h] = constrs;
         } else if (item.type === 'effect') {
-            // console.log(item.constrs);
-            // throw new Error('TODO');
             const constrs = item.constrs.map(({ type }) => {
                 return {
                     args: type.args

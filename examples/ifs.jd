@@ -1,0 +1,15 @@
+
+const x = if 10 > 2 {
+    5
+} else {
+    4
+}
+
+const y = (h: int) => if h < 10 {
+    h / 2
+} else {
+    h * 3
+}
+
+// TODO: cps it up folks
+// oh I should have some jest tests in here, yes I should.

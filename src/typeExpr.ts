@@ -67,7 +67,7 @@ const resolveIdentifier = (env: Env, text: string): Term | null => {
     if (env.global.names[text]) {
         const id = env.global.names[text];
         const term = env.global.terms[id.hash];
-        console.log(`${text} : its a global: ${showType(term.is)}`);
+        // console.log(`${text} : its a global: ${showType(term.is)}`);
         return {
             type: 'ref',
             ref: {
@@ -93,7 +93,7 @@ const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
         walkType(t, (t) => {
             if (t.type === 'var') {
                 if (vbls[t.sym.unique]) {
-                    console.log('SUBST', vbls[t.sym.unique]);
+                    // console.log('SUBST', vbls[t.sym.unique]);
                     return vbls[t.sym.unique];
                 }
                 return t;
@@ -342,7 +342,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     );
                 }
             }
-            console.log('VBLS', typeVbls);
+            // console.log('VBLS', typeVbls);
             return {
                 type: 'lambda',
                 args,
