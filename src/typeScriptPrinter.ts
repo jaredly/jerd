@@ -218,7 +218,12 @@ const unwrapIFFEs = (ast: t.File) => {
             ) {
                 // if we're in a return statement, we can just back up
                 // although need to ensure that CPS doesn't break
-                if (path.parent.type === 'ReturnStatement') {
+                if (
+                    path.parent.type === 'ReturnStatement' ||
+                    (path.parent.type === 'ExpressionStatement' &&
+                        path.parentPath.parent.type === 'BlockStatement' &&
+                        path.parentPath.parent.body.length === 1)
+                ) {
                     if (path.node.callee.body.type === 'BlockStatement') {
                         path.parentPath.replaceWithMultiple(
                             path.node.callee.body.body,

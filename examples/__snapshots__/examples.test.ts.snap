@@ -120,13 +120,11 @@ const hash_42a3a912_0: (bool) ={hash_a690a6f2_0}> string = (shouldRaise_0: bool)
 
 // .ts
 const hash_42a3a912: (arg_0: bool, handlers: any, done: (result: string) => void) => void = (shouldRaise_0: bool, handlers: any, done: (arg_0: string) => void) => {
-  (() => {
-    if (shouldRaise_0) {
-      raise(handlers, "a690a6f2", 0, null, (handlers, value) => done(value));
-    } else {
-      done("didn't raise");
-    }
-  })();
+  if (shouldRaise_0) {
+    raise(handlers, "a690a6f2", 0, null, (handlers, value) => done(value));
+  } else {
+    done("didn't raise");
+  }
 };
 
 // .jd
