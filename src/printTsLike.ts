@@ -56,6 +56,14 @@ export const termToPretty = (term: Term): PP => {
                     ]),
                 ]),
             ]);
+        case 'if':
+            return items([
+                atom('if '),
+                termToPretty(term.cond),
+                atom(' '),
+                termToPretty(term.yes),
+                ...(term.no ? [atom(' else '), termToPretty(term.no)] : []),
+            ]);
         case 'lambda':
             return items([
                 args(

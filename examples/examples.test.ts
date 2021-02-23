@@ -62,7 +62,7 @@ describe('Example files', () => {
                         100,
                     );
                     const ts = declarationToString(env, hash, term);
-                    items.push(jd, ts);
+                    items.push('// .jd\n' + jd, '// .ts\n' + ts);
                     // expect(serializerRaw.wrap(jd)).toMatchSnapshot(`${i}-jd`);
                     // expect(serializerRaw.wrap(ts)).toMatchSnapshot(`${i}-ts`);
                 }
