@@ -145,6 +145,46 @@ const hash_2cdabf70: () => void = () => {
     });
   });
 };
+
+// .jd
+const hash_e01931d2_0: (string) ={hash_a690a6f2_0}> string = (check_0: string) => {
+    if raise!(
+        hash_a690a6f2_0(),
+    ) == check_0 {
+        raise!(hash_a690a6f2_0());
+    } else {
+        "didn't raise";
+    };
+}
+
+// .ts
+const hash_e01931d2: (arg_0: string, handlers: any, done: (result: string) => void) => void = (check_0: string, handlers: any, done: (arg_0: string) => void) => {
+  raise(handlers, "a690a6f2", 0, null, (handlers, value) => (arg_0_14 => {
+    const cond = arg_0_14 == check_0;
+
+    if (cond) {
+      raise(handlers, "a690a6f2", 0, null, (handlers, value) => done(value));
+    } else {
+      done("didn't raise");
+    }
+  })(value));
+};
+
+// .jd
+const hash_83d5c38a_0: () ={}> void = () => {
+    hash_24c99d82_0("<read>")(
+        () => log(hash_e01931d2_0("<read>")),
+    );
+}
+
+// .ts
+const hash_83d5c38a: () => void = () => {
+  return hash_24c99d82("<read>")((handlers: any, done: (arg_0: void) => void) => {
+    hash_e01931d2("<read>", handlers, arg_0_15 => {
+      done(log(arg_0_15));
+    });
+  });
+};
 `;
 
 exports[`Example files generics.jd 1`] = `

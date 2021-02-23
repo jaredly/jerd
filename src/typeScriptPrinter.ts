@@ -412,7 +412,24 @@ export const termToAstCPS = (
         case 'if': {
             const condEffects = getEffects(term.cond);
             if (condEffects.length) {
-                return t.identifier('if cond effects');
+                return termToAstCPS(
+                    env,
+                    term.cond,
+                    t.arrowFunctionExpression(
+                        [t.identifier(`cond`)],
+                        t.blockStatement([
+                            t.ifStatement(
+                                t.identifier('cond'),
+                                ifBlock(printLambdaBody(env, term.yes, done)),
+                                ifBlock(
+                                    term.no
+                                        ? printLambdaBody(env, term.no, done)
+                                        : t.callExpression(done, []),
+                                ), // void
+                            ),
+                        ]),
+                    ),
+                );
             }
 
             const cond = printTerm(env, term.cond);
@@ -513,11 +530,12 @@ export const termToAstCPS = (
 };
 
 const callOrBinop = (target: t.Expression, args: Array<t.Expression>) => {
-    if (
-        t.isIdentifier(target) &&
-        (target.name === '+' || target.name === '++')
-    ) {
-        return t.binaryExpression('+', args[0], args[1]);
+    if (t.isIdentifier(target) && binOps.includes(target.name)) {
+        return t.binaryExpression(
+            (target.name === '++' ? '+' : target.name) as any,
+            args[0],
+            args[1],
+        );
     }
     return t.callExpression(target, args);
 };
@@ -645,17 +663,21 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
 
             // Pure, love it.
             const target = printTerm(env, term.target);
-            if (t.isIdentifier(target) && binOps.includes(target.name)) {
-                return t.binaryExpression(
-                    (target.name === '++' ? '+' : target.name) as any,
-                    printTerm(env, term.args[0]),
-                    printTerm(env, term.args[1]),
-                );
-            }
-            return t.callExpression(
+            return callOrBinop(
                 target,
                 term.args.map((arg) => printTerm(env, arg)),
             );
+            // if (t.isIdentifier(target) && binOps.includes(target.name)) {
+            //     return t.binaryExpression(
+            //         (target.name === '++' ? '+' : target.name) as any,
+            //         printTerm(env, term.args[0]),
+            //         printTerm(env, term.args[1]),
+            //     );
+            // }
+            // return t.callExpression(
+            //     target,
+            //     term.args.map((arg) => printTerm(env, arg)),
+            // );
             // let b = body;
             // const args = term.args.map((arg) => {
             //     if (getEffects(arg).length > 0) {

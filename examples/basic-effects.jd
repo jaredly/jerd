@@ -123,6 +123,53 @@ const test2 = () => {
     respondWith("<read>")(() => log(maybeRaise(true) ++ maybeRaise(false)))
 }
 
+const raiseIf = (check: string) => {
+    if raise!(Stdio.read()) == check {
+        raise!(Stdio.read())
+    } else {
+        "didn't raise"
+    }
+    // respondWith("<read>")(() => )
+}
+
+const test3 = () => {
+    respondWith("<read>")(() => log(raiseIf("<read>")))
+}
+
+
+// TODO: Effect variables!!
+// effect Choose {
+//     bool: () => bool,
+//     int: () => int,
+// }
+
+// // TODO when I've got type arguments, make this generic.
+// const chooseResponse:
+//     (bool, int) => (() ={Choose}> void) => void
+//  = (responseBool, responseInt) => (fn: () ={Stdio}> void) => {
+//     handle! fn {
+//         Choose.bool(() => k) => chooseResponse(responseBool, responseInt)(() => k(responseBool)),
+//         Choose.int(() => k) => chooseResponse(responseBool, responseInt)(() => k(responseInt)),
+//         pure(a) => a
+//     }
+// }
+
+// const useChoose = () => {
+//     if raise!(Choose.bool()) {
+//         raise!(Stdio.read())
+//     } else {
+//         "didn't raise"
+//     }
+//     // respondWith("<read>")(() => )
+// }
+
+// const test3 = () => {
+//     chooseResponse(true, 10)(() => {
+//         respondWith("<read>")(() => log(useChoose() ++ maybeRaise(false)))
+//     })
+// }
+
 // sayHi()
 test1()
 test2()
+test3()

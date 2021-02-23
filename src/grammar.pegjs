@@ -81,7 +81,7 @@ TypeVbls = "<" _ first:Identifier rest:(_ "," _ Identifier)* _ ","? _ ">" {
     return [first, ...rest.map(r => r[3])]
 }
 
-binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<" / ">" / "<=" / ">="
+binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<" / ">" / "<=" / ">=" / "=="
 
 Literal = Int / IdentifierWithType / String
 
