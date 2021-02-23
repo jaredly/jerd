@@ -2,6 +2,7 @@ import { Term, Env, Type, getEffects, Symbol, Id, Reference } from './types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import traverse from '@babel/traverse';
+import { binOps } from './preset';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
@@ -320,7 +321,7 @@ const isSimple = (arg: Term) => {
 };
 
 const isSimpleBuiltin = (name: string) => {
-    return ['+', '++', '-'].includes(name);
+    return binOps.includes(name);
 };
 
 // cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
@@ -456,6 +457,18 @@ const callOrBinop = (target: t.Expression, args: Array<t.Expression>) => {
     return t.callExpression(target, args);
 };
 
+const ifBlock = (x: t.BlockStatement | t.Expression): t.BlockStatement => {
+    if (x.type === 'BlockStatement') {
+        return x;
+    } else {
+        return t.blockStatement([t.returnStatement(x)]);
+    }
+};
+
+const iffe = (st: t.BlockStatement): t.Expression => {
+    return t.callExpression(t.arrowFunctionExpression([], st), []);
+};
+
 export const printTerm = (env: Env, term: Term): t.Expression => {
     switch (term.type) {
         // these will never need effects, immediate is fine
@@ -472,6 +485,17 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             } else {
                 return t.identifier(printId(term.ref.id));
             }
+        case 'if': {
+            return iffe(
+                t.blockStatement([
+                    t.ifStatement(
+                        printTerm(env, term.cond),
+                        ifBlock(printTerm(env, term.yes)),
+                        term.no ? ifBlock(printTerm(env, term.no)) : null,
+                    ),
+                ]),
+            );
+        }
         case 'string':
             return t.stringLiteral(term.text);
         // a lambda, I guess also doesn't need cps, but internally it does.
@@ -556,12 +580,9 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
 
             // Pure, love it.
             const target = printTerm(env, term.target);
-            if (
-                t.isIdentifier(target) &&
-                (target.name === '+' || target.name === '++')
-            ) {
+            if (t.isIdentifier(target) && binOps.includes(target.name)) {
                 return t.binaryExpression(
-                    '+',
+                    (target.name === '++' ? '+' : target.name) as any,
                     printTerm(env, term.args[0]),
                     printTerm(env, term.args[1]),
                 );

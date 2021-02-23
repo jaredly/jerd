@@ -14,6 +14,7 @@ import deepEqual from 'fast-deep-equal';
 import { subEnv } from './types';
 import typeType, { newTypeVbl, walkType } from './typeType';
 import { showType } from './unify';
+import { void_, bool } from './preset';
 
 export const walkTerm = (term: Term, handle: (term: Term) => void): void => {
     handle(term);
@@ -160,13 +161,37 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 is: inner[inner.length - 1].is,
             };
         }
+        case 'If': {
+            const cond = typeExpr(env, expr.cond);
+            const yes = typeExpr(env, expr.yes);
+            const no = expr.no ? typeExpr(env, expr.no) : null;
+            if (fitsExpectation(env, cond.is, bool) !== true) {
+                throw new Error(`Condition of if must be a boolean`);
+            }
+
+            if (fitsExpectation(env, yes.is, no ? no.is : void_) !== true) {
+                throw new Error(`Branches of if dont agree`);
+            }
+            return {
+                type: 'if',
+                cond,
+                yes,
+                no,
+                effects: dedupEffects([
+                    ...getEffects(cond),
+                    ...getEffects(yes),
+                    ...(no ? getEffects(no) : []),
+                ]),
+                is: yes.is,
+            };
+        }
         case 'ops': {
             // ok, left associative, right? I think so.
             let left: Term = typeExpr(env, expr.first);
             expr.rest.forEach(({ op, right }) => {
                 const is = env.global.builtins[op];
                 if (!is) {
-                    throw new Error(`Unexpected boolean op ${op}`);
+                    throw new Error(`Unexpected binary op ${op}`);
                 }
                 if (is.type !== 'lambda') {
                     throw new Error(`${op} is not a function`);

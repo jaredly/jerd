@@ -1,30 +1,22 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Example files basic-effects.jd: 1-jd 1`] = `
+exports[`Example files basic-effects.jd 1`] = `
 const hash_fb1eb138_0: () ={}> string = () => {
     "hello world";
 }
-`;
 
-exports[`Example files basic-effects.jd: 1-ts 1`] = `
 const hash_fb1eb138: () => string = () => {
   return "hello world";
 };
-`;
 
-exports[`Example files basic-effects.jd: 2-jd 1`] = `
 const hash_6ef2e14c_0: () ={}> void = () => {
     log(hash_fb1eb138_0());
 }
-`;
 
-exports[`Example files basic-effects.jd: 2-ts 1`] = `
 const hash_6ef2e14c: () => void = () => {
   return log(hash_fb1eb138());
 };
-`;
 
-exports[`Example files basic-effects.jd: 3-jd 1`] = `
 const hash_24c99d82_0: (var_0_0) ={}> (() ={hash_a690a6f2_0}> void) ={}> void = (
     responseValue_0: var_0_0,
 ) => (fn_1: () ={hash_a690a6f2_0}> void) => {
@@ -37,9 +29,7 @@ const hash_24c99d82_0: (var_0_0) ={}> (() ={hash_a690a6f2_0}> void) ={}> void = 
         pure(a_2) => a_2,
     };
 }
-`;
 
-exports[`Example files basic-effects.jd: 3-ts 1`] = `
 const hash_24c99d82: (arg_0: T_0) => (arg_0: (handlers: any, done: (result: void) => void) => void) => void = responseValue_0 => fn_1 => {
   return handleSimpleShallow2("a690a6f2", fn_1, [(_, k_2) => hash_global(responseValue_0 + ".")((handlers: any, done: (arg_0: void) => void) => {
     k_2(responseValue_0, handlers, done);
@@ -48,25 +38,19 @@ const hash_24c99d82: (arg_0: T_0) => (arg_0: (handlers: any, done: (result: void
     return hash_global(responseValue_0 + "-")(k_3);
   }], a_2 => a_2);
 };
-`;
 
-exports[`Example files basic-effects.jd: 4-jd 1`] = `
 const hash_06940090_0: (string) ={hash_a690a6f2_0}> string = (name_0: string) => {
     log(
         "yes please " ++ name_0,
     );
     raise!(hash_a690a6f2_0());
 }
-`;
 
-exports[`Example files basic-effects.jd: 4-ts 1`] = `
 const hash_06940090: (arg_0: string, handlers: any, done: (result: string) => void) => void = (name_0: string, handlers: any, done: (arg_0: string) => void) => {
   log("yes please " + name_0);
   raise(handlers, "a690a6f2", 0, null, (handlers, value) => done(value));
 };
-`;
 
-exports[`Example files basic-effects.jd: 5-jd 1`] = `
 const hash_23000f78_0: (string) ={hash_a690a6f2_0}> void = (name_0: string) => {
     log(
         hash_06940090_0("Folks") ++ " from farther",
@@ -79,9 +63,7 @@ const hash_23000f78_0: (string) ={hash_a690a6f2_0}> void = (name_0: string) => {
     );
     log("Dones");
 }
-`;
 
-exports[`Example files basic-effects.jd: 5-ts 1`] = `
 const hash_23000f78: (arg_0: string, handlers: any, done: (result: void) => void) => void = (name_0: string, handlers: any, done: (arg_0: void) => void) => {
   hash_06940090("Folks", handlers, arg_0_7 => {
     const arg_0_6 = arg_0_7 + " from farther";
@@ -102,15 +84,11 @@ const hash_23000f78: (arg_0: string, handlers: any, done: (result: void) => void
     })(value));
   });
 };
-`;
 
-exports[`Example files basic-effects.jd: 6-jd 1`] = `
 const hash_d89d5050_0: () ={}> void = () => {
     hash_24c99d82_0("<read>")(() => hash_23000f78_0("Yes"));
 }
-`;
 
-exports[`Example files basic-effects.jd: 6-ts 1`] = `
 const hash_d89d5050: () => void = () => {
   return hash_24c99d82("<read>")((handlers: any, done: (arg_0: void) => void) => {
     hash_23000f78("Yes", handlers, done);
@@ -118,42 +96,74 @@ const hash_d89d5050: () => void = () => {
 };
 `;
 
-exports[`Example files generics.jd: 0-jd 1`] = `const hash_ef13ad00_0: (T_0) ={}> T_0 = (x_0: T_0) => x_0`;
+exports[`Example files generics.jd 1`] = `
+const hash_ef13ad00_0: (T_0) ={}> T_0 = (x_0: T_0) => x_0
 
-exports[`Example files generics.jd: 0-ts 1`] = `const hash_ef13ad00: <T_0>(arg_0: T_0) => T_0 = x_0 => x_0;`;
+const hash_ef13ad00: <T_0>(arg_0: T_0) => T_0 = x_0 => x_0;
 
-exports[`Example files generics.jd: 1-jd 1`] = `const hash_2a7f74d2_0: int = hash_ef13ad00_0(2)`;
+const hash_2a7f74d2_0: int = hash_ef13ad00_0(2)
 
-exports[`Example files generics.jd: 1-ts 1`] = `const hash_2a7f74d2: number = hash_ef13ad00(2);`;
+const hash_2a7f74d2: number = hash_ef13ad00(2);
 
-exports[`Example files generics.jd: 2-jd 1`] = `
 const hash_8af07dc8_0: ((T_0) ={}> T_0, T_0) ={}> T_0 = (x_0: (T_0) ={}> T_0, arg_1: T_0) => x_0(
     arg_1,
 )
+
+const hash_8af07dc8: <T_0>(arg_0: (arg_0: T_0) => T_0, arg_1: T_0) => T_0 = (x_0, arg_1) => x_0(arg_1);
+
+const hash_7987336f_0: (int) ={}> int = (one_0: int) => one_0 + 2
+
+const hash_7987336f: (arg_0: number) => number = one_0 => one_0 + 2;
+
+const hash_6be6ce9a_0: int = hash_8af07dc8_0(hash_7987336f_0, 5)
+
+const hash_6be6ce9a: number = hash_8af07dc8(hash_7987336f, 5);
+
+const hash_76f59cfc_0: (int) ={}> (int) ={}> int = (x_0: int) => (y_1: int) => x_0 + y_1
+
+const hash_76f59cfc: (arg_0: number) => (arg_0: number) => number = x_0 => y_1 => x_0 + y_1;
+
+const hash_7fc42012_0: int = hash_76f59cfc_0(4)(6)
+
+const hash_7fc42012: number = hash_76f59cfc(4)(6);
 `;
 
-exports[`Example files generics.jd: 2-ts 1`] = `const hash_8af07dc8: <T_0>(arg_0: (arg_0: T_0) => T_0, arg_1: T_0) => T_0 = (x_0, arg_1) => x_0(arg_1);`;
+exports[`Example files ifs.jd 1`] = `
+const hash_cdfc6438_0: int = not yet printable: {"type":"if","cond":{"type":"apply","target":{"type":"ref","ref":{"type":"builtin","name":">"},"is":{"type":"lambda","typeVbls":[],"args":[{"type":"ref","ref":{"type":"builtin","name":"int"}},{"type":"ref","ref":{"type":"builtin","name":"int"}}],"effects":[],"rest":null,"res":{"type":"ref","ref":{"type":"builtin","name":"bool"}}}},"effects":[],"argsEffects":[],"args":[{"type":"int","value":10,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},{"type":"int","value":2,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"is":{"type":"ref","ref":{"type":"builtin","name":"bool"}}},"yes":{"type":"sequence","sts":[{"type":"int","value":5,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"effects":[],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},"no":{"type":"sequence","sts":[{"type":"int","value":4,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"effects":[],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},"effects":[],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}
 
-exports[`Example files generics.jd: 3-jd 1`] = `const hash_7987336f_0: (int) ={}> int = (one_0: int) => one_0 + 2`;
+const hash_cdfc6438: number = (() => {
+  if (10 > 2) {
+    return (() => {
+      return 5;
+    })();
+  } else {
+    return (() => {
+      return 4;
+    })();
+  }
+})();
 
-exports[`Example files generics.jd: 3-ts 1`] = `const hash_7987336f: (arg_0: number) => number = one_0 => one_0 + 2;`;
+const hash_220633d2_0: (int) ={}> int = (h_0: int) => not yet printable: {"type":"if","cond":{"type":"apply","target":{"type":"ref","ref":{"type":"builtin","name":"<"},"is":{"type":"lambda","typeVbls":[],"args":[{"type":"ref","ref":{"type":"builtin","name":"int"}},{"type":"ref","ref":{"type":"builtin","name":"int"}}],"effects":[],"rest":null,"res":{"type":"ref","ref":{"type":"builtin","name":"bool"}}}},"effects":[],"argsEffects":[],"args":[{"type":"var","sym":{"name":"h","unique":0},"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},{"type":"int","value":10,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"is":{"type":"ref","ref":{"type":"builtin","name":"bool"}}},"yes":{"type":"sequence","sts":[{"type":"apply","target":{"type":"ref","ref":{"type":"builtin","name":"/"},"is":{"type":"lambda","typeVbls":[],"args":[{"type":"ref","ref":{"type":"builtin","name":"int"}},{"type":"ref","ref":{"type":"builtin","name":"int"}}],"effects":[],"rest":null,"res":{"type":"ref","ref":{"type":"builtin","name":"int"}}}},"effects":[],"argsEffects":[],"args":[{"type":"var","sym":{"name":"h","unique":0},"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},{"type":"int","value":2,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"effects":[],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},"no":{"type":"sequence","sts":[{"type":"apply","target":{"type":"ref","ref":{"type":"builtin","name":"*"},"is":{"type":"lambda","typeVbls":[],"args":[{"type":"ref","ref":{"type":"builtin","name":"int"}},{"type":"ref","ref":{"type":"builtin","name":"int"}}],"effects":[],"rest":null,"res":{"type":"ref","ref":{"type":"builtin","name":"int"}}}},"effects":[],"argsEffects":[],"args":[{"type":"var","sym":{"name":"h","unique":0},"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},{"type":"int","value":3,"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}],"effects":[],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}},"effects":[],"is":{"type":"ref","ref":{"type":"builtin","name":"int"}}}
 
-exports[`Example files generics.jd: 4-jd 1`] = `const hash_6be6ce9a_0: int = hash_8af07dc8_0(hash_7987336f_0, 5)`;
+const hash_220633d2: (arg_0: number) => number = h_0 => (() => {
+  if (h_0 < 10) {
+    return (() => {
+      return h_0 / 2;
+    })();
+  } else {
+    return (() => {
+      return h_0 * 3;
+    })();
+  }
+})();
+`;
 
-exports[`Example files generics.jd: 4-ts 1`] = `const hash_6be6ce9a: number = hash_8af07dc8(hash_7987336f, 5);`;
+exports[`Example files inference.jd 1`] = `
+const hash_39b4b364_0: (var_1_1) ={}> var_4_4 = (f_0: var_1_1) => f_0(2, "hi")
 
-exports[`Example files generics.jd: 5-jd 1`] = `const hash_76f59cfc_0: (int) ={}> (int) ={}> int = (x_0: int) => (y_1: int) => x_0 + y_1`;
+const hash_39b4b364: (arg_0: T_1) => T_4 = f_0 => f_0(2, "hi");
 
-exports[`Example files generics.jd: 5-ts 1`] = `const hash_76f59cfc: (arg_0: number) => (arg_0: number) => number = x_0 => y_1 => x_0 + y_1;`;
+const hash_7181c45a_0: (var_1_1) ={}> var_3_3 = (count_0: var_1_1) => <self>(count_0 + 4)
 
-exports[`Example files generics.jd: 6-jd 1`] = `const hash_7fc42012_0: int = hash_76f59cfc_0(4)(6)`;
-
-exports[`Example files generics.jd: 6-ts 1`] = `const hash_7fc42012: number = hash_76f59cfc(4)(6);`;
-
-exports[`Example files inference.jd: 0-jd 1`] = `const hash_39b4b364_0: (var_1_1) ={}> var_4_4 = (f_0: var_1_1) => f_0(2, "hi")`;
-
-exports[`Example files inference.jd: 0-ts 1`] = `const hash_39b4b364: (arg_0: T_1) => T_4 = f_0 => f_0(2, "hi");`;
-
-exports[`Example files inference.jd: 1-jd 1`] = `const hash_7181c45a_0: (var_1_1) ={}> var_3_3 = (count_0: var_1_1) => <self>(count_0 + 4)`;
-
-exports[`Example files inference.jd: 1-ts 1`] = `const hash_7181c45a: (arg_0: T_1) => T_3 = count_0 => hash_global(count_0 + 4);`;
+const hash_7181c45a: (arg_0: T_1) => T_3 = count_0 => hash_global(count_0 + 4);
+`;

@@ -14,22 +14,24 @@ export type Case = {
     body: Term;
 };
 
+export type EffectRef = Reference; // TODO var, also args
+
 export type CPSAble =
     | {
           type: 'raise';
           ref: Reference;
           idx: number;
           args: Array<Term>;
-          argsEffects: Array<Reference>;
-          effects: Array<Reference>;
+          argsEffects: Array<EffectRef>;
+          effects: Array<EffectRef>;
           is: Type;
       }
     | {
           type: 'handle';
           target: Term; // this must needs be typed as a LambdaType
           // These are the target's effects minus the one that is handled here.
-          effects: Array<Reference>;
-          effect: Reference;
+          effects: Array<EffectRef>;
+          effect: EffectRef;
           cases: Array<Case>;
           pure: {
               arg: Symbol;
@@ -40,16 +42,24 @@ export type CPSAble =
           is: Type;
       }
     | {
+          type: 'if';
+          cond: Term;
+          yes: Term;
+          no: Term | null;
+          effects: Array<EffectRef>;
+          is: Type;
+      }
+    | {
           type: 'sequence';
           sts: Array<Term>;
-          effects: Array<Reference>;
+          effects: Array<EffectRef>;
           is: Type;
       }
     | {
           type: 'apply';
           target: Term;
-          argsEffects: Array<Reference>;
-          effects: Array<Reference>;
+          argsEffects: Array<EffectRef>;
+          effects: Array<EffectRef>;
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };

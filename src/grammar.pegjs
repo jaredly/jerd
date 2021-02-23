@@ -37,10 +37,14 @@ Binsub = sub:Apsub args:("(" _ CommaExpr? _ ")")* {
     	return sub
     }
 }
-Apsub = Block / Lambda / Handle / Raise / Literal
+Apsub = Block / Lambda / Handle / Raise / If / Literal
 
 Block = "{" _ one:Statement rest:(_ ";" _ Statement)* ";"? _ "}" {
     return {type: 'block', items: [one, ...rest.map(r => r[3])]}
+}
+
+If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
+    return {type: 'If', cond, yes, no: no ? no[3] : null}
 }
 
 Raise = "raise!" _ "(" name:Identifier "." constr:Identifier _ "(" args:CommaExpr? ")" _ ")" {return {type: 'raise', name, constr, args: args || []}}
@@ -77,7 +81,7 @@ TypeVbls = "<" _ first:Identifier rest:(_ "," _ Identifier)* _ ","? _ ">" {
     return [first, ...rest.map(r => r[3])]
 }
 
-binop = "++" / "+" / "-" / "*" / "/" / "^" / "|"
+binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<" / ">" / "<=" / ">="
 
 Literal = Int / IdentifierWithType / String
 

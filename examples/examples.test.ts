@@ -15,6 +15,7 @@ const toTest = [
     'basic-effects.jd',
     'inference.jd',
     'generics.jd',
+    'ifs.jd',
 ];
 
 describe('Example files', () => {
@@ -46,6 +47,9 @@ describe('Example files', () => {
 
             const env = presetEnv();
             const raw = fs.readFileSync(__dirname + '/' + name, 'utf8');
+
+            const items: Array<string> = [];
+
             const parsed = parse(raw);
             parsed.forEach((item, i) => {
                 if (item.type === 'effect') {
@@ -58,10 +62,13 @@ describe('Example files', () => {
                         100,
                     );
                     const ts = declarationToString(env, hash, term);
-                    expect(serializerRaw.wrap(jd)).toMatchSnapshot(`${i}-jd`);
-                    expect(serializerRaw.wrap(ts)).toMatchSnapshot(`${i}-ts`);
+                    items.push(jd, ts);
+                    // expect(serializerRaw.wrap(jd)).toMatchSnapshot(`${i}-jd`);
+                    // expect(serializerRaw.wrap(ts)).toMatchSnapshot(`${i}-ts`);
                 }
             });
+
+            expect(serializerRaw.wrap(items.join('\n\n'))).toMatchSnapshot();
 
             // Saving the snapshot we just took, if need be
             // (expect as any).getState().snapshotState.save();

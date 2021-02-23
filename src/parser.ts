@@ -41,6 +41,7 @@ export type Expression =
     | Lambda
     | Raise
     | Ops
+    | If
     | Block
     | Handle;
 export type Ops = {
@@ -49,6 +50,8 @@ export type Ops = {
     rest: Array<{ op: string; right: Expression }>;
 };
 export type Block = { type: 'block'; items: Array<Expression> };
+
+export type If = { type: 'If'; cond: Expression; yes: Block; no: Block };
 
 export type Raise = {
     type: 'raise';
