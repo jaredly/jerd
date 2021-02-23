@@ -5,7 +5,8 @@
 - [x] binops
 - [x] validate basic effects setup (CPS etc)
 - [x] basic generics!
-- [ ] if, simple-let. gotta have it
+- [x] if
+- [x] simple-let. gotta have it
 - [ ] records
   - [ ] basic
   - [ ] generic
