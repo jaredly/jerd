@@ -110,5 +110,19 @@ const test1 = () => {
     respondWith("<read>")(() => inner("Yes"))
 }
 
+const maybeRaise = (shouldRaise: bool) => {
+    if shouldRaise {
+        raise!(Stdio.read())
+    } else {
+        "didn't raise"
+    }
+    // respondWith("<read>")(() => )
+}
+
+const test2 = () => {
+    respondWith("<read>")(() => log(maybeRaise(true) ++ maybeRaise(false)))
+}
+
 // sayHi()
 test1()
+test2()

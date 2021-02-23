@@ -106,6 +106,47 @@ const hash_d89d5050: () => void = () => {
     hash_23000f78("Yes", handlers, done);
   });
 };
+
+// .jd
+const hash_42a3a912_0: (bool) ={hash_a690a6f2_0}> string = (shouldRaise_0: bool) => {
+    if shouldRaise_0 {
+        raise!(
+            hash_a690a6f2_0(),
+        );
+    } else {
+        "didn't raise";
+    };
+}
+
+// .ts
+const hash_42a3a912: (arg_0: bool, handlers: any, done: (result: string) => void) => void = (shouldRaise_0: bool, handlers: any, done: (arg_0: string) => void) => {
+  (() => {
+    if (shouldRaise_0) {
+      raise(handlers, "a690a6f2", 0, null, (handlers, value) => done(value));
+    } else {
+      done("didn't raise");
+    }
+  })();
+};
+
+// .jd
+const hash_2cdabf70_0: () ={}> void = () => {
+    hash_24c99d82_0("<read>")(
+        () => log(hash_42a3a912_0(true) ++ hash_42a3a912_0(false)),
+    );
+}
+
+// .ts
+const hash_2cdabf70: () => void = () => {
+  return hash_24c99d82("<read>")((handlers: any, done: (arg_0: void) => void) => {
+    hash_42a3a912(true, handlers, arg_0_11 => {
+      hash_42a3a912(false, handlers, arg_1_11 => {
+        const arg_0_10 = arg_0_11 + arg_1_11;
+        done(log(arg_0_10));
+      });
+    });
+  });
+};
 `;
 
 exports[`Example files generics.jd 1`] = `
@@ -172,14 +213,14 @@ const hash_cdfc6438: number = (() => {
 })();
 
 // .jd
-const hash_220633d2_0: (int) ={}> int = (h_0: int) => if h_0 < 10 {
+const hash_43e5a7ea_0: (int) ={}> int = (h_0: int) => if h_0 < 10 {
     h_0 / 2;
 } else {
     h_0 * 3;
 }
 
 // .ts
-const hash_220633d2: (arg_0: number) => number = h_0 => {
+const hash_43e5a7ea: (arg_0: number) => number = h_0 => {
   if (h_0 < 10) {
     return h_0 / 2;
   } else {

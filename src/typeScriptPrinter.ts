@@ -230,6 +230,15 @@ const unwrapIFFEs = (ast: t.File) => {
                     }
                 } else if (path.parent.type === 'ArrowFunctionExpression') {
                     path.replaceWith(path.node.callee.body);
+                } else if (
+                    path.node.callee.body.type === 'BlockStatement' &&
+                    path.node.callee.body.body.length === 1 &&
+                    path.node.callee.body.body[0].type === 'ReturnStatement'
+                ) {
+                    path.replaceWith(
+                        path.node.callee.body.body[0].argument ||
+                            t.nullLiteral(),
+                    );
                 }
                 // if we're the body if a lambda, we can just replace with self
             }
@@ -394,6 +403,28 @@ export const termToAstCPS = (
                 ),
             );
             return t.callExpression(t.identifier('raise'), args);
+        }
+        case 'if': {
+            const condEffects = getEffects(term.cond);
+            if (condEffects.length) {
+                return t.identifier('if cond effects');
+            }
+
+            const cond = printTerm(env, term.cond);
+
+            return iffe(
+                t.blockStatement([
+                    t.ifStatement(
+                        cond,
+                        ifBlock(printLambdaBody(env, term.yes, done)),
+                        ifBlock(
+                            term.no
+                                ? printLambdaBody(env, term.no, done)
+                                : t.callExpression(done, []),
+                        ), // void
+                    ),
+                ]),
+            );
         }
         case 'apply': {
             if (getEffects(term.target).length) {
@@ -643,9 +674,12 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             //     .join(', ')})`;
         }
         case 'raise':
-            throw new Error(
-                `Cannot print a "raise" outside of CPS. Effect tracking must have messed up.`,
+            return t.identifier(
+                "Cannot print a 'raise' outside of CPS. Effect tracking must have messed up.",
             );
+        // throw new Error(
+        //     `Cannot print a "raise" outside of CPS. Effect tracking must have messed up.`,
+        // );
         // return t.identifier('raise_wat');
         // return `new Error("what")`;
         case 'handle':

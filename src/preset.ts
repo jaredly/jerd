@@ -71,6 +71,8 @@ export function presetEnv() {
         name: 'global',
         type: { type: 'ref', ref: { type: 'builtin', name: 'never' } },
     });
+    env.global.builtins['true'] = bool;
+    env.global.builtins['false'] = bool;
     env.global.builtins['++'] = {
         type: 'lambda',
         typeVbls: [],
@@ -130,6 +132,7 @@ export function presetEnv() {
     env.global.builtinTypes['unit'] = 0;
     env.global.builtinTypes['void'] = 0;
     env.global.builtinTypes['int'] = 0;
+    env.global.builtinTypes['bool'] = 0;
     env.global.builtinTypes['string'] = 0;
 
     return env;

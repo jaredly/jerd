@@ -61,8 +61,13 @@ describe('Example files', () => {
                         declarationToPretty({ hash, size: 1, pos: 0 }, term),
                         100,
                     );
-                    const ts = declarationToString(env, hash, term);
-                    items.push('// .jd\n' + jd, '// .ts\n' + ts);
+                    items.push('// .jd\n' + jd);
+                    try {
+                        const ts = declarationToString(env, hash, term);
+                        items.push('// .ts\n' + ts);
+                    } catch (err) {
+                        items.push(`// ERROR ${err}`);
+                    }
                     // expect(serializerRaw.wrap(jd)).toMatchSnapshot(`${i}-jd`);
                     // expect(serializerRaw.wrap(ts)).toMatchSnapshot(`${i}-ts`);
                 }

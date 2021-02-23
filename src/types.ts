@@ -292,14 +292,26 @@ export const subEnv = (env: Env): Env => ({
 });
 
 export const getEffects = (t: Term): Array<Reference> => {
-    if (t.type === 'apply') {
-        return dedupEffects(t.argsEffects.concat(t.effects));
-    } else if (t.type === 'sequence') {
-        return t.effects;
-    } else if (t.type === 'raise') {
-        return dedupEffects(t.effects.concat(t.argsEffects));
-    } else {
-        return [];
+    switch (t.type) {
+        case 'apply':
+            return dedupEffects(t.argsEffects.concat(t.effects));
+        case 'sequence':
+            return t.effects;
+        case 'raise':
+            return dedupEffects(t.effects.concat(t.argsEffects));
+        case 'if':
+            return t.effects;
+        case 'int':
+        case 'string':
+        case 'lambda':
+        case 'self':
+        case 'ref':
+        case 'var':
+        case 'handle':
+            return [];
+        default:
+            let _x: never = t;
+            throw new Error('Unhandled term');
     }
 };
 
