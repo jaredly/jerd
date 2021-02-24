@@ -91,6 +91,11 @@ describe('Type errors', () => {
                 expect(() => typeExpr(env, item)).toThrowErrorMatchingSnapshot(
                     name,
                 );
+                // try {
+                //     typeExpr(env, item);
+                // } catch (err) {
+                //     console.error(err);
+                // }
             });
         }
     });

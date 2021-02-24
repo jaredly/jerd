@@ -79,7 +79,7 @@ export type Lambda = {
     type: 'lambda';
     typevbls: Array<Identifier>;
     effvbls: Array<Identifier>;
-    effects: Array<Identifier>;
+    effects: null | Array<Identifier>;
     args: Array<{ id: Identifier; type: Type }>;
     rettype: Type | null;
     body: Expression;

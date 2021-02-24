@@ -76,7 +76,7 @@ Lambda = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:Args? _ ")" _ rettype
     "=" effects:("{" _ CommaEffects? _ "}")? ">" _ body:Expression {return {
     type: 'lambda',
     typevbls: typevbls || [],
-    effects: effects ? effects[2] : [] || [],
+    effects: effects ? effects[2] || [] : null,
     effvbls: effvbls || [],
     args: args || [],
     rettype: rettype ? rettype[2] : null,

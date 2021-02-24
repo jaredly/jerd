@@ -245,7 +245,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c48 = function(typevbls: any, effvbls: any, args: any, rettype: any, effects: any, body: any): any {return {
       type: 'lambda',
       typevbls: typevbls || [],
-      effects: effects ? effects[2] : [] || [],
+      effects: effects ? effects[2] || [] : null,
       effvbls: effvbls || [],
       args: args || [],
       rettype: rettype ? rettype[2] : null,

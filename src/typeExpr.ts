@@ -397,6 +397,39 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     );
                 }
             }
+            const effects = getEffects(body);
+            if (expr.effects != null) {
+                const declaredEffects: Array<Reference> = expr.effects.map(
+                    (effName) => {
+                        const effId = env.global.effectNames[effName.text];
+                        if (!effId) {
+                            throw new Error(`No effect named ${effName.text}`);
+                        }
+                        return {
+                            type: 'user',
+                            id: { hash: effId, size: 1, pos: 0 },
+                        };
+                    },
+                );
+                if (declaredEffects.length === 0 && effects.length !== 0) {
+                    throw new Error(
+                        `Function is declared as pure, but is not. ${effects.length} effects found.`,
+                    );
+                }
+                for (let inner of effects) {
+                    if (
+                        !declaredEffects.some((item) => deepEqual(item, inner))
+                    ) {
+                        throw new Error(
+                            `Function declared with explicit effects, but without ${JSON.stringify(
+                                inner,
+                            )}`,
+                        );
+                    }
+                }
+                effects.push(...declaredEffects);
+            }
+
             // console.log('VBLS', typeVbls);
             return {
                 type: 'lambda',
@@ -405,24 +438,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 is: {
                     type: 'lambda',
                     typeVbls,
-                    effects: dedupEffects(
-                        getEffects(body).concat(
-                            // TODO: make a resolveEffect
-                            expr.effects.map((effName) => {
-                                const effId =
-                                    env.global.effectNames[effName.text];
-                                if (!effId) {
-                                    throw new Error(
-                                        `No effect named ${effName.text}`,
-                                    );
-                                }
-                                return {
-                                    type: 'user',
-                                    id: { hash: effId, size: 1, pos: 0 },
-                                };
-                            }),
-                        ),
-                    ),
+                    effects: dedupEffects(effects),
                     args: argst,
                     rest: null,
                     res: body.is,

@@ -443,4 +443,4 @@ exports[`Type errors Expression 8: Expression 8 1`] = `"Explicit type variable T
 
 exports[`Type errors Expression 9: Expression 9 1`] = `"Unable to unify int with type variable T#0"`;
 
-exports[`Type errors Expression 11: Expression 11 1`] = `"Cannot read property 'map' of null"`;
+exports[`Type errors Expression 11: Expression 11 1`] = `"Function is declared as pure, but is not. 1 effects found."`;
