@@ -22,9 +22,9 @@ const hash_6ef2e14c: () => void = () => {
 };
 
 // .jd
-const hash_24c99d82_0: (var_0_0) ={}> (() ={hash_a690a6f2_0}> void) ={}> void = (
+const hash_8d57b870_0: (var_0_0) ={}> (() ={hash_a690a6f2_0}> T_0) ={}> T_0 = (
     responseValue_0: var_0_0,
-) => (fn_1: () ={hash_a690a6f2_0}> void) => {
+) => (fn_1: () ={hash_a690a6f2_0}> T_0) => {
     handle! fn_1 {
         0(() => k_2) => <self>(responseValue_0 ++ ".")(() => k_2(responseValue_0)),
         1((v_2) => k_3) => {
@@ -36,8 +36,8 @@ const hash_24c99d82_0: (var_0_0) ={}> (() ={hash_a690a6f2_0}> void) ={}> void = 
 }
 
 // .ts
-const hash_24c99d82: (arg_0: T_0) => (arg_0: (handlers: any, done: (result: void) => void) => void) => void = responseValue_0 => fn_1 => {
-  return handleSimpleShallow2("a690a6f2", fn_1, [(_, k_2) => hash_global(responseValue_0 + ".")((handlers: any, done: (arg_0: void) => void) => {
+const hash_8d57b870: <T_0>(arg_0: T_0) => (arg_0: (handlers: any, done: (result: T_0) => void) => void) => T_0 = responseValue_0 => fn_1 => {
+  return handleSimpleShallow2("a690a6f2", fn_1, [(_, k_2) => hash_global(responseValue_0 + ".")((handlers: any, done: (arg_0: T_0) => void) => {
     k_2(responseValue_0, handlers, done);
   }), (v_2, k_3) => {
     log(v_2);
@@ -90,13 +90,13 @@ const hash_23000f78: (arg_0: string, handlers: any, done: (result: void) => void
 };
 
 // .jd
-const hash_d89d5050_0: () ={}> void = () => {
-    hash_24c99d82_0("<read>")(() => hash_23000f78_0("Yes"));
+const hash_47395bec_0: () ={}> T_0 = () => {
+    hash_8d57b870_0("<read>")(() => hash_23000f78_0("Yes"));
 }
 
 // .ts
-const hash_d89d5050: () => void = () => {
-  return hash_24c99d82("<read>")((handlers: any, done: (arg_0: void) => void) => {
+const hash_47395bec: () => T_0 = () => {
+  return hash_8d57b870("<read>")((handlers: any, done: (arg_0: void) => void) => {
     hash_23000f78("Yes", handlers, done);
   });
 };
@@ -120,13 +120,13 @@ const hash_42a3a912: (arg_0: bool, handlers: any, done: (result: string) => void
 };
 
 // .jd
-const hash_2cdabf70_0: () ={}> void = () => {
-    hash_24c99d82_0("<read>")(() => log(hash_42a3a912_0(true) ++ hash_42a3a912_0(false)));
+const hash_6bed07f8_0: () ={}> T_0 = () => {
+    hash_8d57b870_0("<read>")(() => log(hash_42a3a912_0(true) ++ hash_42a3a912_0(false)));
 }
 
 // .ts
-const hash_2cdabf70: () => void = () => {
-  return hash_24c99d82("<read>")((handlers: any, done: (arg_0: void) => void) => {
+const hash_6bed07f8: () => T_0 = () => {
+  return hash_8d57b870("<read>")((handlers: any, done: (arg_0: void) => void) => {
     hash_42a3a912(true, handlers, arg_0_11 => {
       hash_42a3a912(false, handlers, arg_1_11 => {
         const arg_0_10 = arg_0_11 + arg_1_11;
@@ -159,13 +159,13 @@ const hash_e01931d2: (arg_0: string, handlers: any, done: (result: string) => vo
 };
 
 // .jd
-const hash_83d5c38a_0: () ={}> void = () => {
-    hash_24c99d82_0("<read>")(() => log(hash_e01931d2_0("<read>")));
+const hash_6259d51a_0: () ={}> T_0 = () => {
+    hash_8d57b870_0("<read>")(() => log(hash_e01931d2_0("<read>")));
 }
 
 // .ts
-const hash_83d5c38a: () => void = () => {
-  return hash_24c99d82("<read>")((handlers: any, done: (arg_0: void) => void) => {
+const hash_6259d51a: () => T_0 = () => {
+  return hash_8d57b870("<read>")((handlers: any, done: (arg_0: void) => void) => {
     hash_e01931d2("<read>", handlers, arg_0_15 => {
       done(log(arg_0_15));
     });
@@ -186,13 +186,13 @@ const hash_700366ea: (handlers: any, done: (result: void) => void) => void = (ha
 };
 
 // .jd
-const hash_9224b65c_0: () ={}> void = () => {
-    hash_24c99d82_0("<read>")(hash_700366ea_0);
+const hash_147e3d3a_0: () ={}> T_0 = () => {
+    hash_8d57b870_0("<read>")(hash_700366ea_0);
 }
 
 // .ts
-const hash_9224b65c: () => void = () => {
-  return hash_24c99d82("<read>")(hash_700366ea);
+const hash_147e3d3a: () => T_0 = () => {
+  return hash_8d57b870("<read>")(hash_700366ea);
 };
 `;
 

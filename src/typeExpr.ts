@@ -106,7 +106,10 @@ const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
                 return t;
             }
             if (t.type === 'ref') {
-                throw new Error(`Not support yet`);
+                if (t.ref.type === 'builtin') {
+                    return null;
+                }
+                throw new Error(`Not support yet ${JSON.stringify(t)}`);
             }
             return null;
         }) || t
@@ -334,7 +337,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         case 'id': {
             const term = resolveIdentifier(env, expr.text);
             if (term != null) {
-                console.log(`${expr.text} : ${showType(term.is)}`);
+                // console.log(`${expr.text} : ${showType(term.is)}`);
                 return term;
             }
             console.log(env.local.locals);
@@ -346,7 +349,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 console.log(env.local.locals);
                 throw new Error(`Undefined identifier ${expr.id.text}`);
             }
-            console.log(`${expr.id.text} : ${showType(term.is)}`);
+            // console.log(`${expr.id.text} : ${showType(term.is)}`);
 
             if (term.type === 'lambda') {
                 return {
@@ -497,7 +500,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const body = typeExpr(inner, kase.body);
                 if (!deepEqual(body.is, pure.is)) {
                     throw new Error(
-                        `All case arms must have the same return type`,
+                        `All case arms must have the same return type: ${showType(
+                            body.is,
+                        )} ${showType(pure.is)}`,
                     );
                 }
 

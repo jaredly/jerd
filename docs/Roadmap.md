@@ -7,6 +7,7 @@
 - [x] basic generics!
 - [x] if
 - [x] simple-let. gotta have it
+- [ ] effect variables, cmon, and type variables in type declarations
 - [ ] records
   - [ ] basic
   - [ ] generic

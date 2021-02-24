@@ -3,7 +3,7 @@ import { Type as ParseType } from './parser';
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
 // because we'll need it in a web ui.
-import { Env, Type } from './types';
+import { Env, Symbol, subEnv, Type } from './types';
 
 export const walkType = (
     term: Type,
@@ -23,21 +23,11 @@ export const walkType = (
             const neww = walkType(arg, handle);
             if (neww != null) {
                 changed = true;
-                // console.log(
-                //     `Arg: ${JSON.stringify(arg)} became ${JSON.stringify(
-                //         neww,
-                //     )}`,
-                // );
                 newArgs[i] = neww;
             }
         });
         const newres = walkType(term.res, handle);
         if (newres != null) {
-            // console.log(
-            //     `Res: ${JSON.stringify(term.res)} became ${JSON.stringify(
-            //         newres,
-            //     )}`,
-            // );
             changed = true;
         }
         if (changed) {
@@ -57,7 +47,6 @@ export const walkType = (
 export const newTypeVbl = (env: Env): Type => {
     const unique = Object.keys(env.local.tmpTypeVbls).length;
     env.local.tmpTypeVbls[unique] = [];
-    // console.log('New type just dropped', unique);
     return { type: 'var', sym: { unique, name: 'var_' + unique } };
 };
 
@@ -92,11 +81,20 @@ const typeType = (env: Env, type: ParseType | null): Type => {
             throw new Error(`Unknown type "${type.text}"`);
         }
 
-        case 'lambda':
+        case 'lambda': {
+            const typeInner = subEnv(env);
+            const typeVbls: Array<number> = [];
+            type.typevbls.forEach((id) => {
+                const unique = Object.keys(typeInner.local.typeVbls).length;
+                const sym: Symbol = { name: id.text, unique };
+                typeInner.local.typeVbls[id.text] = sym;
+                typeVbls.push(sym.unique);
+            });
+
             return {
                 type: 'lambda',
-                args: type.args.map((a) => typeType(env, a)),
-                typeVbls: [], // TODO allow specifying these too
+                args: type.args.map((a) => typeType(typeInner, a)),
+                typeVbls,
                 effects: type.effects.map((id) => {
                     if (!env.global.effectNames[id.text]) {
                         throw new Error(`No effect named ${id.text}`);
@@ -114,9 +112,10 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 // and then a lamhda has none?
                 // ok so just apply and sequence I should think, right?
                 // the other ones don't?
-                res: typeType(env, type.res),
+                res: typeType(typeInner, type.res),
                 rest: null,
             };
+        }
     }
 };
 

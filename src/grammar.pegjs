@@ -67,9 +67,12 @@ CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map(r => r[3])]
 
 CommaExpr = first:Expression rest:(_ "," _ Expression)* {return [first, ...rest.map(r => r[3])]}
 
-Lambda = typevbls:TypeVbls? "(" _ args:Args? _ ")" _ rettype:(":" _ Type _)? "=>" _ body:Expression {return {
+Lambda = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:Args? _ ")" _ rettype:(":" _ Type _)?
+    "=" effects:("{" _ CommaEffects? _ "}")? ">" _ body:Expression {return {
     type: 'lambda',
     typevbls: typevbls || [],
+    effects: effects ? effects[2] : [] || [],
+    effvbls: effvbls || [],
     args: args || [],
     rettype: rettype ? rettype[2] : null,
     body,
@@ -80,26 +83,41 @@ Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : nul
 TypeVbls = "<" _ first:Identifier rest:(_ "," _ Identifier)* _ ","? _ ">" {
     return [first, ...rest.map(r => r[3])]
 }
+EffectVbls = "{" _  inner:EffectVbls_? _ "}" { return inner || [] }
+EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
+    return [first, ...rest.map(r => r[3])]
+}
 
 binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<" / ">" / "<=" / ">=" / "=="
+
+Binop = Expression
+
+// ==== Types ====
+
+Type = LambdaType / Identifier
+CommaType = first:Type rest:(_ "," _ Type)* {return [first, ...rest.map(r => r[3])]}
+
+LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaType? _ ")" _ "="
+    effects:("{" _ CommaEffects? _ "}")?
+">" _ res:Type { return {
+    type: 'lambda',
+    args: args || [],
+    typevbls: typevbls || [],
+    effvbls: effvbls || [],
+    effects: effects ? effects[2] || [] : [] , res} }
+CommaEffects =
+    first:Identifier rest:(_ "," _ Identifier)* {return [first, ...rest.map(r => r[3])]}
+
+
+
+
+// ==== Literals ====
 
 Literal = Int / IdentifierWithType / String
 
 IdentifierWithType = id:Identifier vbls:("<" _ CommaType _ ">")? {
     return vbls ? {type: 'IdentifierWithType', id, vbls: vbls[2]} : id
 }
-
-Binop = Expression
-
-
-Type = LambdaType / Identifier
-CommaType = first:Type rest:(_ "," _ Type)* {return [first, ...rest.map(r => r[3])]}
-
-LambdaType = "(" _ args:CommaType? _ ")" _ "="
-    effects:("{" _ CommaEffects? _ "}")?
-">" _ res:Type { return {type: 'lambda', args: args || [], effects: effects ? effects[2] || [] : [] , res} }
-CommaEffects =
-    first:Identifier rest:(_ "," _ Identifier)* {return [first, ...rest.map(r => r[3])]}
 
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
