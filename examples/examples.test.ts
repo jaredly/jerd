@@ -12,22 +12,24 @@ import { subEnv } from '../src/types';
 import vm from 'vm';
 import { execSync } from 'child_process';
 import typeExpr, { fitsExpectation } from '../src/typeExpr';
+import path from 'path';
 
 const examples = [
     // yes
-    'basic-effects.jd',
-    'inference.jd',
-    'generics.jd',
-    'ifs.jd',
-    'lets.jd',
-    'basics.jd',
+    require('./basic-effects.jd'),
+    require('./inference.jd'),
+    require('./generics.jd'),
+    require('./ifs.jd'),
+    require('./lets.jd'),
+    require('./basics.jd'),
 ];
 
 describe('Example files', () => {
-    examples.forEach((name) => {
-        it(name, () => {
+    examples.forEach(({ src, filename }) => {
+        it(path.basename(filename), () => {
             const env = presetEnv();
-            const raw = fs.readFileSync(__dirname + '/' + name, 'utf8');
+            // const raw = fs.readFileSync(__dirname + '/' + name, 'utf8');
+            const raw = src;
 
             const items: Array<string> = [];
 
