@@ -366,6 +366,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 typeInner.local.typeVbls[id.text] = sym;
                 typeVbls.push(sym.unique);
             });
+            // expr.effects.map(id => )
             // console.log('Lambda type vbls', typeVbls);
 
             // ok here's where we do a little bit of inference?
@@ -404,7 +405,24 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 is: {
                     type: 'lambda',
                     typeVbls,
-                    effects: getEffects(body),
+                    effects: dedupEffects(
+                        getEffects(body).concat(
+                            // TODO: make a resolveEffect
+                            expr.effects.map((effName) => {
+                                const effId =
+                                    env.global.effectNames[effName.text];
+                                if (!effId) {
+                                    throw new Error(
+                                        `No effect named ${effName.text}`,
+                                    );
+                                }
+                                return {
+                                    type: 'user',
+                                    id: { hash: effId, size: 1, pos: 0 },
+                                };
+                            }),
+                        ),
+                    ),
                     args: argst,
                     rest: null,
                     res: body.is,
@@ -587,6 +605,11 @@ export const fitsExpectation = (
         return true;
     }
     if (target.type === 'var' && env != null) {
+        if (!env.local.tmpTypeVbls[target.sym.unique]) {
+            throw new Error(
+                `Unexpected type variable: ${JSON.stringify(target.sym)}`,
+            );
+        }
         env.local.tmpTypeVbls[target.sym.unique].push({
             type: 'larger-than',
             other: t,

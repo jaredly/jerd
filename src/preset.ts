@@ -43,6 +43,7 @@ export const prelude = [
             let retValue = {}
             const originalRetValue = retValue
             let fnsReturnPointer = handlePure;
+            console.error("Handling simple", fn + '')
             fn(
                 {[hash]: (idx, args, returnIntoFn) => {
                     handleEffect[idx](
@@ -61,7 +62,10 @@ export const prelude = [
                         },
                     );
                 }},
-                (fnsReturnValue) => {retValue = fnsReturnPointer(fnsReturnValue)},
+                (fnsReturnValue) => {
+                    console.error("Got to the return", fnsReturnValue)
+                    retValue = fnsReturnPointer(fnsReturnValue)
+                },
             );
             if (retValue === originalRetValue) {
                 console.error("retValue didn't change")

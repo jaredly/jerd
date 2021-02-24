@@ -1,8 +1,6 @@
 // Very basic
 
-// test!(true)
-// test!("hi" == "hi")
-// test!("hi" != "ho")
+/** Basics */
 
 true
 
@@ -20,11 +18,30 @@ const identity = <T,>(x: T): T => x
 
 identity<string>("5") ++ "4" == "54"
 
+
+/** Effects */
+
+effect GetString {
+    get: () => string,
+}
+
+const provideString:
+    (string) => (() ={GetString}> string) => string
+ = (responseValue: string) => (fn: () ={GetString}> string) => {
+    handle! fn {
+        GetString.get(() => k) => provideString(responseValue ++ ".")(() => k(responseValue)),
+        pure(a) => a
+    }
+}
+
+provideString("hi")(() ={GetString}> "m") == "m"
+
+// BROKEN: if I'm passing a "pure" function into something that expects
+// an effectful function, I need to make a CPS wrapper:
+// `(arg, arg, _handlers, done) => done(thefn(arg, arg))`
+// provideString("hi")(() => "m") == "m"
+
+
+
 // How to assert type errors?
 // yeah it would definitely be good to be able to do that.
-
-// these aren't "attached" to anything
-// in future I think tests will generally be attached to things.
-
-// So what about "expect" and crew?
-// I could just hook into jest, tbh

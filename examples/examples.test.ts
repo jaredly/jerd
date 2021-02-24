@@ -5,7 +5,7 @@ import { typeDefine, typeEffect } from '../src/env';
 import { bool, prelude, presetEnv } from '../src/preset';
 import fs from 'fs';
 import { printToString } from '../src/printer';
-import { declarationToPretty } from '../src/printTsLike';
+import { declarationToPretty, termToPretty } from '../src/printTsLike';
 import { declarationToString, termToString } from '../src/typeScriptPrinter';
 import * as serializerRaw from 'jest-snapshot-serializer-raw';
 import { subEnv } from '../src/types';
@@ -35,8 +35,7 @@ describe('Example files', () => {
             parsed.forEach((item, i) => {
                 if (item.type === 'effect') {
                     typeEffect(env, item);
-                }
-                if (item.type === 'define') {
+                } else if (item.type === 'define') {
                     const { term, hash } = typeDefine(env, item);
                     const jd = printToString(
                         declarationToPretty({ hash, size: 1, pos: 0 }, term),
@@ -54,11 +53,63 @@ describe('Example files', () => {
                     } catch (err) {
                         items.push(`// ERROR ${err}`);
                     }
+                } else {
+                    const term = typeExpr(env, item);
+                    const jd = printToString(termToPretty(term), 100);
+                    items.push(`// .jd\n` + jd);
+                    try {
+                        const ts = termToString(env, term);
+                        items.push('// .ts\n' + ts);
+                    } catch (err) {
+                        items.push(`// ERROR ${err}`);
+                    }
                 }
             });
 
             expect(serializerRaw.wrap(items.join('\n\n'))).toMatchSnapshot();
         });
+    });
+});
+
+describe('Type errors', () => {
+    const fname = 'type-errors.jd';
+
+    const env = presetEnv();
+    const raw = fs.readFileSync(__dirname + '/' + fname, 'utf8');
+    const parsed = parse(raw);
+
+    parsed.forEach((item, i) => {
+        if (item.type === 'effect') {
+            typeEffect(env, item);
+        } else if (item.type === 'define') {
+            typeDefine(env, item);
+        } else {
+            const name = `Expression ${i}`;
+            // const jd = printToString(termToPretty(item), 100);
+            it(name, () => {
+                expect(() => typeExpr(env, item)).toThrowErrorMatchingSnapshot(
+                    name,
+                );
+            });
+            // let term
+            // try {
+            //     term = typeExpr(env, item);
+            // } catch (err) {
+            //     expect(err).toMatchSnapshot({}, jd)
+            //     return
+            // }
+            // expect(term).to
+            // if (fitsExpectation(null, term.is, bool) === true) {
+            //     const ts = termToString(env, term);
+            //     const result = vm.runInContext(tsToJs(ts), vmEnv);
+            //     if (result === true) {
+            //         expect(result).toBeTruthy();
+            //     } else {
+            //         console.error('Generated typescript:', ts);
+            //         expect(result).toBe(true);
+            //     }
+            // }
+        }
     });
 });
 
@@ -72,7 +123,7 @@ describe('Test Files', () => {
         describe(fname, () => {
             let vmEnv;
             beforeAll(() => {
-                vmEnv = vm.createContext();
+                vmEnv = vm.createContext({ console });
                 vm.runInContext(tsToJs(prelude.join('\n\n')), vmEnv);
             });
 

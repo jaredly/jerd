@@ -1,0 +1,21 @@
+// Each of these expressions should trigger a type error.
+
+3 == "4"
+
+const hello = (name: string) => "hello"
+
+hello(5)
+
+const count = (num: int) => 34
+
+count(hello("m"))
+
+// Some generics!
+
+const identity = <T,>(x: T): T => x
+
+identity<int>("hello")
+
+count(identity<string>("hello"))
+
+<T,>(x: T): int => x
