@@ -291,6 +291,69 @@ hash_3971b373_0("hi")(() => "m") == "m"
 hash_3971b373("hi")((handlers: any, done: (arg_0: string) => void) => {
   done("m");
 }) == "m"
+
+// impure.jd
+const hash_2a33607b_0: () ={hash_762a49fa_0}> string = () => "A"
+
+// .ts
+const hash_2a33607b: (handlers: any, done: (result: string) => void) => void = (handlers: any, done: (arg_0: string) => void) => {
+  done("A");
+};
+
+// .jd
+hash_3971b373_0("hi")(hash_2a33607b_0) == "A"
+
+// .ts
+hash_3971b373("hi")(hash_2a33607b) == "A"
+
+// pure.jd
+const hash_4688a27a_0: () ={}> string = () => "AA"
+
+// .ts
+const hash_4688a27a: () => string = () => "AA";
+
+// .jd
+hash_3971b373_0("hi")(hash_4688a27a_0) == "AA"
+
+// .ts
+hash_3971b373("hi")((handlers: any, done: (arg_0: string) => void) => {
+  done(hash_4688a27a());
+}) == "AA"
+
+// .jd
+hash_3971b373_0("hi")(() => "m") == "m"
+
+// .ts
+hash_3971b373("hi")((handlers: any, done: (arg_0: string) => void) => {
+  done((() => "m")());
+}) == "m"
+
+// provideStringWithArg.jd
+const hash_4dccbc5a_0: (string) ={}> (string, (string) ={hash_762a49fa_0}> string) ={}> string = (
+    responseValue_0: string,
+) => (passIn_1: string, fn_2: (string) ={hash_762a49fa_0}> string) => {
+    handle! () => fn_2(passIn_1) {
+        0(() => k_3) => hash_3971b373_0(responseValue_0 ++ ".")(() => k_3(responseValue_0)),
+        pure(a_3) => a_3,
+    };
+}
+
+// .ts
+const hash_4dccbc5a: (arg_0: string) => (arg_0: string, arg_1: (arg_0: string, handlers: any, done: (result: string) => void) => void) => string = responseValue_0 => (passIn_1, fn_2) => {
+  return handleSimpleShallow2("762a49fa", (handlers: any, done: (arg_0: string) => void) => {
+    fn_2(passIn_1, handlers, done);
+  }, [(_, k_3) => hash_3971b373(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
+    k_3(responseValue_0, handlers, done);
+  })], a_3 => a_3);
+};
+
+// .jd
+hash_4dccbc5a_0("hi")("Passed in", (arg_0: string) => arg_0 ++ "-m") == "Passed in-m"
+
+// .ts
+hash_4dccbc5a("hi")("Passed in", (arg_0_0: string, handlers: any, done: (arg_0: string) => void) => {
+  done((arg_0 => arg_0 + "-m")(arg_0_0));
+}) == "Passed in-m"
 `;
 
 exports[`Example files generics.jd 1`] = `
@@ -377,14 +440,12 @@ exports[`Example files inference.jd 1`] = `
 // callOne.jd
 const hash_39b4b364_0: (var_1_1) ={}> var_4_4 = (f_0: var_1_1) => f_0(2, "hi")
 
-// .ts
-const hash_39b4b364: (arg_0: T_1) => T_4 = f_0 => f_0(2, "hi");
+// ERROR Error: Need to resolve target type
 
 // inferrRecur.jd
 const hash_7181c45a_0: (var_1_1) ={}> var_3_3 = (count_0: var_1_1) => <self>(count_0 + 4)
 
-// .ts
-const hash_7181c45a: (arg_0: T_1) => T_3 = count_0 => hash_7181c45a(count_0 + 4);
+// ERROR Error: Need to resolve target type
 `;
 
 exports[`Example files lets.jd 1`] = `

@@ -7,11 +7,14 @@ import {
     Id,
     Reference,
     Let,
+    Var,
 } from './types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import traverse from '@babel/traverse';
 import { binOps } from './preset';
+import { env } from 'process';
+import { showType } from './unify';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
@@ -480,6 +483,16 @@ export const termToAstCPS = (
                 return t.identifier('target effects');
             }
             const u = env.local.unique++;
+
+            const argTypes =
+                term.target.is.type === 'lambda' ? term.target.is.args : null;
+            if (argTypes === null) {
+                throw new Error(`Need to resolve target type`);
+            }
+            const args = term.args.map((arg, i) => {
+                return maybeWrapPureFunction(env, arg, argTypes[i]);
+            });
+
             if (term.argsEffects.length > 0) {
                 const target = printTerm(env, term.target);
                 let inner: t.Expression = done;
@@ -491,7 +504,7 @@ export const termToAstCPS = (
                     // right?
                     inner = callOrBinop(
                         target,
-                        term.args
+                        args
                             .map((arg, i) =>
                                 isSimple(arg)
                                     ? printTerm(env, arg)
@@ -510,7 +523,7 @@ export const termToAstCPS = (
                         // which might include inverting it.
                         callOrBinop(
                             target,
-                            term.args.map((arg, i) =>
+                            args.map((arg, i) =>
                                 isSimple(arg)
                                     ? printTerm(env, arg)
                                     : t.identifier(`arg_${i}_${u}`),
@@ -518,13 +531,17 @@ export const termToAstCPS = (
                         ),
                     ]);
                 }
-                for (let i = term.args.length - 1; i >= 0; i--) {
-                    if (isSimple(term.args[i])) {
+                for (let i = args.length - 1; i >= 0; i--) {
+                    if (isSimple(args[i])) {
                         continue;
                     }
+                    // TODO: follow type refs 🤔
+                    // should just have a function like
+                    // `resolveType(env, theType)`
+                    // if (term.target.is.type === 'lambda' && )
                     inner = termToAstCPS(
                         env,
-                        term.args[i],
+                        args[i],
                         t.arrowFunctionExpression(
                             [t.identifier(`arg_${i}_${u}`)],
                             t.blockStatement([t.expressionStatement(inner)]),
@@ -534,7 +551,7 @@ export const termToAstCPS = (
                 return inner;
                 // return termToAstCPS(
                 //     env,
-                //     term.args[0],
+                //     args[0],
                 //     t.arrowFunctionExpression([t.identifier('value')], inner),
                 // );
                 // return t.identifier('args effects');
@@ -542,7 +559,7 @@ export const termToAstCPS = (
             const target = printTerm(env, term.target);
             return callOrBinop(
                 target,
-                term.args
+                args
                     .map((arg) => printTerm(env, arg))
                     .concat([t.identifier('handlers'), done]),
             );
@@ -554,6 +571,46 @@ export const termToAstCPS = (
                 printTerm(env, term),
             ]);
     }
+};
+
+const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
+    // console.error(`Maybe ${showType(arg.is)} : ${showType(t)}`);
+    if (t.type !== 'lambda' || t.effects.length === 0) {
+        return arg;
+    }
+    if (arg.is.type !== 'lambda') {
+        throw new Error(
+            `arg not a lambda, would be cool to statically keep these in sync`,
+        );
+    }
+    if (arg.is.effects.length !== 0) {
+        return arg;
+    }
+    const args: Array<Var> = arg.is.args.map((t, i) => ({
+        type: 'var',
+        is: t,
+        sym: {
+            unique: env.local.unique++,
+            name: `arg_${i}`,
+        },
+    }));
+    return {
+        type: 'lambda',
+        args: args.map((a) => a.sym),
+        is: {
+            ...arg.is,
+            effects: t.effects,
+        },
+        body: {
+            type: 'apply',
+            args,
+            target: arg,
+            argsEffects: [],
+            effects: [],
+            is: arg.is.res,
+        },
+        // effects: t.effects,
+    };
 };
 
 const callOrBinop = (target: t.Expression, args: Array<t.Expression>) => {
@@ -690,9 +747,19 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
 
             // Pure, love it.
             const target = printTerm(env, term.target);
+
+            const argTypes =
+                term.target.is.type === 'lambda' ? term.target.is.args : null;
+            if (argTypes === null) {
+                throw new Error(`Need to resolve target type`);
+            }
+            const args = term.args.map((arg, i) => {
+                return maybeWrapPureFunction(env, arg, argTypes[i]);
+            });
+
             return callOrBinop(
                 target,
-                term.args.map((arg) => printTerm(env, arg)),
+                args.map((arg) => printTerm(env, arg)),
             );
             // if (t.isIdentifier(target) && binOps.includes(target.name)) {
             //     return t.binaryExpression(

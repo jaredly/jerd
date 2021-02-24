@@ -71,6 +71,11 @@ export type Let = {
     is: Type;
 };
 
+export type Var = {
+    type: 'var';
+    sym: Symbol;
+    is: Type;
+};
 export type Term =
     | CPSAble
     | { type: 'self'; is: Type }
@@ -79,11 +84,7 @@ export type Term =
           ref: Reference;
           is: Type;
       }
-    | {
-          type: 'var';
-          sym: Symbol;
-          is: Type;
-      }
+    | Var
     | {
           type: 'int';
           value: number; // TODO other builtin types

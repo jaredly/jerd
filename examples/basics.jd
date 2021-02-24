@@ -39,8 +39,27 @@ provideString("hi")(() ={GetString}> "m") == "m"
 // BROKEN: if I'm passing a "pure" function into something that expects
 // an effectful function, I need to make a CPS wrapper:
 // `(arg, arg, _handlers, done) => done(thefn(arg, arg))`
-// provideString("hi")(() => "m") == "m"
 
+const impure: () ={GetString}> string = () ={GetString}> "A"
+provideString("hi")(impure) == "A"
+
+const pure: () ={}> string = () => "AA"
+// provideString("hi")(() ={GetString}> pure()) == "AA"
+
+// Wrapping a pure function for CPS
+provideString("hi")(pure) == "AA"
+provideString("hi")(() ={}> "m") == "m"
+
+const provideStringWithArg:
+    (string) => (string, (string) ={GetString}> string) => string
+ = (responseValue: string) => (passIn: string, fn: (string) ={GetString}> string) => {
+    handle! () => fn(passIn) {
+        GetString.get(() => k) => provideString(responseValue ++ ".")(() => k(responseValue)),
+        pure(a) => a
+    }
+}
+
+provideStringWithArg("hi")("Passed in", (arg: string) ={}> arg ++ "-m") == "Passed in-m"
 
 
 // How to assert type errors?
