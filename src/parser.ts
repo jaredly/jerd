@@ -94,19 +94,19 @@ export type LambdaType = {
     res: Type;
 };
 
-export type Literal = Int | IdentifierWithType | Identifier | String;
-export type IdentifierWithType = {
-    type: 'IdentifierWithType';
-    id: Identifier;
-    vbls: Array<Type>;
-};
+export type Literal = Int | Identifier | String;
+// export type IdentifierWithType = {
+//     type: 'IdentifierWithType';
+//     id: Identifier;
+//     vbls: Array<Type>;
+// };
 export type Identifier = { type: 'id'; text: string; location: Location };
 export type Int = { type: 'int'; value: number; location: Location };
 export type String = { type: 'string'; text: string; location: Location };
 export type Apply = {
     type: 'apply';
     target: Expression;
-    args: Array<Array<Expression>>;
+    args: Array<{ args: Array<Expression>; typevbls: Array<Identifier> }>;
     location: { start: Loc; end: Loc };
 };
 

@@ -57,18 +57,18 @@ export const walkTerm = (
 
 // TODO type-directed resolution pleaseeeee
 const resolveIdentifier = (env: Env, text: string): Term | null => {
-    if (env.local.self && text === env.local.self.name) {
-        return {
-            type: 'self',
-            is: env.local.self.type,
-        };
-    }
     if (env.local.locals[text]) {
         const { sym, type } = env.local.locals[text];
         return {
             type: 'var',
             sym,
             is: type,
+        };
+    }
+    if (env.local.self && text === env.local.self.name) {
+        return {
+            type: 'self',
+            is: env.local.self.type,
         };
     }
     if (env.global.names[text]) {
@@ -265,8 +265,22 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         }
         case 'apply': {
             let target = typeExpr(env, expr.target);
-            for (let args of expr.args) {
-                // const { is } = target;
+            for (let { args, typevbls } of expr.args) {
+                if (typevbls.length) {
+                    // HERMMM This might be illegal.
+                    // or rather, doing it like this
+                    // does weird things to the pretty-printing end.
+                    // Because we lose the `<T>`.
+                    target = {
+                        ...target,
+                        is: applyTypeVariables(
+                            env,
+                            target.is,
+                            typevbls.map((t) => typeType(env, t)),
+                        ) as LambdaType,
+                    };
+                }
+
                 let is: LambdaType;
                 if (target.is.type === 'var') {
                     const argTypes: Array<Type> = [];
@@ -343,33 +357,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             console.log(env.local.locals);
             throw new Error(`Undefined identifier ${expr.text}`);
         }
-        case 'IdentifierWithType':
-            const term = resolveIdentifier(env, expr.id.text);
-            if (term == null) {
-                console.log(env.local.locals);
-                throw new Error(`Undefined identifier ${expr.id.text}`);
-            }
-            // console.log(`${expr.id.text} : ${showType(term.is)}`);
-
-            if (term.type === 'lambda') {
-                return {
-                    ...term,
-                    is: applyTypeVariables(
-                        env,
-                        term.is,
-                        expr.vbls.map((t) => typeType(env, t)),
-                    ) as LambdaType,
-                };
-            }
-
-            return {
-                ...term,
-                is: applyTypeVariables(
-                    env,
-                    term.is,
-                    expr.vbls.map((t) => typeType(env, t)),
-                ),
-            };
         case 'lambda': {
             const typeInner = expr.typevbls.length ? subEnv(env) : env;
             const typeVbls: Array<number> = [];

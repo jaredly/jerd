@@ -1,0 +1,30 @@
+// Very basic
+
+// test!(true)
+// test!("hi" == "hi")
+// test!("hi" != "ho")
+
+true
+
+"hi" == "hi"
+
+const freturn = () => "yes"
+
+freturn() == "yes"
+
+const arg = (arg: string): string => arg ++ "1"
+
+arg("2") == "21"
+
+const identity = <T,>(x: T): T => x
+
+identity<string>("5") ++ "4" == "54"
+
+// How to assert type errors?
+// yeah it would definitely be good to be able to do that.
+
+// these aren't "attached" to anything
+// in future I think tests will generally be attached to things.
+
+// So what about "expect" and crew?
+// I could just hook into jest, tbh

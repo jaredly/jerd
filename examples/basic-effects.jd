@@ -14,17 +14,32 @@ const sayHi = () => {
 
 // TODO when I've got type arguments, make this generic.
 const respondWith:
-    <T>(string) => (() ={Stdio}> T) => T
- = <T,>(responseValue) => (fn: () ={Stdio}> T) => {
+    (string) => <T>(() ={Stdio}> T) => T
+ = (responseValue) => <T,>(fn: () ={Stdio}> T) => {
     handle! fn {
-        Stdio.read(() => k) => respondWith<T>(responseValue ++ ".")(() => k(responseValue)),
+        Stdio.read(() => k) => respondWith(responseValue ++ ".")<T>(() => k(responseValue)),
         Stdio.write((v) => k) => {
             log(v);
-            respondWith<T>(responseValue ++ "-")(k)
+            respondWith(responseValue ++ "-")<T>(k)
         },
         pure(a) => a
     }
 }
+
+// // TODO when I've got type arguments, make this generic.
+// const respondWith:
+//     <T>{e}(string) => (() ={Stdio, e}> T) ={e}> T
+//  = <T,>{e}(responseValue) => (fn: () ={Stdio, e}> T) ={e}> {
+//     handle! fn {
+//         Stdio.read(() => k) => respondWith<T>{e}(responseValue ++ ".")(() => k(responseValue)),
+//         Stdio.write((v) => k) => {
+//             log(v);
+//             respondWith<T>{e}(responseValue ++ "-")(k)
+//         },
+//         pure(a) => a
+//     }
+// }
+
 
 /*
 should become
@@ -120,7 +135,7 @@ const maybeRaise = (shouldRaise: bool) => {
 }
 
 const test2 = () => {
-    respondWith("<read>")(() => log(maybeRaise(true) ++ maybeRaise(false)))
+    respondWith("<read>")<void>(() => log(maybeRaise(true) ++ maybeRaise(false)))
 }
 
 const raiseIf = (check: string) => {
@@ -133,7 +148,7 @@ const raiseIf = (check: string) => {
 }
 
 const test3 = () => {
-    respondWith("<read>")(() => log(raiseIf("<read>")))
+    log(respondWith("<read>")<string>(() => raiseIf("<read>")))
 }
 
 const letBind = () => {

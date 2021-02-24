@@ -40,6 +40,8 @@ export const prelude = [
             ) => void>,
             handlePure: (fnReturnValue: R) => void,
         ) => {
+            let retValue = {}
+            const originalRetValue = retValue
             let fnsReturnPointer = handlePure;
             fn(
                 {[hash]: (idx, args, returnIntoFn) => {
@@ -59,8 +61,12 @@ export const prelude = [
                         },
                     );
                 }},
-                (fnsReturnValue) => fnsReturnPointer(fnsReturnValue),
+                (fnsReturnValue) => {retValue = fnsReturnPointer(fnsReturnValue)},
             );
+            if (retValue === originalRetValue) {
+                console.error("retValue didn't change")
+            }
+            return retValue
         };`,
 ];
 

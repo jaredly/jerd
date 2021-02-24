@@ -23,16 +23,21 @@ Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {ret
 
 EfConstr = id:Identifier _ ":" _ type:LambdaType {return {id, type}}
 
-Expression = first:Binsub rest:(_ binop _ Binsub)* {
+Expression = first:Binsub rest:(__ binop __ Binsub)* {
     if (rest.length) {
         return {type: 'ops', first, rest: rest.map(r => ({op: r[1], right: r[3]}))}
     } else {
         return first
     }
 }
-Binsub = sub:Apsub args:("(" _ CommaExpr? _ ")")* {
+Binsub = sub:Apsub args:(TypeVblsApply?  "(" _ CommaExpr? _ ")")* {
 	if (args.length) {
-    	return {type: 'apply', target: sub, args: args.map(a => a[2] || []), location: location()}
+        return {type: 'apply', target: sub,
+        args: args.map(a => ({
+            typevbls: a[0] || [],
+            args: a[3] || [],
+        })),
+        location: location()}
     } else {
     	return sub
     }
@@ -96,6 +101,7 @@ Binop = Expression
 
 Type = LambdaType / Identifier
 CommaType = first:Type rest:(_ "," _ Type)* {return [first, ...rest.map(r => r[3])]}
+TypeVblsApply = "<" _ inner:CommaType _ ">" {return inner}
 
 LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaType? _ ")" _ "="
     effects:("{" _ CommaEffects? _ "}")?
@@ -113,11 +119,11 @@ CommaEffects =
 
 // ==== Literals ====
 
-Literal = Int / IdentifierWithType / String
+Literal = Int / Identifier / String
 
-IdentifierWithType = id:Identifier vbls:("<" _ CommaType _ ">")? {
-    return vbls ? {type: 'IdentifierWithType', id, vbls: vbls[2]} : id
-}
+// IdentifierWithType = id:Identifier vbls:TypeVblsApply? {
+//     return vbls ? {type: 'IdentifierWithType', id, vbls: vbls} : id
+// }
 
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
