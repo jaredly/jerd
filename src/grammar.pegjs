@@ -17,15 +17,18 @@ Toplevel = Effect / Statement
 Statement = Define / Expression
 
 Define = "const" __ id:Identifier ann:(_ ":" _ Type)? __ "=" __ expr:Expression {return {
-    type: 'define', id, expr, ann: ann ? ann[3] : null}}
+    type: 'define', id, expr, ann: ann ? ann[3] : null, location: location()}}
 
-Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {type: 'effect', id, constrs: constrs.map(c => c[0])}}
+Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {
+    type: 'effect',
+    location: location(),
+    id, constrs: constrs.map(c => c[0])}}
 
 EfConstr = id:Identifier _ ":" _ type:LambdaType {return {id, type}}
 
 Expression = first:Binsub rest:(__ binop __ Binsub)* {
     if (rest.length) {
-        return {type: 'ops', first, rest: rest.map(r => ({op: r[1], right: r[3]}))}
+        return {type: 'ops', first, rest: rest.map(r => ({op: r[1], right: r[3]})), location: location()}
     } else {
         return first
     }
@@ -45,14 +48,14 @@ Binsub = sub:Apsub args:(TypeVblsApply?  "(" _ CommaExpr? _ ")")* {
 Apsub = Block / Lambda / Handle / Raise / If / Literal
 
 Block = "{" _ one:Statement rest:(_ ";" _ Statement)* ";"? _ "}" {
-    return {type: 'block', items: [one, ...rest.map(r => r[3])]}
+    return {type: 'block', items: [one, ...rest.map(r => r[3])], location: location()}
 }
 
 If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
-    return {type: 'If', cond, yes, no: no ? no[3] : null}
+    return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
 }
 
-Raise = "raise!" _ "(" name:Identifier "." constr:Identifier _ "(" args:CommaExpr? ")" _ ")" {return {type: 'raise', name, constr, args: args || []}}
+Raise = "raise!" _ "(" name:Identifier "." constr:Identifier _ "(" args:CommaExpr? ")" _ ")" {return {type: 'raise', name, constr, args: args || [], location: location()}}
 
 Handle = "handle!" _ target:Expression _ "{" _
     cases:(Case _)+ _
@@ -62,6 +65,7 @@ Handle = "handle!" _ target:Expression _ "{" _
     target,
     cases: cases.map(c => c[0]),
     pure: {arg: pureId, body: pureBody},
+    location: location(),
     }}
 
 Case = name:Identifier "." constr:Identifier _ "(" _ "(" _ args:CommaPat? _ ")" _ "=>" _ k:Identifier _ ")" _ "=>" _ body:Expression _ "," {
@@ -81,6 +85,7 @@ Lambda = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:Args? _ ")" _ rettype
     args: args || [],
     rettype: rettype ? rettype[2] : null,
     body,
+    location: location(),
 }}
 Args = first:Arg rest:(_ "," _ Arg)* {return [first, ...rest.map(r => r[3])]}
 Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null}}

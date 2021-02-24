@@ -32,3 +32,27 @@ effect GetString {
 
 // Not pure
 () ={}> raise!(GetString.get())
+
+<T>(ok: T): string => hello(ok)
+
+(ok: string) => ok + 2
+
+() => {
+    const x = "hello";
+    x + 2
+}
+
+(fn: (string) => string) => {
+    const x = fn(4);
+    x ++ "hi"
+}
+
+(fn: () => string) => {
+    const x: int = fn();
+    x + 2
+}
+
+(fn: () => string) => {
+    const x = fn();
+    x + 2
+}

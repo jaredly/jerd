@@ -13,6 +13,7 @@ import vm from 'vm';
 import { execSync } from 'child_process';
 import typeExpr, { fitsExpectation } from '../src/typeExpr';
 import path from 'path';
+import { Location } from '../src/parser';
 
 const examples = [
     // yes
@@ -23,6 +24,10 @@ const examples = [
     require('./lets.jd'),
     require('./basics.jd'),
 ];
+
+const getText = (raw: string, location: Location) => {
+    return raw.slice(location.start.offset, location.end.offset);
+};
 
 describe('Example files', () => {
     examples.forEach(({ src, filename }) => {
@@ -86,11 +91,14 @@ describe('Type errors', () => {
         } else if (item.type === 'define') {
             typeDefine(env, item);
         } else {
-            const name = `Expression ${i}`;
-            it(name, () => {
-                expect(() => typeExpr(env, item)).toThrowErrorMatchingSnapshot(
-                    name,
-                );
+            const name = item.location
+                ? getText(raw, item.location)
+                : `(no location)`;
+            // const name = `Expression ${i}`;
+            it(`Expression ${i} ` + name, () => {
+                expect(() =>
+                    typeExpr(env, item),
+                ).toThrowErrorMatchingSnapshot();
                 // try {
                 //     typeExpr(env, item);
                 // } catch (err) {
@@ -120,7 +128,10 @@ describe('Test Files', () => {
             const parsed = parse(raw);
 
             parsed.forEach((item) => {
-                it('should compile & run', () => {
+                const name = item.location
+                    ? getText(raw, item.location)
+                    : 'should compile (no location)';
+                it(name, () => {
                     if (item.type === 'effect') {
                         typeEffect(env, item);
                     } else if (item.type === 'define') {

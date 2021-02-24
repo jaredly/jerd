@@ -178,7 +178,19 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     innerEnv = subEnv(innerEnv);
                     // innerEnv.local.locals
 
-                    const type = typeType(innerEnv, item.ann);
+                    const type = item.ann
+                        ? typeType(innerEnv, item.ann)
+                        : value.is;
+                    if (
+                        item.ann &&
+                        fitsExpectation(env, value.is, type) === false
+                    ) {
+                        throw new Error(
+                            `Value of const doesn't match type annotation. ${showType(
+                                value.is,
+                            )}, expected ${showType(type)}`,
+                        );
+                    }
                     const unique = Object.keys(innerEnv.local.locals).length;
                     const sym: Symbol = { name: item.id.text, unique };
                     innerEnv.local.locals[item.id.text] = { sym, type };

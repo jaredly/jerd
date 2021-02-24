@@ -171,26 +171,26 @@ const hash_7b912f5a: () => void = () => {
 };
 
 // letBind.jd
-const hash_ffca5112_0: () ={hash_a690a6f2_0}> void = () => {
+const hash_38ca1d5a_0: () ={hash_a690a6f2_0}> void = () => {
     const x_0 = raise!(hash_a690a6f2_0());
     log(x_0 ++ "Hello");
 }
 
 // .ts
-const hash_ffca5112: (handlers: any, done: (result: void) => void) => void = (handlers: any, done: (arg_0: void) => void) => {
+const hash_38ca1d5a: (handlers: any, done: (result: void) => void) => void = (handlers: any, done: (arg_0: void) => void) => {
   raise(handlers, "a690a6f2", 0, null, (handlers, value) => (x_0 => {
     done(log(x_0 + "Hello"));
   })(value));
 };
 
 // test4.jd
-const hash_69f1709c_0: () ={}> T_0 = () => {
-    hash_11e7ad08_0("<read>")(hash_ffca5112_0);
+const hash_69355794_0: () ={}> T_0 = () => {
+    hash_11e7ad08_0("<read>")(hash_38ca1d5a_0);
 }
 
 // .ts
-const hash_69f1709c: () => T_0 = () => {
-  return hash_11e7ad08("<read>")(hash_ffca5112);
+const hash_69355794: () => T_0 = () => {
+  return hash_11e7ad08("<read>")(hash_38ca1d5a);
 };
 
 // .jd
@@ -212,10 +212,10 @@ hash_7b912f5a_0()
 hash_7b912f5a()
 
 // .jd
-hash_69f1709c_0()
+hash_69355794_0()
 
 // .ts
-hash_69f1709c()
+hash_69355794()
 `;
 
 exports[`Example files basics.jd 1`] = `
@@ -389,58 +389,86 @@ const hash_7181c45a: (arg_0: T_1) => T_3 = count_0 => hash_7181c45a(count_0 + 4)
 
 exports[`Example files lets.jd 1`] = `
 // x.jd
-const hash_2d8073d9_0: var_1_1 = {
+const hash_2ffe85a4_0: int = {
     const y_0 = 10;
     y_0;
 }
 
 // .ts
-const hash_2d8073d9: T_1 = (() => {
+const hash_2ffe85a4: number = (() => {
   const y_0 = 10;
   return y_0;
 })();
 
 // z.jd
-const hash_2a3cbcd2_0: (int) ={}> int = (n_0: int) => {
+const hash_2813f64c_0: (int) ={}> int = (n_0: int) => {
     const m_1 = n_0 + 2;
     m_1 - 1;
 }
 
 // .ts
-const hash_2a3cbcd2: (arg_0: number) => number = n_0 => {
+const hash_2813f64c: (arg_0: number) => number = n_0 => {
   const m_1 = n_0 + 2;
   return m_1 - 1;
 };
 `;
 
-exports[`Type errors Expression 0: Expression 0 1`] = `"first arg to == wrong type"`;
+exports[`Type errors Expression 0 3 == "4" 1`] = `"first arg to == wrong type"`;
 
-exports[`Type errors Expression 2: Expression 2 1`] = `
+exports[`Type errors Expression 2 hello(5) 1`] = `
 "Wrong type for arg 0: 
 Found: int
 but expected string : {\\"start\\":{\\"offset\\":110,\\"line\\":7,\\"column\\":1},\\"end\\":{\\"offset\\":118,\\"line\\":7,\\"column\\":9}}"
 `;
 
-exports[`Type errors Expression 4: Expression 4 1`] = `
+exports[`Type errors Expression 4 count(hello("m")) 1`] = `
 "Wrong type for arg 0: 
 Found: string
 but expected int : {\\"start\\":{\\"offset\\":152,\\"line\\":11,\\"column\\":1},\\"end\\":{\\"offset\\":169,\\"line\\":11,\\"column\\":18}}"
 `;
 
-exports[`Type errors Expression 6: Expression 6 1`] = `
+exports[`Type errors Expression 6 identity<int>("hello") 1`] = `
 "Wrong type for arg 0: 
 Found: string
 but expected int : {\\"start\\":{\\"offset\\":243,\\"line\\":18,\\"column\\":1},\\"end\\":{\\"offset\\":265,\\"line\\":18,\\"column\\":23}}"
 `;
 
-exports[`Type errors Expression 7: Expression 7 1`] = `
+exports[`Type errors Expression 7 count(identity<string>("hello")) 1`] = `
 "Wrong type for arg 0: 
 Found: string
 but expected int : {\\"start\\":{\\"offset\\":286,\\"line\\":21,\\"column\\":1},\\"end\\":{\\"offset\\":318,\\"line\\":21,\\"column\\":33}}"
 `;
 
-exports[`Type errors Expression 8: Expression 8 1`] = `"Explicit type variable T#0 can't unify with int"`;
+exports[`Type errors Expression 8 <T,>(x: T): int => x 1`] = `"Explicit type variable T#0 can't unify with int"`;
 
-exports[`Type errors Expression 9: Expression 9 1`] = `"Unable to unify int with type variable T#0"`;
+exports[`Type errors Expression 9 <T,>(x: int): T => x 1`] = `"Unable to unify int with type variable T#0"`;
 
-exports[`Type errors Expression 11: Expression 11 1`] = `"Function is declared as pure, but is not. 1 effects found."`;
+exports[`Type errors Expression 11 () ={}> raise!(GetString.get()) 1`] = `"Function is declared as pure, but is not. 1 effects found."`;
+
+exports[`Type errors Expression 12 <T>(ok: T): string => hello(ok) 1`] = `"Explicit type variable T#0 can't unify with string"`;
+
+exports[`Type errors Expression 13 (ok: string) => ok + 2 1`] = `"first arg to + wrong type"`;
+
+exports[`Type errors Expression 14 () => {
+    const x = "hello";
+    x + 2
+} 1`] = `"first arg to + wrong type"`;
+
+exports[`Type errors Expression 15 (fn: (string) => string) => {
+    const x = fn(4);
+    x ++ "hi"
+} 1`] = `
+"Wrong type for arg 0: 
+Found: int
+but expected string : {\\"start\\":{\\"offset\\":649,\\"line\\":46,\\"column\\":15},\\"end\\":{\\"offset\\":654,\\"line\\":46,\\"column\\":20}}"
+`;
+
+exports[`Type errors Expression 16 (fn: () => string) => {
+    const x: int = fn();
+    x + 2
+} 1`] = `"Value of const doesn't match type annotation. string, expected int"`;
+
+exports[`Type errors Expression 17 (fn: () => string) => {
+    const x = fn();
+    x + 2
+} 1`] = `"first arg to + wrong type"`;

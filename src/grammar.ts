@@ -173,7 +173,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c5 = "=";
   const peg$c6 = peg$literalExpectation("=", false);
   const peg$c7 = function(id: any, ann: any, expr: any): any {return {
-      type: 'define', id, expr, ann: ann ? ann[3] : null}};
+      type: 'define', id, expr, ann: ann ? ann[3] : null, location: location()}};
   const peg$c8 = "effect";
   const peg$c9 = peg$literalExpectation("effect", false);
   const peg$c10 = "{";
@@ -182,11 +182,14 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c13 = peg$literalExpectation(",", false);
   const peg$c14 = "}";
   const peg$c15 = peg$literalExpectation("}", false);
-  const peg$c16 = function(id: any, constrs: any): any {return {type: 'effect', id, constrs: constrs.map(c => c[0])}};
+  const peg$c16 = function(id: any, constrs: any): any {return {
+      type: 'effect',
+      location: location(),
+      id, constrs: constrs.map(c => c[0])}};
   const peg$c17 = function(id: any, type: any): any {return {id, type}};
   const peg$c18 = function(first: any, rest: any): any {
       if (rest.length) {
-          return {type: 'ops', first, rest: rest.map(r => ({op: r[1], right: r[3]}))}
+          return {type: 'ops', first, rest: rest.map(r => ({op: r[1], right: r[3]})), location: location()}
       } else {
           return first
       }
@@ -210,20 +213,20 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c24 = ";";
   const peg$c25 = peg$literalExpectation(";", false);
   const peg$c26 = function(one: any, rest: any): any {
-      return {type: 'block', items: [one, ...rest.map(r => r[3])]}
+      return {type: 'block', items: [one, ...rest.map(r => r[3])], location: location()}
   };
   const peg$c27 = "if";
   const peg$c28 = peg$literalExpectation("if", false);
   const peg$c29 = "else";
   const peg$c30 = peg$literalExpectation("else", false);
   const peg$c31 = function(cond: any, yes: any, no: any): any {
-      return {type: 'If', cond, yes, no: no ? no[3] : null}
+      return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
   };
   const peg$c32 = "raise!";
   const peg$c33 = peg$literalExpectation("raise!", false);
   const peg$c34 = ".";
   const peg$c35 = peg$literalExpectation(".", false);
-  const peg$c36 = function(name: any, constr: any, args: any): any {return {type: 'raise', name, constr, args: args || []}};
+  const peg$c36 = function(name: any, constr: any, args: any): any {return {type: 'raise', name, constr, args: args || [], location: location()}};
   const peg$c37 = "handle!";
   const peg$c38 = peg$literalExpectation("handle!", false);
   const peg$c39 = "pure";
@@ -235,6 +238,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       target,
       cases: cases.map(c => c[0]),
       pure: {arg: pureId, body: pureBody},
+      location: location(),
       }};
   const peg$c44 = function(name: any, constr: any, args: any, k: any, body: any): any {
   	return {type: 'case', name, constr, args: args || [], k, body}
@@ -250,6 +254,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       args: args || [],
       rettype: rettype ? rettype[2] : null,
       body,
+      location: location(),
   }};
   const peg$c49 = function(id: any, type: any): any {return {id, type: type ? type[2] : null}};
   const peg$c50 = "<";
