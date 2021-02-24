@@ -14,8 +14,21 @@ count(hello("m"))
 
 const identity = <T,>(x: T): T => x
 
+// Arg mismatch
 identity<int>("hello")
 
+// Return mismatch
 count(identity<string>("hello"))
 
+// Return value mismatch
 <T,>(x: T): int => x
+
+// Return value mismatch
+<T,>(x: int): T => x
+
+effect GetString {
+    get: () => string,
+}
+
+// Not pure
+() ={}> raise!(GetString.get())

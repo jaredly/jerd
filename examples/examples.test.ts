@@ -73,11 +73,11 @@ describe('Example files', () => {
     });
 });
 
-describe('Type errors', () => {
-    const fname = 'type-errors.jd';
+const typeErrors = require('./type-errors.jd');
 
+describe('Type errors', () => {
     const env = presetEnv();
-    const raw = fs.readFileSync(__dirname + '/' + fname, 'utf8');
+    const raw = typeErrors.src;
     const parsed = parse(raw);
 
     parsed.forEach((item, i) => {
@@ -87,30 +87,11 @@ describe('Type errors', () => {
             typeDefine(env, item);
         } else {
             const name = `Expression ${i}`;
-            // const jd = printToString(termToPretty(item), 100);
             it(name, () => {
                 expect(() => typeExpr(env, item)).toThrowErrorMatchingSnapshot(
                     name,
                 );
             });
-            // let term
-            // try {
-            //     term = typeExpr(env, item);
-            // } catch (err) {
-            //     expect(err).toMatchSnapshot({}, jd)
-            //     return
-            // }
-            // expect(term).to
-            // if (fitsExpectation(null, term.is, bool) === true) {
-            //     const ts = termToString(env, term);
-            //     const result = vm.runInContext(tsToJs(ts), vmEnv);
-            //     if (result === true) {
-            //         expect(result).toBeTruthy();
-            //     } else {
-            //         console.error('Generated typescript:', ts);
-            //         expect(result).toBe(true);
-            //     }
-            // }
         }
     });
 });

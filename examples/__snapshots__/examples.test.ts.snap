@@ -430,13 +430,17 @@ but expected int : {\\"start\\":{\\"offset\\":152,\\"line\\":11,\\"column\\":1},
 exports[`Type errors Expression 6: Expression 6 1`] = `
 "Wrong type for arg 0: 
 Found: string
-but expected int : {\\"start\\":{\\"offset\\":227,\\"line\\":17,\\"column\\":1},\\"end\\":{\\"offset\\":249,\\"line\\":17,\\"column\\":23}}"
+but expected int : {\\"start\\":{\\"offset\\":243,\\"line\\":18,\\"column\\":1},\\"end\\":{\\"offset\\":265,\\"line\\":18,\\"column\\":23}}"
 `;
 
 exports[`Type errors Expression 7: Expression 7 1`] = `
 "Wrong type for arg 0: 
 Found: string
-but expected int : {\\"start\\":{\\"offset\\":251,\\"line\\":19,\\"column\\":1},\\"end\\":{\\"offset\\":283,\\"line\\":19,\\"column\\":33}}"
+but expected int : {\\"start\\":{\\"offset\\":286,\\"line\\":21,\\"column\\":1},\\"end\\":{\\"offset\\":318,\\"line\\":21,\\"column\\":33}}"
 `;
 
-exports[`Type errors Expression 8: Expression 8 1`] = `"Cannot read property 'push' of undefined"`;
+exports[`Type errors Expression 8: Expression 8 1`] = `"Explicit type variable T#0 can't unify with int"`;
+
+exports[`Type errors Expression 9: Expression 9 1`] = `"Unable to unify int with type variable T#0"`;
+
+exports[`Type errors Expression 11: Expression 11 1`] = `"Cannot read property 'map' of null"`;

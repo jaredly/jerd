@@ -597,6 +597,14 @@ export const fitsExpectation = (
     target: Type,
 ): UnificationResult => {
     if (t.type === 'var' && env != null) {
+        // if (env.local.typeVbls[])
+        if (!env.local.tmpTypeVbls[t.sym.unique]) {
+            throw new Error(
+                `Explicit type variable ${t.sym.name}#${
+                    t.sym.unique
+                } can't unify with ${showType(target)}`,
+            );
+        }
         env.local.tmpTypeVbls[t.sym.unique].push({
             type: 'smaller-than',
             other: target,
@@ -607,7 +615,9 @@ export const fitsExpectation = (
     if (target.type === 'var' && env != null) {
         if (!env.local.tmpTypeVbls[target.sym.unique]) {
             throw new Error(
-                `Unexpected type variable: ${JSON.stringify(target.sym)}`,
+                `Unable to unify ${showType(t)} with type variable ${
+                    target.sym.name
+                }#${target.sym.unique}`,
             );
         }
         env.local.tmpTypeVbls[target.sym.unique].push({
