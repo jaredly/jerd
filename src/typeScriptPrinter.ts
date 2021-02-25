@@ -768,35 +768,67 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             );
 
         case 'handle': {
-            return t.callExpression(t.identifier('handleSimpleShallow2'), [
-                t.stringLiteral(printRef(term.effect)),
-                printTerm(env, term.target),
-                t.arrayExpression(
-                    term.cases
-                        .sort((a, b) => a.constr - b.constr)
-                        .map(({ args, k, body }) => {
-                            return t.arrowFunctionExpression(
-                                [
-                                    args.length === 0
-                                        ? t.identifier('_')
-                                        : args.length === 1
-                                        ? t.identifier(printSym(args[0]))
-                                        : t.arrayPattern(
-                                              args.map((s) =>
-                                                  t.identifier(printSym(s)),
-                                              ),
-                                          ),
-                                    t.identifier(printSym(k)),
-                                ],
-                                printLambdaBody(env, body, null),
-                            );
-                        }),
-                ),
-                t.arrowFunctionExpression(
-                    [t.identifier(printSym(term.pure.arg))],
-                    printTerm(env, term.pure.body),
-                ),
-            ]);
+            const u = env.local.unique++;
+            const vname = `handle_ret_${u}`;
+            return iffe(
+                t.blockStatement([
+                    t.variableDeclaration('let', [
+                        t.variableDeclarator(t.identifier(vname)),
+                    ]),
+                    t.expressionStatement(
+                        t.callExpression(t.identifier('handleSimpleShallow2'), [
+                            t.stringLiteral(printRef(term.effect)),
+                            printTerm(env, term.target),
+                            t.arrayExpression(
+                                term.cases
+                                    .sort((a, b) => a.constr - b.constr)
+                                    .map(({ args, k, body }) => {
+                                        return t.arrowFunctionExpression(
+                                            [
+                                                args.length === 0
+                                                    ? t.identifier('_')
+                                                    : args.length === 1
+                                                    ? t.identifier(
+                                                          printSym(args[0]),
+                                                      )
+                                                    : t.arrayPattern(
+                                                          args.map((s) =>
+                                                              t.identifier(
+                                                                  printSym(s),
+                                                              ),
+                                                          ),
+                                                      ),
+                                                t.identifier(printSym(k)),
+                                            ],
+                                            t.blockStatement([
+                                                t.expressionStatement(
+                                                    t.assignmentExpression(
+                                                        '=',
+                                                        t.identifier(vname),
+                                                        printTerm(env, body),
+                                                    ),
+                                                ),
+                                            ]),
+                                        );
+                                    }),
+                            ),
+                            t.arrowFunctionExpression(
+                                [t.identifier(printSym(term.pure.arg))],
+                                t.blockStatement([
+                                    t.expressionStatement(
+                                        t.assignmentExpression(
+                                            '=',
+                                            t.identifier(vname),
+                                            printTerm(env, term.pure.body),
+                                        ),
+                                    ),
+                                ]),
+                            ),
+                        ]),
+                    ),
+                    t.returnStatement(t.identifier(vname)),
+                ]),
+            );
         }
 
         case 'sequence': {

@@ -2,6 +2,7 @@
 
 // we want to parse things I guess?
 
+import path from 'path';
 import fs from 'fs';
 import hashObject from 'hash-sum';
 import { type } from 'os';
@@ -207,12 +208,14 @@ const main = (fname: string, dest: string) => {
     const text = fileToTypescript(expressions, env);
 
     if (dest === '-' || !dest) {
-        console.log(text);
-    } else {
-        fs.writeFileSync(dest, text);
-        execSync(`yarn -s esbuild ${dest} > ${dest}.js`);
+        dest = path.join(
+            path.dirname(fname),
+            'build',
+            path.basename(fname) + '.ts',
+        );
     }
-    fs.writeFileSync('./env.json', JSON.stringify(env, null, 2));
+    fs.writeFileSync(dest, text);
+    execSync(`yarn -s esbuild ${dest} > ${dest}.js`);
 };
 
 const runTests = () => {
@@ -226,4 +229,3 @@ if (process.argv[2] === '--test') {
 } else {
     main(process.argv[2], process.argv[3]);
 }
-// runTests();

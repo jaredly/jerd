@@ -37,12 +37,20 @@ const hash_11e7ad08_0: (var_0_0) ={}> (() ={hash_a690a6f2_0}> T_0) ={}> T_0 = (
 
 // .ts
 const hash_11e7ad08: (arg_0: T_0) => <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void) => T_0 = responseValue_0 => fn_1 => {
-  return handleSimpleShallow2("a690a6f2", fn_1, [(_, k_2) => hash_11e7ad08(responseValue_0 + ".")((handlers: any, done: (arg_0: T_0) => void) => {
-    k_2(responseValue_0, handlers, done);
-  }), (v_2, k_3) => {
-    log(v_2);
-    return hash_11e7ad08(responseValue_0 + "-")(k_3);
-  }], a_2 => a_2);
+  let handle_ret_0;
+  handleSimpleShallow2("a690a6f2", fn_1, [(_, k_2) => {
+    handle_ret_0 = hash_11e7ad08(responseValue_0 + ".")((handlers: any, done: (arg_0: T_0) => void) => {
+      k_2(responseValue_0, handlers, done);
+    });
+  }, (v_2, k_3) => {
+    handle_ret_0 = (() => {
+      log(v_2);
+      return hash_11e7ad08(responseValue_0 + "-")(k_3);
+    })();
+  }], a_2 => {
+    handle_ret_0 = a_2;
+  });
+  return handle_ret_0;
 };
 
 // farther.jd
@@ -279,9 +287,15 @@ const hash_3971b373_0: (string) ={}> (() ={hash_762a49fa_0}> string) ={}> string
 
 // .ts
 const hash_3971b373: (arg_0: string) => (arg_0: (handlers: any, done: (result: string) => void) => void) => string = responseValue_0 => fn_1 => {
-  return handleSimpleShallow2("762a49fa", fn_1, [(_, k_2) => hash_3971b373(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
-    k_2(responseValue_0, handlers, done);
-  })], a_2 => a_2);
+  let handle_ret_0;
+  handleSimpleShallow2("762a49fa", fn_1, [(_, k_2) => {
+    handle_ret_0 = hash_3971b373(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
+      k_2(responseValue_0, handlers, done);
+    });
+  }], a_2 => {
+    handle_ret_0 = a_2;
+  });
+  return handle_ret_0;
 };
 
 // .jd
@@ -340,11 +354,17 @@ const hash_4dccbc5a_0: (string) ={}> (string, (string) ={hash_762a49fa_0}> strin
 
 // .ts
 const hash_4dccbc5a: (arg_0: string) => (arg_0: string, arg_1: (arg_0: string, handlers: any, done: (result: string) => void) => void) => string = responseValue_0 => (passIn_1, fn_2) => {
-  return handleSimpleShallow2("762a49fa", (handlers: any, done: (arg_0: string) => void) => {
+  let handle_ret_0;
+  handleSimpleShallow2("762a49fa", (handlers: any, done: (arg_0: string) => void) => {
     fn_2(passIn_1, handlers, done);
-  }, [(_, k_3) => hash_3971b373(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
-    k_3(responseValue_0, handlers, done);
-  })], a_3 => a_3);
+  }, [(_, k_3) => {
+    handle_ret_0 = hash_3971b373(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
+      k_3(responseValue_0, handlers, done);
+    });
+  }], a_3 => {
+    handle_ret_0 = a_3;
+  });
+  return handle_ret_0;
 };
 
 // .jd
@@ -368,9 +388,13 @@ const hash_563322b8_0: (() ={hash_4e128638_0}> void) ={}> string = (
 
 // .ts
 const hash_563322b8: (arg_0: (handlers: any, done: (result: void) => void) => void) => string = fn_0 => {
-  return handleSimpleShallow2("4e128638", fn_0, [(v_1, k_2) => {
-    return v_1 + hash_563322b8(k_2);
-  }], a_1 => "end");
+  let handle_ret_0;
+  handleSimpleShallow2("4e128638", fn_0, [(v_1, k_2) => {
+    handle_ret_0 = v_1 + hash_563322b8(k_2);
+  }], a_1 => {
+    handle_ret_0 = "end";
+  });
+  return handle_ret_0;
 };
 
 // .jd
