@@ -1,0 +1,35 @@
+
+effect Read {
+    read: () => string,
+}
+effect Write {
+    write: (string) => void,
+}
+
+// TODO once I have tuples
+// const collect = <T,>(fn: () ={Stdio}> T): (string, T) => {
+//     handle! fn {
+//         Write.write((v) => k) => {
+//             let (collected, a) = collect(v);
+//             (collected ++ v, a)
+//         }
+//         pure(a) => ("", a)
+//     }
+// }
+
+// This is so we can test the results
+const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string => {
+    handle! fn {
+        Write.write((v) => k) => {
+            v ++ collect(k)
+        },
+        pure(a) => "end"
+    }
+}
+
+collect((): void => {
+    raise!(Write.write("one"));
+    raise!(Write.write("two"));
+    raise!(Write.write("three"))
+}) == "onetwothreeend"
+

@@ -7,7 +7,10 @@
 - [x] basic generics!
 - [x] if
 - [x] simple-let. gotta have it
-- [ ] effect variables, cmon, and type variables in type declarations
+- [x] type variables in type declarations
+- [ ] effect handler return value fix
+- [ ] verify that nested effects work
+- [ ] effect variables, cmon
 - [ ] records
   - [ ] basic
   - [ ] generic

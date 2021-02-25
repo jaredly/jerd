@@ -23,6 +23,7 @@ const examples = [
     require('./ifs.jd'),
     require('./lets.jd'),
     require('./basics.jd'),
+    require('./eff-paper.jd'),
 ];
 
 const getText = (raw: string, location: Location) => {
@@ -109,7 +110,7 @@ describe('Type errors', () => {
     });
 });
 
-const tests = ['basics.jd'];
+const tests = ['basics.jd', 'eff-paper.jd'];
 
 const tsToJs = (ts) =>
     execSync('yarn -s esbuild --loader=ts', { encoding: 'utf8', input: ts });

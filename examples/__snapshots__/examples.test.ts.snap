@@ -356,6 +356,42 @@ hash_4dccbc5a("hi")("Passed in", (arg_0_0: string, handlers: any, done: (arg_0: 
 }) == "Passed in-m"
 `;
 
+exports[`Example files eff-paper.jd 1`] = `
+// collect.jd
+const hash_563322b8_0: (() ={hash_4e128638_0}> void) ={}> string = (
+    fn_0: () ={hash_4e128638_0}> void,
+) => {
+    handle! fn_0 {0((v_1) => k_2) => {
+        v_1 ++ <self>(k_2);
+    }, pure(a_1) => "end"};
+}
+
+// .ts
+const hash_563322b8: (arg_0: (handlers: any, done: (result: void) => void) => void) => string = fn_0 => {
+  return handleSimpleShallow2("4e128638", fn_0, [(v_1, k_2) => {
+    return v_1 + hash_563322b8(k_2);
+  }], a_1 => "end");
+};
+
+// .jd
+hash_563322b8_0(
+    () => {
+        raise!(hash_4e128638_0("one"));
+        raise!(hash_4e128638_0("two"));
+        raise!(hash_4e128638_0("three"));
+    },
+) == "onetwothreeend"
+
+// .ts
+hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
+  raise(handlers, "4e128638", 0, "one", (handlers, value) => (_ignored => {
+    raise(handlers, "4e128638", 0, "two", (handlers, value) => (_ignored => {
+      raise(handlers, "4e128638", 0, "three", (handlers, value) => done(value));
+    })(value));
+  })(value));
+}) == "onetwothreeend"
+`;
+
 exports[`Example files generics.jd 1`] = `
 // identity.jd
 const hash_ef13ad00_0: (T_0) ={}> T_0 = (x_0: T_0) => x_0
@@ -438,14 +474,19 @@ const hash_220633d2: (arg_0: number) => number = h_0 => {
 
 exports[`Example files inference.jd 1`] = `
 // callOne.jd
-const hash_39b4b364_0: (var_1_1) ={}> var_4_4 = (f_0: var_1_1) => f_0(2, "hi")
+const hash_44a7a53d_0: ((int, string) ={}> T_0) ={}> T_0 = (f_0: (int, string) ={}> T_0) => f_0(
+    2,
+    "hi",
+)
 
-// ERROR Error: Need to resolve target type
+// .ts
+const hash_44a7a53d: <T_0>(arg_0: (arg_0: number, arg_1: string) => T_0) => T_0 = f_0 => f_0(2, "hi");
 
 // inferrRecur.jd
-const hash_7181c45a_0: (var_1_1) ={}> var_3_3 = (count_0: var_1_1) => <self>(count_0 + 4)
+const hash_8fed384a_0: (int) ={}> int = (count_0: int) => <self>(count_0 + 4)
 
-// ERROR Error: Need to resolve target type
+// .ts
+const hash_8fed384a: (arg_0: number) => number = count_0 => hash_8fed384a(count_0 + 4);
 `;
 
 exports[`Example files lets.jd 1`] = `

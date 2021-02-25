@@ -734,11 +734,6 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             // oh ok so we need to do somethign else if any of the arguments
             // need CPS.
 
-            // Ok, this function is CPSing it up! what's the deal
-            // do we know what the body is, and what the arg should be?
-            // I'm saying, cps should be ?{body: Expression, name: Identifier}
-            // let's try that.
-
             if (term.argsEffects.length || term.effects.length) {
                 throw new Error(
                     `This apply has effects, but isn't in a CPS context.`,
@@ -749,9 +744,13 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
             const target = printTerm(env, term.target);
 
             const argTypes =
-                term.target.is.type === 'lambda' ? term.target.is.args : null;
-            if (argTypes === null) {
-                throw new Error(`Need to resolve target type`);
+                term.target.is.type === 'lambda' ? term.target.is.args : [];
+            if (argTypes.length !== term.args.length) {
+                throw new Error(
+                    `Need to resolve target type: ${showType(
+                        term.target.is,
+                    )} - ${showType(term.is)}`,
+                );
             }
             const args = term.args.map((arg, i) => {
                 return maybeWrapPureFunction(env, arg, argTypes[i]);
@@ -761,49 +760,14 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                 target,
                 args.map((arg) => printTerm(env, arg)),
             );
-            // if (t.isIdentifier(target) && binOps.includes(target.name)) {
-            //     return t.binaryExpression(
-            //         (target.name === '++' ? '+' : target.name) as any,
-            //         printTerm(env, term.args[0]),
-            //         printTerm(env, term.args[1]),
-            //     );
-            // }
-            // return t.callExpression(
-            //     target,
-            //     term.args.map((arg) => printTerm(env, arg)),
-            // );
-            // let b = body;
-            // const args = term.args.map((arg) => {
-            //     if (getEffects(arg).length > 0) {
-            //         // ok this is a one.
-            //     }
-            // });
-            // if (term.effects.length > 0) {
-            //     // ok, so this is "I'm calling a function that needs handlers & a done function"
-            //     // but first, let's take care of the args?
-            //     // well the
-            //     // hm what if instead of body & bind, body was just a function?
-            //     // that you call with yourself?
-            //     // erm
-            // }
-            // if (term.argsEffects.length > 0) {
-
-            // } else {
-
-            // return `${target}(${term.args
-            //     .map((arg) => printTerm(env, arg, null))
-            //     .join(', ')})`;
         }
+
         case 'raise':
             return t.identifier(
                 "Cannot print a 'raise' outside of CPS. Effect tracking must have messed up.",
             );
-        // throw new Error(
-        //     `Cannot print a "raise" outside of CPS. Effect tracking must have messed up.`,
-        // );
-        // return t.identifier('raise_wat');
-        // return `new Error("what")`;
-        case 'handle':
+
+        case 'handle': {
             return t.callExpression(t.identifier('handleSimpleShallow2'), [
                 t.stringLiteral(printRef(term.effect)),
                 printTerm(env, term.target),
@@ -833,8 +797,8 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                     printTerm(env, term.pure.body),
                 ),
             ]);
-        // return t.identifier('handle_wat');
-        // return 'new Error("Handline")';
+        }
+
         case 'sequence': {
             // IIFE
             return t.callExpression(
