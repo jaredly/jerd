@@ -20,7 +20,7 @@ export const prelude = [
     `export {}`,
     'const log = console.log',
     `const raise = (handlers, hash, idx, args, done) => {
-            handlers[hash](idx, args, done)
+            handlers[hash](handlers, idx, args, done)
         }`,
     `type ShallowHandler<Get, Set> = (
             idx: number,
@@ -43,7 +43,7 @@ export const prelude = [
         ) => {
             let fnsReturnPointer = handlePure;
             fn(
-                {...otherHandlers, [hash]: (idx, args, returnIntoFn) => {
+                {...otherHandlers, [hash]: (currentHandlers, idx, args, returnIntoFn) => {
                     handleEffect[idx](
                         args,
                         (handlersValueToSend, newHandler, returnIntoHandler) => {
@@ -56,7 +56,7 @@ export const prelude = [
                                 handlersValueToSend = null
                             }
                             fnsReturnPointer = returnIntoHandler;
-                            returnIntoFn(newHandler, handlersValueToSend);
+                            returnIntoFn({...currentHandlers, ...newHandler}, handlersValueToSend);
                         },
                     );
                 }},

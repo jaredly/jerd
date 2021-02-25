@@ -583,7 +583,8 @@ hash_0b6f1408_0(
             () => {
                 hash_596313f2_0(hash_79d200c4_0());
                 hash_596313f2_0("YA");
-                const x_0 = hash_79d200c4_0();
+                hash_596313f2_0(hash_79d200c4_0());
+                hash_596313f2_0("B");
             },
         ),
     ),
@@ -592,15 +593,29 @@ hash_0b6f1408_0(
 // .ts
 hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
   hash_5d8d14a2("hi", (handlers: any, done: (arg_0: void) => void) => {
-    hash_79d200c4(handlers, (handlers, arg_0_12) => {
-      hash_596313f2(arg_0_12, handlers, (handlers, _ignored) => {
+    hash_79d200c4(handlers, (handlers, arg_0_14) => {
+      hash_596313f2(arg_0_14, handlers, (handlers, _ignored) => {
         hash_596313f2("YA", handlers, (handlers, _ignored) => {
-          hash_79d200c4(handlers, (handlers, x_0) => done(handlers));
+          hash_79d200c4(handlers, (handlers, arg_0_11) => {
+            hash_596313f2(arg_0_11, handlers, (handlers, _ignored) => {
+              hash_596313f2("B", handlers, done);
+            });
+          });
         });
       });
     });
   }, handlers, done);
 })) == "hiYAhiBend"
+
+// .jd
+hash_0b6f1408_0(hash_563322b8_0(() => {
+    hash_5d8d14a2_0("Me", hash_436ba134_0);
+})) == "What is your forename?What is your surname?Me Me"
+
+// .ts
+hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
+  hash_5d8d14a2("Me", hash_436ba134, handlers, done);
+})) == "What is your forename?What is your surname?Me Me"
 `;
 
 exports[`Example files generics.jd 1`] = `

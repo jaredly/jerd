@@ -430,7 +430,10 @@ export const termToAstCPS = (
                         }),
                 ),
                 t.arrowFunctionExpression(
-                    [t.identifier('handlers'), t.identifier(printSym(term.pure.arg))],
+                    [
+                        t.identifier('handlers'),
+                        t.identifier(printSym(term.pure.arg)),
+                    ],
                     printLambdaBody(env, term.pure.body, done),
                 ),
                 t.identifier('handlers'),
@@ -856,7 +859,10 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                                     }),
                             ),
                             t.arrowFunctionExpression(
-                                [t.identifier('handlers'), t.identifier(printSym(term.pure.arg))],
+                                [
+                                    t.identifier('handlers'),
+                                    t.identifier(printSym(term.pure.arg)),
+                                ],
                                 t.blockStatement([
                                     t.expressionStatement(
                                         t.assignmentExpression(

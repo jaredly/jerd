@@ -53,6 +53,7 @@ const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string =
     }
 }
 
+/*
 // Does collect work? Looks like it does
 collect((): void => {
     raise!(Write.write("one"));
@@ -96,13 +97,17 @@ tee(collect((): void => {
     print("A");
     print("B")
 })) == "ABend"
+*/
 
 tee(collect(() => alwaysRead("hi", () => {
     // print(read());
-    print("YA");
-    const x = read();
-    // raise!(Write.write("A"));
-    // raise!(Write.write("B"));
+    // print("YA");
+    // const x = read();
+    const x = raise!(Read.read());
+    raise!(Write.write(x));
+    const y = raise!(Read.read());
+    // raise!(Write.write(y));
+    raise!(Write.write("B"));
     // print(read());
     // print("B")
 }))) == "hiYAhiBend"
