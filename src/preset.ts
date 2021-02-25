@@ -39,10 +39,11 @@ export const prelude = [
                 ) => void,
             ) => void>,
             handlePure: (fnReturnValue: R) => void,
+            otherHandlers: any | null,
         ) => {
             let fnsReturnPointer = handlePure;
             fn(
-                {[hash]: (idx, args, returnIntoFn) => {
+                {...otherHandlers, [hash]: (idx, args, returnIntoFn) => {
                     handleEffect[idx](
                         args,
                         (handlersValueToSend, newHandler, returnIntoHandler) => {

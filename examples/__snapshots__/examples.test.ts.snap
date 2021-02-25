@@ -377,6 +377,49 @@ hash_4dccbc5a("hi")("Passed in", (arg_0_0: string, handlers: any, done: (arg_0: 
 `;
 
 exports[`Example files eff-paper.jd 1`] = `
+// tee.jd
+const hash_0b6f1408_0: (string) ={}> string = (x_0: string) => {
+    log(x_0);
+    x_0;
+}
+
+// .ts
+const hash_0b6f1408: (arg_0: string) => string = x_0 => {
+  log(x_0);
+  return x_0;
+};
+
+// print.jd
+const hash_596313f2_0: (string) ={hash_4e128638_0}> void = (x_0: string) => raise!(
+    hash_4e128638_0(x_0),
+)
+
+// .ts
+const hash_596313f2: (arg_0: string, handlers: any, done: (result: void) => void) => void = (x_0: string, handlers: any, done: (arg_0: void) => void) => {
+  raise(handlers, "4e128638", 0, x_0, (handlers, value) => done(value));
+};
+
+// alwaysRead.jd
+const hash_5d8d14a2_0: (string, () ={hash_762a49fa_0, hash_4e128638_0}> void) ={hash_4e128638_0}> void = (
+    value_0: string,
+    fn_1: () ={hash_762a49fa_0, hash_4e128638_0}> void,
+) => {
+    handle! fn_1 {0(() => k_2) => {
+        <self>(value_0, () => k_2(value_0));
+    }, pure(a_2) => a_2};
+}
+
+// .ts
+const hash_5d8d14a2: (arg_0: string, arg_1: (handlers: any, done: (result: void) => void) => void, handlers: any, done: (result: void) => void) => void = (value_0: string, fn_1: (handlers: any, done: (result: void) => void) => void, handlers: any, done: (arg_0: void) => void) => {
+  handleSimpleShallow2("762a49fa", fn_1, [(_, k_2) => {
+    hash_5d8d14a2(value_0, (handlers: any, done: (arg_0: void) => void) => {
+      k_2(value_0, handlers, done);
+    }, handlers, done);
+  }], a_2 => {
+    done(a_2);
+  }, handlers);
+};
+
 // collect.jd
 const hash_563322b8_0: (() ={hash_4e128638_0}> void) ={}> string = (
     fn_0: () ={hash_4e128638_0}> void,
@@ -414,6 +457,38 @@ hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
     })(value));
   })(value));
 }) == "onetwothreeend"
+
+// printFullName.jd
+const hash_436ba134_0: () ={hash_4e128638_0, hash_762a49fa_0}> void = () => {
+    hash_596313f2_0("What is your forename?");
+    const foreName_0 = raise!(hash_762a49fa_0());
+    hash_596313f2_0("What is your Surname?");
+    const surName_1 = raise!(hash_762a49fa_0());
+    hash_596313f2_0(foreName_0 ++ " " ++ surName_1);
+}
+
+// .ts
+const hash_436ba134: (handlers: any, done: (result: void) => void) => void = (handlers: any, done: (arg_0: void) => void) => {
+  hash_596313f2("What is your forename?", handlers, _ignored => {
+    raise(handlers, "762a49fa", 0, null, (handlers, value) => (foreName_0 => {
+      hash_596313f2("What is your Surname?", handlers, _ignored => {
+        raise(handlers, "762a49fa", 0, null, (handlers, value) => (surName_1 => {
+          hash_596313f2(foreName_0 + " " + surName_1, handlers, done);
+        })(value));
+      });
+    })(value));
+  });
+};
+
+// .jd
+hash_0b6f1408_0(hash_563322b8_0(() => {
+    hash_5d8d14a2_0("Me", hash_436ba134_0);
+})) == "What is your forename?What is your surname?Me Me"
+
+// .ts
+hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
+  hash_5d8d14a2("Me", hash_436ba134, handlers, done);
+})) == "What is your forename?What is your surname?Me Me"
 `;
 
 exports[`Example files generics.jd 1`] = `

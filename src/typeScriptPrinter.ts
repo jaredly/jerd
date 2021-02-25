@@ -399,6 +399,47 @@ export const termToAstCPS = (
         ]);
     }
     switch (term.type) {
+        case 'handle': {
+            if (getEffects(term.target).length > 0) {
+                throw new Error(
+                    `Handle target has effects! should be a lambda`,
+                );
+            }
+            return t.callExpression(t.identifier('handleSimpleShallow2'), [
+                t.stringLiteral(printRef(term.effect)),
+                printTerm(env, term.target),
+                t.arrayExpression(
+                    term.cases
+                        .sort((a, b) => a.constr - b.constr)
+                        .map(({ args, k, body }) => {
+                            return t.arrowFunctionExpression(
+                                [
+                                    args.length === 0
+                                        ? t.identifier('_')
+                                        : args.length === 1
+                                        ? t.identifier(printSym(args[0]))
+                                        : t.arrayPattern(
+                                              args.map((s) =>
+                                                  t.identifier(printSym(s)),
+                                              ),
+                                          ),
+                                    t.identifier(printSym(k)),
+                                ],
+                                printLambdaBody(env, body, done),
+                                // // HERE
+                                // printTerm(env, body),
+                            );
+                        }),
+                ),
+                t.arrowFunctionExpression(
+                    [t.identifier(printSym(term.pure.arg))],
+                    // HERE
+                    // printTerm(env, term.pure.body),
+                    printLambdaBody(env, term.pure.body, done),
+                ),
+                t.identifier('handlers'),
+            ]);
+        }
         case 'Let': {
             return termToAstCPS(
                 env,
@@ -564,12 +605,13 @@ export const termToAstCPS = (
                     .concat([t.identifier('handlers'), done]),
             );
         }
+        case 'sequence':
+            throw new Error(
+                `Sequence encountered. This should probably be a lambda body?`,
+            );
         default:
-            // return t.identifier(term.type);
-            return t.callExpression(done, [
-                // t.identifier('handlers'),
-                printTerm(env, term),
-            ]);
+            console.log('ELSE', term.type);
+            return t.callExpression(done, [printTerm(env, term)]);
     }
 };
 
@@ -706,19 +748,7 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                                 ),
                             },
                         ]),
-                    // why not pass in "thing to call"?
-                    // like, that's better right?
-                    printLambdaBody(
-                        env,
-                        term.body,
-                        t.identifier('done'),
-                        //     {
-                        //     body: t.callExpression(t.identifier('done'), [
-                        //         t.identifier('finalValue'),
-                        //     ]),
-                        //     bind: t.identifier('finalValue'),
-                        // }
-                    ),
+                    printLambdaBody(env, term.body, t.identifier('done')),
                 );
             } else {
                 return t.arrowFunctionExpression(

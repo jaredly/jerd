@@ -479,7 +479,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 (e) => !deepEqual(effect, e),
             );
             const otherEffects = effects.concat(effect);
-            // const otherEffects = effects.slice();
 
             if (target.is.type !== 'lambda') {
                 throw new Error(`Target of a handle must be a lambda`);

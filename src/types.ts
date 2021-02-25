@@ -317,8 +317,13 @@ export const getEffects = (t: Term | Let): Array<Reference> => {
         case 'self':
         case 'ref':
         case 'var':
-        case 'handle':
             return [];
+        case 'handle':
+            return dedupEffects(
+                getEffects(t.pure.body).concat(
+                    ...t.cases.map((k) => getEffects(k.body)),
+                ),
+            );
         default:
             let _x: never = t;
             throw new Error('Unhandled term');

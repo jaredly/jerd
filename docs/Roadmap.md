@@ -8,7 +8,7 @@
 - [x] if
 - [x] simple-let. gotta have it
 - [x] type variables in type declarations
-- [ ] effect handler return value fix
+- [x] effect handler return value fix
 - [ ] verify that nested effects work
 - [ ] effect variables, cmon
 - [ ] records

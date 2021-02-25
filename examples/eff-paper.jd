@@ -17,6 +17,32 @@ effect Write {
 //     }
 // }
 
+const tee = (x: string): string => {
+    log(x);
+    x
+}
+
+const print = (x: string) ={Write}> raise!(Write.write(x))
+const read = () ={Read}> raise!(Read.read())
+
+// const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
+//     handle! fn {
+//         Read.Read(() => k) => {
+//             alwaysRead{e}(value, () => k(value))
+//         },
+//         pure(a) => a
+//     }
+// }
+
+const alwaysRead: (string, () ={Read, Write}> void) ={Write}> void = (value: string, fn: () ={Read, Write}> void): void ={Write}> {
+    handle! fn {
+        Read.read(() => k) => {
+            alwaysRead(value, () => k(value))
+        },
+        pure(a) => a
+    }
+}
+
 // This is so we can test the results
 const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string => {
     handle! fn {
@@ -27,9 +53,64 @@ const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string =
     }
 }
 
+// Does collect work? Looks like it does
 collect((): void => {
     raise!(Write.write("one"));
     raise!(Write.write("two"));
     raise!(Write.write("three"))
 }) == "onetwothreeend"
+
+// Does collect work? Looks like it does
+tee(collect((): void => {
+    print("HI")
+})) == "HIend"
+
+// Here's the broken
+tee(collect((): void => {
+    print("HI");
+    print("HO");
+})) == "HIHOend"
+
+// And this works
+tee(collect((): void => {
+    raise!(Write.write("HI"));
+    raise!(Write.write("HO"));
+})) == "HIHOend"
+
+
+
+
+
+const printFullName = () ={Read, Write}> {
+    print("What is your forename?");
+    const foreName = raise!(Read.read());
+    print("What is your Surname?");
+    const surName = raise!(Read.read());
+    print(foreName ++ " " ++ surName)
+}
+
+// Working
+tee(collect(() => alwaysRead("hi", () => print(raise!(Read.read()) ++ " and " ++ raise!(Read.read())) ))) == "hi and hiend"
+
+tee(collect((): void => {
+    print("A");
+    print("B")
+})) == "ABend"
+
+
+tee(collect(() => alwaysRead("hi", () => {
+    // Going up & down the stack doesn't seem to fully click.
+    // print(read());
+    // print("ya");
+    raise!(Write.write("A"));
+    raise!(Write.write("B"));
+    // print("A");
+    // print("B")
+}))) == "hihiend"
+
+// Some 
+tee(collect((): void => {
+    alwaysRead("Me", printFullName)
+})) == "What is your forename?What is your surname?Me Me"
+
 
