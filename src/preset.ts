@@ -45,6 +45,7 @@ export const prelude = [
             fn(
                 {...otherHandlers, [hash]: (currentHandlers, idx, args, returnIntoFn) => {
                     handleEffect[idx](
+                        currentHandlers,
                         args,
                         (handlersValueToSend, newHandler, returnIntoHandler) => {
                             if (returnIntoHandler === undefined) {

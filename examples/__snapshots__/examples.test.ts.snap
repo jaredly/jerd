@@ -38,11 +38,11 @@ const hash_11e7ad08_0: (var_0_0) ={}> (() ={hash_a690a6f2_0}> T_0) ={}> T_0 = (
 // .ts
 const hash_11e7ad08: (arg_0: T_0) => <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void) => T_0 = responseValue_0 => fn_1 => {
   let handle_ret_0;
-  handleSimpleShallow2("a690a6f2", fn_1, [(_, k_2) => {
+  handleSimpleShallow2("a690a6f2", fn_1, [(handlers, _, k_2) => {
     handle_ret_0 = hash_11e7ad08(responseValue_0 + ".")((handlers: any, done: (arg_0: T_0) => void) => {
       k_2(responseValue_0, handlers, done);
     });
-  }, (v_2, k_3) => {
+  }, (handlers, v_2, k_3) => {
     handle_ret_0 = (() => {
       log(v_2);
       return hash_11e7ad08(responseValue_0 + "-")(k_3);
@@ -299,7 +299,7 @@ const hash_3971b373_0: (string) ={}> (() ={hash_762a49fa_0}> string) ={}> string
 // .ts
 const hash_3971b373: (arg_0: string) => (arg_0: (handlers: any, done: (result: string) => void) => void) => string = responseValue_0 => fn_1 => {
   let handle_ret_0;
-  handleSimpleShallow2("762a49fa", fn_1, [(_, k_2) => {
+  handleSimpleShallow2("762a49fa", fn_1, [(handlers, _, k_2) => {
     handle_ret_0 = hash_3971b373(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
       k_2(responseValue_0, handlers, done);
     });
@@ -368,7 +368,7 @@ const hash_4dccbc5a: (arg_0: string) => (arg_0: string, arg_1: (arg_0: string, h
   let handle_ret_0;
   handleSimpleShallow2("762a49fa", (handlers: any, done: (arg_0: string) => void) => {
     fn_2(passIn_1, handlers, done);
-  }, [(_, k_3) => {
+  }, [(handlers, _, k_3) => {
     handle_ret_0 = hash_3971b373(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
       k_3(responseValue_0, handlers, done);
     });
@@ -430,7 +430,7 @@ const hash_5d8d14a2_0: (string, () ={hash_762a49fa_0, hash_4e128638_0}> void) ={
 
 // .ts
 const hash_5d8d14a2: (arg_0: string, arg_1: (handlers: any, done: (result: void) => void) => void, handlers: any, done: (result: void) => void) => void = (value_0: string, fn_1: (handlers: any, done: (result: void) => void) => void, handlers: any, done: (arg_0: void) => void) => {
-  handleSimpleShallow2("762a49fa", fn_1, [(_, k_2) => {
+  handleSimpleShallow2("762a49fa", fn_1, [(handlers, _, k_2) => {
     hash_5d8d14a2(value_0, (handlers: any, done: (arg_0: void) => void) => {
       k_2(value_0, handlers, done);
     }, handlers, done);
@@ -451,7 +451,7 @@ const hash_563322b8_0: (() ={hash_4e128638_0}> void) ={}> string = (
 // .ts
 const hash_563322b8: (arg_0: (handlers: any, done: (result: void) => void) => void) => string = fn_0 => {
   let handle_ret_0;
-  handleSimpleShallow2("4e128638", fn_0, [(v_1, k_2) => {
+  handleSimpleShallow2("4e128638", fn_0, [(handlers, v_1, k_2) => {
     handle_ret_0 = v_1 + hash_563322b8(k_2);
   }], (handlers, a_1) => {
     handle_ret_0 = "end";
@@ -516,19 +516,19 @@ hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
 })) == "HIHOend"
 
 // printFullName.jd
-const hash_436ba134_0: () ={hash_4e128638_0, hash_762a49fa_0}> void = () => {
+const hash_7359c246_0: () ={hash_4e128638_0, hash_762a49fa_0}> void = () => {
     hash_596313f2_0("What is your forename?");
     const foreName_0 = raise!(hash_762a49fa_0());
-    hash_596313f2_0("What is your Surname?");
+    hash_596313f2_0("What is your surname?");
     const surName_1 = raise!(hash_762a49fa_0());
     hash_596313f2_0(foreName_0 ++ " " ++ surName_1);
 }
 
 // .ts
-const hash_436ba134: (handlers: any, done: (result: void) => void) => void = (handlers: any, done: (arg_0: void) => void) => {
+const hash_7359c246: (handlers: any, done: (result: void) => void) => void = (handlers: any, done: (arg_0: void) => void) => {
   hash_596313f2("What is your forename?", handlers, (handlers, _ignored) => {
     raise(handlers, "762a49fa", 0, null, (handlers, value) => ((handlers, foreName_0) => ((handlers, _ignored) => {
-      hash_596313f2("What is your Surname?", handlers, (handlers, _ignored) => {
+      hash_596313f2("What is your surname?", handlers, (handlers, _ignored) => {
         raise(handlers, "762a49fa", 0, null, (handlers, value) => ((handlers, surName_1) => ((handlers, _ignored) => {
           hash_596313f2(foreName_0 + " " + surName_1, handlers, done);
         })(handlers))(handlers, value));
@@ -608,14 +608,61 @@ hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
 })) == "hiYAhiBend"
 
 // .jd
-hash_0b6f1408_0(hash_563322b8_0(() => {
-    hash_5d8d14a2_0("Me", hash_436ba134_0);
-})) == "What is your forename?What is your surname?Me Me"
+hash_0b6f1408_0(
+    hash_563322b8_0(
+        () => hash_5d8d14a2_0(
+            "hi",
+            () => {
+                raise!(hash_4e128638_0("A"));
+                const x_0 = raise!(hash_762a49fa_0());
+                raise!(hash_4e128638_0("B"));
+            },
+        ),
+    ),
+) == "ABend"
 
 // .ts
 hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
-  hash_5d8d14a2("Me", hash_436ba134, handlers, done);
-})) == "What is your forename?What is your surname?Me Me"
+  hash_5d8d14a2("hi", (handlers: any, done: (arg_0: void) => void) => {
+    raise(handlers, "4e128638", 0, "A", (handlers, value) => ((handlers, _ignored) => {
+      raise(handlers, "762a49fa", 0, null, (handlers, value) => ((handlers, x_0) => ((handlers, _ignored) => {
+        raise(handlers, "4e128638", 0, "B", (handlers, value) => done(handlers, value));
+      })(handlers))(handlers, value));
+    })(handlers, value));
+  }, handlers, done);
+})) == "ABend"
+
+// .jd
+hash_0b6f1408_0(
+    hash_563322b8_0(
+        () => hash_5d8d14a2_0(
+            "hi",
+            () => {
+                const x_0 = raise!(hash_762a49fa_0());
+                raise!(hash_4e128638_0("B"));
+            },
+        ),
+    ),
+) == "Bend"
+
+// .ts
+hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
+  hash_5d8d14a2("hi", (handlers: any, done: (arg_0: void) => void) => {
+    raise(handlers, "762a49fa", 0, null, (handlers, value) => ((handlers, x_0) => ((handlers, _ignored) => {
+      raise(handlers, "4e128638", 0, "B", (handlers, value) => done(handlers, value));
+    })(handlers))(handlers, value));
+  }, handlers, done);
+})) == "Bend"
+
+// .jd
+hash_0b6f1408_0(hash_563322b8_0(() => {
+    hash_5d8d14a2_0("Me", hash_7359c246_0);
+})) == "What is your forename?What is your surname?Me Meend"
+
+// .ts
+hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
+  hash_5d8d14a2("Me", hash_7359c246, handlers, done);
+})) == "What is your forename?What is your surname?Me Meend"
 `;
 
 exports[`Example files generics.jd 1`] = `

@@ -53,7 +53,6 @@ const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string =
     }
 }
 
-/*
 // Does collect work? Looks like it does
 collect((): void => {
     raise!(Write.write("one"));
@@ -85,7 +84,7 @@ tee(collect((): void => {
 const printFullName = () ={Read, Write}> {
     print("What is your forename?");
     const foreName = raise!(Read.read());
-    print("What is your Surname?");
+    print("What is your surname?");
     const surName = raise!(Read.read());
     print(foreName ++ " " ++ surName)
 }
@@ -99,35 +98,34 @@ tee(collect((): void => {
 })) == "ABend"
 
 tee(collect(() => alwaysRead("hi", () => {
-    // print(read());
-    // print("YA");
+    print(read());
+    print("YA");
     // const x = read();
-    raise!(Write.write("B"));
-    const x = raise!(Read.read());
-    raise!(Write.write(x));
+    // raise!(Write.write("B"));
+    // const x = raise!(Read.read());
+    // raise!(Write.write(x));
     // const y = raise!(Read.read());
     // raise!(Write.write(y));
-    raise!(Write.write("B"));
-    // print(read());
-    // print("B")
+    // raise!(Write.write("B"));
+    print(read());
+    print("B")
 }))) == "hiYAhiBend"
 
-*/
-
-tee(collect(() => alwaysRead("hi", () => {
-    raise!(Write.write("B"));
-    const x = raise!(Read.read());
-    raise!(Write.write("B"));
-}))) == "hiYAhiBend"
 
 tee(collect(() => alwaysRead("hi", () => {
+    raise!(Write.write("A"));
     const x = raise!(Read.read());
     raise!(Write.write("B"));
-}))) == "hiYAhiBend"
+}))) == "ABend"
+
+tee(collect(() => alwaysRead("hi", () => {
+    const x = raise!(Read.read());
+    raise!(Write.write("B"));
+}))) == "Bend"
 
 // Some 
-// tee(collect((): void => {
-//     alwaysRead("Me", printFullName)
-// })) == "What is your forename?What is your surname?Me Me"
+tee(collect((): void => {
+    alwaysRead("Me", printFullName)
+})) == "What is your forename?What is your surname?Me Meend"
 
 

@@ -414,6 +414,7 @@ export const termToAstCPS = (
                         .map(({ args, k, body }) => {
                             return t.arrowFunctionExpression(
                                 [
+                                    t.identifier('handlers'),
                                     args.length === 0
                                         ? t.identifier('_')
                                         : args.length === 1
@@ -831,6 +832,7 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                                     .map(({ args, k, body }) => {
                                         return t.arrowFunctionExpression(
                                             [
+                                                t.identifier('handlers'),
                                                 args.length === 0
                                                     ? t.identifier('_')
                                                     : args.length === 1
