@@ -10,6 +10,7 @@
 - [x] type variables in type declarations
 - [x] effect handler return value fix
 - [ ] verify that nested effects work
+- [ ] implement all the examples from the eff paper
 - [ ] effect variables, cmon
 - [ ] records
   - [ ] basic
@@ -20,6 +21,8 @@
   - [ ] generic
   - [ ] row polymorphic
 - [ ] match
+- [ ] exit-only effects? (call/ec) Can I just use exceptions in the js? would need to check.
+    I don't *think* I can in go... oh wait, panic/recover might get it done.
 - [ ] let & function arg destructuring of records
 - [ ] tuples please
 - [ ] array types, literals, indexers

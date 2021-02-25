@@ -24,7 +24,9 @@ export const prelude = [
             // handlers[hash](handlers, idx, args, done)
             for (let i=handlers.length - 1; i>=0; i--) {
                 if (handlers[i].hash === hash) {
-                    handlers[i].fn(handlers, idx, args, done);
+                    const otherHandlers = handlers.slice()
+                    otherHandlers.splice(i, 1)
+                    handlers[i].fn(otherHandlers, idx, args, done);
                     break
                 }
             }
@@ -63,6 +65,7 @@ export const prelude = [
                             handlersValueToSend = null
                         }
                         fnsReturnPointer = returnIntoHandler;
+                        // TODO: I think we can remove this filter, but I don't want to jinx it before I have a more complete test suite.
                         returnIntoFn(currentHandlers.concat(newHandler).filter(h => h !== thisHandler), handlersValueToSend);
                     },
                 );
@@ -70,6 +73,7 @@ export const prelude = [
             fn(
                 (otherHandlers || []).concat(thisHandler),
                 (handlers, fnsReturnValue) => {
+                    // do we always assume that "thisHandler" will be the final one? maybe? idk.
                     fnsReturnPointer(handlers.filter(h => h !== thisHandler), fnsReturnValue)
                 },
             );

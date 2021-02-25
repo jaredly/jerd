@@ -126,8 +126,6 @@ const reverse: (() ={Write}> void) ={Write}> void = (fn: () ={Write}> void): voi
     handle! fn {
         Write.write((v) => k) => {
             reverse(k);
-            // ok so in this context we need to *not* have our own thing. hmmk.
-            // maybe we do need an explicit stack.
             print(v)
         },
         pure(a) => a
