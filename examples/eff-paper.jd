@@ -97,19 +97,32 @@ tee(collect((): void => {
     print("A");
     print("B")
 })) == "ABend"
-*/
 
 tee(collect(() => alwaysRead("hi", () => {
     // print(read());
     // print("YA");
     // const x = read();
+    raise!(Write.write("B"));
     const x = raise!(Read.read());
     raise!(Write.write(x));
-    const y = raise!(Read.read());
+    // const y = raise!(Read.read());
     // raise!(Write.write(y));
     raise!(Write.write("B"));
     // print(read());
     // print("B")
+}))) == "hiYAhiBend"
+
+*/
+
+tee(collect(() => alwaysRead("hi", () => {
+    raise!(Write.write("B"));
+    const x = raise!(Read.read());
+    raise!(Write.write("B"));
+}))) == "hiYAhiBend"
+
+tee(collect(() => alwaysRead("hi", () => {
+    const x = raise!(Read.read());
+    raise!(Write.write("B"));
 }))) == "hiYAhiBend"
 
 // Some 
