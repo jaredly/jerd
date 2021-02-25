@@ -515,28 +515,6 @@ hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
   })(handlers, value));
 })) == "HIHOend"
 
-// printFullName.jd
-const hash_7359c246_0: () ={hash_4e128638_0, hash_762a49fa_0}> void = () => {
-    hash_596313f2_0("What is your forename?");
-    const foreName_0 = raise!(hash_762a49fa_0());
-    hash_596313f2_0("What is your surname?");
-    const surName_1 = raise!(hash_762a49fa_0());
-    hash_596313f2_0(foreName_0 ++ " " ++ surName_1);
-}
-
-// .ts
-const hash_7359c246: (handlers: any, done: (result: void) => void) => void = (handlers: any, done: (arg_0: void) => void) => {
-  hash_596313f2("What is your forename?", handlers, (handlers, _ignored) => {
-    raise(handlers, "762a49fa", 0, null, (handlers, value) => ((handlers, foreName_0) => ((handlers, _ignored) => {
-      hash_596313f2("What is your surname?", handlers, (handlers, _ignored) => {
-        raise(handlers, "762a49fa", 0, null, (handlers, value) => ((handlers, surName_1) => ((handlers, _ignored) => {
-          hash_596313f2(foreName_0 + " " + surName_1, handlers, done);
-        })(handlers))(handlers, value));
-      });
-    })(handlers))(handlers, value));
-  });
-};
-
 // .jd
 hash_0b6f1408_0(
     hash_563322b8_0(
@@ -654,6 +632,28 @@ hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
   }, handlers, done);
 })) == "Bend"
 
+// printFullName.jd
+const hash_7359c246_0: () ={hash_4e128638_0, hash_762a49fa_0}> void = () => {
+    hash_596313f2_0("What is your forename?");
+    const foreName_0 = raise!(hash_762a49fa_0());
+    hash_596313f2_0("What is your surname?");
+    const surName_1 = raise!(hash_762a49fa_0());
+    hash_596313f2_0(foreName_0 ++ " " ++ surName_1);
+}
+
+// .ts
+const hash_7359c246: (handlers: any, done: (result: void) => void) => void = (handlers: any, done: (arg_0: void) => void) => {
+  hash_596313f2("What is your forename?", handlers, (handlers, _ignored) => {
+    raise(handlers, "762a49fa", 0, null, (handlers, value) => ((handlers, foreName_0) => ((handlers, _ignored) => {
+      hash_596313f2("What is your surname?", handlers, (handlers, _ignored) => {
+        raise(handlers, "762a49fa", 0, null, (handlers, value) => ((handlers, surName_1) => ((handlers, _ignored) => {
+          hash_596313f2(foreName_0 + " " + surName_1, handlers, done);
+        })(handlers))(handlers, value));
+      });
+    })(handlers))(handlers, value));
+  });
+};
+
 // .jd
 hash_0b6f1408_0(hash_563322b8_0(() => {
     hash_5d8d14a2_0("Me", hash_7359c246_0);
@@ -663,6 +663,43 @@ hash_0b6f1408_0(hash_563322b8_0(() => {
 hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
   hash_5d8d14a2("Me", hash_7359c246, handlers, done);
 })) == "What is your forename?What is your surname?Me Meend"
+
+// reverse.jd
+const hash_66eb55ba_0: (() ={hash_4e128638_0}> void) ={hash_4e128638_0}> void = (
+    fn_0: () ={hash_4e128638_0}> void,
+) => {
+    handle! fn_0 {0((v_1) => k_2) => {
+        <self>(k_2);
+        hash_596313f2_0(v_1);
+    }, pure(a_1) => a_1};
+}
+
+// .ts
+const hash_66eb55ba: (arg_0: (handlers: any, done: (result: void) => void) => void, handlers: any, done: (result: void) => void) => void = (fn_0: (handlers: any, done: (result: void) => void) => void, handlers: any, done: (arg_0: void) => void) => {
+  handleSimpleShallow2("4e128638", fn_0, [(handlers, v_1, k_2) => {
+    hash_66eb55ba(k_2, handlers, (handlers, _ignored) => {
+      hash_596313f2(v_1, handlers, done);
+    });
+  }], (handlers, a_1) => {
+    done(handlers, a_1);
+  }, handlers);
+};
+
+// .jd
+hash_0b6f1408_0(
+    hash_563322b8_0(() => {
+        hash_66eb55ba_0(() => {
+            hash_5d8d14a2_0("Me", hash_7359c246_0);
+        });
+    }),
+) == "Me MeWhat is your surname?What is your forename?end"
+
+// .ts
+hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
+  hash_66eb55ba((handlers: any, done: (arg_0: void) => void) => {
+    hash_5d8d14a2("Me", hash_7359c246, handlers, done);
+  }, handlers, done);
+})) == "Me MeWhat is your surname?What is your forename?end"
 `;
 
 exports[`Example files generics.jd 1`] = `

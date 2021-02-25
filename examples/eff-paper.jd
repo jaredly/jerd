@@ -81,14 +81,6 @@ tee(collect((): void => {
 
 
 
-const printFullName = () ={Read, Write}> {
-    print("What is your forename?");
-    const foreName = raise!(Read.read());
-    print("What is your surname?");
-    const surName = raise!(Read.read());
-    print(foreName ++ " " ++ surName)
-}
-
 // Working
 tee(collect(() => alwaysRead("hi", () => print(raise!(Read.read()) ++ " and " ++ raise!(Read.read())) ))) == "hi and hiend"
 
@@ -100,13 +92,6 @@ tee(collect((): void => {
 tee(collect(() => alwaysRead("hi", () => {
     print(read());
     print("YA");
-    // const x = read();
-    // raise!(Write.write("B"));
-    // const x = raise!(Read.read());
-    // raise!(Write.write(x));
-    // const y = raise!(Read.read());
-    // raise!(Write.write(y));
-    // raise!(Write.write("B"));
     print(read());
     print("B")
 }))) == "hiYAhiBend"
@@ -123,9 +108,40 @@ tee(collect(() => alwaysRead("hi", () => {
     raise!(Write.write("B"));
 }))) == "Bend"
 
-// Some 
+// Here are the examples from the paper
+
+
+const printFullName = () ={Read, Write}> {
+    print("What is your forename?");
+    const foreName = raise!(Read.read());
+    print("What is your surname?");
+    const surName = raise!(Read.read());
+    print(foreName ++ " " ++ surName)
+}
+
+// Full first example from the eff paper
 tee(collect((): void => {
     alwaysRead("Me", printFullName)
 })) == "What is your forename?What is your surname?Me Meend"
+
+// This is so we can test the results
+const reverse: (() ={Write}> void) ={Write}> void = (fn: () ={Write}> void): void ={Write}> {
+    handle! fn {
+        Write.write((v) => k) => {
+            reverse(k);
+            // ok so in this context we need to *not* have our own thing. hmmk.
+            // maybe we do need an explicit stack.
+            print(v)
+        },
+        pure(a) => a
+    }
+}
+
+// Full first example from the eff paper
+tee(collect((): void => {
+    reverse(() => {
+        alwaysRead("Me", printFullName)
+    })
+})) == "Me MeWhat is your surname?What is your forename?end"
 
 
