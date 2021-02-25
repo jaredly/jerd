@@ -100,17 +100,17 @@ tee(collect((): void => {
 
 tee(collect(() => alwaysRead("hi", () => {
     // Going up & down the stack doesn't seem to fully click.
-    // print(read());
-    // print("ya");
-    raise!(Write.write("A"));
-    raise!(Write.write("B"));
-    // print("A");
-    // print("B")
-}))) == "hihiend"
+    print(read());
+    print("ya");
+    // raise!(Write.write("A"));
+    // raise!(Write.write("B"));
+    print("A");
+    print("B")
+}))) == "hiyaABend"
 
 // Some 
-tee(collect((): void => {
-    alwaysRead("Me", printFullName)
-})) == "What is your forename?What is your surname?Me Me"
+// tee(collect((): void => {
+//     alwaysRead("Me", printFullName)
+// })) == "What is your forename?What is your surname?Me Me"
 
 

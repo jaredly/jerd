@@ -38,7 +38,7 @@ export const prelude = [
                     returnIntoHandler: (fnReturnValue: R) => void,
                 ) => void,
             ) => void>,
-            handlePure: (fnReturnValue: R) => void,
+            handlePure: (handlers: any, fnReturnValue: R) => void,
             otherHandlers: any | null,
         ) => {
             let fnsReturnPointer = handlePure;
@@ -60,8 +60,8 @@ export const prelude = [
                         },
                     );
                 }},
-                (fnsReturnValue) => {
-                    fnsReturnPointer(fnsReturnValue)
+                (handlers, fnsReturnValue) => {
+                    fnsReturnPointer(handlers, fnsReturnValue)
                 },
             );
         };`,

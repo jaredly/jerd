@@ -151,14 +151,14 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
     }
 };
 
-// use an IIFE to bind. There are much smarter ways.
-const bind = (
-    id: t.Identifier,
-    v: t.Expression,
-    body: t.Expression,
-): t.Expression => {
-    return t.callExpression(t.arrowFunctionExpression([id], body), [v]);
-};
+// // use an IIFE to bind. There are much smarter ways.
+// const bind = (
+//     id: t.Identifier,
+//     v: t.Expression,
+//     body: t.Expression,
+// ): t.Expression => {
+//     return t.callExpression(t.arrowFunctionExpression([id], body), [v]);
+// };
 
 export const printLambdaBody = (
     env: Env,
@@ -197,7 +197,7 @@ export const printLambdaBody = (
             for (let i = term.sts.length - 1; i >= 0; i--) {
                 if (i > 0) {
                     inner = t.arrowFunctionExpression(
-                        [t.identifier('_ignored')],
+                        [t.identifier('handlers'), t.identifier('_ignored')],
                         t.blockStatement([
                             t.expressionStatement(
                                 termToAstCPS(env, term.sts[i], inner),
@@ -394,7 +394,7 @@ export const termToAstCPS = (
 ): t.Expression => {
     if (!getEffects(term).length && term.type !== 'Let') {
         return t.callExpression(done, [
-            // t.identifier('handlers'),
+            t.identifier('handlers'),
             printTerm(env, term),
         ]);
     }
@@ -426,15 +426,11 @@ export const termToAstCPS = (
                                     t.identifier(printSym(k)),
                                 ],
                                 printLambdaBody(env, body, done),
-                                // // HERE
-                                // printTerm(env, body),
                             );
                         }),
                 ),
                 t.arrowFunctionExpression(
-                    [t.identifier(printSym(term.pure.arg))],
-                    // HERE
-                    // printTerm(env, term.pure.body),
+                    [t.identifier('handlers'), t.identifier(printSym(term.pure.arg))],
                     printLambdaBody(env, term.pure.body, done),
                 ),
                 t.identifier('handlers'),
@@ -445,8 +441,11 @@ export const termToAstCPS = (
                 env,
                 term.value,
                 t.arrowFunctionExpression(
-                    [t.identifier(printSym(term.binding))],
-                    t.callExpression(done, []),
+                    [
+                        t.identifier('handlers'),
+                        t.identifier(printSym(term.binding)),
+                    ],
+                    t.callExpression(done, [t.identifier('handlers')]),
                     // t.blockStatement([t.expressionStatement(inner)]),
                 ),
             );
@@ -475,7 +474,10 @@ export const termToAstCPS = (
             args.push(
                 t.arrowFunctionExpression(
                     [t.identifier('handlers'), t.identifier('value')],
-                    t.callExpression(done, [t.identifier('value')]),
+                    t.callExpression(done, [
+                        t.identifier('handlers'),
+                        t.identifier('value'),
+                    ]),
                 ),
             );
             return t.callExpression(t.identifier('raise'), args);
@@ -487,7 +489,7 @@ export const termToAstCPS = (
                     env,
                     term.cond,
                     t.arrowFunctionExpression(
-                        [t.identifier(`cond`)],
+                        [t.identifier('handlers'), t.identifier(`cond`)],
                         t.blockStatement([
                             t.ifStatement(
                                 t.identifier('cond'),
@@ -495,7 +497,9 @@ export const termToAstCPS = (
                                 ifBlock(
                                     term.no
                                         ? printLambdaBody(env, term.no, done)
-                                        : t.callExpression(done, []),
+                                        : t.callExpression(done, [
+                                              t.identifier('handlers'),
+                                          ]),
                                 ), // void
                             ),
                         ]),
@@ -513,7 +517,9 @@ export const termToAstCPS = (
                         ifBlock(
                             term.no
                                 ? printLambdaBody(env, term.no, done)
-                                : t.callExpression(done, []),
+                                : t.callExpression(done, [
+                                      t.identifier('handlers'),
+                                  ]),
                         ), // void
                     ),
                 ]),
@@ -559,6 +565,7 @@ export const termToAstCPS = (
                     // or I could do that post-hoc?
                     // I mean that might make things simpler tbh.
                     inner = t.callExpression(done, [
+                        t.identifier('handlers'),
                         // so here is where we want to
                         // put the "body"
                         // which might include inverting it.
@@ -584,7 +591,10 @@ export const termToAstCPS = (
                         env,
                         args[i],
                         t.arrowFunctionExpression(
-                            [t.identifier(`arg_${i}_${u}`)],
+                            [
+                                t.identifier('handlers'),
+                                t.identifier(`arg_${i}_${u}`),
+                            ],
                             t.blockStatement([t.expressionStatement(inner)]),
                         ),
                     );
@@ -611,7 +621,10 @@ export const termToAstCPS = (
             );
         default:
             console.log('ELSE', term.type);
-            return t.callExpression(done, [printTerm(env, term)]);
+            return t.callExpression(done, [
+                t.identifier('handlers'),
+                printTerm(env, term),
+            ]);
     }
 };
 
@@ -843,7 +856,7 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                                     }),
                             ),
                             t.arrowFunctionExpression(
-                                [t.identifier(printSym(term.pure.arg))],
+                                [t.identifier('handlers'), t.identifier(printSym(term.pure.arg))],
                                 t.blockStatement([
                                     t.expressionStatement(
                                         t.assignmentExpression(
