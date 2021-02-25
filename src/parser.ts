@@ -15,6 +15,7 @@ export type Statement = Define | Expression;
 export type Define = {
     type: 'define';
     id: Identifier;
+    location: Location;
     expr: Expression;
     ann: Type | null;
 };
@@ -47,23 +48,37 @@ export type Expression =
 export type Ops = {
     type: 'ops';
     first: Expression;
+    location: Location;
     rest: Array<{ op: string; right: Expression }>;
 };
-export type Block = { type: 'block'; items: Array<Statement> };
+export type Block = {
+    type: 'block';
+    items: Array<Statement>;
+    location: Location;
+};
 
-export type If = { type: 'If'; cond: Expression; yes: Block; no: Block };
+export type If = {
+    type: 'If';
+    cond: Expression;
+    yes: Block;
+    no: Block;
+    location: Location;
+};
 
 export type Raise = {
     type: 'raise';
     name: Identifier;
     constr: Identifier;
     args: Array<Expression>;
+    location: Location;
 };
 export type Handle = {
     type: 'handle';
     target: Expression;
+    location: Location;
     cases: Array<{
         type: 'case';
+        location: Location;
         name: Identifier;
         constr: Identifier;
         args: Array<Identifier> | null;
@@ -77,6 +92,7 @@ export type Handle = {
 };
 export type Lambda = {
     type: 'lambda';
+    location: Location;
     typevbls: Array<Identifier>;
     effvbls: Array<Identifier>;
     effects: null | Array<Identifier>;
@@ -92,6 +108,7 @@ export type LambdaType = {
     effvbls: Array<Identifier>;
     typevbls: Array<Identifier>;
     res: Type;
+    location: Location;
 };
 
 export type Literal = Int | Identifier | String;

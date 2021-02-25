@@ -241,7 +241,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       location: location(),
       }};
   const peg$c44 = function(name: any, constr: any, args: any, k: any, body: any): any {
-  	return {type: 'case', name, constr, args: args || [], k, body}
+  	return {type: 'case', name, constr, args: args || [], k, body, location: location()}
   };
   const peg$c45 = function(first: any, rest: any): any {return [first, ...rest.map(r => r[3])]};
   const peg$c46 = ">";
@@ -288,6 +288,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       type: 'lambda',
       args: args || [],
       typevbls: typevbls || [],
+      location: location(),
       effvbls: effvbls || [],
       effects: effects ? effects[2] || [] : [] , res} };
   const peg$c76 = peg$otherExpectation("int");

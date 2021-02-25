@@ -47,7 +47,9 @@ export const printType = (env: Env, type: Type): string => {
                 args += ', ...' + printType(env, type.rest);
             }
             const effects = type.effects
-                .map((t) => printType(env, { type: 'ref', ref: t }))
+                .map((t) =>
+                    printType(env, { type: 'ref', ref: t, location: null }),
+                )
                 .join(', ');
             return `(${args}) =${
                 effects ? '(' + effects + ')' : ''
@@ -714,6 +716,7 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
     const args: Array<Var> = arg.is.args.map((t, i) => ({
         type: 'var',
         is: t,
+        location: null,
         sym: {
             unique: env.local.unique++,
             name: `arg_${i}`,
@@ -726,8 +729,10 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
             ...arg.is,
             effects: t.effects,
         },
+        location: arg.location,
         body: {
             type: 'apply',
+            location: arg.location,
             args,
             target: arg,
             argsEffects: [],
@@ -820,7 +825,9 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                                         typeVbls: [],
                                         effects: [],
                                         rest: null,
+                                        location: null,
                                         res: {
+                                            location: null,
                                             type: 'ref',
                                             ref: {
                                                 type: 'builtin',

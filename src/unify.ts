@@ -146,13 +146,14 @@ const unifyInner = (
         if (Object.keys(typeVbls).length === 0) {
             break;
         }
-        Object.keys(typeVbls).forEach((key) => [
-            (typeVbls[key] = typeVbls[key].map((c) =>
+        Object.keys(typeVbls).forEach((key) => {
+            const res = typeVbls[key].map((c) =>
                 c.other.type === 'var' && unified[c.other.sym.unique]
                     ? unified[c.other.sym.unique]
                     : c,
-            )),
-        ]);
+            );
+            typeVbls[key] = res as any;
+        });
         // console.log(JSON.stringify(unified));
         // console.log(JSON.stringify(typeVbls));
         if (round >= 9) {

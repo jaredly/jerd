@@ -16,11 +16,10 @@ import {
 } from './typeScriptPrinter';
 import typeExpr, { fitsExpectation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
-import { Env, newEnv, Term, Type, TypeConstraint } from './types';
+import { Env, newEnv, Term, Type, TypeConstraint, typesEqual } from './types';
 import { showType, unifyInTerm, unifyInType, unifyVariables } from './unify';
 import { printToString } from './printer';
 import { declarationToPretty, termToPretty } from './printTsLike';
-import deepEqual from 'fast-deep-equal';
 import { typeDefine, typeEffect } from './env';
 
 import { presetEnv, prelude } from './preset';
@@ -122,7 +121,7 @@ const testInference = (parsed: Toplevel[]) => {
             env.global.terms[hash] = term;
 
             const declared = typeType(env, item.ann);
-            if (!deepEqual(declared, term.is)) {
+            if (!typesEqual(env, declared, term.is)) {
                 console.log(`Inference Test failed!`);
                 console.log('Expected:');
                 console.log(typeToString(env, declared));
@@ -162,6 +161,7 @@ function typeFile(parsed: Toplevel[]) {
 
 const fileToTypescript = (expressions: Array<Term>, env: Env) => {
     const out = prelude.slice();
+
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
 

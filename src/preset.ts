@@ -2,18 +2,25 @@
 
 import { Env, newEnv, Term, Type, TypeConstraint } from './types';
 
-export const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
+export const int: Type = {
+    type: 'ref',
+    ref: { type: 'builtin', name: 'int' },
+    location: null,
+};
 export const string: Type = {
     type: 'ref',
     ref: { type: 'builtin', name: 'string' },
+    location: null,
 };
 export const void_: Type = {
     type: 'ref',
     ref: { type: 'builtin', name: 'void' },
+    location: null,
 };
 export const bool: Type = {
     type: 'ref',
     ref: { type: 'builtin', name: 'bool' },
+    location: null,
 };
 
 export const prelude = [
@@ -91,7 +98,11 @@ export const binOps = ['++', '+', '>', '<', '/', '*', '==', '-'];
 export function presetEnv() {
     const env = newEnv({
         name: 'global',
-        type: { type: 'ref', ref: { type: 'builtin', name: 'never' } },
+        type: {
+            type: 'ref',
+            ref: { type: 'builtin', name: 'never' },
+            location: null,
+        },
     });
     env.global.builtins['true'] = bool;
     env.global.builtins['false'] = bool;
@@ -104,6 +115,7 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: bool,
+        location: null,
     };
     env.global.builtins['intToString'] = {
         type: 'lambda',
@@ -112,6 +124,7 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: string,
+        location: null,
     };
 
     env.global.builtins['++'] = {
@@ -121,6 +134,7 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: string,
+        location: null,
     };
     env.global.builtins['>'] = {
         type: 'lambda',
@@ -129,6 +143,7 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: bool,
+        location: null,
     };
     env.global.builtins['<'] = {
         type: 'lambda',
@@ -137,17 +152,19 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: bool,
+        location: null,
     };
     env.global.builtins['=='] = {
         type: 'lambda',
         typeVbls: [10000],
         args: [
-            { type: 'var', sym: { unique: 10000, name: 'T' } },
-            { type: 'var', sym: { unique: 10000, name: 'T' } },
+            { type: 'var', sym: { unique: 10000, name: 'T' }, location: null },
+            { type: 'var', sym: { unique: 10000, name: 'T' }, location: null },
         ],
         effects: [],
         rest: null,
         res: bool,
+        location: null,
     };
     env.global.builtins['+'] = {
         type: 'lambda',
@@ -156,6 +173,7 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: int,
+        location: null,
     };
     env.global.builtins['-'] = {
         type: 'lambda',
@@ -164,6 +182,7 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: int,
+        location: null,
     };
     env.global.builtins['/'] = {
         type: 'lambda',
@@ -172,6 +191,7 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: int,
+        location: null,
     };
     env.global.builtins['*'] = {
         type: 'lambda',
@@ -180,6 +200,7 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: int,
+        location: null,
     };
     env.global.builtins['log'] = {
         type: 'lambda',
@@ -188,6 +209,7 @@ export function presetEnv() {
         effects: [],
         rest: null,
         res: void_,
+        location: null,
     };
     env.global.builtinTypes['unit'] = 0;
     env.global.builtinTypes['void'] = 0;
