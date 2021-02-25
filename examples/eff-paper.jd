@@ -97,16 +97,15 @@ tee(collect((): void => {
     print("B")
 })) == "ABend"
 
-
 tee(collect(() => alwaysRead("hi", () => {
-    // Going up & down the stack doesn't seem to fully click.
-    print(read());
-    print("ya");
+    // print(read());
+    print("YA");
+    const x = read();
     // raise!(Write.write("A"));
     // raise!(Write.write("B"));
-    print("A");
-    print("B")
-}))) == "hiyaABend"
+    // print(read());
+    // print("B")
+}))) == "hiYAhiBend"
 
 // Some 
 // tee(collect((): void => {

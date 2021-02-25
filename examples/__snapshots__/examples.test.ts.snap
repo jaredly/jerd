@@ -582,28 +582,25 @@ hash_0b6f1408_0(
             "hi",
             () => {
                 hash_596313f2_0(hash_79d200c4_0());
-                hash_596313f2_0("ya");
-                hash_596313f2_0("A");
-                hash_596313f2_0("B");
+                hash_596313f2_0("YA");
+                const x_0 = hash_79d200c4_0();
             },
         ),
     ),
-) == "hiyaABend"
+) == "hiYAhiBend"
 
 // .ts
 hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
   hash_5d8d14a2("hi", (handlers: any, done: (arg_0: void) => void) => {
-    hash_79d200c4(handlers, (handlers, arg_0_13) => {
-      hash_596313f2(arg_0_13, handlers, (handlers, _ignored) => {
-        hash_596313f2("ya", handlers, (handlers, _ignored) => {
-          hash_596313f2("A", handlers, (handlers, _ignored) => {
-            hash_596313f2("B", handlers, done);
-          });
+    hash_79d200c4(handlers, (handlers, arg_0_12) => {
+      hash_596313f2(arg_0_12, handlers, (handlers, _ignored) => {
+        hash_596313f2("YA", handlers, (handlers, _ignored) => {
+          hash_79d200c4(handlers, (handlers, x_0) => done(handlers));
         });
       });
     });
   }, handlers, done);
-})) == "hiyaABend"
+})) == "hiYAhiBend"
 `;
 
 exports[`Example files generics.jd 1`] = `
