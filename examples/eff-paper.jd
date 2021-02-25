@@ -53,6 +53,7 @@ const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string =
     }
 }
 
+
 // Does collect work? Looks like it does
 collect((): void => {
     raise!(Write.write("one"));
@@ -76,10 +77,6 @@ tee(collect((): void => {
     raise!(Write.write("HI"));
     raise!(Write.write("HO"));
 })) == "HIHOend"
-
-
-
-
 
 // Working
 tee(collect(() => alwaysRead("hi", () => print(raise!(Read.read()) ++ " and " ++ raise!(Read.read())) ))) == "hi and hiend"
@@ -137,7 +134,9 @@ const reverse: (() ={Write}> void) ={Write}> void = (fn: () ={Write}> void): voi
     }
 }
 
-// Full first example from the eff paper
+tee(collect(() => reverse(() => {print("A"); print("B")}))) == "BAend"
+
+// Full second example from the eff paper
 tee(collect((): void => {
     reverse(() => {
         alwaysRead("Me", printFullName)

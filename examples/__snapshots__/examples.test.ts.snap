@@ -687,6 +687,23 @@ const hash_66eb55ba: (arg_0: (handlers: any, done: (result: void) => void) => vo
 
 // .jd
 hash_0b6f1408_0(
+    hash_563322b8_0(() => hash_66eb55ba_0(() => {
+        hash_596313f2_0("A");
+        hash_596313f2_0("B");
+    })),
+) == "BAend"
+
+// .ts
+hash_0b6f1408(hash_563322b8((handlers: any, done: (arg_0: void) => void) => {
+  hash_66eb55ba((handlers: any, done: (arg_0: void) => void) => {
+    hash_596313f2("A", handlers, (handlers, _ignored) => {
+      hash_596313f2("B", handlers, done);
+    });
+  }, handlers, done);
+})) == "BAend"
+
+// .jd
+hash_0b6f1408_0(
     hash_563322b8_0(() => {
         hash_66eb55ba_0(() => {
             hash_5d8d14a2_0("Me", hash_7359c246_0);

@@ -20,7 +20,14 @@ export const prelude = [
     `export {}`,
     'const log = console.log',
     `const raise = (handlers, hash, idx, args, done) => {
-            handlers[hash](handlers, idx, args, done)
+            // console.log('Raise!', hash, args);
+            // handlers[hash](handlers, idx, args, done)
+            for (let i=handlers.length - 1; i>=0; i--) {
+                if (handlers[i].hash === hash) {
+                    handlers[i].fn(handlers, idx, args, done);
+                    break
+                }
+            }
         }`,
     `type ShallowHandler<Get, Set> = (
             idx: number,
@@ -42,27 +49,28 @@ export const prelude = [
             otherHandlers: any | null,
         ) => {
             let fnsReturnPointer = handlePure;
+            const thisHandler = {hash, fn: (currentHandlers, idx, args, returnIntoFn) => {
+                handleEffect[idx](
+                    currentHandlers,
+                    args,
+                    (handlersValueToSend, newHandler, returnIntoHandler) => {
+                        if (returnIntoHandler === undefined) {
+                            /// @ts-ignore
+                            returnIntoHandler = newHandler
+                            /// @ts-ignore
+                            newHandler = handlersValueToSend
+                            /// @ts-ignore
+                            handlersValueToSend = null
+                        }
+                        fnsReturnPointer = returnIntoHandler;
+                        returnIntoFn(currentHandlers.concat(newHandler).filter(h => h !== thisHandler), handlersValueToSend);
+                    },
+                );
+            }}
             fn(
-                {...otherHandlers, [hash]: (currentHandlers, idx, args, returnIntoFn) => {
-                    handleEffect[idx](
-                        currentHandlers,
-                        args,
-                        (handlersValueToSend, newHandler, returnIntoHandler) => {
-                            if (returnIntoHandler === undefined) {
-                                /// @ts-ignore
-                                returnIntoHandler = newHandler
-                                /// @ts-ignore
-                                newHandler = handlersValueToSend
-                                /// @ts-ignore
-                                handlersValueToSend = null
-                            }
-                            fnsReturnPointer = returnIntoHandler;
-                            returnIntoFn({...currentHandlers, ...newHandler}, handlersValueToSend);
-                        },
-                    );
-                }},
+                (otherHandlers || []).concat(thisHandler),
                 (handlers, fnsReturnValue) => {
-                    fnsReturnPointer(handlers, fnsReturnValue)
+                    fnsReturnPointer(handlers.filter(h => h !== thisHandler), fnsReturnValue)
                 },
             );
         };`,
