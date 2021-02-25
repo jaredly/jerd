@@ -78,6 +78,12 @@ export const prelude = [
                 },
             );
         };`,
+    // Just for the eff paper 🙃
+    `const isSquare = (x) => {
+            const m = Math.sqrt(x)
+            return Math.floor(m) === m
+        };`,
+    `const intToString = x => x.toString();`,
 ];
 
 export const binOps = ['++', '+', '>', '<', '/', '*', '==', '-'];
@@ -89,6 +95,25 @@ export function presetEnv() {
     });
     env.global.builtins['true'] = bool;
     env.global.builtins['false'] = bool;
+
+    // Just for the eff paper
+    env.global.builtins['isSquare'] = {
+        type: 'lambda',
+        typeVbls: [],
+        args: [int],
+        effects: [],
+        rest: null,
+        res: bool,
+    };
+    env.global.builtins['intToString'] = {
+        type: 'lambda',
+        typeVbls: [],
+        args: [int],
+        effects: [],
+        rest: null,
+        res: string,
+    };
+
     env.global.builtins['++'] = {
         type: 'lambda',
         typeVbls: [],
@@ -115,8 +140,11 @@ export function presetEnv() {
     };
     env.global.builtins['=='] = {
         type: 'lambda',
-        typeVbls: [],
-        args: [string, string],
+        typeVbls: [10000],
+        args: [
+            { type: 'var', sym: { unique: 10000, name: 'T' } },
+            { type: 'var', sym: { unique: 10000, name: 'T' } },
+        ],
         effects: [],
         rest: null,
         res: bool,

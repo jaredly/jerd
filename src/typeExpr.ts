@@ -133,10 +133,10 @@ const applyTypeVariables = (env: Env, type: Type, vbls: Array<Type>): Type => {
         return {
             ...type,
             typeVbls: [], // TODO allow partial application!
-            args: type.args.map((t) => subtTypeVars(t, vbls)),
+            args: type.args.map((t) => subtTypeVars(t, mapping)),
             // TODO effects with type vars!
             rest: null, // TODO rest args
-            res: subtTypeVars(type.res, vbls),
+            res: subtTypeVars(type.res, mapping),
         };
     }
     // should I go full-on whatsit? maybe not yet.
@@ -243,7 +243,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             // ok, left associative, right? I think so.
             let left: Term = typeExpr(env, expr.first);
             expr.rest.forEach(({ op, right }) => {
-                const is = env.global.builtins[op];
+                let is = env.global.builtins[op];
                 if (!is) {
                     throw new Error(`Unexpected binary op ${op}`);
                 }
@@ -254,6 +254,16 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     throw new Error(`${op} is not a binary function`);
                 }
                 const rarg = typeExpr(env, right);
+
+                if (is.typeVbls.length === 1) {
+                    if (!deepEqual(left.is, rarg.is)) {
+                        throw new Error(
+                            `Binops must have same-typed arguments`,
+                        );
+                    }
+                    is = applyTypeVariables(env, is, [left.is]) as LambdaType;
+                }
+
                 if (fitsExpectation(env, left.is, is.args[0]) !== true) {
                     throw new Error(`first arg to ${op} wrong type`);
                 }
@@ -625,6 +635,10 @@ export const fitsExpectation = (
 ): UnificationResult => {
     if (t.type === 'var' && env != null) {
         // if (env.local.typeVbls[])
+        if (deepEqual(t, target)) {
+            return true;
+        }
+        // if (target.type === 'var')
         if (!env.local.tmpTypeVbls[t.sym.unique]) {
             throw new Error(
                 `Explicit type variable ${t.sym.name}#${

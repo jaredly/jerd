@@ -132,7 +132,7 @@ Literal = Int / Identifier / String
 
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
-String = "\"" ( "\\" . / [^"\\])+ "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
+String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
 Identifier = [0-9a-zA-Z_]+ {return {type: "id", text: text(), location: location()}}
 
 _ "whitespace"

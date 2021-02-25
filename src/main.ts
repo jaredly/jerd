@@ -194,7 +194,7 @@ const fileToTypescript = (expressions: Array<Term>, env: Env) => {
     });
     expressions.forEach((term) => {
         out.push(`// ${printType(env, term.is)}`);
-        out.push(termToString(env, term));
+        out.push(termToString(env, term) + ';');
     });
 
     return out.join('\n');
