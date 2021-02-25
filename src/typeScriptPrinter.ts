@@ -20,7 +20,17 @@ const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
 
 export const termToString = (env: Env, term: Term): string => {
-    return generate(printTerm(env, term)).code;
+    // const ast = printTerm(env, term)
+    // return generate(ast).code;
+
+    const ast = t.file(
+        t.program([t.expressionStatement(printTerm(env, term))], [], 'script'),
+    );
+    flattenImmediateCallsToLets(ast);
+    removeBlocksWithNoDeclarations(ast);
+    unwrapIFFEs(ast);
+    // return prettier.format('.', { parser: () => ast });
+    return generate(ast).code;
 };
 
 export const printType = (env: Env, type: Type): string => {
@@ -270,6 +280,58 @@ const unwrapIFFEs = (ast: t.File) => {
     });
 };
 
+const equalIdentifiers = (a: any, b: any) =>
+    a &&
+    b &&
+    a.type === 'Identifier' &&
+    b.type === 'Identifier' &&
+    a.name === b.name;
+
+const flattenDoubleLambdas = (ast: t.File) => {
+    traverse(ast, {
+        ArrowFunctionExpression(path) {
+            if (
+                path.node.body.type === 'CallExpression' &&
+                // path.node.body.callee.type === 'ArrowFunctionExpression' &&
+                path.node.body.arguments.length === path.node.params.length &&
+                path.node.body.arguments.every((arg, i) =>
+                    equalIdentifiers(arg, path.node.params[i]),
+                )
+            ) {
+                path.replaceWith(path.node.body.callee);
+            }
+        },
+        // CallExpression(path) {
+        //     if (
+        //         path.node.arguments.length === 1 &&
+        //         path.node.callee.type === 'ArrowFunctionExpression'
+        //     ) {
+        //         const name =
+        //             path.node.callee.params[0].type === 'Identifier'
+        //                 ? path.node.callee.params[0].name
+        //                 : 'unknown';
+        //         if (
+        //             path.node.callee.body.type === 'BlockStatement' &&
+        //             path.parent.type === 'ExpressionStatement' &&
+        //             t.isExpression(path.node.arguments[0])
+        //         ) {
+        //             path.parentPath.replaceWithMultiple([
+        //                 name === '_ignored'
+        //                     ? t.expressionStatement(path.node.arguments[0])
+        //                     : t.variableDeclaration('const', [
+        //                           t.variableDeclarator(
+        //                               t.identifier(name),
+        //                               path.node.arguments[0],
+        //                           ),
+        //                       ]),
+        //                 path.node.callee.body,
+        //             ]);
+        //         }
+        //     }
+        // },
+    });
+};
+
 const flattenImmediateCallsToLets = (ast: t.File) => {
     traverse(ast, {
         CallExpression(path) {
@@ -330,35 +392,39 @@ const removeBlocksWithNoDeclarations = (ast: t.File) => {
     });
 };
 
+export const declarationToAST = (
+    env: Env,
+    hash: string,
+    term: Term,
+): t.VariableDeclaration => {
+    return t.variableDeclaration('const', [
+        t.variableDeclarator(
+            {
+                ...t.identifier('hash_' + hash),
+                typeAnnotation: t.tsTypeAnnotation(typeToAst(env, term.is)),
+            },
+            printTerm(env, term),
+        ),
+    ]);
+};
+
 export const declarationToString = (
     env: Env,
     hash: string,
     term: Term,
 ): string => {
     const ast = t.file(
-        t.program(
-            [
-                t.variableDeclaration('const', [
-                    t.variableDeclarator(
-                        {
-                            ...t.identifier('hash_' + hash),
-                            typeAnnotation: t.tsTypeAnnotation(
-                                typeToAst(env, term.is),
-                            ),
-                        },
-                        printTerm(env, term),
-                    ),
-                ]),
-            ],
-            [],
-            'script',
-        ),
+        t.program([declarationToAST(env, hash, term)], [], 'script'),
     );
+    optimizeAST(ast);
+    return generate(ast).code;
+};
+
+export const optimizeAST = (ast: t.File) => {
     flattenImmediateCallsToLets(ast);
+    flattenDoubleLambdas(ast);
     removeBlocksWithNoDeclarations(ast);
     unwrapIFFEs(ast);
-    // return prettier.format('.', { parser: () => ast });
-    return generate(ast).code;
 };
 
 const isSimple = (arg: Term) => {
