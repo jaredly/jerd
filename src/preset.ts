@@ -24,7 +24,6 @@ export const bool: Type = {
 };
 
 export const prelude = [
-    `export {}`,
     'const log = console.log',
     `const raise = (handlers, hash, idx, args, done) => {
             // console.log('Raise!', hash, args);

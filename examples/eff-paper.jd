@@ -1,178 +1,178 @@
 
-// effect Read {
-//     read: () => string,
-// }
-// effect Write {
-//     write: (string) => void,
-// }
+effect Read {
+    read: () => string,
+}
+effect Write {
+    write: (string) => void,
+}
 
-// // TODO once I have tuples
-// // const collect = <T,>(fn: () ={Stdio}> T): (string, T) => {
-// //     handle! fn {
-// //         Write.write((v) => k) => {
-// //             let (collected, a) = collect(v);
-// //             (collected ++ v, a)
-// //         }
-// //         pure(a) => ("", a)
-// //     }
-// // }
+// TODO once I have tuples
+// const collect = <T,>(fn: () ={Stdio}> T): (string, T) => {
+//     handle! fn {
+//         Write.write((v) => k) => {
+//             let (collected, a) = collect(v);
+//             (collected ++ v, a)
+//         }
+//         pure(a) => ("", a)
+//     }
+// }
 
 const tee = (x: string): string => {
     log("> " ++ x);
     x
 }
 
-// const print = (x: string) ={Write}> raise!(Write.write(x))
-// const read = () ={Read}> raise!(Read.read())
+const print = (x: string) ={Write}> raise!(Write.write(x))
+const read = () ={Read}> raise!(Read.read())
 
-// // const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
-// //     handle! fn {
-// //         Read.Read(() => k) => {
-// //             alwaysRead{e}(value, () => k(value))
-// //         },
-// //         pure(a) => a
-// //     }
-// // }
-
-// const alwaysRead: (string, () ={Read, Write}> void) ={Write}> void = (value: string, fn: () ={Read, Write}> void): void ={Write}> {
+// const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
 //     handle! fn {
-//         Read.read(() => k) => {
-//             alwaysRead(value, () => k(value))
+//         Read.Read(() => k) => {
+//             alwaysRead{e}(value, () => k(value))
 //         },
 //         pure(a) => a
 //     }
 // }
 
-// // This is so we can test the results
-// const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string => {
-//     handle! fn {
-//         Write.write((v) => k) => {
-//             v ++ "\n" ++ collect(k)
-//         },
-//         pure(a) => "end"
-//     }
-// }
+const alwaysRead: (string, () ={Read, Write}> void) ={Write}> void = (value: string, fn: () ={Read, Write}> void): void ={Write}> {
+    handle! fn {
+        Read.read(() => k) => {
+            alwaysRead(value, () => k(value))
+        },
+        pure(a) => a
+    }
+}
+
+// This is so we can test the results
+const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string => {
+    handle! fn {
+        Write.write((v) => k) => {
+            v ++ "\n" ++ collect(k)
+        },
+        pure(a) => "end"
+    }
+}
 
 
-// // Does collect work? Looks like it does
-// collect((): void => {
-//     raise!(Write.write("one"));
-//     raise!(Write.write("two"));
-//     raise!(Write.write("three"))
-// }) == "one\ntwo\nthree\nend"
+// Does collect work? Looks like it does
+collect((): void => {
+    raise!(Write.write("one"));
+    raise!(Write.write("two"));
+    raise!(Write.write("three"))
+}) == "one\ntwo\nthree\nend"
 
-// // Does collect work? Looks like it does
-// collect((): void => {
-//     print("HI")
-// }) == "HI\nend"
+// Does collect work? Looks like it does
+collect((): void => {
+    print("HI")
+}) == "HI\nend"
 
-// // Here's the broken
-// collect((): void => {
-//     print("HI");
-//     print("HO");
-// }) == "HI\nHO\nend"
+// Here's the broken
+collect((): void => {
+    print("HI");
+    print("HO");
+}) == "HI\nHO\nend"
 
-// // And this works
-// collect((): void => {
-//     raise!(Write.write("HI"));
-//     raise!(Write.write("HO"));
-// }) == "HI\nHO\nend"
+// And this works
+collect((): void => {
+    raise!(Write.write("HI"));
+    raise!(Write.write("HO"));
+}) == "HI\nHO\nend"
 
-// // Working
-// collect(() => alwaysRead("hi", () => print(raise!(Read.read()) ++ " and " ++ raise!(Read.read())) )) == "hi and hi\nend"
+// Working
+collect(() => alwaysRead("hi", () => print(raise!(Read.read()) ++ " and " ++ raise!(Read.read())) )) == "hi and hi\nend"
 
-// collect((): void => {
-//     print("A");
-//     print("B")
-// }) == "A\nB\nend"
+collect((): void => {
+    print("A");
+    print("B")
+}) == "A\nB\nend"
 
-// collect(() => alwaysRead("hi", () => {
-//     print(read());
-//     print("YA");
-//     print(read());
-//     print("B")
-// })) == "hi\nYA\nhi\nB\nend"
-
-
-// collect(() => alwaysRead("hi", () => {
-//     raise!(Write.write("A"));
-//     const x = raise!(Read.read());
-//     raise!(Write.write("B"));
-// })) == "A\nB\nend"
-
-// collect(() => alwaysRead("hi", () => {
-//     const x = raise!(Read.read());
-//     raise!(Write.write("B"));
-// })) == "B\nend"
-
-// // Here are the examples from the paper
+collect(() => alwaysRead("hi", () => {
+    print(read());
+    print("YA");
+    print(read());
+    print("B")
+})) == "hi\nYA\nhi\nB\nend"
 
 
-// const printFullName = () ={Read, Write}> {
-//     print("What is your forename?");
-//     const foreName = raise!(Read.read());
-//     print("What is your surname?");
-//     const surName = raise!(Read.read());
-//     print(foreName ++ " " ++ surName)
-// }
+collect(() => alwaysRead("hi", () => {
+    raise!(Write.write("A"));
+    const x = raise!(Read.read());
+    raise!(Write.write("B"));
+})) == "A\nB\nend"
 
-// // Full first example from the eff paper
-// // # 2.1.1
-// collect((): void => {
-//     alwaysRead("Me", printFullName)
-// }) == "What is your forename?\nWhat is your surname?\nMe Me\nend"
+collect(() => alwaysRead("hi", () => {
+    const x = raise!(Read.read());
+    raise!(Write.write("B"));
+})) == "B\nend"
 
-// // This is so we can test the results
-// const reverse: (() ={Write}> void) ={Write}> void = (fn: () ={Write}> void): void ={Write}> {
-//     handle! fn {
-//         Write.write((v) => k) => {
-//             reverse(k);
-//             print(v)
-//         },
-//         pure(a) => a
-//     }
-// }
-
-// collect(() => reverse(() => {print("A"); print("B")})) == "B\nA\nend"
-
-// // # 2.1.2
-// collect((): void => {
-//     reverse(() => {
-//         alwaysRead("Me", printFullName)
-//     })
-// }) == "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
+// Here are the examples from the paper
 
 
-// // # 2.3
+const printFullName = () ={Read, Write}> {
+    print("What is your forename?");
+    const foreName = raise!(Read.read());
+    print("What is your surname?");
+    const surName = raise!(Read.read());
+    print(foreName ++ " " ++ surName)
+}
+
+// Full first example from the eff paper
+// # 2.1.1
+collect((): void => {
+    alwaysRead("Me", printFullName)
+}) == "What is your forename?\nWhat is your surname?\nMe Me\nend"
+
+// This is so we can test the results
+const reverse: (() ={Write}> void) ={Write}> void = (fn: () ={Write}> void): void ={Write}> {
+    handle! fn {
+        Write.write((v) => k) => {
+            reverse(k);
+            print(v)
+        },
+        pure(a) => a
+    }
+}
+
+collect(() => reverse(() => {print("A"); print("B")})) == "B\nA\nend"
+
+// # 2.1.2
+collect((): void => {
+    reverse(() => {
+        alwaysRead("Me", printFullName)
+    })
+}) == "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
+
+
+// # 2.3
 effect Decide {
     decide: () => bool,
 }
 const decide = () ={Decide}> raise!(Decide.decide())
 
-// const choose: <T,>(T, T) ={Decide}> T = <T,>(x: T, y: T): T ={Decide}> {
-//     if decide() { x } else { y }
-// }
-// const pickTrue: <T,>(() ={Decide}> T) => T = <T,>(fn: () ={Decide}> T): T => handle! fn {
-//     Decide.decide(() => k) => pickTrue<T>(() => k(true)),
-//     pure(x) => x
-// }
-// const chooseDiff = () ={Decide}> {
-//     const x1 = choose(15, 30);
-//     const x2 = choose(5, 10);
-//     x1 - x2
-// }
-// pickTrue<int>(chooseDiff) == 10
+const choose: <T,>(T, T) ={Decide}> T = <T,>(x: T, y: T): T ={Decide}> {
+    if decide() { x } else { y }
+}
+const pickTrue: <T,>(() ={Decide}> T) => T = <T,>(fn: () ={Decide}> T): T => handle! fn {
+    Decide.decide(() => k) => pickTrue<T>(() => k(true)),
+    pure(x) => x
+}
+const chooseDiff = () ={Decide}> {
+    const x1 = choose(15, 30);
+    const x2 = choose(5, 10);
+    x1 - x2
+}
+pickTrue<int>(chooseDiff) == 10
 
-// // #2.3.1
-// const pickMax: (() ={Decide}> int) => int = (fn: () ={Decide}> int): int => handle! fn {
-//     Decide.decide(() => k) => {
-//         const xt = pickMax(() => k(true));
-//         const xf = pickMax(() => k(false));
-//         if xt > xf { xt } else { xf }
-//     },
-//     pure(x) => x
-// }
-// pickMax(chooseDiff) == 25
+// #2.3.1
+const pickMax: (() ={Decide}> int) => int = (fn: () ={Decide}> int): int => handle! fn {
+    Decide.decide(() => k) => {
+        const xt = pickMax(() => k(true));
+        const xf = pickMax(() => k(false));
+        if xt > xf { xt } else { xf }
+    },
+    pure(x) => x
+}
+pickMax(chooseDiff) == 25
 
 // #2.3.2
 effect Fail {

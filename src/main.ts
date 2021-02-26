@@ -21,7 +21,7 @@ import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { typeDefine, typeEffect } from './env';
 
-import { presetEnv } from './preset';
+import { prelude, presetEnv } from './preset';
 
 // const clone = cloner();
 
@@ -163,51 +163,46 @@ import generate from '@babel/generator';
 const fileToTypescript = (expressions: Array<Term>, env: Env) => {
     // const out = prelude.slice();
 
-    const items: Array<t.Statement> = [
-        t.variableDeclaration('const', [
-            t.variableDeclarator(
-                t.objectPattern(
-                    [
-                        'raise',
-                        'isSquare',
-                        'log',
-                        'intToString',
-                        'handleSimpleShallow2',
-                    ].map((name) =>
-                        t.objectProperty(
-                            t.identifier(name),
-                            t.identifier(name),
-                        ),
-                    ),
-                ),
-                t.callExpression(t.identifier('require'), [
-                    t.stringLiteral('./prelude.js'),
-                ]),
-            ),
-        ]),
-    ];
-
     // const items: Array<t.Statement> = [
-    //     t.importDeclaration(
-    //         [
-    //             t.importSpecifier(t.identifier('raise'), t.identifier('raise')),
-    //             t.importSpecifier(
-    //                 t.identifier('handleSimpleShallow2'),
-    //                 t.identifier('handleSimpleShallow2'),
+    //     t.variableDeclaration('const', [
+    //         t.variableDeclarator(
+    //             t.objectPattern(
+    //                 [
+    //                     'raise',
+    //                     'isSquare',
+    //                     'log',
+    //                     'intToString',
+    //                     'handleSimpleShallow2',
+    //                 ].map((name) =>
+    //                     t.objectProperty(
+    //                         t.identifier(name),
+    //                         t.identifier(name),
+    //                     ),
+    //                 ),
     //             ),
-    //             t.importSpecifier(
-    //                 t.identifier('isSquare'),
-    //                 t.identifier('isSquare'),
-    //             ),
-    //             t.importSpecifier(
-    //                 t.identifier('intToString'),
-    //                 t.identifier('intToString'),
-    //             ),
-    //             t.importSpecifier(t.identifier('log'), t.identifier('log')),
-    //         ],
-    //         t.stringLiteral('./prelude.js'),
-    //     ),
+    //             t.callExpression(t.identifier('require'), [
+    //                 t.stringLiteral('./prelude.js'),
+    //             ]),
+    //         ),
+    //     ]),
     // ];
+
+    const items: Array<t.Statement> = [
+        t.importDeclaration(
+            [
+                ...[
+                    'raise',
+                    'isSquare',
+                    'log',
+                    'intToString',
+                    'handleSimpleShallow2',
+                ].map((name) =>
+                    t.importSpecifier(t.identifier(name), t.identifier(name)),
+                ),
+            ],
+            t.stringLiteral('./prelude.js'),
+        ),
+    ];
 
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
@@ -278,7 +273,7 @@ const fileToTypescript = (expressions: Array<Term>, env: Env) => {
     return ast;
 };
 
-const main = (fname: string, dest: string) => {
+const main = (fname: string) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
@@ -290,25 +285,40 @@ const main = (fname: string, dest: string) => {
         sourceFileName: '../' + path.basename(fname),
     });
 
-    if (dest === '-' || !dest) {
-        dest = path.join(
-            path.dirname(fname),
-            'build',
-            path.basename(fname) + '.js',
-        );
-    }
+    const buildDir = path.join(path.dirname(fname), 'build');
+
+    const dest = path.join(buildDir, path.basename(fname) + '.js');
 
     const mapName = path.basename(fname) + '.js.map';
     fs.writeFileSync(
-        path.join(path.dirname(fname), 'build', mapName),
+        path.join(buildDir, mapName),
         JSON.stringify(map, null, 2),
     );
 
     const text = code + '\n\n//# sourceMappingURL=' + mapName;
 
     fs.writeFileSync(dest, text);
-    // execSync(`yarn -s esbuild ${dest} > ${dest}.js`);
+
+    const preludeTS =
+        prelude.join('\n') +
+        '\n' +
+        `export {log, raise, handleSimpleShallow2, isSquare, intToString}`;
+    execSync(
+        `yarn -s esbuild --loader=ts > "${path.join(buildDir, 'prelude.js')}"`,
+        {
+            input: preludeTS,
+        },
+    );
+    // // const preludeAST = parser.parse(preludeTS, { sourceType: 'module', plugins });
+    // removeTypescriptTypes(preludeAST);
+    // fs.writeFileSync(
+    //     path.join(buildDir, 'prelude.js'),
+    //     generate(preludeAST).code,
+    // );
 };
+
+import * as parser from '@babel/parser';
+import { execSync } from 'child_process';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
@@ -319,5 +329,5 @@ const runTests = () => {
 if (process.argv[2] === '--test') {
     runTests();
 } else {
-    main(process.argv[2], process.argv[3]);
+    main(process.argv[2]);
 }
