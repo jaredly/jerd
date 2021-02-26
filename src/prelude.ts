@@ -153,6 +153,7 @@ const handleSimpleShallow2 = <Get, Set, R>(
         },
     );
 };
+
 // Just for the eff paper 🙃
 const isSquare = (x) => {
     const m = Math.sqrt(x);
