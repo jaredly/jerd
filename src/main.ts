@@ -9,8 +9,12 @@ import { type } from 'os';
 import cloner from 'rfdc';
 import parse, { Expression, Define, Toplevel } from './parser';
 import {
+    declarationToAST,
     declarationToString,
+    optimizeAST,
     printType,
+    removeTypescriptTypes,
+    termToAST,
     termToString,
     typeToString,
 } from './typeScriptPrinter';
@@ -159,27 +163,63 @@ function typeFile(parsed: Toplevel[]) {
     return { expressions, env };
 }
 
+import * as t from '@babel/types';
+import generate from '@babel/generator';
+
 const fileToTypescript = (expressions: Array<Term>, env: Env) => {
-    const out = prelude.slice();
+    // const out = prelude.slice();
+
+    const items: Array<t.Statement> = [
+        t.variableDeclaration('const', [
+            t.variableDeclarator(
+                t.objectPattern(
+                    [
+                        'raise',
+                        'isSquare',
+                        'log',
+                        'intToString',
+                        'handleSimpleShallow2',
+                    ].map((name) =>
+                        t.objectProperty(
+                            t.identifier(name),
+                            t.identifier(name),
+                        ),
+                    ),
+                ),
+                t.callExpression(t.identifier('require'), [
+                    t.stringLiteral('./prelude.js'),
+                ]),
+            ),
+        ]),
+    ];
+
+    // const items: Array<t.Statement> = [
+    //     t.importDeclaration(
+    //         [
+    //             t.importSpecifier(t.identifier('raise'), t.identifier('raise')),
+    //             t.importSpecifier(
+    //                 t.identifier('handleSimpleShallow2'),
+    //                 t.identifier('handleSimpleShallow2'),
+    //             ),
+    //             t.importSpecifier(
+    //                 t.identifier('isSquare'),
+    //                 t.identifier('isSquare'),
+    //             ),
+    //             t.importSpecifier(
+    //                 t.identifier('intToString'),
+    //                 t.identifier('intToString'),
+    //             ),
+    //             t.importSpecifier(t.identifier('log'), t.identifier('log')),
+    //         ],
+    //         t.stringLiteral('./prelude.js'),
+    //     ),
+    // ];
 
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
 
-        out.push(
-            `\n/*\n${printToString(
-                declarationToPretty(
-                    {
-                        hash: hash,
-                        size: 1,
-                        pos: 0,
-                    },
-                    term,
-                ),
-                100,
-            )}\n*/`,
-        );
-        out.push(
-            declarationToString(
+        items.push(
+            declarationToAST(
                 {
                     ...env,
                     local: {
@@ -189,15 +229,59 @@ const fileToTypescript = (expressions: Array<Term>, env: Env) => {
                 },
                 hash,
                 term,
+                printToString(
+                    declarationToPretty(
+                        {
+                            hash: hash,
+                            size: 1,
+                            pos: 0,
+                        },
+                        term,
+                    ),
+                    100,
+                ),
             ),
         );
+
+        // out.push(
+        //     `\n/*\n${printToString(
+        //         declarationToPretty(
+        //             {
+        //                 hash: hash,
+        //                 size: 1,
+        //                 pos: 0,
+        //             },
+        //             term,
+        //         ),
+        //         100,
+        //     )}\n*/`,
+        // );
+        // out.push(
+        //     declarationToString(
+        //         {
+        //             ...env,
+        //             local: {
+        //                 ...env.local,
+        //                 self: { name: hash, type: term.is },
+        //             },
+        //         },
+        //         hash,
+        //         term,
+        //     ),
+        // );
     });
     expressions.forEach((term) => {
-        out.push(`// ${printType(env, term.is)}`);
-        out.push(termToString(env, term) + ';');
+        items.push(termToAST(env, term, printType(env, term.is)));
+        // out.push(`// ${printType(env, term.is)}`);
+        // out.push(termToString(env, term) + ';');
     });
 
-    return out.join('\n');
+    const ast = t.file(t.program(items, [], 'script'));
+    optimizeAST(ast);
+    // return out.join('\n');
+    // const { code, map } = generate(ast, {sourceMaps: true});
+    // return code + '\n\n// #sourceMapping'
+    return ast;
 };
 
 const main = (fname: string, dest: string) => {
@@ -205,17 +289,31 @@ const main = (fname: string, dest: string) => {
     const parsed: Array<Toplevel> = parse(raw);
 
     const { expressions, env } = typeFile(parsed);
-    const text = fileToTypescript(expressions, env);
+    const ast = fileToTypescript(expressions, env);
+    removeTypescriptTypes(ast);
+    const { code, map } = generate(ast, {
+        sourceMaps: true,
+        sourceFileName: '../' + path.basename(fname),
+    });
 
     if (dest === '-' || !dest) {
         dest = path.join(
             path.dirname(fname),
             'build',
-            path.basename(fname) + '.ts',
+            path.basename(fname) + '.js',
         );
     }
+
+    const mapName = path.basename(fname) + '.js.map';
+    fs.writeFileSync(
+        path.join(path.dirname(fname), 'build', mapName),
+        JSON.stringify(map, null, 2),
+    );
+
+    const text = code + '\n\n//# sourceMappingURL=' + mapName;
+
     fs.writeFileSync(dest, text);
-    execSync(`yarn -s esbuild ${dest} > ${dest}.js`);
+    // execSync(`yarn -s esbuild ${dest} > ${dest}.js`);
 };
 
 const runTests = () => {

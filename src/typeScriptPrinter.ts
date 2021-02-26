@@ -9,6 +9,7 @@ import {
     Let,
     Var,
 } from './types';
+import { Location } from './parser';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import traverse from '@babel/traverse';
@@ -19,6 +20,20 @@ import { showType } from './unify';
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
 
+// export const comment = (node: t.Node, text: string) => t.addComment()
+
+function withLocation<
+    T extends { start: number | null; end: number | null; loc: any }
+>(v: T, loc: Location | null): T {
+    if (loc == null) {
+        return v;
+    }
+    v.start = loc.start.offset;
+    v.end = loc.end.offset;
+    v.loc = { start: loc.start, end: loc.end };
+    return v;
+}
+
 export const termToString = (env: Env, term: Term): string => {
     // const ast = printTerm(env, term)
     // return generate(ast).code;
@@ -26,10 +41,7 @@ export const termToString = (env: Env, term: Term): string => {
     const ast = t.file(
         t.program([t.expressionStatement(printTerm(env, term))], [], 'script'),
     );
-    flattenImmediateCallsToLets(ast);
-    removeBlocksWithNoDeclarations(ast);
-    unwrapIFFEs(ast);
-    // return prettier.format('.', { parser: () => ast });
+    optimizeAST(ast);
     return generate(ast).code;
 };
 
@@ -180,19 +192,25 @@ export const printLambdaBody = (
 ): t.BlockStatement | t.Expression => {
     if (cps == null) {
         if (term.type === 'sequence') {
-            return t.blockStatement(
-                term.sts.map((s, i) =>
-                    s.type === 'Let'
-                        ? t.variableDeclaration('const', [
-                              t.variableDeclarator(
-                                  t.identifier(printSym(s.binding)),
-                                  printTerm(env, s.value),
-                              ),
-                          ])
-                        : i === term.sts.length - 1
-                        ? t.returnStatement(printTerm(env, s))
-                        : t.expressionStatement(printTerm(env, s)),
+            return withLocation(
+                t.blockStatement(
+                    term.sts.map((s, i) =>
+                        withLocation(
+                            s.type === 'Let'
+                                ? t.variableDeclaration('const', [
+                                      t.variableDeclarator(
+                                          t.identifier(printSym(s.binding)),
+                                          printTerm(env, s.value),
+                                      ),
+                                  ])
+                                : i === term.sts.length - 1
+                                ? t.returnStatement(printTerm(env, s))
+                                : t.expressionStatement(printTerm(env, s)),
+                            s.location,
+                        ),
+                    ),
                 ),
+                term.location,
             );
         } else {
             return printTerm(env, term);
@@ -210,11 +228,17 @@ export const printLambdaBody = (
                 if (i > 0) {
                     inner = t.arrowFunctionExpression(
                         [t.identifier('handlers'), t.identifier('_ignored')],
-                        t.blockStatement([
-                            t.expressionStatement(
-                                termToAstCPS(env, term.sts[i], inner),
-                            ),
-                        ]),
+                        withLocation(
+                            t.blockStatement([
+                                withLocation(
+                                    t.expressionStatement(
+                                        termToAstCPS(env, term.sts[i], inner),
+                                    ),
+                                    term.sts[i].location,
+                                ),
+                            ]),
+                            term.sts[i].location,
+                        ),
                     );
                 } else {
                     inner = termToAstCPS(env, term.sts[i], inner);
@@ -289,6 +313,7 @@ const equalIdentifiers = (a: any, b: any) =>
     b.type === 'Identifier' &&
     a.name === b.name;
 
+// TODO this isn't really working yet
 const flattenDoubleLambdas = (ast: t.File) => {
     traverse(ast, {
         ArrowFunctionExpression(path) {
@@ -331,6 +356,17 @@ const flattenDoubleLambdas = (ast: t.File) => {
         //         }
         //     }
         // },
+    });
+};
+
+export const removeTypescriptTypes = (ast: t.File) => {
+    traverse(ast, {
+        TSTypeAnnotation(path) {
+            path.remove();
+        },
+        TSTypeAliasDeclaration(path) {
+            path.remove();
+        },
     });
 };
 
@@ -394,12 +430,28 @@ const removeBlocksWithNoDeclarations = (ast: t.File) => {
     });
 };
 
+export const termToAST = (
+    env: Env,
+    term: Term,
+    comment?: string,
+): t.Statement => {
+    let res = withLocation(
+        t.expressionStatement(printTerm(env, term)),
+        term.location,
+    );
+    if (comment) {
+        res = t.addComment(res, 'leading', comment);
+    }
+    return res;
+};
+
 export const declarationToAST = (
     env: Env,
     hash: string,
     term: Term,
+    comment?: string,
 ): t.VariableDeclaration => {
-    return t.variableDeclaration('const', [
+    let res = t.variableDeclaration('const', [
         t.variableDeclarator(
             {
                 ...t.identifier('hash_' + hash),
@@ -408,7 +460,13 @@ export const declarationToAST = (
             printTerm(env, term),
         ),
     ]);
+    if (comment) {
+        res = t.addComment(res, 'leading', comment);
+    }
+    return res;
 };
+
+// export const generateFile
 
 export const declarationToString = (
     env: Env,
@@ -454,8 +512,16 @@ const isSimpleBuiltin = (name: string) => {
     return binOps.includes(name);
 };
 
-// cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 export const termToAstCPS = (
+    env: Env,
+    term: Term | Let,
+    done: t.Expression,
+): t.Expression => {
+    return withLocation(_termToAstCPS(env, term, done), term.location);
+};
+
+// cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
+const _termToAstCPS = (
     env: Env,
     term: Term | Let,
     done: t.Expression,
@@ -767,6 +833,10 @@ const iffe = (st: t.BlockStatement): t.Expression => {
 };
 
 export const printTerm = (env: Env, term: Term): t.Expression => {
+    return withLocation(_printTerm(env, term), term.location);
+};
+
+const _printTerm = (env: Env, term: Term): t.Expression => {
     switch (term.type) {
         // these will never need effects, immediate is fine
         case 'self':

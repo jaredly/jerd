@@ -256,6 +256,7 @@ const handleFailPure = <T,>(fn: () ={Fail}> T, orElse: () ={}> T) ={}> handle! f
 const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
+            log("Backtrack decide please");
             backtrack(() => handleFail(() => k(true), () => k(false)))
             // backtrack(() => handleFail(() => k(true), ))
             // backtrack(() => handle! () => k(true) {
