@@ -78,7 +78,7 @@ export const prelude = [
                 );
             }}
             fn(
-                (otherHandlers || []).concat(thisHandler),
+                (otherHandlers ? otherHandlers.concat([thisHandler]) : [thisHandler]),
                 (handlers, fnsReturnValue) => {
                     // do we always assume that "thisHandler" will be the final one? maybe? idk.
                     // const idx = handlers.indexOf(thisHandler)
