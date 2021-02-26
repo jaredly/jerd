@@ -274,4 +274,4 @@ if isSquare(5) {
     log("WHAT")
 }
 
-tee(handleFailPure<string>(() => backtrack<string>(() => pythagorean(4, 15)), () => "No solution found")) == "5:12"
+tee(handleFailPure<string>(() => backtrack<string>(() => pythagorean(4, 9)), () => "No solution found")) == "6:8"

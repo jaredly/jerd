@@ -561,15 +561,15 @@ if isSquare(5) {
 
 // .jd
 hash_23de3332_0(
-    hash_038d5cba_0(() => hash_66e40a12_0(() => hash_2fe6af82_0(4, 15)), () => "No solution found"),
-) == "5:12"
+    hash_038d5cba_0(() => hash_66e40a12_0(() => hash_2fe6af82_0(4, 9)), () => "No solution found"),
+) == "6:8"
 
 // .ts
 hash_23de3332(hash_038d5cba((handlers: any, done: (arg_0: string) => void) => {
   hash_66e40a12((handlers: any, done: (arg_0: string) => void) => {
-    hash_2fe6af82(4, 15, handlers, done);
+    hash_2fe6af82(4, 9, handlers, done);
   }, handlers, done);
-}, () => "No solution found")) == "5:12";
+}, () => "No solution found")) == "6:8";
 `;
 
 exports[`Example files generics.jd 1`] = `

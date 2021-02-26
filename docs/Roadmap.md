@@ -10,6 +10,8 @@
 - [x] type variables in type declarations
 - [x] effect handler return value fix
 - [ ] source maps!
+  - [x] basics
+  - [ ] actually map all the things, so we can step through reasonably
 - [ ] verify that nested effects work
 - [ ] implement all the examples from the eff paper
   - [x] basic (collect)
