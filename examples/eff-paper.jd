@@ -275,3 +275,4 @@ if isSquare(5) {
 }
 
 tee(handleFailPure<string>(() => backtrack<string>(() => pythagorean(4, 12)), () => "No solution found")) == "6:8"
+10

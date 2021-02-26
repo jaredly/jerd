@@ -2,7 +2,7 @@
 
 import { parse } from '../src/grammar';
 import { typeDefine, typeEffect } from '../src/env';
-import { bool, prelude, presetEnv } from '../src/preset';
+import { bool, presetEnv } from '../src/preset';
 import fs from 'fs';
 import { printToString } from '../src/printer';
 import { declarationToPretty, termToPretty } from '../src/printTsLike';
@@ -25,6 +25,14 @@ const examples = [
     require('./basics.jd'),
     require('./eff-paper.jd'),
 ];
+
+const prelude = require('fs')
+    .readFileSync(__dirname + '/../src/prelude.ts', 'utf8')
+    .trim()
+    // Remove the "export" line
+    .split('\n')
+    .slice(-1)
+    .join('\n');
 
 const getText = (raw: string, location: Location) => {
     return raw.slice(location.start.offset, location.end.offset);
@@ -121,7 +129,7 @@ describe('Test Files', () => {
             let vmEnv;
             beforeAll(() => {
                 vmEnv = vm.createContext({ console });
-                vm.runInContext(tsToJs(prelude.join('\n\n')), vmEnv);
+                vm.runInContext(tsToJs(prelude), vmEnv);
             });
 
             const env = presetEnv();

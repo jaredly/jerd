@@ -21,7 +21,7 @@ import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { typeDefine, typeEffect } from './env';
 
-import { prelude, presetEnv } from './preset';
+import { presetEnv } from './preset';
 
 // const clone = cloner();
 
@@ -299,10 +299,12 @@ const main = (fname: string) => {
 
     fs.writeFileSync(dest, text);
 
-    const preludeTS =
-        prelude.join('\n') +
-        '\n' +
-        `export {log, raise, handleSimpleShallow2, isSquare, intToString}`;
+    const preludeTS = require('fs').readFileSync('./src/prelude.ts', 'utf8');
+
+    // const preludeTS =
+    //     prelude.join('\n') +
+    //     '\n' +
+    //     `export {log, raise, handleSimpleShallow2, isSquare, intToString}`;
     execSync(
         `yarn -s esbuild --loader=ts > "${path.join(buildDir, 'prelude.mjs')}"`,
         {
