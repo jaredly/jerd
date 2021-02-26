@@ -16,6 +16,7 @@ import traverse from '@babel/traverse';
 import { binOps } from './preset';
 import { env } from 'process';
 import { showType } from './unify';
+import { optimizeAST } from './typeScriptOptimize';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
@@ -264,172 +265,6 @@ export const printLambdaBody = (
     }
 };
 
-const unwrapIFFEs = (ast: t.File) => {
-    traverse(ast, {
-        CallExpression(path) {
-            if (
-                path.node.arguments.length === 0 &&
-                path.node.callee.type === 'ArrowFunctionExpression'
-            ) {
-                // if we're in a return statement, we can just back up
-                // although need to ensure that CPS doesn't break
-                if (
-                    path.parent.type === 'ReturnStatement' ||
-                    (path.parent.type === 'ExpressionStatement' &&
-                        path.parentPath.parent.type === 'BlockStatement' &&
-                        path.parentPath.parent.body.length === 1)
-                ) {
-                    if (path.node.callee.body.type === 'BlockStatement') {
-                        path.parentPath.replaceWithMultiple(
-                            path.node.callee.body.body,
-                        );
-                    } else {
-                        path.parentPath.replaceWith(
-                            t.returnStatement(path.node.callee.body),
-                        );
-                    }
-                } else if (path.parent.type === 'ArrowFunctionExpression') {
-                    path.replaceWith(path.node.callee.body);
-                } else if (
-                    path.node.callee.body.type === 'BlockStatement' &&
-                    path.node.callee.body.body.length === 1 &&
-                    path.node.callee.body.body[0].type === 'ReturnStatement'
-                ) {
-                    path.replaceWith(
-                        path.node.callee.body.body[0].argument ||
-                            t.nullLiteral(),
-                    );
-                }
-                // if we're the body if a lambda, we can just replace with self
-            }
-        },
-    });
-};
-
-const equalIdentifiers = (a: any, b: any) =>
-    a &&
-    b &&
-    a.type === 'Identifier' &&
-    b.type === 'Identifier' &&
-    a.name === b.name;
-
-// TODO this isn't really working yet
-const flattenDoubleLambdas = (ast: t.File) => {
-    traverse(ast, {
-        ArrowFunctionExpression(path) {
-            if (
-                path.node.body.type === 'CallExpression' &&
-                // path.node.body.callee.type === 'ArrowFunctionExpression' &&
-                path.node.body.arguments.length === path.node.params.length &&
-                path.node.body.arguments.every((arg, i) =>
-                    equalIdentifiers(arg, path.node.params[i]),
-                )
-            ) {
-                path.replaceWith(path.node.body.callee);
-            }
-        },
-        // CallExpression(path) {
-        //     if (
-        //         path.node.arguments.length === 1 &&
-        //         path.node.callee.type === 'ArrowFunctionExpression'
-        //     ) {
-        //         const name =
-        //             path.node.callee.params[0].type === 'Identifier'
-        //                 ? path.node.callee.params[0].name
-        //                 : 'unknown';
-        //         if (
-        //             path.node.callee.body.type === 'BlockStatement' &&
-        //             path.parent.type === 'ExpressionStatement' &&
-        //             t.isExpression(path.node.arguments[0])
-        //         ) {
-        //             path.parentPath.replaceWithMultiple([
-        //                 name === '_ignored'
-        //                     ? t.expressionStatement(path.node.arguments[0])
-        //                     : t.variableDeclaration('const', [
-        //                           t.variableDeclarator(
-        //                               t.identifier(name),
-        //                               path.node.arguments[0],
-        //                           ),
-        //                       ]),
-        //                 path.node.callee.body,
-        //             ]);
-        //         }
-        //     }
-        // },
-    });
-};
-
-export const removeTypescriptTypes = (ast: t.File) => {
-    traverse(ast, {
-        TSTypeAnnotation(path) {
-            path.remove();
-        },
-        TSTypeAliasDeclaration(path) {
-            path.remove();
-        },
-    });
-};
-
-const flattenImmediateCallsToLets = (ast: t.File) => {
-    traverse(ast, {
-        CallExpression(path) {
-            if (
-                path.node.arguments.length === 1 &&
-                path.node.callee.type === 'ArrowFunctionExpression'
-            ) {
-                const name =
-                    path.node.callee.params[0].type === 'Identifier'
-                        ? path.node.callee.params[0].name
-                        : 'unknown';
-                if (
-                    path.node.callee.body.type === 'BlockStatement' &&
-                    path.parent.type === 'ExpressionStatement' &&
-                    t.isExpression(path.node.arguments[0])
-                ) {
-                    path.parentPath.replaceWithMultiple([
-                        name === '_ignored'
-                            ? t.expressionStatement(path.node.arguments[0])
-                            : t.variableDeclaration('const', [
-                                  t.variableDeclarator(
-                                      t.identifier(name),
-                                      path.node.arguments[0],
-                                  ),
-                              ]),
-                        path.node.callee.body,
-                    ]);
-                }
-            }
-        },
-    });
-};
-
-const removeBlocksWithNoDeclarations = (ast: t.File) => {
-    traverse(ast, {
-        BlockStatement(path) {
-            const node = path.node;
-            const res: Array<t.Statement> = [];
-            let changed = false;
-            node.body.forEach((node) => {
-                if (node.type !== 'BlockStatement') {
-                    return res.push(node);
-                }
-                const hasDeclares = node.body.some(
-                    (n) => n.type === 'VariableDeclaration',
-                );
-                if (hasDeclares) {
-                    return res.push(node);
-                }
-                changed = true;
-                res.push(...node.body);
-            });
-            // node.body = res;
-            if (changed) {
-                path.replaceWith(t.blockStatement(res));
-            }
-        },
-    });
-};
-
 export const termToAST = (
     env: Env,
     term: Term,
@@ -478,13 +313,6 @@ export const declarationToString = (
     );
     optimizeAST(ast);
     return generate(ast).code;
-};
-
-export const optimizeAST = (ast: t.File) => {
-    flattenImmediateCallsToLets(ast);
-    flattenDoubleLambdas(ast);
-    removeBlocksWithNoDeclarations(ast);
-    unwrapIFFEs(ast);
 };
 
 const isSimple = (arg: Term) => {

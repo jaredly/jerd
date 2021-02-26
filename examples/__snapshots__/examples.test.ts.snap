@@ -37,20 +37,22 @@ const hash_81e04620_0: (var_0_0) ={}> (() ={hash_c32ec300_0}> T_0) ={}> T_0 = (
 
 // .ts
 const hash_81e04620: (arg_0: T_0) => <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void) => T_0 = responseValue_0 => fn_1 => {
-  let handle_ret_0;
-  handleSimpleShallow2("c32ec300", fn_1, [(handlers, _, k_2) => {
-    handle_ret_0 = hash_81e04620(responseValue_0 + ".")((handlers: any, done: (arg_0: T_0) => void) => {
-      k_2(responseValue_0, handlers, done);
+  {
+    let handle_ret_0;
+    handleSimpleShallow2("c32ec300", fn_1, [(handlers, _, k_2) => {
+      handle_ret_0 = hash_81e04620(responseValue_0 + ".")((handlers: any, done: (arg_0: T_0) => void) => {
+        k_2(responseValue_0, handlers, done);
+      });
+    }, (handlers, v_2, k_3) => {
+      handle_ret_0 = function () {
+        log(v_2);
+        return hash_81e04620(responseValue_0 + "-")(k_3);
+      }();
+    }], (handlers, a_2) => {
+      handle_ret_0 = a_2;
     });
-  }, (handlers, v_2, k_3) => {
-    handle_ret_0 = (() => {
-      log(v_2);
-      return hash_81e04620(responseValue_0 + "-")(k_3);
-    })();
-  }], (handlers, a_2) => {
-    handle_ret_0 = a_2;
-  });
-  return handle_ret_0;
+    return handle_ret_0;
+  }
 };
 
 // farther.jd
@@ -130,11 +132,7 @@ const hash_390f1a60_0: (bool) ={hash_c32ec300_0}> string = (shouldRaise_0: bool)
 
 // .ts
 const hash_390f1a60: (arg_0: bool, handlers: any, done: (result: string) => void) => void = (shouldRaise_0: bool, handlers: any, done: (arg_0: string) => void) => {
-  if (shouldRaise_0) {
-    raise(handlers, "c32ec300", 0, null, done);
-  } else {
-    done(handlers, "didn't raise");
-  }
+  shouldRaise_0 ? raise(handlers, "c32ec300", 0, null, done) : done(handlers, "didn't raise");
 };
 
 // test2.jd
@@ -197,9 +195,9 @@ const hash_37acbb7c_0: () ={hash_c32ec300_0}> void = () => {
 
 // .ts
 const hash_37acbb7c: (handlers: any, done: (result: void) => void) => void = (handlers: any, done: (arg_0: void) => void) => {
-  raise(handlers, "c32ec300", 0, null, (handlers, x_0) => ((handlers, _ignored) => {
+  raise(handlers, "c32ec300", 0, null, (handlers, x_0) => {
     done(handlers, log(x_0 + "Hello"));
-  })(handlers));
+  });
 };
 
 // test4.jd
@@ -298,15 +296,17 @@ const hash_f3f7046a_0: (string) ={}> (() ={hash_e97b5320_0}> string) ={}> string
 
 // .ts
 const hash_f3f7046a: (arg_0: string) => (arg_0: (handlers: any, done: (result: string) => void) => void) => string = responseValue_0 => fn_1 => {
-  let handle_ret_0;
-  handleSimpleShallow2("e97b5320", fn_1, [(handlers, _, k_2) => {
-    handle_ret_0 = hash_f3f7046a(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
-      k_2(responseValue_0, handlers, done);
+  {
+    let handle_ret_0;
+    handleSimpleShallow2("e97b5320", fn_1, [(handlers, _, k_2) => {
+      handle_ret_0 = hash_f3f7046a(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
+        k_2(responseValue_0, handlers, done);
+      });
+    }], (handlers, a_2) => {
+      handle_ret_0 = a_2;
     });
-  }], (handlers, a_2) => {
-    handle_ret_0 = a_2;
-  });
-  return handle_ret_0;
+    return handle_ret_0;
+  }
 };
 
 // .jd
@@ -350,7 +350,7 @@ hash_f3f7046a_0("hi")(() => "m") == "m"
 
 // .ts
 hash_f3f7046a("hi")((handlers: any, done: (arg_0: string) => void) => {
-  done(handlers, (() => "m")());
+  done(handlers, "m");
 }) == "m";
 
 // provideStringWithArg.jd
@@ -365,17 +365,19 @@ const hash_d13196fc_0: (string) ={}> (string, (string) ={hash_e97b5320_0}> strin
 
 // .ts
 const hash_d13196fc: (arg_0: string) => (arg_0: string, arg_1: (arg_0: string, handlers: any, done: (result: string) => void) => void) => string = responseValue_0 => (passIn_1, fn_2) => {
-  let handle_ret_0;
-  handleSimpleShallow2("e97b5320", (handlers: any, done: (arg_0: string) => void) => {
-    fn_2(passIn_1, handlers, done);
-  }, [(handlers, _, k_3) => {
-    handle_ret_0 = hash_f3f7046a(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
-      k_3(responseValue_0, handlers, done);
+  {
+    let handle_ret_0;
+    handleSimpleShallow2("e97b5320", (handlers: any, done: (arg_0: string) => void) => {
+      fn_2(passIn_1, handlers, done);
+    }, [(handlers, _, k_3) => {
+      handle_ret_0 = hash_f3f7046a(responseValue_0 + ".")((handlers: any, done: (arg_0: string) => void) => {
+        k_3(responseValue_0, handlers, done);
+      });
+    }], (handlers, a_3) => {
+      handle_ret_0 = a_3;
     });
-  }], (handlers, a_3) => {
-    handle_ret_0 = a_3;
-  });
-  return handle_ret_0;
+    return handle_ret_0;
+  }
 };
 
 // .jd
@@ -440,19 +442,15 @@ const hash_3c7352ca_0: (int, int) ={hash_319e9190_0, hash_4175b47c_0}> int = (m_
 
 // .ts
 const hash_3c7352ca: (arg_0: number, arg_1: number, handlers: any, done: (result: number) => void) => void = (m_0: number, n_1: number, handlers: any, done: (arg_0: number) => void) => {
-  if (m_0 > n_1) {
-    hash_81318f70(handlers, (handlers, _ignored) => {
-      done(handlers, 10);
-    });
-  } else {
-    hash_e7c8905c(handlers, (handlers, cond) => {
-      if (cond) {
-        done(handlers, m_0);
-      } else {
-        hash_3c7352ca(m_0 + 1, n_1, handlers, done);
-      }
-    });
-  }
+  m_0 > n_1 ? hash_81318f70(handlers, (handlers, _ignored) => {
+    done(handlers, 10);
+  }) : hash_e7c8905c(handlers, (handlers, cond) => {
+    if (cond) {
+      done(handlers, m_0);
+    } else {
+      hash_3c7352ca(m_0 + 1, n_1, handlers, done);
+    }
+  });
 };
 
 // pythagorean.jd
@@ -473,25 +471,21 @@ const hash_2fe6af82_0: (int, int) ={hash_319e9190_0, hash_4175b47c_0}> string = 
 
 // .ts
 const hash_2fe6af82: (arg_0: number, arg_1: number, handlers: any, done: (result: string) => void) => void = (m_0: number, n_1: number, handlers: any, done: (arg_0: string) => void) => {
-  hash_3c7352ca(m_0, n_1 - 1, handlers, (handlers, a_2) => ((handlers, _ignored) => {
-    hash_3c7352ca(a_2 + 1, n_1, handlers, (handlers, b_3) => ((handlers, _ignored) => {
-      ((handlers, a2_4) => ((handlers, _ignored) => {
-        ((handlers, b2_5) => ((handlers, _ignored) => {
-          if (isSquare(a2_4 + b2_5)) {
-            done(handlers, intToString(a_2) + ":" + intToString(b_3));
-          } else {
+  hash_3c7352ca(m_0, n_1 - 1, handlers, (handlers, a_2) => {
+    hash_3c7352ca(a_2 + 1, n_1, handlers, (handlers, b_3) => {
+      ((handlers, a2_4) => {
+        ((handlers, b2_5) => {
+          isSquare(a2_4 + b2_5) ? done(handlers, intToString(a_2) + ":" + intToString(b_3)) : ((handlers, _ignored) => {
             ((handlers, _ignored) => {
-              ((handlers, _ignored) => {
-                hash_81318f70(handlers, (handlers, _ignored) => {
-                  done(handlers, "??? how did this return");
-                });
-              })(handlers, log("B: " + intToString(b_3) + " => " + intToString(b2_5)));
-            })(handlers, log("A: " + intToString(a_2) + " => " + intToString(a2_4)));
-          }
-        })(handlers))(handlers, b_3 * b_3);
-      })(handlers))(handlers, a_2 * a_2);
-    })(handlers));
-  })(handlers));
+              hash_81318f70(handlers, (handlers, _ignored) => {
+                done(handlers, "??? how did this return");
+              });
+            })(handlers, log("B: " + intToString(b_3) + " => " + intToString(b2_5)));
+          })(handlers, log("A: " + intToString(a_2) + " => " + intToString(a2_4)));
+        })(handlers, b_3 * b_3);
+      })(handlers, a_2 * a_2);
+    });
+  });
 };
 
 // handleFail.jd
@@ -529,11 +523,12 @@ const hash_038d5cba: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) =
 };
 
 // backtrack.jd
-const hash_69739bae_0: (() ={hash_4175b47c_0, hash_319e9190_0}> T_0) ={hash_319e9190_0}> T_0 = (
+const hash_66e40a12_0: (() ={hash_4175b47c_0, hash_319e9190_0}> T_0) ={hash_319e9190_0}> T_0 = (
     fn_0: () ={hash_4175b47c_0, hash_319e9190_0}> T_0,
 ) => {
     handle! fn_0 {
         0(() => k_1) => {
+            log("Backtrack decide please");
             <self>(() => hash_575fa754_0(() => k_1(true), () => k_1(false)));
         },
         pure(x_1) => x_1,
@@ -541,15 +536,17 @@ const hash_69739bae_0: (() ={hash_4175b47c_0, hash_319e9190_0}> T_0) ={hash_319e
 }
 
 // .ts
-const hash_69739bae: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (result: T_0) => void) => void = (fn_0: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (arg_0: T_0) => void) => {
+const hash_66e40a12: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (result: T_0) => void) => void = (fn_0: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (arg_0: T_0) => void) => {
   handleSimpleShallow2("4175b47c", fn_0, [(handlers, _, k_1) => {
-    hash_69739bae((handlers: any, done: (arg_0: T_0) => void) => {
-      hash_575fa754((handlers: any, done: (arg_0: T_0) => void) => {
-        k_1(true, handlers, done);
-      }, (handlers: any, done: (arg_0: T_0) => void) => {
-        k_1(false, handlers, done);
+    ((handlers, _ignored) => {
+      hash_66e40a12((handlers: any, done: (arg_0: T_0) => void) => {
+        hash_575fa754((handlers: any, done: (arg_0: T_0) => void) => {
+          k_1(true, handlers, done);
+        }, (handlers: any, done: (arg_0: T_0) => void) => {
+          k_1(false, handlers, done);
+        }, handlers, done);
       }, handlers, done);
-    }, handlers, done);
+    })(handlers, log("Backtrack decide please"));
   }], (handlers, x_1) => {
     done(handlers, x_1);
   }, handlers);
@@ -563,7 +560,7 @@ if isSquare(5) {
 }
 
 // .ts
-(() => {
+(function () {
   if (isSquare(5)) {
     return log("NO");
   } else {
@@ -573,12 +570,12 @@ if isSquare(5) {
 
 // .jd
 hash_23de3332_0(
-    hash_038d5cba_0(() => hash_69739bae_0(() => hash_2fe6af82_0(4, 15)), () => "No solution found"),
+    hash_038d5cba_0(() => hash_66e40a12_0(() => hash_2fe6af82_0(4, 15)), () => "No solution found"),
 ) == "5:12"
 
 // .ts
 hash_23de3332(hash_038d5cba((handlers: any, done: (arg_0: string) => void) => {
-  hash_69739bae((handlers: any, done: (arg_0: string) => void) => {
+  hash_66e40a12((handlers: any, done: (arg_0: string) => void) => {
     hash_2fe6af82(4, 15, handlers, done);
   }, handlers, done);
 }, () => "No solution found")) == "5:12";
@@ -639,13 +636,13 @@ const hash_bfbc479c_0: int = if 10 > 2 {
 }
 
 // .ts
-const hash_bfbc479c: number = (() => {
+const hash_bfbc479c: number = function () {
   if (10 > 2) {
     return 5;
   } else {
     return 4;
   }
-})();
+}();
 
 // y.jd
 const hash_92162e1c_0: (int) ={}> int = (h_0: int) => if h_0 < 10 {
@@ -689,10 +686,12 @@ const hash_176414dc_0: int = {
 }
 
 // .ts
-const hash_176414dc: number = (() => {
-  const y_0 = 10;
-  return y_0;
-})();
+const hash_176414dc: number = function () {
+  {
+    const y_0 = 10;
+    return y_0;
+  }
+}();
 
 // z.jd
 const hash_c49b4f30_0: (int) ={}> int = (n_0: int) => {

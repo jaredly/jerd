@@ -5,29 +5,23 @@
 import path from 'path';
 import fs from 'fs';
 import hashObject from 'hash-sum';
-import { type } from 'os';
-import cloner from 'rfdc';
-import parse, { Expression, Define, Toplevel } from './parser';
+import parse, { Toplevel } from './parser';
 import {
     declarationToAST,
-    declarationToString,
-    optimizeAST,
     printType,
-    removeTypescriptTypes,
     termToAST,
-    termToString,
     typeToString,
 } from './typeScriptPrinter';
+import { optimizeAST, removeTypescriptTypes } from './typeScriptOptimize';
 import typeExpr, { fitsExpectation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
-import { Env, newEnv, Term, Type, TypeConstraint, typesEqual } from './types';
-import { showType, unifyInTerm, unifyInType, unifyVariables } from './unify';
+import { Env, Term, TypeConstraint, typesEqual } from './types';
+import { showType, unifyInTerm, unifyVariables } from './unify';
 import { printToString } from './printer';
-import { declarationToPretty, termToPretty } from './printTsLike';
+import { declarationToPretty } from './printTsLike';
 import { typeDefine, typeEffect } from './env';
 
-import { presetEnv, prelude } from './preset';
-import { execSync } from 'child_process';
+import { presetEnv } from './preset';
 
 // const clone = cloner();
 
