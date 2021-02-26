@@ -72,7 +72,8 @@ export const prelude = [
                         }
                         fnsReturnPointer = returnIntoHandler;
                         // TODO: I think we can remove this filter, but I don't want to jinx it before I have a more complete test suite.
-                        returnIntoFn(currentHandlers.concat(newHandler).filter(h => h !== thisHandler), handlersValueToSend);
+                        returnIntoFn(currentHandlers.concat(newHandler), handlersValueToSend);
+                        // returnIntoFn(currentHandlers.concat(newHandler).filter(h => h !== thisHandler), handlersValueToSend);
                     },
                 );
             }}
@@ -80,7 +81,16 @@ export const prelude = [
                 (otherHandlers || []).concat(thisHandler),
                 (handlers, fnsReturnValue) => {
                     // do we always assume that "thisHandler" will be the final one? maybe? idk.
-                    fnsReturnPointer(handlers.filter(h => h !== thisHandler), fnsReturnValue)
+                    // const idx = handlers.indexOf(thisHandler)
+                    // const nHandlers = idx === -1 ? handlers : handlers.slice();
+                    // if (idx !== -1) {
+                    //     nHandlers.splice(idx, 1)
+                    // }
+                    // fnsReturnPointer(nHandlers, fnsReturnValue)
+                    // STOPSHIP: waiiiit I thought I needed to filter here? 🤔
+                    // Try to construct a thing where we definitely need to filter here
+                    fnsReturnPointer(handlers, fnsReturnValue)
+                    // fnsReturnPointer(handlers.filter(h => h !== thisHandler), fnsReturnValue)
                 },
             );
         };`,
