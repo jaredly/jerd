@@ -200,7 +200,7 @@ const fileToTypescript = (expressions: Array<Term>, env: Env) => {
                     t.importSpecifier(t.identifier(name), t.identifier(name)),
                 ),
             ],
-            t.stringLiteral('./prelude.js'),
+            t.stringLiteral('./prelude.mjs'),
         ),
     ];
 
@@ -287,9 +287,9 @@ const main = (fname: string) => {
 
     const buildDir = path.join(path.dirname(fname), 'build');
 
-    const dest = path.join(buildDir, path.basename(fname) + '.js');
+    const dest = path.join(buildDir, path.basename(fname) + '.mjs');
 
-    const mapName = path.basename(fname) + '.js.map';
+    const mapName = path.basename(fname) + '.mjs.map';
     fs.writeFileSync(
         path.join(buildDir, mapName),
         JSON.stringify(map, null, 2),
@@ -304,7 +304,7 @@ const main = (fname: string) => {
         '\n' +
         `export {log, raise, handleSimpleShallow2, isSquare, intToString}`;
     execSync(
-        `yarn -s esbuild --loader=ts > "${path.join(buildDir, 'prelude.js')}"`,
+        `yarn -s esbuild --loader=ts > "${path.join(buildDir, 'prelude.mjs')}"`,
         {
             input: preludeTS,
         },
