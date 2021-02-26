@@ -202,18 +202,20 @@ const removeBlocksWithNoDeclarations = (ast: t.File) => {
             const node = path.node;
             const res: Array<t.Statement> = [];
             let changed = false;
-            node.body.forEach((node, i) => {
-                if (node.type !== 'BlockStatement') {
-                    return res.push(node);
+            const count = node.body.length;
+            node.body.forEach((inner, i) => {
+                if (inner.type !== 'BlockStatement') {
+                    return res.push(inner);
                 }
-                const hasDeclares = node.body.some(
+                const hasDeclares = inner.body.some(
                     (n) => n.type === 'VariableDeclaration',
                 );
-                if (hasDeclares && i < node.body.length - 1) {
-                    return res.push(node);
+                if (hasDeclares && i < count - 1) {
+                    console.log(inner.body.length, i);
+                    return res.push(inner);
                 }
                 changed = true;
-                res.push(...node.body);
+                res.push(...inner.body);
             });
             // node.body = res;
             if (changed) {
