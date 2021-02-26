@@ -9,8 +9,21 @@
 - [x] simple-let. gotta have it
 - [x] type variables in type declarations
 - [x] effect handler return value fix
+- [ ] source maps!
 - [ ] verify that nested effects work
 - [ ] implement all the examples from the eff paper
+  - [x] basic (collect)
+  - [x] reverse
+  - [x] pickTrue
+  - [x] pickMax
+  - [ ] backtracking
+    - oof this has really bad time & space complexity.
+    - need to figure out what's going on.
+    - maybe stepping through with sourcemaps will work? maybe?
+    - or generating a trace of the execution? and some
+      way to visualize it?
+      I would love to have a diagram of the stack,
+      and handlers, and such. idk.
 - [ ] effect variables, cmon
 - [ ] records
   - [ ] basic

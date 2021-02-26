@@ -169,6 +169,8 @@ const flattenImmediateCallsToLets = (ast: t.File) => {
     traverse(ast, {
         CallExpression(path) {
             // Toplevel iffes definitely shouldn't be messed with.
+            // STOPSHIP: This should actually crawl up the chain to verify
+            // that we're in a function of some sort.
             if (path.parentPath.parent.type !== 'BlockStatement') {
                 return;
             }
@@ -181,19 +183,19 @@ const flattenImmediateCallsToLets = (ast: t.File) => {
                 path.parentPath.parent.body.length - 1
             ) {
                 // STOPSHIP: look through the body to see if there are any explicit returns.
+                // if not, then we don't have to bail here.
                 return;
             }
-            // ((a, b) => {})(c, d);
             if (
                 path.node.callee.type === 'ArrowFunctionExpression' &&
                 path.node.arguments.length === path.node.callee.params.length &&
                 path.node.callee.body.type === 'BlockStatement' &&
                 path.parent.type === 'ExpressionStatement' &&
                 path.node.arguments.every((n) => t.isExpression(n))
-                // t.isExpression(path.node.arguments[0])
             ) {
                 const args = path.node.arguments;
-                // path.parentPath.replaceWithMultiple([
+                // This block statement will get collapsed if it's safe
+                // to do so, by `removeBlocksWithoutDeclarations`.
                 path.parentPath.replaceWith(
                     t.blockStatement([
                         ...(path.node.callee.params
