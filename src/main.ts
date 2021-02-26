@@ -5,7 +5,7 @@
 import path from 'path';
 import fs from 'fs';
 import hashObject from 'hash-sum';
-import parse, { Toplevel } from './parser';
+import parse, { Location, Toplevel } from './parser';
 import {
     declarationToAST,
     printType,
@@ -15,13 +15,21 @@ import {
 import { optimizeAST, removeTypescriptTypes } from './typeScriptOptimize';
 import typeExpr, { fitsExpectation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
-import { Env, Term, TypeConstraint, typesEqual } from './types';
+import {
+    Env,
+    getEffects,
+    Reference,
+    Term,
+    Type,
+    TypeConstraint,
+    typesEqual,
+} from './types';
 import { showType, unifyInTerm, unifyVariables } from './unify';
 import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { typeDefine, typeEffect } from './env';
 
-import { presetEnv } from './preset';
+import { bool, presetEnv } from './preset';
 
 // const clone = cloner();
 
@@ -160,7 +168,11 @@ function typeFile(parsed: Toplevel[]) {
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 
-const fileToTypescript = (expressions: Array<Term>, env: Env) => {
+const fileToTypescript = (
+    expressions: Array<Term>,
+    env: Env,
+    assert: boolean,
+) => {
     // const out = prelude.slice();
 
     // const items: Array<t.Statement> = [
@@ -196,6 +208,8 @@ const fileToTypescript = (expressions: Array<Term>, env: Env) => {
                     'log',
                     'intToString',
                     'handleSimpleShallow2',
+                    'assert',
+                    'assertEqual',
                 ].map((name) =>
                     t.importSpecifier(t.identifier(name), t.identifier(name)),
                 ),
@@ -259,7 +273,65 @@ const fileToTypescript = (expressions: Array<Term>, env: Env) => {
         //     ),
         // );
     });
+
+    const callBuiltin = (
+        name: string,
+        argTypes: Array<Type>,
+        resType: Type,
+        args: Array<Term>,
+        location: Location | null,
+    ): Term => {
+        return {
+            type: 'apply',
+            target: {
+                type: 'ref',
+                ref: { type: 'builtin', name: name },
+                location,
+                is: {
+                    type: 'lambda',
+                    location,
+                    args: argTypes,
+                    res: resType,
+                    rest: null,
+                    typeVbls: [],
+                    effects: [],
+                },
+            },
+            args: args,
+            location,
+            effects: [],
+            is: resType,
+            argsEffects: ([] as Array<Reference>).concat(
+                ...args.map(getEffects),
+            ),
+        };
+    };
+
     expressions.forEach((term) => {
+        if (assert && typesEqual(env, term.is, bool)) {
+            if (
+                term.type === 'apply' &&
+                term.target.type === 'ref' &&
+                term.target.ref.type === 'builtin' &&
+                term.target.ref.name === '=='
+            ) {
+                term = callBuiltin(
+                    'assertEqual',
+                    (term.target.is as any).args,
+                    bool,
+                    term.args,
+                    term.location,
+                );
+            } else {
+                term = callBuiltin(
+                    'assert',
+                    [bool],
+                    bool,
+                    [term],
+                    term.location,
+                );
+            }
+        }
         items.push(termToAST(env, term, printType(env, term.is)));
         // out.push(`// ${printType(env, term.is)}`);
         // out.push(termToString(env, term) + ';');
@@ -273,12 +345,12 @@ const fileToTypescript = (expressions: Array<Term>, env: Env) => {
     return ast;
 };
 
-const main = (fname: string) => {
+const main = (fname: string, assert: boolean) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
     const { expressions, env } = typeFile(parsed);
-    const ast = fileToTypescript(expressions, env);
+    const ast = fileToTypescript(expressions, env, assert);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
@@ -319,7 +391,6 @@ const main = (fname: string) => {
     // );
 };
 
-import * as parser from '@babel/parser';
 import { execSync } from 'child_process';
 
 const runTests = () => {
@@ -331,5 +402,5 @@ const runTests = () => {
 if (process.argv[2] === '--test') {
     runTests();
 } else {
-    main(process.argv[2]);
+    main(process.argv[2], process.argv.includes('--assert'));
 }

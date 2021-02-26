@@ -969,6 +969,18 @@ if isSquare(5) {
 })();
 
 // .jd
+hash_fa4de11c_0(
+    hash_352fad72_0(() => hash_0551b1ec_0(() => hash_95263196_0(4, 12)), () => "No solution found"),
+) == "6:8"
+
+// .ts
+hash_fa4de11c(hash_352fad72((handlers: any, done: (arg_0: string) => void) => {
+  hash_0551b1ec((handlers: any, done: (arg_0: string) => void) => {
+    hash_95263196(4, 12, handlers, done);
+  }, handlers, done);
+}, () => "No solution found")) == "6:8";
+
+// .jd
 10
 
 // .ts

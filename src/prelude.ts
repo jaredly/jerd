@@ -25,6 +25,7 @@ const raise = (handlers, hash, idx, args, done) => {
     // throw new Error('effect not handled');
 
     // console.log('Raise!', hash, args);
+    // for (let i = 0; i < handlers.length; i++) {
     for (let i = handlers.length - 1; i >= 0; i--) {
         if (handlers[i].hash === hash) {
             const otherHandlers = handlers.slice();
@@ -118,6 +119,9 @@ const handleSimpleShallow2 = <Get, Set, R>(
                     // );
 
                     returnIntoFn(
+                        // currentHandlers.length
+                        //     ? newHandler.concat(currentHandlers)
+                        //     : newHandler,
                         currentHandlers.concat(newHandler),
                         handlersValueToSend,
                     );
@@ -128,6 +132,7 @@ const handleSimpleShallow2 = <Get, Set, R>(
     };
     fn(
         // LL: [thisHandler, otherHandlers],
+        // otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
         otherHandlers ? otherHandlers.concat([thisHandler]) : [thisHandler],
         (handlers, fnsReturnValue) => {
             // do we always assume that "thisHandler" will be the final one? maybe? idk.
@@ -139,8 +144,12 @@ const handleSimpleShallow2 = <Get, Set, R>(
             // fnsReturnPointer(nHandlers, fnsReturnValue)
             // STOPSHIP: waiiiit I thought I needed to filter here? 🤔
             // Try to construct a thing where we definitely need to filter here
-            fnsReturnPointer(handlers, fnsReturnValue);
-            // fnsReturnPointer(handlers.filter(h => h !== thisHandler), fnsReturnValue)
+
+            // fnsReturnPointer(handlers, fnsReturnValue);
+            fnsReturnPointer(
+                handlers.filter((h) => h !== thisHandler),
+                fnsReturnValue,
+            );
         },
     );
 };
@@ -151,4 +160,19 @@ const isSquare = (x) => {
 };
 const intToString = (x) => x.toString();
 
-export { log, isSquare, intToString, handleSimpleShallow2, raise };
+const assert = (x) => {
+    if (!x) {
+        throw new Error(`Assertion error.`);
+    }
+    return x;
+};
+
+const assertEqual = (a, b) => {
+    if (a != b) {
+        throw new Error(`Assertion error. ${a} should equal ${b}`);
+    }
+    return true;
+};
+
+export { log, isSquare, intToString, handleSimpleShallow2 };
+export { raise, assert, assertEqual };

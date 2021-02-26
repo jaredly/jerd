@@ -29,9 +29,9 @@ const examples = [
 const prelude = require('fs')
     .readFileSync(__dirname + '/../src/prelude.ts', 'utf8')
     .trim()
-    // Remove the "export" line
     .split('\n')
-    .slice(-1)
+    // Remove the "export" lines
+    .filter((x) => x.startsWith('export {'))
     .join('\n');
 
 const getText = (raw: string, location: Location) => {
