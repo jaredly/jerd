@@ -7,6 +7,8 @@ export const optimizeAST = (ast: t.File) => {
     unwrapIFFEs(ast);
     removeBlocksWithNoDeclarations(ast);
     removeBlocksWithNoDeclarations(ast);
+    flattenImmediateCallsToLets(ast);
+    removeBlocksWithNoDeclarations(ast);
 };
 
 const unwrapIFFEs = (ast: t.File) => {
@@ -166,31 +168,57 @@ export const removeTypescriptTypes = (ast: t.File) => {
 const flattenImmediateCallsToLets = (ast: t.File) => {
     traverse(ast, {
         CallExpression(path) {
+            // Toplevel iffes definitely shouldn't be messed with.
+            if (path.parentPath.parent.type !== 'BlockStatement') {
+                return;
+            }
+            // If we're not in tail position, don't bother?
+            // I mean, maybe bother. But only if there are no 'returns'
             if (
-                path.node.arguments.length === 1 &&
-                path.node.callee.type === 'ArrowFunctionExpression'
+                path.parentPath.parent.body.indexOf(
+                    path.parent as t.Statement,
+                ) <
+                path.parentPath.parent.body.length - 1
             ) {
-                const name =
-                    path.node.callee.params[0].type === 'Identifier'
-                        ? path.node.callee.params[0].name
-                        : 'unknown';
-                if (
-                    path.node.callee.body.type === 'BlockStatement' &&
-                    path.parent.type === 'ExpressionStatement' &&
-                    t.isExpression(path.node.arguments[0])
-                ) {
-                    path.parentPath.replaceWithMultiple([
-                        name === '_ignored'
-                            ? t.expressionStatement(path.node.arguments[0])
-                            : t.variableDeclaration('const', [
-                                  t.variableDeclarator(
-                                      t.identifier(name),
-                                      path.node.arguments[0],
-                                  ),
-                              ]),
+                // STOPSHIP: look through the body to see if there are any explicit returns.
+                return;
+            }
+            // ((a, b) => {})(c, d);
+            if (
+                path.node.callee.type === 'ArrowFunctionExpression' &&
+                path.node.arguments.length === path.node.callee.params.length &&
+                path.node.callee.body.type === 'BlockStatement' &&
+                path.parent.type === 'ExpressionStatement' &&
+                path.node.arguments.every((n) => t.isExpression(n))
+                // t.isExpression(path.node.arguments[0])
+            ) {
+                const args = path.node.arguments;
+                // path.parentPath.replaceWithMultiple([
+                path.parentPath.replaceWith(
+                    t.blockStatement([
+                        ...(path.node.callee.params
+                            .map((param, i) => {
+                                const arg = args[i] as t.Expression;
+                                const name =
+                                    param.type === 'Identifier'
+                                        ? param.name
+                                        : 'unknown';
+                                if (equalIdentifiers(param, arg)) {
+                                    return null;
+                                }
+                                return name === '_ignored'
+                                    ? t.expressionStatement(arg)
+                                    : t.variableDeclaration('const', [
+                                          t.variableDeclarator(
+                                              t.identifier(name),
+                                              arg,
+                                          ),
+                                      ]);
+                            })
+                            .filter(Boolean) as Array<t.Statement>),
                         path.node.callee.body,
-                    ]);
-                }
+                    ]),
+                );
             }
         },
     });
