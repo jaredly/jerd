@@ -1,4 +1,5 @@
 const log = console.log;
+
 const raise = (handlers, hash, idx, args, done) => {
     // Linked list it up!!
 
@@ -25,8 +26,8 @@ const raise = (handlers, hash, idx, args, done) => {
     // throw new Error('effect not handled');
 
     // console.log('Raise!', hash, args);
-    // for (let i = 0; i < handlers.length; i++) {
-    for (let i = handlers.length - 1; i >= 0; i--) {
+    for (let i = 0; i < handlers.length; i++) {
+        // for (let i = handlers.length - 1; i >= 0; i--) {
         if (handlers[i].hash === hash) {
             const otherHandlers = handlers.slice();
             otherHandlers.splice(i, 1);
@@ -35,6 +36,33 @@ const raise = (handlers, hash, idx, args, done) => {
         }
     }
 };
+
+// const raise = (handlers, hash, idx, args, done) => {
+//     // Linked list it up!!
+
+//     let prev: LinkedList<Handler> = null;
+//     while (handlers != null) {
+//         // OOOOooohhhhhh should I modify "done"?
+//         // Like, reattach the prev at that point???
+//         // maybe.
+//         if (handlers[0].hash !== hash) {
+//             prev = [handlers[0], prev];
+//             handlers = handlers[1];
+//             continue;
+//         }
+
+//         const handler = handlers[0];
+//         let otherHandlers = handlers[1];
+//         // Recreate the top of the stack
+//         while (prev != null) {
+//             otherHandlers = [prev[0], otherHandlers];
+//             prev = prev[1];
+//         }
+//         handler.fn(otherHandlers, idx, args, done);
+//     }
+//     throw new Error('effect not handled');
+// };
+
 type LinkedList<T> = null | [T, LinkedList<T>];
 
 type Handler = { hash: string; fn: ShallowHandler<any, any> };
@@ -119,10 +147,10 @@ const handleSimpleShallow2 = <Get, Set, R>(
                     // );
 
                     returnIntoFn(
-                        // currentHandlers.length
-                        //     ? newHandler.concat(currentHandlers)
-                        //     : newHandler,
-                        currentHandlers.concat(newHandler),
+                        currentHandlers.length
+                            ? newHandler.concat(currentHandlers)
+                            : newHandler,
+                        // currentHandlers.concat(newHandler),
                         handlersValueToSend,
                     );
                     // returnIntoFn(currentHandlers.concat(newHandler).filter(h => h !== thisHandler), handlersValueToSend);
@@ -132,8 +160,8 @@ const handleSimpleShallow2 = <Get, Set, R>(
     };
     fn(
         // LL: [thisHandler, otherHandlers],
-        // otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
-        otherHandlers ? otherHandlers.concat([thisHandler]) : [thisHandler],
+        otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
+        // otherHandlers ? otherHandlers.concat([thisHandler]) : [thisHandler],
         (handlers, fnsReturnValue) => {
             // do we always assume that "thisHandler" will be the final one? maybe? idk.
             // const idx = handlers.indexOf(thisHandler)
