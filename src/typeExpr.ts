@@ -9,13 +9,16 @@ import {
     Case,
     LambdaType,
     Let,
+    typesEqual,
+    refsEqual,
+    symbolsEqual,
 } from './types';
-import { Expression, Statement } from './parser';
-import deepEqual from 'fast-deep-equal';
+import { Expression, Location, Statement } from './parser';
 import { subEnv } from './types';
 import typeType, { newTypeVbl, walkType } from './typeType';
 import { showType } from './unify';
 import { void_, bool } from './preset';
+import { items } from './printer';
 
 export const walkTerm = (
     term: Term | Let,
@@ -56,17 +59,23 @@ export const walkTerm = (
 // };
 
 // TODO type-directed resolution pleaseeeee
-const resolveIdentifier = (env: Env, text: string): Term | null => {
+const resolveIdentifier = (
+    env: Env,
+    text: string,
+    location: Location,
+): Term | null => {
     if (env.local.locals[text]) {
         const { sym, type } = env.local.locals[text];
         return {
             type: 'var',
+            location,
             sym,
             is: type,
         };
     }
     if (env.local.self && text === env.local.self.name) {
         return {
+            location,
             type: 'self',
             is: env.local.self.type,
         };
@@ -77,6 +86,7 @@ const resolveIdentifier = (env: Env, text: string): Term | null => {
         // console.log(`${text} : its a global: ${showType(term.is)}`);
         return {
             type: 'ref',
+            location,
             ref: {
                 type: 'user',
                 id,
@@ -88,6 +98,7 @@ const resolveIdentifier = (env: Env, text: string): Term | null => {
         const type = env.global.builtins[text];
         return {
             type: 'ref',
+            location,
             is: type,
             ref: { type: 'builtin', name: text },
         };
@@ -133,10 +144,10 @@ const applyTypeVariables = (env: Env, type: Type, vbls: Array<Type>): Type => {
         return {
             ...type,
             typeVbls: [], // TODO allow partial application!
-            args: type.args.map((t) => subtTypeVars(t, vbls)),
+            args: type.args.map((t) => subtTypeVars(t, mapping)),
             // TODO effects with type vars!
             rest: null, // TODO rest args
-            res: subtTypeVars(type.res, vbls),
+            res: subtTypeVars(type.res, mapping),
         };
     }
     // should I go full-on whatsit? maybe not yet.
@@ -161,13 +172,23 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return {
                 type: 'int',
                 value: expr.value,
-                is: { type: 'ref', ref: { type: 'builtin', name: 'int' } },
+                location: expr.location,
+                is: {
+                    type: 'ref',
+                    location: expr.location,
+                    ref: { type: 'builtin', name: 'int' },
+                },
             };
         case 'string':
             return {
                 type: 'string',
                 text: expr.text,
-                is: { type: 'ref', ref: { type: 'builtin', name: 'string' } },
+                location: expr.location,
+                is: {
+                    location: expr.location,
+                    type: 'ref',
+                    ref: { type: 'builtin', name: 'string' },
+                },
             };
         case 'block': {
             const inner: Array<Term | Let> = [];
@@ -196,6 +217,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     innerEnv.local.locals[item.id.text] = { sym, type };
                     inner.push({
                         type: 'Let',
+                        location: item.location,
+                        // location: expr.location,
                         binding: sym,
                         value,
                         is: void_,
@@ -209,6 +232,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return {
                 type: 'sequence',
                 sts: inner,
+                location: expr.location,
                 effects: dedupEffects(
                     ([] as Array<Reference>).concat(...inner.map(getEffects)),
                 ),
@@ -231,6 +255,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 cond,
                 yes,
                 no,
+                location: expr.location,
                 effects: dedupEffects([
                     ...getEffects(cond),
                     ...getEffects(yes),
@@ -243,7 +268,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             // ok, left associative, right? I think so.
             let left: Term = typeExpr(env, expr.first);
             expr.rest.forEach(({ op, right }) => {
-                const is = env.global.builtins[op];
+                let is = env.global.builtins[op];
                 if (!is) {
                     throw new Error(`Unexpected binary op ${op}`);
                 }
@@ -254,6 +279,16 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     throw new Error(`${op} is not a binary function`);
                 }
                 const rarg = typeExpr(env, right);
+
+                if (is.typeVbls.length === 1) {
+                    if (!typesEqual(env, left.is, rarg.is)) {
+                        throw new Error(
+                            `Binops must have same-typed arguments`,
+                        );
+                    }
+                    is = applyTypeVariables(env, is, [left.is]) as LambdaType;
+                }
+
                 if (fitsExpectation(env, left.is, is.args[0]) !== true) {
                     throw new Error(`first arg to ${op} wrong type`);
                 }
@@ -262,7 +297,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 }
                 left = {
                     type: 'apply',
+                    location: null,
                     target: {
+                        location: null,
                         type: 'ref',
                         ref: { type: 'builtin', name: op },
                         is,
@@ -302,6 +339,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     is = {
                         type: 'lambda',
                         typeVbls: [],
+                        location: null,
                         args: argTypes,
                         effects: [], // STOPSHIP add effect vbls
                         res: newTypeVbl(env),
@@ -351,6 +389,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
 
                 target = {
                     type: 'apply',
+                    // STOPSHIP(sourcemap): this should be better
+                    location: target.location,
                     target,
                     args: resArgs,
                     effects: is.effects,
@@ -361,7 +401,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return target;
         }
         case 'id': {
-            const term = resolveIdentifier(env, expr.text);
+            const term = resolveIdentifier(env, expr.text, expr.location);
             if (term != null) {
                 // console.log(`${expr.text} : ${showType(term.is)}`);
                 return term;
@@ -430,7 +470,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 }
                 for (let inner of effects) {
                     if (
-                        !declaredEffects.some((item) => deepEqual(item, inner))
+                        !declaredEffects.some((item) => refsEqual(item, inner))
                     ) {
                         throw new Error(
                             `Function declared with explicit effects, but without ${JSON.stringify(
@@ -447,8 +487,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'lambda',
                 args,
                 body,
+                location: expr.location,
                 is: {
                     type: 'lambda',
+                    location: expr.location,
                     typeVbls,
                     effects: dedupEffects(effects),
                     args: argst,
@@ -476,7 +518,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 id: { hash: effId, size: 1, pos: 0 },
             };
             const effects = getEffects(target).filter(
-                (e) => !deepEqual(effect, e),
+                (e) => !refsEqual(effect, e),
             );
             const otherEffects = effects.concat(effect);
 
@@ -521,6 +563,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     sym: k,
                     type: {
                         type: 'lambda',
+                        location: kase.location,
                         typeVbls: [],
                         args: isVoid(constr.ret) ? [] : [constr.ret],
                         effects: otherEffects,
@@ -530,7 +573,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 };
 
                 const body = typeExpr(inner, kase.body);
-                if (!deepEqual(body.is, pure.is)) {
+                if (!typesEqual(env, body.is, pure.is)) {
                     throw new Error(
                         `All case arms must have the same return type: ${showType(
                             body.is,
@@ -550,6 +593,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'handle',
                 target,
                 effect,
+                location: expr.location,
                 effects: dedupEffects(effects),
                 cases,
                 pure: { arg: sym, body: pure },
@@ -592,6 +636,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
 
             return {
                 type: 'raise',
+                location: expr.location,
                 ref,
                 idx: effid.idx,
                 argsEffects,
@@ -612,7 +657,11 @@ const isVoid = (x: Type) => {
     );
 };
 
-const int: Type = { type: 'ref', ref: { type: 'builtin', name: 'int' } };
+const int: Type = {
+    type: 'ref',
+    ref: { type: 'builtin', name: 'int' },
+    location: null,
+};
 
 type UnificationResult = true | false | Symbol;
 
@@ -625,6 +674,10 @@ export const fitsExpectation = (
 ): UnificationResult => {
     if (t.type === 'var' && env != null) {
         // if (env.local.typeVbls[])
+        if (typesEqual(env, t, target)) {
+            return true;
+        }
+        // if (target.type === 'var')
         if (!env.local.tmpTypeVbls[t.sym.unique]) {
             throw new Error(
                 `Explicit type variable ${t.sym.name}#${
@@ -642,9 +695,11 @@ export const fitsExpectation = (
     if (target.type === 'var' && env != null) {
         if (!env.local.tmpTypeVbls[target.sym.unique]) {
             throw new Error(
-                `Unable to unify ${showType(t)} with type variable ${
-                    target.sym.name
-                }#${target.sym.unique}`,
+                `Unable to unify ${showType(t)} ${
+                    t.location
+                } with type variable ${target.sym.name}#${target.sym.unique} ${
+                    t.location
+                }`,
             );
         }
         env.local.tmpTypeVbls[target.sym.unique].push({
@@ -661,16 +716,15 @@ export const fitsExpectation = (
     switch (t.type) {
         case 'var':
             if (target.type === 'var') {
-                if (!deepEqual(t.sym, target.sym)) {
+                if (!symbolsEqual(t.sym, target.sym)) {
                     return target.sym;
                 }
                 return true;
             }
-            // if (deepEqual(t.sym, other))
             console.log('env is null I guess');
             return false;
         case 'ref':
-            return deepEqual(t, target);
+            return env ? typesEqual(env, t, target) : false;
         case 'lambda':
             if (target.type !== 'lambda') {
                 return false;
@@ -689,7 +743,7 @@ export const fitsExpectation = (
             // Is target allowed to have more, or fewer effects than t?
             // more. t's effects list must be a strict subset.
             t.effects.forEach((e) => {
-                if (!target.effects.some((ef) => deepEqual(ef, e))) {
+                if (!target.effects.some((ef) => refsEqual(ef, e))) {
                     throw new Error(
                         `Argument has effect ${JSON.stringify(
                             e,

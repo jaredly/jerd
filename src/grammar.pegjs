@@ -10,7 +10,7 @@ ok nvm, no go. would be cool though.
 
 */
 
-File = _ s:(Toplevel _)+ {return s.map(s => s[0])}
+File = _ s:(Toplevel _)+ finalLineComment? {return s.map(s => s[0])}
 
 Toplevel = Effect / Statement
 
@@ -69,7 +69,7 @@ Handle = "handle!" _ target:Expression _ "{" _
     }}
 
 Case = name:Identifier "." constr:Identifier _ "(" _ "(" _ args:CommaPat? _ ")" _ "=>" _ k:Identifier _ ")" _ "=>" _ body:Expression _ "," {
-	return {type: 'case', name, constr, args: args || [], k, body}
+	return {type: 'case', name, constr, args: args || [], k, body, location: location()}
 }
 Pat = Identifier
 CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map(r => r[3])]}
@@ -114,6 +114,7 @@ LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaType? _ ")" 
     type: 'lambda',
     args: args || [],
     typevbls: typevbls || [],
+    location: location(),
     effvbls: effvbls || [],
     effects: effects ? effects[2] || [] : [] , res} }
 CommaEffects =
@@ -132,7 +133,7 @@ Literal = Int / Identifier / String
 
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
-String = "\"" ( "\\" . / [^"\\])+ "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
+String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
 Identifier = [0-9a-zA-Z_]+ {return {type: "id", text: text(), location: location()}}
 
 _ "whitespace"
@@ -142,3 +143,4 @@ __ "whitespace"
 comment = multiLineComment / lineComment
 multiLineComment = "/*" (!"*/" .)* "*/"
 lineComment = "//" (!"\n" .)* "\n"
+finalLineComment = "//" (!"\n" .)*

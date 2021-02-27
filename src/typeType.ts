@@ -34,6 +34,7 @@ export const walkType = (
             return {
                 type: 'lambda',
                 typeVbls: term.typeVbls.slice(),
+                location: term.location,
                 args: newArgs,
                 effects: term.effects, // STOPSHIP bring them in
                 res: newres || term.res,
@@ -47,7 +48,11 @@ export const walkType = (
 export const newTypeVbl = (env: Env): Type => {
     const unique = Object.keys(env.local.tmpTypeVbls).length;
     env.local.tmpTypeVbls[unique] = [];
-    return { type: 'var', sym: { unique, name: 'var_' + unique } };
+    return {
+        type: 'var',
+        sym: { unique, name: 'var_' + unique },
+        location: null,
+    };
 };
 
 const typeType = (env: Env, type: ParseType | null): Type => {
@@ -61,6 +66,7 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 return {
                     type: 'var',
                     sym: env.local.typeVbls[type.text],
+                    location: type.location,
                 };
             }
             if (env.global.typeNames[type.text] != null) {
@@ -70,12 +76,14 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                         type: 'user',
                         id: env.global.typeNames[type.text],
                     },
+                    location: type.location,
                 };
             }
             if (env.global.builtinTypes[type.text] != null) {
                 return {
                     type: 'ref',
                     ref: { type: 'builtin', name: type.text },
+                    location: type.location,
                 };
             }
             throw new Error(`Unknown type "${type.text}"`);
@@ -95,6 +103,7 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 type: 'lambda',
                 args: type.args.map((a) => typeType(typeInner, a)),
                 typeVbls,
+                location: type.location,
                 effects: type.effects.map((id) => {
                     if (!env.global.effectNames[id.text]) {
                         throw new Error(`No effect named ${id.text}`);

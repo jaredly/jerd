@@ -2,7 +2,7 @@
 
 import { parse } from '../src/grammar';
 import { typeDefine, typeEffect } from '../src/env';
-import { bool, prelude, presetEnv } from '../src/preset';
+import { bool, presetEnv } from '../src/preset';
 import fs from 'fs';
 import { printToString } from '../src/printer';
 import { declarationToPretty, termToPretty } from '../src/printTsLike';
@@ -20,11 +20,19 @@ const examples = [
     require('./basic-effects.jd'),
     require('./inference.jd'),
     require('./generics.jd'),
-    require('./ifs.jd'),
+    require('./conditionals.jd'),
     require('./lets.jd'),
     require('./basics.jd'),
     require('./eff-paper.jd'),
 ];
+
+const prelude = require('fs')
+    .readFileSync(__dirname + '/../src/prelude.ts', 'utf8')
+    .trim()
+    .split('\n')
+    // Remove the "export" lines
+    .filter((x) => x.startsWith('export {'))
+    .join('\n');
 
 const getText = (raw: string, location: Location) => {
     return raw.slice(location.start.offset, location.end.offset);
@@ -34,7 +42,6 @@ describe('Example files', () => {
     examples.forEach(({ src, filename }) => {
         it(path.basename(filename), () => {
             const env = presetEnv();
-            // const raw = fs.readFileSync(__dirname + '/' + name, 'utf8');
             const raw = src;
 
             const items: Array<string> = [];
@@ -121,7 +128,7 @@ describe('Test Files', () => {
             let vmEnv;
             beforeAll(() => {
                 vmEnv = vm.createContext({ console });
-                vm.runInContext(tsToJs(prelude.join('\n\n')), vmEnv);
+                vm.runInContext(tsToJs(prelude), vmEnv);
             });
 
             const env = presetEnv();

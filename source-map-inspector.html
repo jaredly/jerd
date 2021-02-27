@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf8" />
+    <title>Sourcemap Inspector</title>
+</head>
+<body>
+    <script src="https://unpkg.com/source-map@0.7.3/dist/source-map.js"></script>
+    <!-- <script>
+        sourceMap.SourceMapConsumer.initialize({
+            "lib/mappings.wasm": "https://unpkg.com/source-map@0.7.3/lib/mappings.wasm"
+        });
+    </script> -->
+
+    Source file:
+    <input type="file" id="sourcefile" />
+    Generated file:
+    <input type="file" id="genfile" />
+    Source map file:
+    <input type="file" id="sourcemap" />
+
+    <pre id="gen_out" style="font-family: monospace"></pre>
+
+    <button id="save">Save</button>
+    <button id="process">Process</button>
+
+    <script>
+        sourceMap.SourceMapConsumer.initialize({
+            'lib/mappings.wasm':
+                'https://unpkg.com/source-map@0.7.3/lib/mappings.wasm',
+        });
+
+        const process = async () => {
+            const [source, gen, mapraw] = await Promise.all([
+                window.sourcefile.files[0].text(),
+                window.genfile.files[0].text(),
+                window.sourcemap.files[0].text(),
+            ]);
+            localStorage.source = source;
+            localStorage.gen = gen;
+            localStorage.mapraw = mapraw;
+        };
+        window.save.onclick = process;
+        const run = async () => {
+            const source = localStorage.source;
+            const gen = localStorage.gen;
+            const mapraw = localStorage.mapraw;
+            // const [source, gen, mapraw] = await Promise.all([
+            //     window.sourcefile.files[0].text(),
+            //     window.genfile.files[0].text(),
+            //     window.sourcemap.files[0].text(),
+            // ]);
+            const map = JSON.parse(mapraw);
+            const consumer = await sourceMap.SourceMapConsumer.with(
+                map,
+                null,
+                (consumer) => consumer,
+            );
+            const mappings = [];
+            consumer.eachMapping((mapping) => mappings.push(mapping));
+            window.mappings = mappings;
+
+            const lines = gen.split('\n');
+
+            const positions = new Array(lines.length);
+            lines.forEach((line, i) => {
+                positions[i] = new Array(line.length);
+                positions[i].fill(0);
+            });
+            mappings.forEach(({ generatedLine, generatedColumn }) => {
+                positions[generatedLine - 1][generatedColumn] += 1;
+            });
+
+            let out = '';
+            let lev = 0;
+            lines.forEach((line, i) => {
+                for (let j = 0; j < line.length; j++) {
+                    if (positions[i][j] === lev) {
+                        out += line[j];
+                    } else {
+                        if (lev !== 0) {
+                            out += '</span>';
+                        }
+                        lev = positions[i][j];
+                        const color = `rgba(0, 255, 0, ${Math.min(
+                            1,
+                            lev / 5,
+                        ).toFixed(2)})`;
+                        out += `<span class="used-${lev}" style="background-color: ${color}">${line[j]}`;
+                    }
+                }
+                out += '\n';
+            });
+            if (lev !== 0) {
+                out += '</span>';
+            }
+            window.gen_out.innerHTML = out;
+        };
+
+        window.process.onclick = () => {
+            run();
+        };
+    </script>
+</body>

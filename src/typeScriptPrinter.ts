@@ -9,18 +9,41 @@ import {
     Let,
     Var,
 } from './types';
+import { Location } from './parser';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import traverse from '@babel/traverse';
 import { binOps } from './preset';
 import { env } from 'process';
 import { showType } from './unify';
+import { optimizeAST } from './typeScriptOptimize';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
 
+// export const comment = (node: t.Node, text: string) => t.addComment()
+
+function withLocation<
+    T extends { start: number | null; end: number | null; loc: any }
+>(v: T, loc: Location | null): T {
+    if (loc == null) {
+        return v;
+    }
+    v.start = loc.start.offset;
+    v.end = loc.end.offset;
+    v.loc = { start: loc.start, end: loc.end };
+    return v;
+}
+
 export const termToString = (env: Env, term: Term): string => {
-    return generate(printTerm(env, term)).code;
+    // const ast = printTerm(env, term)
+    // return generate(ast).code;
+
+    const ast = t.file(
+        t.program([t.expressionStatement(printTerm(env, term))], [], 'script'),
+    );
+    optimizeAST(ast);
+    return generate(ast).code;
 };
 
 export const printType = (env: Env, type: Type): string => {
@@ -37,7 +60,9 @@ export const printType = (env: Env, type: Type): string => {
                 args += ', ...' + printType(env, type.rest);
             }
             const effects = type.effects
-                .map((t) => printType(env, { type: 'ref', ref: t }))
+                .map((t) =>
+                    printType(env, { type: 'ref', ref: t, location: null }),
+                )
                 .join(', ');
             return `(${args}) =${
                 effects ? '(' + effects + ')' : ''
@@ -168,19 +193,25 @@ export const printLambdaBody = (
 ): t.BlockStatement | t.Expression => {
     if (cps == null) {
         if (term.type === 'sequence') {
-            return t.blockStatement(
-                term.sts.map((s, i) =>
-                    s.type === 'Let'
-                        ? t.variableDeclaration('const', [
-                              t.variableDeclarator(
-                                  t.identifier(printSym(s.binding)),
-                                  printTerm(env, s.value),
-                              ),
-                          ])
-                        : i === term.sts.length - 1
-                        ? t.returnStatement(printTerm(env, s))
-                        : t.expressionStatement(printTerm(env, s)),
+            return withLocation(
+                t.blockStatement(
+                    term.sts.map((s, i) =>
+                        withLocation(
+                            s.type === 'Let'
+                                ? t.variableDeclaration('const', [
+                                      t.variableDeclarator(
+                                          t.identifier(printSym(s.binding)),
+                                          printTerm(env, s.value),
+                                      ),
+                                  ])
+                                : i === term.sts.length - 1
+                                ? t.returnStatement(printTerm(env, s))
+                                : t.expressionStatement(printTerm(env, s)),
+                            s.location,
+                        ),
+                    ),
                 ),
+                term.location,
             );
         } else {
             return printTerm(env, term);
@@ -198,11 +229,17 @@ export const printLambdaBody = (
                 if (i > 0) {
                     inner = t.arrowFunctionExpression(
                         [t.identifier('handlers'), t.identifier('_ignored')],
-                        t.blockStatement([
-                            t.expressionStatement(
-                                termToAstCPS(env, term.sts[i], inner),
-                            ),
-                        ]),
+                        withLocation(
+                            t.blockStatement([
+                                withLocation(
+                                    t.expressionStatement(
+                                        termToAstCPS(env, term.sts[i], inner),
+                                    ),
+                                    term.sts[i].location,
+                                ),
+                            ]),
+                            term.sts[i].location,
+                        ),
                     );
                 } else {
                     inner = termToAstCPS(env, term.sts[i], inner);
@@ -228,107 +265,43 @@ export const printLambdaBody = (
     }
 };
 
-const unwrapIFFEs = (ast: t.File) => {
-    traverse(ast, {
-        CallExpression(path) {
-            if (
-                path.node.arguments.length === 0 &&
-                path.node.callee.type === 'ArrowFunctionExpression'
-            ) {
-                // if we're in a return statement, we can just back up
-                // although need to ensure that CPS doesn't break
-                if (
-                    path.parent.type === 'ReturnStatement' ||
-                    (path.parent.type === 'ExpressionStatement' &&
-                        path.parentPath.parent.type === 'BlockStatement' &&
-                        path.parentPath.parent.body.length === 1)
-                ) {
-                    if (path.node.callee.body.type === 'BlockStatement') {
-                        path.parentPath.replaceWithMultiple(
-                            path.node.callee.body.body,
-                        );
-                    } else {
-                        path.parentPath.replaceWith(
-                            t.returnStatement(path.node.callee.body),
-                        );
-                    }
-                } else if (path.parent.type === 'ArrowFunctionExpression') {
-                    path.replaceWith(path.node.callee.body);
-                } else if (
-                    path.node.callee.body.type === 'BlockStatement' &&
-                    path.node.callee.body.body.length === 1 &&
-                    path.node.callee.body.body[0].type === 'ReturnStatement'
-                ) {
-                    path.replaceWith(
-                        path.node.callee.body.body[0].argument ||
-                            t.nullLiteral(),
-                    );
-                }
-                // if we're the body if a lambda, we can just replace with self
-            }
-        },
-    });
+export const termToAST = (
+    env: Env,
+    term: Term,
+    comment?: string,
+): t.Statement => {
+    let res = withLocation(
+        t.expressionStatement(printTerm(env, term)),
+        term.location,
+    );
+    if (comment) {
+        res = t.addComment(res, 'leading', comment);
+    }
+    return res;
 };
 
-const flattenImmediateCallsToLets = (ast: t.File) => {
-    traverse(ast, {
-        CallExpression(path) {
-            if (
-                path.node.arguments.length === 1 &&
-                path.node.callee.type === 'ArrowFunctionExpression'
-            ) {
-                const name =
-                    path.node.callee.params[0].type === 'Identifier'
-                        ? path.node.callee.params[0].name
-                        : 'unknown';
-                if (
-                    path.node.callee.body.type === 'BlockStatement' &&
-                    path.parent.type === 'ExpressionStatement' &&
-                    t.isExpression(path.node.arguments[0])
-                ) {
-                    path.parentPath.replaceWithMultiple([
-                        name === '_ignored'
-                            ? t.expressionStatement(path.node.arguments[0])
-                            : t.variableDeclaration('const', [
-                                  t.variableDeclarator(
-                                      t.identifier(name),
-                                      path.node.arguments[0],
-                                  ),
-                              ]),
-                        path.node.callee.body,
-                    ]);
-                }
-            }
-        },
-    });
+export const declarationToAST = (
+    env: Env,
+    hash: string,
+    term: Term,
+    comment?: string,
+): t.VariableDeclaration => {
+    let res = t.variableDeclaration('const', [
+        t.variableDeclarator(
+            {
+                ...t.identifier('hash_' + hash),
+                typeAnnotation: t.tsTypeAnnotation(typeToAst(env, term.is)),
+            },
+            printTerm(env, term),
+        ),
+    ]);
+    if (comment) {
+        res = t.addComment(res, 'leading', comment);
+    }
+    return res;
 };
 
-const removeBlocksWithNoDeclarations = (ast: t.File) => {
-    traverse(ast, {
-        BlockStatement(path) {
-            const node = path.node;
-            const res: Array<t.Statement> = [];
-            let changed = false;
-            node.body.forEach((node) => {
-                if (node.type !== 'BlockStatement') {
-                    return res.push(node);
-                }
-                const hasDeclares = node.body.some(
-                    (n) => n.type === 'VariableDeclaration',
-                );
-                if (hasDeclares) {
-                    return res.push(node);
-                }
-                changed = true;
-                res.push(...node.body);
-            });
-            // node.body = res;
-            if (changed) {
-                path.replaceWith(t.blockStatement(res));
-            }
-        },
-    });
-};
+// export const generateFile
 
 export const declarationToString = (
     env: Env,
@@ -336,28 +309,9 @@ export const declarationToString = (
     term: Term,
 ): string => {
     const ast = t.file(
-        t.program(
-            [
-                t.variableDeclaration('const', [
-                    t.variableDeclarator(
-                        {
-                            ...t.identifier('hash_' + hash),
-                            typeAnnotation: t.tsTypeAnnotation(
-                                typeToAst(env, term.is),
-                            ),
-                        },
-                        printTerm(env, term),
-                    ),
-                ]),
-            ],
-            [],
-            'script',
-        ),
+        t.program([declarationToAST(env, hash, term)], [], 'script'),
     );
-    flattenImmediateCallsToLets(ast);
-    removeBlocksWithNoDeclarations(ast);
-    unwrapIFFEs(ast);
-    // return prettier.format('.', { parser: () => ast });
+    optimizeAST(ast);
     return generate(ast).code;
 };
 
@@ -386,8 +340,16 @@ const isSimpleBuiltin = (name: string) => {
     return binOps.includes(name);
 };
 
-// cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 export const termToAstCPS = (
+    env: Env,
+    term: Term | Let,
+    done: t.Expression,
+): t.Expression => {
+    return withLocation(_termToAstCPS(env, term, done), term.location);
+};
+
+// cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
+const _termToAstCPS = (
     env: Env,
     term: Term | Let,
     done: t.Expression,
@@ -648,6 +610,7 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
     const args: Array<Var> = arg.is.args.map((t, i) => ({
         type: 'var',
         is: t,
+        location: null,
         sym: {
             unique: env.local.unique++,
             name: `arg_${i}`,
@@ -660,8 +623,10 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
             ...arg.is,
             effects: t.effects,
         },
+        location: arg.location,
         body: {
             type: 'apply',
+            location: arg.location,
             args,
             target: arg,
             argsEffects: [],
@@ -696,6 +661,10 @@ const iffe = (st: t.BlockStatement): t.Expression => {
 };
 
 export const printTerm = (env: Env, term: Term): t.Expression => {
+    return withLocation(_printTerm(env, term), term.location);
+};
+
+const _printTerm = (env: Env, term: Term): t.Expression => {
     switch (term.type) {
         // these will never need effects, immediate is fine
         case 'self':
@@ -754,7 +723,9 @@ export const printTerm = (env: Env, term: Term): t.Expression => {
                                         typeVbls: [],
                                         effects: [],
                                         rest: null,
+                                        location: null,
                                         res: {
+                                            location: null,
                                             type: 'ref',
                                             ref: {
                                                 type: 'builtin',

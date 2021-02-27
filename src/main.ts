@@ -5,26 +5,31 @@
 import path from 'path';
 import fs from 'fs';
 import hashObject from 'hash-sum';
-import { type } from 'os';
-import cloner from 'rfdc';
-import parse, { Expression, Define, Toplevel } from './parser';
+import parse, { Location, Toplevel } from './parser';
 import {
-    declarationToString,
+    declarationToAST,
     printType,
-    termToString,
+    termToAST,
     typeToString,
 } from './typeScriptPrinter';
+import { optimizeAST, removeTypescriptTypes } from './typeScriptOptimize';
 import typeExpr, { fitsExpectation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
-import { Env, newEnv, Term, Type, TypeConstraint } from './types';
-import { showType, unifyInTerm, unifyInType, unifyVariables } from './unify';
+import {
+    Env,
+    getEffects,
+    Reference,
+    Term,
+    Type,
+    TypeConstraint,
+    typesEqual,
+} from './types';
+import { showType, unifyInTerm, unifyVariables } from './unify';
 import { printToString } from './printer';
-import { declarationToPretty, termToPretty } from './printTsLike';
-import deepEqual from 'fast-deep-equal';
+import { declarationToPretty } from './printTsLike';
 import { typeDefine, typeEffect } from './env';
 
-import { presetEnv, prelude } from './preset';
-import { execSync } from 'child_process';
+import { bool, presetEnv } from './preset';
 
 // const clone = cloner();
 
@@ -122,7 +127,7 @@ const testInference = (parsed: Toplevel[]) => {
             env.global.terms[hash] = term;
 
             const declared = typeType(env, item.ann);
-            if (!deepEqual(declared, term.is)) {
+            if (!typesEqual(env, declared, term.is)) {
                 console.log(`Inference Test failed!`);
                 console.log('Expected:');
                 console.log(typeToString(env, declared));
@@ -146,9 +151,9 @@ function typeFile(parsed: Toplevel[]) {
     // const out = prelude.slice();
     for (const item of parsed) {
         if (item.type === 'define') {
-            console.log('>> A define', item.id.text);
+            // console.log('>> A define', item.id.text);
             const { term } = typeDefine(env, item);
-            console.log('< unified type', showType(term.is));
+            // console.log('< unified type', showType(term.is));
         } else if (item.type === 'effect') {
             typeEffect(env, item);
         } else {
@@ -160,26 +165,64 @@ function typeFile(parsed: Toplevel[]) {
     return { expressions, env };
 }
 
-const fileToTypescript = (expressions: Array<Term>, env: Env) => {
-    const out = prelude.slice();
+import * as t from '@babel/types';
+import generate from '@babel/generator';
+
+const fileToTypescript = (
+    expressions: Array<Term>,
+    env: Env,
+    assert: boolean,
+) => {
+    // const out = prelude.slice();
+
+    // const items: Array<t.Statement> = [
+    //     t.variableDeclaration('const', [
+    //         t.variableDeclarator(
+    //             t.objectPattern(
+    //                 [
+    //                     'raise',
+    //                     'isSquare',
+    //                     'log',
+    //                     'intToString',
+    //                     'handleSimpleShallow2',
+    //                 ].map((name) =>
+    //                     t.objectProperty(
+    //                         t.identifier(name),
+    //                         t.identifier(name),
+    //                     ),
+    //                 ),
+    //             ),
+    //             t.callExpression(t.identifier('require'), [
+    //                 t.stringLiteral('./prelude.js'),
+    //             ]),
+    //         ),
+    //     ]),
+    // ];
+
+    const items: Array<t.Statement> = [
+        t.importDeclaration(
+            [
+                ...[
+                    'raise',
+                    'isSquare',
+                    'log',
+                    'intToString',
+                    'handleSimpleShallow2',
+                    'assert',
+                    'assertEqual',
+                ].map((name) =>
+                    t.importSpecifier(t.identifier(name), t.identifier(name)),
+                ),
+            ],
+            t.stringLiteral('./prelude.mjs'),
+        ),
+    ];
+
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
 
-        out.push(
-            `\n/*\n${printToString(
-                declarationToPretty(
-                    {
-                        hash: hash,
-                        size: 1,
-                        pos: 0,
-                    },
-                    term,
-                ),
-                100,
-            )}\n*/`,
-        );
-        out.push(
-            declarationToString(
+        items.push(
+            declarationToAST(
                 {
                     ...env,
                     local: {
@@ -189,34 +232,166 @@ const fileToTypescript = (expressions: Array<Term>, env: Env) => {
                 },
                 hash,
                 term,
+                printToString(
+                    declarationToPretty(
+                        {
+                            hash: hash,
+                            size: 1,
+                            pos: 0,
+                        },
+                        term,
+                    ),
+                    100,
+                ),
             ),
         );
-    });
-    expressions.forEach((term) => {
-        out.push(`// ${printType(env, term.is)}`);
-        out.push(termToString(env, term));
+
+        // out.push(
+        //     `\n/*\n${printToString(
+        //         declarationToPretty(
+        //             {
+        //                 hash: hash,
+        //                 size: 1,
+        //                 pos: 0,
+        //             },
+        //             term,
+        //         ),
+        //         100,
+        //     )}\n*/`,
+        // );
+        // out.push(
+        //     declarationToString(
+        //         {
+        //             ...env,
+        //             local: {
+        //                 ...env.local,
+        //                 self: { name: hash, type: term.is },
+        //             },
+        //         },
+        //         hash,
+        //         term,
+        //     ),
+        // );
     });
 
-    return out.join('\n');
+    const callBuiltin = (
+        name: string,
+        argTypes: Array<Type>,
+        resType: Type,
+        args: Array<Term>,
+        location: Location | null,
+    ): Term => {
+        return {
+            type: 'apply',
+            target: {
+                type: 'ref',
+                ref: { type: 'builtin', name: name },
+                location,
+                is: {
+                    type: 'lambda',
+                    location,
+                    args: argTypes,
+                    res: resType,
+                    rest: null,
+                    typeVbls: [],
+                    effects: [],
+                },
+            },
+            args: args,
+            location,
+            effects: [],
+            is: resType,
+            argsEffects: ([] as Array<Reference>).concat(
+                ...args.map(getEffects),
+            ),
+        };
+    };
+
+    expressions.forEach((term) => {
+        if (assert && typesEqual(env, term.is, bool)) {
+            if (
+                term.type === 'apply' &&
+                term.target.type === 'ref' &&
+                term.target.ref.type === 'builtin' &&
+                term.target.ref.name === '=='
+            ) {
+                term = callBuiltin(
+                    'assertEqual',
+                    (term.target.is as any).args,
+                    bool,
+                    term.args,
+                    term.location,
+                );
+            } else {
+                term = callBuiltin(
+                    'assert',
+                    [bool],
+                    bool,
+                    [term],
+                    term.location,
+                );
+            }
+        }
+        items.push(termToAST(env, term, printType(env, term.is)));
+        // out.push(`// ${printType(env, term.is)}`);
+        // out.push(termToString(env, term) + ';');
+    });
+
+    const ast = t.file(t.program(items, [], 'script'));
+    optimizeAST(ast);
+    // return out.join('\n');
+    // const { code, map } = generate(ast, {sourceMaps: true});
+    // return code + '\n\n// #sourceMapping'
+    return ast;
 };
 
-const main = (fname: string, dest: string) => {
+const main = (fname: string, assert: boolean) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
     const { expressions, env } = typeFile(parsed);
-    const text = fileToTypescript(expressions, env);
+    const ast = fileToTypescript(expressions, env, assert);
+    removeTypescriptTypes(ast);
+    const { code, map } = generate(ast, {
+        sourceMaps: true,
+        sourceFileName: '../' + path.basename(fname),
+    });
 
-    if (dest === '-' || !dest) {
-        dest = path.join(
-            path.dirname(fname),
-            'build',
-            path.basename(fname) + '.ts',
-        );
-    }
+    const buildDir = path.join(path.dirname(fname), 'build');
+
+    const dest = path.join(buildDir, path.basename(fname) + '.mjs');
+
+    const mapName = path.basename(fname) + '.mjs.map';
+    fs.writeFileSync(
+        path.join(buildDir, mapName),
+        JSON.stringify(map, null, 2),
+    );
+
+    const text = code + '\n\n//# sourceMappingURL=' + mapName;
+
     fs.writeFileSync(dest, text);
-    execSync(`yarn -s esbuild ${dest} > ${dest}.js`);
+
+    const preludeTS = require('fs').readFileSync('./src/prelude.ts', 'utf8');
+
+    // const preludeTS =
+    //     prelude.join('\n') +
+    //     '\n' +
+    //     `export {log, raise, handleSimpleShallow2, isSquare, intToString}`;
+    execSync(
+        `yarn -s esbuild --loader=ts > "${path.join(buildDir, 'prelude.mjs')}"`,
+        {
+            input: preludeTS,
+        },
+    );
+    // // const preludeAST = parser.parse(preludeTS, { sourceType: 'module', plugins });
+    // removeTypescriptTypes(preludeAST);
+    // fs.writeFileSync(
+    //     path.join(buildDir, 'prelude.js'),
+    //     generate(preludeAST).code,
+    // );
 };
+
+import { execSync } from 'child_process';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
@@ -227,5 +402,5 @@ const runTests = () => {
 if (process.argv[2] === '--test') {
     runTests();
 } else {
-    main(process.argv[2], process.argv[3]);
+    main(process.argv[2], process.argv.includes('--assert'));
 }

@@ -18,7 +18,7 @@ effect Write {
 // }
 
 const tee = (x: string): string => {
-    log(x);
+    log("> " ++ x);
     x
 }
 
@@ -47,38 +47,65 @@ const alwaysRead: (string, () ={Read, Write}> void) ={Write}> void = (value: str
 const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string => {
     handle! fn {
         Write.write((v) => k) => {
-            v ++ collect(k)
+            v ++ "\n" ++ collect(k)
         },
         pure(a) => "end"
     }
 }
+
 
 // Does collect work? Looks like it does
 collect((): void => {
     raise!(Write.write("one"));
     raise!(Write.write("two"));
     raise!(Write.write("three"))
-}) == "onetwothreeend"
+}) == "one\ntwo\nthree\nend"
 
 // Does collect work? Looks like it does
-tee(collect((): void => {
+collect((): void => {
     print("HI")
-})) == "HIend"
+}) == "HI\nend"
 
 // Here's the broken
-tee(collect((): void => {
+collect((): void => {
     print("HI");
     print("HO");
-})) == "HIHOend"
+}) == "HI\nHO\nend"
 
 // And this works
-tee(collect((): void => {
+collect((): void => {
     raise!(Write.write("HI"));
     raise!(Write.write("HO"));
-})) == "HIHOend"
+}) == "HI\nHO\nend"
+
+// Working
+collect(() => alwaysRead("hi", () => print(raise!(Read.read()) ++ " and " ++ raise!(Read.read())) )) == "hi and hi\nend"
+
+collect((): void => {
+    print("A");
+    print("B")
+}) == "A\nB\nend"
+
+collect(() => alwaysRead("hi", () => {
+    print(read());
+    print("YA");
+    print(read());
+    print("B")
+})) == "hi\nYA\nhi\nB\nend"
 
 
+collect(() => alwaysRead("hi", () => {
+    raise!(Write.write("A"));
+    const x = raise!(Read.read());
+    raise!(Write.write("B"));
+})) == "A\nB\nend"
 
+collect(() => alwaysRead("hi", () => {
+    const x = raise!(Read.read());
+    raise!(Write.write("B"));
+})) == "B\nend"
+
+// Here are the examples from the paper
 
 
 const printFullName = () ={Read, Write}> {
@@ -89,43 +116,133 @@ const printFullName = () ={Read, Write}> {
     print(foreName ++ " " ++ surName)
 }
 
-// Working
-tee(collect(() => alwaysRead("hi", () => print(raise!(Read.read()) ++ " and " ++ raise!(Read.read())) ))) == "hi and hiend"
-
-tee(collect((): void => {
-    print("A");
-    print("B")
-})) == "ABend"
-
-tee(collect(() => alwaysRead("hi", () => {
-    print(read());
-    print("YA");
-    // const x = read();
-    // raise!(Write.write("B"));
-    // const x = raise!(Read.read());
-    // raise!(Write.write(x));
-    // const y = raise!(Read.read());
-    // raise!(Write.write(y));
-    // raise!(Write.write("B"));
-    print(read());
-    print("B")
-}))) == "hiYAhiBend"
-
-
-tee(collect(() => alwaysRead("hi", () => {
-    raise!(Write.write("A"));
-    const x = raise!(Read.read());
-    raise!(Write.write("B"));
-}))) == "ABend"
-
-tee(collect(() => alwaysRead("hi", () => {
-    const x = raise!(Read.read());
-    raise!(Write.write("B"));
-}))) == "Bend"
-
-// Some 
-tee(collect((): void => {
+// Full first example from the eff paper
+// # 2.1.1
+collect((): void => {
     alwaysRead("Me", printFullName)
-})) == "What is your forename?What is your surname?Me Meend"
+}) == "What is your forename?\nWhat is your surname?\nMe Me\nend"
+
+// This is so we can test the results
+const reverse: (() ={Write}> void) ={Write}> void = (fn: () ={Write}> void): void ={Write}> {
+    handle! fn {
+        Write.write((v) => k) => {
+            reverse(k);
+            print(v)
+        },
+        pure(a) => a
+    }
+}
+
+collect(() => reverse(() => {print("A"); print("B")})) == "B\nA\nend"
+
+// # 2.1.2
+collect((): void => {
+    reverse(() => {
+        alwaysRead("Me", printFullName)
+    })
+}) == "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
 
 
+// # 2.3
+effect Decide {
+    decide: () => bool,
+}
+const decide = () ={Decide}> raise!(Decide.decide())
+
+const choose: <T,>(T, T) ={Decide}> T = <T,>(x: T, y: T): T ={Decide}> {
+    if decide() { x } else { y }
+}
+const pickTrue: <T,>(() ={Decide}> T) => T = <T,>(fn: () ={Decide}> T): T => handle! fn {
+    Decide.decide(() => k) => pickTrue<T>(() => k(true)),
+    pure(x) => x
+}
+const chooseDiff = () ={Decide}> {
+    const x1 = choose(15, 30);
+    const x2 = choose(5, 10);
+    x1 - x2
+}
+pickTrue<int>(chooseDiff) == 10
+
+// #2.3.1
+const pickMax: (() ={Decide}> int) => int = (fn: () ={Decide}> int): int => handle! fn {
+    Decide.decide(() => k) => {
+        const xt = pickMax(() => k(true));
+        const xf = pickMax(() => k(false));
+        if xt > xf { xt } else { xf }
+    },
+    pure(x) => x
+}
+pickMax(chooseDiff) == 25
+
+// #2.3.2
+effect Fail {
+    fail: () => int, // TODO this should really be an exit continuation...
+}
+const decide = () ={Decide}> raise!(Decide.decide())
+const fail = () ={Fail}> raise!(Fail.fail())
+
+const chooseInt: (int, int) ={Decide, Fail}> int = (m: int, n: int): int ={Decide, Fail}> {
+    if m > n {
+        fail();
+        10
+    } else {
+        if decide() {
+            m
+        } else {
+            chooseInt(m + 1, n)
+        }
+    }
+}
+
+const pythagorean = (m: int, n: int) ={Decide, Fail}> {
+    const a = chooseInt(m, n - 1);
+    const b = chooseInt(a + 1, n);
+    const a2 = a * a;
+    const b2 = b * b;
+    if isSquare(a2 + b2) {
+        intToString(a) ++ ":" ++ intToString(b)
+    } else {
+        fail();
+        "??? how did this return"
+    }
+}
+
+const handleFail = <T,>(fn: () ={Decide, Fail}> T, orElse: () ={Decide}> T) ={Decide}> handle! fn {
+    Fail.fail(() => _) => orElse(),
+    pure(x) => x
+}
+
+const handleFailPure = <T,>(fn: () ={Fail}> T, orElse: () ={}> T) ={}> handle! fn {
+    Fail.fail(() => _) => orElse(),
+    pure(x) => x
+}
+
+
+const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
+    handle! fn {
+        Decide.decide(() => k) => {
+            backtrack(() => handleFail(() => k(true), () => k(false)))
+        },
+        pure(x) => x
+    }
+}
+
+const backtrackReverse: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
+    handle! fn {
+        Decide.decide(() => k) => {
+            backtrackReverse(() => handleFail(() => k(false), () => k(true)))
+        },
+        pure(x) => x
+    }
+}
+
+const backtrackPythag = (m: int, n: int) => handleFailPure<string>(() => backtrack<string>(() => pythagorean(m, n)), () => "No solution found")
+
+backtrackPythag(4, 15) == "5:12"
+backtrackPythag(7, 10) == "No solution found"
+
+const backtrackPythagReverse = (m: int, n: int) => handleFailPure<string>(() => backtrackReverse<string>(() => pythagorean(m, n)), () => "No solution found")
+backtrackPythagReverse(4, 15) == "9:12"
+10
+
+// hellow

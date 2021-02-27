@@ -1,11 +1,26 @@
 // Types for the typed tree
 
+import { Location } from './parser';
+import deepEqual from 'fast-deep-equal';
+
+export const refsEqual = (one: Reference, two: Reference) => {
+    return one.type === 'builtin'
+        ? two.type === 'builtin' && one.name === two.name
+        : two.type === 'user' && idsEqual(one.id, two.id);
+};
+
+export const idsEqual = (one: Id, two: Id): boolean =>
+    one.hash === two.hash && one.pos === two.pos && one.size === two.size;
+
 export type Id = { hash: string; size: number; pos: number };
 export type Reference =
     | { type: 'builtin'; name: string }
     | { type: 'user'; id: Id };
 
 export type Symbol = { name: string; unique: number };
+
+export const symbolsEqual = (one: Symbol, two: Symbol) =>
+    one.unique === two.unique;
 
 export type Case = {
     constr: number; // the index
@@ -19,6 +34,7 @@ export type EffectRef = Reference; // TODO var, also args
 export type CPSAble =
     | {
           type: 'raise';
+          location: Location | null;
           ref: Reference;
           idx: number;
           args: Array<Term>;
@@ -28,6 +44,7 @@ export type CPSAble =
       }
     | {
           type: 'handle';
+          location: Location | null;
           target: Term; // this must needs be typed as a LambdaType
           // These are the target's effects minus the one that is handled here.
           effects: Array<EffectRef>;
@@ -43,6 +60,7 @@ export type CPSAble =
       }
     | {
           type: 'if';
+          location: Location | null;
           cond: Term;
           yes: Term;
           no: Term | null;
@@ -51,12 +69,14 @@ export type CPSAble =
       }
     | {
           type: 'sequence';
+          location: Location | null;
           sts: Array<Term | Let>;
           effects: Array<EffectRef>;
           is: Type;
       }
     | {
           type: 'apply';
+          location: Location | null;
           target: Term;
           argsEffects: Array<EffectRef>;
           effects: Array<EffectRef>;
@@ -66,6 +86,7 @@ export type CPSAble =
 
 export type Let = {
     type: 'Let';
+    location: Location | null;
     binding: Symbol; // TODO patterns folks
     value: Term;
     is: Type;
@@ -73,26 +94,30 @@ export type Let = {
 
 export type Var = {
     type: 'var';
+    location: Location | null;
     sym: Symbol;
     is: Type;
 };
 export type Term =
     | CPSAble
-    | { type: 'self'; is: Type }
+    | { type: 'self'; is: Type; location: Location | null }
     | {
           type: 'ref';
+          location: Location | null;
           ref: Reference;
           is: Type;
       }
     | Var
     | {
           type: 'int';
+          location: Location | null;
           value: number; // TODO other builtin types
           is: Type;
       }
-    | { type: 'string'; text: string; is: Type }
+    | { type: 'string'; text: string; is: Type; location: Location | null }
     | {
           type: 'lambda';
+          location: Location | null;
           args: Array<Symbol>;
           body: Term;
           is: LambdaType;
@@ -179,12 +204,52 @@ NEW PLAN:
 // T<A> => applied[A]
 // T<A<B>> => applied[A applied [B]]
 
+export const typesEqual = (
+    env: Env,
+    one: Type | null,
+    two: Type | null,
+): boolean => {
+    if (one == null || two == null) {
+        return one == two;
+    }
+    if (one.type === 'ref' || two.type === 'ref') {
+        if (one.type === 'ref' && two.type === 'ref') {
+            return refsEqual(one.ref, two.ref);
+        }
+        if (one.type === 'ref' && one.ref.type === 'builtin') {
+            return two.type === 'ref' && refsEqual(one.ref, two.ref);
+        }
+        if (two.type === 'ref' && two.ref.type === 'builtin') {
+            return one.type === 'ref' && refsEqual(two.ref, one.ref);
+        }
+        // STOPSHIP: resolve type references
+        throw new Error(`Need to lookup types sorry`);
+    }
+    if (one.type === 'var') {
+        return two.type === 'var' && symbolsEqual(one.sym, two.sym);
+    }
+    if (one.type === 'lambda') {
+        return (
+            two.type === 'lambda' &&
+            deepEqual(one.typeVbls, two.typeVbls) &&
+            one.args.length === two.args.length &&
+            one.args.every((arg, i) => typesEqual(env, arg, two.args[i])) &&
+            one.effects.length === two.effects.length &&
+            one.effects.every((eff, i) => refsEqual(eff, two.effects[i])) &&
+            typesEqual(env, one.res, two.res) &&
+            typesEqual(env, one.rest, two.rest)
+        );
+    }
+    return false;
+};
+
 export type TypeRef =
     | {
           type: 'ref';
           ref: Reference;
+          location: Location | null;
       }
-    | { type: 'var'; sym: Symbol };
+    | { type: 'var'; sym: Symbol; location: Location | null };
 
 export type Type = TypeRef | LambdaType;
 
@@ -198,6 +263,7 @@ export type Kind =
 
 export type LambdaType = {
     type: 'lambda';
+    location: Location | null;
     // TODO: this shouldn't be an array,
     // we don't have to be order dependent here.
     typeVbls: Array<number>; // TODO: kind, row etc.
