@@ -178,15 +178,21 @@ const handleSimpleShallow2 = <Get, Set, R>(
             // Try to construct a thing where we definitely need to filter here
 
             // fnsReturnPointer(handlers, fnsReturnValue);
-            fnsReturnPointer(
-                // LL
-                // withoutItem(handlers, thisHandler),
-                handlers.filter((h) => h !== thisHandler),
-                fnsReturnValue,
-            );
+            const idx = handlers.indexOf(thisHandler);
+            const without = idx === -1 ? handlers : handlers.slice();
+            if (idx !== -1) {
+                without.splice(idx, 1);
+            }
+            positions.push({
+                pos: idx,
+                l1: handlers.length,
+            });
+            fnsReturnPointer(without, fnsReturnValue);
         },
     );
 };
+
+let positions: Array<any> = [];
 
 // Just for the eff paper 🙃
 const isSquare = (x) => {
@@ -204,12 +210,20 @@ const assert = (x) => {
 
 const assertEqual = (a, b) => {
     if (a != b) {
+        console.log(positions);
+        positions = [];
         throw new Error(`Assertion error. ${a} should equal ${b}`);
     }
     console.log(`✅ Passed`);
+    console.log(positions);
+    positions = [];
     return true;
 };
 
 export { log, isSquare, intToString, handleSimpleShallow2 };
 export { raise, assert, assertEqual };
 export { joinLinked, withoutItem, extractItem, LinkedList };
+
+// setTimeout(() => {
+//     console.log(positions);
+// }, 2000);
