@@ -1,46 +1,6 @@
 const log = console.log;
 
-// const raise_ll = (handlers, hash, idx, args, done) => {
-//     // Linked list it up!!
-//     let prev: LinkedList<Handler> = null;
-//     let top: LinkedList<Handler> = prev;
-//     while (handlers != null) {
-//         // OOOOooohhhhhh should I modify "done"?
-//         // Like, reattach the prev at that point???
-//         // maybe.
-//         if (handlers[0].hash !== hash) {
-//             if (prev == null) {
-//                 prev = [handlers[0], null];
-//                 top = prev;
-//             } else {
-//                 prev[1] = [handlers[0], null];
-//                 prev = prev[1];
-//             }
-//             // prev = [handlers[0], prev];
-//             handlers = handlers[1];
-//             continue;
-//         }
-
-//         const handler = handlers[0];
-//         let otherHandlers = top === null ? handlers[1] : top;
-//         if (prev !== null) {
-//             prev[1] = handlers[1];
-//         }
-//         // Recreate the top of the stack
-//         // while (prev != null) {
-//         //     otherHandlers = [prev[0], otherHandlers];
-//         //     prev = prev[1];
-//         // }
-//         handler.fn(otherHandlers, idx, args, done);
-//     }
-//     throw new Error('effect not handled');
-// };
-
 type LinkedList<T> = null | [T, LinkedList<T>];
-
-// const extract = <T>(head: LinkedList<T>, find: T => bool): [T | null, LinkedList<T>] => {
-//     return x
-// }
 
 const extractItem = <T>(
     head: LinkedList<T>,
@@ -56,7 +16,7 @@ const extractItem = <T>(
     let current: LinkedList<T> = top;
     let found: T | null = null;
     while (head[1] != null) {
-        if (find(head[1][0])) {
+        if (found == null && find(head[1][0])) {
             found = head[1][0];
         } else {
             current[1] = [head[1][0], null];
@@ -82,11 +42,7 @@ const withoutItem = <T>(head: LinkedList<T>, item: T) => {
             current = current[1];
         }
         head = head[1];
-        // current[0] = head[0]
-        // current[1] = []
-        // head =
     }
-    // current[1] = tail;
     return top;
 };
 
@@ -102,20 +58,29 @@ const joinLinked = <T>(
     }
     const top: LinkedList<T> = [head[0], null];
     let current: LinkedList<T> = top;
-    // head = head[1]
     while (head[1] != null) {
         current[1] = [head[1][0], null];
         current = current[1];
         head = head[1];
-        // current[0] = head[0]
-        // current[1] = []
-        // head =
     }
     current[1] = tail;
     return top;
 };
 
 const raise = (handlers, hash, idx, args, done) => {
+    const [handler, otherHandlers] = extractItem<Handler>(
+        handlers,
+        (x) => x.hash === hash,
+    );
+    if (!handler) {
+        throw new Error(
+            `No handler found for ${hash}. This should be statically excluded.`,
+        );
+    }
+    handler.fn(otherHandlers, idx, args, done);
+};
+
+const raiseArray = (handlers, hash, idx, args, done) => {
     for (let i = 0; i < handlers.length; i++) {
         if (handlers[i].hash === hash) {
             const otherHandlers = handlers.slice();
@@ -128,8 +93,8 @@ const raise = (handlers, hash, idx, args, done) => {
 
 type Handler = { hash: string; fn: ShallowHandler<any, any> };
 
-// type Handlers = LinkedList<Handler>;
-type Handlers = Array<Handler>;
+type Handlers = LinkedList<Handler>;
+// type Handlers = Array<Handler>;
 
 type ShallowHandler<Get, Set> = (
     currentHandlers: Handlers,
@@ -179,27 +144,27 @@ const handleSimpleShallow2 = <Get, Set, R>(
                     // oooh joining two linked lists is tricky actually
 
                     // // LL
-                    // returnIntoFn(
-                    //     currentHandlers == null
-                    //         ? newHandler
-                    //         : joinLinked(newHandler, currentHandlers),
-                    //     handlersValueToSend,
-                    // );
-
                     returnIntoFn(
-                        currentHandlers.length
-                            ? newHandler.concat(currentHandlers)
-                            : newHandler,
+                        currentHandlers == null
+                            ? newHandler
+                            : joinLinked(newHandler, currentHandlers),
                         handlersValueToSend,
                     );
+
+                    // returnIntoFn(
+                    //     currentHandlers.length
+                    //         ? newHandler.concat(currentHandlers)
+                    //         : newHandler,
+                    //     handlersValueToSend,
+                    // );
                 },
             );
         },
     };
     fn(
         // LL
-        // [thisHandler, otherHandlers],
-        otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
+        [thisHandler, otherHandlers],
+        // otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
 
         (handlers, fnsReturnValue) => {
             // do we always assume that "thisHandler" will be the final one? maybe? idk.
@@ -215,8 +180,8 @@ const handleSimpleShallow2 = <Get, Set, R>(
             // fnsReturnPointer(handlers, fnsReturnValue);
             fnsReturnPointer(
                 // LL
-                // withoutItem(handlers, thisHandler),
-                handlers.filter((h) => h !== thisHandler),
+                withoutItem(handlers, thisHandler),
+                // handlers.filter((h) => h !== thisHandler),
                 fnsReturnValue,
             );
         },
