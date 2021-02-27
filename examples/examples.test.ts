@@ -20,7 +20,7 @@ const examples = [
     require('./basic-effects.jd'),
     require('./inference.jd'),
     require('./generics.jd'),
-    require('./ifs.jd'),
+    require('./conditionals.jd'),
     require('./lets.jd'),
     require('./basics.jd'),
     require('./eff-paper.jd'),

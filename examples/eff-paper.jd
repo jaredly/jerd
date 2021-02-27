@@ -202,45 +202,10 @@ const pythagorean = (m: int, n: int) ={Decide, Fail}> {
     if isSquare(a2 + b2) {
         intToString(a) ++ ":" ++ intToString(b)
     } else {
-        // log("A: " ++ intToString(a) ++ " => " ++ intToString(a2));
-        // log("B: " ++ intToString(b) ++ " => " ++ intToString(b2));
         fail();
         "??? how did this return"
     }
 }
-
-// const backtrack: <T,>(() ={Decide, Fail}> T, T) ={}> T = <T,>(fn: () ={Decide, Fail}> T, default: T): T ={}> {
-//     // what happens to fail here?
-//     handle! () => {
-//         handle! fn {
-//             Fail.fail(() => _) => default,
-//             pure(x) => x
-//         }
-//     } {
-//         Decide.decide(() => k) => {
-//             backtrack(() => handle! () => k(true) {
-//                 Fail.fail(() => _) => k(false),
-//                 pure(x) => x
-//             }, default)
-//         },
-//         pure(x) => x
-//     }
-// }
-
-
-// const backtrack: <T,>(() ={Decide, Fail}> T, T) ={}> T = <T,>(fn: () ={Decide, Fail}> T, default: T): T ={}> {
-//     // what happens to fail here?
-//     handle! () => handleFail(fn, () => default) {
-//         Decide.decide(() => k) => {
-//             backtrack(() => handleFail(() => k(true), ))
-//             backtrack(() => handle! () => k(true) {
-//                 Fail.fail(() => _) => k(false),
-//                 pure(x) => x
-//             }, default)
-//         },
-//         pure(x) => x
-//     }
-// }
 
 const handleFail = <T,>(fn: () ={Decide, Fail}> T, orElse: () ={Decide}> T) ={Decide}> handle! fn {
     Fail.fail(() => _) => orElse(),
@@ -256,23 +221,11 @@ const handleFailPure = <T,>(fn: () ={Fail}> T, orElse: () ={}> T) ={}> handle! f
 const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            // log("Backtrack decide please");
             backtrack(() => handleFail(() => k(true), () => k(false)))
-            // backtrack(() => handleFail(() => k(true), ))
-            // backtrack(() => handle! () => k(true) {
-            //     Fail.fail(() => _) => k(false),
-            //     pure(x) => x
-            // }, default)
         },
         pure(x) => x
     }
 }
 
-if isSquare(5) {
-    log("NO")
-} else {
-    log("WHAT")
-}
-
-tee(handleFailPure<string>(() => backtrack<string>(() => pythagorean(4, 10)), () => "No solution found")) == "6:8"
+tee(handleFailPure<string>(() => backtrack<string>(() => pythagorean(4, 15)), () => "No solution found")) == "5:12"
 10

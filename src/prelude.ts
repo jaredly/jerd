@@ -140,21 +140,17 @@ const handleSimpleShallow2 = <Get, Set, R>(
                         handlersValueToSend = null;
                     }
                     fnsReturnPointer = returnIntoHandler;
-                    // TODO: I think we can remove this filter, but I don't want to jinx it before I have a more complete test suite.
-                    // oooh joining two linked lists is tricky actually
 
-                    // // LL
-                    // returnIntoFn(
-                    //     currentHandlers == null
-                    //         ? newHandler
-                    //         : joinLinked(newHandler, currentHandlers),
-                    //     handlersValueToSend,
-                    // );
+                    const keep = currentHandlers.filter(
+                        (k) => !newHandler.includes(k),
+                    );
+                    // OK FOLKS: in some cases, there is something from currentHandlers
+                    // that we need to keep. In many cases, there is not.
+                    // It seems like I should be able to engineer things such that
+                    // I never have to keep any.
 
                     returnIntoFn(
-                        currentHandlers.length
-                            ? newHandler.concat(currentHandlers)
-                            : newHandler,
+                        keep.length ? newHandler.concat(keep) : newHandler,
                         handlersValueToSend,
                     );
                 },
@@ -162,37 +158,19 @@ const handleSimpleShallow2 = <Get, Set, R>(
         },
     };
     fn(
-        // LL
-        // [thisHandler, otherHandlers],
         otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
 
         (handlers, fnsReturnValue) => {
             // do we always assume that "thisHandler" will be the final one? maybe? idk.
-            // const idx = handlers.indexOf(thisHandler)
-            // const nHandlers = idx === -1 ? handlers : handlers.slice();
-            // if (idx !== -1) {
-            //     nHandlers.splice(idx, 1)
-            // }
-            // fnsReturnPointer(nHandlers, fnsReturnValue)
-            // STOPSHIP: waiiiit I thought I needed to filter here? 🤔
-            // Try to construct a thing where we definitely need to filter here
-
-            // fnsReturnPointer(handlers, fnsReturnValue);
             const idx = handlers.indexOf(thisHandler);
             const without = idx === -1 ? handlers : handlers.slice();
             if (idx !== -1) {
                 without.splice(idx, 1);
             }
-            positions.push({
-                pos: idx,
-                l1: handlers.length,
-            });
             fnsReturnPointer(without, fnsReturnValue);
         },
     );
 };
-
-let positions: Array<any> = [];
 
 // Just for the eff paper 🙃
 const isSquare = (x) => {
@@ -208,22 +186,16 @@ const assert = (x) => {
     return x;
 };
 
+import fs from 'fs';
+
 const assertEqual = (a, b) => {
     if (a != b) {
-        console.log(positions);
-        positions = [];
         throw new Error(`Assertion error. ${a} should equal ${b}`);
     }
     console.log(`✅ Passed`);
-    console.log(positions);
-    positions = [];
     return true;
 };
 
 export { log, isSquare, intToString, handleSimpleShallow2 };
 export { raise, assert, assertEqual };
 export { joinLinked, withoutItem, extractItem, LinkedList };
-
-// setTimeout(() => {
-//     console.log(positions);
-// }, 2000);

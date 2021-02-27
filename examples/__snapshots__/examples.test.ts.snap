@@ -376,6 +376,40 @@ hash_d13196fc("hi")("Passed in", (arg_0_0: string, handlers: any, done: (arg_0: 
 }) == "Passed in-m";
 `;
 
+exports[`Example files conditionals.jd 1`] = `
+// x.jd
+const hash_bfbc479c_0: int = if 10 > 2 {
+    5;
+} else {
+    4;
+}
+
+// .ts
+const hash_bfbc479c: number = function () {
+  if (10 > 2) {
+    return 5;
+  } else {
+    return 4;
+  }
+}();
+
+// y.jd
+const hash_92162e1c_0: (int) ={}> int = (h_0: int) => if h_0 < 10 {
+    h_0 / 2;
+} else {
+    h_0 * 3;
+}
+
+// .ts
+const hash_92162e1c: (arg_0: number) => number = h_0 => {
+  if (h_0 < 10) {
+    return h_0 / 2;
+  } else {
+    return h_0 * 3;
+  }
+};
+`;
+
 exports[`Example files eff-paper.jd 1`] = `
 // tee.jd
 const hash_fa4de11c_0: (string) ={}> string = (x_0: string) => {
@@ -823,64 +857,68 @@ const hash_d0dd0e40: (handlers: any, done: (result: number) => void) => void = (
 };
 
 // chooseInt.jd
-const hash_28228254_0: (int, int) ={hash_6e535ab8_0, hash_26f43ad8_0}> int = (m_0: int, n_1: int) => {
+const hash_2316cd90_0: (int, int) ={hash_6e535ab8_0, hash_26f43ad8_0}> int = (m_0: int, n_1: int) => {
     if m_0 > n_1 {
+        log("too high " ++ intToString(m_0));
         hash_d0dd0e40_0();
         10;
     } else {
         if hash_76605b62_0() {
+            log("Trying " ++ intToString(m_0));
             m_0;
         } else {
+            log("Backtrack " ++ intToString(m_0));
             <self>(m_0 + 1, n_1);
         };
     };
 }
 
 // .ts
-const hash_28228254: (arg_0: number, arg_1: number, handlers: any, done: (result: number) => void) => void = (m_0: number, n_1: number, handlers: any, done: (arg_0: number) => void) => {
+const hash_2316cd90: (arg_0: number, arg_1: number, handlers: any, done: (result: number) => void) => void = (m_0: number, n_1: number, handlers: any, done: (arg_0: number) => void) => {
   if (m_0 > n_1) {
+    log("too high " + intToString(m_0));
     hash_d0dd0e40(handlers, (handlers, _ignored) => {
       done(handlers, 10);
     });
   } else {
     hash_76605b62(handlers, (handlers, cond) => {
       if (cond) {
+        log("Trying " + intToString(m_0));
         done(handlers, m_0);
       } else {
-        hash_28228254(m_0 + 1, n_1, handlers, done);
+        log("Backtrack " + intToString(m_0));
+        hash_2316cd90(m_0 + 1, n_1, handlers, done);
       }
     });
   }
 };
 
 // pythagorean.jd
-const hash_95263196_0: (int, int) ={hash_6e535ab8_0, hash_26f43ad8_0}> string = (m_0: int, n_1: int) => {
-    const a_2 = hash_28228254_0(m_0, n_1 - 1);
-    const b_3 = hash_28228254_0(a_2 + 1, n_1);
+const hash_bd506a90_0: (int, int) ={hash_6e535ab8_0, hash_26f43ad8_0}> string = (m_0: int, n_1: int) => {
+    const a_2 = hash_2316cd90_0(m_0, n_1 - 1);
+    const b_3 = hash_2316cd90_0(a_2 + 1, n_1);
     const a2_4 = a_2 * a_2;
     const b2_5 = b_3 * b_3;
     if isSquare(a2_4 + b2_5) {
         intToString(a_2) ++ ":" ++ intToString(b_3);
     } else {
-        log("A: " ++ intToString(a_2) ++ " => " ++ intToString(a2_4));
-        log("B: " ++ intToString(b_3) ++ " => " ++ intToString(b2_5));
+        log("Not a square " ++ intToString(a_2) ++ ":" ++ intToString(b_3));
         hash_d0dd0e40_0();
         "??? how did this return";
     };
 }
 
 // .ts
-const hash_95263196: (arg_0: number, arg_1: number, handlers: any, done: (result: string) => void) => void = (m_0: number, n_1: number, handlers: any, done: (arg_0: string) => void) => {
-  hash_28228254(m_0, n_1 - 1, handlers, (handlers, a_2) => {
-    hash_28228254(a_2 + 1, n_1, handlers, (handlers, b_3) => {
+const hash_bd506a90: (arg_0: number, arg_1: number, handlers: any, done: (result: string) => void) => void = (m_0: number, n_1: number, handlers: any, done: (arg_0: string) => void) => {
+  hash_2316cd90(m_0, n_1 - 1, handlers, (handlers, a_2) => {
+    hash_2316cd90(a_2 + 1, n_1, handlers, (handlers, b_3) => {
       const a2_4 = a_2 * a_2;
       const b2_5 = b_3 * b_3;
 
       if (isSquare(a2_4 + b2_5)) {
         done(handlers, intToString(a_2) + ":" + intToString(b_3));
       } else {
-        log("A: " + intToString(a_2) + " => " + intToString(a2_4));
-        log("B: " + intToString(b_3) + " => " + intToString(b2_5));
+        log("Not a square " + intToString(a_2) + ":" + intToString(b_3));
         hash_d0dd0e40(handlers, (handlers, _ignored) => {
           done(handlers, "??? how did this return");
         });
@@ -890,7 +928,7 @@ const hash_95263196: (arg_0: number, arg_1: number, handlers: any, done: (result
 };
 
 // handleFail.jd
-const hash_40b5020a_0: (() ={hash_26f43ad8_0, hash_6e535ab8_0}> T_0, () ={hash_26f43ad8_0}> T_0) ={
+const hash_91e67f50_0: (() ={hash_26f43ad8_0, hash_6e535ab8_0}> T_0, () ={hash_26f43ad8_0}> T_0) ={
     hash_26f43ad8_0,
 }> T_0 = (fn_0: () ={hash_26f43ad8_0, hash_6e535ab8_0}> T_0, orElse_1: () ={hash_26f43ad8_0}> T_0) => handle! fn_0 {
     0(() => __2) => orElse_1(),
@@ -898,7 +936,7 @@ const hash_40b5020a_0: (() ={hash_26f43ad8_0, hash_6e535ab8_0}> T_0, () ={hash_2
 }
 
 // .ts
-const hash_40b5020a: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void, arg_1: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (result: T_0) => void) => void = (fn_0: (handlers: any, done: (result: T_0) => void) => void, orElse_1: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (arg_0: T_0) => void) => {
+const hash_91e67f50: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void, arg_1: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (result: T_0) => void) => void = (fn_0: (handlers: any, done: (result: T_0) => void) => void, orElse_1: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (arg_0: T_0) => void) => {
   handleSimpleShallow2("6e535ab8", fn_0, [(handlers, _, __2) => {
     orElse_1(handlers, done);
   }], (handlers, x_2) => {
@@ -907,13 +945,13 @@ const hash_40b5020a: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) =
 };
 
 // handleFailPure.jd
-const hash_352fad72_0: (() ={hash_6e535ab8_0}> T_0, () ={}> T_0) ={}> T_0 = (
+const hash_db208ff8_0: (() ={hash_6e535ab8_0}> T_0, () ={}> T_0) ={}> T_0 = (
     fn_0: () ={hash_6e535ab8_0}> T_0,
     orElse_1: () ={}> T_0,
 ) => handle! fn_0 {0(() => __2) => orElse_1(), pure(x_2) => x_2}
 
 // .ts
-const hash_352fad72: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void, arg_1: () => T_0) => T_0 = (fn_0, orElse_1) => {
+const hash_db208ff8: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void, arg_1: () => T_0) => T_0 = (fn_0, orElse_1) => {
   let handle_ret_24;
   handleSimpleShallow2("6e535ab8", fn_0, [(handlers, _, __2) => {
     handle_ret_24 = orElse_1();
@@ -924,24 +962,22 @@ const hash_352fad72: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) =
 };
 
 // backtrack.jd
-const hash_0551b1ec_0: (() ={hash_26f43ad8_0, hash_6e535ab8_0}> T_0) ={hash_6e535ab8_0}> T_0 = (
+const hash_06add8b3_0: (() ={hash_26f43ad8_0, hash_6e535ab8_0}> T_0) ={hash_6e535ab8_0}> T_0 = (
     fn_0: () ={hash_26f43ad8_0, hash_6e535ab8_0}> T_0,
 ) => {
     handle! fn_0 {
         0(() => k_1) => {
-            log("Backtrack decide please");
-            <self>(() => hash_40b5020a_0(() => k_1(true), () => k_1(false)));
+            <self>(() => hash_91e67f50_0(() => k_1(true), () => k_1(false)));
         },
         pure(x_1) => x_1,
     };
 }
 
 // .ts
-const hash_0551b1ec: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (result: T_0) => void) => void = (fn_0: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (arg_0: T_0) => void) => {
+const hash_06add8b3: <T_0>(arg_0: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (result: T_0) => void) => void = (fn_0: (handlers: any, done: (result: T_0) => void) => void, handlers: any, done: (arg_0: T_0) => void) => {
   handleSimpleShallow2("26f43ad8", fn_0, [(handlers, _, k_1) => {
-    log("Backtrack decide please");
-    hash_0551b1ec((handlers: any, done: (arg_0: T_0) => void) => {
-      hash_40b5020a((handlers: any, done: (arg_0: T_0) => void) => {
+    hash_06add8b3((handlers: any, done: (arg_0: T_0) => void) => {
+      hash_91e67f50((handlers: any, done: (arg_0: T_0) => void) => {
         k_1(true, handlers, done);
       }, (handlers: any, done: (arg_0: T_0) => void) => {
         k_1(false, handlers, done);
@@ -970,15 +1006,15 @@ if isSquare(5) {
 
 // .jd
 hash_fa4de11c_0(
-    hash_352fad72_0(() => hash_0551b1ec_0(() => hash_95263196_0(4, 12)), () => "No solution found"),
-) == "6:8"
+    hash_db208ff8_0(() => hash_06add8b3_0(() => hash_bd506a90_0(4, 15)), () => "No solution found"),
+) == "5:12"
 
 // .ts
-hash_fa4de11c(hash_352fad72((handlers: any, done: (arg_0: string) => void) => {
-  hash_0551b1ec((handlers: any, done: (arg_0: string) => void) => {
-    hash_95263196(4, 12, handlers, done);
+hash_fa4de11c(hash_db208ff8((handlers: any, done: (arg_0: string) => void) => {
+  hash_06add8b3((handlers: any, done: (arg_0: string) => void) => {
+    hash_bd506a90(4, 15, handlers, done);
   }, handlers, done);
-}, () => "No solution found")) == "6:8";
+}, () => "No solution found")) == "5:12";
 
 // .jd
 10
@@ -1031,40 +1067,6 @@ const hash_18812924_0: int = hash_7e08b4cb_0(4)(6)
 
 // .ts
 const hash_18812924: number = hash_7e08b4cb(4)(6);
-`;
-
-exports[`Example files ifs.jd 1`] = `
-// x.jd
-const hash_bfbc479c_0: int = if 10 > 2 {
-    5;
-} else {
-    4;
-}
-
-// .ts
-const hash_bfbc479c: number = function () {
-  if (10 > 2) {
-    return 5;
-  } else {
-    return 4;
-  }
-}();
-
-// y.jd
-const hash_92162e1c_0: (int) ={}> int = (h_0: int) => if h_0 < 10 {
-    h_0 / 2;
-} else {
-    h_0 * 3;
-}
-
-// .ts
-const hash_92162e1c: (arg_0: number) => number = h_0 => {
-  if (h_0 < 10) {
-    return h_0 / 2;
-  } else {
-    return h_0 * 3;
-  }
-};
 `;
 
 exports[`Example files inference.jd 1`] = `
@@ -1138,7 +1140,7 @@ but expected int : {\\"start\\":{\\"offset\\":286,\\"line\\":21,\\"column\\":1},
 
 exports[`Type errors Expression 8 <T,>(x: T): int => x 1`] = `"Explicit type variable T#0 can't unify with int"`;
 
-exports[`Type errors Expression 9 <T,>(x: int): T => x 1`] = `"Unable to unify int with type variable T#0"`;
+exports[`Type errors Expression 9 <T,>(x: int): T => x 1`] = `"Unable to unify int [object Object] with type variable T#0 [object Object]"`;
 
 exports[`Type errors Expression 11 () ={}> raise!(GetString.get()) 1`] = `"Function is declared as pure, but is not. 1 effects found."`;
 
