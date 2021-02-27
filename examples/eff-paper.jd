@@ -227,5 +227,20 @@ const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, 
     }
 }
 
-tee(handleFailPure<string>(() => backtrack<string>(() => pythagorean(4, 15)), () => "No solution found")) == "5:12"
+const backtrackReverse: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
+    handle! fn {
+        Decide.decide(() => k) => {
+            backtrackReverse(() => handleFail(() => k(false), () => k(true)))
+        },
+        pure(x) => x
+    }
+}
+
+const backtrackPythag = (m: int, n: int) => handleFailPure<string>(() => backtrack<string>(() => pythagorean(m, n)), () => "No solution found")
+
+backtrackPythag(4, 15) == "5:12"
+backtrackPythag(7, 10) == "No solution found"
+
+const backtrackPythagReverse = (m: int, n: int) => handleFailPure<string>(() => backtrackReverse<string>(() => pythagorean(m, n)), () => "No solution found")
+backtrackPythagReverse(4, 15) == "9:12"
 10
