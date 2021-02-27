@@ -9,7 +9,8 @@
         "peg-simple": "pegjs --plugin ts-pegjs -o src/simple-grammar.ts src/simple-grammar.pegjs",
         "watch": "esbuild --sourcemap --bundle src/main.ts --platform=node --watch --outfile=main.js",
         "sn": "jest -u",
-        "test": "node --enable-source-maps main.js examples/generics.jd examples/build/generics.ts"
+        "test": "node --enable-source-maps main.js examples/eff-paper.jd --assert && time node --enable-source-maps  examples/build/eff-paper.jd.mjs",
+        "test-new": "node --enable-source-maps main.js examples/effects-tests.jd --assert && time node --enable-source-maps  examples/build/effects-tests.jd.mjs"
     },
     "jest": {
         "snapshotSerializers": [

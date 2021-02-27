@@ -1,0 +1,19 @@
+
+effect A_01 {
+    getInt: () => int,
+}
+
+effect A_02 {
+    plus5: (int) => int,
+}
+
+effect A_03 {
+    getTwo: (int, int) => string,
+}
+
+const pair = (x: int, y: int): string => "(" ++ intToString(x) ++ ":" ++ intToString(y) ++ ")"
+
+const h_plus5 = <T,>{e}(inner: (() ={A_02, e}> T) ={e}> T, fn: () ={A_02, e}> T): T ={e}> handle! fn {
+    A_02.plus5((v) => k) => inner(() => k(v + 5)),
+    pure(x) => x
+}

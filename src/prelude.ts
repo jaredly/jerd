@@ -1,63 +1,36 @@
 const log = console.log;
 
-const raise = (handlers, hash, idx, args, done) => {
-    // Linked list it up!!
-
-    // let prev: LinkedList<Handler> = null;
-    // while (handlers != null) {
-    //     // OOOOooohhhhhh should I modify "done"?
-    //     // Like, reattach the prev at that point???
-    //     // maybe.
-    //     if (handlers[0].hash !== hash) {
-    //         prev = [handlers[0], prev];
-    //         handlers = handlers[1];
-    //         continue;
-    //     }
-
-    //     const handler = handlers[0];
-    //     let otherHandlers = handlers[1];
-    //     // Recreate the top of the stack
-    //     while (prev != null) {
-    //         otherHandlers = [prev[0], otherHandlers];
-    //         prev = prev[1];
-    //     }
-    //     handler.fn(otherHandlers, idx, args, done);
-    // }
-    // throw new Error('effect not handled');
-
-    // console.log('Raise!', hash, args);
-    for (let i = 0; i < handlers.length; i++) {
-        // for (let i = handlers.length - 1; i >= 0; i--) {
-        if (handlers[i].hash === hash) {
-            const otherHandlers = handlers.slice();
-            otherHandlers.splice(i, 1);
-            handlers[i].fn(otherHandlers, idx, args, done);
-            break;
-        }
-    }
-};
-
-// const raise = (handlers, hash, idx, args, done) => {
+// const raise_ll = (handlers, hash, idx, args, done) => {
 //     // Linked list it up!!
-
 //     let prev: LinkedList<Handler> = null;
+//     let top: LinkedList<Handler> = prev;
 //     while (handlers != null) {
 //         // OOOOooohhhhhh should I modify "done"?
 //         // Like, reattach the prev at that point???
 //         // maybe.
 //         if (handlers[0].hash !== hash) {
-//             prev = [handlers[0], prev];
+//             if (prev == null) {
+//                 prev = [handlers[0], null];
+//                 top = prev;
+//             } else {
+//                 prev[1] = [handlers[0], null];
+//                 prev = prev[1];
+//             }
+//             // prev = [handlers[0], prev];
 //             handlers = handlers[1];
 //             continue;
 //         }
 
 //         const handler = handlers[0];
-//         let otherHandlers = handlers[1];
-//         // Recreate the top of the stack
-//         while (prev != null) {
-//             otherHandlers = [prev[0], otherHandlers];
-//             prev = prev[1];
+//         let otherHandlers = top === null ? handlers[1] : top;
+//         if (prev !== null) {
+//             prev[1] = handlers[1];
 //         }
+//         // Recreate the top of the stack
+//         // while (prev != null) {
+//         //     otherHandlers = [prev[0], otherHandlers];
+//         //     prev = prev[1];
+//         // }
 //         handler.fn(otherHandlers, idx, args, done);
 //     }
 //     throw new Error('effect not handled');
@@ -65,27 +38,70 @@ const raise = (handlers, hash, idx, args, done) => {
 
 type LinkedList<T> = null | [T, LinkedList<T>];
 
-type Handler = { hash: string; fn: ShallowHandler<any, any> };
+// const extract = <T>(head: LinkedList<T>, find: T => bool): [T | null, LinkedList<T>] => {
+//     return x
+// }
 
-// type Handlers = LinkedList<Handler>;
-type Handlers = Array<Handler>;
+const extractItem = <T>(
+    head: LinkedList<T>,
+    find: (item: T) => boolean,
+): [T | null, LinkedList<T>] => {
+    if (head == null) {
+        return [null, null];
+    }
+    if (find(head[0])) {
+        return head;
+    }
+    const top: LinkedList<T> = [head[0], null];
+    let current: LinkedList<T> = top;
+    let found: T | null = null;
+    while (head[1] != null) {
+        if (find(head[1][0])) {
+            found = head[1][0];
+        } else {
+            current[1] = [head[1][0], null];
+            current = current[1];
+        }
+        head = head[1];
+    }
+    return [found, top];
+};
 
-type ShallowHandler<Get, Set> = (
-    currentHandlers: Handlers,
-    idx: number,
-    args: Set,
-    returnIntoFn: (newHandler: Handlers, value: Get) => void,
-) => void;
+const withoutItem = <T>(head: LinkedList<T>, item: T) => {
+    if (head == null) {
+        return null;
+    }
+    if (head[0] === item) {
+        return head[1];
+    }
+    const top: LinkedList<T> = [head[0], null];
+    let current: LinkedList<T> = top;
+    while (head[1] != null) {
+        if (head[1][0] !== item) {
+            current[1] = [head[1][0], null];
+            current = current[1];
+        }
+        head = head[1];
+        // current[0] = head[0]
+        // current[1] = []
+        // head =
+    }
+    // current[1] = tail;
+    return top;
+};
 
-const joinLinked = (head, tail) => {
+const joinLinked = <T>(
+    head: LinkedList<T>,
+    tail: LinkedList<T>,
+): LinkedList<T> => {
     if (head == null) {
         return tail;
     }
     if (tail == null) {
         return head;
     }
-    const top = [head[0], null];
-    let current = top;
+    const top: LinkedList<T> = [head[0], null];
+    let current: LinkedList<T> = top;
     // head = head[1]
     while (head[1] != null) {
         current[1] = [head[1][0], null];
@@ -98,6 +114,29 @@ const joinLinked = (head, tail) => {
     current[1] = tail;
     return top;
 };
+
+const raise = (handlers, hash, idx, args, done) => {
+    for (let i = 0; i < handlers.length; i++) {
+        if (handlers[i].hash === hash) {
+            const otherHandlers = handlers.slice();
+            otherHandlers.splice(i, 1);
+            handlers[i].fn(otherHandlers, idx, args, done);
+            break;
+        }
+    }
+};
+
+type Handler = { hash: string; fn: ShallowHandler<any, any> };
+
+// type Handlers = LinkedList<Handler>;
+type Handlers = Array<Handler>;
+
+type ShallowHandler<Get, Set> = (
+    currentHandlers: Handlers,
+    idx: number,
+    args: Set,
+    returnIntoFn: (newHandler: Handlers, value: Get) => void,
+) => void;
 
 const handleSimpleShallow2 = <Get, Set, R>(
     hash: string,
@@ -139,7 +178,8 @@ const handleSimpleShallow2 = <Get, Set, R>(
                     // TODO: I think we can remove this filter, but I don't want to jinx it before I have a more complete test suite.
                     // oooh joining two linked lists is tricky actually
 
-                    // LL returnIntoFn(
+                    // // LL
+                    // returnIntoFn(
                     //     currentHandlers == null
                     //         ? newHandler
                     //         : joinLinked(newHandler, currentHandlers),
@@ -150,18 +190,17 @@ const handleSimpleShallow2 = <Get, Set, R>(
                         currentHandlers.length
                             ? newHandler.concat(currentHandlers)
                             : newHandler,
-                        // currentHandlers.concat(newHandler),
                         handlersValueToSend,
                     );
-                    // returnIntoFn(currentHandlers.concat(newHandler).filter(h => h !== thisHandler), handlersValueToSend);
                 },
             );
         },
     };
     fn(
-        // LL: [thisHandler, otherHandlers],
+        // LL
+        // [thisHandler, otherHandlers],
         otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
-        // otherHandlers ? otherHandlers.concat([thisHandler]) : [thisHandler],
+
         (handlers, fnsReturnValue) => {
             // do we always assume that "thisHandler" will be the final one? maybe? idk.
             // const idx = handlers.indexOf(thisHandler)
@@ -175,6 +214,8 @@ const handleSimpleShallow2 = <Get, Set, R>(
 
             // fnsReturnPointer(handlers, fnsReturnValue);
             fnsReturnPointer(
+                // LL
+                // withoutItem(handlers, thisHandler),
                 handlers.filter((h) => h !== thisHandler),
                 fnsReturnValue,
             );
@@ -200,8 +241,10 @@ const assertEqual = (a, b) => {
     if (a != b) {
         throw new Error(`Assertion error. ${a} should equal ${b}`);
     }
+    console.log(`✅ Passed`);
     return true;
 };
 
 export { log, isSquare, intToString, handleSimpleShallow2 };
 export { raise, assert, assertEqual };
+export { joinLinked, withoutItem, extractItem, LinkedList };

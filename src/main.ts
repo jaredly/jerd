@@ -151,9 +151,9 @@ function typeFile(parsed: Toplevel[]) {
     // const out = prelude.slice();
     for (const item of parsed) {
         if (item.type === 'define') {
-            console.log('>> A define', item.id.text);
+            // console.log('>> A define', item.id.text);
             const { term } = typeDefine(env, item);
-            console.log('< unified type', showType(term.is));
+            // console.log('< unified type', showType(term.is));
         } else if (item.type === 'effect') {
             typeEffect(env, item);
         } else {

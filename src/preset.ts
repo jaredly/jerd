@@ -263,7 +263,10 @@ export function presetEnv() {
     env.global.builtins['log'] = {
         type: 'lambda',
         typeVbls: [],
-        args: [string],
+        args: [
+            // { type: 'var', sym: { unique: 10000, name: 'T' }, location: null },
+            string,
+        ],
         effects: [],
         rest: null,
         res: void_,
