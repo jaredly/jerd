@@ -67,20 +67,20 @@ const joinLinked = <T>(
     return top;
 };
 
-const raise = (handlers, hash, idx, args, done) => {
-    const [handler, otherHandlers] = extractItem<Handler>(
-        handlers,
-        (x) => x.hash === hash,
-    );
-    if (!handler) {
-        throw new Error(
-            `No handler found for ${hash}. This should be statically excluded.`,
-        );
-    }
-    handler.fn(otherHandlers, idx, args, done);
-};
+// const raiseLL = (handlers, hash, idx, args, done) => {
+//     const [handler, otherHandlers] = extractItem<Handler>(
+//         handlers,
+//         (x) => x.hash === hash,
+//     );
+//     if (!handler) {
+//         throw new Error(
+//             `No handler found for ${hash}. This should be statically excluded.`,
+//         );
+//     }
+//     handler.fn(otherHandlers, idx, args, done);
+// };
 
-const raiseArray = (handlers, hash, idx, args, done) => {
+const raise = (handlers, hash, idx, args, done) => {
     for (let i = 0; i < handlers.length; i++) {
         if (handlers[i].hash === hash) {
             const otherHandlers = handlers.slice();
@@ -93,8 +93,8 @@ const raiseArray = (handlers, hash, idx, args, done) => {
 
 type Handler = { hash: string; fn: ShallowHandler<any, any> };
 
-type Handlers = LinkedList<Handler>;
-// type Handlers = Array<Handler>;
+// type Handlers = LinkedList<Handler>;
+type Handlers = Array<Handler>;
 
 type ShallowHandler<Get, Set> = (
     currentHandlers: Handlers,
@@ -144,27 +144,27 @@ const handleSimpleShallow2 = <Get, Set, R>(
                     // oooh joining two linked lists is tricky actually
 
                     // // LL
-                    returnIntoFn(
-                        currentHandlers == null
-                            ? newHandler
-                            : joinLinked(newHandler, currentHandlers),
-                        handlersValueToSend,
-                    );
-
                     // returnIntoFn(
-                    //     currentHandlers.length
-                    //         ? newHandler.concat(currentHandlers)
-                    //         : newHandler,
+                    //     currentHandlers == null
+                    //         ? newHandler
+                    //         : joinLinked(newHandler, currentHandlers),
                     //     handlersValueToSend,
                     // );
+
+                    returnIntoFn(
+                        currentHandlers.length
+                            ? newHandler.concat(currentHandlers)
+                            : newHandler,
+                        handlersValueToSend,
+                    );
                 },
             );
         },
     };
     fn(
         // LL
-        [thisHandler, otherHandlers],
-        // otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
+        // [thisHandler, otherHandlers],
+        otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
 
         (handlers, fnsReturnValue) => {
             // do we always assume that "thisHandler" will be the final one? maybe? idk.
@@ -180,8 +180,8 @@ const handleSimpleShallow2 = <Get, Set, R>(
             // fnsReturnPointer(handlers, fnsReturnValue);
             fnsReturnPointer(
                 // LL
-                withoutItem(handlers, thisHandler),
-                // handlers.filter((h) => h !== thisHandler),
+                // withoutItem(handlers, thisHandler),
+                handlers.filter((h) => h !== thisHandler),
                 fnsReturnValue,
             );
         },
