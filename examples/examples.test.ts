@@ -42,7 +42,6 @@ describe('Example files', () => {
     examples.forEach(({ src, filename }) => {
         it(path.basename(filename), () => {
             const env = presetEnv();
-            // const raw = fs.readFileSync(__dirname + '/' + name, 'utf8');
             const raw = src;
 
             const items: Array<string> = [];
