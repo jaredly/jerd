@@ -345,7 +345,7 @@ const fileToTypescript = (
     return ast;
 };
 
-const main = (fname: string, assert: boolean) => {
+const main = (fname: string, assert: boolean, run: boolean) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
@@ -389,6 +389,9 @@ const main = (fname: string, assert: boolean) => {
     //     path.join(buildDir, 'prelude.js'),
     //     generate(preludeAST).code,
     // );
+    if (run) {
+        execSync(`node --enable-source-maps ${dest}`, { stdio: 'inherit' });
+    }
 };
 
 import { execSync } from 'child_process';
@@ -402,5 +405,19 @@ const runTests = () => {
 if (process.argv[2] === '--test') {
     runTests();
 } else {
-    main(process.argv[2], process.argv.includes('--assert'));
+    const watch =
+        process.argv.includes('--watch') || process.argv.indexOf('-w');
+    const fname = process.argv[2];
+    const assert = process.argv.includes('--assert');
+    const run = process.argv.includes('--run');
+    main(fname, assert, run);
+    if (watch) {
+        console.log('watching');
+        fs.watchFile(fname, () => {
+            // setTimeout(() => {
+            console.log('File changed!');
+            main(fname, assert, run);
+            // }, 100);
+        });
+    }
 }

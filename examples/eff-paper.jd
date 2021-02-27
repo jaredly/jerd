@@ -245,4 +245,26 @@ const backtrackPythagReverse = (m: int, n: int) => handleFailPure<string>(() => 
 backtrackPythagReverse(4, 15) == "9:12"
 10
 
-// hellow
+// #2.4 State
+
+effect Store {
+    get: () => int,
+    set: (int) => void,
+}
+
+const withInitialValue: <T,>(int, () ={Store}> T) => T = <T,>(value: int, fn: () ={Store}> T): T ={}> {
+    handle! fn {
+        Store.get(() => k) => withInitialValue(value, () => k(value)),
+        Store.set((newValue) => k) => withInitialValue(newValue, k),
+        pure(x) => x
+    }
+}
+
+const getAndSet = () ={Store}> {
+    const x = raise!(Store.get());
+    raise!(Store.set(x + 4));
+    intToString(x) ++ ":" ++ intToString(raise!(Store.get()))
+}
+
+withInitialValue<string>(10, getAndSet) == "10:14"
+
