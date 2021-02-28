@@ -25,15 +25,6 @@ const tee = (x: string): string => {
 const print = (x: string) ={Write}> raise!(Write.write(x))
 const read = () ={Read}> raise!(Read.read())
 
-// const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
-//     handle! fn {
-//         Read.Read(() => k) => {
-//             alwaysRead{e}(value, () => k(value))
-//         },
-//         pure(a) => a
-//     }
-// }
-
 const alwaysRead: (string, () ={Read, Write}> void) ={Write}> void = (value: string, fn: () ={Read, Write}> void): void ={Write}> {
     handle! fn {
         Read.read(() => k) => {
@@ -268,3 +259,25 @@ const getAndSet = () ={Store}> {
 
 withInitialValue<string>(10, getAndSet) == "10:14"
 
+// # Effect variables! Got to have it.
+
+const mapIt = {e}(x: () ={e}> int) ={e}> x() + 5
+
+
+// const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
+//     handle! fn {
+//         Read.read(() => k) => {
+//             alwaysRead{e}(value, () => k(value))
+//         },
+//         pure(a) => a
+//     }
+// }
+
+// const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
+//     handle! fn {
+//         Read.Read(() => k) => {
+//             alwaysRead{e}(value, () => k(value))
+//         },
+//         pure(a) => a
+//     }
+// }

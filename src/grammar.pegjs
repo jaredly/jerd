@@ -33,19 +33,20 @@ Expression = first:Binsub rest:(__ binop __ Binsub)* {
         return first
     }
 }
-Binsub = sub:Apsub args:(TypeVblsApply?  "(" _ CommaExpr? _ ")")* {
+Binsub = sub:Apsub args:(TypeVblsApply? EffectVblsApply? "(" _ CommaExpr? _ ")")* {
 	if (args.length) {
         return {type: 'apply', target: sub,
         args: args.map(a => ({
             typevbls: a[0] || [],
-            args: a[3] || [],
+            effectVbls: a[1] || [],
+            args: a[4] || [],
         })),
         location: location()}
     } else {
     	return sub
     }
 }
-Apsub = Block / Lambda / Handle / Raise / If / Literal
+Apsub = Lambda / Block / Handle / Raise / If / Literal
 
 Block = "{" _ one:Statement rest:(_ ";" _ Statement)* ";"? _ "}" {
     return {type: 'block', items: [one, ...rest.map(r => r[3])], location: location()}
@@ -107,6 +108,7 @@ Binop = Expression
 Type = LambdaType / Identifier
 CommaType = first:Type rest:(_ "," _ Type)* {return [first, ...rest.map(r => r[3])]}
 TypeVblsApply = "<" _ inner:CommaType _ ">" {return inner}
+EffectVblsApply = "{" _ inner:CommaEffects _ "}" {return inner}
 
 LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaType? _ ")" _ "="
     effects:("{" _ CommaEffects? _ "}")?

@@ -29,7 +29,9 @@ export type Case = {
     body: Term;
 };
 
-export type EffectRef = Reference; // TODO var, also args
+export type EffectRef =
+    | { type: 'ref'; ref: Reference; location?: null | Location }
+    | { type: 'var'; sym: Symbol; location?: null | Location }; // TODO var, also args
 
 export type CPSAble =
     | {
@@ -48,7 +50,7 @@ export type CPSAble =
           target: Term; // this must needs be typed as a LambdaType
           // These are the target's effects minus the one that is handled here.
           effects: Array<EffectRef>;
-          effect: EffectRef;
+          effect: Reference;
           cases: Array<Case>;
           pure: {
               arg: Symbol;
@@ -235,12 +237,47 @@ export const typesEqual = (
             one.args.length === two.args.length &&
             one.args.every((arg, i) => typesEqual(env, arg, two.args[i])) &&
             one.effects.length === two.effects.length &&
-            one.effects.every((eff, i) => refsEqual(eff, two.effects[i])) &&
+            effectsMatch(one.effects, two.effects) &&
             typesEqual(env, one.res, two.res) &&
             typesEqual(env, one.rest, two.rest)
         );
     }
     return false;
+};
+
+const effectKey = (e: EffectRef) =>
+    e.type === 'ref'
+        ? 'ref:' + (e.ref.type === 'builtin' ? e.ref.name : e.ref.id.hash)
+        : 'sym:' + e.sym.unique;
+
+// TODO: should I allow variables to be flexible here? idk
+export const effectsMatch = (
+    one: Array<EffectRef>,
+    two: Array<EffectRef>,
+    lessAllowed: boolean = false,
+) => {
+    const ones: { [k: string]: boolean } = {};
+    const twos: { [k: string]: boolean } = {};
+    one.forEach((e) => {
+        ones[effectKey(e)] = true;
+    });
+    for (let e of two) {
+        const k = effectKey(e);
+        twos[k] = true;
+        if (!ones[k]) {
+            return false;
+        }
+    }
+    // Verify that everything in one is also in two
+    if (!lessAllowed) {
+        for (let e of one) {
+            if (!twos[effectKey(e)]) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 };
 
 export type TypeRef =
@@ -267,11 +304,12 @@ export type LambdaType = {
     // TODO: this shouldn't be an array,
     // we don't have to be order dependent here.
     typeVbls: Array<number>; // TODO: kind, row etc.
+    effectVbls: Array<number>;
     // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
     // TODO modular implicits!
     args: Array<Type>;
-    effects: Array<Reference>;
+    effects: Array<EffectRef>;
     rest: Type | null;
     res: Type;
 };
@@ -303,6 +341,7 @@ export type LocalEnv = {
     };
     locals: { [key: string]: { sym: Symbol; type: Type } };
     typeVbls: { [key: string]: Symbol }; // TODO: this will include kind or row constraint
+    effectVbls: { [key: string]: Symbol };
     tmpTypeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
     // manual type variables can't have constriaints, right? or can they?
     // I can figure that out later.
@@ -338,6 +377,7 @@ export const newEnv = (self: { name: string; type: Type }): Env => ({
     local: {
         unique: 0,
         self,
+        effectVbls: {},
         locals: {},
         typeVbls: {},
         tmpTypeVbls: {},
@@ -358,6 +398,7 @@ export const subEnv = (env: Env): Env => ({
     },
     local: {
         self: env.local.self,
+        effectVbls: { ...env.local.effectVbls },
         locals: { ...env.local.locals },
         unique: env.local.unique,
         typeVbls: { ...env.local.typeVbls },
@@ -365,7 +406,7 @@ export const subEnv = (env: Env): Env => ({
     },
 });
 
-export const getEffects = (t: Term | Let): Array<Reference> => {
+export const getEffects = (t: Term | Let): Array<EffectRef> => {
     switch (t.type) {
         case 'Let':
             return getEffects(t.value);
@@ -396,10 +437,10 @@ export const getEffects = (t: Term | Let): Array<Reference> => {
     }
 };
 
-export const dedupEffects = (effects: Array<Reference>) => {
+export const dedupEffects = (effects: Array<EffectRef>) => {
     const used: { [key: string]: boolean } = {};
     return effects.filter((e) => {
-        const k = e.type === 'builtin' ? e.name : e.id.hash;
+        const k = effectKey(e);
         if (used[k]) {
             return false;
         }

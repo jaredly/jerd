@@ -34,6 +34,7 @@ export const walkType = (
             return {
                 type: 'lambda',
                 typeVbls: term.typeVbls.slice(),
+                effectVbls: term.effectVbls.slice(),
                 location: term.location,
                 args: newArgs,
                 effects: term.effects, // STOPSHIP bring them in
@@ -103,17 +104,27 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 type: 'lambda',
                 args: type.args.map((a) => typeType(typeInner, a)),
                 typeVbls,
+                effectVbls: [],
                 location: type.location,
                 effects: type.effects.map((id) => {
+                    if (env.local.effectVbls[id.text]) {
+                        return {
+                            type: 'var',
+                            sym: env.local.effectVbls[id.text],
+                        };
+                    }
                     if (!env.global.effectNames[id.text]) {
                         throw new Error(`No effect named ${id.text}`);
                     }
                     return {
-                        type: 'user',
-                        id: {
-                            hash: env.global.effectNames[id.text],
-                            pos: 0,
-                            size: 1,
+                        type: 'ref',
+                        ref: {
+                            type: 'user',
+                            id: {
+                                hash: env.global.effectNames[id.text],
+                                pos: 0,
+                                size: 1,
+                            },
                         },
                     };
                 }), // TODO what um. Do all Terms need an effect?

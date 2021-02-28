@@ -169,6 +169,7 @@ export function presetEnv() {
     env.global.builtins['isSquare'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [int],
         effects: [],
         rest: null,
@@ -178,6 +179,7 @@ export function presetEnv() {
     env.global.builtins['intToString'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [int],
         effects: [],
         rest: null,
@@ -188,6 +190,7 @@ export function presetEnv() {
     env.global.builtins['++'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [string, string],
         effects: [],
         rest: null,
@@ -197,6 +200,7 @@ export function presetEnv() {
     env.global.builtins['>'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [int, int],
         effects: [],
         rest: null,
@@ -206,6 +210,7 @@ export function presetEnv() {
     env.global.builtins['<'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [int, int],
         effects: [],
         rest: null,
@@ -215,6 +220,7 @@ export function presetEnv() {
     env.global.builtins['=='] = {
         type: 'lambda',
         typeVbls: [10000],
+        effectVbls: [],
         args: [
             { type: 'var', sym: { unique: 10000, name: 'T' }, location: null },
             { type: 'var', sym: { unique: 10000, name: 'T' }, location: null },
@@ -227,6 +233,7 @@ export function presetEnv() {
     env.global.builtins['+'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [int, int],
         effects: [],
         rest: null,
@@ -236,6 +243,7 @@ export function presetEnv() {
     env.global.builtins['-'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [int, int],
         effects: [],
         rest: null,
@@ -245,6 +253,7 @@ export function presetEnv() {
     env.global.builtins['/'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [int, int],
         effects: [],
         rest: null,
@@ -254,6 +263,7 @@ export function presetEnv() {
     env.global.builtins['*'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [int, int],
         effects: [],
         rest: null,
@@ -263,6 +273,7 @@ export function presetEnv() {
     env.global.builtins['log'] = {
         type: 'lambda',
         typeVbls: [],
+        effectVbls: [],
         args: [
             // { type: 'var', sym: { unique: 10000, name: 'T' }, location: null },
             string,

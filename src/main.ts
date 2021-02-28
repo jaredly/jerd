@@ -16,6 +16,7 @@ import { optimizeAST, removeTypescriptTypes } from './typeScriptOptimize';
 import typeExpr, { fitsExpectation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
 import {
+    EffectRef,
     Env,
     getEffects,
     Reference,
@@ -294,6 +295,7 @@ const fileToTypescript = (
                     res: resType,
                     rest: null,
                     typeVbls: [],
+                    effectVbls: [],
                     effects: [],
                 },
             },
@@ -301,7 +303,7 @@ const fileToTypescript = (
             location,
             effects: [],
             is: resType,
-            argsEffects: ([] as Array<Reference>).concat(
+            argsEffects: ([] as Array<EffectRef>).concat(
                 ...args.map(getEffects),
             ),
         };
@@ -410,13 +412,21 @@ if (process.argv[2] === '--test') {
     const fname = process.argv[2];
     const assert = process.argv.includes('--assert');
     const run = process.argv.includes('--run');
-    main(fname, assert, run);
-    if (watch) {
+    try {
+        main(fname, assert, run);
+    } catch (err) {
+        console.error(err);
+    }
+    if (watch && false) {
         console.log('watching');
         fs.watchFile(fname, () => {
             // setTimeout(() => {
             console.log('File changed!');
-            main(fname, assert, run);
+            try {
+                main(fname, assert, run);
+            } catch (err) {
+                console.error(err);
+            }
             // }, 100);
         });
     }

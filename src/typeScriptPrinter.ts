@@ -60,9 +60,7 @@ export const printType = (env: Env, type: Type): string => {
                 args += ', ...' + printType(env, type.rest);
             }
             const effects = type.effects
-                .map((t) =>
-                    printType(env, { type: 'ref', ref: t, location: null }),
-                )
+                .map((t) => printType(env, t))
                 .join(', ');
             return `(${args}) =${
                 effects ? '(' + effects + ')' : ''
@@ -721,6 +719,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                                         type: 'lambda',
                                         args: [term.is.res],
                                         typeVbls: [],
+                                        effectVbls: [],
                                         effects: [],
                                         rest: null,
                                         location: null,
