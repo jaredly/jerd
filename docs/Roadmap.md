@@ -30,7 +30,9 @@
       which gets very large very fast.
   - [x] State
 - [x] effect variables, cmon (functions generic over effects)
-  - [ ] make it work when pure too
+  - [x] make it work when pure too
+    - ok plan is: `directOrEffectful: 'direct' | 'effectful' | null`
+    - and then {direct: fn(), effectful: fn()}
 - [ ] generic effects
 - [ ] port the unison runtime effects tests, verify that all is well.
 - [ ] records

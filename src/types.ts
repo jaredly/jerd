@@ -82,7 +82,7 @@ export type CPSAble =
           target: Term;
           argsEffects: Array<EffectRef>;
           effects: Array<EffectRef>;
-          effectPolymorphicPure?: boolean;
+          directOrEffectful?: 'direct' | 'effectful' | null;
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };
@@ -118,13 +118,15 @@ export type Term =
           is: Type;
       }
     | { type: 'string'; text: string; is: Type; location: Location | null }
-    | {
-          type: 'lambda';
-          location: Location | null;
-          args: Array<Symbol>;
-          body: Term;
-          is: LambdaType;
-      };
+    | Lambda;
+
+export type Lambda = {
+    type: 'lambda';
+    location: Location | null;
+    args: Array<Symbol>;
+    body: Term;
+    is: LambdaType;
+};
 
 // from thih
 // type Type_ = TVar (Tyvar Id Kind)

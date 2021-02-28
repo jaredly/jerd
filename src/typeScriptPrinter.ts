@@ -9,6 +9,8 @@ import {
     Let,
     Var,
     EffectRef,
+    Lambda,
+    LambdaType,
 } from './types';
 import { Location } from './parser';
 import * as t from '@babel/types';
@@ -18,6 +20,7 @@ import { binOps } from './preset';
 import { env } from 'process';
 import { showType } from './unify';
 import { optimizeAST } from './typeScriptOptimize';
+import { applyEffectVariables, walkTerm } from './typeExpr';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
@@ -353,11 +356,7 @@ const _termToAstCPS = (
     term: Term | Let,
     done: t.Expression,
 ): t.Expression => {
-    if (
-        !getEffects(term).length &&
-        term.type !== 'Let' &&
-        !(term.type === 'apply' && term.effectPolymorphicPure)
-    ) {
+    if (!getEffects(term).length && term.type !== 'Let') {
         return t.callExpression(done, [
             t.identifier('handlers'),
             printTerm(env, term),
@@ -496,7 +495,7 @@ const _termToAstCPS = (
         }
         case 'apply': {
             if (getEffects(term.target).length) {
-                return t.identifier('target effects');
+                return t.identifier('STOPSHIP target effects');
             }
             const u = env.local.unique++;
 
@@ -510,7 +509,13 @@ const _termToAstCPS = (
             });
 
             if (term.argsEffects.length > 0) {
-                const target = printTerm(env, term.target);
+                let target = printTerm(env, term.target);
+                if (term.directOrEffectful === 'effectful') {
+                    target = t.memberExpression(
+                        target,
+                        t.identifier('effectful'),
+                    );
+                }
                 let inner: t.Expression = done;
                 if (term.effects.length > 0) {
                     // ok so the thing is,
@@ -576,7 +581,10 @@ const _termToAstCPS = (
                 // );
                 // return t.identifier('args effects');
             }
-            const target = printTerm(env, term.target);
+            let target = printTerm(env, term.target);
+            if (term.directOrEffectful === 'effectful') {
+                target = t.memberExpression(target, t.identifier('effectful'));
+            }
             return callOrBinop(
                 target,
                 args
@@ -698,50 +706,26 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             return t.stringLiteral(term.text);
         // a lambda, I guess also doesn't need cps, but internally it does.
         case 'lambda':
-            // this doesn't use effects, but it might nee
             if (term.is.effects.length > 0) {
-                return t.arrowFunctionExpression(
-                    term.args
-                        .map((arg, i) => ({
-                            ...t.identifier(printSym(arg)),
-                            typeAnnotation: t.tsTypeAnnotation(
-                                typeToAst(env, term.is.args[i]),
+                if (term.is.effects.every((x) => x.type === 'var')) {
+                    const directVersion = withNoEffects(env, term);
+                    return t.objectExpression([
+                        t.objectProperty(
+                            t.identifier('direct'),
+                            t.arrowFunctionExpression(
+                                directVersion.args.map((arg) =>
+                                    t.identifier(printSym(arg)),
+                                ),
+                                printLambdaBody(env, directVersion.body, null),
                             ),
-                        }))
-                        // .map((arg) => t.identifier(printSym(arg)))
-                        .concat([
-                            {
-                                ...t.identifier('handlers'),
-                                typeAnnotation: t.tsTypeAnnotation(
-                                    // STOPSHIP: Actually type this
-                                    t.tsAnyKeyword(),
-                                ),
-                            },
-                            {
-                                ...t.identifier('done'),
-                                typeAnnotation: t.tsTypeAnnotation(
-                                    typeToAst(env, {
-                                        type: 'lambda',
-                                        args: [term.is.res],
-                                        typeVbls: [],
-                                        effectVbls: [],
-                                        effects: [],
-                                        rest: null,
-                                        location: null,
-                                        res: {
-                                            location: null,
-                                            type: 'ref',
-                                            ref: {
-                                                type: 'builtin',
-                                                name: 'void',
-                                            },
-                                        },
-                                    }),
-                                ),
-                            },
-                        ]),
-                    printLambdaBody(env, term.body, t.identifier('done')),
-                );
+                        ),
+                        t.objectProperty(
+                            t.identifier('effectful'),
+                            effectfulLambda(env, term),
+                        ),
+                    ]);
+                }
+                return effectfulLambda(env, term);
             } else {
                 return t.arrowFunctionExpression(
                     term.args.map((arg) => t.identifier(printSym(arg))),
@@ -756,29 +740,35 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             // oh ok so we need to do somethign else if any of the arguments
             // need CPS.
 
+            // ughhhhhhhh I think my denormalization is biting me here.
             if (term.argsEffects.length || term.effects.length) {
                 throw new Error(
-                    `This apply has effects, but isn't in a CPS context. ${term.effects
+                    `This apply has effects, but isn't in a CPS context. Term effects: ${term.effects
                         .map(showEffectRef)
-                        .join(',')} & ${term.argsEffects
+                        .join(',')} & Args effects: ${term.argsEffects
                         .map(showEffectRef)
                         .join(',')}`,
                 );
             }
-            if (term.effectPolymorphicPure) {
-                // x(handlers, done)
-                // pureCPS((handlers, done) => x([], done))
-                return t.callExpression(t.identifier('pureCPS'), [
-                    t.arrowFunctionExpression(
-                        [t.identifier('handlers'), t.identifier('done')],
+            // if (term.effectPolymorphicPure) {
+            //     // x(handlers, done)
+            //     // pureCPS((handlers, done) => x([], done))
+            //     return t.callExpression(t.identifier('pureCPS'), [
+            //         t.arrowFunctionExpression(
+            //             [t.identifier('handlers'), t.identifier('done')],
 
-                        termToAstCPS(env, term, t.identifier('done')),
-                    ),
-                ]);
+            //             termToAstCPS(env, term, t.identifier('done')),
+            //         ),
+            //     ]);
+            // }
+
+            let target = printTerm(env, term.target);
+
+            if (term.directOrEffectful === 'direct') {
+                target = t.memberExpression(target, t.identifier('direct'));
+            } else if (term.directOrEffectful === 'effectful') {
+                throw new Error(`wait its effectful`);
             }
-
-            // Pure, love it.
-            const target = printTerm(env, term.target);
 
             const argTypes =
                 term.target.is.type === 'lambda' ? term.target.is.args : [];
@@ -899,6 +889,76 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type}`);
     }
+};
+
+const clearEffects = (
+    vbls: Array<number>,
+    effects: Array<EffectRef>,
+): Array<EffectRef> => {
+    return effects.filter(
+        (e) => e.type !== 'var' || !vbls.includes(e.sym.unique),
+    );
+};
+
+// yeah we need to go in, and
+// apply the effect variables all over
+const withNoEffects = (env: Env, term: Lambda): Lambda => {
+    const vbls = term.is.effectVbls;
+    const is = applyEffectVariables(env, term.is, []) as LambdaType;
+    // lol clone
+    term = JSON.parse(JSON.stringify(term)) as Lambda;
+    walkTerm(term, (t) => {
+        if (t.type === 'apply') {
+            t.argsEffects = clearEffects(vbls, t.argsEffects);
+            t.effects = clearEffects(vbls, t.effects);
+        }
+    });
+    return { ...term, is };
+};
+
+const effectfulLambda = (env: Env, term: Lambda) => {
+    return t.arrowFunctionExpression(
+        term.args
+            .map((arg, i) => ({
+                ...t.identifier(printSym(arg)),
+                typeAnnotation: t.tsTypeAnnotation(
+                    typeToAst(env, term.is.args[i]),
+                ),
+            }))
+            // .map((arg) => t.identifier(printSym(arg)))
+            .concat([
+                {
+                    ...t.identifier('handlers'),
+                    typeAnnotation: t.tsTypeAnnotation(
+                        // STOPSHIP: Actually type this
+                        t.tsAnyKeyword(),
+                    ),
+                },
+                {
+                    ...t.identifier('done'),
+                    typeAnnotation: t.tsTypeAnnotation(
+                        typeToAst(env, {
+                            type: 'lambda',
+                            args: [term.is.res],
+                            typeVbls: [],
+                            effectVbls: [],
+                            effects: [],
+                            rest: null,
+                            location: null,
+                            res: {
+                                location: null,
+                                type: 'ref',
+                                ref: {
+                                    type: 'builtin',
+                                    name: 'void',
+                                },
+                            },
+                        }),
+                    ),
+                },
+            ]),
+        printLambdaBody(env, term.body, t.identifier('done')),
+    );
 };
 
 const showEffectRef = (eff: EffectRef) => {
