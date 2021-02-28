@@ -8,6 +8,7 @@ import {
     Reference,
     Let,
     Var,
+    EffectRef,
 } from './types';
 import { Location } from './parser';
 import * as t from '@babel/types';
@@ -60,10 +61,10 @@ export const printType = (env: Env, type: Type): string => {
                 args += ', ...' + printType(env, type.rest);
             }
             const effects = type.effects
-                .map((t) => printType(env, t))
+                .map((t) => showEffectRef(t))
                 .join(', ');
             return `(${args}) =${
-                effects ? '(' + effects + ')' : ''
+                effects ? '{' + effects + '}' : ''
             }> ${printType(env, type.res)}`;
         }
         case 'var':
@@ -753,7 +754,11 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
 
             if (term.argsEffects.length || term.effects.length) {
                 throw new Error(
-                    `This apply has effects, but isn't in a CPS context.`,
+                    `This apply has effects, but isn't in a CPS context. ${term.effects
+                        .map(showEffectRef)
+                        .join(',')} & ${term.argsEffects
+                        .map(showEffectRef)
+                        .join(',')}`,
                 );
             }
 
@@ -879,6 +884,13 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type}`);
     }
+};
+
+const showEffectRef = (eff: EffectRef) => {
+    if (eff.type === 'var') {
+        return printSym(eff.sym);
+    }
+    return printRef(eff.ref);
 };
 
 const printRef = (ref: Reference) =>

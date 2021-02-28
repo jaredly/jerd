@@ -107,26 +107,59 @@ const resolveIdentifier = (
     return null;
 };
 
-// const subtEffectVars = (t: Type, vbls: { [unique: number]: Array<Reference> }): Type => {
-//     return (
-//         walkType(t, (t) => {
-//             if (t.type === 'var') {
-//                 if (vbls[t.sym.unique]) {
-//                     // console.log('SUBST', vbls[t.sym.unique]);
-//                     return vbls[t.sym.unique];
-//                 }
-//                 return t;
-//             }
-//             if (t.type === 'ref') {
-//                 if (t.ref.type === 'builtin') {
-//                     return null;
-//                 }
-//                 throw new Error(`Not support yet ${JSON.stringify(t)}`);
-//             }
-//             return null;
-//         }) || t
-//     );
-// };
+const expandEffectVars = (
+    effects: Array<EffectRef>,
+    vbls: { [unique: number]: Array<EffectRef> },
+): null | Array<EffectRef> => {
+    let changed = false;
+    const result: Array<EffectRef> = [];
+    effects.forEach((eff) => {
+        if (eff.type === 'var' && vbls[eff.sym.unique]) {
+            result.push(...vbls[eff.sym.unique]);
+            changed = true;
+        } else {
+            result.push(eff);
+        }
+    });
+    if (changed) {
+        return result;
+    }
+    return null;
+};
+
+const subtEffectVars = (
+    t: Type,
+    vbls: { [unique: number]: Array<EffectRef> },
+): Type => {
+    return (
+        walkType(t, (t) => {
+            if (t.type === 'lambda') {
+                let changed = false;
+                const effects = expandEffectVars(t.effects, vbls);
+                if (effects != null) {
+                    return {
+                        ...t,
+                        effects,
+                    };
+                }
+            }
+            // if (t.type === 'var') {
+            //     if (vbls[t.sym.unique]) {
+            //         // console.log('SUBST', vbls[t.sym.unique]);
+            //         return vbls[t.sym.unique];
+            //     }
+            //     return t;
+            // }
+            // if (t.type === 'ref') {
+            //     if (t.ref.type === 'builtin') {
+            //         return null;
+            //     }
+            //     throw new Error(`Not support yet ${JSON.stringify(t)}`);
+            // }
+            return null;
+        }) || t
+    );
+};
 
 const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
     return (
@@ -147,6 +180,38 @@ const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
             return null;
         }) || t
     );
+};
+
+const applyEffectVariables = (
+    env: Env,
+    type: Type,
+    vbls: Array<EffectRef>,
+): Type => {
+    if (type.type === 'lambda') {
+        const t: LambdaType = type as LambdaType;
+
+        const mapping: { [unique: number]: Array<EffectRef> } = {};
+
+        if (type.effectVbls.length !== 1) {
+            throw new Error(`Multiple effect variables not yet supported`);
+        }
+
+        mapping[type.effectVbls[0]] = vbls;
+
+        return {
+            ...type,
+            // typeVbls: [], // TODO allow partial application!
+            effectVbls: [],
+            effects: expandEffectVars(type.effects, mapping) || type.effects,
+            args: type.args.map((t) => subtEffectVars(t, mapping)),
+            // TODO effects with type vars!
+            rest: null, // TODO rest args
+            res: subtEffectVars(type.res, mapping),
+        };
+    }
+    // should I go full-on whatsit? maybe not yet.
+    throw new Error(`Can't apply variables to non-lambdas just yet`);
+    // return type;
 };
 
 const applyTypeVariables = (env: Env, type: Type, vbls: Array<Type>): Type => {
@@ -336,7 +401,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         }
         case 'apply': {
             let target = typeExpr(env, expr.target);
-            for (let { args, typevbls } of expr.args) {
+            for (let { args, typevbls, effectVbls } of expr.args) {
                 if (typevbls.length) {
                     // HERMMM This might be illegal.
                     // or rather, doing it like this
@@ -348,6 +413,42 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             env,
                             target.is,
                             typevbls.map((t) => typeType(env, t)),
+                        ) as LambdaType,
+                    };
+                }
+
+                if (effectVbls.length) {
+                    const mappedVbls: Array<EffectRef> = effectVbls.map(
+                        (id) => {
+                            // TODO abstract this into "resolveEffect" probably
+                            if (env.local.effectVbls[id.text]) {
+                                return {
+                                    type: 'var',
+                                    sym: env.local.effectVbls[id.text],
+                                };
+                            }
+                            if (!env.global.effectNames[id.text]) {
+                                throw new Error(`No effect named ${id.text}`);
+                            }
+                            return {
+                                type: 'ref',
+                                ref: {
+                                    type: 'user',
+                                    id: {
+                                        hash: env.global.effectNames[id.text],
+                                        pos: 0,
+                                        size: 1,
+                                    },
+                                },
+                            };
+                        },
+                    );
+                    target = {
+                        ...target,
+                        is: applyEffectVariables(
+                            env,
+                            target.is,
+                            mappedVbls,
                         ) as LambdaType,
                     };
                 }

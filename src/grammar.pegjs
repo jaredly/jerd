@@ -108,7 +108,7 @@ Binop = Expression
 Type = LambdaType / Identifier
 CommaType = first:Type rest:(_ "," _ Type)* {return [first, ...rest.map(r => r[3])]}
 TypeVblsApply = "<" _ inner:CommaType _ ">" {return inner}
-EffectVblsApply = "{" _ inner:CommaEffects _ "}" {return inner}
+EffectVblsApply = "{" _ inner:CommaEffects? _ "}" {return inner || []}
 
 LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaType? _ ")" _ "="
     effects:("{" _ CommaEffects? _ "}")?

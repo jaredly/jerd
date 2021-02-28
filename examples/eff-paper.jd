@@ -261,8 +261,11 @@ withInitialValue<string>(10, getAndSet) == "10:14"
 
 // # Effect variables! Got to have it.
 
-const mapIt = {e}(x: () ={e}> int) ={e}> x() + 5
+const callPlus5 = {e}(x: () ={e}> int) ={e}> x() + 5
 
+withInitialValue<int>(4, () ={Store}> callPlus5{Store}(() ={Store}> raise!(Store.get()))) == 9
+
+// callPlus5{}(() ={}> 4) == 9
 
 // const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
 //     handle! fn {
