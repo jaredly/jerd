@@ -417,7 +417,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     };
                 }
 
-                if (effectVbls.length) {
+                const prevEffects =
+                    target.is.type === 'lambda' ? target.is.effects : [];
+                if (effectVbls != null) {
                     const mappedVbls: Array<EffectRef> = effectVbls.map(
                         (id) => {
                             // TODO abstract this into "resolveEffect" probably
@@ -452,6 +454,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         ) as LambdaType,
                     };
                 }
+                const postEffects =
+                    target.is.type === 'lambda' ? target.is.effects : [];
 
                 let is: LambdaType;
                 if (target.is.type === 'var') {
@@ -521,6 +525,28 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     argsEffects: effects,
                     is: is.res,
                 };
+                if (prevEffects.length > 0 && postEffects.length === 0) {
+                    target.effectPolymorphicPure = true;
+
+                    // Ok here's where we're at.
+                    // `callPlus5` is expecting its argument to be an effectful one
+                    // So we also need to annotate all arguments that would have been effectful,
+                    // yeah so maybe we just up and wrap it in, well no.
+                    // hmm.
+                    // oh maybe when printing we can know what terms
+                    // yeah ok, so here we'll specify which arguments
+                    // would have been effectful, so when printing we can wrap them.
+                    // so x becomes (..., _, done) => done(x(...))
+                    // Yup
+                    // START HERE
+
+                    // assertEqual(pureCPS((handlers, done) => hash_4a721d23(() => 4, handlers, done)), 9);
+
+                    // console.log('HAHA');
+                    // OOOF. How do I specialize?
+                    // ORRR Actually, yeah ok if I can't specialize, I can at least mark it as "pure-but-cps", and wrap it as such.
+                    // that'll be relatively simple.
+                }
             }
             return target;
         }

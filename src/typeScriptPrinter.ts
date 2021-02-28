@@ -353,7 +353,11 @@ const _termToAstCPS = (
     term: Term | Let,
     done: t.Expression,
 ): t.Expression => {
-    if (!getEffects(term).length && term.type !== 'Let') {
+    if (
+        !getEffects(term).length &&
+        term.type !== 'Let' &&
+        !(term.type === 'apply' && term.effectPolymorphicPure)
+    ) {
         return t.callExpression(done, [
             t.identifier('handlers'),
             printTerm(env, term),
@@ -760,6 +764,17 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                         .map(showEffectRef)
                         .join(',')}`,
                 );
+            }
+            if (term.effectPolymorphicPure) {
+                // x(handlers, done)
+                // pureCPS((handlers, done) => x([], done))
+                return t.callExpression(t.identifier('pureCPS'), [
+                    t.arrowFunctionExpression(
+                        [t.identifier('handlers'), t.identifier('done')],
+
+                        termToAstCPS(env, term, t.identifier('done')),
+                    ),
+                ]);
             }
 
             // Pure, love it.

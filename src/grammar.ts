@@ -203,7 +203,7 @@ function peg$parse(input: string, options?: IParseOptions) {
           return {type: 'apply', target: sub,
           args: args.map(a => ({
               typevbls: a[0] || [],
-              effectVbls: a[1] || [],
+              effectVbls: a[1],
               args: a[4] || [],
           })),
           location: location()}

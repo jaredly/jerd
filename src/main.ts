@@ -211,6 +211,7 @@ const fileToTypescript = (
                     'handleSimpleShallow2',
                     'assert',
                     'assertEqual',
+                    'pureCPS',
                 ].map((name) =>
                     t.importSpecifier(t.identifier(name), t.identifier(name)),
                 ),

@@ -82,6 +82,7 @@ export type CPSAble =
           target: Term;
           argsEffects: Array<EffectRef>;
           effects: Array<EffectRef>;
+          effectPolymorphicPure?: boolean;
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };

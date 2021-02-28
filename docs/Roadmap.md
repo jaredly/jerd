@@ -13,7 +13,7 @@
   - [x] basics
   - [ ] actually map all the things, so we can step through reasonably
 - [x] verify that nested effects work
-- [ ] implement all the examples from the eff paper
+- [x] implement all the examples from the eff paper
   - [x] basic (collect)
   - [x] reverse
   - [x] pickTrue
@@ -29,7 +29,8 @@
     - found the bug! turns out I was concatting the same array to itself in some places
       which gets very large very fast.
   - [x] State
-- [ ] effect variables, cmon (functions generic over effects)
+- [x] effect variables, cmon (functions generic over effects)
+  - [ ] make it work when pure too
 - [ ] generic effects
 - [ ] port the unison runtime effects tests, verify that all is well.
 - [ ] records
