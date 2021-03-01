@@ -12,10 +12,26 @@ const sayHi = () => {
     log(hello())
 }
 
+effect Log {
+    log: (string) => void,
+}
+
+// This is so we can test the results
+const collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
+    handle! fn {
+        Log.log((v) => k) => {
+            v ++ "\n" ++ collect{e}(k)
+        },
+        pure(a) => "end"
+    }
+}
+
+const log = (k: string) ={Log}> raise!(Log.log(k))
+
 // TODO when I've got type arguments, make this generic.
 const respondWith:
-    (string) => <T>(() ={Stdio}> T) => T
- = (responseValue) => <T,>(fn: () ={Stdio}> T) => {
+    (string) => <T>(() ={Stdio, Log}> T) ={Log}> T
+ = (responseValue) => <T,>(fn: () ={Stdio, Log}> T) ={Log}> {
     handle! fn {
         Stdio.read(() => k) => respondWith(responseValue ++ ".")<T>(() => k(responseValue)),
         Stdio.write((v) => k) => {
@@ -122,8 +138,10 @@ const inner = (name: string): void => {
 // const test2 = () => callOne((a, b) => log(b))
 
 const test1 = () => {
-    respondWith("<read>")(() => inner("Yes"))
+    respondWith("<read>")<void>(() => inner("Yes"))
 }
+
+collect{}(test1) == "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
 
 const maybeRaise = (shouldRaise: bool) => {
     if shouldRaise {
@@ -137,18 +155,21 @@ const test2 = () => {
     respondWith("<read>")<void>(() => log(maybeRaise(true) ++ maybeRaise(false)))
 }
 
+collect{}(test2) == "<read>didn't raise\nend"
+
 const raiseIf = (check: string) => {
     if raise!(Stdio.read()) == check {
         raise!(Stdio.read())
     } else {
         "didn't raise"
     }
-    // respondWith("<read>")(() => )
 }
 
 const test3 = () => {
     log(respondWith("<read>")<string>(() => raiseIf("<read>")))
 }
+
+collect{}(test3) == "<read>.\nend"
 
 const letBind = () => {
     const x = raise!(Stdio.read());
@@ -156,44 +177,8 @@ const letBind = () => {
 }
 
 const test4 = () => {
-    respondWith("<read>")(letBind)
+    respondWith("<read>")<void>(letBind)
 }
 
+collect{}(test4) == "<read>Hello\nend"
 
-
-// TODO: Effect variables!!
-// effect Choose {
-//     bool: () => bool,
-//     int: () => int,
-// }
-
-// // TODO when I've got type arguments, make this generic.
-// const chooseResponse:
-//     (bool, int) => (() ={Choose}> void) => void
-//  = (responseBool, responseInt) => (fn: () ={Stdio}> void) => {
-//     handle! fn {
-//         Choose.bool(() => k) => chooseResponse(responseBool, responseInt)(() => k(responseBool)),
-//         Choose.int(() => k) => chooseResponse(responseBool, responseInt)(() => k(responseInt)),
-//         pure(a) => a
-//     }
-// }
-
-// const useChoose = () => {
-//     if raise!(Choose.bool()) {
-//         raise!(Stdio.read())
-//     } else {
-//         "didn't raise"
-//     }
-//     // respondWith("<read>")(() => )
-// }
-
-// const test3 = () => {
-//     chooseResponse(true, 10)(() => {
-//         respondWith("<read>")(() => log(useChoose() ++ maybeRaise(false)))
-//     })
-// }
-
-test1()
-test2()
-test3()
-test4()

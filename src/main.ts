@@ -16,7 +16,7 @@ import {
     optimizeAST,
     removeTypescriptTypes,
 } from './printing/typeScriptOptimize';
-import typeExpr from './typing/typeExpr';
+import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
 import {
     EffectRef,
@@ -168,6 +168,13 @@ function typeFile(parsed: Toplevel[]) {
         } else {
             // A standalone expression
             const term = typeExpr(env, item);
+            if (getEffects(term).length > 0) {
+                throw new Error(
+                    `Term at ${showLocation(
+                        term.location,
+                    )} has toplevel effects.`,
+                );
+            }
             expressions.push(term);
         }
     }
@@ -182,32 +189,6 @@ const fileToTypescript = (
     env: Env,
     assert: boolean,
 ) => {
-    // const out = prelude.slice();
-
-    // const items: Array<t.Statement> = [
-    //     t.variableDeclaration('const', [
-    //         t.variableDeclarator(
-    //             t.objectPattern(
-    //                 [
-    //                     'raise',
-    //                     'isSquare',
-    //                     'log',
-    //                     'intToString',
-    //                     'handleSimpleShallow2',
-    //                 ].map((name) =>
-    //                     t.objectProperty(
-    //                         t.identifier(name),
-    //                         t.identifier(name),
-    //                     ),
-    //                 ),
-    //             ),
-    //             t.callExpression(t.identifier('require'), [
-    //                 t.stringLiteral('./prelude.js'),
-    //             ]),
-    //         ),
-    //     ]),
-    // ];
-
     const items: Array<t.Statement> = [
         t.importDeclaration(
             [
@@ -255,33 +236,6 @@ const fileToTypescript = (
                 ),
             ),
         );
-
-        // out.push(
-        //     `\n/*\n${printToString(
-        //         declarationToPretty(
-        //             {
-        //                 hash: hash,
-        //                 size: 1,
-        //                 pos: 0,
-        //             },
-        //             term,
-        //         ),
-        //         100,
-        //     )}\n*/`,
-        // );
-        // out.push(
-        //     declarationToString(
-        //         {
-        //             ...env,
-        //             local: {
-        //                 ...env.local,
-        //                 self: { name: hash, type: term.is },
-        //             },
-        //         },
-        //         hash,
-        //         term,
-        //     ),
-        // );
     });
 
     const callBuiltin = (
@@ -344,19 +298,14 @@ const fileToTypescript = (
             }
         }
         items.push(termToAST(env, term, printType(env, term.is)));
-        // out.push(`// ${printType(env, term.is)}`);
-        // out.push(termToString(env, term) + ';');
     });
 
     const ast = t.file(t.program(items, [], 'script'));
     optimizeAST(ast);
-    // return out.join('\n');
-    // const { code, map } = generate(ast, {sourceMaps: true});
-    // return code + '\n\n// #sourceMapping'
     return ast;
 };
 
-const main = (fname: string, assert: boolean, run: boolean) => {
+const processFile = (fname: string, assert: boolean, run: boolean) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
@@ -387,28 +336,85 @@ const main = (fname: string, assert: boolean, run: boolean) => {
         'utf8',
     );
 
-    // const preludeTS =
-    //     prelude.join('\n') +
-    //     '\n' +
-    //     `export {log, raise, handleSimpleShallow2, isSquare, intToString}`;
     execSync(
         `yarn -s esbuild --loader=ts > "${path.join(buildDir, 'prelude.mjs')}"`,
         {
             input: preludeTS,
         },
     );
-    // // const preludeAST = parser.parse(preludeTS, { sourceType: 'module', plugins });
-    // removeTypescriptTypes(preludeAST);
-    // fs.writeFileSync(
-    //     path.join(buildDir, 'prelude.js'),
-    //     generate(preludeAST).code,
-    // );
+
     if (run) {
-        execSync(`node --enable-source-maps ${dest}`, { stdio: 'inherit' });
+        const { stdout, error } = spawnSync(
+            'node',
+            ['--enable-source-maps', dest],
+            { stdio: 'inherit' },
+        );
     }
 };
 
-import { execSync } from 'child_process';
+const cacheFile = '.test-cache';
+
+const loadCache = (files: Array<string>, self: string) => {
+    if (fs.existsSync(cacheFile)) {
+        const mtimes = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+        // If self was modified, everything should rerun
+        if (!mtimes[self] || fs.statSync(self).mtimeMs > mtimes[self]) {
+            return {};
+        }
+        const shouldSkip: { [key: string]: boolean } = {};
+        files.forEach((name) => {
+            if (mtimes[name] && fs.statSync(name).mtimeMs === mtimes[name]) {
+                shouldSkip[name] = true;
+            }
+        });
+        return shouldSkip;
+    } else {
+        return {};
+    }
+};
+
+const saveCache = (files: Array<string>, self: string) => {
+    const cache = { [self]: fs.statSync(self).mtimeMs };
+    files.forEach((name) => (cache[name] = fs.statSync(name).mtimeMs));
+    fs.writeFileSync(cacheFile, JSON.stringify(cache), 'utf8');
+};
+
+const main = (
+    fnames: Array<string>,
+    assert: boolean,
+    run: boolean,
+    cache: boolean,
+) => {
+    const shouldSkip = cache ? loadCache(fnames, process.argv[1]) : null;
+    console.log(`\n# Processing ${fnames.length} files\n`);
+    const passed = [];
+    for (let fname of fnames) {
+        if (shouldSkip && shouldSkip[fname]) {
+            passed.push(fname);
+            continue; // skipping
+        }
+        // skipping folks
+        if (fname.endsWith('type-errors.jd')) {
+            continue;
+        }
+        console.log('hello', fname);
+        try {
+            processFile(fname, assert, run);
+            console.log(`✅ processed ${fname}`);
+            passed.push(fname);
+        } catch (err) {
+            console.error(`❌ Failed to process ${fname}`);
+            console.error('-----------------------------');
+            console.error(err);
+            console.error('-----------------------------');
+        }
+    }
+    if (cache) {
+        saveCache(passed, process.argv[1]);
+    }
+};
+
+import { execSync, spawnSync } from 'child_process';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
@@ -419,27 +425,15 @@ const runTests = () => {
 if (process.argv[2] === '--test') {
     runTests();
 } else {
-    const watch =
-        process.argv.includes('--watch') || process.argv.indexOf('-w');
-    const fname = process.argv[2];
+    const fnames = process.argv
+        .slice(2)
+        .filter((name) => !name.startsWith('-'));
     const assert = process.argv.includes('--assert');
     const run = process.argv.includes('--run');
+    const cache = process.argv.includes('--cache');
     try {
-        main(fname, assert, run);
+        main(fnames, assert, run, cache);
     } catch (err) {
         console.error(err);
-    }
-    if (watch && false) {
-        console.log('watching');
-        fs.watchFile(fname, () => {
-            // setTimeout(() => {
-            console.log('File changed!');
-            try {
-                main(fname, assert, run);
-            } catch (err) {
-                console.error(err);
-            }
-            // }, 100);
-        });
     }
 }

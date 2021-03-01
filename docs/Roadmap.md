@@ -34,8 +34,8 @@
     - ok plan is: `directOrEffectful: 'direct' | 'effectful' | null`
     - and then {direct: fn(), effectful: fn()}
   - recursive isn't working for some reason
-- [ ] generic effects
-- [ ] port the unison runtime effects tests, verify that all is well.
+- [ ] some coverage testing of what we already have, just to check.
+- [ ] generic effects (Store<T>)
 - [ ] records
   - [ ] basic
   - [ ] generic
@@ -44,11 +44,12 @@
   - [ ] basic
   - [ ] generic
   - [ ] row polymorphic
+- [ ] tuples
+- [ ] port the unison runtime effects tests, verify that all is well.
 - [ ] match
 - [ ] exit-only effects? (call/ec) Can I just use exceptions in the js? would need to check.
     I don't *think* I can in go... oh wait, panic/recover might get it done.
 - [ ] let & function arg destructuring of records
-- [ ] tuples please
 - [ ] array types, literals, indexers
   - what do I think about "index out of range"? Should I allow "panics"?
   - or should I be perfectly safe 🤔

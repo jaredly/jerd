@@ -16,6 +16,7 @@ import { walkType } from './typeType';
 import { printToString } from '../printing/printer';
 import { typeToPretty } from '../printing/printTsLike';
 import { Identifier } from '../parsing/parser';
+import { showLocation } from './typeExpr';
 
 // const
 /*
@@ -289,7 +290,9 @@ export const fitsExpectation = (
             throw new Error(
                 `Explicit type variable ${t.sym.name}#${
                     t.sym.unique
-                } can't unify with ${showType(target)}`,
+                } can't unify with ${showType(target)} - ${showLocation(
+                    t.location,
+                )} : ${showLocation(target.location)}`,
             );
         }
         env.local.tmpTypeVbls[t.sym.unique].push({
@@ -350,7 +353,11 @@ export const fitsExpectation = (
             // Is target allowed to have more, or fewer effects than t?
             // more. t's effects list must be a strict subset.
             if (!effectsMatch(target.effects, t.effects, true)) {
-                throw new Error(`Unexpected argument effect`);
+                throw new Error(
+                    `Unexpected argument effect: ${showLocation(
+                        target.location,
+                    )} - ${showLocation(t.location)}`,
+                );
             }
             // t.effects.forEach((e) => {
             //     if (!target.effects.some((ef) => refsEqual(ef, e))) {

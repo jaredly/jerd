@@ -2,9 +2,9 @@
 
 import hashObject from 'hash-sum';
 import parse, { Expression, Define, Toplevel, Effect } from '../parsing/parser';
-import typeExpr from './typeExpr';
+import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
-import { Env, Term, Type, TypeConstraint } from './types';
+import { Env, getEffects, Term, Type, TypeConstraint } from './types';
 import {
     showType,
     unifyInTerm,
@@ -48,6 +48,12 @@ export const typeDefine = (env: Env, item: Define) => {
     // console.log('< type', showType(term.is));
     if (fitsExpectation(subEnv, term.is, self.type) !== true) {
         throw new Error(`Term's type doesn't match annotation`);
+    }
+
+    if (getEffects(term).length > 0) {
+        throw new Error(
+            `Term at ${showLocation(term.location)} has toplevel effects.`,
+        );
     }
     // // Ok so we need to be able to handle second- and nth-level
     // // indirection I imagine.

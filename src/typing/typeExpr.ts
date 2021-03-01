@@ -146,7 +146,7 @@ const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
     );
 };
 
-const showLocation = (loc: Location | null) => {
+export const showLocation = (loc: Location | null) => {
     if (!loc) {
         return `<no location>`;
     }

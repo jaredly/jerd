@@ -4,7 +4,11 @@ const x = {
     y
 }
 
+x == 10
+
 const z = (n: int) => {
     const m = n + 2;
     m - 1
 }
+
+z(10) == 11

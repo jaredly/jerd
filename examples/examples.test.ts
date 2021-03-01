@@ -14,9 +14,10 @@ import * as serializerRaw from 'jest-snapshot-serializer-raw';
 import { subEnv } from '../src/typing/types';
 import vm from 'vm';
 import { execSync } from 'child_process';
-import typeExpr, { fitsExpectation } from '../src/typing/typeExpr';
+import typeExpr from '../src/typing/typeExpr';
 import path from 'path';
 import { Location } from '../src/parsing/parser';
+import { fitsExpectation } from '../src/typing/unify';
 
 const examples = [
     // yes
