@@ -19,7 +19,8 @@ import { subEnv, effectsMatch } from './types';
 import typeType, { newTypeVbl, walkType } from './typeType';
 import { showType } from './unify';
 import { void_, bool } from './preset';
-import { items } from './printer';
+import { items, printToString } from './printer';
+import { refToPretty, symToPretty } from './printTsLike';
 
 export const walkTerm = (
     term: Term | Let,
@@ -182,6 +183,13 @@ const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
     );
 };
 
+const showLocation = (loc: Location | null) => {
+    if (!loc) {
+        return `<no location>`;
+    }
+    return `${loc.start.line}:${loc.start.column}-${loc.end.line}:${loc.end.column}`;
+};
+
 export const applyEffectVariables = (
     env: Env,
     type: Type,
@@ -193,7 +201,11 @@ export const applyEffectVariables = (
         const mapping: { [unique: number]: Array<EffectRef> } = {};
 
         if (type.effectVbls.length !== 1) {
-            throw new Error(`Multiple effect variables not yet supported`);
+            throw new Error(
+                `Multiple effect variables not yet supported: ${showType(
+                    type,
+                )} : ${showLocation(type.location)}`,
+            );
         }
 
         mapping[type.effectVbls[0]] = vbls;
@@ -401,6 +413,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         }
         case 'apply': {
             let target = typeExpr(env, expr.target);
+            if (target.type === 'self') {
+                console.log(`Self apply: ${showType(target.is)}`);
+            }
             for (let { args, typevbls, effectVbls } of expr.args) {
                 if (typevbls.length) {
                     // HERMMM This might be illegal.
@@ -518,11 +533,14 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     is: is.res,
                 };
                 if (
+                    // if we have only variables
+                    // and then we have no variables
+                    // this is a directOrEffectful situation.
                     prevEffects.filter((x) => x.type === 'ref').length === 0 &&
                     prevEffects.length > 0 &&
                     postEffects.filter((x) => x.type === 'var').length === 0
                 ) {
-                    console.log('Got one', prevEffects, postEffects);
+                    // console.log('Got one', prevEffects, postEffects);
                     target.directOrEffectful =
                         postEffects.length === 0 ? 'direct' : 'effectful';
                 }
@@ -595,6 +613,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const sym: Symbol = { name: id.text, unique };
                 typeInner.local.effectVbls[id.text] = sym;
                 effectVbls.push(sym.unique);
+                // console.log('VBL', sym);
             });
 
             // expr.effects.map(id => )
@@ -633,6 +652,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const declaredEffects: Array<EffectRef> = expr.effects.map(
                     (effName) => {
                         if (env.local.effectVbls[effName.text]) {
+                            console.log(
+                                `Got a var`,
+                                effName.text,
+                                env.local.effectVbls,
+                            );
                             return {
                                 type: 'var',
                                 sym: env.local.effectVbls[effName.text],
@@ -650,6 +674,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                                 id: { hash: effId, size: 1, pos: 0 },
                             },
                         };
+                        // return resolveEffect(env, effName);
                     },
                 );
                 if (declaredEffects.length === 0 && effects.length !== 0) {
@@ -659,7 +684,13 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 }
                 if (!effectsMatch(declaredEffects, effects, true)) {
                     throw new Error(
-                        `Function declared with explicit effects, but missing at least one`,
+                        `Function declared with explicit effects, but missing at least one: ${declaredEffects
+                            .map((e) =>
+                                e.type === 'ref'
+                                    ? printToString(refToPretty(e.ref), 100)
+                                    : printToString(symToPretty(e.sym), 100),
+                            )
+                            .join(',')}`,
                     );
                 }
                 // for (let inner of effects) {
@@ -962,7 +993,7 @@ export const fitsExpectation = (
     }
 };
 
-const resolveEffect = (env: Env, id: Identifier): EffectRef => {
+export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
     // TODO abstract this into "resolveEffect" probably
     if (env.local.effectVbls[id.text]) {
         return {

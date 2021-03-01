@@ -31,10 +31,12 @@ export const typeDefine = (env: Env, item: Define) => {
         ...env,
         local: { ...env.local, tmpTypeVbls },
     };
+    console.log(item.id.text, env.local.effectVbls);
     const self = {
         name: item.id.text,
         type: item.ann ? typeType(env, item.ann) : newTypeVbl(subEnv),
     };
+    console.log(`Annotation for ${self.name}: ${showType(self.type)}`);
     subEnv.local.self = self;
     const term = typeExpr(subEnv, item.expr);
     // console.log('< type', showType(term.is));

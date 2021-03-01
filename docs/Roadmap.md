@@ -33,6 +33,7 @@
   - [x] make it work when pure too
     - ok plan is: `directOrEffectful: 'direct' | 'effectful' | null`
     - and then {direct: fn(), effectful: fn()}
+  - recursive isn't working for some reason
 - [ ] generic effects
 - [ ] port the unison runtime effects tests, verify that all is well.
 - [ ] records

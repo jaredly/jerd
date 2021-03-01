@@ -268,6 +268,7 @@ export const effectsMatch = (
         const k = effectKey(e);
         twos[k] = true;
         if (!ones[k]) {
+            console.log(`Missing`, k, one, two);
             return false;
         }
     }
