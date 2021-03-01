@@ -219,13 +219,11 @@ export const printLambdaBody = (
             return printTerm(env, term);
         }
     } else {
-        // return t.identifier('cps');
         if (term.type === 'sequence') {
             // so we start from the last
             // and we know what we want to bind to, right? or something?
             // in what case would we want to CPS something that
             // can't be CPSd?
-            // const last = term.sts[term.sts.length - 1];
             let inner = cps;
             for (let i = term.sts.length - 1; i >= 0; i--) {
                 if (i > 0) {
@@ -248,22 +246,11 @@ export const printLambdaBody = (
                 }
             }
             return t.blockStatement([t.expressionStatement(inner)]);
-            // let pre = [];
-            // for (let s of term.sts) {
-            //     if (getEffects(s).length === 0) {
-            //         console.log('ok', s);
-            //         pre.push(t.expressionStatement(printTerm(env, s)));
-            //     } else {
-            //         pre.push(t.expressionStatement(termToAstCPS(env, s, cps)));
-            //     }
-            // }
-            // return t.blockStatement(pre);
         } else {
             return t.blockStatement([
                 t.expressionStatement(termToAstCPS(env, term, cps)),
             ]);
         }
-        // return t.identifier(term.type);
     }
 };
 

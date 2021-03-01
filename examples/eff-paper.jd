@@ -25,72 +25,57 @@ const tee = (x: string): string => {
 const print = (x: string) ={Write}> raise!(Write.write(x))
 const read = () ={Read}> raise!(Read.read())
 
-const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
+const alwaysRead: <T,>{e}(string, () ={Read, e}> T) ={e}> T = <T,>{e}(value: string, fn: () ={Read, e}> T): T ={e}> {
     handle! fn {
         Read.read(() => k) => {
             // OOF ok this bit doesn't have the `directOrEffectful` set...
             // why not?
             // is it that the self isn't populating things right?
-            alwaysRead{e}(value, () => k(value))
+            alwaysRead<T>{e}(value, () => k(value))
         },
         pure(a) => a
     }
 }
 
-
-// const alwaysRead: (string, () ={Read, Write}> void) ={Write}> void = (value: string, fn: () ={Read, Write}> void): void ={Write}> {
-//     handle! fn {
-//         Read.read(() => k) => {
-//             alwaysRead(value, () => k(value))
-//         },
-//         pure(a) => a
-//     }
-// }
-
 // This is so we can test the results
-const collect: (() ={Write}> void) => string = (fn: () ={Write}> void): string => {
+const collect: {e}(() ={Write, e}> void) ={e}> string = {e}(fn: () ={Write, e}> void): string => {
     handle! fn {
         Write.write((v) => k) => {
-            v ++ "\n" ++ collect(k)
+            v ++ "\n" ++ collect{e}(k)
         },
         pure(a) => "end"
     }
 }
 
-
-// Does collect work? Looks like it does
-collect((): void => {
+collect{}((): void => {
     raise!(Write.write("one"));
     raise!(Write.write("two"));
     raise!(Write.write("three"))
 }) == "one\ntwo\nthree\nend"
 
-// Does collect work? Looks like it does
-collect((): void => {
+collect{}((): void => {
     print("HI")
 }) == "HI\nend"
 
-// Here's the broken
-collect((): void => {
+collect{}((): void => {
     print("HI");
     print("HO");
 }) == "HI\nHO\nend"
 
-// And this works
-collect((): void => {
+collect{}((): void => {
     raise!(Write.write("HI"));
     raise!(Write.write("HO"));
 }) == "HI\nHO\nend"
 
 // Working
-collect(() => alwaysRead{Write}("hi", () => print(raise!(Read.read()) ++ " and " ++ raise!(Read.read())) )) == "hi and hi\nend"
+collect{}(() => alwaysRead<void>{Write}("hi", () => print(raise!(Read.read()) ++ " and " ++ raise!(Read.read())) )) == "hi and hi\nend"
 
-collect((): void => {
+collect{}((): void => {
     print("A");
     print("B")
 }) == "A\nB\nend"
 
-collect(() => alwaysRead{Write}("hi", () => {
+collect{}(() => alwaysRead<void>{Write}("hi", () => {
     print(read());
     print("YA");
     print(read());
@@ -98,13 +83,13 @@ collect(() => alwaysRead{Write}("hi", () => {
 })) == "hi\nYA\nhi\nB\nend"
 
 
-collect(() => alwaysRead{Write}("hi", () => {
+collect{}(() => alwaysRead<void>{Write}("hi", () => {
     raise!(Write.write("A"));
     const x = raise!(Read.read());
     raise!(Write.write("B"));
 })) == "A\nB\nend"
 
-collect(() => alwaysRead{Write}("hi", () => {
+collect{}(() => alwaysRead<void>{Write}("hi", () => {
     const x = raise!(Read.read());
     raise!(Write.write("B"));
 })) == "B\nend"
@@ -122,8 +107,8 @@ const printFullName = () ={Read, Write}> {
 
 // Full first example from the eff paper
 // # 2.1.1
-collect((): void => {
-    alwaysRead{Write}("Me", printFullName)
+collect{}((): void => {
+    alwaysRead<void>{Write}("Me", printFullName)
 }) == "What is your forename?\nWhat is your surname?\nMe Me\nend"
 
 // This is so we can test the results
@@ -137,12 +122,12 @@ const reverse: (() ={Write}> void) ={Write}> void = (fn: () ={Write}> void): voi
     }
 }
 
-collect(() => reverse(() => {print("A"); print("B")})) == "B\nA\nend"
+collect{}(() => reverse(() => {print("A"); print("B")})) == "B\nA\nend"
 
 // # 2.1.2
-collect((): void => {
+collect{}((): void => {
     reverse(() => {
-        alwaysRead{Write}("Me", printFullName)
+        alwaysRead<void>{Write}("Me", printFullName)
     })
 }) == "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
 

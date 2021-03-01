@@ -539,7 +539,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             throw new Error(`Undefined identifier ${expr.text}`);
         }
         case 'lambda': {
-            const typeInner = expr.typevbls.length ? subEnv(env) : env;
+            const typeInner =
+                expr.typevbls.length || expr.effvbls.length ? subEnv(env) : env;
             const typeVbls: Array<number> = [];
             expr.typevbls.forEach((id) => {
                 const unique = Object.keys(typeInner.local.typeVbls).length;
@@ -597,15 +598,16 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             if (expr.effects != null) {
                 const declaredEffects: Array<EffectRef> = expr.effects.map(
                     (effName) => {
-                        if (env.local.effectVbls[effName.text]) {
+                        if (typeInner.local.effectVbls[effName.text]) {
                             return {
                                 type: 'var',
-                                sym: env.local.effectVbls[effName.text],
+                                sym: typeInner.local.effectVbls[effName.text],
                             };
                         }
-                        const effId = env.global.effectNames[effName.text];
+                        const effId =
+                            typeInner.global.effectNames[effName.text];
                         if (!effId) {
-                            console.log(env.local.effectVbls);
+                            console.log(typeInner.local.effectVbls);
                             throw new Error(`No effect named ${effName.text}?`);
                         }
                         return {
