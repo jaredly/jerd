@@ -82,7 +82,8 @@ export type CPSAble =
           target: Term;
           argsEffects: Array<EffectRef>;
           effects: Array<EffectRef>;
-          directOrEffectful?: 'direct' | 'effectful' | null;
+          //   directOrEffectful?: 'direct' | 'effectful' | 'variable' | null;
+          hadAllVariableEffects?: boolean;
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };

@@ -510,7 +510,7 @@ const _termToAstCPS = (
 
             if (term.argsEffects.length > 0) {
                 let target = printTerm(env, term.target);
-                if (term.directOrEffectful === 'effectful') {
+                if (term.hadAllVariableEffects) {
                     target = t.memberExpression(
                         target,
                         t.identifier('effectful'),
@@ -574,15 +574,9 @@ const _termToAstCPS = (
                     );
                 }
                 return inner;
-                // return termToAstCPS(
-                //     env,
-                //     args[0],
-                //     t.arrowFunctionExpression([t.identifier('value')], inner),
-                // );
-                // return t.identifier('args effects');
             }
             let target = printTerm(env, term.target);
-            if (term.directOrEffectful === 'effectful') {
+            if (term.hadAllVariableEffects) {
                 target = t.memberExpression(target, t.identifier('effectful'));
             }
             return callOrBinop(
@@ -750,24 +744,11 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                         .join(',')}`,
                 );
             }
-            // if (term.effectPolymorphicPure) {
-            //     // x(handlers, done)
-            //     // pureCPS((handlers, done) => x([], done))
-            //     return t.callExpression(t.identifier('pureCPS'), [
-            //         t.arrowFunctionExpression(
-            //             [t.identifier('handlers'), t.identifier('done')],
-
-            //             termToAstCPS(env, term, t.identifier('done')),
-            //         ),
-            //     ]);
-            // }
 
             let target = printTerm(env, term.target);
 
-            if (term.directOrEffectful === 'direct') {
+            if (term.hadAllVariableEffects) {
                 target = t.memberExpression(target, t.identifier('direct'));
-            } else if (term.directOrEffectful === 'effectful') {
-                throw new Error(`wait its effectful`);
             }
 
             const argTypes =

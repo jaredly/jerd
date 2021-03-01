@@ -28,11 +28,15 @@ const read = () ={Read}> raise!(Read.read())
 const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
     handle! fn {
         Read.read(() => k) => {
+            // OOF ok this bit doesn't have the `directOrEffectful` set...
+            // why not?
+            // is it that the self isn't populating things right?
             alwaysRead{e}(value, () => k(value))
         },
         pure(a) => a
     }
 }
+
 
 // const alwaysRead: (string, () ={Read, Write}> void) ={Write}> void = (value: string, fn: () ={Read, Write}> void): void ={Write}> {
 //     handle! fn {

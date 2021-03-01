@@ -111,18 +111,19 @@ const resolveIdentifier = (
 const expandEffectVars = (
     effects: Array<EffectRef>,
     vbls: { [unique: number]: Array<EffectRef> },
+    nullIfUnchanged: boolean,
 ): null | Array<EffectRef> => {
     let changed = false;
     const result: Array<EffectRef> = [];
     effects.forEach((eff) => {
-        if (eff.type === 'var' && vbls[eff.sym.unique]) {
+        if (eff.type === 'var' && vbls[eff.sym.unique] != null) {
             result.push(...vbls[eff.sym.unique]);
             changed = true;
         } else {
             result.push(eff);
         }
     });
-    if (changed) {
+    if (changed || !nullIfUnchanged) {
         return result;
     }
     return null;
@@ -136,7 +137,7 @@ const subtEffectVars = (
         walkType(t, (t) => {
             if (t.type === 'lambda') {
                 let changed = false;
-                const effects = expandEffectVars(t.effects, vbls);
+                const effects = expandEffectVars(t.effects, vbls, true);
                 if (effects != null) {
                     return {
                         ...t,
@@ -212,9 +213,8 @@ export const applyEffectVariables = (
 
         return {
             ...type,
-            // typeVbls: [], // TODO allow partial application!
             effectVbls: [],
-            effects: expandEffectVars(type.effects, mapping) || type.effects,
+            effects: expandEffectVars(type.effects, mapping, false)!,
             args: type.args.map((t) => subtEffectVars(t, mapping)),
             // TODO effects with type vars!
             rest: null, // TODO rest args
@@ -413,9 +413,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         }
         case 'apply': {
             let target = typeExpr(env, expr.target);
-            if (target.type === 'self') {
-                console.log(`Self apply: ${showType(target.is)}`);
-            }
             for (let { args, typevbls, effectVbls } of expr.args) {
                 if (typevbls.length) {
                     // HERMMM This might be illegal.
@@ -447,11 +444,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             mappedVbls,
                         ) as LambdaType,
                     };
-                    console.log(
-                        `Mapped effect variables - ${showType(
-                            pre,
-                        )} ---> ${showType(target.is)}`,
-                    );
+                    // console.log(
+                    //     `Mapped effect variables - ${showType(
+                    //         pre,
+                    //     )} ---> ${showType(target.is)}`,
+                    // );
                 }
                 const postEffects =
                     target.is.type === 'lambda' ? target.is.effects : [];
@@ -500,13 +497,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const effects: Array<EffectRef> = [];
                 const resArgs: Array<Term> = [];
                 args.forEach((term, i) => {
-                    let t: Term = typeExpr(env, term, is.args[i]);
-                    // if (mappedVbls != null) {
-                    //     t = {
-                    //         ...t,
-                    //         is: applyEffectVariables(env, t.is, mappedVbls),
-                    //     } as Term;
-                    // }
+                    const t: Term = typeExpr(env, term, is.args[i]);
                     if (fitsExpectation(env, t.is, is.args[i]) !== true) {
                         throw new Error(
                             `Wrong type for arg ${i}: \nFound: ${showType(
@@ -516,70 +507,25 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             )} : ${JSON.stringify(expr.location)}`,
                         );
                     }
-                    // t = { ...t, is: is.args[i] } as Term;
                     resArgs.push(t);
                     effects.push(...getEffects(t));
                 });
-                // console.log('Args effects', )
 
                 target = {
                     type: 'apply',
                     // STOPSHIP(sourcemap): this should be better
                     location: target.location,
+                    hadAllVariableEffects:
+                        effectVbls != null &&
+                        prevEffects.length > 0 &&
+                        prevEffects.filter((e) => e.type === 'ref').length ===
+                            0,
                     target,
                     args: resArgs,
                     effects: is.effects,
                     argsEffects: effects,
                     is: is.res,
                 };
-                if (
-                    // if we have only variables
-                    // and then we have no variables
-                    // this is a directOrEffectful situation.
-                    prevEffects.filter((x) => x.type === 'ref').length === 0 &&
-                    prevEffects.length > 0 &&
-                    postEffects.filter((x) => x.type === 'var').length === 0
-                ) {
-                    // console.log('Got one', prevEffects, postEffects);
-                    target.directOrEffectful =
-                        postEffects.length === 0 ? 'direct' : 'effectful';
-                }
-
-                // Ok here's where we're at.
-                // `callPlus5` is expecting its argument to be an effectful one
-                // So we also need to annotate all arguments that would have been effectful,
-                // yeah so maybe we just up and wrap it in, well no.
-                // hmm.
-                // oh maybe when printing we can know what terms
-                // yeah ok, so here we'll specify which arguments
-                // would have been effectful, so when printing we can wrap them.
-                // so x becomes (..., _, done) => done(x(...))
-                // Yup
-                // START HERE
-
-                // assertEqual(pureCPS((handlers, done) => hash_4a721d23(() => 4, handlers, done)), 9);
-
-                // ok a harder example:
-                // {e}(fn: () ={}> (x) ={e}> m) ={e}> m
-                // how do I make these work together?
-                // I could do runtime checking, and just have an attribute on functions
-                // that are CPS. So we know whether to wrap them or not.
-                // but that sounds super annoying.
-
-                // ok honestly generating separate functions for pure and impure actually sounds like the best way to go.
-                // this also means: for the moment I'll need to hmmmm place limits hmmmm oh ok actually
-                // I could have it be an attribute on the function.
-                // so
-                // const x = some_impure
-                // x.pure = the_pure_version
-                // yeah that sounds good.
-                // noo idea how I'd do it in go-land though.
-                // I guess polymorphic functions could be records w/ a pure & impure? idk.
-
-                // console.log('HAHA');
-                // OOOF. How do I specialize?
-                // ORRR Actually, yeah ok if I can't specialize, I can at least mark it as "pure-but-cps", and wrap it as such.
-                // that'll be relatively simple.
             }
             return target;
         }
@@ -652,11 +598,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const declaredEffects: Array<EffectRef> = expr.effects.map(
                     (effName) => {
                         if (env.local.effectVbls[effName.text]) {
-                            console.log(
-                                `Got a var`,
-                                effName.text,
-                                env.local.effectVbls,
-                            );
                             return {
                                 type: 'var',
                                 sym: env.local.effectVbls[effName.text],
