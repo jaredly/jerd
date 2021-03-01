@@ -196,21 +196,21 @@ const pythagorean = (m: int, n: int) ={Decide, Fail}> {
     }
 }
 
-const handleFail = <T,>(fn: () ={Decide, Fail}> T, orElse: () ={Decide}> T) ={Decide}> handle! fn {
+const handleFail = <T,>{e}(fn: () ={e, Fail}> T, orElse: () ={e}> T) ={e}> handle! fn {
     Fail.fail(() => _) => orElse(),
     pure(x) => x
 }
 
-const handleFailPure = <T,>(fn: () ={Fail}> T, orElse: () ={}> T) ={}> handle! fn {
-    Fail.fail(() => _) => orElse(),
-    pure(x) => x
-}
+// const handleFailPure = <T,>(fn: () ={Fail}> T, orElse: () ={}> T) ={}> handle! fn {
+//     Fail.fail(() => _) => orElse(),
+//     pure(x) => x
+// }
 
 
 const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrack(() => handleFail(() => k(true), () => k(false)))
+            backtrack(() => handleFail{Decide}(() => k(true), () => k(false)))
         },
         pure(x) => x
     }
@@ -219,18 +219,18 @@ const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, 
 const backtrackReverse: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrackReverse(() => handleFail(() => k(false), () => k(true)))
+            backtrackReverse(() => handleFail{Decide}(() => k(false), () => k(true)))
         },
         pure(x) => x
     }
 }
 
-const backtrackPythag = (m: int, n: int) => handleFailPure<string>(() => backtrack<string>(() => pythagorean(m, n)), () => "No solution found")
+const backtrackPythag = (m: int, n: int) => handleFail<string>{}(() => backtrack<string>(() => pythagorean(m, n)), () => "No solution found")
 
 backtrackPythag(4, 15) == "5:12"
 backtrackPythag(7, 10) == "No solution found"
 
-const backtrackPythagReverse = (m: int, n: int) => handleFailPure<string>(() => backtrackReverse<string>(() => pythagorean(m, n)), () => "No solution found")
+const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(() => backtrackReverse<string>(() => pythagorean(m, n)), () => "No solution found")
 backtrackPythagReverse(4, 15) == "9:12"
 10
 
@@ -264,12 +264,3 @@ const callPlus5 = {e}(x: () ={e}> int) ={e}> x() + 5
 withInitialValue<int>(4, () ={Store}> callPlus5{Store}(() ={Store}> raise!(Store.get()))) == 9
 
 callPlus5{}(() ={}> 4) == 9
-
-// const alwaysRead: {e}(string, () ={Read, e}> void) ={e}> void = {e}(value: string, fn: () ={Read, e}> void): void ={e}> {
-//     handle! fn {
-//         Read.Read(() => k) => {
-//             alwaysRead{e}(value, () => k(value))
-//         },
-//         pure(a) => a
-//     }
-// }
