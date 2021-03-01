@@ -14,51 +14,13 @@ import {
     symbolsEqual,
     EffectRef,
 } from './types';
-import { Expression, Identifier, Location, Statement } from './parser';
+import { Expression, Identifier, Location, Statement } from '../parsing/parser';
 import { subEnv, effectsMatch } from './types';
 import typeType, { newTypeVbl, walkType } from './typeType';
-import { showType } from './unify';
+import { showType, fitsExpectation } from './unify';
 import { void_, bool } from './preset';
-import { items, printToString } from './printer';
-import { refToPretty, symToPretty } from './printTsLike';
-
-export const walkTerm = (
-    term: Term | Let,
-    handle: (term: Term | Let) => void,
-): void => {
-    handle(term);
-    switch (term.type) {
-        case 'Let':
-            return walkTerm(term.value, handle);
-        case 'raise':
-            return term.args.forEach((t) => walkTerm(t, handle));
-        case 'handle':
-            walkTerm(term.target, handle);
-            walkTerm(term.pure.body, handle);
-            term.cases.forEach((kase) => walkTerm(kase.body, handle));
-            return;
-        case 'sequence':
-            return term.sts.forEach((t) => walkTerm(t, handle));
-        case 'apply':
-            walkTerm(term.target, handle);
-            return term.args.forEach((t) => walkTerm(t, handle));
-        case 'lambda':
-            return walkTerm(term.body, handle);
-    }
-};
-
-// const maybeSeq = (env: Env, sts): Term => {
-//     if (sts.length === 1) {
-//         return typeExpr(env, sts[0]);
-//     }
-//     const inner = sts.map((s) => typeExpr(env, s));
-//     return {
-//         type: 'sequence',
-//         sts: inner,
-//         effects: [].concat(...inner.map(getEffects)),
-//         is: inner[inner.length - 1].is,
-//     };
-// };
+import { items, printToString } from '../printing/printer';
+import { refToPretty, symToPretty } from '../printing/printTsLike';
 
 // TODO type-directed resolution pleaseeeee
 const resolveIdentifier = (
@@ -831,109 +793,6 @@ const int: Type = {
     type: 'ref',
     ref: { type: 'builtin', name: 'int' },
     location: null,
-};
-
-type UnificationResult = true | false | Symbol;
-
-// `t` is being passed as an argument to a function that expects `target`.
-// Is it valid?
-export const fitsExpectation = (
-    env: Env | null,
-    t: Type,
-    target: Type,
-): UnificationResult => {
-    if (t.type === 'var' && env != null) {
-        // if (env.local.typeVbls[])
-        if (typesEqual(env, t, target)) {
-            return true;
-        }
-        // if (target.type === 'var')
-        if (!env.local.tmpTypeVbls[t.sym.unique]) {
-            throw new Error(
-                `Explicit type variable ${t.sym.name}#${
-                    t.sym.unique
-                } can't unify with ${showType(target)}`,
-            );
-        }
-        env.local.tmpTypeVbls[t.sym.unique].push({
-            type: 'smaller-than',
-            other: target,
-        });
-        // TODO check if it's obviously broken
-        return true;
-    }
-    if (target.type === 'var' && env != null) {
-        if (!env.local.tmpTypeVbls[target.sym.unique]) {
-            throw new Error(
-                `Unable to unify ${showType(t)} ${
-                    t.location
-                } with type variable ${target.sym.name}#${target.sym.unique} ${
-                    t.location
-                }`,
-            );
-        }
-        env.local.tmpTypeVbls[target.sym.unique].push({
-            type: 'larger-than',
-            other: t,
-        });
-        // TODO check if it's obviously broken
-        return true;
-    }
-    if (t.type !== target.type) {
-        // um there's a chance we'd need to resolve something? maybe?
-        return false;
-    }
-    switch (t.type) {
-        case 'var':
-            if (target.type === 'var') {
-                if (!symbolsEqual(t.sym, target.sym)) {
-                    return target.sym;
-                }
-                return true;
-            }
-            console.log('env is null I guess');
-            return false;
-        case 'ref':
-            return env ? typesEqual(env, t, target) : false;
-        case 'lambda':
-            if (target.type !== 'lambda') {
-                return false;
-            }
-            // unless there's optional arguments going on here, stay tuned?
-            // I guess. maybe.
-            if (target.args.length !== t.args.length) {
-                console.log('arglen');
-                return false;
-            }
-            const res = fitsExpectation(env, t.res, target.res);
-            if (res !== true) {
-                console.log('resoff', t.res, target.res);
-                return res;
-            }
-            // Is target allowed to have more, or fewer effects than t?
-            // more. t's effects list must be a strict subset.
-            if (!effectsMatch(target.effects, t.effects, true)) {
-                throw new Error(`Unexpected argument effect`);
-            }
-            // t.effects.forEach((e) => {
-            //     if (!target.effects.some((ef) => refsEqual(ef, e))) {
-            //         throw new Error(
-            //             `Argument has effect ${JSON.stringify(
-            //                 e,
-            //             )}, which was not expected.`,
-            //         );
-            //     }
-            // });
-            for (let i = 0; i < t.args.length; i++) {
-                const arg = fitsExpectation(env, t.args[i], target.args[i]);
-                if (arg !== true) {
-                    console.log('Arg is off', i);
-                    console.log(t.args[i], target.args[i]);
-                    return arg;
-                }
-            }
-            return true;
-    }
 };
 
 export const resolveEffect = (env: Env, id: Identifier): EffectRef => {

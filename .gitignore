@@ -1,3 +1,4 @@
+*.u
 /target
 _out
 node_modules

@@ -11,7 +11,7 @@ import {
     Symbol,
     Term,
     Type,
-} from './types';
+} from '../typing/types';
 import { PP, items, args, block, atom } from './printer';
 
 export const refToPretty = (ref: Reference) =>

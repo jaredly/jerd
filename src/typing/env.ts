@@ -1,7 +1,7 @@
 // Ok
 
 import hashObject from 'hash-sum';
-import parse, { Expression, Define, Toplevel, Effect } from './parser';
+import parse, { Expression, Define, Toplevel, Effect } from '../parsing/parser';
 import typeExpr, { fitsExpectation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
 import { Env, Term, Type, TypeConstraint } from './types';

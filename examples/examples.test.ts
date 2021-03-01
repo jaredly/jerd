@@ -1,19 +1,22 @@
 // Ok here we test things with fixtures I think
 
-import { parse } from '../src/grammar';
-import { typeDefine, typeEffect } from '../src/env';
-import { bool, presetEnv } from '../src/preset';
+import { parse } from '../src/parsing/grammar';
+import { typeDefine, typeEffect } from '../src/typing/env';
+import { bool, presetEnv } from '../src/typing/preset';
 import fs from 'fs';
-import { printToString } from '../src/printer';
-import { declarationToPretty, termToPretty } from '../src/printTsLike';
-import { declarationToString, termToString } from '../src/typeScriptPrinter';
+import { printToString } from '../src/printing/printer';
+import { declarationToPretty, termToPretty } from '../src/printing/printTsLike';
+import {
+    declarationToString,
+    termToString,
+} from '../src/printing/typeScriptPrinter';
 import * as serializerRaw from 'jest-snapshot-serializer-raw';
-import { subEnv } from '../src/types';
+import { subEnv } from '../src/typing/types';
 import vm from 'vm';
 import { execSync } from 'child_process';
-import typeExpr, { fitsExpectation } from '../src/typeExpr';
+import typeExpr, { fitsExpectation } from '../src/typing/typeExpr';
 import path from 'path';
-import { Location } from '../src/parser';
+import { Location } from '../src/parsing/parser';
 
 const examples = [
     // yes

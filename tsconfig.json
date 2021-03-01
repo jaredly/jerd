@@ -69,6 +69,6 @@
   },
   "files": [
     "src/main.ts",
-    "src/typeExpr.ts"
+    "src/typing/typeExpr.ts"
   ]
 }

@@ -1,15 +1,4 @@
 
-/*
-
-uh should I just go with literally babel?
-like, use their parse tree already?
-erm I'm pretty sure yeah there are some
-type signature things that definitely wouldn't work.
-
-ok nvm, no go. would be cool though.
-
-*/
-
 File = _ s:(Toplevel _)+ finalLineComment? {return s.map(s => s[0])}
 
 Toplevel = Effect / Statement
@@ -56,6 +45,14 @@ If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
     return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
 }
 
+
+
+
+
+
+
+// == Effects ==
+
 Raise = "raise!" _ "(" name:Identifier "." constr:Identifier _ "(" args:CommaExpr? ")" _ ")" {return {type: 'raise', name, constr, args: args || [], location: location()}}
 
 Handle = "handle!" _ target:Expression _ "{" _
@@ -76,6 +73,16 @@ Pat = Identifier
 CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map(r => r[3])]}
 
 CommaExpr = first:Expression rest:(_ "," _ Expression)* {return [first, ...rest.map(r => r[3])]}
+
+
+
+
+
+
+
+
+
+// == Lambda ==
 
 Lambda = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:Args? _ ")" _ rettype:(":" _ Type _)?
     "=" effects:("{" _ CommaEffects? _ "}")? ">" _ body:Expression {return {
@@ -103,6 +110,16 @@ binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<" / ">" / "<=" / ">=" / "==
 
 Binop = Expression
 
+
+
+
+
+
+
+
+
+
+
 // ==== Types ====
 
 Type = LambdaType / Identifier
@@ -125,13 +142,15 @@ CommaEffects =
 
 
 
+
+
+
+
+
+
 // ==== Literals ====
 
 Literal = Int / Identifier / String
-
-// IdentifierWithType = id:Identifier vbls:TypeVblsApply? {
-//     return vbls ? {type: 'IdentifierWithType', id, vbls: vbls} : id
-// }
 
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }

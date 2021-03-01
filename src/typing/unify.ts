@@ -1,10 +1,21 @@
 // Unify it all
 
-import { Term, Type, TypeConstraint } from './types';
-import { fitsExpectation, walkTerm } from './typeExpr';
+import {
+    EffectRef,
+    effectsMatch,
+    Env,
+    Symbol,
+    symbolsEqual,
+    Term,
+    Type,
+    TypeConstraint,
+    typesEqual,
+    walkTerm,
+} from './types';
 import { walkType } from './typeType';
-import { printToString } from './printer';
-import { typeToPretty } from './printTsLike';
+import { printToString } from '../printing/printer';
+import { typeToPretty } from '../printing/printTsLike';
+import { Identifier } from '../parsing/parser';
 
 // const
 /*
@@ -257,4 +268,107 @@ const unify = (one: Type | null, constraint: TypeConstraint): Type => {
         }
     }
     return one;
+};
+
+type UnificationResult = true | false | Symbol;
+
+// `t` is being passed as an argument to a function that expects `target`.
+// Is it valid?
+export const fitsExpectation = (
+    env: Env | null,
+    t: Type,
+    target: Type,
+): UnificationResult => {
+    if (t.type === 'var' && env != null) {
+        // if (env.local.typeVbls[])
+        if (typesEqual(env, t, target)) {
+            return true;
+        }
+        // if (target.type === 'var')
+        if (!env.local.tmpTypeVbls[t.sym.unique]) {
+            throw new Error(
+                `Explicit type variable ${t.sym.name}#${
+                    t.sym.unique
+                } can't unify with ${showType(target)}`,
+            );
+        }
+        env.local.tmpTypeVbls[t.sym.unique].push({
+            type: 'smaller-than',
+            other: target,
+        });
+        // TODO check if it's obviously broken
+        return true;
+    }
+    if (target.type === 'var' && env != null) {
+        if (!env.local.tmpTypeVbls[target.sym.unique]) {
+            throw new Error(
+                `Unable to unify ${showType(t)} ${
+                    t.location
+                } with type variable ${target.sym.name}#${target.sym.unique} ${
+                    t.location
+                }`,
+            );
+        }
+        env.local.tmpTypeVbls[target.sym.unique].push({
+            type: 'larger-than',
+            other: t,
+        });
+        // TODO check if it's obviously broken
+        return true;
+    }
+    if (t.type !== target.type) {
+        // um there's a chance we'd need to resolve something? maybe?
+        return false;
+    }
+    switch (t.type) {
+        case 'var':
+            if (target.type === 'var') {
+                if (!symbolsEqual(t.sym, target.sym)) {
+                    return target.sym;
+                }
+                return true;
+            }
+            console.log('env is null I guess');
+            return false;
+        case 'ref':
+            return env ? typesEqual(env, t, target) : false;
+        case 'lambda':
+            if (target.type !== 'lambda') {
+                return false;
+            }
+            // unless there's optional arguments going on here, stay tuned?
+            // I guess. maybe.
+            if (target.args.length !== t.args.length) {
+                console.log('arglen');
+                return false;
+            }
+            const res = fitsExpectation(env, t.res, target.res);
+            if (res !== true) {
+                console.log('resoff', t.res, target.res);
+                return res;
+            }
+            // Is target allowed to have more, or fewer effects than t?
+            // more. t's effects list must be a strict subset.
+            if (!effectsMatch(target.effects, t.effects, true)) {
+                throw new Error(`Unexpected argument effect`);
+            }
+            // t.effects.forEach((e) => {
+            //     if (!target.effects.some((ef) => refsEqual(ef, e))) {
+            //         throw new Error(
+            //             `Argument has effect ${JSON.stringify(
+            //                 e,
+            //             )}, which was not expected.`,
+            //         );
+            //     }
+            // });
+            for (let i = 0; i < t.args.length; i++) {
+                const arg = fitsExpectation(env, t.args[i], target.args[i]);
+                if (arg !== true) {
+                    console.log('Arg is off', i);
+                    console.log(t.args[i], target.args[i]);
+                    return arg;
+                }
+            }
+            return true;
+    }
 };

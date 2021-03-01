@@ -11,16 +11,17 @@ import {
     EffectRef,
     Lambda,
     LambdaType,
-} from './types';
-import { Location } from './parser';
+    walkTerm,
+} from '../typing/types';
+import { Location } from '../parsing/parser';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import traverse from '@babel/traverse';
-import { binOps } from './preset';
+import { binOps } from '../typing/preset';
 import { env } from 'process';
-import { showType } from './unify';
+import { showType } from '../typing/unify';
 import { optimizeAST } from './typeScriptOptimize';
-import { applyEffectVariables, walkTerm } from './typeExpr';
+import { applyEffectVariables } from '../typing/typeExpr';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives

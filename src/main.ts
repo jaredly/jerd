@@ -5,16 +5,19 @@
 import path from 'path';
 import fs from 'fs';
 import hashObject from 'hash-sum';
-import parse, { Location, Toplevel } from './parser';
+import parse, { Location, Toplevel } from './parsing/parser';
 import {
     declarationToAST,
     printType,
     termToAST,
     typeToString,
-} from './typeScriptPrinter';
-import { optimizeAST, removeTypescriptTypes } from './typeScriptOptimize';
-import typeExpr, { fitsExpectation } from './typeExpr';
-import typeType, { newTypeVbl } from './typeType';
+} from './printing/typeScriptPrinter';
+import {
+    optimizeAST,
+    removeTypescriptTypes,
+} from './printing/typeScriptOptimize';
+import typeExpr from './typing/typeExpr';
+import typeType, { newTypeVbl } from './typing/typeType';
 import {
     EffectRef,
     Env,
@@ -24,13 +27,18 @@ import {
     Type,
     TypeConstraint,
     typesEqual,
-} from './types';
-import { showType, unifyInTerm, unifyVariables } from './unify';
-import { printToString } from './printer';
-import { declarationToPretty } from './printTsLike';
-import { typeDefine, typeEffect } from './env';
+} from './typing/types';
+import {
+    showType,
+    unifyInTerm,
+    unifyVariables,
+    fitsExpectation,
+} from './typing/unify';
+import { printToString } from './printing/printer';
+import { declarationToPretty } from './printing/printTsLike';
+import { typeDefine, typeEffect } from './typing/env';
 
-import { bool, presetEnv } from './preset';
+import { bool, presetEnv } from './typing/preset';
 
 // const clone = cloner();
 

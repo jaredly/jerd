@@ -1,6 +1,6 @@
 // Types for the typed tree
 
-import { Location } from './parser';
+import { Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 
 export const refsEqual = (one: Reference, two: Reference) => {
@@ -452,4 +452,29 @@ export const dedupEffects = (effects: Array<EffectRef>) => {
         used[k] = true;
         return true;
     });
+};
+
+export const walkTerm = (
+    term: Term | Let,
+    handle: (term: Term | Let) => void,
+): void => {
+    handle(term);
+    switch (term.type) {
+        case 'Let':
+            return walkTerm(term.value, handle);
+        case 'raise':
+            return term.args.forEach((t) => walkTerm(t, handle));
+        case 'handle':
+            walkTerm(term.target, handle);
+            walkTerm(term.pure.body, handle);
+            term.cases.forEach((kase) => walkTerm(kase.body, handle));
+            return;
+        case 'sequence':
+            return term.sts.forEach((t) => walkTerm(t, handle));
+        case 'apply':
+            walkTerm(term.target, handle);
+            return term.args.forEach((t) => walkTerm(t, handle));
+        case 'lambda':
+            return walkTerm(term.body, handle);
+    }
 };

@@ -1,4 +1,4 @@
-import { Type as ParseType } from './parser';
+import { Type as ParseType } from '../parsing/parser';
 
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
