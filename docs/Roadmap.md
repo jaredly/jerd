@@ -12,13 +12,13 @@
 - [ ] source maps!
   - [x] basics
   - [ ] actually map all the things, so we can step through reasonably
-- [ ] verify that nested effects work
-- [ ] implement all the examples from the eff paper
+- [x] verify that nested effects work
+- [x] implement all the examples from the eff paper
   - [x] basic (collect)
   - [x] reverse
   - [x] pickTrue
   - [x] pickMax
-  - [ ] backtracking
+  - [x] backtracking
     - oof this has really bad time & space complexity.
     - need to figure out what's going on.
     - maybe stepping through with sourcemaps will work? maybe?
@@ -26,7 +26,16 @@
       way to visualize it?
       I would love to have a diagram of the stack,
       and handlers, and such. idk.
-- [ ] effect variables, cmon
+    - found the bug! turns out I was concatting the same array to itself in some places
+      which gets very large very fast.
+  - [x] State
+- [x] effect variables, cmon (functions generic over effects)
+  - [x] make it work when pure too
+    - ok plan is: `directOrEffectful: 'direct' | 'effectful' | null`
+    - and then {direct: fn(), effectful: fn()}
+  - recursive isn't working for some reason
+- [ ] generic effects
+- [ ] port the unison runtime effects tests, verify that all is well.
 - [ ] records
   - [ ] basic
   - [ ] generic

@@ -123,7 +123,11 @@ export type String = { type: 'string'; text: string; location: Location };
 export type Apply = {
     type: 'apply';
     target: Expression;
-    args: Array<{ args: Array<Expression>; typevbls: Array<Identifier> }>;
+    args: Array<{
+        args: Array<Expression>;
+        typevbls: Array<Identifier>;
+        effectVbls: Array<Identifier>;
+    }>;
     location: { start: Loc; end: Loc };
 };
 

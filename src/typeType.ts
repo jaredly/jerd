@@ -4,6 +4,7 @@ import { Type as ParseType } from './parser';
 // that doesn't mean keeping track of column & line.
 // because we'll need it in a web ui.
 import { Env, Symbol, subEnv, Type } from './types';
+import { resolveEffect } from './typeExpr';
 
 export const walkType = (
     term: Type,
@@ -34,6 +35,7 @@ export const walkType = (
             return {
                 type: 'lambda',
                 typeVbls: term.typeVbls.slice(),
+                effectVbls: term.effectVbls.slice(),
                 location: term.location,
                 args: newArgs,
                 effects: term.effects, // STOPSHIP bring them in
@@ -98,24 +100,22 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 typeInner.local.typeVbls[id.text] = sym;
                 typeVbls.push(sym.unique);
             });
+            const effectVbls: Array<number> = [];
+            type.effvbls.forEach((id) => {
+                const unique = Object.keys(typeInner.local.effectVbls).length;
+                const sym: Symbol = { name: id.text, unique };
+                typeInner.local.effectVbls[id.text] = sym;
+                effectVbls.push(sym.unique);
+            });
 
             return {
                 type: 'lambda',
                 args: type.args.map((a) => typeType(typeInner, a)),
                 typeVbls,
+                effectVbls,
                 location: type.location,
                 effects: type.effects.map((id) => {
-                    if (!env.global.effectNames[id.text]) {
-                        throw new Error(`No effect named ${id.text}`);
-                    }
-                    return {
-                        type: 'user',
-                        id: {
-                            hash: env.global.effectNames[id.text],
-                            pos: 0,
-                            size: 1,
-                        },
-                    };
+                    return resolveEffect(typeInner, id);
                 }), // TODO what um. Do all Terms need an effect?
                 // like, these are the effects ... of executing this term?
                 // and then a lamhda has none?

@@ -2,14 +2,24 @@
 // mostly for debugging
 //
 
-import { Case, Id, Let, Reference, Symbol, Term, Type } from './types';
+import {
+    Case,
+    EffectRef,
+    Id,
+    Let,
+    Reference,
+    Symbol,
+    Term,
+    Type,
+} from './types';
 import { PP, items, args, block, atom } from './printer';
-import { termToAstCPS } from './typeScriptPrinter';
 
 export const refToPretty = (ref: Reference) =>
     atom(ref.type === 'builtin' ? ref.name : idToString(ref.id));
 export const idToString = (id: Id) => 'hash_' + id.hash + '_' + id.pos;
 export const symToPretty = (sym: Symbol) => atom(`${sym.name}_${sym.unique}`);
+export const effToPretty = (eff: EffectRef) =>
+    eff.type === 'ref' ? refToPretty(eff.ref) : symToPretty(eff.sym);
 
 export const declarationToPretty = (id: Id, term: Term): PP => {
     return items([
@@ -28,9 +38,16 @@ export const typeToPretty = (type: Type): PP => {
             return refToPretty(type.ref);
         case 'lambda':
             return items([
+                type.effectVbls.length
+                    ? args(
+                          type.effectVbls.map((n) => atom(`e_${n}`)),
+                          '{',
+                          '}',
+                      )
+                    : null,
                 args(type.args.map(typeToPretty)),
                 atom(' ='),
-                args(type.effects.map(refToPretty), '{', '}'),
+                args(type.effects.map(effToPretty), '{', '}'),
                 atom('> '),
                 typeToPretty(type.res),
             ]);

@@ -12,13 +12,15 @@ import {
     typesEqual,
     refsEqual,
     symbolsEqual,
+    EffectRef,
 } from './types';
-import { Expression, Location, Statement } from './parser';
-import { subEnv } from './types';
+import { Expression, Identifier, Location, Statement } from './parser';
+import { subEnv, effectsMatch } from './types';
 import typeType, { newTypeVbl, walkType } from './typeType';
 import { showType } from './unify';
 import { void_, bool } from './preset';
-import { items } from './printer';
+import { items, printToString } from './printer';
+import { refToPretty, symToPretty } from './printTsLike';
 
 export const walkTerm = (
     term: Term | Let,
@@ -106,6 +108,61 @@ const resolveIdentifier = (
     return null;
 };
 
+const expandEffectVars = (
+    effects: Array<EffectRef>,
+    vbls: { [unique: number]: Array<EffectRef> },
+    nullIfUnchanged: boolean,
+): null | Array<EffectRef> => {
+    let changed = false;
+    const result: Array<EffectRef> = [];
+    effects.forEach((eff) => {
+        if (eff.type === 'var' && vbls[eff.sym.unique] != null) {
+            result.push(...vbls[eff.sym.unique]);
+            changed = true;
+        } else {
+            result.push(eff);
+        }
+    });
+    if (changed || !nullIfUnchanged) {
+        return result;
+    }
+    return null;
+};
+
+const subtEffectVars = (
+    t: Type,
+    vbls: { [unique: number]: Array<EffectRef> },
+): Type => {
+    return (
+        walkType(t, (t) => {
+            if (t.type === 'lambda') {
+                let changed = false;
+                const effects = expandEffectVars(t.effects, vbls, true);
+                if (effects != null) {
+                    return {
+                        ...t,
+                        effects,
+                    };
+                }
+            }
+            // if (t.type === 'var') {
+            //     if (vbls[t.sym.unique]) {
+            //         // console.log('SUBST', vbls[t.sym.unique]);
+            //         return vbls[t.sym.unique];
+            //     }
+            //     return t;
+            // }
+            // if (t.type === 'ref') {
+            //     if (t.ref.type === 'builtin') {
+            //         return null;
+            //     }
+            //     throw new Error(`Not support yet ${JSON.stringify(t)}`);
+            // }
+            return null;
+        }) || t
+    );
+};
+
 const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
     return (
         walkType(t, (t) => {
@@ -125,6 +182,48 @@ const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
             return null;
         }) || t
     );
+};
+
+const showLocation = (loc: Location | null) => {
+    if (!loc) {
+        return `<no location>`;
+    }
+    return `${loc.start.line}:${loc.start.column}-${loc.end.line}:${loc.end.column}`;
+};
+
+export const applyEffectVariables = (
+    env: Env,
+    type: Type,
+    vbls: Array<EffectRef>,
+): Type => {
+    if (type.type === 'lambda') {
+        const t: LambdaType = type as LambdaType;
+
+        const mapping: { [unique: number]: Array<EffectRef> } = {};
+
+        if (type.effectVbls.length !== 1) {
+            throw new Error(
+                `Multiple effect variables not yet supported: ${showType(
+                    type,
+                )} : ${showLocation(type.location)}`,
+            );
+        }
+
+        mapping[type.effectVbls[0]] = vbls;
+
+        return {
+            ...type,
+            effectVbls: [],
+            effects: expandEffectVars(type.effects, mapping, false)!,
+            args: type.args.map((t) => subtEffectVars(t, mapping)),
+            // TODO effects with type vars!
+            rest: null, // TODO rest args
+            res: subtEffectVars(type.res, mapping),
+        };
+    }
+    // should I go full-on whatsit? maybe not yet.
+    throw new Error(`Can't apply variables to non-lambdas just yet`);
+    // return type;
 };
 
 const applyTypeVariables = (env: Env, type: Type, vbls: Array<Type>): Type => {
@@ -234,7 +333,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 sts: inner,
                 location: expr.location,
                 effects: dedupEffects(
-                    ([] as Array<Reference>).concat(...inner.map(getEffects)),
+                    ([] as Array<EffectRef>).concat(...inner.map(getEffects)),
                 ),
                 is: inner[inner.length - 1].is,
             };
@@ -314,7 +413,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         }
         case 'apply': {
             let target = typeExpr(env, expr.target);
-            for (let { args, typevbls } of expr.args) {
+            for (let { args, typevbls, effectVbls } of expr.args) {
                 if (typevbls.length) {
                     // HERMMM This might be illegal.
                     // or rather, doing it like this
@@ -330,6 +429,30 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     };
                 }
 
+                const prevEffects =
+                    target.is.type === 'lambda' ? target.is.effects : [];
+                const mappedVbls: null | Array<EffectRef> = effectVbls
+                    ? effectVbls.map((id) => resolveEffect(env, id))
+                    : null;
+                if (mappedVbls != null) {
+                    const pre = target.is;
+                    target = {
+                        ...target,
+                        is: applyEffectVariables(
+                            env,
+                            target.is,
+                            mappedVbls,
+                        ) as LambdaType,
+                    };
+                    // console.log(
+                    //     `Mapped effect variables - ${showType(
+                    //         pre,
+                    //     )} ---> ${showType(target.is)}`,
+                    // );
+                }
+                const postEffects =
+                    target.is.type === 'lambda' ? target.is.effects : [];
+
                 let is: LambdaType;
                 if (target.is.type === 'var') {
                     const argTypes: Array<Type> = [];
@@ -339,6 +462,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     is = {
                         type: 'lambda',
                         typeVbls: [],
+                        effectVbls: [],
                         location: null,
                         args: argTypes,
                         effects: [], // STOPSHIP add effect vbls
@@ -370,10 +494,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     is = target.is;
                 }
 
-                const effects: Array<Reference> = [];
+                const effects: Array<EffectRef> = [];
                 const resArgs: Array<Term> = [];
                 args.forEach((term, i) => {
-                    const t = typeExpr(env, term, is.args[i]);
+                    const t: Term = typeExpr(env, term, is.args[i]);
                     if (fitsExpectation(env, t.is, is.args[i]) !== true) {
                         throw new Error(
                             `Wrong type for arg ${i}: \nFound: ${showType(
@@ -391,6 +515,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     type: 'apply',
                     // STOPSHIP(sourcemap): this should be better
                     location: target.location,
+                    hadAllVariableEffects:
+                        effectVbls != null &&
+                        prevEffects.length > 0 &&
+                        prevEffects.filter((e) => e.type === 'ref').length ===
+                            0,
                     target,
                     args: resArgs,
                     effects: is.effects,
@@ -410,7 +539,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             throw new Error(`Undefined identifier ${expr.text}`);
         }
         case 'lambda': {
-            const typeInner = expr.typevbls.length ? subEnv(env) : env;
+            const typeInner =
+                expr.typevbls.length || expr.effvbls.length ? subEnv(env) : env;
             const typeVbls: Array<number> = [];
             expr.typevbls.forEach((id) => {
                 const unique = Object.keys(typeInner.local.typeVbls).length;
@@ -418,6 +548,21 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 typeInner.local.typeVbls[id.text] = sym;
                 typeVbls.push(sym.unique);
             });
+
+            // TODO: how do I do multiple effect vbls, with explicit calling?
+            // b/c, for the general "e", it can take in any extra things that
+            // aren't specified. But if there are two variables (e and f, for example),
+            // how would you indicate which are allocated to which?
+            // maybe {Aewsome, {Sauce, Ome}}? like I guess
+            const effectVbls: Array<number> = [];
+            expr.effvbls.forEach((id) => {
+                const unique = Object.keys(typeInner.local.effectVbls).length;
+                const sym: Symbol = { name: id.text, unique };
+                typeInner.local.effectVbls[id.text] = sym;
+                effectVbls.push(sym.unique);
+                // console.log('VBL', sym);
+            });
+
             // expr.effects.map(id => )
             // console.log('Lambda type vbls', typeVbls);
 
@@ -451,16 +596,28 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             }
             const effects = getEffects(body);
             if (expr.effects != null) {
-                const declaredEffects: Array<Reference> = expr.effects.map(
+                const declaredEffects: Array<EffectRef> = expr.effects.map(
                     (effName) => {
-                        const effId = env.global.effectNames[effName.text];
+                        if (typeInner.local.effectVbls[effName.text]) {
+                            return {
+                                type: 'var',
+                                sym: typeInner.local.effectVbls[effName.text],
+                            };
+                        }
+                        const effId =
+                            typeInner.global.effectNames[effName.text];
                         if (!effId) {
-                            throw new Error(`No effect named ${effName.text}`);
+                            console.log(typeInner.local.effectVbls);
+                            throw new Error(`No effect named ${effName.text}?`);
                         }
                         return {
-                            type: 'user',
-                            id: { hash: effId, size: 1, pos: 0 },
+                            type: 'ref',
+                            ref: {
+                                type: 'user',
+                                id: { hash: effId, size: 1, pos: 0 },
+                            },
                         };
+                        // return resolveEffect(env, effName);
                     },
                 );
                 if (declaredEffects.length === 0 && effects.length !== 0) {
@@ -468,17 +625,28 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         `Function is declared as pure, but is not. ${effects.length} effects found.`,
                     );
                 }
-                for (let inner of effects) {
-                    if (
-                        !declaredEffects.some((item) => refsEqual(item, inner))
-                    ) {
-                        throw new Error(
-                            `Function declared with explicit effects, but without ${JSON.stringify(
-                                inner,
-                            )}`,
-                        );
-                    }
+                if (!effectsMatch(declaredEffects, effects, true)) {
+                    throw new Error(
+                        `Function declared with explicit effects, but missing at least one: ${declaredEffects
+                            .map((e) =>
+                                e.type === 'ref'
+                                    ? printToString(refToPretty(e.ref), 100)
+                                    : printToString(symToPretty(e.sym), 100),
+                            )
+                            .join(',')}`,
+                    );
                 }
+                // for (let inner of effects) {
+                //     if (
+                //         !declaredEffects.some((item) => effEqual(item, inner))
+                //     ) {
+                //         throw new Error(
+                //             `Function declared with explicit effects, but without ${JSON.stringify(
+                //                 inner,
+                //             )}`,
+                //         );
+                //     }
+                // }
                 effects.push(...declaredEffects);
             }
 
@@ -492,6 +660,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     type: 'lambda',
                     location: expr.location,
                     typeVbls,
+                    effectVbls,
                     effects: dedupEffects(effects),
                     args: argst,
                     rest: null,
@@ -518,9 +687,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 id: { hash: effId, size: 1, pos: 0 },
             };
             const effects = getEffects(target).filter(
-                (e) => !refsEqual(effect, e),
+                (e) => e.type !== 'ref' || !refsEqual(effect, e.ref),
             );
-            const otherEffects = effects.concat(effect);
+            const otherEffects = effects.concat({ type: 'ref', ref: effect });
 
             if (target.is.type !== 'lambda') {
                 throw new Error(`Target of a handle must be a lambda`);
@@ -565,6 +734,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         type: 'lambda',
                         location: kase.location,
                         typeVbls: [],
+                        effectVbls: [],
                         args: isVoid(constr.ret) ? [] : [constr.ret],
                         effects: otherEffects,
                         rest: null,
@@ -619,7 +789,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'user',
                 id: { hash: effid.hash, size: 1, pos: 0 },
             };
-            const argsEffects: Array<Reference> = [];
+            const argsEffects: Array<EffectRef> = [];
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
                 const t = typeExpr(env, term, eff.args[i]);
@@ -640,7 +810,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 ref,
                 idx: effid.idx,
                 argsEffects,
-                effects: [ref],
+                effects: [{ type: 'ref', ref }],
                 args,
                 is: eff.ret,
             };
@@ -742,15 +912,18 @@ export const fitsExpectation = (
             }
             // Is target allowed to have more, or fewer effects than t?
             // more. t's effects list must be a strict subset.
-            t.effects.forEach((e) => {
-                if (!target.effects.some((ef) => refsEqual(ef, e))) {
-                    throw new Error(
-                        `Argument has effect ${JSON.stringify(
-                            e,
-                        )}, which was not expected.`,
-                    );
-                }
-            });
+            if (!effectsMatch(target.effects, t.effects, true)) {
+                throw new Error(`Unexpected argument effect`);
+            }
+            // t.effects.forEach((e) => {
+            //     if (!target.effects.some((ef) => refsEqual(ef, e))) {
+            //         throw new Error(
+            //             `Argument has effect ${JSON.stringify(
+            //                 e,
+            //             )}, which was not expected.`,
+            //         );
+            //     }
+            // });
             for (let i = 0; i < t.args.length; i++) {
                 const arg = fitsExpectation(env, t.args[i], target.args[i]);
                 if (arg !== true) {
@@ -761,6 +934,30 @@ export const fitsExpectation = (
             }
             return true;
     }
+};
+
+export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
+    // TODO abstract this into "resolveEffect" probably
+    if (env.local.effectVbls[id.text]) {
+        return {
+            type: 'var',
+            sym: env.local.effectVbls[id.text],
+        };
+    }
+    if (!env.global.effectNames[id.text]) {
+        throw new Error(`No effect named ${id.text}`);
+    }
+    return {
+        type: 'ref',
+        ref: {
+            type: 'user',
+            id: {
+                hash: env.global.effectNames[id.text],
+                pos: 0,
+                size: 1,
+            },
+        },
+    };
 };
 
 export default typeExpr;

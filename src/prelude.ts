@@ -196,6 +196,12 @@ const assertEqual = (a, b) => {
     return true;
 };
 
+const pureCPS = (f) => {
+    let res;
+    f([], (_, v) => (res = v));
+    return res;
+};
+
 export { log, isSquare, intToString, handleSimpleShallow2 };
-export { raise, assert, assertEqual };
+export { raise, assert, assertEqual, pureCPS };
 export { joinLinked, withoutItem, extractItem, LinkedList };
