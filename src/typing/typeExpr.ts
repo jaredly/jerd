@@ -559,28 +559,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const effects = getEffects(body);
             if (expr.effects != null) {
                 const declaredEffects: Array<EffectRef> = expr.effects.map(
-                    (effName) => {
-                        if (typeInner.local.effectVbls[effName.text]) {
-                            return {
-                                type: 'var',
-                                sym: typeInner.local.effectVbls[effName.text],
-                            };
-                        }
-                        const effId =
-                            typeInner.global.effectNames[effName.text];
-                        if (!effId) {
-                            console.log(typeInner.local.effectVbls);
-                            throw new Error(`No effect named ${effName.text}?`);
-                        }
-                        return {
-                            type: 'ref',
-                            ref: {
-                                type: 'user',
-                                id: { hash: effId, size: 1, pos: 0 },
-                            },
-                        };
-                        // return resolveEffect(env, effName);
-                    },
+                    (effName) => resolveEffect(typeInner, effName),
                 );
                 if (declaredEffects.length === 0 && effects.length !== 0) {
                     throw new Error(

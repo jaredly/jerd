@@ -56,3 +56,38 @@ effect GetString {
     const x = fn();
     x + 2
 }
+
+
+/* If blocks */
+
+if "hello" { 3 } else { 4 }
+
+if true { 3 } else { "4" }
+
+{
+    const x = 4;
+    x(2)
+}
+
+log("a", "b")
+
+undefinedVbl
+
+(): string => 5
+
+effect GetInt {
+    get: () => int,
+}
+
+() ={GetString}> raise!(GetInt.get())
+
+handle! () => 4 {
+    GetString.get(() => k) => 4,
+    GetInt.get(() => k) => 5,
+    pure(x) => x,
+}
+
+handle! () => 4 {
+    Undef.get(() => k) => 5,
+    pure(x) => x,
+}

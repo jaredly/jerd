@@ -9,3 +9,4 @@ env.json
 ok.js
 ok.ts
 .test-cache
+coverage
