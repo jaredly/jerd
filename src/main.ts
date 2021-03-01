@@ -382,7 +382,10 @@ const main = (fname: string, assert: boolean, run: boolean) => {
 
     fs.writeFileSync(dest, text);
 
-    const preludeTS = require('fs').readFileSync('./src/prelude.ts', 'utf8');
+    const preludeTS = require('fs').readFileSync(
+        './src/printing/prelude.ts',
+        'utf8',
+    );
 
     // const preludeTS =
     //     prelude.join('\n') +

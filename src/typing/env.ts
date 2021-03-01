@@ -2,10 +2,16 @@
 
 import hashObject from 'hash-sum';
 import parse, { Expression, Define, Toplevel, Effect } from '../parsing/parser';
-import typeExpr, { fitsExpectation } from './typeExpr';
+import typeExpr from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
 import { Env, Term, Type, TypeConstraint } from './types';
-import { showType, unifyInTerm, unifyInType, unifyVariables } from './unify';
+import {
+    showType,
+    unifyInTerm,
+    unifyInType,
+    unifyVariables,
+    fitsExpectation,
+} from './unify';
 
 export const typeEffect = (env: Env, item: Effect) => {
     const constrs = item.constrs.map(({ type }) => {

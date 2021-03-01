@@ -30,7 +30,7 @@ const examples = [
 ];
 
 const prelude = require('fs')
-    .readFileSync(__dirname + '/../src/prelude.ts', 'utf8')
+    .readFileSync(__dirname + '/../src/printing/prelude.ts', 'utf8')
     .trim()
     .split('\n')
     // Remove the "export" lines
