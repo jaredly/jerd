@@ -4,53 +4,10 @@ import traverse from '@babel/traverse';
 export const optimizeAST = (ast: t.File) => {
     flattenImmediateCallsToLets(ast);
     flattenDoubleLambdas(ast);
-    unwrapIFFEs(ast);
     removeBlocksWithNoDeclarations(ast);
     removeBlocksWithNoDeclarations(ast);
     flattenImmediateCallsToLets(ast);
     removeBlocksWithNoDeclarations(ast);
-};
-
-const unwrapIFFEs = (ast: t.File) => {
-    traverse(ast, {
-        CallExpression(path) {
-            if (
-                path.node.arguments.length === 0 &&
-                path.node.callee.type === 'ArrowFunctionExpression'
-            ) {
-                // if we're in a return statement, we can just back up
-                // although need to ensure that CPS doesn't break
-                if (
-                    path.parent.type === 'ReturnStatement' ||
-                    (path.parent.type === 'ExpressionStatement' &&
-                        path.parentPath.parent.type === 'BlockStatement' &&
-                        path.parentPath.parent.body.length === 1)
-                ) {
-                    if (path.node.callee.body.type === 'BlockStatement') {
-                        path.parentPath.replaceWithMultiple(
-                            path.node.callee.body.body,
-                        );
-                    } else {
-                        path.parentPath.replaceWith(
-                            t.returnStatement(path.node.callee.body),
-                        );
-                    }
-                } else if (path.parent.type === 'ArrowFunctionExpression') {
-                    path.replaceWith(path.node.callee.body);
-                } else if (
-                    path.node.callee.body.type === 'BlockStatement' &&
-                    path.node.callee.body.body.length === 1 &&
-                    path.node.callee.body.body[0].type === 'ReturnStatement'
-                ) {
-                    path.replaceWith(
-                        path.node.callee.body.body[0].argument ||
-                            t.nullLiteral(),
-                    );
-                }
-                // if we're the body if a lambda, we can just replace with self
-            }
-        },
-    });
 };
 
 const equalIdentifiers = (a: any, b: any) =>

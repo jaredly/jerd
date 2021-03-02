@@ -35,7 +35,7 @@ import {
     fitsExpectation,
 } from './typing/unify';
 import { printToString } from './printing/printer';
-import { declarationToPretty } from './printing/printTsLike';
+import { declarationToPretty, termToPretty } from './printing/printTsLike';
 import { typeDefine, typeEffect } from './typing/env';
 
 import { bool, presetEnv } from './typing/preset';
@@ -305,6 +305,31 @@ const fileToTypescript = (
     return ast;
 };
 
+const processErrors = (fname: string) => {
+    const raw = fs.readFileSync(fname, 'utf8');
+    const parsed: Array<Toplevel> = parse(raw);
+    const env = presetEnv();
+    parsed.forEach((item, i) => {
+        if (item.type === 'effect') {
+            typeEffect(env, item);
+        } else if (item.type === 'define') {
+            typeDefine(env, item);
+        } else {
+            let term;
+            try {
+                term = typeExpr(env, item);
+            } catch (err) {
+                return; // yup
+            }
+            throw new Error(
+                `Expected a type error at ${showLocation(
+                    item.location,
+                )} : ${printToString(termToPretty(term), 100)}`,
+            );
+        }
+    });
+};
+
 const processFile = (fname: string, assert: boolean, run: boolean) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
@@ -393,13 +418,13 @@ const main = (
             passed.push(fname);
             continue; // skipping
         }
-        // skipping folks
-        if (fname.endsWith('type-errors.jd')) {
-            continue;
-        }
         console.log('hello', fname);
         try {
-            processFile(fname, assert, run);
+            if (fname.endsWith('type-errors.jd')) {
+                processErrors(fname);
+            } else {
+                processFile(fname, assert, run);
+            }
             console.log(`✅ processed ${fname}`);
             passed.push(fname);
         } catch (err) {

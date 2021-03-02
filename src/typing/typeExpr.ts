@@ -655,7 +655,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
 
             const cases: Array<Case> = [];
             expr.cases.forEach((kase) => {
-                const idx = env.global.effectConstructors[kase.constr.text].idx;
+                const idx =
+                    env.global.effectConstructors[
+                        kase.name.text + '.' + kase.constr.text
+                    ].idx;
                 const constr = constrs[idx];
                 const inner = subEnv(env);
                 const args = (kase.args || []).map((id, i) => {
@@ -712,17 +715,14 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
         }
         case 'raise': {
-            // um id vs constr?
-            const effid = env.global.effectConstructors[expr.constr.text];
+            const effid =
+                env.global.effectConstructors[
+                    expr.name.text + '.' + expr.constr.text
+                ];
             if (!effid) {
-                throw new Error(`Unknown effect ${expr.constr.text}`);
+                throw new Error(`Unknown effect ${expr.name.text}`);
             }
             const eff = env.global.effects[effid.hash][effid.idx];
-            // if (eff.type !== 'lambda') {
-            //     throw new Error(
-            //         `Non-lambda effect constructor ${JSON.stringify(eff)}`,
-            //     );
-            // }
             if (eff.args.length !== expr.args.length) {
                 throw new Error(`Effect constructor wrong number of args`);
             }

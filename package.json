@@ -5,7 +5,7 @@
     "author": "Jared Forsyth <jared@jaredforsyth.com>",
     "license": "MIT",
     "scripts": {
-        "peg": "pegjs --plugin ts-pegjs -o src/grammar.ts src/grammar.pegjs",
+        "peg": "pegjs --plugin ts-pegjs -o src/parsing/grammar.ts src/parsing/grammar.pegjs",
         "peg-simple": "pegjs --plugin ts-pegjs -o src/simple-grammar.ts src/simple-grammar.pegjs",
         "watch": "esbuild --sourcemap --bundle src/main.ts --platform=node --watch --outfile=main.js",
         "sn": "jest -u",

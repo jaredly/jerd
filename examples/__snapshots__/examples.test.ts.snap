@@ -1308,3 +1308,163 @@ hash_69c7e09c_0(10) == 11
 // .ts
 hash_69c7e09c(10) == 11;
 `;
+
+exports[`Type errors Expression 0 3 == "4" 1`] = `"Binops must have same-typed arguments"`;
+
+exports[`Type errors Expression 2 hello(5) 1`] = `
+"Wrong type for arg 0: 
+Found: int
+but expected string : {\\"start\\":{\\"offset\\":110,\\"line\\":7,\\"column\\":1},\\"end\\":{\\"offset\\":118,\\"line\\":7,\\"column\\":9}}"
+`;
+
+exports[`Type errors Expression 4 count(hello("m")) 1`] = `
+"Wrong type for arg 0: 
+Found: string
+but expected int : {\\"start\\":{\\"offset\\":152,\\"line\\":11,\\"column\\":1},\\"end\\":{\\"offset\\":169,\\"line\\":11,\\"column\\":18}}"
+`;
+
+exports[`Type errors Expression 6 identity<int>("hello") 1`] = `
+"Wrong type for arg 0: 
+Found: string
+but expected int : {\\"start\\":{\\"offset\\":243,\\"line\\":18,\\"column\\":1},\\"end\\":{\\"offset\\":265,\\"line\\":18,\\"column\\":23}}"
+`;
+
+exports[`Type errors Expression 7 count(identity<string>("hello")) 1`] = `
+"Wrong type for arg 0: 
+Found: string
+but expected int : {\\"start\\":{\\"offset\\":286,\\"line\\":21,\\"column\\":1},\\"end\\":{\\"offset\\":318,\\"line\\":21,\\"column\\":33}}"
+`;
+
+exports[`Type errors Expression 8 <T,>(x: T): int => x 1`] = `"Explicit type variable T#0 can't unify with int - 24:9-24:10 : 24:13-24:16"`;
+
+exports[`Type errors Expression 9 <T,>(x: int): T => x 1`] = `"Unable to unify int [object Object] with type variable T#0 [object Object]"`;
+
+exports[`Type errors Expression 11 () ={}> raise!(GetString.get()) 1`] = `"Function is declared as pure, but is not. 1 effects found."`;
+
+exports[`Type errors Expression 12 <T>(ok: T): string => hello(ok) 1`] = `"Explicit type variable T#0 can't unify with string - 36:9-36:10 : 5:22-5:28"`;
+
+exports[`Type errors Expression 13 (ok: string) => ok + 2 1`] = `"first arg to + wrong type"`;
+
+exports[`Type errors Expression 14 () => {
+    const x = "hello";
+    x + 2
+} 1`] = `"first arg to + wrong type"`;
+
+exports[`Type errors Expression 15 (fn: (string) => string) => {
+    const x = fn(4);
+    x ++ "hi"
+} 1`] = `
+"Wrong type for arg 0: 
+Found: int
+but expected string : {\\"start\\":{\\"offset\\":649,\\"line\\":46,\\"column\\":15},\\"end\\":{\\"offset\\":654,\\"line\\":46,\\"column\\":20}}"
+`;
+
+exports[`Type errors Expression 16 (fn: () => string) => {
+    const x: int = fn();
+    x + 2
+} 1`] = `"Value of const doesn't match type annotation. string, expected int"`;
+
+exports[`Type errors Expression 17 (fn: () => string) => {
+    const x = fn();
+    x + 2
+} 1`] = `"first arg to + wrong type"`;
+
+exports[`Type errors Expression 18 if "hello" { 3 } else { 4 } 1`] = `"Condition of if must be a boolean"`;
+
+exports[`Type errors Expression 19 if true { 3 } else { "4" } 1`] = `"Branches of if dont agree"`;
+
+exports[`Type errors Expression 20 {
+    const x = 4;
+    x(2)
+} 1`] = `"Trying to call {\\"type\\":\\"id\\",\\"text\\":\\"x\\",\\"location\\":{\\"start\\":{\\"offset\\":890,\\"line\\":69,\\"column\\":5},\\"end\\":{\\"offset\\":891,\\"line\\":69,\\"column\\":6}}} but its a ref : {\\"type\\":\\"ref\\",\\"location\\":{\\"start\\":{\\"offset\\":883,\\"line\\":68,\\"column\\":15},\\"end\\":{\\"offset\\":884,\\"line\\":68,\\"column\\":16}},\\"ref\\":{\\"type\\":\\"builtin\\",\\"name\\":\\"int\\"}}"`;
+
+exports[`Type errors Expression 21 log("a", "b") 1`] = `
+"Wrong number of arguments {
+  \\"type\\": \\"apply\\",
+  \\"target\\": {
+    \\"type\\": \\"id\\",
+    \\"text\\": \\"log\\",
+    \\"location\\": {
+      \\"start\\": {
+        \\"offset\\": 898,
+        \\"line\\": 72,
+        \\"column\\": 1
+      },
+      \\"end\\": {
+        \\"offset\\": 901,
+        \\"line\\": 72,
+        \\"column\\": 4
+      }
+    }
+  },
+  \\"args\\": [
+    {
+      \\"typevbls\\": [],
+      \\"effectVbls\\": null,
+      \\"args\\": [
+        {
+          \\"type\\": \\"string\\",
+          \\"text\\": \\"a\\",
+          \\"location\\": {
+            \\"start\\": {
+              \\"offset\\": 902,
+              \\"line\\": 72,
+              \\"column\\": 5
+            },
+            \\"end\\": {
+              \\"offset\\": 905,
+              \\"line\\": 72,
+              \\"column\\": 8
+            }
+          }
+        },
+        {
+          \\"type\\": \\"string\\",
+          \\"text\\": \\"b\\",
+          \\"location\\": {
+            \\"start\\": {
+              \\"offset\\": 907,
+              \\"line\\": 72,
+              \\"column\\": 10
+            },
+            \\"end\\": {
+              \\"offset\\": 910,
+              \\"line\\": 72,
+              \\"column\\": 13
+            }
+          }
+        }
+      ]
+    }
+  ],
+  \\"location\\": {
+    \\"start\\": {
+      \\"offset\\": 898,
+      \\"line\\": 72,
+      \\"column\\": 1
+    },
+    \\"end\\": {
+      \\"offset\\": 911,
+      \\"line\\": 72,
+      \\"column\\": 14
+    }
+  }
+}"
+`;
+
+exports[`Type errors Expression 22 undefinedVbl 1`] = `"Undefined identifier undefinedVbl"`;
+
+exports[`Type errors Expression 23 (): string => 5 1`] = `"Return type of lambda doesn't fit type declaration"`;
+
+exports[`Type errors Expression 25 () ={GetString}> raise!(GetInt.get()) 1`] = `"Function declared with explicit effects, but missing at least one: hash_0302d45c_0"`;
+
+exports[`Type errors Expression 26 handle! () => 4 {
+    GetString.get(() => k) => 4,
+    GetInt.get(() => k) => 5,
+    pure(x) => x,
+} 1`] = `"Can't handle multiple effects in one handler."`;
+
+exports[`Type errors Expression 27 handle! () => 4 {
+    Undef.get(() => k) => 5,
+    pure(x) => x,
+} 1`] = `"No effect named Undef"`;

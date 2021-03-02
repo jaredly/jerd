@@ -91,3 +91,10 @@ handle! () => 4 {
     Undef.get(() => k) => 5,
     pure(x) => x,
 }
+
+handle! () => 4 {
+    GetString.get(() => k) => 4,
+    pure(x) => "hi",
+}
+
+raise!(Undef.get())

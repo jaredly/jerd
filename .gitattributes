@@ -1,2 +1,2 @@
-src/simple-grammar.ts binary
-src/grammar.ts binary
+src/parsing/simple-grammar.ts binary
+src/parsing/grammar.ts binary

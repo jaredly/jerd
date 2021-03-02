@@ -23,7 +23,7 @@ export const typeEffect = (env: Env, item: Effect) => {
     const hash: string = hashObject(constrs);
     env.global.effectNames[item.id.text] = hash;
     item.constrs.forEach((c, i) => {
-        env.global.effectConstructors[c.id.text] = {
+        env.global.effectConstructors[item.id.text + '.' + c.id.text] = {
             idx: i,
             hash: hash,
         };

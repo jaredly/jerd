@@ -57,7 +57,7 @@ Raise = "raise!" _ "(" name:Identifier "." constr:Identifier _ "(" args:CommaExp
 
 Handle = "handle!" _ target:Expression _ "{" _
     cases:(Case _)+ _
-    "pure" _ "(" _ pureId:Identifier _ ")" _ "=>" _ pureBody:Expression _
+    "pure" _ "(" _ pureId:Identifier _ ")" _ "=>" _ pureBody:Expression _ ","? _
 "}" {return {
     type: 'handle',
     target,
