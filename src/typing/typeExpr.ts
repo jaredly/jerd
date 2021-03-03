@@ -333,6 +333,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return left;
         }
         case 'apply': {
+            // So, among the denormalizations that we have,
+            // the fact that references copy over the type of the thing
+            // being referenced might be a little odd.
             let target = typeExpr(env, expr.target);
             for (let { args, typevbls, effectVbls } of expr.args) {
                 if (typevbls.length) {
@@ -594,8 +597,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
             const pure = typeExpr(inner, expr.pure.body);
 
-            // effects.push(...getEffects(pure));
-
             const cases: Array<Case> = [];
             expr.cases.forEach((kase) => {
                 const idx =
@@ -657,12 +658,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
         }
         case 'raise': {
-            const effid =
-                env.global.effectConstructors[
-                    expr.name.text + '.' + expr.constr.text
-                ];
+            const key = expr.name.text + '.' + expr.constr.text;
+            const effid = env.global.effectConstructors[key];
             if (!effid) {
-                throw new Error(`Unknown effect ${expr.name.text}`);
+                throw new Error(`Unknown effect ${key}`);
             }
             const eff = env.global.effects[effid.hash][effid.idx];
             if (eff.args.length !== expr.args.length) {

@@ -182,3 +182,20 @@ const test4 = () => {
 
 collect{}(test4) == "<read>Hello\nend"
 
+
+effect MultiArg {
+    putTwo: (int, string) => string,
+}
+
+const handleMulti: (() ={MultiArg}> string) => string = (f: () ={MultiArg}> string): string => {
+    handle! f {
+        MultiArg.putTwo((num, text) => k) => handleMulti(() => k(intToString(num) ++ ":" ++ text)),
+        pure(v) => v ++ ":ok"
+    }
+}
+
+const full = () ={}> {
+    handleMulti(() => raise!(MultiArg.putTwo(4, "five")))
+}
+
+full() == "4:five:ok"
