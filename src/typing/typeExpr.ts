@@ -107,19 +107,6 @@ const subtEffectVars = (
                     };
                 }
             }
-            // if (t.type === 'var') {
-            //     if (vbls[t.sym.unique]) {
-            //         // console.log('SUBST', vbls[t.sym.unique]);
-            //         return vbls[t.sym.unique];
-            //     }
-            //     return t;
-            // }
-            // if (t.type === 'ref') {
-            //     if (t.ref.type === 'builtin') {
-            //         return null;
-            //     }
-            //     throw new Error(`Not support yet ${JSON.stringify(t)}`);
-            // }
             return null;
         }) || t
     );
@@ -130,7 +117,6 @@ const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
         walkType(t, (t) => {
             if (t.type === 'var') {
                 if (vbls[t.sym.unique]) {
-                    // console.log('SUBST', vbls[t.sym.unique]);
                     return vbls[t.sym.unique];
                 }
                 return t;
@@ -185,7 +171,6 @@ export const applyEffectVariables = (
     }
     // should I go full-on whatsit? maybe not yet.
     throw new Error(`Can't apply variables to non-lambdas just yet`);
-    // return type;
 };
 
 const applyTypeVariables = (env: Env, type: Type, vbls: Array<Type>): Type => {
@@ -213,19 +198,7 @@ const applyTypeVariables = (env: Env, type: Type, vbls: Array<Type>): Type => {
     }
     // should I go full-on whatsit? maybe not yet.
     throw new Error(`Can't apply variables to non-lambdas just yet`);
-    // return type;
 };
-
-// const typeStatement = (env: Env, expr: Statement): Term | Let => {
-//     if (expr.type === 'define') {
-//         return {
-//             type: 'Let',
-//             binding: expr.id.text,
-//         };
-//     } else {
-//         return typeExpr(env, expr);
-//     }
-// };
 
 const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
     switch (expr.type) {
@@ -258,7 +231,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 if (item.type === 'define') {
                     const value = typeExpr(innerEnv, item.expr);
                     innerEnv = subEnv(innerEnv);
-                    // innerEnv.local.locals
 
                     const type = item.ann
                         ? typeType(innerEnv, item.ann)
@@ -279,7 +251,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     inner.push({
                         type: 'Let',
                         location: item.location,
-                        // location: expr.location,
                         binding: sym,
                         value,
                         is: void_,
@@ -288,8 +259,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     inner.push(typeExpr(innerEnv, item));
                 }
             }
-            // TODO: maybeSeq?
-            // const inner = expr.items.map((s) => typeExpr(env, s));
             return {
                 type: 'sequence',
                 sts: inner,
