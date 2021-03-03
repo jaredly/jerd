@@ -182,7 +182,6 @@ const test4 = () => {
 
 collect{}(test4) == "<read>Hello\nend"
 
-
 effect MultiArg {
     putTwo: (int, string) => string,
 }

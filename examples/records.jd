@@ -4,6 +4,11 @@ type Person = {
     age: int
 }
 
+// type Animal =
+//     | Person(int)
+//     | Dog{name: string}
+
+/*
 type Counter<T> = {
     item: T,
     count: int,
@@ -95,3 +100,5 @@ const OkMonad = <Err,>Monad{}<Result<_, Err>>{
         Ok(x) => op(x),
     },
 }
+
+*/

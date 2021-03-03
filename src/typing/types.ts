@@ -1,6 +1,6 @@
 // Types for the typed tree
 
-import { Location } from '../parsing/parser';
+import { Identifier, Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 
 export const refsEqual = (one: Reference, two: Reference) => {
@@ -311,12 +311,24 @@ export type LambdaType = {
     res: Type;
 };
 
+export type RecordRow = {
+    id: Identifier;
+    type: Type;
+};
+
+export type RecordType = {
+    type: 'Record';
+    items: Array<RecordRow>;
+    extends: Array<Reference>;
+};
+
 export type GlobalEnv = {
     names: { [key: string]: Id };
     terms: { [key: string]: Term };
     builtins: { [key: string]: Type };
 
     typeNames: { [key: string]: Id };
+    // number here is "number of type arguments"
     builtinTypes: { [key: string]: number };
     types: { [key: string]: number };
 

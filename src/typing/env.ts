@@ -1,7 +1,7 @@
 // Ok
 
 import hashObject from 'hash-sum';
-import { Define, Effect } from '../parsing/parser';
+import { Define, Effect, TypeDecl } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
 import { Env, getEffects, Term, TypeConstraint } from './types';
@@ -24,6 +24,8 @@ export const typeEffect = (env: Env, item: Effect) => {
     });
     env.global.effects[hash] = constrs;
 };
+
+export const typeTypeDecl = (env: Env, decl: TypeDecl) => {};
 
 export const typeDefine = (env: Env, item: Define) => {
     const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};

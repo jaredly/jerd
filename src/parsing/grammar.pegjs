@@ -1,9 +1,19 @@
 
 File = _ s:(Toplevel _)+ finalLineComment? {return s.map(s => s[0])}
 
-Toplevel = Effect / Statement
+Toplevel = TypeDef / Effect / Statement
 
 Statement = Define / Expression
+
+
+
+
+
+
+
+
+
+// Toplevels
 
 Define = "const" __ id:Identifier ann:(_ ":" _ Type)? __ "=" __ expr:Expression {return {
     type: 'define', id, expr, ann: ann ? ann[3] : null, location: location()}}
@@ -14,6 +24,22 @@ Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {ret
     id, constrs: constrs.map(c => c[0])}}
 
 EfConstr = id:Identifier _ ":" _ type:LambdaType {return {id, type}}
+
+// == Type Defs ==
+TypeDef = "type" __ id:Identifier __ "=" __ decl:TypeDecl {return {type: 'TypeDef', id, decl}}
+TypeDecl = RecordDecl
+
+RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || []}}
+RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map(r => r[3])]}
+RecordLine = RecordSpread / RecordItem
+RecordSpread = "..." constr:Identifier {return {type: 'Spread', constr}}
+RecordItem = id:Identifier _ ":" _ type:Type {return {type: 'Row', id, rtype: type}}
+
+
+
+
+
+// ===== Expressions ======
 
 Expression = first:Binsub rest:(__ binop __ Binsub)* {
     if (rest.length) {
@@ -44,6 +70,7 @@ Block = "{" _ one:Statement rest:(_ ";" _ Statement)* ";"? _ "}" {
 If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
     return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
 }
+
 
 
 
