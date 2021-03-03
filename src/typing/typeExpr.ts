@@ -759,13 +759,25 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             }
             const t = env.global.types[idName(id)];
             const ref: Reference = { type: 'user', id };
-            const rows: Array<Term> = new Array(t.items.length);
+            const tref: Type = { type: 'ref', ref, location: null };
+            const rows: Array<Term | null> = new Array(t.items.length);
+            const spreads: Array<Term> = [];
             // So we can detect missing items
-            rows.fill(undefined as any);
+            rows.fill(null);
             const names = env.global.recordGroups[idName(id)];
             expr.rows.forEach((row) => {
                 if (row.type === 'Spread') {
-                    throw new Error(`spread not yet implemented`);
+                    // throw new Error(`spread not yet implemented`);
+                    const v = typeExpr(env, row.value);
+                    if (!fitsExpectation(env, v.is, tref)) {
+                        throw new Error(
+                            `Can't spread a ${showType(v.is)} into a ${showType(
+                                tref,
+                            )}`,
+                        );
+                    }
+                    spreads.push(v);
+                    return;
                 }
                 const idx = names.indexOf(row.id.text);
                 if (idx === -1) {
@@ -775,33 +787,45 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         } at ${showLocation(row.id.location)}`,
                     );
                 }
-                rows[idx] = typeExpr(env, row.value);
-                if (!fitsExpectation(env, rows[idx].is, t.items[idx])) {
+                if (rows[idx] != null) {
+                    throw new Error(
+                        `Multiple values provided for ${
+                            names[idx]
+                        } at ${showLocation(row.id.location)}`,
+                    );
+                }
+                const v = (rows[idx] = typeExpr(env, row.value));
+                if (!fitsExpectation(env, v.is, t.items[idx])) {
                     throw new Error(
                         `Invalid type for attribute ${
                             row.id.text
                         } at ${showLocation(
                             row.value.location,
                         )}. Expected ${showType(t.items[idx])}, got ${showType(
-                            rows[idx].is,
+                            v.is,
                         )}`,
                     );
                 }
             });
-            rows.forEach((row, i) => {
-                if (row == null) {
-                    throw new Error(
-                        `Record missing attribute "${
-                            names[i]
-                        }" at ${showLocation(expr.location)}`,
-                    );
-                }
-            });
+            // TODO: once I have subtyping, this will have to be more clever.
+            // of course, `rows` will also need to be more clever.
+            if (spreads.length === 0) {
+                rows.forEach((row, i) => {
+                    if (row == null) {
+                        throw new Error(
+                            `Record missing attribute "${
+                                names[i]
+                            }" at ${showLocation(expr.location)}`,
+                        );
+                    }
+                });
+            }
             return {
                 type: 'Record',
                 location: expr.location,
                 ref,
                 is: { type: 'ref', ref, location: expr.id.location },
+                spreads,
                 rows,
             };
         }

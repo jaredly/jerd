@@ -37,8 +37,9 @@
 - [x] some coverage testing of what we already have, just to check.
 - [ ] records
   - [x] basic
-  - [ ] generic
+  - [x] spread to update
   - [ ] ~inheritance (subtyping)
+  - [ ] generic
 - [ ] basic attempt at compiling to go or swift or something?
 - [ ] generic effects (Store<T>)
 - [ ] enums

@@ -103,7 +103,8 @@ export type Term =
           type: 'Record';
           ref: Reference;
           is: Type;
-          rows: Array<Term>;
+          spreads: Array<Term>;
+          rows: Array<Term | null>;
           location: Location | null;
       }
     | {
@@ -503,7 +504,11 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             return getEffects(t.target);
         case 'Record':
             return dedupEffects(
-                ([] as Array<EffectRef>).concat(...t.rows.map(getEffects)),
+                ([] as Array<EffectRef>).concat(
+                    ...(t.rows.filter(Boolean) as Array<Term>)
+                        .map(getEffects)
+                        .concat(...t.spreads.map(getEffects)),
+                ),
             );
         default:
             let _x: never = t;

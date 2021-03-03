@@ -6,9 +6,12 @@ type Person = {
 }
 
 const me = Person{name: "Bob", age: 10, what: 3}
+const alsoMe = Person{...me, what: 11}
 
 me.name == "Bob"
 me.age == 10
+alsoMe.name == "Bob"
+alsoMe.what == 11
 
 // Person{age: 4, name: "hi"}.age == 4
 
