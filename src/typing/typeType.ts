@@ -12,9 +12,6 @@ export const walkType = (
 ): Type | null => {
     const changed = handle(term);
     if (changed) {
-        // console.log(
-        //     `Term: ${JSON.stringify(term)} became ${JSON.stringify(changed)}`,
-        // );
         return changed;
     }
     if (term.type === 'lambda') {
@@ -61,7 +58,6 @@ const typeType = (env: Env, type: ParseType | null): Type => {
     if (type == null) {
         return newTypeVbl(env);
     }
-    // console.log('TYPEING TYPE', type);
     switch (type.type) {
         case 'id': {
             if (env.local.typeVbls[type.text] != null) {
@@ -114,13 +110,7 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 typeVbls,
                 effectVbls,
                 location: type.location,
-                effects: type.effects.map((id) => {
-                    return resolveEffect(typeInner, id);
-                }), // TODO what um. Do all Terms need an effect?
-                // like, these are the effects ... of executing this term?
-                // and then a lamhda has none?
-                // ok so just apply and sequence I should think, right?
-                // the other ones don't?
+                effects: type.effects.map((id) => resolveEffect(typeInner, id)),
                 res: typeType(typeInner, type.res),
                 rest: null,
             };
