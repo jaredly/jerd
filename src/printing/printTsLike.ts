@@ -1,6 +1,9 @@
 // print out into my temporary syntax I guess?
 // mostly for debugging
 //
+// Note that printing it back out doesn't currently recover
+// type variable applications (of apply's), I believe.
+// So that's probably some information I'll have to hang onto somehow.
 
 import {
     Case,

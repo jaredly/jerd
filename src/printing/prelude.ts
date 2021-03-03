@@ -1,86 +1,12 @@
 const log = console.log;
 
-type LinkedList<T> = null | [T, LinkedList<T>];
-
-const extractItem = <T>(
-    head: LinkedList<T>,
-    find: (item: T) => boolean,
-): [T | null, LinkedList<T>] => {
-    if (head == null) {
-        return [null, null];
-    }
-    if (find(head[0])) {
-        return head;
-    }
-    const top: LinkedList<T> = [head[0], null];
-    let current: LinkedList<T> = top;
-    let found: T | null = null;
-    while (head[1] != null) {
-        if (found == null && find(head[1][0])) {
-            found = head[1][0];
-        } else {
-            current[1] = [head[1][0], null];
-            current = current[1];
-        }
-        head = head[1];
-    }
-    return [found, top];
-};
-
-const withoutItem = <T>(head: LinkedList<T>, item: T) => {
-    if (head == null) {
-        return null;
-    }
-    if (head[0] === item) {
-        return head[1];
-    }
-    const top: LinkedList<T> = [head[0], null];
-    let current: LinkedList<T> = top;
-    while (head[1] != null) {
-        if (head[1][0] !== item) {
-            current[1] = [head[1][0], null];
-            current = current[1];
-        }
-        head = head[1];
-    }
-    return top;
-};
-
-const joinLinked = <T>(
-    head: LinkedList<T>,
-    tail: LinkedList<T>,
-): LinkedList<T> => {
-    if (head == null) {
-        return tail;
-    }
-    if (tail == null) {
-        return head;
-    }
-    const top: LinkedList<T> = [head[0], null];
-    let current: LinkedList<T> = top;
-    while (head[1] != null) {
-        current[1] = [head[1][0], null];
-        current = current[1];
-        head = head[1];
-    }
-    current[1] = tail;
-    return top;
-};
-
-// const raiseLL = (handlers, hash, idx, args, done) => {
-//     const [handler, otherHandlers] = extractItem<Handler>(
-//         handlers,
-//         (x) => x.hash === hash,
-//     );
-//     if (!handler) {
-//         throw new Error(
-//             `No handler found for ${hash}. This should be statically excluded.`,
-//         );
-//     }
-//     handler.fn(otherHandlers, idx, args, done);
-// };
-
-const raise = (handlers, hash, idx, args, done) => {
+const raise = (
+    handlers: Array<Handler>,
+    hash: string,
+    idx: number,
+    args: any,
+    done: (handlers: Array<Handler>, result: any) => void,
+): void => {
     for (let i = 0; i < handlers.length; i++) {
         if (handlers[i].hash === hash) {
             const otherHandlers = handlers.slice();
@@ -93,7 +19,6 @@ const raise = (handlers, hash, idx, args, done) => {
 
 type Handler = { hash: string; fn: ShallowHandler<any, any> };
 
-// type Handlers = LinkedList<Handler>;
 type Handlers = Array<Handler>;
 
 type ShallowHandler<Get, Set> = (
@@ -161,7 +86,6 @@ const handleSimpleShallow2 = <Get, Set, R>(
         otherHandlers ? [thisHandler].concat(otherHandlers) : [thisHandler],
 
         (handlers, fnsReturnValue) => {
-            // do we always assume that "thisHandler" will be the final one? maybe? idk.
             const idx = handlers.indexOf(thisHandler);
             const without = idx === -1 ? handlers : handlers.slice();
             if (idx !== -1) {
@@ -173,22 +97,20 @@ const handleSimpleShallow2 = <Get, Set, R>(
 };
 
 // Just for the eff paper 🙃
-const isSquare = (x) => {
+const isSquare = (x: number) => {
     const m = Math.sqrt(x);
     return Math.floor(m) === m;
 };
-const intToString = (x) => x.toString();
+const intToString = (x: number) => x.toString();
 
-const assert = (x) => {
+const assert = (x: boolean) => {
     if (!x) {
         throw new Error(`Assertion error.`);
     }
     return x;
 };
 
-import fs from 'fs';
-
-const assertEqual = (a, b) => {
+const assertEqual = <T>(a: T, b: T) => {
     if (a != b) {
         throw new Error(`Assertion error. ${a} should equal ${b}`);
     }
@@ -196,6 +118,7 @@ const assertEqual = (a, b) => {
     return true;
 };
 
+// When a pure function is used in a place that's expecting CPS.
 const pureCPS = (f) => {
     let res;
     f([], (_, v) => (res = v));
@@ -204,4 +127,3 @@ const pureCPS = (f) => {
 
 export { log, isSquare, intToString, handleSimpleShallow2 };
 export { raise, assert, assertEqual, pureCPS };
-export { joinLinked, withoutItem, extractItem, LinkedList };

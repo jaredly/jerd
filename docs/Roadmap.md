@@ -34,12 +34,12 @@
     - ok plan is: `directOrEffectful: 'direct' | 'effectful' | null`
     - and then {direct: fn(), effectful: fn()}
   - recursive isn't working for some reason
-- [ ] some coverage testing of what we already have, just to check.
-- [ ] generic effects (Store<T>)
+- [x] some coverage testing of what we already have, just to check.
 - [ ] records
   - [ ] basic
   - [ ] generic
-  - [ ] row polymorphic
+  - [ ] ~inheritance
+- [ ] generic effects (Store<T>)
 - [ ] enums
   - [ ] basic
   - [ ] generic

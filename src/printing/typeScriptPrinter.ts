@@ -23,10 +23,14 @@ import { showType } from '../typing/unify';
 import { optimizeAST } from './typeScriptOptimize';
 import { applyEffectVariables } from '../typing/typeExpr';
 
+// TODO: I want to abstract this out
+// Into a file that generates an intermediate representation
+// that can then be turned into TypeScript, or Go, or Swift or something.
+// And then the specific "turn it into typescript" bit can be much simpler.
+// But for now I should probably flesh out the language a bit more.
+
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
-
-// export const comment = (node: t.Node, text: string) => t.addComment()
 
 function withLocation<
     T extends { start: number | null; end: number | null; loc: any }
@@ -41,9 +45,6 @@ function withLocation<
 }
 
 export const termToString = (env: Env, term: Term): string => {
-    // const ast = printTerm(env, term)
-    // return generate(ast).code;
-
     const ast = t.file(
         t.program([t.expressionStatement(printTerm(env, term))], [], 'script'),
     );

@@ -1,11 +1,19 @@
+// Various functions for optimizing the typescript AST that I produce
+//
+// This allows me to have a relatively unsophisticated typescript printer,
+// for example that produces things like `((a) => x(a))(a)`, (which happens
+// rather a lot when transforming to CPS), and have the resulting ts be
+// just `x(a)`.
+
 import * as t from '@babel/types';
 import traverse from '@babel/traverse';
 
 export const optimizeAST = (ast: t.File) => {
     flattenImmediateCallsToLets(ast);
     flattenDoubleLambdas(ast);
-    removeBlocksWithNoDeclarations(ast);
-    removeBlocksWithNoDeclarations(ast);
+    // Got to do this twice
+    // If I combined it with flattenDoubleLambdas I might not need to?
+    // but it's not like it takes a ton of time
     flattenImmediateCallsToLets(ast);
     removeBlocksWithNoDeclarations(ast);
 };
@@ -17,7 +25,6 @@ const equalIdentifiers = (a: any, b: any) =>
     b.type === 'Identifier' &&
     a.name === b.name;
 
-// TODO this isn't really working yet
 const flattenDoubleLambdas = (ast: t.File) => {
     traverse(ast, {
         CallExpression(path) {
@@ -33,10 +40,7 @@ const flattenDoubleLambdas = (ast: t.File) => {
                 return;
             }
             const { callee } = path.node;
-            if (
-                callee.type !== 'ArrowFunctionExpression' // &&
-                // callee.type !== 'FunctionExpression'
-            ) {
+            if (callee.type !== 'ArrowFunctionExpression') {
                 return;
             }
             if (
@@ -48,22 +52,6 @@ const flattenDoubleLambdas = (ast: t.File) => {
                 path.replaceWith(callee.body);
             }
         },
-        // FunctionExpression(path) {
-        //     const body = path.node.body.body;
-        //     if (body.type !== 'CallExpression') {
-        //         return;
-        //     }
-        //     // (a, b) => ((m, _ignored) => abc)(m)
-        //     if (
-        //         // body.callee.type === 'ArrowFunctionExpression' &&
-        //         body.arguments.length >= path.node.params.length &&
-        //         path.node.params.every((arg, i) =>
-        //             equalIdentifiers(arg, body.arguments[i]),
-        //         )
-        //     ) {
-        //         path.replaceWith(body.callee);
-        //     }
-        // },
         ArrowFunctionExpression(path) {
             const body = path.node.body;
             if (body.type !== 'CallExpression') {
@@ -71,7 +59,6 @@ const flattenDoubleLambdas = (ast: t.File) => {
             }
             // (a, b) => ((m, _ignored) => abc)(m)
             if (
-                // body.callee.type === 'ArrowFunctionExpression' &&
                 body.arguments.length >= path.node.params.length &&
                 path.node.params.every((arg, i) =>
                     equalIdentifiers(arg, body.arguments[i]),
@@ -80,34 +67,6 @@ const flattenDoubleLambdas = (ast: t.File) => {
                 path.replaceWith(body.callee);
             }
         },
-        // CallExpression(path) {
-        //     if (
-        //         path.node.arguments.length === 1 &&
-        //         path.node.callee.type === 'ArrowFunctionExpression'
-        //     ) {
-        //         const name =
-        //             path.node.callee.params[0].type === 'Identifier'
-        //                 ? path.node.callee.params[0].name
-        //                 : 'unknown';
-        //         if (
-        //             path.node.callee.body.type === 'BlockStatement' &&
-        //             path.parent.type === 'ExpressionStatement' &&
-        //             t.isExpression(path.node.arguments[0])
-        //         ) {
-        //             path.parentPath.replaceWithMultiple([
-        //                 name === '_ignored'
-        //                     ? t.expressionStatement(path.node.arguments[0])
-        //                     : t.variableDeclaration('const', [
-        //                           t.variableDeclarator(
-        //                               t.identifier(name),
-        //                               path.node.arguments[0],
-        //                           ),
-        //                       ]),
-        //                 path.node.callee.body,
-        //             ]);
-        //         }
-        //     }
-        // },
     });
 };
 
@@ -143,6 +102,7 @@ const flattenImmediateCallsToLets = (ast: t.File) => {
                 // if not, then we don't have to bail here.
                 return;
             }
+
             if (
                 path.node.callee.type === 'ArrowFunctionExpression' &&
                 path.node.arguments.length === path.node.callee.params.length &&

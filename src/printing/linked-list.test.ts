@@ -1,6 +1,11 @@
 // Tests for my little linked list impl
 
-import { LinkedList, extractItem, withoutItem, joinLinked } from './prelude';
+import {
+    LinkedList,
+    extractItem,
+    withoutItem,
+    joinLinked,
+} from './linked-list';
 
 const toLinked = <T>(list: Array<T>): LinkedList<T> => {
     if (list.length === 0) {

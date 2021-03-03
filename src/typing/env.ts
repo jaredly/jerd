@@ -1,17 +1,11 @@
 // Ok
 
 import hashObject from 'hash-sum';
-import parse, { Expression, Define, Toplevel, Effect } from '../parsing/parser';
+import { Define, Effect } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
-import { Env, getEffects, Term, Type, TypeConstraint } from './types';
-import {
-    showType,
-    unifyInTerm,
-    unifyInType,
-    unifyVariables,
-    fitsExpectation,
-} from './unify';
+import { Env, getEffects, Term, TypeConstraint } from './types';
+import { fitsExpectation } from './unify';
 
 export const typeEffect = (env: Env, item: Effect) => {
     const constrs = item.constrs.map(({ type }) => {
@@ -37,15 +31,14 @@ export const typeDefine = (env: Env, item: Define) => {
         ...env,
         local: { ...env.local, tmpTypeVbls },
     };
-    // console.log(item.id.text, env.local.effectVbls);
+
     const self = {
         name: item.id.text,
         type: item.ann ? typeType(env, item.ann) : newTypeVbl(subEnv),
     };
-    // console.log(`Annotation for ${self.name}: ${showType(self.type)}`);
+
     subEnv.local.self = self;
     const term = typeExpr(subEnv, item.expr);
-    // console.log('< type', showType(term.is));
     if (fitsExpectation(subEnv, term.is, self.type) !== true) {
         throw new Error(`Term's type doesn't match annotation`);
     }
@@ -55,6 +48,19 @@ export const typeDefine = (env: Env, item: Define) => {
             `Term at ${showLocation(term.location)} has toplevel effects.`,
         );
     }
+
+    unifyToplevel(term, tmpTypeVbls);
+
+    const hash: string = hashObject(term);
+    env.global.names[item.id.text] = { hash: hash, size: 1, pos: 0 };
+    env.global.terms[hash] = term;
+    return { hash, term };
+};
+
+const unifyToplevel = (
+    term: Term,
+    typeVbls: { [key: string]: Array<TypeConstraint> },
+) => {
     // // Ok so we need to be able to handle second- and nth-level
     // // indirection I imagine.
     // // hmm
@@ -96,8 +102,4 @@ export const typeDefine = (env: Env, item: Define) => {
     //     unifyInTerm(unified, term);
     //     // self.type = unifyInType(unified, self.type) || self.type;
     // }
-    const hash: string = hashObject(term);
-    env.global.names[item.id.text] = { hash: hash, size: 1, pos: 0 };
-    env.global.terms[hash] = term;
-    return { hash, term };
 };

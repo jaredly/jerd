@@ -1,5 +1,7 @@
 // A basic width-aware pretty printer
 
+// Doesn't need to be terribly fancy.
+
 export const items = (items: Array<PP | null>): PP => ({
     type: 'items',
     items: items.filter((x) => x != null) as Array<PP>,
