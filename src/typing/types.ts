@@ -40,8 +40,6 @@ export type CPSAble =
           ref: Reference;
           idx: number;
           args: Array<Term>;
-          argsEffects: Array<EffectRef>;
-          effects: Array<EffectRef>;
           is: Type;
       }
     | {
@@ -49,7 +47,6 @@ export type CPSAble =
           location: Location | null;
           target: Term; // this must needs be typed as a LambdaType
           // These are the target's effects minus the one that is handled here.
-          effects: Array<EffectRef>;
           effect: Reference;
           cases: Array<Case>;
           pure: {
@@ -66,23 +63,18 @@ export type CPSAble =
           cond: Term;
           yes: Term;
           no: Term | null;
-          effects: Array<EffectRef>;
           is: Type;
       }
     | {
           type: 'sequence';
           location: Location | null;
           sts: Array<Term | Let>;
-          effects: Array<EffectRef>;
           is: Type;
       }
     | {
           type: 'apply';
           location: Location | null;
           target: Term;
-          argsEffects: Array<EffectRef>;
-          effects: Array<EffectRef>;
-          //   directOrEffectful?: 'direct' | 'effectful' | 'variable' | null;
           hadAllVariableEffects?: boolean;
           args: Array<Term>;
           is: Type; // this matches the return type of target
@@ -411,18 +403,31 @@ export const subEnv = (env: Env): Env => ({
     },
 });
 
+// TODO need to resolve probably
 export const getEffects = (t: Term | Let): Array<EffectRef> => {
     switch (t.type) {
         case 'Let':
             return getEffects(t.value);
         case 'apply':
-            return dedupEffects(t.argsEffects.concat(t.effects));
+            return dedupEffects(
+                (t.target.is as LambdaType).effects.concat(
+                    ...t.args.map(getEffects),
+                ),
+            );
         case 'sequence':
-            return t.effects;
+            return ([] as Array<EffectRef>).concat(...t.sts.map(getEffects));
         case 'raise':
-            return dedupEffects(t.effects.concat(t.argsEffects));
+            return dedupEffects(
+                [{ type: 'ref', ref: t.ref } as EffectRef].concat(
+                    ...t.args.map(getEffects),
+                ),
+            );
         case 'if':
-            return t.effects;
+            return dedupEffects(
+                getEffects(t.cond)
+                    .concat(getEffects(t.yes))
+                    .concat(t.no ? getEffects(t.no) : []),
+            );
         case 'int':
         case 'string':
         case 'lambda':
@@ -431,10 +436,16 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
         case 'var':
             return [];
         case 'handle':
+            // ok we also need to talk about ... the function we're calling
+            const thisKey = effectKey({ type: 'ref', ref: t.effect });
             return dedupEffects(
-                getEffects(t.pure.body).concat(
-                    ...t.cases.map((k) => getEffects(k.body)),
-                ),
+                getEffects(t.pure.body)
+                    .concat(...t.cases.map((k) => getEffects(k.body)))
+                    .concat(
+                        (t.target.is as LambdaType).effects.filter(
+                            (e) => effectKey(e) !== thisKey,
+                        ),
+                    ),
             );
         default:
             let _x: never = t;

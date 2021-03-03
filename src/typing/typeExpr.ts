@@ -263,9 +263,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'sequence',
                 sts: inner,
                 location: expr.location,
-                effects: dedupEffects(
-                    ([] as Array<EffectRef>).concat(...inner.map(getEffects)),
-                ),
                 is: inner[inner.length - 1].is,
             };
         }
@@ -286,11 +283,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 yes,
                 no,
                 location: expr.location,
-                effects: dedupEffects([
-                    ...getEffects(cond),
-                    ...getEffects(yes),
-                    ...(no ? getEffects(no) : []),
-                ]),
                 is: yes.is,
             };
         }
@@ -334,8 +326,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         ref: { type: 'builtin', name: op },
                         is,
                     },
-                    effects: is.effects,
-                    argsEffects: getEffects(left).concat(getEffects(rarg)),
                     args: [left, rarg],
                     is: is.res,
                 };
@@ -425,7 +415,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     is = target.is;
                 }
 
-                const effects: Array<EffectRef> = [];
                 const resArgs: Array<Term> = [];
                 args.forEach((term, i) => {
                     const t: Term = typeExpr(env, term, is.args[i]);
@@ -439,7 +428,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         );
                     }
                     resArgs.push(t);
-                    effects.push(...getEffects(t));
                 });
 
                 target = {
@@ -453,8 +441,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             0,
                     target,
                     args: resArgs,
-                    effects: is.effects,
-                    argsEffects: effects,
                     is: is.res,
                 };
             }
@@ -546,21 +532,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             .join(',')}`,
                     );
                 }
-                // for (let inner of effects) {
-                //     if (
-                //         !declaredEffects.some((item) => effEqual(item, inner))
-                //     ) {
-                //         throw new Error(
-                //             `Function declared with explicit effects, but without ${JSON.stringify(
-                //                 inner,
-                //             )}`,
-                //         );
-                //     }
-                // }
                 effects.push(...declaredEffects);
             }
 
-            // console.log('VBLS', typeVbls);
             return {
                 type: 'lambda',
                 args,
@@ -620,7 +594,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
             const pure = typeExpr(inner, expr.pure.body);
 
-            effects.push(...getEffects(pure));
+            // effects.push(...getEffects(pure));
 
             const cases: Array<Case> = [];
             expr.cases.forEach((kase) => {
@@ -677,7 +651,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 target,
                 effect,
                 location: expr.location,
-                effects: dedupEffects(effects),
                 cases,
                 pure: { arg: sym, body: pure },
                 is: pure.is,
@@ -699,7 +672,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'user',
                 id: { hash: effid.hash, size: 1, pos: 0 },
             };
-            const argsEffects: Array<EffectRef> = [];
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
                 const t = typeExpr(env, term, eff.args[i]);
@@ -711,7 +683,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     );
                 }
                 args.push(t);
-                argsEffects.push(...getEffects(t));
             });
 
             return {
@@ -719,8 +690,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 location: expr.location,
                 ref,
                 idx: effid.idx,
-                argsEffects,
-                effects: [{ type: 'ref', ref }],
                 args,
                 is: eff.ret,
             };

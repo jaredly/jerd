@@ -264,11 +264,7 @@ const fileToTypescript = (
             },
             args: args,
             location,
-            effects: [],
             is: resType,
-            argsEffects: ([] as Array<EffectRef>).concat(
-                ...args.map(getEffects),
-            ),
         };
     };
 

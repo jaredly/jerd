@@ -408,7 +408,10 @@ const _termToAstCPS = (
             );
         }
         case 'raise': {
-            if (term.argsEffects.length > 0) {
+            if (
+                ([] as Array<EffectRef>).concat(...term.args.map(getEffects))
+                    .length > 0
+            ) {
                 return t.identifier('raise args effects');
             }
             if (term.ref.type === 'builtin') {
@@ -497,7 +500,10 @@ const _termToAstCPS = (
                 return maybeWrapPureFunction(env, arg, argTypes[i]);
             });
 
-            if (term.argsEffects.length > 0) {
+            const argsEffects = ([] as Array<EffectRef>).concat(
+                ...term.args.map(getEffects),
+            );
+            if (argsEffects.length > 0) {
                 let target = printTerm(env, term.target);
                 if (term.hadAllVariableEffects) {
                     target = t.memberExpression(
@@ -506,7 +512,7 @@ const _termToAstCPS = (
                     );
                 }
                 let inner: t.Expression = done;
-                if (term.effects.length > 0) {
+                if ((term.target.is as LambdaType).effects.length > 0) {
                     // ok so the thing is,
                     // i only need to cps it out if the arg
                     // is an apply that does cps.
@@ -623,8 +629,6 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
             location: arg.location,
             args,
             target: arg,
-            argsEffects: [],
-            effects: [],
             is: arg.is.res,
         },
         // effects: t.effects,
@@ -724,13 +728,13 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             // need CPS.
 
             // ughhhhhhhh I think my denormalization is biting me here.
-            if (term.argsEffects.length || term.effects.length) {
+            if (getEffects(term).length > 0) {
                 throw new Error(
-                    `This apply has effects, but isn't in a CPS context. Term effects: ${term.effects
+                    `This apply has effects, but isn't in a CPS context. Effects: ${getEffects(
+                        term,
+                    )
                         .map(showEffectRef)
-                        .join(',')} & Args effects: ${term.argsEffects
-                        .map(showEffectRef)
-                        .join(',')}`,
+                        .join(', ')} : Target: ${showType(term.target.is)}`,
                 );
             }
 
@@ -879,8 +883,10 @@ const withNoEffects = (env: Env, term: Lambda): Lambda => {
     term = JSON.parse(JSON.stringify(term)) as Lambda;
     walkTerm(term, (t) => {
         if (t.type === 'apply') {
-            t.argsEffects = clearEffects(vbls, t.argsEffects);
-            t.effects = clearEffects(vbls, t.effects);
+            const is = t.target.is as LambdaType;
+            if (is.effects) {
+                is.effects = clearEffects(vbls, is.effects);
+            }
         }
     });
     return { ...term, is };
