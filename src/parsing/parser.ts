@@ -1,3 +1,4 @@
+import { Reference } from '../typing/types';
 import { parse } from './grammar';
 
 export type Toplevel = Define | Effect | Expression | TypeDef;
@@ -50,13 +51,30 @@ export type Define = {
 
 export type Expression =
     | Literal
-    | Apply
+    | WithSuffix
     | Lambda
     | Raise
     | Ops
     | If
     | Block
+    | Record
     | Handle;
+
+export type Record = {
+    type: 'Record';
+    // spreads: Array<Expression>;
+    id: Identifier;
+    location: Location;
+    // hmmmmm
+    // So, record labels might be coming
+    // from different sources
+    // but maybe I don't worry about that just yet?
+    rows: Array<
+        | { type: 'Row'; id: Identifier; value: Expression }
+        | { type: 'Spread'; value: Expression }
+    >;
+};
+
 export type Ops = {
     type: 'ops';
     first: Expression;
@@ -132,14 +150,18 @@ export type Literal = Int | Identifier | String;
 export type Identifier = { type: 'id'; text: string; location: Location };
 export type Int = { type: 'int'; value: number; location: Location };
 export type String = { type: 'string'; text: string; location: Location };
-export type Apply = {
-    type: 'apply';
+export type WithSuffix = {
+    type: 'WithSuffix';
     target: Expression;
-    args: Array<{
-        args: Array<Expression>;
-        typevbls: Array<Identifier>;
-        effectVbls: Array<Identifier>;
-    }>;
+    suffixes: Array<
+        | {
+              type: 'Apply';
+              args: Array<Expression>;
+              typevbls: Array<Identifier>;
+              effectVbls: Array<Identifier>;
+          }
+        | { type: 'Attribute'; id: Identifier; location: Location }
+    >;
     location: { start: Loc; end: Loc };
 };
 

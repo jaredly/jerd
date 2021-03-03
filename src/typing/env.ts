@@ -1,10 +1,27 @@
 // Ok
 
 import hashObject from 'hash-sum';
-import { Define, Effect, TypeDecl } from '../parsing/parser';
+import {
+    Define,
+    Effect,
+    Identifier,
+    RecordDecl,
+    RecordRow,
+    RecordSpread,
+    TypeDecl,
+    TypeDef,
+} from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
-import { Env, getEffects, Term, TypeConstraint } from './types';
+import {
+    Env,
+    getEffects,
+    GlobalEnv,
+    Id,
+    RecordDef,
+    Term,
+    TypeConstraint,
+} from './types';
 import { fitsExpectation } from './unify';
 
 export const typeEffect = (env: Env, item: Effect) => {
@@ -25,7 +42,42 @@ export const typeEffect = (env: Env, item: Effect) => {
     env.global.effects[hash] = constrs;
 };
 
-export const typeTypeDecl = (env: Env, decl: TypeDecl) => {};
+export const typeTypeDefn = (env: Env, { id, decl }: TypeDef) => {
+    if (decl.type === 'Record') {
+        return typeRecord(env, id, decl);
+    }
+};
+
+export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
+
+export const resolveType = (env: GlobalEnv, id: Identifier) => {
+    if (!env.typeNames[id.text]) {
+        throw new Error(`Unable to resolve type ${id.text}`);
+    }
+    return env.typeNames[id.text];
+};
+
+export const typeRecord = (env: Env, id: Identifier, record: RecordDecl) => {
+    const rows = record.items.filter(
+        (r) => r.type === 'Row',
+    ) as Array<RecordRow>;
+
+    const defn: RecordDef = {
+        type: 'Record',
+        extends: record.items
+            .filter((r) => r.type === 'Spread')
+            .map((r) => resolveType(env.global, (r as RecordSpread).constr)),
+        items: rows.map((r) => typeType(env, (r as RecordRow).rtype)),
+    };
+    const hash = hashObject(defn);
+    const idid = { hash, pos: 0, size: 1 };
+    env.global.types[idName(idid)] = defn;
+    env.global.typeNames[id.text] = idid;
+    env.global.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
+    rows.forEach((r, i) => {
+        env.global.attributeNames[r.id.text] = { id: idid, idx: i };
+    });
+};
 
 export const typeDefine = (env: Env, item: Define) => {
     const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
@@ -40,7 +92,13 @@ export const typeDefine = (env: Env, item: Define) => {
     };
 
     subEnv.local.self = self;
-    const term = typeExpr(subEnv, item.expr);
+    let term;
+    try {
+        term = typeExpr(subEnv, item.expr);
+    } catch (err) {
+        console.log(showLocation(item.location));
+        throw err;
+    }
     if (fitsExpectation(subEnv, term.is, self.type) !== true) {
         throw new Error(`Term's type doesn't match annotation`);
     }

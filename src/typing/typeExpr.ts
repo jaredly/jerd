@@ -21,6 +21,7 @@ import { showType, fitsExpectation } from './unify';
 import { void_, bool } from './preset';
 import { items, printToString } from '../printing/printer';
 import { refToPretty, symToPretty } from '../printing/printTsLike';
+import { idName } from './env';
 
 // TODO type-directed resolution pleaseeeee
 const resolveIdentifier = (
@@ -332,120 +333,169 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             });
             return left;
         }
-        case 'apply': {
+        case 'WithSuffix': {
             // So, among the denormalizations that we have,
             // the fact that references copy over the type of the thing
             // being referenced might be a little odd.
             let target = typeExpr(env, expr.target);
-            for (let { args, typevbls, effectVbls } of expr.args) {
-                if (typevbls.length) {
-                    // HERMMM This might be illegal.
-                    // or rather, doing it like this
-                    // does weird things to the pretty-printing end.
-                    // Because we lose the `<T>`.
-                    target = {
-                        ...target,
-                        is: applyTypeVariables(
-                            env,
-                            target.is,
-                            typevbls.map((t) => typeType(env, t)),
-                        ) as LambdaType,
-                    };
-                }
-
-                const prevEffects =
-                    target.is.type === 'lambda' ? target.is.effects : [];
-                const mappedVbls: null | Array<EffectRef> = effectVbls
-                    ? effectVbls.map((id) => resolveEffect(env, id))
-                    : null;
-                if (mappedVbls != null) {
-                    const pre = target.is;
-                    target = {
-                        ...target,
-                        is: applyEffectVariables(
-                            env,
-                            target.is,
-                            mappedVbls,
-                        ) as LambdaType,
-                    };
-                    // console.log(
-                    //     `Mapped effect variables - ${showType(
-                    //         pre,
-                    //     )} ---> ${showType(target.is)}`,
-                    // );
-                }
-                const postEffects =
-                    target.is.type === 'lambda' ? target.is.effects : [];
-
-                let is: LambdaType;
-                if (target.is.type === 'var') {
-                    const argTypes: Array<Type> = [];
-                    for (let i = 0; i < args.length; i++) {
-                        argTypes.push(newTypeVbl(env));
-                    }
-                    is = {
-                        type: 'lambda',
-                        typeVbls: [],
-                        effectVbls: [],
-                        location: null,
-                        args: argTypes,
-                        effects: [], // STOPSHIP add effect vbls
-                        res: newTypeVbl(env),
-                        rest: null, // STOPSHIP(rest)
-                    };
-                    if (fitsExpectation(env, is, target.is) !== true) {
-                        throw new Error('we literally just created this');
-                    }
-                } else {
-                    if (target.is.type !== 'lambda') {
-                        throw new Error(
-                            `Trying to call ${JSON.stringify(
-                                expr.target,
-                            )} but its a ${target.is.type} : ${JSON.stringify(
+            for (let suffix of expr.suffixes) {
+                if (suffix.type === 'Apply') {
+                    const { args, typevbls, effectVbls } = suffix;
+                    if (typevbls.length) {
+                        // HERMMM This might be illegal.
+                        // or rather, doing it like this
+                        // does weird things to the pretty-printing end.
+                        // Because we lose the `<T>`.
+                        target = {
+                            ...target,
+                            is: applyTypeVariables(
+                                env,
                                 target.is,
-                            )}`,
-                        );
+                                typevbls.map((t) => typeType(env, t)),
+                            ) as LambdaType,
+                        };
                     }
-                    if (target.is.args.length !== args.length) {
+
+                    const prevEffects =
+                        target.is.type === 'lambda' ? target.is.effects : [];
+                    const mappedVbls: null | Array<EffectRef> = effectVbls
+                        ? effectVbls.map((id) => resolveEffect(env, id))
+                        : null;
+                    if (mappedVbls != null) {
+                        const pre = target.is;
+                        target = {
+                            ...target,
+                            is: applyEffectVariables(
+                                env,
+                                target.is,
+                                mappedVbls,
+                            ) as LambdaType,
+                        };
+                        // console.log(
+                        //     `Mapped effect variables - ${showType(
+                        //         pre,
+                        //     )} ---> ${showType(target.is)}`,
+                        // );
+                    }
+                    const postEffects =
+                        target.is.type === 'lambda' ? target.is.effects : [];
+
+                    let is: LambdaType;
+                    if (target.is.type === 'var') {
+                        const argTypes: Array<Type> = [];
+                        for (let i = 0; i < args.length; i++) {
+                            argTypes.push(newTypeVbl(env));
+                        }
+                        is = {
+                            type: 'lambda',
+                            typeVbls: [],
+                            effectVbls: [],
+                            location: null,
+                            args: argTypes,
+                            effects: [], // STOPSHIP add effect vbls
+                            res: newTypeVbl(env),
+                            rest: null, // STOPSHIP(rest)
+                        };
+                        if (fitsExpectation(env, is, target.is) !== true) {
+                            throw new Error('we literally just created this');
+                        }
+                    } else {
+                        if (target.is.type !== 'lambda') {
+                            throw new Error(
+                                `Trying to call ${JSON.stringify(
+                                    expr.target,
+                                )} but its a ${
+                                    target.is.type
+                                } : ${JSON.stringify(target.is)}`,
+                            );
+                        }
+                        if (target.is.args.length !== args.length) {
+                            throw new Error(
+                                `Wrong number of arguments ${JSON.stringify(
+                                    expr,
+                                    null,
+                                    2,
+                                )}`,
+                            );
+                        }
+                        is = target.is;
+                    }
+
+                    const resArgs: Array<Term> = [];
+                    args.forEach((term, i) => {
+                        const t: Term = typeExpr(env, term, is.args[i]);
+                        if (fitsExpectation(env, t.is, is.args[i]) !== true) {
+                            throw new Error(
+                                `Wrong type for arg ${i}: \nFound: ${showType(
+                                    t.is,
+                                )}\nbut expected ${showType(
+                                    is.args[i],
+                                )} : ${JSON.stringify(expr.location)}`,
+                            );
+                        }
+                        resArgs.push(t);
+                    });
+
+                    target = {
+                        type: 'apply',
+                        // STOPSHIP(sourcemap): this should be better
+                        location: target.location,
+                        hadAllVariableEffects:
+                            effectVbls != null &&
+                            prevEffects.length > 0 &&
+                            prevEffects.filter((e) => e.type === 'ref')
+                                .length === 0,
+                        target,
+                        args: resArgs,
+                        is: is.res,
+                    };
+                } else if (suffix.type === 'Attribute') {
+                    // OOOOKKK.
+                    // So here we have some choices, right?
+                    // first we find the object this is likely to be attached to
+                    // ermmm yeah maybe this is where constraint solving becomes a thing?
+                    // which, ugh
+                    // So yeah, when parsing, if there are multiple things with the
+                    // same name, tough beans I'm sorry.
+                    // Oh maybe allow it to be "fully qualified"?
+                    // like `.<Person>name`? or `.Person::name`?
+                    // yeah that could be cool.
+                    if (!env.global.attributeNames[suffix.id.text]) {
                         throw new Error(
-                            `Wrong number of arguments ${JSON.stringify(
-                                expr,
-                                null,
-                                2,
-                            )}`,
+                            `Unknown attribute name ${suffix.id.text}`,
                         );
                     }
-                    is = target.is;
+                    const { id, idx } = env.global.attributeNames[
+                        suffix.id.text
+                    ];
+                    const t = env.global.types[idName(id)];
+                    if (t.type !== 'Record') {
+                        throw new Error(`${idName(id)} is not a record type`);
+                    }
+                    const ref: Reference = { type: 'user', id };
+                    if (
+                        !fitsExpectation(env, target.is, {
+                            type: 'ref',
+                            ref,
+                            location: null,
+                        })
+                    ) {
+                        throw new Error(
+                            `Expression at ${showLocation(
+                                suffix.location,
+                            )} is not a ${idName(id)}`,
+                        );
+                    }
+
+                    target = {
+                        type: 'Attribute',
+                        target,
+                        location: suffix.location,
+                        idx,
+                        ref,
+                        is: t.items[idx],
+                    };
                 }
-
-                const resArgs: Array<Term> = [];
-                args.forEach((term, i) => {
-                    const t: Term = typeExpr(env, term, is.args[i]);
-                    if (fitsExpectation(env, t.is, is.args[i]) !== true) {
-                        throw new Error(
-                            `Wrong type for arg ${i}: \nFound: ${showType(
-                                t.is,
-                            )}\nbut expected ${showType(
-                                is.args[i],
-                            )} : ${JSON.stringify(expr.location)}`,
-                        );
-                    }
-                    resArgs.push(t);
-                });
-
-                target = {
-                    type: 'apply',
-                    // STOPSHIP(sourcemap): this should be better
-                    location: target.location,
-                    hadAllVariableEffects:
-                        effectVbls != null &&
-                        prevEffects.length > 0 &&
-                        prevEffects.filter((e) => e.type === 'ref').length ===
-                            0,
-                    target,
-                    args: resArgs,
-                    is: is.res,
-                };
             }
             return target;
         }
@@ -456,7 +506,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 return term;
             }
             console.log(env.local.locals);
-            throw new Error(`Undefined identifier ${expr.text}`);
+            throw new Error(
+                `Identifier "${expr.text}" at ${showLocation(
+                    expr.location,
+                )} hasn't been defined anywhere.`,
+            );
         }
         case 'lambda': {
             const typeInner =
@@ -691,6 +745,64 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 idx: effid.idx,
                 args,
                 is: eff.ret,
+            };
+        }
+        case 'Record': {
+            // throw new Error('nopes');
+            const id = env.global.typeNames[expr.id.text];
+            if (!id) {
+                throw new Error(
+                    `No Record type ${expr.id.text} at ${showLocation(
+                        expr.location,
+                    )}`,
+                );
+            }
+            const t = env.global.types[idName(id)];
+            const ref: Reference = { type: 'user', id };
+            const rows: Array<Term> = new Array(t.items.length);
+            // So we can detect missing items
+            rows.fill(undefined as any);
+            const names = env.global.recordGroups[idName(id)];
+            expr.rows.forEach((row) => {
+                if (row.type === 'Spread') {
+                    throw new Error(`spread not yet implemented`);
+                }
+                const idx = names.indexOf(row.id.text);
+                if (idx === -1) {
+                    throw new Error(
+                        `Unexpected attrbute name ${
+                            row.id.text
+                        } at ${showLocation(row.id.location)}`,
+                    );
+                }
+                rows[idx] = typeExpr(env, row.value);
+                if (!fitsExpectation(env, rows[idx].is, t.items[idx])) {
+                    throw new Error(
+                        `Invalid type for attribute ${
+                            row.id.text
+                        } at ${showLocation(
+                            row.value.location,
+                        )}. Expected ${showType(t.items[idx])}, got ${showType(
+                            rows[idx].is,
+                        )}`,
+                    );
+                }
+            });
+            rows.forEach((row, i) => {
+                if (row == null) {
+                    throw new Error(
+                        `Record missing attribute "${
+                            names[i]
+                        }" at ${showLocation(expr.location)}`,
+                    );
+                }
+            });
+            return {
+                type: 'Record',
+                location: expr.location,
+                ref,
+                is: { type: 'ref', ref, location: expr.id.location },
+                rows,
             };
         }
         default:

@@ -97,6 +97,23 @@ export type Var = {
 export type Term =
     | CPSAble
     | { type: 'self'; is: Type; location: Location | null }
+    // For now, we don't have subtyping
+    // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
+    | {
+          type: 'Record';
+          ref: Reference;
+          is: Type;
+          rows: Array<Term>;
+          location: Location | null;
+      }
+    | {
+          type: 'Attribute';
+          target: Term;
+          ref: Reference;
+          idx: number;
+          location: Location | null;
+          is: Type;
+      }
     | {
           type: 'ref';
           location: Location | null;
@@ -147,11 +164,24 @@ export type Lambda = {
 // some things are args, some things are application, right?
 //
 
-export type TypeExpr = {
-    inner: Type;
-    applied: Array<TypeExpr>;
-    paramed: Array<TypeExpr>;
+export type TypeDef = RecordDef;
+export type RecordDef = {
+    type: 'Record';
+    extends: Array<Id>;
+    items: Array<Type>;
 };
+
+// | {
+//     type: 'FFIRecord',
+//     extends: Array<Id>,
+//     items: {[key: string]: Type}
+// }
+
+// export type TypeExpr = {
+//     inner: Type;
+//     applied: Array<TypeExpr>;
+//     paramed: Array<TypeExpr>;
+// };
 // START HERE: and maybe try to typecheck some of records?
 // I guess we need a `TypeDecl` type. yeah.
 
@@ -327,10 +357,16 @@ export type GlobalEnv = {
     terms: { [key: string]: Term };
     builtins: { [key: string]: Type };
 
+    attributeNames: { [key: string]: { id: Id; idx: number } };
     typeNames: { [key: string]: Id };
     // number here is "number of type arguments"
     builtinTypes: { [key: string]: number };
-    types: { [key: string]: number };
+    types: { [key: string]: TypeDef };
+    recordGroups: { [key: string]: Array<string> };
+
+    // allNames: {
+    //     attributes:
+    // },
 
     effectNames: { [key: string]: string };
     effectConstructors: { [key: string]: { hash: string; idx: number } };
@@ -378,6 +414,8 @@ export const newEnv = (self: { name: string; type: Type }): Env => ({
         builtinTypes: {},
         typeNames: {},
         types: {},
+        attributeNames: {},
+        recordGroups: {},
 
         effectNames: {},
         effectConstructors: {},
@@ -395,6 +433,8 @@ export const newEnv = (self: { name: string; type: Type }): Env => ({
 
 export const subEnv = (env: Env): Env => ({
     global: {
+        attributeNames: { ...env.global.attributeNames },
+        recordGroups: { ...env.global.recordGroups },
         names: { ...env.global.names },
         terms: { ...env.global.terms },
         builtins: { ...env.global.builtins },
@@ -458,6 +498,12 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                             (e) => effectKey(e) !== thisKey,
                         ),
                     ),
+            );
+        case 'Attribute':
+            return getEffects(t.target);
+        case 'Record':
+            return dedupEffects(
+                ([] as Array<EffectRef>).concat(...t.rows.map(getEffects)),
             );
         default:
             let _x: never = t;

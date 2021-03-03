@@ -148,6 +148,18 @@ export const termToPretty = (term: Term | Let): PP => {
                     '}',
                 ),
             ]);
+        case 'Attribute':
+            return items([
+                termToPretty(term.target),
+                atom('.'),
+                // TODO: use a name n stuff
+                atom(term.idx.toString()),
+            ]);
+        case 'Record':
+            return items([
+                refToPretty(term.ref),
+                args(term.rows.map(termToPretty), '{', '}'),
+            ]);
         default:
             let _x: never = term;
             return atom('not yet printable: ' + JSON.stringify(term));
