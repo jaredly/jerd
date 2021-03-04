@@ -37,6 +37,10 @@ type House = {
 
 // This would be cool! Yes it would.
 // const getStuff = <T: Person>(m: T) => T{...m, name: "Yes"}
+// In Go, we'd need all records to implement the `Copyable` interface, and then
+// res := m.Copy()
+// res.(Person).SetName("Yes")
+// return res
 
 // Should variants just be .... multiple records put together?
 // And tuple types, are just records where the names are numbers?
@@ -52,7 +56,7 @@ type ContentItem =
 So in that case, `ContentItem` would count as a subType of `Base`.
 But a record can never have a subtype of an enum.
 
-[verdict: not right now]
+[verdict for the following: not right now]
 for completeness, would it make sense to be able to have a type be polymorphic over a subtype?
 Like
 type XYZ<T> = XYZ{...T, x: int, y: int, z: int}
