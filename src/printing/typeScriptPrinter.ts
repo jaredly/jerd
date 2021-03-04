@@ -872,20 +872,53 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             return t.objectExpression(
                 ((term.spread != null
                     ? [t.spreadElement(printTerm(env, term.spread))]
-                    : []) as Array<t.ObjectProperty | t.SpreadElement>).concat(
-                    term.rows
-                        .map((row, i) =>
-                            row != null
-                                ? t.objectProperty(
-                                      t.identifier(
-                                          recordAttributeName(term.ref, i),
+                    : []) as Array<t.ObjectProperty | t.SpreadElement>)
+                    .concat(
+                        ...Object.keys(term.subTypes).map((id) =>
+                            ((term.subTypes[id].spread
+                                ? [
+                                      t.spreadElement(
+                                          printTerm(
+                                              env,
+                                              term.subTypes[id].spread!,
+                                          ),
                                       ),
-                                      printTerm(env, row),
-                                  )
-                                : null,
-                        )
-                        .filter(Boolean) as Array<t.ObjectProperty>,
-                ) as Array<any>,
+                                  ]
+                                : []) as Array<
+                                t.ObjectProperty | t.SpreadElement
+                            >).concat(
+                                term.subTypes[id].rows
+                                    .map((row, i) =>
+                                        row != null
+                                            ? t.objectProperty(
+                                                  t.identifier(
+                                                      recordAttributeName(
+                                                          id,
+                                                          i,
+                                                      ),
+                                                  ),
+                                                  printTerm(env, row),
+                                              )
+                                            : null,
+                                    )
+                                    .filter(Boolean) as Array<t.ObjectProperty>,
+                            ),
+                        ),
+                    )
+                    .concat(
+                        term.rows
+                            .map((row, i) =>
+                                row != null
+                                    ? t.objectProperty(
+                                          t.identifier(
+                                              recordAttributeName(term.ref, i),
+                                          ),
+                                          printTerm(env, row),
+                                      )
+                                    : null,
+                            )
+                            .filter(Boolean) as Array<t.ObjectProperty>,
+                    ) as Array<any>,
             );
         }
         case 'Attribute': {
@@ -900,7 +933,10 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
     }
 };
 
-const recordAttributeName = (ref: Reference, idx: number) => {
+const recordAttributeName = (ref: Reference | string, idx: number) => {
+    if (typeof ref === 'string') {
+        return `h${ref}_${idx}`;
+    }
     if (ref.type === 'builtin') {
         return `${ref.name}_${idx}`;
     }

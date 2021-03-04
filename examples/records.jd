@@ -5,12 +5,12 @@ type Person = {
     what: int,
 }
 
-const me = Person{name: "Bob", age: 10, what: 3}
+const me = Person{name: "June", age: 10, what: 3}
 const alsoMe = Person{...me, what: 11}
 
-me.name == "Bob"
+me.name == "June"
 me.age == 10
-alsoMe.name == "Bob"
+alsoMe.name == "June"
 alsoMe.what == 11
 
 type Employee = {
@@ -20,9 +20,28 @@ type Employee = {
 
 const you = Employee{...me, address: "Yes"}
 
-you.name == "hi"
+const them = Employee{name: "You", age: 100, what: 3, address: "No"}
 
-// Person{age: 4, name: "hi"}.age == 4
+you.name == "June"
+them.name == "You"
+them.address == "No"
+
+const getName = (m: Person) => m.name
+
+getName(me) == "June"
+
+const getEmployeeName = (m: Employee) => m.name
+
+getEmployeeName(them) == "You"
+
+type House = {
+    occupant: Person,
+}
+
+const here = House{occupant: me}
+
+here.occupant.name == "June"
+
 
 // type Awesome = {
 // }
