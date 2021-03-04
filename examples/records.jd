@@ -13,6 +13,15 @@ me.age == 10
 alsoMe.name == "Bob"
 alsoMe.what == 11
 
+type Employee = {
+    ...Person,
+    address: string,
+}
+
+const you = Employee{...me, address: "Yes"}
+
+you.name == "hi"
+
 // Person{age: 4, name: "hi"}.age == 4
 
 // type Awesome = {

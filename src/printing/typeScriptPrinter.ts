@@ -870,22 +870,22 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             // although serializes more.
             // yeah I think we need the last one.
             return t.objectExpression(
-                term.spreads
-                    .map((spread) => t.spreadElement(printTerm(env, spread)))
-                    .concat(
-                        term.rows
-                            .map((row, i) =>
-                                row != null
-                                    ? t.objectProperty(
-                                          t.identifier(
-                                              recordAttributeName(term.ref, i),
-                                          ),
-                                          printTerm(env, row),
-                                      )
-                                    : null,
-                            )
-                            .filter(Boolean) as Array<t.ObjectProperty>,
-                    ) as Array<any>,
+                ((term.spread != null
+                    ? [t.spreadElement(printTerm(env, term.spread))]
+                    : []) as Array<t.ObjectProperty | t.SpreadElement>).concat(
+                    term.rows
+                        .map((row, i) =>
+                            row != null
+                                ? t.objectProperty(
+                                      t.identifier(
+                                          recordAttributeName(term.ref, i),
+                                      ),
+                                      printTerm(env, row),
+                                  )
+                                : null,
+                        )
+                        .filter(Boolean) as Array<t.ObjectProperty>,
+                ) as Array<any>,
             );
         }
         case 'Attribute': {

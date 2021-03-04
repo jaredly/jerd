@@ -2,6 +2,7 @@
 
 import { Identifier, Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
+import { idName } from './env';
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
@@ -94,19 +95,33 @@ export type Var = {
     sym: Symbol;
     is: Type;
 };
+
+export const getAllSubTypes = (env: GlobalEnv, t: RecordDef): Array<Id> => {
+    return ([] as Array<Id>).concat(
+        ...t.extends.map((id) =>
+            [id].concat(getAllSubTypes(env, env.types[idName(id)])),
+        ),
+    );
+};
+
+export type Record = {
+    type: 'Record';
+    ref: Reference;
+    is: Type;
+    spread: Term | null; // only one spread per type makes sense
+    rows: Array<Term | null>;
+    subTypes: {
+        [id: string]: { spread: Term | null; rows: Array<Term | null> };
+    };
+    location: Location | null;
+};
+
 export type Term =
     | CPSAble
     | { type: 'self'; is: Type; location: Location | null }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
-    | {
-          type: 'Record';
-          ref: Reference;
-          is: Type;
-          spreads: Array<Term>;
-          rows: Array<Term | null>;
-          location: Location | null;
-      }
+    | Record
     | {
           type: 'Attribute';
           target: Term;
@@ -502,14 +517,28 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             );
         case 'Attribute':
             return getEffects(t.target);
-        case 'Record':
-            return dedupEffects(
-                ([] as Array<EffectRef>).concat(
-                    ...(t.rows.filter(Boolean) as Array<Term>)
-                        .map(getEffects)
-                        .concat(...t.spreads.map(getEffects)),
-                ),
-            );
+        case 'Record': {
+            const effects = [] as Array<EffectRef>;
+            t.rows.forEach((row, i) => {
+                if (row != null) {
+                    effects.push(...getEffects(row));
+                }
+            });
+            if (t.spread) {
+                effects.push(...getEffects(t.spread));
+            }
+            for (let id of Object.keys(t.subTypes)) {
+                const spread = t.subTypes[id].spread;
+                if (spread != null) {
+                    effects.push(...getEffects(spread));
+                }
+                t.subTypes[id].rows.forEach((row) =>
+                    row ? effects.push(...getEffects(row)) : null,
+                );
+            }
+
+            return effects;
+        }
         default:
             let _x: never = t;
             throw new Error('Unhandled term');

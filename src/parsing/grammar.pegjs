@@ -30,6 +30,7 @@ TypeDef = "type" __ id:Identifier __ "=" __ decl:TypeDecl {return {type: 'TypeDe
 TypeDecl = RecordDecl
 
 RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || []}}
+// TODO: spreads much come first, then rows
 RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map(r => r[3])]}
 RecordLine = RecordSpread / RecordItem
 RecordSpread = "..." constr:Identifier {return {type: 'Spread', constr}}

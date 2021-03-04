@@ -13,6 +13,11 @@ import {
     refsEqual,
     symbolsEqual,
     EffectRef,
+    getAllSubTypes,
+    Record,
+    Id,
+    RecordDef,
+    idsEqual,
 } from './types';
 import { Expression, Identifier, Location, Statement } from '../parsing/parser';
 import { subEnv, effectsMatch } from './types';
@@ -474,16 +479,25 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     }
                     const ref: Reference = { type: 'user', id };
                     if (
-                        !fitsExpectation(env, target.is, {
+                        !typesEqual(env, target.is, {
                             type: 'ref',
                             ref,
                             location: null,
-                        })
+                        }) &&
+                        !hasSubType(env, target.is, id)
                     ) {
+                        // }
+                        // if (
+                        //     !fitsExpectation(env, target.is, {
+                        //         type: 'ref',
+                        //         ref,
+                        //         location: null,
+                        //     })
+                        // ) {
                         throw new Error(
                             `Expression at ${showLocation(
                                 suffix.location,
-                            )} is not a ${idName(id)}`,
+                            )} is not a ${idName(id)} or its supertype`,
                         );
                     }
 
@@ -761,71 +775,128 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const ref: Reference = { type: 'user', id };
             const tref: Type = { type: 'ref', ref, location: null };
             const rows: Array<Term | null> = new Array(t.items.length);
-            const spreads: Array<Term> = [];
+
             // So we can detect missing items
             rows.fill(null);
-            const names = env.global.recordGroups[idName(id)];
+
+            const names: { [key: string]: { i: number; id: Id | null } } = {};
+            env.global.recordGroups[idName(id)].forEach(
+                (name, i) => (names[name] = { i, id: null }),
+            );
+
+            const subTypes: {
+                [id: string]: { spread: Term | null; rows: Array<Term | null> };
+            } = {};
+            const subTypeTypes: { [id: string]: RecordDef } = {};
+
+            // TODO: deduplicate
+            const subTypeIds = getAllSubTypes(env.global, t);
+            subTypeIds.forEach((id) => {
+                const t = env.global.types[idName(id)];
+                subTypeTypes[idName(id)] = t;
+                const rows = new Array(t.items.length);
+                rows.fill(null);
+                subTypes[idName(id)] = {
+                    spread: null,
+                    rows,
+                };
+                env.global.recordGroups[idName(id)].forEach(
+                    (name, i) => (names[name] = { i, id }),
+                );
+            });
+
+            let spread = null;
+
+            // const names = env.global.recordGroups[idName(id)];
             expr.rows.forEach((row) => {
                 if (row.type === 'Spread') {
                     // throw new Error(`spread not yet implemented`);
                     const v = typeExpr(env, row.value);
-                    if (!fitsExpectation(env, v.is, tref)) {
-                        throw new Error(
-                            `Can't spread a ${showType(v.is)} into a ${showType(
-                                tref,
-                            )}`,
-                        );
+                    // spreads.push(v);
+                    if (typesEqual(env, v.is, tref)) {
+                        spread = v;
+                        return;
                     }
-                    spreads.push(v);
+                    // ummm I kindof want to
+                    for (let id of subTypeIds) {
+                        if (
+                            typesEqual(env, v.is, {
+                                type: 'ref',
+                                ref: { type: 'user', id },
+                                location: null,
+                            })
+                        ) {
+                            subTypes[idName(id)].spread = v;
+                            break;
+                        }
+                    }
                     return;
                 }
-                const idx = names.indexOf(row.id.text);
-                if (idx === -1) {
+
+                if (!names[row.id.text]) {
                     throw new Error(
                         `Unexpected attrbute name ${
                             row.id.text
                         } at ${showLocation(row.id.location)}`,
                     );
                 }
-                if (rows[idx] != null) {
+                const { i, id } = names[row.id.text];
+                let rowsToMod = id == null ? rows : subTypes[idName(id)].rows;
+                const recordType = id == null ? t : subTypeTypes[idName(id)];
+                if (rowsToMod[i] != null) {
                     throw new Error(
                         `Multiple values provided for ${
-                            names[idx]
+                            names[i]
                         } at ${showLocation(row.id.location)}`,
                     );
                 }
-                const v = (rows[idx] = typeExpr(env, row.value));
-                if (!fitsExpectation(env, v.is, t.items[idx])) {
+                const v = typeExpr(env, row.value);
+                rowsToMod[i] = v;
+                if (!fitsExpectation(env, v.is, recordType.items[i])) {
                     throw new Error(
                         `Invalid type for attribute ${
                             row.id.text
                         } at ${showLocation(
                             row.value.location,
-                        )}. Expected ${showType(t.items[idx])}, got ${showType(
-                            v.is,
-                        )}`,
+                        )}. Expected ${showType(
+                            recordType.items[i],
+                        )}, got ${showType(v.is)}`,
                     );
                 }
             });
             // TODO: once I have subtyping, this will have to be more clever.
             // of course, `rows` will also need to be more clever.
-            if (spreads.length === 0) {
+            if (spread == null) {
                 rows.forEach((row, i) => {
                     if (row == null) {
                         throw new Error(
                             `Record missing attribute "${
-                                names[i]
+                                env.global.recordGroups[idName(id)][i]
                             }" at ${showLocation(expr.location)}`,
                         );
                     }
                 });
             }
+            Object.keys(subTypes).forEach((id) => {
+                if (subTypes[id].spread == null) {
+                    subTypes[id].rows.forEach((row, i) => {
+                        if (row == null) {
+                            throw new Error(
+                                `Record missing attribute "${
+                                    env.global.recordGroups[id][i]
+                                }" at ${showLocation(expr.location)}`,
+                            );
+                        }
+                    });
+                }
+            });
             return {
                 type: 'Record',
                 location: expr.location,
                 ref,
                 is: { type: 'ref', ref, location: expr.id.location },
-                spreads,
+                spread,
+                subTypes,
                 rows,
             };
         }
@@ -869,6 +940,15 @@ export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
             },
         },
     };
+};
+
+export const hasSubType = (env: Env, type: Type, id: Id) => {
+    if (type.type !== 'ref' || type.ref.type === 'builtin') {
+        return false;
+    }
+    const t = env.global.types[idName(type.ref.id)];
+    const allSubTypes = getAllSubTypes(env.global, t);
+    return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };
 
 export default typeExpr;
