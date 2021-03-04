@@ -35,7 +35,21 @@ type House = {
     occupant: Person,
 }
 
-const getStuff = <T: Person>(m: T) => getName<T>(m)
+// This would be cool! Yes it would.
+// const getStuff = <T: Person>(m: T) => T{...m, name: "Yes"}
+
+// Should variants just be .... multiple records put together?
+// And tuple types, are just records where the names are numbers?
+// maybe? although then it would be weird for them to subtype...
+/*
+
+type Base = Base{id: string, slug: number}
+type ContentItem =
+    Video{...Base, duration: int}
+    Article{...Base, timeEstimate: int}
+    Exercise{...Base, minScore: int}
+
+*/
 
 const here = House{occupant: me}
 

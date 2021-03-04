@@ -537,7 +537,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         case 'lambda': {
             const typeInner =
                 expr.typevbls.length || expr.effvbls.length ? subEnv(env) : env;
-            const typeVbls: Array<{ unique: number; subTypes: [] }> = [];
+            const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
             expr.typevbls.forEach(({ id, subTypes }) => {
                 const unique = Object.keys(typeInner.local.typeVbls).length;
                 const sym: Symbol = { name: id.text, unique };
