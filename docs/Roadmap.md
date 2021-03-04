@@ -38,7 +38,7 @@
 - [ ] records
   - [x] basic
   - [x] spread to update
-  - [ ] ~inheritance (subtyping)
+  - [x] ~inheritance (subtyping)
   - [ ] generic
 - [ ] basic attempt at compiling to go or swift or something?
 - [ ] generic effects (Store<T>)

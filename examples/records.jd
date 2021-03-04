@@ -49,6 +49,24 @@ type ContentItem =
     Article{...Base, timeEstimate: int}
     Exercise{...Base, minScore: int}
 
+So in that case, `ContentItem` would count as a subType of `Base`.
+But a record can never have a subtype of an enum.
+
+[verdict: not right now]
+for completeness, would it make sense to be able to have a type be polymorphic over a subtype?
+Like
+type XYZ<T> = XYZ{...T, x: int, y: int, z: int}
+In theory it doesn't seem like it would really present a problem, would it?
+hrm so `XYZ<T>` would then qualify as a `X: T`.
+And under the hood, in like Go or something,
+
+const x = <T>(m: T): XYZ<T> => XYZ{...m, x: 3, y: 2, z: 1}
+
+Is that a thing we'd be able to make sense of?
+remembering that in go, generics are done via `interface{}` and sometimes reflection.
+Ok yeah being generic over the spread would make it muuch harder to codegen the go code
+So I'm going to say **no** we don't allow this
+
 */
 
 const here = House{occupant: me}
