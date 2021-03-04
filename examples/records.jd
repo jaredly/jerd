@@ -26,17 +26,16 @@ you.name == "June"
 them.name == "You"
 them.address == "No"
 
-const getName = (m: Person) => m.name
+const getName = <T: Person>(m: T) => m.name
 
-getName(me) == "June"
-
-const getEmployeeName = (m: Employee) => m.name
-
-getEmployeeName(them) == "You"
+getName<Person>(me) == "June"
+getName<Employee>(them) == "You"
 
 type House = {
     occupant: Person,
 }
+
+const getStuff = <T: Person>(m: T) => getName<T>(m)
 
 const here = House{occupant: me}
 

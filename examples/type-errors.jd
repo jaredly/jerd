@@ -122,6 +122,10 @@ const dog = Dog{name: "Man"}
 
 Person{...dog, age: 15}
 
+type Frog = {age: int}
 
+const getName = <T: Dog>(m: T) => m.name
+
+getName<Frog>(Frog{age: 5})
 
 

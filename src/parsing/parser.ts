@@ -120,10 +120,11 @@ export type Handle = {
         body: Expression;
     };
 };
+export type TypeVbl = { id: Identifier; subTypes: Array<Identifier> };
 export type Lambda = {
     type: 'lambda';
     location: Location;
-    typevbls: Array<Identifier>;
+    typevbls: Array<TypeVbl>;
     effvbls: Array<Identifier>;
     effects: null | Array<Identifier>;
     args: Array<{ id: Identifier; type: Type }>;
@@ -136,7 +137,7 @@ export type LambdaType = {
     args: Array<Type>;
     effects: Array<Identifier>;
     effvbls: Array<Identifier>;
-    typevbls: Array<Identifier>;
+    typevbls: Array<TypeVbl>;
     res: Type;
     location: Location;
 };

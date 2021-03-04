@@ -267,7 +267,8 @@ export const typesEqual = (
             return one.type === 'ref' && refsEqual(two.ref, one.ref);
         }
         // STOPSHIP: resolve type references
-        throw new Error(`Need to lookup types sorry`);
+        // throw new Error(`Need to lookup types sorry`);
+        return false;
     }
     if (one.type === 'var') {
         return two.type === 'var' && symbolsEqual(one.sym, two.sym);
@@ -329,7 +330,12 @@ export type TypeRef =
           ref: Reference;
           location: Location | null;
       }
-    | { type: 'var'; sym: Symbol; location: Location | null };
+    | {
+          type: 'var';
+          sym: Symbol;
+          location: Location | null;
+          subTypes: Array<Id>;
+      };
 
 export type Type = TypeRef | LambdaType;
 
@@ -346,7 +352,7 @@ export type LambdaType = {
     location: Location | null;
     // TODO: this shouldn't be an array,
     // we don't have to be order dependent here.
-    typeVbls: Array<number>; // TODO: kind, row etc.
+    typeVbls: Array<{ subTypes: Array<Id>; unique: number }>; // TODO: kind, row etc.
     effectVbls: Array<number>;
     // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
@@ -401,7 +407,7 @@ export type LocalEnv = {
         type: Type;
     };
     locals: { [key: string]: { sym: Symbol; type: Type } };
-    typeVbls: { [key: string]: Symbol }; // TODO: this will include kind or row constraint
+    typeVbls: { [key: string]: { sym: Symbol; subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
     effectVbls: { [key: string]: Symbol };
     tmpTypeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
     // manual type variables can't have constriaints, right? or can they?

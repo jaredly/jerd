@@ -49,11 +49,21 @@ export function presetEnv() {
     env.global.builtins['<'] = pureFunction([int, int], bool);
     env.global.builtins['=='] = {
         type: 'lambda',
-        typeVbls: [10000],
+        typeVbls: [{ unique: 10000, subTypes: [] }],
         effectVbls: [],
         args: [
-            { type: 'var', sym: { unique: 10000, name: 'T' }, location: null },
-            { type: 'var', sym: { unique: 10000, name: 'T' }, location: null },
+            {
+                type: 'var',
+                sym: { unique: 10000, name: 'T' },
+                location: null,
+                subTypes: [],
+            },
+            {
+                type: 'var',
+                sym: { unique: 10000, name: 'T' },
+                location: null,
+                subTypes: [],
+            },
         ],
         effects: [],
         rest: null,

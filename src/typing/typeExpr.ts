@@ -191,7 +191,15 @@ const applyTypeVariables = (env: Env, type: Type, vbls: Array<Type>): Type => {
             );
         }
         vbls.forEach((typ, i) => {
-            mapping[t.typeVbls[i]] = typ;
+            // STOPSHIP CHECK HERE
+            const subs = t.typeVbls[i].subTypes;
+            for (let sub of subs) {
+                if (!hasSubType(env, typ, sub)) {
+                    throw new Error(`Expected a subtype of ${idName(sub)}`);
+                }
+            }
+            // if (hasSubType(typ, ))
+            mapping[t.typeVbls[i].unique] = typ;
         });
         return {
             ...type,
@@ -529,12 +537,26 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         case 'lambda': {
             const typeInner =
                 expr.typevbls.length || expr.effvbls.length ? subEnv(env) : env;
-            const typeVbls: Array<number> = [];
-            expr.typevbls.forEach((id) => {
+            const typeVbls: Array<{ unique: number; subTypes: [] }> = [];
+            expr.typevbls.forEach(({ id, subTypes }) => {
                 const unique = Object.keys(typeInner.local.typeVbls).length;
                 const sym: Symbol = { name: id.text, unique };
-                typeInner.local.typeVbls[id.text] = sym;
-                typeVbls.push(sym.unique);
+                const st = subTypes.map((id) => {
+                    const t = env.global.typeNames[id.text];
+                    if (!t) {
+                        throw new Error(
+                            `Unknown subtype ${id.text} at ${showLocation(
+                                id.location,
+                            )}`,
+                        );
+                    }
+                    return t;
+                });
+                typeInner.local.typeVbls[id.text] = {
+                    sym,
+                    subTypes: st,
+                };
+                typeVbls.push({ unique: sym.unique, subTypes: st });
             });
 
             // TODO: how do I do multiple effect vbls, with explicit calling?
@@ -943,8 +965,23 @@ export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
 };
 
 export const hasSubType = (env: Env, type: Type, id: Id) => {
+    if (type.type === 'var') {
+        for (let sid of type.subTypes) {
+            if (idsEqual(id, sid)) {
+                return true;
+            }
+            const t = env.global.types[idName(sid)];
+            const allSubTypes = getAllSubTypes(env.global, t);
+            if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
+                return true;
+            }
+        }
+    }
     if (type.type !== 'ref' || type.ref.type === 'builtin') {
         return false;
+    }
+    if (idsEqual(type.ref.id, id)) {
+        return true;
     }
     const t = env.global.types[idName(type.ref.id)];
     const allSubTypes = getAllSubTypes(env.global, t);

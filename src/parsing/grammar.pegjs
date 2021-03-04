@@ -135,8 +135,11 @@ Lambda = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:Args? _ ")" _ rettype
 Args = first:Arg rest:(_ "," _ Arg)* {return [first, ...rest.map(r => r[3])]}
 Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null}}
 
-TypeVbls = "<" _ first:Identifier rest:(_ "," _ Identifier)* _ ","? _ ">" {
+TypeVbls = "<" _ first:TypeVbl rest:(_ "," _ TypeVbl)* _ ","? _ ">" {
     return [first, ...rest.map(r => r[3])]
+}
+TypeVbl = id:Identifier subTypes:(_ ":" _ Identifier)? {
+    return {id, subTypes: subTypes ? [subTypes[3]] : []}
 }
 EffectVbls = "{" _  inner:EffectVbls_? _ "}" { return inner || [] }
 EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {

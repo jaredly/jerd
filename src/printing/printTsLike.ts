@@ -158,7 +158,13 @@ export const termToPretty = (term: Term | Let): PP => {
         case 'Record':
             return items([
                 refToPretty(term.ref),
-                args(term.rows.filter(Boolean).map(termToPretty), '{', '}'),
+                args(
+                    (term.rows.filter(Boolean) as Array<Term>).map(
+                        termToPretty,
+                    ),
+                    '{',
+                    '}',
+                ),
             ]);
         default:
             let _x: never = term;
