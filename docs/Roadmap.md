@@ -40,7 +40,10 @@
   - [x] spread to update
   - [x] ~inheritance (subtyping)
   - [ ] generic
+  - [ ] FFIable types.
+- [ ] give me Array<T> or give me sadness
 - [ ] basic attempt at compiling to go or swift or something?
+  - Yeah I really should get on this before too long, so I can see what hurdles I run into.
 - [ ] generic effects (Store<T>)
 - [ ] enums
   - [ ] basic
