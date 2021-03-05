@@ -136,3 +136,15 @@ const getNameAndAge = <T: HasName + HasAge>(m: T) => m.name ++ intToString(m.age
 
 getNameAndAge<HasName>(HasName{name: "hi"})
 
+
+// Generic records
+
+type Counter<T> = {
+    item: T,
+    count: int,
+}
+
+Counter{item: 10, count: 4}
+
+Counter<int>{item: 10, count: 4}
+

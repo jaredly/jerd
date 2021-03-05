@@ -47,7 +47,6 @@ export const typeApply = (
         //     )} ---> ${showType(target.is)}`,
         // );
     }
-    const postEffects = target.is.type === 'lambda' ? target.is.effects : [];
 
     let is: LambdaType;
     if (target.is.type === 'var') {

@@ -122,6 +122,21 @@ export const newEnvWithTypeAndEffectVbls = (
     if (typevbls.length === 0 && effvbls.length === 0) {
         return { typeInner: env, typeVbls: [], effectVbls: [] };
     }
+
+    // // TODO: how do I do multiple effect vbls, with explicit calling?
+    // // b/c, for the general "e", it can take in any extra things that
+    // // aren't specified. But if there are two variables (e and f, for example),
+    // // how would you indicate which are allocated to which?
+    // // maybe {Aewsome, {Sauce, Ome}}? like I guess
+    // const effectVbls: Array<number> = [];
+    // expr.effvbls.forEach((id) => {
+    //     const unique = Object.keys(typeInner.local.effectVbls).length;
+    //     const sym: Symbol = { name: id.text, unique };
+    //     typeInner.local.effectVbls[id.text] = sym;
+    //     effectVbls.push(sym.unique);
+    //     // console.log('VBL', sym);
+    // });
+
     const typeInner = subEnv(env);
     const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
     typevbls.forEach(({ id, subTypes }) => {

@@ -13,7 +13,7 @@ import {
     effectsMatch,
     Env,
 } from '../types';
-import typeType from '../typeType';
+import typeType, { newEnvWithTypeAndEffectVbls } from '../typeType';
 import { fitsExpectation } from '../unify';
 import { printToString } from '../../printing/printer';
 import { refToPretty, symToPretty } from '../../printing/printTsLike';
@@ -21,46 +21,11 @@ import typeExpr, { showLocation } from '../typeExpr';
 import { resolveEffect } from '../env';
 
 export const typeLambda = (env: Env, expr: Lambda): Term => {
-    const typeInner =
-        expr.typevbls.length || expr.effvbls.length ? subEnv(env) : env;
-    const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
-    expr.typevbls.forEach(({ id, subTypes }) => {
-        const unique = Object.keys(typeInner.local.typeVbls).length;
-        const sym: Symbol = { name: id.text, unique };
-        const st = subTypes.map((id) => {
-            const t = env.global.typeNames[id.text];
-            if (!t) {
-                throw new Error(
-                    `Unknown subtype ${id.text} at ${showLocation(
-                        id.location,
-                    )}`,
-                );
-            }
-            return t;
-        });
-        typeInner.local.typeVblNames[id.text] = sym;
-        typeInner.local.typeVbls[sym.unique] = {
-            subTypes: st,
-        };
-        typeVbls.push({ unique: sym.unique, subTypes: st });
-    });
-
-    // TODO: how do I do multiple effect vbls, with explicit calling?
-    // b/c, for the general "e", it can take in any extra things that
-    // aren't specified. But if there are two variables (e and f, for example),
-    // how would you indicate which are allocated to which?
-    // maybe {Aewsome, {Sauce, Ome}}? like I guess
-    const effectVbls: Array<number> = [];
-    expr.effvbls.forEach((id) => {
-        const unique = Object.keys(typeInner.local.effectVbls).length;
-        const sym: Symbol = { name: id.text, unique };
-        typeInner.local.effectVbls[id.text] = sym;
-        effectVbls.push(sym.unique);
-        // console.log('VBL', sym);
-    });
-
-    // expr.effects.map(id => )
-    // console.log('Lambda type vbls', typeVbls);
+    const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
+        env,
+        expr.typevbls,
+        expr.effvbls,
+    );
 
     // ok here's where we do a little bit of inference?
     // or do I just say "all is specified, we can infer in the IDE"?
