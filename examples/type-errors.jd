@@ -153,3 +153,5 @@ Counter<<T>(T) => string>{item: <T,>() => "hi", count: 10}
 
 Counter<<T>(T) => T>{item: <T,>(input: T) => "hi", count: 10}
 
+
+Counter<<T: HasName>(T) => string>{item: <T: HasName>(input: T) => input.name, count: 10}.item<Dog>(dog)

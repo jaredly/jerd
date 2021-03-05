@@ -106,6 +106,10 @@ const countAny = Counter<<T>(T) => string>{item: <T,>(input: T) => "hi", count: 
 countAny.item<string>("String") == "hi"
 countAny.item<int>(10) == "hi"
 
+const countNamed = Counter<<T: HasName>(T) => string>{item: <T: HasName>(input: T) => input.name, count: 10}
+
+countNamed.item<Person>(me) == "June"
+
 /*
 
 type Employee = {

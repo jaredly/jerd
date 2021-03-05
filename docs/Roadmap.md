@@ -39,8 +39,8 @@
   - [x] basic
   - [x] spread to update
   - [x] ~inheritance (subtyping)
-  - [ ] generic
-  - [ ] FFIable types.
+  - [x] generic
+  - [ ] FFIable types. (with nice attribute names and such)
 - [ ] give me Array<T> or give me sadness
 - [ ] basic attempt at compiling to go or swift or something?
   - Yeah I really should get on this before too long, so I can see what hurdles I run into.
