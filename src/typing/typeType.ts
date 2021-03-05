@@ -4,7 +4,8 @@ import { Type as ParseType } from '../parsing/parser';
 // that doesn't mean keeping track of column & line.
 // because we'll need it in a web ui.
 import { Env, Symbol, subEnv, Type, Id } from './types';
-import { resolveEffect, showLocation } from './typeExpr';
+import { showLocation } from './typeExpr';
+import { resolveEffect } from './env';
 
 export const walkType = (
     term: Type,

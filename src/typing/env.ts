@@ -5,6 +5,7 @@ import {
     Define,
     Effect,
     Identifier,
+    Location,
     RecordDecl,
     RecordRow,
     RecordSpread,
@@ -14,12 +15,16 @@ import {
 import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
 import {
+    EffectRef,
     Env,
+    getAllSubTypes,
     getEffects,
     GlobalEnv,
     Id,
+    idsEqual,
     RecordDef,
     Term,
+    Type,
     TypeConstraint,
 } from './types';
 import { fitsExpectation } from './unify';
@@ -162,4 +167,101 @@ const unifyToplevel = (
     //     unifyInTerm(unified, term);
     //     // self.type = unifyInType(unified, self.type) || self.type;
     // }
+};
+
+export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
+    // TODO abstract this into "resolveEffect" probably
+    if (env.local.effectVbls[id.text]) {
+        return {
+            type: 'var',
+            sym: env.local.effectVbls[id.text],
+        };
+    }
+    if (!env.global.effectNames[id.text]) {
+        throw new Error(`No effect named ${id.text}`);
+    }
+    return {
+        type: 'ref',
+        ref: {
+            type: 'user',
+            id: {
+                hash: env.global.effectNames[id.text],
+                pos: 0,
+                size: 1,
+            },
+        },
+    };
+};
+
+// TODO type-directed resolution pleaseeeee
+export const resolveIdentifier = (
+    env: Env,
+    text: string,
+    location: Location,
+): Term | null => {
+    if (env.local.locals[text]) {
+        const { sym, type } = env.local.locals[text];
+        return {
+            type: 'var',
+            location,
+            sym,
+            is: type,
+        };
+    }
+    if (env.local.self && text === env.local.self.name) {
+        return {
+            location,
+            type: 'self',
+            is: env.local.self.type,
+        };
+    }
+    if (env.global.names[text]) {
+        const id = env.global.names[text];
+        const term = env.global.terms[id.hash];
+        // console.log(`${text} : its a global: ${showType(term.is)}`);
+        return {
+            type: 'ref',
+            location,
+            ref: {
+                type: 'user',
+                id,
+            },
+            is: term.is,
+        };
+    }
+    if (env.global.builtins[text]) {
+        const type = env.global.builtins[text];
+        return {
+            type: 'ref',
+            location,
+            is: type,
+            ref: { type: 'builtin', name: text },
+        };
+    }
+    return null;
+};
+
+export const hasSubType = (env: Env, type: Type, id: Id) => {
+    if (type.type === 'var') {
+        const found = env.local.typeVbls[type.sym.unique];
+        for (let sid of found.subTypes) {
+            if (idsEqual(id, sid)) {
+                return true;
+            }
+            const t = env.global.types[idName(sid)];
+            const allSubTypes = getAllSubTypes(env.global, t);
+            if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
+                return true;
+            }
+        }
+    }
+    if (type.type !== 'ref' || type.ref.type === 'builtin') {
+        return false;
+    }
+    if (idsEqual(type.ref.id, id)) {
+        return true;
+    }
+    const t = env.global.types[idName(type.ref.id)];
+    const allSubTypes = getAllSubTypes(env.global, t);
+    return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };

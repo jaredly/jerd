@@ -154,16 +154,19 @@ export type String = { type: 'string'; text: string; location: Location };
 export type WithSuffix = {
     type: 'WithSuffix';
     target: Expression;
-    suffixes: Array<
-        | {
-              type: 'Apply';
-              args: Array<Expression>;
-              typevbls: Array<Identifier>;
-              effectVbls: Array<Identifier>;
-          }
-        | { type: 'Attribute'; id: Identifier; location: Location }
-    >;
+    suffixes: Array<ApplySuffix | AttributeSuffix>;
     location: { start: Loc; end: Loc };
+};
+export type ApplySuffix = {
+    type: 'Apply';
+    args: Array<Expression>;
+    typevbls: Array<Identifier>;
+    effectVbls: Array<Identifier>;
+};
+export type AttributeSuffix = {
+    type: 'Attribute';
+    id: Identifier;
+    location: Location;
 };
 
 export default (raw: string): Array<Toplevel> => parse(raw);
