@@ -8,6 +8,7 @@ import {
     Let,
     typesEqual,
     EffectRef,
+    isRecord,
 } from './types';
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
@@ -173,6 +174,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     type: 'ref',
                     location: expr.location,
                     ref: { type: 'builtin', name: 'int' },
+                    typeVbls: [],
                 },
             };
         case 'string':
@@ -184,6 +186,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     location: expr.location,
                     type: 'ref',
                     ref: { type: 'builtin', name: 'string' },
+                    typeVbls: [],
                 },
             };
         case 'block': {
@@ -327,11 +330,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     }
                     const ref: Reference = { type: 'user', id };
                     if (
-                        !typesEqual(env, target.is, {
-                            type: 'ref',
-                            ref,
-                            location: null,
-                        }) &&
+                        !isRecord(target.is, ref) &&
                         !hasSubType(env, target.is, id)
                     ) {
                         throw new Error(

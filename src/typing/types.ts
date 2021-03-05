@@ -260,6 +260,10 @@ NEW PLAN:
 // T<A> => applied[A]
 // T<A<B>> => applied[A applied [B]]
 
+export const isRecord = (one: Type, ref: Reference) => {
+    return one.type === 'ref' && refsEqual(one.ref, ref);
+};
+
 export const typesEqual = (
     env: Env,
     one: Type | null,
@@ -341,8 +345,9 @@ export type TypeRef =
           type: 'ref';
           ref: Reference;
           location: Location | null;
+          typeVbls: Array<Type>;
       }
-    | TypeVar;
+    | TypeVar; // will also support vbls at some point I guess
 
 export type TypeVar = {
     type: 'var';

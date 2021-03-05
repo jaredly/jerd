@@ -70,6 +70,7 @@ export type Record = {
     // spreads: Array<Expression>;
     id: Identifier;
     location: Location;
+    typeVbls: Array<Type>;
     // hmmmmm
     // So, record labels might be coming
     // from different sources

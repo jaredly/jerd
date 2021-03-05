@@ -12,11 +12,13 @@ import {
     Id,
     RecordDef,
     RecordBase,
+    isRecord,
 } from '../types';
 import { Record } from '../../parsing/parser';
 import { showType, fitsExpectation } from '../unify';
 import { idName } from '../env';
 import typeExpr, { showLocation } from '../typeExpr';
+import typeType from '../typeType';
 
 export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     const names: { [key: string]: { i: number; id: Id | null } } = {};
@@ -70,7 +72,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
 
         // TODO: deduplicate
         subTypeIds = getAllSubTypes(env.global, t);
-        is = { type: 'ref', ref, location: expr.id.location };
+        is = {
+            type: 'ref',
+            ref,
+            location: expr.id.location,
+            typeVbls: expr.typeVbls.map((t) => typeType(env, t)),
+        };
     }
 
     // let spread = null;
@@ -101,13 +108,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         if (row.type === 'Spread') {
             const v = typeExpr(env, row.value);
             if (base.type === 'Concrete') {
-                if (
-                    typesEqual(env, v.is, {
-                        type: 'ref',
-                        ref: base.ref,
-                        location: null,
-                    })
-                ) {
+                if (isRecord(v.is, base.ref)) {
+                    // STOPSHIP: check that type variables match up
                     Object.keys(subTypes).forEach(
                         (k) => (subTypes[k].covered = true),
                     );
@@ -127,11 +129,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             // ummm I kindof want to
             for (let id of subTypeIds) {
                 if (
-                    typesEqual(env, v.is, {
-                        type: 'ref',
-                        ref: { type: 'user', id },
-                        location: null,
-                    })
+                    // ermmm we're gonna ignore type variables here
+                    isRecord(v.is, { type: 'user', id })
                 ) {
                     subTypes[idName(id)].spread = v;
                     subTypes[idName(id)].covered = true;

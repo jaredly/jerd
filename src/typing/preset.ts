@@ -6,6 +6,7 @@ const builtinType = (name: string): Type => ({
     type: 'ref',
     ref: { type: 'builtin', name },
     location: null,
+    typeVbls: [],
 });
 
 export const int: Type = builtinType('int');
@@ -35,6 +36,7 @@ export function presetEnv() {
             type: 'ref',
             ref: { type: 'builtin', name: 'never' },
             location: null,
+            typeVbls: [],
         },
     });
     env.global.builtins['true'] = bool;
