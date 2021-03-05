@@ -38,6 +38,8 @@ type House = {
     occupant: Person,
 }
 
+const getNameAndAge = <T: HasName + HasAge>(m: T) => m.name ++ intToString(m.age)
+
 
 
 // This would be cool! Yes it would.

@@ -129,4 +129,10 @@ const getName = <T: Dog>(m: T) => m.name
 // Not a subtype folks
 getName<Frog>(Frog{age: 5})
 
+type HasName = {name: string}
+type HasAge = {age: int}
+
+const getNameAndAge = <T: HasName + HasAge>(m: T) => m.name ++ intToString(m.age)
+
+getNameAndAge<HasName>(HasName{nane: "hi"})
 

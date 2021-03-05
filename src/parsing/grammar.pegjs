@@ -138,8 +138,11 @@ Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : nul
 TypeVbls = "<" _ first:TypeVbl rest:(_ "," _ TypeVbl)* _ ","? _ ">" {
     return [first, ...rest.map(r => r[3])]
 }
-TypeVbl = id:Identifier subTypes:(_ ":" _ Identifier)? {
-    return {id, subTypes: subTypes ? [subTypes[3]] : []}
+TypeVbl = id:Identifier subTypes:SubTypes? {
+    return {id, subTypes: subTypes ? subTypes : []}
+}
+SubTypes = _ ":" _ first:Identifier rest:(__ "+" __ Identifier)* {
+    return [first, ...rest.map(r => r[3])]
 }
 EffectVbls = "{" _  inner:EffectVbls_? _ "}" { return inner || [] }
 EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
