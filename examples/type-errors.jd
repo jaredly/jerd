@@ -144,9 +144,12 @@ type Counter<T> = {
     count: int,
 }
 
-// HasName{name: "hi"}
-
 Counter{item: 10, count: 4}
 
-Counter<int>{item: 10, count: 4}
+const countAny = Counter<<T>(T) => string>{item: <T,>(input: T) => "hi", count: 10}
+countAny.item<string>() == "hi"
+
+Counter<<T>(T) => string>{item: <T,>() => "hi", count: 10}
+
+Counter<<T>(T) => T>{item: <T,>(input: T) => "hi", count: 10}
 

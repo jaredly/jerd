@@ -97,7 +97,14 @@ type Counter<T> = {
 
 const countMe = Counter<int>{item: 10, count: 4000}
 
-// countMe.item == 10
+countMe.item == 10
+
+Counter<() => string>{item: () => "hi", count: 10}.item() == "hi"
+
+const countAny = Counter<<T>(T) => string>{item: <T,>(input: T) => "hi", count: 10}
+
+countAny.item<string>("String") == "hi"
+countAny.item<int>(10) == "hi"
 
 /*
 

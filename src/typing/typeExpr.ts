@@ -9,6 +9,9 @@ import {
     typesEqual,
     EffectRef,
     isRecord,
+    TypeRef,
+    TypeReference,
+    RecordDef,
 } from './types';
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
@@ -63,7 +66,10 @@ const subtEffectVars = (
     );
 };
 
-const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
+export const subtTypeVars = (
+    t: Type,
+    vbls: { [unique: number]: Type },
+): Type => {
     return (
         walkType(t, (t) => {
             if (t.type === 'var') {
@@ -76,7 +82,12 @@ const subtTypeVars = (t: Type, vbls: { [unique: number]: Type }): Type => {
                 if (t.ref.type === 'builtin') {
                     return null;
                 }
-                throw new Error(`Not support yet ${JSON.stringify(t)}`);
+                if (t.typeVbls.length > 0) {
+                    return {
+                        ...t,
+                        typeVbls: t.typeVbls.map((t) => subtTypeVars(t, vbls)),
+                    };
+                }
             }
             return null;
         }) || t
@@ -119,9 +130,67 @@ export const applyEffectVariables = (
             rest: null, // TODO rest args
             res: subtEffectVars(type.res, mapping),
         };
+        // } else if (type.type === 'ref') {
+        //     const t: TypeRef = type as TypeRef;
+
+        //     const mapping: { [unique: number]: Array<EffectRef> } = {};
+
+        //     if (type.effectVbls.length !== 1) {
+        //         throw new Error(
+        //             `Multiple effect variables not yet supported: ${showType(
+        //                 type,
+        //             )} : ${showLocation(type.location)}`,
+        //         );
+        //     }
+
+        //     mapping[type.effectVbls[0]] = vbls;
+
+        //     return {
+        //         ...type,
+        //         effectVbls: [],
+        //         effects: expandEffectVars(type.effects, mapping, false)!,
+        //         args: type.args.map((t) => subtEffectVars(t, mapping)),
+        //         // TODO effects with type vars!
+        //         rest: null, // TODO rest args
+        //         res: subtEffectVars(type.res, mapping),
+        //     };
     }
     // should I go full-on whatsit? maybe not yet.
     throw new Error(`Can't apply variables to non-lambdas just yet`);
+};
+
+export const applyTypeVariablesToRecord = (
+    env: Env,
+    type: RecordDef,
+    vbls: Array<Type>,
+): RecordDef => {
+    const mapping: { [unique: number]: Type } = {};
+    if (vbls.length !== type.typeVbls.length) {
+        console.log('the ones', type.typeVbls);
+        throw new Error(
+            `Wrong number of type variables: ${vbls.length} : ${type.typeVbls.length}`,
+        );
+    }
+    vbls.forEach((typ, i) => {
+        // STOPSHIP CHECK HERE
+        const subs = type.typeVbls[i].subTypes;
+        for (let sub of subs) {
+            if (!hasSubType(env, typ, sub)) {
+                throw new Error(`Expected a subtype of ${idName(sub)}`);
+            }
+        }
+        // if (hasSubType(typ, ))
+        mapping[type.typeVbls[i].unique] = typ;
+    });
+    return {
+        ...type,
+        typeVbls: [],
+        items: type.items.map((t) => subtTypeVars(t, mapping)),
+        // args: type.args.map((t) => subtTypeVars(t, mapping)),
+        // // TODO effects with type vars!
+        // rest: null, // TODO rest args
+        // res: subtTypeVars(type.res, mapping),
+    };
 };
 
 export const applyTypeVariables = (
@@ -272,7 +341,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 if (is.typeVbls.length === 1) {
                     if (!typesEqual(env, left.is, rarg.is)) {
                         throw new Error(
-                            `Binops must have same-typed arguments`,
+                            `Binops must have same-typed arguments: ${showType(
+                                left.is,
+                            )} vs ${showType(rarg.is)} at ${showLocation(
+                                left.location,
+                            )}`,
                         );
                     }
                     is = applyTypeVariables(env, is, [left.is]) as LambdaType;
@@ -326,10 +399,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     const { id, idx } = env.global.attributeNames[
                         suffix.id.text
                     ];
-                    const t = env.global.types[idName(id)];
-                    if (t.type !== 'Record') {
-                        throw new Error(`${idName(id)} is not a record type`);
-                    }
                     const ref: Reference = { type: 'user', id };
                     if (
                         !isRecord(target.is, ref) &&
@@ -340,6 +409,18 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                                 suffix.location,
                             )} is not a ${idName(id)} or its supertype`,
                         );
+                    }
+
+                    let t = env.global.types[idName(id)];
+                    if (target.is.type === 'ref') {
+                        t = applyTypeVariablesToRecord(
+                            env,
+                            t,
+                            target.is.typeVbls,
+                        );
+                    }
+                    if (t.type !== 'Record') {
+                        throw new Error(`${idName(id)} is not a record type`);
                     }
 
                     target = {

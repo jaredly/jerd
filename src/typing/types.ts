@@ -339,15 +339,14 @@ export const effectsMatch = (
     return true;
 };
 
-export type TypeRef =
-    | {
-          type: 'ref';
-          ref: Reference;
-          location: Location | null;
-          typeVbls: Array<Type>;
-          effectVbls: Array<EffectRef>;
-      }
-    | TypeVar; // will also support vbls at some point I guess
+export type TypeReference = {
+    type: 'ref';
+    ref: Reference;
+    location: Location | null;
+    typeVbls: Array<Type>;
+    effectVbls: Array<EffectRef>;
+};
+export type TypeRef = TypeReference | TypeVar; // will also support vbls at some point I guess
 
 export type TypeVar = {
     type: 'var';

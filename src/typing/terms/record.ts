@@ -17,7 +17,10 @@ import {
 import { Record } from '../../parsing/parser';
 import { showType, fitsExpectation } from '../unify';
 import { idName } from '../env';
-import typeExpr, { showLocation } from '../typeExpr';
+import typeExpr, {
+    applyTypeVariablesToRecord,
+    showLocation,
+} from '../typeExpr';
 import typeType from '../typeType';
 
 export const typeRecord = (env: Env, expr: Record): RecordTerm => {
@@ -59,7 +62,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 )}`,
             );
         }
-        const t = env.global.types[idName(id)];
+        const typeVbls = expr.typeVbls.map((t) => typeType(env, t));
+        const t = applyTypeVariablesToRecord(
+            env,
+            env.global.types[idName(id)],
+            typeVbls,
+        );
         const ref: Reference = { type: 'user', id };
         const rows: Array<{ value: Term | null; type: Type }> = new Array(
             t.items.length,
@@ -82,7 +90,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             type: 'ref',
             ref,
             location: expr.id.location,
-            typeVbls: expr.typeVbls.map((t) => typeType(env, t)),
+            typeVbls,
             effectVbls: [], // STOPSHIP: allow effect variables to be specified for records
         };
     }
@@ -241,9 +249,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             base.type === 'Concrete'
                 ? { ...base, rows: base.rows.map((r) => r.value) }
                 : base,
-        // ref,
         is,
         subTypes: finishedSubTypes,
-        // rows,
     };
 };
