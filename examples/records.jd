@@ -110,6 +110,8 @@ const countNamed = Counter<<T: HasName>(T) => string>{item: <T: HasName>(input: 
 
 countNamed.item<Person>(me) == "June"
 
+const double = <T,>(x: Array<T>) => concat(x, x)
+
 /*
 
 type Employee = {

@@ -473,9 +473,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const t = typeExpr(env, term, eff.args[i]);
                 if (fitsExpectation(env, t.is, eff.args[i]) !== true) {
                     throw new Error(
-                        `Wrong type for arg ${i}: ${JSON.stringify(
+                        `Wrong type for arg ${i}: ${showType(
                             t.is,
-                        )}, expected ${JSON.stringify(eff.args[i])}`,
+                        )}, expected ${showType(eff.args[i])} - ${showLocation(
+                            t.location,
+                        )}`,
                     );
                 }
                 args.push(t);

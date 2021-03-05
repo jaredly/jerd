@@ -89,8 +89,8 @@ export const typeApply = (
             throw new Error(
                 `Wrong type for arg ${i}: \nFound: ${showType(
                     t.is,
-                )}\nbut expected ${showType(is.args[i])} : ${JSON.stringify(
-                    location,
+                )}\nbut expected ${showType(is.args[i])} : ${showLocation(
+                    t.location,
                 )}`,
             );
         }

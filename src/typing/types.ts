@@ -364,12 +364,14 @@ export type Kind =
     | { type: 'concrete' }
     | { type: 'lambda'; arg: Kind; reult: Kind };
 
+export type TypeVblDecl = { subTypes: Array<Id>; unique: number };
+
 export type LambdaType = {
     type: 'lambda';
     location: Location | null;
     // TODO: this shouldn't be an array,
     // we don't have to be order dependent here.
-    typeVbls: Array<{ subTypes: Array<Id>; unique: number }>; // TODO: kind, row etc.
+    typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
     // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
