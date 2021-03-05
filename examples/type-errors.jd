@@ -33,7 +33,7 @@ effect GetString {
 // Not pure
 () ={}> raise!(GetString.get())
 
-<T>(ok: T): string => hello(ok)
+<T,>(ok: T): string => hello(ok)
 
 (ok: string) => ok + 2
 
@@ -98,3 +98,41 @@ handle! () => 4 {
 }
 
 raise!(Undef.get())
+
+
+/** Records! */
+
+type Person = {
+    name: string,
+    age: int,
+    what: int,
+}
+
+Person{name: "Bob", age: "hi", what: 3}
+
+Person{name: "Bob", age: 10, what: 3, age: 20}
+
+Person{name: "Bob", age: 10}
+
+const me = Person{name: "Bob", age: 10, what: 3}
+
+type Dog = {name: string}
+
+const dog = Dog{name: "Man"}
+
+Person{...dog, age: 15}
+
+type Frog = {age: int}
+
+const getName = <T: Dog>(m: T) => m.name
+
+// Not a subtype folks
+getName<Frog>(Frog{age: 5})
+
+type HasName = {name: string}
+type HasAge = {age: int}
+
+const getNameAndAge = <T: HasName + HasAge>(m: T) => m.name ++ intToString(m.age)
+
+getNameAndAge<HasName>(HasName{name: "hi"})
+

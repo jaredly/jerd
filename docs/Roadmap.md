@@ -36,14 +36,19 @@
   - recursive isn't working for some reason
 - [x] some coverage testing of what we already have, just to check.
 - [ ] records
-  - [ ] basic
+  - [x] basic
+  - [x] spread to update
+  - [x] ~inheritance (subtyping)
   - [ ] generic
-  - [ ] ~inheritance
+  - [ ] FFIable types.
+- [ ] give me Array<T> or give me sadness
+- [ ] basic attempt at compiling to go or swift or something?
+  - Yeah I really should get on this before too long, so I can see what hurdles I run into.
 - [ ] generic effects (Store<T>)
 - [ ] enums
   - [ ] basic
   - [ ] generic
-  - [ ] row polymorphic
+  - [ ] also subtyping? like polymorphic variants?
 - [ ] tuples
 - [ ] port the unison runtime effects tests, verify that all is well.
 - [ ] match

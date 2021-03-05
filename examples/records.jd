@@ -1,8 +1,109 @@
 
+type HasName = {name: string}
+type HasAge = {age: int}
+
 type Person = {
-    name: string,
-    age: int
+    ...HasName,
+    ...HasAge,
+    what: int,
 }
+
+const me = Person{name: "June", age: 10, what: 3}
+const alsoMe = Person{...me, what: 11}
+
+me.name == "June"
+me.age == 10
+alsoMe.name == "June"
+alsoMe.what == 11
+
+type Employee = {
+    ...Person,
+    address: string,
+}
+
+const you = Employee{...me, address: "Yes"}
+
+const them = Employee{name: "You", age: 100, what: 3, address: "No"}
+
+you.name == "June"
+them.name == "You"
+them.address == "No"
+
+const getName = <T: Person>(m: T) => m.name
+
+getName<Person>(me) == "June"
+getName<Employee>(them) == "You"
+
+type House = {
+    occupant: Person,
+}
+
+const getNameAndAge = <T: HasName + HasAge>(m: T) => m.name ++ intToString(m.age)
+
+
+
+// This would be cool! Yes it would.
+const getStuff = <T: Person>(m: T) => T{...m, age: 4}
+
+/* What's the structure of this?
+
+Record {
+  ref: ??,
+  rows: NOPE this doesn't have any rows of its own
+  subTypes: yup that's fine. but this needs to be the full list of all subtype kinds
+}
+
+do I have like a
+Base?
+Record {
+    base: {type: 'Concrete'} | {type: 'Vbl'}
+}
+
+*/
+
+// In Go, we'd need all records to implement the `Copyable` interface, and then
+// res := m.Copy()
+// res.(Person).SetName("Yes")
+// return res
+
+// Should variants just be .... multiple records put together?
+// And tuple types, are just records where the names are numbers?
+// maybe? although then it would be weird for them to subtype...
+/*
+
+type Base = Base{id: string, slug: number}
+type ContentItem =
+    Video{...Base, duration: int}
+    Article{...Base, timeEstimate: int}
+    Exercise{...Base, minScore: int}
+
+So in that case, `ContentItem` would count as a subType of `Base`.
+But a record can never have a subtype of an enum.
+
+[verdict for the following: not right now]
+for completeness, would it make sense to be able to have a type be polymorphic over a subtype?
+Like
+type XYZ<T> = XYZ{...T, x: int, y: int, z: int}
+In theory it doesn't seem like it would really present a problem, would it?
+hrm so `XYZ<T>` would then qualify as a `X: T`.
+And under the hood, in like Go or something,
+
+const x = <T>(m: T): XYZ<T> => XYZ{...m, x: 3, y: 2, z: 1}
+
+Is that a thing we'd be able to make sense of?
+remembering that in go, generics are done via `interface{}` and sometimes reflection.
+Ok yeah being generic over the spread would make it muuch harder to codegen the go code
+So I'm going to say **no** we don't allow this
+
+*/
+
+const here = House{occupant: me}
+
+here.occupant.name == "June"
+
+
+// type Awesome = {
+// }
 
 // type Animal =
 //     | Person(int)

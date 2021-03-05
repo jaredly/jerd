@@ -1,3 +1,43 @@
+# Row Polymorphism
+
+Ok but really it's maybe just normal subtyping?
+
+Anyway, here's the type-level representation:
+
+```ts
+type Named = {name: string}
+type Aged = {age: int}
+type Person = {...Named, ...Aged}
+type Employee = {...Person, address: string}
+
+const getName = <T: Named>(item: T): string => item.name
+const me = Employee{name: "A", age: 2, address: "Here"}
+
+
+// this
+Employee{...me, age: 3}
+// and this
+Employee{...me, ...Aged{age: 3}}
+// are both valid
+
+```
+
+Employee:
+- rows: [address: string]
+- extends: [Named, Aged]
+
+Named:
+- rows: [name: string]
+
+Aged:
+- rows: [age: int]
+
+Term:
+- ref: Employee
+- 
+
+
+
 
 So, in javascript, it's easy to do row polymorphism
 so we can do

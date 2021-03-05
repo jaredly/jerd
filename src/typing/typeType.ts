@@ -3,8 +3,9 @@ import { Type as ParseType } from '../parsing/parser';
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
 // because we'll need it in a web ui.
-import { Env, Symbol, subEnv, Type } from './types';
-import { resolveEffect } from './typeExpr';
+import { Env, Symbol, subEnv, Type, Id } from './types';
+import { showLocation } from './typeExpr';
+import { resolveEffect } from './env';
 
 export const walkType = (
     term: Type,
@@ -60,10 +61,10 @@ const typeType = (env: Env, type: ParseType | null): Type => {
     }
     switch (type.type) {
         case 'id': {
-            if (env.local.typeVbls[type.text] != null) {
+            if (env.local.typeVblNames[type.text] != null) {
                 return {
                     type: 'var',
-                    sym: env.local.typeVbls[type.text],
+                    sym: env.local.typeVblNames[type.text],
                     location: type.location,
                 };
             }
@@ -89,12 +90,24 @@ const typeType = (env: Env, type: ParseType | null): Type => {
 
         case 'lambda': {
             const typeInner = subEnv(env);
-            const typeVbls: Array<number> = [];
-            type.typevbls.forEach((id) => {
+            const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
+            type.typevbls.forEach(({ id, subTypes }) => {
                 const unique = Object.keys(typeInner.local.typeVbls).length;
                 const sym: Symbol = { name: id.text, unique };
-                typeInner.local.typeVbls[id.text] = sym;
-                typeVbls.push(sym.unique);
+                const st = subTypes.map((id) => {
+                    const t = env.global.typeNames[id.text];
+                    if (!t) {
+                        throw new Error(
+                            `Unknown subtype ${id.text} at ${showLocation(
+                                id.location,
+                            )}`,
+                        );
+                    }
+                    return t;
+                });
+                typeInner.local.typeVbls[sym.unique] = { subTypes: st };
+                typeInner.local.typeVblNames[id.text] = sym;
+                typeVbls.push({ unique: sym.unique, subTypes: st });
             });
             const effectVbls: Array<number> = [];
             type.effvbls.forEach((id) => {

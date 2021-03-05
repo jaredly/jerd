@@ -22,6 +22,7 @@ import { env } from 'process';
 import { showType } from '../typing/unify';
 import { optimizeAST } from './typeScriptOptimize';
 import { applyEffectVariables } from '../typing/typeExpr';
+import { idName } from '../typing/env';
 
 // TODO: I want to abstract this out
 // Into a file that generates an intermediate representation
@@ -859,10 +860,92 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                 [],
             );
         }
+        case 'Record': {
+            // ok whats the story here?
+            // options include:
+            // ['h@sh', arg1, arg2]
+            // {type: 'h@sh', 0: arg1, 1: arg2, 2: arg3}
+            // {type: 'h@sh', h@sh_0: arg1, h@sh_1: arg2, h@sh_2: arg3}
+            // the last one requires the least record keeping, I think.
+            // although serializes more.
+            // yeah I think we need the last one.
+            return t.objectExpression(
+                ((term.base.spread != null
+                    ? [t.spreadElement(printTerm(env, term.base.spread))]
+                    : []) as Array<t.ObjectProperty | t.SpreadElement>)
+                    .concat(
+                        ...Object.keys(term.subTypes).map((id) =>
+                            ((term.subTypes[id].spread
+                                ? [
+                                      t.spreadElement(
+                                          printTerm(
+                                              env,
+                                              term.subTypes[id].spread!,
+                                          ),
+                                      ),
+                                  ]
+                                : []) as Array<
+                                t.ObjectProperty | t.SpreadElement
+                            >).concat(
+                                term.subTypes[id].rows
+                                    .map((row, i) =>
+                                        row != null
+                                            ? t.objectProperty(
+                                                  t.identifier(
+                                                      recordAttributeName(
+                                                          id,
+                                                          i,
+                                                      ),
+                                                  ),
+                                                  printTerm(env, row),
+                                              )
+                                            : null,
+                                    )
+                                    .filter(Boolean) as Array<t.ObjectProperty>,
+                            ),
+                        ),
+                    )
+                    .concat(
+                        term.base.type === 'Concrete'
+                            ? (term.base.rows
+                                  .map((row, i) =>
+                                      row != null
+                                          ? t.objectProperty(
+                                                t.identifier(
+                                                    recordAttributeName(
+                                                        (term.base as any).ref,
+                                                        i,
+                                                    ),
+                                                ),
+                                                printTerm(env, row),
+                                            )
+                                          : null,
+                                  )
+                                  .filter(Boolean) as Array<t.ObjectProperty>)
+                            : [],
+                    ) as Array<any>,
+            );
+        }
+        case 'Attribute': {
+            return t.memberExpression(
+                printTerm(env, term.target),
+                t.identifier(recordAttributeName(term.ref, term.idx)),
+            );
+        }
         default:
             let _x: never = term;
-            throw new Error(`Cannot print ${(term as any).type}`);
+            throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
     }
+};
+
+const recordAttributeName = (ref: Reference | string, idx: number) => {
+    if (typeof ref === 'string') {
+        return `h${ref}_${idx}`;
+    }
+    if (ref.type === 'builtin') {
+        return `${ref.name}_${idx}`;
+    }
+    return `h${idName(ref.id)}_${idx}`;
 };
 
 const clearEffects = (

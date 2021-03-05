@@ -36,7 +36,7 @@ import {
 } from './typing/unify';
 import { printToString } from './printing/printer';
 import { declarationToPretty, termToPretty } from './printing/printTsLike';
-import { typeDefine, typeTypeDecl, typeEffect } from './typing/env';
+import { typeDefine, typeTypeDefn, typeEffect } from './typing/env';
 
 import { bool, presetEnv } from './typing/preset';
 
@@ -166,7 +166,7 @@ function typeFile(parsed: Toplevel[]) {
         } else if (item.type === 'effect') {
             typeEffect(env, item);
         } else if (item.type === 'TypeDef') {
-            typeTypeDecl(env, item);
+            typeTypeDefn(env, item);
         } else {
             // A standalone expression
             const term = typeExpr(env, item);
@@ -313,7 +313,7 @@ const processErrors = (fname: string) => {
         } else if (item.type === 'define') {
             typeDefine(env, item);
         } else if (item.type === 'TypeDef') {
-            typeTypeDecl(env, item);
+            typeTypeDefn(env, item);
         } else {
             let term;
             try {
