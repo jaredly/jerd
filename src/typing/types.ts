@@ -19,6 +19,54 @@ export type Reference = { type: 'builtin'; name: string } | UserReference;
 export type UserReference = { type: 'user'; id: Id };
 export type Symbol = { name: string; unique: number };
 
+export type TypeRef =
+    | {
+          type: 'ref';
+          ref: Reference;
+          location: Location | null;
+      }
+    | TypeVar;
+
+export type TypeVar = {
+    type: 'var';
+    sym: Symbol;
+    location: Location | null;
+};
+
+export type TypeApplication = {
+    type: 'apply';
+    inner: Type;
+    types: Array<Type>;
+    effects: Array<EffectRef> | null;
+    location: Location | null;
+};
+
+export type Type = TypeRef | LambdaType | TypeApplication;
+
+// Here's the basics folks
+// kind lambdas can't have effects, thank goodness
+// So when we're resolving type declarations, we'll probably
+// have to do some inferency-looking stuff for types?
+export type Kind =
+    | { type: 'concrete' }
+    | { type: 'lambda'; arg: Kind; reult: Kind };
+
+export type LambdaType = {
+    type: 'lambda';
+    location: Location | null;
+    // TODO: this shouldn't be an array,
+    // we don't have to be order dependent here.
+    typeVbls: Array<{ subTypes: Array<Id>; unique: number }>; // TODO: kind, row etc.
+    effectVbls: Array<number>;
+    // TODO type variables! (handled higher up I guess)
+    // TODO optional arguments!
+    // TODO modular implicits!
+    args: Array<Type>;
+    effects: Array<EffectRef>;
+    rest: Type | null;
+    res: Type;
+};
+
 export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
@@ -75,7 +123,7 @@ export type CPSAble =
           type: 'apply';
           location: Location | null;
           target: Term;
-          hadAllVariableEffects?: boolean;
+          //   hadAllVariableEffects?: boolean;
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };
@@ -163,6 +211,8 @@ export type Lambda = {
     body: Term;
     is: LambdaType;
 };
+
+// export type TypeApplication =
 
 // from thih
 // type Type_ = TVar (Tyvar Id Kind)
@@ -334,46 +384,6 @@ export const effectsMatch = (
     }
 
     return true;
-};
-
-export type TypeRef =
-    | {
-          type: 'ref';
-          ref: Reference;
-          location: Location | null;
-      }
-    | TypeVar;
-
-export type TypeVar = {
-    type: 'var';
-    sym: Symbol;
-    location: Location | null;
-};
-
-export type Type = TypeRef | LambdaType;
-
-// Here's the basics folks
-// kind lambdas can't have effects, thank goodness
-// So when we're resolving type declarations, we'll probably
-// have to do some inferency-looking stuff for types?
-export type Kind =
-    | { type: 'concrete' }
-    | { type: 'lambda'; arg: Kind; reult: Kind };
-
-export type LambdaType = {
-    type: 'lambda';
-    location: Location | null;
-    // TODO: this shouldn't be an array,
-    // we don't have to be order dependent here.
-    typeVbls: Array<{ subTypes: Array<Id>; unique: number }>; // TODO: kind, row etc.
-    effectVbls: Array<number>;
-    // TODO type variables! (handled higher up I guess)
-    // TODO optional arguments!
-    // TODO modular implicits!
-    args: Array<Type>;
-    effects: Array<EffectRef>;
-    rest: Type | null;
-    res: Type;
 };
 
 export type RecordRow = {

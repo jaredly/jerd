@@ -375,4 +375,22 @@ export const fitsExpectation = (
             }
             return true;
     }
+    return false;
+};
+
+export const assertFits = (
+    env: Env,
+    one: Type,
+    expected: Type,
+    text: string,
+) => {
+    if (fitsExpectation(env, one, expected) !== true) {
+        throw new Error(
+            `Wrong type ${text}: \nFound: ${showType(
+                expected,
+            )}\nbut expected ${showType(one)} : ${showLocation(
+                one.location || expected.location,
+            )}`,
+        );
+    }
 };
