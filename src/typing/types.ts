@@ -193,6 +193,8 @@ export type Lambda = {
 export type TypeDef = RecordDef;
 export type RecordDef = {
     type: 'Record';
+    typeVbls: Array<{ subTypes: Array<Id>; unique: number }>; // TODO: kind, row etc.
+    effectVbls: Array<number>;
     extends: Array<Id>;
     items: Array<Type>;
 };

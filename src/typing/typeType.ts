@@ -1,4 +1,9 @@
-import { Identifier, Type as ParseType, TypeVbl } from '../parsing/parser';
+import {
+    Identifier,
+    LambdaType,
+    Type as ParseType,
+    TypeVbl,
+} from '../parsing/parser';
 
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
@@ -89,11 +94,12 @@ const typeType = (env: Env, type: ParseType | null): Type => {
         }
 
         case 'lambda': {
-            const { env: typeInner, typeVbls, effectVbls } = envWithTypeVbls(
-                env,
-                type.typevbls,
-                type.effvbls,
-            );
+            const {
+                typeInner,
+                typeVbls,
+                effectVbls,
+            } = newEnvWithTypeAndEffectVbls(env, type.typevbls, type.effvbls);
+
             return {
                 type: 'lambda',
                 args: type.args.map((a) => typeType(typeInner, a)),
@@ -108,24 +114,17 @@ const typeType = (env: Env, type: ParseType | null): Type => {
     }
 };
 
-export const envWithTypeVbls = (
+export const newEnvWithTypeAndEffectVbls = (
     env: Env,
-    typeVbls: Array<TypeVbl>,
-    effectVbls: Array<Identifier>,
-): {
-    env: Env;
-    effectVbls: Array<number>;
-    typeVbls: Array<{
-        unique: number;
-        subTypes: Array<Id>;
-    }>;
-} => {
-    if (typeVbls.length === 0 && effectVbls.length === 0) {
-        return { env: subEnv(env), typeVbls: [], effectVbls: [] };
+    typevbls: Array<TypeVbl>,
+    effvbls: Array<Identifier>,
+) => {
+    if (typevbls.length === 0 && effvbls.length === 0) {
+        return { typeInner: env, typeVbls: [], effectVbls: [] };
     }
     const typeInner = subEnv(env);
-    const typeVblsRes: Array<{ unique: number; subTypes: Array<Id> }> = [];
-    typeVbls.forEach(({ id, subTypes }) => {
+    const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
+    typevbls.forEach(({ id, subTypes }) => {
         const unique = Object.keys(typeInner.local.typeVbls).length;
         const sym: Symbol = { name: id.text, unique };
         const st = subTypes.map((id) => {
@@ -141,16 +140,16 @@ export const envWithTypeVbls = (
         });
         typeInner.local.typeVbls[sym.unique] = { subTypes: st };
         typeInner.local.typeVblNames[id.text] = sym;
-        typeVblsRes.push({ unique: sym.unique, subTypes: st });
+        typeVbls.push({ unique: sym.unique, subTypes: st });
     });
-    const effectVblsRes: Array<number> = [];
-    effectVbls.forEach((id) => {
+    const effectVbls: Array<number> = [];
+    effvbls.forEach((id) => {
         const unique = Object.keys(typeInner.local.effectVbls).length;
         const sym: Symbol = { name: id.text, unique };
         typeInner.local.effectVbls[id.text] = sym;
-        effectVblsRes.push(sym.unique);
+        effectVbls.push(sym.unique);
     });
-    return { env, typeVbls: typeVblsRes, effectVbls: effectVblsRes };
+    return { typeInner, typeVbls, effectVbls };
 };
 
 export default typeType;

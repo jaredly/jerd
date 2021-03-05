@@ -13,7 +13,7 @@ import {
     TypeVbl,
 } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
-import typeType, { newTypeVbl } from './typeType';
+import typeType, { newEnvWithTypeAndEffectVbls, newTypeVbl } from './typeType';
 import {
     EffectRef,
     Env,
@@ -65,7 +65,7 @@ export const resolveType = (env: GlobalEnv, id: Identifier) => {
 export const typeRecord = (
     env: Env,
     id: Identifier,
-    typeVbls: Array<TypeVbl>,
+    typeVblsRaw: Array<TypeVbl>,
     record: RecordDecl,
 ) => {
     const rows = record.items.filter(
@@ -73,13 +73,22 @@ export const typeRecord = (
     ) as Array<RecordRow>;
 
     // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
+    const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
+        env,
+        typeVblsRaw,
+        [],
+    );
 
     const defn: RecordDef = {
         type: 'Record',
+        typeVbls,
+        effectVbls,
         extends: record.items
             .filter((r) => r.type === 'Spread')
-            .map((r) => resolveType(env.global, (r as RecordSpread).constr)),
-        items: rows.map((r) => typeType(env, (r as RecordRow).rtype)),
+            .map((r) =>
+                resolveType(typeInner.global, (r as RecordSpread).constr),
+            ),
+        items: rows.map((r) => typeType(typeInner, (r as RecordRow).rtype)),
     };
     const hash = hashObject(defn);
     const idid = { hash, pos: 0, size: 1 };

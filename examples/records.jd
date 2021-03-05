@@ -98,6 +98,8 @@ type Counter<T> = {
     count: int,
 }
 
+const countMe = Counter<int>{item: 10, count: 4}
+
 /*
 
 type Employee = {
