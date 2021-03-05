@@ -157,6 +157,7 @@ export const termToPretty = (term: Term | Let): PP => {
             ]);
         case 'Record': {
             const res = [];
+            const typeVbls = term.is.type === 'ref' ? term.is.typeVbls : null;
             if (term.base.type === 'Concrete') {
                 res.push(
                     ...(term.base.rows.filter(Boolean) as Array<Term>).map(
@@ -168,6 +169,7 @@ export const termToPretty = (term: Term | Let): PP => {
                 term.base.type === 'Concrete'
                     ? refToPretty(term.base.ref)
                     : symToPretty(term.base.var),
+                typeVbls ? args(typeVbls.map(typeToPretty), '<', '>') : null,
                 args(res, '{', '}'),
             ]);
         }

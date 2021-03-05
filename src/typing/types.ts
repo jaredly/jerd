@@ -103,18 +103,18 @@ export const getAllSubTypes = (env: GlobalEnv, t: RecordDef): Array<Id> => {
     );
 };
 
-export type RecordBase =
+export type RecordBase<Contents> =
     | {
           type: 'Concrete';
           ref: UserReference;
-          rows: Array<Term | null>;
+          rows: Array<Contents>;
           spread: Term | null; // only one spread per type makes sense
       }
     | { type: 'Variable'; var: Symbol; spread: Term };
 
 export type Record = {
     type: 'Record';
-    base: RecordBase;
+    base: RecordBase<Term | null>;
     is: Type;
     subTypes: {
         [id: string]: {

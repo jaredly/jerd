@@ -302,11 +302,11 @@ export const fitsExpectation = (
     if (target.type === 'var' && env != null) {
         if (!env.local.tmpTypeVbls[target.sym.unique]) {
             throw new Error(
-                `Unable to unify ${showType(t)} ${
-                    t.location
-                } with type variable ${target.sym.name}#${target.sym.unique} ${
-                    t.location
-                }`,
+                `Unable to unify ${showType(t)} ${showLocation(
+                    t.location,
+                )} with type variable ${target.sym.name}#${
+                    target.sym.unique
+                } ${showLocation(target.location)}`,
             );
         }
         env.local.tmpTypeVbls[target.sym.unique].push({

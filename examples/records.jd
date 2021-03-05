@@ -95,9 +95,9 @@ type Counter<T> = {
     count: int,
 }
 
-const countMe = Counter<int>{item: 10, count: 4}
+const countMe = Counter<int>{item: 10, count: 4000}
 
-countMe.item == 10
+// countMe.item == 10
 
 /*
 

@@ -7,6 +7,7 @@ import { resolveEffect } from '../env';
 import typeExpr, {
     applyEffectVariables,
     applyTypeVariables,
+    showLocation,
 } from '../typeExpr';
 import typeType, { newTypeVbl } from '../typeType';
 
@@ -70,15 +71,13 @@ export const typeApply = (
     } else {
         if (target.is.type !== 'lambda') {
             throw new Error(
-                `Trying to call ${JSON.stringify(target)} but its a ${
-                    target.is.type
-                } : ${JSON.stringify(target.is)}`,
+                `Trying to call ${showType(target.is)} at ${showLocation(
+                    target.location,
+                )}`,
             );
         }
         if (target.is.args.length !== args.length) {
-            throw new Error(
-                `Wrong number of arguments ${JSON.stringify(target, null, 2)}`,
-            );
+            throw new Error(`Wrong number of arguments ${showType(target.is)}`);
         }
         is = target.is;
     }

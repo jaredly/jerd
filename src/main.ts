@@ -307,6 +307,7 @@ const processErrors = (fname: string) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
     const env = presetEnv();
+    const errors: Array<string> = [];
     parsed.forEach((item, i) => {
         if (item.type === 'effect') {
             typeEffect(env, item);
@@ -319,6 +320,7 @@ const processErrors = (fname: string) => {
             try {
                 term = typeExpr(env, item);
             } catch (err) {
+                errors.push(err.message);
                 return; // yup
             }
             throw new Error(
@@ -328,6 +330,10 @@ const processErrors = (fname: string) => {
             );
         }
     });
+
+    const buildDir = path.join(path.dirname(fname), 'build');
+    const dest = path.join(buildDir, path.basename(fname) + '.txt');
+    fs.writeFileSync(dest, errors.join('\n\n'));
 };
 
 const processFile = (fname: string, assert: boolean, run: boolean) => {

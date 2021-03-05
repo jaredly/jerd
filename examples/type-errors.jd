@@ -144,6 +144,8 @@ type Counter<T> = {
     count: int,
 }
 
+// HasName{name: "hi"}
+
 Counter{item: 10, count: 4}
 
 Counter<int>{item: 10, count: 4}
