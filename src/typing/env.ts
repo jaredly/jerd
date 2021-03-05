@@ -9,8 +9,8 @@ import {
     RecordDecl,
     RecordRow,
     RecordSpread,
-    TypeDecl,
     TypeDef,
+    TypeVbl,
 } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newTypeVbl } from './typeType';
@@ -47,9 +47,9 @@ export const typeEffect = (env: Env, item: Effect) => {
     env.global.effects[hash] = constrs;
 };
 
-export const typeTypeDefn = (env: Env, { id, decl }: TypeDef) => {
+export const typeTypeDefn = (env: Env, { id, decl, typeVbls }: TypeDef) => {
     if (decl.type === 'Record') {
-        return typeRecord(env, id, decl);
+        return typeRecord(env, id, typeVbls, decl);
     }
 };
 
@@ -62,10 +62,17 @@ export const resolveType = (env: GlobalEnv, id: Identifier) => {
     return env.typeNames[id.text];
 };
 
-export const typeRecord = (env: Env, id: Identifier, record: RecordDecl) => {
+export const typeRecord = (
+    env: Env,
+    id: Identifier,
+    typeVbls: Array<TypeVbl>,
+    record: RecordDecl,
+) => {
     const rows = record.items.filter(
         (r) => r.type === 'Row',
     ) as Array<RecordRow>;
+
+    // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
 
     const defn: RecordDef = {
         type: 'Record',

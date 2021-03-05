@@ -3,27 +3,15 @@ import {
     Type,
     Term,
     Reference,
-    dedupEffects,
-    getEffects,
     Symbol,
-    Case,
     LambdaType,
     Let,
     typesEqual,
-    refsEqual,
-    symbolsEqual,
     EffectRef,
-    getAllSubTypes,
-    Record,
-    Id,
-    RecordDef,
-    idsEqual,
-    RecordBase,
-    UserReference,
 } from './types';
-import { Expression, Identifier, Location, Statement } from '../parsing/parser';
-import { subEnv, effectsMatch } from './types';
-import typeType, { newTypeVbl, walkType } from './typeType';
+import { Expression, Location } from '../parsing/parser';
+import { subEnv } from './types';
+import typeType, { walkType } from './typeType';
 import { showType, fitsExpectation } from './unify';
 import { void_, bool } from './preset';
 import { hasSubType, idName, resolveIdentifier } from './env';

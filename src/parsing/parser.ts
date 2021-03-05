@@ -10,7 +10,12 @@ export type Effect = {
     constrs: Array<{ id: Identifier; type: LambdaType }>;
 };
 
-export type TypeDef = { type: 'TypeDef'; id: Identifier; decl: TypeDecl };
+export type TypeDef = {
+    type: 'TypeDef';
+    id: Identifier;
+    typeVbls: Array<TypeVbl>;
+    decl: TypeDecl;
+};
 
 export type TypeDecl = RecordDecl;
 

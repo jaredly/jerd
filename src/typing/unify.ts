@@ -1,7 +1,6 @@
 // Unify it all
 
 import {
-    EffectRef,
     effectsMatch,
     Env,
     Symbol,
@@ -15,10 +14,8 @@ import {
 import { walkType } from './typeType';
 import { printToString } from '../printing/printer';
 import { typeToPretty } from '../printing/printTsLike';
-import { Identifier } from '../parsing/parser';
 import { showLocation } from './typeExpr';
 
-// const
 /*
 
 Ok so what are the constraints on a type?

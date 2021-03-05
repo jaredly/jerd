@@ -32,9 +32,13 @@ Named:
 Aged:
 - rows: [age: int]
 
-Term:
+Term:Record
 - ref: Employee
-- 
+- rows: [address: "Here"]
+- extends:
+    Named: (Term:Record)
+      - rows: [name:]
+
 
 
 

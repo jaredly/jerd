@@ -1,27 +1,12 @@
 // For the applys
 
-import {
-    Env,
-    Type,
-    Term,
-    Reference,
-    typesEqual,
-    symbolsEqual,
-    getAllSubTypes,
-    Record as RecordTerm,
-    Id,
-    RecordDef,
-    RecordBase,
-    LambdaType,
-    EffectRef,
-} from '../types';
-import { ApplySuffix, Record } from '../../parsing/parser';
+import { Env, Type, Term, LambdaType, EffectRef } from '../types';
+import { ApplySuffix } from '../../parsing/parser';
 import { showType, fitsExpectation } from '../unify';
-import { idName, resolveEffect } from '../env';
+import { resolveEffect } from '../env';
 import typeExpr, {
     applyEffectVariables,
     applyTypeVariables,
-    showLocation,
 } from '../typeExpr';
 import typeType, { newTypeVbl } from '../typeType';
 

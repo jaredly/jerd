@@ -189,7 +189,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c17 = function(id: any, type: any): any {return {id, type}};
   const peg$c18 = "type";
   const peg$c19 = peg$literalExpectation("type", false);
-  const peg$c20 = function(id: any, decl: any): any {return {type: 'TypeDef', id, decl}};
+  const peg$c20 = function(id: any, typeVbls: any, decl: any): any {return {type: 'TypeDef', id, decl, typeVbls: typeVbls || []}};
   const peg$c21 = function(items: any): any {return {type: 'Record', items: items || []}};
   const peg$c22 = function(first: any, rest: any): any {return [first, ...rest.map(r => r[3])]};
   const peg$c23 = "...";
@@ -877,7 +877,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   }
 
   function peg$parseTypeDef(): any {
-    let s0, s1, s2, s3, s4, s5, s6, s7;
+    let s0, s1, s2, s3, s4, s5, s6, s7, s8;
 
     s0 = peg$currPos;
     if (input.substr(peg$currPos, 4) === peg$c18) {
@@ -892,23 +892,32 @@ function peg$parse(input: string, options?: IParseOptions) {
       if (s2 !== peg$FAILED) {
         s3 = peg$parseIdentifier();
         if (s3 !== peg$FAILED) {
-          s4 = peg$parse__();
+          s4 = peg$parseTypeVbls();
+          if (s4 === peg$FAILED) {
+            s4 = null;
+          }
           if (s4 !== peg$FAILED) {
-            if (input.charCodeAt(peg$currPos) === 61) {
-              s5 = peg$c5;
-              peg$currPos++;
-            } else {
-              s5 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c6); }
-            }
+            s5 = peg$parse__();
             if (s5 !== peg$FAILED) {
-              s6 = peg$parse__();
+              if (input.charCodeAt(peg$currPos) === 61) {
+                s6 = peg$c5;
+                peg$currPos++;
+              } else {
+                s6 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c6); }
+              }
               if (s6 !== peg$FAILED) {
-                s7 = peg$parseRecordDecl();
+                s7 = peg$parse__();
                 if (s7 !== peg$FAILED) {
-                  peg$savedPos = s0;
-                  s1 = peg$c20(s3, s7);
-                  s0 = s1;
+                  s8 = peg$parseRecordDecl();
+                  if (s8 !== peg$FAILED) {
+                    peg$savedPos = s0;
+                    s1 = peg$c20(s3, s4, s8);
+                    s0 = s1;
+                  } else {
+                    peg$currPos = s0;
+                    s0 = peg$FAILED;
+                  }
                 } else {
                   peg$currPos = s0;
                   s0 = peg$FAILED;

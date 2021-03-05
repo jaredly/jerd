@@ -45,22 +45,6 @@ const getNameAndAge = <T: HasName + HasAge>(m: T) => m.name ++ intToString(m.age
 // This would be cool! Yes it would.
 const getStuff = <T: Person>(m: T) => T{...m, age: 4}
 
-/* What's the structure of this?
-
-Record {
-  ref: ??,
-  rows: NOPE this doesn't have any rows of its own
-  subTypes: yup that's fine. but this needs to be the full list of all subtype kinds
-}
-
-do I have like a
-Base?
-Record {
-    base: {type: 'Concrete'} | {type: 'Vbl'}
-}
-
-*/
-
 // In Go, we'd need all records to implement the `Copyable` interface, and then
 // res := m.Copy()
 // res.(Person).SetName("Yes")
@@ -109,11 +93,12 @@ here.occupant.name == "June"
 //     | Person(int)
 //     | Dog{name: string}
 
-/*
 type Counter<T> = {
     item: T,
     count: int,
 }
+
+/*
 
 type Employee = {
     ...Person,

@@ -26,7 +26,7 @@ Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {ret
 EfConstr = id:Identifier _ ":" _ type:LambdaType {return {id, type}}
 
 // == Type Defs ==
-TypeDef = "type" __ id:Identifier __ "=" __ decl:TypeDecl {return {type: 'TypeDef', id, decl}}
+TypeDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:TypeDecl {return {type: 'TypeDef', id, decl, typeVbls: typeVbls || []}}
 TypeDecl = RecordDecl
 
 RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || []}}
