@@ -18,6 +18,8 @@ import {
     Id,
     RecordDef,
     idsEqual,
+    RecordBase,
+    UserReference,
 } from './types';
 import { Expression, Identifier, Location, Statement } from '../parsing/parser';
 import { subEnv, effectsMatch } from './types';
@@ -784,28 +786,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
         }
         case 'Record': {
-            if (env.local.typeVblNames[expr.id.text]) {
-            }
-            const id = env.global.typeNames[expr.id.text];
-            if (!id) {
-                throw new Error(
-                    `No Record type ${expr.id.text} at ${showLocation(
-                        expr.location,
-                    )}`,
-                );
-            }
-            const t = env.global.types[idName(id)];
-            const ref: Reference = { type: 'user', id };
-            const tref: Type = { type: 'ref', ref, location: null };
-            const rows: Array<Term | null> = new Array(t.items.length);
-
-            // So we can detect missing items
-            rows.fill(null);
-
             const names: { [key: string]: { i: number; id: Id | null } } = {};
-            env.global.recordGroups[idName(id)].forEach(
-                (name, i) => (names[name] = { i, id: null }),
-            );
 
             const subTypes: {
                 [id: string]: {
@@ -816,8 +797,50 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             } = {};
             const subTypeTypes: { [id: string]: RecordDef } = {};
 
-            // TODO: deduplicate
-            const subTypeIds = getAllSubTypes(env.global, t);
+            let base: RecordBase;
+            let subTypeIds: Array<Id>;
+            let is: Type;
+
+            if (env.local.typeVblNames[expr.id.text]) {
+                const sym = env.local.typeVblNames[expr.id.text];
+                const t = env.local.typeVbls[sym.unique];
+                base = {
+                    type: 'Variable',
+                    var: env.local.typeVblNames[expr.id.text],
+                };
+                subTypeIds = [];
+                t.subTypes.forEach((id) => {
+                    const t = env.global.types[idName(id)];
+                    subTypeIds.push(...getAllSubTypes(env.global, t));
+                });
+                is = { type: 'var', sym, location: expr.id.location };
+            } else {
+                const id = env.global.typeNames[expr.id.text];
+                if (!id) {
+                    throw new Error(
+                        `No Record type ${expr.id.text} at ${showLocation(
+                            expr.location,
+                        )}`,
+                    );
+                }
+                const t = env.global.types[idName(id)];
+                const ref: Reference = { type: 'user', id };
+                const rows: Array<Term | null> = new Array(t.items.length);
+
+                // So we can detect missing items
+                rows.fill(null);
+                base = { rows, ref, type: 'Concrete' };
+                env.global.recordGroups[idName(id)].forEach(
+                    (name, i) => (names[name] = { i, id: null }),
+                );
+
+                // TODO: deduplicate
+                subTypeIds = getAllSubTypes(env.global, t);
+                is = { type: 'ref', ref, location: expr.id.location };
+            }
+
+            let spread = null;
+
             subTypeIds.forEach((id) => {
                 const t = env.global.types[idName(id)];
                 subTypeTypes[idName(id)] = t;
@@ -833,8 +856,6 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 );
             });
 
-            let spread = null;
-
             // How to indicate what spreads are covered?
             // and how are we codegenning this?
             // like with go, we won't be spreading, we'll
@@ -845,7 +866,24 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             expr.rows.forEach((row) => {
                 if (row.type === 'Spread') {
                     const v = typeExpr(env, row.value);
-                    if (typesEqual(env, v.is, tref)) {
+                    if (base.type === 'Concrete') {
+                        if (
+                            typesEqual(env, v.is, {
+                                type: 'ref',
+                                ref: base.ref,
+                                location: null,
+                            })
+                        ) {
+                            Object.keys(subTypes).forEach(
+                                (k) => (subTypes[k].covered = true),
+                            );
+                            spread = v;
+                            return;
+                        }
+                    } else if (
+                        v.is.type === 'var' &&
+                        symbolsEqual(v.is.sym, base.var)
+                    ) {
                         Object.keys(subTypes).forEach(
                             (k) => (subTypes[k].covered = true),
                         );
@@ -869,10 +907,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             ).forEach((sid) => {
                                 subTypes[idName(sid)].covered = true;
                             });
-                            break;
+                            return;
                         }
                     }
-                    return;
+                    throw new Error(`Invalid spread ${showType(v.is)}`);
                 }
 
                 if (!names[row.id.text]) {
@@ -883,8 +921,14 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     );
                 }
                 const { i, id } = names[row.id.text];
-                let rowsToMod = id == null ? rows : subTypes[idName(id)].rows;
-                const recordType = id == null ? t : subTypeTypes[idName(id)];
+                let rowsToMod =
+                    id == null && base.type === 'Concrete'
+                        ? base.rows
+                        : subTypes[idName(id!)].rows;
+                const recordType =
+                    id == null && base.type === 'Concrete'
+                        ? env.global.types[idName(base.ref.id)]
+                        : subTypeTypes[idName(id!)];
                 if (rowsToMod[i] != null) {
                     throw new Error(
                         `Multiple values provided for ${
@@ -908,12 +952,13 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             });
             // TODO: once I have subtyping, this will have to be more clever.
             // of course, `rows` will also need to be more clever.
-            if (spread == null) {
-                rows.forEach((row, i) => {
+            if (spread == null && base.type === 'Concrete') {
+                const r = base.ref;
+                base.rows.forEach((row, i) => {
                     if (row == null) {
                         throw new Error(
                             `Record missing attribute "${
-                                env.global.recordGroups[idName(id)][i]
+                                env.global.recordGroups[idName(r.id)][i]
                             }" at ${showLocation(expr.location)}`,
                         );
                     }
@@ -935,11 +980,12 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return {
                 type: 'Record',
                 location: expr.location,
-                ref,
-                is: { type: 'ref', ref, location: expr.id.location },
+                base,
+                // ref,
+                is,
                 spread,
                 subTypes,
-                rows,
+                // rows,
             };
         }
         default:

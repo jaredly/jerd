@@ -906,18 +906,23 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                         ),
                     )
                     .concat(
-                        term.rows
-                            .map((row, i) =>
-                                row != null
-                                    ? t.objectProperty(
-                                          t.identifier(
-                                              recordAttributeName(term.ref, i),
-                                          ),
-                                          printTerm(env, row),
-                                      )
-                                    : null,
-                            )
-                            .filter(Boolean) as Array<t.ObjectProperty>,
+                        term.base.type === 'Concrete'
+                            ? (term.base.rows
+                                  .map((row, i) =>
+                                      row != null
+                                          ? t.objectProperty(
+                                                t.identifier(
+                                                    recordAttributeName(
+                                                        (term.base as any).ref,
+                                                        i,
+                                                    ),
+                                                ),
+                                                printTerm(env, row),
+                                            )
+                                          : null,
+                                  )
+                                  .filter(Boolean) as Array<t.ObjectProperty>)
+                            : [],
                     ) as Array<any>,
             );
         }

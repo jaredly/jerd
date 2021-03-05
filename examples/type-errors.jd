@@ -134,5 +134,5 @@ type HasAge = {age: int}
 
 const getNameAndAge = <T: HasName + HasAge>(m: T) => m.name ++ intToString(m.age)
 
-getNameAndAge<HasName>(HasName{nane: "hi"})
+getNameAndAge<HasName>(HasName{name: "hi"})
 

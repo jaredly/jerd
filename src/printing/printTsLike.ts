@@ -155,17 +155,22 @@ export const termToPretty = (term: Term | Let): PP => {
                 // TODO: use a name n stuff
                 atom(term.idx.toString()),
             ]);
-        case 'Record':
-            return items([
-                refToPretty(term.ref),
-                args(
-                    (term.rows.filter(Boolean) as Array<Term>).map(
+        case 'Record': {
+            const res = [];
+            if (term.base.type === 'Concrete') {
+                res.push(
+                    ...(term.base.rows.filter(Boolean) as Array<Term>).map(
                         termToPretty,
                     ),
-                    '{',
-                    '}',
-                ),
+                );
+            }
+            return items([
+                term.base.type === 'Concrete'
+                    ? refToPretty(term.base.ref)
+                    : symToPretty(term.base.var),
+                args(res, '{', '}'),
             ]);
+        }
         default:
             let _x: never = term;
             return atom('not yet printable: ' + JSON.stringify(term));

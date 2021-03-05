@@ -14,10 +14,9 @@ export const idsEqual = (one: Id, two: Id): boolean =>
     one.hash === two.hash && one.pos === two.pos && one.size === two.size;
 
 export type Id = { hash: string; size: number; pos: number };
-export type Reference =
-    | { type: 'builtin'; name: string }
-    | { type: 'user'; id: Id };
+export type Reference = { type: 'builtin'; name: string } | UserReference;
 
+export type UserReference = { type: 'user'; id: Id };
 export type Symbol = { name: string; unique: number };
 
 export const symbolsEqual = (one: Symbol, two: Symbol) =>
@@ -104,12 +103,19 @@ export const getAllSubTypes = (env: GlobalEnv, t: RecordDef): Array<Id> => {
     );
 };
 
+export type RecordBase =
+    | {
+          type: 'Concrete';
+          ref: UserReference;
+          rows: Array<Term | null>;
+      }
+    | { type: 'Variable'; var: Symbol };
+
 export type Record = {
     type: 'Record';
-    ref: Reference;
+    base: RecordBase;
     is: Type;
     spread: Term | null; // only one spread per type makes sense
-    rows: Array<Term | null>;
     subTypes: {
         [id: string]: {
             covered: boolean;
@@ -334,11 +340,13 @@ export type TypeRef =
           ref: Reference;
           location: Location | null;
       }
-    | {
-          type: 'var';
-          sym: Symbol;
-          location: Location | null;
-      };
+    | TypeVar;
+
+export type TypeVar = {
+    type: 'var';
+    sym: Symbol;
+    location: Location | null;
+};
 
 export type Type = TypeRef | LambdaType;
 
@@ -531,11 +539,13 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             return getEffects(t.target);
         case 'Record': {
             const effects = [] as Array<EffectRef>;
-            t.rows.forEach((row, i) => {
-                if (row != null) {
-                    effects.push(...getEffects(row));
-                }
-            });
+            if (t.base.type === 'Concrete') {
+                t.base.rows.forEach((row, i) => {
+                    if (row != null) {
+                        effects.push(...getEffects(row));
+                    }
+                });
+            }
             if (t.spread) {
                 effects.push(...getEffects(t.spread));
             }
