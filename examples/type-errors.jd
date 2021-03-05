@@ -126,6 +126,7 @@ type Frog = {age: int}
 
 const getName = <T: Dog>(m: T) => m.name
 
+// Not a subtype folks
 getName<Frog>(Frog{age: 5})
 
 

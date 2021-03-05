@@ -111,7 +111,11 @@ export type Record = {
     spread: Term | null; // only one spread per type makes sense
     rows: Array<Term | null>;
     subTypes: {
-        [id: string]: { spread: Term | null; rows: Array<Term | null> };
+        [id: string]: {
+            covered: boolean;
+            spread: Term | null;
+            rows: Array<Term | null>;
+        };
     };
     location: Location | null;
 };

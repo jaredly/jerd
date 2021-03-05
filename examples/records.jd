@@ -1,7 +1,10 @@
 
+type HasName = {name: string}
+type HasAge = {age: int}
+
 type Person = {
-    name: string,
-    age: int,
+    ...HasName,
+    ...HasAge,
     what: int,
 }
 
@@ -35,8 +38,21 @@ type House = {
     occupant: Person,
 }
 
+
+
 // This would be cool! Yes it would.
 // const getStuff = <T: Person>(m: T) => T{...m, name: "Yes"}
+
+/* What's the structure of this?
+
+Record {
+  ref: ??,
+  rows: NOPE this doesn't have any rows of its own
+  subTypes: yup that's fine. but this needs to be the full list of all subtype kinds
+}
+
+*/
+
 // In Go, we'd need all records to implement the `Copyable` interface, and then
 // res := m.Copy()
 // res.(Person).SetName("Yes")

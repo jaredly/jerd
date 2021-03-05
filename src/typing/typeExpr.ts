@@ -784,7 +784,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
         }
         case 'Record': {
-            // throw new Error('nopes');
+            if (env.local.typeVblNames[expr.id.text]) {
+            }
             const id = env.global.typeNames[expr.id.text];
             if (!id) {
                 throw new Error(
@@ -807,7 +808,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             );
 
             const subTypes: {
-                [id: string]: { spread: Term | null; rows: Array<Term | null> };
+                [id: string]: {
+                    covered: boolean;
+                    spread: Term | null;
+                    rows: Array<Term | null>;
+                };
             } = {};
             const subTypeTypes: { [id: string]: RecordDef } = {};
 
@@ -819,6 +824,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const rows = new Array(t.items.length);
                 rows.fill(null);
                 subTypes[idName(id)] = {
+                    covered: false,
                     spread: null,
                     rows,
                 };
@@ -829,13 +835,20 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
 
             let spread = null;
 
+            // How to indicate what spreads are covered?
+            // and how are we codegenning this?
+            // like with go, we won't be spreading, we'll
+            // be specifying each item
+            // ok, I think we need to
+
             // const names = env.global.recordGroups[idName(id)];
             expr.rows.forEach((row) => {
                 if (row.type === 'Spread') {
-                    // throw new Error(`spread not yet implemented`);
                     const v = typeExpr(env, row.value);
-                    // spreads.push(v);
                     if (typesEqual(env, v.is, tref)) {
+                        Object.keys(subTypes).forEach(
+                            (k) => (subTypes[k].covered = true),
+                        );
                         spread = v;
                         return;
                     }
@@ -849,6 +862,13 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             })
                         ) {
                             subTypes[idName(id)].spread = v;
+                            subTypes[idName(id)].covered = true;
+                            getAllSubTypes(
+                                env.global,
+                                subTypeTypes[idName(id)],
+                            ).forEach((sid) => {
+                                subTypes[idName(sid)].covered = true;
+                            });
                             break;
                         }
                     }
@@ -900,11 +920,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 });
             }
             Object.keys(subTypes).forEach((id) => {
-                if (subTypes[id].spread == null) {
+                if (!subTypes[id].covered) {
                     subTypes[id].rows.forEach((row, i) => {
                         if (row == null) {
                             throw new Error(
-                                `Record missing attribute "${
+                                `Record missing attribute from subtype ${id} "${
                                     env.global.recordGroups[id][i]
                                 }" at ${showLocation(expr.location)}`,
                             );
