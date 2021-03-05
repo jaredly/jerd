@@ -870,8 +870,8 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             // although serializes more.
             // yeah I think we need the last one.
             return t.objectExpression(
-                ((term.spread != null
-                    ? [t.spreadElement(printTerm(env, term.spread))]
+                ((term.base.spread != null
+                    ? [t.spreadElement(printTerm(env, term.base.spread))]
                     : []) as Array<t.ObjectProperty | t.SpreadElement>)
                     .concat(
                         ...Object.keys(term.subTypes).map((id) =>

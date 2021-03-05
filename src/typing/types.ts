@@ -108,14 +108,14 @@ export type RecordBase =
           type: 'Concrete';
           ref: UserReference;
           rows: Array<Term | null>;
+          spread: Term | null; // only one spread per type makes sense
       }
-    | { type: 'Variable'; var: Symbol };
+    | { type: 'Variable'; var: Symbol; spread: Term };
 
 export type Record = {
     type: 'Record';
     base: RecordBase;
     is: Type;
-    spread: Term | null; // only one spread per type makes sense
     subTypes: {
         [id: string]: {
             covered: boolean;
@@ -546,8 +546,8 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                     }
                 });
             }
-            if (t.spread) {
-                effects.push(...getEffects(t.spread));
+            if (t.base.spread) {
+                effects.push(...getEffects(t.base.spread));
             }
             for (let id of Object.keys(t.subTypes)) {
                 const spread = t.subTypes[id].spread;

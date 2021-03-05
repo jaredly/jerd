@@ -807,6 +807,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 base = {
                     type: 'Variable',
                     var: env.local.typeVblNames[expr.id.text],
+                    spread: null as any,
                 };
                 subTypeIds = [];
                 t.subTypes.forEach((id) => {
@@ -829,7 +830,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
 
                 // So we can detect missing items
                 rows.fill(null);
-                base = { rows, ref, type: 'Concrete' };
+                base = { rows, ref, type: 'Concrete', spread: null };
                 env.global.recordGroups[idName(id)].forEach(
                     (name, i) => (names[name] = { i, id: null }),
                 );
@@ -839,7 +840,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 is = { type: 'ref', ref, location: expr.id.location };
             }
 
-            let spread = null;
+            // let spread = null;
 
             subTypeIds.forEach((id) => {
                 const t = env.global.types[idName(id)];
@@ -877,7 +878,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             Object.keys(subTypes).forEach(
                                 (k) => (subTypes[k].covered = true),
                             );
-                            spread = v;
+                            base.spread = v;
                             return;
                         }
                     } else if (
@@ -887,7 +888,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         Object.keys(subTypes).forEach(
                             (k) => (subTypes[k].covered = true),
                         );
-                        spread = v;
+                        base.spread = v;
                         return;
                     }
                     // ummm I kindof want to
@@ -952,7 +953,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             });
             // TODO: once I have subtyping, this will have to be more clever.
             // of course, `rows` will also need to be more clever.
-            if (spread == null && base.type === 'Concrete') {
+            if (base.type === 'Concrete' && base.spread == null) {
                 const r = base.ref;
                 base.rows.forEach((row, i) => {
                     if (row == null) {
@@ -963,7 +964,12 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         );
                     }
                 });
+            } else if (base.type === 'Variable' && base.spread == null) {
+                throw new Error(
+                    `Cannot create a new record of a variable type.`,
+                );
             }
+
             Object.keys(subTypes).forEach((id) => {
                 if (!subTypes[id].covered) {
                     subTypes[id].rows.forEach((row, i) => {
@@ -977,13 +983,13 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     });
                 }
             });
+
             return {
                 type: 'Record',
                 location: expr.location,
                 base,
                 // ref,
                 is,
-                spread,
                 subTypes,
                 // rows,
             };
