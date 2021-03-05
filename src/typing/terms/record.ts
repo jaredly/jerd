@@ -77,6 +77,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             ref,
             location: expr.id.location,
             typeVbls: expr.typeVbls.map((t) => typeType(env, t)),
+            effectVbls: [], // STOPSHIP: allow effect variables to be specified for records
         };
     }
 

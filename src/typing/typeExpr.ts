@@ -175,6 +175,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     location: expr.location,
                     ref: { type: 'builtin', name: 'int' },
                     typeVbls: [],
+                    effectVbls: [],
                 },
             };
         case 'string':
@@ -187,6 +188,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     type: 'ref',
                     ref: { type: 'builtin', name: 'string' },
                     typeVbls: [],
+                    effectVbls: [],
                 },
             };
         case 'block': {

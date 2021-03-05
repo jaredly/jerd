@@ -40,10 +40,7 @@ type House = {
 
 const getNameAndAge = <T: HasName + HasAge>(m: T) => m.name ++ intToString(m.age)
 
-
-
-// This would be cool! Yes it would.
-const getStuff = <T: Person>(m: T) => T{...m, age: 4}
+const setAge = <T: Person>(m: T) => T{...m, age: 4}
 
 // In Go, we'd need all records to implement the `Copyable` interface, and then
 // res := m.Copy()

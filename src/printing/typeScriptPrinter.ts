@@ -1011,6 +1011,8 @@ const effectfulLambda = (env: Env, term: Lambda) => {
                                     type: 'builtin',
                                     name: 'void',
                                 },
+                                typeVbls: [],
+                                effectVbls: [],
                             },
                         }),
                     ),

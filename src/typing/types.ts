@@ -210,7 +210,6 @@ export type RecordDef = {
 //     applied: Array<TypeExpr>;
 //     paramed: Array<TypeExpr>;
 // };
-// START HERE: and maybe try to typecheck some of records?
 // I guess we need a `TypeDecl` type. yeah.
 
 // | { type: 'atom'; inner: Type }
@@ -346,6 +345,7 @@ export type TypeRef =
           ref: Reference;
           location: Location | null;
           typeVbls: Array<Type>;
+          effectVbls: Array<EffectRef>;
       }
     | TypeVar; // will also support vbls at some point I guess
 

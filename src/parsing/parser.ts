@@ -137,7 +137,14 @@ export type Lambda = {
     rettype: Type | null;
     body: Expression;
 };
-export type Type = Identifier | LambdaType;
+export type Type = TypeRef | LambdaType;
+export type TypeRef = {
+    type: 'TypeRef';
+    id: Identifier;
+    typeVbls: Array<Type> | null;
+    effectVbls: Array<Identifier> | null;
+    location: Location;
+};
 export type LambdaType = {
     type: 'lambda';
     args: Array<Type>;
@@ -166,7 +173,7 @@ export type WithSuffix = {
 export type ApplySuffix = {
     type: 'Apply';
     args: Array<Expression>;
-    typevbls: Array<Identifier>;
+    typevbls: Array<Type>;
     effectVbls: Array<Identifier>;
 };
 export type AttributeSuffix = {
