@@ -15,7 +15,6 @@ import {
     Term,
     Type,
 } from '../typing/types';
-import { showType } from '../typing/unify';
 import { PP, items, args, block, atom } from './printer';
 
 export const refToPretty = (ref: Reference) =>
@@ -57,23 +56,10 @@ export const typeToPretty = (type: Type): PP => {
             ]);
         case 'var':
             return symToPretty(type.sym);
-        case 'apply':
-            return items([
-                atom('('),
-                typeToPretty(type.inner),
-                atom(')'),
-                args(type.types.map(typeToPretty), '<', '>'),
-                type.effects != null
-                    ? args(type.effects.map(effRefToPretty), '{', '}')
-                    : null,
-            ]);
         default:
-            throw new Error(`Unexpected type ${showType(type)}`);
+            throw new Error(`Unexpected type ${JSON.stringify(type)}`);
     }
 };
-
-export const effRefToPretty = (ef: EffectRef): PP =>
-    ef.type === 'ref' ? refToPretty(ef.ref) : symToPretty(ef.sym);
 
 export const termToPretty = (term: Term | Let): PP => {
     switch (term.type) {

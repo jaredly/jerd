@@ -167,7 +167,6 @@ export type ApplySuffix = {
     args: Array<Expression>;
     typevbls: Array<Identifier>;
     effectVbls: Array<Identifier>;
-    location: Location;
 };
 export type AttributeSuffix = {
     type: 'Attribute';

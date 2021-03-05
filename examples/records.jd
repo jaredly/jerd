@@ -100,8 +100,7 @@ type Counter<T> = {
 
 const countMe = Counter<int>{item: 10, count: 4}
 
-// wait fot it folks
-// countMe.item == 10
+countMe.item == 10
 
 /*
 
