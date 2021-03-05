@@ -51,7 +51,6 @@ export const newTypeVbl = (env: Env): Type => {
         type: 'var',
         sym: { unique, name: 'var_' + unique },
         location: null,
-        subTypes: [],
     };
 };
 
@@ -61,11 +60,10 @@ const typeType = (env: Env, type: ParseType | null): Type => {
     }
     switch (type.type) {
         case 'id': {
-            if (env.local.typeVbls[type.text] != null) {
+            if (env.local.typeVblNames[type.text] != null) {
                 return {
                     type: 'var',
-                    sym: env.local.typeVbls[type.text].sym,
-                    subTypes: env.local.typeVbls[type.text].subTypes,
+                    sym: env.local.typeVblNames[type.text],
                     location: type.location,
                 };
             }
@@ -106,7 +104,8 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     }
                     return t;
                 });
-                typeInner.local.typeVbls[id.text] = { sym, subTypes: st };
+                typeInner.local.typeVbls[sym.unique] = { subTypes: st };
+                typeInner.local.typeVblNames[id.text] = sym;
                 typeVbls.push({ unique: sym.unique, subTypes: st });
             });
             const effectVbls: Array<number> = [];

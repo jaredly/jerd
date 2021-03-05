@@ -56,13 +56,11 @@ export function presetEnv() {
                 type: 'var',
                 sym: { unique: 10000, name: 'T' },
                 location: null,
-                subTypes: [],
             },
             {
                 type: 'var',
                 sym: { unique: 10000, name: 'T' },
                 location: null,
-                subTypes: [],
             },
         ],
         effects: [],

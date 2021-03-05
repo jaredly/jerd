@@ -552,8 +552,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     }
                     return t;
                 });
-                typeInner.local.typeVbls[id.text] = {
-                    sym,
+                typeInner.local.typeVblNames[id.text] = sym;
+                typeInner.local.typeVbls[sym.unique] = {
                     subTypes: st,
                 };
                 typeVbls.push({ unique: sym.unique, subTypes: st });
@@ -966,7 +966,8 @@ export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
 
 export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (type.type === 'var') {
-        for (let sid of type.subTypes) {
+        const found = env.local.typeVbls[type.sym.unique];
+        for (let sid of found.subTypes) {
             if (idsEqual(id, sid)) {
                 return true;
             }

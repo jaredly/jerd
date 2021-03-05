@@ -334,7 +334,6 @@ export type TypeRef =
           type: 'var';
           sym: Symbol;
           location: Location | null;
-          subTypes: Array<Id>;
       };
 
 export type Type = TypeRef | LambdaType;
@@ -407,7 +406,8 @@ export type LocalEnv = {
         type: Type;
     };
     locals: { [key: string]: { sym: Symbol; type: Type } };
-    typeVbls: { [key: string]: { sym: Symbol; subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
+    typeVbls: { [unique: number]: { subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
+    typeVblNames: { [key: string]: Symbol };
     effectVbls: { [key: string]: Symbol };
     tmpTypeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
     // manual type variables can't have constriaints, right? or can they?
@@ -448,6 +448,7 @@ export const newEnv = (self: { name: string; type: Type }): Env => ({
         self,
         effectVbls: {},
         locals: {},
+        typeVblNames: {},
         typeVbls: {},
         tmpTypeVbls: {},
     },
@@ -473,6 +474,7 @@ export const subEnv = (env: Env): Env => ({
         locals: { ...env.local.locals },
         unique: env.local.unique,
         typeVbls: { ...env.local.typeVbls },
+        typeVblNames: { ...env.local.typeVblNames },
         tmpTypeVbls: env.local.tmpTypeVbls,
     },
 });
