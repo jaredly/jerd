@@ -932,6 +932,14 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                 t.identifier(recordAttributeName(term.ref, term.idx)),
             );
         }
+        case 'Array':
+            return t.arrayExpression(
+                term.items.map((item) =>
+                    item.type === 'ArraySpread'
+                        ? t.spreadElement(printTerm(env, item.value))
+                        : printTerm(env, item),
+                ),
+            );
         default:
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);

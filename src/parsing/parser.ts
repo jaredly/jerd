@@ -63,7 +63,20 @@ export type Expression =
     | If
     | Block
     | Record
+    | ArrayLiteral
     | Handle;
+
+export type ArrayLiteral = {
+    type: 'Array';
+    location: Location;
+    ann: Type | null;
+    items: Array<Expression | ArraySpread>;
+};
+export type ArraySpread = {
+    type: 'ArraySpread';
+    value: Expression;
+    location: Location;
+};
 
 export type Record = {
     type: 'Record';

@@ -1,5 +1,5 @@
 
-File = _ s:(Toplevel _)+ finalLineComment? {return s.map(s => s[0])}
+File = _ s:(Toplevel _)* finalLineComment? {return s.map(s => s[0])}
 
 Toplevel = TypeDef / Effect / Statement
 
@@ -67,7 +67,7 @@ ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:Com
 }
 AttributeSuffix = "." id:Identifier {return {type: 'Attribute', id, location: location()}}
 
-Apsub = Lambda / Block / Handle / Raise / If / RecordLiteral / Literal
+Apsub = Lambda / Block / Handle / Raise / If / RecordLiteral / ArrayLiteral / Literal
 
 Block = "{" _ one:Statement rest:(_ ";" _ Statement)* ";"? _ "}" {
     return {type: 'block', items: [one, ...rest.map(r => r[3])], location: location()}
@@ -85,6 +85,12 @@ RecordLiteralSpread = "..." value:Expression {return {type: 'Spread', value}}
 RecordLiteralRow = RecordLiteralItem / RecordLiteralSpread
 RecordLiteralItem = id:Identifier _ ":" _ value:Expression {return {type: 'Row', id, value}}
 
+ArrayLiteral = ann:("<" _ Type _ ","? ">")? "[" _ items:ArrayItems? _ "]" {return {type: 'Array', items: items || [], location: location(), ann: ann ? ann[2] : null}}
+ArrayItems = first:ArrayItem rest:(_ "," _ ArrayItem)* ","? {
+    return [first, ...rest.map(r => r[3])]
+}
+ArrayItem = ArraySpread / Expression
+ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, location: location() }}
 
 
 
@@ -169,7 +175,7 @@ Type = LambdaType / TypeRef
 TypeRef = id:Identifier effectVbls:EffectVblsApply? typeVbls:TypeVblsApply? {
     return {type: 'TypeRef', id, effectVbls, typeVbls, location: location()}
 }
-CommaType = first:Type rest:(_ "," _ Type)* {return [first, ...rest.map(r => r[3])]}
+CommaType = first:Type rest:(_ "," _ Type)* ","? {return [first, ...rest.map(r => r[3])]}
 TypeVblsApply = "<" _ inner:CommaType _ ">" {return inner}
 EffectVblsApply = "{" _ inner:CommaEffects? _ "}" {return inner || []}
 

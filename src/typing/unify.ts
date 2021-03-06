@@ -15,6 +15,7 @@ import { walkType } from './typeType';
 import { printToString } from '../printing/printer';
 import { typeToPretty } from '../printing/printTsLike';
 import { showLocation } from './typeExpr';
+import { Location } from '../parsing/parser';
 
 /*
 
@@ -269,6 +270,21 @@ const unify = (one: Type | null, constraint: TypeConstraint): Type => {
 };
 
 type UnificationResult = true | false | Symbol;
+
+export const assertFits = (
+    env: Env,
+    t: Type,
+    expected: Type,
+    location?: Location | null,
+) => {
+    if (fitsExpectation(env, t, expected) !== true) {
+        throw new Error(
+            `Type error, expected ${showType(expected)} at ${showLocation(
+                location || t.location,
+            )}, found ${showType(t)}`,
+        );
+    }
+};
 
 // `t` is being passed as an argument to a function that expects `target`.
 // Is it valid?

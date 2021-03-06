@@ -173,6 +173,20 @@ export const termToPretty = (term: Term | Let): PP => {
                 args(res, '{', '}'),
             ]);
         }
+        case 'Array':
+            const res = [];
+            return items([
+                atom('<'),
+                typeToPretty(term.is.typeVbls[0]),
+                atom('>'),
+                atom('['),
+                ...term.items.map((item) =>
+                    item.type === 'ArraySpread'
+                        ? items([atom('...'), termToPretty(item.value)])
+                        : termToPretty(item),
+                ),
+                atom(']'),
+            ]);
         default:
             let _x: never = term;
             return atom('not yet printable: ' + JSON.stringify(term));

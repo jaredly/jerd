@@ -1,6 +1,6 @@
 // Types for the typed tree
 
-import { Identifier, Location } from '../parsing/parser';
+import { Expression, Identifier, Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
 
@@ -126,12 +126,26 @@ export type Record = {
     location: Location | null;
 };
 
+export type ArrayLiteral = {
+    type: 'Array';
+    location: Location | null;
+    items: Array<Term | ArraySpread>;
+    is: TypeReference;
+};
+
+export type ArraySpread = {
+    type: 'ArraySpread';
+    value: Term;
+    location: Location | null;
+};
+
 export type Term =
     | CPSAble
     | { type: 'self'; is: Type; location: Location | null }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
     | Record
+    | ArrayLiteral
     | {
           type: 'Attribute';
           target: Term;
@@ -504,6 +518,12 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
     switch (t.type) {
         case 'Let':
             return getEffects(t.value);
+        case 'Array':
+            return ([] as Array<EffectRef>).concat(
+                ...t.items.map((i) =>
+                    getEffects(i.type === 'ArraySpread' ? i.value : i),
+                ),
+            );
         case 'apply':
             return dedupEffects(
                 (t.target.is as LambdaType).effects.concat(

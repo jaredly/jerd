@@ -1,0 +1,10 @@
+// um
+
+const x = []
+const y = [1, 2]
+const z = ["hi", "ho"]
+
+const a = [...z, "Yes"]
+const b = ["Good", ...z, "uhuh"]
+
+
