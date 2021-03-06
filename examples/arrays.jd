@@ -7,4 +7,8 @@ const z = ["hi", "ho"]
 const a = [...z, "Yes"]
 const b = ["Good", ...z, "uhuh"]
 
-
+// need to be able to indexing to get stuff out
+// also maybe slices can be nices
+// and indexing means we need the Option type, right?
+// andddd so do I need to allow NamedTuples? e.g. records but no names?
+// because like `Some(x)` is a lot nicer than `Some{contents: x}`.

@@ -19,6 +19,10 @@ Things that are tricky:
     - hmmm how to do it.
     - just have it be different types and `interface{}` do "type assertions"? like yeah I guess that works? dunno what perf implications are...
 
+## Swift?
+
+## C# or something?
+
 ## Scheme
 
 Scheme is cool because it supports first-class continuations.
@@ -27,3 +31,4 @@ And it might play weird with other things that use continuations.......? maybe? 
 oh yeah the fact that we have a global handler stack is bad news.
 but maybe we could pass it along as an extra arg?
 anyway, wait on this.
+
