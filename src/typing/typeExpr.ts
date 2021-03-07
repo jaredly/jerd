@@ -544,11 +544,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         );
                     }
                     if (itemType == null) {
-                        itemType = value.is.typeVbls[0];
+                        itemType = (value.is as TypeReference).typeVbls[0];
                     } else {
                         assertFits(
                             env,
-                            value.is.typeVbls[0],
+                            (value.is as TypeReference).typeVbls[0],
                             itemType,
                             value.location,
                         );

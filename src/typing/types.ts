@@ -254,8 +254,8 @@ export type EnumDef = {
     type: 'Enum';
     typeVbls: Array<{ subTypes: Array<Id>; unique: number }>;
     effectVbls: Array<number>;
-    extends: Array<Id>;
-    items: Array<UserReference>;
+    extends: Array<TypeReference>;
+    items: Array<TypeReference>;
 };
 
 export type TypeDef = RecordDef | EnumDef;

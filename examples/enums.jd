@@ -11,14 +11,13 @@ type Id = {
     pos: int,
 }
 
-type UserReference = {
-    id: Id
-}
-
-enum Reference {
-    Builtin{name: string},
-    =UserReference
-}
+// type UserReference = {
+//     id: Id
+// }
+// enum Reference {
+//     Builtin{name: string},
+//     =UserReference
+// }
 
 type Some<T> = {
     value: T
@@ -26,14 +25,20 @@ type Some<T> = {
 type Other = {}
 
 enum Option<T> {
-    =Some<T>,
-    =Other
+    Some<T>,
+    Other
 }
+
+const asum = Some<int>{_: 10}
+const asoption = Option<int>:asum
 
 const x = Option<int>:Some{_: 10} // this is now an Option<int>, not a Some<int>
 // we can match it, and get out a Some<int> though.
-const y = Option<int>:None{}
-// const x = :Some{_: 10} // (infer please)
+
+const y = Option<int>:None
+
+// This now has type `Option<never>:None`, which can be coerced to anything.
+const z = Option:None
 
 // Ok type-time representation of an enum value:
 // its like...
@@ -41,3 +46,22 @@ const y = Option<int>:None{}
 // it's just a ref, right?
 // And then you go to the definition, and plug & play type variable substitutions and such.
 // yeah that should be fine.
+
+/*
+
+Ok I think I have a plan.
+
+`EnumName:expression` is a type coersion of sorts.
+if the expression resolves to a record that's part of this enum
+or a subtype of this enum
+then it's good!
+otherwise it's a type error.
+And maybe that's the whole shebang?
+I'll want to do nice inference on type variables.
+
+Also: `Option:None` becomes `Option<never>:None` which *is* a subtype
+of any other kind of option. because never can't be produced, we have
+a guarentee that any value that has the never type variable doesn't
+actually use that variable.
+
+*/

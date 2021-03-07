@@ -45,6 +45,8 @@
 - [x] NamedTuples (records without attribute names) so I have `Some()`
   - ok copout on this one, I'm allowing you to do `Some{_: 10}`, to omit the attribute name. I don't love it, but I don't want to sink too much time into it.
 - [ ] enums, gotta have it
+- [ ] put this on a web sit! animations or some such.
+
 - [ ] basic attempt at compiling to go or swift or something?
   - Yeah I really should get on this before too long, so I can see what hurdles I run into.
 - [ ] generic effects (Store<T>)

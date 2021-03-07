@@ -4,6 +4,7 @@ import hashObject from 'hash-sum';
 import {
     Define,
     Effect,
+    EnumDef,
     Identifier,
     Location,
     RecordDecl,
@@ -26,6 +27,8 @@ import {
     Term,
     Type,
     TypeConstraint,
+    EnumDef as TypeEnumDef,
+    TypeReference,
 } from './types';
 import { fitsExpectation } from './unify';
 
@@ -51,6 +54,32 @@ export const typeTypeDefn = (env: Env, { id, decl, typeVbls }: StructDef) => {
     if (decl.type === 'Record') {
         return typeRecord(env, id, typeVbls, decl);
     }
+};
+
+export const typeEnumDefn = (env: Env, defn: EnumDef) => {
+    const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
+        env,
+        defn.typeVbls,
+        [], // TODO effect vbls
+    );
+
+    const items = defn.items
+        .filter((x) => x.type === 'External')
+        .map((x) => typeType(typeInner, x.ref) as TypeReference);
+    const extend = defn.items
+        .filter((x) => x.type === 'Spread')
+        .map((x) => typeType(typeInner, x.ref) as TypeReference);
+    const d: TypeEnumDef = {
+        type: 'Enum',
+        typeVbls,
+        effectVbls,
+        extends: extend,
+        items,
+    };
+    const hash = hashObject(d);
+    const idid = { hash, pos: 0, size: 1 };
+    env.global.types[idName(idid)] = d;
+    env.global.typeNames[defn.id.text] = idid;
 };
 
 export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things

@@ -36,7 +36,12 @@ import {
 } from './typing/unify';
 import { printToString } from './printing/printer';
 import { declarationToPretty, termToPretty } from './printing/printTsLike';
-import { typeDefine, typeTypeDefn, typeEffect } from './typing/env';
+import {
+    typeDefine,
+    typeTypeDefn,
+    typeEnumDefn,
+    typeEffect,
+} from './typing/env';
 
 import { bool, presetEnv } from './typing/preset';
 
@@ -167,6 +172,8 @@ function typeFile(parsed: Toplevel[]) {
             typeEffect(env, item);
         } else if (item.type === 'StructDef') {
             typeTypeDefn(env, item);
+        } else if (item.type === 'EnumDef') {
+            typeEnumDefn(env, item);
         } else {
             // A standalone expression
             const term = typeExpr(env, item);
@@ -315,6 +322,8 @@ const processErrors = (fname: string) => {
             typeDefine(env, item);
         } else if (item.type === 'StructDef') {
             typeTypeDefn(env, item);
+        } else if (item.type === 'EnumDef') {
+            typeEnumDefn(env, item);
         } else {
             let term;
             try {
@@ -388,19 +397,21 @@ const cacheFile = '.test-cache';
 const loadCache = (files: Array<string>, self: string) => {
     if (fs.existsSync(cacheFile)) {
         const mtimes = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+        const successRerun =
+            !mtimes[self] || fs.statSync(self).mtimeMs > mtimes[self];
         // If self was modified, everything should rerun
-        if (!mtimes[self] || fs.statSync(self).mtimeMs > mtimes[self]) {
-            return {};
-        }
+        // if () {
+        //     return {};
+        // }
         const shouldSkip: { [key: string]: boolean } = {};
         files.forEach((name) => {
             if (mtimes[name] && fs.statSync(name).mtimeMs === mtimes[name]) {
                 shouldSkip[name] = true;
             }
         });
-        return shouldSkip;
+        return { shouldSkip, successRerun };
     } else {
-        return {};
+        return { shouldSkip: {}, successRerun: true };
     }
 };
 
@@ -416,9 +427,12 @@ const main = (
     run: boolean,
     cache: boolean,
 ) => {
-    const shouldSkip = cache ? loadCache(fnames, process.argv[1]) : null;
+    const { shouldSkip, successRerun } = cache
+        ? loadCache(fnames, process.argv[1])
+        : { shouldSkip: null, successRerun: true };
     console.log(`\n# Processing ${fnames.length} files\n`);
     const passed = [];
+    let hasFailures = false;
     for (let fname of fnames) {
         if (shouldSkip && shouldSkip[fname]) {
             passed.push(fname);
@@ -434,12 +448,37 @@ const main = (
             console.log(`✅ processed ${fname}`);
             passed.push(fname);
         } catch (err) {
+            hasFailures = true;
             console.error(`❌ Failed to process ${fname}`);
             console.error('-----------------------------');
             console.error(err);
             console.error('-----------------------------');
         }
     }
+
+    if (!hasFailures && successRerun) {
+        for (let fname of fnames) {
+            if (shouldSkip && shouldSkip[fname]) {
+                console.log('Rerunning successful file', fname);
+                try {
+                    if (fname.endsWith('type-errors.jd')) {
+                        processErrors(fname);
+                    } else {
+                        processFile(fname, assert, run);
+                    }
+                    console.log(`✅ processed ${fname}`);
+                    passed.push(fname);
+                } catch (err) {
+                    hasFailures = true;
+                    console.error(`❌ Failed to process ${fname}`);
+                    console.error('-----------------------------');
+                    console.error(err);
+                    console.error('-----------------------------');
+                }
+            }
+        }
+    }
+
     if (cache) {
         saveCache(passed, process.argv[1]);
     }

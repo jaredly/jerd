@@ -28,21 +28,26 @@ EfConstr = id:Identifier _ ":" _ type:LambdaType {return {id, type}}
 // == Type Defs ==
 EnumDef = "enum" __ id:Identifier _ typeVbls:TypeVbls? _ "{" _ items:EnumItems _ "}" {
     return {
-        type: 'EnumDef', id,
+        type: 'EnumDef',
+        id,
         typeVbls: typeVbls || [],
         items,
+        location: location(),
     }
 }
 EnumItems = first:EnumItem rest:(_ "," _ EnumItem)* ","? {
     return [first, ...rest.map(r => r[3])]
 }
-EnumItem = EnumExternal / EnumInternal
-EnumExternal = "=" id:Identifier typeVbls:TypeVblsApply? {
-    return {type: 'External', id, typeVbls: typeVbls || [], location: location()}
+EnumItem = EnumExternal / EnumSpread
+EnumExternal = ref:TypeRef {
+    return {type: 'External', ref}
 }
-EnumInternal = id:Identifier decl:RecordDecl? {
-    return {type: 'Internal', id, decl, location: location()}
+EnumSpread = "..." ref:TypeRef {
+    return {type: 'Spread', ref:TypeRef, location: location()}
 }
+// EnumInternal = id:Identifier decl:RecordDecl? {
+//     return {type: 'Internal', id, decl, location: location()}
+// }
 
 StructDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:RecordDecl {return {type: 'StructDef', id, decl, typeVbls: typeVbls || []}}
 
@@ -94,12 +99,13 @@ If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
     return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
 }
 
-EnumLiteral = id:Identifier typeVbls:TypeVblsApply? ":" rid:Identifier "{" _ rows:RecordLiteralRows? _ "}" {
+EnumLiteral = id:Identifier typeVbls:TypeVblsApply? ":" expr:Expression {
     return {
+        type: 'Enum',
         id,
         typeVbls: typeVbls || [],
-        rid,
-        rows: rows || [],
+        expr,
+        location: location(),
     }
 }
 

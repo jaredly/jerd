@@ -1,7 +1,7 @@
 import { Reference } from '../typing/types';
 import { parse } from './grammar';
 
-export type Toplevel = Define | Effect | Expression | StructDef;
+export type Toplevel = Define | Effect | Expression | StructDef | EnumDef;
 
 export type Effect = {
     type: 'effect';
@@ -15,6 +15,24 @@ export type StructDef = {
     id: Identifier;
     typeVbls: Array<TypeVbl>;
     decl: TypeDecl;
+};
+
+export type EnumDef = {
+    type: 'EnumDef';
+    id: Identifier;
+    location: Location;
+    typeVbls: Array<TypeVbl>;
+    items: Array<EnumItem>;
+};
+export type EnumItem = EnumExternal | EnumSpread;
+export type EnumExternal = {
+    type: 'External';
+    ref: TypeRef;
+};
+export type EnumSpread = {
+    type: 'Spread';
+    ref: TypeRef;
+    location: Location;
 };
 
 export type TypeDecl = RecordDecl;
