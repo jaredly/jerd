@@ -7,19 +7,20 @@ type Monad<T> = {
     map:  <Item, Changed>(T<Item>, (Item) ={}> Changed) ={}> T<Changed>
 }
 
-type Some<T> = {0: T}
-type Option<T> = Some<T> | None
+// type Some<T> = {0: T}
+// type Some<T> = (T)
+// type Option<T> = Some<T> | None
 
-const MyMonad = Monad<Option,>{
-    return: <Ok>(v: Ok) ={}> Some(v),
-    map: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Ok2): Option<Ok2> ={e}> None,
-    // map: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Ok2): Option<Ok2> ={e}> switch v {
-    //     None => None,
-    //     Ok(x) => Ok(op(x)),
-    // },
-    bind: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Option<Ok2>): Result<Ok2, Err> ={e}> None,
-    // bind: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Option<Ok2>): Result<Ok2, Err> ={e}> switch v {
-    //     None => None,
-    //     Ok(x) => op(x),
-    // },
-}
+// const MyMonad = Monad<Option,>{
+//     return: <Ok>(v: Ok) ={}> Some(v),
+//     map: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Ok2): Option<Ok2> ={e}> None,
+//     // map: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Ok2): Option<Ok2> ={e}> switch v {
+//     //     None => None,
+//     //     Ok(x) => Ok(op(x)),
+//     // },
+//     bind: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Option<Ok2>): Result<Ok2, Err> ={e}> None,
+//     // bind: <Ok, Ok2>(v: Option<Ok>, op: (Ok) ={e}> Option<Ok2>): Result<Ok2, Err> ={e}> switch v {
+//     //     None => None,
+//     //     Ok(x) => op(x),
+//     // },
+// }

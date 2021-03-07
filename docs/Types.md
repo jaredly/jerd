@@ -22,6 +22,14 @@ In JS, records contain a `type` attribute that contains the hash of the type, fo
 
 Records can have higher-kinded type variables, which is how you do type-classes folks.
 
+
+Ok, how do we do records without attribute names? like `Some(x)`.
+It could just be a syntax trick tbh.
+`Some{a, b}` => `Some{a: a, b: b}`, but `Some{:a, :b}` for nameless?
+hmm actually maybe the punning syntax should be the more awkward one? b/c for real optionals happen a ton.
+so `Some{5}` is `Some{contents: 5}`, and `Some{:contents}` is `Some{contents:contents}`. sounds legit.
+
+
 ## Enums
 
 I'm not yet 100% sure what to do here, but I have an idea.

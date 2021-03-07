@@ -112,6 +112,20 @@ countNamed.item<Person>(me) == "June"
 
 const double = <T,>(x: Array<T>) => concat(x, x)
 
+// Ok folks, how do we do NamedTuples? e.g. records without names?
+// I guess we've gotta just check for a `id + apply`, right? that's annoying.
+// i mean, given that my record constructors aren't currently actual functions.
+// and they probably shouldn't be tbh.
+// I mean its fine though.
+
+const gotit = Some<int>{_: 5}
+
+// {5}
+
+gotit.contents == 5
+
+// const notit = Option::None
+
 /*
 
 type Employee = {

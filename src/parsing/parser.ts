@@ -25,7 +25,12 @@ export type RecordDecl = {
 };
 export type RecordItem = RecordRow | RecordSpread;
 export type RecordSpread = { type: 'Spread'; constr: Identifier };
-export type RecordRow = { type: 'Row'; id: Identifier; rtype: Type };
+export type RecordRow = {
+    type: 'Row';
+    // null if this is being treated as a tuple
+    id: Identifier | null;
+    rtype: Type;
+};
 
 export type Loc = { offset: number; line: number; column: number };
 export type Location = { start: Loc; end: Loc };

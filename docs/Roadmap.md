@@ -42,6 +42,9 @@
   - [x] generic
   - [ ] FFIable types. (with nice attribute names and such)
 - [x] give me Array<T> or give me sadness
+- [x] NamedTuples (records without attribute names) so I have `Some()`
+  - ok copout on this one, I'm allowing you to do `Some{_: 10}`, to omit the attribute name. I don't love it, but I don't want to sink too much time into it.
+- [ ] enums, gotta have it
 - [ ] basic attempt at compiling to go or swift or something?
   - Yeah I really should get on this before too long, so I can see what hurdles I run into.
 - [ ] generic effects (Store<T>)

@@ -13,12 +13,14 @@ import {
     TypeReference,
     RecordDef,
     ArraySpread,
+    Id,
+    UserReference,
 } from './types';
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
 import { showType, fitsExpectation, assertFits } from './unify';
-import { void_, bool } from './preset';
+import { void_, string, bool } from './preset';
 import { hasSubType, idName, resolveIdentifier } from './env';
 import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
@@ -253,13 +255,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'string',
                 text: expr.text,
                 location: expr.location,
-                is: {
-                    location: expr.location,
-                    type: 'ref',
-                    ref: { type: 'builtin', name: 'string' },
-                    typeVbls: [],
-                    effectVbls: [],
-                },
+                is: string,
             };
         case 'block': {
             const inner: Array<Term | Let> = [];
@@ -374,10 +370,10 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return left;
         }
         case 'WithSuffix': {
+            let target = typeExpr(env, expr.target);
             // So, among the denormalizations that we have,
             // the fact that references copy over the type of the thing
             // being referenced might be a little odd.
-            let target = typeExpr(env, expr.target);
             for (let suffix of expr.suffixes) {
                 if (suffix.type === 'Apply') {
                     target = typeApply(env, target, suffix);
@@ -392,27 +388,44 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     // Oh maybe allow it to be "fully qualified"?
                     // like `.<Person>name`? or `.Person::name`?
                     // yeah that could be cool.
-                    if (!env.global.attributeNames[suffix.id.text]) {
-                        throw new Error(
-                            `Unknown attribute name ${suffix.id.text}`,
-                        );
-                    }
-                    const { id, idx } = env.global.attributeNames[
-                        suffix.id.text
-                    ];
-                    const ref: Reference = { type: 'user', id };
-                    if (
-                        !isRecord(target.is, ref) &&
-                        !hasSubType(env, target.is, id)
-                    ) {
-                        throw new Error(
-                            `Expression at ${showLocation(
-                                suffix.location,
-                            )} is not a ${idName(id)} or its supertype`,
-                        );
+                    let idx: number;
+                    let ref: UserReference;
+                    if (suffix.id.text.match(/^\d+$/)) {
+                        idx = +suffix.id.text;
+                        if (
+                            target.is.type !== 'ref' ||
+                            target.is.ref.type !== 'user'
+                        ) {
+                            throw new Error(
+                                `Not a record ${showType(
+                                    target.is,
+                                )} at ${showLocation(suffix.location)}`,
+                            );
+                        }
+                        ref = target.is.ref;
+                    } else {
+                        if (!env.global.attributeNames[suffix.id.text]) {
+                            throw new Error(
+                                `Unknown attribute name ${suffix.id.text}`,
+                            );
+                        }
+                        const attr = env.global.attributeNames[suffix.id.text];
+                        idx = attr.idx;
+                        const id = attr.id;
+                        ref = { type: 'user', id };
+                        if (
+                            !isRecord(target.is, ref) &&
+                            !hasSubType(env, target.is, id)
+                        ) {
+                            throw new Error(
+                                `Expression at ${showLocation(
+                                    suffix.location,
+                                )} is not a ${idName(id)} or its supertype`,
+                            );
+                        }
                     }
 
-                    let t = env.global.types[idName(id)];
+                    let t = env.global.types[idName(ref.id)];
                     if (target.is.type === 'ref') {
                         t = applyTypeVariablesToRecord(
                             env,
@@ -421,7 +434,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         );
                     }
                     if (t.type !== 'Record') {
-                        throw new Error(`${idName(id)} is not a record type`);
+                        throw new Error(
+                            `${idName(ref.id)} is not a record type`,
+                        );
                     }
 
                     target = {

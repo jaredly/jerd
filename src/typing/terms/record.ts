@@ -121,7 +121,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     // ok, I think we need to
 
     // const names = env.global.recordGroups[idName(id)];
-    expr.rows.forEach((row) => {
+    expr.rows.forEach((row, idx) => {
         if (row.type === 'Spread') {
             const v = typeExpr(env, row.value);
             if (base.type === 'Concrete') {
@@ -163,14 +163,30 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             throw new Error(`Invalid spread ${showType(v.is)}`);
         }
 
-        if (!names[row.id.text]) {
-            throw new Error(
-                `Unexpected attrbute name ${row.id.text} at ${showLocation(
-                    row.id.location,
-                )}`,
-            );
+        let id: Id | null;
+        let i: number;
+        if (row.id.text === '_') {
+            if (base.type !== 'Concrete') {
+                throw new Error(
+                    `Can only omit attribute names for concrete record declarations`,
+                );
+            }
+            // Umm TODO throw if you're mixing unnamed attributes and like literally anything else?
+            id = null;
+            i = idx;
+        } else {
+            if (!names[row.id.text]) {
+                throw new Error(
+                    `Unexpected attrbute name ${row.id.text} at ${showLocation(
+                        row.id.location,
+                    )}`,
+                );
+            }
+            const got = names[row.id.text];
+            i = got.i;
+            id = got.id;
         }
-        const { i, id } = names[row.id.text];
+
         let rowsToMod =
             id == null && base.type === 'Concrete'
                 ? base.rows

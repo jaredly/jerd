@@ -77,5 +77,21 @@ export function presetEnv() {
     env.global.builtinTypes['string'] = 0;
     env.global.builtinTypes['Array'] = 1;
 
+    env.global.typeNames['Some'] = { hash: 'Some', pos: 0, size: 1 };
+    env.global.typeNames['None'] = { hash: 'None', pos: 0, size: 1 };
+    env.global.types['Some'] = {
+        type: 'Record',
+        typeVbls: [T],
+        effectVbls: [],
+        extends: [],
+        items: [T0],
+    };
+    env.global.recordGroups['Some'] = ['contents'];
+    env.global.attributeNames['contents'] = {
+        idx: 0,
+        id: { hash: 'Some', pos: 0, size: 1 },
+    };
+    // and then no recordGroups
+
     return env;
 }
