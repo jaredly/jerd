@@ -22,6 +22,50 @@ export type Symbol = { name: string; unique: number };
 export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
+export type GlobalEnv = {
+    names: { [key: string]: Id };
+    terms: { [key: string]: Term };
+    builtins: { [key: string]: Type };
+
+    // number here is "number of type arguments"
+    builtinTypes: { [key: string]: number };
+
+    typeNames: { [key: string]: Id };
+    types: { [key: string]: TypeDef };
+
+    // These are two ways of saying the same thing
+    recordGroups: { [key: string]: Array<string> };
+    attributeNames: { [key: string]: { id: Id; idx: number } };
+
+    // allNames: {
+    //     attributes:
+    // },
+
+    effectNames: { [key: string]: string };
+    effectConstructors: { [key: string]: { hash: string; idx: number } };
+    effects: {
+        [key: string]: Array<{
+            args: Array<Type>;
+            ret: Type;
+        }>;
+    };
+};
+
+export type LocalEnv = {
+    unique: number;
+    self: {
+        name: string;
+        type: Type;
+    };
+    locals: { [key: string]: { sym: Symbol; type: Type } };
+    typeVbls: { [unique: number]: { subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
+    typeVblNames: { [key: string]: Symbol };
+    effectVbls: { [key: string]: Symbol };
+    tmpTypeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
+    // manual type variables can't have constriaints, right? or can they?
+    // I can figure that out later.
+};
+
 export type Case = {
     constr: number; // the index
     args: Array<Symbol>;
@@ -98,7 +142,9 @@ export type Var = {
 export const getAllSubTypes = (env: GlobalEnv, t: RecordDef): Array<Id> => {
     return ([] as Array<Id>).concat(
         ...t.extends.map((id) =>
-            [id].concat(getAllSubTypes(env, env.types[idName(id)])),
+            [id].concat(
+                getAllSubTypes(env, env.types[idName(id)] as RecordDef),
+            ),
         ),
     );
 };
@@ -204,7 +250,15 @@ export type Lambda = {
 // some things are args, some things are application, right?
 //
 
-export type TypeDef = RecordDef;
+export type EnumDef = {
+    type: 'Enum';
+    typeVbls: Array<{ subTypes: Array<Id>; unique: number }>;
+    effectVbls: Array<number>;
+    extends: Array<Id>;
+    items: Array<UserReference>;
+};
+
+export type TypeDef = RecordDef | EnumDef;
 export type RecordDef = {
     type: 'Record';
     typeVbls: Array<{ subTypes: Array<Id>; unique: number }>; // TODO: kind, row etc.
@@ -405,47 +459,6 @@ export type RecordType = {
     type: 'Record';
     items: Array<RecordRow>;
     extends: Array<Reference>;
-};
-
-export type GlobalEnv = {
-    names: { [key: string]: Id };
-    terms: { [key: string]: Term };
-    builtins: { [key: string]: Type };
-
-    attributeNames: { [key: string]: { id: Id; idx: number } };
-    typeNames: { [key: string]: Id };
-    // number here is "number of type arguments"
-    builtinTypes: { [key: string]: number };
-    types: { [key: string]: TypeDef };
-    recordGroups: { [key: string]: Array<string> };
-
-    // allNames: {
-    //     attributes:
-    // },
-
-    effectNames: { [key: string]: string };
-    effectConstructors: { [key: string]: { hash: string; idx: number } };
-    effects: {
-        [key: string]: Array<{
-            args: Array<Type>;
-            ret: Type;
-        }>;
-    };
-};
-
-export type LocalEnv = {
-    unique: number;
-    self: {
-        name: string;
-        type: Type;
-    };
-    locals: { [key: string]: { sym: Symbol; type: Type } };
-    typeVbls: { [unique: number]: { subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
-    typeVblNames: { [key: string]: Symbol };
-    effectVbls: { [key: string]: Symbol };
-    tmpTypeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
-    // manual type variables can't have constriaints, right? or can they?
-    // I can figure that out later.
 };
 
 export type TypeConstraint =

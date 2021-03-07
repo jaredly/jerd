@@ -1,7 +1,7 @@
 
 File = _ s:(Toplevel _)* finalLineComment? {return s.map(s => s[0])}
 
-Toplevel = TypeDef / Effect / Statement
+Toplevel = StructDef / EnumDef / Effect / Statement
 
 Statement = Define / Expression
 
@@ -26,8 +26,25 @@ Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {ret
 EfConstr = id:Identifier _ ":" _ type:LambdaType {return {id, type}}
 
 // == Type Defs ==
-TypeDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:TypeDecl {return {type: 'TypeDef', id, decl, typeVbls: typeVbls || []}}
-TypeDecl = RecordDecl
+EnumDef = "enum" __ id:Identifier _ typeVbls:TypeVbls? _ "{" _ items:EnumItems _ "}" {
+    return {
+        type: 'EnumDef', id,
+        typeVbls: typeVbls || [],
+        items,
+    }
+}
+EnumItems = first:EnumItem rest:(_ "," _ EnumItem)* ","? {
+    return [first, ...rest.map(r => r[3])]
+}
+EnumItem = EnumExternal / EnumInternal
+EnumExternal = "=" id:Identifier typeVbls:TypeVblsApply? {
+    return {type: 'External', id, typeVbls: typeVbls || [], location: location()}
+}
+EnumInternal = id:Identifier decl:RecordDecl? {
+    return {type: 'Internal', id, decl, location: location()}
+}
+
+StructDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:RecordDecl {return {type: 'StructDef', id, decl, typeVbls: typeVbls || []}}
 
 RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || []}}
 // TODO: spreads much come first, then rows
@@ -207,7 +224,7 @@ Literal = Int / Identifier / String
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
-Identifier = [0-9a-zA-Z_]+ {return {type: "id", text: text(), location: location()}}
+Identifier = !"enum" [0-9a-zA-Z_]+ {return {type: "id", text: text(), location: location()}}
 
 _ "whitespace"
   = [ \t\n\r]* (comment _)*

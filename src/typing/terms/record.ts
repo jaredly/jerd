@@ -49,7 +49,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         };
         subTypeIds = [];
         t.subTypes.forEach((id) => {
-            const t = env.global.types[idName(id)];
+            const t = env.global.types[idName(id)] as RecordDef;
             subTypeIds.push(...getAllSubTypes(env.global, t));
         });
         is = { type: 'var', sym, location: expr.id.location };
@@ -65,7 +65,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         const typeVbls = expr.typeVbls.map((t) => typeType(env, t));
         const t = applyTypeVariablesToRecord(
             env,
-            env.global.types[idName(id)],
+            env.global.types[idName(id)] as RecordDef,
             typeVbls,
         );
         const ref: Reference = { type: 'user', id };
@@ -98,7 +98,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     // let spread = null;
 
     subTypeIds.forEach((id) => {
-        const t = env.global.types[idName(id)];
+        const t = env.global.types[idName(id)] as RecordDef;
         subTypeTypes[idName(id)] = t;
         const rows = new Array(t.items.length);
         t.items.forEach((type, i) => {
@@ -193,7 +193,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 : subTypes[idName(id!)].rows;
         const recordType =
             id == null && base.type === 'Concrete'
-                ? env.global.types[idName(base.ref.id)]
+                ? (env.global.types[idName(base.ref.id)] as RecordDef)
                 : subTypeTypes[idName(id!)];
         if (rowsToMod[i].value != null) {
             throw new Error(

@@ -9,7 +9,7 @@ import {
     RecordDecl,
     RecordRow,
     RecordSpread,
-    TypeDef,
+    StructDef,
     TypeVbl,
 } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
@@ -47,7 +47,7 @@ export const typeEffect = (env: Env, item: Effect) => {
     env.global.effects[hash] = constrs;
 };
 
-export const typeTypeDefn = (env: Env, { id, decl, typeVbls }: TypeDef) => {
+export const typeTypeDefn = (env: Env, { id, decl, typeVbls }: StructDef) => {
     if (decl.type === 'Record') {
         return typeRecord(env, id, typeVbls, decl);
     }
@@ -264,7 +264,7 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
             if (idsEqual(id, sid)) {
                 return true;
             }
-            const t = env.global.types[idName(sid)];
+            const t = env.global.types[idName(sid)] as RecordDef;
             const allSubTypes = getAllSubTypes(env.global, t);
             if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
                 return true;
@@ -277,7 +277,7 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (idsEqual(type.ref.id, id)) {
         return true;
     }
-    const t = env.global.types[idName(type.ref.id)];
+    const t = env.global.types[idName(type.ref.id)] as RecordDef;
     const allSubTypes = getAllSubTypes(env.global, t);
     return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };

@@ -1,7 +1,7 @@
 import { Reference } from '../typing/types';
 import { parse } from './grammar';
 
-export type Toplevel = Define | Effect | Expression | TypeDef;
+export type Toplevel = Define | Effect | Expression | StructDef;
 
 export type Effect = {
     type: 'effect';
@@ -10,8 +10,8 @@ export type Effect = {
     constrs: Array<{ id: Identifier; type: LambdaType }>;
 };
 
-export type TypeDef = {
-    type: 'TypeDef';
+export type StructDef = {
+    type: 'StructDef';
     id: Identifier;
     typeVbls: Array<TypeVbl>;
     decl: TypeDecl;
@@ -28,7 +28,7 @@ export type RecordSpread = { type: 'Spread'; constr: Identifier };
 export type RecordRow = {
     type: 'Row';
     // null if this is being treated as a tuple
-    id: Identifier | null;
+    id: Identifier;
     rtype: Type;
 };
 

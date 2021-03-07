@@ -426,6 +426,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     }
 
                     let t = env.global.types[idName(ref.id)];
+                    if (t.type !== 'Record') {
+                        throw new Error(`Not a record ${idName(ref.id)}`);
+                    }
                     if (target.is.type === 'ref') {
                         t = applyTypeVariablesToRecord(
                             env,

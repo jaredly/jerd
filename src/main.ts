@@ -165,7 +165,7 @@ function typeFile(parsed: Toplevel[]) {
             // console.log('< unified type', showType(term.is));
         } else if (item.type === 'effect') {
             typeEffect(env, item);
-        } else if (item.type === 'TypeDef') {
+        } else if (item.type === 'StructDef') {
             typeTypeDefn(env, item);
         } else {
             // A standalone expression
@@ -313,7 +313,7 @@ const processErrors = (fname: string) => {
             typeEffect(env, item);
         } else if (item.type === 'define') {
             typeDefine(env, item);
-        } else if (item.type === 'TypeDef') {
+        } else if (item.type === 'StructDef') {
             typeTypeDefn(env, item);
         } else {
             let term;

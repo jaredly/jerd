@@ -97,7 +97,7 @@ enum Type {
     Constructor(Reference, Vec<Type>),
 }
 
-enum TypeDef {
+enum StructDef {
     Sum(Vec<Type>),
     Product(Vec<(String, Type)>),
     Alias(Type),

@@ -1,0 +1,31 @@
+
+// type Person = {
+//     ...HasName,
+//     ...HasAge,
+//     what: int,
+// }
+
+type Id = {
+    hash: string,
+    size: int,
+    pos: int,
+}
+
+type UserReference = {
+    id: Id
+}
+
+enum Reference {
+    Builtin{name: string},
+    =UserReference
+}
+
+type Some<T> = {
+    value: T
+}
+type Other = {}
+
+enum Option<T> {
+    =Some<T>,
+    =Other
+}
