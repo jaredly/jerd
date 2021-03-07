@@ -84,7 +84,7 @@ ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:Com
 }
 AttributeSuffix = "." id:Identifier {return {type: 'Attribute', id, location: location()}}
 
-Apsub = Lambda / Block / Handle / Raise / If / RecordLiteral / ArrayLiteral / Literal
+Apsub = Lambda / Block / Handle / Raise / If / EnumLiteral / RecordLiteral / ArrayLiteral / Literal
 
 Block = "{" _ one:Statement rest:(_ ";" _ Statement)* ";"? _ "}" {
     return {type: 'block', items: [one, ...rest.map(r => r[3])], location: location()}
@@ -94,8 +94,17 @@ If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
     return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
 }
 
-RecordLiteral = id:Identifier typeVbls:TypeVblsApply? effectVbls:EffectVblsApply? "{" _ rows: RecordLiteralRows _ "}" {
-    return {type: 'Record', id, rows, location: location(), typeVbls: typeVbls || [], effectVbls}
+EnumLiteral = id:Identifier typeVbls:TypeVblsApply? ":" rid:Identifier "{" _ rows:RecordLiteralRows? _ "}" {
+    return {
+        id,
+        typeVbls: typeVbls || [],
+        rid,
+        rows: rows || [],
+    }
+}
+
+RecordLiteral = id:Identifier typeVbls:TypeVblsApply? effectVbls:EffectVblsApply? "{" _ rows:RecordLiteralRows? _ "}" {
+    return {type: 'Record', id, rows: rows || [], location: location(), typeVbls: typeVbls || [], effectVbls}
 }
 RecordLiteralRows = first:RecordLiteralRow rest:("," _ RecordLiteralRow _)* ","? {return [first, ...rest.map(r => r[2])]}
 RecordLiteralSpread = "..." value:Expression {return {type: 'Spread', value}}

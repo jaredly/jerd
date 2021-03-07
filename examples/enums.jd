@@ -29,3 +29,15 @@ enum Option<T> {
     =Some<T>,
     =Other
 }
+
+const x = Option<int>:Some{_: 10} // this is now an Option<int>, not a Some<int>
+// we can match it, and get out a Some<int> though.
+const y = Option<int>:None{}
+// const x = :Some{_: 10} // (infer please)
+
+// Ok type-time representation of an enum value:
+// its like...
+// um do I need one?
+// it's just a ref, right?
+// And then you go to the definition, and plug & play type variable substitutions and such.
+// yeah that should be fine.
