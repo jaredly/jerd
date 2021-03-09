@@ -162,6 +162,7 @@ export type Record = {
     type: 'Record';
     base: RecordBase<Term | null>;
     is: Type;
+    // For each subtype, we might have members defined
     subTypes: {
         [id: string]: {
             covered: boolean;
@@ -185,12 +186,21 @@ export type ArraySpread = {
     location: Location | null;
 };
 
+// This is basically a type coersion?
+export type Enum = {
+    type: 'Enum';
+    inner: Term;
+    is: TypeReference;
+    location: Location | null;
+};
+
 export type Term =
     | CPSAble
     | { type: 'self'; is: Type; location: Location | null }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
     | Record
+    | Enum
     | ArrayLiteral
     | {
           type: 'Attribute';
@@ -252,7 +262,7 @@ export type Lambda = {
 
 export type EnumDef = {
     type: 'Enum';
-    typeVbls: Array<{ subTypes: Array<Id>; unique: number }>;
+    typeVbls: Array<TypeVblDecl>;
     effectVbls: Array<number>;
     extends: Array<TypeReference>;
     items: Array<TypeReference>;
@@ -261,7 +271,7 @@ export type EnumDef = {
 export type TypeDef = RecordDef | EnumDef;
 export type RecordDef = {
     type: 'Record';
-    typeVbls: Array<{ subTypes: Array<Id>; unique: number }>; // TODO: kind, row etc.
+    typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
     extends: Array<Id>;
     items: Array<Type>;
@@ -602,6 +612,8 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
 
             return effects;
         }
+        case 'Enum':
+            return getEffects(t.inner);
         default:
             let _x: never = t;
             throw new Error('Unhandled term');

@@ -155,6 +155,12 @@ export const termToPretty = (term: Term | Let): PP => {
                 // TODO: use a name n stuff
                 atom(term.idx.toString()),
             ]);
+        case 'Enum':
+            return items([
+                typeToPretty(term.is),
+                atom(':'),
+                termToPretty(term.inner),
+            ]);
         case 'Record': {
             const res = [];
             const typeVbls = term.is.type === 'ref' ? term.is.typeVbls : null;

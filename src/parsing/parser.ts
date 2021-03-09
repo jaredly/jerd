@@ -86,6 +86,7 @@ export type Expression =
     | If
     | Block
     | Record
+    | Enum
     | ArrayLiteral
     | Handle;
 
@@ -98,6 +99,14 @@ export type ArrayLiteral = {
 export type ArraySpread = {
     type: 'ArraySpread';
     value: Expression;
+    location: Location;
+};
+
+export type Enum = {
+    type: 'Enum';
+    id: Identifier;
+    typeVbls: Array<Type>;
+    expr: Expression;
     location: Location;
 };
 

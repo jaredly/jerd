@@ -207,7 +207,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c23 = "...";
   const peg$c24 = peg$literalExpectation("...", false);
   const peg$c25 = function(ref: any): any {
-      return {type: 'Spread', ref:TypeRef, location: location()}
+      return {type: 'Spread', ref, location: location()}
   };
   const peg$c26 = "type";
   const peg$c27 = peg$literalExpectation("type", false);
@@ -1118,9 +1118,9 @@ function peg$parse(input: string, options?: IParseOptions) {
   function peg$parseEnumItem(): any {
     let s0;
 
-    s0 = peg$parseEnumExternal();
+    s0 = peg$parseEnumSpread();
     if (s0 === peg$FAILED) {
-      s0 = peg$parseEnumSpread();
+      s0 = peg$parseEnumExternal();
     }
 
     return s0;

@@ -15,6 +15,10 @@ import {
     ArraySpread,
     Id,
     UserReference,
+    EnumDef,
+    GlobalEnv,
+    RecordType,
+    TypeVblDecl,
 } from './types';
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
@@ -167,32 +171,11 @@ export const applyTypeVariablesToRecord = (
     type: RecordDef,
     vbls: Array<Type>,
 ): RecordDef => {
-    const mapping: { [unique: number]: Type } = {};
-    if (vbls.length !== type.typeVbls.length) {
-        console.log('the ones', type.typeVbls);
-        throw new Error(
-            `Wrong number of type variables: ${vbls.length} : ${type.typeVbls.length}`,
-        );
-    }
-    vbls.forEach((typ, i) => {
-        // STOPSHIP CHECK HERE
-        const subs = type.typeVbls[i].subTypes;
-        for (let sub of subs) {
-            if (!hasSubType(env, typ, sub)) {
-                throw new Error(`Expected a subtype of ${idName(sub)}`);
-            }
-        }
-        // if (hasSubType(typ, ))
-        mapping[type.typeVbls[i].unique] = typ;
-    });
+    const mapping = createTypeVblMapping(env, type.typeVbls, vbls);
     return {
         ...type,
         typeVbls: [],
         items: type.items.map((t) => subtTypeVars(t, mapping)),
-        // args: type.args.map((t) => subtTypeVars(t, mapping)),
-        // // TODO effects with type vars!
-        // rest: null, // TODO rest args
-        // res: subtTypeVars(type.res, mapping),
     };
 };
 
@@ -514,6 +497,58 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         case 'Record': {
             return typeRecord(env, expr);
         }
+        case 'Enum': {
+            const id = env.global.typeNames[expr.id.text];
+            if (!id) {
+                throw new Error(
+                    `No Record type ${expr.id.text} at ${showLocation(
+                        expr.location,
+                    )}`,
+                );
+            }
+
+            let t = env.global.types[idName(id)] as EnumDef;
+            if (t.type !== 'Enum') {
+                throw new Error(
+                    `${expr.id.text} is not an enum. ${showLocation(
+                        expr.location,
+                    )}`,
+                );
+            }
+
+            const typeVbls = expr.typeVbls.map((t) => typeType(env, t));
+            const is: TypeReference = {
+                type: 'ref',
+                ref: { type: 'user', id },
+                location: expr.id.location,
+                typeVbls,
+                effectVbls: [],
+            };
+
+            const inner = typeExpr(env, expr.expr);
+            try {
+                if (!typeFitsEnum(env, inner.is, is, expr.location)) {
+                    throw new Error(
+                        `Record ${showType(
+                            inner.is,
+                        )} doesn't fit enum ${showType(is)} at ${showLocation(
+                            expr.location,
+                        )}`,
+                    );
+                }
+            } catch (err) {
+                throw new Error(
+                    err.message + ' : ' + showLocation(expr.location),
+                );
+            }
+
+            return {
+                type: 'Enum',
+                inner,
+                location: expr.location,
+                is,
+            };
+        }
         case 'Array': {
             // ok so the type of the first one determines it?
             // I mean, what syntax are we thinking of here for explicitly typed array?
@@ -585,6 +620,121 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             let _x: never = expr;
             throw new Error(`Unexpected parse type ${(expr as any).type}`);
     }
+};
+
+const typeDef = (
+    env: GlobalEnv,
+    ref: Reference,
+): RecordDef | EnumDef | null => {
+    if (ref.type === 'builtin') {
+        return null;
+    }
+    return env.types[idName(ref.id)];
+};
+
+const typeFitsEnum = (
+    env: Env,
+    recordType: Type,
+    enumRef: TypeReference,
+    location: Location,
+): boolean => {
+    if (recordType.type !== 'ref') {
+        throw new Error(
+            `Can only wrap a concrete record (or other enum) in an enum, not ${
+                recordType.type
+            }. ${showLocation(location)}`,
+        );
+    }
+    const t = typeDef(env.global, recordType.ref);
+    if (t == null) {
+        throw new Error(
+            `Can't resolve type definition ${showType(recordType)}`,
+        );
+    }
+    if (t.type === 'Enum') {
+        throw new Error('enum coersion not yet supported');
+    }
+    // const enumDef = typeDef(env, enumRef.ref)
+    // if (enumDef == null || enumDef.type !== 'Enum') {
+    //     throw new Error(`Not an enum ${showType(enumRef)}`)
+    // }
+    const allReferences = getEnumReferences(env, enumRef);
+    for (let ref of allReferences) {
+        if (isRecord(recordType, ref.ref)) {
+            return true;
+        }
+    }
+    console.log('References', allReferences);
+    console.log(recordType);
+    return false;
+};
+
+const getEnumReferences = (
+    env: Env,
+    enumRef: TypeReference,
+): Array<TypeReference> => {
+    let enumDef = typeDef(env.global, enumRef.ref);
+    if (enumDef == null) {
+        throw new Error(`Unknown type definition ${showType(enumRef)}`);
+    }
+    if (enumDef.type !== 'Enum') {
+        throw new Error(`Not an enum, it's a record ${showType(enumRef)}`);
+    }
+    enumDef = applyTypeVariablesToEnum(env, enumDef, enumRef.typeVbls);
+    if (!enumDef.extends.length) {
+        return enumDef.items;
+    }
+    console.log(enumDef);
+    return enumDef.items.concat(
+        ...enumDef.extends.map((r) => getEnumReferences(env, r)),
+    );
+};
+
+export const createTypeVblMapping = (
+    env: Env,
+    typeVbls: Array<TypeVblDecl>,
+    vbls: Array<Type>,
+): { [unique: number]: Type } => {
+    const mapping: { [unique: number]: Type } = {};
+    if (vbls.length !== typeVbls.length) {
+        console.log('the ones', typeVbls);
+        throw new Error(
+            `Wrong number of type variables: ${vbls.length} : ${typeVbls.length}`,
+        );
+    }
+
+    vbls.forEach((typ, i) => {
+        const subs = typeVbls[i].subTypes;
+        for (let sub of subs) {
+            if (!hasSubType(env, typ, sub)) {
+                throw new Error(`Expected a subtype of ${idName(sub)}`);
+            }
+        }
+        mapping[typeVbls[i].unique] = typ;
+    });
+
+    return mapping;
+};
+
+export const applyTypeVariablesToEnum = (
+    env: Env,
+    type: EnumDef,
+    vbls: Array<Type>,
+): EnumDef => {
+    if (vbls.length === 0 && type.typeVbls.length === 0) {
+        return type;
+    }
+    const mapping = createTypeVblMapping(env, type.typeVbls, vbls);
+
+    return {
+        type: 'Enum',
+        typeVbls: [],
+        effectVbls: [], // STOPSHIP effect vbls for enums
+        items: type.items.map((t) => subtTypeVars(t, mapping) as TypeReference),
+        extends: type.extends.map(
+            (t) => subtTypeVars(t, mapping) as TypeReference,
+        ),
+    };
 };
 
 export default typeExpr;

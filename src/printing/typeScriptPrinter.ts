@@ -926,6 +926,8 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                     ) as Array<any>,
             );
         }
+        case 'Enum':
+            return printTerm(env, term.inner);
         case 'Attribute': {
             return t.memberExpression(
                 printTerm(env, term.target),
