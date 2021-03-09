@@ -332,6 +332,7 @@ const processErrors = (fname: string) => {
                 errors.push(err.message);
                 return; // yup
             }
+            console.log(item);
             throw new Error(
                 `Expected a type error at ${showLocation(
                     item.location,

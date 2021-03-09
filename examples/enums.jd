@@ -37,12 +37,12 @@ const x = Option<int>:Some<int>{_: 10} // this is now an Option<int>, not a Some
 
 const y = Option<int>:None
 
-// const useEnum = <T,>(x: Option<T>): bool => {
-//     switch (x) {
-//         Some => true,
-//         None => false
-//     }
-// }
+const useEnum = <T,>(x: Option<T>): bool => {
+    switch x {
+        Some => true,
+        None => false
+    }
+}
 
 // This now has type `Option<never>:None`, which can be coerced to anything.
 // const z = Option:None
