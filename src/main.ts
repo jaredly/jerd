@@ -4,7 +4,7 @@
 
 import path from 'path';
 import fs from 'fs';
-import hashObject from 'hash-sum';
+import { hashObject } from './typing/env';
 import parse, { Location, Toplevel } from './parsing/parser';
 import {
     declarationToAST,

@@ -1,6 +1,6 @@
 // Ok
 
-import hashObject from 'hash-sum';
+import hashObjectSum from 'hash-sum';
 import {
     Define,
     Effect,
@@ -131,6 +131,29 @@ export const typeRecord = (
     rows.forEach((r, i) => {
         env.global.attributeNames[r.id.text] = { id: idid, idx: i };
     });
+};
+
+export const hashObject = (obj: any): string =>
+    hashObjectSum(withoutLocations(obj));
+
+const withoutLocations = <T>(obj: T): T => {
+    if (!obj) {
+        return obj;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(withoutLocations);
+    }
+    if (typeof obj === 'object') {
+        const res = {};
+        Object.keys(obj).forEach((key) => {
+            if (key === 'location') {
+                return;
+            }
+            res[key] = withoutLocations(obj[key]);
+        });
+        return res;
+    }
+    return obj;
 };
 
 export const typeDefine = (env: Env, item: Define) => {
