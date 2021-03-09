@@ -287,6 +287,34 @@ export const resolveIdentifier = (
             ref: { type: 'builtin', name: text },
         };
     }
+    if (env.global.typeNames[text]) {
+        const id = env.global.typeNames[text];
+        const t = env.global.types[idName(id)];
+        if (
+            t.type === 'Record' &&
+            t.items.length === 0 &&
+            t.extends.length === 0
+        ) {
+            return {
+                type: 'Record',
+                base: {
+                    type: 'Concrete',
+                    ref: { type: 'user', id },
+                    rows: [],
+                    spread: null,
+                },
+                location,
+                is: {
+                    type: 'ref',
+                    ref: { type: 'user', id },
+                    location,
+                    typeVbls: [],
+                    effectVbls: [],
+                },
+                subTypes: {},
+            };
+        }
+    }
     return null;
 };
 

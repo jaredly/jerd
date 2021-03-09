@@ -907,21 +907,33 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                     )
                     .concat(
                         term.base.type === 'Concrete'
-                            ? (term.base.rows
-                                  .map((row, i) =>
-                                      row != null
-                                          ? t.objectProperty(
-                                                t.identifier(
-                                                    recordAttributeName(
-                                                        (term.base as any).ref,
-                                                        i,
+                            ? [
+                                  t.objectProperty(
+                                      t.identifier('type'),
+                                      t.stringLiteral(
+                                          recordIdName((term.base as any).ref),
+                                      ),
+                                  ),
+                              ].concat(
+                                  term.base.rows
+                                      .map((row, i) =>
+                                          row != null
+                                              ? t.objectProperty(
+                                                    t.identifier(
+                                                        recordAttributeName(
+                                                            (term.base as any)
+                                                                .ref,
+                                                            i,
+                                                        ),
                                                     ),
-                                                ),
-                                                printTerm(env, row),
-                                            )
-                                          : null,
-                                  )
-                                  .filter(Boolean) as Array<t.ObjectProperty>)
+                                                    printTerm(env, row),
+                                                )
+                                              : null,
+                                      )
+                                      .filter(
+                                          Boolean,
+                                      ) as Array<t.ObjectProperty>,
+                              )
                             : [],
                     ) as Array<any>,
             );
@@ -945,6 +957,14 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
         default:
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
+    }
+};
+
+const recordIdName = (ref: Reference) => {
+    if (ref.type === 'builtin') {
+        return ref.name;
+    } else {
+        return idName(ref.id);
     }
 };
 
