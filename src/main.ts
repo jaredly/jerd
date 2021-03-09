@@ -141,7 +141,7 @@ const testInference = (parsed: Toplevel[]) => {
             env.global.terms[hash] = term;
 
             const declared = typeType(env, item.ann);
-            if (!typesEqual(env, declared, term.is)) {
+            if (!typesEqual(declared, term.is)) {
                 console.log(`Inference Test failed!`);
                 console.log('Expected:');
                 console.log(typeToString(env, declared));
@@ -278,7 +278,7 @@ const fileToTypescript = (
     };
 
     expressions.forEach((term) => {
-        if (assert && typesEqual(env, term.is, bool)) {
+        if (assert && typesEqual(term.is, bool)) {
             if (
                 term.type === 'apply' &&
                 term.target.type === 'ref' &&

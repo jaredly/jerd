@@ -63,8 +63,8 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
         [], // TODO effect vbls
     );
 
-    console.log('Type Enum');
-    console.log(defn.items);
+    // console.log('Type Enum');
+    // console.log(defn.items);
 
     const items = defn.items
         .filter((x) => x.type === 'External')
@@ -72,7 +72,7 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     const extend = defn.items
         .filter((x) => x.type === 'Spread')
         .map((x) => typeType(typeInner, x.ref) as TypeReference);
-    console.log(items.length, extend.length);
+    // console.log(items.length, extend.length);
     const d: TypeEnumDef = {
         type: 'Enum',
         typeVbls,

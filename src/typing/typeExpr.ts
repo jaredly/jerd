@@ -322,7 +322,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 const rarg = typeExpr(env, right);
 
                 if (is.typeVbls.length === 1) {
-                    if (!typesEqual(env, left.is, rarg.is)) {
+                    if (!typesEqual(left.is, rarg.is)) {
                         throw new Error(
                             `Binops must have same-typed arguments: ${showType(
                                 left.is,
@@ -654,14 +654,39 @@ const typeFitsEnum = (
             `Can't resolve type definition ${showType(recordType)}`,
         );
     }
+
+    const allReferences = getEnumReferences(env, enumRef);
+
     if (t.type === 'Enum') {
-        throw new Error('enum coersion not yet supported');
+        const innerReferences = getEnumReferences(env, recordType);
+        console.log(allReferences.map(showType));
+        console.log(innerReferences.map(showType));
+        for (let ref of innerReferences) {
+            let found = false;
+            for (let outer of allReferences) {
+                if (fitsExpectation(null, ref, outer)) {
+                    found = true;
+                    break;
+                }
+                console.log(showType(outer), showType(ref));
+            }
+            if (!found) {
+                throw new Error(
+                    `Enum ${showType(
+                        recordType,
+                    )} is not a subtype of ${showType(enumRef)}. ${showType(
+                        ref,
+                    )} is a member of the former but not the latter.`,
+                );
+            }
+        }
+        return true;
+        // throw new Error('enum coersion not yet supported');
     }
     // const enumDef = typeDef(env, enumRef.ref)
     // if (enumDef == null || enumDef.type !== 'Enum') {
     //     throw new Error(`Not an enum ${showType(enumRef)}`)
     // }
-    const allReferences = getEnumReferences(env, enumRef);
     for (let ref of allReferences) {
         if (isRecord(recordType, ref.ref)) {
             return true;

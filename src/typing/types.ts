@@ -344,11 +344,7 @@ export const isRecord = (one: Type, ref: Reference) => {
     return one.type === 'ref' && refsEqual(one.ref, ref);
 };
 
-export const typesEqual = (
-    env: Env,
-    one: Type | null,
-    two: Type | null,
-): boolean => {
+export const typesEqual = (one: Type | null, two: Type | null): boolean => {
     if (one == null || two == null) {
         return one == two;
     }
@@ -374,11 +370,11 @@ export const typesEqual = (
             two.type === 'lambda' &&
             deepEqual(one.typeVbls, two.typeVbls) &&
             one.args.length === two.args.length &&
-            one.args.every((arg, i) => typesEqual(env, arg, two.args[i])) &&
+            one.args.every((arg, i) => typesEqual(arg, two.args[i])) &&
             one.effects.length === two.effects.length &&
             effectsMatch(one.effects, two.effects) &&
-            typesEqual(env, one.res, two.res) &&
-            typesEqual(env, one.rest, two.rest)
+            typesEqual(one.res, two.res) &&
+            typesEqual(one.rest, two.rest)
         );
     }
     return false;

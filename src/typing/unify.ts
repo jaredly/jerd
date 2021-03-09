@@ -295,7 +295,7 @@ export const fitsExpectation = (
 ): UnificationResult => {
     if (t.type === 'var' && env != null) {
         // if (env.local.typeVbls[])
-        if (typesEqual(env, t, target)) {
+        if (typesEqual(t, target)) {
             return true;
         }
         // if (target.type === 'var')
@@ -347,7 +347,7 @@ export const fitsExpectation = (
             console.log('env is null I guess');
             return false;
         case 'ref':
-            return env ? typesEqual(env, t, target) : false;
+            return typesEqual(t, target);
         case 'lambda':
             if (target.type !== 'lambda') {
                 return false;

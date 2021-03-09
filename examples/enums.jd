@@ -29,8 +29,21 @@ enum Option<T> {
     None
 }
 
+type Twice<T> = {
+    one: T,
+    two: T,
+}
+
+enum OptionOrTwice<T> {
+    ...Option<T>,
+    Twice<T>
+}
+
 const x = Option<int>:Some<int>{_: 10}
 const y = Option<int>:None
+// Option<int> is a subtype of OptionOrTwice<int>, so this works
+const y1 = OptionOrTwice<int>:y
+const y2 = OptionOrTwice<int>:Twice<int>{one: 3, two: 10}
 
 const something = Some<int>{_: 10}
 // We can do enum conversion on variables too

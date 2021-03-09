@@ -89,7 +89,7 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         };
 
         const body = typeExpr(inner, kase.body);
-        if (!typesEqual(env, body.is, pure.is)) {
+        if (!typesEqual(body.is, pure.is)) {
             throw new Error(
                 `All case arms must have the same return type: ${showType(
                     body.is,

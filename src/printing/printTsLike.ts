@@ -14,6 +14,7 @@ import {
     Symbol,
     Term,
     Type,
+    TypeVblDecl,
 } from '../typing/types';
 import { PP, items, args, block, atom } from './printer';
 
@@ -35,30 +36,38 @@ export const declarationToPretty = (id: Id, term: Term): PP => {
     ]);
 };
 
+const typeVblDeclsToPretty = (typeVbls: Array<TypeVblDecl>): PP => {
+    return args(
+        typeVbls.map((v) =>
+            items([
+                atom(v.unique.toString()),
+                v.subTypes.length
+                    ? items([
+                          atom(': '),
+                          ...v.subTypes.map((id) => atom(idToString(id))),
+                      ])
+                    : null,
+            ]),
+        ),
+        '<',
+        '>',
+    );
+};
+
 export const typeToPretty = (type: Type): PP => {
     switch (type.type) {
         case 'ref':
+            if (type.typeVbls.length) {
+                return items([
+                    refToPretty(type.ref),
+                    args(type.typeVbls.map(typeToPretty), '<', '>'),
+                ]);
+            }
             return refToPretty(type.ref);
         case 'lambda':
             return items([
                 type.typeVbls.length
-                    ? args(
-                          type.typeVbls.map((v) =>
-                              items([
-                                  atom(v.unique.toString()),
-                                  v.subTypes.length
-                                      ? items([
-                                            atom(': '),
-                                            ...v.subTypes.map((id) =>
-                                                atom(idToString(id)),
-                                            ),
-                                        ])
-                                      : null,
-                              ]),
-                          ),
-                          '<',
-                          '>',
-                      )
+                    ? typeVblDeclsToPretty(type.typeVbls)
                     : null,
                 type.effectVbls.length
                     ? args(
