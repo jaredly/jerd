@@ -114,6 +114,7 @@ export const typeRecord = (
 
     const defn: RecordDef = {
         type: 'Record',
+        unique: env.global.rng(),
         typeVbls,
         effectVbls,
         extends: record.items

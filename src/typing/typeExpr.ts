@@ -218,12 +218,15 @@ export const applyTypeVariables = (
     type: Type,
     vbls: Array<Type>,
 ): Type => {
+    // console.log(
+    //     `Applying ${showType(type)} with vbls ${vbls.map(showType).join(', ')}`,
+    // );
     if (type.type === 'lambda') {
         const t: LambdaType = type as LambdaType;
 
         const mapping: { [unique: number]: Type } = {};
         if (vbls.length !== t.typeVbls.length) {
-            console.log('the ones', t.typeVbls);
+            console.log('the variables', t.typeVbls);
             throw new Error(
                 `Wrong number of type variables: ${vbls.length} : ${t.typeVbls.length}`,
             );
@@ -477,7 +480,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 // console.log(`${expr.text} : ${showType(term.is)}`);
                 return term;
             }
-            console.log(env.local.locals);
+            // console.log(env.local.locals);
             throw new Error(
                 `Identifier "${expr.text}" at ${showLocation(
                     expr.location,

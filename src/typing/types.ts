@@ -3,6 +3,7 @@
 import { Expression, Identifier, Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
+import seedrandom from 'seedrandom';
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
@@ -23,6 +24,7 @@ export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
 export type GlobalEnv = {
+    rng: () => number;
     names: { [key: string]: Id };
     terms: { [key: string]: Term };
     builtins: { [key: string]: Type };
@@ -271,6 +273,7 @@ export type EnumDef = {
 export type TypeDef = RecordDef | EnumDef;
 export type RecordDef = {
     type: 'Record';
+    unique: number;
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
     extends: Array<Id>;
@@ -485,8 +488,12 @@ export type Env = {
     local: LocalEnv;
 };
 
-export const newEnv = (self: { name: string; type: Type }): Env => ({
+export const newEnv = (
+    self: { name: string; type: Type },
+    seed: string = 'seed',
+): Env => ({
     global: {
+        rng: seedrandom(seed),
         names: {},
         terms: {},
         builtins: {},
@@ -513,6 +520,7 @@ export const newEnv = (self: { name: string; type: Type }): Env => ({
 
 export const subEnv = (env: Env): Env => ({
     global: {
+        rng: env.global.rng,
         attributeNames: { ...env.global.attributeNames },
         recordGroups: { ...env.global.recordGroups },
         names: { ...env.global.names },

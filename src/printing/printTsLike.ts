@@ -41,6 +41,25 @@ export const typeToPretty = (type: Type): PP => {
             return refToPretty(type.ref);
         case 'lambda':
             return items([
+                type.typeVbls.length
+                    ? args(
+                          type.typeVbls.map((v) =>
+                              items([
+                                  atom(v.unique.toString()),
+                                  v.subTypes.length
+                                      ? items([
+                                            atom(': '),
+                                            ...v.subTypes.map((id) =>
+                                                atom(idToString(id)),
+                                            ),
+                                        ])
+                                      : null,
+                              ]),
+                          ),
+                          '<',
+                          '>',
+                      )
+                    : null,
                 type.effectVbls.length
                     ? args(
                           type.effectVbls.map((n) => atom(`e_${n}`)),
