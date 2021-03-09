@@ -166,50 +166,16 @@ export const applyEffectVariables = (
     throw new Error(`Can't apply variables to non-lambdas just yet`);
 };
 
-// export const applyTypeVariablesToRecord = (
-//     env: Env,
-//     type: RecordDef,
-//     vbls: Array<Type>,
-// ): RecordDef => {
-//     const mapping = createTypeVblMapping(env, type.typeVbls, vbls);
-//     return {
-//         ...type,
-//         typeVbls: [],
-//         items: type.items.map((t) => subtTypeVars(t, mapping)),
-//     };
-// };
-
 export const applyTypeVariablesToRecord = (
     env: Env,
     type: RecordDef,
     vbls: Array<Type>,
 ): RecordDef => {
-    const mapping: { [unique: number]: Type } = {};
-    if (vbls.length !== type.typeVbls.length) {
-        console.log('the ones', type.typeVbls);
-        throw new Error(
-            `Wrong number of type variables: ${vbls.length} : ${type.typeVbls.length}`,
-        );
-    }
-    vbls.forEach((typ, i) => {
-        // STOPSHIP CHECK HERE
-        const subs = type.typeVbls[i].subTypes;
-        for (let sub of subs) {
-            if (!hasSubType(env, typ, sub)) {
-                throw new Error(`Expected a subtype of ${idName(sub)}`);
-            }
-        }
-        // if (hasSubType(typ, ))
-        mapping[type.typeVbls[i].unique] = typ;
-    });
+    const mapping = createTypeVblMapping(env, type.typeVbls, vbls);
     return {
         ...type,
         typeVbls: [],
         items: type.items.map((t) => subtTypeVars(t, mapping)),
-        // args: type.args.map((t) => subtTypeVars(t, mapping)),
-        // // TODO effects with type vars!
-        // rest: null, // TODO rest args
-        // res: subtTypeVars(type.res, mapping),
     };
 };
 
@@ -701,8 +667,8 @@ const typeFitsEnum = (
             return true;
         }
     }
-    console.log('References', allReferences);
-    console.log(recordType);
+    // console.log('References', allReferences);
+    // console.log(recordType);
     return false;
 };
 
@@ -721,7 +687,7 @@ const getEnumReferences = (
     if (!enumDef.extends.length) {
         return enumDef.items;
     }
-    console.log(enumDef);
+    // console.log(enumDef);
     return enumDef.items.concat(
         ...enumDef.extends.map((r) => getEnumReferences(env, r)),
     );
@@ -732,10 +698,10 @@ export const createTypeVblMapping = (
     typeVbls: Array<TypeVblDecl>,
     vbls: Array<Type>,
 ): { [unique: number]: Type } => {
-    console.log('create mapping', vbls);
+    // console.log('create mapping', vbls);
     const mapping: { [unique: number]: Type } = {};
     if (vbls.length !== typeVbls.length) {
-        console.log('the ones', typeVbls);
+        // console.log('the ones', typeVbls);
         throw new Error(
             `Wrong number of type variables: ${vbls.length} : ${typeVbls.length}`,
         );
@@ -743,7 +709,7 @@ export const createTypeVblMapping = (
 
     vbls.forEach((typ, i) => {
         const subs = typeVbls[i].subTypes;
-        console.log(i, typ, subs);
+        // console.log(i, typ, subs);
         for (let sub of subs) {
             if (!hasSubType(env, typ, sub)) {
                 throw new Error(`Expected a subtype of ${idName(sub)}`);
