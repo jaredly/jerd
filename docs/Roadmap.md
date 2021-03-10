@@ -44,19 +44,21 @@
 - [x] give me Array<T> or give me sadness
 - [x] NamedTuples (records without attribute names) so I have `Some()`
   - ok copout on this one, I'm allowing you to do `Some{_: 10}`, to omit the attribute name. I don't love it, but I don't want to sink too much time into it.
-- [ ] enums, gotta have it
+- [x] enums
+  - [x] basic
+  - [x] generic
+  - [x] also subtyping? like polymorphic variants?
+- [ ] match
+  - [x] very basic
+  - [ ] full patterns
+  - [ ] exhaustiveness analysis
 - [ ] put this on a web sit! animations or some such.
 
 - [ ] basic attempt at compiling to go or swift or something?
   - Yeah I really should get on this before too long, so I can see what hurdles I run into.
 - [ ] generic effects (Store<T>)
-- [ ] enums
-  - [ ] basic
-  - [ ] generic
-  - [ ] also subtyping? like polymorphic variants?
 - [ ] tuples
 - [ ] port the unison runtime effects tests, verify that all is well.
-- [ ] match
 - [ ] exit-only effects? (call/ec) Can I just use exceptions in the js? would need to check.
     I don't *think* I can in go... oh wait, panic/recover might get it done.
 - [ ] let & function arg destructuring of records
