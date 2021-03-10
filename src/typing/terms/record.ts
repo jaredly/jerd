@@ -23,6 +23,8 @@ import typeExpr, {
 } from '../typeExpr';
 import typeType from '../typeType';
 
+// export const recordNamesAndSuch =
+
 export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     const names: { [key: string]: { i: number; id: Id | null } } = {};
 
@@ -44,7 +46,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         const t = env.local.typeVbls[sym.unique];
         base = {
             type: 'Variable',
-            var: env.local.typeVblNames[expr.id.text],
+            var: sym,
             spread: null as any,
         };
         subTypeIds = [];

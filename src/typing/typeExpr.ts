@@ -509,7 +509,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const id = env.global.typeNames[expr.id.text];
             if (!id) {
                 throw new Error(
-                    `No Record type ${expr.id.text} at ${showLocation(
+                    `No Enum type ${expr.id.text} at ${showLocation(
                         expr.location,
                     )}`,
                 );
@@ -640,7 +640,8 @@ const typeDef = (
     return env.types[idName(ref.id)];
 };
 
-const typeFitsEnum = (
+// TODO: ensure that type variables fit.
+export const typeFitsEnum = (
     env: Env,
     recordType: Type,
     enumRef: TypeReference,
@@ -664,8 +665,8 @@ const typeFitsEnum = (
 
     if (t.type === 'Enum') {
         const innerReferences = getEnumReferences(env, recordType);
-        console.log(allReferences.map(showType));
-        console.log(innerReferences.map(showType));
+        // console.log(allReferences.map(showType));
+        // console.log(innerReferences.map(showType));
         for (let ref of innerReferences) {
             let found = false;
             for (let outer of allReferences) {
@@ -702,7 +703,7 @@ const typeFitsEnum = (
     return false;
 };
 
-const getEnumReferences = (
+export const getEnumReferences = (
     env: Env,
     enumRef: TypeReference,
 ): Array<TypeReference> => {

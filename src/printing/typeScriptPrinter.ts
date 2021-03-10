@@ -1037,28 +1037,56 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
     }
 };
 
+// Here's how this looks.
+// If you succeed, return the success branch. otherwise, go to the else branch.
+// my post-processing pass with flatten out all useless iffes.
 const printPattern = (
     value: t.Expression,
     pattern: Pattern,
     success: t.Expression,
     failure: t.Statement,
 ): t.BlockStatement => {
+    if (pattern.type === 'Binding') {
+        return t.blockStatement([
+            t.variableDeclaration('const', [
+                t.variableDeclarator(
+                    t.identifier(printSym(pattern.sym)),
+                    value,
+                ),
+            ]),
+            t.returnStatement(success),
+        ]);
+    }
     if (pattern.type === 'Record') {
-        if (pattern.items.length === 0) {
-            return t.blockStatement([
-                t.ifStatement(
-                    t.binaryExpression(
-                        '===',
-                        t.memberExpression(value, t.identifier('type')),
-                        t.stringLiteral(idName(pattern.ref.id)),
+        pattern.items.forEach((item) => {
+            success = iffe(
+                printPattern(
+                    t.memberExpression(
+                        value,
+                        t.identifier(recordAttributeName(item.ref, item.idx)),
                     ),
-                    t.blockStatement([t.returnStatement(success)]),
+                    item.pattern,
+                    success,
                     failure,
                 ),
-            ]);
-        }
+            );
+        });
+        // if (pattern.items.length === 0) {
+        return t.blockStatement([
+            t.ifStatement(
+                t.binaryExpression(
+                    '===',
+                    t.memberExpression(value, t.identifier('type')),
+                    t.stringLiteral(idName(pattern.ref.id)),
+                ),
+                t.blockStatement([t.returnStatement(success)]),
+                failure,
+            ),
+        ]);
+        // } else {
+        // }
     }
-    throw new Error(`Pattern not yet supported`);
+    throw new Error(`Pattern not yet supported ${pattern.type}`);
 };
 
 const recordIdName = (ref: Reference) => {

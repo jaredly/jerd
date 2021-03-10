@@ -56,6 +56,9 @@ const isPresent = <T,>(x: Option<T>): bool => {
     }
 }
 
+isPresent(Option<int>:Some<int>{_: 3}) == true
+isPresent(Option<int>:None) == false
+
 const getWithDefault = <T,>(x: Option<T>, default: T): T => {
     switch x {
         Some{_: v} => v,
@@ -63,8 +66,8 @@ const getWithDefault = <T,>(x: Option<T>, default: T): T => {
     }
 }
 
-isPresent(Option<int>:Some<int>{_: 3}) == true
-isPresent(Option<int>:None) == false
+getWithDefault<int>(Option<int>:None, 20) == 20
+getWithDefault<int>(Option<int>:Some<int>{_: 3}, 20) == 3
 
 
 // This now has type `Option<never>:None`, which can be coerced to anything.

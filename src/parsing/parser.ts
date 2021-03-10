@@ -170,7 +170,7 @@ export type RecordPattern = {
     type: 'Record';
     id: Identifier;
     items: Array<RecordPatternItem>;
-    loction: Location;
+    location: Location;
 };
 export type RecordPatternItem = {
     id: Identifier;

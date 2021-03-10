@@ -11,7 +11,7 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
     console.log(expr.cases);
     expr.cases.forEach((c) => {
         const inner = subEnv(env);
-        const pattern = typePattern(inner, c.pattern);
+        const pattern = typePattern(inner, c.pattern, term.is);
         const body = typeExpr(inner, c.body);
         if (is == null) {
             is = body.is;

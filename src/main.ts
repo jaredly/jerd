@@ -368,7 +368,10 @@ const processFile = (fname: string, assert: boolean, run: boolean) => {
         JSON.stringify(map, null, 2),
     );
 
-    const text = code + '\n\n//# sourceMappingURL=' + mapName;
+    // This indirection is so avoid confusing source mapping
+    // in the generated main.js of the compiler.
+    const m = '# source';
+    const text = code + '\n\n//' + m + 'MappingURL=' + mapName;
 
     fs.writeFileSync(dest, text);
 

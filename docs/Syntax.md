@@ -37,7 +37,7 @@ x + 2
 
 ```ts
 switch x {
-    Some(x) => {
+    Some{_: x} => {
         // please
     },
     None => {
@@ -45,6 +45,10 @@ switch x {
     }
 }
 ```
+
+ummmm should I do the "capitalization matters"?
+like, how do I distinguish between a variable name?
+oh "x as y"
 
 # Patterns
 

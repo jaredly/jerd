@@ -209,7 +209,17 @@ export type SwitchCase = {
     body: Term;
 };
 
-export type Pattern = Literal | AliasPattern | RecordPattern | EnumPattern;
+export type Pattern =
+    | Literal
+    | AliasPattern
+    | RecordPattern
+    | EnumPattern
+    | Binding;
+export type Binding = {
+    type: 'Binding';
+    sym: Symbol;
+    location: Location | null;
+};
 export type AliasPattern = {
     type: 'Alias';
     name: Symbol;
@@ -228,10 +238,11 @@ export type RecordPattern = {
     location: Location | null;
 };
 export type RecordPatternItem = {
-    sym: Symbol;
+    // sym: Symbol;
     ref: UserReference;
     idx: number; // is this right? hm no I need to know the subtype too
     location: Location | null;
+    pattern: Pattern;
     is: Type;
 };
 

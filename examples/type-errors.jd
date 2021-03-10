@@ -156,3 +156,25 @@ Counter<<T>(T) => T>{item: <T,>(input: T) => "hi", count: 10}
 const m = Counter<<T: HasName>(T) => string>{item: <T: HasName>(input: T) => input.name, count: 10}
 const n = m.item
 n<Dog>(dog)
+
+type Some<T> = {
+    value: T
+}
+type None = {}
+
+enum Option<T> {
+    Some<T>,
+    None
+}
+
+type Twice<T> = {
+    one: T,
+    two: T,
+}
+
+enum OptionOrTwice<T> {
+    ...Option<T>,
+    Twice<T>
+}
+
+// Option<int>:Some<string>{_: "hi"}
