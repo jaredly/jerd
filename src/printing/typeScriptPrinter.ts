@@ -991,29 +991,33 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             // TODO: if the term is "basic", we can just pass it through
             const basic = isConstant(term.term);
 
-            const id = 'discriminant';
+            const id = '$discriminant';
 
             const value = basic ? printTerm(env, term.term) : t.identifier(id);
 
-            let current: t.BlockStatement = t.blockStatement([
-                t.throwStatement(
-                    t.newExpression(t.identifier('Error'), [
-                        t.stringLiteral('Invalid case analysis'),
-                    ]),
-                ),
-            ]);
+            let cases = [];
 
-            term.cases
-                .slice()
-                .reverse()
-                .forEach((kase, i) => {
-                    current = printPattern(
+            term.cases.forEach((kase, i) => {
+                cases.push(
+                    printPattern(
                         value,
                         kase.pattern,
-                        printTerm(env, kase.body),
-                        current,
-                    );
-                });
+                        t.blockStatement([
+                            t.returnStatement(printTerm(env, kase.body)),
+                        ]),
+                    ),
+                );
+            });
+
+            cases.push(
+                t.blockStatement([
+                    t.throwStatement(
+                        t.newExpression(t.identifier('Error'), [
+                            t.stringLiteral('Invalid case analysis'),
+                        ]),
+                    ),
+                ]),
+            );
 
             return iffe(
                 t.blockStatement(
@@ -1026,7 +1030,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                                       printTerm(env, term.term),
                                   ),
                               ]),
-                        current,
+                        ...cases,
                     ].filter(Boolean) as Array<t.Statement>,
                 ),
             );
@@ -1043,8 +1047,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
 const printPattern = (
     value: t.Expression,
     pattern: Pattern,
-    success: t.Expression,
-    failure: t.Statement,
+    success: t.BlockStatement,
 ): t.BlockStatement => {
     if (pattern.type === 'Binding') {
         return t.blockStatement([
@@ -1054,42 +1057,31 @@ const printPattern = (
                     value,
                 ),
             ]),
-            t.returnStatement(success),
+            success,
         ]);
     } else if (pattern.type === 'Alias') {
         return printPattern(
             value,
             pattern.inner,
-            iffe(
-                t.blockStatement([
-                    t.variableDeclaration('const', [
-                        t.variableDeclarator(
-                            t.identifier(printSym(pattern.name)),
-                            value,
-                        ),
-                    ]),
-                    t.returnStatement(success),
+            t.blockStatement([
+                t.variableDeclaration('const', [
+                    t.variableDeclarator(
+                        t.identifier(printSym(pattern.name)),
+                        value,
+                    ),
                 ]),
-            ),
-            failure,
+                success,
+            ]),
         );
     } else if (pattern.type === 'Record') {
         pattern.items.forEach((item) => {
-            success = iffe(
-                printPattern(
-                    t.memberExpression(
-                        value,
-                        t.identifier(recordAttributeName(item.ref, item.idx)),
-                    ),
-                    item.pattern,
-                    success,
-                    // Ohhhhh hmmm how do we navigate that ....
-                    // hmmmm
-                    // uh hm.
-                    // STOPSHIP:
-                    // figure a way out of this.
-                    failure,
+            success = printPattern(
+                t.memberExpression(
+                    value,
+                    t.identifier(recordAttributeName(item.ref, item.idx)),
                 ),
+                item.pattern,
+                success,
             );
         });
         return t.blockStatement([
@@ -1099,8 +1091,7 @@ const printPattern = (
                     t.memberExpression(value, t.identifier('type')),
                     t.stringLiteral(idName(pattern.ref.id)),
                 ),
-                t.blockStatement([t.returnStatement(success)]),
-                failure,
+                success,
             ),
         ]);
     } else if (pattern.type === 'int') {
@@ -1111,16 +1102,14 @@ const printPattern = (
                     value,
                     t.numericLiteral(pattern.value),
                 ),
-                t.blockStatement([t.returnStatement(success)]),
-                failure,
+                success,
             ),
         ]);
     } else if (pattern.type === 'string') {
         return t.blockStatement([
             t.ifStatement(
                 t.binaryExpression('===', value, t.stringLiteral(pattern.text)),
-                t.blockStatement([t.returnStatement(success)]),
-                failure,
+                success,
             ),
         ]);
     }

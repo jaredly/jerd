@@ -45,6 +45,17 @@ const y = Option<int>:None
 const y1 = OptionOrTwice<int>:y
 const y2 = OptionOrTwice<int>:Twice<int>{one: 3, two: 10}
 
+switch y2 {
+    Twice{one: one, two: two} => one + two,
+    _ => 0
+} == 13
+
+switch y1 {
+    Twice{one: one, two: two} => one + two,
+    None => 2,
+    _ => 0
+} == 2
+
 const something = Some<int>{_: 10}
 // We can do enum conversion on variables too
 const asOption = Option<int>:something
@@ -77,8 +88,75 @@ switch 10 {
 switch Option<string>:Some<string>{_: "yes"} {
     Some{_: "no"} => false,
     None => false,
-    Some{_: "yes"} => true
+    Some{_: v} => v == "yes"
 } == true
+
+/*
+
+const d = {type: "some", contents: "yes"}
+
+if (d.type === 'some' && d.contents === 'no') {
+    retur false
+} else if (d.type === 'none') {
+    return false
+} else if (d.type === 'some') {
+    return d.contents > 'hi'
+}
+
+switch v {
+    [x, ...y, 10, 1] => true,
+    [] => false,
+    [2, 3 as x] => true
+}
+
+- ok what if the plan was:
+- you have bindings, and conditions, and such.
+- also I need to make sure uniques are actually unique. probably per-term
+
+ok new plan. doesn't use "else".
+just return when you're done.
+
+let _handled = false
+
+if (v.length >= 3) {
+    const x = v[0]
+    const y = v.slice(1, -2)
+    if (v[v.length - 1] === 1) {
+        if (v[v.length - 2] === 10) {
+            _handled = true
+            return true
+        }
+    }
+}
+
+// hmm does this work for the 'let binding' case?
+// I guess for let-bindings we don't have conditional success.
+// so its very different.
+
+
+
+
+
+if (v.length >= 3) {
+
+} else {
+    if (v.length === 0) {
+    
+    } else {
+        if (v.length === 2) {
+
+        }
+    }
+}
+
+if (v.length >= 3 && v[v.length - 2] === 10 && v[v.length - 1] === 1) {
+    const x = v[0]
+    const y = v.slice(1, -2)
+    return true
+}
+
+
+*/
 
 
 // This now has type `Option<never>:None`, which can be coerced to anything.

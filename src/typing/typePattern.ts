@@ -97,7 +97,7 @@ const typePattern = (
             }
         }
         case 'Record': {
-            const names: { [key: string]: { i: number; id: Id } } = {};
+            const names: { [key: string]: { i: number; id: Id | null } } = {};
             let subTypeIds: Array<Id>;
             let base: RecordBase<{ type: Type; value: Term | null }>;
             const subTypeTypes: { [id: string]: RecordDef } = {};
@@ -144,12 +144,11 @@ const typePattern = (
                 throw new Error(`Not a record ${idName(id)}`);
             }
             t = applyTypeVariablesToRecord(env, t, found.typeVbls);
-            console.log('Got the thing');
 
             subTypeIds = getAllSubTypes(env.global, t);
 
             env.global.recordGroups[idName(id)].forEach(
-                (name, i) => (names[name] = { i, id }),
+                (name, i) => (names[name] = { i, id: null }),
             );
             const ref: Reference = { type: 'user', id };
             base = { rows: [], ref, type: 'Concrete', spread: null };
@@ -202,7 +201,7 @@ const typePattern = (
                     const got = names[row.id.text];
                     i = got.i;
                     rowId = got.id;
-                    ref = { type: 'user', id: got.id };
+                    ref = { type: 'user', id: got.id || id };
                 }
 
                 const recordType =
@@ -215,9 +214,9 @@ const typePattern = (
                 //         ? base.rows
                 //         : subTypes[idName(id!)].rows;
                 if (!recordType) {
-                    console.log(row, base, rowId);
+                    console.log(row, base, rowId, subTypeTypes);
 
-                    throw new Error(`No record?`);
+                    throw new Error(`No record`);
                 }
 
                 const is = recordType.items[i];
