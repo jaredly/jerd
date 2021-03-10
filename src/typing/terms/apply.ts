@@ -22,6 +22,7 @@ export const typeApply = (
         // or rather, doing it like this
         // does weird things to the pretty-printing end.
         // Because we lose the `<T>`.
+        // @ts-ignore
         target = {
             ...target,
             is: applyTypeVariables(
@@ -38,6 +39,7 @@ export const typeApply = (
         : null;
     if (mappedVbls != null) {
         const pre = target.is;
+        // @ts-ignore
         target = {
             ...target,
             is: applyEffectVariables(env, target.is, mappedVbls) as LambdaType,

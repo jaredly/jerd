@@ -12,6 +12,7 @@ import {
     Lambda,
     LambdaType,
     walkTerm,
+    Pattern,
 } from '../typing/types';
 import { Location } from '../parsing/parser';
 import * as t from '@babel/types';
@@ -305,6 +306,18 @@ export const declarationToString = (
     );
     optimizeAST(ast);
     return generate(ast).code;
+};
+
+const isConstant = (arg: Term) => {
+    switch (arg.type) {
+        case 'int':
+        case 'string':
+        case 'ref':
+        case 'var':
+            return true;
+        default:
+            return false;
+    }
 };
 
 const isSimple = (arg: Term) => {
@@ -954,10 +967,98 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                         : printTerm(env, item),
                 ),
             );
+        case 'Switch': {
+            // const raspies
+            // return
+            /*
+            switch x {
+                Some => true,
+                None => false,
+            }
+
+            =>
+
+            () => {
+                if (x.type === 'some') {
+                    return true
+                } else if (x.type === 'none') {
+                    return false
+                } else {
+                    throw new Error('Invalid case analysis!')
+                }
+            }()
+            */
+            // TODO: if the term is "basic", we can just pass it through
+            const basic = isConstant(term.term);
+
+            const id = 'discriminant';
+
+            const value = basic ? printTerm(env, term.term) : t.identifier(id);
+
+            let current: t.BlockStatement = t.blockStatement([
+                t.throwStatement(
+                    t.newExpression(t.identifier('Error'), [
+                        t.stringLiteral('Invalid case analysis'),
+                    ]),
+                ),
+            ]);
+
+            term.cases
+                .slice()
+                .reverse()
+                .forEach((kase, i) => {
+                    current = printPattern(
+                        value,
+                        kase.pattern,
+                        printTerm(env, kase.body),
+                        current,
+                    );
+                });
+
+            return iffe(
+                t.blockStatement(
+                    [
+                        basic
+                            ? null
+                            : t.variableDeclaration('const', [
+                                  t.variableDeclarator(
+                                      t.identifier(id),
+                                      printTerm(env, term.term),
+                                  ),
+                              ]),
+                        current,
+                    ].filter(Boolean) as Array<t.Statement>,
+                ),
+            );
+        }
         default:
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
     }
+};
+
+const printPattern = (
+    value: t.Expression,
+    pattern: Pattern,
+    success: t.Expression,
+    failure: t.Statement,
+): t.BlockStatement => {
+    if (pattern.type === 'Record') {
+        if (pattern.items.length === 0) {
+            return t.blockStatement([
+                t.ifStatement(
+                    t.binaryExpression(
+                        '===',
+                        t.memberExpression(value, t.identifier('type')),
+                        t.stringLiteral(idName(pattern.ref.id)),
+                    ),
+                    t.blockStatement([t.returnStatement(success)]),
+                    failure,
+                ),
+            ]);
+        }
+    }
+    throw new Error(`Pattern not yet supported`);
 };
 
 const recordIdName = (ref: Reference) => {

@@ -19,6 +19,7 @@ import {
     GlobalEnv,
     RecordType,
     TypeVblDecl,
+    Pattern,
 } from './types';
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
@@ -30,6 +31,7 @@ import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
 import { typeRecord } from './terms/record';
 import { typeApply } from './terms/apply';
+import typePattern from './typePattern';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -243,6 +245,39 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 location: expr.location,
                 is: string,
             };
+        case 'Switch': {
+            const term = typeExpr(env, expr.expr);
+            const cases: Array<{ pattern: Pattern; body: Term }> = [];
+            let is: Type | null = null;
+            console.log(expr.cases);
+            expr.cases.forEach((c) => {
+                const inner = subEnv(env);
+                const pattern = typePattern(inner, c.pattern);
+                const body = typeExpr(inner, c.body);
+                if (is == null) {
+                    is = body.is;
+                } else {
+                    assertFits(env, body.is, is);
+                }
+                cases.push({
+                    pattern,
+                    body,
+                });
+            });
+            // STOPSHIP: gotta ensure exhaustivity here folks!
+            // hrmmm this could be tricky
+            // ok, so maybe we can have paths?
+            // [idName, attr, etc.]
+            // and if [idName] => true, then that record is covered
+            // and if [] => true, then we have a wildcard coverage.
+            return {
+                type: 'Switch',
+                term,
+                cases,
+                location: expr.location,
+                is: is!,
+            };
+        }
         case 'block': {
             const inner: Array<Term | Let> = [];
             let innerEnv = env;

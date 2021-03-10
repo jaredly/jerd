@@ -84,6 +84,7 @@ export type Expression =
     | Raise
     | Ops
     | If
+    | Switch
     | Block
     | Record
     | Enum
@@ -146,6 +147,38 @@ export type If = {
     location: Location;
 };
 
+// Switches!!
+export type Switch = {
+    type: 'Switch';
+    expr: Expression;
+    cases: Array<SwitchCase>;
+    location: Location;
+};
+
+export type SwitchCase = {
+    pattern: Pattern;
+    body: Expression;
+};
+export type Pattern = AliasPattern | Literal | RecordPattern;
+export type AliasPattern = {
+    type: 'Alias';
+    name: Identifier;
+    inner: Pattern;
+    location: Location;
+};
+export type RecordPattern = {
+    type: 'Record';
+    id: Identifier;
+    items: Array<RecordPatternItem>;
+    loction: Location;
+};
+export type RecordPatternItem = {
+    id: Identifier;
+    pattern: Pattern;
+    location: Location;
+};
+
+// Effect things
 export type Raise = {
     type: 'raise';
     name: Identifier;

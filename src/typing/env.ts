@@ -142,14 +142,15 @@ const withoutLocations = <T>(obj: T): T => {
         return obj;
     }
     if (Array.isArray(obj)) {
-        return obj.map(withoutLocations);
+        return (obj as any).map(withoutLocations);
     }
     if (typeof obj === 'object') {
-        const res = {};
+        const res: any = {};
         Object.keys(obj).forEach((key) => {
             if (key === 'location') {
                 return;
             }
+            // @ts-ignore
             res[key] = withoutLocations(obj[key]);
         });
         return res;

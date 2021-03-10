@@ -196,12 +196,52 @@ export type Enum = {
     location: Location | null;
 };
 
+export type Switch = {
+    type: 'Switch';
+    term: Term;
+    cases: Array<SwitchCase>;
+    is: Type;
+    location: Location | null;
+};
+
+export type SwitchCase = {
+    pattern: Pattern;
+    body: Term;
+};
+
+export type Pattern = Literal | AliasPattern | RecordPattern | EnumPattern;
+export type AliasPattern = {
+    type: 'Alias';
+    name: Symbol;
+    inner: Pattern;
+    location: Location | null;
+};
+export type EnumPattern = {
+    type: 'Enum';
+    ref: UserReference;
+    location: Location | null;
+};
+export type RecordPattern = {
+    type: 'Record';
+    ref: UserReference;
+    items: Array<RecordPatternItem>;
+    location: Location | null;
+};
+export type RecordPatternItem = {
+    sym: Symbol;
+    ref: UserReference;
+    idx: number; // is this right? hm no I need to know the subtype too
+    location: Location | null;
+    is: Type;
+};
+
 export type Term =
     | CPSAble
     | { type: 'self'; is: Type; location: Location | null }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
     | Record
+    | Switch
     | Enum
     | ArrayLiteral
     | {
@@ -219,15 +259,23 @@ export type Term =
           is: Type;
       }
     | Var
-    | {
-          type: 'int';
-          location: Location | null;
-          value: number; // TODO other builtin types
-          is: Type;
-      }
-    | { type: 'string'; text: string; is: Type; location: Location | null }
+    | Int
+    | String
     | Lambda;
 
+export type Literal = String | Int;
+export type Int = {
+    type: 'int';
+    location: Location | null;
+    value: number; // TODO other builtin types
+    is: Type;
+};
+export type String = {
+    type: 'string';
+    text: string;
+    is: Type;
+    location: Location | null;
+};
 export type Lambda = {
     type: 'lambda';
     location: Location | null;
@@ -618,6 +666,10 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
         }
         case 'Enum':
             return getEffects(t.inner);
+        case 'Switch':
+            return getEffects(t.term).concat(
+                ...t.cases.map((c) => getEffects(c.body)),
+            );
         default:
             let _x: never = t;
             throw new Error('Unhandled term');

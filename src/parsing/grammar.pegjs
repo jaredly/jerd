@@ -128,13 +128,13 @@ If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
     return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
 }
 
-Switch = "switch" __ expr:Expression __ "{"
+Switch = "switch" __ expr:Expression __ "{" _
     cases:SwitchCases
-"}" {
+_ "}" {
     return {type: 'Switch', expr, cases, location: location()}
 }
 
-SwitchCases = first:SwitchCase rest:(_ "," _ SwitchCase) {
+SwitchCases = first:SwitchCase rest:(_ "," _ SwitchCase)* ","? {
     return [first, ...rest.map(r => r[3])]
 }
 SwitchCase = pattern:Pattern __ "=>" __ body:Expression {
@@ -143,7 +143,7 @@ SwitchCase = pattern:Pattern __ "=>" __ body:Expression {
 
 Pattern = inner:PatternInner as_:(__ "as" __ Identifier)? {
     if (as_ != null) {
-        return {type: 'Alias', name: as_, inner}
+        return {type: 'Alias', name: as_[3], inner, location: location()}
     }
     return inner
 }
@@ -152,7 +152,8 @@ RecordPattern = id:Identifier "{" items:RecordPatternCommas "}" {
     return {type: 'Record', id, items, location: location()}
 }
 RecordPatternCommas = first:RecordPatternItem rest:(_ "," _ RecordPatternItem)* ","? {return [first, ...rest.map(r => r[3])]}
-RecordPatternItem = id:Identifier _ ":" _ pattern:Pattern {return {id, pattern, location: location()}}
+RecordPatternItem = id:Identifier _ ":" _ pattern:Pattern {
+    return {id, pattern, location: location()}}
 // TODO: array literal!
 // TODO: constants!
 
