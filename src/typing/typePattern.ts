@@ -221,23 +221,24 @@ const typePattern = (
 
                 const is = recordType.items[i];
 
-                // const v = typeExpr(env, row.value);
-                // if (!fitsExpectation(env, v.is, rowsToMod[i].type)) {
-                //     throw new Error(
-                //         `Invalid type for attribute ${row.id.text} at ${showLocation(
-                //             row.value.location,
-                //         )}. Expected ${showType(recordType.items[i])}, got ${showType(
-                //             v.is,
-                //         )}`,
-                //     );
-                // }
+                let pattern: Pattern;
+                if (row.pattern == null) {
+                    const unique = env.local.unique++;
+                    const sym: Symbol = {
+                        unique,
+                        name: row.id.text,
+                    };
+                    env.local.locals[row.id.text] = { sym, type: is };
+                    pattern = { type: 'Binding', location: row.location, sym };
+                } else {
+                    pattern = typePattern(env, row.pattern, is);
+                }
 
                 items.push({
-                    // sym,
                     ref,
                     idx: i,
                     location: row.location,
-                    pattern: typePattern(env, row.pattern, is),
+                    pattern,
                     is,
                 });
             });

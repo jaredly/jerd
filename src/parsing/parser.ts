@@ -174,7 +174,7 @@ export type RecordPattern = {
 };
 export type RecordPatternItem = {
     id: Identifier;
-    pattern: Pattern;
+    pattern: Pattern | null;
     location: Location;
 };
 

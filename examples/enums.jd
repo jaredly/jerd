@@ -46,12 +46,12 @@ const y1 = OptionOrTwice<int>:y
 const y2 = OptionOrTwice<int>:Twice<int>{one: 3, two: 10}
 
 switch y2 {
-    Twice{one: one, two: two} => one + two,
+    Twice{one, two} => one + two,
     _ => 0
 } == 13
 
 switch y1 {
-    Twice{one: one, two: two} => one + two,
+    Twice{one, two} => one + two,
     None => 2,
     _ => 0
 } == 2

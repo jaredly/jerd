@@ -152,8 +152,8 @@ RecordPattern = id:Identifier "{" items:RecordPatternCommas "}" {
     return {type: 'Record', id, items, location: location()}
 }
 RecordPatternCommas = first:RecordPatternItem rest:(_ "," _ RecordPatternItem)* ","? {return [first, ...rest.map(r => r[3])]}
-RecordPatternItem = id:Identifier _ ":" _ pattern:Pattern {
-    return {id, pattern, location: location()}}
+RecordPatternItem = id:Identifier pattern:(_ ":" _ Pattern)? {
+    return {id, pattern: pattern ? pattern[3] : null, location: location()}}
 // TODO: array literal!
 // TODO: constants!
 
