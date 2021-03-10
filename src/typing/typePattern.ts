@@ -209,10 +209,6 @@ const typePattern = (
                         ? t
                         : subTypeTypes[idName(rowId!)];
 
-                // let rowsToMod =
-                //     id == null && base.type === 'Concrete'
-                //         ? base.rows
-                //         : subTypes[idName(id!)].rows;
                 if (!recordType) {
                     console.log(row, base, rowId, subTypeTypes);
 

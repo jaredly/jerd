@@ -1,5 +1,14 @@
 
-File = _ s:(Toplevel _)* finalLineComment? {return s.map(s => s[0])}
+File = _ s:(DecoratedToplevel _)* finalLineComment? {return s.map(s => s[0])}
+
+DecoratedToplevel = decorators:(Decorator _)* top:Toplevel {
+    return decorators.length > 0 ? {
+        type: 'Decorated',
+        decorators: decorators.map(d => d[0]),
+        wrapped: top,
+        location: location()
+    } : top
+}
 
 Toplevel = StructDef / EnumDef / Effect / Statement
 
@@ -7,6 +16,12 @@ Statement = Define / Expression
 
 
 
+// Decorators! For doing macro-y things probably?
+// Also for some builtin magics
+
+Decorator = "@" id:Identifier args:("(" _ CommaExpr _ ")")? {
+    return {type: 'Decorator', id, args: args ? args[2] : [], location: location()}
+}
 
 
 
@@ -138,7 +153,7 @@ SwitchCases = first:SwitchCase rest:(_ "," _ SwitchCase)* ","? {
     return [first, ...rest.map(r => r[3])]
 }
 SwitchCase = pattern:Pattern __ "=>" __ body:Expression {
-    return {pattern, body}
+    return {pattern, body, location: location()}
 }
 
 Pattern = inner:PatternInner as_:(__ "as" __ Identifier)? {

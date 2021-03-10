@@ -80,6 +80,14 @@ const getWithDefault = <T,>(x: Option<T>, default: T): T => {
 getWithDefault<int>(Option<int>:None, 20) == 20
 getWithDefault<int>(Option<int>:Some<int>{_: 3}, 20) == 3
 
+@typeError("Bodies of case arms don't agree")
+switch 10 { 4 => 10, 10 => true }
+
+@typeError("Not an enum")
+switch None { None => true }
+
+// um what were the other errors I wanted to verify?
+
 switch 10 {
     4 => false,
     10 => true
@@ -90,6 +98,14 @@ switch Option<string>:Some<string>{_: "yes"} {
     None => false,
     Some{_: v} => v == "yes"
 } == true
+
+@typeError("expected string, found int")
+switch Option<string>:Some<string>{_: "yes"} {
+    Some{_: 5} => false,
+    None => false,
+    Some{_: v} => v == "yes"
+}
+
 
 /*
 

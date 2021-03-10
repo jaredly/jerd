@@ -1,14 +1,13 @@
 import { Switch } from '../../parsing/parser';
-import typeExpr from '../typeExpr';
+import typeExpr, { showLocation } from '../typeExpr';
 import typePattern from '../typePattern';
 import { Env, Pattern, subEnv, Term, Type } from '../types';
-import { assertFits } from '../unify';
+import { fitsExpectation, showType } from '../unify';
 
 export const typeSwitch = (env: Env, expr: Switch): Term => {
     const term = typeExpr(env, expr.expr);
     const cases: Array<{ pattern: Pattern; body: Term }> = [];
     let is: Type | null = null;
-    console.log(expr.cases);
     expr.cases.forEach((c) => {
         const inner = subEnv(env);
         const pattern = typePattern(inner, c.pattern, term.is);
@@ -16,7 +15,13 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
         if (is == null) {
             is = body.is;
         } else {
-            assertFits(env, body.is, is);
+            if (fitsExpectation(env, body.is, is) !== true) {
+                throw new Error(
+                    `Bodies of case arms don't agree! ${showType(
+                        body.is,
+                    )} vs ${showType(is)} at ${showLocation(c.location)}`,
+                );
+            }
         }
         cases.push({
             pattern,

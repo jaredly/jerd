@@ -5,7 +5,7 @@
 import path from 'path';
 import fs from 'fs';
 import { hashObject } from './typing/env';
-import parse, { Location, Toplevel } from './parsing/parser';
+import parse, { Expression, Location, Toplevel } from './parsing/parser';
 import {
     declarationToAST,
     printType,
@@ -34,7 +34,7 @@ import {
     unifyVariables,
     fitsExpectation,
 } from './typing/unify';
-import { printToString } from './printing/printer';
+import { items, printToString } from './printing/printer';
 import { declarationToPretty, termToPretty } from './printing/printTsLike';
 import {
     typeDefine,
@@ -156,6 +156,19 @@ const testInference = (parsed: Toplevel[]) => {
     }
 };
 
+const toplevelExpr = (item: Toplevel): Expression | null => {
+    switch (item.type) {
+        case 'define':
+        case 'effect':
+        case 'StructDef':
+        case 'EnumDef':
+        case 'Decorated':
+            return null;
+        default:
+            return item;
+    }
+};
+
 function typeFile(parsed: Toplevel[]) {
     const env = presetEnv();
 
@@ -174,6 +187,50 @@ function typeFile(parsed: Toplevel[]) {
             typeTypeDefn(env, item);
         } else if (item.type === 'EnumDef') {
             typeEnumDefn(env, item);
+        } else if (item.type === 'Decorated') {
+            if (item.decorators[0].id.text === 'typeError') {
+                const args = item.decorators[0].args.map((expr) =>
+                    typeExpr(env, expr),
+                );
+                if (args.length !== 1 || args[0].type !== 'string') {
+                    throw new Error(
+                        `Expected one string arg to @typeExpr ${showLocation(
+                            item.location,
+                        )}`,
+                    );
+                }
+                const expr = toplevelExpr(item.wrapped);
+                if (expr == null) {
+                    throw new Error(
+                        `Expected typeError to be on an expression ${showLocation(
+                            item.location,
+                        )}`,
+                    );
+                }
+                let t;
+                try {
+                    t = typeExpr(env, expr);
+                } catch (err) {
+                    if (err.message.includes(args[0].text)) {
+                        continue; // success
+                    } else {
+                        throw new Error(
+                            `Type error doesn't match expectation: "${
+                                err.message
+                            }" vs "${args[0].text}" ${showLocation(
+                                item.location,
+                            )}`,
+                        );
+                    }
+                }
+                throw new Error(
+                    `Expcted a type error, but got ${showType(
+                        t.is,
+                    )}\n${printToString(termToPretty(t), 100)}`,
+                );
+            } else {
+                throw new Error(`Unhandled decorator`);
+            }
         } else {
             // A standalone expression
             const term = typeExpr(env, item);
@@ -324,6 +381,8 @@ const processErrors = (fname: string) => {
             typeTypeDefn(env, item);
         } else if (item.type === 'EnumDef') {
             typeEnumDefn(env, item);
+        } else if (item.type === 'Decorated') {
+            throw new Error(`Unexpected decorator`);
         } else {
             let term;
             try {

@@ -279,9 +279,9 @@ export const assertFits = (
 ) => {
     if (fitsExpectation(env, t, expected) !== true) {
         throw new Error(
-            `Type error, expected ${showType(expected)} at ${showLocation(
-                location || t.location,
-            )}, found ${showType(t)}`,
+            `Type error, expected ${showType(expected)}, found ${showType(
+                t,
+            )} at ${showLocation(location || t.location)}`,
         );
     }
 };

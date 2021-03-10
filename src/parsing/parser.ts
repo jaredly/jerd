@@ -1,7 +1,25 @@
-import { Reference } from '../typing/types';
 import { parse } from './grammar';
 
-export type Toplevel = Define | Effect | Expression | StructDef | EnumDef;
+export type Toplevel =
+    | Define
+    | Effect
+    | Expression
+    | StructDef
+    | EnumDef
+    | Decorated;
+
+export type Decorated = {
+    type: 'Decorated';
+    location: Location;
+    wrapped: Toplevel;
+    decorators: Array<Decorator>;
+};
+
+export type Decorator = {
+    type: 'Decorator';
+    id: Identifier;
+    args: Array<Expression>;
+};
 
 export type Effect = {
     type: 'effect';
@@ -158,6 +176,7 @@ export type Switch = {
 export type SwitchCase = {
     pattern: Pattern;
     body: Expression;
+    location: Location;
 };
 export type Pattern = AliasPattern | Literal | RecordPattern;
 export type AliasPattern = {

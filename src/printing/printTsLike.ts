@@ -156,6 +156,8 @@ export const termToPretty = (term: Term | Let): PP => {
             return refToPretty(term.ref);
         case 'var':
             return symToPretty(term.sym);
+        case 'Switch':
+            return atom('switches not yet printable');
         case 'handle':
             return items([
                 atom('handle! '),

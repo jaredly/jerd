@@ -1,4 +1,25 @@
 
+# Macros!
+So rust does `name!`, which is neat. And also `#[decorator()]` stuff.
+Then there's python's `@decorator`, which has a certain charm. Especially because I'm thinking of allowing decorators anywhere in the tree, not just at toplevel. There's also a stage-2 proposal for js using `@`, which is nice.
+
+So
+```ts
+@something yes
+@something("please") yes
+```
+
+So, how about things that replace nodes?
+Like a macro invocation that replaces nodes?
+maybe start with a hash? or do the bang?
+`#something(yes)`
+or
+`something!(yes)`
+
+and again, I'm not going to do custom syntax.
+All nodes will be parsed and type-checked before going in,
+unless explicitly quoted (need a quasi-quote node folks).
+
 # Functions
 
 ```ts
