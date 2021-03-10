@@ -1056,8 +1056,24 @@ const printPattern = (
             ]),
             t.returnStatement(success),
         ]);
-    }
-    if (pattern.type === 'Record') {
+    } else if (pattern.type === 'Alias') {
+        return printPattern(
+            value,
+            pattern.inner,
+            iffe(
+                t.blockStatement([
+                    t.variableDeclaration('const', [
+                        t.variableDeclarator(
+                            t.identifier(printSym(pattern.name)),
+                            value,
+                        ),
+                    ]),
+                    t.returnStatement(success),
+                ]),
+            ),
+            failure,
+        );
+    } else if (pattern.type === 'Record') {
         pattern.items.forEach((item) => {
             success = iffe(
                 printPattern(
@@ -1067,11 +1083,15 @@ const printPattern = (
                     ),
                     item.pattern,
                     success,
+                    // Ohhhhh hmmm how do we navigate that ....
+                    // hmmmm
+                    // uh hm.
+                    // STOPSHIP:
+                    // figure a way out of this.
                     failure,
                 ),
             );
         });
-        // if (pattern.items.length === 0) {
         return t.blockStatement([
             t.ifStatement(
                 t.binaryExpression(
@@ -1083,9 +1103,28 @@ const printPattern = (
                 failure,
             ),
         ]);
-        // } else {
-        // }
+    } else if (pattern.type === 'int') {
+        return t.blockStatement([
+            t.ifStatement(
+                t.binaryExpression(
+                    '===',
+                    value,
+                    t.numericLiteral(pattern.value),
+                ),
+                t.blockStatement([t.returnStatement(success)]),
+                failure,
+            ),
+        ]);
+    } else if (pattern.type === 'string') {
+        return t.blockStatement([
+            t.ifStatement(
+                t.binaryExpression('===', value, t.stringLiteral(pattern.text)),
+                t.blockStatement([t.returnStatement(success)]),
+                failure,
+            ),
+        ]);
     }
+    const _v: never = pattern;
     throw new Error(`Pattern not yet supported ${pattern.type}`);
 };
 

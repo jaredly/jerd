@@ -1,7 +1,11 @@
 import { Pattern as RawPattern } from '../parsing/parser';
 import { idName } from './env';
 import { int, string } from './preset';
-import { showLocation, getEnumReferences } from './typeExpr';
+import {
+    showLocation,
+    getEnumReferences,
+    applyTypeVariablesToRecord,
+} from './typeExpr';
 import {
     Env,
     getAllSubTypes,
@@ -16,6 +20,7 @@ import {
     Symbol,
     Term,
     Type,
+    TypeReference,
 } from './types';
 import { assertFits, showType } from './unify';
 
@@ -123,10 +128,10 @@ const typePattern = (
                 throw new Error(`Not a type`);
             }
             const allReferences = getEnumReferences(env, expectedType);
-            let found = false;
+            let found: TypeReference | null = null;
             for (let ref of allReferences) {
                 if (refsEqual(ref.ref, { type: 'user', id })) {
-                    found = true;
+                    found = ref;
                     break;
                 }
             }
@@ -134,10 +139,13 @@ const typePattern = (
                 throw new Error(`Enum doesn't match`);
             }
 
-            const t = env.global.types[idName(id)];
+            let t = env.global.types[idName(id)];
             if (t.type !== 'Record') {
                 throw new Error(`Not a record ${idName(id)}`);
             }
+            t = applyTypeVariablesToRecord(env, t, found.typeVbls);
+            console.log('Got the thing');
+
             subTypeIds = getAllSubTypes(env.global, t);
 
             env.global.recordGroups[idName(id)].forEach(
@@ -148,6 +156,7 @@ const typePattern = (
             // }
 
             subTypeIds.forEach((id) => {
+                // STOPSHIP: need to substitute type variables
                 const t = env.global.types[idName(id)] as RecordDef;
                 subTypeTypes[idName(id)] = t;
                 // const rows = new Array(t.items.length);
@@ -198,7 +207,7 @@ const typePattern = (
 
                 const recordType =
                     rowId == null && base.type === 'Concrete'
-                        ? (env.global.types[idName(base.ref.id)] as RecordDef)
+                        ? t
                         : subTypeTypes[idName(rowId!)];
 
                 // let rowsToMod =

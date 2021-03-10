@@ -69,6 +69,17 @@ const getWithDefault = <T,>(x: Option<T>, default: T): T => {
 getWithDefault<int>(Option<int>:None, 20) == 20
 getWithDefault<int>(Option<int>:Some<int>{_: 3}, 20) == 3
 
+switch 10 {
+    4 => false,
+    10 => true
+} == true
+
+switch Option<string>:Some<string>{_: "yes"} {
+    Some{_: "no"} => false,
+    None => false,
+    Some{_: "yes"} => true
+} == true
+
 
 // This now has type `Option<never>:None`, which can be coerced to anything.
 // const z = Option:None
