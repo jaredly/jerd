@@ -49,12 +49,16 @@ const something = Some<int>{_: 10}
 // We can do enum conversion on variables too
 const asOption = Option<int>:something
 
-const useEnum = <T,>(x: Option<T>): bool => {
+const isPresent = <T,>(x: Option<T>): bool => {
     switch x {
         Some => true,
         None => false
     }
 }
+
+isPresent(Option<int>:Some<int>{_: 3}) == true
+isPresent(Option<int>:None) == false
+
 
 // This now has type `Option<never>:None`, which can be coerced to anything.
 // const z = Option:None
