@@ -56,6 +56,13 @@ const isPresent = <T,>(x: Option<T>): bool => {
     }
 }
 
+const getWithDefault = <T,>(x: Option<T>, default: T): T => {
+    switch x {
+        Some{_: v} => v,
+        None => default,
+    }
+}
+
 isPresent(Option<int>:Some<int>{_: 3}) == true
 isPresent(Option<int>:None) == false
 
