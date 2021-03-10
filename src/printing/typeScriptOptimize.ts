@@ -156,6 +156,18 @@ const flattenImmediateCallsToLets = (ast: t.File) => {
 
 const removeBlocksWithNoDeclarations = (ast: t.File) => {
     traverse(ast, {
+        IfStatement(path) {
+            const alt = path.get('alternate');
+            if (
+                alt != null &&
+                alt.node != null &&
+                alt.node.type === 'BlockStatement' &&
+                alt.node.body.length === 1 &&
+                alt.node.body[0].type === 'IfStatement'
+            ) {
+                alt.replaceWith(alt!.node.body[0]);
+            }
+        },
         BlockStatement(path) {
             const node = path.node;
             const res: Array<t.Statement> = [];
