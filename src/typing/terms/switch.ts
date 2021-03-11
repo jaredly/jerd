@@ -1,4 +1,5 @@
 import { Location, Switch } from '../../parsing/parser';
+import { idName } from '../env';
 import typeExpr, { showLocation } from '../typeExpr';
 import typePattern from '../typePattern';
 import { Env, Pattern, subEnv, Term, Type } from '../types';
@@ -48,7 +49,25 @@ export const exhaustivenessCheck = (
                 );
             }
         }
+        throw new Error(
+            `Exhaustiveness analysis not yet implemented for ${t.ref.type}`,
+        );
     }
+
+    const defn = env.global.types[idName(t.ref.id)];
+    if (defn.type === 'Record') {
+        // ok, it's a product type! so we have m x n possibilities, right?
+        // but, we might not
+        // Both{x: true, y: false}
+        // Both{x: _, y: true}
+        // Three{x: _, y: true, z: false}
+        // Three{x: true, y: false, z: false}
+        // Three{x: true, y: _, z: _}
+    }
+    // if (defn.type !== 'Enum') {
+    //     throw new Error(`Exhaustiveness not supported for record I think`)
+    // }
+    // ok, so if this is an enum
 
     const paths = [];
 };

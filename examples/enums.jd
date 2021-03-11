@@ -127,10 +127,10 @@ switch true {
     _ => true
 } == true
 
-// @typeError("Case not handled")
-// switch y {
-//     None => true
-// }
+@typeError("Case not handled")
+switch y {
+    None => true
+}
 
 /*
 
