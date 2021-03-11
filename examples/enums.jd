@@ -90,7 +90,8 @@ switch None { None => true }
 
 switch 10 {
     4 => false,
-    10 => true
+    10 => true,
+    _ => false
 } == true
 
 switch Option<string>:Some<string>{_: "yes"} {
@@ -106,6 +107,20 @@ switch Option<string>:Some<string>{_: "yes"} {
     Some{_: v} => v == "yes"
 }
 
+@typeError("must have a catchall case")
+switch 10 {
+    10 => true
+}
+
+@typeError("must have a catchall case")
+switch "hi" {
+    "ho" => true
+}
+
+@typeError("Case not handled")
+switch y {
+    None => true
+}
 
 /*
 

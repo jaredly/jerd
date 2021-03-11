@@ -181,7 +181,6 @@ const removeBlocksWithNoDeclarations = (ast: t.File) => {
                     (n) => n.type === 'VariableDeclaration',
                 );
                 if (hasDeclares && i < count - 1) {
-                    console.log(inner.body.length, i);
                     return res.push(inner);
                 }
                 changed = true;

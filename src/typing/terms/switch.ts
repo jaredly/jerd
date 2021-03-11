@@ -4,6 +4,24 @@ import typePattern from '../typePattern';
 import { Env, Pattern, subEnv, Term, Type } from '../types';
 import { fitsExpectation, showType } from '../unify';
 
+export const exhaustivenessCheck = (
+    env: Env,
+    t: Type,
+    cases: Array<Pattern>,
+) => {
+    if (
+        t.type === 'ref' &&
+        t.ref.type === 'builtin' &&
+        ['string', 'int'].includes(t.ref.name)
+    ) {
+        if (!cases.find((x) => x.type === 'Binding')) {
+            throw new Error(
+                `${t.ref.name} must have a catchall case to be exhaustive.`,
+            );
+        }
+    }
+};
+
 export const typeSwitch = (env: Env, expr: Switch): Term => {
     const term = typeExpr(env, expr.expr);
     const cases: Array<{ pattern: Pattern; body: Term }> = [];
@@ -28,6 +46,13 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
             body,
         });
     });
+
+    exhaustivenessCheck(
+        env,
+        term.is,
+        cases.map((c) => c.pattern),
+    );
+
     // STOPSHIP: gotta ensure exhaustivity here folks!
     // hrmmm this could be tricky
     // ok, so maybe we can have paths?
