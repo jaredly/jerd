@@ -270,11 +270,10 @@ export type Term =
           is: Type;
       }
     | Var
-    | Int
-    | String
+    | Literal
     | Lambda;
 
-export type Literal = String | Int;
+export type Literal = String | Int | Boolean;
 export type Int = {
     type: 'int';
     location: Location | null;
@@ -284,6 +283,12 @@ export type Int = {
 export type String = {
     type: 'string';
     text: string;
+    is: Type;
+    location: Location | null;
+};
+export type Boolean = {
+    type: 'boolean';
+    value: boolean;
     is: Type;
     location: Location | null;
 };
@@ -632,6 +637,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             );
         case 'int':
         case 'string':
+        case 'boolean':
         case 'lambda':
         case 'self':
         case 'ref':

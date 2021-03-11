@@ -1,6 +1,6 @@
 import { Pattern as RawPattern } from '../parsing/parser';
 import { idName } from './env';
-import { int, string } from './preset';
+import { bool, int, string } from './preset';
 import {
     showLocation,
     getEnumReferences,
@@ -30,6 +30,14 @@ const typePattern = (
     expectedType: Type,
 ): Pattern => {
     switch (pattern.type) {
+        case 'boolean':
+            assertFits(env, bool, expectedType, pattern.location);
+            return {
+                type: 'boolean',
+                value: pattern.value,
+                is: string,
+                location: pattern.location,
+            };
         case 'string':
             assertFits(env, string, expectedType, pattern.location);
             return {

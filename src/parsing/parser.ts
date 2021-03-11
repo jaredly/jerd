@@ -252,7 +252,7 @@ export type LambdaType = {
     location: Location;
 };
 
-export type Literal = Int | Identifier | String;
+export type Literal = Int | Identifier | String | Boolean;
 // export type IdentifierWithType = {
 //     type: 'IdentifierWithType';
 //     id: Identifier;
@@ -261,6 +261,7 @@ export type Literal = Int | Identifier | String;
 export type Identifier = { type: 'id'; text: string; location: Location };
 export type Int = { type: 'int'; value: number; location: Location };
 export type String = { type: 'string'; text: string; location: Location };
+export type Boolean = { type: 'boolean'; value: boolean; location: Location };
 export type WithSuffix = {
     type: 'WithSuffix';
     target: Expression;

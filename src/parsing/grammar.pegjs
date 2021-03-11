@@ -283,8 +283,9 @@ CommaEffects =
 
 // ==== Literals ====
 
-Literal = Int / Identifier / String
+Literal = Boolean / Int / Identifier / String
 
+Boolean = v:("true" / "false") ![0-9a-zA-Z_] {return {type: 'boolean', location: location(), value: v === "true"}}
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}

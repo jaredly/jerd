@@ -238,6 +238,13 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     effectVbls: [],
                 },
             };
+        case 'boolean':
+            return {
+                type: 'boolean',
+                value: expr.value,
+                location: expr.location,
+                is: bool,
+            };
         case 'string':
             return {
                 type: 'string',

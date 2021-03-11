@@ -117,10 +117,20 @@ switch "hi" {
     "ho" => true
 }
 
-@typeError("Case not handled")
-switch y {
-    None => true
+@typeError("\"true\" case not handled")
+switch true {
+    false => false
 }
+
+switch true {
+    false => false,
+    _ => true
+} == true
+
+// @typeError("Case not handled")
+// switch y {
+//     None => true
+// }
 
 /*
 

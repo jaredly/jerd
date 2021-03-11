@@ -1,4 +1,4 @@
-import { Switch } from '../../parsing/parser';
+import { Location, Switch } from '../../parsing/parser';
 import typeExpr, { showLocation } from '../typeExpr';
 import typePattern from '../typePattern';
 import { Env, Pattern, subEnv, Term, Type } from '../types';
@@ -8,18 +8,49 @@ export const exhaustivenessCheck = (
     env: Env,
     t: Type,
     cases: Array<Pattern>,
+    location: Location,
 ) => {
-    if (
-        t.type === 'ref' &&
-        t.ref.type === 'builtin' &&
-        ['string', 'int'].includes(t.ref.name)
-    ) {
-        if (!cases.find((x) => x.type === 'Binding')) {
+    if (cases.find((c) => c.type === 'Binding') != null) {
+        return true;
+    }
+
+    if (t.type === 'lambda') {
+        throw new Error(
+            `Cannot match on a lambda ${showType(t)} ${showLocation(location)}`,
+        );
+    }
+
+    if (t.type === 'var') {
+        throw new Error(`Umm can't match on vbls yet I don't think`);
+    }
+
+    if (t.ref.type === 'builtin') {
+        if (['string', 'int'].includes(t.ref.name)) {
             throw new Error(
                 `${t.ref.name} must have a catchall case to be exhaustive.`,
             );
         }
+        if (t.ref.name === 'bool') {
+            const tr = cases.find(
+                (c) => c.type === 'boolean' && c.value === true,
+            );
+            const f = cases.find(
+                (c) => c.type === 'boolean' && c.value === false,
+            );
+            if (tr == null) {
+                throw new Error(
+                    `"true" case not handled ${showLocation(location)}`,
+                );
+            }
+            if (f == null) {
+                throw new Error(
+                    `"false" case not handled ${showLocation(location)}`,
+                );
+            }
+        }
     }
+
+    const paths = [];
 };
 
 export const typeSwitch = (env: Env, expr: Switch): Term => {
@@ -51,6 +82,7 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
         env,
         term.is,
         cases.map((c) => c.pattern),
+        expr.location,
     );
 
     // STOPSHIP: gotta ensure exhaustivity here folks!

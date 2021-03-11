@@ -224,9 +224,12 @@ function typeFile(parsed: Toplevel[]) {
                     }
                 }
                 throw new Error(
-                    `Expcted a type error, but got ${showType(
+                    `Expected a type error, but got ${showType(
                         t.is,
-                    )}\n${printToString(termToPretty(t), 100)}`,
+                    )} at ${showLocation(expr.location)}\n${printToString(
+                        termToPretty(t),
+                        100,
+                    )}`,
                 );
             } else {
                 throw new Error(`Unhandled decorator`);

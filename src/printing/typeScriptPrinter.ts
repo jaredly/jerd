@@ -1035,6 +1035,8 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                 ),
             );
         }
+        case 'boolean':
+            return t.booleanLiteral(term.value);
         default:
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
@@ -1109,6 +1111,17 @@ const printPattern = (
         return t.blockStatement([
             t.ifStatement(
                 t.binaryExpression('===', value, t.stringLiteral(pattern.text)),
+                success,
+            ),
+        ]);
+    } else if (pattern.type === 'boolean') {
+        return t.blockStatement([
+            t.ifStatement(
+                t.binaryExpression(
+                    '===',
+                    value,
+                    t.booleanLiteral(pattern.value),
+                ),
                 success,
             ),
         ]);
