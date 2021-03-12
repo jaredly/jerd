@@ -56,7 +56,7 @@
     - ok but this case analysis needs to be done *after* type checking. yeah. not as part of it. so that I can reuse it in the structured editors.
     - [x] basic impl of the Maranget paper
     - [x] hook it up folks!
-  - [ ] sub-enums
+  - [x] sub-enums
   - [ ] arrays! slice! dice! thrice!
   - [ ] guards I do believe (restrict to pure tho)
 - [x] some builtin macros!

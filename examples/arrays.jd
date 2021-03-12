@@ -7,6 +7,19 @@ const z = ["hi", "ho"]
 const a = [...z, "Yes"]
 const b = ["Good", ...z, "uhuh"]
 
+switch a[0] {
+    None => false,
+    // Some{_: "ho"} => false,
+    // Some{_: "hi"} => true,
+    _ => false
+}
+
+// switch a {
+//     [] => false,
+//     [..._, "Yes"] => true,
+//     _ => false
+// }
+
 // need to be able to indexing to get stuff out
 // also maybe slices can be nices
 // and indexing means we need the Option type, right?

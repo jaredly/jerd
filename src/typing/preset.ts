@@ -79,6 +79,14 @@ export function presetEnv() {
 
     env.global.typeNames['Some'] = { hash: 'Some', pos: 0, size: 1 };
     env.global.typeNames['None'] = { hash: 'None', pos: 0, size: 1 };
+    env.global.types['None'] = {
+        unique: 1,
+        type: 'Record',
+        typeVbls: [],
+        effectVbls: [],
+        extends: [],
+        items: [],
+    };
     env.global.types['Some'] = {
         unique: 0,
         type: 'Record',

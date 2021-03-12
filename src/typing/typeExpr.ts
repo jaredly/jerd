@@ -461,6 +461,12 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         ref,
                         is: t.items[idx],
                     };
+                } else if (suffix.type === 'Index') {
+                    throw new Error(`Can't handle indexes yet`);
+                } else {
+                    throw new Error(
+                        `Unhandled suffix ${showLocation(suffix.location)}`,
+                    );
                 }
             }
             return target;

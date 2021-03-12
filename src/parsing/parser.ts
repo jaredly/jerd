@@ -265,7 +265,7 @@ export type Boolean = { type: 'boolean'; value: boolean; location: Location };
 export type WithSuffix = {
     type: 'WithSuffix';
     target: Expression;
-    suffixes: Array<ApplySuffix | AttributeSuffix>;
+    suffixes: Array<ApplySuffix | AttributeSuffix | IndexSuffix>;
     location: { start: Loc; end: Loc };
 };
 export type ApplySuffix = {
@@ -278,6 +278,16 @@ export type AttributeSuffix = {
     type: 'Attribute';
     id: Identifier;
     location: Location;
+};
+export type IndexSuffix = {
+    type: 'Index';
+    location: Location;
+    slices: Array<Expression | Slice>;
+};
+export type Slice = {
+    type: 'Slice';
+    left: Expression | null;
+    right: Expression | null;
 };
 
 export default (raw: string): Array<Toplevel> => parse(raw);

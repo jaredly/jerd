@@ -90,6 +90,13 @@ const typePattern = (
                 }
 
                 const decl = env.global.types[idName(id)];
+                if (!decl) {
+                    throw new Error(
+                        `Type not found ${pattern.text} ${showLocation(
+                            pattern.location,
+                        )}`,
+                    );
+                }
                 if (decl.type === 'Enum') {
                     const allEnums = getEnumSuperTypes(env, expectedType);
                     let found = null;

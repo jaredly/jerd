@@ -92,7 +92,23 @@ WithSuffix = sub:Apsub suffixes:Suffix* {
 	return suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
 }
 
-Suffix = ApplySuffix / AttributeSuffix
+Suffix = ApplySuffix / AttributeSuffix / IndexSuffix
+
+IndexSuffix = "[" slices:Slices "]" {
+    return {
+        type: 'Index',
+        slices,
+        location: location()
+    }
+}
+Slices = first:Slice rest:(_ "," _ Slice)* {
+    return [first, ...rest.map(r => r[3])]
+}
+Slice = FullSlice / Expression
+FullSlice = left:(Expression __)? ":" right:(__ Expression)? {
+    return {type: 'Slice', left: left ? left[0] : null, right: right ? right[1] : null, location: location()}
+}
+
 ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:CommaExpr? _ ")" {
     return {
         type: 'Apply',
