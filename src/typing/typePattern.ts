@@ -1,0 +1,327 @@
+import { Pattern as RawPattern } from '../parsing/parser';
+import { idName } from './env';
+import { bool, int, string } from './preset';
+import {
+    showLocation,
+    getEnumReferences,
+    applyTypeVariablesToRecord,
+    getEnumSuperTypes,
+} from './typeExpr';
+import {
+    Env,
+    getAllSubTypes,
+    Id,
+    isRecord,
+    Pattern,
+    RecordBase,
+    RecordDef,
+    RecordPatternItem,
+    Reference,
+    refsEqual,
+    Symbol,
+    Term,
+    Type,
+    TypeReference,
+} from './types';
+import { assertFits, showType } from './unify';
+
+export const patternIs = (pattern: Pattern, expected: Type): Type => {
+    switch (pattern.type) {
+        case 'Alias':
+            return patternIs(pattern.inner, expected);
+        case 'Binding':
+            return expected;
+        case 'string':
+        case 'int':
+        case 'boolean':
+            return pattern.is;
+        case 'Enum':
+            // hmmmmmmmmmmmmmmmmmmmmm
+            return pattern.ref;
+        case 'Record':
+            return pattern.ref;
+    }
+};
+
+const typePattern = (
+    env: Env,
+    pattern: RawPattern,
+    expectedType: Type,
+): Pattern => {
+    switch (pattern.type) {
+        case 'boolean':
+            assertFits(env, bool, expectedType, pattern.location);
+            return {
+                type: 'boolean',
+                value: pattern.value,
+                is: string,
+                location: pattern.location,
+            };
+        case 'string':
+            assertFits(env, string, expectedType, pattern.location);
+            return {
+                type: 'string',
+                text: pattern.text,
+                is: string,
+                location: pattern.location,
+            };
+        case 'int':
+            assertFits(env, int, expectedType, pattern.location);
+            return {
+                type: 'int',
+                value: pattern.value,
+                is: int,
+                location: pattern.location,
+            };
+        case 'id': {
+            if (env.global.typeNames[pattern.text]) {
+                // We're interpreting this as a type!
+                // it's a little weird to do it this way
+                // but syntax is dumb
+                // and a structured editor will capture intent much better
+
+                if (expectedType.type !== 'ref') {
+                    console.log(pattern);
+                    throw new Error(`Not a type ${showType(expectedType)}`);
+                }
+                const id = env.global.typeNames[pattern.text];
+                if (!id) {
+                    throw new Error(`Unknown type ${pattern.text}`);
+                }
+
+                const decl = env.global.types[idName(id)];
+                if (decl.type === 'Enum') {
+                    const allEnums = getEnumSuperTypes(env, expectedType);
+                    let found = null;
+                    for (let ref of allEnums) {
+                        if (refsEqual(ref.ref, { type: 'user', id })) {
+                            found = ref;
+                        }
+                    }
+                    if (!found) {
+                        throw new Error(`Enum doesn't match`);
+                    }
+                    return {
+                        type: 'Enum',
+                        ref: found,
+                        location: pattern.location,
+                    };
+                }
+
+                const allReferences = getEnumReferences(env, expectedType);
+
+                let found = null;
+                for (let ref of allReferences) {
+                    if (refsEqual(ref.ref, { type: 'user', id })) {
+                        found = ref;
+                        break;
+                    }
+                }
+                if (!found) {
+                    throw new Error(`Enum doesn't match`);
+                }
+                return {
+                    type: 'Record',
+                    ref: found,
+                    items: [],
+                    location: pattern.location,
+                };
+            } else {
+                const unique = env.local.unique++;
+                const sym: Symbol = {
+                    unique,
+                    name: pattern.text,
+                };
+                env.local.locals[pattern.text] = { sym, type: expectedType };
+
+                return {
+                    type: 'Binding',
+                    location: pattern.location,
+                    sym,
+                };
+            }
+        }
+        case 'Alias': {
+            const p = typePattern(env, pattern.inner, expectedType);
+            const is = patternIs(p, expectedType);
+            const unique = env.local.unique++;
+            const sym: Symbol = {
+                unique,
+                name: pattern.name.text,
+            };
+            env.local.locals[pattern.name.text] = { sym, type: is };
+
+            return {
+                type: 'Alias',
+                location: pattern.location,
+                inner: p,
+                name: sym,
+            };
+        }
+        case 'Record': {
+            const names: { [key: string]: { i: number; id: Id | null } } = {};
+            let subTypeIds: Array<Id>;
+            let base: RecordBase<{ type: Type; value: Term | null }>;
+            const subTypeTypes: { [id: string]: RecordDef } = {};
+
+            // TODO: if I allow destructuring of type vbl records,
+            // like in a let, I'll need this.
+            // if (env.local.typeVblNames[pattern.id.text]) {
+            //     const sym = env.local.typeVblNames[pattern.id.text];
+            //     const t = env.local.typeVbls[sym.unique];
+            //     subTypeIds = [];
+            //     t.subTypes.forEach((id) => {
+            //         const t = env.global.types[idName(id)] as RecordDef;
+            //         subTypeIds.push(...getAllSubTypes(env.global, t));
+            //     });
+            //     base = {
+            //         type: 'Variable',
+            //         var: sym,
+            //         spread: null as any,
+            //     };
+            // } else {
+            const id = env.global.typeNames[pattern.id.text];
+            if (!id) {
+                throw new Error(`Unknown type ${pattern.id.text}`);
+            }
+
+            // Validate record in enum
+            if (expectedType.type !== 'ref') {
+                throw new Error(`Not a type`);
+            }
+            const allReferences = getEnumReferences(env, expectedType);
+            let found: TypeReference | null = null;
+            for (let ref of allReferences) {
+                if (refsEqual(ref.ref, { type: 'user', id })) {
+                    found = ref;
+                    break;
+                }
+            }
+            if (!found) {
+                throw new Error(`Enum doesn't match`);
+            }
+
+            let t = env.global.types[idName(id)];
+            if (t.type !== 'Record') {
+                throw new Error(`Not a record ${idName(id)}`);
+            }
+            t = applyTypeVariablesToRecord(
+                env,
+                t,
+                found.typeVbls,
+                pattern.location,
+            );
+
+            subTypeIds = getAllSubTypes(env.global, t);
+
+            env.global.recordGroups[idName(id)].forEach(
+                (name, i) => (names[name] = { i, id: null }),
+            );
+            const ref: Reference = { type: 'user', id };
+            base = { rows: [], ref, type: 'Concrete', spread: null };
+            // }
+
+            subTypeIds.forEach((id) => {
+                // STOPSHIP: need to substitute type variables
+                const t = env.global.types[idName(id)] as RecordDef;
+                subTypeTypes[idName(id)] = t;
+                // const rows = new Array(t.items.length);
+                // t.items.forEach((type, i) => {
+                //     rows[i] = { type, value: null };
+                // });
+                // subTypes[idName(id)] = {
+                //     covered: false,
+                //     spread: null,
+                //     rows,
+                // };
+                env.global.recordGroups[idName(id)].forEach(
+                    (name, i) => (names[name] = { i, id }),
+                );
+            });
+
+            const items: Array<RecordPatternItem> = [];
+
+            pattern.items.forEach((row, idx) => {
+                // ok
+
+                let rowId: Id | null = null;
+                let ref: Reference;
+                let i: number;
+                if (row.id.text === '_') {
+                    if (base.type !== 'Concrete') {
+                        throw new Error(
+                            `Can only omit attribute names for concrete record declarations`,
+                        );
+                    }
+                    // Umm TODO throw if you're mixing unnamed attributes and like literally anything else?
+                    // rowId = id;
+                    i = idx;
+                    ref = { type: 'user', id };
+                } else {
+                    if (!names[row.id.text]) {
+                        throw new Error(
+                            `Unexpected attrbute name ${
+                                row.id.text
+                            } at ${showLocation(row.id.location)}`,
+                        );
+                    }
+                    const got = names[row.id.text];
+                    i = got.i;
+                    rowId = got.id;
+                    ref = { type: 'user', id: got.id || id };
+                }
+
+                const recordType =
+                    rowId == null && base.type === 'Concrete'
+                        ? t
+                        : subTypeTypes[idName(rowId!)];
+
+                if (!recordType) {
+                    console.log(row, base, rowId, subTypeTypes);
+
+                    throw new Error(`No record`);
+                }
+
+                const is = recordType.items[i];
+
+                let pattern: Pattern;
+                if (row.pattern == null) {
+                    const unique = env.local.unique++;
+                    const sym: Symbol = {
+                        unique,
+                        name: row.id.text,
+                    };
+                    env.local.locals[row.id.text] = { sym, type: is };
+                    pattern = { type: 'Binding', location: row.location, sym };
+                } else {
+                    pattern = typePattern(env, row.pattern, is);
+                }
+
+                items.push({
+                    ref,
+                    idx: i,
+                    location: row.location,
+                    pattern,
+                    is,
+                });
+            });
+
+            return {
+                type: 'Record',
+                ref: found,
+                items,
+                location: pattern.location,
+            };
+        }
+        default:
+            let _x: never = pattern;
+            throw new Error(
+                `Not supported pattern type ${(pattern as any).type}`,
+            );
+    }
+};
+
+export const refName = (ref: Reference) =>
+    ref.type === 'builtin' ? 'builtin:' + ref.name : 'user:' + idName(ref.id);
+
+export default typePattern;

@@ -12,11 +12,18 @@ import {
     Id,
     RecordDef,
     RecordBase,
+    isRecord,
 } from '../types';
 import { Record } from '../../parsing/parser';
 import { showType, fitsExpectation } from '../unify';
 import { idName } from '../env';
-import typeExpr, { showLocation } from '../typeExpr';
+import typeExpr, {
+    applyTypeVariablesToRecord,
+    showLocation,
+} from '../typeExpr';
+import typeType from '../typeType';
+
+// export const recordNamesAndSuch =
 
 export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     const names: { [key: string]: { i: number; id: Id | null } } = {};
@@ -25,12 +32,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         [id: string]: {
             covered: boolean;
             spread: Term | null;
-            rows: Array<Term | null>;
+            rows: Array<{ type: Type; value: Term | null }>;
         };
     } = {};
     const subTypeTypes: { [id: string]: RecordDef } = {};
 
-    let base: RecordBase;
+    let base: RecordBase<{ type: Type; value: Term | null }>;
     let subTypeIds: Array<Id>;
     let is: Type;
 
@@ -39,12 +46,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         const t = env.local.typeVbls[sym.unique];
         base = {
             type: 'Variable',
-            var: env.local.typeVblNames[expr.id.text],
+            var: sym,
             spread: null as any,
         };
         subTypeIds = [];
         t.subTypes.forEach((id) => {
-            const t = env.global.types[idName(id)];
+            const t = env.global.types[idName(id)] as RecordDef;
             subTypeIds.push(...getAllSubTypes(env.global, t));
         });
         is = { type: 'var', sym, location: expr.id.location };
@@ -57,12 +64,23 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 )}`,
             );
         }
-        const t = env.global.types[idName(id)];
+        const typeVbls = expr.typeVbls.map((t) => typeType(env, t));
+        const t = applyTypeVariablesToRecord(
+            env,
+            env.global.types[idName(id)] as RecordDef,
+            typeVbls,
+        );
         const ref: Reference = { type: 'user', id };
-        const rows: Array<Term | null> = new Array(t.items.length);
+        const rows: Array<{ value: Term | null; type: Type }> = new Array(
+            t.items.length,
+        );
+
+        t.items.forEach((type, i) => {
+            rows[i] = { type, value: null };
+        });
 
         // So we can detect missing items
-        rows.fill(null);
+        // rows.fill(null);
         base = { rows, ref, type: 'Concrete', spread: null };
         env.global.recordGroups[idName(id)].forEach(
             (name, i) => (names[name] = { i, id: null }),
@@ -70,16 +88,24 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
 
         // TODO: deduplicate
         subTypeIds = getAllSubTypes(env.global, t);
-        is = { type: 'ref', ref, location: expr.id.location };
+        is = {
+            type: 'ref',
+            ref,
+            location: expr.id.location,
+            typeVbls,
+            effectVbls: [], // STOPSHIP: allow effect variables to be specified for records
+        };
     }
 
     // let spread = null;
 
     subTypeIds.forEach((id) => {
-        const t = env.global.types[idName(id)];
+        const t = env.global.types[idName(id)] as RecordDef;
         subTypeTypes[idName(id)] = t;
         const rows = new Array(t.items.length);
-        rows.fill(null);
+        t.items.forEach((type, i) => {
+            rows[i] = { type, value: null };
+        });
         subTypes[idName(id)] = {
             covered: false,
             spread: null,
@@ -97,17 +123,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     // ok, I think we need to
 
     // const names = env.global.recordGroups[idName(id)];
-    expr.rows.forEach((row) => {
+    expr.rows.forEach((row, idx) => {
         if (row.type === 'Spread') {
             const v = typeExpr(env, row.value);
             if (base.type === 'Concrete') {
-                if (
-                    typesEqual(env, v.is, {
-                        type: 'ref',
-                        ref: base.ref,
-                        location: null,
-                    })
-                ) {
+                if (isRecord(v.is, base.ref)) {
+                    // STOPSHIP: check that type variables match up
                     Object.keys(subTypes).forEach(
                         (k) => (subTypes[k].covered = true),
                     );
@@ -127,11 +148,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             // ummm I kindof want to
             for (let id of subTypeIds) {
                 if (
-                    typesEqual(env, v.is, {
-                        type: 'ref',
-                        ref: { type: 'user', id },
-                        location: null,
-                    })
+                    // ermmm we're gonna ignore type variables here
+                    isRecord(v.is, { type: 'user', id })
                 ) {
                     subTypes[idName(id)].spread = v;
                     subTypes[idName(id)].covered = true;
@@ -147,23 +165,39 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             throw new Error(`Invalid spread ${showType(v.is)}`);
         }
 
-        if (!names[row.id.text]) {
-            throw new Error(
-                `Unexpected attrbute name ${row.id.text} at ${showLocation(
-                    row.id.location,
-                )}`,
-            );
+        let id: Id | null;
+        let i: number;
+        if (row.id.text === '_') {
+            if (base.type !== 'Concrete') {
+                throw new Error(
+                    `Can only omit attribute names for concrete record declarations`,
+                );
+            }
+            // Umm TODO throw if you're mixing unnamed attributes and like literally anything else?
+            id = null;
+            i = idx;
+        } else {
+            if (!names[row.id.text]) {
+                throw new Error(
+                    `Unexpected attrbute name ${row.id.text} at ${showLocation(
+                        row.id.location,
+                    )}`,
+                );
+            }
+            const got = names[row.id.text];
+            i = got.i;
+            id = got.id;
         }
-        const { i, id } = names[row.id.text];
+
         let rowsToMod =
             id == null && base.type === 'Concrete'
                 ? base.rows
                 : subTypes[idName(id!)].rows;
         const recordType =
             id == null && base.type === 'Concrete'
-                ? env.global.types[idName(base.ref.id)]
+                ? (env.global.types[idName(base.ref.id)] as RecordDef)
                 : subTypeTypes[idName(id!)];
-        if (rowsToMod[i] != null) {
+        if (rowsToMod[i].value != null) {
             throw new Error(
                 `Multiple values provided for ${names[i]} at ${showLocation(
                     row.id.location,
@@ -171,8 +205,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             );
         }
         const v = typeExpr(env, row.value);
-        rowsToMod[i] = v;
-        if (!fitsExpectation(env, v.is, recordType.items[i])) {
+        if (!fitsExpectation(env, v.is, rowsToMod[i].type)) {
             throw new Error(
                 `Invalid type for attribute ${row.id.text} at ${showLocation(
                     row.value.location,
@@ -181,13 +214,14 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 )}`,
             );
         }
+        rowsToMod[i].value = v;
     });
     // TODO: once I have subtyping, this will have to be more clever.
     // of course, `rows` will also need to be more clever.
     if (base.type === 'Concrete' && base.spread == null) {
         const r = base.ref;
         base.rows.forEach((row, i) => {
-            if (row == null) {
+            if (row.value == null) {
                 throw new Error(
                     `Record missing attribute "${
                         env.global.recordGroups[idName(r.id)][i]
@@ -199,10 +233,23 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         throw new Error(`Cannot create a new record of a variable type.`);
     }
 
+    const finishedSubTypes: {
+        [id: string]: {
+            covered: boolean;
+            spread: Term | null;
+            rows: Array<Term | null>;
+        };
+    } = {};
+
     Object.keys(subTypes).forEach((id) => {
+        finishedSubTypes[id] = {
+            ...subTypes[id],
+            rows: subTypes[id].rows.map((r) => r.value),
+        };
+
         if (!subTypes[id].covered) {
             subTypes[id].rows.forEach((row, i) => {
-                if (row == null) {
+                if (row.value == null) {
                     throw new Error(
                         `Record missing attribute from subtype ${id} "${
                             env.global.recordGroups[id][i]
@@ -216,10 +263,11 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     return {
         type: 'Record',
         location: expr.location,
-        base,
-        // ref,
+        base:
+            base.type === 'Concrete'
+                ? { ...base, rows: base.rows.map((r) => r.value) }
+                : base,
         is,
-        subTypes,
-        // rows,
+        subTypes: finishedSubTypes,
     };
 };

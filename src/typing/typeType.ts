@@ -1,4 +1,9 @@
-import { Type as ParseType } from '../parsing/parser';
+import {
+    Identifier,
+    LambdaType,
+    Type as ParseType,
+    TypeVbl,
+} from '../parsing/parser';
 
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
@@ -60,62 +65,51 @@ const typeType = (env: Env, type: ParseType | null): Type => {
         return newTypeVbl(env);
     }
     switch (type.type) {
-        case 'id': {
-            if (env.local.typeVblNames[type.text] != null) {
+        case 'TypeRef': {
+            const typeVbls = type.typeVbls
+                ? type.typeVbls.map((t) => typeType(env, t))
+                : [];
+            const effectVbls = type.effectVbls
+                ? type.effectVbls.map((e) => resolveEffect(env, e))
+                : [];
+            if (env.local.typeVblNames[type.id.text] != null) {
                 return {
                     type: 'var',
-                    sym: env.local.typeVblNames[type.text],
+                    sym: env.local.typeVblNames[type.id.text],
                     location: type.location,
+                    // STOPSHIP: typeVbls and effectVbls for vars
                 };
             }
-            if (env.global.typeNames[type.text] != null) {
+            if (env.global.typeNames[type.id.text] != null) {
                 return {
                     type: 'ref',
                     ref: {
                         type: 'user',
-                        id: env.global.typeNames[type.text],
+                        id: env.global.typeNames[type.id.text],
                     },
+                    typeVbls,
+                    effectVbls,
                     location: type.location,
                 };
             }
-            if (env.global.builtinTypes[type.text] != null) {
+            if (env.global.builtinTypes[type.id.text] != null) {
                 return {
                     type: 'ref',
-                    ref: { type: 'builtin', name: type.text },
+                    ref: { type: 'builtin', name: type.id.text },
                     location: type.location,
+                    typeVbls,
+                    effectVbls,
                 };
             }
-            throw new Error(`Unknown type "${type.text}"`);
+            throw new Error(`Unknown type "${type.id.text}"`);
         }
 
         case 'lambda': {
-            const typeInner = subEnv(env);
-            const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
-            type.typevbls.forEach(({ id, subTypes }) => {
-                const unique = Object.keys(typeInner.local.typeVbls).length;
-                const sym: Symbol = { name: id.text, unique };
-                const st = subTypes.map((id) => {
-                    const t = env.global.typeNames[id.text];
-                    if (!t) {
-                        throw new Error(
-                            `Unknown subtype ${id.text} at ${showLocation(
-                                id.location,
-                            )}`,
-                        );
-                    }
-                    return t;
-                });
-                typeInner.local.typeVbls[sym.unique] = { subTypes: st };
-                typeInner.local.typeVblNames[id.text] = sym;
-                typeVbls.push({ unique: sym.unique, subTypes: st });
-            });
-            const effectVbls: Array<number> = [];
-            type.effvbls.forEach((id) => {
-                const unique = Object.keys(typeInner.local.effectVbls).length;
-                const sym: Symbol = { name: id.text, unique };
-                typeInner.local.effectVbls[id.text] = sym;
-                effectVbls.push(sym.unique);
-            });
+            const {
+                typeInner,
+                typeVbls,
+                effectVbls,
+            } = newEnvWithTypeAndEffectVbls(env, type.typevbls, type.effvbls);
 
             return {
                 type: 'lambda',
@@ -129,6 +123,59 @@ const typeType = (env: Env, type: ParseType | null): Type => {
             };
         }
     }
+};
+
+export const newEnvWithTypeAndEffectVbls = (
+    env: Env,
+    typevbls: Array<TypeVbl>,
+    effvbls: Array<Identifier>,
+) => {
+    if (typevbls.length === 0 && effvbls.length === 0) {
+        return { typeInner: env, typeVbls: [], effectVbls: [] };
+    }
+
+    // // TODO: how do I do multiple effect vbls, with explicit calling?
+    // // b/c, for the general "e", it can take in any extra things that
+    // // aren't specified. But if there are two variables (e and f, for example),
+    // // how would you indicate which are allocated to which?
+    // // maybe {Aewsome, {Sauce, Ome}}? like I guess
+    // const effectVbls: Array<number> = [];
+    // expr.effvbls.forEach((id) => {
+    //     const unique = Object.keys(typeInner.local.effectVbls).length;
+    //     const sym: Symbol = { name: id.text, unique };
+    //     typeInner.local.effectVbls[id.text] = sym;
+    //     effectVbls.push(sym.unique);
+    //     // console.log('VBL', sym);
+    // });
+
+    const typeInner = subEnv(env);
+    const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
+    typevbls.forEach(({ id, subTypes }) => {
+        const unique = Object.keys(typeInner.local.typeVbls).length;
+        const sym: Symbol = { name: id.text, unique };
+        const st = subTypes.map((id) => {
+            const t = env.global.typeNames[id.text];
+            if (!t) {
+                throw new Error(
+                    `Unknown subtype ${id.text} at ${showLocation(
+                        id.location,
+                    )}`,
+                );
+            }
+            return t;
+        });
+        typeInner.local.typeVbls[sym.unique] = { subTypes: st };
+        typeInner.local.typeVblNames[id.text] = sym;
+        typeVbls.push({ unique: sym.unique, subTypes: st });
+    });
+    const effectVbls: Array<number> = [];
+    effvbls.forEach((id) => {
+        const unique = Object.keys(typeInner.local.effectVbls).length;
+        const sym: Symbol = { name: id.text, unique };
+        typeInner.local.effectVbls[id.text] = sym;
+        effectVbls.push(sym.unique);
+    });
+    return { typeInner, typeVbls, effectVbls };
 };
 
 export default typeType;

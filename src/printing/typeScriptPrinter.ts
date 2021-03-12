@@ -12,6 +12,7 @@ import {
     Lambda,
     LambdaType,
     walkTerm,
+    Pattern,
 } from '../typing/types';
 import { Location } from '../parsing/parser';
 import * as t from '@babel/types';
@@ -21,7 +22,7 @@ import { binOps } from '../typing/preset';
 import { env } from 'process';
 import { showType } from '../typing/unify';
 import { optimizeAST } from './typeScriptOptimize';
-import { applyEffectVariables } from '../typing/typeExpr';
+import { applyEffectVariables, getEnumReferences } from '../typing/typeExpr';
 import { idName } from '../typing/env';
 
 // TODO: I want to abstract this out
@@ -305,6 +306,18 @@ export const declarationToString = (
     );
     optimizeAST(ast);
     return generate(ast).code;
+};
+
+const isConstant = (arg: Term) => {
+    switch (arg.type) {
+        case 'int':
+        case 'string':
+        case 'ref':
+        case 'var':
+            return true;
+        default:
+            return false;
+    }
 };
 
 const isSimple = (arg: Term) => {
@@ -907,34 +920,243 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                     )
                     .concat(
                         term.base.type === 'Concrete'
-                            ? (term.base.rows
-                                  .map((row, i) =>
-                                      row != null
-                                          ? t.objectProperty(
-                                                t.identifier(
-                                                    recordAttributeName(
-                                                        (term.base as any).ref,
-                                                        i,
+                            ? [
+                                  t.objectProperty(
+                                      t.identifier('type'),
+                                      t.stringLiteral(
+                                          recordIdName((term.base as any).ref),
+                                      ),
+                                  ),
+                              ].concat(
+                                  term.base.rows
+                                      .map((row, i) =>
+                                          row != null
+                                              ? t.objectProperty(
+                                                    t.identifier(
+                                                        recordAttributeName(
+                                                            (term.base as any)
+                                                                .ref,
+                                                            i,
+                                                        ),
                                                     ),
-                                                ),
-                                                printTerm(env, row),
-                                            )
-                                          : null,
-                                  )
-                                  .filter(Boolean) as Array<t.ObjectProperty>)
+                                                    printTerm(env, row),
+                                                )
+                                              : null,
+                                      )
+                                      .filter(
+                                          Boolean,
+                                      ) as Array<t.ObjectProperty>,
+                              )
                             : [],
                     ) as Array<any>,
             );
         }
+        case 'Enum':
+            return printTerm(env, term.inner);
         case 'Attribute': {
             return t.memberExpression(
                 printTerm(env, term.target),
                 t.identifier(recordAttributeName(term.ref, term.idx)),
             );
         }
+        case 'Array':
+            return t.arrayExpression(
+                term.items.map((item) =>
+                    item.type === 'ArraySpread'
+                        ? t.spreadElement(printTerm(env, item.value))
+                        : printTerm(env, item),
+                ),
+            );
+        case 'Switch': {
+            // const raspies
+            // return
+            /*
+            switch x {
+                Some => true,
+                None => false,
+            }
+
+            =>
+
+            () => {
+                if (x.type === 'some') {
+                    return true
+                } else if (x.type === 'none') {
+                    return false
+                } else {
+                    throw new Error('Invalid case analysis!')
+                }
+            }()
+            */
+            // TODO: if the term is "basic", we can just pass it through
+            const basic = isConstant(term.term);
+
+            const id = '$discriminant';
+
+            const value = basic ? printTerm(env, term.term) : t.identifier(id);
+
+            let cases = [];
+
+            term.cases.forEach((kase, i) => {
+                cases.push(
+                    printPattern(
+                        env,
+                        value,
+                        kase.pattern,
+                        t.blockStatement([
+                            t.returnStatement(printTerm(env, kase.body)),
+                        ]),
+                    ),
+                );
+            });
+
+            cases.push(
+                t.blockStatement([
+                    t.throwStatement(
+                        t.newExpression(t.identifier('Error'), [
+                            t.stringLiteral('Invalid case analysis'),
+                        ]),
+                    ),
+                ]),
+            );
+
+            return iffe(
+                t.blockStatement(
+                    [
+                        basic
+                            ? null
+                            : t.variableDeclaration('const', [
+                                  t.variableDeclarator(
+                                      t.identifier(id),
+                                      printTerm(env, term.term),
+                                  ),
+                              ]),
+                        ...cases,
+                    ].filter(Boolean) as Array<t.Statement>,
+                ),
+            );
+        }
+        case 'boolean':
+            return t.booleanLiteral(term.value);
         default:
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
+    }
+};
+
+// Here's how this looks.
+// If you succeed, return the success branch. otherwise, go to the else branch.
+// my post-processing pass with flatten out all useless iffes.
+const printPattern = (
+    env: Env,
+    value: t.Expression,
+    pattern: Pattern,
+    success: t.BlockStatement,
+): t.BlockStatement => {
+    if (pattern.type === 'Binding') {
+        return t.blockStatement([
+            t.variableDeclaration('const', [
+                t.variableDeclarator(
+                    t.identifier(printSym(pattern.sym)),
+                    value,
+                ),
+            ]),
+            success,
+        ]);
+    } else if (pattern.type === 'Enum') {
+        const allReferences = getEnumReferences(env, pattern.ref);
+        let typ = t.memberExpression(value, t.identifier('type'));
+        let tests: Array<t.Expression> = allReferences.map((ref) =>
+            t.binaryExpression(
+                '===',
+                typ,
+                t.stringLiteral(recordIdName(ref.ref)),
+            ),
+        );
+        return t.blockStatement([
+            t.ifStatement(
+                tests.reduce((one: t.Expression, two: t.Expression) =>
+                    t.logicalExpression('||', one, two),
+                ),
+                success,
+            ),
+        ]);
+    } else if (pattern.type === 'Alias') {
+        return printPattern(
+            env,
+            value,
+            pattern.inner,
+            t.blockStatement([
+                t.variableDeclaration('const', [
+                    t.variableDeclarator(
+                        t.identifier(printSym(pattern.name)),
+                        value,
+                    ),
+                ]),
+                success,
+            ]),
+        );
+    } else if (pattern.type === 'Record') {
+        pattern.items.forEach((item) => {
+            success = printPattern(
+                env,
+                t.memberExpression(
+                    value,
+                    t.identifier(recordAttributeName(item.ref, item.idx)),
+                ),
+                item.pattern,
+                success,
+            );
+        });
+        return t.blockStatement([
+            t.ifStatement(
+                t.binaryExpression(
+                    '===',
+                    t.memberExpression(value, t.identifier('type')),
+                    t.stringLiteral(recordIdName(pattern.ref.ref)),
+                ),
+                success,
+            ),
+        ]);
+    } else if (pattern.type === 'int') {
+        return t.blockStatement([
+            t.ifStatement(
+                t.binaryExpression(
+                    '===',
+                    value,
+                    t.numericLiteral(pattern.value),
+                ),
+                success,
+            ),
+        ]);
+    } else if (pattern.type === 'string') {
+        return t.blockStatement([
+            t.ifStatement(
+                t.binaryExpression('===', value, t.stringLiteral(pattern.text)),
+                success,
+            ),
+        ]);
+    } else if (pattern.type === 'boolean') {
+        return t.blockStatement([
+            t.ifStatement(
+                t.binaryExpression(
+                    '===',
+                    value,
+                    t.booleanLiteral(pattern.value),
+                ),
+                success,
+            ),
+        ]);
+    }
+    const _v: never = pattern;
+    throw new Error(`Pattern not yet supported ${(pattern as any).type}`);
+};
+
+const recordIdName = (ref: Reference) => {
+    if (ref.type === 'builtin') {
+        return ref.name;
+    } else {
+        return idName(ref.id);
     }
 };
 
@@ -1011,6 +1233,8 @@ const effectfulLambda = (env: Env, term: Lambda) => {
                                     type: 'builtin',
                                     name: 'void',
                                 },
+                                typeVbls: [],
+                                effectVbls: [],
                             },
                         }),
                     ),

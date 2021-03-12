@@ -1,23 +1,9 @@
 // For the applys
 
-import {
-    Env,
-    Type,
-    Term,
-    Reference,
-    typesEqual,
-    symbolsEqual,
-    getAllSubTypes,
-    Record as RecordTerm,
-    Id,
-    RecordDef,
-    RecordBase,
-    LambdaType,
-    EffectRef,
-} from '../types';
-import { ApplySuffix, Record } from '../../parsing/parser';
+import { Env, Type, Term, LambdaType, EffectRef } from '../types';
+import { ApplySuffix } from '../../parsing/parser';
 import { showType, fitsExpectation } from '../unify';
-import { idName, resolveEffect } from '../env';
+import { resolveEffect } from '../env';
 import typeExpr, {
     applyEffectVariables,
     applyTypeVariables,
@@ -36,6 +22,7 @@ export const typeApply = (
         // or rather, doing it like this
         // does weird things to the pretty-printing end.
         // Because we lose the `<T>`.
+        // @ts-ignore
         target = {
             ...target,
             is: applyTypeVariables(
@@ -52,6 +39,7 @@ export const typeApply = (
         : null;
     if (mappedVbls != null) {
         const pre = target.is;
+        // @ts-ignore
         target = {
             ...target,
             is: applyEffectVariables(env, target.is, mappedVbls) as LambdaType,
@@ -62,7 +50,6 @@ export const typeApply = (
         //     )} ---> ${showType(target.is)}`,
         // );
     }
-    const postEffects = target.is.type === 'lambda' ? target.is.effects : [];
 
     let is: LambdaType;
     if (target.is.type === 'var') {
@@ -86,15 +73,13 @@ export const typeApply = (
     } else {
         if (target.is.type !== 'lambda') {
             throw new Error(
-                `Trying to call ${JSON.stringify(target)} but its a ${
-                    target.is.type
-                } : ${JSON.stringify(target.is)}`,
+                `Trying to call ${showType(target.is)} at ${showLocation(
+                    target.location,
+                )}`,
             );
         }
         if (target.is.args.length !== args.length) {
-            throw new Error(
-                `Wrong number of arguments ${JSON.stringify(target, null, 2)}`,
-            );
+            throw new Error(`Wrong number of arguments ${showType(target.is)}`);
         }
         is = target.is;
     }
@@ -106,8 +91,8 @@ export const typeApply = (
             throw new Error(
                 `Wrong type for arg ${i}: \nFound: ${showType(
                     t.is,
-                )}\nbut expected ${showType(is.args[i])} : ${JSON.stringify(
-                    location,
+                )}\nbut expected ${showType(is.args[i])} : ${showLocation(
+                    t.location,
                 )}`,
             );
         }

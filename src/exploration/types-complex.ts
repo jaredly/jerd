@@ -111,7 +111,6 @@ export type TypeExpr = {
     applied: Array<TypeExpr>;
     paramed: Array<TypeExpr>;
 };
-// START HERE: and maybe try to typecheck some of records?
 // I guess we need a `TypeDecl` type. yeah.
 
 // | { type: 'atom'; inner: Type }

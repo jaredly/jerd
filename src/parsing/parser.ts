@@ -1,7 +1,25 @@
-import { Reference } from '../typing/types';
 import { parse } from './grammar';
 
-export type Toplevel = Define | Effect | Expression | TypeDef;
+export type Toplevel =
+    | Define
+    | Effect
+    | Expression
+    | StructDef
+    | EnumDef
+    | Decorated;
+
+export type Decorated = {
+    type: 'Decorated';
+    location: Location;
+    wrapped: Toplevel;
+    decorators: Array<Decorator>;
+};
+
+export type Decorator = {
+    type: 'Decorator';
+    id: Identifier;
+    args: Array<Expression>;
+};
 
 export type Effect = {
     type: 'effect';
@@ -10,7 +28,30 @@ export type Effect = {
     constrs: Array<{ id: Identifier; type: LambdaType }>;
 };
 
-export type TypeDef = { type: 'TypeDef'; id: Identifier; decl: TypeDecl };
+export type StructDef = {
+    type: 'StructDef';
+    id: Identifier;
+    typeVbls: Array<TypeVbl>;
+    decl: TypeDecl;
+};
+
+export type EnumDef = {
+    type: 'EnumDef';
+    id: Identifier;
+    location: Location;
+    typeVbls: Array<TypeVbl>;
+    items: Array<EnumItem>;
+};
+export type EnumItem = EnumExternal | EnumSpread;
+export type EnumExternal = {
+    type: 'External';
+    ref: TypeRef;
+};
+export type EnumSpread = {
+    type: 'Spread';
+    ref: TypeRef;
+    location: Location;
+};
 
 export type TypeDecl = RecordDecl;
 
@@ -20,7 +61,12 @@ export type RecordDecl = {
 };
 export type RecordItem = RecordRow | RecordSpread;
 export type RecordSpread = { type: 'Spread'; constr: Identifier };
-export type RecordRow = { type: 'Row'; id: Identifier; rtype: Type };
+export type RecordRow = {
+    type: 'Row';
+    // null if this is being treated as a tuple
+    id: Identifier;
+    rtype: Type;
+};
 
 export type Loc = { offset: number; line: number; column: number };
 export type Location = { start: Loc; end: Loc };
@@ -56,15 +102,39 @@ export type Expression =
     | Raise
     | Ops
     | If
+    | Switch
     | Block
     | Record
+    | Enum
+    | ArrayLiteral
     | Handle;
+
+export type ArrayLiteral = {
+    type: 'Array';
+    location: Location;
+    ann: Type | null;
+    items: Array<Expression | ArraySpread>;
+};
+export type ArraySpread = {
+    type: 'ArraySpread';
+    value: Expression;
+    location: Location;
+};
+
+export type Enum = {
+    type: 'Enum';
+    id: Identifier;
+    typeVbls: Array<Type>;
+    expr: Expression;
+    location: Location;
+};
 
 export type Record = {
     type: 'Record';
     // spreads: Array<Expression>;
     id: Identifier;
     location: Location;
+    typeVbls: Array<Type>;
     // hmmmmm
     // So, record labels might be coming
     // from different sources
@@ -95,6 +165,39 @@ export type If = {
     location: Location;
 };
 
+// Switches!!
+export type Switch = {
+    type: 'Switch';
+    expr: Expression;
+    cases: Array<SwitchCase>;
+    location: Location;
+};
+
+export type SwitchCase = {
+    pattern: Pattern;
+    body: Expression;
+    location: Location;
+};
+export type Pattern = AliasPattern | Literal | RecordPattern;
+export type AliasPattern = {
+    type: 'Alias';
+    name: Identifier;
+    inner: Pattern;
+    location: Location;
+};
+export type RecordPattern = {
+    type: 'Record';
+    id: Identifier;
+    items: Array<RecordPatternItem>;
+    location: Location;
+};
+export type RecordPatternItem = {
+    id: Identifier;
+    pattern: Pattern | null;
+    location: Location;
+};
+
+// Effect things
 export type Raise = {
     type: 'raise';
     name: Identifier;
@@ -131,7 +234,14 @@ export type Lambda = {
     rettype: Type | null;
     body: Expression;
 };
-export type Type = Identifier | LambdaType;
+export type Type = TypeRef | LambdaType;
+export type TypeRef = {
+    type: 'TypeRef';
+    id: Identifier;
+    typeVbls: Array<Type> | null;
+    effectVbls: Array<Identifier> | null;
+    location: Location;
+};
 export type LambdaType = {
     type: 'lambda';
     args: Array<Type>;
@@ -142,7 +252,7 @@ export type LambdaType = {
     location: Location;
 };
 
-export type Literal = Int | Identifier | String;
+export type Literal = Int | Identifier | String | Boolean;
 // export type IdentifierWithType = {
 //     type: 'IdentifierWithType';
 //     id: Identifier;
@@ -151,6 +261,7 @@ export type Literal = Int | Identifier | String;
 export type Identifier = { type: 'id'; text: string; location: Location };
 export type Int = { type: 'int'; value: number; location: Location };
 export type String = { type: 'string'; text: string; location: Location };
+export type Boolean = { type: 'boolean'; value: boolean; location: Location };
 export type WithSuffix = {
     type: 'WithSuffix';
     target: Expression;
@@ -160,7 +271,7 @@ export type WithSuffix = {
 export type ApplySuffix = {
     type: 'Apply';
     args: Array<Expression>;
-    typevbls: Array<Identifier>;
+    typevbls: Array<Type>;
     effectVbls: Array<Identifier>;
 };
 export type AttributeSuffix = {

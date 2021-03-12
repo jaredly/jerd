@@ -1,14 +1,14 @@
 
 File = _ s:(Toplevel _)+ comment* _ {return s.map(s => s[0])}
 
-Toplevel = Effect / TypeDef / Statement
+Toplevel = Effect / StructDef / Statement
 
 Statement = Define / Expression
 
-TypeDef = "type" __ id:Identifier _ 
+StructDef = "type" __ id:Identifier _ 
 	effects:("{" _ CommaEffects? _ "}")? _ 
     vbls:("<" _ TypeVblCommas _ ">")? _ 
-    "=" _ decl:TypeDecl {return {type: 'TypeDef', id, effects: effects ? effects[2] : [], vbls: vbls ? vbls[2] : [], decl}}
+    "=" _ decl:TypeDecl {return {type: 'StructDef', id, effects: effects ? effects[2] : [], vbls: vbls ? vbls[2] : [], decl}}
 
 TypeDecl = RecordDecl
 RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || []]}}

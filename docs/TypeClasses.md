@@ -640,8 +640,6 @@ const MyMonad = Monad{}<Result<_, int>>{
 // - type variables (which might be higher-kinded)
 // - effect variables
 
-// START HERE. I think this is a reasonable setup.
-
 // Ok yeah first thing is to get parsing of types.
 // and then parsing of terms.
 

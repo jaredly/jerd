@@ -16,6 +16,7 @@ export const optimizeAST = (ast: t.File) => {
     // but it's not like it takes a ton of time
     flattenImmediateCallsToLets(ast);
     removeBlocksWithNoDeclarations(ast);
+    flattenDoubleLambdas(ast);
 };
 
 const equalIdentifiers = (a: any, b: any) =>
@@ -40,6 +41,16 @@ const flattenDoubleLambdas = (ast: t.File) => {
                 return;
             }
             const { callee } = path.node;
+            if (
+                callee.type === 'FunctionExpression' &&
+                callee.body.body.length === 1 &&
+                callee.body.body[0].type === 'ReturnStatement' &&
+                callee.body.body[0].argument != null &&
+                callee.params.length === 0
+            ) {
+                path.replaceWith(callee.body.body[0].argument);
+                return;
+            }
             if (callee.type !== 'ArrowFunctionExpression') {
                 return;
             }
@@ -59,7 +70,7 @@ const flattenDoubleLambdas = (ast: t.File) => {
             }
             // (a, b) => ((m, _ignored) => abc)(m)
             if (
-                body.arguments.length >= path.node.params.length &&
+                body.arguments.length <= path.node.params.length &&
                 path.node.params.every((arg, i) =>
                     equalIdentifiers(arg, body.arguments[i]),
                 )
@@ -145,6 +156,18 @@ const flattenImmediateCallsToLets = (ast: t.File) => {
 
 const removeBlocksWithNoDeclarations = (ast: t.File) => {
     traverse(ast, {
+        IfStatement(path) {
+            const alt = path.get('alternate');
+            if (
+                alt != null &&
+                alt.node != null &&
+                alt.node.type === 'BlockStatement' &&
+                alt.node.body.length === 1 &&
+                alt.node.body[0].type === 'IfStatement'
+            ) {
+                alt.replaceWith(alt!.node.body[0]);
+            }
+        },
         BlockStatement(path) {
             const node = path.node;
             const res: Array<t.Statement> = [];
@@ -158,7 +181,6 @@ const removeBlocksWithNoDeclarations = (ast: t.File) => {
                     (n) => n.type === 'VariableDeclaration',
                 );
                 if (hasDeclares && i < count - 1) {
-                    console.log(inner.body.length, i);
                     return res.push(inner);
                 }
                 changed = true;

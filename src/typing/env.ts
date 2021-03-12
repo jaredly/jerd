@@ -1,19 +1,20 @@
 // Ok
 
-import hashObject from 'hash-sum';
+import hashObjectSum from 'hash-sum';
 import {
     Define,
     Effect,
+    EnumDef,
     Identifier,
     Location,
     RecordDecl,
     RecordRow,
     RecordSpread,
-    TypeDecl,
-    TypeDef,
+    StructDef,
+    TypeVbl,
 } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
-import typeType, { newTypeVbl } from './typeType';
+import typeType, { newEnvWithTypeAndEffectVbls, newTypeVbl } from './typeType';
 import {
     EffectRef,
     Env,
@@ -26,6 +27,8 @@ import {
     Term,
     Type,
     TypeConstraint,
+    EnumDef as TypeEnumDef,
+    TypeReference,
 } from './types';
 import { fitsExpectation } from './unify';
 
@@ -47,10 +50,40 @@ export const typeEffect = (env: Env, item: Effect) => {
     env.global.effects[hash] = constrs;
 };
 
-export const typeTypeDefn = (env: Env, { id, decl }: TypeDef) => {
+export const typeTypeDefn = (env: Env, { id, decl, typeVbls }: StructDef) => {
     if (decl.type === 'Record') {
-        return typeRecord(env, id, decl);
+        return typeRecord(env, id, typeVbls, decl);
     }
+};
+
+export const typeEnumDefn = (env: Env, defn: EnumDef) => {
+    const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
+        env,
+        defn.typeVbls,
+        [], // TODO effect vbls
+    );
+
+    // console.log('Type Enum');
+    // console.log(defn.items);
+
+    const items = defn.items
+        .filter((x) => x.type === 'External')
+        .map((x) => typeType(typeInner, x.ref) as TypeReference);
+    const extend = defn.items
+        .filter((x) => x.type === 'Spread')
+        .map((x) => typeType(typeInner, x.ref) as TypeReference);
+    // console.log(items.length, extend.length);
+    const d: TypeEnumDef = {
+        type: 'Enum',
+        typeVbls,
+        effectVbls,
+        extends: extend,
+        items,
+    };
+    const hash = hashObject(d);
+    const idid = { hash, pos: 0, size: 1 };
+    env.global.types[idName(idid)] = d;
+    env.global.typeNames[defn.id.text] = idid;
 };
 
 export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
@@ -62,17 +95,34 @@ export const resolveType = (env: GlobalEnv, id: Identifier) => {
     return env.typeNames[id.text];
 };
 
-export const typeRecord = (env: Env, id: Identifier, record: RecordDecl) => {
+export const typeRecord = (
+    env: Env,
+    id: Identifier,
+    typeVblsRaw: Array<TypeVbl>,
+    record: RecordDecl,
+) => {
     const rows = record.items.filter(
         (r) => r.type === 'Row',
     ) as Array<RecordRow>;
 
+    // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
+    const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
+        env,
+        typeVblsRaw,
+        [],
+    );
+
     const defn: RecordDef = {
         type: 'Record',
+        unique: env.global.rng(),
+        typeVbls,
+        effectVbls,
         extends: record.items
             .filter((r) => r.type === 'Spread')
-            .map((r) => resolveType(env.global, (r as RecordSpread).constr)),
-        items: rows.map((r) => typeType(env, (r as RecordRow).rtype)),
+            .map((r) =>
+                resolveType(typeInner.global, (r as RecordSpread).constr),
+            ),
+        items: rows.map((r) => typeType(typeInner, (r as RecordRow).rtype)),
     };
     const hash = hashObject(defn);
     const idid = { hash, pos: 0, size: 1 };
@@ -82,6 +132,30 @@ export const typeRecord = (env: Env, id: Identifier, record: RecordDecl) => {
     rows.forEach((r, i) => {
         env.global.attributeNames[r.id.text] = { id: idid, idx: i };
     });
+};
+
+export const hashObject = (obj: any): string =>
+    hashObjectSum(withoutLocations(obj));
+
+const withoutLocations = <T>(obj: T): T => {
+    if (!obj) {
+        return obj;
+    }
+    if (Array.isArray(obj)) {
+        return (obj as any).map(withoutLocations);
+    }
+    if (typeof obj === 'object') {
+        const res: any = {};
+        Object.keys(obj).forEach((key) => {
+            if (key === 'location') {
+                return;
+            }
+            // @ts-ignore
+            res[key] = withoutLocations(obj[key]);
+        });
+        return res;
+    }
+    return obj;
 };
 
 export const typeDefine = (env: Env, item: Define) => {
@@ -238,6 +312,34 @@ export const resolveIdentifier = (
             ref: { type: 'builtin', name: text },
         };
     }
+    if (env.global.typeNames[text]) {
+        const id = env.global.typeNames[text];
+        const t = env.global.types[idName(id)];
+        if (
+            t.type === 'Record' &&
+            t.items.length === 0 &&
+            t.extends.length === 0
+        ) {
+            return {
+                type: 'Record',
+                base: {
+                    type: 'Concrete',
+                    ref: { type: 'user', id },
+                    rows: [],
+                    spread: null,
+                },
+                location,
+                is: {
+                    type: 'ref',
+                    ref: { type: 'user', id },
+                    location,
+                    typeVbls: [],
+                    effectVbls: [],
+                },
+                subTypes: {},
+            };
+        }
+    }
     return null;
 };
 
@@ -248,7 +350,7 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
             if (idsEqual(id, sid)) {
                 return true;
             }
-            const t = env.global.types[idName(sid)];
+            const t = env.global.types[idName(sid)] as RecordDef;
             const allSubTypes = getAllSubTypes(env.global, t);
             if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
                 return true;
@@ -261,7 +363,7 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (idsEqual(type.ref.id, id)) {
         return true;
     }
-    const t = env.global.types[idName(type.ref.id)];
+    const t = env.global.types[idName(type.ref.id)] as RecordDef;
     const allSubTypes = getAllSubTypes(env.global, t);
     return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };

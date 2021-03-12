@@ -1,8 +1,9 @@
 // Types for the typed tree
 
-import { Identifier, Location } from '../parsing/parser';
+import { Expression, Identifier, Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
+import seedrandom from 'seedrandom';
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
@@ -21,6 +22,51 @@ export type Symbol = { name: string; unique: number };
 
 export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
+
+export type GlobalEnv = {
+    rng: () => number;
+    names: { [key: string]: Id };
+    terms: { [key: string]: Term };
+    builtins: { [key: string]: Type };
+
+    // number here is "number of type arguments"
+    builtinTypes: { [key: string]: number };
+
+    typeNames: { [key: string]: Id };
+    types: { [key: string]: TypeDef };
+
+    // These are two ways of saying the same thing
+    recordGroups: { [key: string]: Array<string> };
+    attributeNames: { [key: string]: { id: Id; idx: number } };
+
+    // allNames: {
+    //     attributes:
+    // },
+
+    effectNames: { [key: string]: string };
+    effectConstructors: { [key: string]: { hash: string; idx: number } };
+    effects: {
+        [key: string]: Array<{
+            args: Array<Type>;
+            ret: Type;
+        }>;
+    };
+};
+
+export type LocalEnv = {
+    unique: number;
+    self: {
+        name: string;
+        type: Type;
+    };
+    locals: { [key: string]: { sym: Symbol; type: Type } };
+    typeVbls: { [unique: number]: { subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
+    typeVblNames: { [key: string]: Symbol };
+    effectVbls: { [key: string]: Symbol };
+    tmpTypeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
+    // manual type variables can't have constriaints, right? or can they?
+    // I can figure that out later.
+};
 
 export type Case = {
     constr: number; // the index
@@ -98,24 +144,27 @@ export type Var = {
 export const getAllSubTypes = (env: GlobalEnv, t: RecordDef): Array<Id> => {
     return ([] as Array<Id>).concat(
         ...t.extends.map((id) =>
-            [id].concat(getAllSubTypes(env, env.types[idName(id)])),
+            [id].concat(
+                getAllSubTypes(env, env.types[idName(id)] as RecordDef),
+            ),
         ),
     );
 };
 
-export type RecordBase =
+export type RecordBase<Contents> =
     | {
           type: 'Concrete';
           ref: UserReference;
-          rows: Array<Term | null>;
+          rows: Array<Contents>;
           spread: Term | null; // only one spread per type makes sense
       }
     | { type: 'Variable'; var: Symbol; spread: Term };
 
 export type Record = {
     type: 'Record';
-    base: RecordBase;
+    base: RecordBase<Term | null>;
     is: Type;
+    // For each subtype, we might have members defined
     subTypes: {
         [id: string]: {
             covered: boolean;
@@ -126,12 +175,86 @@ export type Record = {
     location: Location | null;
 };
 
+export type ArrayLiteral = {
+    type: 'Array';
+    location: Location | null;
+    items: Array<Term | ArraySpread>;
+    is: TypeReference;
+};
+
+export type ArraySpread = {
+    type: 'ArraySpread';
+    value: Term;
+    location: Location | null;
+};
+
+// This is basically a type coersion?
+export type Enum = {
+    type: 'Enum';
+    inner: Term;
+    is: TypeReference;
+    location: Location | null;
+};
+
+export type Switch = {
+    type: 'Switch';
+    term: Term;
+    cases: Array<SwitchCase>;
+    is: Type;
+    location: Location | null;
+};
+
+export type SwitchCase = {
+    pattern: Pattern;
+    body: Term;
+};
+
+export type Pattern =
+    | Literal
+    | AliasPattern
+    | RecordPattern
+    | EnumPattern
+    | Binding;
+export type Binding = {
+    type: 'Binding';
+    sym: Symbol;
+    location: Location | null;
+};
+export type AliasPattern = {
+    type: 'Alias';
+    name: Symbol;
+    inner: Pattern;
+    location: Location | null;
+};
+export type EnumPattern = {
+    type: 'Enum';
+    ref: TypeReference;
+    location: Location | null;
+};
+export type RecordPattern = {
+    type: 'Record';
+    ref: TypeReference;
+    items: Array<RecordPatternItem>;
+    location: Location | null;
+};
+export type RecordPatternItem = {
+    // sym: Symbol;
+    ref: UserReference;
+    idx: number; // is this right? hm no I need to know the subtype too
+    location: Location | null;
+    pattern: Pattern;
+    is: Type;
+};
+
 export type Term =
     | CPSAble
     | { type: 'self'; is: Type; location: Location | null }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
     | Record
+    | Switch
+    | Enum
+    | ArrayLiteral
     | {
           type: 'Attribute';
           target: Term;
@@ -147,15 +270,28 @@ export type Term =
           is: Type;
       }
     | Var
-    | {
-          type: 'int';
-          location: Location | null;
-          value: number; // TODO other builtin types
-          is: Type;
-      }
-    | { type: 'string'; text: string; is: Type; location: Location | null }
+    | Literal
     | Lambda;
 
+export type Literal = String | Int | Boolean;
+export type Int = {
+    type: 'int';
+    location: Location | null;
+    value: number; // TODO other builtin types
+    is: Type;
+};
+export type String = {
+    type: 'string';
+    text: string;
+    is: Type;
+    location: Location | null;
+};
+export type Boolean = {
+    type: 'boolean';
+    value: boolean;
+    is: Type;
+    location: Location | null;
+};
 export type Lambda = {
     type: 'lambda';
     location: Location | null;
@@ -190,9 +326,20 @@ export type Lambda = {
 // some things are args, some things are application, right?
 //
 
-export type TypeDef = RecordDef;
+export type EnumDef = {
+    type: 'Enum';
+    typeVbls: Array<TypeVblDecl>;
+    effectVbls: Array<number>;
+    extends: Array<TypeReference>;
+    items: Array<TypeReference>;
+};
+
+export type TypeDef = RecordDef | EnumDef;
 export type RecordDef = {
     type: 'Record';
+    unique: number;
+    typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
+    effectVbls: Array<number>;
     extends: Array<Id>;
     items: Array<Type>;
 };
@@ -208,7 +355,6 @@ export type RecordDef = {
 //     applied: Array<TypeExpr>;
 //     paramed: Array<TypeExpr>;
 // };
-// START HERE: and maybe try to typecheck some of records?
 // I guess we need a `TypeDecl` type. yeah.
 
 // | { type: 'atom'; inner: Type }
@@ -258,11 +404,11 @@ NEW PLAN:
 // T<A> => applied[A]
 // T<A<B>> => applied[A applied [B]]
 
-export const typesEqual = (
-    env: Env,
-    one: Type | null,
-    two: Type | null,
-): boolean => {
+export const isRecord = (one: Type, ref: Reference) => {
+    return one.type === 'ref' && refsEqual(one.ref, ref);
+};
+
+export const typesEqual = (one: Type | null, two: Type | null): boolean => {
     if (one == null || two == null) {
         return one == two;
     }
@@ -288,11 +434,11 @@ export const typesEqual = (
             two.type === 'lambda' &&
             deepEqual(one.typeVbls, two.typeVbls) &&
             one.args.length === two.args.length &&
-            one.args.every((arg, i) => typesEqual(env, arg, two.args[i])) &&
+            one.args.every((arg, i) => typesEqual(arg, two.args[i])) &&
             one.effects.length === two.effects.length &&
             effectsMatch(one.effects, two.effects) &&
-            typesEqual(env, one.res, two.res) &&
-            typesEqual(env, one.rest, two.rest)
+            typesEqual(one.res, two.res) &&
+            typesEqual(one.rest, two.rest)
         );
     }
     return false;
@@ -334,13 +480,14 @@ export const effectsMatch = (
     return true;
 };
 
-export type TypeRef =
-    | {
-          type: 'ref';
-          ref: Reference;
-          location: Location | null;
-      }
-    | TypeVar;
+export type TypeReference = {
+    type: 'ref';
+    ref: Reference;
+    location: Location | null;
+    typeVbls: Array<Type>;
+    effectVbls: Array<EffectRef>;
+};
+export type TypeRef = TypeReference | TypeVar; // will also support vbls at some point I guess
 
 export type TypeVar = {
     type: 'var';
@@ -358,12 +505,14 @@ export type Kind =
     | { type: 'concrete' }
     | { type: 'lambda'; arg: Kind; reult: Kind };
 
+export type TypeVblDecl = { subTypes: Array<Id>; unique: number };
+
 export type LambdaType = {
     type: 'lambda';
     location: Location | null;
     // TODO: this shouldn't be an array,
     // we don't have to be order dependent here.
-    typeVbls: Array<{ subTypes: Array<Id>; unique: number }>; // TODO: kind, row etc.
+    typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
     // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
@@ -385,47 +534,6 @@ export type RecordType = {
     extends: Array<Reference>;
 };
 
-export type GlobalEnv = {
-    names: { [key: string]: Id };
-    terms: { [key: string]: Term };
-    builtins: { [key: string]: Type };
-
-    attributeNames: { [key: string]: { id: Id; idx: number } };
-    typeNames: { [key: string]: Id };
-    // number here is "number of type arguments"
-    builtinTypes: { [key: string]: number };
-    types: { [key: string]: TypeDef };
-    recordGroups: { [key: string]: Array<string> };
-
-    // allNames: {
-    //     attributes:
-    // },
-
-    effectNames: { [key: string]: string };
-    effectConstructors: { [key: string]: { hash: string; idx: number } };
-    effects: {
-        [key: string]: Array<{
-            args: Array<Type>;
-            ret: Type;
-        }>;
-    };
-};
-
-export type LocalEnv = {
-    unique: number;
-    self: {
-        name: string;
-        type: Type;
-    };
-    locals: { [key: string]: { sym: Symbol; type: Type } };
-    typeVbls: { [unique: number]: { subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
-    typeVblNames: { [key: string]: Symbol };
-    effectVbls: { [key: string]: Symbol };
-    tmpTypeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
-    // manual type variables can't have constriaints, right? or can they?
-    // I can figure that out later.
-};
-
 export type TypeConstraint =
     | {
           type: 'smaller-than';
@@ -440,8 +548,12 @@ export type Env = {
     local: LocalEnv;
 };
 
-export const newEnv = (self: { name: string; type: Type }): Env => ({
+export const newEnv = (
+    self: { name: string; type: Type },
+    seed: string = 'seed',
+): Env => ({
     global: {
+        rng: seedrandom(seed),
         names: {},
         terms: {},
         builtins: {},
@@ -468,6 +580,7 @@ export const newEnv = (self: { name: string; type: Type }): Env => ({
 
 export const subEnv = (env: Env): Env => ({
     global: {
+        rng: env.global.rng,
         attributeNames: { ...env.global.attributeNames },
         recordGroups: { ...env.global.recordGroups },
         names: { ...env.global.names },
@@ -496,6 +609,12 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
     switch (t.type) {
         case 'Let':
             return getEffects(t.value);
+        case 'Array':
+            return ([] as Array<EffectRef>).concat(
+                ...t.items.map((i) =>
+                    getEffects(i.type === 'ArraySpread' ? i.value : i),
+                ),
+            );
         case 'apply':
             return dedupEffects(
                 (t.target.is as LambdaType).effects.concat(
@@ -518,6 +637,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             );
         case 'int':
         case 'string':
+        case 'boolean':
         case 'lambda':
         case 'self':
         case 'ref':
@@ -561,6 +681,12 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
 
             return effects;
         }
+        case 'Enum':
+            return getEffects(t.inner);
+        case 'Switch':
+            return getEffects(t.term).concat(
+                ...t.cases.map((c) => getEffects(c.body)),
+            );
         default:
             let _x: never = t;
             throw new Error('Unhandled term');

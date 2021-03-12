@@ -39,19 +39,41 @@
   - [x] basic
   - [x] spread to update
   - [x] ~inheritance (subtyping)
-  - [ ] generic
-  - [ ] FFIable types.
-- [ ] give me Array<T> or give me sadness
+  - [x] generic
+  - [ ] FFIable types. (with nice attribute names and such)
+- [x] give me Array<T> or give me sadness
+- [x] NamedTuples (records without attribute names) so I have `Some()`
+  - ok copout on this one, I'm allowing you to do `Some{_: 10}`, to omit the attribute name. I don't love it, but I don't want to sink too much time into it.
+- [x] enums
+  - [x] basic
+  - [x] generic
+  - [x] also subtyping? like polymorphic variants?
+- [ ] match
+  - [x] very basic
+  - [x] record patterns
+  - [x] exhaustiveness analysis
+    - so the plan here is to keep track of 'paths' that are partial. a later path can come through and make it total. when going in, need to list out the other options that need to be filled. or if it's like numbers, then good luck folks. or strings.
+    - ok but this case analysis needs to be done *after* type checking. yeah. not as part of it. so that I can reuse it in the structured editors.
+    - [x] basic impl of the Maranget paper
+    - [x] hook it up folks!
+  - [ ] sub-enums
+  - [ ] arrays! slice! dice! thrice!
+  - [ ] guards I do believe (restrict to pure tho)
+- [x] some builtin macros!
+  - [x] @typeError("message")
+    - to indicate that this expression should trigger a type error. so I can verify that I'm excluding invalid stuff.
+  - [ ] @assert? or should I keep just doing my magic?
+- [ ] put this on a web sit! animations or some such.
+  - yeah, so first pass would be like a textarea per term, orr maybe a contenteditable? need look up the latest dealios.
+  - and then try doing a full-on structured editor. would start small & build up, with an eye to making it possible to generate the structured editor "visual syntax" from a grammar definition.
+  - modal for life. might make people sad though, should have a non-modal option.
+
 - [ ] basic attempt at compiling to go or swift or something?
   - Yeah I really should get on this before too long, so I can see what hurdles I run into.
+- [ ] loop/recur please. and maybe a foreach? idk. or a map? naw.
 - [ ] generic effects (Store<T>)
-- [ ] enums
-  - [ ] basic
-  - [ ] generic
-  - [ ] also subtyping? like polymorphic variants?
 - [ ] tuples
 - [ ] port the unison runtime effects tests, verify that all is well.
-- [ ] match
 - [ ] exit-only effects? (call/ec) Can I just use exceptions in the js? would need to check.
     I don't *think* I can in go... oh wait, panic/recover might get it done.
 - [ ] let & function arg destructuring of records

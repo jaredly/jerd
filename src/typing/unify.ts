@@ -1,7 +1,6 @@
 // Unify it all
 
 import {
-    EffectRef,
     effectsMatch,
     Env,
     Symbol,
@@ -15,10 +14,9 @@ import {
 import { walkType } from './typeType';
 import { printToString } from '../printing/printer';
 import { typeToPretty } from '../printing/printTsLike';
-import { Identifier } from '../parsing/parser';
 import { showLocation } from './typeExpr';
+import { Location } from '../parsing/parser';
 
-// const
 /*
 
 Ok so what are the constraints on a type?
@@ -273,6 +271,21 @@ const unify = (one: Type | null, constraint: TypeConstraint): Type => {
 
 type UnificationResult = true | false | Symbol;
 
+export const assertFits = (
+    env: Env,
+    t: Type,
+    expected: Type,
+    location?: Location | null,
+) => {
+    if (fitsExpectation(env, t, expected) !== true) {
+        throw new Error(
+            `Type error, expected ${showType(expected)}, found ${showType(
+                t,
+            )} at ${showLocation(location || t.location)}`,
+        );
+    }
+};
+
 // `t` is being passed as an argument to a function that expects `target`.
 // Is it valid?
 export const fitsExpectation = (
@@ -282,7 +295,7 @@ export const fitsExpectation = (
 ): UnificationResult => {
     if (t.type === 'var' && env != null) {
         // if (env.local.typeVbls[])
-        if (typesEqual(env, t, target)) {
+        if (typesEqual(t, target)) {
             return true;
         }
         // if (target.type === 'var')
@@ -305,11 +318,11 @@ export const fitsExpectation = (
     if (target.type === 'var' && env != null) {
         if (!env.local.tmpTypeVbls[target.sym.unique]) {
             throw new Error(
-                `Unable to unify ${showType(t)} ${
-                    t.location
-                } with type variable ${target.sym.name}#${target.sym.unique} ${
-                    t.location
-                }`,
+                `Unable to unify ${showType(t)} ${showLocation(
+                    t.location,
+                )} with type variable ${target.sym.name}#${
+                    target.sym.unique
+                } ${showLocation(target.location)}`,
             );
         }
         env.local.tmpTypeVbls[target.sym.unique].push({
@@ -334,7 +347,7 @@ export const fitsExpectation = (
             console.log('env is null I guess');
             return false;
         case 'ref':
-            return env ? typesEqual(env, t, target) : false;
+            return typesEqual(t, target);
         case 'lambda':
             if (target.type !== 'lambda') {
                 return false;

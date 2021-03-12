@@ -1,9 +1,9 @@
 import { parse } from './grammar';
 
-export type Toplevel = Define | Effect | Expression | TypeDef;
+export type Toplevel = Define | Effect | Expression | StructDef;
 
-export type TypeDef = {
-    type: 'TypeDef';
+export type StructDef = {
+    type: 'StructDef';
     id: Identifier;
     effects: Array<Identifier>;
     vbls: Array<TypeVbl>;
