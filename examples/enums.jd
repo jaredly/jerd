@@ -145,7 +145,7 @@ switch y {
 }
 
 switch y1 {
-    Twice{two: 5} => false,
+    // Twice{two: 5} => false,
     Twice => false,
     Option as x => switch x {
         Some => false,

@@ -134,17 +134,21 @@ const isComplete = (
 ): { [key: string]: number } | null => {
     let gid: string | null = null;
     const found: { [id: string]: number } = {};
-    matrix.forEach((row) => {
-        if (row[0].type === 'constructor') {
-            if (gid != null && row[0].groupId !== gid) {
+    const checkRow = (row: Pattern) => {
+        if (row.type === 'constructor') {
+            if (gid != null && row.groupId !== gid) {
                 throw new Error(
                     `Constructors with different group IDs in the same position`,
                 );
             }
-            gid = row[0].groupId;
-            found[row[0].id] = row[0].args.length;
+            gid = row.groupId;
+            found[row.id] = row.args.length;
+        } else if (row.type === 'or') {
+            checkRow(row.left);
+            checkRow(row.right);
         }
-    });
+    };
+    matrix.forEach((row) => checkRow(row[0]));
     if (gid == null) {
         return null;
     }

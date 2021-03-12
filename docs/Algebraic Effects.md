@@ -2,15 +2,35 @@
 
 Very much based off of eff-lang, but taking, like unison, the choice of making handlers "shallow" (https://www.eff-lang.org/handlers-tutorial.pdf).
 
+## Error handling!
 
+It could be ~nice to have helpful error tracking through algebraic effects.
 
-## Todo
+This might look like effects being [??]variant in their arguments or something.
 
-- want to make the handlers list a linked list probably
+Like you if call
+
+x() // that has `Throws<IoErr>`
+y() // that has `Throws<FsErr>`
+
+then the resulting routine would have `Throws<IoErr | FsErr>`.
+
+hmmmmm
+would that require me to give up my 'all enums have names' rule?
+I really don't want to ditch that rule.
+I guess I could do editor glue here to produce a 
+```ts
+enum MyRoutineErr {
+  ...IoErr,
+  ...FsErr,
+}
+```
+yeah that doesn't sound terrible?
 
 
 
 ## How to optimize performance of the handlers data structure?
+(haha found the bug & fixed it, this is fine)
 
 This backtracking thing is definitely a stress test 😅.
 

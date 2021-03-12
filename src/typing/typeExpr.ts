@@ -723,6 +723,26 @@ export const typeFitsEnum = (
     return false;
 };
 
+export const getEnumSuperTypes = (
+    env: Env,
+    enumRef: TypeReference,
+): Array<TypeReference> => {
+    let enumDef = typeDef(env.global, enumRef.ref);
+    if (enumDef == null) {
+        throw new Error(`Unknown type definition ${showType(enumRef)}`);
+    }
+    if (enumDef.type !== 'Enum') {
+        throw new Error(`Not an enum, it's a record ${showType(enumRef)}`);
+    }
+    enumDef = applyTypeVariablesToEnum(env, enumDef, enumRef.typeVbls);
+    if (!enumDef.extends.length) {
+        return enumDef.extends;
+    }
+    return enumDef.extends.concat(
+        ...enumDef.extends.map((r) => getEnumSuperTypes(env, r)),
+    );
+};
+
 export const getEnumReferences = (
     env: Env,
     enumRef: TypeReference,

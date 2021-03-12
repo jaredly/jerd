@@ -1061,6 +1061,16 @@ const printPattern = (
             ]),
             success,
         ]);
+    } else if (pattern.type === 'Enum') {
+        return t.blockStatement([
+            t.variableDeclaration('const', [
+                t.variableDeclarator(
+                    t.identifier(recordIdName(pattern.ref.ref)),
+                    value,
+                ),
+            ]),
+            success,
+        ]);
     } else if (pattern.type === 'Alias') {
         return printPattern(
             value,
@@ -1091,7 +1101,7 @@ const printPattern = (
                 t.binaryExpression(
                     '===',
                     t.memberExpression(value, t.identifier('type')),
-                    t.stringLiteral(idName(pattern.ref.id)),
+                    t.stringLiteral(recordIdName(pattern.ref.ref)),
                 ),
                 success,
             ),
@@ -1127,7 +1137,7 @@ const printPattern = (
         ]);
     }
     const _v: never = pattern;
-    throw new Error(`Pattern not yet supported ${pattern.type}`);
+    throw new Error(`Pattern not yet supported ${(pattern as any).type}`);
 };
 
 const recordIdName = (ref: Reference) => {

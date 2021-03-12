@@ -7,6 +7,7 @@ import {
     getAllSubTypes,
     Pattern,
     RecordDef,
+    RecordPattern,
     Reference,
     refsEqual,
     subEnv,
@@ -23,6 +24,7 @@ import {
     isExhaustive,
     getUseless,
     constructor,
+    or,
 } from './exhaustive';
 
 const groupIdForRef = (ref: Reference) =>
@@ -45,72 +47,54 @@ const patternToExPattern = (
             return constructor(pattern.value.toString(), 'boolean', []);
         case 'Binding':
             return anything;
-        case 'Enum':
-            throw new Error(`Enum not yet supported. would be a bunch of ors`);
-        case 'Record':
+        case 'Enum': {
+            if (type.type !== 'ref') {
+                throw new Error(
+                    `Non-concrete type ${showType(
+                        type,
+                    )} for enum pattern ${showLocation(pattern.location)}`,
+                );
+            }
+            // const groupId = groupIdForRef(type.ref);
+            const all = getEnumReferences(env, pattern.ref);
+            // if (!groups[groupId]) {
+            //     groups[groupId] = all.map((t) => groupIdForRef(t.ref));
+            // }
+
+            let last: ExPattern | null = null;
+            all.forEach((ref) => {
+                const p = recordToExPattern(
+                    type,
+                    {
+                        type: 'Record',
+                        ref,
+                        location: pattern.location,
+                        items: [],
+                    },
+                    groups,
+                    env,
+                );
+                last = last ? or(p, last) : p;
+            });
+            if (last == null) {
+                throw new Error(
+                    `Enum ${showType(
+                        pattern.ref,
+                    )} has no items. Cannot match at ${showLocation(
+                        pattern.location,
+                    )}`,
+                );
+            }
+            return last;
+        }
+        case 'Record': {
             // TODO: got to look up all the options...
             // for the current type.
             // if the current type is the record,
             // then we just make a unary group
             // otherwise, we list all possible constructors
-            if (type.type !== 'ref') {
-                throw new Error(
-                    `Non-concrete type ${showLocation(pattern.location)}`,
-                );
-            }
-            const groupId = groupIdForRef(type.ref);
-            if (!groups[groupId]) {
-                const all = getEnumReferences(env, type);
-                groups[groupId] = all.map((t) => groupIdForRef(t.ref));
-            }
-            const defn = env.global.types[
-                groupIdForRef(pattern.ref.ref)
-            ] as RecordDef;
-            const subTypes = getAllSubTypes(env.global, defn);
-            const valuesBySubType: {
-                [idName: string]: {
-                    row: Array<ExPattern>;
-                    types: Array<Type>;
-                };
-            } = {};
-            subTypes.forEach((id) => {
-                const defn = env.global.types[idName(id)] as RecordDef;
-                valuesBySubType[idName(id)] = {
-                    row: defn.items.map(() => anything),
-                    types: defn.items,
-                };
-            });
-            const inner = defn.items.map(() => anything);
-            pattern.items.forEach((item) => {
-                if (refsEqual(item.ref, pattern.ref.ref)) {
-                    inner[item.idx] = patternToExPattern(
-                        env,
-                        defn.items[item.idx],
-                        groups,
-                        item.pattern,
-                    );
-                } else {
-                    const sub = valuesBySubType[idName(item.ref.id)];
-                    sub.row[item.idx] = patternToExPattern(
-                        env,
-                        sub.types[item.idx],
-                        groups,
-                        item.pattern,
-                    );
-                }
-            });
-            const subIds = Object.keys(valuesBySubType).sort();
-            subIds.forEach((sub) => {
-                inner.push(...valuesBySubType[sub].row);
-            });
-            return constructor(
-                groupIdForRef(pattern.ref.ref),
-                groupId,
-                // TODO: we need to serialize out all of the
-                // attributes of this record, in a reproducible
-                // way. So probably sort subtypes, and such.
-                inner,
-            );
+            return recordToExPattern(type, pattern, groups, env);
+        }
     }
 };
 
@@ -182,4 +166,70 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
         location: expr.location,
         is: is!,
     };
+};
+
+const recordToExPattern = (
+    type: Type,
+    pattern: RecordPattern,
+    groups: Groups,
+    env: Env,
+) => {
+    if (type.type !== 'ref') {
+        throw new Error(
+            `Non-concrete type ${showType(
+                type,
+            )} for record pattern ${showLocation(pattern.location)}`,
+        );
+    }
+    const groupId = groupIdForRef(type.ref);
+    if (!groups[groupId]) {
+        const all = getEnumReferences(env, type);
+        groups[groupId] = all.map((t) => groupIdForRef(t.ref));
+    }
+    const defn = env.global.types[groupIdForRef(pattern.ref.ref)] as RecordDef;
+    const subTypes = getAllSubTypes(env.global, defn);
+    const valuesBySubType: {
+        [idName: string]: {
+            row: Array<ExPattern>;
+            types: Array<Type>;
+        };
+    } = {};
+    subTypes.forEach((id) => {
+        const defn = env.global.types[idName(id)] as RecordDef;
+        valuesBySubType[idName(id)] = {
+            row: defn.items.map(() => anything),
+            types: defn.items,
+        };
+    });
+    const inner = defn.items.map(() => anything);
+    pattern.items.forEach((item) => {
+        if (refsEqual(item.ref, pattern.ref.ref)) {
+            inner[item.idx] = patternToExPattern(
+                env,
+                defn.items[item.idx],
+                groups,
+                item.pattern,
+            );
+        } else {
+            const sub = valuesBySubType[idName(item.ref.id)];
+            sub.row[item.idx] = patternToExPattern(
+                env,
+                sub.types[item.idx],
+                groups,
+                item.pattern,
+            );
+        }
+    });
+    const subIds = Object.keys(valuesBySubType).sort();
+    subIds.forEach((sub) => {
+        inner.push(...valuesBySubType[sub].row);
+    });
+    return constructor(
+        groupIdForRef(pattern.ref.ref),
+        groupId,
+        // TODO: we need to serialize out all of the
+        // attributes of this record, in a reproducible
+        // way. So probably sort subtypes, and such.
+        inner,
+    );
 };

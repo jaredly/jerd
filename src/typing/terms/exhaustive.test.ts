@@ -18,6 +18,7 @@ const groups = {
     string: null,
     option: ['some', 'none'],
     list: ['cons', 'nil'],
+    three: ['one', 'two', 'three'],
 };
 
 const five = constructor('5', 'int', []);
@@ -44,6 +45,21 @@ const isntExhaustive = (matrix) => {
 };
 
 describe('isExhaustive', () => {
+    it('basic or', () => {
+        isNecessaryAndSufficient([[Some(anything)], [None]]);
+        isNecessaryAndSufficient([[or(Some(anything), None)]]);
+    });
+    it('ors should work', () => {
+        isNecessaryAndSufficient([
+            [constructor('one', 'three', [])],
+            [
+                or(
+                    constructor('two', 'three', []),
+                    constructor('three', 'three', []),
+                ),
+            ],
+        ]);
+    });
     it('anything should be exhaustive', () => {
         isNecessaryAndSufficient([[anything]]);
     });

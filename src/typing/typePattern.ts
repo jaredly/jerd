@@ -5,6 +5,7 @@ import {
     showLocation,
     getEnumReferences,
     applyTypeVariablesToRecord,
+    getEnumSuperTypes,
 } from './typeExpr';
 import {
     Env,
@@ -87,10 +88,28 @@ const typePattern = (
                 if (!id) {
                     throw new Error(`Unknown type ${pattern.text}`);
                 }
-                if (env.global.types[idName(id)].type === 'Enum') {
-                    throw new Error('enums not supported yet');
+
+                const decl = env.global.types[idName(id)];
+                if (decl.type === 'Enum') {
+                    const allEnums = getEnumSuperTypes(env, expectedType);
+                    let found = null;
+                    for (let ref of allEnums) {
+                        if (refsEqual(ref.ref, { type: 'user', id })) {
+                            found = ref;
+                        }
+                    }
+                    if (!found) {
+                        throw new Error(`Enum doesn't match`);
+                    }
+                    return {
+                        type: 'Enum',
+                        ref: found,
+                        location: pattern.location,
+                    };
                 }
+
                 const allReferences = getEnumReferences(env, expectedType);
+
                 let found = null;
                 for (let ref of allReferences) {
                     if (refsEqual(ref.ref, { type: 'user', id })) {
@@ -186,7 +205,12 @@ const typePattern = (
             if (t.type !== 'Record') {
                 throw new Error(`Not a record ${idName(id)}`);
             }
-            t = applyTypeVariablesToRecord(env, t, found.typeVbls);
+            t = applyTypeVariablesToRecord(
+                env,
+                t,
+                found.typeVbls,
+                pattern.location,
+            );
 
             subTypeIds = getAllSubTypes(env.global, t);
 
@@ -296,5 +320,8 @@ const typePattern = (
             );
     }
 };
+
+export const refName = (ref: Reference) =>
+    ref.type === 'builtin' ? 'builtin:' + ref.name : 'user:' + idName(ref.id);
 
 export default typePattern;
