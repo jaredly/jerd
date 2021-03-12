@@ -138,6 +138,15 @@ switch y {
     None => true
 }
 
+switch y1 {
+    Twice{two: 5} => false,
+    Twice => false,
+    Option as x => switch x {
+        Some => false,
+        None => true
+    },
+}
+
 /*
 
 const d = {type: "some", contents: "yes"}

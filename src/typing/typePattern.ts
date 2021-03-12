@@ -24,6 +24,36 @@ import {
 } from './types';
 import { assertFits, showType } from './unify';
 
+export const patternIs = (pattern: Pattern, expected: Type): Type => {
+    switch (pattern.type) {
+        case 'Alias':
+            return patternIs(pattern.inner, expected);
+        case 'Binding':
+            return expected;
+        case 'string':
+        case 'int':
+        case 'boolean':
+            return pattern.is;
+        case 'Enum':
+            // hmmmmmmmmmmmmmmmmmmmmm
+            return {
+                type: 'ref',
+                ref: pattern.ref,
+                location: pattern.location,
+                typeVbls: [], // STOPSHIP
+                effectVbls: [], // STOPSHIP
+            };
+        case 'Record':
+            return {
+                type: 'ref',
+                ref: pattern.ref,
+                location: pattern.location,
+                typeVbls: [], // STOPSHIP
+                effectVbls: [], // STOPSHIP
+            };
+    }
+};
+
 const typePattern = (
     env: Env,
     pattern: RawPattern,
@@ -103,6 +133,23 @@ const typePattern = (
                     sym,
                 };
             }
+        }
+        case 'Alias': {
+            const p = typePattern(env, pattern.inner, expectedType);
+            const is = patternIs(p, expectedType);
+            const unique = env.local.unique++;
+            const sym: Symbol = {
+                unique,
+                name: pattern.name.text,
+            };
+            env.local.locals[pattern.name.text] = { sym, type: is };
+
+            return {
+                type: 'Alias',
+                location: pattern.location,
+                inner: p,
+                name: sym,
+            };
         }
         case 'Record': {
             const names: { [key: string]: { i: number; id: Id | null } } = {};
@@ -255,7 +302,10 @@ const typePattern = (
             };
         }
         default:
-            throw new Error(`Not supported pattern type ${pattern.type}`);
+            let _x: never = pattern;
+            throw new Error(
+                `Not supported pattern type ${(pattern as any).type}`,
+            );
     }
 };
 

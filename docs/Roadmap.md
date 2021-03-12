@@ -51,12 +51,14 @@
 - [ ] match
   - [x] very basic
   - [x] record patterns
-  - [ ] exhaustiveness analysis
+  - [x] exhaustiveness analysis
     - so the plan here is to keep track of 'paths' that are partial. a later path can come through and make it total. when going in, need to list out the other options that need to be filled. or if it's like numbers, then good luck folks. or strings.
     - ok but this case analysis needs to be done *after* type checking. yeah. not as part of it. so that I can reuse it in the structured editors.
+    - [x] basic impl of the Maranget paper
+    - [x] hook it up folks!
   - [ ] sub-enums
   - [ ] arrays! slice! dice! thrice!
-  - [ ] full patterns
+  - [ ] guards I do believe (restrict to pure tho)
 - [x] some builtin macros!
   - [x] @typeError("message")
     - to indicate that this expression should trigger a type error. so I can verify that I'm excluding invalid stuff.
@@ -68,6 +70,7 @@
 
 - [ ] basic attempt at compiling to go or swift or something?
   - Yeah I really should get on this before too long, so I can see what hurdles I run into.
+- [ ] loop/recur please. and maybe a foreach? idk. or a map? naw.
 - [ ] generic effects (Store<T>)
 - [ ] tuples
 - [ ] port the unison runtime effects tests, verify that all is well.
