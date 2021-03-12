@@ -7,12 +7,12 @@ const z = ["hi", "ho"]
 const a = [...z, "Yes"]
 const b = ["Good", ...z, "uhuh"]
 
-switch a[0] {
-    None => false,
-    // Some{_: "ho"} => false,
-    // Some{_: "hi"} => true,
-    _ => false
-}
+// switch a[0] {
+//     None => false,
+//     // Some{_: "ho"} => false,
+//     // Some{_: "hi"} => true,
+//     _ => false
+// }
 
 // switch a {
 //     [] => false,
