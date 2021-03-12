@@ -69,9 +69,21 @@ switch x {
 
 ummmm should I do the "capitalization matters"?
 like, how do I distinguish between a variable name?
-oh "x as y"
+oh "x as y". um just scoping folks. yolo.
 
 # Patterns
+
+- constructors `Some(x)`
+- tuples `(x, y)`
+- arrays `[x, y, z]`
+    - array spreads? `[x, y, ...z]` is easy to represent in my exhaustiveness checker, just turn it into `Cons()`.
+    - but what about spreads at the start? how do you determine exhaustiveness? like `[...a, b, c]`. oh we could have "cons" and "snoc" constructors .... that could be nested. would that be weird? might be doable. so `[...a, b, c]` would be `Snoc(Snoc(a, b), c)` and `[a, b, ...c, d, e]` would be `Snoc(Snoc(Cons(a, Cons(b, c)), d), e)`. And a list could be `Snoc | Cons | Nil`. That doesn't quite do the trick though I don't think. because `[_, _, ..._] | [..._, _] | [_] | []` is exhaustive. So yeah might need a new pattern type representation for that.
+    - ok folks I figured out a way to do it, without changing the algorithm! pretty jazzed about it.
+
+- literals `"hello"`
+- should I allow "equals variable"s? would that get in the way of exhaustiveness checking? I mean it might make redundancy harder to do, so we can say "this might not detect redundant ones". But that's fine. I feel like `=vbl` would be good syntax.
+- how about "guards"? they can be quite useful. maybe I'd want to require that guards be pure? yeah, I think for the moment I probably do. I could relax that restriction later, but it kinda makes sense.
+
 
 ```ts
 let (x, y, z) = // tuple

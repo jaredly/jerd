@@ -100,6 +100,12 @@ switch Option<string>:Some<string>{_: "yes"} {
     Some{_: v} => v == "yes"
 } == true
 
+@typeError("Not exhaustive")
+switch Option<string>:Some<string>{_: "yes"} {
+    Some{_: "no"} => false,
+    None => false,
+}
+
 @typeError("expected string, found int")
 switch Option<string>:Some<string>{_: "yes"} {
     Some{_: 5} => false,
@@ -107,17 +113,17 @@ switch Option<string>:Some<string>{_: "yes"} {
     Some{_: v} => v == "yes"
 }
 
-@typeError("must have a catchall case")
+@typeError("Not exhaustive")
 switch 10 {
     10 => true
 }
 
-@typeError("must have a catchall case")
+@typeError("Not exhaustive")
 switch "hi" {
     "ho" => true
 }
 
-@typeError("\"true\" case not handled")
+@typeError("Not exhaustive")
 switch true {
     false => false
 }
@@ -127,7 +133,7 @@ switch true {
     _ => true
 } == true
 
-@typeError("Case not handled")
+@typeError("Not exhaustive")
 switch y {
     None => true
 }

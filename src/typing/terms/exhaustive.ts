@@ -11,6 +11,38 @@ possible instances of (v0...vn) to see if they
 match any of the rows (p0...p0).
 
 
+
+ok, so how to arrays look
+
+[x, y, ...z]
+is "an array of at least two elements, with a wildcard at the end"
+oh yeah I guess I don't want to allow anything but a wildcard in the spread. that makes sense.
+[...a, b, c]
+is "an array of at least two elements, matching on the last two"
+and
+[x, y, ...a, b, c]
+is "an array of at least 4 elements, matching on the first and last two"
+
+ahhh so what if instead I conceptualized it as:
+List(heads, tails)
+where heads and tails are ConsLists?
+yeah that would totally work.
+
+So
+[x, y, ...z]
+becomes
+List(Cons(x, Cons(y, _)), _)
+
+and
+[x, y]
+=
+List(Cons(x, Cons(y, nil)), nil)
+
+yeah I think that should actually work just fine.
+love it!
+
+
+
 */
 
 export type Constructor = {
@@ -45,9 +77,13 @@ export const constructor = (
     groupId,
     args,
 });
-export const or = (left, right): Pattern => ({ type: 'or', left, right });
+export const or = (left: Pattern, right: Pattern): Pattern => ({
+    type: 'or',
+    left,
+    right,
+});
 
-const anyList = (size) => {
+const anyList = (size: number) => {
     const res = new Array(size);
     res.fill(anything);
     return res;
@@ -96,7 +132,7 @@ const isComplete = (
     groups: Groups,
     matrix: Matrix,
 ): { [key: string]: number } | null => {
-    let gid;
+    let gid: string | null = null;
     const found: { [id: string]: number } = {};
     matrix.forEach((row) => {
         if (row[0].type === 'constructor') {
@@ -158,7 +194,7 @@ export const getUseless = (groups: Groups, matrix: Matrix) => {
     return useless;
 };
 
-export const isUseful = (groups: Groups, matrix: Matrix, row: Row) => {
+export const isUseful = (groups: Groups, matrix: Matrix, row: Row): boolean => {
     // No cases left! the current case is useful
     if (matrix.length === 0) {
         return true;

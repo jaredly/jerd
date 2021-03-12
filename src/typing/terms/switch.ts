@@ -1,9 +1,116 @@
 import { Location, Switch } from '../../parsing/parser';
 import { idName } from '../env';
-import typeExpr, { showLocation } from '../typeExpr';
+import typeExpr, { getEnumReferences, showLocation } from '../typeExpr';
 import typePattern from '../typePattern';
-import { Env, Pattern, subEnv, Term, Type } from '../types';
+import {
+    Env,
+    getAllSubTypes,
+    Pattern,
+    RecordDef,
+    Reference,
+    refsEqual,
+    subEnv,
+    Term,
+    Type,
+} from '../types';
 import { fitsExpectation, showType } from '../unify';
+import {
+    Constructor,
+    Pattern as ExPattern,
+    Groups,
+    Matrix,
+    anything,
+    isExhaustive,
+    getUseless,
+    constructor,
+} from './exhaustive';
+
+const groupIdForRef = (ref: Reference) =>
+    ref.type === 'builtin' ? ref.name : idName(ref.id);
+
+const patternToExPattern = (
+    env: Env,
+    type: Type,
+    groups: Groups,
+    pattern: Pattern,
+): ExPattern => {
+    switch (pattern.type) {
+        case 'Alias':
+            return patternToExPattern(env, type, groups, pattern.inner);
+        case 'int':
+            return constructor(pattern.value.toString(), 'int', []);
+        case 'string':
+            return constructor(pattern.text, 'string', []);
+        case 'boolean':
+            return constructor(pattern.value.toString(), 'boolean', []);
+        case 'Binding':
+            return anything;
+        case 'Enum':
+            throw new Error(`Enum not yet supported. would be a bunch of ors`);
+        case 'Record':
+            // TODO: got to look up all the options...
+            // for the current type.
+            // if the current type is the record,
+            // then we just make a unary group
+            // otherwise, we list all possible constructors
+            if (type.type !== 'ref') {
+                throw new Error(
+                    `Non-concrete type ${showLocation(pattern.location)}`,
+                );
+            }
+            const groupId = groupIdForRef(type.ref);
+            if (!groups[groupId]) {
+                const all = getEnumReferences(env, type);
+                groups[groupId] = all.map((t) => groupIdForRef(t.ref));
+            }
+            const defn = env.global.types[idName(pattern.ref.id)] as RecordDef;
+            const subTypes = getAllSubTypes(env.global, defn);
+            const valuesBySubType: {
+                [idName: string]: {
+                    row: Array<ExPattern>;
+                    types: Array<Type>;
+                };
+            } = {};
+            subTypes.forEach((id) => {
+                const defn = env.global.types[idName(id)] as RecordDef;
+                valuesBySubType[idName(id)] = {
+                    row: defn.items.map(() => anything),
+                    types: defn.items,
+                };
+            });
+            const inner = defn.items.map(() => anything);
+            pattern.items.forEach((item) => {
+                if (refsEqual(item.ref, pattern.ref)) {
+                    inner[item.idx] = patternToExPattern(
+                        env,
+                        defn.items[item.idx],
+                        groups,
+                        item.pattern,
+                    );
+                } else {
+                    const sub = valuesBySubType[idName(item.ref.id)];
+                    sub.row[item.idx] = patternToExPattern(
+                        env,
+                        sub.types[item.idx],
+                        groups,
+                        item.pattern,
+                    );
+                }
+            });
+            const subIds = Object.keys(valuesBySubType).sort();
+            subIds.forEach((sub) => {
+                inner.push(...valuesBySubType[sub].row);
+            });
+            return constructor(
+                groupIdForRef(pattern.ref),
+                groupId,
+                // TODO: we need to serialize out all of the
+                // attributes of this record, in a reproducible
+                // way. So probably sort subtypes, and such.
+                inner,
+            );
+    }
+};
 
 export const exhaustivenessCheck = (
     env: Env,
@@ -11,65 +118,21 @@ export const exhaustivenessCheck = (
     cases: Array<Pattern>,
     location: Location,
 ) => {
-    if (cases.find((c) => c.type === 'Binding') != null) {
+    const groups = {
+        int: null,
+        string: null,
+        boolean: ['true', 'false'],
+    };
+    const matrix: Matrix = [];
+    cases.forEach((kase) => {
+        matrix.push([patternToExPattern(env, t, groups, kase)]);
+    });
+
+    if (isExhaustive(groups, matrix)) {
         return true;
+    } else {
+        throw new Error(`Not exhaustive ${showLocation(location)}`);
     }
-
-    if (t.type === 'lambda') {
-        throw new Error(
-            `Cannot match on a lambda ${showType(t)} ${showLocation(location)}`,
-        );
-    }
-
-    if (t.type === 'var') {
-        throw new Error(`Umm can't match on vbls yet I don't think`);
-    }
-
-    if (t.ref.type === 'builtin') {
-        if (['string', 'int'].includes(t.ref.name)) {
-            throw new Error(
-                `${t.ref.name} must have a catchall case to be exhaustive.`,
-            );
-        }
-        if (t.ref.name === 'bool') {
-            const tr = cases.find(
-                (c) => c.type === 'boolean' && c.value === true,
-            );
-            const f = cases.find(
-                (c) => c.type === 'boolean' && c.value === false,
-            );
-            if (tr == null) {
-                throw new Error(
-                    `"true" case not handled ${showLocation(location)}`,
-                );
-            }
-            if (f == null) {
-                throw new Error(
-                    `"false" case not handled ${showLocation(location)}`,
-                );
-            }
-        }
-        throw new Error(
-            `Exhaustiveness analysis not yet implemented for ${t.ref.type}`,
-        );
-    }
-
-    const defn = env.global.types[idName(t.ref.id)];
-    if (defn.type === 'Record') {
-        // ok, it's a product type! so we have m x n possibilities, right?
-        // but, we might not
-        // Both{x: true, y: false}
-        // Both{x: _, y: true}
-        // Three{x: _, y: true, z: false}
-        // Three{x: true, y: false, z: false}
-        // Three{x: true, y: _, z: _}
-    }
-    // if (defn.type !== 'Enum') {
-    //     throw new Error(`Exhaustiveness not supported for record I think`)
-    // }
-    // ok, so if this is an enum
-
-    const paths = [];
 };
 
 export const typeSwitch = (env: Env, expr: Switch): Term => {
