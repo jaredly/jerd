@@ -98,6 +98,8 @@ export const termToPretty = (term: Term | Let): PP => {
                 atom(' = '),
                 termToPretty(term.value),
             ]);
+        case 'boolean':
+            return atom(term.value.toString());
         case 'int':
             return atom(term.value.toString());
         case 'string':

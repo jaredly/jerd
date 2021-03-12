@@ -22,7 +22,7 @@ import { binOps } from '../typing/preset';
 import { env } from 'process';
 import { showType } from '../typing/unify';
 import { optimizeAST } from './typeScriptOptimize';
-import { applyEffectVariables } from '../typing/typeExpr';
+import { applyEffectVariables, getEnumReferences } from '../typing/typeExpr';
 import { idName } from '../typing/env';
 
 // TODO: I want to abstract this out
@@ -1000,6 +1000,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             term.cases.forEach((kase, i) => {
                 cases.push(
                     printPattern(
+                        env,
                         value,
                         kase.pattern,
                         t.blockStatement([
@@ -1047,6 +1048,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
 // If you succeed, return the success branch. otherwise, go to the else branch.
 // my post-processing pass with flatten out all useless iffes.
 const printPattern = (
+    env: Env,
     value: t.Expression,
     pattern: Pattern,
     success: t.BlockStatement,
@@ -1062,17 +1064,26 @@ const printPattern = (
             success,
         ]);
     } else if (pattern.type === 'Enum') {
+        const allReferences = getEnumReferences(env, pattern.ref);
+        let typ = t.memberExpression(value, t.identifier('type'));
+        let tests: Array<t.Expression> = allReferences.map((ref) =>
+            t.binaryExpression(
+                '===',
+                typ,
+                t.stringLiteral(recordIdName(ref.ref)),
+            ),
+        );
         return t.blockStatement([
-            t.variableDeclaration('const', [
-                t.variableDeclarator(
-                    t.identifier(recordIdName(pattern.ref.ref)),
-                    value,
+            t.ifStatement(
+                tests.reduce((one: t.Expression, two: t.Expression) =>
+                    t.logicalExpression('||', one, two),
                 ),
-            ]),
-            success,
+                success,
+            ),
         ]);
     } else if (pattern.type === 'Alias') {
         return printPattern(
+            env,
             value,
             pattern.inner,
             t.blockStatement([
@@ -1088,6 +1099,7 @@ const printPattern = (
     } else if (pattern.type === 'Record') {
         pattern.items.forEach((item) => {
             success = printPattern(
+                env,
                 t.memberExpression(
                     value,
                     t.identifier(recordAttributeName(item.ref, item.idx)),
