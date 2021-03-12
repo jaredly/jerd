@@ -84,6 +84,7 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     const idid = { hash, pos: 0, size: 1 };
     env.global.types[idName(idid)] = d;
     env.global.typeNames[defn.id.text] = idid;
+    env.global.idNames[idName(idid)] = defn.id.text;
 };
 
 export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
@@ -128,6 +129,7 @@ export const typeRecord = (
     const idid = { hash, pos: 0, size: 1 };
     env.global.types[idName(idid)] = defn;
     env.global.typeNames[id.text] = idid;
+    env.global.idNames[idName(idid)] = id.text;
     env.global.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
     rows.forEach((r, i) => {
         env.global.attributeNames[r.id.text] = { id: idid, idx: i };
@@ -191,7 +193,9 @@ export const typeDefine = (env: Env, item: Define) => {
     unifyToplevel(term, tmpTypeVbls);
 
     const hash: string = hashObject(term);
-    env.global.names[item.id.text] = { hash: hash, size: 1, pos: 0 };
+    const id: Id = { hash: hash, size: 1, pos: 0 };
+    env.global.names[item.id.text] = id;
+    env.global.idNames[idName(id)] = item.id.text;
     env.global.terms[hash] = term;
     return { hash, term };
 };
@@ -270,9 +274,16 @@ export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
 // TODO type-directed resolution pleaseeeee
 export const resolveIdentifier = (
     env: Env,
-    text: string,
-    location: Location,
+    { text, location, hash }: Identifier,
 ): Term | null => {
+    if (hash != null) {
+        const [first, _second] = hash.slice(1).split('#');
+        if (!env.global.terms[first]) {
+            throw new Error(`Unknown hash ${hash} ${showLocation(location)}`);
+        }
+        return env.global.terms[first];
+    }
+
     if (env.local.locals[text]) {
         const { sym, type } = env.local.locals[text];
         return {
@@ -292,7 +303,7 @@ export const resolveIdentifier = (
     if (env.global.names[text]) {
         const id = env.global.names[text];
         const term = env.global.terms[id.hash];
-        // console.log(`${text} : its a global: ${showType(term.is)}`);
+        // console.log(`${text} : its a global: ${showType(env, term.is)}`);
         return {
             type: 'ref',
             location,

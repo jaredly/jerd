@@ -258,7 +258,12 @@ export type Literal = Int | Identifier | String | Boolean;
 //     id: Identifier;
 //     vbls: Array<Type>;
 // };
-export type Identifier = { type: 'id'; text: string; location: Location };
+export type Identifier = {
+    type: 'id';
+    text: string;
+    location: Location;
+    hash: string | null;
+};
 export type Int = { type: 'int'; value: number; location: Location };
 export type String = { type: 'string'; text: string; location: Location };
 export type Boolean = { type: 'boolean'; value: boolean; location: Location };

@@ -4,7 +4,7 @@
 
 import path from 'path';
 import fs from 'fs';
-import { hashObject } from './typing/env';
+import { hashObject, idName } from './typing/env';
 import parse, { Expression, Location, Toplevel } from './parsing/parser';
 import {
     declarationToAST,
@@ -12,6 +12,7 @@ import {
     termToAST,
     typeToString,
 } from './printing/typeScriptPrinter';
+import { fileToTypescript } from './printing/fileToTypeScript';
 import {
     optimizeAST,
     removeTypescriptTypes,
@@ -22,6 +23,7 @@ import {
     EffectRef,
     Env,
     getEffects,
+    Id,
     Reference,
     Term,
     Type,
@@ -42,6 +44,7 @@ import {
     typeEnumDefn,
     typeEffect,
 } from './typing/env';
+import { typeFile } from './typing/typeFile';
 
 import { bool, presetEnv } from './typing/preset';
 
@@ -132,12 +135,14 @@ const testInference = (parsed: Toplevel[]) => {
             // So for self-recursive things, the final
             // thing should be exactly the same, not just
             // larger or smaller, right?
-            const unified = unifyVariables(tmpTypeVbls);
+            const unified = unifyVariables(env, tmpTypeVbls);
             if (Object.keys(unified).length) {
                 unifyInTerm(unified, term);
             }
             const hash: string = hashObject(term);
-            env.global.names[item.id.text] = { hash: hash, size: 1, pos: 0 };
+            const id: Id = { hash: hash, size: 1, pos: 0 };
+            env.global.names[item.id.text] = id;
+            env.global.idNames[idName(id)] = item.id.text;
             env.global.terms[hash] = term;
 
             const declared = typeType(env, item.ann);
@@ -156,219 +161,8 @@ const testInference = (parsed: Toplevel[]) => {
     }
 };
 
-const toplevelExpr = (item: Toplevel): Expression | null => {
-    switch (item.type) {
-        case 'define':
-        case 'effect':
-        case 'StructDef':
-        case 'EnumDef':
-        case 'Decorated':
-            return null;
-        default:
-            return item;
-    }
-};
-
-function typeFile(parsed: Toplevel[]) {
-    const env = presetEnv();
-
-    // const
-    const expressions = [];
-
-    // const out = prelude.slice();
-    for (const item of parsed) {
-        if (item.type === 'define') {
-            // console.log('>> A define', item.id.text);
-            const { term } = typeDefine(env, item);
-            // console.log('< unified type', showType(term.is));
-        } else if (item.type === 'effect') {
-            typeEffect(env, item);
-        } else if (item.type === 'StructDef') {
-            typeTypeDefn(env, item);
-        } else if (item.type === 'EnumDef') {
-            typeEnumDefn(env, item);
-        } else if (item.type === 'Decorated') {
-            if (item.decorators[0].id.text === 'typeError') {
-                const args = item.decorators[0].args.map((expr) =>
-                    typeExpr(env, expr),
-                );
-                if (args.length !== 1 || args[0].type !== 'string') {
-                    throw new Error(
-                        `Expected one string arg to @typeExpr ${showLocation(
-                            item.location,
-                        )}`,
-                    );
-                }
-                const expr = toplevelExpr(item.wrapped);
-                if (expr == null) {
-                    throw new Error(
-                        `Expected typeError to be on an expression ${showLocation(
-                            item.location,
-                        )}`,
-                    );
-                }
-                let t;
-                try {
-                    t = typeExpr(env, expr);
-                } catch (err) {
-                    if (err.message.includes(args[0].text)) {
-                        continue; // success
-                    } else {
-                        throw new Error(
-                            `Type error doesn't match expectation: "${
-                                err.message
-                            }" vs "${args[0].text}" ${showLocation(
-                                item.location,
-                            )}`,
-                        );
-                    }
-                }
-                throw new Error(
-                    `Expected a type error, but got ${showType(
-                        t.is,
-                    )} at ${showLocation(expr.location)}\n${printToString(
-                        termToPretty(t),
-                        100,
-                    )}`,
-                );
-            } else {
-                throw new Error(`Unhandled decorator`);
-            }
-        } else {
-            // A standalone expression
-            const term = typeExpr(env, item);
-            if (getEffects(term).length > 0) {
-                throw new Error(
-                    `Term at ${showLocation(
-                        term.location,
-                    )} has toplevel effects.`,
-                );
-            }
-            expressions.push(term);
-        }
-    }
-    return { expressions, env };
-}
-
 import * as t from '@babel/types';
 import generate from '@babel/generator';
-
-const fileToTypescript = (
-    expressions: Array<Term>,
-    env: Env,
-    assert: boolean,
-) => {
-    const items: Array<t.Statement> = [
-        t.importDeclaration(
-            [
-                ...[
-                    'raise',
-                    'isSquare',
-                    'log',
-                    'intToString',
-                    'handleSimpleShallow2',
-                    'assert',
-                    'assertEqual',
-                    'pureCPS',
-                ].map((name) =>
-                    t.importSpecifier(t.identifier(name), t.identifier(name)),
-                ),
-            ],
-            t.stringLiteral('./prelude.mjs'),
-        ),
-    ];
-
-    Object.keys(env.global.terms).forEach((hash) => {
-        const term = env.global.terms[hash];
-
-        items.push(
-            declarationToAST(
-                {
-                    ...env,
-                    local: {
-                        ...env.local,
-                        self: { name: hash, type: term.is },
-                    },
-                },
-                hash,
-                term,
-                printToString(
-                    declarationToPretty(
-                        {
-                            hash: hash,
-                            size: 1,
-                            pos: 0,
-                        },
-                        term,
-                    ),
-                    100,
-                ),
-            ),
-        );
-    });
-
-    const callBuiltin = (
-        name: string,
-        argTypes: Array<Type>,
-        resType: Type,
-        args: Array<Term>,
-        location: Location | null,
-    ): Term => {
-        return {
-            type: 'apply',
-            target: {
-                type: 'ref',
-                ref: { type: 'builtin', name: name },
-                location,
-                is: {
-                    type: 'lambda',
-                    location,
-                    args: argTypes,
-                    res: resType,
-                    rest: null,
-                    typeVbls: [],
-                    effectVbls: [],
-                    effects: [],
-                },
-            },
-            args: args,
-            location,
-            is: resType,
-        };
-    };
-
-    expressions.forEach((term) => {
-        if (assert && typesEqual(term.is, bool)) {
-            if (
-                term.type === 'apply' &&
-                term.target.type === 'ref' &&
-                term.target.ref.type === 'builtin' &&
-                term.target.ref.name === '=='
-            ) {
-                term = callBuiltin(
-                    'assertEqual',
-                    (term.target.is as any).args,
-                    bool,
-                    term.args,
-                    term.location,
-                );
-            } else {
-                term = callBuiltin(
-                    'assert',
-                    [bool],
-                    bool,
-                    [term],
-                    term.location,
-                );
-            }
-        }
-        items.push(termToAST(env, term, printType(env, term.is)));
-    });
-
-    const ast = t.file(t.program(items, [], 'script'));
-    optimizeAST(ast);
-    return ast;
-};
 
 const processErrors = (fname: string) => {
     const raw = fs.readFileSync(fname, 'utf8');
@@ -398,7 +192,7 @@ const processErrors = (fname: string) => {
             throw new Error(
                 `Expected a type error at ${showLocation(
                     item.location,
-                )} : ${printToString(termToPretty(term), 100)}`,
+                )} : ${printToString(termToPretty(env, term), 100)}`,
             );
         }
     });
@@ -413,7 +207,7 @@ const processFile = (fname: string, assert: boolean, run: boolean) => {
     const parsed: Array<Toplevel> = parse(raw);
 
     const { expressions, env } = typeFile(parsed);
-    const ast = fileToTypescript(expressions, env, assert);
+    const ast = fileToTypescript(expressions, env, assert, true);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,

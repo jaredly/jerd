@@ -92,8 +92,9 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         if (!typesEqual(body.is, pure.is)) {
             throw new Error(
                 `All case arms must have the same return type: ${showType(
+                    env,
                     body.is,
-                )} ${showType(pure.is)}`,
+                )} ${showType(env, pure.is)}`,
             );
         }
 

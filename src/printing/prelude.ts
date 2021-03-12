@@ -119,9 +119,9 @@ const assertEqual = <T>(a: T, b: T) => {
 };
 
 // When a pure function is used in a place that's expecting CPS.
-const pureCPS = (f) => {
+const pureCPS = (f: any) => {
     let res;
-    f([], (_, v) => (res = v));
+    f([], (_: any, v: any) => (res = v));
     return res;
 };
 

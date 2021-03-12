@@ -45,9 +45,9 @@ export const typeApply = (
             is: applyEffectVariables(env, target.is, mappedVbls) as LambdaType,
         };
         // console.log(
-        //     `Mapped effect variables - ${showType(
+        //     `Mapped effect variables - ${showType(env,
         //         pre,
-        //     )} ---> ${showType(target.is)}`,
+        //     )} ---> ${showType(env, target.is)}`,
         // );
     }
 
@@ -73,13 +73,15 @@ export const typeApply = (
     } else {
         if (target.is.type !== 'lambda') {
             throw new Error(
-                `Trying to call ${showType(target.is)} at ${showLocation(
+                `Trying to call ${showType(env, target.is)} at ${showLocation(
                     target.location,
                 )}`,
             );
         }
         if (target.is.args.length !== args.length) {
-            throw new Error(`Wrong number of arguments ${showType(target.is)}`);
+            throw new Error(
+                `Wrong number of arguments ${showType(env, target.is)}`,
+            );
         }
         is = target.is;
     }
@@ -90,8 +92,9 @@ export const typeApply = (
         if (fitsExpectation(env, t.is, is.args[i]) !== true) {
             throw new Error(
                 `Wrong type for arg ${i}: \nFound: ${showType(
+                    env,
                     t.is,
-                )}\nbut expected ${showType(is.args[i])} : ${showLocation(
+                )}\nbut expected ${showType(env, is.args[i])} : ${showLocation(
                     t.location,
                 )}`,
             );

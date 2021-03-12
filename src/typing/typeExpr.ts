@@ -123,6 +123,7 @@ export const applyEffectVariables = (
         if (type.effectVbls.length !== 1) {
             throw new Error(
                 `Multiple effect variables not yet supported: ${showType(
+                    env,
                     type,
                 )} : ${showLocation(type.location)}`,
             );
@@ -146,7 +147,7 @@ export const applyEffectVariables = (
 
         //     if (type.effectVbls.length !== 1) {
         //         throw new Error(
-        //             `Multiple effect variables not yet supported: ${showType(
+        //             `Multiple effect variables not yet supported: ${showType(env,
         //                 type,
         //             )} : ${showLocation(type.location)}`,
         //         );
@@ -195,7 +196,7 @@ export const applyTypeVariables = (
     vbls: Array<Type>,
 ): Type => {
     // console.log(
-    //     `Applying ${showType(type)} with vbls ${vbls.map(showType).join(', ')}`,
+    //     `Applying ${showType(env, type)} with vbls ${vbls.map(showType).join(', ')}`,
     // );
     if (type.type === 'lambda') {
         const t: LambdaType = type as LambdaType;
@@ -280,8 +281,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     ) {
                         throw new Error(
                             `Value of const doesn't match type annotation. ${showType(
+                                env,
                                 value.is,
-                            )}, expected ${showType(type)}`,
+                            )}, expected ${showType(env, type)}`,
                         );
                     }
                     const unique = Object.keys(innerEnv.local.locals).length;
@@ -345,8 +347,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     if (!typesEqual(left.is, rarg.is)) {
                         throw new Error(
                             `Binops must have same-typed arguments: ${showType(
+                                env,
                                 left.is,
-                            )} vs ${showType(rarg.is)} at ${showLocation(
+                            )} vs ${showType(env, rarg.is)} at ${showLocation(
                                 left.location,
                             )}`,
                         );
@@ -404,6 +407,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         ) {
                             throw new Error(
                                 `Not a record ${showType(
+                                    env,
                                     target.is,
                                 )} at ${showLocation(suffix.location)}`,
                             );
@@ -429,6 +433,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                                 )} is not a ${idName(
                                     id,
                                 )} or its supertype. It is a ${showType(
+                                    env,
                                     target.is,
                                 )}`,
                             );
@@ -465,16 +470,18 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     throw new Error(`Can't handle indexes yet`);
                 } else {
                     throw new Error(
-                        `Unhandled suffix ${showLocation(suffix.location)}`,
+                        `Unhandled suffix ${showLocation(
+                            (suffix as any).location,
+                        )}`,
                     );
                 }
             }
             return target;
         }
         case 'id': {
-            const term = resolveIdentifier(env, expr.text, expr.location);
+            const term = resolveIdentifier(env, expr);
             if (term != null) {
-                // console.log(`${expr.text} : ${showType(term.is)}`);
+                // console.log(`${expr.text} : ${showType(env, term.is)}`);
                 return term;
             }
             // console.log(env.local.locals);
@@ -510,10 +517,12 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 if (fitsExpectation(env, t.is, eff.args[i]) !== true) {
                     throw new Error(
                         `Wrong type for arg ${i}: ${showType(
+                            env,
                             t.is,
-                        )}, expected ${showType(eff.args[i])} - ${showLocation(
-                            t.location,
-                        )}`,
+                        )}, expected ${showType(
+                            env,
+                            eff.args[i],
+                        )} - ${showLocation(t.location)}`,
                     );
                 }
                 args.push(t);
@@ -564,10 +573,12 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 if (!typeFitsEnum(env, inner.is, is, expr.location)) {
                     throw new Error(
                         `Record ${showType(
+                            env,
                             inner.is,
-                        )} doesn't fit enum ${showType(is)} at ${showLocation(
-                            expr.location,
-                        )}`,
+                        )} doesn't fit enum ${showType(
+                            env,
+                            is,
+                        )} at ${showLocation(expr.location)}`,
                     );
                 }
             } catch (err) {
@@ -608,6 +619,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     ) {
                         throw new Error(
                             `Can't spread something that's not an array. ${showType(
+                                env,
                                 value.is,
                             )} at ${showLocation(value.location)}`,
                         );
@@ -683,7 +695,7 @@ export const typeFitsEnum = (
     const t = typeDef(env.global, recordType.ref);
     if (t == null) {
         throw new Error(
-            `Can't resolve type definition ${showType(recordType)}`,
+            `Can't resolve type definition ${showType(env, recordType)}`,
         );
     }
 
@@ -700,13 +712,18 @@ export const typeFitsEnum = (
                     found = true;
                     break;
                 }
-                console.log(showType(outer), showType(ref));
+                // console.log(showType(env, outer), showType(env, ref));
             }
             if (!found) {
                 throw new Error(
                     `Enum ${showType(
+                        env,
                         recordType,
-                    )} is not a subtype of ${showType(enumRef)}. ${showType(
+                    )} is not a subtype of ${showType(
+                        env,
+                        enumRef,
+                    )}. ${showType(
+                        env,
                         ref,
                     )} is a member of the former but not the latter.`,
                 );
@@ -717,7 +734,7 @@ export const typeFitsEnum = (
     }
     // const enumDef = typeDef(env, enumRef.ref)
     // if (enumDef == null || enumDef.type !== 'Enum') {
-    //     throw new Error(`Not an enum ${showType(enumRef)}`)
+    //     throw new Error(`Not an enum ${showType(env, enumRef)}`)
     // }
     for (let ref of allReferences) {
         if (isRecord(recordType, ref.ref)) {
@@ -735,10 +752,10 @@ export const getEnumSuperTypes = (
 ): Array<TypeReference> => {
     let enumDef = typeDef(env.global, enumRef.ref);
     if (enumDef == null) {
-        throw new Error(`Unknown type definition ${showType(enumRef)}`);
+        throw new Error(`Unknown type definition ${showType(env, enumRef)}`);
     }
     if (enumDef.type !== 'Enum') {
-        throw new Error(`Not an enum, it's a record ${showType(enumRef)}`);
+        throw new Error(`Not an enum, it's a record ${showType(env, enumRef)}`);
     }
     enumDef = applyTypeVariablesToEnum(env, enumDef, enumRef.typeVbls);
     if (!enumDef.extends.length) {
@@ -755,10 +772,10 @@ export const getEnumReferences = (
 ): Array<TypeReference> => {
     let enumDef = typeDef(env.global, enumRef.ref);
     if (enumDef == null) {
-        throw new Error(`Unknown type definition ${showType(enumRef)}`);
+        throw new Error(`Unknown type definition ${showType(env, enumRef)}`);
     }
     if (enumDef.type !== 'Enum') {
-        throw new Error(`Not an enum, it's a record ${showType(enumRef)}`);
+        throw new Error(`Not an enum, it's a record ${showType(env, enumRef)}`);
     }
     enumDef = applyTypeVariablesToEnum(env, enumDef, enumRef.typeVbls);
     if (!enumDef.extends.length) {

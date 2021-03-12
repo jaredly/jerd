@@ -23,9 +23,17 @@ export type Symbol = { name: string; unique: number };
 export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
+export type Env = {
+    // oh here's where we would do kind?
+    // like args n stuff?
+    global: GlobalEnv;
+    local: LocalEnv;
+};
+
 export type GlobalEnv = {
     rng: () => number;
     names: { [key: string]: Id };
+    idNames: { [idName: string]: string };
     terms: { [key: string]: Term };
     builtins: { [key: string]: Type };
 
@@ -38,10 +46,6 @@ export type GlobalEnv = {
     // These are two ways of saying the same thing
     recordGroups: { [key: string]: Array<string> };
     attributeNames: { [key: string]: { id: Id; idx: number } };
-
-    // allNames: {
-    //     attributes:
-    // },
 
     effectNames: { [key: string]: string };
     effectConstructors: { [key: string]: { hash: string; idx: number } };
@@ -541,13 +545,6 @@ export type TypeConstraint =
       }
     | { type: 'larger-than'; other: Type }; // the sub type
 
-export type Env = {
-    // oh here's where we would do kind?
-    // like args n stuff?
-    global: GlobalEnv;
-    local: LocalEnv;
-};
-
 export const newEnv = (
     self: { name: string; type: Type },
     seed: string = 'seed',
@@ -555,6 +552,7 @@ export const newEnv = (
     global: {
         rng: seedrandom(seed),
         names: {},
+        idNames: {},
         terms: {},
         builtins: {},
         builtinTypes: {},
@@ -584,6 +582,7 @@ export const subEnv = (env: Env): Env => ({
         attributeNames: { ...env.global.attributeNames },
         recordGroups: { ...env.global.recordGroups },
         names: { ...env.global.names },
+        idNames: { ...env.global.idNames },
         terms: { ...env.global.terms },
         builtins: { ...env.global.builtins },
         typeNames: { ...env.global.typeNames },

@@ -305,7 +305,10 @@ Boolean = v:("true" / "false") ![0-9a-zA-Z_] {return {type: 'boolean', location:
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
-Identifier = !"enum" [0-9a-zA-Z_]+ {return {type: "id", text: text(), location: location()}}
+Identifier = text:IdText hash:IdHash? {
+    return {type: "id", text, location: location(), hash}}
+IdText = !"enum" [0-9a-zA-Z_]+ {return text()}
+IdHash = ("#" [0-9a-zA-Z]+ ("#" [0-9]+)?) {return text()}
 
 _ "whitespace"
   = [ \t\n\r]* (comment _)*

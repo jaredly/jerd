@@ -82,7 +82,9 @@ const typePattern = (
 
                 if (expectedType.type !== 'ref') {
                     console.log(pattern);
-                    throw new Error(`Not a type ${showType(expectedType)}`);
+                    throw new Error(
+                        `Not a type ${showType(env, expectedType)}`,
+                    );
                 }
                 const id = env.global.typeNames[pattern.text];
                 if (!id) {

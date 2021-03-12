@@ -609,7 +609,7 @@ const _termToAstCPS = (
 };
 
 const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
-    // console.error(`Maybe ${showType(arg.is)} : ${showType(t)}`);
+    // console.error(`Maybe ${showType(env, arg.is)} : ${showType(env, t)}`);
     if (t.type !== 'lambda' || t.effects.length === 0) {
         return arg;
     }
@@ -748,7 +748,10 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                         term,
                     )
                         .map(showEffectRef)
-                        .join(', ')} : Target: ${showType(term.target.is)}`,
+                        .join(', ')} : Target: ${showType(
+                        env,
+                        term.target.is,
+                    )}`,
                 );
             }
 
@@ -763,8 +766,9 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             if (argTypes.length !== term.args.length) {
                 throw new Error(
                     `Need to resolve target type: ${showType(
+                        env,
                         term.target.is,
-                    )} - ${showType(term.is)}`,
+                    )} - ${showType(env, term.is)}`,
                 );
             }
             const args = term.args.map((arg, i) => {

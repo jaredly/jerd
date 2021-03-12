@@ -51,6 +51,7 @@ const patternToExPattern = (
             if (type.type !== 'ref') {
                 throw new Error(
                     `Non-concrete type ${showType(
+                        env,
                         type,
                     )} for enum pattern ${showLocation(pattern.location)}`,
                 );
@@ -79,6 +80,7 @@ const patternToExPattern = (
             if (last == null) {
                 throw new Error(
                     `Enum ${showType(
+                        env,
                         pattern.ref,
                     )} has no items. Cannot match at ${showLocation(
                         pattern.location,
@@ -135,8 +137,9 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
             if (fitsExpectation(env, body.is, is) !== true) {
                 throw new Error(
                     `Bodies of case arms don't agree! ${showType(
+                        env,
                         body.is,
-                    )} vs ${showType(is)} at ${showLocation(c.location)}`,
+                    )} vs ${showType(env, is)} at ${showLocation(c.location)}`,
                 );
             }
         }
@@ -177,6 +180,7 @@ const recordToExPattern = (
     if (type.type !== 'ref') {
         throw new Error(
             `Non-concrete type ${showType(
+                env,
                 type,
             )} for record pattern ${showLocation(pattern.location)}`,
         );

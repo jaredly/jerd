@@ -70,7 +70,7 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
                 `Function declared with explicit effects, but missing at least one: ${declaredEffects
                     .map((e) =>
                         e.type === 'ref'
-                            ? printToString(refToPretty(e.ref), 100)
+                            ? printToString(refToPretty(env, e.ref), 100)
                             : printToString(symToPretty(e.sym), 100),
                     )
                     .join(',')}`,
