@@ -13,7 +13,7 @@ match any of the rows (p0...p0).
 
 */
 
-type Constructor = {
+export type Constructor = {
     type: 'constructor';
     id: string;
     // If options is null, then this is a functionally "infinite" set
@@ -24,17 +24,28 @@ type Constructor = {
     args: Array<Pattern>;
 };
 
-type Pattern =
+export type Pattern =
     | { type: 'anything' }
     | Constructor
     | { type: 'or'; left: Pattern; right: Pattern };
 // TODO: a "literal" type?
 
-type Matrix = Array<Row>;
-type Row = Array<Pattern>;
-type Groups = { [groupId: string]: Array<string> | null };
+export type Matrix = Array<Row>;
+export type Row = Array<Pattern>;
+export type Groups = { [groupId: string]: Array<string> | null };
 
-const anything: Pattern = { type: 'anything' };
+export const anything: Pattern = { type: 'anything' };
+export const constructor = (
+    id: string,
+    groupId: string,
+    args: Array<Pattern>,
+): Constructor => ({
+    type: 'constructor',
+    id,
+    groupId,
+    args,
+});
+export const or = (left, right): Pattern => ({ type: 'or', left, right });
 
 const anyList = (size) => {
     const res = new Array(size);
@@ -113,18 +124,59 @@ const isComplete = (
     return found;
 };
 
-const isUseful = (groups: Groups, matrix: Matrix, row: Row) => {
+const defaultMatrix = (matrix: Matrix): Matrix => {
+    const result: Matrix = [];
+    matrix.forEach((row) => {
+        if (row[0].type === 'anything') {
+            result.push(row.slice(1));
+        } else if (row[0].type === 'or') {
+            result.push(
+                ...defaultMatrix([
+                    [row[0].left].concat(row.slice(1)),
+                    [row[0].right].concat(row.slice(1)),
+                ]),
+            );
+        }
+    });
+    return result;
+};
+
+export const isExhaustive = (groups: Groups, matrix: Matrix) => {
+    return !isUseful(groups, matrix, anyList(matrix[0].length));
+};
+
+export const getUseless = (groups: Groups, matrix: Matrix) => {
+    const current: Matrix = [];
+    const useless: Matrix = [];
+    matrix.forEach((row) => {
+        if (isUseful(groups, current, row)) {
+            current.push(row);
+        } else {
+            useless.push(row);
+        }
+    });
+    return useless;
+};
+
+export const isUseful = (groups: Groups, matrix: Matrix, row: Row) => {
+    // No cases left! the current case is useful
     if (matrix.length === 0) {
         return true;
+        // No items left! the current case is useless
     } else if (row.length === 0) {
         return false;
     }
-    switch (row[0].type) {
+    if (matrix[0].length === 0) {
+        return false;
+    }
+    const pattern = row[0];
+    const rest = row.slice(1);
+    switch (pattern.type) {
         case 'constructor': {
-            const newRow = row[0].args.concat(row.slice(1));
+            const newRow = pattern.args.concat(rest);
             return isUseful(
                 groups,
-                specializedMatrix(row[0].id, row[0].args.length, matrix),
+                specializedMatrix(pattern.id, pattern.args.length, matrix),
                 newRow,
             );
         }
@@ -132,19 +184,24 @@ const isUseful = (groups: Groups, matrix: Matrix, row: Row) => {
             const alternatives = isComplete(groups, matrix);
             // it isn't complete
             if (alternatives == null) {
-                if (matrix.some((row) => row[0].type === 'anything')) {
-                    return false;
+                // get our anys, and check them
+                const defaults = defaultMatrix(matrix);
+                // No other defaults, we're good
+                if (!defaults.length) {
+                    return true;
                 }
-                return true;
+                return isUseful(groups, defaults, rest);
+                // if (matrix.some((row) => pattern.type === 'anything')) {
+                //     return false;
+                // }
+                // return true;
             } else {
                 // it is!
                 // but if there's an alternative for which
                 // an array of "any"s for arguments
                 // is useful, then this one is useful.
                 for (let id of Object.keys(alternatives)) {
-                    const newRow = anyList(alternatives[id]).concat(
-                        row.slice(1),
-                    );
+                    const newRow = anyList(alternatives[id]).concat(rest);
                     if (
                         isUseful(
                             groups,
@@ -157,6 +214,12 @@ const isUseful = (groups: Groups, matrix: Matrix, row: Row) => {
                 }
                 return false;
             }
+        }
+        case 'or': {
+            return (
+                isUseful(groups, matrix, [pattern.left].concat(rest)) ||
+                isUseful(groups, matrix, [pattern.right].concat(rest))
+            );
         }
     }
 };
