@@ -36,21 +36,9 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
             return pattern.is;
         case 'Enum':
             // hmmmmmmmmmmmmmmmmmmmmm
-            return {
-                type: 'ref',
-                ref: pattern.ref,
-                location: pattern.location,
-                typeVbls: [], // STOPSHIP
-                effectVbls: [], // STOPSHIP
-            };
+            return pattern.ref;
         case 'Record':
-            return {
-                type: 'ref',
-                ref: pattern.ref,
-                location: pattern.location,
-                typeVbls: [], // STOPSHIP
-                effectVbls: [], // STOPSHIP
-            };
+            return pattern.ref;
     }
 };
 
@@ -103,10 +91,10 @@ const typePattern = (
                     throw new Error('enums not supported yet');
                 }
                 const allReferences = getEnumReferences(env, expectedType);
-                let found = false;
+                let found = null;
                 for (let ref of allReferences) {
                     if (refsEqual(ref.ref, { type: 'user', id })) {
-                        found = true;
+                        found = ref;
                         break;
                     }
                 }
@@ -115,7 +103,7 @@ const typePattern = (
                 }
                 return {
                     type: 'Record',
-                    ref: { type: 'user', id },
+                    ref: found,
                     items: [],
                     location: pattern.location,
                 };
@@ -296,7 +284,7 @@ const typePattern = (
 
             return {
                 type: 'Record',
-                ref,
+                ref: found,
                 items,
                 location: pattern.location,
             };

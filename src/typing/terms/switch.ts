@@ -63,7 +63,9 @@ const patternToExPattern = (
                 const all = getEnumReferences(env, type);
                 groups[groupId] = all.map((t) => groupIdForRef(t.ref));
             }
-            const defn = env.global.types[idName(pattern.ref.id)] as RecordDef;
+            const defn = env.global.types[
+                groupIdForRef(pattern.ref.ref)
+            ] as RecordDef;
             const subTypes = getAllSubTypes(env.global, defn);
             const valuesBySubType: {
                 [idName: string]: {
@@ -80,7 +82,7 @@ const patternToExPattern = (
             });
             const inner = defn.items.map(() => anything);
             pattern.items.forEach((item) => {
-                if (refsEqual(item.ref, pattern.ref)) {
+                if (refsEqual(item.ref, pattern.ref.ref)) {
                     inner[item.idx] = patternToExPattern(
                         env,
                         defn.items[item.idx],
@@ -102,7 +104,7 @@ const patternToExPattern = (
                 inner.push(...valuesBySubType[sub].row);
             });
             return constructor(
-                groupIdForRef(pattern.ref),
+                groupIdForRef(pattern.ref.ref),
                 groupId,
                 // TODO: we need to serialize out all of the
                 // attributes of this record, in a reproducible

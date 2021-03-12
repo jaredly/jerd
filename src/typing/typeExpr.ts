@@ -172,7 +172,15 @@ export const applyTypeVariablesToRecord = (
     env: Env,
     type: RecordDef,
     vbls: Array<Type>,
+    location: Location | null,
 ): RecordDef => {
+    if (type.typeVbls.length !== vbls.length) {
+        throw new Error(
+            `Expected ${type.typeVbls.length} at ${showLocation(
+                location,
+            )}, found ${vbls.length}`,
+        );
+    }
     const mapping = createTypeVblMapping(env, type.typeVbls, vbls);
     return {
         ...type,
@@ -418,7 +426,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             throw new Error(
                                 `Expression at ${showLocation(
                                     suffix.location,
-                                )} is not a ${idName(id)} or its supertype`,
+                                )} is not a ${idName(
+                                    id,
+                                )} or its supertype. It is a ${showType(
+                                    target.is,
+                                )}`,
                             );
                         }
                     }
@@ -432,6 +444,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             env,
                             t,
                             target.is.typeVbls,
+                            target.is.location,
                         );
                     }
                     if (t.type !== 'Record') {

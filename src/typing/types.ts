@@ -228,12 +228,12 @@ export type AliasPattern = {
 };
 export type EnumPattern = {
     type: 'Enum';
-    ref: UserReference;
+    ref: TypeReference;
     location: Location | null;
 };
 export type RecordPattern = {
     type: 'Record';
-    ref: UserReference;
+    ref: TypeReference;
     items: Array<RecordPatternItem>;
     location: Location | null;
 };

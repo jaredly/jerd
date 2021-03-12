@@ -138,6 +138,12 @@ switch y {
     None => true
 }
 
+// Type refinement please
+switch y {
+    Some as x => x.value == 2,
+    None => true
+}
+
 switch y1 {
     Twice{two: 5} => false,
     Twice => false,
