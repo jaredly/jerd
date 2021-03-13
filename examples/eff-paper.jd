@@ -167,7 +167,6 @@ pickMax(chooseDiff) == 25
 effect Fail {
     fail: () => int, // TODO this should really be an exit continuation...
 }
-const decide = () ={Decide}> raise!(Decide.decide())
 const fail = () ={Fail}> raise!(Fail.fail())
 
 const chooseInt: (int, int) ={Decide, Fail}> int = (m: int, n: int): int ={Decide, Fail}> {

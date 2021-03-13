@@ -47,6 +47,11 @@ export const typeEffect = (env: Env, item: Effect) => {
             hash: hash,
         };
     });
+    if (env.global.effects[hash]) {
+        throw new Error(
+            `Redefining effect ${hash} at ${showLocation(item.id.location)}`,
+        );
+    }
     env.global.effects[hash] = constrs;
 };
 
@@ -82,6 +87,9 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     };
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };
+    if (env.global.types[idName(idid)]) {
+        throw new Error(`Redefining ${idName(idid)}`);
+    }
     env.global.types[idName(idid)] = d;
     env.global.typeNames[defn.id.text] = idid;
     env.global.idNames[idName(idid)] = defn.id.text;
@@ -127,6 +135,9 @@ export const typeRecord = (
     };
     const hash = hashObject(defn);
     const idid = { hash, pos: 0, size: 1 };
+    if (env.global.types[idName(idid)]) {
+        throw new Error(`Redefining ${idName(idid)}`);
+    }
     env.global.types[idName(idid)] = defn;
     env.global.typeNames[id.text] = idid;
     env.global.idNames[idName(idid)] = id.text;
@@ -150,6 +161,11 @@ export const withoutLocations = <T>(obj: T): T => {
         const res: any = {};
         Object.keys(obj).forEach((key) => {
             if (key === 'location') {
+                return;
+            }
+            // It's a symbol, ditch it for the purposes of hashing
+            // @ts-ignore
+            if (key === 'name' && obj.unique != null) {
                 return;
             }
             // @ts-ignore
@@ -194,6 +210,13 @@ export const typeDefine = (env: Env, item: Define) => {
 
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
+    if (env.global.terms[hash]) {
+        throw new Error(
+            `Redefining ${hash} at ${showLocation(
+                item.location,
+            )} (previous at ${showLocation(env.global.terms[hash].location)})`,
+        );
+    }
     env.global.names[item.id.text] = id;
     env.global.idNames[idName(id)] = item.id.text;
     env.global.terms[hash] = term;

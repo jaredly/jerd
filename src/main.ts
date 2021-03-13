@@ -371,7 +371,7 @@ const main = (
     console.log(`\n# Processing ${fnames.length} files\n`);
     const passed: { [key: string]: boolean } = {};
     let numFailures = 0;
-    const reprint = true;
+    const reprint = false;
 
     const runFile = (fname: string) => {
         try {
