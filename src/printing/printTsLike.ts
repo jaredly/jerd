@@ -19,6 +19,8 @@ import {
     TypeVblDecl,
     EnumDef,
     RecordDef,
+    SwitchCase,
+    Pattern,
 } from '../typing/types';
 import { PP, items, args, block, atom } from './printer';
 
@@ -219,7 +221,16 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
         case 'var':
             return symToPretty(term.sym);
         case 'Switch':
-            return atom('switches not yet printable');
+            return items([
+                atom('switch '),
+                termToPretty(env, term.term),
+                atom(' '),
+                args(
+                    term.cases.map((t) => switchCaseToPretty(env, t)),
+                    '{',
+                    '}',
+                ),
+            ]);
         case 'handle':
             return items([
                 atom('handle! '),
@@ -306,6 +317,55 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
         default:
             let _x: never = term;
             return atom('not yet printable: ' + JSON.stringify(term));
+    }
+};
+
+const switchCaseToPretty = (env: Env, kase: SwitchCase): PP =>
+    items([
+        patternToPretty(env, kase.pattern),
+        atom(' => '),
+        termToPretty(env, kase.body),
+    ]);
+
+const patternToPretty = (env: Env, pattern: Pattern): PP => {
+    switch (pattern.type) {
+        case 'string':
+        case 'int':
+        case 'boolean':
+            return termToPretty(env, pattern as Term);
+        case 'Alias':
+            return items([
+                patternToPretty(env, pattern.inner),
+                atom(' as '),
+                symToPretty(pattern.name),
+            ]);
+        case 'Binding':
+            return symToPretty(pattern.sym);
+        case 'Enum':
+            return typeToPretty(env, pattern.ref);
+        case 'Record':
+            if (pattern.items.length) {
+                return items([
+                    typeToPretty(env, pattern.ref),
+                    args(
+                        pattern.items.map((item) =>
+                            items([
+                                atom(
+                                    env.global.recordGroups[
+                                        idName(item.ref.id)
+                                    ][item.idx],
+                                ),
+                                atom(': '),
+                                patternToPretty(env, item.pattern),
+                            ]),
+                        ),
+                        '{',
+                        '}',
+                    ),
+                ]);
+            } else {
+                return typeToPretty(env, pattern.ref);
+            }
     }
 };
 

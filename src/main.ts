@@ -4,7 +4,7 @@
 
 import path from 'path';
 import fs from 'fs';
-import { hashObject, idName } from './typing/env';
+import { hashObject, idName, withoutLocations } from './typing/env';
 import parse, { Expression, Location, Toplevel } from './parsing/parser';
 import {
     declarationToAST,
@@ -207,6 +207,60 @@ const processFile = (fname: string, assert: boolean, run: boolean) => {
     const parsed: Array<Toplevel> = parse(raw);
 
     const { expressions, env } = typeFile(parsed);
+
+    let good = true;
+    // Test reprint
+    for (let expr of expressions) {
+        const reraw = printToString(termToPretty(env, expr), 100);
+        let printed;
+        try {
+            printed = parse(reraw);
+        } catch (err) {
+            console.log(reraw);
+            console.log(showLocation(expr.location));
+            console.warn(err.message);
+            good = false;
+            continue;
+        }
+        if (printed.length !== 1) {
+            console.log(printed);
+            console.warn(`Reprint generated multiple toplevels`);
+            good = false;
+            continue;
+        }
+        try {
+            const retyped = typeExpr(env, printed[0] as Expression);
+            if (hashObject(retyped) != hashObject(expr)) {
+                console.log('\n*************\n');
+                console.log(printToString(termToPretty(env, expr), 100));
+                console.log(printToString(termToPretty(env, retyped), 100));
+                console.log('\n---n');
+                console.log(JSON.stringify(withoutLocations(expr)));
+                console.log(JSON.stringify(withoutLocations(retyped)));
+                console.log('\n---n');
+                console.warn(
+                    `Expression at ${showLocation(
+                        expr.location,
+                    )} failed to retype.`,
+                );
+                console.log('\n*************\n');
+                good = false;
+            }
+        } catch (err) {
+            console.log(reraw);
+            console.log(printed);
+            console.log(
+                `Expression at ${showLocation(
+                    expr.location,
+                )} had a type error on reprint`,
+            );
+            good = false;
+        }
+    }
+    if (!good) {
+        throw new Error(`Reprint failure.`);
+    }
+
     const ast = fileToTypescript(expressions, env, assert, true);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
@@ -293,6 +347,7 @@ const main = (
     console.log(`\n# Processing ${fnames.length} files\n`);
     const passed = [];
     let hasFailures = false;
+    const failFast = true;
     for (let fname of fnames) {
         if (shouldSkip && shouldSkip[fname]) {
             passed.push(fname);
@@ -313,6 +368,9 @@ const main = (
             console.error('-----------------------------');
             console.error(err);
             console.error('-----------------------------');
+            if (failFast) {
+                return;
+            }
         }
     }
 
@@ -334,6 +392,9 @@ const main = (
                     console.error('-----------------------------');
                     console.error(err);
                     console.error('-----------------------------');
+                    if (failFast) {
+                        return;
+                    }
                 }
             }
         }

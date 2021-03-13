@@ -139,7 +139,7 @@ export const typeRecord = (
 export const hashObject = (obj: any): string =>
     hashObjectSum(withoutLocations(obj));
 
-const withoutLocations = <T>(obj: T): T => {
+export const withoutLocations = <T>(obj: T): T => {
     if (!obj) {
         return obj;
     }
@@ -281,7 +281,17 @@ export const resolveIdentifier = (
         if (!env.global.terms[first]) {
             throw new Error(`Unknown hash ${hash} ${showLocation(location)}`);
         }
-        return env.global.terms[first];
+        const id = { hash: first, size: 1, pos: 0 };
+        const term = env.global.terms[first];
+        return {
+            type: 'ref',
+            location,
+            ref: {
+                type: 'user',
+                id,
+            },
+            is: term.is,
+        };
     }
 
     if (env.local.locals[text]) {
