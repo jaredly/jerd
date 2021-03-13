@@ -330,7 +330,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         case 'ops': {
             // ok, left associative, right? I think so.
             let left: Term = typeExpr(env, expr.first);
-            expr.rest.forEach(({ op, right }) => {
+            expr.rest.forEach(({ op, right, location }) => {
                 let is = env.global.builtins[op];
                 if (!is) {
                     throw new Error(`Unexpected binary op ${op}`);
@@ -365,9 +365,12 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 }
                 left = {
                     type: 'apply',
-                    location: null,
+                    location: {
+                        start: left.location.start,
+                        end: right.location.end,
+                    },
                     target: {
-                        location: null,
+                        location,
                         type: 'ref',
                         ref: { type: 'builtin', name: op },
                         is,

@@ -217,6 +217,10 @@ const processFile = (
         let good = true;
         // Test reprint
         for (let expr of expressions) {
+            const origraw = raw.slice(
+                expr.location.start.offset,
+                expr.location.end.offset,
+            );
             const reraw = printToString(termToPretty(env, expr), 100);
             let printed;
             try {
@@ -238,6 +242,7 @@ const processFile = (
                 const retyped = typeExpr(env, printed[0] as Expression);
                 if (hashObject(retyped) != hashObject(expr)) {
                     console.log('\n*************\n');
+                    console.log(origraw);
                     console.log(printToString(termToPretty(env, expr), 100));
                     console.log(printToString(termToPretty(env, retyped), 100));
                     console.log('\n---n');
@@ -366,7 +371,7 @@ const main = (
     console.log(`\n# Processing ${fnames.length} files\n`);
     const passed: { [key: string]: boolean } = {};
     let numFailures = 0;
-    const reprint = false;
+    const reprint = true;
 
     const runFile = (fname: string) => {
         try {

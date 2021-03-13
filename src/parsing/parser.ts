@@ -149,7 +149,7 @@ export type Ops = {
     type: 'ops';
     first: Expression;
     location: Location;
-    rest: Array<{ op: string; right: Expression }>;
+    rest: Array<{ op: string; right: Expression; location: Location }>;
 };
 export type Block = {
     type: 'block';
