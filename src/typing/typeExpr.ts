@@ -375,6 +375,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         ref: { type: 'builtin', name: op },
                         is,
                     },
+                    effectVbls: null,
+                    typeVbls: [],
                     args: [left, rarg],
                     is: is.res,
                 };

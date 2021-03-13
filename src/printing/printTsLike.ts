@@ -5,7 +5,7 @@
 // type variable applications (of apply's), I believe.
 // So that's probably some information I'll have to hang onto somehow.
 
-import { idName } from '../typing/env';
+import { idName, typeEffect } from '../typing/env';
 import {
     Case,
     EffectRef,
@@ -195,7 +195,13 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         ]),
                     ),
                 ),
-                atom(' => '),
+                atom(' ='),
+                args(
+                    term.is.effects.map((e) => effToPretty(env, e)),
+                    '{',
+                    '}',
+                ),
+                atom('> '),
                 termToPretty(env, term.body),
             ]);
         case 'self':
@@ -214,6 +220,20 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             }
             return items([
                 termToPretty(env, term.target),
+                term.typeVbls.length
+                    ? args(
+                          term.typeVbls.map((t) => typeToPretty(env, t)),
+                          '<',
+                          '>',
+                      )
+                    : null,
+                term.effectVbls
+                    ? args(
+                          term.effectVbls.map((e) => effToPretty(env, e)),
+                          '{',
+                          '}',
+                      )
+                    : null,
                 args(term.args.map((t) => termToPretty(env, t))),
             ]);
         case 'ref':

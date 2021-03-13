@@ -125,6 +125,8 @@ export type CPSAble =
           type: 'apply';
           location: Location | null;
           target: Term;
+          typeVbls: Array<Type>;
+          effectVbls: Array<EffectRef> | null;
           hadAllVariableEffects?: boolean;
           args: Array<Term>;
           is: Type; // this matches the return type of target

@@ -16,8 +16,9 @@ export const typeApply = (
     target: Term,
     suffix: ApplySuffix,
 ): Term => {
-    const { args, typevbls, effectVbls } = suffix;
-    if (typevbls.length) {
+    const { args, effectVbls } = suffix;
+    const typeVbls = suffix.typevbls.map((t) => typeType(env, t));
+    if (suffix.typevbls.length) {
         // HERMMM This might be illegal.
         // or rather, doing it like this
         // does weird things to the pretty-printing end.
@@ -25,11 +26,7 @@ export const typeApply = (
         // @ts-ignore
         target = {
             ...target,
-            is: applyTypeVariables(
-                env,
-                target.is,
-                typevbls.map((t) => typeType(env, t)),
-            ) as LambdaType,
+            is: applyTypeVariables(env, target.is, typeVbls) as LambdaType,
         };
     }
 
@@ -106,6 +103,8 @@ export const typeApply = (
         type: 'apply',
         // STOPSHIP(sourcemap): this should be better
         location: target.location,
+        typeVbls,
+        effectVbls: mappedVbls,
         hadAllVariableEffects:
             effectVbls != null &&
             prevEffects.length > 0 &&
