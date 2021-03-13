@@ -207,7 +207,7 @@ const processFile = (
     assert: boolean,
     run: boolean,
     reprint: boolean,
-) => {
+): boolean => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
@@ -305,12 +305,24 @@ const processFile = (
     );
 
     if (run) {
-        const { stdout, error } = spawnSync(
+        const { stdout, error, stderr, status } = spawnSync(
             'node',
             ['--enable-source-maps', dest],
-            { stdio: 'inherit' },
+            { stdio: 'pipe', encoding: 'utf8' },
         );
+        if (status !== 0) {
+            console.log(`❌ Execution failed ${fname}`);
+            console.log('---------------');
+            console.log(stdout);
+            console.log(stderr);
+            console.log('---------------');
+            return false;
+        } else {
+            console.log(`✅ all clear ${fname}`);
+            return true;
+        }
     }
+    return true;
 };
 
 const cacheFile = '.test-cache';
@@ -352,63 +364,65 @@ const main = (
         ? loadCache(fnames, process.argv[1])
         : { shouldSkip: null, successRerun: true };
     console.log(`\n# Processing ${fnames.length} files\n`);
-    const passed = [];
-    let hasFailures = false;
+    const passed: { [key: string]: boolean } = {};
+    let numFailures = 0;
     const reprint = false;
-    for (let fname of fnames) {
-        if (shouldSkip && shouldSkip[fname]) {
-            passed.push(fname);
-            continue; // skipping
-        }
-        console.log('hello', fname);
+
+    const runFile = (fname: string) => {
         try {
             if (fname.endsWith('type-errors.jd')) {
                 processErrors(fname);
             } else {
-                processFile(fname, assert, run, reprint);
+                if (processFile(fname, assert, run, reprint) === false) {
+                    numFailures += 1;
+                    return false;
+                }
             }
-            console.log(`✅ processed ${fname}`);
-            passed.push(fname);
         } catch (err) {
-            hasFailures = true;
+            numFailures += 1;
             console.error(`❌ Failed to process ${fname}`);
             console.error('-----------------------------');
             console.error(err);
             console.error('-----------------------------');
-            if (reprint) {
-                return;
-            }
+            return false;
+        }
+        return true;
+    };
+
+    for (let fname of fnames) {
+        if (shouldSkip && shouldSkip[fname]) {
+            passed[fname] = true;
+            continue; // skipping
+        }
+        const success = runFile(fname);
+        passed[fname] = success;
+        if (reprint && !success) {
+            return;
         }
     }
 
-    if (!hasFailures && successRerun) {
+    if (!numFailures && successRerun) {
+        console.error('==================');
+        console.log('Rerunning successful files');
+        console.error('==================');
         for (let fname of fnames) {
             if (shouldSkip && shouldSkip[fname]) {
-                console.log('Rerunning successful file', fname);
-                try {
-                    if (fname.endsWith('type-errors.jd')) {
-                        processErrors(fname);
-                    } else {
-                        processFile(fname, assert, run, reprint);
-                    }
-                    console.log(`✅ processed ${fname}`);
-                    passed.push(fname);
-                } catch (err) {
-                    hasFailures = true;
-                    console.error(`❌ Failed to process ${fname}`);
-                    console.error('-----------------------------');
-                    console.error(err);
-                    console.error('-----------------------------');
-                    if (reprint) {
-                        return;
-                    }
+                const success = runFile(fname);
+                passed[fname] = success;
+                if (reprint && !success) {
+                    return;
                 }
             }
         }
     }
 
+    console.log(`📢 Failures ${numFailures}`);
+
     if (cache) {
-        saveCache(passed, process.argv[1]);
+        saveCache(
+            Object.keys(passed).filter((p) => passed[p]),
+            process.argv[1],
+        );
     }
 };
 

@@ -373,7 +373,7 @@ export const fitsExpectation = (
             // unless there's optional arguments going on here, stay tuned?
             // I guess. maybe.
             if (target.args.length !== t.args.length) {
-                console.log('arglen');
+                // console.log('arglen');
                 return false;
             }
             const res = fitsExpectation(env, t.res, target.res);
