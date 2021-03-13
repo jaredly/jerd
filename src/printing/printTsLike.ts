@@ -17,6 +17,8 @@ import {
     Term,
     Type,
     TypeVblDecl,
+    EnumDef,
+    RecordDef,
 } from '../typing/types';
 import { PP, items, args, block, atom } from './printer';
 
@@ -44,11 +46,51 @@ export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
     ]);
 };
 
+export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
+    const names = env.global.recordGroups[idName(id)];
+    return items([
+        atom('type '),
+        idToPretty(env, id),
+        recordDef.typeVbls.length
+            ? typeVblDeclsToPretty(env, recordDef.typeVbls)
+            : null,
+        atom(' = '),
+        block(
+            recordDef.extends
+                .map((ex) => items([atom('...'), idToPretty(env, ex)]))
+                .concat(
+                    recordDef.items.map((ex, i) =>
+                        items([
+                            atom(names[i]),
+                            atom(': '),
+                            typeToPretty(env, ex),
+                        ]),
+                    ),
+                ),
+        ),
+    ]);
+};
+
+export const enumToPretty = (env: Env, id: Id, enumDef: EnumDef) => {
+    return items([
+        atom('enum '),
+        idToPretty(env, id),
+        enumDef.typeVbls.length
+            ? typeVblDeclsToPretty(env, enumDef.typeVbls)
+            : null,
+        block(
+            enumDef.extends
+                .map((ex) => items([atom('...'), typeToPretty(env, ex)]))
+                .concat(enumDef.items.map((ex) => typeToPretty(env, ex))),
+        ),
+    ]);
+};
+
 const typeVblDeclsToPretty = (env: Env, typeVbls: Array<TypeVblDecl>): PP => {
     return args(
         typeVbls.map((v) =>
             items([
-                atom(v.unique.toString()),
+                atom('T_' + v.unique.toString()),
                 v.subTypes.length
                     ? items([
                           atom(': '),
@@ -215,12 +257,24 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             const res = [];
             const typeVbls = term.is.type === 'ref' ? term.is.typeVbls : null;
             if (term.base.type === 'Concrete') {
+                const names = env.global.recordGroups[idName(term.base.ref.id)];
                 res.push(
-                    ...(term.base.rows.filter(
-                        Boolean,
-                    ) as Array<Term>).map((t) => termToPretty(env, t)),
+                    ...(term.base.rows
+                        .map((t, i) =>
+                            t
+                                ? items([
+                                      atom(names[i] + '#' + i),
+                                      atom(': '),
+                                      termToPretty(env, t),
+                                  ])
+                                : null,
+                        )
+                        .filter(Boolean) as Array<PP>),
                 );
             }
+            // Object.keys(term.subTypes).forEach((id) => {
+            //     const decl;
+            // });
             return items([
                 term.base.type === 'Concrete'
                     ? refToPretty(env, term.base.ref)

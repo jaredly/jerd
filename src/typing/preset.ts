@@ -78,7 +78,9 @@ export function presetEnv() {
     env.global.builtinTypes['Array'] = 1;
 
     env.global.typeNames['Some'] = { hash: 'Some', pos: 0, size: 1 };
+    env.global.idNames['Some'] = 'Some';
     env.global.typeNames['None'] = { hash: 'None', pos: 0, size: 1 };
+    env.global.idNames['None'] = 'None';
     env.global.types['None'] = {
         unique: 1,
         type: 'Record',

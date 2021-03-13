@@ -17,7 +17,12 @@ import { bool, presetEnv } from '../../src/typing/preset';
 import generate from '@babel/generator';
 import runCode from './eval';
 import { typeDefine, typeEffect, typeTypeDefn } from '../../src/typing/env';
-import { declarationToPretty } from '../../src/printing/printTsLike';
+import { EnumDef, RecordDef } from '../../src/typing/types';
+import {
+    declarationToPretty,
+    enumToPretty,
+    recordToPretty,
+} from '../../src/printing/printTsLike';
 import { printToString } from '../../src/printing/printer';
 
 // Yea
@@ -105,6 +110,36 @@ export default () => {
     // }, [text]);
     return (
         <div>
+            {Object.keys(data.env.global.types).map((hash) => (
+                <div key={hash}>
+                    {/* {hash} */}
+                    <pre>
+                        <code>
+                            {data.env.global.types[hash].type === 'Enum'
+                                ? printToString(
+                                      enumToPretty(
+                                          data.env,
+                                          { hash, size: 1, pos: 0 },
+                                          data.env.global.types[
+                                              hash
+                                          ] as EnumDef,
+                                      ),
+                                      100,
+                                  )
+                                : printToString(
+                                      recordToPretty(
+                                          data.env,
+                                          { hash, size: 1, pos: 0 },
+                                          data.env.global.types[
+                                              hash
+                                          ] as RecordDef,
+                                      ),
+                                      100,
+                                  )}
+                        </code>
+                    </pre>
+                </div>
+            ))}
             {Object.keys(data.env.global.terms).map((hash) => (
                 <div key={hash}>
                     {hash}
