@@ -215,7 +215,7 @@ Case = name:Identifier "." constr:Identifier _ "(" _ "(" _ args:CommaPat? _ ")" 
 Pat = Identifier
 CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map(r => r[3])]}
 
-CommaExpr = first:Expression rest:(_ "," _ Expression)* {return [first, ...rest.map(r => r[3])]}
+CommaExpr = first:Expression rest:(_ "," _ Expression)* _ ","? {return [first, ...rest.map(r => r[3])]}
 
 
 

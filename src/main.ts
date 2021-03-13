@@ -228,15 +228,15 @@ const processFile = (
             } catch (err) {
                 console.log(reraw);
                 console.log(showLocation(expr.location));
-                console.warn(err.message);
+                console.error(err);
                 good = false;
-                continue;
+                break;
             }
             if (printed.length !== 1) {
                 console.log(printed);
                 console.warn(`Reprint generated multiple toplevels`);
                 good = false;
-                continue;
+                break;
             }
             try {
                 const retyped = typeExpr(env, printed[0] as Expression);
@@ -256,20 +256,24 @@ const processFile = (
                     );
                     console.log('\n*************\n');
                     good = false;
+                    break;
                 }
             } catch (err) {
                 console.log(reraw);
                 console.log(printed);
+                console.error(err);
                 console.log(
                     `Expression at ${showLocation(
                         expr.location,
                     )} had a type error on reprint`,
                 );
                 good = false;
+                break;
             }
         }
         if (!good) {
-            throw new Error(`Reprint failure.`);
+            console.log(`❌ Reprint failed for ${fname}`);
+            return false;
         }
     }
 
@@ -371,7 +375,7 @@ const main = (
     console.log(`\n# Processing ${fnames.length} files\n`);
     const passed: { [key: string]: boolean } = {};
     let numFailures = 0;
-    const reprint = false;
+    const reprint = true;
 
     const runFile = (fname: string) => {
         try {

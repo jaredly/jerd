@@ -49,6 +49,7 @@ export type GlobalEnv = {
 
     effectNames: { [key: string]: string };
     effectConstructors: { [key: string]: { hash: string; idx: number } };
+    effectConstrNames: { [idName: string]: Array<string> };
     effects: {
         [key: string]: Array<{
             args: Array<Type>;
@@ -565,6 +566,7 @@ export const newEnv = (
 
         effectNames: {},
         effectConstructors: {},
+        effectConstrNames: {},
         effects: {},
     },
     local: {
@@ -592,6 +594,7 @@ export const subEnv = (env: Env): Env => ({
         types: { ...env.global.types },
         effectNames: { ...env.global.effectNames },
         effectConstructors: { ...env.global.effectConstructors },
+        effectConstrNames: { ...env.global.effectConstrNames },
         effects: { ...env.global.effects },
     },
     local: {

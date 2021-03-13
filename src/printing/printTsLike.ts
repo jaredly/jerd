@@ -170,6 +170,12 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 args([
                     items([
                         refToPretty(env, term.ref),
+                        atom('.'),
+                        atom(
+                            env.global.effectConstrNames[idName(term.ref.id)][
+                                term.idx
+                            ],
+                        ),
                         args(term.args.map((t) => termToPretty(env, t))),
                     ]),
                 ]),
@@ -286,7 +292,10 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         case 'Record': {
             const res = [];
-            const typeVbls = term.is.type === 'ref' ? term.is.typeVbls : null;
+            const typeVbls =
+                term.is.type === 'ref' && term.is.typeVbls.length
+                    ? term.is.typeVbls
+                    : null;
             if (term.base.type === 'Concrete') {
                 const names = env.global.recordGroups[idName(term.base.ref.id)];
                 res.push(
@@ -303,9 +312,29 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         .filter(Boolean) as Array<PP>),
                 );
             }
-            // Object.keys(term.subTypes).forEach((id) => {
-            //     const decl;
-            // });
+            Object.keys(term.subTypes).forEach((id) => {
+                const sub = term.subTypes[id];
+                const names = env.global.recordGroups[id];
+                const decl = env.global.types[id];
+                if (sub.spread) {
+                    res.push(
+                        items([atom('...'), termToPretty(env, sub.spread)]),
+                    );
+                }
+                sub.rows.forEach((row, i) => {
+                    if (row != null) {
+                        res.push(
+                            items([
+                                atom(names[i] + '#' + i),
+                                atom(': '),
+                                termToPretty(env, row),
+                            ]),
+                        );
+                    }
+                });
+                // decl.items.forEach((item, i) => {
+                // })
+            });
             return items([
                 term.base.type === 'Concrete'
                     ? refToPretty(env, term.base.ref)
@@ -317,7 +346,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                           '>',
                       )
                     : null,
-                args(res, '{', '}'),
+                res.length ? args(res, '{', '}') : null,
             ]);
         }
         case 'Array':
@@ -362,11 +391,11 @@ const patternToPretty = (env: Env, pattern: Pattern): PP => {
         case 'Binding':
             return symToPretty(pattern.sym);
         case 'Enum':
-            return typeToPretty(env, pattern.ref);
+            return refToPretty(env, pattern.ref.ref);
         case 'Record':
             if (pattern.items.length) {
                 return items([
-                    typeToPretty(env, pattern.ref),
+                    refToPretty(env, pattern.ref.ref),
                     args(
                         pattern.items.map((item) =>
                             items([
