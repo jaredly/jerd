@@ -278,10 +278,18 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 ),
             ]);
         case 'Attribute':
+            const names =
+                env.global.recordGroups[
+                    term.ref.type === 'builtin'
+                        ? term.ref.name
+                        : idName(term.ref.id)
+                ];
             return items([
                 termToPretty(env, term.target),
                 atom('.'),
                 // TODO: use a name n stuff
+                atom(names[term.idx]),
+                atom('#'),
                 atom(term.idx.toString()),
             ]);
         case 'Enum':
@@ -413,7 +421,7 @@ const patternToPretty = (env: Env, pattern: Pattern): PP => {
                     ),
                 ]);
             } else {
-                return typeToPretty(env, pattern.ref);
+                return refToPretty(env, pattern.ref.ref);
             }
     }
 };
