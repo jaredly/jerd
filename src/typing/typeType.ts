@@ -74,23 +74,9 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 : [];
             if (type.id.hash && type.id.hash.startsWith('#sym#')) {
                 const unique = +type.id.hash.slice('#sym#'.length);
-                let found: Symbol | null = null;
-                Object.keys(env.local.typeVblNames).forEach((t) => {
-                    if (env.local.typeVblNames[t].unique === unique) {
-                        found = env.local.typeVblNames[t];
-                    }
-                });
-                if (!found) {
-                    console.log(unique, env.local.typeVblNames);
-                    throw new Error(
-                        `Could not resolve symbol ${unique} (${type.id.text}${
-                            type.id.hash
-                        }) at ${showLocation(type.location)}`,
-                    );
-                }
                 return {
                     type: 'var',
-                    sym: found,
+                    sym: { unique, name: type.id.text },
                     location: type.location,
                     // STOPSHIP: typeVbls and effectVbls for vars
                 };
@@ -128,11 +114,18 @@ const typeType = (env: Env, type: ParseType | null): Type => {
         }
 
         case 'lambda': {
+            // console.log('And inner', showLocation(type.location));
             const {
                 typeInner,
                 typeVbls,
                 effectVbls,
             } = newEnvWithTypeAndEffectVbls(env, type.typevbls, type.effvbls);
+            // console.log(
+            //     `More`,
+            //     typeInner.local.typeVbls,
+            //     typeVbls,
+            //     env.local.typeVbls,
+            // );
 
             return {
                 type: 'lambda',
@@ -147,6 +140,9 @@ const typeType = (env: Env, type: ParseType | null): Type => {
         }
     }
 };
+
+const parseUnique = (hash: string | null, backup: number) =>
+    hash && hash.startsWith('#sym#') ? +hash.slice('#sym#'.length) : backup;
 
 export const newEnvWithTypeAndEffectVbls = (
     env: Env,
@@ -174,7 +170,10 @@ export const newEnvWithTypeAndEffectVbls = (
     const typeInner = subEnv(env);
     const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
     typevbls.forEach(({ id, subTypes }) => {
-        const unique = Object.keys(typeInner.local.typeVbls).length;
+        const unique = parseUnique(
+            id.hash,
+            Object.keys(typeInner.local.typeVbls).length,
+        );
         const sym: Symbol = { name: id.text, unique };
         const st = subTypes.map((id) => {
             const t = env.global.typeNames[id.text];
@@ -193,7 +192,10 @@ export const newEnvWithTypeAndEffectVbls = (
     });
     const effectVbls: Array<number> = [];
     effvbls.forEach((id) => {
-        const unique = Object.keys(typeInner.local.effectVbls).length;
+        const unique = parseUnique(
+            id.hash,
+            Object.keys(typeInner.local.effectVbls).length,
+        );
         const sym: Symbol = { name: id.text, unique };
         typeInner.local.effectVbls[id.text] = sym;
         effectVbls.push(sym.unique);

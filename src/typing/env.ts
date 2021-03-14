@@ -126,11 +126,13 @@ export const typeRecordDefn = (
     unique?: number,
 ): RecordDef => {
     // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
+    // console.log('RECORD', typeVblsRaw, showLocation(location));
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         typeVblsRaw,
         [],
     );
+    // console.log('EBLS', typeInner.local.typeVbls);
 
     return {
         type: 'Record',
@@ -364,10 +366,12 @@ export const resolveEffect = (
     };
 };
 
-export const resolveTypeID = (
-    env: Env,
-    { text, location, hash }: Identifier,
-): Type | null => {};
+// export const resolveTypeID = (
+//     env: Env,
+//     { text, location, hash }: Identifier,
+// ): Type | null => {
+
+// };
 
 // TODO type-directed resolution pleaseeeee
 export const resolveIdentifier = (

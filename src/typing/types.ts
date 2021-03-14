@@ -28,6 +28,7 @@ export type Env = {
     // like args n stuff?
     global: GlobalEnv;
     local: LocalEnv;
+    depth: number;
 };
 
 export type GlobalEnv = {
@@ -554,6 +555,7 @@ export const newEnv = (
     self: { name: string; type: Type },
     seed: string = 'seed',
 ): Env => ({
+    depth: 0,
     global: {
         rng: seedrandom(seed),
         names: {},
@@ -582,33 +584,37 @@ export const newEnv = (
     },
 });
 
-export const subEnv = (env: Env): Env => ({
-    global: {
-        rng: env.global.rng,
-        attributeNames: { ...env.global.attributeNames },
-        recordGroups: { ...env.global.recordGroups },
-        names: { ...env.global.names },
-        idNames: { ...env.global.idNames },
-        terms: { ...env.global.terms },
-        builtins: { ...env.global.builtins },
-        typeNames: { ...env.global.typeNames },
-        builtinTypes: { ...env.global.builtinTypes },
-        types: { ...env.global.types },
-        effectNames: { ...env.global.effectNames },
-        effectConstructors: { ...env.global.effectConstructors },
-        effectConstrNames: { ...env.global.effectConstrNames },
-        effects: { ...env.global.effects },
-    },
-    local: {
-        self: env.local.self,
-        effectVbls: { ...env.local.effectVbls },
-        locals: { ...env.local.locals },
-        unique: env.local.unique,
-        typeVbls: { ...env.local.typeVbls },
-        typeVblNames: { ...env.local.typeVblNames },
-        tmpTypeVbls: env.local.tmpTypeVbls,
-    },
-});
+export const subEnv = (env: Env): Env => {
+    // console.log('SUB ENV', env.depth, env.local.typeVbls);
+    return {
+        depth: env.depth + 1,
+        global: {
+            rng: env.global.rng,
+            attributeNames: { ...env.global.attributeNames },
+            recordGroups: { ...env.global.recordGroups },
+            names: { ...env.global.names },
+            idNames: { ...env.global.idNames },
+            terms: { ...env.global.terms },
+            builtins: { ...env.global.builtins },
+            typeNames: { ...env.global.typeNames },
+            builtinTypes: { ...env.global.builtinTypes },
+            types: { ...env.global.types },
+            effectNames: { ...env.global.effectNames },
+            effectConstructors: { ...env.global.effectConstructors },
+            effectConstrNames: { ...env.global.effectConstrNames },
+            effects: { ...env.global.effects },
+        },
+        local: {
+            self: env.local.self,
+            effectVbls: { ...env.local.effectVbls },
+            locals: { ...env.local.locals },
+            unique: env.local.unique,
+            typeVbls: { ...env.local.typeVbls },
+            typeVblNames: { ...env.local.typeVblNames },
+            tmpTypeVbls: env.local.tmpTypeVbls,
+        },
+    };
+};
 
 // TODO need to resolve probably
 export const getEffects = (t: Term | Let): Array<EffectRef> => {
