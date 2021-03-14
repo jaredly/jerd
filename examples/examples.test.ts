@@ -16,7 +16,7 @@ import vm from 'vm';
 import { execSync } from 'child_process';
 import typeExpr from '../src/typing/typeExpr';
 import path from 'path';
-import { Location } from '../src/parsing/parser';
+import { Location, Toplevel } from '../src/parsing/parser';
 import { fitsExpectation } from '../src/typing/unify';
 
 const examples = [
@@ -35,7 +35,7 @@ const prelude = require('fs')
     .trim()
     .split('\n')
     // Remove the "export" lines
-    .filter((x) => x.startsWith('export {'))
+    .filter((x: string) => x.startsWith('export {'))
     .join('\n');
 
 const getText = (raw: string, location: Location) => {
@@ -51,13 +51,17 @@ describe('Example files', () => {
             const items: Array<string> = [];
 
             const parsed = parse(raw);
-            parsed.forEach((item, i) => {
+            parsed.forEach((item: Toplevel, i: number) => {
                 if (item.type === 'effect') {
                     typeEffect(env, item);
                 } else if (item.type === 'define') {
                     const { term, hash } = typeDefine(env, item);
                     const jd = printToString(
-                        declarationToPretty({ hash, size: 1, pos: 0 }, term),
+                        declarationToPretty(
+                            env,
+                            { hash, size: 1, pos: 0 },
+                            term,
+                        ),
                         100,
                     );
                     items.push(`// ${item.id.text}.jd\n` + jd);
@@ -74,7 +78,7 @@ describe('Example files', () => {
                     }
                 } else {
                     const term = typeExpr(env, item);
-                    const jd = printToString(termToPretty(term), 100);
+                    const jd = printToString(termToPretty(env, term), 100);
                     items.push(`// .jd\n` + jd);
                     try {
                         const ts = termToString(env, term);
@@ -95,7 +99,7 @@ const typeErrors = require('./type-errors.jd');
 describe('Type errors', () => {
     const env = presetEnv();
     const raw = typeErrors.src;
-    const parsed = parse(raw);
+    const parsed: Array<Toplevel> = parse(raw);
 
     parsed.forEach((item, i) => {
         if (item.type === 'effect') {
@@ -123,13 +127,13 @@ describe('Type errors', () => {
 
 const tests = ['basics.jd', 'eff-paper.jd'];
 
-const tsToJs = (ts) =>
+const tsToJs = (ts: string) =>
     execSync('yarn -s esbuild --loader=ts', { encoding: 'utf8', input: ts });
 
 describe('Test Files', () => {
     tests.forEach((fname) => {
         describe(fname, () => {
-            let vmEnv;
+            let vmEnv: any;
             beforeAll(() => {
                 vmEnv = vm.createContext({ console });
                 vm.runInContext(tsToJs(prelude), vmEnv);
@@ -137,7 +141,7 @@ describe('Test Files', () => {
 
             const env = presetEnv();
             const raw = fs.readFileSync(__dirname + '/' + fname, 'utf8');
-            const parsed = parse(raw);
+            const parsed: Array<Toplevel> = parse(raw);
 
             parsed.forEach((item) => {
                 const name = item.location
