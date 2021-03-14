@@ -97,6 +97,17 @@ export const enumToPretty = (env: Env, id: Id, enumDef: EnumDef) => {
     ]);
 };
 
+const interleave = <T>(items: Array<T>, sep: T) => {
+    const res: Array<T> = [];
+    items.forEach((item, i) => {
+        if (i !== 0) {
+            res.push(sep);
+        }
+        res.push(item);
+    });
+    return res;
+};
+
 const typeVblDeclsToPretty = (env: Env, typeVbls: Array<TypeVblDecl>): PP => {
     return args(
         typeVbls.map((v) =>
@@ -106,8 +117,11 @@ const typeVblDeclsToPretty = (env: Env, typeVbls: Array<TypeVblDecl>): PP => {
                 v.subTypes.length
                     ? items([
                           atom(': '),
-                          ...v.subTypes.map((id) =>
-                              idToPretty(env, id, 'record'),
+                          ...interleave(
+                              v.subTypes.map((id) =>
+                                  idToPretty(env, id, 'record'),
+                              ),
+                              atom(' + '),
                           ),
                       ])
                     : null,
@@ -204,6 +218,16 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         case 'lambda':
             return items([
+                term.is.typeVbls.length
+                    ? typeVblDeclsToPretty(env, term.is.typeVbls)
+                    : null,
+                term.is.effectVbls.length
+                    ? args(
+                          term.is.effectVbls.map((n) => atom(`e_${n}`)),
+                          '{',
+                          '}',
+                      )
+                    : null,
                 args(
                     term.args.map((arg, i) =>
                         items([
@@ -332,6 +356,11 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 term.is.type === 'ref' && term.is.typeVbls.length
                     ? term.is.typeVbls
                     : null;
+            if (term.base.spread) {
+                res.push(
+                    items([atom('...'), termToPretty(env, term.base.spread)]),
+                );
+            }
             if (term.base.type === 'Concrete') {
                 const names = env.global.recordGroups[idName(term.base.ref.id)];
                 const rid = refName(term.base.ref);

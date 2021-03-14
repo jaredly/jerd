@@ -699,16 +699,20 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
     }
 };
 
+// Normalizing the order of these on purpose
 export const dedupEffects = (effects: Array<EffectRef>) => {
-    const used: { [key: string]: boolean } = {};
-    return effects.filter((e) => {
+    const used: { [key: string]: EffectRef } = {};
+    effects.forEach((e) => {
         const k = effectKey(e);
         if (used[k]) {
             return false;
         }
-        used[k] = true;
+        used[k] = e;
         return true;
     });
+    return Object.keys(used)
+        .sort()
+        .map((k) => used[k]);
 };
 
 export const walkTerm = (

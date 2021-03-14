@@ -31,7 +31,7 @@ const log = (k: string) ={Log}> raise!(Log.log(k))
 // TODO when I've got type arguments, make this generic.
 const respondWith:
     (string) => <T>(() ={Stdio, Log}> T) ={Log}> T
- = (responseValue) => <T,>(fn: () ={Stdio, Log}> T) ={Log}> {
+ = (responseValue: string) => <T,>(fn: () ={Stdio, Log}> T) ={Log}> {
     handle! fn {
         Stdio.read(() => k) => respondWith(responseValue ++ ".")<T>(() => k(responseValue)),
         Stdio.write((v) => k) => {

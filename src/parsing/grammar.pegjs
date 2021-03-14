@@ -64,9 +64,10 @@ EnumSpread = "..." ref:TypeRef {
 //     return {type: 'Internal', id, decl, location: location()}
 // }
 
-StructDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:RecordDecl {return {type: 'StructDef', id, decl, typeVbls: typeVbls || []}}
+StructDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:RecordDecl {
+    return {type: 'StructDef', id, decl, typeVbls: typeVbls || [], location: location()}}
 
-RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || []}}
+RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || [], location: location()}}
 // TODO: spreads much come first, then rows
 RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map(r => r[3])]}
 RecordLine = RecordSpread / RecordItem
@@ -238,7 +239,7 @@ Lambda = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:Args? _ ")" _ rettype
     body,
     location: location(),
 }}
-Args = first:Arg rest:(_ "," _ Arg)* {return [first, ...rest.map(r => r[3])]}
+Args = first:Arg rest:(_ "," _ Arg)* _ ","? {return [first, ...rest.map(r => r[3])]}
 Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null}}
 
 TypeVbls = "<" _ first:TypeVbl rest:(_ "," _ TypeVbl)* _ ","? _ ">" {
@@ -289,7 +290,7 @@ LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaType? _ ")" 
     effvbls: effvbls || [],
     effects: effects ? effects[2] || [] : [] , res} }
 CommaEffects =
-    first:Identifier rest:(_ "," _ Identifier)* {return [first, ...rest.map(r => r[3])]}
+    first:Identifier rest:(_ "," _ Identifier)* _ ","? {return [first, ...rest.map(r => r[3])]}
 
 
 

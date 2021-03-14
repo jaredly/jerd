@@ -232,6 +232,18 @@ const toplevelToPretty = (env: Env, toplevel: ToplevelT) => {
     return termToPretty(env, toplevel);
 };
 
+const withParseError = (text: string, location: Location) => {
+    const lines = text.split('\n');
+    const indent = new Array(location.start.column);
+    indent.fill('');
+    lines.splice(
+        location.start.line,
+        0,
+        chalk.red(indent.join('-') + '^' + '--'),
+    );
+    return lines.join('\n');
+};
+
 const reprintToplevel = (
     env: Env,
     raw: string,
@@ -249,9 +261,13 @@ const reprintToplevel = (
     try {
         printed = parse(reraw);
     } catch (err) {
-        console.log(reraw);
+        console.log(chalk.green('Original'));
+        console.log(origraw);
+        console.log(chalk.red('Printed'));
+        console.log(withParseError(reraw, err.location));
+        console.log(chalk.red('Reparse error:'));
         console.log(showLocation(toplevel.location));
-        console.error(err);
+        console.error(err.message, showLocation(err.location));
         return false;
     }
     if (printed.length !== 1) {
@@ -264,35 +280,36 @@ const reprintToplevel = (
         let nhash: string;
         if (toplevel.type === 'RecordDef' && printed[0].type === 'StructDef') {
             const defn = typeRecordDefn(env, printed[0], toplevel.def.unique);
-            const hash = hashObject(defn);
+            nhash = hashObject(defn);
             retyped = {
                 type: 'RecordDef',
                 def: defn,
-                id: { hash, size: 1, pos: 0 },
+                id: { hash: nhash, size: 1, pos: 0 },
                 location: toplevel.location!,
             };
-            nhash = hash;
         } else if (
             toplevel.type === 'EnumDef' &&
             printed[0].type === 'EnumDef'
         ) {
             const defn = typeEnumInner(env, printed[0]);
-            const hash = hashObject(defn);
+            nhash = hashObject(defn);
             retyped = {
                 type: 'EnumDef',
                 def: defn,
-                id: { hash, size: 1, pos: 0 },
+                id: { hash: nhash, size: 1, pos: 0 },
                 location: toplevel.location!,
             };
-            nhash = hash;
         } else {
             retyped = typeExpr(env, printed[0] as Expression);
             nhash = hashObject(retyped);
         }
         if (nhash != hash) {
-            console.log('\n*************\n');
+            console.log(chalk.red('Hash mismatch on reparse!'), hash, nhash);
+            console.log(chalk.green('Original'));
             console.log(origraw);
+            console.log(chalk.green('Printed'));
             console.log(reraw);
+            console.log(chalk.green('Reprinted'));
             console.log(printToString(toplevelToPretty(env, retyped), 100));
             console.log('\n---n');
             console.log(JSON.stringify(withoutLocations(toplevel)));
@@ -307,8 +324,12 @@ const reprintToplevel = (
             return false;
         }
     } catch (err) {
+        console.log(chalk.green('Original'));
+        console.log(origraw);
+        console.log(chalk.green('Reprinted'));
         console.log(reraw);
-        console.log(printed);
+        console.log(chalk.yellow('AST'));
+        console.log(JSON.stringify(withoutLocations(printed)));
         console.error(err);
         console.log(
             `Expression at ${showLocation(

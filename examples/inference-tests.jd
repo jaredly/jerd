@@ -5,14 +5,15 @@
 // Inference in this case does *not* use the toplevel annotation,
 // which is normally used.
 
-const x: int = 4
-const y: string = "hello"
-const z: (int) => string = (x: int): string => "hi"
+// Disabling inference for now
+// const x: int = 4
+// const y: string = "hello"
+// const z: (int) => string = (x: int): string => "hi"
 
-const simpleFn: (int) => int = (x) => x + 5
+// const simpleFn: (int) => int = (x) => x + 5
 
-const usesDeclared: (int) => int = (x) => simpleFn(x)
+// const usesDeclared: (int) => int = (x) => simpleFn(x)
 
-const recursive: (int) => int = (x) => recursive(x + 1) + 2
+// const recursive: (int) => int = (x) => recursive(x + 1) + 2
 
 // const identity: <A>(A) => A = x => x

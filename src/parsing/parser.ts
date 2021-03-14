@@ -30,6 +30,7 @@ export type Effect = {
 
 export type StructDef = {
     type: 'StructDef';
+    location: Location;
     id: Identifier;
     typeVbls: Array<TypeVbl>;
     decl: TypeDecl;

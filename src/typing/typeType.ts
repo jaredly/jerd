@@ -72,6 +72,29 @@ const typeType = (env: Env, type: ParseType | null): Type => {
             const effectVbls = type.effectVbls
                 ? type.effectVbls.map((e) => resolveEffect(env, e))
                 : [];
+            if (type.id.hash && type.id.hash.startsWith('#sym#')) {
+                const unique = +type.id.hash.slice('#sym#'.length);
+                let found: Symbol | null = null;
+                Object.keys(env.local.typeVblNames).forEach((t) => {
+                    if (env.local.typeVblNames[t].unique === unique) {
+                        found = env.local.typeVblNames[t];
+                    }
+                });
+                if (!found) {
+                    console.log(unique, env.local.typeVblNames);
+                    throw new Error(
+                        `Could not resolve symbol ${unique} (${type.id.text}${
+                            type.id.hash
+                        }) at ${showLocation(type.location)}`,
+                    );
+                }
+                return {
+                    type: 'var',
+                    sym: found,
+                    location: type.location,
+                    // STOPSHIP: typeVbls and effectVbls for vars
+                };
+            }
             if (env.local.typeVblNames[type.id.text] != null) {
                 return {
                     type: 'var',

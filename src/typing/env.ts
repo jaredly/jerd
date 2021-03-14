@@ -122,7 +122,7 @@ export const resolveType = (env: GlobalEnv, id: Identifier) => {
 
 export const typeRecordDefn = (
     env: Env,
-    { decl: record, id, typeVbls: typeVblsRaw }: StructDef,
+    { decl: record, id, typeVbls: typeVblsRaw, location }: StructDef,
     unique?: number,
 ): RecordDef => {
     // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
@@ -136,7 +136,7 @@ export const typeRecordDefn = (
         type: 'Record',
         unique: unique || env.global.rng(),
         typeVbls,
-        location: record.location,
+        location,
         effectVbls,
         extends: record.items
             .filter((r) => r.type === 'Spread')
@@ -363,6 +363,11 @@ export const resolveEffect = (
         },
     };
 };
+
+export const resolveTypeID = (
+    env: Env,
+    { text, location, hash }: Identifier,
+): Type | null => {};
 
 // TODO type-directed resolution pleaseeeee
 export const resolveIdentifier = (
