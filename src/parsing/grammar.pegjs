@@ -80,12 +80,15 @@ RecordItem = id:Identifier _ ":" _ type:Type {return {type: 'Row', id, rtype: ty
 // ===== Expressions ======
 
 // Binop
-Expression = first:WithSuffix rest:(__ binop __ WithSuffix)* {
+Expression = first:WithSuffix rest:BinOpRight* {
     if (rest.length) {
-        return {type: 'ops', first, rest: rest.map(r => ({op: r[1], right: r[3]})), location: location()}
+        return {type: 'ops', first, rest, location: location()}
     } else {
         return first
     }
+}
+BinOpRight = __ op:binop __ right:WithSuffix {
+    return {op, right, location: location()}
 }
 // Apply / Attribute access
 WithSuffix = sub:Apsub suffixes:Suffix* {
@@ -212,7 +215,7 @@ Case = name:Identifier "." constr:Identifier _ "(" _ "(" _ args:CommaPat? _ ")" 
 Pat = Identifier
 CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map(r => r[3])]}
 
-CommaExpr = first:Expression rest:(_ "," _ Expression)* {return [first, ...rest.map(r => r[3])]}
+CommaExpr = first:Expression rest:(_ "," _ Expression)* _ ","? {return [first, ...rest.map(r => r[3])]}
 
 
 

@@ -40,13 +40,23 @@ export const typeEffect = (env: Env, item: Effect) => {
         };
     });
     const hash: string = hashObject(constrs);
+    const id = { hash, size: 1, pos: 0 };
     env.global.effectNames[item.id.text] = hash;
+    env.global.idNames[idName(id)] = item.id.text;
+    env.global.effectConstrNames[idName(id)] = item.constrs.map(
+        (c) => c.id.text,
+    );
     item.constrs.forEach((c, i) => {
         env.global.effectConstructors[item.id.text + '.' + c.id.text] = {
             idx: i,
             hash: hash,
         };
     });
+    if (env.global.effects[hash]) {
+        throw new Error(
+            `Redefining effect ${hash} at ${showLocation(item.id.location)}`,
+        );
+    }
     env.global.effects[hash] = constrs;
 };
 
@@ -82,6 +92,9 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     };
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };
+    if (env.global.types[idName(idid)]) {
+        throw new Error(`Redefining ${idName(idid)}`);
+    }
     env.global.types[idName(idid)] = d;
     env.global.typeNames[defn.id.text] = idid;
     env.global.idNames[idName(idid)] = defn.id.text;
@@ -127,6 +140,9 @@ export const typeRecord = (
     };
     const hash = hashObject(defn);
     const idid = { hash, pos: 0, size: 1 };
+    if (env.global.types[idName(idid)]) {
+        throw new Error(`Redefining ${idName(idid)}`);
+    }
     env.global.types[idName(idid)] = defn;
     env.global.typeNames[id.text] = idid;
     env.global.idNames[idName(idid)] = id.text;
@@ -139,7 +155,7 @@ export const typeRecord = (
 export const hashObject = (obj: any): string =>
     hashObjectSum(withoutLocations(obj));
 
-const withoutLocations = <T>(obj: T): T => {
+export const withoutLocations = <T>(obj: T): T => {
     if (!obj) {
         return obj;
     }
@@ -150,6 +166,11 @@ const withoutLocations = <T>(obj: T): T => {
         const res: any = {};
         Object.keys(obj).forEach((key) => {
             if (key === 'location') {
+                return;
+            }
+            // It's a symbol, ditch it for the purposes of hashing
+            // @ts-ignore
+            if (key === 'name' && obj.unique != null) {
                 return;
             }
             // @ts-ignore
@@ -194,6 +215,13 @@ export const typeDefine = (env: Env, item: Define) => {
 
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
+    if (env.global.terms[hash]) {
+        throw new Error(
+            `Redefining ${hash} at ${showLocation(
+                item.location,
+            )} (previous at ${showLocation(env.global.terms[hash].location)})`,
+        );
+    }
     env.global.names[item.id.text] = id;
     env.global.idNames[idName(id)] = item.id.text;
     env.global.terms[hash] = term;
@@ -279,9 +307,31 @@ export const resolveIdentifier = (
     if (hash != null) {
         const [first, _second] = hash.slice(1).split('#');
         if (!env.global.terms[first]) {
+            if (env.global.types[first]) {
+                const id = { hash: first, size: 1, pos: 0 };
+                const t = env.global.types[idName(id)];
+                if (
+                    t.type === 'Record' &&
+                    t.items.length === 0 &&
+                    t.extends.length === 0
+                ) {
+                    return plainRecord(id, location);
+                }
+            }
+
             throw new Error(`Unknown hash ${hash} ${showLocation(location)}`);
         }
-        return env.global.terms[first];
+        const id = { hash: first, size: 1, pos: 0 };
+        const term = env.global.terms[first];
+        return {
+            type: 'ref',
+            location,
+            ref: {
+                type: 'user',
+                id,
+            },
+            is: term.is,
+        };
     }
 
     if (env.local.locals[text]) {
@@ -331,28 +381,30 @@ export const resolveIdentifier = (
             t.items.length === 0 &&
             t.extends.length === 0
         ) {
-            return {
-                type: 'Record',
-                base: {
-                    type: 'Concrete',
-                    ref: { type: 'user', id },
-                    rows: [],
-                    spread: null,
-                },
-                location,
-                is: {
-                    type: 'ref',
-                    ref: { type: 'user', id },
-                    location,
-                    typeVbls: [],
-                    effectVbls: [],
-                },
-                subTypes: {},
-            };
+            return plainRecord(id, location);
         }
     }
     return null;
 };
+
+const plainRecord = (id: Id, location: Location): Term => ({
+    type: 'Record',
+    base: {
+        type: 'Concrete',
+        ref: { type: 'user', id },
+        rows: [],
+        spread: null,
+    },
+    location,
+    is: {
+        type: 'ref',
+        ref: { type: 'user', id },
+        location,
+        typeVbls: [],
+        effectVbls: [],
+    },
+    subTypes: {},
+});
 
 export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (type.type === 'var') {

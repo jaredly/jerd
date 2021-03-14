@@ -4,7 +4,7 @@
 
 import path from 'path';
 import fs from 'fs';
-import { hashObject, idName } from './typing/env';
+import { hashObject, idName, withoutLocations } from './typing/env';
 import parse, { Expression, Location, Toplevel } from './parsing/parser';
 import {
     declarationToAST,
@@ -202,11 +202,81 @@ const processErrors = (fname: string) => {
     fs.writeFileSync(dest, errors.join('\n\n'));
 };
 
-const processFile = (fname: string, assert: boolean, run: boolean) => {
+const processFile = (
+    fname: string,
+    assert: boolean,
+    run: boolean,
+    reprint: boolean,
+): boolean => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
     const { expressions, env } = typeFile(parsed);
+
+    if (reprint) {
+        let good = true;
+        // Test reprint
+        for (let expr of expressions) {
+            const origraw = raw.slice(
+                expr.location.start.offset,
+                expr.location.end.offset,
+            );
+            const reraw = printToString(termToPretty(env, expr), 100);
+            let printed;
+            try {
+                printed = parse(reraw);
+            } catch (err) {
+                console.log(reraw);
+                console.log(showLocation(expr.location));
+                console.error(err);
+                good = false;
+                break;
+            }
+            if (printed.length !== 1) {
+                console.log(printed);
+                console.warn(`Reprint generated multiple toplevels`);
+                good = false;
+                break;
+            }
+            try {
+                const retyped = typeExpr(env, printed[0] as Expression);
+                if (hashObject(retyped) != hashObject(expr)) {
+                    console.log('\n*************\n');
+                    console.log(origraw);
+                    console.log(printToString(termToPretty(env, expr), 100));
+                    console.log(printToString(termToPretty(env, retyped), 100));
+                    console.log('\n---n');
+                    console.log(JSON.stringify(withoutLocations(expr)));
+                    console.log(JSON.stringify(withoutLocations(retyped)));
+                    console.log('\n---n');
+                    console.warn(
+                        `Expression at ${showLocation(
+                            expr.location,
+                        )} failed to retype.`,
+                    );
+                    console.log('\n*************\n');
+                    good = false;
+                    break;
+                }
+            } catch (err) {
+                console.log(reraw);
+                console.log(printed);
+                console.error(err);
+                console.log(
+                    `Expression at ${showLocation(
+                        expr.location,
+                    )} had a type error on reprint`,
+                );
+                good = false;
+                break;
+            }
+        }
+        if (!good) {
+            console.log(`❌ Reprint failed for ${fname}`);
+            return false;
+        }
+    }
+
     const ast = fileToTypescript(expressions, env, assert, true);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
@@ -244,12 +314,24 @@ const processFile = (fname: string, assert: boolean, run: boolean) => {
     );
 
     if (run) {
-        const { stdout, error } = spawnSync(
+        const { stdout, error, stderr, status } = spawnSync(
             'node',
             ['--enable-source-maps', dest],
-            { stdio: 'inherit' },
+            { stdio: 'pipe', encoding: 'utf8' },
         );
+        if (status !== 0) {
+            console.log(`❌ Execution failed ${fname}`);
+            console.log('---------------');
+            console.log(stdout);
+            console.log(stderr);
+            console.log('---------------');
+            return false;
+        } else {
+            console.log(`✅ all clear ${fname}`);
+            return true;
+        }
     }
+    return true;
 };
 
 const cacheFile = '.test-cache';
@@ -291,56 +373,65 @@ const main = (
         ? loadCache(fnames, process.argv[1])
         : { shouldSkip: null, successRerun: true };
     console.log(`\n# Processing ${fnames.length} files\n`);
-    const passed = [];
-    let hasFailures = false;
-    for (let fname of fnames) {
-        if (shouldSkip && shouldSkip[fname]) {
-            passed.push(fname);
-            continue; // skipping
-        }
-        console.log('hello', fname);
+    const passed: { [key: string]: boolean } = {};
+    let numFailures = 0;
+    const reprint = true;
+
+    const runFile = (fname: string) => {
         try {
             if (fname.endsWith('type-errors.jd')) {
                 processErrors(fname);
             } else {
-                processFile(fname, assert, run);
+                if (processFile(fname, assert, run, reprint) === false) {
+                    numFailures += 1;
+                    return false;
+                }
             }
-            console.log(`✅ processed ${fname}`);
-            passed.push(fname);
         } catch (err) {
-            hasFailures = true;
+            numFailures += 1;
             console.error(`❌ Failed to process ${fname}`);
             console.error('-----------------------------');
             console.error(err);
             console.error('-----------------------------');
+            return false;
+        }
+        return true;
+    };
+
+    for (let fname of fnames) {
+        if (shouldSkip && shouldSkip[fname]) {
+            passed[fname] = true;
+            continue; // skipping
+        }
+        const success = runFile(fname);
+        passed[fname] = success;
+        if (reprint && !success) {
+            return;
         }
     }
 
-    if (!hasFailures && successRerun) {
+    if (!numFailures && successRerun) {
+        console.error('==================');
+        console.log('Rerunning successful files');
+        console.error('==================');
         for (let fname of fnames) {
             if (shouldSkip && shouldSkip[fname]) {
-                console.log('Rerunning successful file', fname);
-                try {
-                    if (fname.endsWith('type-errors.jd')) {
-                        processErrors(fname);
-                    } else {
-                        processFile(fname, assert, run);
-                    }
-                    console.log(`✅ processed ${fname}`);
-                    passed.push(fname);
-                } catch (err) {
-                    hasFailures = true;
-                    console.error(`❌ Failed to process ${fname}`);
-                    console.error('-----------------------------');
-                    console.error(err);
-                    console.error('-----------------------------');
+                const success = runFile(fname);
+                passed[fname] = success;
+                if (reprint && !success) {
+                    return;
                 }
             }
         }
     }
 
+    console.log(`📢 Failures ${numFailures}`);
+
     if (cache) {
-        saveCache(passed, process.argv[1]);
+        saveCache(
+            Object.keys(passed).filter((p) => passed[p]),
+            process.argv[1],
+        );
     }
 };
 
