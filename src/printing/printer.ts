@@ -12,7 +12,11 @@ export const args = (contents: Array<PP>, left = '(', right = ')'): PP => ({
     left,
     right,
 });
-export const block = (contents: Array<PP>): PP => ({ type: 'block', contents });
+export const block = (contents: Array<PP>, sep: string = ';'): PP => ({
+    type: 'block',
+    contents,
+    sep,
+});
 export const atom = (text: string, attributes?: Array<string>): PP => ({
     type: 'atom',
     text,
@@ -28,7 +32,7 @@ export const id = (text: string, id: string, kind: string): PP => ({
 export type PP =
     | { type: 'atom'; text: string; attributes?: Array<string> }
     | { type: 'id'; text: string; id: string; kind: string }
-    | { type: 'block'; contents: Array<PP> } // surrounded by {}
+    | { type: 'block'; contents: Array<PP>; sep: string } // surrounded by {}
     | { type: 'args'; contents: Array<PP>; left: string; right: string } // surrounded by ()
     | { type: 'items'; items: Array<PP> };
 
@@ -76,7 +80,7 @@ export const printToString = (
                 '\n' +
                 white(current.indent) +
                 printToString(item, maxWidth, current) +
-                ';';
+                pp.sep;
         });
         current.indent -= 4;
         if (res.length > 1) {
@@ -167,7 +171,7 @@ export const printToAttributedText = (
             res.push(
                 '\n' + white(current.indent),
                 ...printToAttributedText(item, maxWidth, current),
-                { text: ';', attributes: ['semi'] },
+                { text: pp.sep, attributes: ['semi'] },
             );
         });
         current.indent -= 4;

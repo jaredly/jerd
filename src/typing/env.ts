@@ -61,13 +61,11 @@ export const typeEffect = (env: Env, item: Effect) => {
     env.global.effects[hash] = constrs;
 };
 
-export const typeTypeDefn = (env: Env, { id, decl, typeVbls }: StructDef) => {
-    if (decl.type === 'Record') {
-        return typeRecord(env, id, typeVbls, decl);
-    }
+export const typeTypeDefn = (env: Env, defn: StructDef) => {
+    return typeRecord(env, defn);
 };
 
-export const typeEnumDefn = (env: Env, defn: EnumDef) => {
+export const typeEnumInner = (env: Env, defn: EnumDef) => {
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         defn.typeVbls,
@@ -89,8 +87,15 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
         typeVbls,
         effectVbls,
         extends: extend,
+        location: defn.location,
         items,
     };
+
+    return d;
+};
+
+export const typeEnumDefn = (env: Env, defn: EnumDef) => {
+    const d = typeEnumInner(env, defn);
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };
     if (env.global.types[idName(idid)]) {
@@ -99,6 +104,7 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     env.global.types[idName(idid)] = d;
     env.global.typeNames[defn.id.text] = idid;
     env.global.idNames[idName(idid)] = defn.id.text;
+    return idid;
 };
 
 export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
@@ -113,16 +119,11 @@ export const resolveType = (env: GlobalEnv, id: Identifier) => {
     return env.typeNames[id.text];
 };
 
-export const typeRecord = (
+export const typeRecordDefn = (
     env: Env,
-    id: Identifier,
-    typeVblsRaw: Array<TypeVbl>,
-    record: RecordDecl,
-) => {
-    const rows = record.items.filter(
-        (r) => r.type === 'Row',
-    ) as Array<RecordRow>;
-
+    { decl: record, id, typeVbls: typeVblsRaw }: StructDef,
+    unique?: number,
+): RecordDef => {
     // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
@@ -130,30 +131,49 @@ export const typeRecord = (
         [],
     );
 
-    const defn: RecordDef = {
+    return {
         type: 'Record',
-        unique: env.global.rng(),
+        unique: unique || env.global.rng(),
         typeVbls,
+        location: record.location,
         effectVbls,
         extends: record.items
             .filter((r) => r.type === 'Spread')
             .map((r) =>
                 resolveType(typeInner.global, (r as RecordSpread).constr),
             ),
-        items: rows.map((r) => typeType(typeInner, (r as RecordRow).rtype)),
+        items: record.items
+            .filter((r) => r.type === 'Row')
+            .map((r) => typeType(typeInner, (r as RecordRow).rtype)),
     };
+};
+
+export const typeRecord = (
+    env: Env,
+    defnRaw: StructDef,
+    // id: Identifier,
+    // typeVblsRaw: Array<TypeVbl>,
+    // record: RecordDecl,
+    unique?: number,
+): Id => {
+    const rows = defnRaw.decl.items.filter(
+        (r) => r.type === 'Row',
+    ) as Array<RecordRow>;
+
+    const defn = typeRecordDefn(env, defnRaw, unique);
     const hash = hashObject(defn);
     const idid = { hash, pos: 0, size: 1 };
     if (env.global.types[idName(idid)]) {
         throw new Error(`Redefining ${idName(idid)}`);
     }
     env.global.types[idName(idid)] = defn;
-    env.global.typeNames[id.text] = idid;
-    env.global.idNames[idName(idid)] = id.text;
+    env.global.typeNames[defnRaw.id.text] = idid;
+    env.global.idNames[idName(idid)] = defnRaw.id.text;
     env.global.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
     rows.forEach((r, i) => {
         env.global.attributeNames[r.id.text] = { id: idid, idx: i };
     });
+    return idid;
 };
 
 export const hashObject = (obj: any): string =>

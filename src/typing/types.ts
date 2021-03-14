@@ -335,6 +335,7 @@ export type Lambda = {
 
 export type EnumDef = {
     type: 'Enum';
+    location: Location | null;
     typeVbls: Array<TypeVblDecl>;
     effectVbls: Array<number>;
     extends: Array<TypeReference>;
@@ -345,6 +346,7 @@ export type TypeDef = RecordDef | EnumDef;
 export type RecordDef = {
     type: 'Record';
     unique: number;
+    location: Location | null;
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
     extends: Array<Id>;

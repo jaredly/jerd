@@ -57,6 +57,7 @@ export type TypeDecl = RecordDecl;
 
 export type RecordDecl = {
     type: 'Record';
+    location: Location;
     items: Array<RecordItem>;
 };
 export type RecordItem = RecordRow | RecordSpread;

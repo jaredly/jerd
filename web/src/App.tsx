@@ -377,74 +377,82 @@ export default () => {
                 backgroundColor: '#1E1E1E',
                 padding: 20,
                 color: '#D4D4D4',
+                display: 'flex',
+                flexDirection: 'row',
             }}
         >
-            {Object.keys(data.env.global.types).map((hash) => (
-                <div key={hash}>
-                    {/* {hash} */}
-                    <pre>
-                        <code>
-                            {data.env.global.types[hash].type === 'Enum'
-                                ? renderAttributedText(
-                                      printToAttributedText(
-                                          enumToPretty(
-                                              data.env,
-                                              { hash, size: 1, pos: 0 },
-                                              data.env.global.types[
-                                                  hash
-                                              ] as EnumDef,
+            <div style={{ flex: 1 }}>
+                {Object.keys(data.env.global.types).map((hash) => (
+                    <div key={hash}>
+                        {/* {hash} */}
+                        <pre>
+                            <code>
+                                {data.env.global.types[hash].type === 'Enum'
+                                    ? renderAttributedText(
+                                          printToAttributedText(
+                                              enumToPretty(
+                                                  data.env,
+                                                  { hash, size: 1, pos: 0 },
+                                                  data.env.global.types[
+                                                      hash
+                                                  ] as EnumDef,
+                                              ),
+                                              maxWidth,
                                           ),
-                                          maxWidth,
-                                      ),
-                                  )
-                                : renderAttributedText(
-                                      printToAttributedText(
-                                          recordToPretty(
-                                              data.env,
-                                              { hash, size: 1, pos: 0 },
-                                              data.env.global.types[
-                                                  hash
-                                              ] as RecordDef,
+                                      )
+                                    : renderAttributedText(
+                                          printToAttributedText(
+                                              recordToPretty(
+                                                  data.env,
+                                                  { hash, size: 1, pos: 0 },
+                                                  data.env.global.types[
+                                                      hash
+                                                  ] as RecordDef,
+                                              ),
+                                              maxWidth,
                                           ),
-                                          maxWidth,
-                                      ),
-                                  )}
-                        </code>
-                    </pre>
-                </div>
-            ))}
-            {Object.keys(data.env.global.terms).map((hash) => (
-                <div key={hash}>
-                    <pre>
-                        <code>
-                            {renderAttributedText(
-                                printToAttributedText(
-                                    declarationToPretty(
-                                        data.env,
-                                        { hash, size: 1, pos: 0 },
-                                        data.env.global.terms[hash],
+                                      )}
+                            </code>
+                        </pre>
+                    </div>
+                ))}
+            </div>
+            <div style={{ flex: 1 }}>
+                {Object.keys(data.env.global.terms).map((hash) => (
+                    <div key={hash}>
+                        <pre>
+                            <code>
+                                {renderAttributedText(
+                                    printToAttributedText(
+                                        declarationToPretty(
+                                            data.env,
+                                            { hash, size: 1, pos: 0 },
+                                            data.env.global.terms[hash],
+                                        ),
+                                        maxWidth,
                                     ),
-                                    maxWidth,
-                                ),
-                            )}
-                        </code>
-                    </pre>
-                </div>
-            ))}
-            {data.expressions.map((expr, i) => (
-                <div key={i}>
-                    <pre>
-                        <code>
-                            {renderAttributedText(
-                                printToAttributedText(
-                                    termToPretty(data.env, expr),
-                                    maxWidth,
-                                ),
-                            )}
-                        </code>
-                    </pre>
-                </div>
-            ))}
+                                )}
+                            </code>
+                        </pre>
+                    </div>
+                ))}
+            </div>
+            <div style={{ flex: 1 }}>
+                {data.expressions.map((expr, i) => (
+                    <div key={i}>
+                        <pre>
+                            <code>
+                                {renderAttributedText(
+                                    printToAttributedText(
+                                        termToPretty(data.env, expr),
+                                        maxWidth,
+                                    ),
+                                )}
+                            </code>
+                        </pre>
+                    </div>
+                ))}
+            </div>
             {/* <textarea
                 style={{
                     width: 500,

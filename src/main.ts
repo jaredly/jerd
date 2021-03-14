@@ -2,9 +2,17 @@
 
 // we want to parse things I guess?
 
+import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
-import { hashObject, idName, withoutLocations } from './typing/env';
+import {
+    hashObject,
+    idName,
+    typeEnumInner,
+    typeRecord,
+    typeRecordDefn,
+    withoutLocations,
+} from './typing/env';
 import parse, { Expression, Location, Toplevel } from './parsing/parser';
 import {
     declarationToAST,
@@ -21,9 +29,11 @@ import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
 import {
     EffectRef,
+    EnumDef,
     Env,
     getEffects,
     Id,
+    RecordDef,
     Reference,
     Term,
     Type,
@@ -37,7 +47,12 @@ import {
     fitsExpectation,
 } from './typing/unify';
 import { items, printToString } from './printing/printer';
-import { declarationToPretty, termToPretty } from './printing/printTsLike';
+import {
+    declarationToPretty,
+    enumToPretty,
+    recordToPretty,
+    termToPretty,
+} from './printing/printTsLike';
 import {
     typeDefine,
     typeTypeDefn,
@@ -202,6 +217,108 @@ const processErrors = (fname: string) => {
     fs.writeFileSync(dest, errors.join('\n\n'));
 };
 
+type ToplevelT =
+    | Term
+    | { type: 'EnumDef'; def: EnumDef; id: Id; location: Location }
+    | { type: 'RecordDef'; def: RecordDef; id: Id; location: Location };
+
+const toplevelToPretty = (env: Env, toplevel: ToplevelT) => {
+    if (toplevel.type === 'RecordDef') {
+        return recordToPretty(env, toplevel.id, toplevel.def);
+    }
+    if (toplevel.type === 'EnumDef') {
+        return enumToPretty(env, toplevel.id, toplevel.def);
+    }
+    return termToPretty(env, toplevel);
+};
+
+const reprintToplevel = (
+    env: Env,
+    raw: string,
+    toplevel: ToplevelT,
+    hash: string,
+) => {
+    const origraw = toplevel.location
+        ? raw.slice(
+              toplevel.location.start.offset,
+              toplevel.location.end.offset,
+          )
+        : '<no original text>';
+    const reraw = printToString(toplevelToPretty(env, toplevel), 100);
+    let printed: Array<Toplevel>;
+    try {
+        printed = parse(reraw);
+    } catch (err) {
+        console.log(reraw);
+        console.log(showLocation(toplevel.location));
+        console.error(err);
+        return false;
+    }
+    if (printed.length !== 1) {
+        console.log(printed);
+        console.warn(`Reprint generated multiple toplevels`);
+        return false;
+    }
+    try {
+        let retyped: ToplevelT;
+        let nhash: string;
+        if (toplevel.type === 'RecordDef' && printed[0].type === 'StructDef') {
+            const defn = typeRecordDefn(env, printed[0], toplevel.def.unique);
+            const hash = hashObject(defn);
+            retyped = {
+                type: 'RecordDef',
+                def: defn,
+                id: { hash, size: 1, pos: 0 },
+                location: toplevel.location!,
+            };
+            nhash = hash;
+        } else if (
+            toplevel.type === 'EnumDef' &&
+            printed[0].type === 'EnumDef'
+        ) {
+            const defn = typeEnumInner(env, printed[0]);
+            const hash = hashObject(defn);
+            retyped = {
+                type: 'EnumDef',
+                def: defn,
+                id: { hash, size: 1, pos: 0 },
+                location: toplevel.location!,
+            };
+            nhash = hash;
+        } else {
+            retyped = typeExpr(env, printed[0] as Expression);
+            nhash = hashObject(retyped);
+        }
+        if (nhash != hash) {
+            console.log('\n*************\n');
+            console.log(origraw);
+            console.log(reraw);
+            console.log(printToString(toplevelToPretty(env, retyped), 100));
+            console.log('\n---n');
+            console.log(JSON.stringify(withoutLocations(toplevel)));
+            console.log(JSON.stringify(withoutLocations(retyped)));
+            console.log('\n---n');
+            console.warn(
+                `Expression at ${showLocation(
+                    toplevel.location,
+                )} failed to retype.`,
+            );
+            console.log('\n*************\n');
+            return false;
+        }
+    } catch (err) {
+        console.log(reraw);
+        console.log(printed);
+        console.error(err);
+        console.log(
+            `Expression at ${showLocation(
+                toplevel.location,
+            )} had a type error on reprint`,
+        );
+        return false;
+    }
+};
+
 const processFile = (
     fname: string,
     assert: boolean,
@@ -215,64 +332,45 @@ const processFile = (
 
     if (reprint) {
         let good = true;
+
         // Test reprint
         for (let expr of expressions) {
-            const origraw = raw.slice(
-                expr.location!.start.offset,
-                expr.location!.end.offset,
-            );
-            const reraw = printToString(termToPretty(env, expr), 100);
-            let printed;
-            try {
-                printed = parse(reraw);
-            } catch (err) {
-                console.log(reraw);
-                console.log(showLocation(expr.location));
-                console.error(err);
-                good = false;
-                break;
-            }
-            if (printed.length !== 1) {
-                console.log(printed);
-                console.warn(`Reprint generated multiple toplevels`);
-                good = false;
-                break;
-            }
-            try {
-                const retyped = typeExpr(env, printed[0] as Expression);
-                if (hashObject(retyped) != hashObject(expr)) {
-                    console.log('\n*************\n');
-                    console.log(origraw);
-                    console.log(printToString(termToPretty(env, expr), 100));
-                    console.log(printToString(termToPretty(env, retyped), 100));
-                    console.log('\n---n');
-                    console.log(JSON.stringify(withoutLocations(expr)));
-                    console.log(JSON.stringify(withoutLocations(retyped)));
-                    console.log('\n---n');
-                    console.warn(
-                        `Expression at ${showLocation(
-                            expr.location,
-                        )} failed to retype.`,
-                    );
-                    console.log('\n*************\n');
-                    good = false;
-                    break;
-                }
-            } catch (err) {
-                console.log(reraw);
-                console.log(printed);
-                console.error(err);
-                console.log(
-                    `Expression at ${showLocation(
-                        expr.location,
-                    )} had a type error on reprint`,
-                );
+            if (reprintToplevel(env, raw, expr, hashObject(expr)) === false) {
                 good = false;
                 break;
             }
         }
+
+        for (let tid of Object.keys(env.global.types)) {
+            const t = env.global.types[tid];
+            // ermm fix this hack
+            if (tid === 'Some' || tid === 'None') {
+                continue;
+            }
+            let top: ToplevelT;
+            if (t.type === 'Record') {
+                top = {
+                    type: 'RecordDef',
+                    id: { hash: tid, size: 1, pos: 0 },
+                    def: t,
+                    location: t.location!,
+                };
+            } else {
+                top = {
+                    type: 'EnumDef',
+                    id: { hash: tid, size: 1, pos: 0 },
+                    def: t,
+                    location: t.location!,
+                };
+            }
+            if (reprintToplevel(env, raw, top, tid) === false) {
+                good = false;
+                break;
+            }
+        }
+
         if (!good) {
-            console.log(`❌ Reprint failed for ${fname}`);
+            console.log(chalk.red(`❌ Reprint failed for ${fname}`));
             return false;
         }
     }
@@ -320,14 +418,14 @@ const processFile = (
             { stdio: 'pipe', encoding: 'utf8' },
         );
         if (status !== 0) {
-            console.log(`❌ Execution failed ${fname}`);
+            console.log(`❌ Execution failed ${chalk.blue(fname)}`);
             console.log('---------------');
             console.log(stdout);
             console.log(stderr);
             console.log('---------------');
             return false;
         } else {
-            console.log(`✅ all clear ${fname}`);
+            console.log(`✅ all clear ${chalk.blue(fname)}`);
             return true;
         }
     }
@@ -372,10 +470,11 @@ const main = (
     const { shouldSkip, successRerun } = cache
         ? loadCache(fnames, process.argv[1])
         : { shouldSkip: null, successRerun: true };
-    console.log(`\n# Processing ${fnames.length} files\n`);
+    console.log(chalk.bold.green(`\n# Processing ${fnames.length} files\n`));
     const passed: { [key: string]: boolean } = {};
     let numFailures = 0;
     const reprint = true;
+    console.log(chalk.yellow(`Reprint? ${reprint}`));
 
     const runFile = (fname: string) => {
         try {
@@ -389,7 +488,7 @@ const main = (
             }
         } catch (err) {
             numFailures += 1;
-            console.error(`❌ Failed to process ${fname}`);
+            console.error(`❌ Failed to process ${chalk.blue(fname)}`);
             console.error('-----------------------------');
             console.error(err);
             console.error('-----------------------------');

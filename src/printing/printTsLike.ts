@@ -76,6 +76,7 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
                         ]),
                     ),
                 ),
+            ',',
         ),
     ]);
 };
@@ -91,6 +92,7 @@ export const enumToPretty = (env: Env, id: Id, enumDef: EnumDef) => {
             enumDef.extends
                 .map((ex) => items([atom('...'), typeToPretty(env, ex)]))
                 .concat(enumDef.items.map((ex) => typeToPretty(env, ex))),
+            ',',
         ),
     ]);
 };
