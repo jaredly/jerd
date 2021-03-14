@@ -13,10 +13,21 @@ export const args = (contents: Array<PP>, left = '(', right = ')'): PP => ({
     right,
 });
 export const block = (contents: Array<PP>): PP => ({ type: 'block', contents });
-export const atom = (text: string): PP => ({ type: 'atom', text });
+export const atom = (text: string, attributes?: Array<string>): PP => ({
+    type: 'atom',
+    text,
+    attributes,
+});
+export const id = (text: string, id: string, kind: string): PP => ({
+    type: 'id',
+    text,
+    id,
+    kind,
+});
 
 export type PP =
-    | { type: 'atom'; text: string }
+    | { type: 'atom'; text: string; attributes?: Array<string> }
+    | { type: 'id'; text: string; id: string; kind: string }
     | { type: 'block'; contents: Array<PP> } // surrounded by {}
     | { type: 'args'; contents: Array<PP>; left: string; right: string } // surrounded by ()
     | { type: 'items'; items: Array<PP> };
@@ -27,6 +38,8 @@ const width = (x: PP): number => {
     switch (x.type) {
         case 'atom':
             return x.text.length;
+        case 'id':
+            return x.text.length + 1 + x.id.length;
         case 'items':
             return x.items.reduce((w, x) => width(x) + w, 0);
         default:
@@ -49,6 +62,10 @@ export const printToString = (
     if (pp.type === 'atom') {
         current.pos += pp.text.length;
         return pp.text;
+    }
+    if (pp.type === 'id') {
+        current.pos += pp.text.length + 1 + pp.id.length;
+        return pp.text + '#' + pp.id;
     }
     if (pp.type === 'block') {
         let res = '{';
@@ -113,6 +130,101 @@ export const printToString = (
         let res = '';
         pp.items.forEach((item) => {
             res += printToString(item, maxWidth, current);
+        });
+        return res;
+    }
+    throw new Error(`unexpected pp type ${JSON.stringify(pp)}`);
+};
+
+export type AttributedText =
+    | string
+    | { text: string; attributes: Array<string> }
+    | { id: string; text: string; kind: string };
+
+export const printToAttributedText = (
+    pp: PP,
+    maxWidth: number,
+    current: { indent: number; pos: number } = { indent: 0, pos: 0 },
+): Array<AttributedText> => {
+    if (pp.type === 'atom') {
+        current.pos += pp.text.length;
+        return pp.attributes
+            ? [{ text: pp.text, attributes: pp.attributes }]
+            : [pp.text];
+    }
+    if (pp.type === 'id') {
+        current.pos += pp.text.length;
+        // return pp.text + '#' + pp.id;
+        return [pp];
+    }
+    if (pp.type === 'block') {
+        const res: Array<AttributedText> = [
+            { text: '{', attributes: ['brace'] },
+        ];
+        current.indent += 4;
+        pp.contents.forEach((item) => {
+            current.pos = current.indent;
+            res.push(
+                '\n' + white(current.indent),
+                ...printToAttributedText(item, maxWidth, current),
+                { text: ';', attributes: ['semi'] },
+            );
+        });
+        current.indent -= 4;
+        if (res.length > 1) {
+            res.push('\n' + white(current.indent));
+            current.pos = current.indent;
+        }
+        current.pos += 1;
+        res.push({ text: '}', attributes: ['brace'] });
+        return res;
+    }
+    if (pp.type === 'args') {
+        const full = width(pp);
+        // const full = pp.contents.reduce((w, x) => w + width(x), 0)
+        if (current.pos + full <= maxWidth) {
+            const res: Array<AttributedText> = [
+                { text: pp.left, attributes: ['brace'] },
+            ];
+            current.pos += 1;
+            pp.contents.forEach((child, i) => {
+                if (i !== 0) {
+                    res.push({ text: ', ', attributes: ['comma'] });
+                    current.pos += 2;
+                }
+                res.push(...printToAttributedText(child, maxWidth, current));
+            });
+            current.pos += 1;
+            res.push({ text: pp.right, attributes: ['brace'] });
+            return res;
+        }
+
+        const res: Array<AttributedText> = [
+            { text: pp.left, attributes: ['brace'] },
+        ];
+        current.pos += 1;
+        current.indent += 4;
+        pp.contents.forEach((item) => {
+            current.pos = current.indent;
+            res.push(
+                '\n' + white(current.indent),
+                ...printToAttributedText(item, maxWidth, current),
+                { text: ',', attributes: ['comma'] },
+            );
+        });
+        current.indent -= 4;
+        if (res.length > 1) {
+            res.push('\n' + white(current.indent));
+            current.pos = current.indent;
+        }
+        current.pos += 1;
+        res.push({ text: pp.right, attributes: ['brace'] });
+        return res;
+    }
+    if (pp.type === 'items') {
+        const res: Array<AttributedText> = [];
+        pp.items.forEach((item) => {
+            res.push(...printToAttributedText(item, maxWidth, current));
         });
         return res;
     }
