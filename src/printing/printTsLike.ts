@@ -5,7 +5,7 @@
 // type variable applications (of apply's), I believe.
 // So that's probably some information I'll have to hang onto somehow.
 
-import { idName, typeEffect } from '../typing/env';
+import { idName, refName, typeEffect } from '../typing/env';
 import {
     Case,
     EffectRef,
@@ -172,7 +172,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         refToPretty(env, term.ref),
                         atom('.'),
                         atom(
-                            env.global.effectConstrNames[idName(term.ref.id)][
+                            env.global.effectConstrNames[refName(term.ref)][
                                 term.idx
                             ],
                         ),

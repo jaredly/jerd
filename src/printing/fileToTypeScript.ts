@@ -137,6 +137,8 @@ export const fileToTypescript = (
             },
             args: args,
             location,
+            typeVbls: [],
+            effectVbls: null,
             is: resType,
         };
     };

@@ -29,6 +29,7 @@ import {
     TypeConstraint,
     EnumDef as TypeEnumDef,
     TypeReference,
+    Reference,
 } from './types';
 import { fitsExpectation } from './unify';
 
@@ -101,6 +102,9 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
 };
 
 export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
+
+export const refName = (ref: Reference) =>
+    ref.type === 'builtin' ? ref.name : idName(ref.id);
 
 export const resolveType = (env: GlobalEnv, id: Identifier) => {
     if (!env.typeNames[id.text]) {

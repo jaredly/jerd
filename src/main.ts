@@ -218,8 +218,8 @@ const processFile = (
         // Test reprint
         for (let expr of expressions) {
             const origraw = raw.slice(
-                expr.location.start.offset,
-                expr.location.end.offset,
+                expr.location!.start.offset,
+                expr.location!.end.offset,
             );
             const reraw = printToString(termToPretty(env, expr), 100);
             let printed;

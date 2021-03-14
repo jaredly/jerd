@@ -365,10 +365,13 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 }
                 left = {
                     type: 'apply',
-                    location: {
-                        start: left.location.start,
-                        end: right.location.end,
-                    },
+                    location:
+                        left.location && right.location
+                            ? {
+                                  start: left.location.start,
+                                  end: right.location.end,
+                              }
+                            : null,
                     target: {
                         location,
                         type: 'ref',
