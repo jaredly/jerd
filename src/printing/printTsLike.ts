@@ -223,7 +223,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 termToPretty(env, term.body),
             ]);
         case 'self':
-            return atom('<self>');
+            return atom(env.local.self.name);
         case 'sequence':
             return block(term.sts.map((t) => termToPretty(env, t)));
         case 'apply':
@@ -269,14 +269,22 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     '}',
                 ),
             ]);
-        case 'handle':
+        case 'handle': {
+            const names = env.global.effectConstrNames[refName(term.effect)];
             return items([
                 atom('handle! ', ['keyword']),
                 termToPretty(env, term.target),
                 atom(' '),
                 args(
                     term.cases
-                        .map((t) => caseToPretty(env, t))
+                        .map((t) =>
+                            caseToPretty(
+                                env,
+                                t,
+                                env.global.idNames[refName(term.effect)],
+                                names,
+                            ),
+                        )
                         .concat([
                             items([
                                 atom('pure('),
@@ -289,6 +297,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     '}',
                 ),
             ]);
+        }
         case 'Attribute':
             const names =
                 env.global.recordGroups[
@@ -393,13 +402,18 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 atom('<'),
                 typeToPretty(env, term.is.typeVbls[0]),
                 atom('>'),
-                atom('['),
-                ...term.items.map((item) =>
-                    item.type === 'ArraySpread'
-                        ? items([atom('...'), termToPretty(env, item.value)])
-                        : termToPretty(env, item),
+                args(
+                    term.items.map((item) =>
+                        item.type === 'ArraySpread'
+                            ? items([
+                                  atom('...'),
+                                  termToPretty(env, item.value),
+                              ])
+                            : termToPretty(env, item),
+                    ),
+                    '[',
+                    ']',
                 ),
-                atom(']'),
             ]);
         default:
             let _x: never = term;
@@ -456,9 +470,19 @@ const patternToPretty = (env: Env, pattern: Pattern): PP => {
     }
 };
 
-const caseToPretty = (env: Env, kase: Case): PP =>
+const caseToPretty = (
+    env: Env,
+    kase: Case,
+    topname: string,
+    names: Array<string>,
+): PP =>
     items([
-        atom(kase.constr.toString()),
+        idPretty(
+            topname + '.' + names[kase.constr],
+            kase.constr.toString(),
+            'effect',
+        ),
+        // atom(kase.constr.toString()),
         atom('('),
         args(kase.args.map(symToPretty)),
         atom(' => '),

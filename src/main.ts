@@ -341,6 +341,27 @@ const processFile = (
             }
         }
 
+        // Test reprint
+        for (let id of Object.keys(env.global.terms)) {
+            const tenv = {
+                ...env,
+                local: {
+                    ...env.local,
+                    self: {
+                        name: env.global.idNames[id],
+                        type: env.global.terms[id].is,
+                    },
+                },
+            };
+            if (
+                reprintToplevel(tenv, raw, env.global.terms[id], id) === false
+            ) {
+                good = false;
+                break;
+            }
+        }
+
+        // Type declarations
         for (let tid of Object.keys(env.global.types)) {
             const t = env.global.types[tid];
             // ermm fix this hack
@@ -370,7 +391,7 @@ const processFile = (
         }
 
         if (!good) {
-            console.log(chalk.red(`❌ Reprint failed for ${fname}`));
+            console.log(`❌ Reprint failed for ${chalk.blue(fname)}`);
             return false;
         }
     }

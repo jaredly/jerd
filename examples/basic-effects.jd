@@ -8,9 +8,9 @@ const hello = () => {
     "hello world"
 }
 
-const sayHi = () => {
-    log(hello())
-}
+// const sayHi = () => {
+//     log(hello())
+// }
 
 effect Log {
     log: (string) => void,

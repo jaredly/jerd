@@ -30,6 +30,7 @@ import {
     EnumDef as TypeEnumDef,
     TypeReference,
     Reference,
+    Symbol,
 } from './types';
 import { fitsExpectation } from './unify';
 
@@ -299,23 +300,63 @@ const unifyToplevel = (
     // }
 };
 
-export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
-    // TODO abstract this into "resolveEffect" probably
-    if (env.local.effectVbls[id.text]) {
+export const resolveEffect = (
+    env: Env,
+    { text, location, hash }: Identifier,
+): EffectRef => {
+    if (hash != null) {
+        const [first, second] = hash.slice(1).split('#');
+
+        if (first === 'sym') {
+            const unique = +second;
+            let found: Symbol | null = null;
+            Object.keys(env.local.effectVbls).forEach((t) => {
+                if (env.local.effectVbls[t].unique === unique) {
+                    found = env.local.effectVbls[t];
+                }
+            });
+            if (!found) {
+                throw new Error(`Could not resolve effect symbol`);
+            }
+            return {
+                type: 'var',
+                location,
+                sym: found,
+            };
+        }
+
+        if (!env.global.effects[first]) {
+            throw new Error(
+                `Unknown effect hash ${hash} ${showLocation(location)}`,
+            );
+        }
+        const id = { hash: first, size: 1, pos: 0 };
         return {
-            type: 'var',
-            sym: env.local.effectVbls[id.text],
+            type: 'ref',
+            location,
+            ref: {
+                type: 'user',
+                id,
+            },
         };
     }
-    if (!env.global.effectNames[id.text]) {
-        throw new Error(`No effect named ${id.text}`);
+
+    // TODO abstract this into "resolveEffect" probably
+    if (env.local.effectVbls[text]) {
+        return {
+            type: 'var',
+            sym: env.local.effectVbls[text],
+        };
+    }
+    if (!env.global.effectNames[text]) {
+        throw new Error(`No effect named ${text}`);
     }
     return {
         type: 'ref',
         ref: {
             type: 'user',
             id: {
-                hash: env.global.effectNames[id.text],
+                hash: env.global.effectNames[text],
                 pos: 0,
                 size: 1,
             },
