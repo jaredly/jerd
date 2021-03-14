@@ -309,7 +309,27 @@ export const resolveIdentifier = (
     { text, location, hash }: Identifier,
 ): Term | null => {
     if (hash != null) {
-        const [first, _second] = hash.slice(1).split('#');
+        const [first, second] = hash.slice(1).split('#');
+
+        if (first === 'sym') {
+            const unique = +second;
+            let found: Type | null = null;
+            Object.keys(env.local.locals).forEach((t) => {
+                if (env.local.locals[t].sym.unique === unique) {
+                    found = env.local.locals[t].type;
+                }
+            });
+            if (!found) {
+                throw new Error(`Could not resolve symbol`);
+            }
+            return {
+                type: 'var',
+                location,
+                sym: { unique: unique, name: text },
+                is: found!,
+            };
+        }
+
         if (!env.global.terms[first]) {
             if (env.global.types[first]) {
                 const id = { hash: first, size: 1, pos: 0 };

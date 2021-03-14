@@ -314,19 +314,24 @@ const toJs = (raw: string) => {
 
 const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('string')) {
-        return { color: 'orange' };
+        return { color: '#ce9178' };
     }
     if (attributes.includes('int')) {
-        return { color: 'blue' };
+        return { color: '#b5cea8' };
     }
     if (attributes.includes('bool')) {
-        return { color: 'purple' };
+        return { color: '#DCDCAA' };
+    }
+    if (attributes.includes('keyword')) {
+        return { color: '#C586C0' };
     }
     if (attributes.includes('literal')) {
         return { color: 'red' };
     }
     return { color: '#aaa' };
 };
+
+const maxWidth = 60;
 
 const renderAttributedText = (text: Array<AttributedText>) => {
     return text.map((item, i) => {
@@ -337,7 +342,7 @@ const renderAttributedText = (text: Array<AttributedText>) => {
             return (
                 <span
                     style={{
-                        color: 'green',
+                        color: item.kind === 'sym' ? '#9CDCFE' : '#4EC9B0',
                     }}
                     key={i}
                     title={item.id + ' ' + item.kind}
@@ -367,7 +372,13 @@ export default () => {
     //     }
     // }, [text]);
     return (
-        <div>
+        <div
+            style={{
+                backgroundColor: '#1E1E1E',
+                padding: 20,
+                color: '#D4D4D4',
+            }}
+        >
             {Object.keys(data.env.global.types).map((hash) => (
                 <div key={hash}>
                     {/* {hash} */}
@@ -383,7 +394,7 @@ export default () => {
                                                   hash
                                               ] as EnumDef,
                                           ),
-                                          100,
+                                          maxWidth,
                                       ),
                                   )
                                 : renderAttributedText(
@@ -395,7 +406,7 @@ export default () => {
                                                   hash
                                               ] as RecordDef,
                                           ),
-                                          100,
+                                          maxWidth,
                                       ),
                                   )}
                         </code>
@@ -413,7 +424,7 @@ export default () => {
                                         { hash, size: 1, pos: 0 },
                                         data.env.global.terms[hash],
                                     ),
-                                    100,
+                                    maxWidth,
                                 ),
                             )}
                         </code>
@@ -427,7 +438,7 @@ export default () => {
                             {renderAttributedText(
                                 printToAttributedText(
                                     termToPretty(data.env, expr),
-                                    100,
+                                    maxWidth,
                                 ),
                             )}
                         </code>

@@ -35,7 +35,8 @@ export const idToPretty = (env: Env, id: Id, kind: string) => {
     }
     return atom('hash_' + id.hash + '_' + id.pos);
 };
-export const symToPretty = (sym: Symbol) => atom(`${sym.name}_${sym.unique}`);
+export const symToPretty = (sym: Symbol) =>
+    idPretty(sym.name, 'sym#' + sym.unique.toString(), 'sym');
 export const effToPretty = (env: Env, eff: EffectRef) =>
     eff.type === 'ref'
         ? refToPretty(env, eff.ref, 'effect')
@@ -43,7 +44,7 @@ export const effToPretty = (env: Env, eff: EffectRef) =>
 
 export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
     return items([
-        atom('const '),
+        atom('const ', ['keyword']),
         idToPretty(env, id, 'term'),
         atom(': '),
         typeToPretty(env, term.is),
@@ -55,7 +56,7 @@ export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
 export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
     const names = env.global.recordGroups[idName(id)];
     return items([
-        atom('type '),
+        atom('type ', ['keyword']),
         idToPretty(env, id, 'record'),
         recordDef.typeVbls.length
             ? typeVblDeclsToPretty(env, recordDef.typeVbls)
@@ -81,7 +82,7 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
 
 export const enumToPretty = (env: Env, id: Id, enumDef: EnumDef) => {
     return items([
-        atom('enum '),
+        atom('enum ', ['keyword']),
         idToPretty(env, id, 'enum'),
         enumDef.typeVbls.length
             ? typeVblDeclsToPretty(env, enumDef.typeVbls)
@@ -98,7 +99,8 @@ const typeVblDeclsToPretty = (env: Env, typeVbls: Array<TypeVblDecl>): PP => {
     return args(
         typeVbls.map((v) =>
             items([
-                atom('T_' + v.unique.toString()),
+                idPretty('T', 'sym#' + v.unique.toString(), 'sym'),
+                // atom('T_' + v.unique.toString()),
                 v.subTypes.length
                     ? items([
                           atom(': '),
@@ -161,7 +163,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
     switch (term.type) {
         case 'Let':
             return items([
-                atom('const '),
+                atom('const ', ['keyword']),
                 symToPretty(term.binding),
                 atom(' = '),
                 termToPretty(env, term.value),
@@ -174,7 +176,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             return atom(JSON.stringify(term.text), ['string', 'literal']);
         case 'raise':
             return items([
-                atom('raise!'),
+                atom('raise!', ['keyword']),
                 args([
                     items([
                         refToPretty(env, term.ref, 'effect'),
@@ -256,7 +258,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             return symToPretty(term.sym);
         case 'Switch':
             return items([
-                atom('switch '),
+                atom('switch ', ['keyword']),
                 termToPretty(env, term.term),
                 atom(' '),
                 args(
@@ -267,7 +269,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         case 'handle':
             return items([
-                atom('handle! '),
+                atom('handle! ', ['keyword']),
                 termToPretty(env, term.target),
                 atom(' '),
                 args(
