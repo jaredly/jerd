@@ -194,9 +194,7 @@ const Cell = ({
 }) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     return (
-        <div style={{ width: 300, padding: 20 }}>
-            <h4>Cell</h4>
-            <button onClick={() => setEditing(!editing)}>Edit</button>
+        <div style={{ width: 300, padding: 4 }}>
             {editing ? (
                 <Editor
                     env={env}
@@ -222,6 +220,12 @@ const Cell = ({
                                 ...cell,
                                 content,
                             });
+                            // if (
+                            //     content.type === 'term' ||
+                            //     content.type === 'expr'
+                            // ) {
+                            //     onRun(content.id);
+                            // }
                         }
                         setEditing(false);
                     }}
@@ -229,6 +233,7 @@ const Cell = ({
             ) : (
                 <RenderItem
                     content={cell.content}
+                    onEdit={() => setEditing(true)}
                     env={env}
                     evalEnv={evalEnv}
                     onRun={onRun}
@@ -248,7 +253,7 @@ const RenderResult = ({ id, env, evalEnv, onRun }) => {
             style={{
                 whiteSpace: 'pre-wrap',
                 fontFamily: 'monospace',
-                padding: 16,
+                padding: 8,
             }}
         >
             {JSON.stringify(evalEnv.terms[hash], null, 2)}
@@ -261,11 +266,13 @@ const RenderItem = ({
     content,
     evalEnv,
     onRun,
+    onEdit,
 }: {
     env: Env;
     content: Content;
     evalEnv: EvalEnv;
     onRun: (id: Id) => void;
+    onEdit: () => void;
 }) => {
     // if (content.type === 'record')
     if (content.type === 'expr') {
@@ -280,8 +287,9 @@ const RenderItem = ({
                     style={{
                         fontFamily: '"Source Code Pro", monospace',
                         whiteSpace: 'pre-wrap',
-                        padding: 16,
+                        padding: 8,
                     }}
+                    onClick={() => onEdit()}
                 >
                     {renderAttributedText(
                         printToAttributedText(
@@ -307,10 +315,11 @@ const RenderItem = ({
         return (
             <div>
                 <div
+                    onClick={() => onEdit()}
                     style={{
                         fontFamily: '"Source Code Pro", monospace',
                         whiteSpace: 'pre-wrap',
-                        padding: 16,
+                        padding: 8,
                     }}
                 >
                     {renderAttributedText(
@@ -329,7 +338,7 @@ const RenderItem = ({
             </div>
         );
     } else if (content.type === 'raw') {
-        return <div>{content.text}</div>;
+        return <div onClick={() => onEdit()}>Raw text: {content.text}</div>;
     } else {
         const top = getToplevel(env, content);
         return (
@@ -345,8 +354,6 @@ const RenderItem = ({
                 )}
             </div>
         );
-        // } else {
-        //     return <div>Unknown id {JSON.stringify(content)}</div>;
     }
 };
 
@@ -371,20 +378,7 @@ const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
 };
 
 export default () => {
-    // const [state, dispatch] = React.useReducer(reduce, () => initialState());
     const [state, setState] = React.useState(() => initialState());
-    // const [text, setText] = React.useState(defaultText);
-    // const [data, setData] = React.useState(() => {
-    //     return typeFile(parse(defaultText));
-    // });
-    // const [editing, setEditing] = React.useState(null)
-    // const js = React.useMemo(() => {
-    //     try {
-    //         return toJs(text);
-    //     } catch (err) {
-    //         return `Failed to compile: ${err.message}`;
-    //     }
-    // }, [text]);
     return (
         <div
             style={{
@@ -417,11 +411,32 @@ export default () => {
                         }));
                     }}
                     onChange={(env, cell) => {
-                        setState((state) => ({
-                            ...state,
-                            env,
-                            cells: { ...state.cells, [cell.id]: cell },
-                        }));
+                        setState((state) => {
+                            if (
+                                cell.content.type === 'expr' ||
+                                cell.content.type === 'term'
+                            ) {
+                                const id = cell.content.id;
+                                const result = runTerm(env, id, state.evalEnv);
+                                setState((state) => ({
+                                    ...state,
+                                    env,
+                                    evalEnv: {
+                                        ...state.evalEnv,
+                                        terms: {
+                                            ...state.evalEnv.terms,
+                                            [idName(id)]: result,
+                                        },
+                                    },
+                                    cells: { ...state.cells, [cell.id]: cell },
+                                }));
+                            }
+                            return {
+                                ...state,
+                                env,
+                                cells: { ...state.cells, [cell.id]: cell },
+                            };
+                        });
                     }}
                 />
             ))}
@@ -439,103 +454,6 @@ export default () => {
             >
                 New Cell
             </button>
-            {/* <div style={{ flex: 1 }}>
-                {Object.keys(data.env.global.terms).map((hash) => (
-                    <div key={hash}>
-                        <pre>
-                            <code>
-                                {renderAttributedText(
-                                    printToAttributedText(
-                                        declarationToPretty(
-                                            data.env,
-                                            { hash, size: 1, pos: 0 },
-                                            data.env.global.terms[hash],
-                                        ),
-                                        maxWidth,
-                                    ),
-                                )}
-                            </code>
-                        </pre>
-                    </div>
-                ))}
-            </div>
-            <div style={{ flex: 1 }}>
-                {data.expressions.map((expr, i) => (
-                    <div key={i}>
-                        <EditableExpression expr={expr} env={data.env} />
-                    </div>
-                ))}
-            </div>
-            <div style={{ flex: 0.5 }}>
-                {Object.keys(data.env.global.types).map((hash) => (
-                    <div key={hash}>
-                        <pre>
-                            <code>
-                                {data.env.global.types[hash].type === 'Enum'
-                                    ? renderAttributedText(
-                                          printToAttributedText(
-                                              enumToPretty(
-                                                  data.env,
-                                                  { hash, size: 1, pos: 0 },
-                                                  data.env.global.types[
-                                                      hash
-                                                  ] as EnumDef,
-                                              ),
-                                              maxWidth,
-                                          ),
-                                      )
-                                    : renderAttributedText(
-                                          printToAttributedText(
-                                              recordToPretty(
-                                                  data.env,
-                                                  { hash, size: 1, pos: 0 },
-                                                  data.env.global.types[
-                                                      hash
-                                                  ] as RecordDef,
-                                              ),
-                                              maxWidth,
-                                          ),
-                                      )}
-                            </code>
-                        </pre>
-                    </div>
-                ))}
-            </div> */}
-            {/* <textarea
-                style={{
-                    width: 500,
-                    height: 300,
-                    fontFamily: '"Source Code Pro", monospace',
-                }}
-                value={text}
-                onChange={(evt) => setText(evt.target.value)}
-            /> */}
-            {/* <button
-                onClick={() => {
-                    runCode(js);
-                }}
-            >
-                Run!
-            </button>
-            <pre>{js}</pre> */}
         </div>
     );
 };
-
-// export const EditableExpression = ({ env, expr }) => {
-//     const [editing, setEditing] = React.useState(false);
-//     if (editing) {
-//         return (
-//             <Editor env={env} expr={expr} onClose={() => setEditing(false)} />
-//         );
-//     }
-//     return (
-//         <pre onClick={() => setEditing(true)}>
-//             <code>
-//                 {renderAttributedText(
-//                     printToAttributedText(termToPretty(env, expr), maxWidth),
-//                 )}
-//             </code>
-//         </pre>
-//     );
-// };

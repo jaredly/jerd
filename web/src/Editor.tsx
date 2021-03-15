@@ -35,6 +35,9 @@ export default ({
             : printToString(toplevelToPretty(env, contents), 50);
     });
     const [typed, err] = React.useMemo(() => {
+        if (text.trim().length === 0) {
+            return [null, null];
+        }
         try {
             const parsed: Array<Toplevel> = parse(text);
             if (parsed.length > 1) {
@@ -95,6 +98,8 @@ export default ({
             >
                 {err != null
                     ? err.message
+                    : typed == null
+                    ? null
                     : renderAttributedText(
                           printToAttributedText(
                               toplevelToPretty(env, typed),
