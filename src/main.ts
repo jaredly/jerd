@@ -53,6 +53,8 @@ import {
     recordToPretty,
     termToPretty,
     typeToPretty,
+    toplevelToPretty,
+    ToplevelT,
 } from './printing/printTsLike';
 import {
     typeDefine,
@@ -216,21 +218,6 @@ const processErrors = (fname: string) => {
     const buildDir = path.join(path.dirname(fname), 'build');
     const dest = path.join(buildDir, path.basename(fname) + '.txt');
     fs.writeFileSync(dest, errors.join('\n\n'));
-};
-
-type ToplevelT =
-    | Term
-    | { type: 'EnumDef'; def: EnumDef; id: Id; location: Location }
-    | { type: 'RecordDef'; def: RecordDef; id: Id; location: Location };
-
-const toplevelToPretty = (env: Env, toplevel: ToplevelT) => {
-    if (toplevel.type === 'RecordDef') {
-        return recordToPretty(env, toplevel.id, toplevel.def);
-    }
-    if (toplevel.type === 'EnumDef') {
-        return enumToPretty(env, toplevel.id, toplevel.def);
-    }
-    return termToPretty(env, toplevel);
 };
 
 const withParseError = (text: string, location: Location) => {

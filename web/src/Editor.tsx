@@ -7,26 +7,46 @@ import {
     printToAttributedText,
     printToString,
 } from '../../src/printing/printer';
-import { termToPretty } from '../../src/printing/printTsLike';
+import {
+    termToPretty,
+    toplevelToPretty,
+    ToplevelT,
+} from '../../src/printing/printTsLike';
 import typeExpr from '../../src/typing/typeExpr';
+import { EnumDef, Env, Term } from '../../src/typing/types';
 import { renderAttributedText } from './Render';
 
-export default ({ env, expr, onClose, onChange }) => {
+export default ({
+    env,
+    contents,
+    onClose,
+    onChange,
+}: {
+    env: Env;
+    contents: ToplevelT | string;
+    onClose: () => void;
+    onChange: (term: ToplevelT | string) => void;
+}) => {
     const [text, setText] = React.useState(() => {
-        return printToString(termToPretty(env, expr), 50);
+        return typeof contents === 'string'
+            ? contents
+            : printToString(toplevelToPretty(env, contents), 50);
     });
-    const typed = React.useMemo(() => {
+    const [typed, err] = React.useMemo(() => {
         try {
             const parsed: Array<Toplevel> = parse(text);
             const typed = typeExpr(env, parsed[0] as Expression);
 
-            return typed;
+            return [typed, null];
         } catch (err) {
-            return {
-                type: 'error',
-                message: err.message,
-                location: err.location,
-            };
+            return [
+                null,
+                {
+                    type: 'error',
+                    message: err.message,
+                    location: err.location,
+                },
+            ];
         }
     }, [text]);
 
@@ -39,27 +59,28 @@ export default ({ env, expr, onClose, onChange }) => {
                 onKeyDown={(evt) => {
                     if (evt.metaKey && evt.key === 'Enter') {
                         console.log('run it');
+                        onChange(typed == null ? text : typed);
                     }
                 }}
                 style={{
                     width: '100%',
                     boxSizing: 'border-box',
+                    fontFamily: '"Source Code Pro", monospace',
                     height: 200,
                 }}
             />
-            <div>
-                <pre style={{ whiteSpace: 'pre-wrap' }}>
-                    <code>
-                        {'type' in typed && typed.type === 'error'
-                            ? typed.message
-                            : renderAttributedText(
-                                  printToAttributedText(
-                                      termToPretty(env, typed),
-                                      50,
-                                  ),
-                              )}
-                    </code>
-                </pre>
+            <div
+                style={{
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: '"Source Code Pro", monospace',
+                    padding: 8,
+                }}
+            >
+                {err != null
+                    ? err.message
+                    : renderAttributedText(
+                          printToAttributedText(termToPretty(env, typed), 50),
+                      )}
             </div>
         </div>
     );

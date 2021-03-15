@@ -1,5 +1,6 @@
 // The app
 
+import * as t from '@babel/types';
 import * as React from 'react';
 import parse, {
     Expression,
@@ -12,12 +13,19 @@ import {
 } from '../../src/printing/typeScriptOptimize';
 import { typeFile } from '../../src/typing/typeFile';
 import { fileToTypescript } from '../../src/printing/fileToTypeScript';
+import * as builtins from '../../src/printing/prelude';
 
 import { bool, presetEnv } from '../../src/typing/preset';
 import generate from '@babel/generator';
 import runCode from './eval';
-import { typeDefine, typeEffect, typeTypeDefn } from '../../src/typing/env';
-import { EnumDef, RecordDef } from '../../src/typing/types';
+import {
+    typeDefine,
+    typeEffect,
+    typeTypeDefn,
+    addExpr,
+    idName,
+} from '../../src/typing/env';
+import { EnumDef, Env, Id, RecordDef } from '../../src/typing/types';
 import {
     declarationToPretty,
     enumToPretty,
@@ -32,6 +40,7 @@ import {
 import { render } from 'react-dom';
 import Editor from './Editor';
 import { renderAttributedText } from './Render';
+import { printTerm, termToAST } from '../../src/printing/typeScriptPrinter';
 
 // Yea
 
@@ -39,7 +48,7 @@ const toJs = (raw: string) => {
     const parsed: Array<Toplevel> = parse(raw);
 
     const { expressions, env } = typeFile(parsed);
-    const ast = fileToTypescript(expressions, env, true, false);
+    const ast = fileToTypescript(expressions, env, {}, true, false);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
@@ -54,11 +63,219 @@ const toJs = (raw: string) => {
 
 const maxWidth = 60;
 
-export default () => {
-    // const [text, setText] = React.useState(defaultText);
-    const [data, setData] = React.useState(() => {
-        return typeFile(parse(defaultText));
+type Content =
+    | { type: 'term'; id: Id }
+    | { type: 'expr'; id: Id }
+    | { type: 'raw'; text: string };
+type Cell = {
+    id: string;
+    content: Content;
+    display: string;
+};
+
+type State = {
+    env: Env;
+    cells: { [key: string]: Cell };
+    evalEnv: EvalEnv;
+};
+type EvalEnv = {
+    builtins: { [key: string]: Function };
+    terms: { [hash: string]: any };
+};
+
+const genId = () => Math.random().toString(36).slice(2);
+const blankCell: Cell = {
+    id: '',
+    content: { type: 'raw', text: '' },
+    display: '',
+};
+
+const initialState = (): State => ({
+    env: presetEnv(),
+    cells: {},
+    evalEnv: {
+        builtins,
+        terms: {},
+    },
+});
+
+// type Action = {type: 'new-cell', cell: Cell} | {
+//     type: 'update-cell',
+//     cell: Cell,
+//     id: number,
+// }
+
+// const reduce = (state: State, action: Action): State => {
+//     switch (action.type) {
+
+//     }
+// };
+
+const Cell = ({
+    cell,
+    env,
+    onChange,
+    onRun,
+    evalEnv,
+}: {
+    cell: Cell;
+    env: Env;
+    onChange: (env: Env, cell: Cell) => void;
+    onRun: (id: Id) => void;
+    evalEnv: EvalEnv;
+}) => {
+    const [editing, setEditing] = React.useState(cell.content.type == 'raw');
+    return (
+        <div style={{ width: 300, padding: 20 }}>
+            <h4>Cell</h4>
+            <button onClick={() => setEditing(!editing)}>Edit</button>
+            {editing ? (
+                <Editor
+                    env={env}
+                    contents={
+                        cell.content.type == 'raw'
+                            ? cell.content.text
+                            : env.global.terms[idName(cell.content.id)]
+                    }
+                    onClose={() => setEditing(false)}
+                    onChange={(term) => {
+                        console.log('change');
+                        if (typeof term === 'string') {
+                            onChange(env, {
+                                ...cell,
+                                content: { type: 'raw', text: term },
+                            });
+                        } else {
+                            const { id, env: nenv } = addExpr(env, term);
+                            onChange(nenv, {
+                                ...cell,
+                                content: { type: 'expr', id: id },
+                            });
+                        }
+                        setEditing(false);
+                    }}
+                />
+            ) : (
+                <RenderItem
+                    content={cell.content}
+                    env={env}
+                    evalEnv={evalEnv}
+                    onRun={onRun}
+                />
+            )}
+        </div>
+    );
+};
+
+const RenderResult = ({ id, env, evalEnv, onRun }) => {
+    const hash = idName(id);
+    if (!evalEnv.terms[hash]) {
+        return <button onClick={() => onRun(id)}>Not run yet</button>;
+    }
+    return (
+        <div
+            style={{
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+                padding: 16,
+            }}
+        >
+            {JSON.stringify(evalEnv.terms[hash], null, 2)}
+        </div>
+    );
+};
+
+const RenderItem = ({
+    env,
+    content,
+    evalEnv,
+    onRun,
+}: {
+    env: Env;
+    content: Content;
+    evalEnv: EvalEnv;
+    onRun: (id: Id) => void;
+}) => {
+    if (content.type === 'expr') {
+        const id = idName(content.id);
+        if (!env.global.terms[id]) {
+            return <div>Unknown ID {id}</div>;
+        }
+        const term = env.global.terms[id];
+        return (
+            <div>
+                <div
+                    style={{
+                        fontFamily: '"Source Code Pro", monospace',
+                        whiteSpace: 'pre-wrap',
+                        padding: 16,
+                    }}
+                >
+                    {renderAttributedText(
+                        printToAttributedText(
+                            termToPretty(env, term),
+                            maxWidth,
+                        ),
+                    )}
+                </div>
+                <RenderResult
+                    id={content.id}
+                    env={env}
+                    evalEnv={evalEnv}
+                    onRun={onRun}
+                />
+            </div>
+        );
+    } else if (content.type === 'term') {
+        const id = idName(content.id);
+        if (!env.global.terms[id]) {
+            return <div>Unknown ID {id}</div>;
+        }
+        const term = env.global.terms[id];
+        return (
+            <div>
+                {renderAttributedText(
+                    printToAttributedText(
+                        declarationToPretty(env, content.id, term),
+                        maxWidth,
+                    ),
+                )}
+            </div>
+        );
+    } else if (content.type === 'raw') {
+        return <div>{content.text}</div>;
+    } else {
+        return <div>Unknown id {JSON.stringify(content)}</div>;
+    }
+};
+
+const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
+    const term = env.global.terms[idName(id)];
+    if (!term) {
+        throw new Error(`No term ${idName(id)}`);
+    }
+    let termAst: any = printTerm(env, { scope: 'jdScope' }, term);
+    let ast = t.file(t.program([t.expressionStatement(termAst)], [], 'script'));
+    optimizeAST(ast);
+    removeTypescriptTypes(ast);
+    const { code, map } = generate(ast, {
+        sourceMaps: true,
+        sourceFileName: 'cell-123',
     });
+    const jdScope = evalEnv;
+    console.log('code', code);
+    const result = eval(code);
+    console.log('Got result', result);
+    return result;
+};
+
+export default () => {
+    // const [state, dispatch] = React.useReducer(reduce, () => initialState());
+    const [state, setState] = React.useState(() => initialState());
+    // const [text, setText] = React.useState(defaultText);
+    // const [data, setData] = React.useState(() => {
+    //     return typeFile(parse(defaultText));
+    // });
     // const [editing, setEditing] = React.useState(null)
     // const js = React.useMemo(() => {
     //     try {
@@ -74,10 +291,54 @@ export default () => {
                 padding: 20,
                 color: '#D4D4D4',
                 display: 'flex',
-                flexDirection: 'row',
+                flexDirection: 'column',
+                alignItems: 'center',
             }}
         >
-            <div style={{ flex: 1 }}>
+            {Object.keys(state.cells).map((id) => (
+                <Cell
+                    key={id}
+                    env={state.env}
+                    cell={state.cells[id]}
+                    evalEnv={state.evalEnv}
+                    onRun={(id) => {
+                        console.log('Running', id, state.env, state.evalEnv);
+                        const result = runTerm(state.env, id, state.evalEnv);
+                        setState((state) => ({
+                            ...state,
+                            evalEnv: {
+                                ...state.evalEnv,
+                                terms: {
+                                    ...state.evalEnv.terms,
+                                    [idName(id)]: result,
+                                },
+                            },
+                        }));
+                    }}
+                    onChange={(env, cell) => {
+                        setState((state) => ({
+                            ...state,
+                            env,
+                            cells: { ...state.cells, [cell.id]: cell },
+                        }));
+                    }}
+                />
+            ))}
+            <button
+                onClick={() => {
+                    const id = genId();
+                    setState((state) => ({
+                        ...state,
+                        cells: {
+                            ...state.cells,
+                            [id]: { ...blankCell, id },
+                        },
+                    }));
+                }}
+            >
+                New Cell
+            </button>
+            {/* <div style={{ flex: 1 }}>
                 {Object.keys(data.env.global.terms).map((hash) => (
                     <div key={hash}>
                         <pre>
@@ -107,7 +368,6 @@ export default () => {
             <div style={{ flex: 0.5 }}>
                 {Object.keys(data.env.global.types).map((hash) => (
                     <div key={hash}>
-                        {/* {hash} */}
                         <pre>
                             <code>
                                 {data.env.global.types[hash].type === 'Enum'
@@ -139,7 +399,7 @@ export default () => {
                         </pre>
                     </div>
                 ))}
-            </div>
+            </div> */}
             {/* <textarea
                 style={{
                     width: 500,
@@ -161,20 +421,20 @@ export default () => {
     );
 };
 
-export const EditableExpression = ({ env, expr }) => {
-    const [editing, setEditing] = React.useState(false);
-    if (editing) {
-        return (
-            <Editor env={env} expr={expr} onClose={() => setEditing(false)} />
-        );
-    }
-    return (
-        <pre onClick={() => setEditing(true)}>
-            <code>
-                {renderAttributedText(
-                    printToAttributedText(termToPretty(env, expr), maxWidth),
-                )}
-            </code>
-        </pre>
-    );
-};
+// export const EditableExpression = ({ env, expr }) => {
+//     const [editing, setEditing] = React.useState(false);
+//     if (editing) {
+//         return (
+//             <Editor env={env} expr={expr} onClose={() => setEditing(false)} />
+//         );
+//     }
+//     return (
+//         <pre onClick={() => setEditing(true)}>
+//             <code>
+//                 {renderAttributedText(
+//                     printToAttributedText(termToPretty(env, expr), maxWidth),
+//                 )}
+//             </code>
+//         </pre>
+//     );
+// };

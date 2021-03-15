@@ -5,6 +5,7 @@
 // type variable applications (of apply's), I believe.
 // So that's probably some information I'll have to hang onto somehow.
 
+import { Location } from '../parsing/parser';
 import { idName, refName, typeEffect } from '../typing/env';
 import {
     Case,
@@ -23,6 +24,21 @@ import {
     Pattern,
 } from '../typing/types';
 import { PP, items, args, block, atom, id as idPretty } from './printer';
+
+export type ToplevelT =
+    | Term
+    | { type: 'EnumDef'; def: EnumDef; id: Id; location: Location }
+    | { type: 'RecordDef'; def: RecordDef; id: Id; location: Location };
+
+export const toplevelToPretty = (env: Env, toplevel: ToplevelT) => {
+    if (toplevel.type === 'RecordDef') {
+        return recordToPretty(env, toplevel.id, toplevel.def);
+    }
+    if (toplevel.type === 'EnumDef') {
+        return enumToPretty(env, toplevel.id, toplevel.def);
+    }
+    return termToPretty(env, toplevel);
+};
 
 export const refToPretty = (env: Env, ref: Reference, kind: string) =>
     ref.type === 'builtin' ? atom(ref.name) : idToPretty(env, ref.id, kind);

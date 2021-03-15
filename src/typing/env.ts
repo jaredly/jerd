@@ -263,6 +263,24 @@ export const typeDefine = (
     return { hash, term, env: { ...env, global: glob } };
 };
 
+export const addExpr = (env: Env, term: Term) => {
+    const hash = hashObject(term);
+    const id: Id = { hash: hash, size: 1, pos: 0 };
+    if (env.global.terms[hash]) {
+        console.warn(`Redefining ${hash}`);
+    }
+    return {
+        id,
+        env: {
+            ...env,
+            global: {
+                ...env.global,
+                terms: { ...env.global.terms, [hash]: term },
+            },
+        },
+    };
+};
+
 const unifyToplevel = (
     term: Term,
     typeVbls: { [key: string]: Array<TypeConstraint> },

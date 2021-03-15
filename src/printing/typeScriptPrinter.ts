@@ -47,7 +47,8 @@ function withLocation<
 }
 
 export type OutputOptions = {
-    readonly scope: string | null;
+    readonly scope?: string | null;
+    readonly noTypes?: boolean | null;
 };
 
 export const termToString = (
@@ -99,6 +100,17 @@ export const typeToString = (
     type: Type,
 ): string => {
     return generate(typeToAst(env, opts, type)).code;
+};
+
+const withType = <T>(env: Env, opts: OutputOptions, expr: T, typ: Type): T => {
+    if (opts.noTypes) {
+        return expr;
+    }
+    return {
+        ...expr,
+        // @ts-ignore
+        typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, typ)),
+    };
 };
 
 export const typeToAst = (
@@ -154,12 +166,14 @@ export const typeToAst = (
                       )
                     : null,
                 type.args
-                    .map((arg, i) => ({
-                        ...t.identifier('arg_' + i),
-                        typeAnnotation: t.tsTypeAnnotation(
-                            typeToAst(env, opts, arg),
+                    .map((arg, i) =>
+                        withType<t.Identifier>(
+                            env,
+                            opts,
+                            t.identifier('arg_' + i),
+                            arg,
                         ),
-                    }))
+                    )
                     .concat(
                         type.effects.length
                             ? [
