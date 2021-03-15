@@ -49,7 +49,7 @@ export function typeFile(
     env: Env;
     expressions: Array<Term>;
 } {
-    const env = presetEnv();
+    let env = presetEnv();
 
     // const
     const expressions = [];
@@ -58,14 +58,15 @@ export function typeFile(
     for (const item of parsed) {
         if (item.type === 'define') {
             // console.log('>> A define', item.id.text);
-            const { term } = typeDefine(env, item);
+            const { term, env: nenv } = typeDefine(env, item);
+            env = nenv;
             // console.log('< unified type', showType(env, term.is));
         } else if (item.type === 'effect') {
-            typeEffect(env, item);
+            env = typeEffect(env, item);
         } else if (item.type === 'StructDef') {
-            typeTypeDefn(env, item);
+            env = typeTypeDefn(env, item);
         } else if (item.type === 'EnumDef') {
-            typeEnumDefn(env, item);
+            env = typeEnumDefn(env, item).env;
         } else if (item.type === 'Decorated') {
             if (item.decorators[0].id.text === 'typeError') {
                 const args = item.decorators[0].args.map((expr) =>

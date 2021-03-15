@@ -584,26 +584,30 @@ export const newEnv = (
     },
 });
 
+export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
+    return {
+        rng: env.rng,
+        attributeNames: { ...env.attributeNames },
+        recordGroups: { ...env.recordGroups },
+        names: { ...env.names },
+        idNames: { ...env.idNames },
+        terms: { ...env.terms },
+        builtins: { ...env.builtins },
+        typeNames: { ...env.typeNames },
+        builtinTypes: { ...env.builtinTypes },
+        types: { ...env.types },
+        effectNames: { ...env.effectNames },
+        effectConstructors: { ...env.effectConstructors },
+        effectConstrNames: { ...env.effectConstrNames },
+        effects: { ...env.effects },
+    };
+};
+
 export const subEnv = (env: Env): Env => {
     // console.log('SUB ENV', env.depth, env.local.typeVbls);
     return {
         depth: env.depth + 1,
-        global: {
-            rng: env.global.rng,
-            attributeNames: { ...env.global.attributeNames },
-            recordGroups: { ...env.global.recordGroups },
-            names: { ...env.global.names },
-            idNames: { ...env.global.idNames },
-            terms: { ...env.global.terms },
-            builtins: { ...env.global.builtins },
-            typeNames: { ...env.global.typeNames },
-            builtinTypes: { ...env.global.builtinTypes },
-            types: { ...env.global.types },
-            effectNames: { ...env.global.effectNames },
-            effectConstructors: { ...env.global.effectConstructors },
-            effectConstrNames: { ...env.global.effectConstrNames },
-            effects: { ...env.global.effects },
-        },
+        global: cloneGlobalEnv(env.global),
         local: {
             self: env.local.self,
             effectVbls: { ...env.local.effectVbls },

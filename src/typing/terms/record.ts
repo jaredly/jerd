@@ -58,6 +58,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     } else {
         const id = env.global.typeNames[expr.id.text];
         if (!id) {
+            console.log(env.global.typeNames);
             throw new Error(
                 `No Record type ${expr.id.text} at ${showLocation(
                     expr.location,

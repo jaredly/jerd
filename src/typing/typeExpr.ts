@@ -841,6 +841,7 @@ export const applyTypeVariablesToEnum = (
         extends: type.extends.map(
             (t) => subtTypeVars(t, mapping) as TypeReference,
         ),
+        location: type.location,
     };
 };
 

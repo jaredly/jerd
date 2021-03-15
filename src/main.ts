@@ -182,17 +182,17 @@ import generate from '@babel/generator';
 const processErrors = (fname: string) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
-    const env = presetEnv();
+    let env = presetEnv();
     const errors: Array<string> = [];
     parsed.forEach((item, i) => {
         if (item.type === 'effect') {
-            typeEffect(env, item);
+            env = typeEffect(env, item);
         } else if (item.type === 'define') {
-            typeDefine(env, item);
+            env = typeDefine(env, item).env;
         } else if (item.type === 'StructDef') {
-            typeTypeDefn(env, item);
+            env = typeTypeDefn(env, item);
         } else if (item.type === 'EnumDef') {
-            typeEnumDefn(env, item);
+            env = typeEnumDefn(env, item).env;
         } else if (item.type === 'Decorated') {
             throw new Error(`Unexpected decorator`);
         } else {

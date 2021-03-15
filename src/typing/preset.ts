@@ -88,6 +88,7 @@ export function presetEnv() {
         effectVbls: [],
         extends: [],
         items: [],
+        location: null,
     };
     env.global.types['Some'] = {
         unique: 0,
@@ -96,6 +97,7 @@ export function presetEnv() {
         effectVbls: [],
         extends: [],
         items: [T0],
+        location: null,
     };
     env.global.recordGroups['Some'] = ['contents'];
     env.global.attributeNames['contents'] = {

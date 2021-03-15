@@ -31,10 +31,11 @@ import {
     TypeReference,
     Reference,
     Symbol,
+    cloneGlobalEnv,
 } from './types';
 import { fitsExpectation } from './unify';
 
-export const typeEffect = (env: Env, item: Effect) => {
+export const typeEffect = (env: Env, item: Effect): Env => {
     const constrs = item.constrs.map(({ type }) => {
         return {
             args: type.args ? type.args.map((a) => typeType(env, a)) : [],
@@ -43,27 +44,28 @@ export const typeEffect = (env: Env, item: Effect) => {
     });
     const hash: string = hashObject(constrs);
     const id = { hash, size: 1, pos: 0 };
-    env.global.effectNames[item.id.text] = hash;
-    env.global.idNames[idName(id)] = item.id.text;
-    env.global.effectConstrNames[idName(id)] = item.constrs.map(
-        (c) => c.id.text,
-    );
-    item.constrs.forEach((c, i) => {
-        env.global.effectConstructors[item.id.text + '.' + c.id.text] = {
-            idx: i,
-            hash: hash,
-        };
-    });
     if (env.global.effects[hash]) {
         throw new Error(
             `Redefining effect ${hash} at ${showLocation(item.id.location)}`,
         );
     }
-    env.global.effects[hash] = constrs;
+
+    const glob = cloneGlobalEnv(env.global);
+    glob.effectNames[item.id.text] = hash;
+    glob.idNames[idName(id)] = item.id.text;
+    glob.effectConstrNames[idName(id)] = item.constrs.map((c) => c.id.text);
+    item.constrs.forEach((c, i) => {
+        glob.effectConstructors[item.id.text + '.' + c.id.text] = {
+            idx: i,
+            hash: hash,
+        };
+    });
+    glob.effects[hash] = constrs;
+    return { ...env, global: glob };
 };
 
-export const typeTypeDefn = (env: Env, defn: StructDef) => {
-    return typeRecord(env, defn);
+export const typeTypeDefn = (env: Env, defn: StructDef): Env => {
+    return typeRecord(env, defn).env;
 };
 
 export const typeEnumInner = (env: Env, defn: EnumDef) => {
@@ -102,10 +104,11 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     if (env.global.types[idName(idid)]) {
         throw new Error(`Redefining ${idName(idid)}`);
     }
-    env.global.types[idName(idid)] = d;
-    env.global.typeNames[defn.id.text] = idid;
-    env.global.idNames[idName(idid)] = defn.id.text;
-    return idid;
+    const glob = cloneGlobalEnv(env.global);
+    glob.types[idName(idid)] = d;
+    glob.typeNames[defn.id.text] = idid;
+    glob.idNames[idName(idid)] = defn.id.text;
+    return { id: idid, env: { ...env, global: glob } };
 };
 
 export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
@@ -158,7 +161,7 @@ export const typeRecord = (
     // typeVblsRaw: Array<TypeVbl>,
     // record: RecordDecl,
     unique?: number,
-): Id => {
+): { id: Id; env: Env } => {
     const rows = defnRaw.decl.items.filter(
         (r) => r.type === 'Row',
     ) as Array<RecordRow>;
@@ -169,14 +172,15 @@ export const typeRecord = (
     if (env.global.types[idName(idid)]) {
         throw new Error(`Redefining ${idName(idid)}`);
     }
-    env.global.types[idName(idid)] = defn;
-    env.global.typeNames[defnRaw.id.text] = idid;
-    env.global.idNames[idName(idid)] = defnRaw.id.text;
-    env.global.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
+    const glob = cloneGlobalEnv(env.global);
+    glob.types[idName(idid)] = defn;
+    glob.typeNames[defnRaw.id.text] = idid;
+    glob.idNames[idName(idid)] = defnRaw.id.text;
+    glob.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
     rows.forEach((r, i) => {
-        env.global.attributeNames[r.id.text] = { id: idid, idx: i };
+        glob.attributeNames[r.id.text] = { id: idid, idx: i };
     });
-    return idid;
+    return { id: idid, env: { ...env, global: glob } };
 };
 
 export const hashObject = (obj: any): string =>
@@ -208,7 +212,10 @@ export const withoutLocations = <T>(obj: T): T => {
     return obj;
 };
 
-export const typeDefine = (env: Env, item: Define) => {
+export const typeDefine = (
+    env: Env,
+    item: Define,
+): { hash: string; term: Term; env: Env } => {
     const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
     const subEnv: Env = {
         ...env,
@@ -249,10 +256,11 @@ export const typeDefine = (env: Env, item: Define) => {
             )} (previous at ${showLocation(env.global.terms[hash].location)})`,
         );
     }
-    env.global.names[item.id.text] = id;
-    env.global.idNames[idName(id)] = item.id.text;
-    env.global.terms[hash] = term;
-    return { hash, term };
+    const glob = cloneGlobalEnv(env.global);
+    glob.names[item.id.text] = id;
+    glob.idNames[idName(id)] = item.id.text;
+    glob.terms[hash] = term;
+    return { hash, term, env: { ...env, global: glob } };
 };
 
 const unifyToplevel = (
