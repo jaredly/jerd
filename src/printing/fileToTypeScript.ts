@@ -13,6 +13,7 @@ import {
     printType,
     termToAST,
     typeToString,
+    OutputOptions,
 } from '../printing/typeScriptPrinter';
 import {
     optimizeAST,
@@ -51,25 +52,46 @@ import { bool, presetEnv } from '../typing/preset';
 export const fileToTypescript = (
     expressions: Array<Term>,
     env: Env,
+    opts: OutputOptions,
     assert: boolean,
     includeImport: boolean,
 ) => {
     const items: Array<t.Statement> = [];
+    const builtinNames = [
+        'raise',
+        'isSquare',
+        'log',
+        'intToString',
+        'handleSimpleShallow2',
+        'assert',
+        'assertEqual',
+        'pureCPS',
+    ];
+    if (opts.scope) {
+        items.push(
+            t.variableDeclaration('const', [
+                t.variableDeclarator(
+                    t.identifier(opts.scope),
+                    t.objectExpression([
+                        t.objectProperty(
+                            t.identifier('builtins'),
+                            t.objectExpression([]),
+                        ),
+                        t.objectProperty(
+                            t.identifier('terms'),
+                            t.objectExpression([]),
+                        ),
+                    ]),
+                ),
+            ]),
+        );
+    }
 
     if (includeImport) {
         items.push(
             t.importDeclaration(
                 [
-                    ...[
-                        'raise',
-                        'isSquare',
-                        'log',
-                        'intToString',
-                        'handleSimpleShallow2',
-                        'assert',
-                        'assertEqual',
-                        'pureCPS',
-                    ].map((name) =>
+                    ...builtinNames.map((name) =>
                         t.importSpecifier(
                             t.identifier(name),
                             t.identifier(name),
@@ -79,6 +101,27 @@ export const fileToTypescript = (
                 t.stringLiteral('./prelude.mjs'),
             ),
         );
+        if (opts.scope != null) {
+            const scope = opts.scope;
+            builtinNames.forEach((name) =>
+                items.push(
+                    t.expressionStatement(
+                        t.assignmentExpression(
+                            '=',
+                            t.memberExpression(
+                                t.memberExpression(
+                                    t.identifier(scope),
+                                    t.identifier('builtins'),
+                                ),
+                                t.stringLiteral(name),
+                                true,
+                            ),
+                            t.identifier(name),
+                        ),
+                    ),
+                ),
+            );
+        }
     }
 
     Object.keys(env.global.terms).forEach((hash) => {
@@ -93,6 +136,7 @@ export const fileToTypescript = (
                         self: { name: hash, type: term.is },
                     },
                 },
+                opts,
                 hash,
                 term,
                 printToString(
@@ -168,7 +212,7 @@ export const fileToTypescript = (
                 );
             }
         }
-        items.push(termToAST(env, term, printType(env, term.is)));
+        items.push(termToAST(env, opts, term, printType(env, term.is)));
     });
 
     const ast = t.file(t.program(items, [], 'script'));

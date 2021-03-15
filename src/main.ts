@@ -52,6 +52,7 @@ import {
     enumToPretty,
     recordToPretty,
     termToPretty,
+    typeToPretty,
 } from './printing/printTsLike';
 import {
     typeDefine,
@@ -164,13 +165,13 @@ const testInference = (parsed: Toplevel[]) => {
             if (!typesEqual(declared, term.is)) {
                 console.log(`Inference Test failed!`);
                 console.log('Expected:');
-                console.log(typeToString(env, declared));
+                console.log(printToString(typeToPretty(env, declared), 100));
                 console.log('Inferred:');
-                console.log(typeToString(env, term.is));
+                console.log(printToString(typeToPretty(env, term.is), 100));
             } else {
                 console.log('Passed!');
-                console.log(typeToString(env, declared));
-                console.log(typeToString(env, term.is));
+                console.log(printToString(typeToPretty(env, declared), 100));
+                console.log(printToString(typeToPretty(env, term.is), 100));
             }
         }
     }
@@ -417,7 +418,14 @@ const processFile = (
         }
     }
 
-    const ast = fileToTypescript(expressions, env, assert, true);
+    const ast = fileToTypescript(
+        expressions,
+        env,
+        { scope: 'jdScope' },
+        // { scope: null },
+        assert,
+        true,
+    );
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
