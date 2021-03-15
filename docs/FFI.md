@@ -7,6 +7,14 @@ the maybe I need C? Although I'd like to see how far I can get with A.
 And maybe it's "components return my custom datatype that gets turned into elements".
 Which hopefully wouldn't be too expensive.
 
+## FFI Types
+
+How do we do values that can cross the border?
+I'm thinking; the attribute names will be readable. Will the $type attribute also be readable?
+Or will it be a hash still. Because I do want things to be versioned.
+But having it be a hash makes interop rather more peevish.
+
+
 
 ## Pure Options
 

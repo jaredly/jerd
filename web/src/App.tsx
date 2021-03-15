@@ -30,6 +30,8 @@ import {
     AttributedText,
 } from '../../src/printing/printer';
 import { render } from 'react-dom';
+import Editor from './Editor';
+import { renderAttributedText } from './Render';
 
 // Yea
 
@@ -312,58 +314,14 @@ const toJs = (raw: string) => {
 //     const env = presetEnv()
 // }
 
-const stylesForAttributes = (attributes: Array<string>) => {
-    if (attributes.includes('string')) {
-        return { color: '#ce9178' };
-    }
-    if (attributes.includes('int')) {
-        return { color: '#b5cea8' };
-    }
-    if (attributes.includes('bool')) {
-        return { color: '#DCDCAA' };
-    }
-    if (attributes.includes('keyword')) {
-        return { color: '#C586C0' };
-    }
-    if (attributes.includes('literal')) {
-        return { color: 'red' };
-    }
-    return { color: '#aaa' };
-};
-
 const maxWidth = 60;
-
-const renderAttributedText = (text: Array<AttributedText>) => {
-    return text.map((item, i) => {
-        if (typeof item === 'string') {
-            return <span key={i}>{item}</span>;
-        }
-        if ('kind' in item) {
-            return (
-                <span
-                    style={{
-                        color: item.kind === 'sym' ? '#9CDCFE' : '#4EC9B0',
-                    }}
-                    key={i}
-                    title={item.id + ' ' + item.kind}
-                >
-                    {item.text}
-                </span>
-            );
-        }
-        return (
-            <span style={stylesForAttributes(item.attributes)} key={i}>
-                {item.text}
-            </span>
-        );
-    });
-};
 
 export default () => {
     // const [text, setText] = React.useState(defaultText);
     const [data, setData] = React.useState(() => {
         return typeFile(parse(defaultText));
     });
+    // const [editing, setEditing] = React.useState(null)
     // const js = React.useMemo(() => {
     //     try {
     //         return toJs(text);
@@ -382,6 +340,33 @@ export default () => {
             }}
         >
             <div style={{ flex: 1 }}>
+                {Object.keys(data.env.global.terms).map((hash) => (
+                    <div key={hash}>
+                        <pre>
+                            <code>
+                                {renderAttributedText(
+                                    printToAttributedText(
+                                        declarationToPretty(
+                                            data.env,
+                                            { hash, size: 1, pos: 0 },
+                                            data.env.global.terms[hash],
+                                        ),
+                                        maxWidth,
+                                    ),
+                                )}
+                            </code>
+                        </pre>
+                    </div>
+                ))}
+            </div>
+            <div style={{ flex: 1 }}>
+                {data.expressions.map((expr, i) => (
+                    <div key={i}>
+                        <EditableExpression expr={expr} env={data.env} />
+                    </div>
+                ))}
+            </div>
+            <div style={{ flex: 0.5 }}>
                 {Object.keys(data.env.global.types).map((hash) => (
                     <div key={hash}>
                         {/* {hash} */}
@@ -417,42 +402,6 @@ export default () => {
                     </div>
                 ))}
             </div>
-            <div style={{ flex: 1 }}>
-                {Object.keys(data.env.global.terms).map((hash) => (
-                    <div key={hash}>
-                        <pre>
-                            <code>
-                                {renderAttributedText(
-                                    printToAttributedText(
-                                        declarationToPretty(
-                                            data.env,
-                                            { hash, size: 1, pos: 0 },
-                                            data.env.global.terms[hash],
-                                        ),
-                                        maxWidth,
-                                    ),
-                                )}
-                            </code>
-                        </pre>
-                    </div>
-                ))}
-            </div>
-            <div style={{ flex: 1 }}>
-                {data.expressions.map((expr, i) => (
-                    <div key={i}>
-                        <pre>
-                            <code>
-                                {renderAttributedText(
-                                    printToAttributedText(
-                                        termToPretty(data.env, expr),
-                                        maxWidth,
-                                    ),
-                                )}
-                            </code>
-                        </pre>
-                    </div>
-                ))}
-            </div>
             {/* <textarea
                 style={{
                     width: 500,
@@ -471,5 +420,23 @@ export default () => {
             </button>
             <pre>{js}</pre> */}
         </div>
+    );
+};
+
+export const EditableExpression = ({ env, expr }) => {
+    const [editing, setEditing] = React.useState(false);
+    if (editing) {
+        return (
+            <Editor env={env} expr={expr} onClose={() => setEditing(false)} />
+        );
+    }
+    return (
+        <pre onClick={() => setEditing(true)}>
+            <code>
+                {renderAttributedText(
+                    printToAttributedText(termToPretty(env, expr), maxWidth),
+                )}
+            </code>
+        </pre>
     );
 };
