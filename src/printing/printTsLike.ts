@@ -69,8 +69,16 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
         }
         case 'Expression':
             return termToPretty(env, toplevel.term);
-        case 'RecordDef':
-            return recordToPretty(env, toplevel.id, toplevel.def);
+        case 'RecordDef': {
+            const glob = cloneGlobalEnv(env.global);
+            glob.idNames[idName(toplevel.id)] = toplevel.name;
+            glob.recordGroups[idName(toplevel.id)] = toplevel.attrNames;
+            return recordToPretty(
+                { ...env, global: glob },
+                toplevel.id,
+                toplevel.def,
+            );
+        }
         case 'EnumDef':
             return enumToPretty(env, toplevel.id, toplevel.def);
         case 'Effect':

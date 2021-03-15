@@ -251,6 +251,28 @@ export const typeRecordDefn = (
     };
 };
 
+export const addRecord = (
+    env: Env,
+    name: string,
+    attrNames: Array<string>,
+    defn: RecordDef,
+): { id: Id; env: Env } => {
+    const hash = hashObject(defn);
+    const idid = { hash, pos: 0, size: 1 };
+    if (env.global.types[idName(idid)]) {
+        throw new Error(`Redefining ${idName(idid)}`);
+    }
+    const glob = cloneGlobalEnv(env.global);
+    glob.types[idName(idid)] = defn;
+    glob.typeNames[name] = idid;
+    glob.idNames[idName(idid)] = name;
+    glob.recordGroups[idName(idid)] = attrNames;
+    attrNames.forEach((r, i) => {
+        glob.attributeNames[r] = { id: idid, idx: i };
+    });
+    return { id: idid, env: { ...env, global: glob } };
+};
+
 export const typeRecord = (
     env: Env,
     defnRaw: StructDef,
@@ -264,20 +286,27 @@ export const typeRecord = (
     ) as Array<RecordRow>;
 
     const defn = typeRecordDefn(env, defnRaw, unique);
-    const hash = hashObject(defn);
-    const idid = { hash, pos: 0, size: 1 };
-    if (env.global.types[idName(idid)]) {
-        throw new Error(`Redefining ${idName(idid)}`);
-    }
-    const glob = cloneGlobalEnv(env.global);
-    glob.types[idName(idid)] = defn;
-    glob.typeNames[defnRaw.id.text] = idid;
-    glob.idNames[idName(idid)] = defnRaw.id.text;
-    glob.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
-    rows.forEach((r, i) => {
-        glob.attributeNames[r.id.text] = { id: idid, idx: i };
-    });
-    return { id: idid, env: { ...env, global: glob } };
+    return addRecord(
+        env,
+        defnRaw.id.text,
+        rows.map((r) => r.id.text),
+        defn,
+    );
+
+    // const hash = hashObject(defn);
+    // const idid = { hash, pos: 0, size: 1 };
+    // if (env.global.types[idName(idid)]) {
+    //     throw new Error(`Redefining ${idName(idid)}`);
+    // }
+    // const glob = cloneGlobalEnv(env.global);
+    // glob.types[idName(idid)] = defn;
+    // glob.typeNames[defnRaw.id.text] = idid;
+    // glob.idNames[idName(idid)] = defnRaw.id.text;
+    // glob.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
+    // rows.forEach((r, i) => {
+    //     glob.attributeNames[r.id.text] = { id: idid, idx: i };
+    // });
+    // return { id: idid, env: { ...env, global: glob } };
 };
 
 export const hashObject = (obj: any): string =>

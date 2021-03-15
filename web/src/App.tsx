@@ -24,6 +24,7 @@ import {
     typeTypeDefn,
     addExpr,
     addDefine,
+    addRecord,
     idName,
 } from '../../src/typing/env';
 import { EnumDef, Env, Id, RecordDef } from '../../src/typing/types';
@@ -33,6 +34,7 @@ import {
     recordToPretty,
     termToPretty,
     ToplevelT,
+    toplevelToPretty,
 } from '../../src/printing/printTsLike';
 import {
     printToString,
@@ -68,6 +70,7 @@ const maxWidth = 60;
 type Content =
     | { type: 'term'; id: Id; name: string }
     | { type: 'expr'; id: Id }
+    | { type: 'record'; id: Id; name: string; attrs: Array<string> }
     | { type: 'raw'; text: string };
 type Cell = {
     id: string;
@@ -130,6 +133,16 @@ const getToplevel = (env: Env, content: Content): ToplevelT => {
             name: content.name,
         };
     }
+    if (content.type === 'record') {
+        return {
+            type: 'RecordDef',
+            def: env.global.types[idName(content.id)] as RecordDef,
+            name: content.name,
+            attrNames: content.attrs,
+            location: null,
+            id: content.id,
+        };
+    }
 };
 
 const updateToplevel = (
@@ -143,6 +156,22 @@ const updateToplevel = (
         const { id, env: nenv } = addDefine(env, term.name, term.term);
         return {
             content: { type: 'term', id: id, name: term.name },
+            env: nenv,
+        };
+    } else if (term.type === 'RecordDef') {
+        const { id, env: nenv } = addRecord(
+            env,
+            term.name,
+            term.attrNames,
+            term.def,
+        );
+        return {
+            content: {
+                type: 'record',
+                id: id,
+                name: term.name,
+                attrs: term.attrNames,
+            },
             env: nenv,
         };
     } else {
@@ -238,6 +267,7 @@ const RenderItem = ({
     evalEnv: EvalEnv;
     onRun: (id: Id) => void;
 }) => {
+    // if (content.type === 'record')
     if (content.type === 'expr') {
         const id = idName(content.id);
         if (!env.global.terms[id]) {
@@ -301,7 +331,22 @@ const RenderItem = ({
     } else if (content.type === 'raw') {
         return <div>{content.text}</div>;
     } else {
-        return <div>Unknown id {JSON.stringify(content)}</div>;
+        const top = getToplevel(env, content);
+        return (
+            <div
+                style={{
+                    fontFamily: '"Source Code Pro", monospace',
+                    whiteSpace: 'pre-wrap',
+                    padding: 16,
+                }}
+            >
+                {renderAttributedText(
+                    printToAttributedText(toplevelToPretty(env, top), maxWidth),
+                )}
+            </div>
+        );
+        // } else {
+        //     return <div>Unknown id {JSON.stringify(content)}</div>;
     }
 };
 
