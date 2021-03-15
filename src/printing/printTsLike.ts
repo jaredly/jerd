@@ -21,23 +21,80 @@ import {
     EnumDef,
     RecordDef,
     SwitchCase,
+    EffectDef,
     Pattern,
+    cloneGlobalEnv,
 } from '../typing/types';
 import { PP, items, args, block, atom, id as idPretty } from './printer';
 
 export type ToplevelT =
-    | Term
-    | { type: 'EnumDef'; def: EnumDef; id: Id; location: Location }
-    | { type: 'RecordDef'; def: RecordDef; id: Id; location: Location };
+    // | Term
+    | {
+          type: 'Effect';
+          id: Id;
+          effect: EffectDef;
+          location: Location;
+          name: string;
+          constrNames: Array<string>;
+      }
+    | { type: 'Expression'; term: Term; location: Location }
+    | { type: 'Define'; id: Id; term: Term; location: Location; name: string }
+    | {
+          type: 'EnumDef';
+          def: EnumDef;
+          id: Id;
+          location: Location;
+          name: string;
+      }
+    | {
+          type: 'RecordDef';
+          def: RecordDef;
+          id: Id;
+          location: Location;
+          name: string;
+          attrNames: Array<string>;
+      };
 
-export const toplevelToPretty = (env: Env, toplevel: ToplevelT) => {
-    if (toplevel.type === 'RecordDef') {
-        return recordToPretty(env, toplevel.id, toplevel.def);
+export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
+    switch (toplevel.type) {
+        case 'Define': {
+            const glob = cloneGlobalEnv(env.global);
+            glob.idNames[idName(toplevel.id)] = toplevel.name;
+
+            return declarationToPretty(
+                { ...env, global: glob },
+                toplevel.id,
+                toplevel.term,
+            );
+        }
+        case 'Expression':
+            return termToPretty(env, toplevel.term);
+        case 'RecordDef':
+            return recordToPretty(env, toplevel.id, toplevel.def);
+        case 'EnumDef':
+            return enumToPretty(env, toplevel.id, toplevel.def);
+        case 'Effect':
+            return effectToPretty(env, toplevel.id, toplevel.effect);
     }
-    if (toplevel.type === 'EnumDef') {
-        return enumToPretty(env, toplevel.id, toplevel.def);
-    }
-    return termToPretty(env, toplevel);
+};
+
+export const effectToPretty = (env: Env, id: Id, effect: EffectDef): PP => {
+    return items([
+        atom('effect '),
+        idToPretty(env, id, 'effect'),
+        block(
+            effect.constrs.map((constr, i) =>
+                items([
+                    atom(env.global.effectConstrNames[idName(id)][i]),
+                    atom(': '),
+                    args(constr.args.map((t) => typeToPretty(env, t))),
+                    atom(' => '),
+                    typeToPretty(env, constr.ret),
+                ]),
+            ),
+            ',',
+        ),
+    ]);
 };
 
 export const refToPretty = (env: Env, ref: Reference, kind: string) =>

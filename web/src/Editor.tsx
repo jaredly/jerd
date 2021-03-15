@@ -14,7 +14,9 @@ import {
 } from '../../src/printing/printTsLike';
 import typeExpr from '../../src/typing/typeExpr';
 import { EnumDef, Env, Term } from '../../src/typing/types';
+import { typeToplevelT } from '../../src/typing/env';
 import { renderAttributedText } from './Render';
+import AutoresizeTextarea from 'react-textarea-autosize';
 
 export default ({
     env,
@@ -35,9 +37,24 @@ export default ({
     const [typed, err] = React.useMemo(() => {
         try {
             const parsed: Array<Toplevel> = parse(text);
-            const typed = typeExpr(env, parsed[0] as Expression);
+            if (parsed.length > 1) {
+                return [
+                    null,
+                    { type: 'error', message: 'multiple toplevel items' },
+                ];
+            }
+            // if (parsed[0].type === 'define') {
+            //     // TODO type annotation
+            //     const term = typeExpr(env, parsed[0].expr);
+            //     return {
+            //         type: 'Define',
+            //         id:
+            //     };
+            // }
+            // const typed = typeExpr(env, parsed[0] as Expression);
 
-            return [typed, null];
+            // return [typed, null];
+            return [typeToplevelT(env, parsed[0]), null];
         } catch (err) {
             return [
                 null,
@@ -53,7 +70,7 @@ export default ({
     return (
         <div style={{ marginRight: 10 }}>
             <button onClick={() => onClose()}>Close</button>
-            <textarea
+            <AutoresizeTextarea
                 value={text}
                 onChange={(evt) => setText(evt.target.value)}
                 onKeyDown={(evt) => {
@@ -79,7 +96,10 @@ export default ({
                 {err != null
                     ? err.message
                     : renderAttributedText(
-                          printToAttributedText(termToPretty(env, typed), 50),
+                          printToAttributedText(
+                              toplevelToPretty(env, typed),
+                              50,
+                          ),
                       )}
             </div>
         </div>

@@ -13,7 +13,12 @@ import {
     typeRecordDefn,
     withoutLocations,
 } from './typing/env';
-import parse, { Expression, Location, Toplevel } from './parsing/parser';
+import parse, {
+    Define,
+    Expression,
+    Location,
+    Toplevel,
+} from './parsing/parser';
 import {
     declarationToAST,
     printType,
@@ -270,10 +275,10 @@ const reprintToplevel = (
             const defn = typeRecordDefn(env, printed[0], toplevel.def.unique);
             nhash = hashObject(defn);
             retyped = {
+                ...toplevel,
                 type: 'RecordDef',
                 def: defn,
                 id: { hash: nhash, size: 1, pos: 0 },
-                location: toplevel.location!,
             };
         } else if (
             toplevel.type === 'EnumDef' &&
@@ -282,17 +287,34 @@ const reprintToplevel = (
             const defn = typeEnumInner(env, printed[0]);
             nhash = hashObject(defn);
             retyped = {
+                ...toplevel,
                 type: 'EnumDef',
                 def: defn,
                 id: { hash: nhash, size: 1, pos: 0 },
-                location: toplevel.location!,
             };
+        } else if (toplevel.type === 'Define' && printed[0].type === 'define') {
+            retyped = {
+                ...toplevel,
+                type: 'Define',
+                id: toplevel.id,
+                term: typeExpr(env, (printed[0] as Define).expr),
+            };
+            nhash = hashObject(retyped.term);
         } else {
-            retyped = typeExpr(env, printed[0] as Expression);
-            nhash = hashObject(retyped);
+            retyped = {
+                ...toplevel,
+                type: 'Expression',
+                term: typeExpr(env, printed[0] as Expression),
+            };
+            nhash = hashObject(retyped.term);
         }
         if (nhash != hash) {
-            console.log(chalk.red('Hash mismatch on reparse!'), hash, nhash);
+            console.log(
+                chalk.red('Hash mismatch on reparse!'),
+                toplevel.type,
+                hash,
+                nhash,
+            );
             console.log(chalk.green('Original'));
             console.log(origraw);
             console.log(chalk.green('Printed'));
@@ -344,7 +366,18 @@ const processFile = (
 
         // Test reprint
         for (let expr of expressions) {
-            if (reprintToplevel(env, raw, expr, hashObject(expr)) === false) {
+            if (
+                reprintToplevel(
+                    env,
+                    raw,
+                    {
+                        type: 'Expression',
+                        term: expr,
+                        location: expr.location!,
+                    },
+                    hashObject(expr),
+                ) === false
+            ) {
                 good = false;
                 break;
             }
@@ -363,7 +396,18 @@ const processFile = (
                 },
             };
             if (
-                reprintToplevel(tenv, raw, env.global.terms[id], id) === false
+                reprintToplevel(
+                    tenv,
+                    raw,
+                    {
+                        type: 'Define',
+                        id: { hash: id, size: 1, pos: 0 },
+                        term: env.global.terms[id],
+                        location: env.global.terms[id].location!,
+                        name: env.global.idNames[id],
+                    },
+                    id,
+                ) === false
             ) {
                 good = false;
                 break;
@@ -379,18 +423,23 @@ const processFile = (
             }
             let top: ToplevelT;
             if (t.type === 'Record') {
+                const id = { hash: tid, size: 1, pos: 0 };
                 top = {
                     type: 'RecordDef',
-                    id: { hash: tid, size: 1, pos: 0 },
+                    id: id,
                     def: t,
                     location: t.location!,
+                    name: env.global.idNames[idName(id)],
+                    attrNames: env.global.recordGroups[idName(id)],
                 };
             } else {
+                const id = { hash: tid, size: 1, pos: 0 };
                 top = {
                     type: 'EnumDef',
-                    id: { hash: tid, size: 1, pos: 0 },
+                    id,
                     def: t,
                     location: t.location!,
+                    name: env.global.idNames[idName(id)],
                 };
             }
             if (reprintToplevel(env, raw, top, tid) === false) {

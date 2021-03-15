@@ -71,7 +71,12 @@ describe('Example files', () => {
                             name: hash,
                             type: term.is,
                         };
-                        const ts = declarationToString(prettyEnv, hash, term);
+                        const ts = declarationToString(
+                            prettyEnv,
+                            {},
+                            hash,
+                            term,
+                        );
                         items.push('// .ts\n' + ts);
                     } catch (err) {
                         items.push(`// ERROR ${err}`);
@@ -81,7 +86,7 @@ describe('Example files', () => {
                     const jd = printToString(termToPretty(env, term), 100);
                     items.push(`// .jd\n` + jd);
                     try {
-                        const ts = termToString(env, term);
+                        const ts = termToString(env, {}, term);
                         items.push('// .ts\n' + ts);
                     } catch (err) {
                         items.push(`// ERROR ${err}`);
@@ -163,7 +168,12 @@ describe('Test Files', () => {
                             name: hash,
                             type: term.is,
                         };
-                        const ts = declarationToString(prettyEnv, hash, term);
+                        const ts = declarationToString(
+                            prettyEnv,
+                            {},
+                            hash,
+                            term,
+                        );
                         vm.runInContext(tsToJs(ts), vmEnv);
                         // items.push('// .ts\n' + ts);
                         // } catch (err) {
@@ -173,7 +183,7 @@ describe('Test Files', () => {
                         // expression
                         const term = typeExpr(env, item);
                         if (fitsExpectation(null, term.is, bool) === true) {
-                            const ts = termToString(env, term);
+                            const ts = termToString(env, {}, term);
                             const result = vm.runInContext(tsToJs(ts), vmEnv);
                             if (result === true) {
                                 expect(result).toBeTruthy();

@@ -551,6 +551,12 @@ export type TypeConstraint =
       }
     | { type: 'larger-than'; other: Type }; // the sub type
 
+export type EffectDef = {
+    type: 'EffectDef';
+    constrs: Array<{ args: Array<Type>; ret: Type }>;
+    location: Location;
+};
+
 export const newEnv = (
     self: { name: string; type: Type },
     seed: string = 'seed',

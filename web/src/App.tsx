@@ -23,6 +23,7 @@ import {
     typeEffect,
     typeTypeDefn,
     addExpr,
+    addDefine,
     idName,
 } from '../../src/typing/env';
 import { EnumDef, Env, Id, RecordDef } from '../../src/typing/types';
@@ -31,6 +32,7 @@ import {
     enumToPretty,
     recordToPretty,
     termToPretty,
+    ToplevelT,
 } from '../../src/printing/printTsLike';
 import {
     printToString,
@@ -64,7 +66,7 @@ const toJs = (raw: string) => {
 const maxWidth = 60;
 
 type Content =
-    | { type: 'term'; id: Id }
+    | { type: 'term'; id: Id; name: string }
     | { type: 'expr'; id: Id }
     | { type: 'raw'; text: string };
 type Cell = {
@@ -111,6 +113,43 @@ const initialState = (): State => ({
 //     }
 // };
 
+const getToplevel = (env: Env, content: Content): ToplevelT => {
+    if (content.type === 'expr') {
+        return {
+            type: 'Expression',
+            term: env.global.terms[idName(content.id)],
+            location: null,
+        };
+    }
+    if (content.type === 'term') {
+        return {
+            type: 'Define',
+            term: env.global.terms[idName(content.id)],
+            id: content.id,
+            location: null,
+            name: content.name,
+        };
+    }
+};
+
+const updateToplevel = (
+    env: Env,
+    term: ToplevelT,
+): { env: Env; content: Content } => {
+    if (term.type === 'Expression') {
+        const { id, env: nenv } = addExpr(env, term.term);
+        return { content: { type: 'expr', id: id }, env: nenv };
+    } else if (term.type === 'Define') {
+        const { id, env: nenv } = addDefine(env, term.name, term.term);
+        return {
+            content: { type: 'term', id: id, name: term.name },
+            env: nenv,
+        };
+    } else {
+        throw new Error('toplevel type not yet supported');
+    }
+};
+
 const Cell = ({
     cell,
     env,
@@ -135,7 +174,7 @@ const Cell = ({
                     contents={
                         cell.content.type == 'raw'
                             ? cell.content.text
-                            : env.global.terms[idName(cell.content.id)]
+                            : getToplevel(env, cell.content)
                     }
                     onClose={() => setEditing(false)}
                     onChange={(term) => {
@@ -146,10 +185,13 @@ const Cell = ({
                                 content: { type: 'raw', text: term },
                             });
                         } else {
-                            const { id, env: nenv } = addExpr(env, term);
+                            const { env: nenv, content } = updateToplevel(
+                                env,
+                                term,
+                            );
                             onChange(nenv, {
                                 ...cell,
-                                content: { type: 'expr', id: id },
+                                content,
                             });
                         }
                         setEditing(false);
@@ -234,12 +276,26 @@ const RenderItem = ({
         const term = env.global.terms[id];
         return (
             <div>
-                {renderAttributedText(
-                    printToAttributedText(
-                        declarationToPretty(env, content.id, term),
-                        maxWidth,
-                    ),
-                )}
+                <div
+                    style={{
+                        fontFamily: '"Source Code Pro", monospace',
+                        whiteSpace: 'pre-wrap',
+                        padding: 16,
+                    }}
+                >
+                    {renderAttributedText(
+                        printToAttributedText(
+                            declarationToPretty(env, content.id, term),
+                            maxWidth,
+                        ),
+                    )}
+                </div>
+                <RenderResult
+                    id={content.id}
+                    env={env}
+                    evalEnv={evalEnv}
+                    onRun={onRun}
+                />
             </div>
         );
     } else if (content.type === 'raw') {

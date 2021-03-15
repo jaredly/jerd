@@ -25,6 +25,7 @@ export type Effect = {
     type: 'effect';
     // TODO type variables!
     id: Identifier;
+    location: Location;
     constrs: Array<{ id: Identifier; type: LambdaType }>;
 };
 
