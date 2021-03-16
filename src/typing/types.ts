@@ -23,6 +23,8 @@ export type Symbol = { name: string; unique: number };
 export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
+/*********** ENV STUFF ************/
+
 export type Env = {
     // oh here's where we would do kind?
     // like args n stuff?
@@ -70,8 +72,99 @@ export type LocalEnv = {
     typeVblNames: { [key: string]: Symbol };
     effectVbls: { [key: string]: Symbol };
     tmpTypeVbls: { [key: string]: Array<TypeConstraint> }; // constraints
+    // Sym ids encountered in the text will be remapped
+    symMapping: { [key: number]: number };
     // manual type variables can't have constriaints, right? or can they?
     // I can figure that out later.
+};
+
+export const defaultRng = (seed: string = 'seed') => seedrandom(seed);
+
+export const newEnv = (
+    self: { name: string; type: Type },
+    seed: string = 'seed',
+): Env => ({
+    depth: 0,
+    global: {
+        rng: defaultRng(seed),
+        names: {},
+        idNames: {},
+        terms: {},
+        builtins: {},
+        builtinTypes: {},
+        typeNames: {},
+        types: {},
+        attributeNames: {},
+        recordGroups: {},
+
+        effectNames: {},
+        effectConstructors: {},
+        effectConstrNames: {},
+        effects: {},
+    },
+    local: {
+        unique: 0,
+        self,
+        symMapping: {},
+        effectVbls: {},
+        locals: {},
+        typeVblNames: {},
+        typeVbls: {},
+        tmpTypeVbls: {},
+    },
+});
+
+export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
+    return {
+        rng: env.rng,
+        attributeNames: { ...env.attributeNames },
+        recordGroups: { ...env.recordGroups },
+        names: { ...env.names },
+        idNames: { ...env.idNames },
+        terms: { ...env.terms },
+        builtins: { ...env.builtins },
+        typeNames: { ...env.typeNames },
+        builtinTypes: { ...env.builtinTypes },
+        types: { ...env.types },
+        effectNames: { ...env.effectNames },
+        effectConstructors: { ...env.effectConstructors },
+        effectConstrNames: { ...env.effectConstrNames },
+        effects: { ...env.effects },
+    };
+};
+
+export const selfEnv = (
+    env: Env,
+    self: {
+        name: string;
+        type: Type;
+    },
+): Env => {
+    return {
+        ...env,
+        local: {
+            ...env.local,
+            self,
+        },
+    };
+};
+
+export const subEnv = (env: Env): Env => {
+    // console.log('SUB ENV', env.depth, env.local.typeVbls);
+    return {
+        depth: env.depth + 1,
+        global: cloneGlobalEnv(env.global),
+        local: {
+            self: env.local.self,
+            effectVbls: { ...env.local.effectVbls },
+            symMapping: { ...env.local.symMapping },
+            locals: { ...env.local.locals },
+            unique: env.local.unique,
+            typeVbls: { ...env.local.typeVbls },
+            typeVblNames: { ...env.local.typeVblNames },
+            tmpTypeVbls: env.local.tmpTypeVbls,
+        },
+    };
 };
 
 export type Case = {
@@ -561,93 +654,6 @@ export type EffectDef = {
     type: 'EffectDef';
     constrs: Array<{ args: Array<Type>; ret: Type }>;
     location: Location;
-};
-
-export const defaultRng = (seed: string = 'seed') => seedrandom(seed);
-
-export const newEnv = (
-    self: { name: string; type: Type },
-    seed: string = 'seed',
-): Env => ({
-    depth: 0,
-    global: {
-        rng: defaultRng(seed),
-        names: {},
-        idNames: {},
-        terms: {},
-        builtins: {},
-        builtinTypes: {},
-        typeNames: {},
-        types: {},
-        attributeNames: {},
-        recordGroups: {},
-
-        effectNames: {},
-        effectConstructors: {},
-        effectConstrNames: {},
-        effects: {},
-    },
-    local: {
-        unique: 0,
-        self,
-        effectVbls: {},
-        locals: {},
-        typeVblNames: {},
-        typeVbls: {},
-        tmpTypeVbls: {},
-    },
-});
-
-export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
-    return {
-        rng: env.rng,
-        attributeNames: { ...env.attributeNames },
-        recordGroups: { ...env.recordGroups },
-        names: { ...env.names },
-        idNames: { ...env.idNames },
-        terms: { ...env.terms },
-        builtins: { ...env.builtins },
-        typeNames: { ...env.typeNames },
-        builtinTypes: { ...env.builtinTypes },
-        types: { ...env.types },
-        effectNames: { ...env.effectNames },
-        effectConstructors: { ...env.effectConstructors },
-        effectConstrNames: { ...env.effectConstrNames },
-        effects: { ...env.effects },
-    };
-};
-
-export const selfEnv = (
-    env: Env,
-    self: {
-        name: string;
-        type: Type;
-    },
-): Env => {
-    return {
-        ...env,
-        local: {
-            ...env.local,
-            self,
-        },
-    };
-};
-
-export const subEnv = (env: Env): Env => {
-    // console.log('SUB ENV', env.depth, env.local.typeVbls);
-    return {
-        depth: env.depth + 1,
-        global: cloneGlobalEnv(env.global),
-        local: {
-            self: env.local.self,
-            effectVbls: { ...env.local.effectVbls },
-            locals: { ...env.local.locals },
-            unique: env.local.unique,
-            typeVbls: { ...env.local.typeVbls },
-            typeVblNames: { ...env.local.typeVblNames },
-            tmpTypeVbls: env.local.tmpTypeVbls,
-        },
-    };
 };
 
 // TODO need to resolve probably

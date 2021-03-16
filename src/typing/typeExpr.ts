@@ -26,7 +26,7 @@ import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
 import { showType, fitsExpectation, assertFits } from './unify';
 import { void_, string, bool } from './preset';
-import { hasSubType, idName, resolveIdentifier } from './env';
+import { hasSubType, idName, makeLocal, resolveIdentifier } from './env';
 import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
 import { typeRecord } from './terms/record';
@@ -300,9 +300,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             )}, expected ${showType(env, type)}`,
                         );
                     }
-                    const unique = Object.keys(innerEnv.local.locals).length;
-                    const sym: Symbol = { name: item.id.text, unique };
-                    innerEnv.local.locals[item.id.text] = { sym, type };
+                    const sym = makeLocal(innerEnv, item.id, type);
                     inner.push({
                         type: 'Let',
                         location: item.location,

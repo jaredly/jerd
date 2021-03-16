@@ -14,6 +14,7 @@ import {
 } from '../types';
 import { showType } from '../unify';
 import typeExpr from '../typeExpr';
+import { makeLocal } from '../env';
 
 export const typeHandle = (env: Env, expr: Handle): Term => {
     const target = typeExpr(env, expr.target);
@@ -47,12 +48,7 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
     // but then, effects found in the bodies also get added.
     // so we'll need some deduping
     const inner = subEnv(env);
-    const unique = Object.keys(inner.local.locals).length;
-    const sym = { name: expr.pure.arg.text, unique };
-    inner.local.locals[expr.pure.arg.text] = {
-        sym,
-        type: targetReturn,
-    };
+    const sym = makeLocal(inner, expr.pure.arg, targetReturn);
     const pure = typeExpr(inner, expr.pure.body);
 
     const cases: Array<Case> = [];
@@ -64,29 +60,18 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         const constr = constrs[idx];
         const inner = subEnv(env);
         const args = (kase.args || []).map((id, i) => {
-            const unique = Object.keys(inner.local.locals).length;
-            const sym = { name: id.text, unique };
-            inner.local.locals[id.text] = {
-                sym,
-                type: constr.args[i],
-            };
-            return sym;
+            return makeLocal(inner, id, constr.args[i]);
         });
-        const unique = Object.keys(inner.local.locals).length;
-        const k = { name: kase.k.text, unique };
-        inner.local.locals[k.name] = {
-            sym: k,
-            type: {
-                type: 'lambda',
-                location: kase.location,
-                typeVbls: [],
-                effectVbls: [],
-                args: isVoid(constr.ret) ? [] : [constr.ret],
-                effects: otherEffects,
-                rest: null,
-                res: targetReturn,
-            },
-        };
+        const k = makeLocal(inner, kase.k, {
+            type: 'lambda',
+            location: kase.location,
+            typeVbls: [],
+            effectVbls: [],
+            args: isVoid(constr.ret) ? [] : [constr.ret],
+            effects: otherEffects,
+            rest: null,
+            res: targetReturn,
+        });
 
         const body = typeExpr(inner, kase.body);
         if (!typesEqual(body.is, pure.is)) {

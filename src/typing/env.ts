@@ -126,7 +126,7 @@ export const typeEffect = (env: Env, item: Effect): Env => {
         item.id.text,
         item.constrs.map((c) => c.id.text),
         defn,
-    );
+    ).env;
 };
 
 // export const addToplevel = (
@@ -162,7 +162,7 @@ export const addEffect = (
     });
     // STOPSHIP bring this in
     glob.effects[hash] = defn.constrs;
-    return { ...env, global: glob };
+    return { env: { ...env, global: glob }, id };
 };
 
 export const typeTypeDefn = (env: Env, defn: StructDef): Env => {
@@ -538,6 +538,26 @@ export const resolveEffect = (
     };
 };
 
+export const makeLocal = (env: Env, id: Identifier, type: Type): Symbol => {
+    let max = Object.keys(env.local.locals).reduce(
+        (max, k) => Math.max(env.local.locals[k].sym.unique, max),
+        0,
+    );
+    const unique = max + 1; // Object.keys(env.local.locals).length;
+
+    const found =
+        id.hash && id.hash.startsWith('#sym#')
+            ? +id.hash.slice('#sym#'.length)
+            : null;
+    if (found != null) {
+        env.local.symMapping[found] = unique;
+    }
+
+    const sym: Symbol = { name: id.text, unique };
+    env.local.locals[id.text] = { sym, type };
+    return sym;
+};
+
 // export const resolveTypeID = (
 //     env: Env,
 //     { text, location, hash }: Identifier,
@@ -550,27 +570,35 @@ export const resolveIdentifier = (
     env: Env,
     { text, location, hash }: Identifier,
 ): Term | null => {
-    if (hash != null) {
+    if (hash && hash.startsWith('#sym')) {
+        const unique = +hash.slice('#sym#'.length);
+        if (env.local.symMapping[unique] == null) {
+            throw new Error(`No symbol mapping for ${unique}`);
+        }
+        // let found: Type | null = null;
+        // Object.keys(env.local.locals).forEach((t) => {
+        //     if (env.local.locals[t].sym.unique === unique) {
+        //         found = env.local.locals[t].type;
+        //     }
+        // });
+        // if (!found) {
+        //     throw new Error(
+        //         `Could not resolve symbol #sym#${unique} ${showLocation(
+        //             location,
+        //         )}`,
+        //     );
+        // }
+        // return {
+        //     type: 'var',
+        //     location,
+        //     sym: { unique: unique, name: text },
+        //     is: found!,
+        // };
+    } else if (hash != null) {
         const [first, second] = hash.slice(1).split('#');
 
-        if (first === 'sym') {
-            const unique = +second;
-            let found: Type | null = null;
-            Object.keys(env.local.locals).forEach((t) => {
-                if (env.local.locals[t].sym.unique === unique) {
-                    found = env.local.locals[t].type;
-                }
-            });
-            if (!found) {
-                throw new Error(`Could not resolve symbol`);
-            }
-            return {
-                type: 'var',
-                location,
-                sym: { unique: unique, name: text },
-                is: found!,
-            };
-        }
+        // if (first === 'sym') {
+        // }
 
         if (!env.global.terms[first]) {
             if (env.global.types[first]) {

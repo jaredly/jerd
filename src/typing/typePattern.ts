@@ -1,6 +1,6 @@
 import { Pattern as RawPattern } from '../parsing/parser';
-import { idName } from './env';
-import { bool, int, string } from './preset';
+import { idName, makeLocal } from './env';
+import { bool, float, int, string } from './preset';
 import {
     showLocation,
     getEnumReferences,
@@ -32,6 +32,7 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
         case 'Binding':
             return expected;
         case 'string':
+        case 'float':
         case 'int':
         case 'boolean':
             return pattern.is;
@@ -63,6 +64,14 @@ const typePattern = (
                 type: 'string',
                 text: pattern.text,
                 is: string,
+                location: pattern.location,
+            };
+        case 'float':
+            assertFits(env, float, expectedType, pattern.location);
+            return {
+                type: 'float',
+                value: pattern.value,
+                is: float,
                 location: pattern.location,
             };
         case 'int':
@@ -136,12 +145,7 @@ const typePattern = (
                     location: pattern.location,
                 };
             } else {
-                const unique = env.local.unique++;
-                const sym: Symbol = {
-                    unique,
-                    name: pattern.text,
-                };
-                env.local.locals[pattern.text] = { sym, type: expectedType };
+                const sym = makeLocal(env, pattern, expectedType);
 
                 return {
                     type: 'Binding',
@@ -153,12 +157,7 @@ const typePattern = (
         case 'Alias': {
             const p = typePattern(env, pattern.inner, expectedType);
             const is = patternIs(p, expectedType);
-            const unique = env.local.unique++;
-            const sym: Symbol = {
-                unique,
-                name: pattern.name.text,
-            };
-            env.local.locals[pattern.name.text] = { sym, type: is };
+            const sym = makeLocal(env, pattern.name, is);
 
             return {
                 type: 'Alias',
@@ -295,12 +294,7 @@ const typePattern = (
 
                 let pattern: Pattern;
                 if (row.pattern == null) {
-                    const unique = env.local.unique++;
-                    const sym: Symbol = {
-                        unique,
-                        name: row.id.text,
-                    };
-                    env.local.locals[row.id.text] = { sym, type: is };
+                    const sym = makeLocal(env, row.id, is);
                     pattern = { type: 'Binding', location: row.location, sym };
                 } else {
                     pattern = typePattern(env, row.pattern, is);

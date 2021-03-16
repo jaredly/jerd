@@ -41,23 +41,31 @@ export const renderAttributedText = (
     env: GlobalEnv,
     text: Array<AttributedText>,
     onClick?: (id: string, kind: string) => boolean | null,
+    allIds?: boolean,
+    idColors?: Array<string>,
 ) => {
+    const colorMap = {};
+    let colorAt = 0;
     return text.map((item, i) => {
         if (typeof item === 'string') {
             return <span key={i}>{item}</span>;
         }
         if ('kind' in item) {
-            const showHash = shouldShowHash(env, item.id, item.kind, item.text);
+            const showHash =
+                allIds || shouldShowHash(env, item.id, item.kind, item.text);
             // (env.names[item.text] ? idName(env.names[item.text]) : '') !==
             //     item.id &&
             // (env.typeNames[item.text]
             //     ? idName(env.typeNames[item.text])
             //     : '') !== item.id;
+            if (showHash && !colorMap[item.id] && item.id.startsWith('sym')) {
+                colorMap[item.id] = idColors[colorAt++ % idColors.length];
+            }
             return (
                 <span
                     style={{
                         color: item.kind === 'sym' ? '#9CDCFE' : '#4EC9B0',
-                        cursor: 'pointer',
+                        cursor: onClick ? 'pointer' : 'inherit',
                     }}
                     onMouseDown={(evt) => {}}
                     onClick={(evt) => {
@@ -69,7 +77,20 @@ export const renderAttributedText = (
                     key={i}
                     title={item.id + ' ' + item.kind}
                 >
-                    {item.text + (showHash ? '#' + item.id : '')}
+                    {item.text}
+                    {showHash ? (
+                        <span
+                            style={{
+                                color: '#777',
+                                fontSize: '60%',
+                                borderBottom: item.id.startsWith('sym')
+                                    ? `1px solid ${colorMap[item.id]}`
+                                    : '',
+                            }}
+                        >
+                            #{item.id}
+                        </span>
+                    ) : null}
                 </span>
             );
         }
