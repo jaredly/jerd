@@ -33,6 +33,7 @@ import { typeRecord } from './terms/record';
 import { typeApply } from './terms/apply';
 import { typeSwitch } from './terms/switch';
 import { typeOps } from './terms/ops';
+import { UnresolvedIdentifier } from './errors';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -447,11 +448,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             if (term != null) {
                 return term;
             }
-            throw new Error(
-                `Identifier "${expr.text}" at ${showLocation(
-                    expr.location,
-                )} hasn't been defined anywhere.`,
-            );
+            throw new UnresolvedIdentifier(expr);
         }
         case 'lambda':
             return typeLambda(env, expr);

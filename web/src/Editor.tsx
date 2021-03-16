@@ -1,7 +1,7 @@
 // The editor bit
 
 import * as React from 'react';
-import { parse } from '../../src/parsing/grammar';
+import { parse, SyntaxError } from '../../src/parsing/grammar';
 import { Expression, Toplevel } from '../../src/parsing/parser';
 import {
     printToAttributedText,
@@ -12,11 +12,43 @@ import {
     toplevelToPretty,
     ToplevelT,
 } from '../../src/printing/printTsLike';
-import typeExpr from '../../src/typing/typeExpr';
+import typeExpr, { showLocation } from '../../src/typing/typeExpr';
 import { EnumDef, Env, Term } from '../../src/typing/types';
 import { idName, typeToplevelT } from '../../src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
+import { UnresolvedIdentifier } from '../../src/typing/errors';
+
+const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
+    const matchingNames = Object.keys(env.global.names).filter((n) =>
+        n.toLowerCase().startsWith(name.toLowerCase()),
+    );
+    if (!matchingNames.length) {
+        return <div>No defined names matching {name}</div>;
+    }
+    return (
+        <div>
+            <div>Did you mean...</div>
+            {matchingNames.map((n) => (
+                <div key={n}>
+                    {n}#{idName(env.global.names[n])}
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const ShowError = ({ err, env }: { err: Error; env: Env }) => {
+    if (err instanceof UnresolvedIdentifier) {
+        return <AutoComplete env={env} name={err.id.text} />;
+        // return <div>Unresolved {err.id.text}</div>;
+    }
+    if (err instanceof SyntaxError) {
+        return <div>Syntax error at {showLocation(err.location)}</div>;
+    }
+    console.log(err);
+    return <div>{err.message}</div>;
+};
 
 export default ({
     env,
@@ -58,14 +90,7 @@ export default ({
                 null,
             ];
         } catch (err) {
-            return [
-                null,
-                {
-                    type: 'error',
-                    message: err.message,
-                    location: err.location,
-                },
-            ];
+            return [null, err];
         }
     }, [text]);
 
@@ -105,18 +130,15 @@ export default ({
                     position: 'relative',
                 }}
             >
-                {err != null
-                    ? err.message
-                    : typed == null
-                    ? null
-                    : renderAttributedText(
-                          env.global,
-                          printToAttributedText(
-                              toplevelToPretty(env, typed),
-                              50,
-                          ),
-                      )}
-                {typed != null ? (
+                {err != null ? (
+                    <ShowError err={err} env={env} />
+                ) : typed == null ? null : (
+                    renderAttributedText(
+                        env.global,
+                        printToAttributedText(toplevelToPretty(env, typed), 50),
+                    )
+                )}
+                {typed != null && typed.id != null ? (
                     // @ts-ignore
                     <div style={styles.hash}>#{idName(typed.id)}</div>
                 ) : null}

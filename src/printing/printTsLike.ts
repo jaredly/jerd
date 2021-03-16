@@ -116,12 +116,8 @@ export const refToPretty = (env: Env, ref: Reference, kind: string) =>
     ref.type === 'builtin' ? atom(ref.name) : idToPretty(env, ref.id, kind);
 export const idToPretty = (env: Env, id: Id, kind: string) => {
     const name = env.global.idNames[idName(id)];
-    if (name) {
-        const hash = id.hash + (id.pos !== 0 ? '#' + id.pos : '');
-        return idPretty(name, hash, kind);
-        // return atom(`${name}#${hash}`);
-    }
-    return atom('hash_' + id.hash + '_' + id.pos);
+    const hash = id.hash + (id.pos !== 0 ? '#' + id.pos : '');
+    return idPretty(name ? name : 'unnamed', hash, kind);
 };
 export const symToPretty = (sym: Symbol) =>
     idPretty(sym.name, 'sym#' + sym.unique.toString(), 'sym');

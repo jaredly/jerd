@@ -51,6 +51,8 @@ const initialState = (): State => {
                         builtinTypes: env.global.builtinTypes,
                         rng: env.global.rng,
                     },
+                    // Reset the local env
+                    local: env.local,
                 },
                 evalEnv: {
                     builtins,

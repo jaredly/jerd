@@ -199,7 +199,12 @@ const RenderItem = ({
                         onClick,
                     )}
                     {/* @ts-ignore */}
-                    <div style={styles.hash}>#{id}</div>
+                    <div
+                        style={styles.hash}
+                        onClick={(evt) => evt.stopPropagation()}
+                    >
+                        #{id}
+                    </div>
                 </div>
                 <RenderResult
                     id={content.id}
@@ -242,7 +247,12 @@ const RenderItem = ({
                         onClick,
                     )}
                     {/* @ts-ignore */}
-                    <div style={styles.hash}>#{id}</div>
+                    <div
+                        style={styles.hash}
+                        onClick={(evt) => evt.stopPropagation()}
+                    >
+                        #{id}
+                    </div>
                 </div>
                 <RenderResult
                     id={content.id}
@@ -291,6 +301,8 @@ const RenderItem = ({
         );
     }
 };
+
+// const Hash = ({id}) =>
 
 const styles = {
     hash: {

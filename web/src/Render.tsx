@@ -60,11 +60,6 @@ export const renderAttributedText = (
         if ('kind' in item) {
             const showHash =
                 allIds || shouldShowHash(env, item.id, item.kind, item.text);
-            // (env.names[item.text] ? idName(env.names[item.text]) : '') !==
-            //     item.id &&
-            // (env.typeNames[item.text]
-            //     ? idName(env.typeNames[item.text])
-            //     : '') !== item.id;
             if (!colorMap[item.id] && item.id.startsWith('sym')) {
                 colorMap[item.id] = idColors[colorAt++ % idColors.length];
             }
