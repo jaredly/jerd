@@ -117,6 +117,7 @@ export default ({
                           ),
                       )}
                 {typed != null ? (
+                    // @ts-ignore
                     <div style={styles.hash}>#{idName(typed.id)}</div>
                 ) : null}
             </div>

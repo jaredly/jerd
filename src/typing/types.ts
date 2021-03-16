@@ -68,6 +68,7 @@ export type LocalEnv = {
         type: Type;
     };
     locals: { [key: string]: { sym: Symbol; type: Type } };
+    localNames: { [name: string]: number };
     typeVbls: { [unique: number]: { subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
     typeVblNames: { [key: string]: Symbol };
     effectVbls: { [key: string]: Symbol };
@@ -108,6 +109,7 @@ export const newEnv = (
         symMapping: {},
         effectVbls: {},
         locals: {},
+        localNames: {},
         typeVblNames: {},
         typeVbls: {},
         tmpTypeVbls: {},
@@ -159,6 +161,7 @@ export const subEnv = (env: Env): Env => {
             effectVbls: { ...env.local.effectVbls },
             symMapping: { ...env.local.symMapping },
             locals: { ...env.local.locals },
+            localNames: { ...env.local.localNames },
             unique: env.local.unique,
             typeVbls: { ...env.local.typeVbls },
             typeVblNames: { ...env.local.typeVblNames },

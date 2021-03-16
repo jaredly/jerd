@@ -554,7 +554,9 @@ export const makeLocal = (env: Env, id: Identifier, type: Type): Symbol => {
     }
 
     const sym: Symbol = { name: id.text, unique };
-    env.local.locals[id.text] = { sym, type };
+    // env.local.locals[id.text] = { sym, type };
+    env.local.locals[unique] = { sym, type };
+    env.local.localNames[id.text] = unique;
     return sym;
 };
 
@@ -571,29 +573,25 @@ export const resolveIdentifier = (
     { text, location, hash }: Identifier,
 ): Term | null => {
     if (hash && hash.startsWith('#sym')) {
-        const unique = +hash.slice('#sym#'.length);
-        if (env.local.symMapping[unique] == null) {
-            throw new Error(`No symbol mapping for ${unique}`);
+        const got = +hash.slice('#sym#'.length);
+        if (env.local.symMapping[got] == null) {
+            throw new Error(`No symbol mapping for ${got}`);
         }
-        // let found: Type | null = null;
-        // Object.keys(env.local.locals).forEach((t) => {
-        //     if (env.local.locals[t].sym.unique === unique) {
-        //         found = env.local.locals[t].type;
-        //     }
-        // });
-        // if (!found) {
-        //     throw new Error(
-        //         `Could not resolve symbol #sym#${unique} ${showLocation(
-        //             location,
-        //         )}`,
-        //     );
-        // }
-        // return {
-        //     type: 'var',
-        //     location,
-        //     sym: { unique: unique, name: text },
-        //     is: found!,
-        // };
+        const unique = env.local.symMapping[got];
+        if (!env.local.locals[unique]) {
+            throw new Error(
+                `Could not resolve symbol #sym#${unique} ${showLocation(
+                    location,
+                )}`,
+            );
+        }
+        const { sym, type } = env.local.locals[unique];
+        return {
+            type: 'var',
+            location,
+            sym: sym,
+            is: type,
+        };
     } else if (hash != null) {
         const [first, second] = hash.slice(1).split('#');
 
@@ -628,8 +626,8 @@ export const resolveIdentifier = (
         };
     }
 
-    if (env.local.locals[text]) {
-        const { sym, type } = env.local.locals[text];
+    if (env.local.localNames[text] != null) {
+        const { sym, type } = env.local.locals[env.local.localNames[text]];
         return {
             type: 'var',
             location,

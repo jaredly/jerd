@@ -445,10 +445,8 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         case 'id': {
             const term = resolveIdentifier(env, expr);
             if (term != null) {
-                // console.log(`${expr.text} : ${showType(env, term.is)}`);
                 return term;
             }
-            // console.log(env.local.locals);
             throw new Error(
                 `Identifier "${expr.text}" at ${showLocation(
                     expr.location,
