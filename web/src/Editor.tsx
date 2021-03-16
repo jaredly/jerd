@@ -72,9 +72,12 @@ export default ({
 
     return (
         <div style={{ marginRight: 10 }}>
-            <button onClick={() => onClose()}>Close</button>
             <AutoresizeTextarea
                 value={text}
+                autoFocus
+                onBlur={() => {
+                    onClose();
+                }}
                 onChange={(evt) => setText(evt.target.value)}
                 onKeyDown={(evt) => {
                     if (evt.metaKey && evt.key === 'Enter') {
@@ -86,7 +89,13 @@ export default ({
                     width: '100%',
                     boxSizing: 'border-box',
                     fontFamily: '"Source Code Pro", monospace',
-                    height: 200,
+                    // height: 200,
+                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    color: 'white',
+                    padding: 8,
+                    border: 'none',
+                    fontSize: 'inherit',
+                    outline: 'none',
                 }}
             />
             <div

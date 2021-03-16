@@ -14,7 +14,7 @@ import * as builtins from '../../src/printing/prelude';
 import { presetEnv } from '../../src/typing/preset';
 import generate from '@babel/generator';
 import { idName } from '../../src/typing/env';
-import { Env, Id } from '../../src/typing/types';
+import { Env, Id, defaultRng } from '../../src/typing/types';
 import { printTerm } from '../../src/printing/typeScriptPrinter';
 import { CellView, Cell, EvalEnv } from './Cell';
 
@@ -50,26 +50,36 @@ const blankCell: Cell = {
     display: '',
 };
 
-const initialState = (): State => ({
-    env: presetEnv(),
-    cells: {},
-    evalEnv: {
-        builtins,
-        terms: {},
-    },
-});
+const saveKey = 'jd-repl-cache';
 
-// type Action = {type: 'new-cell', cell: Cell} | {
-//     type: 'update-cell',
-//     cell: Cell,
-//     id: number,
-// }
-
-// const reduce = (state: State, action: Action): State => {
-//     switch (action.type) {
-
-//     }
-// };
+const initialState = (): State => {
+    const saved = window.localStorage.getItem(saveKey);
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            return {
+                ...data,
+                env: {
+                    ...data.env,
+                    global: {
+                        ...data.env.global,
+                        rng: defaultRng(),
+                    },
+                },
+            };
+        } catch (err) {
+            window.localStorage.removeItem(saveKey);
+        }
+    }
+    return {
+        env: presetEnv(),
+        cells: {},
+        evalEnv: {
+            builtins,
+            terms: {},
+        },
+    };
+};
 
 class TimeoutError extends Error {}
 
@@ -112,6 +122,9 @@ const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
 
 export default () => {
     const [state, setState] = React.useState(() => initialState());
+    React.useEffect(() => {
+        window.localStorage.setItem(saveKey, JSON.stringify(state));
+    }, [state]);
     return (
         <div
             style={{

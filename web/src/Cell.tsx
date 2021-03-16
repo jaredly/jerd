@@ -1,32 +1,7 @@
 // Ok
 
-import * as t from '@babel/types';
 import * as React from 'react';
-import parse, {
-    Expression,
-    Location,
-    Toplevel,
-} from '../../src/parsing/parser';
-import {
-    optimizeAST,
-    removeTypescriptTypes,
-} from '../../src/printing/typeScriptOptimize';
-import { typeFile } from '../../src/typing/typeFile';
-import { fileToTypescript } from '../../src/printing/fileToTypeScript';
-import * as builtins from '../../src/printing/prelude';
-
-import { bool, presetEnv } from '../../src/typing/preset';
-import generate from '@babel/generator';
-import runCode from './eval';
-import {
-    typeDefine,
-    typeEffect,
-    typeTypeDefn,
-    addExpr,
-    addDefine,
-    addRecord,
-    idName,
-} from '../../src/typing/env';
+import { addExpr, addDefine, addRecord, idName } from '../../src/typing/env';
 import { Env, Id, RecordDef } from '../../src/typing/types';
 import {
     declarationToPretty,
@@ -73,7 +48,7 @@ export const CellView = ({
 }: CellProps) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     return (
-        <div style={{ width: 300, padding: 4 }}>
+        <div style={{ width: 500, padding: 4 }}>
             {editing ? (
                 <Editor
                     env={env}
@@ -219,8 +194,9 @@ const RenderItem = ({
                 style={{
                     fontFamily: '"Source Code Pro", monospace',
                     whiteSpace: 'pre-wrap',
-                    padding: 16,
+                    padding: 8,
                 }}
+                onClick={() => onEdit()}
             >
                 {renderAttributedText(
                     printToAttributedText(toplevelToPretty(env, top), maxWidth),

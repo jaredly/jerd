@@ -557,13 +557,15 @@ export type EffectDef = {
     location: Location;
 };
 
+export const defaultRng = (seed: string = 'seed') => seedrandom(seed);
+
 export const newEnv = (
     self: { name: string; type: Type },
     seed: string = 'seed',
 ): Env => ({
     depth: 0,
     global: {
-        rng: seedrandom(seed),
+        rng: defaultRng(seed),
         names: {},
         idNames: {},
         terms: {},
