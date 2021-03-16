@@ -58,13 +58,16 @@ export const renderAttributedText = (
             // (env.typeNames[item.text]
             //     ? idName(env.typeNames[item.text])
             //     : '') !== item.id;
-            if (showHash && !colorMap[item.id] && item.id.startsWith('sym')) {
+            if (!colorMap[item.id] && item.id.startsWith('sym')) {
                 colorMap[item.id] = idColors[colorAt++ % idColors.length];
             }
             return (
                 <span
                     style={{
-                        color: item.kind === 'sym' ? '#9CDCFE' : '#4EC9B0',
+                        color:
+                            item.kind === 'sym'
+                                ? colorMap[item.id] || '#9CDCFE'
+                                : '#4EC9B0',
                         cursor: onClick ? 'pointer' : 'inherit',
                     }}
                     onMouseDown={(evt) => {}}
