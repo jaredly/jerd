@@ -32,6 +32,7 @@ import { typeHandle } from './terms/handle';
 import { typeRecord } from './terms/record';
 import { typeApply } from './terms/apply';
 import { typeSwitch } from './terms/switch';
+import { typeOps } from './terms/ops';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -328,63 +329,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
         }
         case 'ops': {
-            // ok, left associative, right? I think so.
-            let left: Term = typeExpr(env, expr.first);
-            expr.rest.forEach(({ op, right, location }) => {
-                let is = env.global.builtins[op];
-                if (!is) {
-                    throw new Error(`Unexpected binary op ${op}`);
-                }
-                if (is.type !== 'lambda') {
-                    throw new Error(`${op} is not a function`);
-                }
-                if (is.args.length !== 2) {
-                    throw new Error(`${op} is not a binary function`);
-                }
-                const rarg = typeExpr(env, right);
-
-                if (is.typeVbls.length === 1) {
-                    if (!typesEqual(left.is, rarg.is)) {
-                        throw new Error(
-                            `Binops must have same-typed arguments: ${showType(
-                                env,
-                                left.is,
-                            )} vs ${showType(env, rarg.is)} at ${showLocation(
-                                left.location,
-                            )}`,
-                        );
-                    }
-                    is = applyTypeVariables(env, is, [left.is]) as LambdaType;
-                }
-
-                if (fitsExpectation(env, left.is, is.args[0]) !== true) {
-                    throw new Error(`first arg to ${op} wrong type`);
-                }
-                if (fitsExpectation(env, rarg.is, is.args[1]) !== true) {
-                    throw new Error(`second arg to ${op} wrong type`);
-                }
-                left = {
-                    type: 'apply',
-                    location:
-                        left.location && right.location
-                            ? {
-                                  start: left.location.start,
-                                  end: right.location.end,
-                              }
-                            : null,
-                    target: {
-                        location,
-                        type: 'ref',
-                        ref: { type: 'builtin', name: op },
-                        is,
-                    },
-                    effectVbls: null,
-                    typeVbls: [],
-                    args: [left, rarg],
-                    is: is.res,
-                };
-            });
-            return left;
+            return typeOps(env, expr);
         }
         case 'WithSuffix': {
             let target = typeExpr(env, expr.target);
