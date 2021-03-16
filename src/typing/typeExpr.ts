@@ -235,6 +235,19 @@ export const applyTypeVariables = (
 
 const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
     switch (expr.type) {
+        case 'float':
+            return {
+                type: 'float',
+                value: expr.value,
+                location: expr.location,
+                is: {
+                    type: 'ref',
+                    location: expr.location,
+                    ref: { type: 'builtin', name: 'float' },
+                    typeVbls: [],
+                    effectVbls: [],
+                },
+            };
         case 'int':
             return {
                 type: 'int',

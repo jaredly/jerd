@@ -124,7 +124,7 @@ ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:Com
 }
 AttributeSuffix = "." id:Identifier {return {type: 'Attribute', id, location: location()}}
 
-Apsub = Lambda / Block / Handle / Raise / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / Literal
+Apsub = Literal / Lambda / Block / Handle / Raise / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / Identifier
 
 EnumLiteral = id:Identifier typeVbls:TypeVblsApply? ":" expr:Expression {
     return {
@@ -182,7 +182,7 @@ Pattern = inner:PatternInner as_:(__ "as" __ Identifier)? {
     }
     return inner
 }
-PatternInner = RecordPattern / Literal
+PatternInner = RecordPattern / Literal / Identifier
 RecordPattern = id:Identifier "{" items:RecordPatternCommas "}" {
     return {type: 'Record', id, items, location: location()}
 }
@@ -303,9 +303,11 @@ CommaEffects =
 
 // ==== Literals ====
 
-Literal = Boolean / Int / Identifier / String
+Literal = Boolean / Float / Int / String 
 
 Boolean = v:("true" / "false") ![0-9a-zA-Z_] {return {type: 'boolean', location: location(), value: v === "true"}}
+Float "float"
+    = _ [0-9]+ "." [0-9]+ {return {type: 'float', value: parseFloat(text()), location: location()}}
 Int "int"
 	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}

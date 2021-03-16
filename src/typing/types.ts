@@ -281,11 +281,17 @@ export type Term =
     | Literal
     | Lambda;
 
-export type Literal = String | Int | Boolean;
+export type Literal = String | Float | Int | Boolean;
+export type Float = {
+    type: 'float';
+    location: Location | null;
+    value: number;
+    is: Type;
+};
 export type Int = {
     type: 'int';
     location: Location | null;
-    value: number; // TODO other builtin types
+    value: number;
     is: Type;
 };
 export type String = {
@@ -660,6 +666,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                     .concat(t.no ? getEffects(t.no) : []),
             );
         case 'int':
+        case 'float':
         case 'string':
         case 'boolean':
         case 'lambda':

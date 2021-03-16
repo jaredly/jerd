@@ -62,10 +62,10 @@ export function presetEnv() {
         location: null,
     };
     env.global.builtins['=='] = pureFunction([T0, T0], bool, [T]);
-    env.global.builtins['+'] = pureFunction([int, int], int);
-    env.global.builtins['-'] = pureFunction([int, int], int);
-    env.global.builtins['/'] = pureFunction([int, int], int);
-    env.global.builtins['*'] = pureFunction([int, int], int);
+    env.global.builtins['+'] = pureFunction([T0, T0], T0, [T]);
+    env.global.builtins['-'] = pureFunction([T0, T0], T0, [T]);
+    env.global.builtins['/'] = pureFunction([T0, T0], T0, [T]);
+    env.global.builtins['*'] = pureFunction([T0, T0], T0, [T]);
     env.global.builtins['log'] = pureFunction([string], void_);
     // const concat = <T>(one: Array<T>, two: Array<T>) => Array<T>
     const array = builtinType('Array', [T0]);

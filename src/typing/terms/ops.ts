@@ -104,8 +104,6 @@ const precedence = [['=='], ['++', '+', '-'], ['/', '*'], ['^']];
 
 type Section = {
     ops: Ops;
-    // first: Expression,
-    // rest: Array<{op: string, right: Expression, location: Location}>,
     op: string | null;
 };
 

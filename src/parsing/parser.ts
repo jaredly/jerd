@@ -255,7 +255,7 @@ export type LambdaType = {
     location: Location;
 };
 
-export type Literal = Int | Identifier | String | Boolean;
+export type Literal = Float | Int | Identifier | String | Boolean;
 // export type IdentifierWithType = {
 //     type: 'IdentifierWithType';
 //     id: Identifier;
@@ -267,6 +267,7 @@ export type Identifier = {
     location: Location;
     hash: string | null;
 };
+export type Float = { type: 'float'; value: number; location: Location };
 export type Int = { type: 'int'; value: number; location: Location };
 export type String = { type: 'string'; text: string; location: Location };
 export type Boolean = { type: 'boolean'; value: boolean; location: Location };

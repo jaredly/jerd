@@ -267,6 +267,13 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         case 'boolean':
             return atom(term.value.toString(), ['bool', 'literal']);
+        case 'float':
+            return atom(
+                Math.floor(term.value) === term.value
+                    ? term.value.toFixed(1)
+                    : term.value.toString(),
+                ['float', 'literal'],
+            );
         case 'int':
             return atom(term.value.toString(), ['int', 'literal']);
         case 'string':
@@ -529,7 +536,10 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         default:
             let _x: never = term;
-            return atom('not yet printable: ' + JSON.stringify(term));
+            return atom(
+                'not yet printable (reparse will of course fail): ' +
+                    JSON.stringify(term),
+            );
     }
 };
 
@@ -544,6 +554,7 @@ const patternToPretty = (env: Env, pattern: Pattern): PP => {
     switch (pattern.type) {
         case 'string':
         case 'int':
+        case 'float':
         case 'boolean':
             return termToPretty(env, pattern as Term);
         case 'Alias':

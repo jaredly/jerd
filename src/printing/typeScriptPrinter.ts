@@ -72,7 +72,9 @@ export const printType = (env: Env, type: Type): string => {
     switch (type.type) {
         case 'ref':
             if (type.ref.type === 'builtin') {
-                return type.ref.name === 'int' ? 'number' : type.ref.name;
+                return type.ref.name === 'int' || type.ref.name === 'float'
+                    ? 'number'
+                    : type.ref.name;
             } else {
                 return type.ref.id.hash;
             }
@@ -124,7 +126,9 @@ export const typeToAst = (
             if (type.ref.type === 'builtin') {
                 return t.tsTypeReference(
                     t.identifier(
-                        type.ref.name === 'int' ? 'number' : type.ref.name,
+                        type.ref.name === 'int' || type.ref.name === 'float'
+                            ? 'number'
+                            : type.ref.name,
                     ),
                 );
             } else {
@@ -404,6 +408,7 @@ export const declarationToString = (
 const isConstant = (arg: Term) => {
     switch (arg.type) {
         case 'int':
+        case 'float':
         case 'string':
         case 'ref':
         case 'var':
@@ -416,6 +421,7 @@ const isConstant = (arg: Term) => {
 const isSimple = (arg: Term) => {
     switch (arg.type) {
         case 'int':
+        case 'float':
         case 'string':
         case 'ref':
         case 'var':
@@ -823,8 +829,9 @@ const _printTerm = (
                 type: 'user',
                 id: { hash: env.local.self.name, size: 1, pos: 0 },
             });
-            return t.identifier(`hash_${env.local.self.name}`);
+        // return t.identifier(`hash_${env.local.self.name}`);
         case 'int':
+        case 'float':
             return t.numericLiteral(term.value);
         case 'ref': {
             return {
@@ -1292,7 +1299,7 @@ const printPattern = (
                 success,
             ),
         ]);
-    } else if (pattern.type === 'int') {
+    } else if (pattern.type === 'int' || pattern.type === 'float') {
         return t.blockStatement([
             t.ifStatement(
                 t.binaryExpression(
