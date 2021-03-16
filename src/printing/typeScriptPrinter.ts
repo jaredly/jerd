@@ -47,8 +47,9 @@ function withLocation<
 }
 
 export type OutputOptions = {
-    readonly scope?: string | null;
-    readonly noTypes?: boolean | null;
+    readonly scope?: string;
+    readonly noTypes?: boolean;
+    readonly limitExecutionTime?: boolean;
 };
 
 export const termToString = (
@@ -226,6 +227,32 @@ export const typeToAst = (
 // ): t.Expression => {
 //     return t.callExpression(t.arrowFunctionExpression([id], body), [v]);
 // };
+
+export const withExecutionLimit = (
+    env: Env,
+    opts: OutputOptions,
+    body: t.BlockStatement | t.Expression,
+): t.BlockStatement | t.Expression => {
+    if (!opts.limitExecutionTime) {
+        return body;
+    }
+    return t.blockStatement([
+        t.expressionStatement(
+            t.callExpression(
+                opts.scope
+                    ? t.memberExpression(
+                          t.identifier(opts.scope),
+                          t.identifier('checkExecutionLimit'),
+                      )
+                    : t.identifier('$checkExecutionLimit'),
+                [],
+            ),
+        ),
+        ...(body.type === 'BlockStatement'
+            ? body.body
+            : [t.returnStatement(body)]),
+    ]);
+};
 
 export const printLambdaBody = (
     env: Env,
@@ -833,11 +860,15 @@ const _printTerm = (
                                 directVersion.args.map((arg) =>
                                     t.identifier(printSym(arg)),
                                 ),
-                                printLambdaBody(
+                                withExecutionLimit(
                                     env,
                                     opts,
-                                    directVersion.body,
-                                    null,
+                                    printLambdaBody(
+                                        env,
+                                        opts,
+                                        directVersion.body,
+                                        null,
+                                    ),
                                 ),
                             ),
                         ),
@@ -851,7 +882,12 @@ const _printTerm = (
             } else {
                 return t.arrowFunctionExpression(
                     term.args.map((arg) => t.identifier(printSym(arg))),
-                    printLambdaBody(env, opts, term.body, null),
+                    withExecutionLimit(
+                        env,
+                        opts,
+
+                        printLambdaBody(env, opts, term.body, null),
+                    ),
                 );
             }
         case 'var':
@@ -1378,7 +1414,11 @@ const effectfulLambda = (env: Env, opts: OutputOptions, term: Lambda) => {
                     ),
                 },
             ]),
-        printLambdaBody(env, opts, term.body, t.identifier('done')),
+        withExecutionLimit(
+            env,
+            opts,
+            printLambdaBody(env, opts, term.body, t.identifier('done')),
+        ),
     );
 };
 

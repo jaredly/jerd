@@ -457,7 +457,8 @@ const processFile = (
     const ast = fileToTypescript(
         expressions,
         env,
-        { scope: 'jdScope' },
+        // { scope: 'jdScope'},
+        {},
         // { scope: null },
         assert,
         true,

@@ -81,6 +81,11 @@ export const fileToTypescript = (
                             t.identifier('terms'),
                             t.objectExpression([]),
                         ),
+                        // Blank execution limit
+                        t.objectProperty(
+                            t.identifier('checkExecutionLimit'),
+                            t.arrowFunctionExpression([], t.nullLiteral()),
+                        ),
                     ]),
                 ),
             ]),
