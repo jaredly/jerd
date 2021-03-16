@@ -36,19 +36,23 @@ export type CellProps = {
     env: Env;
     onChange: (env: Env, cell: Cell) => void;
     onRun: (id: Id) => void;
+    onRemove: () => void;
     evalEnv: EvalEnv;
+    addCell: (content: Content) => void;
 };
 
 export const CellView = ({
     cell,
     env,
     onChange,
+    onRemove,
     onRun,
     evalEnv,
+    addCell,
 }: CellProps) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     return (
-        <div style={{ width: 500, padding: 4 }}>
+        <div style={{ width: 500, padding: 4, position: 'relative' }}>
             {editing ? (
                 <Editor
                     env={env}
@@ -82,11 +86,18 @@ export const CellView = ({
                 <RenderItem
                     content={cell.content}
                     onEdit={() => setEditing(true)}
+                    addCell={addCell}
                     env={env}
                     evalEnv={evalEnv}
                     onRun={onRun}
                 />
             )}
+            <button
+                onClick={onRemove}
+                style={{ position: 'absolute', top: 8, left: '100%' }}
+            >
+                x
+            </button>
         </div>
     );
 };
@@ -109,19 +120,51 @@ const RenderResult = ({ id, env, evalEnv, onRun }) => {
     );
 };
 
+const recordContent = (env: Env, hash: string): Content => {
+    return {
+        type: 'record',
+        id: { hash, size: 1, pos: 0 },
+        name: env.global.idNames[hash],
+        attrs: env.global.recordGroups[hash],
+    };
+};
+
 const RenderItem = ({
     env,
     content,
     evalEnv,
     onRun,
     onEdit,
+    addCell,
 }: {
     env: Env;
     content: Content;
     evalEnv: EvalEnv;
     onRun: (id: Id) => void;
+    addCell: (content: Content) => void;
     onEdit: () => void;
 }) => {
+    const onClick = (id, kind) => {
+        console.log(kind);
+        if (kind === 'term') {
+            addCell({
+                type: 'term',
+                id: { hash: id, size: 1, pos: 0 },
+                name: env.global.idNames[id],
+            });
+            return true;
+        } else if (kind === 'type') {
+            if (env.global.types[id].type === 'Record') {
+                addCell(recordContent(env, id));
+                return true;
+            } else {
+                return false;
+            }
+        } else if (kind === 'record') {
+            addCell(recordContent(env, id));
+            return true;
+        }
+    };
     // if (content.type === 'record')
     if (content.type === 'expr') {
         const id = idName(content.id);
@@ -145,6 +188,7 @@ const RenderItem = ({
                             termToPretty(env, term),
                             maxWidth,
                         ),
+                        onClick,
                     )}
                     <div style={styles.hash}>#{id}</div>
                 </div>
@@ -185,6 +229,7 @@ const RenderItem = ({
                             ),
                             maxWidth,
                         ),
+                        onClick,
                     )}
                     <div style={styles.hash}>#{id}</div>
                 </div>
@@ -225,6 +270,7 @@ const RenderItem = ({
             >
                 {renderAttributedText(
                     printToAttributedText(toplevelToPretty(env, top), maxWidth),
+                    onClick,
                 )}
                 <div style={styles.hash}>#{idName(content.id)}</div>
             </div>

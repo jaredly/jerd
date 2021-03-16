@@ -16,26 +16,9 @@ import generate from '@babel/generator';
 import { idName } from '../../src/typing/env';
 import { Env, Id, defaultRng, selfEnv } from '../../src/typing/types';
 import { printTerm } from '../../src/printing/typeScriptPrinter';
-import { CellView, Cell, EvalEnv } from './Cell';
+import { CellView, Cell, EvalEnv, Content } from './Cell';
 
 // Yea
-
-// const toJs = (raw: string) => {
-//     const parsed: Array<Toplevel> = parse(raw);
-
-//     const { expressions, env } = typeFile(parsed);
-//     const ast = fileToTypescript(expressions, env, {}, true, false);
-//     removeTypescriptTypes(ast);
-//     const { code, map } = generate(ast, {
-//         sourceMaps: true,
-//         sourceFileName: 'hello.jd',
-//     });
-//     return code;
-// };
-
-// const setupEnv = () => {
-//     const env = presetEnv()
-// }
 
 type State = {
     env: Env;
@@ -139,11 +122,19 @@ const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
     return result;
 };
 
+const contentMatches = (one: Content, two: Content) => {
+    if (one.type === 'raw' || two.type === 'raw') {
+        return false;
+    }
+    return one.type === two.type && idName(one.id) === idName(two.id);
+};
+
 export default () => {
     const [state, setState] = React.useState(() => initialState());
     React.useEffect(() => {
         window.localStorage.setItem(saveKey, JSON.stringify(state));
     }, [state]);
+    // @ts-ignore
     window.evalEnv = state.evalEnv;
     return (
         <div
@@ -162,6 +153,13 @@ export default () => {
                     env={state.env}
                     cell={state.cells[id]}
                     evalEnv={state.evalEnv}
+                    onRemove={() => {
+                        setState((state) => {
+                            const cells = { ...state.cells };
+                            delete cells[id];
+                            return { ...state, cells };
+                        });
+                    }}
                     onRun={(id) => {
                         console.log('Running', id, state.env, state.evalEnv);
                         let result;
@@ -180,6 +178,26 @@ export default () => {
                                     ...state.evalEnv.terms,
                                     [idName(id)]: result,
                                 },
+                            },
+                        }));
+                    }}
+                    addCell={(content) => {
+                        if (
+                            Object.keys(state.cells).some((id) =>
+                                contentMatches(
+                                    content,
+                                    state.cells[id].content,
+                                ),
+                            )
+                        ) {
+                            return;
+                        }
+                        const id = genId();
+                        setState((state) => ({
+                            ...state,
+                            cells: {
+                                ...state.cells,
+                                [id]: { ...blankCell, id, content },
                             },
                         }));
                     }}

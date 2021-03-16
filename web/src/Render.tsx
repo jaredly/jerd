@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { AttributedText } from '../../src/printing/printer';
+import { Content } from './Cell';
 
 const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('string')) {
@@ -20,7 +21,10 @@ const stylesForAttributes = (attributes: Array<string>) => {
     return { color: '#aaa' };
 };
 
-export const renderAttributedText = (text: Array<AttributedText>) => {
+export const renderAttributedText = (
+    text: Array<AttributedText>,
+    onClick?: (id: string, kind: string) => boolean | null,
+) => {
     return text.map((item, i) => {
         if (typeof item === 'string') {
             return <span key={i}>{item}</span>;
@@ -30,6 +34,14 @@ export const renderAttributedText = (text: Array<AttributedText>) => {
                 <span
                     style={{
                         color: item.kind === 'sym' ? '#9CDCFE' : '#4EC9B0',
+                        cursor: 'pointer',
+                    }}
+                    onMouseDown={(evt) => {}}
+                    onClick={(evt) => {
+                        if (onClick && onClick(item.id, item.kind)) {
+                            evt.preventDefault();
+                            evt.stopPropagation();
+                        }
                     }}
                     key={i}
                     title={item.id + ' ' + item.kind}
