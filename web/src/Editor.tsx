@@ -99,6 +99,7 @@ export default ({
                     : typed == null
                     ? null
                     : renderAttributedText(
+                          env.global,
                           printToAttributedText(
                               toplevelToPretty(env, typed),
                               50,

@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { AttributedText } from '../../src/printing/printer';
+import { idName } from '../../src/typing/env';
+import { GlobalEnv } from '../../src/typing/types';
 import { Content } from './Cell';
 
 const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('string')) {
         return { color: '#ce9178' };
     }
-    if (attributes.includes('int')) {
+    if (attributes.includes('int') || attributes.includes('float')) {
         return { color: '#b5cea8' };
     }
     if (attributes.includes('bool')) {
@@ -16,12 +18,13 @@ const stylesForAttributes = (attributes: Array<string>) => {
         return { color: '#C586C0' };
     }
     if (attributes.includes('literal')) {
-        return { color: 'red' };
+        return { color: '#faa' };
     }
     return { color: '#aaa' };
 };
 
 export const renderAttributedText = (
+    env: GlobalEnv,
     text: Array<AttributedText>,
     onClick?: (id: string, kind: string) => boolean | null,
 ) => {
@@ -30,6 +33,12 @@ export const renderAttributedText = (
             return <span key={i}>{item}</span>;
         }
         if ('kind' in item) {
+            const showHash =
+                (env.names[item.text] ? idName(env.names[item.text]) : '') !==
+                    item.id &&
+                (env.typeNames[item.text]
+                    ? idName(env.typeNames[item.text])
+                    : '') !== item.id;
             return (
                 <span
                     style={{
@@ -46,7 +55,7 @@ export const renderAttributedText = (
                     key={i}
                     title={item.id + ' ' + item.kind}
                 >
-                    {item.text}
+                    {item.text + (showHash ? '#' + item.id : '')}
                 </span>
             );
         }

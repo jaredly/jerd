@@ -184,6 +184,7 @@ const RenderItem = ({
                     onClick={() => onEdit()}
                 >
                     {renderAttributedText(
+                        env.global,
                         printToAttributedText(
                             termToPretty(env, term),
                             maxWidth,
@@ -218,6 +219,7 @@ const RenderItem = ({
                     }}
                 >
                     {renderAttributedText(
+                        env.global,
                         printToAttributedText(
                             declarationToPretty(
                                 selfEnv(env, {
@@ -269,6 +271,7 @@ const RenderItem = ({
                 onClick={() => onEdit()}
             >
                 {renderAttributedText(
+                    env.global,
                     printToAttributedText(toplevelToPretty(env, top), maxWidth),
                     onClick,
                 )}
