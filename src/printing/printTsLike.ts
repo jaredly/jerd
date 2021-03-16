@@ -464,28 +464,6 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     );
                 }
             });
-            if (term.base.type === 'Concrete') {
-                const names = env.global.recordGroups[idName(term.base.ref.id)];
-                const rid = refName(term.base.ref);
-                res.push(
-                    ...(term.base.rows
-                        .map((t, i) =>
-                            t
-                                ? items([
-                                      idPretty(
-                                          names[i],
-                                          rid + '#' + i.toString(),
-                                          'attribute',
-                                      ),
-                                      //   atom(names[i] + '#' + i),
-                                      atom(': '),
-                                      termToPretty(env, t),
-                                  ])
-                                : null,
-                        )
-                        .filter(Boolean) as Array<PP>),
-                );
-            }
             Object.keys(term.subTypes).forEach((id) => {
                 const sub = term.subTypes[id];
                 const names = env.global.recordGroups[id];
@@ -508,6 +486,28 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 // decl.items.forEach((item, i) => {
                 // })
             });
+            if (term.base.type === 'Concrete') {
+                const names = env.global.recordGroups[idName(term.base.ref.id)];
+                const rid = refName(term.base.ref);
+                res.push(
+                    ...(term.base.rows
+                        .map((t, i) =>
+                            t
+                                ? items([
+                                      idPretty(
+                                          names[i],
+                                          rid + '#' + i.toString(),
+                                          'attribute',
+                                      ),
+                                      //   atom(names[i] + '#' + i),
+                                      atom(': '),
+                                      termToPretty(env, t),
+                                  ])
+                                : null,
+                        )
+                        .filter(Boolean) as Array<PP>),
+                );
+            }
             return items([
                 term.base.type === 'Concrete'
                     ? refToPretty(env, term.base.ref, 'record')

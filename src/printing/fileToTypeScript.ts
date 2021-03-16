@@ -70,9 +70,17 @@ export const fileToTypescript = (
         'ln',
         'PI',
         'TAU',
+        // Probably want to group these...
         'sqrt',
         'max',
         'min',
+        'sin',
+        'cos',
+        'tan',
+        'asin',
+        'acos',
+        'atan',
+        'atan2',
     ];
 
     if (opts.scope) {

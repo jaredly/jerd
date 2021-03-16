@@ -73,6 +73,13 @@ export function presetEnv() {
     env.global.builtins['min'] = pureFunction([float, float], float);
     env.global.builtins['sqrt'] = pureFunction([float], float);
     env.global.builtins['ln'] = pureFunction([float], float);
+    env.global.builtins['sin'] = pureFunction([float], float);
+    env.global.builtins['cos'] = pureFunction([float], float);
+    env.global.builtins['tan'] = pureFunction([float], float);
+    env.global.builtins['asin'] = pureFunction([float], float);
+    env.global.builtins['acos'] = pureFunction([float], float);
+    env.global.builtins['atan'] = pureFunction([float], float);
+    env.global.builtins['atan2'] = pureFunction([float, float], float);
     env.global.builtins['PI'] = float;
     env.global.builtins['TAU'] = float;
 
