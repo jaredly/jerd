@@ -135,6 +135,7 @@ const RenderItem = ({
                     style={{
                         fontFamily: '"Source Code Pro", monospace',
                         whiteSpace: 'pre-wrap',
+                        position: 'relative',
                         padding: 8,
                     }}
                     onClick={() => onEdit()}
@@ -145,6 +146,7 @@ const RenderItem = ({
                             maxWidth,
                         ),
                     )}
+                    <div style={styles.hash}>#{id}</div>
                 </div>
                 <RenderResult
                     id={content.id}
@@ -167,6 +169,7 @@ const RenderItem = ({
                     style={{
                         fontFamily: '"Source Code Pro", monospace',
                         whiteSpace: 'pre-wrap',
+                        position: 'relative',
                         padding: 8,
                     }}
                 >
@@ -176,6 +179,7 @@ const RenderItem = ({
                             maxWidth,
                         ),
                     )}
+                    <div style={styles.hash}>#{id}</div>
                 </div>
                 <RenderResult
                     id={content.id}
@@ -186,7 +190,20 @@ const RenderItem = ({
             </div>
         );
     } else if (content.type === 'raw') {
-        return <div onClick={() => onEdit()}>Raw text: {content.text}</div>;
+        return (
+            <div
+                onClick={() => onEdit()}
+                style={{
+                    fontFamily: '"Source Code Pro", monospace',
+                    whiteSpace: 'pre-wrap',
+                    position: 'relative',
+                    padding: 8,
+                }}
+            >
+                {content.text}
+                <div style={styles.hash}>raw</div>
+            </div>
+        );
     } else {
         const top = getToplevel(env, content);
         return (
@@ -194,6 +211,7 @@ const RenderItem = ({
                 style={{
                     fontFamily: '"Source Code Pro", monospace',
                     whiteSpace: 'pre-wrap',
+                    position: 'relative',
                     padding: 8,
                 }}
                 onClick={() => onEdit()}
@@ -201,9 +219,20 @@ const RenderItem = ({
                 {renderAttributedText(
                     printToAttributedText(toplevelToPretty(env, top), maxWidth),
                 )}
+                <div style={styles.hash}>#{idName(content.id)}</div>
             </div>
         );
     }
+};
+
+const styles = {
+    hash: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        fontSize: '80%',
+        color: 'rgba(255,255,255,0.5)',
+    },
 };
 
 const getToplevel = (env: Env, content: Content): ToplevelT => {

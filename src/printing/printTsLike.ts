@@ -442,6 +442,14 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     items([atom('...'), termToPretty(env, term.base.spread)]),
                 );
             }
+            Object.keys(term.subTypes).forEach((id) => {
+                const sub = term.subTypes[id];
+                if (sub.spread) {
+                    res.push(
+                        items([atom('...'), termToPretty(env, sub.spread)]),
+                    );
+                }
+            });
             if (term.base.type === 'Concrete') {
                 const names = env.global.recordGroups[idName(term.base.ref.id)];
                 const rid = refName(term.base.ref);
@@ -467,12 +475,6 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             Object.keys(term.subTypes).forEach((id) => {
                 const sub = term.subTypes[id];
                 const names = env.global.recordGroups[id];
-                const decl = env.global.types[id];
-                if (sub.spread) {
-                    res.push(
-                        items([atom('...'), termToPretty(env, sub.spread)]),
-                    );
-                }
                 sub.rows.forEach((row, i) => {
                     if (row != null) {
                         res.push(
