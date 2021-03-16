@@ -146,8 +146,8 @@ const pickTrue: <T,>(() ={Decide}> T) => T = <T,>(fn: () ={Decide}> T): T => han
     pure(x) => x
 }
 const chooseDiff = () ={Decide}> {
-    const x1 = choose(15, 30);
-    const x2 = choose(5, 10);
+    const x1 = choose<int>(15, 30);
+    const x2 = choose<int>(5, 10);
     x1 - x2
 }
 pickTrue<int>(chooseDiff) == 10
@@ -167,7 +167,6 @@ pickMax(chooseDiff) == 25
 effect Fail {
     fail: () => int, // TODO this should really be an exit continuation...
 }
-const decide = () ={Decide}> raise!(Decide.decide())
 const fail = () ={Fail}> raise!(Fail.fail())
 
 const chooseInt: (int, int) ={Decide, Fail}> int = (m: int, n: int): int ={Decide, Fail}> {

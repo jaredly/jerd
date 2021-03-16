@@ -16,8 +16,9 @@ export const typeApply = (
     target: Term,
     suffix: ApplySuffix,
 ): Term => {
-    const { args, typevbls, effectVbls } = suffix;
-    if (typevbls.length) {
+    const { args, effectVbls } = suffix;
+    const typeVbls = suffix.typevbls.map((t) => typeType(env, t));
+    if (suffix.typevbls.length) {
         // HERMMM This might be illegal.
         // or rather, doing it like this
         // does weird things to the pretty-printing end.
@@ -25,11 +26,7 @@ export const typeApply = (
         // @ts-ignore
         target = {
             ...target,
-            is: applyTypeVariables(
-                env,
-                target.is,
-                typevbls.map((t) => typeType(env, t)),
-            ) as LambdaType,
+            is: applyTypeVariables(env, target.is, typeVbls) as LambdaType,
         };
     }
 
@@ -45,9 +42,9 @@ export const typeApply = (
             is: applyEffectVariables(env, target.is, mappedVbls) as LambdaType,
         };
         // console.log(
-        //     `Mapped effect variables - ${showType(
+        //     `Mapped effect variables - ${showType(env,
         //         pre,
-        //     )} ---> ${showType(target.is)}`,
+        //     )} ---> ${showType(env, target.is)}`,
         // );
     }
 
@@ -73,13 +70,15 @@ export const typeApply = (
     } else {
         if (target.is.type !== 'lambda') {
             throw new Error(
-                `Trying to call ${showType(target.is)} at ${showLocation(
+                `Trying to call ${showType(env, target.is)} at ${showLocation(
                     target.location,
                 )}`,
             );
         }
         if (target.is.args.length !== args.length) {
-            throw new Error(`Wrong number of arguments ${showType(target.is)}`);
+            throw new Error(
+                `Wrong number of arguments ${showType(env, target.is)}`,
+            );
         }
         is = target.is;
     }
@@ -90,8 +89,9 @@ export const typeApply = (
         if (fitsExpectation(env, t.is, is.args[i]) !== true) {
             throw new Error(
                 `Wrong type for arg ${i}: \nFound: ${showType(
+                    env,
                     t.is,
-                )}\nbut expected ${showType(is.args[i])} : ${showLocation(
+                )}\nbut expected ${showType(env, is.args[i])} : ${showLocation(
                     t.location,
                 )}`,
             );
@@ -103,6 +103,8 @@ export const typeApply = (
         type: 'apply',
         // STOPSHIP(sourcemap): this should be better
         location: target.location,
+        typeVbls,
+        effectVbls: mappedVbls,
         hadAllVariableEffects:
             effectVbls != null &&
             prevEffects.length > 0 &&

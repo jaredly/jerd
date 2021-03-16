@@ -23,9 +23,18 @@ export type Symbol = { name: string; unique: number };
 export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
+export type Env = {
+    // oh here's where we would do kind?
+    // like args n stuff?
+    global: GlobalEnv;
+    local: LocalEnv;
+    depth: number;
+};
+
 export type GlobalEnv = {
     rng: () => number;
     names: { [key: string]: Id };
+    idNames: { [idName: string]: string };
     terms: { [key: string]: Term };
     builtins: { [key: string]: Type };
 
@@ -39,12 +48,9 @@ export type GlobalEnv = {
     recordGroups: { [key: string]: Array<string> };
     attributeNames: { [key: string]: { id: Id; idx: number } };
 
-    // allNames: {
-    //     attributes:
-    // },
-
     effectNames: { [key: string]: string };
     effectConstructors: { [key: string]: { hash: string; idx: number } };
+    effectConstrNames: { [idName: string]: Array<string> };
     effects: {
         [key: string]: Array<{
             args: Array<Type>;
@@ -121,6 +127,8 @@ export type CPSAble =
           type: 'apply';
           location: Location | null;
           target: Term;
+          typeVbls: Array<Type>;
+          effectVbls: Array<EffectRef> | null;
           hadAllVariableEffects?: boolean;
           args: Array<Term>;
           is: Type; // this matches the return type of target
@@ -273,11 +281,17 @@ export type Term =
     | Literal
     | Lambda;
 
-export type Literal = String | Int | Boolean;
+export type Literal = String | Float | Int | Boolean;
+export type Float = {
+    type: 'float';
+    location: Location | null;
+    value: number;
+    is: Type;
+};
 export type Int = {
     type: 'int';
     location: Location | null;
-    value: number; // TODO other builtin types
+    value: number;
     is: Type;
 };
 export type String = {
@@ -328,6 +342,7 @@ export type Lambda = {
 
 export type EnumDef = {
     type: 'Enum';
+    location: Location | null;
     typeVbls: Array<TypeVblDecl>;
     effectVbls: Array<number>;
     extends: Array<TypeReference>;
@@ -338,6 +353,7 @@ export type TypeDef = RecordDef | EnumDef;
 export type RecordDef = {
     type: 'Record';
     unique: number;
+    location: Location | null;
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
     extends: Array<Id>;
@@ -541,20 +557,23 @@ export type TypeConstraint =
       }
     | { type: 'larger-than'; other: Type }; // the sub type
 
-export type Env = {
-    // oh here's where we would do kind?
-    // like args n stuff?
-    global: GlobalEnv;
-    local: LocalEnv;
+export type EffectDef = {
+    type: 'EffectDef';
+    constrs: Array<{ args: Array<Type>; ret: Type }>;
+    location: Location;
 };
+
+export const defaultRng = (seed: string = 'seed') => seedrandom(seed);
 
 export const newEnv = (
     self: { name: string; type: Type },
     seed: string = 'seed',
 ): Env => ({
+    depth: 0,
     global: {
-        rng: seedrandom(seed),
+        rng: defaultRng(seed),
         names: {},
+        idNames: {},
         terms: {},
         builtins: {},
         builtinTypes: {},
@@ -565,6 +584,7 @@ export const newEnv = (
 
         effectNames: {},
         effectConstructors: {},
+        effectConstrNames: {},
         effects: {},
     },
     local: {
@@ -578,31 +598,57 @@ export const newEnv = (
     },
 });
 
-export const subEnv = (env: Env): Env => ({
-    global: {
-        rng: env.global.rng,
-        attributeNames: { ...env.global.attributeNames },
-        recordGroups: { ...env.global.recordGroups },
-        names: { ...env.global.names },
-        terms: { ...env.global.terms },
-        builtins: { ...env.global.builtins },
-        typeNames: { ...env.global.typeNames },
-        builtinTypes: { ...env.global.builtinTypes },
-        types: { ...env.global.types },
-        effectNames: { ...env.global.effectNames },
-        effectConstructors: { ...env.global.effectConstructors },
-        effects: { ...env.global.effects },
+export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
+    return {
+        rng: env.rng,
+        attributeNames: { ...env.attributeNames },
+        recordGroups: { ...env.recordGroups },
+        names: { ...env.names },
+        idNames: { ...env.idNames },
+        terms: { ...env.terms },
+        builtins: { ...env.builtins },
+        typeNames: { ...env.typeNames },
+        builtinTypes: { ...env.builtinTypes },
+        types: { ...env.types },
+        effectNames: { ...env.effectNames },
+        effectConstructors: { ...env.effectConstructors },
+        effectConstrNames: { ...env.effectConstrNames },
+        effects: { ...env.effects },
+    };
+};
+
+export const selfEnv = (
+    env: Env,
+    self: {
+        name: string;
+        type: Type;
     },
-    local: {
-        self: env.local.self,
-        effectVbls: { ...env.local.effectVbls },
-        locals: { ...env.local.locals },
-        unique: env.local.unique,
-        typeVbls: { ...env.local.typeVbls },
-        typeVblNames: { ...env.local.typeVblNames },
-        tmpTypeVbls: env.local.tmpTypeVbls,
-    },
-});
+): Env => {
+    return {
+        ...env,
+        local: {
+            ...env.local,
+            self,
+        },
+    };
+};
+
+export const subEnv = (env: Env): Env => {
+    // console.log('SUB ENV', env.depth, env.local.typeVbls);
+    return {
+        depth: env.depth + 1,
+        global: cloneGlobalEnv(env.global),
+        local: {
+            self: env.local.self,
+            effectVbls: { ...env.local.effectVbls },
+            locals: { ...env.local.locals },
+            unique: env.local.unique,
+            typeVbls: { ...env.local.typeVbls },
+            typeVblNames: { ...env.local.typeVblNames },
+            tmpTypeVbls: env.local.tmpTypeVbls,
+        },
+    };
+};
 
 // TODO need to resolve probably
 export const getEffects = (t: Term | Let): Array<EffectRef> => {
@@ -636,6 +682,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                     .concat(t.no ? getEffects(t.no) : []),
             );
         case 'int':
+        case 'float':
         case 'string':
         case 'boolean':
         case 'lambda':
@@ -693,16 +740,20 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
     }
 };
 
+// Normalizing the order of these on purpose
 export const dedupEffects = (effects: Array<EffectRef>) => {
-    const used: { [key: string]: boolean } = {};
-    return effects.filter((e) => {
+    const used: { [key: string]: EffectRef } = {};
+    effects.forEach((e) => {
         const k = effectKey(e);
         if (used[k]) {
             return false;
         }
-        used[k] = true;
+        used[k] = e;
         return true;
     });
+    return Object.keys(used)
+        .sort()
+        .map((k) => used[k]);
 };
 
 export const walkTerm = (

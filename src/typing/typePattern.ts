@@ -82,7 +82,9 @@ const typePattern = (
 
                 if (expectedType.type !== 'ref') {
                     console.log(pattern);
-                    throw new Error(`Not a type ${showType(expectedType)}`);
+                    throw new Error(
+                        `Not a type ${showType(env, expectedType)}`,
+                    );
                 }
                 const id = env.global.typeNames[pattern.text];
                 if (!id) {
@@ -90,6 +92,13 @@ const typePattern = (
                 }
 
                 const decl = env.global.types[idName(id)];
+                if (!decl) {
+                    throw new Error(
+                        `Type not found ${pattern.text} ${showLocation(
+                            pattern.location,
+                        )}`,
+                    );
+                }
                 if (decl.type === 'Enum') {
                     const allEnums = getEnumSuperTypes(env, expectedType);
                     let found = null;

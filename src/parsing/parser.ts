@@ -25,11 +25,13 @@ export type Effect = {
     type: 'effect';
     // TODO type variables!
     id: Identifier;
+    location: Location;
     constrs: Array<{ id: Identifier; type: LambdaType }>;
 };
 
 export type StructDef = {
     type: 'StructDef';
+    location: Location;
     id: Identifier;
     typeVbls: Array<TypeVbl>;
     decl: TypeDecl;
@@ -57,6 +59,7 @@ export type TypeDecl = RecordDecl;
 
 export type RecordDecl = {
     type: 'Record';
+    location: Location;
     items: Array<RecordItem>;
 };
 export type RecordItem = RecordRow | RecordSpread;
@@ -149,7 +152,7 @@ export type Ops = {
     type: 'ops';
     first: Expression;
     location: Location;
-    rest: Array<{ op: string; right: Expression }>;
+    rest: Array<{ op: string; right: Expression; location: Location }>;
 };
 export type Block = {
     type: 'block';
@@ -252,20 +255,26 @@ export type LambdaType = {
     location: Location;
 };
 
-export type Literal = Int | Identifier | String | Boolean;
+export type Literal = Float | Int | Identifier | String | Boolean;
 // export type IdentifierWithType = {
 //     type: 'IdentifierWithType';
 //     id: Identifier;
 //     vbls: Array<Type>;
 // };
-export type Identifier = { type: 'id'; text: string; location: Location };
+export type Identifier = {
+    type: 'id';
+    text: string;
+    location: Location;
+    hash: string | null;
+};
+export type Float = { type: 'float'; value: number; location: Location };
 export type Int = { type: 'int'; value: number; location: Location };
 export type String = { type: 'string'; text: string; location: Location };
 export type Boolean = { type: 'boolean'; value: boolean; location: Location };
 export type WithSuffix = {
     type: 'WithSuffix';
     target: Expression;
-    suffixes: Array<ApplySuffix | AttributeSuffix>;
+    suffixes: Array<ApplySuffix | AttributeSuffix | IndexSuffix>;
     location: { start: Loc; end: Loc };
 };
 export type ApplySuffix = {
@@ -278,6 +287,16 @@ export type AttributeSuffix = {
     type: 'Attribute';
     id: Identifier;
     location: Location;
+};
+export type IndexSuffix = {
+    type: 'Index';
+    location: Location;
+    slices: Array<Expression | Slice>;
+};
+export type Slice = {
+    type: 'Slice';
+    left: Expression | null;
+    right: Expression | null;
 };
 
 export default (raw: string): Array<Toplevel> => parse(raw);

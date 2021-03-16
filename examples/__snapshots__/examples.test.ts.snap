@@ -1341,6 +1341,8 @@ exports[`Type errors Expression 9 <T,>(x: int): T => x 1`] = `"Unable to unify i
 
 exports[`Type errors Expression 11 () ={}> raise!(GetString.get()) 1`] = `"Function is declared as pure, but is not. 1 effects found."`;
 
+exports[`Type errors Expression 12 <T,>(ok: T): string => hello(ok) 1`] = `"Identifier \\"hello\\" at 36:24-36:29 hasn't been defined anywhere."`;
+
 exports[`Type errors Expression 12 <T>(ok: T): string => hello(ok) 1`] = `"Explicit type variable T#0 can't unify with string - 36:9-36:10 : 5:22-5:28"`;
 
 exports[`Type errors Expression 13 (ok: string) => ok + 2 1`] = `"first arg to + wrong type"`;
@@ -1475,3 +1477,15 @@ exports[`Type errors Expression 28 handle! () => 4 {
 } 1`] = `"All case arms must have the same return type: int string"`;
 
 exports[`Type errors Expression 29 raise!(Undef.get()) 1`] = `"Unknown effect Undef"`;
+
+exports[`Type errors Expression 30 type Person = {
+    name: string,
+    age: int,
+    what: int,
+} 1`] = `"Unexpected parse type StructDef"`;
+
+exports[`Type errors Expression 31 Person{name: "Bob", age: "hi", what: 3} 1`] = `"No Record type Person at 111:1-111:40"`;
+
+exports[`Type errors Expression 32 Person{name: "Bob", age: 10, what: 3, age: 20} 1`] = `"No Record type Person at 113:1-113:47"`;
+
+exports[`Type errors Expression 33 Person{name: "Bob", age: 10} 1`] = `"No Record type Person at 115:1-115:29"`;

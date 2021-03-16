@@ -18,6 +18,19 @@ const identity = <T,>(x: T): T => x
 
 identity<string>("5") ++ "4" == "54"
 
+2 == 1 + 1
+
+// pemdas folks
+2 + 3 * 4 == 16 - 2
+
+@typeError("float vs int")
+2.2 * 2 == 1.1
+
+2.2 * 2.0 == 4.4
+
+2 ^ 3 == 8
+
+sqrt(2.0 * 2.0) == 2.0
 
 /** Effects */
 

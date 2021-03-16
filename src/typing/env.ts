@@ -5,13 +5,13 @@ import {
     Define,
     Effect,
     EnumDef,
+    Expression,
     Identifier,
     Location,
-    RecordDecl,
     RecordRow,
     RecordSpread,
     StructDef,
-    TypeVbl,
+    Toplevel,
 } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newEnvWithTypeAndEffectVbls, newTypeVbl } from './typeType';
@@ -29,34 +29,143 @@ import {
     TypeConstraint,
     EnumDef as TypeEnumDef,
     TypeReference,
+    Reference,
+    Symbol,
+    cloneGlobalEnv,
+    EffectDef,
 } from './types';
 import { fitsExpectation } from './unify';
+import { ToplevelT } from '../printing/printTsLike';
 
-export const typeEffect = (env: Env, item: Effect) => {
-    const constrs = item.constrs.map(({ type }) => {
-        return {
-            args: type.args ? type.args.map((a) => typeType(env, a)) : [],
-            ret: typeType(env, type.res),
-        };
-    });
-    const hash: string = hashObject(constrs);
-    env.global.effectNames[item.id.text] = hash;
-    item.constrs.forEach((c, i) => {
-        env.global.effectConstructors[item.id.text + '.' + c.id.text] = {
+export const typeToplevelT = (env: Env, item: Toplevel): ToplevelT => {
+    switch (item.type) {
+        case 'define': {
+            // TODO type annotation
+            const term = typeDefineInner(env, item);
+            const hash = hashObject(term);
+            const id = { hash, size: 1, pos: 0 };
+            return {
+                type: 'Define',
+                id,
+                term,
+                location: item.location,
+                name: item.id.text,
+            };
+        }
+        case 'StructDef': {
+            const defn = typeRecordDefn(env, item);
+            const hash = hashObject(defn);
+            return {
+                type: 'RecordDef',
+                def: defn,
+                id: { hash, size: 1, pos: 0 },
+                location: item.location!,
+                name: item.id.text,
+                attrNames: (item.decl.items.filter(
+                    (x) => x.type === 'Row',
+                ) as Array<RecordRow>).map((x) => x.id.text),
+            };
+        }
+        case 'EnumDef': {
+            const defn = typeEnumInner(env, item);
+            const hash = hashObject(defn);
+            return {
+                type: 'EnumDef',
+                def: defn,
+                id: { hash, size: 1, pos: 0 },
+                location: item.location!,
+                name: item.id.text,
+            };
+        }
+        case 'effect': {
+            const defn = typeEffectInner(env, item);
+            const hash = hashObject(defn);
+            return {
+                type: 'Effect',
+                effect: defn,
+                location: defn.location,
+                id: { hash, size: 1, pos: 0 },
+                name: item.id.text,
+                constrNames: item.constrs.map((c) => c.id.text),
+            };
+        }
+        default:
+            const term = typeExpr(env, item as Expression);
+            return {
+                type: 'Expression',
+                term,
+                location: item.location,
+            };
+    }
+};
+
+export const typeEffectInner = (env: Env, item: Effect): EffectDef => {
+    const defn: EffectDef = {
+        type: 'EffectDef',
+        constrs: item.constrs.map(({ type }) => {
+            return {
+                args: type.args ? type.args.map((a) => typeType(env, a)) : [],
+                ret: typeType(env, type.res),
+            };
+        }),
+        location: item.location,
+    };
+
+    return defn;
+};
+
+export const typeEffect = (env: Env, item: Effect): Env => {
+    const defn = typeEffectInner(env, item);
+
+    return addEffect(
+        env,
+        item.id.text,
+        item.constrs.map((c) => c.id.text),
+        defn,
+    );
+};
+
+// export const addToplevel = (
+//     env: Env,
+//     item: ToplevelT
+// ): {env: Env, id: Id} => {
+
+// }
+
+export const addEffect = (
+    env: Env,
+    name: string,
+    constrNames: Array<string>,
+    defn: EffectDef,
+) => {
+    const hash: string = hashObject(defn);
+    const id = { hash, size: 1, pos: 0 };
+    if (env.global.effects[hash]) {
+        throw new Error(
+            `Redefining effect ${hash} at ${showLocation(defn.location)}`,
+        );
+    }
+
+    const glob = cloneGlobalEnv(env.global);
+    glob.effectNames[name] = hash;
+    glob.idNames[idName(id)] = name;
+    glob.effectConstrNames[idName(id)] = constrNames;
+    constrNames.forEach((c, i) => {
+        glob.effectConstructors[name + '.' + c] = {
             idx: i,
             hash: hash,
         };
     });
-    env.global.effects[hash] = constrs;
+    // STOPSHIP bring this in
+    glob.effects[hash] = defn.constrs;
+    return { ...env, global: glob };
 };
 
-export const typeTypeDefn = (env: Env, { id, decl, typeVbls }: StructDef) => {
-    if (decl.type === 'Record') {
-        return typeRecord(env, id, typeVbls, decl);
-    }
+export const typeTypeDefn = (env: Env, defn: StructDef): Env => {
+    return typeRecord(env, defn).env;
 };
 
-export const typeEnumDefn = (env: Env, defn: EnumDef) => {
+export const typeEnumInner = (env: Env, defn: EnumDef) => {
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         defn.typeVbls,
@@ -78,15 +187,31 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
         typeVbls,
         effectVbls,
         extends: extend,
+        location: defn.location,
         items,
     };
+
+    return d;
+};
+
+export const typeEnumDefn = (env: Env, defn: EnumDef) => {
+    const d = typeEnumInner(env, defn);
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };
-    env.global.types[idName(idid)] = d;
-    env.global.typeNames[defn.id.text] = idid;
+    if (env.global.types[idName(idid)]) {
+        throw new Error(`Redefining ${idName(idid)}`);
+    }
+    const glob = cloneGlobalEnv(env.global);
+    glob.types[idName(idid)] = d;
+    glob.typeNames[defn.id.text] = idid;
+    glob.idNames[idName(idid)] = defn.id.text;
+    return { id: idid, env: { ...env, global: glob } };
 };
 
 export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
+
+export const refName = (ref: Reference) =>
+    ref.type === 'builtin' ? ref.name : idName(ref.id);
 
 export const resolveType = (env: GlobalEnv, id: Identifier) => {
     if (!env.typeNames[id.text]) {
@@ -95,49 +220,99 @@ export const resolveType = (env: GlobalEnv, id: Identifier) => {
     return env.typeNames[id.text];
 };
 
-export const typeRecord = (
+export const typeRecordDefn = (
     env: Env,
-    id: Identifier,
-    typeVblsRaw: Array<TypeVbl>,
-    record: RecordDecl,
-) => {
-    const rows = record.items.filter(
-        (r) => r.type === 'Row',
-    ) as Array<RecordRow>;
-
+    { decl: record, id, typeVbls: typeVblsRaw, location }: StructDef,
+    unique?: number,
+): RecordDef => {
     // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
+    // console.log('RECORD', typeVblsRaw, showLocation(location));
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         typeVblsRaw,
         [],
     );
+    // console.log('EBLS', typeInner.local.typeVbls);
 
-    const defn: RecordDef = {
+    return {
         type: 'Record',
-        unique: env.global.rng(),
+        unique: unique || env.global.rng(),
         typeVbls,
+        location,
         effectVbls,
         extends: record.items
             .filter((r) => r.type === 'Spread')
             .map((r) =>
                 resolveType(typeInner.global, (r as RecordSpread).constr),
             ),
-        items: rows.map((r) => typeType(typeInner, (r as RecordRow).rtype)),
+        items: record.items
+            .filter((r) => r.type === 'Row')
+            .map((r) => typeType(typeInner, (r as RecordRow).rtype)),
     };
+};
+
+export const addRecord = (
+    env: Env,
+    name: string,
+    attrNames: Array<string>,
+    defn: RecordDef,
+): { id: Id; env: Env } => {
     const hash = hashObject(defn);
     const idid = { hash, pos: 0, size: 1 };
-    env.global.types[idName(idid)] = defn;
-    env.global.typeNames[id.text] = idid;
-    env.global.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
-    rows.forEach((r, i) => {
-        env.global.attributeNames[r.id.text] = { id: idid, idx: i };
+    if (env.global.types[idName(idid)]) {
+        throw new Error(`Redefining ${idName(idid)}`);
+    }
+    const glob = cloneGlobalEnv(env.global);
+    glob.types[idName(idid)] = defn;
+    glob.typeNames[name] = idid;
+    glob.idNames[idName(idid)] = name;
+    glob.recordGroups[idName(idid)] = attrNames;
+    attrNames.forEach((r, i) => {
+        glob.attributeNames[r] = { id: idid, idx: i };
     });
+    return { id: idid, env: { ...env, global: glob } };
+};
+
+export const typeRecord = (
+    env: Env,
+    defnRaw: StructDef,
+    // id: Identifier,
+    // typeVblsRaw: Array<TypeVbl>,
+    // record: RecordDecl,
+    unique?: number,
+): { id: Id; env: Env } => {
+    const rows = defnRaw.decl.items.filter(
+        (r) => r.type === 'Row',
+    ) as Array<RecordRow>;
+
+    const defn = typeRecordDefn(env, defnRaw, unique);
+    return addRecord(
+        env,
+        defnRaw.id.text,
+        rows.map((r) => r.id.text),
+        defn,
+    );
+
+    // const hash = hashObject(defn);
+    // const idid = { hash, pos: 0, size: 1 };
+    // if (env.global.types[idName(idid)]) {
+    //     throw new Error(`Redefining ${idName(idid)}`);
+    // }
+    // const glob = cloneGlobalEnv(env.global);
+    // glob.types[idName(idid)] = defn;
+    // glob.typeNames[defnRaw.id.text] = idid;
+    // glob.idNames[idName(idid)] = defnRaw.id.text;
+    // glob.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
+    // rows.forEach((r, i) => {
+    //     glob.attributeNames[r.id.text] = { id: idid, idx: i };
+    // });
+    // return { id: idid, env: { ...env, global: glob } };
 };
 
 export const hashObject = (obj: any): string =>
     hashObjectSum(withoutLocations(obj));
 
-const withoutLocations = <T>(obj: T): T => {
+export const withoutLocations = <T>(obj: T): T => {
     if (!obj) {
         return obj;
     }
@@ -150,6 +325,11 @@ const withoutLocations = <T>(obj: T): T => {
             if (key === 'location') {
                 return;
             }
+            // It's a symbol, ditch it for the purposes of hashing
+            // @ts-ignore
+            if (key === 'name' && obj.unique != null) {
+                return;
+            }
             // @ts-ignore
             res[key] = withoutLocations(obj[key]);
         });
@@ -158,7 +338,7 @@ const withoutLocations = <T>(obj: T): T => {
     return obj;
 };
 
-export const typeDefine = (env: Env, item: Define) => {
+export const typeDefineInner = (env: Env, item: Define) => {
     const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
     const subEnv: Env = {
         ...env,
@@ -190,10 +370,57 @@ export const typeDefine = (env: Env, item: Define) => {
 
     unifyToplevel(term, tmpTypeVbls);
 
+    return term;
+};
+
+export const typeDefine = (
+    env: Env,
+    item: Define,
+): { hash: string; term: Term; env: Env } => {
+    const term = typeDefineInner(env, item);
+
     const hash: string = hashObject(term);
-    env.global.names[item.id.text] = { hash: hash, size: 1, pos: 0 };
-    env.global.terms[hash] = term;
-    return { hash, term };
+    const id: Id = { hash: hash, size: 1, pos: 0 };
+    if (env.global.terms[hash]) {
+        throw new Error(
+            `Redefining ${hash} at ${showLocation(
+                item.location,
+            )} (previous at ${showLocation(env.global.terms[hash].location)})`,
+        );
+    }
+    const glob = cloneGlobalEnv(env.global);
+    glob.names[item.id.text] = id;
+    glob.idNames[idName(id)] = item.id.text;
+    glob.terms[hash] = term;
+    return { hash, term, env: { ...env, global: glob } };
+};
+
+export const addDefine = (env: Env, name: string, term: Term) => {
+    const hash: string = hashObject(term);
+    const id: Id = { hash: hash, size: 1, pos: 0 };
+    const glob = cloneGlobalEnv(env.global);
+    glob.names[name] = id;
+    glob.idNames[idName(id)] = name;
+    glob.terms[hash] = term;
+    return { id, env: { ...env, global: glob } };
+};
+
+export const addExpr = (env: Env, term: Term) => {
+    const hash = hashObject(term);
+    const id: Id = { hash: hash, size: 1, pos: 0 };
+    if (env.global.terms[hash]) {
+        console.warn(`Redefining ${hash}`);
+    }
+    return {
+        id,
+        env: {
+            ...env,
+            global: {
+                ...env.global,
+                terms: { ...env.global.terms, [hash]: term },
+            },
+        },
+    };
 };
 
 const unifyToplevel = (
@@ -243,23 +470,63 @@ const unifyToplevel = (
     // }
 };
 
-export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
-    // TODO abstract this into "resolveEffect" probably
-    if (env.local.effectVbls[id.text]) {
+export const resolveEffect = (
+    env: Env,
+    { text, location, hash }: Identifier,
+): EffectRef => {
+    if (hash != null) {
+        const [first, second] = hash.slice(1).split('#');
+
+        if (first === 'sym') {
+            const unique = +second;
+            let found: Symbol | null = null;
+            Object.keys(env.local.effectVbls).forEach((t) => {
+                if (env.local.effectVbls[t].unique === unique) {
+                    found = env.local.effectVbls[t];
+                }
+            });
+            if (!found) {
+                throw new Error(`Could not resolve effect symbol`);
+            }
+            return {
+                type: 'var',
+                location,
+                sym: found,
+            };
+        }
+
+        if (!env.global.effects[first]) {
+            throw new Error(
+                `Unknown effect hash ${hash} ${showLocation(location)}`,
+            );
+        }
+        const id = { hash: first, size: 1, pos: 0 };
         return {
-            type: 'var',
-            sym: env.local.effectVbls[id.text],
+            type: 'ref',
+            location,
+            ref: {
+                type: 'user',
+                id,
+            },
         };
     }
-    if (!env.global.effectNames[id.text]) {
-        throw new Error(`No effect named ${id.text}`);
+
+    // TODO abstract this into "resolveEffect" probably
+    if (env.local.effectVbls[text]) {
+        return {
+            type: 'var',
+            sym: env.local.effectVbls[text],
+        };
+    }
+    if (!env.global.effectNames[text]) {
+        throw new Error(`No effect named ${text}`);
     }
     return {
         type: 'ref',
         ref: {
             type: 'user',
             id: {
-                hash: env.global.effectNames[id.text],
+                hash: env.global.effectNames[text],
                 pos: 0,
                 size: 1,
             },
@@ -267,12 +534,68 @@ export const resolveEffect = (env: Env, id: Identifier): EffectRef => {
     };
 };
 
+// export const resolveTypeID = (
+//     env: Env,
+//     { text, location, hash }: Identifier,
+// ): Type | null => {
+
+// };
+
 // TODO type-directed resolution pleaseeeee
 export const resolveIdentifier = (
     env: Env,
-    text: string,
-    location: Location,
+    { text, location, hash }: Identifier,
 ): Term | null => {
+    if (hash != null) {
+        const [first, second] = hash.slice(1).split('#');
+
+        if (first === 'sym') {
+            const unique = +second;
+            let found: Type | null = null;
+            Object.keys(env.local.locals).forEach((t) => {
+                if (env.local.locals[t].sym.unique === unique) {
+                    found = env.local.locals[t].type;
+                }
+            });
+            if (!found) {
+                throw new Error(`Could not resolve symbol`);
+            }
+            return {
+                type: 'var',
+                location,
+                sym: { unique: unique, name: text },
+                is: found!,
+            };
+        }
+
+        if (!env.global.terms[first]) {
+            if (env.global.types[first]) {
+                const id = { hash: first, size: 1, pos: 0 };
+                const t = env.global.types[idName(id)];
+                if (
+                    t.type === 'Record' &&
+                    t.items.length === 0 &&
+                    t.extends.length === 0
+                ) {
+                    return plainRecord(id, location);
+                }
+            }
+
+            throw new Error(`Unknown hash ${hash} ${showLocation(location)}`);
+        }
+        const id = { hash: first, size: 1, pos: 0 };
+        const term = env.global.terms[first];
+        return {
+            type: 'ref',
+            location,
+            ref: {
+                type: 'user',
+                id,
+            },
+            is: term.is,
+        };
+    }
+
     if (env.local.locals[text]) {
         const { sym, type } = env.local.locals[text];
         return {
@@ -292,7 +615,7 @@ export const resolveIdentifier = (
     if (env.global.names[text]) {
         const id = env.global.names[text];
         const term = env.global.terms[id.hash];
-        // console.log(`${text} : its a global: ${showType(term.is)}`);
+        // console.log(`${text} : its a global: ${showType(env, term.is)}`);
         return {
             type: 'ref',
             location,
@@ -320,28 +643,30 @@ export const resolveIdentifier = (
             t.items.length === 0 &&
             t.extends.length === 0
         ) {
-            return {
-                type: 'Record',
-                base: {
-                    type: 'Concrete',
-                    ref: { type: 'user', id },
-                    rows: [],
-                    spread: null,
-                },
-                location,
-                is: {
-                    type: 'ref',
-                    ref: { type: 'user', id },
-                    location,
-                    typeVbls: [],
-                    effectVbls: [],
-                },
-                subTypes: {},
-            };
+            return plainRecord(id, location);
         }
     }
     return null;
 };
+
+const plainRecord = (id: Id, location: Location): Term => ({
+    type: 'Record',
+    base: {
+        type: 'Concrete',
+        ref: { type: 'user', id },
+        rows: [],
+        spread: null,
+    },
+    location,
+    is: {
+        type: 'ref',
+        ref: { type: 'user', id },
+        location,
+        typeVbls: [],
+        effectVbls: [],
+    },
+    subTypes: {},
+});
 
 export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (type.type === 'var') {

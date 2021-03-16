@@ -22,12 +22,12 @@ const groups = {
 };
 
 const five = constructor('5', 'int', []);
-const Some = (v) => constructor('some', 'option', [v]);
+const Some = (v: Pattern) => constructor('some', 'option', [v]);
 const None = constructor('none', 'option', []);
-const Pair = (a, b) => constructor('pair', 'pair', [a, b]);
+const Pair = (a: Pattern, b: Pattern) => constructor('pair', 'pair', [a, b]);
 const Nil = constructor('nil', 'list', []);
-const Cons = (a, b) => constructor('cons', 'list', [a, b]);
-const List = (items) => {
+const Cons = (a: Pattern, b: Pattern) => constructor('cons', 'list', [a, b]);
+const List = (items: Array<Pattern>) => {
     let last = items[items.length - 1];
     for (let i = items.length - 2; i >= 0; i--) {
         last = Cons(items[i], last);
@@ -35,12 +35,12 @@ const List = (items) => {
     return last;
 };
 
-const isNecessaryAndSufficient = (matrix) => {
+const isNecessaryAndSufficient = (matrix: Matrix) => {
     expect(isExhaustive(groups, matrix)).toBeTruthy();
     expect(getUseless(groups, matrix)).toHaveLength(0);
 };
 
-const isntExhaustive = (matrix) => {
+const isntExhaustive = (matrix: Matrix) => {
     expect(isExhaustive(groups, matrix)).toBeFalsy();
 };
 

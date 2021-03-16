@@ -11,6 +11,7 @@ const builtinType = (name: string, typeVbls: Array<Type> = []): Type => ({
 });
 
 export const int: Type = builtinType('int');
+export const float: Type = builtinType('float');
 export const string: Type = builtinType('string');
 export const void_: Type = builtinType('void');
 export const bool: Type = builtinType('bool');
@@ -52,20 +53,29 @@ export function presetEnv() {
     env.global.builtins['isSquare'] = pureFunction([int], bool);
     env.global.builtins['intToString'] = pureFunction([int], string);
 
-    env.global.builtins['++'] = pureFunction([string, string], string);
-    env.global.builtins['>'] = pureFunction([int, int], bool);
-    env.global.builtins['<'] = pureFunction([int, int], bool);
     const T: TypeVblDecl = { unique: 10000, subTypes: [] };
     const T0: Type = {
         type: 'var',
         sym: { unique: 10000, name: 'T' },
         location: null,
     };
+    env.global.builtins['++'] = pureFunction([string, string], string);
+    env.global.builtins['>'] = pureFunction([T0, T0], bool, [T]);
+    env.global.builtins['<'] = pureFunction([T0, T0], bool, [T]);
     env.global.builtins['=='] = pureFunction([T0, T0], bool, [T]);
-    env.global.builtins['+'] = pureFunction([int, int], int);
-    env.global.builtins['-'] = pureFunction([int, int], int);
-    env.global.builtins['/'] = pureFunction([int, int], int);
-    env.global.builtins['*'] = pureFunction([int, int], int);
+    env.global.builtins['+'] = pureFunction([T0, T0], T0, [T]);
+    env.global.builtins['-'] = pureFunction([T0, T0], T0, [T]);
+    env.global.builtins['/'] = pureFunction([T0, T0], T0, [T]);
+    env.global.builtins['*'] = pureFunction([T0, T0], T0, [T]);
+    env.global.builtins['^'] = pureFunction([T0, T0], T0, [T]);
+
+    env.global.builtins['max'] = pureFunction([float, float], float);
+    env.global.builtins['min'] = pureFunction([float, float], float);
+    env.global.builtins['sqrt'] = pureFunction([float], float);
+    env.global.builtins['ln'] = pureFunction([float], float);
+    env.global.builtins['PI'] = float;
+    env.global.builtins['TAU'] = float;
+
     env.global.builtins['log'] = pureFunction([string], void_);
     // const concat = <T>(one: Array<T>, two: Array<T>) => Array<T>
     const array = builtinType('Array', [T0]);
@@ -73,12 +83,24 @@ export function presetEnv() {
     env.global.builtinTypes['unit'] = 0;
     env.global.builtinTypes['void'] = 0;
     env.global.builtinTypes['int'] = 0;
+    env.global.builtinTypes['float'] = 0;
     env.global.builtinTypes['bool'] = 0;
     env.global.builtinTypes['string'] = 0;
     env.global.builtinTypes['Array'] = 1;
 
     env.global.typeNames['Some'] = { hash: 'Some', pos: 0, size: 1 };
+    env.global.idNames['Some'] = 'Some';
     env.global.typeNames['None'] = { hash: 'None', pos: 0, size: 1 };
+    env.global.idNames['None'] = 'None';
+    env.global.types['None'] = {
+        unique: 1,
+        type: 'Record',
+        typeVbls: [],
+        effectVbls: [],
+        extends: [],
+        items: [],
+        location: null,
+    };
     env.global.types['Some'] = {
         unique: 0,
         type: 'Record',
@@ -86,6 +108,7 @@ export function presetEnv() {
         effectVbls: [],
         extends: [],
         items: [T0],
+        location: null,
     };
     env.global.recordGroups['Some'] = ['contents'];
     env.global.attributeNames['contents'] = {

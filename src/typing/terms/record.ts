@@ -58,6 +58,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     } else {
         const id = env.global.typeNames[expr.id.text];
         if (!id) {
+            console.log(env.global.typeNames);
             throw new Error(
                 `No Record type ${expr.id.text} at ${showLocation(
                     expr.location,
@@ -69,6 +70,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             env,
             env.global.types[idName(id)] as RecordDef,
             typeVbls,
+            expr.location,
         );
         const ref: Reference = { type: 'user', id };
         const rows: Array<{ value: Term | null; type: Type }> = new Array(
@@ -162,7 +164,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     return;
                 }
             }
-            throw new Error(`Invalid spread ${showType(v.is)}`);
+            throw new Error(`Invalid spread ${showType(env, v.is)}`);
         }
 
         let id: Id | null;
@@ -209,9 +211,10 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             throw new Error(
                 `Invalid type for attribute ${row.id.text} at ${showLocation(
                     row.value.location,
-                )}. Expected ${showType(recordType.items[i])}, got ${showType(
-                    v.is,
-                )}`,
+                )}. Expected ${showType(
+                    env,
+                    recordType.items[i],
+                )}, got ${showType(env, v.is)}`,
             );
         }
         rowsToMod[i].value = v;

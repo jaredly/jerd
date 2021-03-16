@@ -2,16 +2,30 @@
 
 // we want to parse things I guess?
 
+import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
-import { hashObject } from './typing/env';
-import parse, { Expression, Location, Toplevel } from './parsing/parser';
+import {
+    hashObject,
+    idName,
+    typeEnumInner,
+    typeRecord,
+    typeRecordDefn,
+    withoutLocations,
+} from './typing/env';
+import parse, {
+    Define,
+    Expression,
+    Location,
+    Toplevel,
+} from './parsing/parser';
 import {
     declarationToAST,
     printType,
     termToAST,
     typeToString,
 } from './printing/typeScriptPrinter';
+import { fileToTypescript } from './printing/fileToTypeScript';
 import {
     optimizeAST,
     removeTypescriptTypes,
@@ -20,8 +34,11 @@ import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
 import {
     EffectRef,
+    EnumDef,
     Env,
     getEffects,
+    Id,
+    RecordDef,
     Reference,
     Term,
     Type,
@@ -35,13 +52,22 @@ import {
     fitsExpectation,
 } from './typing/unify';
 import { items, printToString } from './printing/printer';
-import { declarationToPretty, termToPretty } from './printing/printTsLike';
+import {
+    declarationToPretty,
+    enumToPretty,
+    recordToPretty,
+    termToPretty,
+    typeToPretty,
+    toplevelToPretty,
+    ToplevelT,
+} from './printing/printTsLike';
 import {
     typeDefine,
     typeTypeDefn,
     typeEnumDefn,
     typeEffect,
 } from './typing/env';
+import { typeFile } from './typing/typeFile';
 
 import { bool, presetEnv } from './typing/preset';
 
@@ -132,258 +158,49 @@ const testInference = (parsed: Toplevel[]) => {
             // So for self-recursive things, the final
             // thing should be exactly the same, not just
             // larger or smaller, right?
-            const unified = unifyVariables(tmpTypeVbls);
+            const unified = unifyVariables(env, tmpTypeVbls);
             if (Object.keys(unified).length) {
                 unifyInTerm(unified, term);
             }
             const hash: string = hashObject(term);
-            env.global.names[item.id.text] = { hash: hash, size: 1, pos: 0 };
+            const id: Id = { hash: hash, size: 1, pos: 0 };
+            env.global.names[item.id.text] = id;
+            env.global.idNames[idName(id)] = item.id.text;
             env.global.terms[hash] = term;
 
             const declared = typeType(env, item.ann);
             if (!typesEqual(declared, term.is)) {
                 console.log(`Inference Test failed!`);
                 console.log('Expected:');
-                console.log(typeToString(env, declared));
+                console.log(printToString(typeToPretty(env, declared), 100));
                 console.log('Inferred:');
-                console.log(typeToString(env, term.is));
+                console.log(printToString(typeToPretty(env, term.is), 100));
             } else {
                 console.log('Passed!');
-                console.log(typeToString(env, declared));
-                console.log(typeToString(env, term.is));
+                console.log(printToString(typeToPretty(env, declared), 100));
+                console.log(printToString(typeToPretty(env, term.is), 100));
             }
         }
     }
 };
-
-const toplevelExpr = (item: Toplevel): Expression | null => {
-    switch (item.type) {
-        case 'define':
-        case 'effect':
-        case 'StructDef':
-        case 'EnumDef':
-        case 'Decorated':
-            return null;
-        default:
-            return item;
-    }
-};
-
-function typeFile(parsed: Toplevel[]) {
-    const env = presetEnv();
-
-    // const
-    const expressions = [];
-
-    // const out = prelude.slice();
-    for (const item of parsed) {
-        if (item.type === 'define') {
-            // console.log('>> A define', item.id.text);
-            const { term } = typeDefine(env, item);
-            // console.log('< unified type', showType(term.is));
-        } else if (item.type === 'effect') {
-            typeEffect(env, item);
-        } else if (item.type === 'StructDef') {
-            typeTypeDefn(env, item);
-        } else if (item.type === 'EnumDef') {
-            typeEnumDefn(env, item);
-        } else if (item.type === 'Decorated') {
-            if (item.decorators[0].id.text === 'typeError') {
-                const args = item.decorators[0].args.map((expr) =>
-                    typeExpr(env, expr),
-                );
-                if (args.length !== 1 || args[0].type !== 'string') {
-                    throw new Error(
-                        `Expected one string arg to @typeExpr ${showLocation(
-                            item.location,
-                        )}`,
-                    );
-                }
-                const expr = toplevelExpr(item.wrapped);
-                if (expr == null) {
-                    throw new Error(
-                        `Expected typeError to be on an expression ${showLocation(
-                            item.location,
-                        )}`,
-                    );
-                }
-                let t;
-                try {
-                    t = typeExpr(env, expr);
-                } catch (err) {
-                    if (err.message.includes(args[0].text)) {
-                        continue; // success
-                    } else {
-                        throw new Error(
-                            `Type error doesn't match expectation: "${
-                                err.message
-                            }" vs "${args[0].text}" ${showLocation(
-                                item.location,
-                            )}`,
-                        );
-                    }
-                }
-                throw new Error(
-                    `Expected a type error, but got ${showType(
-                        t.is,
-                    )} at ${showLocation(expr.location)}\n${printToString(
-                        termToPretty(t),
-                        100,
-                    )}`,
-                );
-            } else {
-                throw new Error(`Unhandled decorator`);
-            }
-        } else {
-            // A standalone expression
-            const term = typeExpr(env, item);
-            if (getEffects(term).length > 0) {
-                throw new Error(
-                    `Term at ${showLocation(
-                        term.location,
-                    )} has toplevel effects.`,
-                );
-            }
-            expressions.push(term);
-        }
-    }
-    return { expressions, env };
-}
 
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 
-const fileToTypescript = (
-    expressions: Array<Term>,
-    env: Env,
-    assert: boolean,
-) => {
-    const items: Array<t.Statement> = [
-        t.importDeclaration(
-            [
-                ...[
-                    'raise',
-                    'isSquare',
-                    'log',
-                    'intToString',
-                    'handleSimpleShallow2',
-                    'assert',
-                    'assertEqual',
-                    'pureCPS',
-                ].map((name) =>
-                    t.importSpecifier(t.identifier(name), t.identifier(name)),
-                ),
-            ],
-            t.stringLiteral('./prelude.mjs'),
-        ),
-    ];
-
-    Object.keys(env.global.terms).forEach((hash) => {
-        const term = env.global.terms[hash];
-
-        items.push(
-            declarationToAST(
-                {
-                    ...env,
-                    local: {
-                        ...env.local,
-                        self: { name: hash, type: term.is },
-                    },
-                },
-                hash,
-                term,
-                printToString(
-                    declarationToPretty(
-                        {
-                            hash: hash,
-                            size: 1,
-                            pos: 0,
-                        },
-                        term,
-                    ),
-                    100,
-                ),
-            ),
-        );
-    });
-
-    const callBuiltin = (
-        name: string,
-        argTypes: Array<Type>,
-        resType: Type,
-        args: Array<Term>,
-        location: Location | null,
-    ): Term => {
-        return {
-            type: 'apply',
-            target: {
-                type: 'ref',
-                ref: { type: 'builtin', name: name },
-                location,
-                is: {
-                    type: 'lambda',
-                    location,
-                    args: argTypes,
-                    res: resType,
-                    rest: null,
-                    typeVbls: [],
-                    effectVbls: [],
-                    effects: [],
-                },
-            },
-            args: args,
-            location,
-            is: resType,
-        };
-    };
-
-    expressions.forEach((term) => {
-        if (assert && typesEqual(term.is, bool)) {
-            if (
-                term.type === 'apply' &&
-                term.target.type === 'ref' &&
-                term.target.ref.type === 'builtin' &&
-                term.target.ref.name === '=='
-            ) {
-                term = callBuiltin(
-                    'assertEqual',
-                    (term.target.is as any).args,
-                    bool,
-                    term.args,
-                    term.location,
-                );
-            } else {
-                term = callBuiltin(
-                    'assert',
-                    [bool],
-                    bool,
-                    [term],
-                    term.location,
-                );
-            }
-        }
-        items.push(termToAST(env, term, printType(env, term.is)));
-    });
-
-    const ast = t.file(t.program(items, [], 'script'));
-    optimizeAST(ast);
-    return ast;
-};
-
 const processErrors = (fname: string) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
-    const env = presetEnv();
+    let env = presetEnv();
     const errors: Array<string> = [];
     parsed.forEach((item, i) => {
         if (item.type === 'effect') {
-            typeEffect(env, item);
+            env = typeEffect(env, item);
         } else if (item.type === 'define') {
-            typeDefine(env, item);
+            env = typeDefine(env, item).env;
         } else if (item.type === 'StructDef') {
-            typeTypeDefn(env, item);
+            env = typeTypeDefn(env, item);
         } else if (item.type === 'EnumDef') {
-            typeEnumDefn(env, item);
+            env = typeEnumDefn(env, item).env;
         } else if (item.type === 'Decorated') {
             throw new Error(`Unexpected decorator`);
         } else {
@@ -398,7 +215,7 @@ const processErrors = (fname: string) => {
             throw new Error(
                 `Expected a type error at ${showLocation(
                     item.location,
-                )} : ${printToString(termToPretty(term), 100)}`,
+                )} : ${printToString(termToPretty(env, term), 100)}`,
             );
         }
     });
@@ -408,12 +225,244 @@ const processErrors = (fname: string) => {
     fs.writeFileSync(dest, errors.join('\n\n'));
 };
 
-const processFile = (fname: string, assert: boolean, run: boolean) => {
+const withParseError = (text: string, location: Location) => {
+    const lines = text.split('\n');
+    const indent = new Array(location.start.column);
+    indent.fill('');
+    lines.splice(
+        location.start.line,
+        0,
+        chalk.red(indent.join('-') + '^' + '--'),
+    );
+    return lines.join('\n');
+};
+
+const reprintToplevel = (
+    env: Env,
+    raw: string,
+    toplevel: ToplevelT,
+    hash: string,
+) => {
+    const origraw = toplevel.location
+        ? raw.slice(
+              toplevel.location.start.offset,
+              toplevel.location.end.offset,
+          )
+        : '<no original text>';
+    const reraw = printToString(toplevelToPretty(env, toplevel), 100);
+    let printed: Array<Toplevel>;
+    try {
+        printed = parse(reraw);
+    } catch (err) {
+        console.log(chalk.green('Original'));
+        console.log(origraw);
+        console.log(chalk.red('Printed'));
+        console.log(withParseError(reraw, err.location));
+        console.log(chalk.red('Reparse error:'));
+        console.log(showLocation(toplevel.location));
+        console.error(err.message, showLocation(err.location));
+        return false;
+    }
+    if (printed.length !== 1) {
+        console.log(printed);
+        console.warn(`Reprint generated multiple toplevels`);
+        return false;
+    }
+    try {
+        let retyped: ToplevelT;
+        let nhash: string;
+        if (toplevel.type === 'RecordDef' && printed[0].type === 'StructDef') {
+            const defn = typeRecordDefn(env, printed[0], toplevel.def.unique);
+            nhash = hashObject(defn);
+            retyped = {
+                ...toplevel,
+                type: 'RecordDef',
+                def: defn,
+                id: { hash: nhash, size: 1, pos: 0 },
+            };
+        } else if (
+            toplevel.type === 'EnumDef' &&
+            printed[0].type === 'EnumDef'
+        ) {
+            const defn = typeEnumInner(env, printed[0]);
+            nhash = hashObject(defn);
+            retyped = {
+                ...toplevel,
+                type: 'EnumDef',
+                def: defn,
+                id: { hash: nhash, size: 1, pos: 0 },
+            };
+        } else if (toplevel.type === 'Define' && printed[0].type === 'define') {
+            retyped = {
+                ...toplevel,
+                type: 'Define',
+                id: toplevel.id,
+                term: typeExpr(env, (printed[0] as Define).expr),
+            };
+            nhash = hashObject(retyped.term);
+        } else {
+            retyped = {
+                ...toplevel,
+                type: 'Expression',
+                term: typeExpr(env, printed[0] as Expression),
+            };
+            nhash = hashObject(retyped.term);
+        }
+        if (nhash != hash) {
+            console.log(
+                chalk.red('Hash mismatch on reparse!'),
+                toplevel.type,
+                hash,
+                nhash,
+            );
+            console.log(chalk.green('Original'));
+            console.log(origraw);
+            console.log(chalk.green('Printed'));
+            console.log(reraw);
+            console.log(chalk.green('Reprinted'));
+            console.log(printToString(toplevelToPretty(env, retyped), 100));
+            console.log('\n---n');
+            console.log(JSON.stringify(withoutLocations(toplevel)));
+            console.log(JSON.stringify(withoutLocations(retyped)));
+            console.log('\n---n');
+            console.warn(
+                `Expression at ${showLocation(
+                    toplevel.location,
+                )} failed to retype.`,
+            );
+            console.log('\n*************\n');
+            return false;
+        }
+    } catch (err) {
+        console.log(chalk.green('Original'));
+        console.log(origraw);
+        console.log(chalk.green('Reprinted'));
+        console.log(reraw);
+        console.log(chalk.yellow('AST'));
+        console.log(JSON.stringify(withoutLocations(printed)));
+        console.error(err);
+        console.log(
+            `Expression at ${showLocation(
+                toplevel.location,
+            )} had a type error on reprint`,
+        );
+        return false;
+    }
+};
+
+const processFile = (
+    fname: string,
+    assert: boolean,
+    run: boolean,
+    reprint: boolean,
+): boolean => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
     const { expressions, env } = typeFile(parsed);
-    const ast = fileToTypescript(expressions, env, assert);
+
+    if (reprint) {
+        let good = true;
+
+        // Test reprint
+        for (let expr of expressions) {
+            if (
+                reprintToplevel(
+                    env,
+                    raw,
+                    {
+                        type: 'Expression',
+                        term: expr,
+                        location: expr.location!,
+                    },
+                    hashObject(expr),
+                ) === false
+            ) {
+                good = false;
+                break;
+            }
+        }
+
+        // Test reprint
+        for (let id of Object.keys(env.global.terms)) {
+            const tenv = {
+                ...env,
+                local: {
+                    ...env.local,
+                    self: {
+                        name: env.global.idNames[id],
+                        type: env.global.terms[id].is,
+                    },
+                },
+            };
+            if (
+                reprintToplevel(
+                    tenv,
+                    raw,
+                    {
+                        type: 'Define',
+                        id: { hash: id, size: 1, pos: 0 },
+                        term: env.global.terms[id],
+                        location: env.global.terms[id].location!,
+                        name: env.global.idNames[id],
+                    },
+                    id,
+                ) === false
+            ) {
+                good = false;
+                break;
+            }
+        }
+
+        // Type declarations
+        for (let tid of Object.keys(env.global.types)) {
+            const t = env.global.types[tid];
+            // ermm fix this hack
+            if (tid === 'Some' || tid === 'None') {
+                continue;
+            }
+            let top: ToplevelT;
+            if (t.type === 'Record') {
+                const id = { hash: tid, size: 1, pos: 0 };
+                top = {
+                    type: 'RecordDef',
+                    id: id,
+                    def: t,
+                    location: t.location!,
+                    name: env.global.idNames[idName(id)],
+                    attrNames: env.global.recordGroups[idName(id)],
+                };
+            } else {
+                const id = { hash: tid, size: 1, pos: 0 };
+                top = {
+                    type: 'EnumDef',
+                    id,
+                    def: t,
+                    location: t.location!,
+                    name: env.global.idNames[idName(id)],
+                };
+            }
+            if (reprintToplevel(env, raw, top, tid) === false) {
+                good = false;
+                break;
+            }
+        }
+
+        if (!good) {
+            console.log(`❌ Reprint failed for ${chalk.blue(fname)}`);
+            return false;
+        }
+    }
+
+    const ast = fileToTypescript(
+        expressions,
+        env,
+        // { scope: 'jdScope'},
+        {},
+        // { scope: null },
+        assert,
+        true,
+    );
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
@@ -450,12 +499,24 @@ const processFile = (fname: string, assert: boolean, run: boolean) => {
     );
 
     if (run) {
-        const { stdout, error } = spawnSync(
+        const { stdout, error, stderr, status } = spawnSync(
             'node',
             ['--enable-source-maps', dest],
-            { stdio: 'inherit' },
+            { stdio: 'pipe', encoding: 'utf8' },
         );
+        if (status !== 0) {
+            console.log(`❌ Execution failed ${chalk.blue(fname)}`);
+            console.log('---------------');
+            console.log(stdout);
+            console.log(stderr);
+            console.log('---------------');
+            return false;
+        } else {
+            console.log(`✅ all clear ${chalk.blue(fname)}`);
+            return true;
+        }
     }
+    return true;
 };
 
 const cacheFile = '.test-cache';
@@ -496,57 +557,67 @@ const main = (
     const { shouldSkip, successRerun } = cache
         ? loadCache(fnames, process.argv[1])
         : { shouldSkip: null, successRerun: true };
-    console.log(`\n# Processing ${fnames.length} files\n`);
-    const passed = [];
-    let hasFailures = false;
-    for (let fname of fnames) {
-        if (shouldSkip && shouldSkip[fname]) {
-            passed.push(fname);
-            continue; // skipping
-        }
-        console.log('hello', fname);
+    console.log(chalk.bold.green(`\n# Processing ${fnames.length} files\n`));
+    const passed: { [key: string]: boolean } = {};
+    let numFailures = 0;
+    const reprint = true;
+    console.log(chalk.yellow(`Reprint? ${reprint}`));
+
+    const runFile = (fname: string) => {
         try {
             if (fname.endsWith('type-errors.jd')) {
                 processErrors(fname);
             } else {
-                processFile(fname, assert, run);
+                if (processFile(fname, assert, run, reprint) === false) {
+                    numFailures += 1;
+                    return false;
+                }
             }
-            console.log(`✅ processed ${fname}`);
-            passed.push(fname);
         } catch (err) {
-            hasFailures = true;
-            console.error(`❌ Failed to process ${fname}`);
+            numFailures += 1;
+            console.error(`❌ Failed to process ${chalk.blue(fname)}`);
             console.error('-----------------------------');
             console.error(err);
             console.error('-----------------------------');
+            return false;
+        }
+        return true;
+    };
+
+    for (let fname of fnames) {
+        if (shouldSkip && shouldSkip[fname]) {
+            passed[fname] = true;
+            continue; // skipping
+        }
+        const success = runFile(fname);
+        passed[fname] = success;
+        if (reprint && !success) {
+            return;
         }
     }
 
-    if (!hasFailures && successRerun) {
+    if (!numFailures && successRerun) {
+        console.error('==================');
+        console.log('Rerunning successful files');
+        console.error('==================');
         for (let fname of fnames) {
             if (shouldSkip && shouldSkip[fname]) {
-                console.log('Rerunning successful file', fname);
-                try {
-                    if (fname.endsWith('type-errors.jd')) {
-                        processErrors(fname);
-                    } else {
-                        processFile(fname, assert, run);
-                    }
-                    console.log(`✅ processed ${fname}`);
-                    passed.push(fname);
-                } catch (err) {
-                    hasFailures = true;
-                    console.error(`❌ Failed to process ${fname}`);
-                    console.error('-----------------------------');
-                    console.error(err);
-                    console.error('-----------------------------');
+                const success = runFile(fname);
+                passed[fname] = success;
+                if (reprint && !success) {
+                    return;
                 }
             }
         }
     }
 
+    console.log(`📢 Failures ${numFailures}`);
+
     if (cache) {
-        saveCache(passed, process.argv[1]);
+        saveCache(
+            Object.keys(passed).filter((p) => passed[p]),
+            process.argv[1],
+        );
     }
 };
 

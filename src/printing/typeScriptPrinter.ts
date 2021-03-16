@@ -46,9 +46,23 @@ function withLocation<
     return v;
 }
 
-export const termToString = (env: Env, term: Term): string => {
+export type OutputOptions = {
+    readonly scope?: string;
+    readonly noTypes?: boolean;
+    readonly limitExecutionTime?: boolean;
+};
+
+export const termToString = (
+    env: Env,
+    opts: OutputOptions,
+    term: Term,
+): string => {
     const ast = t.file(
-        t.program([t.expressionStatement(printTerm(env, term))], [], 'script'),
+        t.program(
+            [t.expressionStatement(printTerm(env, opts, term))],
+            [],
+            'script',
+        ),
     );
     optimizeAST(ast);
     return generate(ast).code;
@@ -58,7 +72,9 @@ export const printType = (env: Env, type: Type): string => {
     switch (type.type) {
         case 'ref':
             if (type.ref.type === 'builtin') {
-                return type.ref.name === 'int' ? 'number' : type.ref.name;
+                return type.ref.name === 'int' || type.ref.name === 'float'
+                    ? 'number'
+                    : type.ref.name;
             } else {
                 return type.ref.id.hash;
             }
@@ -81,17 +97,38 @@ export const printType = (env: Env, type: Type): string => {
     }
 };
 
-export const typeToString = (env: Env, type: Type): string => {
-    return generate(typeToAst(env, type)).code;
+export const typeToString = (
+    env: Env,
+    opts: OutputOptions,
+    type: Type,
+): string => {
+    return generate(typeToAst(env, opts, type)).code;
 };
 
-export const typeToAst = (env: Env, type: Type): t.TSType => {
+const withType = <T>(env: Env, opts: OutputOptions, expr: T, typ: Type): T => {
+    if (opts.noTypes) {
+        return expr;
+    }
+    return {
+        ...expr,
+        // @ts-ignore
+        typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, typ)),
+    };
+};
+
+export const typeToAst = (
+    env: Env,
+    opts: OutputOptions,
+    type: Type,
+): t.TSType => {
     switch (type.type) {
         case 'ref':
             if (type.ref.type === 'builtin') {
                 return t.tsTypeReference(
                     t.identifier(
-                        type.ref.name === 'int' ? 'number' : type.ref.name,
+                        type.ref.name === 'int' || type.ref.name === 'float'
+                            ? 'number'
+                            : type.ref.name,
                     ),
                 );
             } else {
@@ -100,7 +137,7 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
         case 'var':
             return t.tsTypeReference(t.identifier(`T_${type.sym.unique}`));
         case 'lambda': {
-            const res = t.tsTypeAnnotation(typeToAst(env, type.res));
+            const res = t.tsTypeAnnotation(typeToAst(env, opts, type.res));
 
             const findTypeVariables = (type: Type): Array<Symbol> => {
                 switch (type.type) {
@@ -134,10 +171,14 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
                       )
                     : null,
                 type.args
-                    .map((arg, i) => ({
-                        ...t.identifier('arg_' + i),
-                        typeAnnotation: t.tsTypeAnnotation(typeToAst(env, arg)),
-                    }))
+                    .map((arg, i) =>
+                        withType<t.Identifier>(
+                            env,
+                            opts,
+                            t.identifier('arg_' + i),
+                            arg,
+                        ),
+                    )
                     .concat(
                         type.effects.length
                             ? [
@@ -163,7 +204,7 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
                                               ),
                                           ),
                                       ),
-                                      //   typeToAst(env, {
+                                      //   typeToAst(env, opts, {
                                       //       type: 'lambda',
                                       //       args: [res]
                                       //   })
@@ -191,8 +232,35 @@ export const typeToAst = (env: Env, type: Type): t.TSType => {
 //     return t.callExpression(t.arrowFunctionExpression([id], body), [v]);
 // };
 
+export const withExecutionLimit = (
+    env: Env,
+    opts: OutputOptions,
+    body: t.BlockStatement | t.Expression,
+): t.BlockStatement | t.Expression => {
+    if (!opts.limitExecutionTime) {
+        return body;
+    }
+    return t.blockStatement([
+        t.expressionStatement(
+            t.callExpression(
+                opts.scope
+                    ? t.memberExpression(
+                          t.identifier(opts.scope),
+                          t.identifier('checkExecutionLimit'),
+                      )
+                    : t.identifier('$checkExecutionLimit'),
+                [],
+            ),
+        ),
+        ...(body.type === 'BlockStatement'
+            ? body.body
+            : [t.returnStatement(body)]),
+    ]);
+};
+
 export const printLambdaBody = (
     env: Env,
+    opts: OutputOptions,
     term: Term,
     // cps: null | { body: t.Expression; bind: t.Identifier },
     cps: null | t.Expression,
@@ -207,12 +275,14 @@ export const printLambdaBody = (
                                 ? t.variableDeclaration('const', [
                                       t.variableDeclarator(
                                           t.identifier(printSym(s.binding)),
-                                          printTerm(env, s.value),
+                                          printTerm(env, opts, s.value),
                                       ),
                                   ])
                                 : i === term.sts.length - 1
-                                ? t.returnStatement(printTerm(env, s))
-                                : t.expressionStatement(printTerm(env, s)),
+                                ? t.returnStatement(printTerm(env, opts, s))
+                                : t.expressionStatement(
+                                      printTerm(env, opts, s),
+                                  ),
                             s.location,
                         ),
                     ),
@@ -220,7 +290,7 @@ export const printLambdaBody = (
                 term.location,
             );
         } else {
-            return printTerm(env, term);
+            return printTerm(env, opts, term);
         }
     } else {
         if (term.type === 'sequence') {
@@ -237,7 +307,12 @@ export const printLambdaBody = (
                             t.blockStatement([
                                 withLocation(
                                     t.expressionStatement(
-                                        termToAstCPS(env, term.sts[i], inner),
+                                        termToAstCPS(
+                                            env,
+                                            opts,
+                                            term.sts[i],
+                                            inner,
+                                        ),
                                     ),
                                     term.sts[i].location,
                                 ),
@@ -246,13 +321,13 @@ export const printLambdaBody = (
                         ),
                     );
                 } else {
-                    inner = termToAstCPS(env, term.sts[i], inner);
+                    inner = termToAstCPS(env, opts, term.sts[i], inner);
                 }
             }
             return t.blockStatement([t.expressionStatement(inner)]);
         } else {
             return t.blockStatement([
-                t.expressionStatement(termToAstCPS(env, term, cps)),
+                t.expressionStatement(termToAstCPS(env, opts, term, cps)),
             ]);
         }
     }
@@ -260,11 +335,12 @@ export const printLambdaBody = (
 
 export const termToAST = (
     env: Env,
+    opts: OutputOptions,
     term: Term,
     comment?: string,
 ): t.Statement => {
     let res = withLocation(
-        t.expressionStatement(printTerm(env, term)),
+        t.expressionStatement(printTerm(env, opts, term)),
         term.location,
     );
     if (comment) {
@@ -275,19 +351,39 @@ export const termToAST = (
 
 export const declarationToAST = (
     env: Env,
+    opts: OutputOptions,
     hash: string,
     term: Term,
     comment?: string,
-): t.VariableDeclaration => {
-    let res = t.variableDeclaration('const', [
-        t.variableDeclarator(
-            {
-                ...t.identifier('hash_' + hash),
-                typeAnnotation: t.tsTypeAnnotation(typeToAst(env, term.is)),
-            },
-            printTerm(env, term),
-        ),
-    ]);
+): t.Statement => {
+    const expr = printTerm(env, opts, term);
+    let res =
+        opts.scope == null
+            ? t.variableDeclaration('const', [
+                  t.variableDeclarator(
+                      {
+                          ...t.identifier('hash_' + hash),
+                          typeAnnotation: t.tsTypeAnnotation(
+                              typeToAst(env, opts, term.is),
+                          ),
+                      },
+                      expr,
+                  ),
+              ])
+            : t.expressionStatement(
+                  t.assignmentExpression(
+                      '=',
+                      t.memberExpression(
+                          t.memberExpression(
+                              t.identifier(opts.scope),
+                              t.identifier('terms'),
+                          ),
+                          t.stringLiteral(idName({ hash, size: 1, pos: 0 })),
+                          true,
+                      ),
+                      expr,
+                  ),
+              );
     if (comment) {
         res = t.addComment(res, 'leading', comment);
     }
@@ -298,11 +394,12 @@ export const declarationToAST = (
 
 export const declarationToString = (
     env: Env,
+    opts: OutputOptions,
     hash: string,
     term: Term,
 ): string => {
     const ast = t.file(
-        t.program([declarationToAST(env, hash, term)], [], 'script'),
+        t.program([declarationToAST(env, opts, hash, term)], [], 'script'),
     );
     optimizeAST(ast);
     return generate(ast).code;
@@ -311,6 +408,7 @@ export const declarationToString = (
 const isConstant = (arg: Term) => {
     switch (arg.type) {
         case 'int':
+        case 'float':
         case 'string':
         case 'ref':
         case 'var':
@@ -323,6 +421,7 @@ const isConstant = (arg: Term) => {
 const isSimple = (arg: Term) => {
     switch (arg.type) {
         case 'int':
+        case 'float':
         case 'string':
         case 'ref':
         case 'var':
@@ -347,22 +446,24 @@ const isSimpleBuiltin = (name: string) => {
 
 export const termToAstCPS = (
     env: Env,
+    opts: OutputOptions,
     term: Term | Let,
     done: t.Expression,
 ): t.Expression => {
-    return withLocation(_termToAstCPS(env, term, done), term.location);
+    return withLocation(_termToAstCPS(env, opts, term, done), term.location);
 };
 
 // cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 const _termToAstCPS = (
     env: Env,
+    opts: OutputOptions,
     term: Term | Let,
     done: t.Expression,
 ): t.Expression => {
     if (!getEffects(term).length && term.type !== 'Let') {
         return t.callExpression(done, [
             t.identifier('handlers'),
-            printTerm(env, term),
+            printTerm(env, opts, term),
         ]);
     }
     switch (term.type) {
@@ -374,7 +475,7 @@ const _termToAstCPS = (
             }
             return t.callExpression(t.identifier('handleSimpleShallow2'), [
                 t.stringLiteral(printRef(term.effect)),
-                printTerm(env, term.target),
+                printTerm(env, opts, term.target),
                 t.arrayExpression(
                     term.cases
                         .sort((a, b) => a.constr - b.constr)
@@ -393,7 +494,7 @@ const _termToAstCPS = (
                                           ),
                                     t.identifier(printSym(k)),
                                 ],
-                                printLambdaBody(env, body, done),
+                                printLambdaBody(env, opts, body, done),
                             );
                         }),
                 ),
@@ -402,7 +503,7 @@ const _termToAstCPS = (
                         t.identifier('handlers'),
                         t.identifier(printSym(term.pure.arg)),
                     ],
-                    printLambdaBody(env, term.pure.body, done),
+                    printLambdaBody(env, opts, term.pure.body, done),
                 ),
                 t.identifier('handlers'),
             ]);
@@ -410,6 +511,7 @@ const _termToAstCPS = (
         case 'Let': {
             return termToAstCPS(
                 env,
+                opts,
                 term.value,
                 t.arrowFunctionExpression(
                     [
@@ -439,10 +541,12 @@ const _termToAstCPS = (
             if (term.args.length === 0) {
                 args.push(t.nullLiteral());
             } else if (term.args.length === 1) {
-                args.push(printTerm(env, term.args[0]));
+                args.push(printTerm(env, opts, term.args[0]));
             } else {
                 args.push(
-                    t.arrayExpression(term.args.map((a) => printTerm(env, a))),
+                    t.arrayExpression(
+                        term.args.map((a) => printTerm(env, opts, a)),
+                    ),
                 );
             }
             args.push(
@@ -461,16 +565,24 @@ const _termToAstCPS = (
             if (condEffects.length) {
                 return termToAstCPS(
                     env,
+                    opts,
                     term.cond,
                     t.arrowFunctionExpression(
                         [t.identifier('handlers'), t.identifier(`cond`)],
                         t.blockStatement([
                             t.ifStatement(
                                 t.identifier('cond'),
-                                ifBlock(printLambdaBody(env, term.yes, done)),
+                                ifBlock(
+                                    printLambdaBody(env, opts, term.yes, done),
+                                ),
                                 ifBlock(
                                     term.no
-                                        ? printLambdaBody(env, term.no, done)
+                                        ? printLambdaBody(
+                                              env,
+                                              opts,
+                                              term.no,
+                                              done,
+                                          )
                                         : t.callExpression(done, [
                                               t.identifier('handlers'),
                                           ]),
@@ -481,16 +593,16 @@ const _termToAstCPS = (
                 );
             }
 
-            const cond = printTerm(env, term.cond);
+            const cond = printTerm(env, opts, term.cond);
 
             return iffe(
                 t.blockStatement([
                     t.ifStatement(
                         cond,
-                        ifBlock(printLambdaBody(env, term.yes, done)),
+                        ifBlock(printLambdaBody(env, opts, term.yes, done)),
                         ifBlock(
                             term.no
-                                ? printLambdaBody(env, term.no, done)
+                                ? printLambdaBody(env, opts, term.no, done)
                                 : t.callExpression(done, [
                                       t.identifier('handlers'),
                                   ]),
@@ -518,7 +630,7 @@ const _termToAstCPS = (
                 ...term.args.map(getEffects),
             );
             if (argsEffects.length > 0) {
-                let target = printTerm(env, term.target);
+                let target = printTerm(env, opts, term.target);
                 if (term.hadAllVariableEffects) {
                     target = t.memberExpression(
                         target,
@@ -537,7 +649,7 @@ const _termToAstCPS = (
                         args
                             .map((arg, i) =>
                                 isSimple(arg)
-                                    ? printTerm(env, arg)
+                                    ? printTerm(env, opts, arg)
                                     : t.identifier(`arg_${i}_${u}`),
                             )
                             .concat([t.identifier('handlers'), inner as any]),
@@ -556,7 +668,7 @@ const _termToAstCPS = (
                             target,
                             args.map((arg, i) =>
                                 isSimple(arg)
-                                    ? printTerm(env, arg)
+                                    ? printTerm(env, opts, arg)
                                     : t.identifier(`arg_${i}_${u}`),
                             ),
                         ),
@@ -572,6 +684,7 @@ const _termToAstCPS = (
                     // if (term.target.is.type === 'lambda' && )
                     inner = termToAstCPS(
                         env,
+                        opts,
                         args[i],
                         t.arrowFunctionExpression(
                             [
@@ -584,14 +697,14 @@ const _termToAstCPS = (
                 }
                 return inner;
             }
-            let target = printTerm(env, term.target);
+            let target = printTerm(env, opts, term.target);
             if (term.hadAllVariableEffects) {
                 target = t.memberExpression(target, t.identifier('effectful'));
             }
             return callOrBinop(
                 target,
                 args
-                    .map((arg) => printTerm(env, arg))
+                    .map((arg) => printTerm(env, opts, arg))
                     .concat([t.identifier('handlers'), done]),
             );
         }
@@ -603,13 +716,13 @@ const _termToAstCPS = (
             console.log('ELSE', term.type);
             return t.callExpression(done, [
                 t.identifier('handlers'),
-                printTerm(env, term),
+                printTerm(env, opts, term),
             ]);
     }
 };
 
 const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
-    // console.error(`Maybe ${showType(arg.is)} : ${showType(t)}`);
+    // console.error(`Maybe ${showType(env, arg.is)} : ${showType(env, t)}`);
     if (t.type !== 'lambda' || t.effects.length === 0) {
         return arg;
     }
@@ -641,6 +754,8 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
         body: {
             type: 'apply',
             location: arg.location,
+            typeVbls: [],
+            effectVbls: null,
             args,
             target: arg,
             is: arg.is.res,
@@ -672,33 +787,75 @@ const iffe = (st: t.BlockStatement): t.Expression => {
     return t.callExpression(t.arrowFunctionExpression([], st), []);
 };
 
-export const printTerm = (env: Env, term: Term): t.Expression => {
-    return withLocation(_printTerm(env, term), term.location);
+export const printTerm = (
+    env: Env,
+    opts: OutputOptions,
+    term: Term,
+): t.Expression => {
+    return withLocation(_printTerm(env, opts, term), term.location);
 };
 
-const _printTerm = (env: Env, term: Term): t.Expression => {
+const builtinName = (name: string) => {
+    if (name === '^') {
+        return 'pow';
+    }
+    return name;
+};
+
+const printTermRef = (opts: OutputOptions, ref: Reference): t.Expression => {
+    if (
+        opts.scope == null ||
+        (ref.type === 'builtin' && binOps.includes(ref.name))
+    ) {
+        return t.identifier(
+            ref.type === 'builtin' ? builtinName(ref.name) : printId(ref.id),
+        );
+    } else {
+        return t.memberExpression(
+            t.memberExpression(
+                t.identifier(opts.scope),
+                t.identifier(ref.type === 'builtin' ? 'builtins' : 'terms'),
+            ),
+            ref.type === 'builtin'
+                ? t.identifier(builtinName(ref.name))
+                : t.stringLiteral(idName(ref.id)),
+            ref.type === 'user',
+        );
+    }
+};
+
+const _printTerm = (
+    env: Env,
+    opts: OutputOptions,
+    term: Term,
+): t.Expression => {
     switch (term.type) {
         // these will never need effects, immediate is fine
         case 'self':
-            return t.identifier(`hash_${env.local.self.name}`);
+            return printTermRef(opts, {
+                type: 'user',
+                id: { hash: env.local.self.name, size: 1, pos: 0 },
+            });
+        // return t.identifier(`hash_${env.local.self.name}`);
         case 'int':
+        case 'float':
             return t.numericLiteral(term.value);
-        case 'ref':
-            if (term.ref.type === 'builtin') {
-                return {
-                    ...t.identifier(term.ref.name),
-                    typeAnnotation: t.tsTypeAnnotation(typeToAst(env, term.is)),
-                };
-            } else {
-                return t.identifier(printId(term.ref.id));
-            }
+        case 'ref': {
+            return {
+                ...printTermRef(opts, term.ref),
+                // @ts-ignore
+                typeAnnotation: t.tsTypeAnnotation(
+                    typeToAst(env, opts, term.is),
+                ),
+            };
+        }
         case 'if': {
             return iffe(
                 t.blockStatement([
                     t.ifStatement(
-                        printTerm(env, term.cond),
-                        ifBlock(printTerm(env, term.yes)),
-                        term.no ? ifBlock(printTerm(env, term.no)) : null,
+                        printTerm(env, opts, term.cond),
+                        ifBlock(printTerm(env, opts, term.yes)),
+                        term.no ? ifBlock(printTerm(env, opts, term.no)) : null,
                     ),
                 ]),
             );
@@ -717,20 +874,34 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                                 directVersion.args.map((arg) =>
                                     t.identifier(printSym(arg)),
                                 ),
-                                printLambdaBody(env, directVersion.body, null),
+                                withExecutionLimit(
+                                    env,
+                                    opts,
+                                    printLambdaBody(
+                                        env,
+                                        opts,
+                                        directVersion.body,
+                                        null,
+                                    ),
+                                ),
                             ),
                         ),
                         t.objectProperty(
                             t.identifier('effectful'),
-                            effectfulLambda(env, term),
+                            effectfulLambda(env, opts, term),
                         ),
                     ]);
                 }
-                return effectfulLambda(env, term);
+                return effectfulLambda(env, opts, term);
             } else {
                 return t.arrowFunctionExpression(
                     term.args.map((arg) => t.identifier(printSym(arg))),
-                    printLambdaBody(env, term.body, null),
+                    withExecutionLimit(
+                        env,
+                        opts,
+
+                        printLambdaBody(env, opts, term.body, null),
+                    ),
                 );
             }
         case 'var':
@@ -748,11 +919,14 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                         term,
                     )
                         .map(showEffectRef)
-                        .join(', ')} : Target: ${showType(term.target.is)}`,
+                        .join(', ')} : Target: ${showType(
+                        env,
+                        term.target.is,
+                    )}`,
                 );
             }
 
-            let target = printTerm(env, term.target);
+            let target = printTerm(env, opts, term.target);
 
             if (term.hadAllVariableEffects) {
                 target = t.memberExpression(target, t.identifier('direct'));
@@ -763,8 +937,9 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             if (argTypes.length !== term.args.length) {
                 throw new Error(
                     `Need to resolve target type: ${showType(
+                        env,
                         term.target.is,
-                    )} - ${showType(term.is)}`,
+                    )} - ${showType(env, term.is)}`,
                 );
             }
             const args = term.args.map((arg, i) => {
@@ -773,7 +948,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
 
             return callOrBinop(
                 target,
-                args.map((arg) => printTerm(env, arg)),
+                args.map((arg) => printTerm(env, opts, arg)),
             );
         }
 
@@ -793,7 +968,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                     t.expressionStatement(
                         t.callExpression(t.identifier('handleSimpleShallow2'), [
                             t.stringLiteral(printRef(term.effect)),
-                            printTerm(env, term.target),
+                            printTerm(env, opts, term.target),
                             t.arrayExpression(
                                 term.cases
                                     .sort((a, b) => a.constr - b.constr)
@@ -821,7 +996,11 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                                                     t.assignmentExpression(
                                                         '=',
                                                         t.identifier(vname),
-                                                        printTerm(env, body),
+                                                        printTerm(
+                                                            env,
+                                                            opts,
+                                                            body,
+                                                        ),
                                                     ),
                                                 ),
                                             ]),
@@ -838,7 +1017,11 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                                         t.assignmentExpression(
                                             '=',
                                             t.identifier(vname),
-                                            printTerm(env, term.pure.body),
+                                            printTerm(
+                                                env,
+                                                opts,
+                                                term.pure.body,
+                                            ),
                                         ),
                                     ),
                                 ]),
@@ -861,12 +1044,14 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                                 ? t.variableDeclaration('const', [
                                       t.variableDeclarator(
                                           t.identifier(printSym(s.binding)),
-                                          printTerm(env, s.value),
+                                          printTerm(env, opts, s.value),
                                       ),
                                   ])
                                 : i === term.sts.length - 1
-                                ? t.returnStatement(printTerm(env, s))
-                                : t.expressionStatement(printTerm(env, s)),
+                                ? t.returnStatement(printTerm(env, opts, s))
+                                : t.expressionStatement(
+                                      printTerm(env, opts, s),
+                                  ),
                         ),
                     ),
                 ),
@@ -884,7 +1069,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             // yeah I think we need the last one.
             return t.objectExpression(
                 ((term.base.spread != null
-                    ? [t.spreadElement(printTerm(env, term.base.spread))]
+                    ? [t.spreadElement(printTerm(env, opts, term.base.spread))]
                     : []) as Array<t.ObjectProperty | t.SpreadElement>)
                     .concat(
                         ...Object.keys(term.subTypes).map((id) =>
@@ -893,6 +1078,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                                       t.spreadElement(
                                           printTerm(
                                               env,
+                                              opts,
                                               term.subTypes[id].spread!,
                                           ),
                                       ),
@@ -910,7 +1096,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                                                           i,
                                                       ),
                                                   ),
-                                                  printTerm(env, row),
+                                                  printTerm(env, opts, row),
                                               )
                                             : null,
                                     )
@@ -939,7 +1125,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                                                             i,
                                                         ),
                                                     ),
-                                                    printTerm(env, row),
+                                                    printTerm(env, opts, row),
                                                 )
                                               : null,
                                       )
@@ -952,10 +1138,10 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             );
         }
         case 'Enum':
-            return printTerm(env, term.inner);
+            return printTerm(env, opts, term.inner);
         case 'Attribute': {
             return t.memberExpression(
-                printTerm(env, term.target),
+                printTerm(env, opts, term.target),
                 t.identifier(recordAttributeName(term.ref, term.idx)),
             );
         }
@@ -963,8 +1149,8 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
             return t.arrayExpression(
                 term.items.map((item) =>
                     item.type === 'ArraySpread'
-                        ? t.spreadElement(printTerm(env, item.value))
-                        : printTerm(env, item),
+                        ? t.spreadElement(printTerm(env, opts, item.value))
+                        : printTerm(env, opts, item),
                 ),
             );
         case 'Switch': {
@@ -993,7 +1179,9 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
 
             const id = '$discriminant';
 
-            const value = basic ? printTerm(env, term.term) : t.identifier(id);
+            const value = basic
+                ? printTerm(env, opts, term.term)
+                : t.identifier(id);
 
             let cases = [];
 
@@ -1004,7 +1192,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                         value,
                         kase.pattern,
                         t.blockStatement([
-                            t.returnStatement(printTerm(env, kase.body)),
+                            t.returnStatement(printTerm(env, opts, kase.body)),
                         ]),
                     ),
                 );
@@ -1028,7 +1216,7 @@ const _printTerm = (env: Env, term: Term): t.Expression => {
                             : t.variableDeclaration('const', [
                                   t.variableDeclarator(
                                       t.identifier(id),
-                                      printTerm(env, term.term),
+                                      printTerm(env, opts, term.term),
                                   ),
                               ]),
                         ...cases,
@@ -1118,7 +1306,7 @@ const printPattern = (
                 success,
             ),
         ]);
-    } else if (pattern.type === 'int') {
+    } else if (pattern.type === 'int' || pattern.type === 'float') {
         return t.blockStatement([
             t.ifStatement(
                 t.binaryExpression(
@@ -1197,13 +1385,13 @@ const withNoEffects = (env: Env, term: Lambda): Lambda => {
     return { ...term, is };
 };
 
-const effectfulLambda = (env: Env, term: Lambda) => {
+const effectfulLambda = (env: Env, opts: OutputOptions, term: Lambda) => {
     return t.arrowFunctionExpression(
         term.args
             .map((arg, i) => ({
                 ...t.identifier(printSym(arg)),
                 typeAnnotation: t.tsTypeAnnotation(
-                    typeToAst(env, term.is.args[i]),
+                    typeToAst(env, opts, term.is.args[i]),
                 ),
             }))
             // .map((arg) => t.identifier(printSym(arg)))
@@ -1218,7 +1406,7 @@ const effectfulLambda = (env: Env, term: Lambda) => {
                 {
                     ...t.identifier('done'),
                     typeAnnotation: t.tsTypeAnnotation(
-                        typeToAst(env, {
+                        typeToAst(env, opts, {
                             type: 'lambda',
                             args: [term.is.res],
                             typeVbls: [],
@@ -1240,7 +1428,11 @@ const effectfulLambda = (env: Env, term: Lambda) => {
                     ),
                 },
             ]),
-        printLambdaBody(env, term.body, t.identifier('done')),
+        withExecutionLimit(
+            env,
+            opts,
+            printLambdaBody(env, opts, term.body, t.identifier('done')),
+        ),
     );
 };
 

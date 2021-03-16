@@ -74,18 +74,23 @@ so if you have (x, f) => f(x)
 */
 
 const unifySimple = (
+    env: Env,
     initialTypeVbls: { [unique: string]: Array<TypeConstraint> },
     // round = 0,
 ) => {
     const unified: { [unique: string]: Type } = {};
     // const typeVbls = { ...initialTypeVbls };
     for (let key of Object.keys(initialTypeVbls)) {
-        unified[key] = initialTypeVbls[key].reduce(unify, null)!;
+        unified[key] = initialTypeVbls[key].reduce(
+            (a: Type | null, b) => unify(env, a, b),
+            null,
+        )!;
     }
     return unified;
 };
 
 const unifyInner = (
+    env: Env,
     initialTypeVbls: { [unique: string]: Array<TypeConstraint> },
     // round = 0,
 ) => {
@@ -126,7 +131,10 @@ const unifyInner = (
                 continue;
             }
             // const sm0 = smallers[0].other;
-            const final = smallers.reduce(unify, null)!;
+            const final = smallers.reduce(
+                (a: null | Type, b) => unify(env, a, b),
+                null,
+            )!;
             typeVbls[key].forEach((c) => {
                 if (c.type === 'larger-than') {
                     if (fitsExpectation(null, c.other, final) !== true) {
@@ -180,14 +188,17 @@ const unifyInner = (
     return unified;
 };
 
-export const unifyVariables = (typeVbls: {
-    [unique: string]: Array<TypeConstraint>;
-}) => {
+export const unifyVariables = (
+    env: Env,
+    typeVbls: {
+        [unique: string]: Array<TypeConstraint>;
+    },
+) => {
     // const copy = {};
     // Object.keys(typeVbls).forEach((k) => (copy[k] = typeVbls[k].slice()));
     // const unified: { [key: string]: Type } = {};
     // console.log(JSON.stringify(typeVbls, null, 2));
-    return unifySimple(typeVbls);
+    return unifySimple(env, typeVbls);
     // ok so if we have some constraints
     // and they go in multiple directions
     // uh maybe that's where constraint solvers come in?
@@ -231,10 +242,14 @@ export const unifyInType = (
     });
 };
 
-export const showType = (t: Type): string =>
-    printToString(typeToPretty(t), 100);
+export const showType = (env: Env, t: Type): string =>
+    printToString(typeToPretty(env, t), 100);
 
-const unify = (one: Type | null, constraint: TypeConstraint): Type => {
+const unify = (
+    env: Env,
+    one: Type | null,
+    constraint: TypeConstraint,
+): Type => {
     if (one == null) {
         return constraint.other;
     }
@@ -252,17 +267,19 @@ const unify = (one: Type | null, constraint: TypeConstraint): Type => {
     if (constraint.type === 'larger-than') {
         if (fitsExpectation(null, constraint.other, one) !== true) {
             throw new Error(
-                `Unification error folks larger ${showType(one)} : ${showType(
-                    constraint.other,
-                )}`,
+                `Unification error folks larger ${showType(
+                    env,
+                    one,
+                )} : ${showType(env, constraint.other)}`,
             );
         }
     } else {
         if (fitsExpectation(null, one, constraint.other) !== true) {
             throw new Error(
-                `Unification error folks smaller ${showType(one)} : ${showType(
-                    constraint.other,
-                )}`,
+                `Unification error folks smaller ${showType(
+                    env,
+                    one,
+                )} : ${showType(env, constraint.other)}`,
             );
         }
     }
@@ -279,7 +296,8 @@ export const assertFits = (
 ) => {
     if (fitsExpectation(env, t, expected) !== true) {
         throw new Error(
-            `Type error, expected ${showType(expected)}, found ${showType(
+            `Type error, expected ${showType(env, expected)}, found ${showType(
+                env,
                 t,
             )} at ${showLocation(location || t.location)}`,
         );
@@ -303,7 +321,7 @@ export const fitsExpectation = (
             throw new Error(
                 `Explicit type variable ${t.sym.name}#${
                     t.sym.unique
-                } can't unify with ${showType(target)} - ${showLocation(
+                } can't unify with ${showType(env, target)} - ${showLocation(
                     t.location,
                 )} : ${showLocation(target.location)}`,
             );
@@ -318,7 +336,7 @@ export const fitsExpectation = (
     if (target.type === 'var' && env != null) {
         if (!env.local.tmpTypeVbls[target.sym.unique]) {
             throw new Error(
-                `Unable to unify ${showType(t)} ${showLocation(
+                `Unable to unify ${showType(env, t)} ${showLocation(
                     t.location,
                 )} with type variable ${target.sym.name}#${
                     target.sym.unique
@@ -355,7 +373,7 @@ export const fitsExpectation = (
             // unless there's optional arguments going on here, stay tuned?
             // I guess. maybe.
             if (target.args.length !== t.args.length) {
-                console.log('arglen');
+                // console.log('arglen');
                 return false;
             }
             const res = fitsExpectation(env, t.res, target.res);

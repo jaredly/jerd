@@ -119,11 +119,19 @@ const assertEqual = <T>(a: T, b: T) => {
 };
 
 // When a pure function is used in a place that's expecting CPS.
-const pureCPS = (f) => {
+const pureCPS = (f: any) => {
     let res;
-    f([], (_, v) => (res = v));
+    f([], (_: any, v: any) => (res = v));
     return res;
 };
+
+export const pow = Math.pow;
+export const ln = Math.log;
+export const PI = Math.PI;
+export const TAU = Math.PI * 2;
+export const sqrt = Math.sqrt;
+export const max = Math.max;
+export const min = Math.min;
 
 export { log, isSquare, intToString, handleSimpleShallow2 };
 export { raise, assert, assertEqual, pureCPS };
