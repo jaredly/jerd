@@ -24,6 +24,7 @@ import {
     EffectDef,
     Pattern,
     cloneGlobalEnv,
+    selfEnv,
 } from '../typing/types';
 import { PP, items, args, block, atom, id as idPretty } from './printer';
 
@@ -62,7 +63,13 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
             glob.idNames[idName(toplevel.id)] = toplevel.name;
 
             return declarationToPretty(
-                { ...env, global: glob },
+                selfEnv(
+                    { ...env, global: glob },
+                    {
+                        name: toplevel.name,
+                        type: toplevel.term.is,
+                    },
+                ),
                 toplevel.id,
                 toplevel.term,
             );

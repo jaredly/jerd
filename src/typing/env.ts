@@ -41,7 +41,7 @@ export const typeToplevelT = (env: Env, item: Toplevel): ToplevelT => {
     switch (item.type) {
         case 'define': {
             // TODO type annotation
-            const term = typeExpr(env, item.expr);
+            const term = typeDefineInner(env, item);
             const hash = hashObject(term);
             const id = { hash, size: 1, pos: 0 };
             return {
@@ -338,10 +338,7 @@ export const withoutLocations = <T>(obj: T): T => {
     return obj;
 };
 
-export const typeDefine = (
-    env: Env,
-    item: Define,
-): { hash: string; term: Term; env: Env } => {
+export const typeDefineInner = (env: Env, item: Define) => {
     const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
     const subEnv: Env = {
         ...env,
@@ -372,6 +369,15 @@ export const typeDefine = (
     }
 
     unifyToplevel(term, tmpTypeVbls);
+
+    return term;
+};
+
+export const typeDefine = (
+    env: Env,
+    item: Define,
+): { hash: string; term: Term; env: Env } => {
+    const term = typeDefineInner(env, item);
 
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { addExpr, addDefine, addRecord, idName } from '../../src/typing/env';
-import { Env, Id, RecordDef } from '../../src/typing/types';
+import { Env, Id, RecordDef, selfEnv } from '../../src/typing/types';
 import {
     declarationToPretty,
     termToPretty,
@@ -27,7 +27,7 @@ export type Cell = {
 };
 
 export type EvalEnv = {
-    builtins: { [key: string]: Function };
+    builtins: { [key: string]: any };
     terms: { [hash: string]: any };
 };
 
@@ -175,7 +175,14 @@ const RenderItem = ({
                 >
                     {renderAttributedText(
                         printToAttributedText(
-                            declarationToPretty(env, content.id, term),
+                            declarationToPretty(
+                                selfEnv(env, {
+                                    name: content.name,
+                                    type: term.is,
+                                }),
+                                content.id,
+                                term,
+                            ),
                             maxWidth,
                         ),
                     )}

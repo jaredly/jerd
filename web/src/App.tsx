@@ -14,7 +14,7 @@ import * as builtins from '../../src/printing/prelude';
 import { presetEnv } from '../../src/typing/preset';
 import generate from '@babel/generator';
 import { idName } from '../../src/typing/env';
-import { Env, Id, defaultRng } from '../../src/typing/types';
+import { Env, Id, defaultRng, selfEnv } from '../../src/typing/types';
 import { printTerm } from '../../src/printing/typeScriptPrinter';
 import { CellView, Cell, EvalEnv } from './Cell';
 
@@ -54,6 +54,7 @@ const saveKey = 'jd-repl-cache';
 
 const initialState = (): State => {
     const saved = window.localStorage.getItem(saveKey);
+    const env = presetEnv();
     if (saved) {
         try {
             const data = JSON.parse(saved);
@@ -63,8 +64,14 @@ const initialState = (): State => {
                     ...data.env,
                     global: {
                         ...data.env.global,
-                        rng: defaultRng(),
+                        builtins: env.global.builtins,
+                        builtinTypes: env.global.builtinTypes,
+                        rng: env.global.rng,
                     },
+                },
+                evalEnv: {
+                    builtins,
+                    terms: data.evalEnv.terms,
                 },
             };
         } catch (err) {
@@ -72,7 +79,7 @@ const initialState = (): State => {
         }
     }
     return {
-        env: presetEnv(),
+        env,
         cells: {},
         evalEnv: {
             builtins,
@@ -88,8 +95,15 @@ const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
     if (!term) {
         throw new Error(`No term ${idName(id)}`);
     }
+    const self = env.global.idNames[idName(id)]
+        ? {
+              name: idName(id),
+              type: term.is,
+          }
+        : null;
+    const runEnv = self != null ? selfEnv(env, self) : env;
     let termAst: any = printTerm(
-        env,
+        runEnv,
         { scope: 'jdScope', limitExecutionTime: true },
         term,
     );
@@ -105,6 +119,9 @@ const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
     const timeLimit = 200;
     const jdScope = {
         ...evalEnv,
+        terms: {
+            ...evalEnv.terms,
+        },
         checkExecutionLimit: () => {
             ticks += 1;
             if (ticks++ % 100 === 0) {
@@ -116,6 +133,8 @@ const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
     };
     console.log('code', code);
     const result = eval(code);
+    // For recursive functions
+    jdScope.terms[idName(id)] = result;
     console.log('Got result', result);
     return result;
 };
@@ -125,6 +144,7 @@ export default () => {
     React.useEffect(() => {
         window.localStorage.setItem(saveKey, JSON.stringify(state));
     }, [state]);
+    window.evalEnv = state.evalEnv;
     return (
         <div
             style={{
@@ -149,7 +169,7 @@ export default () => {
                             result = runTerm(state.env, id, state.evalEnv);
                         } catch (err) {
                             console.log(`Failed to run!`);
-                            console.error(err);
+                            console.log(err);
                             return;
                         }
                         setState((state) => ({
@@ -170,8 +190,15 @@ export default () => {
                                 cell.content.type === 'term'
                             ) {
                                 const id = cell.content.id;
-                                const result = runTerm(env, id, state.evalEnv);
-                                setState((state) => ({
+                                let result;
+                                try {
+                                    result = runTerm(env, id, state.evalEnv);
+                                } catch (err) {
+                                    console.log(`Failed to run!`);
+                                    console.log(err);
+                                    return state;
+                                }
+                                return {
                                     ...state,
                                     env,
                                     evalEnv: {
@@ -182,7 +209,7 @@ export default () => {
                                         },
                                     },
                                     cells: { ...state.cells, [cell.id]: cell },
-                                }));
+                                };
                             }
                             return {
                                 ...state,

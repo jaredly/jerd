@@ -617,6 +617,22 @@ export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
     };
 };
 
+export const selfEnv = (
+    env: Env,
+    self: {
+        name: string;
+        type: Type;
+    },
+): Env => {
+    return {
+        ...env,
+        local: {
+            ...env.local,
+            self,
+        },
+    };
+};
+
 export const subEnv = (env: Env): Env => {
     // console.log('SUB ENV', env.depth, env.local.typeVbls);
     return {

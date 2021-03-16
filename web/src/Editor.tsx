@@ -46,17 +46,6 @@ export default ({
                     { type: 'error', message: 'multiple toplevel items' },
                 ];
             }
-            // if (parsed[0].type === 'define') {
-            //     // TODO type annotation
-            //     const term = typeExpr(env, parsed[0].expr);
-            //     return {
-            //         type: 'Define',
-            //         id:
-            //     };
-            // }
-            // const typed = typeExpr(env, parsed[0] as Expression);
-
-            // return [typed, null];
             return [typeToplevelT(env, parsed[0]), null];
         } catch (err) {
             return [

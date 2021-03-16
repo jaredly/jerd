@@ -66,7 +66,15 @@ export const fileToTypescript = (
         'assert',
         'assertEqual',
         'pureCPS',
+        'pow',
+        'ln',
+        'PI',
+        'TAU',
+        'sqrt',
+        'max',
+        'min',
     ];
+
     if (opts.scope) {
         items.push(
             t.variableDeclaration('const', [

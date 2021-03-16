@@ -125,5 +125,13 @@ const pureCPS = (f: any) => {
     return res;
 };
 
+export const pow = Math.pow;
+export const ln = Math.log;
+export const PI = Math.PI;
+export const TAU = Math.PI * 2;
+export const sqrt = Math.sqrt;
+export const max = Math.max;
+export const min = Math.min;
+
 export { log, isSquare, intToString, handleSimpleShallow2 };
 export { raise, assert, assertEqual, pureCPS };

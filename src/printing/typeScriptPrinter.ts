@@ -795,13 +795,20 @@ export const printTerm = (
     return withLocation(_printTerm(env, opts, term), term.location);
 };
 
+const builtinName = (name: string) => {
+    if (name === '^') {
+        return 'pow';
+    }
+    return name;
+};
+
 const printTermRef = (opts: OutputOptions, ref: Reference): t.Expression => {
     if (
         opts.scope == null ||
         (ref.type === 'builtin' && binOps.includes(ref.name))
     ) {
         return t.identifier(
-            ref.type === 'builtin' ? ref.name : printId(ref.id),
+            ref.type === 'builtin' ? builtinName(ref.name) : printId(ref.id),
         );
     } else {
         return t.memberExpression(
@@ -810,7 +817,7 @@ const printTermRef = (opts: OutputOptions, ref: Reference): t.Expression => {
                 t.identifier(ref.type === 'builtin' ? 'builtins' : 'terms'),
             ),
             ref.type === 'builtin'
-                ? t.identifier(ref.name)
+                ? t.identifier(builtinName(ref.name))
                 : t.stringLiteral(idName(ref.id)),
             ref.type === 'user',
         );
