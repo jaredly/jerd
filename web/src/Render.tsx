@@ -23,6 +23,20 @@ const stylesForAttributes = (attributes: Array<string>) => {
     return { color: '#aaa' };
 };
 
+const shouldShowHash = (
+    env: GlobalEnv,
+    id: string,
+    kind: string,
+    name: string,
+) => {
+    if (kind === 'term') {
+        return !env.names[name] || idName(env.names[name]) !== id;
+    } else if (kind === 'type' || kind === 'record' || kind === 'enum') {
+        return !env.typeNames[name] || idName(env.typeNames[name]) !== id;
+    }
+    return false;
+};
+
 export const renderAttributedText = (
     env: GlobalEnv,
     text: Array<AttributedText>,
@@ -33,12 +47,12 @@ export const renderAttributedText = (
             return <span key={i}>{item}</span>;
         }
         if ('kind' in item) {
-            const showHash =
-                (env.names[item.text] ? idName(env.names[item.text]) : '') !==
-                    item.id &&
-                (env.typeNames[item.text]
-                    ? idName(env.typeNames[item.text])
-                    : '') !== item.id;
+            const showHash = shouldShowHash(env, item.id, item.kind, item.text);
+            // (env.names[item.text] ? idName(env.names[item.text]) : '') !==
+            //     item.id &&
+            // (env.typeNames[item.text]
+            //     ? idName(env.typeNames[item.text])
+            //     : '') !== item.id;
             return (
                 <span
                     style={{

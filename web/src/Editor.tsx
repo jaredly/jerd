@@ -14,7 +14,7 @@ import {
 } from '../../src/printing/printTsLike';
 import typeExpr from '../../src/typing/typeExpr';
 import { EnumDef, Env, Term } from '../../src/typing/types';
-import { typeToplevelT } from '../../src/typing/env';
+import { idName, typeToplevelT } from '../../src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 
@@ -46,7 +46,17 @@ export default ({
                     { type: 'error', message: 'multiple toplevel items' },
                 ];
             }
-            return [typeToplevelT(env, parsed[0]), null];
+            return [
+                typeToplevelT(
+                    env,
+                    parsed[0],
+                    typeof contents !== 'string' &&
+                        contents.type === 'RecordDef'
+                        ? contents.def.unique
+                        : null,
+                ),
+                null,
+            ];
         } catch (err) {
             return [
                 null,
@@ -92,6 +102,7 @@ export default ({
                     whiteSpace: 'pre-wrap',
                     fontFamily: '"Source Code Pro", monospace',
                     padding: 8,
+                    position: 'relative',
                 }}
             >
                 {err != null
@@ -105,7 +116,20 @@ export default ({
                               50,
                           ),
                       )}
+                {typed != null ? (
+                    <div style={styles.hash}>#{idName(typed.id)}</div>
+                ) : null}
             </div>
         </div>
     );
+};
+
+const styles = {
+    hash: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        fontSize: '80%',
+        color: 'rgba(255,255,255,0.5)',
+    },
 };

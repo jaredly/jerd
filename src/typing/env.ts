@@ -37,7 +37,11 @@ import {
 import { fitsExpectation } from './unify';
 import { ToplevelT } from '../printing/printTsLike';
 
-export const typeToplevelT = (env: Env, item: Toplevel): ToplevelT => {
+export const typeToplevelT = (
+    env: Env,
+    item: Toplevel,
+    unique?: number | null,
+): ToplevelT => {
     switch (item.type) {
         case 'define': {
             // TODO type annotation
@@ -53,7 +57,7 @@ export const typeToplevelT = (env: Env, item: Toplevel): ToplevelT => {
             };
         }
         case 'StructDef': {
-            const defn = typeRecordDefn(env, item);
+            const defn = typeRecordDefn(env, item, unique);
             const hash = hashObject(defn);
             return {
                 type: 'RecordDef',
@@ -141,7 +145,7 @@ export const addEffect = (
     const hash: string = hashObject(defn);
     const id = { hash, size: 1, pos: 0 };
     if (env.global.effects[hash]) {
-        throw new Error(
+        console.warn(
             `Redefining effect ${hash} at ${showLocation(defn.location)}`,
         );
     }
@@ -199,7 +203,7 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };
     if (env.global.types[idName(idid)]) {
-        throw new Error(`Redefining ${idName(idid)}`);
+        console.warn(`Redefining ${idName(idid)}`);
     }
     const glob = cloneGlobalEnv(env.global);
     glob.types[idName(idid)] = d;
@@ -223,7 +227,7 @@ export const resolveType = (env: GlobalEnv, id: Identifier) => {
 export const typeRecordDefn = (
     env: Env,
     { decl: record, id, typeVbls: typeVblsRaw, location }: StructDef,
-    unique?: number,
+    unique?: number | null,
 ): RecordDef => {
     // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
     // console.log('RECORD', typeVblsRaw, showLocation(location));
@@ -236,7 +240,7 @@ export const typeRecordDefn = (
 
     return {
         type: 'Record',
-        unique: unique || env.global.rng(),
+        unique: unique != null ? unique : env.global.rng(),
         typeVbls,
         location,
         effectVbls,
@@ -260,7 +264,7 @@ export const addRecord = (
     const hash = hashObject(defn);
     const idid = { hash, pos: 0, size: 1 };
     if (env.global.types[idName(idid)]) {
-        throw new Error(`Redefining ${idName(idid)}`);
+        console.warn(`Redefining ${idName(idid)}`);
     }
     const glob = cloneGlobalEnv(env.global);
     glob.types[idName(idid)] = defn;
@@ -382,7 +386,7 @@ export const typeDefine = (
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
     if (env.global.terms[hash]) {
-        throw new Error(
+        console.warn(
             `Redefining ${hash} at ${showLocation(
                 item.location,
             )} (previous at ${showLocation(env.global.terms[hash].location)})`,

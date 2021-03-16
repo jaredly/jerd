@@ -32,3 +32,8 @@ Here's what this looks like
   - would gzipped json, or msgpack, be smaller?
 
 ooh look to shem/golem for inspiration on what demos look ince.
+
+
+## Bugs
+
+- [ ] when editing a record, we're rng'ing a new unique each time, which isn't great. how do I keep track of the rng we've made for this already?
