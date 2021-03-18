@@ -88,9 +88,9 @@ export const renderAttributedText = (
                             style={{
                                 color: '#777',
                                 fontSize: '60%',
-                                borderBottom: item.id.startsWith('sym')
-                                    ? `1px solid ${colorMap[item.id]}`
-                                    : '',
+                                //     borderBottom: item.id.startsWith('sym')
+                                //         ? `1px solid ${colorMap[item.id]}`
+                                //         : '',
                             }}
                         >
                             #{item.id}

@@ -118,6 +118,22 @@ export default ({
 
     return (
         <div style={{ marginRight: 10 }}>
+            {/* <div
+                contentEditable
+                autoCorrect="false"
+                spellCheck="false"
+                style={{
+                    whiteSpace: 'pre',
+                    fontFamily: '"Source Code Pro", monospace',
+                }}
+            >
+                {renderAttributedText(
+                    env.global,
+                    printToAttributedText(toplevelToPretty(env, typed), 80),
+                    null,
+                    true,
+                )}
+            </div> */}
             <AutoresizeTextarea
                 value={text}
                 autoFocus
