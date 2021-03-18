@@ -13,25 +13,47 @@ import {
     ToplevelT,
 } from '../../src/printing/printTsLike';
 import typeExpr, { showLocation } from '../../src/typing/typeExpr';
-import { EnumDef, Env, Term } from '../../src/typing/types';
+import { EnumDef, Env, Id, Symbol, Term, Type } from '../../src/typing/types';
 import { idName, typeToplevelT } from '../../src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import { UnresolvedIdentifier } from '../../src/typing/errors';
 
+type AutoName =
+    | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }
+    | { type: 'global'; name: string; id: Id; term: Term };
+
 const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
-    const matchingNames = Object.keys(env.global.names).filter((n) =>
-        n.toLowerCase().startsWith(name.toLowerCase()),
-    );
+    const matchingNames: Array<AutoName> = Object.keys(env.local.localNames)
+        .filter((n) => n.toLowerCase().startsWith(name.toLowerCase()))
+        .map((name) => ({
+            type: 'local',
+            name,
+            defn: env.local.locals[env.local.localNames[name]],
+        }));
+    Object.keys(env.global.names)
+        .filter((n) => n.toLowerCase().startsWith(name.toLowerCase()))
+        .map((name) => ({
+            type: 'global',
+            name,
+            id: env.global.names[name],
+            term: env.global.terms[idName(env.global.names[name])],
+        }));
     if (!matchingNames.length) {
         return <div>No defined names matching {name}</div>;
     }
     return (
         <div>
             <div>Did you mean...</div>
-            {matchingNames.map((n) => (
-                <div key={n}>
-                    {n}#{idName(env.global.names[n])}
+            {matchingNames.map((n, i) => (
+                <div
+                    key={n.type === 'global' ? idName(n.id) : n.defn.sym.unique}
+                >
+                    {n.name}#
+                    {n.type === 'global'
+                        ? idName(n.id)
+                        : 'sym#' + n.defn.sym.unique}
+                    {/* {n}#{idName(env.global.names[n])} */}
                 </div>
             ))}
         </div>
@@ -40,7 +62,7 @@ const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
 
 const ShowError = ({ err, env }: { err: Error; env: Env }) => {
     if (err instanceof UnresolvedIdentifier) {
-        return <AutoComplete env={env} name={err.id.text} />;
+        return <AutoComplete env={err.env} name={err.id.text} />;
         // return <div>Unresolved {err.id.text}</div>;
     }
     if (err instanceof SyntaxError) {

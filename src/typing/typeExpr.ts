@@ -448,7 +448,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             if (term != null) {
                 return term;
             }
-            throw new UnresolvedIdentifier(expr);
+            throw new UnresolvedIdentifier(expr, env);
         }
         case 'lambda':
             return typeLambda(env, expr);

@@ -198,8 +198,8 @@ const RenderItem = ({
                         ),
                         onClick,
                     )}
-                    {/* @ts-ignore */}
                     <div
+                        // @ts-ignore
                         style={styles.hash}
                         onClick={(evt) => evt.stopPropagation()}
                     >
@@ -246,8 +246,8 @@ const RenderItem = ({
                         ),
                         onClick,
                     )}
-                    {/* @ts-ignore */}
                     <div
+                        // @ts-ignore
                         style={styles.hash}
                         onClick={(evt) => evt.stopPropagation()}
                     >
@@ -341,6 +341,21 @@ const getToplevel = (env: Env, content: Content): ToplevelT => {
             id: content.id,
         };
     }
+    if (content.type === 'effect') {
+        return {
+            type: 'Effect',
+            constrNames: env.global.effectConstrNames[idName(content.id)],
+            name: content.name,
+            location: null,
+            id: content.id,
+            effect: {
+                type: 'EffectDef',
+                constrs: env.global.effects[idName(content.id)],
+                location: null,
+            },
+        };
+    }
+    throw new Error(`unsupported toplevel`);
 };
 
 export const updateToplevel = (
