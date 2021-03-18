@@ -18,10 +18,13 @@ import {
 } from '../../src/printing/printTsLike';
 import typeExpr, { showLocation } from '../../src/typing/typeExpr';
 import { EnumDef, Env, Id, Symbol, Term, Type } from '../../src/typing/types';
-import { idName, typeToplevelT } from '../../src/typing/env';
+import { hashObject, idName, typeToplevelT } from '../../src/typing/env';
 import { renderAttributedText, renderAttributedTextToHTML } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import { UnresolvedIdentifier } from '../../src/typing/errors';
+
+const topHash = (t: ToplevelT) =>
+    t.type === 'Expression' ? hashObject(t.term) : t.id.hash;
 
 export default ({
     env,
@@ -37,6 +40,8 @@ export default ({
     });
 
     const ref = React.useRef(null);
+
+    const prevHash = React.useRef(null);
 
     const [typed, err] = React.useMemo(() => {
         if (text.trim().length === 0) {
@@ -57,10 +62,13 @@ export default ({
                     ? contents.def.unique
                     : null,
             );
-            ref.current.innerHTML = renderAttributedTextToHTML(
-                env.global,
-                printToAttributedText(toplevelToPretty(env, t), 50),
-            );
+            if (topHash(t) !== prevHash.current && ref.current != null) {
+                ref.current.innerHTML = renderAttributedTextToHTML(
+                    env.global,
+                    printToAttributedText(toplevelToPretty(env, t), 50),
+                    true,
+                );
+            }
 
             return [t, null];
         } catch (err) {
@@ -68,11 +76,14 @@ export default ({
         }
     }, [text]);
 
+    prevHash.current = typed != null ? topHash(typed) : null;
+
     React.useEffect(() => {
         if (typed != null) {
             ref.current.innerHTML = renderAttributedTextToHTML(
                 env.global,
                 printToAttributedText(toplevelToPretty(env, typed), 50),
+                true,
             );
         } else if (typeof contents === 'string') {
             ref.current.innerHTML = contents;
@@ -84,6 +95,9 @@ export default ({
             Edit please
             <div
                 ref={ref}
+                spellCheck="false"
+                autoCorrect="false"
+                autoCapitalize="false"
                 onInput={(evt) => {
                     console.log(evt.currentTarget.innerHTML);
                     setText(evt.currentTarget.innerText);
