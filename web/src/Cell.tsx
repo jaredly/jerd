@@ -17,6 +17,7 @@ import {
 } from '../../src/printing/printTsLike';
 import { printToAttributedText } from '../../src/printing/printer';
 import Editor from './Editor';
+import ColorEditor from './ColorEditor';
 import { renderAttributedText } from './Render';
 
 const maxWidth = 60;
@@ -61,7 +62,7 @@ export const CellView = ({
     return (
         <div style={{ width: 500, padding: 4, position: 'relative' }}>
             {editing ? (
-                <Editor
+                <ColorEditor
                     env={env}
                     contents={
                         cell.content.type == 'raw'

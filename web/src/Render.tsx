@@ -44,6 +44,43 @@ for (let i = 0; i < colorsRaw.length; i += 6) {
     colors.push('#' + colorsRaw.slice(i, i + 6));
 }
 
+export const renderAttributedTextToHTML = (
+    env: GlobalEnv,
+    text: Array<AttributedText>,
+    allIds?: boolean,
+    idColors: Array<string> = colors,
+): string => {
+    const colorMap = {};
+    let colorAt = 0;
+    return text
+        .map((item, i) => {
+            if (typeof item === 'string') {
+                return item;
+            }
+            if ('kind' in item) {
+                const showHash =
+                    allIds ||
+                    shouldShowHash(env, item.id, item.kind, item.text);
+                if (!colorMap[item.id] && item.id.startsWith('sym')) {
+                    colorMap[item.id] = idColors[colorAt++ % idColors.length];
+                }
+                return `<span style="color:${
+                    item.kind === 'sym'
+                        ? colorMap[item.id] || '#9CDCFE'
+                        : '#4EC9B0'
+                }" title="${item.id + ' ' + item.kind}">${item.text}${
+                    showHash
+                        ? `<span style="color: #777; font-size: 60%">#${item.id}</span>`
+                        : ''
+                }</span>`;
+            }
+            return `<span style="color:${
+                stylesForAttributes(item.attributes).color
+            }">${item.text}</span>`;
+        })
+        .join('');
+};
+
 export const renderAttributedText = (
     env: GlobalEnv,
     text: Array<AttributedText>,
