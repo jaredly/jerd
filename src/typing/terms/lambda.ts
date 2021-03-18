@@ -18,7 +18,7 @@ import { fitsExpectation } from '../unify';
 import { printToString } from '../../printing/printer';
 import { refToPretty, symToPretty } from '../../printing/printTsLike';
 import typeExpr, { showLocation } from '../typeExpr';
-import { resolveEffect } from '../env';
+import { makeLocal, resolveEffect } from '../env';
 
 export const typeLambda = (env: Env, expr: Lambda): Term => {
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
@@ -35,9 +35,7 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
 
     expr.args.forEach(({ id, type: rawType }) => {
         const type = typeType(typeInner, rawType);
-        const unique = Object.keys(inner.local.locals).length;
-        const sym: Symbol = { name: id.text, unique };
-        inner.local.locals[id.text] = { sym, type };
+        const sym = makeLocal(inner, id, type);
         args.push(sym);
         argst.push(type);
     });

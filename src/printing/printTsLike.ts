@@ -88,8 +88,17 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
         }
         case 'EnumDef':
             return enumToPretty(env, toplevel.id, toplevel.def);
-        case 'Effect':
-            return effectToPretty(env, toplevel.id, toplevel.effect);
+        case 'Effect': {
+            const glob = cloneGlobalEnv(env.global);
+            glob.idNames[idName(toplevel.id)] = toplevel.name;
+            glob.effectConstrNames[idName(toplevel.id)] = toplevel.constrNames;
+
+            return effectToPretty(
+                { ...env, global: glob },
+                toplevel.id,
+                toplevel.effect,
+            );
+        }
     }
 };
 
@@ -116,12 +125,8 @@ export const refToPretty = (env: Env, ref: Reference, kind: string) =>
     ref.type === 'builtin' ? atom(ref.name) : idToPretty(env, ref.id, kind);
 export const idToPretty = (env: Env, id: Id, kind: string) => {
     const name = env.global.idNames[idName(id)];
-    if (name) {
-        const hash = id.hash + (id.pos !== 0 ? '#' + id.pos : '');
-        return idPretty(name, hash, kind);
-        // return atom(`${name}#${hash}`);
-    }
-    return atom('hash_' + id.hash + '_' + id.pos);
+    const hash = id.hash + (id.pos !== 0 ? '#' + id.pos : '');
+    return idPretty(name ? name : 'unnamed', hash, kind);
 };
 export const symToPretty = (sym: Symbol) =>
     idPretty(sym.name, 'sym#' + sym.unique.toString(), 'sym');

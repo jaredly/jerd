@@ -41,6 +41,8 @@ const patternToExPattern = (
             return patternToExPattern(env, type, groups, pattern.inner);
         case 'int':
             return constructor(pattern.value.toString(), 'int', []);
+        case 'float':
+            return constructor(pattern.value.toString(), 'float', []);
         case 'string':
             return constructor(pattern.text, 'string', []);
         case 'boolean':

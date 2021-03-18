@@ -1,7 +1,13 @@
 // Ok
 
 import * as React from 'react';
-import { addExpr, addDefine, addRecord, idName } from '../../src/typing/env';
+import {
+    addExpr,
+    addDefine,
+    addRecord,
+    idName,
+    addEffect,
+} from '../../src/typing/env';
 import { Env, Id, RecordDef, selfEnv } from '../../src/typing/types';
 import {
     declarationToPretty,
@@ -19,6 +25,7 @@ export type Content =
     | { type: 'term'; id: Id; name: string }
     | { type: 'expr'; id: Id }
     | { type: 'record'; id: Id; name: string; attrs: Array<string> }
+    | { type: 'effect'; id: Id; name: string; constrNames: Array<string> }
     | { type: 'raw'; text: string };
 export type Cell = {
     id: string;
@@ -191,7 +198,13 @@ const RenderItem = ({
                         ),
                         onClick,
                     )}
-                    <div style={styles.hash}>#{id}</div>
+                    <div
+                        // @ts-ignore
+                        style={styles.hash}
+                        onClick={(evt) => evt.stopPropagation()}
+                    >
+                        #{id}
+                    </div>
                 </div>
                 <RenderResult
                     id={content.id}
@@ -233,7 +246,13 @@ const RenderItem = ({
                         ),
                         onClick,
                     )}
-                    <div style={styles.hash}>#{id}</div>
+                    <div
+                        // @ts-ignore
+                        style={styles.hash}
+                        onClick={(evt) => evt.stopPropagation()}
+                    >
+                        #{id}
+                    </div>
                 </div>
                 <RenderResult
                     id={content.id}
@@ -255,6 +274,7 @@ const RenderItem = ({
                 }}
             >
                 {content.text}
+                {/* @ts-ignore */}
                 <div style={styles.hash}>raw</div>
             </div>
         );
@@ -275,11 +295,14 @@ const RenderItem = ({
                     printToAttributedText(toplevelToPretty(env, top), maxWidth),
                     onClick,
                 )}
+                {/* @ts-ignore */}
                 <div style={styles.hash}>#{idName(content.id)}</div>
             </div>
         );
     }
 };
+
+// const Hash = ({id}) =>
 
 const styles = {
     hash: {
@@ -318,9 +341,24 @@ const getToplevel = (env: Env, content: Content): ToplevelT => {
             id: content.id,
         };
     }
+    if (content.type === 'effect') {
+        return {
+            type: 'Effect',
+            constrNames: env.global.effectConstrNames[idName(content.id)],
+            name: content.name,
+            location: null,
+            id: content.id,
+            effect: {
+                type: 'EffectDef',
+                constrs: env.global.effects[idName(content.id)],
+                location: null,
+            },
+        };
+    }
+    throw new Error(`unsupported toplevel`);
 };
 
-const updateToplevel = (
+export const updateToplevel = (
     env: Env,
     term: ToplevelT,
 ): { env: Env; content: Content } => {
@@ -346,6 +384,22 @@ const updateToplevel = (
                 id: id,
                 name: term.name,
                 attrs: term.attrNames,
+            },
+            env: nenv,
+        };
+    } else if (term.type === 'Effect') {
+        const { env: nenv, id } = addEffect(
+            env,
+            term.name,
+            term.constrNames,
+            term.effect,
+        );
+        return {
+            content: {
+                type: 'effect',
+                id: id,
+                name: term.name,
+                constrNames: term.constrNames,
             },
             env: nenv,
         };

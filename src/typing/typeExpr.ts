@@ -26,13 +26,14 @@ import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
 import { showType, fitsExpectation, assertFits } from './unify';
 import { void_, string, bool } from './preset';
-import { hasSubType, idName, resolveIdentifier } from './env';
+import { hasSubType, idName, makeLocal, resolveIdentifier } from './env';
 import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
 import { typeRecord } from './terms/record';
 import { typeApply } from './terms/apply';
 import { typeSwitch } from './terms/switch';
 import { typeOps } from './terms/ops';
+import { UnresolvedIdentifier } from './errors';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -300,9 +301,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                             )}, expected ${showType(env, type)}`,
                         );
                     }
-                    const unique = Object.keys(innerEnv.local.locals).length;
-                    const sym: Symbol = { name: item.id.text, unique };
-                    innerEnv.local.locals[item.id.text] = { sym, type };
+                    const sym = makeLocal(innerEnv, item.id, type);
                     inner.push({
                         type: 'Let',
                         location: item.location,
@@ -447,15 +446,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         case 'id': {
             const term = resolveIdentifier(env, expr);
             if (term != null) {
-                // console.log(`${expr.text} : ${showType(env, term.is)}`);
                 return term;
             }
-            // console.log(env.local.locals);
-            throw new Error(
-                `Identifier "${expr.text}" at ${showLocation(
-                    expr.location,
-                )} hasn't been defined anywhere.`,
-            );
+            throw new UnresolvedIdentifier(expr, env);
         }
         case 'lambda':
             return typeLambda(env, expr);
