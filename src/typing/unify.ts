@@ -16,6 +16,7 @@ import { printToString } from '../printing/printer';
 import { typeToPretty } from '../printing/printTsLike';
 import { showLocation } from './typeExpr';
 import { Location } from '../parsing/parser';
+import { WrongEffects } from './errors';
 
 /*
 
@@ -312,11 +313,9 @@ export const fitsExpectation = (
     target: Type,
 ): UnificationResult => {
     if (t.type === 'var' && env != null) {
-        // if (env.local.typeVbls[])
         if (typesEqual(t, target)) {
             return true;
         }
-        // if (target.type === 'var')
         if (!env.local.tmpTypeVbls[t.sym.unique]) {
             throw new Error(
                 `Explicit type variable ${t.sym.name}#${
@@ -383,11 +382,18 @@ export const fitsExpectation = (
             }
             // Is target allowed to have more, or fewer effects than t?
             // more. t's effects list must be a strict subset.
-            if (!effectsMatch(target.effects, t.effects, true)) {
-                throw new Error(
-                    `Unexpected argument effect: ${showLocation(
-                        target.location,
-                    )} - ${showLocation(t.location)}`,
+            // UPDATE: I'm going to say that they have to exactly match.
+            if (!effectsMatch(target.effects, t.effects, false)) {
+                throw new WrongEffects(
+                    t,
+                    target,
+                    env,
+                    // `Unexpected argument effect: ${JSON.stringify(
+                    //     target.effects,
+                    // )} but got ${JSON.stringify(t.effects)}
+                    // ${showLocation(target.location)} - ${showLocation(
+                    //     t.location,
+                    // )}`,
                 );
             }
             // t.effects.forEach((e) => {

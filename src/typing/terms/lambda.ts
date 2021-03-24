@@ -19,6 +19,7 @@ import { printToString } from '../../printing/printer';
 import { refToPretty, symToPretty } from '../../printing/printTsLike';
 import typeExpr, { showLocation } from '../typeExpr';
 import { makeLocal, resolveEffect } from '../env';
+import { LocatedError } from '../errors';
 
 export const typeLambda = (env: Env, expr: Lambda): Term => {
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
@@ -64,7 +65,8 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
             );
         }
         if (!effectsMatch(declaredEffects, effects, true)) {
-            throw new Error(
+            throw new LocatedError(
+                expr.location,
                 `Function declared with explicit effects, but missing at least one: ${declaredEffects
                     .map((e) =>
                         e.type === 'ref'

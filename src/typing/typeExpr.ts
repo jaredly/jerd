@@ -105,9 +105,12 @@ export const subtTypeVars = (
     );
 };
 
-export const showLocation = (loc: Location | null) => {
+export const showLocation = (loc: Location | null, startOnly?: boolean) => {
     if (!loc) {
         return `<no location>`;
+    }
+    if (startOnly) {
+        return `${loc.start.line}:${loc.start.column}`;
     }
     return `${loc.start.line}:${loc.start.column}-${loc.end.line}:${loc.end.column}`;
 };

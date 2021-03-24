@@ -577,7 +577,19 @@ const main = (
             numFailures += 1;
             console.error(`❌ Failed to process ${chalk.blue(fname)}`);
             console.error('-----------------------------');
-            console.error(err);
+            if (err instanceof LocatedError) {
+                console.error(
+                    `Error location: ${chalk.blue(
+                        `${fname}:${showLocation(err.loc, true)}`,
+                    )}`,
+                );
+            }
+            if (err instanceof TypeError) {
+                console.error(err.toString());
+                console.error(err.stack);
+            } else {
+                console.error(err);
+            }
             console.error('-----------------------------');
             return false;
         }
@@ -622,6 +634,7 @@ const main = (
 };
 
 import { execSync, spawnSync } from 'child_process';
+import { LocatedError, TypeError } from './typing/errors';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
