@@ -117,6 +117,7 @@ const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
         },
     };
     console.log('code', code);
+    // const result = (new Function('jdScope', code))(code);
     const result = eval(code);
     // For recursive functions
     jdScope.terms[idName(id)] = result;
