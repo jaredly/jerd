@@ -32,6 +32,17 @@ Features:
       had a structured editor.
 
 
+## Development
+
+Cli/core
+- `yarn watch` in one tab
+- `yarn watch-tests` in another
+
+Web/editor
+- `cd web; yarn start`
+- open up `http://localhost:4343`
+
+
 ## Inspirations
 
 - unison
