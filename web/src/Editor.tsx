@@ -17,7 +17,7 @@ import { EnumDef, Env, Id, Symbol, Term, Type } from '../../src/typing/types';
 import { idName, typeToplevelT } from '../../src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
-import { UnresolvedIdentifier } from '../../src/typing/errors';
+import { TypeError, UnresolvedIdentifier } from '../../src/typing/errors';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }
@@ -67,6 +67,9 @@ const ShowError = ({ err, env }: { err: Error; env: Env }) => {
     }
     if (err instanceof SyntaxError) {
         return <div>Syntax error at {showLocation(err.location)}</div>;
+    }
+    if (err instanceof TypeError) {
+        return <div>{err.toString()}</div>;
     }
     console.log(err);
     return <div>{err.message}</div>;
@@ -137,14 +140,17 @@ export default ({
             <AutoresizeTextarea
                 value={text}
                 autoFocus
-                onBlur={() => {
-                    onClose();
-                }}
+                // onBlur={() => {
+                //     onClose();
+                // }}
                 onChange={(evt) => setText(evt.target.value)}
                 onKeyDown={(evt) => {
                     if (evt.metaKey && evt.key === 'Enter') {
                         console.log('run it');
                         onChange(typed == null ? text : typed);
+                    }
+                    if (evt.key === 'Escape') {
+                        onClose();
                     }
                 }}
                 style={{

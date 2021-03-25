@@ -12,9 +12,13 @@ import { fileToTypescript } from '../../src/printing/fileToTypeScript';
 import * as builtins from '../../src/printing/prelude';
 
 import { presetEnv } from '../../src/typing/preset';
+import {
+    getSortedTermDependencies,
+    allLiteral,
+} from '../../src/typing/analyze';
 import generate from '@babel/generator';
 import { idName } from '../../src/typing/env';
-import { Env, Id, defaultRng, selfEnv } from '../../src/typing/types';
+import { Env, Id, defaultRng, selfEnv, Term } from '../../src/typing/types';
 import { printTerm } from '../../src/printing/typeScriptPrinter';
 import { CellView, Cell, EvalEnv, Content, getToplevel } from './Cell';
 import { toplevelToPretty } from '../../src/printing/printTsLike';
@@ -77,30 +81,28 @@ const initialState = (): State => {
 
 class TimeoutError extends Error {}
 
-const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
-    const term = env.global.terms[idName(id)];
-    if (!term) {
-        throw new Error(`No term ${idName(id)}`);
-    }
-    const self = env.global.idNames[idName(id)]
-        ? {
-              name: idName(id),
-              type: term.is,
-          }
-        : null;
-    const runEnv = self != null ? selfEnv(env, self) : env;
+const termToJS = (env: Env, term: Term, idName: string) => {
     let termAst: any = printTerm(
-        runEnv,
+        env,
         { scope: 'jdScope', limitExecutionTime: true },
         term,
     );
-    let ast = t.file(t.program([t.expressionStatement(termAst)], [], 'script'));
+    let ast = t.file(t.program([t.returnStatement(termAst)], [], 'script'));
     optimizeAST(ast);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
-        sourceFileName: 'cell-123',
+        sourceFileName: idName,
     });
+
+    return code;
+};
+
+const runWithExecutionLimit = (
+    code: string,
+    evalEnv: EvalEnv,
+    idName: string,
+) => {
     const start = Date.now();
     let ticks = 0;
     const timeLimit = 200;
@@ -119,12 +121,41 @@ const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
         },
     };
     console.log('code', code);
-    // const result = (new Function('jdScope', code))(code);
-    const result = eval(code);
-    // For recursive functions
-    jdScope.terms[idName(id)] = result;
-    console.log('Got result', result);
+    // yay now it's safe from weird scoping things.
+    const result = new Function('jdScope', code)(jdScope);
+    // This is so recursive calls work
+    jdScope.terms[idName] = result;
     return result;
+};
+
+const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
+    const term = env.global.terms[idName(id)];
+    if (!term) {
+        throw new Error(`No term ${idName(id)}`);
+    }
+
+    const results = {};
+
+    const deps = getSortedTermDependencies(env, term, id);
+    console.log(deps);
+    deps.forEach((dep) => {
+        if (evalEnv.terms[dep] == null) {
+            console.log(dep, 'isnt there');
+            const depTerm = env.global.terms[dep];
+            const self = { name: dep, type: term.is };
+            const code = termToJS(selfEnv(env, self), depTerm, dep);
+            const innerEnv = {
+                ...evalEnv,
+                terms: { ...evalEnv.terms, ...results },
+            };
+            const result = runWithExecutionLimit(code, innerEnv, dep);
+            results[dep] = result;
+            console.log('result', dep, result);
+        } else {
+            console.log('already evaluated', dep, evalEnv.terms[dep]);
+        }
+    });
+    return results;
 };
 
 const contentMatches = (one: Content, two: Content) => {
@@ -134,25 +165,44 @@ const contentMatches = (one: Content, two: Content) => {
     return one.type === two.type && idName(one.id) === idName(two.id);
 };
 
+const stateToString = (state: State) => {
+    const terms = {};
+    Object.keys(state.evalEnv.terms).forEach((k) => {
+        if (allLiteral(state.env, state.env.global.terms[k].is)) {
+            terms[k] = state.evalEnv.terms[k];
+            // } else {
+            //     console.warn(`Not saving ${k}, not all literal`);
+        }
+    });
+    return JSON.stringify({ ...state, evalEnv: { ...state.evalEnv, terms } });
+};
+
 export default () => {
     const [state, setState] = React.useState(() => initialState());
     React.useEffect(() => {
-        window.localStorage.setItem(saveKey, JSON.stringify(state));
+        window.localStorage.setItem(saveKey, stateToString(state));
     }, [state]);
     // @ts-ignore
     window.evalEnv = state.evalEnv;
+    // @ts-ignore
     window.state = state;
+    // @ts-ignore
     window.renderFile = () => {
         return Object.keys(state.cells)
             .map((k) => {
                 const c = state.cells[k].content;
-                if (c.type !== 'raw') {
+                if (c.type !== 'raw' && c.type !== 'expr') {
                     const top = getToplevel(state.env, c);
-                    return printToString(toplevelToPretty(state.env, top), 100);
+                    return printToString(
+                        toplevelToPretty(state.env, top),
+                        100,
+                        { hideIds: true },
+                    );
                 }
-                return '// raw';
+                return null;
             })
-            .join('\n');
+            .filter(Boolean)
+            .join('\n\n');
     };
     return (
         <div
@@ -180,9 +230,9 @@ export default () => {
                     }}
                     onRun={(id) => {
                         console.log('Running', id, state.env, state.evalEnv);
-                        let result;
+                        let results;
                         try {
-                            result = runTerm(state.env, id, state.evalEnv);
+                            results = runTerm(state.env, id, state.evalEnv);
                         } catch (err) {
                             console.log(`Failed to run!`);
                             console.log(err);
@@ -194,7 +244,7 @@ export default () => {
                                 ...state.evalEnv,
                                 terms: {
                                     ...state.evalEnv.terms,
-                                    [idName(id)]: result,
+                                    ...results,
                                 },
                             },
                         }));
@@ -226,9 +276,9 @@ export default () => {
                                 cell.content.type === 'term'
                             ) {
                                 const id = cell.content.id;
-                                let result;
+                                let results: any;
                                 try {
-                                    result = runTerm(env, id, state.evalEnv);
+                                    results = runTerm(env, id, state.evalEnv);
                                 } catch (err) {
                                     console.log(`Failed to run!`);
                                     console.log(err);
@@ -241,7 +291,7 @@ export default () => {
                                         ...state.evalEnv,
                                         terms: {
                                             ...state.evalEnv.terms,
-                                            [idName(id)]: result,
+                                            ...results,
                                         },
                                     },
                                     cells: { ...state.cells, [cell.id]: cell },

@@ -181,9 +181,9 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         } else {
             if (!names[row.id.text]) {
                 throw new Error(
-                    `Unexpected attrbute name ${row.id.text} at ${showLocation(
+                    `Unexpected attribute name ${row.id.text} at ${showLocation(
                         row.id.location,
-                    )}`,
+                    )}. Possible names: ${Object.keys(names).join(', ')}`,
                 );
             }
             const got = names[row.id.text];
