@@ -16,7 +16,9 @@ import generate from '@babel/generator';
 import { idName } from '../../src/typing/env';
 import { Env, Id, defaultRng, selfEnv } from '../../src/typing/types';
 import { printTerm } from '../../src/printing/typeScriptPrinter';
-import { CellView, Cell, EvalEnv, Content } from './Cell';
+import { CellView, Cell, EvalEnv, Content, getToplevel } from './Cell';
+import { toplevelToPretty } from '../../src/printing/printTsLike';
+import { printToString } from '../../src/printing/printer';
 
 // Yea
 
@@ -139,6 +141,19 @@ export default () => {
     }, [state]);
     // @ts-ignore
     window.evalEnv = state.evalEnv;
+    window.state = state;
+    window.renderFile = () => {
+        return Object.keys(state.cells)
+            .map((k) => {
+                const c = state.cells[k].content;
+                if (c.type !== 'raw') {
+                    const top = getToplevel(state.env, c);
+                    return printToString(toplevelToPretty(state.env, top), 100);
+                }
+                return '// raw';
+            })
+            .join('\n');
+    };
     return (
         <div
             style={{

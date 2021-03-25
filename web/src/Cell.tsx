@@ -317,7 +317,7 @@ const styles = {
     },
 };
 
-const getToplevel = (env: Env, content: Content): ToplevelT => {
+export const getToplevel = (env: Env, content: Content): ToplevelT => {
     if (content.type === 'expr') {
         return {
             type: 'Expression',

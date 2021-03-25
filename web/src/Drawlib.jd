@@ -1,0 +1,80 @@
+
+@ffi type Ok#63b1f23c<T#sym#0> = {
+    value: T#sym#0,
+}
+
+@ffi type Empty#5a61a5d4 = {}
+
+// TODO: Can I do an actual "nullable" type or something?
+// b/c this is clunky...
+enum Nullable#023e169a<T#sym#0>{
+    Ok#63b1f23c<T#sym#0>,
+    Empty#5a61a5d4,
+}
+
+@ffi type Pos#87d3f5dc = {
+    x: float,
+    y: float,
+}
+
+@ffi type Box#658c3488 = {
+    ...Pos#87d3f5dc,
+    w: float,
+    h: float,
+}
+
+@ffi type Circle#3266f7c4 = {
+    ...Pos#87d3f5dc,
+    r: float,
+}
+
+@ffi type Drawable#4a4abfb4 = {
+    shape: Shape#b1f0a4a6,
+    fill: string,
+    border: Nullable#023e169a<Border#d8a5d904>,
+}
+
+enum Shape#b1f0a4a6{
+    Circle#3266f7c4,
+    Box#658c3488,
+    Line#1faf42a4,
+}
+
+@ffi type Border#d8a5d904 = {
+    width: float,
+    color: string,
+}
+
+@ffi type Line#1faf42a4 = {
+    start: Pos#87d3f5dc,
+    end: Pos#87d3f5dc,
+}
+
+const pos#29ed9c0c: (float, float) ={}> Pos#87d3f5dc = (x#sym#1: float, y#sym#2: float) ={}> Pos#87d3f5dc{
+    x#87d3f5dc#0: x#sym#1,
+    y#87d3f5dc#1: y#sym#2,
+}
+const box#43a1fae9: (Pos#87d3f5dc, Pos#87d3f5dc) ={}> Box#658c3488 = (
+    tl#sym#1: Pos#87d3f5dc,
+    dims#sym#2: Pos#87d3f5dc,
+) ={}> Box#658c3488{
+    ...tl#sym#1,
+    w#658c3488#0: dims#sym#2.x#87d3f5dc#0,
+    h#658c3488#1: dims#sym#2.y#87d3f5dc#1,
+}
+const circle#584c0e73: (Pos#87d3f5dc, float) ={}> Circle#3266f7c4 = (
+    c#sym#1: Pos#87d3f5dc,
+    r#sym#2: float,
+) ={}> Circle#3266f7c4{...c#sym#1, r#3266f7c4#0: r#sym#2}
+
+
+// const face#7328f47c: Circle#3266f7c4 = Circle#3266f7c4{
+//     x#87d3f5dc#0: 20.0,
+//     y#87d3f5dc#1: 20.0,
+//     r#3266f7c4#0: 10.0,
+// }
+// box#43a1fae9(pos#29ed9c0c(20.0, 20.0), pos#29ed9c0c(10.0, 5.0))
+// <Shape#b1f0a4a6>[
+//     Shape#b1f0a4a6:circle#584c0e73(pos#29ed9c0c(10.5, 2.0), 4.0),
+//     Shape#b1f0a4a6:box#43a1fae9(pos#29ed9c0c(20.0, 20.0), pos#29ed9c0c(10.0, 4.0)),
+// ]
