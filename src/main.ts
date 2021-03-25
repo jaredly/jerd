@@ -48,8 +48,8 @@ import {
 import {
     showType,
     unifyInTerm,
-    unifyVariables,
-    fitsExpectation,
+    // unifyVariables,
+    getTypeErrorOld,
 } from './typing/unify';
 import { items, printToString } from './printing/printer';
 import {
@@ -152,16 +152,16 @@ const testInference = (parsed: Toplevel[]) => {
             };
             subEnv.local.self = self;
             const term = typeExpr(subEnv, item.expr);
-            if (fitsExpectation(subEnv, term.is, self.type) !== true) {
+            if (getTypeErrorOld(subEnv, term.is, self.type) !== true) {
                 throw new Error(`Term's type doesn't match annotation`);
             }
             // So for self-recursive things, the final
             // thing should be exactly the same, not just
             // larger or smaller, right?
-            const unified = unifyVariables(env, tmpTypeVbls);
-            if (Object.keys(unified).length) {
-                unifyInTerm(unified, term);
-            }
+            // const unified = unifyVariables(env, tmpTypeVbls);
+            // if (Object.keys(unified).length) {
+            //     unifyInTerm(unified, term);
+            // }
             const hash: string = hashObject(term);
             const id: Id = { hash: hash, size: 1, pos: 0 };
             env.global.names[item.id.text] = id;
@@ -359,7 +359,7 @@ const processFile = (
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
-    const { expressions, env } = typeFile(parsed);
+    const { expressions, env } = typeFile(parsed, fname);
 
     if (reprint) {
         let good = true;

@@ -110,7 +110,7 @@ const countNamed = Counter<<T: HasName>(T) => string>{item: <T: HasName>(input: 
 
 countNamed.item<Person>(me) == "June"
 
-const double = <T,>(x: Array<T>) => concat(x, x)
+const double = <T,>(x: Array<T>) => concat<T>(x, x)
 
 // Ok folks, how do we do NamedTuples? e.g. records without names?
 // I guess we've gotta just check for a `id + apply`, right? that's annoying.

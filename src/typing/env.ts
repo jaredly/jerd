@@ -34,8 +34,9 @@ import {
     cloneGlobalEnv,
     EffectDef,
 } from './types';
-import { fitsExpectation } from './unify';
+import { getTypeErrorOld } from './unify';
 import { ToplevelT } from '../printing/printTsLike';
+import { void_ } from './preset';
 
 export const typeToplevelT = (
     env: Env,
@@ -351,7 +352,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
 
     const self = {
         name: item.id.text,
-        type: item.ann ? typeType(env, item.ann) : newTypeVbl(subEnv),
+        type: item.ann ? typeType(env, item.ann) : void_,
     };
 
     subEnv.local.self = self;
@@ -362,7 +363,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
         console.log(showLocation(item.location));
         throw err;
     }
-    if (fitsExpectation(subEnv, term.is, self.type) !== true) {
+    if (item.ann && getTypeErrorOld(subEnv, term.is, self.type) !== true) {
         throw new Error(`Term's type doesn't match annotation`);
     }
 

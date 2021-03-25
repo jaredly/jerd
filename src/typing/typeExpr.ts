@@ -24,7 +24,7 @@ import {
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
-import { showType, fitsExpectation, assertFits } from './unify';
+import { showType, getTypeErrorOld, assertFits } from './unify';
 import { void_, string, bool } from './preset';
 import { hasSubType, idName, makeLocal, resolveIdentifier } from './env';
 import { typeLambda } from './terms/lambda';
@@ -295,7 +295,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         : value.is;
                     if (
                         item.ann &&
-                        fitsExpectation(env, value.is, type) === false
+                        getTypeErrorOld(env, value.is, type) === false
                     ) {
                         throw new Error(
                             `Value of const doesn't match type annotation. ${showType(
@@ -327,11 +327,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const cond = typeExpr(env, expr.cond);
             const yes = typeExpr(env, expr.yes);
             const no = expr.no ? typeExpr(env, expr.no) : null;
-            if (fitsExpectation(env, cond.is, bool) !== true) {
+            if (getTypeErrorOld(env, cond.is, bool) !== true) {
                 throw new Error(`Condition of if must be a boolean`);
             }
 
-            if (fitsExpectation(env, yes.is, no ? no.is : void_) !== true) {
+            if (getTypeErrorOld(env, yes.is, no ? no.is : void_) !== true) {
                 throw new Error(`Branches of if dont agree`);
             }
             return {
@@ -476,7 +476,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
                 const t = typeExpr(env, term, eff.args[i]);
-                if (fitsExpectation(env, t.is, eff.args[i]) !== true) {
+                if (getTypeErrorOld(env, t.is, eff.args[i]) !== true) {
                     throw new Error(
                         `Wrong type for arg ${i}: ${showType(
                             env,
@@ -670,10 +670,13 @@ export const typeFitsEnum = (
         for (let ref of innerReferences) {
             let found = false;
             for (let outer of allReferences) {
-                if (fitsExpectation(null, ref, outer)) {
-                    found = true;
-                    break;
+                try {
+                    getTypeErrorOld(env, ref, outer);
+                } catch (err) {
+                    continue;
                 }
+                found = true;
+                break;
                 // console.log(showType(env, outer), showType(env, ref));
             }
             if (!found) {

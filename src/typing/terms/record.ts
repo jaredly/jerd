@@ -15,7 +15,7 @@ import {
     isRecord,
 } from '../types';
 import { Record } from '../../parsing/parser';
-import { showType, fitsExpectation } from '../unify';
+import { showType, getTypeErrorOld } from '../unify';
 import { idName } from '../env';
 import typeExpr, {
     applyTypeVariablesToRecord,
@@ -207,7 +207,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             );
         }
         const v = typeExpr(env, row.value);
-        if (!fitsExpectation(env, v.is, rowsToMod[i].type)) {
+        if (!getTypeErrorOld(env, v.is, rowsToMod[i].type)) {
             throw new Error(
                 `Invalid type for attribute ${row.id.text} at ${showLocation(
                     row.value.location,

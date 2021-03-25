@@ -4,33 +4,33 @@ import path from 'path';
 import fs from 'fs';
 import { hashObject } from '../typing/env';
 import parse, { Expression, Location, Toplevel } from '../parsing/parser';
-import {
-    declarationToAST,
-    printType,
-    termToAST,
-    typeToString,
-} from '../printing/typeScriptPrinter';
-import {
-    optimizeAST,
-    removeTypescriptTypes,
-} from '../printing/typeScriptOptimize';
+// import {
+//     declarationToAST,
+//     printType,
+//     termToAST,
+//     typeToString,
+// } from '../printing/typeScriptPrinter';
+// import {
+//     optimizeAST,
+//     removeTypescriptTypes,
+// } from '../printing/typeScriptOptimize';
 import typeExpr, { showLocation } from '../typing/typeExpr';
 import typeType, { newTypeVbl } from '../typing/typeType';
 import {
-    EffectRef,
+    // EffectRef,
     Env,
     getEffects,
-    Reference,
+    // Reference,
     Term,
-    Type,
-    TypeConstraint,
-    typesEqual,
+    // Type,
+    // TypeConstraint,
+    // typesEqual,
 } from '../typing/types';
 import {
     showType,
-    unifyInTerm,
-    unifyVariables,
-    fitsExpectation,
+    // unifyInTerm,
+    // unifyVariables,
+    // getTypeErrorOld,
 } from '../typing/unify';
 import { items, printToString } from '../printing/printer';
 import { declarationToPretty, termToPretty } from '../printing/printTsLike';
@@ -42,9 +42,11 @@ import {
 } from '../typing/env';
 
 import { bool, presetEnv } from '../typing/preset';
+import { LocatedError, TypeError } from './errors';
 
 export function typeFile(
     parsed: Toplevel[],
+    fname: string,
 ): {
     env: Env;
     expressions: Array<Term>;
@@ -91,17 +93,16 @@ export function typeFile(
                 try {
                     t = typeExpr(env, expr);
                 } catch (err) {
-                    if (err.message.includes(args[0].text)) {
+                    const message =
+                        err instanceof TypeError ? err.toString() : err.message;
+                    if (message.includes(args[0].text)) {
                         continue; // success
                     } else {
                         console.log(err.stack);
-                        throw new Error(
-                            `Type error doesn't match expectation: "${
-                                err.message
-                            }" vs "${args[0].text}" ${showLocation(
-                                item.location,
-                            )}`,
-                        );
+                        throw new LocatedError(
+                            item.location,
+                            `Type error doesn't match expectation: "${message}" vs "${args[0].text}"`,
+                        ).wrap(err);
                     }
                 }
                 throw new Error(

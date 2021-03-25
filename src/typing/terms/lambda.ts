@@ -14,7 +14,7 @@ import {
     Env,
 } from '../types';
 import typeType, { newEnvWithTypeAndEffectVbls } from '../typeType';
-import { fitsExpectation } from '../unify';
+import { getTypeErrorOld } from '../unify';
 import { printToString } from '../../printing/printer';
 import { refToPretty, symToPretty } from '../../printing/printTsLike';
 import typeExpr, { showLocation } from '../typeExpr';
@@ -43,7 +43,7 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
     const body = typeExpr(inner, expr.body);
     if (expr.rettype) {
         if (
-            fitsExpectation(
+            getTypeErrorOld(
                 typeInner,
                 body.is,
                 typeType(typeInner, expr.rettype),

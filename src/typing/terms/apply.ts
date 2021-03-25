@@ -2,7 +2,7 @@
 
 import { Env, Type, Term, LambdaType, EffectRef } from '../types';
 import { ApplySuffix } from '../../parsing/parser';
-import { showType, fitsExpectation } from '../unify';
+import { showType, getTypeErrorOld } from '../unify';
 import { resolveEffect } from '../env';
 import typeExpr, {
     applyEffectVariables,
@@ -64,7 +64,7 @@ export const typeApply = (
             res: newTypeVbl(env),
             rest: null, // STOPSHIP(rest)
         };
-        if (fitsExpectation(env, is, target.is) !== true) {
+        if (getTypeErrorOld(env, is, target.is) !== true) {
             throw new Error('we literally just created this');
         }
     } else {
@@ -86,7 +86,7 @@ export const typeApply = (
     const resArgs: Array<Term> = [];
     args.forEach((term, i) => {
         const t: Term = typeExpr(env, term, is.args[i]);
-        if (fitsExpectation(env, t.is, is.args[i]) !== true) {
+        if (getTypeErrorOld(env, t.is, is.args[i], term.location) !== true) {
             throw new Error(
                 `Wrong type for arg ${i}: \nFound: ${showType(
                     env,

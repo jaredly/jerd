@@ -35,7 +35,7 @@ import {
     showType,
     unifyInTerm,
     unifyVariables,
-    fitsExpectation,
+    getTypeErrorOld,
 } from '../typing/unify';
 import { items, printToString } from '../printing/printer';
 import { declarationToPretty, termToPretty } from '../printing/printTsLike';

@@ -27,7 +27,7 @@ import {
 import { Expression, Location } from '../../parsing/parser';
 import { subEnv } from '../types';
 import typeType, { walkType } from '../typeType';
-import { showType, fitsExpectation, assertFits } from '../unify';
+import { showType, getTypeErrorOld, assertFits } from '../unify';
 import typeExpr, { applyTypeVariables, showLocation } from '../typeExpr';
 
 const typeOp = (
@@ -65,7 +65,7 @@ const typeOp = (
         is = applyTypeVariables(env, is, [left.is]) as LambdaType;
     }
 
-    if (fitsExpectation(env, left.is, is.args[0]) !== true) {
+    if (getTypeErrorOld(env, left.is, is.args[0]) !== true) {
         throw new Error(
             `first arg to ${op} wrong type. ${showType(
                 env,
@@ -75,7 +75,7 @@ const typeOp = (
             )}`,
         );
     }
-    if (fitsExpectation(env, rarg.is, is.args[1]) !== true) {
+    if (getTypeErrorOld(env, rarg.is, is.args[1]) !== true) {
         throw new Error(`second arg to ${op} wrong type`);
     }
     return {
