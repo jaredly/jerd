@@ -1,0 +1,8 @@
+
+@ffi
+type Person = {
+    name: string,
+    age: int,
+}
+
+Person{name: "hi", age: 2}.name == "hi"

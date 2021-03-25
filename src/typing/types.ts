@@ -454,6 +454,7 @@ export type RecordDef = {
     effectVbls: Array<number>;
     extends: Array<Id>;
     items: Array<Type>;
+    ffi: { tag: string; names: Array<string> } | null;
 };
 
 // | {

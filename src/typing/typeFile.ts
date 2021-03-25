@@ -70,7 +70,24 @@ export function typeFile(
         } else if (item.type === 'EnumDef') {
             env = typeEnumDefn(env, item).env;
         } else if (item.type === 'Decorated') {
-            if (item.decorators[0].id.text === 'typeError') {
+            if (item.decorators[0].id.text === 'ffi') {
+                if (item.wrapped.type !== 'StructDef') {
+                    throw new Error(`@ffi can only be applied to RecordDef`);
+                }
+                // the tag is the name by default
+                const tag =
+                    item.decorators[0].args.length === 1
+                        ? typeExpr(env, item.decorators[0].args[0])
+                        : null;
+                if (tag && tag.type !== 'string') {
+                    throw new Error(`ffi tag must be a string literal`);
+                }
+                env = typeTypeDefn(
+                    env,
+                    item.wrapped,
+                    tag ? tag.text : item.wrapped.id.text,
+                );
+            } else if (item.decorators[0].id.text === 'typeError') {
                 const args = item.decorators[0].args.map((expr) =>
                     typeExpr(env, expr),
                 );

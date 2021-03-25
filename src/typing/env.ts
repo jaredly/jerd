@@ -166,8 +166,12 @@ export const addEffect = (
     return { env: { ...env, global: glob }, id };
 };
 
-export const typeTypeDefn = (env: Env, defn: StructDef): Env => {
-    return typeRecord(env, defn).env;
+export const typeTypeDefn = (
+    env: Env,
+    defn: StructDef,
+    ffiTag?: string,
+): Env => {
+    return typeRecord(env, defn, ffiTag).env;
 };
 
 export const typeEnumInner = (env: Env, defn: EnumDef) => {
@@ -229,6 +233,7 @@ export const typeRecordDefn = (
     env: Env,
     { decl: record, id, typeVbls: typeVblsRaw, location }: StructDef,
     unique?: number | null,
+    ffiTag?: string,
 ): RecordDef => {
     // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
     // console.log('RECORD', typeVblsRaw, showLocation(location));
@@ -238,6 +243,14 @@ export const typeRecordDefn = (
         [],
     );
     // console.log('EBLS', typeInner.local.typeVbls);
+    const ffi = ffiTag
+        ? {
+              tag: ffiTag,
+              names: record.items
+                  .filter((r) => r.type === 'Row')
+                  .map((r) => (r as RecordRow).id.text),
+          }
+        : null;
 
     return {
         type: 'Record',
@@ -245,8 +258,10 @@ export const typeRecordDefn = (
         typeVbls,
         location,
         effectVbls,
+        ffi,
         extends: record.items
             .filter((r) => r.type === 'Spread')
+            // TODO: only allow ffi to spread into ffi, etc.
             .map((r) =>
                 resolveType(typeInner.global, (r as RecordSpread).constr),
             ),
@@ -281,6 +296,7 @@ export const addRecord = (
 export const typeRecord = (
     env: Env,
     defnRaw: StructDef,
+    ffiTag?: string,
     // id: Identifier,
     // typeVblsRaw: Array<TypeVbl>,
     // record: RecordDecl,
@@ -290,7 +306,7 @@ export const typeRecord = (
         (r) => r.type === 'Row',
     ) as Array<RecordRow>;
 
-    const defn = typeRecordDefn(env, defnRaw, unique);
+    const defn = typeRecordDefn(env, defnRaw, unique, ffiTag);
     return addRecord(
         env,
         defnRaw.id.text,

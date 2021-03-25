@@ -1,6 +1,6 @@
 
 Immediate:
-- [ ] fitsExpectations => make it exact, using nice errors. remove all unification whatnot for now.
+- [x] fitsExpectations => make it exact, using nice errors. remove all unification whatnot for now.
 - [ ] FFI type (something on record, parsed as a decorator)
 - [ ] graphic repl (see shem)
 - [ ] intermediate output, target go or python

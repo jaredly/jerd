@@ -281,6 +281,31 @@ const reprintToplevel = (
                 id: { hash: nhash, size: 1, pos: 0 },
             };
         } else if (
+            printed[0].type === 'Decorated' &&
+            toplevel.type === 'RecordDef' &&
+            printed[0].wrapped.type === 'StructDef'
+        ) {
+            const tag =
+                printed[0].decorators[0].args.length === 1
+                    ? typeExpr(env, printed[0].decorators[0].args[0])
+                    : null;
+            if (tag && tag.type !== 'string') {
+                throw new Error(`ffi tag must be a string literal`);
+            }
+            const defn = typeRecordDefn(
+                env,
+                printed[0].wrapped,
+                toplevel.def.unique,
+                tag ? tag.text : printed[0].wrapped.id.text,
+            );
+            nhash = hashObject(defn);
+            retyped = {
+                ...toplevel,
+                type: 'RecordDef',
+                def: defn,
+                id: { hash: nhash, size: 1, pos: 0 },
+            };
+        } else if (
             toplevel.type === 'EnumDef' &&
             printed[0].type === 'EnumDef'
         ) {

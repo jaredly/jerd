@@ -149,6 +149,13 @@ export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
 export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
     const names = env.global.recordGroups[idName(id)];
     return items([
+        recordDef.ffi
+            ? items([
+                  atom('@ffi'),
+                  // args([atom(recordDef.ffi.tag)]),
+                  atom(' '),
+              ])
+            : null,
         atom('type ', ['keyword']),
         idToPretty(env, id, 'record'),
         recordDef.typeVbls.length
