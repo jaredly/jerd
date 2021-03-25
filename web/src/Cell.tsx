@@ -62,7 +62,7 @@ export const CellView = ({
     return (
         <div style={{ width: 500, padding: 4, position: 'relative' }}>
             {editing ? (
-                <ColorEditor
+                <Editor
                     env={env}
                     contents={
                         cell.content.type == 'raw'
