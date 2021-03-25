@@ -37,6 +37,7 @@ import {
 import { getTypeErrorOld } from './unify';
 import { ToplevelT } from '../printing/printTsLike';
 import { void_ } from './preset';
+import { LocatedError } from './errors';
 
 export const typeToplevelT = (
     env: Env,
@@ -67,6 +68,38 @@ export const typeToplevelT = (
                 location: item.location!,
                 name: item.id.text,
                 attrNames: (item.decl.items.filter(
+                    (x) => x.type === 'Row',
+                ) as Array<RecordRow>).map((x) => x.id.text),
+            };
+        }
+        case 'Decorated': {
+            if (item.decorators[0].id.text !== 'ffi') {
+                throw new LocatedError(item.location, `Unexpected decorated`);
+            }
+            if (item.wrapped.type !== 'StructDef') {
+                throw new Error(`@ffi can only be applied to RecordDef`);
+            }
+            const tag =
+                item.decorators[0].args.length === 1
+                    ? typeExpr(env, item.decorators[0].args[0])
+                    : null;
+            if (tag && tag.type !== 'string') {
+                throw new Error(`ffi tag must be a string literal`);
+            }
+            const defn = typeRecordDefn(
+                env,
+                item.wrapped,
+                unique,
+                tag ? tag.type : item.wrapped.id.text,
+            );
+            const hash = hashObject(defn);
+            return {
+                type: 'RecordDef',
+                def: defn,
+                id: { hash, size: 1, pos: 0 },
+                location: item.location!,
+                name: item.wrapped.id.text,
+                attrNames: (item.wrapped.decl.items.filter(
                     (x) => x.type === 'Row',
                 ) as Array<RecordRow>).map((x) => x.id.text),
             };
@@ -205,6 +238,14 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
 
 export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     const d = typeEnumInner(env, defn);
+    return addEnum(env, defn.id.text, d);
+};
+
+export const addEnum = (
+    env: Env,
+    name: string,
+    d: TypeEnumDef,
+): { id: Id; env: Env } => {
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };
     if (env.global.types[idName(idid)]) {
@@ -212,8 +253,8 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     }
     const glob = cloneGlobalEnv(env.global);
     glob.types[idName(idid)] = d;
-    glob.typeNames[defn.id.text] = idid;
-    glob.idNames[idName(idid)] = defn.id.text;
+    glob.typeNames[name] = idid;
+    glob.idNames[idName(idid)] = name;
     return { id: idid, env: { ...env, global: glob } };
 };
 

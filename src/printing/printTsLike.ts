@@ -86,8 +86,15 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
                 toplevel.def,
             );
         }
-        case 'EnumDef':
-            return enumToPretty(env, toplevel.id, toplevel.def);
+        case 'EnumDef': {
+            const glob = cloneGlobalEnv(env.global);
+            glob.idNames[idName(toplevel.id)] = toplevel.name;
+            return enumToPretty(
+                { ...env, global: glob },
+                toplevel.id,
+                toplevel.def,
+            );
+        }
         case 'Effect': {
             const glob = cloneGlobalEnv(env.global);
             glob.idNames[idName(toplevel.id)] = toplevel.name;

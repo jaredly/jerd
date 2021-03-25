@@ -5,10 +5,11 @@ import {
     addExpr,
     addDefine,
     addRecord,
+    addEnum,
     idName,
     addEffect,
 } from '../../src/typing/env';
-import { Env, Id, RecordDef, selfEnv } from '../../src/typing/types';
+import { EnumDef, Env, Id, RecordDef, selfEnv } from '../../src/typing/types';
 import {
     declarationToPretty,
     termToPretty,
@@ -26,6 +27,7 @@ export type Content =
     | { type: 'term'; id: Id; name: string }
     | { type: 'expr'; id: Id }
     | { type: 'record'; id: Id; name: string; attrs: Array<string> }
+    | { type: 'enum'; id: Id; name: string }
     | { type: 'effect'; id: Id; name: string; constrNames: Array<string> }
     | { type: 'raw'; text: string };
 export type Cell = {
@@ -356,6 +358,15 @@ const getToplevel = (env: Env, content: Content): ToplevelT => {
             },
         };
     }
+    if (content.type === 'enum') {
+        return {
+            type: 'EnumDef',
+            def: env.global.types[idName(content.id)] as EnumDef,
+            name: content.name,
+            location: null,
+            id: content.id,
+        };
+    }
     throw new Error(`unsupported toplevel`);
 };
 
@@ -385,6 +396,16 @@ export const updateToplevel = (
                 id: id,
                 name: term.name,
                 attrs: term.attrNames,
+            },
+            env: nenv,
+        };
+    } else if (term.type === 'EnumDef') {
+        const { id, env: nenv } = addEnum(env, term.name, term.def);
+        return {
+            content: {
+                type: 'enum',
+                id: id,
+                name: term.name,
             },
             env: nenv,
         };

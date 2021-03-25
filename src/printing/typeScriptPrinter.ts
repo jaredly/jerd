@@ -1073,20 +1073,41 @@ const _printTerm = (
                     ? [t.spreadElement(printTerm(env, opts, term.base.spread))]
                     : []) as Array<t.ObjectProperty | t.SpreadElement>)
                     .concat(
-                        ...Object.keys(term.subTypes).map((id) =>
-                            ((term.subTypes[id].spread
-                                ? [
-                                      t.spreadElement(
-                                          printTerm(
+                        ...Object.keys(term.subTypes).map(
+                            (id) =>
+                                (term.subTypes[id].spread
+                                    ? [
+                                          t.spreadElement(
+                                              printTerm(
+                                                  env,
+                                                  opts,
+                                                  term.subTypes[id].spread!,
+                                              ),
+                                          ),
+                                      ]
+                                    : []) as Array<
+                                    t.ObjectProperty | t.SpreadElement
+                                >,
+                        ),
+                    )
+                    .concat(
+                        term.base.type === 'Concrete'
+                            ? [
+                                  t.objectProperty(
+                                      t.identifier('type'),
+                                      t.stringLiteral(
+                                          recordIdName(
                                               env,
-                                              opts,
-                                              term.subTypes[id].spread!,
+                                              (term.base as any).ref,
                                           ),
                                       ),
-                                  ]
-                                : []) as Array<
-                                t.ObjectProperty | t.SpreadElement
-                            >).concat(
+                                  ),
+                              ]
+                            : [],
+                    )
+                    .concat(
+                        ...Object.keys(term.subTypes).map(
+                            (id) =>
                                 term.subTypes[id].rows
                                     .map((row, i) =>
                                         row != null
@@ -1103,42 +1124,26 @@ const _printTerm = (
                                             : null,
                                     )
                                     .filter(Boolean) as Array<t.ObjectProperty>,
-                            ),
                         ),
                     )
                     .concat(
                         term.base.type === 'Concrete'
-                            ? [
-                                  t.objectProperty(
-                                      t.identifier('type'),
-                                      t.stringLiteral(
-                                          recordIdName(
-                                              env,
-                                              (term.base as any).ref,
-                                          ),
-                                      ),
-                                  ),
-                              ].concat(
-                                  term.base.rows
-                                      .map((row, i) =>
-                                          row != null
-                                              ? t.objectProperty(
-                                                    t.identifier(
-                                                        recordAttributeName(
-                                                            env,
-                                                            (term.base as any)
-                                                                .ref,
-                                                            i,
-                                                        ),
+                            ? (term.base.rows
+                                  .map((row, i) =>
+                                      row != null
+                                          ? t.objectProperty(
+                                                t.identifier(
+                                                    recordAttributeName(
+                                                        env,
+                                                        (term.base as any).ref,
+                                                        i,
                                                     ),
-                                                    printTerm(env, opts, row),
-                                                )
-                                              : null,
-                                      )
-                                      .filter(
-                                          Boolean,
-                                      ) as Array<t.ObjectProperty>,
-                              )
+                                                ),
+                                                printTerm(env, opts, row),
+                                            )
+                                          : null,
+                                  )
+                                  .filter(Boolean) as Array<t.ObjectProperty>)
                             : [],
                     ) as Array<any>,
             );
