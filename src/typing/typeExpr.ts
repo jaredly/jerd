@@ -90,14 +90,14 @@ export const subtTypeVars = (
                 return t;
             }
             if (t.type === 'ref') {
-                if (t.ref.type === 'builtin') {
-                    return null;
-                }
                 if (t.typeVbls.length > 0) {
                     return {
                         ...t,
                         typeVbls: t.typeVbls.map((t) => subtTypeVars(t, vbls)),
                     };
+                }
+                if (t.ref.type === 'builtin') {
+                    return null;
                 }
             }
             return null;
@@ -224,6 +224,7 @@ export const applyTypeVariables = (
             // if (hasSubType(typ, ))
             mapping[t.typeVbls[i].unique] = typ;
         });
+        // console.log(`Mapping`, mapping);
         return {
             ...type,
             typeVbls: [], // TODO allow partial application!

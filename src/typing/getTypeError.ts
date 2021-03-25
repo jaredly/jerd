@@ -29,8 +29,12 @@ export const getTypeErorr = (
     if (found.type !== expected.type) {
         return new TypeMismatch(env, found, expected, location);
     } else if (found.type === 'var') {
+        // if (env.local.typeVblNames[found.sym.unique])
         const e = expected as TypeVar;
         if (!symbolsEqual(found.sym, e.sym)) {
+            console.log(env.local.tmpTypeVbls);
+            console.log(env.local.typeVbls);
+            console.log(env.local.typeVblNames);
             return new VarMismatch(env, found.sym, e.sym, location);
         }
         return null;
