@@ -102,9 +102,6 @@ export const typeApply = (
         const t: Term = typeExpr(env, term, is.args[i]);
         const err = getTypeErorr(env, t.is, is.args[i], term.location);
         if (err !== null) {
-            // console.log(t.is);
-            // console.log(is.args[i]);
-            // console.log(showType(env, is));
             throw new LocatedError(
                 term.location,
                 `Wrong type for arg ${i}: \nFound: ${showType(

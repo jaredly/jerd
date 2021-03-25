@@ -33,7 +33,8 @@ import { typeRecord } from './terms/record';
 import { typeApply } from './terms/apply';
 import { typeSwitch } from './terms/switch';
 import { typeOps } from './terms/ops';
-import { UnresolvedIdentifier } from './errors';
+import { LocatedError, UnresolvedIdentifier } from './errors';
+import { getTypeErorr } from './getTypeError';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -328,12 +329,30 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const cond = typeExpr(env, expr.cond);
             const yes = typeExpr(env, expr.yes);
             const no = expr.no ? typeExpr(env, expr.no) : null;
-            if (getTypeErrorOld(env, cond.is, bool) !== true) {
-                throw new Error(`Condition of if must be a boolean`);
+            const condErr = getTypeErorr(
+                env,
+                cond.is,
+                bool,
+                expr.cond.location,
+            );
+            if (condErr !== null) {
+                throw new LocatedError(
+                    expr.location,
+                    `Condition of if must be a boolean`,
+                ).wrap(condErr);
             }
 
-            if (getTypeErrorOld(env, yes.is, no ? no.is : void_) !== true) {
-                throw new Error(`Branches of if dont agree`);
+            const branchErr = getTypeErorr(
+                env,
+                yes.is,
+                no ? no.is : void_,
+                expr.yes.location,
+            );
+            if (branchErr !== null) {
+                throw new LocatedError(
+                    expr.location,
+                    `Branches of if dont agree`,
+                ).wrap(branchErr);
             }
             return {
                 type: 'if',
