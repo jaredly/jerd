@@ -2,24 +2,20 @@
 
 import * as React from 'react';
 import { parse, SyntaxError } from '../../src/parsing/grammar';
-import { Expression, Toplevel } from '../../src/parsing/parser';
+import { Toplevel } from '../../src/parsing/parser';
 import {
     printToAttributedText,
     printToString,
 } from '../../src/printing/printer';
-import {
-    termToPretty,
-    toplevelToPretty,
-    ToplevelT,
-} from '../../src/printing/printTsLike';
-import typeExpr, { showLocation } from '../../src/typing/typeExpr';
-import { EnumDef, Env, Id, Symbol, Term, Type } from '../../src/typing/types';
+import { toplevelToPretty, ToplevelT } from '../../src/printing/printTsLike';
+import { showLocation } from '../../src/typing/typeExpr';
+import { Env, Id, Symbol, Term, Type } from '../../src/typing/types';
 import { hashObject, idName, typeToplevelT } from '../../src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import { TypeError, UnresolvedIdentifier } from '../../src/typing/errors';
-import { Display, EvalEnv, getPlugin, Plugins, updateToplevel } from './Cell';
-import { runTerm } from './App';
+import { Display, EvalEnv, Plugins } from './Cell';
+import { runTerm } from './eval';
 import { getTypeErorr } from '../../src/typing/getTypeError';
 
 type AutoName =
