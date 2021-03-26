@@ -20,14 +20,14 @@ import generate from '@babel/generator';
 import { idName } from '../../src/typing/env';
 import { Env, Id, defaultRng, selfEnv, Term } from '../../src/typing/types';
 import { printTerm } from '../../src/printing/typeScriptPrinter';
-import { CellView, Cell, EvalEnv, Content, getToplevel } from './Cell';
+import { CellView, Cell, EvalEnv, Content, getToplevel, Plugins } from './Cell';
 import { toplevelToPretty } from '../../src/printing/printTsLike';
 import { printToString } from '../../src/printing/printer';
 
-import Drawable from './display/Drawable';
+import DrawablePlugins from './display/Drawable';
 
-const defaultPlugins = {
-    [Drawable.id]: Drawable,
+const defaultPlugins: Plugins = {
+    ...DrawablePlugins,
 };
 
 // Yea
