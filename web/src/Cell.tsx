@@ -25,9 +25,7 @@ import {
 } from '../../src/printing/printTsLike';
 import { printToAttributedText } from '../../src/printing/printer';
 import Editor from './Editor';
-import ColorEditor from './ColorEditor';
 import { renderAttributedText } from './Render';
-import { env } from 'process';
 import { getTypeErorr } from '../../src/typing/getTypeError';
 
 const maxWidth = 60;
@@ -101,6 +99,9 @@ export const CellView = ({
             <CellWrapper onRemove={onRemove}>
                 <Editor
                     env={env}
+                    plugins={plugins}
+                    evalEnv={evalEnv}
+                    display={cell.display}
                     contents={
                         cell.content.type == 'raw'
                             ? cell.content.text
@@ -175,20 +176,22 @@ const getMatchingPlugins = (
     return null;
 };
 
-const getPlugin = (
+export const getPlugin = (
     plugins,
     env: Env,
-    cell: Cell,
+    display: Display | null,
+    content: Content,
+    // cell: Cell,
     value: any,
 ): (() => React.ReactNode) | null => {
-    if (!cell.display || !plugins[cell.display.type]) {
+    if (!display || !plugins[display.type]) {
         return null;
     }
-    switch (cell.content.type) {
+    switch (content.type) {
         case 'expr':
         case 'term':
-            const t = env.global.terms[idName(cell.content.id)];
-            const plugin: PluginT = plugins[cell.display.type];
+            const t = env.global.terms[idName(content.id)];
+            const plugin: PluginT = plugins[display.type];
             const err = getTypeErorr(env, t.is, plugin.type, null);
             if (err == null) {
                 return () => plugin.render(value);
@@ -234,7 +237,13 @@ const RenderResult = ({
         );
     }
 
-    const renderPlugin = getPlugin(plugins, env, cell, evalEnv.terms[hash]);
+    const renderPlugin = getPlugin(
+        plugins,
+        env,
+        cell.display,
+        cell.content,
+        evalEnv.terms[hash],
+    );
     if (renderPlugin != null) {
         return renderPlugin() as JSX.Element;
     }

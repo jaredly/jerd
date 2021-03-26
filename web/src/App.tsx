@@ -2,13 +2,10 @@
 
 import * as t from '@babel/types';
 import * as React from 'react';
-import parse, { Toplevel } from '../../src/parsing/parser';
 import {
     optimizeAST,
     removeTypescriptTypes,
 } from '../../src/printing/typeScriptOptimize';
-import { typeFile } from '../../src/typing/typeFile';
-import { fileToTypescript } from '../../src/printing/fileToTypeScript';
 import * as builtins from '../../src/printing/prelude';
 
 import { presetEnv } from '../../src/typing/preset';
@@ -18,7 +15,7 @@ import {
 } from '../../src/typing/analyze';
 import generate from '@babel/generator';
 import { idName } from '../../src/typing/env';
-import { Env, Id, defaultRng, selfEnv, Term } from '../../src/typing/types';
+import { Env, Id, selfEnv, Term } from '../../src/typing/types';
 import { printTerm } from '../../src/printing/typeScriptPrinter';
 import { CellView, Cell, EvalEnv, Content, getToplevel, Plugins } from './Cell';
 import { toplevelToPretty } from '../../src/printing/printTsLike';
@@ -133,20 +130,16 @@ const runWithExecutionLimit = (
     return result;
 };
 
-const runTerm = (env: Env, id: Id, evalEnv: EvalEnv) => {
-    const term = env.global.terms[idName(id)];
-    if (!term) {
-        throw new Error(`No term ${idName(id)}`);
-    }
-
+export const runTerm = (env: Env, term: Term, id: Id, evalEnv: EvalEnv) => {
     const results = {};
 
     const deps = getSortedTermDependencies(env, term, id);
     console.log(deps);
+    const idn = idName(id);
     deps.forEach((dep) => {
         if (evalEnv.terms[dep] == null) {
             console.log(dep, 'isnt there');
-            const depTerm = env.global.terms[dep];
+            const depTerm = idn === dep ? term : env.global.terms[dep];
             const self = { name: dep, type: term.is };
             const code = termToJS(selfEnv(env, self), depTerm, dep);
             const innerEnv = {
@@ -238,7 +231,17 @@ export default () => {
                         console.log('Running', id, state.env, state.evalEnv);
                         let results;
                         try {
-                            results = runTerm(state.env, id, state.evalEnv);
+                            const term = state.env.global.terms[idName(id)];
+                            if (!term) {
+                                throw new Error(`No term ${idName(id)}`);
+                            }
+
+                            results = runTerm(
+                                state.env,
+                                term,
+                                id,
+                                state.evalEnv,
+                            );
                         } catch (err) {
                             console.log(`Failed to run!`);
                             console.log(err);
@@ -290,7 +293,19 @@ export default () => {
                                 const id = cell.content.id;
                                 let results: any;
                                 try {
-                                    results = runTerm(env, id, state.evalEnv);
+                                    const term = env.global.terms[idName(id)];
+                                    if (!term) {
+                                        throw new Error(
+                                            `No term ${idName(id)}`,
+                                        );
+                                    }
+
+                                    results = runTerm(
+                                        env,
+                                        term,
+                                        id,
+                                        state.evalEnv,
+                                    );
                                 } catch (err) {
                                     console.log(`Failed to run!`);
                                     console.log(err);

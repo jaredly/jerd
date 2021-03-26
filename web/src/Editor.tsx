@@ -14,10 +14,13 @@ import {
 } from '../../src/printing/printTsLike';
 import typeExpr, { showLocation } from '../../src/typing/typeExpr';
 import { EnumDef, Env, Id, Symbol, Term, Type } from '../../src/typing/types';
-import { idName, typeToplevelT } from '../../src/typing/env';
+import { hashObject, idName, typeToplevelT } from '../../src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import { TypeError, UnresolvedIdentifier } from '../../src/typing/errors';
+import { Display, EvalEnv, getPlugin, Plugins, updateToplevel } from './Cell';
+import { runTerm } from './App';
+import { getTypeErorr } from '../../src/typing/getTypeError';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }
@@ -80,18 +83,27 @@ export default ({
     contents,
     onClose,
     onChange,
+    evalEnv,
+    display,
+    plugins,
 }: {
     env: Env;
     contents: ToplevelT | string;
     onClose: () => void;
     onChange: (term: ToplevelT | string) => void;
+    evalEnv: EvalEnv;
+    display: Display | null;
+    plugins: Plugins;
 }) => {
+    const evalCache = React.useRef({});
+
     const [text, setText] = React.useState(() => {
         return typeof contents === 'string'
             ? contents
             : printToString(toplevelToPretty(env, contents), 50);
     });
-    const [typed, err] = React.useMemo(() => {
+
+    const [typed, err]: [ToplevelT | null, Error | null] = React.useMemo(() => {
         if (text.trim().length === 0) {
             return [null, null];
         }
@@ -119,6 +131,34 @@ export default ({
         }
     }, [text]);
 
+    // TODO: cache these intermediate
+
+    const evaled = React.useMemo(() => {
+        if (typed && (typed.type === 'Expression' || typed.type === 'Define')) {
+            const id =
+                typed.type === 'Expression'
+                    ? { hash: hashObject(typed.term), size: 1, pos: 0 }
+                    : typed.id;
+            const already = evalEnv.terms[idName(id)];
+            if (already) {
+                return already;
+            } else if (evalCache.current[idName(id)] != null) {
+                return evalCache.current[idName(id)];
+            } else {
+                try {
+                    const v = runTerm(env, typed.term, id, evalEnv)[idName(id)];
+                    evalCache.current[idName(id)] = v;
+                    return v;
+                } catch (err) {
+                    //
+                }
+            }
+        }
+        return null;
+    }, [typed]);
+
+    const renderPlugin = getRenderPlugin(plugins, env, display, typed, evaled);
+
     return (
         <div style={{ marginRight: 10 }}>
             {/* <div
@@ -140,9 +180,6 @@ export default ({
             <AutoresizeTextarea
                 value={text}
                 autoFocus
-                // onBlur={() => {
-                //     onClose();
-                // }}
                 onChange={(evt) => setText(evt.target.value)}
                 onKeyDown={(evt) => {
                     if (evt.metaKey && evt.key === 'Enter') {
@@ -157,7 +194,6 @@ export default ({
                     width: '100%',
                     boxSizing: 'border-box',
                     fontFamily: '"Source Code Pro", monospace',
-                    // height: 200,
                     backgroundColor: 'rgba(255,255,255,0.1)',
                     color: 'white',
                     padding: 8,
@@ -187,8 +223,37 @@ export default ({
                     <div style={styles.hash}>#{idName(typed.id)}</div>
                 ) : null}
             </div>
+            {JSON.stringify(evaled)}
+            {renderPlugin != null ? renderPlugin() : null}
         </div>
     );
+};
+
+const getRenderPlugin = (
+    plugins: Plugins,
+    env: Env,
+    display: Display,
+    typed: ToplevelT,
+    evaled: any,
+) => {
+    const plugin = plugins[display.type];
+    let term;
+    let id;
+    if (typed.type === 'Expression') {
+        term = typed.term;
+        id = { hash: hashObject(typed.term), size: 1, pos: 0 };
+    } else if (typed.type === 'Define') {
+        term = typed.term;
+        id = typed.id;
+    } else {
+        return null;
+    }
+    const err = getTypeErorr(env, term.is, plugin.type, null);
+    if (err == null) {
+        return () => plugin.render(evaled);
+    }
+
+    return null;
 };
 
 const styles = {

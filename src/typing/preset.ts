@@ -110,6 +110,7 @@ export function presetEnv() {
         extends: [],
         items: [],
         location: null,
+        ffi: null,
     };
     env.global.types['Some'] = {
         unique: 0,
@@ -119,6 +120,7 @@ export function presetEnv() {
         extends: [],
         items: [T0],
         location: null,
+        ffi: null,
     };
     env.global.recordGroups['Some'] = ['contents'];
     env.global.attributeNames['contents'] = {
