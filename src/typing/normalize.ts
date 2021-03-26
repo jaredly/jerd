@@ -5,11 +5,12 @@ import { idName } from './env';
 import {
     EffectRef,
     LambdaType,
+    Let,
     refsEqual,
     Term,
-    transformTerm,
+    // transformTerm,
     Type,
-    TypeConstraints,
+    // TypeConstraints,
     TypeReference,
     walkTerm,
 } from './types';
@@ -62,16 +63,16 @@ export const termMapping = (lookup: SingleVarLookup, term: Term) => {
                 lookup.vars[term.binding.unique] = id;
             }
         },
-        (term) => {
-            typeMapping(lookup, term.is);
-            // if (term.type === 'var') {
-            //     if (mapping.vars[term.sym.unique] == null) {
-            //         console.log('ARGGHHHH HERE WE ARE', term.location, term);
-            //         const id = mapping.unique++;
-            //         mapping.vars[term.sym.unique] = id;
-            //     }
-            // }
-        },
+        // (term) => {
+        //     typeMapping(lookup, term.is);
+        //     // if (term.type === 'var') {
+        //     //     if (mapping.vars[term.sym.unique] == null) {
+        //     //         console.log('ARGGHHHH HERE WE ARE', term.location, term);
+        //     //         const id = mapping.unique++;
+        //     //         mapping.vars[term.sym.unique] = id;
+        //     //     }
+        //     // }
+        // },
     );
     // if (term.type === 'lambda') {
     //     term.type
@@ -94,58 +95,58 @@ export const normalizeSyms = (type: Type) => {
     return transformType(mapping.vars, type);
 };
 
-export const normalize = (term: Term): Term => {
-    const mapping: SingleVarLookup = { unique: 0, vars: {} };
-    termMapping(mapping, term);
+// export const normalize = (term: Term): Term => {
+//     const mapping: SingleVarLookup = { unique: 0, vars: {} };
+//     termMapping(mapping, term);
 
-    return transformTerm(term, (term): any => {
-        if (term.type === 'var') {
-            return {
-                ...term,
-                sym: {
-                    ...term.sym,
-                    unique: mapping.vars[term.sym.unique],
-                },
-                is: transformType(mapping.vars, term.is),
-            };
-        }
-        if (term.type === 'handle') {
-            return {
-                ...term,
-                cases: term.cases.map((kase) => ({
-                    ...kase,
-                    args: kase.args.map((sym) => ({
-                        ...sym,
-                        unique: mapping.vars[sym.unique],
-                    })),
-                    k: { ...kase.k, unique: mapping.vars[kase.k.unique] },
-                })),
-                is: transformType(mapping.vars, term.is),
-            };
-        }
-        if (term.type === 'lambda') {
-            return {
-                ...term,
-                args: term.args.map((sym) => ({
-                    ...sym,
-                    unique: mapping.vars[sym.unique],
-                })),
-                is: transformType(mapping.vars, term.is),
-            };
-        }
-        if (term.type === 'Let') {
-            return {
-                ...term,
-                binding: {
-                    ...term.binding,
-                    unique: mapping.vars[term.binding.unique],
-                },
-                is: transformType(mapping.vars, term.is),
-            };
-        }
-        return { ...term, is: transformType(mapping.vars, term.is) };
-    }) as Term;
-};
+//     return transformTerm(term, (term: Term | Let): any => {
+//         if (term.type === 'var') {
+//             return {
+//                 ...term,
+//                 sym: {
+//                     ...term.sym,
+//                     unique: mapping.vars[term.sym.unique],
+//                 },
+//                 is: transformType(mapping.vars, term.is),
+//             };
+//         }
+//         if (term.type === 'handle') {
+//             return {
+//                 ...term,
+//                 cases: term.cases.map((kase) => ({
+//                     ...kase,
+//                     args: kase.args.map((sym) => ({
+//                         ...sym,
+//                         unique: mapping.vars[sym.unique],
+//                     })),
+//                     k: { ...kase.k, unique: mapping.vars[kase.k.unique] },
+//                 })),
+//                 is: transformType(mapping.vars, term.is),
+//             };
+//         }
+//         if (term.type === 'lambda') {
+//             return {
+//                 ...term,
+//                 args: term.args.map((sym) => ({
+//                     ...sym,
+//                     unique: mapping.vars[sym.unique],
+//                 })),
+//                 is: transformType(mapping.vars, term.is),
+//             };
+//         }
+//         if (term.type === 'Let') {
+//             return {
+//                 ...term,
+//                 binding: {
+//                     ...term.binding,
+//                     unique: mapping.vars[term.binding.unique],
+//                 },
+//                 is: transformType(mapping.vars, term.is),
+//             };
+//         }
+//         return { ...term, is: transformType(mapping.vars, term.is) };
+//     }) as Term;
+// };
 
 export const normalizeEff = (
     mapping: VarMapping,

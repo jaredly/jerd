@@ -2,7 +2,7 @@
 
 import { Env, Type, Term, LambdaType, EffectRef } from '../types';
 import { ApplySuffix } from '../../parsing/parser';
-import { showType, fitsExpectation } from '../unify';
+import { showType, getTypeErrorOld } from '../unify';
 import { resolveEffect } from '../env';
 import typeExpr, {
     applyEffectVariables,
@@ -10,6 +10,8 @@ import typeExpr, {
     showLocation,
 } from '../typeExpr';
 import typeType, { newTypeVbl } from '../typeType';
+import { getTypeErorr } from '../getTypeError';
+import { LocatedError, TypeMismatch } from '../errors';
 
 export const typeApply = (
     env: Env,
@@ -18,15 +20,26 @@ export const typeApply = (
 ): Term => {
     const { args, effectVbls } = suffix;
     const typeVbls = suffix.typevbls.map((t) => typeType(env, t));
-    if (suffix.typevbls.length) {
+    if (typeVbls.length) {
         // HERMMM This might be illegal.
         // or rather, doing it like this
         // does weird things to the pretty-printing end.
         // Because we lose the `<T>`.
+        const applied = applyTypeVariables(
+            env,
+            target.is,
+            typeVbls,
+        ) as LambdaType;
+        // console.log(
+        //     'Applying type variables',
+        //     typeVbls.map((t) => showType(env, t)).join(', '),
+        //     showType(env, target.is),
+        //     showType(env, applied),
+        // );
         // @ts-ignore
         target = {
             ...target,
-            is: applyTypeVariables(env, target.is, typeVbls) as LambdaType,
+            is: applied,
         };
     }
 
@@ -50,23 +63,24 @@ export const typeApply = (
 
     let is: LambdaType;
     if (target.is.type === 'var') {
-        const argTypes: Array<Type> = [];
-        for (let i = 0; i < args.length; i++) {
-            argTypes.push(newTypeVbl(env));
-        }
-        is = {
-            type: 'lambda',
-            typeVbls: [],
-            effectVbls: [],
-            location: null,
-            args: argTypes,
-            effects: [], // STOPSHIP add effect vbls
-            res: newTypeVbl(env),
-            rest: null, // STOPSHIP(rest)
-        };
-        if (fitsExpectation(env, is, target.is) !== true) {
-            throw new Error('we literally just created this');
-        }
+        // const argTypes: Array<Type> = [];
+        // for (let i = 0; i < args.length; i++) {
+        //     argTypes.push(newTypeVbl(env));
+        // }
+        // is = {
+        //     type: 'lambda',
+        //     typeVbls: [],
+        //     effectVbls: [],
+        //     location: null,
+        //     args: argTypes,
+        //     effects: [], // STOPSHIP add effect vbls
+        //     res: newTypeVbl(env),
+        //     rest: null, // STOPSHIP(rest)
+        // };
+        // if (getTypeErrorOld(env, is, target.is) !== true) {
+        //     throw new Error('we literally just created this');
+        // }
+        throw new Error(`Target is a var, can't do it`);
     } else {
         if (target.is.type !== 'lambda') {
             throw new Error(
@@ -86,15 +100,17 @@ export const typeApply = (
     const resArgs: Array<Term> = [];
     args.forEach((term, i) => {
         const t: Term = typeExpr(env, term, is.args[i]);
-        if (fitsExpectation(env, t.is, is.args[i]) !== true) {
-            throw new Error(
+        const err = getTypeErorr(env, t.is, is.args[i], term.location);
+        if (err !== null) {
+            throw new LocatedError(
+                term.location,
                 `Wrong type for arg ${i}: \nFound: ${showType(
                     env,
                     t.is,
                 )}\nbut expected ${showType(env, is.args[i])} : ${showLocation(
                     t.location,
                 )}`,
-            );
+            ).wrap(err);
         }
         resArgs.push(t);
     });

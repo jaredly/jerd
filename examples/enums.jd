@@ -67,8 +67,8 @@ const isPresent = <T,>(x: Option<T>): bool => {
     }
 }
 
-isPresent(Option<int>:Some<int>{_: 3}) == true
-isPresent(Option<int>:None) == false
+isPresent<int>(Option<int>:Some<int>{_: 3}) == true
+isPresent<int>(Option<int>:None) == false
 
 const getWithDefault = <T,>(x: Option<T>, default: T): T => {
     switch x {
@@ -106,7 +106,7 @@ switch Option<string>:Some<string>{_: "yes"} {
     None => false,
 }
 
-@typeError("expected string, found int")
+@typeError("found int, expected string")
 switch Option<string>:Some<string>{_: "yes"} {
     Some{_: 5} => false,
     None => false,

@@ -2,7 +2,10 @@
 
 import { newEnv, Type, TypeVblDecl } from './types';
 
-const builtinType = (name: string, typeVbls: Array<Type> = []): Type => ({
+export const builtinType = (
+    name: string,
+    typeVbls: Array<Type> = [],
+): Type => ({
     type: 'ref',
     ref: { type: 'builtin', name },
     location: null,

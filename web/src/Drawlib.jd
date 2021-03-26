@@ -1,0 +1,73 @@
+@ffi type Pos = {
+    x: float,
+    y: float,
+}
+
+@ffi type Box = {
+    ...Pos,
+    w: float,
+    h: float,
+}
+
+@ffi type Circle = {
+    ...Pos,
+    r: float,
+}
+
+const face: Circle = Circle{
+    x: 20.0,
+    y: 20.0,
+    r: 10.0,
+}
+
+@ffi type Drawable = {
+    shape: Shape,
+    fill: string,
+    border: Nullable<Border>,
+}
+
+enum Shape{
+    Circle,
+    Box,
+    Line,
+}
+
+@ffi type Ok<T> = {
+    value: T,
+}
+
+@ffi type Empty = {}
+
+enum Nullable<T>{
+    Ok<T>,
+    Empty,
+}
+
+@ffi type Border = {
+    width: float,
+    color: string,
+}
+
+@ffi type Line = {
+    start: Pos,
+    end: Pos,
+}
+
+const pos: (float, float) ={}> Pos = (x: float, y: float) ={}> Pos{
+    x: x,
+    y: y,
+}
+
+const box: (Pos, Pos) ={}> Box = (
+    tl: Pos,
+    dims: Pos,
+) ={}> Box{
+    ...tl,
+    w: dims.x,
+    h: dims.y,
+}
+
+const circle: (Pos, float) ={}> Circle = (
+    c: Pos,
+    r: float,
+) ={}> Circle{...c, r: r}

@@ -1,5 +1,7 @@
 import { Location, Switch } from '../../parsing/parser';
 import { idName } from '../env';
+import { LocatedError } from '../errors';
+import { getTypeErorr } from '../getTypeError';
 import typeExpr, { getEnumReferences, showLocation } from '../typeExpr';
 import typePattern from '../typePattern';
 import {
@@ -14,7 +16,7 @@ import {
     Term,
     Type,
 } from '../types';
-import { fitsExpectation, showType } from '../unify';
+import { getTypeErrorOld, showType } from '../unify';
 import {
     Constructor,
     Pattern as ExPattern,
@@ -136,13 +138,12 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
         if (is == null) {
             is = body.is;
         } else {
-            if (fitsExpectation(env, body.is, is) !== true) {
-                throw new Error(
-                    `Bodies of case arms don't agree! ${showType(
-                        env,
-                        body.is,
-                    )} vs ${showType(env, is)} at ${showLocation(c.location)}`,
-                );
+            const err = getTypeErorr(env, body.is, is, c.body.location);
+            if (err != null) {
+                throw new LocatedError(
+                    c.body.location,
+                    `Bodies of case arms don't agree!`,
+                ).wrap(err);
             }
         }
         cases.push({

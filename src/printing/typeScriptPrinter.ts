@@ -13,6 +13,7 @@ import {
     LambdaType,
     walkTerm,
     Pattern,
+    RecordDef,
 } from '../typing/types';
 import { Location } from '../parsing/parser';
 import * as t from '@babel/types';
@@ -1072,26 +1073,48 @@ const _printTerm = (
                     ? [t.spreadElement(printTerm(env, opts, term.base.spread))]
                     : []) as Array<t.ObjectProperty | t.SpreadElement>)
                     .concat(
-                        ...Object.keys(term.subTypes).map((id) =>
-                            ((term.subTypes[id].spread
-                                ? [
-                                      t.spreadElement(
-                                          printTerm(
+                        ...Object.keys(term.subTypes).map(
+                            (id) =>
+                                (term.subTypes[id].spread
+                                    ? [
+                                          t.spreadElement(
+                                              printTerm(
+                                                  env,
+                                                  opts,
+                                                  term.subTypes[id].spread!,
+                                              ),
+                                          ),
+                                      ]
+                                    : []) as Array<
+                                    t.ObjectProperty | t.SpreadElement
+                                >,
+                        ),
+                    )
+                    .concat(
+                        term.base.type === 'Concrete'
+                            ? [
+                                  t.objectProperty(
+                                      t.identifier('type'),
+                                      t.stringLiteral(
+                                          recordIdName(
                                               env,
-                                              opts,
-                                              term.subTypes[id].spread!,
+                                              (term.base as any).ref,
                                           ),
                                       ),
-                                  ]
-                                : []) as Array<
-                                t.ObjectProperty | t.SpreadElement
-                            >).concat(
+                                  ),
+                              ]
+                            : [],
+                    )
+                    .concat(
+                        ...Object.keys(term.subTypes).map(
+                            (id) =>
                                 term.subTypes[id].rows
                                     .map((row, i) =>
                                         row != null
                                             ? t.objectProperty(
                                                   t.identifier(
                                                       recordAttributeName(
+                                                          env,
                                                           id,
                                                           i,
                                                       ),
@@ -1101,38 +1124,26 @@ const _printTerm = (
                                             : null,
                                     )
                                     .filter(Boolean) as Array<t.ObjectProperty>,
-                            ),
                         ),
                     )
                     .concat(
                         term.base.type === 'Concrete'
-                            ? [
-                                  t.objectProperty(
-                                      t.identifier('type'),
-                                      t.stringLiteral(
-                                          recordIdName((term.base as any).ref),
-                                      ),
-                                  ),
-                              ].concat(
-                                  term.base.rows
-                                      .map((row, i) =>
-                                          row != null
-                                              ? t.objectProperty(
-                                                    t.identifier(
-                                                        recordAttributeName(
-                                                            (term.base as any)
-                                                                .ref,
-                                                            i,
-                                                        ),
+                            ? (term.base.rows
+                                  .map((row, i) =>
+                                      row != null
+                                          ? t.objectProperty(
+                                                t.identifier(
+                                                    recordAttributeName(
+                                                        env,
+                                                        (term.base as any).ref,
+                                                        i,
                                                     ),
-                                                    printTerm(env, opts, row),
-                                                )
-                                              : null,
-                                      )
-                                      .filter(
-                                          Boolean,
-                                      ) as Array<t.ObjectProperty>,
-                              )
+                                                ),
+                                                printTerm(env, opts, row),
+                                            )
+                                          : null,
+                                  )
+                                  .filter(Boolean) as Array<t.ObjectProperty>)
                             : [],
                     ) as Array<any>,
             );
@@ -1142,7 +1153,7 @@ const _printTerm = (
         case 'Attribute': {
             return t.memberExpression(
                 printTerm(env, opts, term.target),
-                t.identifier(recordAttributeName(term.ref, term.idx)),
+                t.identifier(recordAttributeName(env, term.ref, term.idx)),
             );
         }
         case 'Array':
@@ -1258,7 +1269,7 @@ const printPattern = (
             t.binaryExpression(
                 '===',
                 typ,
-                t.stringLiteral(recordIdName(ref.ref)),
+                t.stringLiteral(recordIdName(env, ref.ref)),
             ),
         );
         return t.blockStatement([
@@ -1290,7 +1301,7 @@ const printPattern = (
                 env,
                 t.memberExpression(
                     value,
-                    t.identifier(recordAttributeName(item.ref, item.idx)),
+                    t.identifier(recordAttributeName(env, item.ref, item.idx)),
                 ),
                 item.pattern,
                 success,
@@ -1301,7 +1312,7 @@ const printPattern = (
                 t.binaryExpression(
                     '===',
                     t.memberExpression(value, t.identifier('type')),
-                    t.stringLiteral(recordIdName(pattern.ref.ref)),
+                    t.stringLiteral(recordIdName(env, pattern.ref.ref)),
                 ),
                 success,
             ),
@@ -1340,21 +1351,37 @@ const printPattern = (
     throw new Error(`Pattern not yet supported ${(pattern as any).type}`);
 };
 
-const recordIdName = (ref: Reference) => {
+const recordIdName = (env: Env, ref: Reference) => {
     if (ref.type === 'builtin') {
         return ref.name;
     } else {
+        const t = env.global.types[idName(ref.id)] as RecordDef;
+        if (t.ffi != null) {
+            return t.ffi.tag;
+        }
         return idName(ref.id);
     }
 };
 
-const recordAttributeName = (ref: Reference | string, idx: number) => {
+const recordAttributeName = (
+    env: Env,
+    ref: Reference | string,
+    idx: number,
+) => {
+    if (typeof ref !== 'string' && ref.type === 'builtin') {
+        return `${ref.name}_${idx}`;
+    }
+    const id = typeof ref === 'string' ? ref : idName(ref.id);
+    const t = env.global.types[id] as RecordDef;
+    if (t.ffi) {
+        return t.ffi.names[idx];
+    }
     if (typeof ref === 'string') {
         return `h${ref}_${idx}`;
     }
-    if (ref.type === 'builtin') {
-        return `${ref.name}_${idx}`;
-    }
+    // if (ref.type === 'builtin') {
+    //     return `${ref.name}_${idx}`;
+    // }
     return `h${idName(ref.id)}_${idx}`;
 };
 

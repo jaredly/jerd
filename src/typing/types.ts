@@ -454,6 +454,7 @@ export type RecordDef = {
     effectVbls: Array<number>;
     extends: Array<Id>;
     items: Array<Type>;
+    ffi: { tag: string; names: Array<string> } | null;
 };
 
 // | {
@@ -775,6 +776,13 @@ export const walkTerm = (
             return walkTerm(term.value, handle);
         case 'raise':
             return term.args.forEach((t) => walkTerm(t, handle));
+        case 'if':
+            walkTerm(term.cond, handle);
+            walkTerm(term.yes, handle);
+            if (term.no) {
+                walkTerm(term.no, handle);
+            }
+            return;
         case 'handle':
             walkTerm(term.target, handle);
             walkTerm(term.pure.body, handle);
@@ -787,5 +795,55 @@ export const walkTerm = (
             return term.args.forEach((t) => walkTerm(t, handle));
         case 'lambda':
             return walkTerm(term.body, handle);
+        case 'Record':
+            if (term.base.spread) {
+                walkTerm(term.base.spread, handle);
+            }
+            if (term.base.type === 'Concrete') {
+                term.base.rows.forEach((term) =>
+                    term ? walkTerm(term, handle) : null,
+                );
+            }
+            Object.keys(term.subTypes).forEach((id) => {
+                const subType = term.subTypes[id];
+                if (subType.spread != null) {
+                    walkTerm(subType.spread, handle);
+                }
+                subType.rows.forEach((row) =>
+                    row ? walkTerm(row, handle) : null,
+                );
+            });
+            return;
+        case 'Switch':
+            walkTerm(term.term, handle);
+            term.cases.forEach((kase) => {
+                walkTerm(kase.body, handle);
+            });
+            return;
+        case 'Enum':
+            return walkTerm(term.inner, handle);
+        case 'Array':
+            term.items.forEach((item) => {
+                if (item.type === 'ArraySpread') {
+                    walkTerm(item.value, handle);
+                } else {
+                    walkTerm(item, handle);
+                }
+            });
+            return;
+        case 'Attribute':
+            walkTerm(term.target, handle);
+            return;
+        case 'string':
+        case 'int':
+        case 'float':
+        case 'boolean':
+        case 'self':
+        case 'ref':
+        case 'var':
+            return;
+        default:
+            let _x: never = term;
+            throw new Error(`Unexpected term type ${(term as any).type}`);
     }
 };

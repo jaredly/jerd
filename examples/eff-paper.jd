@@ -31,7 +31,7 @@ const alwaysRead: <T,>{e}(string, () ={Read, e}> T) ={e}> T = <T,>{e}(value: str
             // OOF ok this bit doesn't have the `directOrEffectful` set...
             // why not?
             // is it that the self isn't populating things right?
-            alwaysRead<T>{e}(value, () => k(value))
+            alwaysRead<T>{e}(value, () ={Read, e}> k(value))
         },
         pure(a) => a
     }
@@ -41,7 +41,7 @@ const alwaysRead: <T,>{e}(string, () ={Read, e}> T) ={e}> T = <T,>{e}(value: str
 const collect: {e}(() ={Write, e}> void) ={e}> string = {e}(fn: () ={Write, e}> void): string => {
     handle! fn {
         Write.write((v) => k) => {
-            v ++ "\n" ++ collect{e}(k)
+            v ++ "\n" ++ collect{e}(() ={Write, e}> k())
         },
         pure(a) => "end"
     }
@@ -209,7 +209,7 @@ const handleFail = <T,>{e}(fn: () ={e, Fail}> T, orElse: () ={e}> T) ={e}> handl
 const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrack(() => handleFail{Decide}(() => k(true), () => k(false)))
+            backtrack(() ={Decide, Fail}> handleFail{Decide}(() ={Decide, Fail}> k(true), () => k(false)))
         },
         pure(x) => x
     }
@@ -218,7 +218,7 @@ const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, 
 const backtrackReverse: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrackReverse(() => handleFail{Decide}(() => k(false), () => k(true)))
+            backtrackReverse(() ={Decide, Fail}> handleFail{Decide}(() ={Decide, Fail}> k(false), () => k(true)))
         },
         pure(x) => x
     }

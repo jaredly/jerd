@@ -60,8 +60,8 @@ const pure: () ={}> string = () => "AA"
 // provideString("hi")(() ={GetString}> pure()) == "AA"
 
 // Wrapping a pure function for CPS
-provideString("hi")(pure) == "AA"
-provideString("hi")(() ={}> "m") == "m"
+provideString("hi")(() ={GetString}> pure()) == "AA"
+provideString("hi")(() ={GetString}> "m") == "m"
 
 const provideStringWithArg:
     (string) => (string, (string) ={GetString}> string) => string
@@ -72,7 +72,7 @@ const provideStringWithArg:
     }
 }
 
-provideStringWithArg("hi")("Passed in", (arg: string) ={}> arg ++ "-m") == "Passed in-m"
+provideStringWithArg("hi")("Passed in", (arg: string) ={GetString}> arg ++ "-m") == "Passed in-m"
 
 
 // How to assert type errors?

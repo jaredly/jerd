@@ -1,0 +1,21 @@
+
+@ffi
+type Person = {
+    name: string,
+    age: int,
+}
+
+Person{name: "hi", age: 2}.name == "hi"
+
+@ffi
+type Pos = {x: float, y: float}
+
+@ffi
+type Box = {...Pos, w: float, h: float}
+
+@ffi
+type Circle = {...Pos, r: float}
+
+Box{x: 1.0, y: 1.0, w: 2.0, h: 2.0}.x == 1.0
+
+Box{...Pos{x: 10.0, y: 5.0}, w: 1.0, h: 2.0}.x == 10.0

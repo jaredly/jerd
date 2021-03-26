@@ -48,8 +48,8 @@ import {
 import {
     showType,
     unifyInTerm,
-    unifyVariables,
-    fitsExpectation,
+    // unifyVariables,
+    getTypeErrorOld,
 } from './typing/unify';
 import { items, printToString } from './printing/printer';
 import {
@@ -152,16 +152,16 @@ const testInference = (parsed: Toplevel[]) => {
             };
             subEnv.local.self = self;
             const term = typeExpr(subEnv, item.expr);
-            if (fitsExpectation(subEnv, term.is, self.type) !== true) {
+            if (getTypeErrorOld(subEnv, term.is, self.type) !== true) {
                 throw new Error(`Term's type doesn't match annotation`);
             }
             // So for self-recursive things, the final
             // thing should be exactly the same, not just
             // larger or smaller, right?
-            const unified = unifyVariables(env, tmpTypeVbls);
-            if (Object.keys(unified).length) {
-                unifyInTerm(unified, term);
-            }
+            // const unified = unifyVariables(env, tmpTypeVbls);
+            // if (Object.keys(unified).length) {
+            //     unifyInTerm(unified, term);
+            // }
             const hash: string = hashObject(term);
             const id: Id = { hash: hash, size: 1, pos: 0 };
             env.global.names[item.id.text] = id;
@@ -281,6 +281,31 @@ const reprintToplevel = (
                 id: { hash: nhash, size: 1, pos: 0 },
             };
         } else if (
+            printed[0].type === 'Decorated' &&
+            toplevel.type === 'RecordDef' &&
+            printed[0].wrapped.type === 'StructDef'
+        ) {
+            const tag =
+                printed[0].decorators[0].args.length === 1
+                    ? typeExpr(env, printed[0].decorators[0].args[0])
+                    : null;
+            if (tag && tag.type !== 'string') {
+                throw new Error(`ffi tag must be a string literal`);
+            }
+            const defn = typeRecordDefn(
+                env,
+                printed[0].wrapped,
+                toplevel.def.unique,
+                tag ? tag.text : printed[0].wrapped.id.text,
+            );
+            nhash = hashObject(defn);
+            retyped = {
+                ...toplevel,
+                type: 'RecordDef',
+                def: defn,
+                id: { hash: nhash, size: 1, pos: 0 },
+            };
+        } else if (
             toplevel.type === 'EnumDef' &&
             printed[0].type === 'EnumDef'
         ) {
@@ -359,7 +384,7 @@ const processFile = (
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
-    const { expressions, env } = typeFile(parsed);
+    const { expressions, env } = typeFile(parsed, fname);
 
     if (reprint) {
         let good = true;
@@ -577,7 +602,19 @@ const main = (
             numFailures += 1;
             console.error(`❌ Failed to process ${chalk.blue(fname)}`);
             console.error('-----------------------------');
-            console.error(err);
+            if (err instanceof LocatedError) {
+                console.error(
+                    `Error location: ${chalk.blue(
+                        `${fname}:${showLocation(err.loc, true)}`,
+                    )}`,
+                );
+            }
+            if (err instanceof TypeError) {
+                console.error(err.toString());
+                console.error(err.stack);
+            } else {
+                console.error(err);
+            }
             console.error('-----------------------------');
             return false;
         }
@@ -622,6 +659,7 @@ const main = (
 };
 
 import { execSync, spawnSync } from 'child_process';
+import { LocatedError, TypeError } from './typing/errors';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');

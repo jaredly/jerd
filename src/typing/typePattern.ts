@@ -268,7 +268,7 @@ const typePattern = (
                 } else {
                     if (!names[row.id.text]) {
                         throw new Error(
-                            `Unexpected attrbute name ${
+                            `Unexpected attribute name ${
                                 row.id.text
                             } at ${showLocation(row.id.location)}`,
                         );

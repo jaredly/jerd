@@ -34,8 +34,10 @@ import {
     cloneGlobalEnv,
     EffectDef,
 } from './types';
-import { fitsExpectation } from './unify';
+import { getTypeErrorOld } from './unify';
 import { ToplevelT } from '../printing/printTsLike';
+import { void_ } from './preset';
+import { LocatedError } from './errors';
 
 export const typeToplevelT = (
     env: Env,
@@ -66,6 +68,38 @@ export const typeToplevelT = (
                 location: item.location!,
                 name: item.id.text,
                 attrNames: (item.decl.items.filter(
+                    (x) => x.type === 'Row',
+                ) as Array<RecordRow>).map((x) => x.id.text),
+            };
+        }
+        case 'Decorated': {
+            if (item.decorators[0].id.text !== 'ffi') {
+                throw new LocatedError(item.location, `Unexpected decorated`);
+            }
+            if (item.wrapped.type !== 'StructDef') {
+                throw new Error(`@ffi can only be applied to RecordDef`);
+            }
+            const tag =
+                item.decorators[0].args.length === 1
+                    ? typeExpr(env, item.decorators[0].args[0])
+                    : null;
+            if (tag && tag.type !== 'string') {
+                throw new Error(`ffi tag must be a string literal`);
+            }
+            const defn = typeRecordDefn(
+                env,
+                item.wrapped,
+                unique,
+                tag ? tag.type : item.wrapped.id.text,
+            );
+            const hash = hashObject(defn);
+            return {
+                type: 'RecordDef',
+                def: defn,
+                id: { hash, size: 1, pos: 0 },
+                location: item.location!,
+                name: item.wrapped.id.text,
+                attrNames: (item.wrapped.decl.items.filter(
                     (x) => x.type === 'Row',
                 ) as Array<RecordRow>).map((x) => x.id.text),
             };
@@ -165,8 +199,12 @@ export const addEffect = (
     return { env: { ...env, global: glob }, id };
 };
 
-export const typeTypeDefn = (env: Env, defn: StructDef): Env => {
-    return typeRecord(env, defn).env;
+export const typeTypeDefn = (
+    env: Env,
+    defn: StructDef,
+    ffiTag?: string,
+): Env => {
+    return typeRecord(env, defn, ffiTag).env;
 };
 
 export const typeEnumInner = (env: Env, defn: EnumDef) => {
@@ -200,6 +238,14 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
 
 export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     const d = typeEnumInner(env, defn);
+    return addEnum(env, defn.id.text, d);
+};
+
+export const addEnum = (
+    env: Env,
+    name: string,
+    d: TypeEnumDef,
+): { id: Id; env: Env } => {
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };
     if (env.global.types[idName(idid)]) {
@@ -207,8 +253,8 @@ export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     }
     const glob = cloneGlobalEnv(env.global);
     glob.types[idName(idid)] = d;
-    glob.typeNames[defn.id.text] = idid;
-    glob.idNames[idName(idid)] = defn.id.text;
+    glob.typeNames[name] = idid;
+    glob.idNames[idName(idid)] = name;
     return { id: idid, env: { ...env, global: glob } };
 };
 
@@ -228,6 +274,7 @@ export const typeRecordDefn = (
     env: Env,
     { decl: record, id, typeVbls: typeVblsRaw, location }: StructDef,
     unique?: number | null,
+    ffiTag?: string,
 ): RecordDef => {
     // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
     // console.log('RECORD', typeVblsRaw, showLocation(location));
@@ -237,6 +284,14 @@ export const typeRecordDefn = (
         [],
     );
     // console.log('EBLS', typeInner.local.typeVbls);
+    const ffi = ffiTag
+        ? {
+              tag: ffiTag,
+              names: record.items
+                  .filter((r) => r.type === 'Row')
+                  .map((r) => (r as RecordRow).id.text),
+          }
+        : null;
 
     return {
         type: 'Record',
@@ -244,8 +299,10 @@ export const typeRecordDefn = (
         typeVbls,
         location,
         effectVbls,
+        ffi,
         extends: record.items
             .filter((r) => r.type === 'Spread')
+            // TODO: only allow ffi to spread into ffi, etc.
             .map((r) =>
                 resolveType(typeInner.global, (r as RecordSpread).constr),
             ),
@@ -280,6 +337,7 @@ export const addRecord = (
 export const typeRecord = (
     env: Env,
     defnRaw: StructDef,
+    ffiTag?: string,
     // id: Identifier,
     // typeVblsRaw: Array<TypeVbl>,
     // record: RecordDecl,
@@ -289,7 +347,7 @@ export const typeRecord = (
         (r) => r.type === 'Row',
     ) as Array<RecordRow>;
 
-    const defn = typeRecordDefn(env, defnRaw, unique);
+    const defn = typeRecordDefn(env, defnRaw, unique, ffiTag);
     return addRecord(
         env,
         defnRaw.id.text,
@@ -351,7 +409,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
 
     const self = {
         name: item.id.text,
-        type: item.ann ? typeType(env, item.ann) : newTypeVbl(subEnv),
+        type: item.ann ? typeType(env, item.ann) : void_,
     };
 
     subEnv.local.self = self;
@@ -362,7 +420,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
         console.log(showLocation(item.location));
         throw err;
     }
-    if (fitsExpectation(subEnv, term.is, self.type) !== true) {
+    if (item.ann && getTypeErrorOld(subEnv, term.is, self.type) !== true) {
         throw new Error(`Term's type doesn't match annotation`);
     }
 

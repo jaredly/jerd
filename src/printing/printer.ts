@@ -58,9 +58,12 @@ const width = (x: PP): number => {
     }
 };
 
-export const printToString = (
+export type StringOptions = { hideIds?: boolean };
+
+export const printToStringInner = (
     pp: PP,
     maxWidth: number,
+    options: StringOptions,
     current: { indent: number; pos: number } = { indent: 0, pos: 0 },
 ): string => {
     if (pp.type === 'atom') {
@@ -69,6 +72,9 @@ export const printToString = (
     }
     if (pp.type === 'id') {
         current.pos += pp.text.length + 1 + pp.id.length;
+        if (options.hideIds) {
+            return pp.text;
+        }
         return pp.text + '#' + pp.id;
     }
     if (pp.type === 'block') {
@@ -79,7 +85,7 @@ export const printToString = (
             res +=
                 '\n' +
                 white(current.indent) +
-                printToString(item, maxWidth, current) +
+                printToStringInner(item, maxWidth, options, current) +
                 pp.sep;
         });
         current.indent -= 4;
@@ -102,7 +108,12 @@ export const printToString = (
                     res += ', ';
                     current.pos += 2;
                 }
-                const ctext = printToString(child, maxWidth, current);
+                const ctext = printToStringInner(
+                    child,
+                    maxWidth,
+                    options,
+                    current,
+                );
                 // current.pos += ctext.length;
                 res += ctext;
             });
@@ -118,7 +129,7 @@ export const printToString = (
             res +=
                 '\n' +
                 white(current.indent) +
-                printToString(item, maxWidth, current) +
+                printToStringInner(item, maxWidth, options, current) +
                 ',';
         });
         current.indent -= 4;
@@ -133,11 +144,19 @@ export const printToString = (
     if (pp.type === 'items') {
         let res = '';
         pp.items.forEach((item) => {
-            res += printToString(item, maxWidth, current);
+            res += printToStringInner(item, maxWidth, options, current);
         });
         return res;
     }
     throw new Error(`unexpected pp type ${JSON.stringify(pp)}`);
+};
+
+export const printToString = (
+    pp: PP,
+    maxWidth: number,
+    options: StringOptions = { hideIds: false },
+): string => {
+    return printToStringInner(pp, maxWidth, options, { indent: 0, pos: 0 });
 };
 
 export type AttributedText =

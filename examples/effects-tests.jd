@@ -14,6 +14,6 @@ effect A_03 {
 const pair = (x: int, y: int): string => "(" ++ intToString(x) ++ ":" ++ intToString(y) ++ ")"
 
 const h_plus5 = <T,>{e}(inner: (() ={A_02, e}> T) ={e}> T, fn: () ={A_02, e}> T): T ={e}> handle! fn {
-    A_02.plus5((v) => k) => inner(() => k(v + 5)),
+    A_02.plus5((v) => k) => inner(() ={A_02, e}> k(v + 5)),
     pure(x) => x
 }

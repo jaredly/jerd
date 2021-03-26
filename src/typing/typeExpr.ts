@@ -24,7 +24,7 @@ import {
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
-import { showType, fitsExpectation, assertFits } from './unify';
+import { showType, getTypeErrorOld, assertFits } from './unify';
 import { void_, string, bool } from './preset';
 import { hasSubType, idName, makeLocal, resolveIdentifier } from './env';
 import { typeLambda } from './terms/lambda';
@@ -33,7 +33,8 @@ import { typeRecord } from './terms/record';
 import { typeApply } from './terms/apply';
 import { typeSwitch } from './terms/switch';
 import { typeOps } from './terms/ops';
-import { UnresolvedIdentifier } from './errors';
+import { LocatedError, UnresolvedIdentifier } from './errors';
+import { getTypeErorr } from './getTypeError';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -90,14 +91,14 @@ export const subtTypeVars = (
                 return t;
             }
             if (t.type === 'ref') {
-                if (t.ref.type === 'builtin') {
-                    return null;
-                }
                 if (t.typeVbls.length > 0) {
                     return {
                         ...t,
                         typeVbls: t.typeVbls.map((t) => subtTypeVars(t, vbls)),
                     };
+                }
+                if (t.ref.type === 'builtin') {
+                    return null;
                 }
             }
             return null;
@@ -105,9 +106,12 @@ export const subtTypeVars = (
     );
 };
 
-export const showLocation = (loc: Location | null) => {
+export const showLocation = (loc: Location | null, startOnly?: boolean) => {
     if (!loc) {
         return `<no location>`;
+    }
+    if (startOnly) {
+        return `${loc.start.line}:${loc.start.column}`;
     }
     return `${loc.start.line}:${loc.start.column}-${loc.end.line}:${loc.end.column}`;
 };
@@ -221,6 +225,7 @@ export const applyTypeVariables = (
             // if (hasSubType(typ, ))
             mapping[t.typeVbls[i].unique] = typ;
         });
+        // console.log(`Mapping`, mapping);
         return {
             ...type,
             typeVbls: [], // TODO allow partial application!
@@ -292,7 +297,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         : value.is;
                     if (
                         item.ann &&
-                        fitsExpectation(env, value.is, type) === false
+                        getTypeErrorOld(env, value.is, type) === false
                     ) {
                         throw new Error(
                             `Value of const doesn't match type annotation. ${showType(
@@ -324,12 +329,30 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const cond = typeExpr(env, expr.cond);
             const yes = typeExpr(env, expr.yes);
             const no = expr.no ? typeExpr(env, expr.no) : null;
-            if (fitsExpectation(env, cond.is, bool) !== true) {
-                throw new Error(`Condition of if must be a boolean`);
+            const condErr = getTypeErorr(
+                env,
+                cond.is,
+                bool,
+                expr.cond.location,
+            );
+            if (condErr !== null) {
+                throw new LocatedError(
+                    expr.location,
+                    `Condition of if must be a boolean`,
+                ).wrap(condErr);
             }
 
-            if (fitsExpectation(env, yes.is, no ? no.is : void_) !== true) {
-                throw new Error(`Branches of if dont agree`);
+            const branchErr = getTypeErorr(
+                env,
+                yes.is,
+                no ? no.is : void_,
+                expr.yes.location,
+            );
+            if (branchErr !== null) {
+                throw new LocatedError(
+                    expr.location,
+                    `Branches of if dont agree`,
+                ).wrap(branchErr);
             }
             return {
                 type: 'if',
@@ -473,7 +496,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
                 const t = typeExpr(env, term, eff.args[i]);
-                if (fitsExpectation(env, t.is, eff.args[i]) !== true) {
+                if (getTypeErrorOld(env, t.is, eff.args[i]) !== true) {
                     throw new Error(
                         `Wrong type for arg ${i}: ${showType(
                             env,
@@ -667,10 +690,13 @@ export const typeFitsEnum = (
         for (let ref of innerReferences) {
             let found = false;
             for (let outer of allReferences) {
-                if (fitsExpectation(null, ref, outer)) {
-                    found = true;
-                    break;
+                try {
+                    getTypeErrorOld(env, ref, outer);
+                } catch (err) {
+                    continue;
                 }
+                found = true;
+                break;
                 // console.log(showType(env, outer), showType(env, ref));
             }
             if (!found) {

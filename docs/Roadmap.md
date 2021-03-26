@@ -1,4 +1,18 @@
 
+Immediate:
+- [x] fitsExpectations => make it exact, using nice errors. remove all unification whatnot for now.
+- [x] FFI type (something on record, parsed as a decorator)
+- [ ] graphic repl (see shem)
+  - so for the moment ... I'll ...
+    add these definitions to a special "web prelude"
+    and know about the IDs of things? or wait, no they're
+    tagged by normal names. So I can just start rendering them.
+    or wait. No, I do need to know the IDs, so that I can know
+    what type to watch out for to trigger rendering. Yes.
+- [ ] intermediate output, target go or python
+- [ ] structured editor with type holes and such
+
+- um think about making type representation simpler :0: like typing-haskell-in-haskell
 
 - [x] base types (string, int)
 - [x] functions
@@ -41,6 +55,7 @@
   - [x] ~inheritance (subtyping)
   - [x] generic
   - [ ] FFIable types. (with nice attribute names and such)
+- [ ] nail down type checking, remove any subtyping.
 - [x] give me Array<T> or give me sadness
 - [x] NamedTuples (records without attribute names) so I have `Some()`
   - ok copout on this one, I'm allowing you to do `Some{_: 10}`, to omit the attribute name. I don't love it, but I don't want to sink too much time into it.
@@ -64,6 +79,9 @@
     - to indicate that this expression should trigger a type error. so I can verify that I'm excluding invalid stuff.
   - [ ] @assert? or should I keep just doing my magic?
 - [ ] put this on a web sit! animations or some such.
+  - [x] basic thing
+  - [ ] make source mapping really solid! Probably update that source map visualizer to track issues.
+  - [ ] then we can do cursor-preserving auto-format. *but* we would also want type inference at that point. And when rendering, indicate which things are inferred. And have a way to show a type error or something.
   - yeah, so first pass would be like a textarea per term, orr maybe a contenteditable? need look up the latest dealios.
   - and then try doing a full-on structured editor. would start small & build up, with an eye to making it possible to generate the structured editor "visual syntax" from a grammar definition.
   - modal for life. might make people sad though, should have a non-modal option.
