@@ -150,6 +150,7 @@ export default ({
                     evalCache.current[idName(id)] = v;
                     return v;
                 } catch (err) {
+                    console.log('Failure while evaling', err);
                     //
                 }
             }
@@ -161,22 +162,6 @@ export default ({
 
     return (
         <div style={{ marginRight: 10 }}>
-            {/* <div
-                contentEditable
-                autoCorrect="false"
-                spellCheck="false"
-                style={{
-                    whiteSpace: 'pre',
-                    fontFamily: '"Source Code Pro", monospace',
-                }}
-            >
-                {renderAttributedText(
-                    env.global,
-                    printToAttributedText(toplevelToPretty(env, typed), 80),
-                    null,
-                    true,
-                )}
-            </div> */}
             <AutoresizeTextarea
                 value={text}
                 autoFocus
@@ -202,6 +187,7 @@ export default ({
                     outline: 'none',
                 }}
             />
+            {renderPlugin != null ? renderPlugin() : null}
             <div
                 style={{
                     whiteSpace: 'pre-wrap',
@@ -218,13 +204,12 @@ export default ({
                         printToAttributedText(toplevelToPretty(env, typed), 50),
                     )
                 )}
-                {typed != null && typed.id != null ? (
+                {typed != null && (typed as any).id != null ? (
                     // @ts-ignore
                     <div style={styles.hash}>#{idName(typed.id)}</div>
                 ) : null}
             </div>
             {JSON.stringify(evaled)}
-            {renderPlugin != null ? renderPlugin() : null}
         </div>
     );
 };
@@ -232,10 +217,14 @@ export default ({
 const getRenderPlugin = (
     plugins: Plugins,
     env: Env,
-    display: Display,
-    typed: ToplevelT,
+    display: Display | null,
+    typed: ToplevelT | null,
     evaled: any,
 ) => {
+    if (display == null || typed == null || evaled == null) {
+        return null;
+    }
+
     const plugin = plugins[display.type];
     let term;
     let id;

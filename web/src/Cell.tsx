@@ -56,6 +56,7 @@ export type Display = { type: string; opts: { [key: string]: any } };
 export type EvalEnv = {
     builtins: { [key: string]: any };
     terms: { [hash: string]: any };
+    executionLimit: { ticks: number; maxTime: number; enabled: boolean };
 };
 
 export type CellProps = {

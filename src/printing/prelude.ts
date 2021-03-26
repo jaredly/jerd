@@ -140,6 +140,7 @@ export const asin = Math.asin;
 export const acos = Math.acos;
 export const atan = Math.atan;
 export const atan2 = Math.atan2;
+export const intToFloat = (x) => x;
 
 export { log, isSquare, intToString, handleSimpleShallow2 };
 export { raise, assert, assertEqual, pureCPS };

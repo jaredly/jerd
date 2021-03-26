@@ -65,6 +65,7 @@ const initialState = (): State => {
                 evalEnv: {
                     builtins,
                     terms: data.evalEnv.terms,
+                    executionLimit: { ticks: 0, maxTime: 0, enabled: false },
                 },
             };
         } catch (err) {
@@ -77,6 +78,7 @@ const initialState = (): State => {
         evalEnv: {
             builtins,
             terms: {},
+            executionLimit: { ticks: 0, maxTime: 0, enabled: false },
         },
     };
 };
@@ -104,22 +106,26 @@ const runWithExecutionLimit = (
     code: string,
     evalEnv: EvalEnv,
     idName: string,
+    executionLimit: { ticks: number; maxTime: number; enabled: boolean },
 ) => {
-    const start = Date.now();
-    let ticks = 0;
-    const timeLimit = 200;
+    // const start = Date.now();
+    // let ticks = 0;
+    // const timeLimit = 200;
     const jdScope = {
         ...evalEnv,
         terms: {
             ...evalEnv.terms,
         },
         checkExecutionLimit: () => {
-            ticks += 1;
-            if (ticks++ % 100 === 0) {
-                if (Date.now() - start > timeLimit) {
-                    throw new TimeoutError('Execution took too long');
-                }
+            if (!executionLimit.enabled) {
+                return;
             }
+            executionLimit.ticks += 1;
+            // if (ticks++ % 100 === 0) {
+            if (Date.now() > executionLimit.maxTime) {
+                throw new TimeoutError('Execution took too long');
+            }
+            // }
         },
     };
     console.log('code', code);
@@ -146,9 +152,23 @@ export const runTerm = (env: Env, term: Term, id: Id, evalEnv: EvalEnv) => {
                 ...evalEnv,
                 terms: { ...evalEnv.terms, ...results },
             };
-            const result = runWithExecutionLimit(code, innerEnv, dep);
-            results[dep] = result;
-            console.log('result', dep, result);
+            evalEnv.executionLimit.enabled = true;
+            evalEnv.executionLimit.maxTime = Date.now() + 200;
+            evalEnv.executionLimit.ticks = 0;
+            try {
+                const result = runWithExecutionLimit(
+                    code,
+                    innerEnv,
+                    dep,
+                    evalEnv.executionLimit,
+                );
+                results[dep] = result;
+                console.log('result', dep, result);
+            } catch (err) {
+                evalEnv.executionLimit.enabled = false;
+                throw err;
+            }
+            evalEnv.executionLimit.enabled = false;
         } else {
             console.log('already evaluated', dep, evalEnv.terms[dep]);
         }

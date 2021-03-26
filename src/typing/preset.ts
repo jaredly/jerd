@@ -21,7 +21,7 @@ export const bool: Type = builtinType('bool');
 
 export const binOps = ['++', '+', '>', '<', '/', '*', '==', '-'];
 
-const pureFunction = (
+export const pureFunction = (
     args: Array<Type>,
     res: Type,
     typeVbls: Array<TypeVblDecl> = [],
@@ -55,6 +55,7 @@ export function presetEnv() {
     // Just for the eff paper
     env.global.builtins['isSquare'] = pureFunction([int], bool);
     env.global.builtins['intToString'] = pureFunction([int], string);
+    env.global.builtins['intToFloat'] = pureFunction([int], float);
 
     const T: TypeVblDecl = { unique: 10000, subTypes: [] };
     const T0: Type = {

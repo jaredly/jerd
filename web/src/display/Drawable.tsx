@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Type, TypeReference, UserReference } from '../../../src/typing/types';
-import { builtinType } from '../../../src/typing/preset';
+import { builtinType, int, pureFunction } from '../../../src/typing/preset';
 import { Plugins, PluginT } from '../Cell';
 
 // TODO: I should be able to generate these
@@ -87,7 +87,38 @@ export const drawableToSvg = (d: Drawable, i?: number) => {
     }
 };
 
+const Animation = ({ fn }: { fn: (n: number) => Array<Drawable> }) => {
+    const [data, setData] = React.useState([]);
+    React.useEffect(() => {
+        let tick = 0;
+        const tid = setInterval(() => {
+            tick += 1;
+            setData(fn(tick));
+        }, 40);
+        return () => clearInterval(tid);
+    }, [fn]);
+    return (
+        <div>
+            <svg
+                width="100px"
+                height="100px"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                {data.map((d, i) => drawableToSvg(d, i))}
+            </svg>
+        </div>
+    );
+};
+
 const plugins: Plugins = {
+    animation: {
+        id: 'animation',
+        name: 'Animation',
+        type: pureFunction([int], builtinType('Array', [refType('4a4abfb4')])),
+        render: (fn: (n: number) => Array<Drawable>) => {
+            return <Animation fn={fn} />;
+        },
+    },
     drawable: {
         id: 'drawable',
         name: 'Drawable',
