@@ -1,0 +1,11 @@
+{
+    "private": true,
+    "workspaces": [
+        "language",
+        "web"
+    ],
+    "scripts": {
+        "prepare": "yarn --cwd language build",
+        "web": "yarn --cwd web start"
+    }
+}
