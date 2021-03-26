@@ -8,7 +8,7 @@ import {
     addEnum,
     idName,
     addEffect,
-} from '../../src/typing/env';
+} from '@jerd/language/src/typing/env';
 import {
     EnumDef,
     Env,
@@ -16,17 +16,17 @@ import {
     RecordDef,
     selfEnv,
     Type,
-} from '../../src/typing/types';
+} from '@jerd/language/src/typing/types';
 import {
     declarationToPretty,
     termToPretty,
     ToplevelT,
     toplevelToPretty,
-} from '../../src/printing/printTsLike';
-import { printToAttributedText } from '../../src/printing/printer';
+} from '@jerd/language/src/printing/printTsLike';
+import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import Editor from './Editor';
 import { renderAttributedText } from './Render';
-import { getTypeErorr } from '../../src/typing/getTypeError';
+import { getTypeErorr } from '@jerd/language/src/typing/getTypeError';
 
 const maxWidth = 60;
 

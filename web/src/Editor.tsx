@@ -1,22 +1,32 @@
 // The editor bit
 
 import * as React from 'react';
-import { parse, SyntaxError } from '../../src/parsing/grammar';
-import { Toplevel } from '../../src/parsing/parser';
+import { parse, SyntaxError } from '@jerd/language/src/parsing/grammar';
+import { Toplevel } from '@jerd/language/src/parsing/parser';
 import {
     printToAttributedText,
     printToString,
-} from '../../src/printing/printer';
-import { toplevelToPretty, ToplevelT } from '../../src/printing/printTsLike';
-import { showLocation } from '../../src/typing/typeExpr';
-import { Env, Id, Symbol, Term, Type } from '../../src/typing/types';
-import { hashObject, idName, typeToplevelT } from '../../src/typing/env';
+} from '@jerd/language/src/printing/printer';
+import {
+    toplevelToPretty,
+    ToplevelT,
+} from '@jerd/language/src/printing/printTsLike';
+import { showLocation } from '@jerd/language/src/typing/typeExpr';
+import { Env, Id, Symbol, Term, Type } from '@jerd/language/src/typing/types';
+import {
+    hashObject,
+    idName,
+    typeToplevelT,
+} from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
-import { TypeError, UnresolvedIdentifier } from '../../src/typing/errors';
+import {
+    TypeError,
+    UnresolvedIdentifier,
+} from '@jerd/language/src/typing/errors';
 import { Display, EvalEnv, Plugins } from './Cell';
 import { runTerm } from './eval';
-import { getTypeErorr } from '../../src/typing/getTypeError';
+import { getTypeErorr } from '@jerd/language/src/typing/getTypeError';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }

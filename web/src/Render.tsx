@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { AttributedText } from '../../src/printing/printer';
-import { idName } from '../../src/typing/env';
-import { GlobalEnv } from '../../src/typing/types';
+import { AttributedText } from '@jerd/language/src/printing/printer';
+import { idName } from '@jerd/language/src/typing/env';
+import { GlobalEnv } from '@jerd/language/src/typing/types';
 import { Content } from './Cell';
 
 const stylesForAttributes = (attributes: Array<string>) => {

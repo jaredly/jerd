@@ -4,13 +4,13 @@ import * as t from '@babel/types';
 import {
     optimizeAST,
     removeTypescriptTypes,
-} from '../../src/printing/typeScriptOptimize';
+} from '@jerd/language/src/printing/typeScriptOptimize';
 
-import { getSortedTermDependencies } from '../../src/typing/analyze';
+import { getSortedTermDependencies } from '@jerd/language/src/typing/analyze';
 import generate from '@babel/generator';
-import { idName } from '../../src/typing/env';
-import { Env, Id, selfEnv, Term } from '../../src/typing/types';
-import { printTerm } from '../../src/printing/typeScriptPrinter';
+import { idName } from '@jerd/language/src/typing/env';
+import { Env, Id, selfEnv, Term } from '@jerd/language/src/typing/types';
+import { printTerm } from '@jerd/language/src/printing/typeScriptPrinter';
 import { EvalEnv } from './Cell';
 
 export class TimeoutError extends Error {}

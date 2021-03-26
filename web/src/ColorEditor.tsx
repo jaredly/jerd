@@ -5,23 +5,34 @@
 // Also, how do we indicate ids? Should they be rendered?
 
 import * as React from 'react';
-import { parse, SyntaxError } from '../../src/parsing/grammar';
-import { Expression, Toplevel } from '../../src/parsing/parser';
+import { parse, SyntaxError } from '@jerd/language/src/parsing/grammar';
+import { Expression, Toplevel } from '@jerd/language/src/parsing/parser';
 import {
     printToAttributedText,
     printToString,
-} from '../../src/printing/printer';
+} from '@jerd/language/src/printing/printer';
 import {
     termToPretty,
     toplevelToPretty,
     ToplevelT,
-} from '../../src/printing/printTsLike';
-import typeExpr, { showLocation } from '../../src/typing/typeExpr';
-import { EnumDef, Env, Id, Symbol, Term, Type } from '../../src/typing/types';
-import { hashObject, idName, typeToplevelT } from '../../src/typing/env';
+} from '@jerd/language/src/printing/printTsLike';
+import typeExpr, { showLocation } from '@jerd/language/src/typing/typeExpr';
+import {
+    EnumDef,
+    Env,
+    Id,
+    Symbol,
+    Term,
+    Type,
+} from '@jerd/language/src/typing/types';
+import {
+    hashObject,
+    idName,
+    typeToplevelT,
+} from '@jerd/language/src/typing/env';
 import { renderAttributedText, renderAttributedTextToHTML } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
-import { UnresolvedIdentifier } from '../../src/typing/errors';
+import { UnresolvedIdentifier } from '@jerd/language/src/typing/errors';
 
 const topHash = (t: ToplevelT) =>
     t.type === 'Expression' ? hashObject(t.term) : t.id.hash;
