@@ -24,6 +24,12 @@ import { CellView, Cell, EvalEnv, Content, getToplevel } from './Cell';
 import { toplevelToPretty } from '../../src/printing/printTsLike';
 import { printToString } from '../../src/printing/printer';
 
+import Drawable from './display/Drawable';
+
+const defaultPlugins = {
+    [Drawable.id]: Drawable,
+};
+
 // Yea
 
 type State = {
@@ -36,7 +42,6 @@ const genId = () => Math.random().toString(36).slice(2);
 const blankCell: Cell = {
     id: '',
     content: { type: 'raw', text: '' },
-    display: '',
 };
 
 const saveKey = 'jd-repl-cache';
@@ -221,6 +226,7 @@ export default () => {
                     env={state.env}
                     cell={state.cells[id]}
                     evalEnv={state.evalEnv}
+                    plugins={defaultPlugins}
                     onRemove={() => {
                         setState((state) => {
                             const cells = { ...state.cells };
@@ -271,6 +277,12 @@ export default () => {
                     }}
                     onChange={(env, cell) => {
                         setState((state) => {
+                            if (cell.content === state.cells[cell.id].content) {
+                                return {
+                                    ...state,
+                                    cells: { ...state.cells, [cell.id]: cell },
+                                };
+                            }
                             if (
                                 cell.content.type === 'expr' ||
                                 cell.content.type === 'term'

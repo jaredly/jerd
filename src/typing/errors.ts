@@ -22,6 +22,7 @@ export class TypeError extends Error {
     toString() {
         return this.message;
     }
+    showParents() {}
 }
 
 export class LocatedError extends TypeError {
