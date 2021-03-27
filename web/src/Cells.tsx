@@ -1,7 +1,7 @@
 // The app
 
 import * as React from 'react';
-import { idName } from '../../src/typing/env';
+import { idName } from '@jerd/language/src/typing/env';
 import { CellView, Cell, Content } from './Cell';
 import { runTerm } from './eval';
 

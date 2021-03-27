@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // um what now
 
 // we want to parse things I guess?
@@ -378,15 +379,13 @@ const reprintToplevel = (
 /**
  * Writes file, creating diretory path if it does not exist.
  *
- * @param filePath 
- * @param content 
+ * @param filePath
+ * @param content
  */
-const writeFile = (filePath:string, content:string) => {
+const writeFile = (filePath: string, content: string) => {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, content);
 };
-
-
 
 const processFile = (
     fname: string,
@@ -512,10 +511,7 @@ const processFile = (
     const dest = path.join(buildDir, path.basename(fname) + '.mjs');
 
     const mapName = path.basename(fname) + '.mjs.map';
-    writeFile(
-        path.join(buildDir, mapName),
-        JSON.stringify(map, null, 2),
-    );
+    writeFile(path.join(buildDir, mapName), JSON.stringify(map, null, 2));
 
     // This indirection is so avoid confusing source mapping
     // in the generated main.js of the compiler.

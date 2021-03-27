@@ -1,8 +1,16 @@
 // My first little render plugin!
 
 import * as React from 'react';
-import { Type, TypeReference, UserReference } from '../../../src/typing/types';
-import { builtinType, int, pureFunction } from '../../../src/typing/preset';
+import {
+    Type,
+    TypeReference,
+    UserReference,
+} from '@jerd/language/src/typing/types';
+import {
+    builtinType,
+    int,
+    pureFunction,
+} from '@jerd/language/src/typing/preset';
 import { Plugins, PluginT } from '../Cell';
 
 // TODO: I should be able to generate these

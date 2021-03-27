@@ -1,3 +1,4 @@
+// @ts-ignore
 import { parse } from './simple-grammar';
 
 export type Toplevel = Define | Deffect | Deftype;

@@ -1,10 +1,10 @@
 // The app
 
 import * as React from 'react';
-import { Env } from '../../src/typing/types';
+import { Env } from '@jerd/language/src/typing/types';
 import { Cell, EvalEnv, getToplevel, Plugins } from './Cell';
-import { toplevelToPretty } from '../../src/printing/printTsLike';
-import { printToString } from '../../src/printing/printer';
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
+import { printToString } from '@jerd/language/src/printing/printer';
 
 import Cells from './Cells';
 import DrawablePlugins from './display/Drawable';

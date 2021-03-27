@@ -1,8 +1,8 @@
 import { State } from './App';
 
-import { presetEnv } from '../../src/typing/preset';
-import { allLiteral } from '../../src/typing/analyze';
-import * as builtins from '../../src/printing/prelude';
+import { presetEnv } from '@jerd/language/src/typing/preset';
+import { allLiteral } from '@jerd/language/src/typing/analyze';
+import * as builtins from '@jerd/language/src/printing/prelude';
 
 const saveKey = 'jd-repl-cache';
 
