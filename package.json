@@ -6,6 +6,7 @@
     ],
     "scripts": {
         "prepare": "yarn --cwd language build",
-        "web": "yarn --cwd web start"
+        "web": "yarn --cwd web start",
+        "test": "yarn --cwd language test"
     }
 }

@@ -13,8 +13,9 @@
         "watch-tests": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert examples/*.jd --run --cache",
         "watch": "esbuild --sourcemap --bundle src/main.ts --platform=node --watch --outfile=main.js",
         "sn": "jest -u",
-        "test": "node --enable-source-maps main.js examples/eff-paper.jd --assert --run",
-        "test-new": "node --enable-source-maps main.js examples/effects-tests.jd --assert && time node --enable-source-maps  examples/build/effects-tests.jd.mjs"
+        "test": "yarn sn && yarn test-eff && yarn test-new",
+        "test-eff": "node --enable-source-maps main.js ../examples/eff-paper.jd --assert --run",
+        "test-new": "node --enable-source-maps main.js ../examples/effects-tests.jd --assert && time node --enable-source-maps  ../examples/build/effects-tests.jd.mjs"
     },
     "bin": {
         "jerd": "./main.js"
