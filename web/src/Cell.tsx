@@ -271,7 +271,7 @@ const RenderResult = ({
                 -
             </button>
             {JSON.stringify(evalEnv.terms[hash], null, 2)}
-            {matching.length ? (
+            {matching && matching.length ? (
                 <div>
                     <h4>Available render plugins</h4>
 

@@ -6,9 +6,10 @@ import { Cell, EvalEnv, getToplevel, Plugins } from './Cell';
 import { toplevelToPretty } from '../../src/printing/printTsLike';
 import { printToString } from '../../src/printing/printer';
 
-import Cells from './Cells';
+import Cells, { contentMatches, genId, blankCell } from './Cells';
 import DrawablePlugins from './display/Drawable';
 import { initialState, saveState } from './persistence';
+import Library from './Library';
 
 const defaultPlugins: Plugins = {
     ...DrawablePlugins,
@@ -50,5 +51,42 @@ export default () => {
             .join('\n\n');
     };
 
-    return <Cells state={state} plugins={defaultPlugins} setState={setState} />;
+    return (
+        <div>
+            <div
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    overflow: 'auto',
+                }}
+            >
+                <Library
+                    env={state.env}
+                    onOpen={(content) => {
+                        if (
+                            Object.keys(state.cells).some((id) =>
+                                contentMatches(
+                                    content,
+                                    state.cells[id].content,
+                                ),
+                            )
+                        ) {
+                            return;
+                        }
+                        const id = genId();
+                        setState((state) => ({
+                            ...state,
+                            cells: {
+                                [id]: { ...blankCell, id, content },
+                                ...state.cells,
+                            },
+                        }));
+                    }}
+                />
+            </div>
+            <Cells state={state} plugins={defaultPlugins} setState={setState} />
+        </div>
+    );
 };

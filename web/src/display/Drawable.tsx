@@ -89,14 +89,16 @@ export const drawableToSvg = (d: Drawable, i?: number) => {
 
 const Animation = ({ fn }: { fn: (n: number) => Array<Drawable> }) => {
     const [data, setData] = React.useState([]);
+    const fc = React.useRef(fn);
+    fc.current = fn;
     React.useEffect(() => {
         let tick = 0;
         const tid = setInterval(() => {
             tick += 1;
-            setData(fn(tick));
+            setData(fc.current(tick));
         }, 40);
         return () => clearInterval(tid);
-    }, [fn]);
+    }, []);
     return (
         <div>
             <svg width="100%" height="100px" xmlns="http://www.w3.org/2000/svg">
