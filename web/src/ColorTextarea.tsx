@@ -1,33 +1,13 @@
 import * as React from 'react';
-import { parse, SyntaxError } from '@jerd/language/src/parsing/grammar';
-import { Expression, Toplevel } from '@jerd/language/src/parsing/parser';
+import { parse } from '@jerd/language/src/parsing/grammar';
+import { Toplevel } from '@jerd/language/src/parsing/parser';
+import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import {
-    printToAttributedText,
-    printToString,
-} from '@jerd/language/src/printing/printer';
-import {
-    termToPretty,
     toplevelToPretty,
     ToplevelT,
 } from '@jerd/language/src/printing/printTsLike';
-import typeExpr, { showLocation } from '@jerd/language/src/typing/typeExpr';
-import {
-    EnumDef,
-    Env,
-    Id,
-    Symbol,
-    Term,
-    Type,
-} from '@jerd/language/src/typing/types';
-import {
-    hashObject,
-    idName,
-    typeToplevelT,
-} from '@jerd/language/src/typing/env';
-import { renderAttributedText, renderAttributedTextToHTML } from './Render';
-import AutoresizeTextarea from 'react-textarea-autosize';
-import { UnresolvedIdentifier } from '@jerd/language/src/typing/errors';
-import { Content } from './Cell';
+import { hashObject, typeToplevelT } from '@jerd/language/src/typing/env';
+import { renderAttributedTextToHTML } from './Render';
 
 const topHash = (t: ToplevelT) =>
     t.type === 'Expression' ? hashObject(t.term) : t.id.hash;
@@ -50,6 +30,7 @@ const maybeParse = (
                 : null,
         );
     } catch (err) {
+        console.log('failed to parse', err);
         return null;
     }
 };
@@ -105,7 +86,39 @@ export default ({ env, contents, value, onChange, onKeyDown }) => {
                 onInput={(evt) => {
                     onChange(evt.currentTarget.innerText);
                 }}
-                onKeyDown={onKeyDown}
+                onKeyDown={(evt) => {
+                    if (evt.key === 'Tab') {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        console.log(evt.currentTarget, evt.target);
+                        const sel = document.getSelection();
+                        console.log(sel);
+                        const node = document.createElement('span');
+                        node.textContent = '    ';
+                        if (sel.anchorNode.nodeName === '#text') {
+                            const parent = sel.anchorNode.parentElement;
+                            // const idx = [...parent.childNodes].indexOf(sel.anchorNode)
+                            // console.log(parent, idx)
+                            parent.insertBefore(
+                                node,
+                                sel.anchorNode.nextSibling,
+                            );
+                        } else {
+                            sel.anchorNode.insertBefore(
+                                node,
+                                sel.anchorNode.childNodes[sel.anchorOffset],
+                            );
+                        }
+                        const range = document.createRange();
+                        range.setStart(node.childNodes[0], 4);
+                        range.collapse();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                        // console.log(document.getSelection());
+                        return false;
+                    }
+                    onKeyDown(evt);
+                }}
             />
         </div>
     );

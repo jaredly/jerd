@@ -233,6 +233,22 @@ export const typeToAst = (
 //     return t.callExpression(t.arrowFunctionExpression([id], body), [v]);
 // };
 
+const scopedGlobal = (opts: OutputOptions, id: string) =>
+    opts.scope
+        ? t.memberExpression(
+              t.memberExpression(
+                  t.identifier(opts.scope),
+                  t.identifier('builtins'),
+              ),
+              t.identifier(id),
+          )
+        : t.identifier(id);
+
+const scopedId = (opts: OutputOptions, id: string) =>
+    opts.scope
+        ? t.memberExpression(t.identifier(opts.scope), t.identifier(id))
+        : t.identifier(id);
+
 export const withExecutionLimit = (
     env: Env,
     opts: OutputOptions,
@@ -243,15 +259,7 @@ export const withExecutionLimit = (
     }
     return t.blockStatement([
         t.expressionStatement(
-            t.callExpression(
-                opts.scope
-                    ? t.memberExpression(
-                          t.identifier(opts.scope),
-                          t.identifier('checkExecutionLimit'),
-                      )
-                    : t.identifier('$checkExecutionLimit'),
-                [],
-            ),
+            t.callExpression(scopedId(opts, 'checkExecutionLimit'), []),
         ),
         ...(body.type === 'BlockStatement'
             ? body.body
@@ -559,7 +567,7 @@ const _termToAstCPS = (
                     ]),
                 ),
             );
-            return t.callExpression(t.identifier('raise'), args);
+            return t.callExpression(scopedGlobal(opts, 'raise'), args);
         }
         case 'if': {
             const condEffects = getEffects(term.cond);
@@ -967,67 +975,72 @@ const _printTerm = (
                         t.variableDeclarator(t.identifier(vname)),
                     ]),
                     t.expressionStatement(
-                        t.callExpression(t.identifier('handleSimpleShallow2'), [
-                            t.stringLiteral(printRef(term.effect)),
-                            printTerm(env, opts, term.target),
-                            t.arrayExpression(
-                                term.cases
-                                    .sort((a, b) => a.constr - b.constr)
-                                    .map(({ args, k, body }) => {
-                                        return t.arrowFunctionExpression(
-                                            [
-                                                t.identifier('handlers'),
-                                                args.length === 0
-                                                    ? t.identifier('_')
-                                                    : args.length === 1
-                                                    ? t.identifier(
-                                                          printSym(args[0]),
-                                                      )
-                                                    : t.arrayPattern(
-                                                          args.map((s) =>
-                                                              t.identifier(
-                                                                  printSym(s),
+                        t.callExpression(
+                            scopedGlobal(opts, 'handleSimpleShallow2'),
+                            [
+                                t.stringLiteral(printRef(term.effect)),
+                                printTerm(env, opts, term.target),
+                                t.arrayExpression(
+                                    term.cases
+                                        .sort((a, b) => a.constr - b.constr)
+                                        .map(({ args, k, body }) => {
+                                            return t.arrowFunctionExpression(
+                                                [
+                                                    t.identifier('handlers'),
+                                                    args.length === 0
+                                                        ? t.identifier('_')
+                                                        : args.length === 1
+                                                        ? t.identifier(
+                                                              printSym(args[0]),
+                                                          )
+                                                        : t.arrayPattern(
+                                                              args.map((s) =>
+                                                                  t.identifier(
+                                                                      printSym(
+                                                                          s,
+                                                                      ),
+                                                                  ),
                                                               ),
                                                           ),
-                                                      ),
-                                                t.identifier(printSym(k)),
-                                            ],
-                                            t.blockStatement([
-                                                t.expressionStatement(
-                                                    t.assignmentExpression(
-                                                        '=',
-                                                        t.identifier(vname),
-                                                        printTerm(
-                                                            env,
-                                                            opts,
-                                                            body,
+                                                    t.identifier(printSym(k)),
+                                                ],
+                                                t.blockStatement([
+                                                    t.expressionStatement(
+                                                        t.assignmentExpression(
+                                                            '=',
+                                                            t.identifier(vname),
+                                                            printTerm(
+                                                                env,
+                                                                opts,
+                                                                body,
+                                                            ),
                                                         ),
                                                     ),
+                                                ]),
+                                            );
+                                        }),
+                                ),
+                                t.arrowFunctionExpression(
+                                    [
+                                        t.identifier('handlers'),
+                                        t.identifier(printSym(term.pure.arg)),
+                                    ],
+                                    t.blockStatement([
+                                        t.expressionStatement(
+                                            t.assignmentExpression(
+                                                '=',
+                                                t.identifier(vname),
+                                                printTerm(
+                                                    env,
+                                                    opts,
+                                                    term.pure.body,
                                                 ),
-                                            ]),
-                                        );
-                                    }),
-                            ),
-                            t.arrowFunctionExpression(
-                                [
-                                    t.identifier('handlers'),
-                                    t.identifier(printSym(term.pure.arg)),
-                                ],
-                                t.blockStatement([
-                                    t.expressionStatement(
-                                        t.assignmentExpression(
-                                            '=',
-                                            t.identifier(vname),
-                                            printTerm(
-                                                env,
-                                                opts,
-                                                term.pure.body,
                                             ),
                                         ),
-                                    ),
-                                ]),
-                            ),
-                        ]),
+                                    ]),
+                                ),
+                            ],
+                        ),
                     ),
                     t.returnStatement(t.identifier(vname)),
                 ]),

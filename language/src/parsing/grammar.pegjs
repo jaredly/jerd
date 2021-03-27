@@ -197,7 +197,7 @@ RecordPatternItem = id:Identifier pattern:(_ ":" _ Pattern)? {
 
 // == Effects ==
 
-Raise = "raise!" _ "(" _ name:Identifier "." constr:Identifier _ "(" args:CommaExpr? ")" _ ","? _ ")" {return {type: 'raise', name, constr, args: args || [], location: location()}}
+Raise = "raise!" _ "(" _ name:Identifier "." constr:Identifier _ "(" _ args:CommaExpr? _ ")" _ ","? _ ")" {return {type: 'raise', name, constr, args: args || [], location: location()}}
 
 Handle = "handle!" _ target:Expression _ "{" _
     cases:(Case _)+ _

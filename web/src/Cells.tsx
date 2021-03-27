@@ -1,3 +1,5 @@
+/** @jsx jsx */
+import { jsx } from '@emotion/react';
 // The app
 
 import * as React from 'react';
@@ -151,6 +153,21 @@ const Cells = ({ state, plugins, setState }) => {
                 />
             ))}
             <button
+                css={{
+                    width: '200px',
+                    color: 'inherit',
+                    fontFamily: 'inherit',
+                    border: 'none',
+                    display: 'block',
+                    cursor: 'pointer',
+                    padding: '4px 8px',
+                    marginTop: 24,
+                    borderRadius: 4,
+                    backgroundColor: 'rgba(100,100,100,0.1)',
+                    ':hover': {
+                        backgroundColor: 'rgba(100,100,100,0.3)',
+                    },
+                }}
                 onClick={() => {
                     const id = genId();
                     setState((state) => ({

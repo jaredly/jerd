@@ -8,11 +8,13 @@ import { printToString } from '@jerd/language/src/printing/printer';
 
 import Cells, { contentMatches, genId, blankCell } from './Cells';
 import DrawablePlugins from './display/Drawable';
+import StdioPlugins from './display/Stdio';
 import { initialState, saveState } from './persistence';
 import Library from './Library';
 
 const defaultPlugins: Plugins = {
     ...DrawablePlugins,
+    ...StdioPlugins,
 };
 
 // Yea

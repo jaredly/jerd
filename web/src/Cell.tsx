@@ -30,7 +30,7 @@ import Editor from './Editor';
 import { renderAttributedText } from './Render';
 import { getTypeErorr } from '@jerd/language/src/typing/getTypeError';
 
-const maxWidth = 60;
+const maxWidth = 80;
 
 export type Content =
     | { type: 'term'; id: Id; name: string }
@@ -50,7 +50,7 @@ export type PluginT = {
     id: string;
     name: string;
     type: Type;
-    render: (value: any) => React.ReactNode;
+    render: (value: any) => JSX.Element;
 };
 export type Plugins = { [id: string]: PluginT };
 export type Display = { type: string; opts: { [key: string]: any } };
@@ -199,7 +199,7 @@ export const getPlugin = (
     content: Content,
     // cell: Cell,
     value: any,
-): (() => React.ReactNode) | null => {
+): (() => JSX.Element) | null => {
     if (!display || !plugins[display.type]) {
         return null;
     }
@@ -261,7 +261,32 @@ const RenderResult = ({
         evalEnv.terms[hash],
     );
     if (renderPlugin != null) {
-        return renderPlugin() as JSX.Element;
+        return (
+            <div
+                style={{
+                    // padding: 8,
+                    border: '2px solid #2b2b2b',
+                    borderRadius: 4,
+                    position: 'relative',
+                }}
+            >
+                <div
+                    style={{
+                        position: 'absolute',
+                        bottom: -2,
+                        right: -2,
+                        padding: 8,
+                        paddingTop: 6,
+                        backgroundColor: '#2b2b2b',
+                        fontSize: '80%',
+                        borderRadius: 4,
+                    }}
+                >
+                    {plugins[cell.display.type].name}
+                </div>
+                <div style={{ padding: 8 }}>{renderPlugin()}</div>
+            </div>
+        );
     }
 
     const matching = getMatchingPlugins(plugins, env, cell);
