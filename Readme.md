@@ -2,28 +2,39 @@
 
 a language, I think
 
+## Development
 
-Features:
-- algebraic effects
-- affine types for safe mutability
-- compile to readable javascript
-- code is hashed typed AST in a database, not text in files
+Cli/core (in the `language` directory)
+- `yarn watch` in one tab
+- `yarn watch-tests` in another
+
+Web/editor (in the `web` directory)
+- `yarn start`
+- open up `http://localhost:4343`
+
+
+## (intended) Features:
+
+- [x] algebraic effects
+- [ ] affine types for safe mutability
+- [x] compile to readable javascript
+- [x] code is hashed typed AST in a database, not text in files
     - for convenience of reading and stuff, there will be a readable
       file format. It will not be the main method of development though.
       but it's also super useful for showing examples, and project templates,
       and runtime tests.
-- typed macros
+- [ ] typed macros
     - also untyepd macros I guess for when you want to make changes before the typing has happened.
     - but macros are written in this language, and so are referenced by hash, so you can run them once and store the results right? well I guess if they have access to the typing env, then it's possible for them to be less reproducible. I'll need to make sure they are deterministic.
-- modular implicits (type classes)
-- higher kinded types
-- structured editor
+- [ ] modular implicits (type classes)
+- [ ] higher kinded types
+- [ ] structured editor
     - you can annotate an AST node with a "log me please" thing that will be interpreted by the dev env, but doesn't impact the hash. For debugging.
-- sum & product types (rich enums & structs/records)
-- "row polymophism"-ish. subtyping on both enums and structs
-- generics (and higher kinded types)
-- well type-checked interface with typescript
-- "partial" types for WIP development
+- [x] sum & product types (rich enums & structs/records)
+- [x] "row polymophism"-ish. subtyping on both enums and structs
+- [x] generics
+- [ ] well type-checked interface with typescript
+- [ ] "partial" types for WIP development
     - if you have a type error, you can still compile, but your function
       will now require the "type error" effect, which isn't something you can
       handle in user code, meaning you can only run this code inside of the
@@ -31,16 +42,6 @@ Features:
       inspured by that one language, that maybe was a color? or a nut?
       had a structured editor.
 
-
-## Development
-
-Cli/core
-- `yarn watch` in one tab
-- `yarn watch-tests` in another
-
-Web/editor
-- `cd web; yarn start`
-- open up `http://localhost:4343`
 
 
 ## Inspirations
@@ -71,12 +72,7 @@ also reprocessing to some extent.
 
 - [x] working on getting a basic effects setup going
 - [x] need to support self-recursive functions.
-- [ ] some type inference would be great!
-- then probably need to support `let`, b/c that's important
-- at some point, letrec
-- I also want to get type inference going
-- but generics are probably more important.
-- and modular implicits. (well kindof explicits? idk.)
+- [x] then probably need to support `let`, b/c that's important
 
 What am I trying to build?
 As my example project?
@@ -86,20 +82,6 @@ The type of react fns will definitely be required pure. so that's fine.
 ehm
 also do I actually want to try to build a go backend?
 i wonder what i would do with it.
-
-um
-like
-yeah what was I goung to build with this
-I wanted to do a proof of concept
-um
-of like
-what abilities in js would look like
-yeah that was basically it
-and then
-I guess I could try building an app or something
-like, hometowndb is getting most of my thoughts at the moment.
-
-I could always go navel-gazey and try self-hosting. would that even make sense?
 
 
 ## Some local type inference

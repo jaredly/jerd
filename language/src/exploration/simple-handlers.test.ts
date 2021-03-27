@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ok
 
 // This is a function that allows you to handle

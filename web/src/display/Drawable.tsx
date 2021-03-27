@@ -1,8 +1,16 @@
 // My first little render plugin!
 
 import * as React from 'react';
-import { Type, TypeReference, UserReference } from '../../../src/typing/types';
-import { builtinType, int, pureFunction } from '../../../src/typing/preset';
+import {
+    Type,
+    TypeReference,
+    UserReference,
+} from '@jerd/language/src/typing/types';
+import {
+    builtinType,
+    int,
+    pureFunction,
+} from '@jerd/language/src/typing/preset';
 import { Plugins, PluginT } from '../Cell';
 
 // TODO: I should be able to generate these
@@ -89,17 +97,19 @@ export const drawableToSvg = (d: Drawable, i?: number) => {
 
 const Animation = ({ fn }: { fn: (n: number) => Array<Drawable> }) => {
     const [data, setData] = React.useState([]);
+    const fc = React.useRef(fn);
+    fc.current = fn;
     React.useEffect(() => {
         let tick = 0;
         const tid = setInterval(() => {
             tick += 1;
-            setData(fn(tick));
+            setData(fc.current(tick));
         }, 40);
         return () => clearInterval(tid);
-    }, [fn]);
+    }, []);
     return (
         <div>
-            <svg width="100%" height="100px" xmlns="http://www.w3.org/2000/svg">
+            <svg width="100%" height="200px" xmlns="http://www.w3.org/2000/svg">
                 {data.map((d, i) => drawableToSvg(d, i))}
             </svg>
         </div>

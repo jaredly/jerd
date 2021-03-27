@@ -14,11 +14,8 @@ import {
     termToAST,
     typeToString,
     OutputOptions,
-} from '../printing/typeScriptPrinter';
-import {
-    optimizeAST,
-    removeTypescriptTypes,
-} from '../printing/typeScriptOptimize';
+} from './typeScriptPrinter';
+import { optimizeAST, removeTypescriptTypes } from './typeScriptOptimize';
 import typeExpr, { showLocation } from '../typing/typeExpr';
 import typeType, { newTypeVbl } from '../typing/typeType';
 import {
@@ -34,11 +31,11 @@ import {
 import {
     showType,
     unifyInTerm,
-    unifyVariables,
+    // unifyVariables,
     getTypeErrorOld,
 } from '../typing/unify';
-import { items, printToString } from '../printing/printer';
-import { declarationToPretty, termToPretty } from '../printing/printTsLike';
+import { items, printToString } from './printer';
+import { declarationToPretty, termToPretty } from './printTsLike';
 import {
     typeDefine,
     typeTypeDefn,

@@ -2,33 +2,33 @@
 
 import * as t from '@babel/types';
 import * as React from 'react';
-import parse, { Toplevel } from '../../src/parsing/parser';
+import parse, { Toplevel } from '@jerd/language/src/parsing/parser';
 import {
     optimizeAST,
     removeTypescriptTypes,
-} from '../../src/printing/typeScriptOptimize';
-import { typeFile } from '../../src/typing/typeFile';
-import { fileToTypescript } from '../../src/printing/fileToTypeScript';
-import * as builtins from '../../src/printing/prelude';
+} from '@jerd/language/src/printing/typeScriptOptimize';
+import { typeFile } from '@jerd/language/src/typing/typeFile';
+import { fileToTypescript } from '@jerd/language/src/printing/fileToTypeScript';
+import * as builtins from '@jerd/language/src/printing/prelude';
 
-import { presetEnv } from '../../src/typing/preset';
+import { presetEnv } from '@jerd/language/src/typing/preset';
 import generate from '@babel/generator';
-import { idName } from '../../src/typing/env';
-import { Env, Id, defaultRng } from '../../src/typing/types';
-import { printTerm } from '../../src/printing/typeScriptPrinter';
+import { idName } from '@jerd/language/src/typing/env';
+import { Env, Id, defaultRng } from '@jerd/language/src/typing/types';
+import { printTerm } from '@jerd/language/src/printing/typeScriptPrinter';
 import { Content, updateToplevel } from './Cell';
 
 import {
     printToAttributedText,
     printToString,
-} from '../../src/printing/printer';
+} from '@jerd/language/src/printing/printer';
 import {
     termToPretty,
     toplevelToPretty,
     ToplevelT,
-} from '../../src/printing/printTsLike';
-import typeExpr from '../../src/typing/typeExpr';
-import { typeToplevelT } from '../../src/typing/env';
+} from '@jerd/language/src/printing/printTsLike';
+import typeExpr from '@jerd/language/src/typing/typeExpr';
+import { typeToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 

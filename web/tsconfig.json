@@ -2,4 +2,7 @@
     "compilerOptions": {
         "jsx": "react"
     },
+    "references": [
+        "../language"
+    ]
 }

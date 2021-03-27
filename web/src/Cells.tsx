@@ -1,17 +1,17 @@
 // The app
 
 import * as React from 'react';
-import { idName } from '../../src/typing/env';
+import { idName } from '@jerd/language/src/typing/env';
 import { CellView, Cell, Content } from './Cell';
 import { runTerm } from './eval';
 
-const genId = () => Math.random().toString(36).slice(2);
-const blankCell: Cell = {
+export const genId = () => Math.random().toString(36).slice(2);
+export const blankCell: Cell = {
     id: '',
     content: { type: 'raw', text: '' },
 };
 
-const contentMatches = (one: Content, two: Content) => {
+export const contentMatches = (one: Content, two: Content) => {
     if (one.type === 'raw' || two.type === 'raw') {
         return false;
     }
