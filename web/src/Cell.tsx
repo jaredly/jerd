@@ -118,6 +118,9 @@ export const CellView = ({
                     plugins={plugins}
                     evalEnv={evalEnv}
                     display={cell.display}
+                    onSetPlugin={(display) => {
+                        onChange(env, { ...cell, display });
+                    }}
                     contents={
                         cell.content.type == 'raw'
                             ? cell.content.text
@@ -227,7 +230,7 @@ const RenderResult = ({
     setCollapsed,
     onSetPlugin,
 }: {
-    onSetPlugin: (d: Display) => void;
+    onSetPlugin: (d: Display | null) => void;
     plugins: Plugins;
     cell: Cell;
     id: Id;
@@ -239,7 +242,25 @@ const RenderResult = ({
 }) => {
     const hash = idName(id);
     if (!evalEnv.terms[hash]) {
-        return <button onClick={() => onRun(id)}>Not run yet</button>;
+        return (
+            <button
+                css={{
+                    cursor: 'pointer',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    fontFamily: 'inherit',
+                    color: 'inherit',
+                    margin: 8,
+                    padding: '4px 8px',
+                    ':hover': {
+                        backgroundColor: 'rgba(100,100,100,0.3)',
+                    },
+                }}
+                onClick={() => onRun(id)}
+            >
+                Evaluate
+            </button>
+        );
     }
 
     if (collapsed) {
@@ -262,30 +283,13 @@ const RenderResult = ({
     );
     if (renderPlugin != null) {
         return (
-            <div
-                style={{
-                    // padding: 8,
-                    border: '2px solid #2b2b2b',
-                    borderRadius: 4,
-                    position: 'relative',
-                }}
+            <RenderPlugin
+                display={cell.display}
+                plugins={plugins}
+                onSetPlugin={onSetPlugin}
             >
-                <div
-                    style={{
-                        position: 'absolute',
-                        bottom: -2,
-                        right: -2,
-                        padding: 8,
-                        paddingTop: 6,
-                        backgroundColor: '#2b2b2b',
-                        fontSize: '80%',
-                        borderRadius: 4,
-                    }}
-                >
-                    {plugins[cell.display.type].name}
-                </div>
-                <div style={{ padding: 8 }}>{renderPlugin()}</div>
-            </div>
+                {renderPlugin()}
+            </RenderPlugin>
         );
     }
 
@@ -659,4 +663,47 @@ export const updateToplevel = (
     } else {
         throw new Error('toplevel type not yet supported');
     }
+};
+
+export const RenderPlugin = ({ children, display, plugins, onSetPlugin }) => {
+    return (
+        <div
+            style={{
+                // padding: 8,
+                border: '2px solid #2b2b2b',
+                borderRadius: 4,
+                position: 'relative',
+            }}
+        >
+            <div
+                style={{
+                    position: 'absolute',
+                    bottom: -2,
+                    right: -2,
+                    padding: 8,
+                    paddingTop: 6,
+                    backgroundColor: '#2b2b2b',
+                    fontSize: '80%',
+                    borderRadius: 4,
+                }}
+            >
+                {plugins[display.type].name}
+                <button
+                    css={{
+                        cursor: 'pointer',
+                        fontSize: '50%',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: 'inherit',
+                        padding: 0,
+                        marginLeft: 8,
+                    }}
+                    onClick={() => onSetPlugin(null)}
+                >
+                    ╳
+                </button>
+            </div>
+            <div style={{ padding: 8 }}>{children}</div>
+        </div>
+    );
 };

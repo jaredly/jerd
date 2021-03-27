@@ -26,7 +26,7 @@ import {
     TypeError,
     UnresolvedIdentifier,
 } from '@jerd/language/src/typing/errors';
-import { Display, EvalEnv, Plugins } from './Cell';
+import { Display, EvalEnv, Plugins, RenderPlugin } from './Cell';
 import { runTerm } from './eval';
 import { getTypeErorr } from '@jerd/language/src/typing/getTypeError';
 import ColorTextarea from './ColorTextarea';
@@ -95,8 +95,10 @@ export default ({
     evalEnv,
     display,
     plugins,
+    onSetPlugin,
 }: {
     env: Env;
+    onSetPlugin: (plugin: Display | null) => void;
     contents: ToplevelT | string;
     onClose: () => void;
     onChange: (term: ToplevelT | string) => void;
@@ -234,7 +236,15 @@ export default ({
                     </button>
                 </div>
             </div>
-            {renderPlugin != null ? renderPlugin() : null}
+            {renderPlugin != null ? (
+                <RenderPlugin
+                    display={display}
+                    plugins={plugins}
+                    onSetPlugin={onSetPlugin}
+                >
+                    {renderPlugin()}
+                </RenderPlugin>
+            ) : null}
             <div
                 style={{
                     whiteSpace: 'pre-wrap',
@@ -273,6 +283,10 @@ const getRenderPlugin = (
     }
 
     const plugin = plugins[display.type];
+    if (!plugin) {
+        console.log('Unknown type?', display);
+        return;
+    }
     let term;
     let id;
     if (typed.type === 'Expression') {
