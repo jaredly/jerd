@@ -109,7 +109,7 @@ const Animation = ({ fn }: { fn: (n: number) => Array<Drawable> }) => {
     }, []);
     return (
         <div>
-            <svg width="100%" height="100px" xmlns="http://www.w3.org/2000/svg">
+            <svg width="100%" height="200px" xmlns="http://www.w3.org/2000/svg">
                 {data.map((d, i) => drawableToSvg(d, i))}
             </svg>
         </div>
