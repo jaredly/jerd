@@ -64,7 +64,7 @@ const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
                     {n.name}#
                     {n.type === 'global'
                         ? idName(n.id)
-                        : 'sym#' + n.defn.sym.unique}
+                        : ':' + n.defn.sym.unique}
                     {/* {n}#{idName(env.global.names[n])} */}
                 </div>
             ))}

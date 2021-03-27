@@ -537,10 +537,8 @@ export const resolveEffect = (
     { text, location, hash }: Identifier,
 ): EffectRef => {
     if (hash != null) {
-        const [first, second] = hash.slice(1).split('#');
-
-        if (first === 'sym') {
-            const unique = +second;
+        if (hash.startsWith(symPrefix)) {
+            const unique = +hash.slice(symPrefix.length);
             let found: Symbol | null = null;
             Object.keys(env.local.effectVbls).forEach((t) => {
                 if (env.local.effectVbls[t].unique === unique) {
@@ -556,6 +554,8 @@ export const resolveEffect = (
                 sym: found,
             };
         }
+
+        const [first, second] = hash.slice(1).split('#');
 
         if (!env.global.effects[first]) {
             throw new Error(
@@ -596,6 +596,8 @@ export const resolveEffect = (
     };
 };
 
+export const symPrefix = '#:';
+
 export const makeLocal = (env: Env, id: Identifier, type: Type): Symbol => {
     let max = Object.keys(env.local.locals).reduce(
         (max, k) => Math.max(env.local.locals[k].sym.unique, max),
@@ -604,8 +606,8 @@ export const makeLocal = (env: Env, id: Identifier, type: Type): Symbol => {
     const unique = max + 1; // Object.keys(env.local.locals).length;
 
     const found =
-        id.hash && id.hash.startsWith('#sym#')
-            ? +id.hash.slice('#sym#'.length)
+        id.hash && id.hash.startsWith(symPrefix)
+            ? +id.hash.slice(symPrefix.length)
             : null;
     if (found != null) {
         env.local.symMapping[found] = unique;
@@ -630,15 +632,15 @@ export const resolveIdentifier = (
     env: Env,
     { text, location, hash }: Identifier,
 ): Term | null => {
-    if (hash && hash.startsWith('#sym')) {
-        const got = +hash.slice('#sym#'.length);
+    if (hash && hash.startsWith(symPrefix)) {
+        const got = +hash.slice(symPrefix.length);
         if (env.local.symMapping[got] == null) {
             throw new Error(`No symbol mapping for ${got}`);
         }
         const unique = env.local.symMapping[got];
         if (!env.local.locals[unique]) {
             throw new Error(
-                `Could not resolve symbol #sym#${unique} ${showLocation(
+                `Could not resolve symbol ${symPrefix}${unique} ${showLocation(
                     location,
                 )}`,
             );

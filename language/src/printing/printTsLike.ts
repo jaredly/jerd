@@ -136,7 +136,7 @@ export const idToPretty = (env: Env, id: Id, kind: string) => {
     return idPretty(name ? name : 'unnamed', hash, kind);
 };
 export const symToPretty = (sym: Symbol) =>
-    idPretty(sym.name, 'sym#' + sym.unique.toString(), 'sym');
+    idPretty(sym.name, ':' + sym.unique.toString(), 'sym');
 export const effToPretty = (env: Env, eff: EffectRef) =>
     eff.type === 'ref'
         ? refToPretty(env, eff.ref, 'effect')
@@ -219,7 +219,7 @@ const typeVblDeclsToPretty = (env: Env, typeVbls: Array<TypeVblDecl>): PP => {
     return args(
         typeVbls.map((v) =>
             items([
-                idPretty('T', 'sym#' + v.unique.toString(), 'sym'),
+                idPretty('T', ':' + v.unique.toString(), 'sym'),
                 // atom('T_' + v.unique.toString()),
                 v.subTypes.length
                     ? items([

@@ -314,7 +314,7 @@ String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse
 Identifier = text:IdText hash:IdHash? {
     return {type: "id", text, location: location(), hash}}
 IdText = !"enum" [0-9a-zA-Z_]+ {return text()}
-IdHash = ("#" [0-9a-zA-Z]+ ("#" [0-9]+)?) {return text()}
+IdHash = ("#" ":"? [0-9a-zA-Z]+ ("#" [0-9]+)?) {return text()}
 
 _ "whitespace"
   = [ \t\n\r]* (comment _)*

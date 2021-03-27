@@ -10,7 +10,7 @@ import {
 // because we'll need it in a web ui.
 import { Env, Symbol, subEnv, Type, Id } from './types';
 import { showLocation } from './typeExpr';
-import { resolveEffect } from './env';
+import { resolveEffect, symPrefix } from './env';
 
 export const walkType = (
     term: Type,
@@ -72,8 +72,8 @@ const typeType = (env: Env, type: ParseType | null): Type => {
             const effectVbls = type.effectVbls
                 ? type.effectVbls.map((e) => resolveEffect(env, e))
                 : [];
-            if (type.id.hash && type.id.hash.startsWith('#sym#')) {
-                const unique = +type.id.hash.slice('#sym#'.length);
+            if (type.id.hash && type.id.hash.startsWith(symPrefix)) {
+                const unique = +type.id.hash.slice(symPrefix.length);
                 return {
                     type: 'var',
                     sym: { unique, name: type.id.text },
@@ -142,7 +142,7 @@ const typeType = (env: Env, type: ParseType | null): Type => {
 };
 
 const parseUnique = (hash: string | null, backup: number) =>
-    hash && hash.startsWith('#sym#') ? +hash.slice('#sym#'.length) : backup;
+    hash && hash.startsWith(symPrefix) ? +hash.slice(symPrefix.length) : backup;
 
 export const newEnvWithTypeAndEffectVbls = (
     env: Env,
