@@ -678,6 +678,22 @@ const runTests = () => {
     testInference(parsed);
 };
 
+const expandDirectories = (fnames: Array<string>) => {
+    const result: Array<string> = [];
+    fnames.forEach((fname) => {
+        if (fs.statSync(fname).isDirectory()) {
+            fs.readdirSync(fname).forEach((name) => {
+                if (name.endsWith('.jd')) {
+                    result.push(path.join(fname, name));
+                }
+            });
+        } else {
+            result.push(fname);
+        }
+    });
+    return result;
+};
+
 if (process.argv[2] === '--test') {
     runTests();
 } else {
@@ -689,7 +705,13 @@ if (process.argv[2] === '--test') {
     const cache = process.argv.includes('--cache');
     const failFast = process.argv.includes('--fail-fast');
     try {
-        const failed = main(fnames, assert, run, cache, failFast);
+        const failed = main(
+            expandDirectories(fnames),
+            assert,
+            run,
+            cache,
+            failFast,
+        );
         if (failed) {
             process.exit(1);
         }
