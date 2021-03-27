@@ -1,5 +1,7 @@
+/** @jsx jsx */
 // The editor bit
 
+import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { parse, SyntaxError } from '@jerd/language/src/parsing/grammar';
 import { Toplevel } from '@jerd/language/src/parsing/parser';
@@ -27,6 +29,7 @@ import {
 import { Display, EvalEnv, Plugins } from './Cell';
 import { runTerm } from './eval';
 import { getTypeErorr } from '@jerd/language/src/typing/getTypeError';
+import ColorTextarea from './ColorTextarea';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }
@@ -168,31 +171,69 @@ export default ({
 
     return (
         <div style={{ marginRight: 10 }}>
-            <AutoresizeTextarea
-                value={text}
-                autoFocus
-                onChange={(evt) => setText(evt.target.value)}
-                onKeyDown={(evt) => {
-                    if (evt.metaKey && evt.key === 'Enter') {
-                        console.log('run it');
-                        onChange(typed == null ? text : typed);
-                    }
-                    if (evt.key === 'Escape') {
-                        onClose();
-                    }
-                }}
-                style={{
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    fontFamily: '"Source Code Pro", monospace',
-                    backgroundColor: 'rgba(255,255,255,0.1)',
-                    color: 'white',
-                    padding: 8,
-                    border: 'none',
-                    fontSize: 'inherit',
-                    outline: 'none',
-                }}
-            />
+            <div css={{ position: 'relative' }}>
+                <ColorTextarea
+                    // NOTE: this is ~uncontrolled at the moment.
+                    value={text}
+                    env={env}
+                    contents={contents}
+                    onChange={(text) => setText(text)}
+                    onKeyDown={(evt) => {
+                        if (evt.metaKey && evt.key === 'Enter') {
+                            console.log('run it');
+                            onChange(typed == null ? text : typed);
+                        }
+                        if (evt.key === 'Escape') {
+                            onClose();
+                        }
+                    }}
+                />
+                <div
+                    css={{
+                        position: 'absolute',
+                        bottom: 8,
+                        right: 8,
+                    }}
+                >
+                    <button
+                        onClick={onClose}
+                        css={{
+                            padding: '4px 8px',
+                            fontWeight: 200,
+                            borderRadius: 4,
+                            border: 'none',
+                            fontFamily: 'inherit',
+                            backgroundColor: 'transparent',
+                            color: 'white',
+                            cursor: 'pointer',
+                            ':hover': {
+                                backgroundColor: '#2b2b2b',
+                            },
+                        }}
+                    >
+                        save
+                    </button>
+
+                    <button
+                        onClick={onClose}
+                        css={{
+                            padding: '4px 8px',
+                            fontWeight: 200,
+                            borderRadius: 4,
+                            border: 'none',
+                            fontFamily: 'inherit',
+                            backgroundColor: 'transparent',
+                            color: 'white',
+                            cursor: 'pointer',
+                            ':hover': {
+                                backgroundColor: '#2b2b2b',
+                            },
+                        }}
+                    >
+                        cancel
+                    </button>
+                </div>
+            </div>
             {renderPlugin != null ? renderPlugin() : null}
             <div
                 style={{

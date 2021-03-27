@@ -1,3 +1,5 @@
+/** @jsx jsx */
+import { jsx } from '@emotion/react';
 // Ok
 
 import * as React from 'react';
@@ -76,9 +78,22 @@ const CellWrapper = ({ onRemove, children }) => {
             {children}
             <button
                 onClick={onRemove}
-                style={{ position: 'absolute', top: 8, left: '100%' }}
+                css={{
+                    position: 'absolute',
+                    top: 8,
+                    padding: '4px 8px',
+                    borderRadius: 4,
+                    left: '100%',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: 'white',
+                    cursor: 'pointer',
+                    ':hover': {
+                        backgroundColor: '#2b2b2b',
+                    },
+                }}
             >
-                x
+                ╳
             </button>
         </div>
     );
