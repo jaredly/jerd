@@ -1,14 +1,8 @@
 // The app
 
 import * as React from 'react';
-import { Env } from '../../src/typing/types';
-import { Cell, Content, EvalEnv, getToplevel, Plugins } from './Cell';
-import { toplevelToPretty } from '../../src/printing/printTsLike';
-import { printToString } from '../../src/printing/printer';
-
-import Cells from './Cells';
-import DrawablePlugins from './display/Drawable';
-import { initialState, saveState } from './persistence';
+import { Env } from '@jerd/language/src/typing/types';
+import { Content } from './Cell';
 
 const styles = {
     item: {
