@@ -74,7 +74,7 @@ export type CellProps = {
 
 const CellWrapper = ({ onRemove, children }) => {
     return (
-        <div style={{ width: 500, padding: 4, position: 'relative' }}>
+        <div style={{ width: 800, padding: 4, position: 'relative' }}>
             {children}
             <button
                 onClick={onRemove}

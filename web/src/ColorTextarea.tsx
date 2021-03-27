@@ -62,11 +62,19 @@ export default ({ env, contents, value, onChange, onKeyDown }) => {
             return;
         }
         set.current = true;
+        ref.current.innerHTML = '';
+        const s = document.createElement('span');
+        s.textContent = 'M';
+        ref.current.appendChild(s);
+        const w = s.getBoundingClientRect();
+        const full = ref.current.getBoundingClientRect();
+        const chars = Math.floor(full.width / w.width);
         const parsed = maybeParse(env, value, contents);
+        console.log('horizontal chars', chars);
         if (parsed) {
             ref.current.innerHTML = renderAttributedTextToHTML(
                 env.global,
-                printToAttributedText(toplevelToPretty(env, parsed), 50),
+                printToAttributedText(toplevelToPretty(env, parsed), chars),
                 true,
             );
         } else {
@@ -76,25 +84,30 @@ export default ({ env, contents, value, onChange, onKeyDown }) => {
     }, [ref.current]);
     return (
         <div
-            ref={ref}
-            spellCheck="false"
-            autoCorrect="false"
-            autoCapitalize="false"
-            contentEditable
             style={{
-                backgroundColor: '#2b2b2b',
                 padding: 8,
+                backgroundColor: '#2b2b2b',
                 borderRadius: 4,
-                outline: 'none',
-                whiteSpace: 'pre-wrap',
-                fontFamily: '"Source Code Pro", monospace',
-                minHeight: '1em',
             }}
-            onInput={(evt) => {
-                onChange(evt.currentTarget.innerText);
-            }}
-            onKeyDown={onKeyDown}
-        />
+        >
+            <div
+                ref={ref}
+                spellCheck="false"
+                autoCorrect="false"
+                autoCapitalize="false"
+                contentEditable
+                style={{
+                    outline: 'none',
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: '"Source Code Pro", monospace',
+                    minHeight: '1em',
+                }}
+                onInput={(evt) => {
+                    onChange(evt.currentTarget.innerText);
+                }}
+                onKeyDown={onKeyDown}
+            />
+        </div>
     );
 };
 
