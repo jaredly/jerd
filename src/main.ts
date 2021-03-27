@@ -222,7 +222,7 @@ const processErrors = (fname: string) => {
 
     const buildDir = path.join(path.dirname(fname), 'build');
     const dest = path.join(buildDir, path.basename(fname) + '.txt');
-    fs.writeFileSync(dest, errors.join('\n\n'));
+    writeFile(dest, errors.join('\n\n'));
 };
 
 const withParseError = (text: string, location: Location) => {
@@ -375,6 +375,19 @@ const reprintToplevel = (
     }
 };
 
+/**
+ * Writes file, creating diretory path if it does not exist.
+ *
+ * @param filePath 
+ * @param content 
+ */
+const writeFile = (filePath:string, content:string) => {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content);
+};
+
+
+
 const processFile = (
     fname: string,
     assert: boolean,
@@ -499,7 +512,7 @@ const processFile = (
     const dest = path.join(buildDir, path.basename(fname) + '.mjs');
 
     const mapName = path.basename(fname) + '.mjs.map';
-    fs.writeFileSync(
+    writeFile(
         path.join(buildDir, mapName),
         JSON.stringify(map, null, 2),
     );
@@ -509,7 +522,7 @@ const processFile = (
     const m = '# source';
     const text = code + '\n\n//' + m + 'MappingURL=' + mapName;
 
-    fs.writeFileSync(dest, text);
+    writeFile(dest, text);
 
     const preludeTS = require('fs').readFileSync(
         './src/printing/prelude.ts',
