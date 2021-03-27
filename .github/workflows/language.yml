@@ -64,7 +64,7 @@ jobs:
                     - windows-latest
                     - macos-latest
                 project:
-                    - yarn
+                    - language
 
         steps:
             - uses: actions/checkout@v2
@@ -100,7 +100,7 @@ jobs:
     #     strategy:
     #         matrix:
     #             project:
-    #                 - blob
+    #                 - language
     #     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     #     steps:
     #         - uses: actions/checkout@v2
