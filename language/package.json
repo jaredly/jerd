@@ -11,11 +11,9 @@
         "peg": "pegjs --plugin ts-pegjs -o src/parsing/grammar.ts src/parsing/grammar.pegjs",
         "peg-simple": "pegjs --plugin ts-pegjs -o src/simple-grammar.ts src/simple-grammar.pegjs",
         "watch-tests": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert examples/*.jd --run --cache",
+        "test": "node --enable-source-maps main.js --assert examples/*.jd --run",
         "watch": "esbuild --sourcemap --bundle src/main.ts --platform=node --watch --outfile=main.js",
-        "sn": "jest -u",
-        "test": "yarn sn && yarn test-eff && yarn test-new",
-        "test-eff": "node --enable-source-maps main.js ../examples/eff-paper.jd --assert --run",
-        "test-new": "node --enable-source-maps main.js ../examples/effects-tests.jd --assert && time node --enable-source-maps  ../examples/build/effects-tests.jd.mjs"
+        "sn": "jest -u"
     },
     "bin": {
         "jerd": "./main.js"

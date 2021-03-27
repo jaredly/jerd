@@ -587,6 +587,7 @@ const main = (
     assert: boolean,
     run: boolean,
     cache: boolean,
+    failFast: boolean,
 ) => {
     const { shouldSkip, successRerun } = cache
         ? loadCache(fnames, process.argv[1])
@@ -637,8 +638,8 @@ const main = (
         }
         const success = runFile(fname);
         passed[fname] = success;
-        if (reprint && !success) {
-            return;
+        if (failFast && !success) {
+            return true;
         }
     }
 
@@ -650,8 +651,8 @@ const main = (
             if (shouldSkip && shouldSkip[fname]) {
                 const success = runFile(fname);
                 passed[fname] = success;
-                if (reprint && !success) {
-                    return;
+                if (failFast && !success) {
+                    return true;
                 }
             }
         }
@@ -665,6 +666,7 @@ const main = (
             process.argv[1],
         );
     }
+    return numFailures > 0;
 };
 
 import { execSync, spawnSync } from 'child_process';
@@ -685,9 +687,14 @@ if (process.argv[2] === '--test') {
     const assert = process.argv.includes('--assert');
     const run = process.argv.includes('--run');
     const cache = process.argv.includes('--cache');
+    const failFast = process.argv.includes('--fail-fast');
     try {
-        main(fnames, assert, run, cache);
+        const failed = main(fnames, assert, run, cache, failFast);
+        if (failed) {
+            process.exit(1);
+        }
     } catch (err) {
         console.error(err);
+        process.exit(1);
     }
 }
