@@ -165,11 +165,11 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$startRuleFunctions: {[id: string]: any} = { File: peg$parseFile };
   let peg$startRuleFunction: () => any = peg$parseFile;
 
-  const peg$c0 = function(s: any): any {return s.map(s => s[0])};
+  const peg$c0 = function(s: any): any {return s.map((s: any) => s[0])};
   const peg$c1 = function(decorators: any, top: any): any {
       return decorators.length > 0 ? {
           type: 'Decorated',
-          decorators: decorators.map(d => d[0]),
+          decorators: decorators.map((d: any) => d[0]),
           wrapped: top,
           location: location()
       } : top
@@ -202,7 +202,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c24 = function(id: any, constrs: any): any {return {
       type: 'effect',
       location: location(),
-      id, constrs: constrs.map(c => c[0])}};
+      id, constrs: constrs.map((c: any) => c[0])}};
   const peg$c25 = function(id: any, type: any): any {return {id, type}};
   const peg$c26 = "enum";
   const peg$c27 = peg$literalExpectation("enum", false);
@@ -216,7 +216,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       }
   };
   const peg$c29 = function(first: any, rest: any): any {
-      return [first, ...rest.map(r => r[3])]
+      return [first, ...rest.map((r: any) => r[3])]
   };
   const peg$c30 = function(ref: any): any {
       return {type: 'External', ref}
@@ -231,7 +231,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c36 = function(id: any, typeVbls: any, decl: any): any {
       return {type: 'StructDef', id, decl, typeVbls: typeVbls || [], location: location()}};
   const peg$c37 = function(items: any): any {return {type: 'Record', items: items || [], location: location()}};
-  const peg$c38 = function(first: any, rest: any): any {return [first, ...rest.map(r => r[3])]};
+  const peg$c38 = function(first: any, rest: any): any {return [first, ...rest.map((r: any) => r[3])]};
   const peg$c39 = function(constr: any): any {return {type: 'Spread', constr}};
   const peg$c40 = function(id: any, type: any): any {return {type: 'Row', id, rtype: type}};
   const peg$c41 = function(first: any, rest: any): any {
@@ -285,7 +285,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c55 = function(id: any, typeVbls: any, effectVbls: any, rows: any): any {
       return {type: 'Record', id, rows: rows || [], location: location(), typeVbls: typeVbls || [], effectVbls}
   };
-  const peg$c56 = function(first: any, rest: any): any {return [first, ...rest.map(r => r[2])]};
+  const peg$c56 = function(first: any, rest: any): any {return [first, ...rest.map((r: any) => r[2])]};
   const peg$c57 = function(value: any): any {return {type: 'Spread', value}};
   const peg$c58 = function(id: any, value: any): any {return {type: 'Row', id, value}};
   const peg$c59 = "<";
@@ -297,7 +297,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c65 = ";";
   const peg$c66 = peg$literalExpectation(";", false);
   const peg$c67 = function(one: any, rest: any): any {
-      return {type: 'block', items: [one, ...rest.map(r => r[3])], location: location()}
+      return {type: 'block', items: [one, ...rest.map((r: any) => r[3])], location: location()}
   };
   const peg$c68 = "if";
   const peg$c69 = peg$literalExpectation("if", false);
@@ -339,7 +339,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c91 = function(target: any, cases: any, pureId: any, pureBody: any): any {return {
       type: 'handle',
       target,
-      cases: cases.map(c => c[0]),
+      cases: cases.map((c: any) => c[0]),
       pure: {arg: pureId, body: pureBody},
       location: location(),
       }};

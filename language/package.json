@@ -9,7 +9,6 @@
         "build": "yarn peg && yarn compile",
         "compile": "esbuild --sourcemap --bundle src/main.ts --platform=node --outfile=main.js",
         "peg": "pegjs --plugin ts-pegjs -o src/parsing/grammar.ts src/parsing/grammar.pegjs",
-        "peg-simple": "pegjs --plugin ts-pegjs -o src/simple-grammar.ts src/simple-grammar.pegjs",
         "watch-tests": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert examples/*.jd --run --cache",
         "test": "node --enable-source-maps main.js --assert examples/*.jd --run",
         "watch": "esbuild --sourcemap --bundle src/main.ts --platform=node --watch --outfile=main.js",
@@ -41,7 +40,8 @@
         "prettier": "^2.2.1",
         "rfdc": "^1.2.0",
         "seedrandom": "^3.0.5",
-        "ts-pegjs": "^0.3.1"
+        "ts-pegjs": "^0.3.1",
+        "typescript": "^4.2.3"
     },
     "devDependencies": {
         "@babel/core": "^7.12.16",

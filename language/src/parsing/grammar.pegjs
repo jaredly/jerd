@@ -1,10 +1,10 @@
 
-File = _ s:(DecoratedToplevel _)* finalLineComment? {return s.map(s => s[0])}
+File = _ s:(DecoratedToplevel _)* finalLineComment? {return s.map((s: any) => s[0])}
 
 DecoratedToplevel = decorators:(Decorator _)* top:Toplevel {
     return decorators.length > 0 ? {
         type: 'Decorated',
-        decorators: decorators.map(d => d[0]),
+        decorators: decorators.map((d: any) => d[0]),
         wrapped: top,
         location: location()
     } : top
@@ -36,7 +36,7 @@ Define = "const" __ id:Identifier ann:(_ ":" _ Type)? __ "=" __ expr:Expression 
 Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {
     type: 'effect',
     location: location(),
-    id, constrs: constrs.map(c => c[0])}}
+    id, constrs: constrs.map((c: any) => c[0])}}
 
 EfConstr = id:Identifier _ ":" _ type:LambdaType {return {id, type}}
 
@@ -51,7 +51,7 @@ EnumDef = "enum" __ id:Identifier _ typeVbls:TypeVbls? _ "{" _ items:EnumItems _
     }
 }
 EnumItems = first:EnumItem rest:(_ "," _ EnumItem)* ","? {
-    return [first, ...rest.map(r => r[3])]
+    return [first, ...rest.map((r: any) => r[3])]
 }
 EnumItem = EnumSpread / EnumExternal
 EnumExternal = ref:TypeRef {
@@ -69,7 +69,7 @@ StructDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:RecordDecl
 
 RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || [], location: location()}}
 // TODO: spreads much come first, then rows
-RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map(r => r[3])]}
+RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 RecordLine = RecordSpread / RecordItem
 RecordSpread = "..." constr:Identifier {return {type: 'Spread', constr}}
 RecordItem = id:Identifier _ ":" _ type:Type {return {type: 'Row', id, rtype: type}}
@@ -106,7 +106,7 @@ IndexSuffix = "[" slices:Slices "]" {
     }
 }
 Slices = first:Slice rest:(_ "," _ Slice)* {
-    return [first, ...rest.map(r => r[3])]
+    return [first, ...rest.map((r: any) => r[3])]
 }
 Slice = FullSlice / Expression
 FullSlice = left:(Expression __)? ":" right:(__ Expression)? {
@@ -139,14 +139,14 @@ EnumLiteral = id:Identifier typeVbls:TypeVblsApply? ":" expr:Expression {
 RecordLiteral = id:Identifier typeVbls:TypeVblsApply? effectVbls:EffectVblsApply? "{" _ rows:RecordLiteralRows? _ "}" {
     return {type: 'Record', id, rows: rows || [], location: location(), typeVbls: typeVbls || [], effectVbls}
 }
-RecordLiteralRows = first:RecordLiteralRow rest:("," _ RecordLiteralRow _)* ","? {return [first, ...rest.map(r => r[2])]}
+RecordLiteralRows = first:RecordLiteralRow rest:("," _ RecordLiteralRow _)* ","? {return [first, ...rest.map((r: any) => r[2])]}
 RecordLiteralSpread = "..." value:Expression {return {type: 'Spread', value}}
 RecordLiteralRow = RecordLiteralItem / RecordLiteralSpread
 RecordLiteralItem = id:Identifier _ ":" _ value:Expression {return {type: 'Row', id, value}}
 
 ArrayLiteral = ann:("<" _ Type _ ","? ">")? "[" _ items:ArrayItems? _ "]" {return {type: 'Array', items: items || [], location: location(), ann: ann ? ann[2] : null}}
 ArrayItems = first:ArrayItem rest:(_ "," _ ArrayItem)* ","? {
-    return [first, ...rest.map(r => r[3])]
+    return [first, ...rest.map((r: any) => r[3])]
 }
 ArrayItem = ArraySpread / Expression
 ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, location: location() }}
@@ -156,7 +156,7 @@ ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, locati
 // == Control structures ==
 
 Block = "{" _ one:Statement rest:(_ ";" _ Statement)* ";"? _ "}" {
-    return {type: 'block', items: [one, ...rest.map(r => r[3])], location: location()}
+    return {type: 'block', items: [one, ...rest.map((r: any) => r[3])], location: location()}
 }
 
 If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
@@ -170,7 +170,7 @@ _ "}" {
 }
 
 SwitchCases = first:SwitchCase rest:(_ "," _ SwitchCase)* ","? {
-    return [first, ...rest.map(r => r[3])]
+    return [first, ...rest.map((r: any) => r[3])]
 }
 SwitchCase = pattern:Pattern __ "=>" __ body:Expression {
     return {pattern, body, location: location()}
@@ -186,7 +186,7 @@ PatternInner = RecordPattern / Literal / Identifier
 RecordPattern = id:Identifier "{" items:RecordPatternCommas "}" {
     return {type: 'Record', id, items, location: location()}
 }
-RecordPatternCommas = first:RecordPatternItem rest:(_ "," _ RecordPatternItem)* ","? {return [first, ...rest.map(r => r[3])]}
+RecordPatternCommas = first:RecordPatternItem rest:(_ "," _ RecordPatternItem)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 RecordPatternItem = id:Identifier pattern:(_ ":" _ Pattern)? {
     return {id, pattern: pattern ? pattern[3] : null, location: location()}}
 // TODO: array literal!
@@ -205,7 +205,7 @@ Handle = "handle!" _ target:Expression _ "{" _
 "}" {return {
     type: 'handle',
     target,
-    cases: cases.map(c => c[0]),
+    cases: cases.map((c: any) => c[0]),
     pure: {arg: pureId, body: pureBody},
     location: location(),
     }}
@@ -214,9 +214,9 @@ Case = name:Identifier "." constr:Identifier _ "(" _ "(" _ args:CommaPat? _ ")" 
 	return {type: 'case', name, constr, args: args || [], k, body, location: location()}
 }
 Pat = Identifier
-CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map(r => r[3])]}
+CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map((r: any) => r[3])]}
 
-CommaExpr = first:Expression rest:(_ "," _ Expression)* _ ","? {return [first, ...rest.map(r => r[3])]}
+CommaExpr = first:Expression rest:(_ "," _ Expression)* _ ","? {return [first, ...rest.map((r: any) => r[3])]}
 
 
 
@@ -239,21 +239,21 @@ Lambda = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:Args? _ ")" _ rettype
     body,
     location: location(),
 }}
-Args = first:Arg rest:(_ "," _ Arg)* _ ","? {return [first, ...rest.map(r => r[3])]}
+Args = first:Arg rest:(_ "," _ Arg)* _ ","? {return [first, ...rest.map((r: any) => r[3])]}
 Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null}}
 
 TypeVbls = "<" _ first:TypeVbl rest:(_ "," _ TypeVbl)* _ ","? _ ">" {
-    return [first, ...rest.map(r => r[3])]
+    return [first, ...rest.map((r: any) => r[3])]
 }
 TypeVbl = id:Identifier subTypes:SubTypes? {
     return {id, subTypes: subTypes ? subTypes : []}
 }
 SubTypes = _ ":" _ first:Identifier rest:(__ "+" __ Identifier)* {
-    return [first, ...rest.map(r => r[3])]
+    return [first, ...rest.map((r: any) => r[3])]
 }
 EffectVbls = "{" _  inner:EffectVbls_? _ "}" { return inner || [] }
 EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
-    return [first, ...rest.map(r => r[3])]
+    return [first, ...rest.map((r: any) => r[3])]
 }
 
 binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<" / ">" / "<=" / ">=" / "=="
@@ -276,7 +276,7 @@ Type = LambdaType / TypeRef
 TypeRef = id:Identifier effectVbls:EffectVblsApply? typeVbls:TypeVblsApply? {
     return {type: 'TypeRef', id, effectVbls, typeVbls, location: location()}
 }
-CommaType = first:Type rest:(_ "," _ Type)* ","? {return [first, ...rest.map(r => r[3])]}
+CommaType = first:Type rest:(_ "," _ Type)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 TypeVblsApply = "<" _ inner:CommaType _ ">" {return inner}
 EffectVblsApply = "{" _ inner:CommaEffects? _ "}" {return inner || []}
 
@@ -290,7 +290,7 @@ LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaType? _ ")" 
     effvbls: effvbls || [],
     effects: effects ? effects[2] || [] : [] , res} }
 CommaEffects =
-    first:Identifier rest:(_ "," _ Identifier)* _ ","? {return [first, ...rest.map(r => r[3])]}
+    first:Identifier rest:(_ "," _ Identifier)* _ ","? {return [first, ...rest.map((r: any) => r[3])]}
 
 
 
