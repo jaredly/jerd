@@ -224,6 +224,27 @@ const arrayToExPattern = (
     const nilId = 'array-nil';
     groups[consListId] = [consId, nilId];
 
+    // HRMMMM why is this not exhaustive:
+    // [one, ...rest] => true,
+    // [] => false
+    // ?
+    // List(Cons(anything, anything), anything)
+    // List(nil, anything) ? is that how it goes? hm actually maybe it does.
+    // if there's no spread, the postItems don't matter?
+    // AHH yes because I'm not expressing the relationship correctly.
+
+    // hrmm.
+    // because the last thing is like "could be one or two"
+    /*
+
+    really this should be somtehing like
+    // type Pattern = {preItems: Array<Pattern>, spread: {pattern: Pattern, postItems: Array<Pattern>}}
+    // BUT preItems ends in Anything if we have a spread.
+    // type Array<T> = {head: ConsList<T>, }
+
+
+    */
+
     const toConsList = (items: Array<Pattern>, tail: ExPattern | null) => {
         let last = tail == null ? constructor(nilId, consListId, []) : tail;
         for (let i = items.length - 1; i >= 0; i--) {
@@ -243,9 +264,10 @@ const arrayToExPattern = (
     );
     const tail = pattern.postItems.length
         ? toConsList(pattern.postItems, null)
-        : pattern.spread != null
-        ? anything
-        : constructor(nilId, consListId, []);
+        : anything;
+    // : pattern.spread != null
+    // ? anything
+    // : constructor(nilId, consListId, []);
 
     return constructor(groupId, groupId, [head, tail]);
 

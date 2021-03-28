@@ -1413,20 +1413,25 @@ const printPattern = (
         });
 
         // need to limit array length
-        if (!pattern.spread) {
+        if (
+            pattern.preItems.length ||
+            pattern.postItems.length ||
+            !pattern.spread
+        ) {
             success = t.blockStatement([
                 t.ifStatement(
                     t.binaryExpression(
-                        '===',
+                        pattern.spread ? '>=' : '===',
                         ln,
-                        t.numericLiteral(pattern.preItems.length),
+                        t.numericLiteral(
+                            pattern.preItems.length + pattern.postItems.length,
+                        ),
                     ),
                     success,
                 ),
             ]);
         }
 
-        // throw new Error('hrmmmm array destructuring hmmmm');
         return success;
     }
     const _v: never = pattern;

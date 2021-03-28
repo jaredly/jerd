@@ -7,12 +7,19 @@ const z = ["hi", "ho"]
 const a = [...z, "Yes"]
 const b = ["Good", ...z, "uhuh"]
 
+const m = <string,>[]
+
 // switch a[0] {
 //     None => false,
 //     // Some{_: "ho"} => false,
 //     // Some{_: "hi"} => true,
 //     _ => false
 // }
+
+switch [] {
+    [one, ...rest] => false,
+    [] => true
+}
 
 switch a {
     [] => false,
@@ -27,6 +34,23 @@ switch b {
     ["Good", ..._, "Bad"] => false,
     ["Good", ..._, "uhuh"] => true,
     _ => false,
+}
+
+switch a {
+    [one, ...rest] => true,
+    [] => false
+}
+
+@typeError("exhaustive")
+switch a {
+    [one, ...rest, "Yes"] => true,
+    [] => false
+}
+
+@typeError("exhaustive")
+switch a {
+    [one] => true,
+    [] => false
 }
 
 // need to be able to indexing to get stuff out

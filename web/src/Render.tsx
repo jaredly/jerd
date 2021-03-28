@@ -55,7 +55,7 @@ export const renderAttributedTextToHTML = (
     return text
         .map((item, i) => {
             if (typeof item === 'string') {
-                return item;
+                return escapeHTML(item);
             }
             if ('kind' in item) {
                 const showHash =
@@ -68,7 +68,9 @@ export const renderAttributedTextToHTML = (
                     item.kind === 'sym'
                         ? colorMap[item.id] || '#9CDCFE'
                         : '#4EC9B0'
-                }" title="${item.id + ' ' + item.kind}">${item.text}${
+                }" title="${item.id + ' ' + item.kind}">${escapeHTML(
+                    item.text,
+                )}${
                     showHash
                         ? `<span style="color: #777; font-size: 60%">#${item.id}</span>`
                         : ''
@@ -76,10 +78,13 @@ export const renderAttributedTextToHTML = (
             }
             return `<span style="color:${
                 stylesForAttributes(item.attributes).color
-            }">${item.text}</span>`;
+            }">${escapeHTML(item.text)}</span>`;
         })
         .join('');
 };
+
+const escapeHTML = (e: string) =>
+    e.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export const renderAttributedText = (
     env: GlobalEnv,
