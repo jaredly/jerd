@@ -616,6 +616,29 @@ const patternToPretty = (env: Env, pattern: Pattern): PP => {
             } else {
                 return refToPretty(env, pattern.ref.ref, 'record');
             }
+        case 'Array':
+            return args(
+                pattern.preItems
+                    .map((p) => patternToPretty(env, p))
+                    .concat(
+                        pattern.spread
+                            ? [
+                                  items([
+                                      atom('...'),
+                                      patternToPretty(env, pattern.spread),
+                                  ]),
+                              ]
+                            : [],
+                    )
+                    .concat(
+                        pattern.postItems.map((p) => patternToPretty(env, p)),
+                    ),
+                '[',
+                ']',
+            );
+        default:
+            let _x: never = pattern;
+            throw new Error(`Unknown pattern ${(pattern as any).type}`);
     }
 };
 

@@ -1257,7 +1257,7 @@ const _printTerm = (
 };
 
 // Here's how this looks.
-// If you succeed, return the success branch. otherwise, go to the else branch.
+// If you succeed, return the success branch. otherwise, do nothing.
 // my post-processing pass with flatten out all useless iffes.
 const printPattern = (
     env: Env,
@@ -1309,6 +1309,9 @@ const printPattern = (
             ]),
         );
     } else if (pattern.type === 'Record') {
+        // tbh this should probably be processed in reverse?
+        // although it probably doesn't matter, because
+        // these can't be effectful
         pattern.items.forEach((item) => {
             success = printPattern(
                 env,
@@ -1359,6 +1362,72 @@ const printPattern = (
                 success,
             ),
         ]);
+    } else if (pattern.type === 'Array') {
+        // ok so I don't need to check that it's an array.
+        // that's given by the type system.
+        // So, processing in reverse order...
+        // Spread last because it's expensive potentially
+        if (pattern.spread) {
+            success = printPattern(
+                env,
+                t.callExpression(
+                    t.memberExpression(value, t.identifier('slice')),
+                    [t.numericLiteral(pattern.preItems.length)].concat(
+                        pattern.postItems.length
+                            ? [t.numericLiteral(-pattern.postItems.length)]
+                            : [],
+                    ),
+                ),
+                pattern.spread,
+                success,
+            );
+        }
+
+        // Then postitems, because it requires calculating length a bunch
+        const ln = t.memberExpression(value, t.identifier('length'));
+        pattern.postItems.forEach((item, i) => {
+            success = printPattern(
+                env,
+                t.memberExpression(
+                    value,
+                    t.binaryExpression(
+                        '-',
+                        ln,
+                        t.numericLiteral(pattern.postItems.length - i),
+                    ),
+                    true,
+                ),
+                item,
+                success,
+            );
+        });
+
+        // hrmmmmmm
+        pattern.preItems.forEach((item, i) => {
+            success = printPattern(
+                env,
+                t.memberExpression(value, t.numericLiteral(i), true),
+                item,
+                success,
+            );
+        });
+
+        // need to limit array length
+        if (!pattern.spread) {
+            success = t.blockStatement([
+                t.ifStatement(
+                    t.binaryExpression(
+                        '===',
+                        ln,
+                        t.numericLiteral(pattern.preItems.length),
+                    ),
+                    success,
+                ),
+            ]);
+        }
+
+        // throw new Error('hrmmmm array destructuring hmmmm');
+        return success;
     }
     const _v: never = pattern;
     throw new Error(`Pattern not yet supported ${(pattern as any).type}`);

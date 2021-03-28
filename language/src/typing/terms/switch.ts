@@ -185,7 +185,7 @@ const arrayToExPattern = (
     pattern: ArrayPattern,
     groups: Groups,
     env: Env,
-) => {
+): ExPattern => {
     if (
         type.type !== 'ref' ||
         type.ref.type !== 'builtin' ||
@@ -215,6 +215,41 @@ const arrayToExPattern = (
     */
     // oh btw I should probably figure out mutually recursive types here in a minute.
     // so that you could actually define that linked list if you wanted to.
+
+    const groupId = 'array-literal';
+    groups[groupId] = [groupId];
+
+    const consListId = 'array-cons-list';
+    const consId = 'array-cons';
+    const nilId = 'array-nil';
+    groups[consListId] = [consId, nilId];
+
+    const toConsList = (items: Array<Pattern>, tail: ExPattern | null) => {
+        let last = tail == null ? constructor(nilId, consListId, []) : tail;
+        for (let i = items.length - 1; i >= 0; i--) {
+            last = constructor(consId, consListId, [
+                patternToExPattern(env, elemType, groups, items[i]),
+                last,
+            ]);
+        }
+        return last;
+    };
+
+    const head = toConsList(
+        pattern.preItems,
+        pattern.spread
+            ? patternToExPattern(env, type, groups, pattern.spread)
+            : null,
+    );
+    const tail = pattern.postItems.length
+        ? toConsList(pattern.postItems, null)
+        : pattern.spread != null
+        ? anything
+        : constructor(nilId, consListId, []);
+
+    return constructor(groupId, groupId, [head, tail]);
+
+    // throw new Error('not impl');
 };
 
 const recordToExPattern = (
@@ -251,6 +286,9 @@ const recordToExPattern = (
             types: defn.items,
         };
     });
+
+    // Initialize all attributes with the "anything" matcher,
+    // and replace them with more specific ones if they are specified.
     const inner = defn.items.map(() => anything);
     pattern.items.forEach((item) => {
         if (refsEqual(item.ref, pattern.ref.ref)) {
@@ -274,12 +312,5 @@ const recordToExPattern = (
     subIds.forEach((sub) => {
         inner.push(...valuesBySubType[sub].row);
     });
-    return constructor(
-        groupIdForRef(pattern.ref.ref),
-        groupId,
-        // TODO: we need to serialize out all of the
-        // attributes of this record, in a reproducible
-        // way. So probably sort subtypes, and such.
-        inner,
-    );
+    return constructor(groupIdForRef(pattern.ref.ref), groupId, inner);
 };

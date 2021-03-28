@@ -46,9 +46,13 @@ it can be beginning, middle, or end, it's fine.
 
 */
 
+// Records, Enums, ints/strings/etc.
 export type Constructor = {
     type: 'constructor';
-    // the id of the given constructor
+    // For records, this is the type hash
+    // for Enums, this is the record hash
+    // for ints/strings/etc., this is the literal value
+    //
     id: string;
     // This is used to look up all possible constructors
     // for records, there's only one. For enums, there's a finite number.
@@ -58,10 +62,11 @@ export type Constructor = {
 };
 
 export type Pattern =
+    // _ or an id
     | { type: 'anything' }
     | Constructor
+    // X | Y
     | { type: 'or'; left: Pattern; right: Pattern };
-// TODO: a "literal" type?
 
 export type Matrix = Array<Row>;
 export type Row = Array<Pattern>;

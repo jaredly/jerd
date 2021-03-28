@@ -1,4 +1,5 @@
 # jerd
+(rhymes with "bird" or "herd")
 
 a language, I think
 

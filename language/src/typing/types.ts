@@ -353,6 +353,11 @@ export type RecordPatternItem = {
 export type ArrayPattern = {
     type: 'Array';
     preItems: Array<Pattern>;
+    // TBH spread & postItems should go in the same
+    // type that's nullable.
+    // Because you can never have postItems if you
+    // don't have spread.
+    // like `spread: {pattern: Pattern, postItems: Array<Pattern>} | null`
     spread: Pattern | null;
     postItems: Array<Pattern>;
     location: Location | null;

@@ -20,6 +20,15 @@ switch a {
     _ => false
 }
 
+switch b {
+    [] => false,
+    ["Bad"] => false,
+    ["Bad", ..._] => false,
+    ["Good", ..._, "Bad"] => false,
+    ["Good", ..._, "uhuh"] => true,
+    _ => false,
+}
+
 // need to be able to indexing to get stuff out
 // also maybe slices can be nices
 // and indexing means we need the Option type, right?
