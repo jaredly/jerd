@@ -181,7 +181,7 @@ export type SwitchCase = {
     body: Expression;
     location: Location;
 };
-export type Pattern = AliasPattern | Literal | RecordPattern;
+export type Pattern = AliasPattern | Literal | RecordPattern | ArrayPattern;
 export type AliasPattern = {
     type: 'Alias';
     name: Identifier;
@@ -197,6 +197,17 @@ export type RecordPattern = {
 export type RecordPatternItem = {
     id: Identifier;
     pattern: Pattern | null;
+    location: Location;
+};
+
+export type ArrayPattern = {
+    type: 'Array';
+    items: Array<ArrayPatternSpread | Pattern>;
+    location: Location;
+};
+export type ArrayPatternSpread = {
+    type: 'Spread';
+    inner: Pattern;
     location: Location;
 };
 

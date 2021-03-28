@@ -31,7 +31,7 @@ yeah that would totally work.
 So
 [x, y, ...z]
 becomes
-List(Cons(x, Cons(y, _)), _)
+List(Cons(x, Cons(y, z)), _)
 
 and
 [x, y]
@@ -41,18 +41,19 @@ List(Cons(x, Cons(y, nil)), nil)
 yeah I think that should actually work just fine.
 love it!
 
-
+yeah and the rule is: only one spread per pattern
+it can be beginning, middle, or end, it's fine.
 
 */
 
 export type Constructor = {
     type: 'constructor';
+    // the id of the given constructor
     id: string;
-    // If options is null, then this is a functionally "infinite" set
-    // like strings or ints
     // This is used to look up all possible constructors
+    // for records, there's only one. For enums, there's a finite number.
+    // for strings or ints or such, there's an infinite number.
     groupId: string;
-    // options: Array<string> | null;
     args: Array<Pattern>;
 };
 

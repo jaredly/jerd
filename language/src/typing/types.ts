@@ -317,6 +317,7 @@ export type Pattern =
     | Literal
     | AliasPattern
     | RecordPattern
+    | ArrayPattern
     | EnumPattern
     | Binding;
 export type Binding = {
@@ -347,6 +348,14 @@ export type RecordPatternItem = {
     idx: number; // is this right? hm no I need to know the subtype too
     location: Location | null;
     pattern: Pattern;
+    is: Type;
+};
+export type ArrayPattern = {
+    type: 'Array';
+    preItems: Array<Pattern>;
+    spread: Pattern | null;
+    postItems: Array<Pattern>;
+    location: Location | null;
     is: Type;
 };
 

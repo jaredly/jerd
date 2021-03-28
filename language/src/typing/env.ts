@@ -655,9 +655,6 @@ export const resolveIdentifier = (
     } else if (hash != null) {
         const [first, second] = hash.slice(1).split('#');
 
-        // if (first === 'sym') {
-        // }
-
         if (!env.global.terms[first]) {
             if (env.global.types[first]) {
                 const id = { hash: first, size: 1, pos: 0 };

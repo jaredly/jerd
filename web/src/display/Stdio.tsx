@@ -93,7 +93,6 @@ const ChatBot = ({ fn }) => {
                     }}
                 >
                     <input
-                        autoFocus
                         style={{
                             fontFamily: 'inherit',
                             color: 'inherit',

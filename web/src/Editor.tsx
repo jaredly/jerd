@@ -198,7 +198,7 @@ export default ({
                     }}
                 >
                     <button
-                        onClick={onClose}
+                        onClick={() => onChange(typed == null ? text : typed)}
                         css={{
                             padding: '4px 8px',
                             fontWeight: 200,

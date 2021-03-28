@@ -2,13 +2,16 @@
 Immediate:
 - [x] fitsExpectations => make it exact, using nice errors. remove all unification whatnot for now.
 - [x] FFI type (something on record, parsed as a decorator)
-- [ ] graphic repl (see shem)
+- [x] graphic repl (see shem)
   - so for the moment ... I'll ...
     add these definitions to a special "web prelude"
     and know about the IDs of things? or wait, no they're
     tagged by normal names. So I can just start rendering them.
     or wait. No, I do need to know the IDs, so that I can know
     what type to watch out for to trigger rendering. Yes.
+- [ ] array destructuring please
+- [ ] allow qualified binops, so + doesn't lie
+- [ ] generic effects please
 - [ ] intermediate output, target go or python
 - [ ] structured editor with type holes and such
 

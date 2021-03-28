@@ -14,11 +14,11 @@ const b = ["Good", ...z, "uhuh"]
 //     _ => false
 // }
 
-// switch a {
-//     [] => false,
-//     [..._, "Yes"] => true,
-//     _ => false
-// }
+switch a {
+    [] => false,
+    [..._, "Yes"] => true,
+    _ => false
+}
 
 // need to be able to indexing to get stuff out
 // also maybe slices can be nices

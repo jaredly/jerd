@@ -182,7 +182,15 @@ Pattern = inner:PatternInner as_:(__ "as" __ Identifier)? {
     }
     return inner
 }
-PatternInner = RecordPattern / Literal / Identifier
+PatternInner = ArrayPattern / RecordPattern / Literal / Identifier
+ArrayPattern = "[" _ items:ArrayPatternItems? _ "]" {return {type: 'Array', location: location(), items: items || []}}
+
+ArrayPatternItems = first:ArrayPatternItem rest:(_ "," _ ArrayPatternItem)* ","? {
+    return [first, ...rest.map((r: any) => r[3])]
+}
+ArrayPatternItem = ArrayPatternSpread / Pattern
+ArrayPatternSpread = "..." pattern:Pattern {return {type: 'Spread', inner: pattern, location: location()}}
+
 RecordPattern = id:Identifier "{" items:RecordPatternCommas "}" {
     return {type: 'Record', id, items, location: location()}
 }
@@ -307,9 +315,9 @@ Literal = Boolean / Float / Int / String
 
 Boolean = v:("true" / "false") ![0-9a-zA-Z_] {return {type: 'boolean', location: location(), value: v === "true"}}
 Float "float"
-    = _ [0-9]+ "." [0-9]+ {return {type: 'float', value: parseFloat(text()), location: location()}}
+    = _ "-"? [0-9]+ "." [0-9]+ {return {type: 'float', value: parseFloat(text()), location: location()}}
 Int "int"
-	= _ [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
+	= _ "-"? [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
 Identifier = text:IdText hash:IdHash? {
     return {type: "id", text, location: location(), hash}}

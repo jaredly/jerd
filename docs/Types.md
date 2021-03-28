@@ -52,3 +52,31 @@ So these folks have a similar thing going in Opa https://hbbio.tumblr.com/post/3
 - `Array<T>`, gotta have it
 - `StringMap<T>`, backed by the js object
 - `Map<K, T>` for when you need more
+
+
+## GADTs
+
+How would I do existential types?
+Like
+```
+type X = <T>{
+  val: T,
+  toString: T => string
+}
+```
+?
+
+hmmmm that wouldn't work really for comparing props,
+because we don't have universal equality...
+I mean we could I guess. deepEqual till the cows come home.
+
+Also, at some point I might want to go ahead and do the "functions can be comparable & sendable" thing. Here's how I would do it:
+- functions would have a hash attribute `myFn.hash = 'abcdef'`
+- functions would have a `scope` attribute, which is a mapping of scope vbl names to values
+- when calling a function, you pass in the scope attribute as the first argument.
+so
+```ts
+const myFn = (scope, x) => scope.y + x
+myFn.hash = "some hash"
+myFn.scope = {y: y}
+```

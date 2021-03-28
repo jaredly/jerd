@@ -5,6 +5,7 @@ import { getTypeErorr } from '../getTypeError';
 import typeExpr, { getEnumReferences, showLocation } from '../typeExpr';
 import typePattern from '../typePattern';
 import {
+    ArrayPattern,
     Env,
     getAllSubTypes,
     Pattern,
@@ -101,6 +102,11 @@ const patternToExPattern = (
             // otherwise, we list all possible constructors
             return recordToExPattern(type, pattern, groups, env);
         }
+        case 'Array': {
+            return arrayToExPattern(type, pattern, groups, env);
+        }
+        default:
+            throw new Error(`Unhandled pattern ${(pattern as any).type}`);
     }
 };
 
@@ -172,6 +178,43 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
         location: expr.location,
         is: is!,
     };
+};
+
+const arrayToExPattern = (
+    type: Type,
+    pattern: ArrayPattern,
+    groups: Groups,
+    env: Env,
+) => {
+    if (
+        type.type !== 'ref' ||
+        type.ref.type !== 'builtin' ||
+        type.ref.name !== 'Array'
+    ) {
+        throw new Error(`Non-array type with array spread`);
+    }
+    const elemType = type.typeVbls[0];
+    const notMatch = getTypeErorr(env, elemType, pattern.is, pattern.location!);
+    if (notMatch != null) {
+        throw notMatch;
+    }
+    // Ok
+    // so we transform:
+    // preItems, spread, postItems
+    // into
+    // Array(toCons(preItems, spread), toCons(postItems, nil))
+    // and if there are no postItems but there is a spread, then the postItem thing is "any"
+    // but if there is nother postItems not spread, then the postitems is nil
+    /*
+    we pretend that the following types exist:
+
+    type Array<T> = {head: ConsList<T>, tail: ConsList<T>}
+    type Cons<T> = {value: T, tail: ConsList}
+    type Nil = {}
+    enum ConsList<T> {Cons<T>, Nil}
+    */
+    // oh btw I should probably figure out mutually recursive types here in a minute.
+    // so that you could actually define that linked list if you wanted to.
 };
 
 const recordToExPattern = (

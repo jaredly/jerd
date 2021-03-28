@@ -41,6 +41,14 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
             return pattern.ref;
         case 'Record':
             return pattern.ref;
+        case 'Array':
+            return {
+                type: 'ref',
+                ref: { type: 'builtin', name: 'Array' },
+                typeVbls: [pattern.is],
+                effectVbls: [],
+                location: pattern.location,
+            };
     }
 };
 
@@ -314,6 +322,42 @@ const typePattern = (
                 ref: found,
                 items,
                 location: pattern.location,
+            };
+        }
+        case 'Array': {
+            const preItems: Array<Pattern> = [];
+            let spread: Pattern | null = null;
+            const postItems: Array<Pattern> = [];
+            if (
+                expectedType.type !== 'ref' ||
+                expectedType.ref.type !== 'builtin' ||
+                expectedType.ref.name !== 'Array'
+            ) {
+                throw new Error(`Array pattern type mismatch`);
+            }
+            const expectedElement = expectedType.typeVbls[0];
+            pattern.items.forEach((item) => {
+                if (item.type === 'Spread') {
+                    if (spread != null) {
+                        throw new Error(
+                            `Cannot have multiple spreads in the same array pattern`,
+                        );
+                    }
+                    spread = typePattern(env, item.inner, expectedType);
+                } else if (spread == null) {
+                    preItems.push(typePattern(env, item, expectedElement));
+                } else {
+                    postItems.push(typePattern(env, item, expectedElement));
+                }
+            });
+
+            return {
+                type: 'Array',
+                preItems,
+                spread,
+                postItems,
+                location: pattern.location,
+                is: expectedElement,
             };
         }
         default:

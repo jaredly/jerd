@@ -61,7 +61,7 @@ export const renderAttributedTextToHTML = (
                 const showHash =
                     allIds ||
                     shouldShowHash(env, item.id, item.kind, item.text);
-                if (!colorMap[item.id] && item.id.startsWith('sym')) {
+                if (!colorMap[item.id] && item.kind === 'sym') {
                     colorMap[item.id] = idColors[colorAt++ % idColors.length];
                 }
                 return `<span style="color:${
@@ -97,7 +97,7 @@ export const renderAttributedText = (
         if ('kind' in item) {
             const showHash =
                 allIds || shouldShowHash(env, item.id, item.kind, item.text);
-            if (!colorMap[item.id] && item.id.startsWith('sym')) {
+            if (!colorMap[item.id] && item.kind === 'sym') {
                 colorMap[item.id] = idColors[colorAt++ % idColors.length];
             }
             return (
@@ -125,9 +125,6 @@ export const renderAttributedText = (
                             style={{
                                 color: '#777',
                                 fontSize: '60%',
-                                //     borderBottom: item.id.startsWith('sym')
-                                //         ? `1px solid ${colorMap[item.id]}`
-                                //         : '',
                             }}
                         >
                             #{item.id}
