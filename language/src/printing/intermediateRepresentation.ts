@@ -1,3 +1,135 @@
+// import { Location } from '../parsing/parser';
+// import * as t from '../typing/types';
+
+type Loc = Location | null;
+
+const builtinSyms = {
+    handlers: { name: 'handlers', unique: 0 },
+    cond: { name: 'cond', unique: 1000 },
+};
+const handlerSym = { name: 'handlers', unique: 0 };
+
+// hrm where do I put comments in life
+
+export type Toplevel =
+    | { type: 'Define'; id: Id; body: Expr; is: Type; loc: Loc }
+    | { type: 'Expression'; body: Expr; loc: Loc }
+    | { type: 'Enum'; id: Id } // does this even need a reified representation?
+    | {
+          type: 'Record';
+          id: Id;
+          items: Array<{ id: Id; idx: number; is: Type }>;
+          loc: Loc;
+      }
+    | {
+          type: 'Effect';
+          id: Id;
+          items: Array<{ args: Array<Type>; res: Type }>;
+          loc: Loc;
+      };
+
+export type Stmt =
+    | { type: 'Expression'; expr: Expr; loc: Loc }
+    | { type: 'Define'; sym: Symbol; value: Expr; is: Type; loc: Loc }
+    | { type: 'Assign'; sym: Symbol; value: Expr; is: Type; loc: Loc }
+    | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
+    | { type: 'Return'; value: Expr; loc: Loc }
+    | Block;
+export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
+
+export const callExpression = (
+    target: Expr,
+    args: Array<Expr>,
+    loc: Loc,
+): Expr => ({
+    type: 'apply',
+    target,
+    args,
+    loc,
+});
+const builtin = (name: string, loc: Loc): Expr => ({
+    type: 'builtin',
+    name,
+    loc,
+});
+const stringLiteral = (value: string, loc: Loc): Expr => ({
+    type: 'string',
+    value,
+    loc,
+});
+
+// Record creation ... I'll want a second pass to bring that up to a statement level I think
+// so that I can support go or python...
+// also I don't support effects in record creation just yet.
+// oh wait, I think go and python can create records just fine
+export type Expr =
+    | { type: 'string'; value: string; loc: Loc }
+    | { type: 'int'; value: number; loc: Loc }
+    | { type: 'float'; value: number; loc: Loc }
+    | { type: 'term'; id: Id; loc: Loc }
+    | { type: 'var'; sym: Symbol; loc: Loc }
+    | { type: 'builtin'; name: string; loc: Loc }
+    | { type: 'effectfulOrDirect'; effectful: boolean; target: Expr; loc: Loc }
+    | {
+          type: 'raise';
+          effect: Id;
+          idx: number;
+          args: Array<Expr>;
+          done: Expr;
+          loc: Loc;
+      }
+    | {
+          type: 'handle';
+          target: Expr;
+          effect: Id;
+          loc: Loc;
+          pure: { arg: Symbol; body: Expr | Block };
+          cases: Array<{
+              constr: number;
+              args: Array<Symbol>;
+              k: Symbol;
+              body: Expr | Block;
+          }>;
+      }
+    | {
+          type: 'array';
+          items: Array<Expr | { type: 'Spread'; value: Expr }>;
+          elType: Type;
+          loc: Loc;
+      }
+    // effects have been taken care of at this point
+    // do we need to know the types of things? perhaps for conversions?
+    | {
+          type: 'apply';
+          target: Expr;
+          //   args: Array<{ value: Expr; type: Type; loc: Loc }>;
+          args: Array<Expr>;
+          loc: Loc;
+      }
+    | { type: 'attribute'; target: Expr; id: Id; idx: number; loc: Loc }
+    | {
+          type: 'effectfulOrDirectLambda';
+          effectful: LambdaExpr;
+          direct: LambdaExpr;
+          loc: Loc;
+      }
+    | LambdaExpr;
+
+type LambdaExpr = {
+    type: 'lambda';
+    // hrmmm how do I represent the "handlers" and such?
+    // do I just have a "handlers" type? Will swift require more of me? no it has an Any
+    // I could just say "builtin any"
+    // but what about the sym? Do I generate new syms? probably not.
+    args: Array<Arg>;
+    res: Type;
+    body: Expr | Block;
+    loc: Loc;
+};
+
+type Arg = { sym: Symbol; type: Type; loc: Loc };
+// and that's all folks
+
 import {
     Term,
     Env,
@@ -14,28 +146,17 @@ import {
     walkTerm,
     Pattern,
     RecordDef,
+    UserReference,
 } from '../typing/types';
 import { Location } from '../parsing/parser';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
-import { binOps } from '../typing/preset';
+import { binOps, bool, builtinType, void_ } from '../typing/preset';
 import { showType } from '../typing/unify';
 import { optimizeAST } from './typeScriptOptimize';
 import { applyEffectVariables, getEnumReferences } from '../typing/typeExpr';
 import { idName } from '../typing/env';
-
-// Can I... misuse babel's AST to produce go?
-// what would get in my way?
-// hm the fact that typescript type annotations might not do the trick?
-// I mean, for go it might be fine.
-// not sure about swift or something like that.
-// can cross that bridge when we want to.
-
-// TODO: I want to abstract this out
-// Into a file that generates an intermediate representation
-// that can then be turned into TypeScript, or Go, or Swift or something.
-// And then the specific "turn it into typescript" bit can be much simpler.
-// But for now I should probably flesh out the language a bit more.
+import { args } from './printer';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
@@ -58,251 +179,110 @@ export type OutputOptions = {
     readonly limitExecutionTime?: boolean;
 };
 
-export const termToString = (
-    env: Env,
-    opts: OutputOptions,
-    term: Term,
-): string => {
-    const ast = t.file(
-        t.program(
-            [t.expressionStatement(printTerm(env, opts, term))],
-            [],
-            'script',
-        ),
-    );
-    optimizeAST(ast);
-    return generate(ast).code;
-};
+export const handlerVar = (loc: Loc): Expr => ({
+    type: 'var',
+    sym: handlerSym,
+    loc,
+});
 
-export const printType = (env: Env, type: Type): string => {
-    switch (type.type) {
-        case 'ref':
-            if (type.ref.type === 'builtin') {
-                return type.ref.name === 'int' || type.ref.name === 'float'
-                    ? 'number'
-                    : type.ref.name;
-            } else {
-                return type.ref.id.hash;
-            }
-        case 'lambda': {
-            let args = type.args.map((t) => printType(env, t)).join(', ');
-            if (type.rest) {
-                args += ', ...' + printType(env, type.rest);
-            }
-            const effects = type.effects
-                .map((t) => showEffectRef(t))
-                .join(', ');
-            return `(${args}) =${
-                effects ? '{' + effects + '}' : ''
-            }> ${printType(env, type.res)}`;
-        }
-        case 'var':
-            return `type-var-${type.sym.name}`;
-        default:
-            throw new Error(`Cannot print`);
-    }
-};
+// const callExpression = (target: Expr, args: Array<Expr>, loc: Loc) => ({
+//     type: 'apply',
+//     target,
+//     args,
+//     loc,
+// });
 
-export const typeToString = (
-    env: Env,
-    opts: OutputOptions,
-    type: Type,
-): string => {
-    return generate(typeToAst(env, opts, type)).code;
-};
-
-const withType = <T>(env: Env, opts: OutputOptions, expr: T, typ: Type): T => {
-    if (opts.noTypes) {
-        return expr;
-    }
+const ifStatement = (
+    cond: Expr,
+    yes: Expr | Block,
+    no: Expr | Block | null,
+    loc: Loc,
+): Stmt => {
     return {
-        ...expr,
-        // @ts-ignore
-        typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, typ)),
+        type: 'if',
+        cond,
+        loc,
+        yes: ifBlock(yes),
+        no: no ? ifBlock(no) : null,
     };
 };
 
-export const typeToAst = (
-    env: Env,
-    opts: OutputOptions,
-    type: Type,
-): t.TSType => {
-    switch (type.type) {
-        case 'ref':
-            if (type.ref.type === 'builtin') {
-                return t.tsTypeReference(
-                    t.identifier(
-                        type.ref.name === 'int' || type.ref.name === 'float'
-                            ? 'number'
-                            : type.ref.name,
-                    ),
-                );
-            } else {
-                return t.tsTypeReference(t.identifier('t_' + type.ref.id.hash));
-            }
-        case 'var':
-            return t.tsTypeReference(t.identifier(`T_${type.sym.unique}`));
-        case 'lambda': {
-            const res = t.tsTypeAnnotation(typeToAst(env, opts, type.res));
+const blockStatement = (items: Array<Stmt>, loc: Loc): Block => ({
+    type: 'Block',
+    items,
+    loc,
+});
 
-            const findTypeVariables = (type: Type): Array<Symbol> => {
-                switch (type.type) {
-                    case 'var':
-                        return [type.sym];
-                    case 'ref':
-                        return [];
-                    case 'lambda':
-                        return ([] as Array<Symbol>)
-                            .concat(...type.args.map(findTypeVariables))
-                            .concat(findTypeVariables(type.res));
-                    default:
-                        return [];
-                }
-            };
-
-            // const vbls = dedup(findTypeVariables(type).map((m) => `${m.name}`));
-            // hrmmm a function type should really keep track of its own type variables.
-            // like, explicitly.
-            // so that we know the difference between
-            // <T, R>(x: T, () => R) => T
-            // and
-            // <T>(x: T, <R>() => R) => T
-
-            return t.tsFunctionType(
-                type.typeVbls.length
-                    ? t.tsTypeParameterDeclaration(
-                          type.typeVbls.map((name) =>
-                              t.tsTypeParameter(null, null, `T_${name}`),
-                          ),
-                      )
-                    : null,
-                type.args
-                    .map((arg, i) =>
-                        withType<t.Identifier>(
-                            env,
-                            opts,
-                            t.identifier('arg_' + i),
-                            arg,
-                        ),
-                    )
-                    .concat(
-                        type.effects.length
-                            ? [
-                                  {
-                                      ...t.identifier('handlers'),
-                                      typeAnnotation: t.tsTypeAnnotation(
-                                          t.tsAnyKeyword(),
-                                      ),
-                                  },
-                                  {
-                                      ...t.identifier('done'),
-                                      typeAnnotation: t.tsTypeAnnotation(
-                                          t.tsFunctionType(
-                                              null,
-                                              [
-                                                  {
-                                                      ...t.identifier('result'),
-                                                      typeAnnotation: res,
-                                                  },
-                                              ],
-                                              t.tsTypeAnnotation(
-                                                  t.tsVoidKeyword(),
-                                              ),
-                                          ),
-                                      ),
-                                      //   typeToAst(env, opts, {
-                                      //       type: 'lambda',
-                                      //       args: [res]
-                                      //   })
-                                      /*t.tsTypeAnnotation(
-                                          t.tsAnyKeyword(),
-                                      )*/
-                                  },
-                              ]
-                            : [],
-                    ),
-                type.effects.length
-                    ? t.tsTypeAnnotation(t.tsVoidKeyword())
-                    : res,
-            );
-        }
-    }
+const arrowFunctionExpression = (
+    args: Array<Arg>,
+    body: Expr | Block,
+    res: Type,
+    loc: Loc,
+): LambdaExpr => {
+    return {
+        type: 'lambda',
+        args,
+        body,
+        res,
+        loc,
+    };
 };
 
-// // use an IIFE to bind. There are much smarter ways.
-// const bind = (
-//     id: t.Identifier,
-//     v: t.Expression,
-//     body: t.Expression,
-// ): t.Expression => {
-//     return t.callExpression(t.arrowFunctionExpression([id], body), [v]);
-// };
-
-const scopedGlobal = (opts: OutputOptions, id: string) =>
-    opts.scope
-        ? t.memberExpression(
-              t.memberExpression(
-                  t.identifier(opts.scope),
-                  t.identifier('builtins'),
-              ),
-              t.identifier(id),
-          )
-        : t.identifier(id);
-
-const scopedId = (opts: OutputOptions, id: string) =>
-    opts.scope
-        ? t.memberExpression(t.identifier(opts.scope), t.identifier(id))
-        : t.identifier(id);
-
-export const withExecutionLimit = (
-    env: Env,
-    opts: OutputOptions,
-    body: t.BlockStatement | t.Expression,
-): t.BlockStatement | t.Expression => {
-    if (!opts.limitExecutionTime) {
-        return body;
-    }
-    return t.blockStatement([
-        t.expressionStatement(
-            t.callExpression(scopedId(opts, 'checkExecutionLimit'), []),
-        ),
-        ...(body.type === 'BlockStatement'
-            ? body.body
-            : [t.returnStatement(body)]),
-    ]);
+const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {
+    return {
+        type: 'lambda',
+        args: [
+            {
+                sym: handlerSym,
+                type: builtinType('handlers'),
+                loc: null,
+            },
+            arg,
+        ],
+        body,
+        res: void_,
+        loc,
+    };
 };
 
 export const printLambdaBody = (
     env: Env,
     opts: OutputOptions,
     term: Term,
-    // cps: null | { body: t.Expression; bind: t.Identifier },
-    cps: null | t.Expression,
-): t.BlockStatement | t.Expression => {
+    // cps: null | { body: Expr; bind: t.Identifier },
+    cps: null | Expr,
+): Block | Expr => {
     if (cps == null) {
         if (term.type === 'sequence') {
-            return withLocation(
-                t.blockStatement(
-                    term.sts.map((s, i) =>
-                        withLocation(
-                            s.type === 'Let'
-                                ? t.variableDeclaration('const', [
-                                      t.variableDeclarator(
-                                          t.identifier(printSym(s.binding)),
-                                          printTerm(env, opts, s.value),
-                                      ),
-                                  ])
-                                : i === term.sts.length - 1
-                                ? t.returnStatement(printTerm(env, opts, s))
-                                : t.expressionStatement(
-                                      printTerm(env, opts, s),
-                                  ),
-                            s.location,
-                        ),
-                    ),
+            return {
+                type: 'Block',
+                items: term.sts.map(
+                    (s, i): Stmt => {
+                        if (s.type === 'Let') {
+                            return {
+                                type: 'Define',
+                                sym: s.binding,
+                                value: printTerm(env, opts, s.value),
+                                loc: s.location,
+                                is: s.is,
+                            };
+                        } else if (i === term.sts.length - 1) {
+                            return {
+                                type: 'Return',
+                                value: printTerm(env, opts, s),
+                                loc: s.location,
+                            };
+                        } else {
+                            return {
+                                type: 'Expression',
+                                expr: printTerm(env, opts, s),
+                                loc: s.location,
+                            };
+                        }
+                    },
                 ),
-                term.location,
-            );
+                loc: term.location,
+            };
         } else {
             return printTerm(env, opts, term);
         }
@@ -312,111 +292,67 @@ export const printLambdaBody = (
             // and we know what we want to bind to, right? or something?
             // in what case would we want to CPS something that
             // can't be CPSd?
-            let inner = cps;
+            let inner: Expr = cps;
             for (let i = term.sts.length - 1; i >= 0; i--) {
                 if (i > 0) {
-                    inner = t.arrowFunctionExpression(
-                        [t.identifier('handlers'), t.identifier('_ignored')],
-                        withLocation(
-                            t.blockStatement([
-                                withLocation(
-                                    t.expressionStatement(
-                                        termToAstCPS(
-                                            env,
-                                            opts,
-                                            term.sts[i],
-                                            inner,
-                                        ),
+                    inner = {
+                        type: 'lambda',
+                        args: [
+                            {
+                                sym: handlerSym,
+                                type: builtinType('handlers'),
+                                loc: null,
+                            },
+                            {
+                                sym: { name: '_ignored', unique: 1 },
+                                type: builtinType('void'),
+                                loc: null,
+                            },
+                        ],
+                        body: {
+                            type: 'Block',
+                            loc: term.sts[i].location,
+                            items: [
+                                {
+                                    type: 'Expression',
+                                    expr: termToAstCPS(
+                                        env,
+                                        opts,
+                                        term.sts[i],
+                                        inner,
                                     ),
-                                    term.sts[i].location,
-                                ),
-                            ]),
-                            term.sts[i].location,
-                        ),
-                    );
+                                    loc: term.sts[i].location,
+                                },
+                            ],
+                        },
+                        res: void_,
+                        loc: term.sts[i].location,
+                    };
                 } else {
                     inner = termToAstCPS(env, opts, term.sts[i], inner);
                 }
             }
-            return t.blockStatement([t.expressionStatement(inner)]);
+            return {
+                type: 'Block',
+                items: [
+                    { type: 'Expression', expr: inner, loc: term.location },
+                ],
+                loc: term.location,
+            };
         } else {
-            return t.blockStatement([
-                t.expressionStatement(termToAstCPS(env, opts, term, cps)),
-            ]);
+            return {
+                type: 'Block',
+                items: [
+                    {
+                        type: 'Expression',
+                        expr: termToAstCPS(env, opts, term, cps),
+                        loc: term.location,
+                    },
+                ],
+                loc: term.location,
+            };
         }
     }
-};
-
-export const termToAST = (
-    env: Env,
-    opts: OutputOptions,
-    term: Term,
-    comment?: string,
-): t.Statement => {
-    let res = withLocation(
-        t.expressionStatement(printTerm(env, opts, term)),
-        term.location,
-    );
-    if (comment) {
-        res = t.addComment(res, 'leading', comment);
-    }
-    return res;
-};
-
-export const declarationToAST = (
-    env: Env,
-    opts: OutputOptions,
-    hash: string,
-    term: Term,
-    comment?: string,
-): t.Statement => {
-    const expr = printTerm(env, opts, term);
-    let res =
-        opts.scope == null
-            ? t.variableDeclaration('const', [
-                  t.variableDeclarator(
-                      {
-                          ...t.identifier('hash_' + hash),
-                          typeAnnotation: t.tsTypeAnnotation(
-                              typeToAst(env, opts, term.is),
-                          ),
-                      },
-                      expr,
-                  ),
-              ])
-            : t.expressionStatement(
-                  t.assignmentExpression(
-                      '=',
-                      t.memberExpression(
-                          t.memberExpression(
-                              t.identifier(opts.scope),
-                              t.identifier('terms'),
-                          ),
-                          t.stringLiteral(idName({ hash, size: 1, pos: 0 })),
-                          true,
-                      ),
-                      expr,
-                  ),
-              );
-    if (comment) {
-        res = t.addComment(res, 'leading', comment);
-    }
-    return res;
-};
-
-// export const generateFile
-
-export const declarationToString = (
-    env: Env,
-    opts: OutputOptions,
-    hash: string,
-    term: Term,
-): string => {
-    const ast = t.file(
-        t.program([declarationToAST(env, opts, hash, term)], [], 'script'),
-    );
-    optimizeAST(ast);
-    return generate(ast).code;
 };
 
 const isConstant = (arg: Term) => {
@@ -462,9 +398,9 @@ export const termToAstCPS = (
     env: Env,
     opts: OutputOptions,
     term: Term | Let,
-    done: t.Expression,
-): t.Expression => {
-    return withLocation(_termToAstCPS(env, opts, term, done), term.location);
+    done: Expr,
+): Expr => {
+    return _termToAstCPS(env, opts, term, done);
 };
 
 // cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
@@ -472,13 +408,23 @@ const _termToAstCPS = (
     env: Env,
     opts: OutputOptions,
     term: Term | Let,
-    done: t.Expression,
-): t.Expression => {
+    done: Expr,
+): Expr => {
+    // No effects in the term
     if (!getEffects(term).length && term.type !== 'Let') {
-        return t.callExpression(done, [
-            t.identifier('handlers'),
-            printTerm(env, opts, term),
-        ]);
+        return {
+            type: 'apply',
+            target: done,
+            args: [
+                {
+                    type: 'var',
+                    sym: handlerSym,
+                    loc: null,
+                },
+                printTerm(env, opts, term),
+            ],
+            loc: null,
+        };
     }
     switch (term.type) {
         case 'handle': {
@@ -487,53 +433,42 @@ const _termToAstCPS = (
                     `Handle target has effects! should be a lambda`,
                 );
             }
-            return t.callExpression(t.identifier('handleSimpleShallow2'), [
-                t.stringLiteral(printRef(term.effect)),
-                printTerm(env, opts, term.target),
-                t.arrayExpression(
-                    term.cases
-                        .sort((a, b) => a.constr - b.constr)
-                        .map(({ args, k, body }) => {
-                            return t.arrowFunctionExpression(
-                                [
-                                    t.identifier('handlers'),
-                                    args.length === 0
-                                        ? t.identifier('_')
-                                        : args.length === 1
-                                        ? t.identifier(printSym(args[0]))
-                                        : t.arrayPattern(
-                                              args.map((s) =>
-                                                  t.identifier(printSym(s)),
-                                              ),
-                                          ),
-                                    t.identifier(printSym(k)),
-                                ],
-                                printLambdaBody(env, opts, body, done),
-                            );
-                        }),
-                ),
-                t.arrowFunctionExpression(
-                    [
-                        t.identifier('handlers'),
-                        t.identifier(printSym(term.pure.arg)),
-                    ],
-                    printLambdaBody(env, opts, term.pure.body, done),
-                ),
-                t.identifier('handlers'),
-            ]);
+            // START HERE:
+            // I think this is a reasonable approach, folks.
+            // this is feeling pretty good so far.
+            // I'm wondering if I want to specify handler as much as this...
+            // OHHHH WAIT NO I need to CPS this up still 🤔
+            return {
+                type: 'handle',
+                target: printTerm(env, opts, term.target),
+                effect: (term.effect as UserReference).id,
+                loc: term.location,
+                // fail boat
+                pure: {
+                    arg: term.pure.arg,
+                    body: printLambdaBody(env, opts, term.pure.body, done),
+                    // printTerm(env, opts, term.pure.body),
+                },
+                cases: term.cases.map((kase) => ({
+                    ...kase,
+                    body: printLambdaBody(env, opts, kase.body, done),
+                })),
+            };
         }
         case 'Let': {
             return termToAstCPS(
                 env,
                 opts,
                 term.value,
-                t.arrowFunctionExpression(
-                    [
-                        t.identifier('handlers'),
-                        t.identifier(printSym(term.binding)),
-                    ],
-                    t.callExpression(done, [t.identifier('handlers')]),
-                    // t.blockStatement([t.expressionStatement(inner)]),
+                cpsLambda(
+                    { sym: term.binding, type: term.is, loc: term.location },
+                    {
+                        type: 'apply',
+                        target: done,
+                        args: [{ type: 'var', sym: handlerSym, loc: null }],
+                        loc: null,
+                    },
+                    term.location,
                 ),
             );
         }
@@ -542,37 +477,46 @@ const _termToAstCPS = (
                 ([] as Array<EffectRef>).concat(...term.args.map(getEffects))
                     .length > 0
             ) {
-                return t.identifier('raise args effects');
+                return stringLiteral('raise args effects', null);
             }
             if (term.ref.type === 'builtin') {
                 throw new Error('ok');
             }
-            const args: Array<t.Expression> = [
-                t.identifier('handlers'),
-                t.stringLiteral(term.ref.id.hash),
-                t.numericLiteral(term.idx),
-            ];
-            if (term.args.length === 0) {
-                args.push(t.nullLiteral());
-            } else if (term.args.length === 1) {
-                args.push(printTerm(env, opts, term.args[0]));
-            } else {
-                args.push(
-                    t.arrayExpression(
-                        term.args.map((a) => printTerm(env, opts, a)),
-                    ),
-                );
-            }
-            args.push(
-                t.arrowFunctionExpression(
-                    [t.identifier('handlers'), t.identifier('value')],
-                    t.callExpression(done, [
-                        t.identifier('handlers'),
-                        t.identifier('value'),
-                    ]),
-                ),
-            );
-            return t.callExpression(scopedGlobal(opts, 'raise'), args);
+            return {
+                type: 'raise',
+                effect: term.ref.id,
+                idx: term.idx,
+                args: term.args.map((t) => printTerm(env, opts, t)),
+                loc: term.location,
+                done,
+            };
+            // const args: Array<Expr> = [
+            //     { type: 'var', sym: handlerSym, loc: null },
+            //     // builtin('handlers'),
+            //     t.stringLiteral(term.ref.id.hash),
+            //     t.numericLiteral(term.idx),
+            // ];
+            // if (term.args.length === 0) {
+            //     args.push(t.nullLiteral());
+            // } else if (term.args.length === 1) {
+            //     args.push(printTerm(env, opts, term.args[0]));
+            // } else {
+            //     args.push(
+            //         t.arrayExpression(
+            //             term.args.map((a) => printTerm(env, opts, a)),
+            //         ),
+            //     );
+            // }
+            // args.push(
+            //     t.arrowFunctionExpression(
+            //         [t.identifier('handlers'), t.identifier('value')],
+            //         t.callExpression(done, [
+            //             t.identifier('handlers'),
+            //             t.identifier('value'),
+            //         ]),
+            //     ),
+            // );
+            // return t.callExpression(scopedGlobal(opts, 'raise'), args);
         }
         case 'if': {
             const condEffects = getEffects(term.cond);
@@ -581,15 +525,22 @@ const _termToAstCPS = (
                     env,
                     opts,
                     term.cond,
-                    t.arrowFunctionExpression(
-                        [t.identifier('handlers'), t.identifier(`cond`)],
-                        t.blockStatement([
-                            t.ifStatement(
-                                t.identifier('cond'),
-                                ifBlock(
+                    cpsLambda(
+                        {
+                            sym: { name: 'cond', unique: 1000 },
+                            type: bool,
+                            loc: term.cond.location,
+                        },
+                        {
+                            type: 'Block',
+                            items: [
+                                ifStatement(
+                                    {
+                                        type: 'var',
+                                        sym: { name: 'cond', unique: 1000 },
+                                        loc: term.cond.location,
+                                    },
                                     printLambdaBody(env, opts, term.yes, done),
-                                ),
-                                ifBlock(
                                     term.no
                                         ? printLambdaBody(
                                               env,
@@ -597,45 +548,57 @@ const _termToAstCPS = (
                                               term.no,
                                               done,
                                           )
-                                        : t.callExpression(done, [
-                                              t.identifier('handlers'),
-                                          ]),
-                                ), // void
-                            ),
-                        ]),
+                                        : callExpression(
+                                              done,
+                                              [handlerVar(term.location)],
+                                              term.location,
+                                          ),
+                                    term.location,
+                                ),
+                            ],
+                            loc: term.location,
+                        },
+                        term.location,
                     ),
                 );
             }
 
             const cond = printTerm(env, opts, term.cond);
 
+            // return
+
             return iffe(
-                t.blockStatement([
-                    t.ifStatement(
-                        cond,
-                        ifBlock(printLambdaBody(env, opts, term.yes, done)),
-                        ifBlock(
+                blockStatement(
+                    [
+                        ifStatement(
+                            cond,
+                            printLambdaBody(env, opts, term.yes, done),
                             term.no
                                 ? printLambdaBody(env, opts, term.no, done)
-                                : t.callExpression(done, [
-                                      t.identifier('handlers'),
-                                  ]),
-                        ), // void
-                    ),
-                ]),
+                                : callExpression(
+                                      done,
+                                      [handlerVar(term.location)],
+                                      term.location,
+                                  ),
+                            term.location,
+                        ),
+                    ],
+                    term.location,
+                ),
+                void_,
             );
         }
         case 'apply': {
             if (getEffects(term.target).length) {
-                return t.identifier('STOPSHIP target effects');
+                throw new Error(`target affects in an apply, sorry`);
+                // return t.identifier('STOPSHIP target effects');
             }
             const u = env.local.unique++;
 
-            const argTypes =
-                term.target.is.type === 'lambda' ? term.target.is.args : null;
-            if (argTypes === null) {
-                throw new Error(`Need to resolve target type`);
+            if (term.target.is.type !== 'lambda') {
+                throw new Error(`Target is not a function`);
             }
+            const argTypes = term.target.is.args;
             const args = term.args.map((arg, i) => {
                 return maybeWrapPureFunction(env, arg, argTypes[i]);
             });
@@ -644,49 +607,63 @@ const _termToAstCPS = (
                 ...term.args.map(getEffects),
             );
             if (argsEffects.length > 0) {
+                const argSyms = args.map((arg, i) =>
+                    isSimple(arg)
+                        ? null
+                        : { name: `arg_${i}`, unique: env.local.unique++ },
+                );
                 let target = printTerm(env, opts, term.target);
                 if (term.hadAllVariableEffects) {
-                    target = t.memberExpression(
+                    target = {
+                        type: 'effectfulOrDirect',
                         target,
-                        t.identifier('effectful'),
-                    );
+                        effectful: true,
+                        loc: target.loc,
+                    };
                 }
-                let inner: t.Expression = done;
-                if ((term.target.is as LambdaType).effects.length > 0) {
+                let inner: Expr = done;
+                if (term.target.is.effects.length > 0) {
                     // ok so the thing is,
                     // i only need to cps it out if the arg
                     // is an apply that does cps.
                     // but not if that arg has an arg that does cps,
                     // right?
-                    inner = callOrBinop(
+                    inner = callExpression(
                         target,
-                        args
-                            .map((arg, i) =>
-                                isSimple(arg)
-                                    ? printTerm(env, opts, arg)
-                                    : t.identifier(`arg_${i}_${u}`),
-                            )
-                            .concat([t.identifier('handlers'), inner as any]),
+                        (argSyms.map((sym, i) =>
+                            sym
+                                ? { type: 'var', sym, loc: null }
+                                : printTerm(env, opts, args[i]),
+                        ) as Array<Expr>).concat([
+                            handlerVar(target.loc),
+                            inner,
+                        ]),
+                        target.loc,
                     );
                 } else {
                     // hm. I feel like I need to introspect `done`.
                     // and have a way to flatten out immediate calls.
                     // or I could do that post-hoc?
                     // I mean that might make things simpler tbh.
-                    inner = t.callExpression(done, [
-                        t.identifier('handlers'),
-                        // so here is where we want to
-                        // put the "body"
-                        // which might include inverting it.
-                        callOrBinop(
-                            target,
-                            args.map((arg, i) =>
-                                isSimple(arg)
-                                    ? printTerm(env, opts, arg)
-                                    : t.identifier(`arg_${i}_${u}`),
+                    inner = callExpression(
+                        done,
+                        [
+                            handlerVar(target.loc),
+                            // so here is where we want to
+                            // put the "body"
+                            // which might include inverting it.
+                            callExpression(
+                                target,
+                                argSyms.map((sym, i) =>
+                                    sym
+                                        ? { type: 'var', sym, loc: null }
+                                        : printTerm(env, opts, args[i]),
+                                ) as Array<Expr>,
+                                target.loc,
                             ),
-                        ),
-                    ]);
+                        ],
+                        target.loc,
+                    );
                 }
                 for (let i = args.length - 1; i >= 0; i--) {
                     if (isSimple(args[i])) {
@@ -700,12 +677,31 @@ const _termToAstCPS = (
                         env,
                         opts,
                         args[i],
-                        t.arrowFunctionExpression(
+                        arrowFunctionExpression(
                             [
-                                t.identifier('handlers'),
-                                t.identifier(`arg_${i}_${u}`),
+                                {
+                                    sym: handlerSym,
+                                    loc: null,
+                                    type: builtinType('handlers'),
+                                },
+                                {
+                                    sym: argSyms[i]!,
+                                    loc: args[i].location,
+                                    type: args[i].is,
+                                },
                             ],
-                            t.blockStatement([t.expressionStatement(inner)]),
+                            blockStatement(
+                                [
+                                    {
+                                        type: 'Expression',
+                                        expr: inner,
+                                        loc: inner.loc,
+                                    },
+                                ],
+                                inner.loc,
+                            ),
+                            void_,
+                            args[i].location,
                         ),
                     );
                 }
@@ -713,13 +709,20 @@ const _termToAstCPS = (
             }
             let target = printTerm(env, opts, term.target);
             if (term.hadAllVariableEffects) {
-                target = t.memberExpression(target, t.identifier('effectful'));
+                target = {
+                    type: 'effectfulOrDirect',
+                    target,
+                    effectful: true,
+                    loc: target.loc,
+                };
+                // target = memberExpression(target, t.identifier('effectful'));
             }
-            return callOrBinop(
+            return callExpression(
                 target,
                 args
                     .map((arg) => printTerm(env, opts, arg))
-                    .concat([t.identifier('handlers'), done]),
+                    .concat([handlerVar(target.loc), done]),
+                target.loc,
             );
         }
         case 'sequence':
@@ -728,10 +731,11 @@ const _termToAstCPS = (
             );
         default:
             console.log('ELSE', term.type);
-            return t.callExpression(done, [
-                t.identifier('handlers'),
-                printTerm(env, opts, term),
-            ]);
+            return callExpression(
+                done,
+                [handlerVar(term.location), printTerm(env, opts, term)],
+                term.location,
+            );
     }
 };
 
@@ -778,35 +782,39 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
     };
 };
 
-const callOrBinop = (target: t.Expression, args: Array<t.Expression>) => {
-    if (t.isIdentifier(target) && binOps.includes(target.name)) {
-        return t.binaryExpression(
-            (target.name === '++' ? '+' : target.name) as any,
-            args[0],
-            args[1],
-        );
-    }
-    return t.callExpression(target, args);
-};
+// const callOrBinop = (target: Expr, args: Array<Expr>): Expr => {
+//     if (t.isIdentifier(target) && binOps.includes(target.name)) {
+//         return t.binaryExpression(
+//             (target.name === '++' ? '+' : target.name) as any,
+//             args[0],
+//             args[1],
+//         );
+//     }
+//     return t.callExpression(target, args);
+// };
 
-const ifBlock = (x: t.BlockStatement | t.Expression): t.BlockStatement => {
-    if (x.type === 'BlockStatement') {
+const ifBlock = (x: Block | Expr): Block => {
+    if (x.type === 'Block') {
         return x;
     } else {
-        return t.blockStatement([t.returnStatement(x)]);
+        return {
+            type: 'Block',
+            items: [{ type: 'Return', value: x, loc: x.loc }],
+            loc: x.loc,
+        };
     }
 };
 
-const iffe = (st: t.BlockStatement): t.Expression => {
-    return t.callExpression(t.arrowFunctionExpression([], st), []);
+const iffe = (st: Block, res: Type): Expr => {
+    return callExpression(
+        arrowFunctionExpression([], st, res, st.loc),
+        [],
+        st.loc,
+    );
 };
 
-export const printTerm = (
-    env: Env,
-    opts: OutputOptions,
-    term: Term,
-): t.Expression => {
-    return withLocation(_printTerm(env, opts, term), term.location);
+export const printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
+    return _printTerm(env, opts, term);
 };
 
 const builtinName = (name: string) => {
@@ -816,95 +824,112 @@ const builtinName = (name: string) => {
     return name;
 };
 
-const printTermRef = (opts: OutputOptions, ref: Reference): t.Expression => {
-    if (
-        opts.scope == null ||
-        (ref.type === 'builtin' && binOps.includes(ref.name))
-    ) {
-        return t.identifier(
-            ref.type === 'builtin' ? builtinName(ref.name) : printId(ref.id),
-        );
-    } else {
-        return t.memberExpression(
-            t.memberExpression(
-                t.identifier(opts.scope),
-                t.identifier(ref.type === 'builtin' ? 'builtins' : 'terms'),
-            ),
-            ref.type === 'builtin'
-                ? t.identifier(builtinName(ref.name))
-                : t.stringLiteral(idName(ref.id)),
-            ref.type === 'user',
-        );
-    }
+const printTermRef = (opts: OutputOptions, ref: Reference, loc: Loc): Expr => {
+    // if (
+    //     opts.scope == null ||
+    //     (ref.type === 'builtin' && binOps.includes(ref.name))
+    // ) {
+    return ref.type === 'builtin'
+        ? { type: 'builtin', name: ref.name, loc }
+        : { type: 'term', id: ref.id, loc };
+    // return t.identifier(
+    //     ref.type === 'builtin' ? builtinName(ref.name) : printId(ref.id),
+    // );
+    // } else {
+    //     return t.memberExpression(
+    //         t.memberExpression(
+    //             t.identifier(opts.scope),
+    //             t.identifier(ref.type === 'builtin' ? 'builtins' : 'terms'),
+    //         ),
+    //         ref.type === 'builtin'
+    //             ? t.identifier(builtinName(ref.name))
+    //             : t.stringLiteral(idName(ref.id)),
+    //         ref.type === 'user',
+    //     );
+    // }
 };
 
-const _printTerm = (
-    env: Env,
-    opts: OutputOptions,
-    term: Term,
-): t.Expression => {
+const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
     switch (term.type) {
         // these will never need effects, immediate is fine
         case 'self':
-            return printTermRef(opts, {
-                type: 'user',
-                id: { hash: env.local.self.name, size: 1, pos: 0 },
-            });
+            return printTermRef(
+                opts,
+                {
+                    type: 'user',
+                    id: { hash: env.local.self.name, size: 1, pos: 0 },
+                },
+                term.location,
+            );
         // return t.identifier(`hash_${env.local.self.name}`);
         case 'int':
+            return { type: 'int', value: term.value, loc: term.location };
+        case 'string':
+            return { type: 'string', value: term.text, loc: term.location };
         case 'float':
-            return t.numericLiteral(term.value);
+            return { type: 'float', value: term.value, loc: term.location };
         case 'ref': {
-            return {
-                ...printTermRef(opts, term.ref),
-                // @ts-ignore
-                typeAnnotation: t.tsTypeAnnotation(
-                    typeToAst(env, opts, term.is),
-                ),
-            };
+            // Hmm do I want to include type annotation here? I guess I did at one point
+            return printTermRef(opts, term.ref, term.location);
         }
         case 'if': {
             return iffe(
-                t.blockStatement([
-                    t.ifStatement(
-                        printTerm(env, opts, term.cond),
-                        ifBlock(printTerm(env, opts, term.yes)),
-                        term.no ? ifBlock(printTerm(env, opts, term.no)) : null,
-                    ),
-                ]),
+                blockStatement(
+                    [
+                        ifStatement(
+                            printTerm(env, opts, term.cond),
+                            printTerm(env, opts, term.yes),
+                            term.no ? printTerm(env, opts, term.no) : null,
+                            term.location,
+                        ),
+                    ],
+                    term.location,
+                ),
+                term.is,
             );
         }
-        case 'string':
-            return t.stringLiteral(term.text);
         // a lambda, I guess also doesn't need cps, but internally it does.
         case 'lambda':
             if (term.is.effects.length > 0) {
                 if (term.is.effects.every((x) => x.type === 'var')) {
                     const directVersion = withNoEffects(env, term);
-                    return t.objectExpression([
-                        t.objectProperty(
-                            t.identifier('direct'),
-                            t.arrowFunctionExpression(
-                                directVersion.args.map((arg) =>
-                                    t.identifier(printSym(arg)),
-                                ),
-                                withExecutionLimit(
-                                    env,
-                                    opts,
-                                    printLambdaBody(
-                                        env,
-                                        opts,
-                                        directVersion.body,
-                                        null,
-                                    ),
-                                ),
+                    return {
+                        type: 'effectfulOrDirectLambda',
+                        loc: term.location,
+                        effectful: effectfulLambda(env, opts, term),
+                        direct: arrowFunctionExpression(
+                            directVersion.args.map(
+                                (sym, i) => ({
+                                    sym,
+                                    type: directVersion.is.args[i],
+                                    loc: null,
+                                }), // TODO(sourcemap): hang on to location for lambda args?
+                                // t.identifier(printSym(arg)),
                             ),
+                            // withExecutionLimit(
+                            //     env,
+                            //     opts,
+                            printLambdaBody(
+                                env,
+                                opts,
+                                directVersion.body,
+                                null,
+                            ),
+                            // ),
+                            directVersion.is.res,
+                            term.location,
                         ),
-                        t.objectProperty(
-                            t.identifier('effectful'),
-                            effectfulLambda(env, opts, term),
-                        ),
-                    ]);
+                    };
+                    // return t.objectExpression([
+                    //     t.objectProperty(
+                    //         t.identifier('direct'),
+                    //         ,
+                    //     ),
+                    //     t.objectProperty(
+                    //         t.identifier('effectful'),
+                    //         effectfulLambda(env, opts, term),
+                    //     ),
+                    // ]);
                 }
                 return effectfulLambda(env, opts, term);
             } else {
@@ -960,9 +985,10 @@ const _printTerm = (
                 return maybeWrapPureFunction(env, arg, argTypes[i]);
             });
 
-            return callOrBinop(
+            return callExpression(
                 target,
                 args.map((arg) => printTerm(env, opts, arg)),
+                term.location,
             );
         }
 
@@ -979,7 +1005,7 @@ const _printTerm = (
                     t.variableDeclaration('let', [
                         t.variableDeclarator(t.identifier(vname)),
                     ]),
-                    t.expressionStatement(
+                    ExprStatement(
                         t.callExpression(
                             scopedGlobal(opts, 'handleSimpleShallow2'),
                             [
@@ -1010,7 +1036,7 @@ const _printTerm = (
                                                     t.identifier(printSym(k)),
                                                 ],
                                                 t.blockStatement([
-                                                    t.expressionStatement(
+                                                    ExprStatement(
                                                         t.assignmentExpression(
                                                             '=',
                                                             t.identifier(vname),
@@ -1031,7 +1057,7 @@ const _printTerm = (
                                         t.identifier(printSym(term.pure.arg)),
                                     ],
                                     t.blockStatement([
-                                        t.expressionStatement(
+                                        ExprStatement(
                                             t.assignmentExpression(
                                                 '=',
                                                 t.identifier(vname),
@@ -1068,9 +1094,7 @@ const _printTerm = (
                                   ])
                                 : i === term.sts.length - 1
                                 ? t.returnStatement(printTerm(env, opts, s))
-                                : t.expressionStatement(
-                                      printTerm(env, opts, s),
-                                  ),
+                                : ExprStatement(printTerm(env, opts, s)),
                         ),
                     ),
                 ),
@@ -1266,7 +1290,7 @@ const _printTerm = (
 // my post-processing pass with flatten out all useless iffes.
 const printPattern = (
     env: Env,
-    value: t.Expression,
+    value: Expr,
     pattern: Pattern,
     success: t.BlockStatement,
 ): t.BlockStatement => {
@@ -1283,7 +1307,7 @@ const printPattern = (
     } else if (pattern.type === 'Enum') {
         const allReferences = getEnumReferences(env, pattern.ref);
         let typ = t.memberExpression(value, t.identifier('type'));
-        let tests: Array<t.Expression> = allReferences.map((ref) =>
+        let tests: Array<Expr> = allReferences.map((ref) =>
             t.binaryExpression(
                 '===',
                 typ,
@@ -1292,7 +1316,7 @@ const printPattern = (
         );
         return t.blockStatement([
             t.ifStatement(
-                tests.reduce((one: t.Expression, two: t.Expression) =>
+                tests.reduce((one: Expr, two: Expr) =>
                     t.logicalExpression('||', one, two),
                 ),
                 success,
@@ -1504,54 +1528,86 @@ const withNoEffects = (env: Env, term: Lambda): Lambda => {
     return { ...term, is };
 };
 
-const effectfulLambda = (env: Env, opts: OutputOptions, term: Lambda) => {
-    return t.arrowFunctionExpression(
+const effectfulLambda = (
+    env: Env,
+    opts: OutputOptions,
+    term: Lambda,
+): LambdaExpr => {
+    const done: Symbol = { name: 'done', unique: env.local.unique++ };
+    const doneT: LambdaType = {
+        type: 'lambda',
+        args: [term.is.res],
+        typeVbls: [],
+        effectVbls: [],
+        effects: [],
+        rest: null,
+        location: null,
+        res: {
+            location: null,
+            type: 'ref',
+            ref: {
+                type: 'builtin',
+                name: 'void',
+            },
+            typeVbls: [],
+            effectVbls: [],
+        },
+    };
+    return arrowFunctionExpression(
         term.args
-            .map((arg, i) => ({
-                ...t.identifier(printSym(arg)),
-                typeAnnotation: t.tsTypeAnnotation(
-                    typeToAst(env, opts, term.is.args[i]),
-                ),
+            .map((sym, i) => ({
+                sym,
+                type: term.is.args[i],
+                loc: null,
             }))
             // .map((arg) => t.identifier(printSym(arg)))
             .concat([
-                {
-                    ...t.identifier('handlers'),
-                    typeAnnotation: t.tsTypeAnnotation(
-                        // STOPSHIP: Actually type this
-                        t.tsAnyKeyword(),
-                    ),
-                },
-                {
-                    ...t.identifier('done'),
-                    typeAnnotation: t.tsTypeAnnotation(
-                        typeToAst(env, opts, {
-                            type: 'lambda',
-                            args: [term.is.res],
-                            typeVbls: [],
-                            effectVbls: [],
-                            effects: [],
-                            rest: null,
-                            location: null,
-                            res: {
-                                location: null,
-                                type: 'ref',
-                                ref: {
-                                    type: 'builtin',
-                                    name: 'void',
-                                },
-                                typeVbls: [],
-                                effectVbls: [],
-                            },
-                        }),
-                    ),
-                },
+                { type: builtinType('handlers'), sym: handlerSym, loc: null },
+                // handlerVar(term.location),
+                // {
+                //     ...t.identifier('handlers'),
+                //     typeAnnotation: t.tsTypeAnnotation(
+                //         // STOPSHIP: Actually type this
+                //         t.tsAnyKeyword(),
+                //     ),
+                // },
+                { sym: done, type: doneT, loc: null },
+                // {
+                //     ...t.identifier('done'),
+                //     typeAnnotation: t.tsTypeAnnotation(
+                //         typeToAst(env, opts, {
+                //             type: 'lambda',
+                //             args: [term.is.res],
+                //             typeVbls: [],
+                //             effectVbls: [],
+                //             effects: [],
+                //             rest: null,
+                //             location: null,
+                //             res: {
+                //                 location: null,
+                //                 type: 'ref',
+                //                 ref: {
+                //                     type: 'builtin',
+                //                     name: 'void',
+                //                 },
+                //                 typeVbls: [],
+                //                 effectVbls: [],
+                //             },
+                //         }),
+                //     ),
+                // },
             ]),
-        withExecutionLimit(
-            env,
-            opts,
-            printLambdaBody(env, opts, term.body, t.identifier('done')),
-        ),
+        // withExecutionLimit(
+        //     env,
+        //     opts,
+        printLambdaBody(env, opts, term.body, {
+            type: 'var',
+            sym: done,
+            loc: null,
+        }),
+        // ),
+        term.is.res,
+        term.location,
     );
 };
 

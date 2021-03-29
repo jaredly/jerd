@@ -10,7 +10,6 @@ import {
     hashObject,
     idName,
     typeEnumInner,
-    typeRecord,
     typeRecordDefn,
     withoutLocations,
 } from './typing/env';
@@ -20,43 +19,14 @@ import parse, {
     Location,
     Toplevel,
 } from './parsing/parser';
-import {
-    declarationToAST,
-    printType,
-    termToAST,
-    typeToString,
-} from './printing/typeScriptPrinter';
 import { fileToTypescript } from './printing/fileToTypeScript';
-import {
-    optimizeAST,
-    removeTypescriptTypes,
-} from './printing/typeScriptOptimize';
+import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
+import { Env, Id, Term, TypeConstraint, typesEqual } from './typing/types';
+import { getTypeErrorOld } from './typing/unify';
+import { printToString } from './printing/printer';
 import {
-    EffectRef,
-    EnumDef,
-    Env,
-    getEffects,
-    Id,
-    RecordDef,
-    Reference,
-    Term,
-    Type,
-    TypeConstraint,
-    typesEqual,
-} from './typing/types';
-import {
-    showType,
-    unifyInTerm,
-    // unifyVariables,
-    getTypeErrorOld,
-} from './typing/unify';
-import { items, printToString } from './printing/printer';
-import {
-    declarationToPretty,
-    enumToPretty,
-    recordToPretty,
     termToPretty,
     typeToPretty,
     toplevelToPretty,
@@ -70,7 +40,7 @@ import {
 } from './typing/env';
 import { typeFile } from './typing/typeFile';
 
-import { bool, presetEnv } from './typing/preset';
+import { presetEnv } from './typing/preset';
 
 // const clone = cloner();
 
@@ -387,6 +357,96 @@ const writeFile = (filePath: string, content: string) => {
     fs.writeFileSync(filePath, content);
 };
 
+const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
+    let good = true;
+
+    // Test reprint
+    for (let expr of expressions) {
+        if (
+            reprintToplevel(
+                env,
+                raw,
+                {
+                    type: 'Expression',
+                    term: expr,
+                    location: expr.location!,
+                },
+                hashObject(expr),
+            ) === false
+        ) {
+            good = false;
+            break;
+        }
+    }
+
+    // Test reprint
+    for (let id of Object.keys(env.global.terms)) {
+        const tenv = {
+            ...env,
+            local: {
+                ...env.local,
+                self: {
+                    name: env.global.idNames[id],
+                    type: env.global.terms[id].is,
+                },
+            },
+        };
+        if (
+            reprintToplevel(
+                tenv,
+                raw,
+                {
+                    type: 'Define',
+                    id: { hash: id, size: 1, pos: 0 },
+                    term: env.global.terms[id],
+                    location: env.global.terms[id].location!,
+                    name: env.global.idNames[id],
+                },
+                id,
+            ) === false
+        ) {
+            good = false;
+            break;
+        }
+    }
+
+    // Type declarations
+    for (let tid of Object.keys(env.global.types)) {
+        const t = env.global.types[tid];
+        // ermm fix this hack
+        if (tid === 'Some' || tid === 'None') {
+            continue;
+        }
+        let top: ToplevelT;
+        if (t.type === 'Record') {
+            const id = { hash: tid, size: 1, pos: 0 };
+            top = {
+                type: 'RecordDef',
+                id: id,
+                def: t,
+                location: t.location!,
+                name: env.global.idNames[idName(id)],
+                attrNames: env.global.recordGroups[idName(id)],
+            };
+        } else {
+            const id = { hash: tid, size: 1, pos: 0 };
+            top = {
+                type: 'EnumDef',
+                id,
+                def: t,
+                location: t.location!,
+                name: env.global.idNames[idName(id)],
+            };
+        }
+        if (reprintToplevel(env, raw, top, tid) === false) {
+            good = false;
+            break;
+        }
+    }
+
+    return good;
+};
+
 const processFile = (
     fname: string,
     assert: boolean,
@@ -399,107 +459,14 @@ const processFile = (
     const { expressions, env } = typeFile(parsed, fname);
 
     if (reprint) {
-        let good = true;
-
-        // Test reprint
-        for (let expr of expressions) {
-            if (
-                reprintToplevel(
-                    env,
-                    raw,
-                    {
-                        type: 'Expression',
-                        term: expr,
-                        location: expr.location!,
-                    },
-                    hashObject(expr),
-                ) === false
-            ) {
-                good = false;
-                break;
-            }
-        }
-
-        // Test reprint
-        for (let id of Object.keys(env.global.terms)) {
-            const tenv = {
-                ...env,
-                local: {
-                    ...env.local,
-                    self: {
-                        name: env.global.idNames[id],
-                        type: env.global.terms[id].is,
-                    },
-                },
-            };
-            if (
-                reprintToplevel(
-                    tenv,
-                    raw,
-                    {
-                        type: 'Define',
-                        id: { hash: id, size: 1, pos: 0 },
-                        term: env.global.terms[id],
-                        location: env.global.terms[id].location!,
-                        name: env.global.idNames[id],
-                    },
-                    id,
-                ) === false
-            ) {
-                good = false;
-                break;
-            }
-        }
-
-        // Type declarations
-        for (let tid of Object.keys(env.global.types)) {
-            const t = env.global.types[tid];
-            // ermm fix this hack
-            if (tid === 'Some' || tid === 'None') {
-                continue;
-            }
-            let top: ToplevelT;
-            if (t.type === 'Record') {
-                const id = { hash: tid, size: 1, pos: 0 };
-                top = {
-                    type: 'RecordDef',
-                    id: id,
-                    def: t,
-                    location: t.location!,
-                    name: env.global.idNames[idName(id)],
-                    attrNames: env.global.recordGroups[idName(id)],
-                };
-            } else {
-                const id = { hash: tid, size: 1, pos: 0 };
-                top = {
-                    type: 'EnumDef',
-                    id,
-                    def: t,
-                    location: t.location!,
-                    name: env.global.idNames[idName(id)],
-                };
-            }
-            if (reprintToplevel(env, raw, top, tid) === false) {
-                good = false;
-                break;
-            }
-        }
-
+        const good = checkReprint(raw, expressions, env);
         if (!good) {
             console.log(`❌ Reprint failed for ${chalk.blue(fname)}`);
             return false;
         }
     }
 
-    const ast = fileToTypescript(
-        expressions,
-        env,
-        // { scope: 'jdScope'},
-        {},
-        // { scope: null },
-        assert,
-        true,
-    );
+    const ast = fileToTypescript(expressions, env, {}, assert, true);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
@@ -580,6 +547,23 @@ const saveCache = (files: Array<string>, self: string) => {
     const cache = { [self]: fs.statSync(self).mtimeMs };
     files.forEach((name) => (cache[name] = fs.statSync(name).mtimeMs));
     fs.writeFileSync(cacheFile, JSON.stringify(cache), 'utf8');
+};
+
+const mainGo = (fnames: Array<string>) => {
+    for (let fname of fnames) {
+        const raw = fs.readFileSync(fname, 'utf8');
+        const parsed: Array<Toplevel> = parse(raw);
+
+        const { expressions, env } = typeFile(parsed, fname);
+        const text = fileToGo(expressions, env);
+
+        const name = path.basename(fname).slice(0, -3);
+
+        const buildDir = path.join(path.dirname(fname), 'build', 'go');
+        const dest = path.join(buildDir, name, 'main.go');
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        fs.writeFileSync(dest, `package ${name}\n\n` + text);
+    }
 };
 
 const main = (
@@ -671,6 +655,7 @@ const main = (
 
 import { execSync, spawnSync } from 'child_process';
 import { LocatedError, TypeError } from './typing/errors';
+import { fileToGo } from './printing/goPrinter';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
@@ -694,7 +679,13 @@ const expandDirectories = (fnames: Array<string>) => {
     return result;
 };
 
-if (process.argv[2] === '--test') {
+if (process.argv[2] === 'go') {
+    console.log('go please');
+    const fnames = process.argv
+        .slice(3)
+        .filter((name) => !name.startsWith('-'));
+    mainGo(expandDirectories(fnames));
+} else if (process.argv[2] === '--test') {
     runTests();
 } else {
     const fnames = process.argv
