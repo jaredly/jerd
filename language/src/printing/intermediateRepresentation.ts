@@ -192,6 +192,12 @@ export const handlerVar = (loc: Loc): Expr => ({
 //     loc,
 // });
 
+const returnStatement = (expr: Expr): Stmt => ({
+    type: 'Return',
+    value: expr,
+    loc: expr.loc,
+});
+
 const ifStatement = (
     cond: Expr,
     yes: Expr | Block,
@@ -933,18 +939,24 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 }
                 return effectfulLambda(env, opts, term);
             } else {
-                return t.arrowFunctionExpression(
-                    term.args.map((arg) => t.identifier(printSym(arg))),
-                    withExecutionLimit(
-                        env,
-                        opts,
-
-                        printLambdaBody(env, opts, term.body, null),
-                    ),
+                return arrowFunctionExpression(
+                    term.args.map((sym, i) => ({
+                        sym,
+                        type: term.is.args[i],
+                        loc: null,
+                    })),
+                    // withExecutionLimit(
+                    //     env,
+                    //     opts,
+                    printLambdaBody(env, opts, term.body, null),
+                    term.is.res,
+                    // ),
+                    term.location,
                 );
             }
         case 'var':
-            return t.identifier(printSym(term.sym));
+            return { type: 'var', sym: term.sym, loc: term.location };
+        // return t.identifier(printSym(term.sym));
         case 'apply': {
             // TODO we should hang onto the arg names of the function we
             // are calling so we can use them when assigning to values.
@@ -968,7 +980,13 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             let target = printTerm(env, opts, term.target);
 
             if (term.hadAllVariableEffects) {
-                target = t.memberExpression(target, t.identifier('direct'));
+                // target = t.memberExpression(target, t.identifier('direct'));
+                target = {
+                    type: 'effectfulOrDirect',
+                    target,
+                    effectful: false,
+                    loc: target.loc,
+                };
             }
 
             const argTypes =
@@ -993,112 +1011,57 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         }
 
         case 'raise':
-            return t.identifier(
+            throw new Error(
                 "Cannot print a 'raise' outside of CPS. Effect tracking must have messed up.",
             );
 
         case 'handle': {
-            const u = env.local.unique++;
-            const vname = `handle_ret_${u}`;
-            return iffe(
-                t.blockStatement([
-                    t.variableDeclaration('let', [
-                        t.variableDeclarator(t.identifier(vname)),
-                    ]),
-                    ExprStatement(
-                        t.callExpression(
-                            scopedGlobal(opts, 'handleSimpleShallow2'),
-                            [
-                                t.stringLiteral(printRef(term.effect)),
-                                printTerm(env, opts, term.target),
-                                t.arrayExpression(
-                                    term.cases
-                                        .sort((a, b) => a.constr - b.constr)
-                                        .map(({ args, k, body }) => {
-                                            return t.arrowFunctionExpression(
-                                                [
-                                                    t.identifier('handlers'),
-                                                    args.length === 0
-                                                        ? t.identifier('_')
-                                                        : args.length === 1
-                                                        ? t.identifier(
-                                                              printSym(args[0]),
-                                                          )
-                                                        : t.arrayPattern(
-                                                              args.map((s) =>
-                                                                  t.identifier(
-                                                                      printSym(
-                                                                          s,
-                                                                      ),
-                                                                  ),
-                                                              ),
-                                                          ),
-                                                    t.identifier(printSym(k)),
-                                                ],
-                                                t.blockStatement([
-                                                    ExprStatement(
-                                                        t.assignmentExpression(
-                                                            '=',
-                                                            t.identifier(vname),
-                                                            printTerm(
-                                                                env,
-                                                                opts,
-                                                                body,
-                                                            ),
-                                                        ),
-                                                    ),
-                                                ]),
-                                            );
-                                        }),
-                                ),
-                                t.arrowFunctionExpression(
-                                    [
-                                        t.identifier('handlers'),
-                                        t.identifier(printSym(term.pure.arg)),
-                                    ],
-                                    t.blockStatement([
-                                        ExprStatement(
-                                            t.assignmentExpression(
-                                                '=',
-                                                t.identifier(vname),
-                                                printTerm(
-                                                    env,
-                                                    opts,
-                                                    term.pure.body,
-                                                ),
-                                            ),
-                                        ),
-                                    ]),
-                                ),
-                            ],
-                        ),
-                    ),
-                    t.returnStatement(t.identifier(vname)),
-                ]),
-            );
+            return {
+                type: 'handle',
+                target: printTerm(env, opts, term.target),
+                loc: term.location,
+                effect: (term.effect as UserReference).id,
+                pure: {
+                    arg: term.pure.arg,
+                    body: printLambdaBody(env, opts, term.pure.body, null),
+                },
+                cases: term.cases.map((kase) => ({
+                    ...kase,
+                    body: printLambdaBody(env, opts, kase.body, null),
+                })),
+            };
         }
 
         case 'sequence': {
             // IIFE
-            return t.callExpression(
-                t.arrowFunctionExpression(
+            return callExpression(
+                arrowFunctionExpression(
                     [],
-                    t.blockStatement(
+                    blockStatement(
                         term.sts.map((s, i) =>
                             s.type === 'Let'
-                                ? t.variableDeclaration('const', [
-                                      t.variableDeclarator(
-                                          t.identifier(printSym(s.binding)),
-                                          printTerm(env, opts, s.value),
-                                      ),
-                                  ])
-                                : i === term.sts.length - 1
-                                ? t.returnStatement(printTerm(env, opts, s))
-                                : ExprStatement(printTerm(env, opts, s)),
+                                ? {
+                                      type: 'Define',
+                                      sym: s.binding,
+                                      value: printTerm(env, opts, s.value),
+                                      is: s.is,
+                                      loc: s.location,
+                                  }
+                                i === term.sts.length - 1
+                                ? returnStatement(printTerm(env, opts, s))
+                                : {
+                                      type: 'Expression',
+                                      expr: printTerm(env, opts, s),
+                                      loc: s.location,
+                                  },
                         ),
+                        term.location,
                     ),
+                    term.is,
+                    term.location,
                 ),
                 [],
+                term.location,
             );
         }
         case 'Record': {
