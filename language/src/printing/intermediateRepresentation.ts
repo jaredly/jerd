@@ -39,10 +39,14 @@ export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
 
 export const callExpression = (
     target: Expr,
+    targetType: LambdaType,
+    res: Type,
     args: Array<Expr>,
     loc: Loc,
 ): Expr => ({
     type: 'apply',
+    targetType,
+    res,
     target,
     args,
     loc,
@@ -151,9 +155,11 @@ export type Expr =
     // do we need to know the types of things? perhaps for conversions?
     | {
           type: 'apply';
+          targetType: LambdaType;
+          res: Type;
           target: Expr;
-          //   args: Array<{ value: Expr; type: Type; loc: Loc }>;
           args: Array<Expr>;
+          //   args: Array<Expr>;
           loc: Loc;
       }
     | { type: 'attribute'; target: Expr; id: Id; idx: number; loc: Loc }
@@ -197,32 +203,20 @@ import {
     Pattern,
     RecordDef,
     UserReference,
-    RecordBase,
 } from '../typing/types';
 import { Location } from '../parsing/parser';
 import * as t from '@babel/types';
-import generate from '@babel/generator';
-import { binOps, bool, builtinType, void_ } from '../typing/preset';
+import {
+    binOps,
+    bool,
+    builtinType,
+    int,
+    pureFunction,
+    void_,
+} from '../typing/preset';
 import { showType } from '../typing/unify';
-import { optimizeAST } from './typeScriptOptimize';
 import { applyEffectVariables, getEnumReferences } from '../typing/typeExpr';
 import { idName } from '../typing/env';
-import { args } from './printer';
-
-const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
-const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
-
-function withLocation<
-    T extends { start: number | null; end: number | null; loc: any }
->(v: T, loc: Location | null): T {
-    if (loc == null) {
-        return v;
-    }
-    v.start = loc.start.offset;
-    v.end = loc.end.offset;
-    v.loc = { start: loc.start, end: loc.end };
-    return v;
-}
 
 export type OutputOptions = {
     readonly scope?: string;
@@ -235,13 +229,6 @@ export const handlerVar = (loc: Loc): Expr => ({
     sym: handlerSym,
     loc,
 });
-
-// const callExpression = (target: Expr, args: Array<Expr>, loc: Loc) => ({
-//     type: 'apply',
-//     target,
-//     args,
-//     loc,
-// });
 
 const returnStatement = (expr: Expr): Stmt => ({
     type: 'Return',
@@ -460,6 +447,8 @@ export const termToAstCPS = (
     return _termToAstCPS(env, opts, term, done);
 };
 
+const handlersType = builtinType('handlers');
+
 // cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 const _termToAstCPS = (
     env: Env,
@@ -472,6 +461,8 @@ const _termToAstCPS = (
         return {
             type: 'apply',
             target: done,
+            res: void_,
+            targetType: pureFunction([handlersType, term.is], void_),
             args: [
                 {
                     type: 'var',
@@ -522,6 +513,8 @@ const _termToAstCPS = (
                     {
                         type: 'apply',
                         target: done,
+                        res: void_,
+                        targetType: pureFunction([handlersType], void_),
                         args: [{ type: 'var', sym: handlerSym, loc: null }],
                         loc: null,
                     },
@@ -607,6 +600,11 @@ const _termToAstCPS = (
                                           )
                                         : callExpression(
                                               done,
+                                              pureFunction(
+                                                  [handlersType],
+                                                  void_,
+                                              ),
+                                              void_,
                                               [handlerVar(term.location)],
                                               term.location,
                                           ),
@@ -634,6 +632,8 @@ const _termToAstCPS = (
                                 ? printLambdaBody(env, opts, term.no, done)
                                 : callExpression(
                                       done,
+                                      pureFunction([handlersType], void_),
+                                      void_,
                                       [handlerVar(term.location)],
                                       term.location,
                                   ),
@@ -687,6 +687,8 @@ const _termToAstCPS = (
                     // right?
                     inner = callExpression(
                         target,
+                        term.originalTargetType,
+                        term.is,
                         (argSyms.map((sym, i) =>
                             sym
                                 ? { type: 'var', sym, loc: null }
@@ -704,6 +706,8 @@ const _termToAstCPS = (
                     // I mean that might make things simpler tbh.
                     inner = callExpression(
                         done,
+                        pureFunction([handlersType, builtinType('any')], void_),
+                        void_,
                         [
                             handlerVar(target.loc),
                             // so here is where we want to
@@ -711,6 +715,8 @@ const _termToAstCPS = (
                             // which might include inverting it.
                             callExpression(
                                 target,
+                                term.originalTargetType,
+                                term.is,
                                 argSyms.map((sym, i) =>
                                     sym
                                         ? { type: 'var', sym, loc: null }
@@ -776,8 +782,10 @@ const _termToAstCPS = (
             }
             return callExpression(
                 target,
+                term.originalTargetType,
+                term.is,
                 args
-                    .map((arg) => printTerm(env, opts, arg))
+                    .map((arg, i) => printTerm(env, opts, arg))
                     .concat([handlerVar(target.loc), done]),
                 target.loc,
             );
@@ -790,6 +798,8 @@ const _termToAstCPS = (
             console.log('ELSE', term.type);
             return callExpression(
                 done,
+                pureFunction([handlersType, term.is], void_),
+                void_,
                 [handlerVar(term.location), printTerm(env, opts, term)],
                 term.location,
             );
@@ -828,6 +838,7 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
         location: arg.location,
         body: {
             type: 'apply',
+            originalTargetType: pureFunction([], arg.is.res),
             location: arg.location,
             typeVbls: [],
             effectVbls: null,
@@ -865,6 +876,8 @@ const ifBlock = (x: Block | Expr): Block => {
 const iffe = (st: Block, res: Type): Expr => {
     return callExpression(
         arrowFunctionExpression([], st, res, st.loc),
+        pureFunction([], res),
+        res,
         [],
         st.loc,
     );
@@ -1058,7 +1071,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             return callExpression(
                 target,
-                args.map((arg) => printTerm(env, opts, arg)),
+                term.originalTargetType,
+                term.is,
+                args.map((arg, i) => printTerm(env, opts, arg)),
                 term.location,
             );
         }
@@ -1113,6 +1128,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     term.is,
                     term.location,
                 ),
+                pureFunction([], term.is),
+                term.is,
                 [],
                 term.location,
             );
@@ -1571,6 +1588,8 @@ const printPattern = (
                     value,
                     idx: {
                         type: 'apply',
+                        targetType: pureFunction([int, int], int),
+                        res: int,
                         target: {
                             type: 'builtin',
                             loc: item.location,
@@ -1631,6 +1650,8 @@ const printPattern = (
                     ifStatement(
                         {
                             type: 'apply',
+                            targetType: pureFunction([int, int], bool),
+                            res: bool,
                             target: {
                                 type: 'builtin',
                                 loc: pattern.location,
@@ -1663,39 +1684,39 @@ const printPattern = (
     throw new Error(`Pattern not yet supported ${(pattern as any).type}`);
 };
 
-const recordIdName = (env: Env, ref: Reference) => {
-    if (ref.type === 'builtin') {
-        return ref.name;
-    } else {
-        const t = env.global.types[idName(ref.id)] as RecordDef;
-        if (t.ffi != null) {
-            return t.ffi.tag;
-        }
-        return idName(ref.id);
-    }
-};
+// const recordIdName = (env: Env, ref: Reference) => {
+//     if (ref.type === 'builtin') {
+//         return ref.name;
+//     } else {
+//         const t = env.global.types[idName(ref.id)] as RecordDef;
+//         if (t.ffi != null) {
+//             return t.ffi.tag;
+//         }
+//         return idName(ref.id);
+//     }
+// };
 
-const recordAttributeName = (
-    env: Env,
-    ref: Reference | string,
-    idx: number,
-) => {
-    if (typeof ref !== 'string' && ref.type === 'builtin') {
-        return `${ref.name}_${idx}`;
-    }
-    const id = typeof ref === 'string' ? ref : idName(ref.id);
-    const t = env.global.types[id] as RecordDef;
-    if (t.ffi) {
-        return t.ffi.names[idx];
-    }
-    if (typeof ref === 'string') {
-        return `h${ref}_${idx}`;
-    }
-    // if (ref.type === 'builtin') {
-    //     return `${ref.name}_${idx}`;
-    // }
-    return `h${idName(ref.id)}_${idx}`;
-};
+// const recordAttributeName = (
+//     env: Env,
+//     ref: Reference | string,
+//     idx: number,
+// ) => {
+//     if (typeof ref !== 'string' && ref.type === 'builtin') {
+//         return `${ref.name}_${idx}`;
+//     }
+//     const id = typeof ref === 'string' ? ref : idName(ref.id);
+//     const t = env.global.types[id] as RecordDef;
+//     if (t.ffi) {
+//         return t.ffi.names[idx];
+//     }
+//     if (typeof ref === 'string') {
+//         return `h${ref}_${idx}`;
+//     }
+//     // if (ref.type === 'builtin') {
+//     //     return `${ref.name}_${idx}`;
+//     // }
+//     return `h${idName(ref.id)}_${idx}`;
+// };
 
 const clearEffects = (
     vbls: Array<number>,
@@ -1814,10 +1835,11 @@ const showEffectRef = (eff: EffectRef) => {
     return printRef(eff.ref);
 };
 
+const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : ref.id.hash;
 
-const dedup = (items: Array<string>): Array<string> => {
-    const used: { [key: string]: boolean } = {};
-    return items.filter((r) => (used[r] ? false : ((used[r] = true), true)));
-};
+// const dedup = (items: Array<string>): Array<string> => {
+//     const used: { [key: string]: boolean } = {};
+//     return items.filter((r) => (used[r] ? false : ((used[r] = true), true)));
+// };

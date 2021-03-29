@@ -221,6 +221,7 @@ export type CPSAble =
       }
     | {
           type: 'apply';
+          originalTargetType: LambdaType;
           location: Location | null;
           target: Term;
           typeVbls: Array<Type>;

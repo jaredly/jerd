@@ -20,7 +20,17 @@ export const typeApply = (
 ): Term => {
     const { args, effectVbls } = suffix;
     const typeVbls = suffix.typevbls.map((t) => typeType(env, t));
+    const originalTargetType = target.is as LambdaType;
     if (typeVbls.length) {
+        // ahhhh it's my old nemesis come back to haunt me.
+        // yes indeed I do need to know what the types of these things are
+        // darn it.
+        // because if, well, um,
+        // the type of an argument was a variable,
+        // then in Go it needs to be wrapped in `(interface{})(v)`
+        // also if the return value was a variable,
+        // then in Go the result needs to have the type assertion `.(theType)` after the fn call.
+
         // HERMMM This might be illegal.
         // or rather, doing it like this
         // does weird things to the pretty-printing end.
@@ -117,6 +127,7 @@ export const typeApply = (
 
     return {
         type: 'apply',
+        originalTargetType,
         // STOPSHIP(sourcemap): this should be better
         location: target.location,
         typeVbls,

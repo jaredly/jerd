@@ -2,7 +2,9 @@
 
 // import * as t from '@babel/types';
 import { idName } from '../typing/env';
+import { binOps } from '../typing/preset';
 import { Env, Id, Symbol, Term, Type } from '../typing/types';
+import * as ir from './intermediateRepresentation';
 import {
     PP,
     items,
@@ -25,8 +27,23 @@ export const fileToGo = (expressions: Array<Term>, env: Env) => {
     const result: Array<PP> = [];
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
-        result.push(defnToGo(env, {}, hash, term));
+        const irTerm = ir.printTerm(env, {}, term);
+        result.push(defnToGo(env, {}, hash, irTerm));
     });
+    result.push(
+        items([
+            atom('func main() '),
+            block(
+                expressions.map((expr) =>
+                    items([
+                        atom('_ = '),
+                        termToGo(env, {}, ir.printTerm(env, {}, expr)),
+                    ]),
+                ),
+                '',
+            ),
+        ]),
+    );
     return result.map((item) => printToString(item, 100)).join('\n\n');
 };
 
@@ -41,6 +58,16 @@ export const typeToGo = (env: Env, opts: OutputOptions, type: Type): PP => {
         }
 
         case 'lambda':
+            return items([
+                atom('func '),
+                args(type.args.map((t) => typeToGo(env, opts, t))),
+                atom(' '),
+                type.res.type !== 'ref' ||
+                type.res.ref.type !== 'builtin' ||
+                type.res.ref.name !== 'void'
+                    ? typeToGo(env, opts, type.res)
+                    : null,
+            ]);
         case 'var':
             return atom('interface {}');
     }
@@ -62,24 +89,31 @@ attribute
 
 */
 
-const defnToGo = (env: Env, opts: OutputOptions, hash: string, term: Term) => {
+const defnToGo = (
+    env: Env,
+    opts: OutputOptions,
+    hash: string,
+    term: ir.Expr,
+) => {
     if (term.type === 'lambda') {
         return items([
             atom('func '),
             atom(HashToString(hash)),
             args(
-                term.args.map((sym, i) =>
+                term.args.map((arg) =>
                     items([
-                        symToGo(sym),
+                        symToGo(arg.sym),
                         atom(' '),
-                        typeToGo(env, opts, term.is.args[i]),
+                        typeToGo(env, opts, arg.type),
                     ]),
                 ),
             ),
             atom(' '),
-            typeToGo(env, opts, term.is.res),
+            typeToGo(env, opts, term.res),
             atom(' '),
-            block([items([atom('return '), termToGo(env, opts, term.body)])]),
+            lambdaBodyToGo(env, opts, term.body),
+            // term.body.type === 'Block'
+            // block([items([atom('return '), termToGo(env, opts, term.body)])]),
         ]);
     } else {
         return items([
@@ -91,13 +125,127 @@ const defnToGo = (env: Env, opts: OutputOptions, hash: string, term: Term) => {
     }
 };
 
-const termToGo = (env: Env, opts: OutputOptions, term: Term) => {
+const lambdaBodyToGo = (
+    env: Env,
+    opts: OutputOptions,
+    body: ir.Block | ir.Expr,
+): PP => {
+    if (body.type === 'Block') {
+        return block(
+            body.items.map((s) => stmtToGo(env, opts, s)),
+            '',
+        );
+    } else {
+        return block([items([atom('return '), termToGo(env, opts, body)])], '');
+    }
+};
+
+const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
+    switch (stmt.type) {
+        case 'Block':
+            return lambdaBodyToGo(env, opts, stmt);
+        case 'Return':
+            return items([atom('return '), termToGo(env, opts, stmt.value)]);
+        // TODO include type here? could be good
+        case 'Define':
+            return items([
+                symToGo(stmt.sym),
+                atom(' := '),
+                termToGo(env, opts, stmt.value),
+            ]);
+        case 'Expression':
+            return termToGo(env, opts, stmt.expr);
+        case 'Assign':
+            return items([
+                symToGo(stmt.sym),
+                atom(' = '),
+                termToGo(env, opts, stmt.value),
+            ]);
+        case 'if':
+            return items([
+                atom('if '),
+                termToGo(env, opts, stmt.cond),
+                lambdaBodyToGo(env, opts, stmt.yes),
+                ...(stmt.no
+                    ? [atom(' else '), lambdaBodyToGo(env, opts, stmt.no)]
+                    : []),
+            ]);
+        default:
+            let _x: never = stmt;
+            throw new Error(`Unknown stmt ${(stmt as any).type}`);
+    }
+};
+
+const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
     switch (term.type) {
         case 'string':
-            return atom(`"${term.text}"`);
+            return atom(`"${term.value}"`);
         case 'int':
         case 'float':
+        case 'boolean':
             return atom(`${term.value}`);
+        case 'lambda':
+            return items([
+                atom('func '),
+                args(
+                    term.args.map((arg) =>
+                        items([
+                            symToGo(arg.sym),
+                            atom(' '),
+                            typeToGo(env, opts, arg.type),
+                        ]),
+                    ),
+                ),
+                atom(' '),
+                typeToGo(env, opts, term.res),
+                atom(' '),
+                lambdaBodyToGo(env, opts, term.body),
+            ]);
+        case 'apply':
+            if (
+                term.target.type === 'builtin' &&
+                binOps.includes(term.target.name)
+            ) {
+                return items([
+                    termToGo(env, opts, term.args[0]),
+                    atom(' '),
+                    atom(term.target.name === '++' ? '+' : term.target.name),
+                    atom(' '),
+                    termToGo(env, opts, term.args[1]),
+                ]);
+            }
+            return items([
+                termToGo(env, opts, term.target),
+                args(
+                    term.args.map((arg, i) =>
+                        // hrmmmmm I need to know the types that are expected
+                        // so I can know whether to transform them into interface{}
+                        items([
+                            term.targetType.args[i].type === 'var'
+                                ? atom('(interface{})(')
+                                : null,
+                            termToGo(env, opts, arg),
+                            term.targetType.args[i].type === 'var'
+                                ? atom(')')
+                                : null,
+                        ]),
+                    ),
+                ),
+                term.targetType.res.type === 'var'
+                    ? // TODO pipe through the ids of things
+                      items([
+                          atom('.('),
+                          typeToGo(env, opts, term.res),
+                          atom(')'),
+                      ])
+                    : null,
+            ]);
+        case 'var':
+            return symToGo(term.sym);
+        case 'builtin':
+            return atom(term.name);
+        case 'term':
+            return atom(IdToString(term.id));
         default:
             let _x: never = term;
             return atom(`panic("Nope ${term.type}")`);
