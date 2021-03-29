@@ -97,6 +97,39 @@ export type Expr =
           elType: Type;
           loc: Loc;
       }
+    | {
+          type: 'record';
+          base:
+              | { type: 'Variable'; var: Symbol; spread: Expr }
+              | {
+                    type: 'Concrete';
+                    ref: UserReference;
+                    rows: Array<Expr | null>;
+                    spread: Expr | null;
+                }; // here we do clone and setValues and such
+          is: Type;
+          subTypes: {
+              [id: string]: {
+                  spread: Expr | null;
+                  rows: Array<Expr | null>;
+              };
+          };
+          loc: Loc;
+          // ok
+          // so
+          // for js, we can spread
+          // for go, we need to list things individually I do believe
+          // so
+          // lets just keep things n such
+          // also we gon want to do some heavy iffe lifting for realsies.
+      }
+    | {
+          type: 'attribute';
+          target: Expr;
+          ref: Reference;
+          idx: number;
+          loc: Loc;
+      }
     // effects have been taken care of at this point
     // do we need to know the types of things? perhaps for conversions?
     | {
@@ -147,6 +180,7 @@ import {
     Pattern,
     RecordDef,
     UserReference,
+    RecordBase,
 } from '../typing/types';
 import { Location } from '../parsing/parser';
 import * as t from '@babel/types';
@@ -1047,7 +1081,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                       is: s.is,
                                       loc: s.location,
                                   }
-                                i === term.sts.length - 1
+                                : i === term.sts.length - 1
                                 ? returnStatement(printTerm(env, opts, s))
                                 : {
                                       type: 'Expression',
@@ -1073,103 +1107,156 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             // the last one requires the least record keeping, I think.
             // although serializes more.
             // yeah I think we need the last one.
-            return t.objectExpression(
-                ((term.base.spread != null
-                    ? [t.spreadElement(printTerm(env, opts, term.base.spread))]
-                    : []) as Array<t.ObjectProperty | t.SpreadElement>)
-                    .concat(
-                        ...Object.keys(term.subTypes).map(
-                            (id) =>
-                                (term.subTypes[id].spread
-                                    ? [
-                                          t.spreadElement(
-                                              printTerm(
-                                                  env,
-                                                  opts,
-                                                  term.subTypes[id].spread!,
-                                              ),
-                                          ),
-                                      ]
-                                    : []) as Array<
-                                    t.ObjectProperty | t.SpreadElement
-                                >,
+            return {
+                type: 'record',
+                base:
+                    term.base.type === 'Variable'
+                        ? {
+                              type: 'Variable',
+                              var: term.base.var,
+                              spread: printTerm(env, opts, term.base.spread),
+                          }
+                        : {
+                              type: 'Concrete',
+                              ref: term.base.ref,
+                              rows: term.base.rows.map((r) =>
+                                  r ? printTerm(env, opts, r) : null,
+                              ),
+                              spread: term.base.spread
+                                  ? printTerm(env, opts, term.base.spread)
+                                  : null,
+                          },
+                subTypes: Object.keys(term.subTypes).reduce((obj: any, k) => {
+                    const subType = term.subTypes[k];
+                    obj[k] = {
+                        spread: subType.spread
+                            ? printTerm(env, opts, subType.spread)
+                            : null,
+                        rows: subType.rows.map((r) =>
+                            r ? printTerm(env, opts, r) : null,
                         ),
-                    )
-                    .concat(
-                        term.base.type === 'Concrete'
-                            ? [
-                                  t.objectProperty(
-                                      t.identifier('type'),
-                                      t.stringLiteral(
-                                          recordIdName(
-                                              env,
-                                              (term.base as any).ref,
-                                          ),
-                                      ),
-                                  ),
-                              ]
-                            : [],
-                    )
-                    .concat(
-                        ...Object.keys(term.subTypes).map(
-                            (id) =>
-                                term.subTypes[id].rows
-                                    .map((row, i) =>
-                                        row != null
-                                            ? t.objectProperty(
-                                                  t.identifier(
-                                                      recordAttributeName(
-                                                          env,
-                                                          id,
-                                                          i,
-                                                      ),
-                                                  ),
-                                                  printTerm(env, opts, row),
-                                              )
-                                            : null,
-                                    )
-                                    .filter(Boolean) as Array<t.ObjectProperty>,
-                        ),
-                    )
-                    .concat(
-                        term.base.type === 'Concrete'
-                            ? (term.base.rows
-                                  .map((row, i) =>
-                                      row != null
-                                          ? t.objectProperty(
-                                                t.identifier(
-                                                    recordAttributeName(
-                                                        env,
-                                                        (term.base as any).ref,
-                                                        i,
-                                                    ),
-                                                ),
-                                                printTerm(env, opts, row),
-                                            )
-                                          : null,
-                                  )
-                                  .filter(Boolean) as Array<t.ObjectProperty>)
-                            : [],
-                    ) as Array<any>,
-            );
+                    };
+                    return obj;
+                }, {}),
+                is: term.is,
+                loc: term.location,
+            };
+            // return t.objectExpression(
+            //     ((term.base.spread != null
+            //         ? [t.spreadElement(printTerm(env, opts, term.base.spread))]
+            //         : []) as Array<t.ObjectProperty | t.SpreadElement>)
+            //         .concat(
+            //             ...Object.keys(term.subTypes).map(
+            //                 (id) =>
+            //                     (term.subTypes[id].spread
+            //                         ? [
+            //                               t.spreadElement(
+            //                                   printTerm(
+            //                                       env,
+            //                                       opts,
+            //                                       term.subTypes[id].spread!,
+            //                                   ),
+            //                               ),
+            //                           ]
+            //                         : []) as Array<
+            //                         t.ObjectProperty | t.SpreadElement
+            //                     >,
+            //             ),
+            //         )
+            //         .concat(
+            //             term.base.type === 'Concrete'
+            //                 ? [
+            //                       t.objectProperty(
+            //                           t.identifier('type'),
+            //                           t.stringLiteral(
+            //                               recordIdName(
+            //                                   env,
+            //                                   (term.base as any).ref,
+            //                               ),
+            //                           ),
+            //                       ),
+            //                   ]
+            //                 : [],
+            //         )
+            //         .concat(
+            //             ...Object.keys(term.subTypes).map(
+            //                 (id) =>
+            //                     term.subTypes[id].rows
+            //                         .map((row, i) =>
+            //                             row != null
+            //                                 ? t.objectProperty(
+            //                                       t.identifier(
+            //                                           recordAttributeName(
+            //                                               env,
+            //                                               id,
+            //                                               i,
+            //                                           ),
+            //                                       ),
+            //                                       printTerm(env, opts, row),
+            //                                   )
+            //                                 : null,
+            //                         )
+            //                         .filter(Boolean) as Array<t.ObjectProperty>,
+            //             ),
+            //         )
+            //         .concat(
+            //             term.base.type === 'Concrete'
+            //                 ? (term.base.rows
+            //                       .map((row, i) =>
+            //                           row != null
+            //                               ? t.objectProperty(
+            //                                     t.identifier(
+            //                                         recordAttributeName(
+            //                                             env,
+            //                                             (term.base as any).ref,
+            //                                             i,
+            //                                         ),
+            //                                     ),
+            //                                     printTerm(env, opts, row),
+            //                                 )
+            //                               : null,
+            //                       )
+            //                       .filter(Boolean) as Array<t.ObjectProperty>)
+            //                 : [],
+            //         ) as Array<any>,
+            // );
         }
         case 'Enum':
             return printTerm(env, opts, term.inner);
         case 'Attribute': {
-            return t.memberExpression(
-                printTerm(env, opts, term.target),
-                t.identifier(recordAttributeName(env, term.ref, term.idx)),
-            );
+            // return t.memberExpression(
+            //     printTerm(env, opts, term.target),
+            //     t.identifier(recordAttributeName(env, term.ref, term.idx)),
+            // );
+            return {
+                type: 'attribute',
+                target: printTerm(env, opts, term.target),
+                ref: term.ref,
+                idx: term.idx,
+                loc: term.location,
+            };
         }
-        case 'Array':
-            return t.arrayExpression(
-                term.items.map((item) =>
+        case 'Array': {
+            const elType = term.is.typeVbls[0];
+            return {
+                type: 'array',
+                items: term.items.map((item) =>
                     item.type === 'ArraySpread'
-                        ? t.spreadElement(printTerm(env, opts, item.value))
+                        ? {
+                              type: 'Spread',
+                              value: printTerm(env, opts, item.value),
+                          }
                         : printTerm(env, opts, item),
                 ),
-            );
+                loc: term.location,
+                elType,
+            };
+        }
         case 'Switch': {
+            // So if compiling to swift, we might want
+            // to do rich switches? if we can. if like we're not doing array stuffs. maybe
+            // idk if we can though, might still not work
+
             // const raspies
             // return
             /*
@@ -1193,11 +1280,11 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             // TODO: if the term is "basic", we can just pass it through
             const basic = isConstant(term.term);
 
-            const id = '$discriminant';
+            const id = { name: '$discriminant', unique: env.local.unique++ };
 
-            const value = basic
+            const value: Expr = basic
                 ? printTerm(env, opts, term.term)
-                : t.identifier(id);
+                : { type: 'var', sym: id, loc: null };
 
             let cases = [];
 
@@ -1207,9 +1294,15 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         env,
                         value,
                         kase.pattern,
-                        t.blockStatement([
-                            t.returnStatement(printTerm(env, opts, kase.body)),
-                        ]),
+                        blockStatement(
+                            [
+                                returnStatement(
+                                    printTerm(env, opts, kase.body),
+                                    kase.body.location,
+                                ),
+                            ],
+                            kase.body.location,
+                        ),
                     ),
                 );
             });
@@ -1255,18 +1348,28 @@ const printPattern = (
     env: Env,
     value: Expr,
     pattern: Pattern,
-    success: t.BlockStatement,
-): t.BlockStatement => {
+    success: Block,
+): Block => {
     if (pattern.type === 'Binding') {
-        return t.blockStatement([
-            t.variableDeclaration('const', [
-                t.variableDeclarator(
-                    t.identifier(printSym(pattern.sym)),
+        return blockStatement(
+            [
+                {
+                    type: 'Define',
+                    sym: pattern.sym,
                     value,
-                ),
-            ]),
-            success,
-        ]);
+                    is: value.is,
+                    loc: pattern.location,
+                },
+                // t.variableDeclaration('const', [
+                //     t.variableDeclarator(
+                //         t.identifier(printSym(pattern.sym)),
+                //         value,
+                //     ),
+                // ]),
+                success,
+            ],
+            pattern.location,
+        );
     } else if (pattern.type === 'Enum') {
         const allReferences = getEnumReferences(env, pattern.ref);
         let typ = t.memberExpression(value, t.identifier('type'));
