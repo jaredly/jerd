@@ -62,13 +62,30 @@ const stringLiteral = (value: string, loc: Loc): Expr => ({
 // so that I can support go or python...
 // also I don't support effects in record creation just yet.
 // oh wait, I think go and python can create records just fine
-export type Expr =
+export type Literal =
     | { type: 'string'; value: string; loc: Loc }
     | { type: 'int'; value: number; loc: Loc }
-    | { type: 'float'; value: number; loc: Loc }
+    | { type: 'boolean'; value: boolean; loc: Loc }
+    | { type: 'float'; value: number; loc: Loc };
+export type Expr =
+    | Literal
+    | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc }
     | { type: 'term'; id: Id; loc: Loc }
     | { type: 'var'; sym: Symbol; loc: Loc }
+    | {
+          type: 'slice';
+          value: Expr;
+          start: number; // should these be exprs? probably
+          end: number | null;
+          loc: Loc;
+      }
+    | { type: 'arrayIndex'; value: Expr; idx: Expr; loc: Loc }
+    | { type: 'arrayLen'; value: Expr; loc: Loc } // TODO this could just be represented with a buitin, right? yeah
     | { type: 'builtin'; name: string; loc: Loc }
+    // used in switches
+    | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc }
+    | { type: 'or'; left: Expr; right: Expr; loc: Loc }
+    //
     | { type: 'effectfulOrDirect'; effectful: boolean; target: Expr; loc: Loc }
     | {
           type: 'raise';
@@ -902,6 +919,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 term.location,
             );
         // return t.identifier(`hash_${env.local.self.name}`);
+        case 'boolean':
+            return { type: 'boolean', value: term.value, loc: term.location };
         case 'int':
             return { type: 'int', value: term.value, loc: term.location };
         case 'string':
@@ -1293,14 +1312,10 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     printPattern(
                         env,
                         value,
+                        kase.body.is,
                         kase.pattern,
                         blockStatement(
-                            [
-                                returnStatement(
-                                    printTerm(env, opts, kase.body),
-                                    kase.body.location,
-                                ),
-                            ],
+                            [returnStatement(printTerm(env, opts, kase.body))],
                             kase.body.location,
                         ),
                     ),
@@ -1318,23 +1333,23 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             );
 
             return iffe(
-                t.blockStatement(
+                blockStatement(
                     [
                         basic
                             ? null
-                            : t.variableDeclaration('const', [
-                                  t.variableDeclarator(
-                                      t.identifier(id),
-                                      printTerm(env, opts, term.term),
-                                  ),
-                              ]),
+                            : {
+                                  type: 'Define',
+                                  sym: id,
+                                  value: printTerm(env, opts, term.term),
+                                  loc: term.location,
+                              },
                         ...cases,
-                    ].filter(Boolean) as Array<t.Statement>,
+                    ].filter(Boolean) as Array<Stmt>,
+                    term.location,
                 ),
+                term.is,
             );
         }
-        case 'boolean':
-            return t.booleanLiteral(term.value);
         default:
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
@@ -1347,6 +1362,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 const printPattern = (
     env: Env,
     value: Expr,
+    type: Type,
     pattern: Pattern,
     success: Block,
 ): Block => {
@@ -1357,107 +1373,163 @@ const printPattern = (
                     type: 'Define',
                     sym: pattern.sym,
                     value,
-                    is: value.is,
+                    is: type,
                     loc: pattern.location,
                 },
-                // t.variableDeclaration('const', [
-                //     t.variableDeclarator(
-                //         t.identifier(printSym(pattern.sym)),
-                //         value,
-                //     ),
-                // ]),
                 success,
             ],
             pattern.location,
         );
     } else if (pattern.type === 'Enum') {
         const allReferences = getEnumReferences(env, pattern.ref);
-        let typ = t.memberExpression(value, t.identifier('type'));
-        let tests: Array<Expr> = allReferences.map((ref) =>
-            t.binaryExpression(
-                '===',
-                typ,
-                t.stringLiteral(recordIdName(env, ref.ref)),
-            ),
+        // let typ = t.memberExpression(value, t.identifier('type'));
+        let tests: Array<Expr> = allReferences.map(
+            (ref) => ({
+                type: 'IsRecord',
+                value,
+                ref: ref.ref,
+                loc: pattern.location,
+            }),
+
+            // t.binaryExpression(
+            //     '===',
+            //     typ,
+            //     t.stringLiteral(recordIdName(env, ref.ref)),
+            // ),
         );
-        return t.blockStatement([
-            t.ifStatement(
-                tests.reduce((one: Expr, two: Expr) =>
-                    t.logicalExpression('||', one, two),
+        return blockStatement(
+            [
+                ifStatement(
+                    tests.reduce((one: Expr, two: Expr) => ({
+                        type: 'or',
+                        left: one,
+                        right: two,
+                        loc: pattern.location,
+                    })),
+                    success,
+                    null,
+                    pattern.location,
                 ),
-                success,
-            ),
-        ]);
+            ],
+            pattern.location,
+        );
     } else if (pattern.type === 'Alias') {
         return printPattern(
             env,
             value,
+            type,
             pattern.inner,
-            t.blockStatement([
-                t.variableDeclaration('const', [
-                    t.variableDeclarator(
-                        t.identifier(printSym(pattern.name)),
+            blockStatement(
+                [
+                    {
+                        type: 'Define',
+                        sym: pattern.name,
                         value,
-                    ),
-                ]),
-                success,
-            ]),
+                        is: type,
+                        loc: pattern.location,
+                    },
+                    success,
+                ],
+                pattern.location,
+            ),
         );
     } else if (pattern.type === 'Record') {
         // tbh this should probably be processed in reverse?
         // although it probably doesn't matter, because
         // these can't be effectful
         pattern.items.forEach((item) => {
+            const decl = env.global.types[idName(item.ref.id)];
             success = printPattern(
                 env,
-                t.memberExpression(
-                    value,
-                    t.identifier(recordAttributeName(env, item.ref, item.idx)),
-                ),
+                {
+                    type: 'attribute',
+                    target: value,
+                    ref: item.ref,
+                    idx: item.idx,
+                    loc: item.location,
+                },
+                // t.memberExpression(
+                //     value,
+                //     t.identifier(recordAttributeName(env, item.ref, item.idx)),
+                // ),
+                decl.items[item.idx],
                 item.pattern,
                 success,
             );
         });
-        return t.blockStatement([
-            t.ifStatement(
-                t.binaryExpression(
-                    '===',
-                    t.memberExpression(value, t.identifier('type')),
-                    t.stringLiteral(recordIdName(env, pattern.ref.ref)),
+        return blockStatement(
+            [
+                ifStatement(
+                    {
+                        type: 'IsRecord',
+                        value,
+                        ref: pattern.ref.ref,
+                        loc: pattern.location,
+                    },
+                    // t.binaryExpression(
+                    //     '===',
+                    //     t.memberExpression(value, t.identifier('type')),
+                    //     t.stringLiteral(recordIdName(env, pattern.ref.ref)),
+                    // ),
+                    success,
+                    null,
+                    pattern.location,
                 ),
-                success,
-            ),
-        ]);
-    } else if (pattern.type === 'int' || pattern.type === 'float') {
-        return t.blockStatement([
-            t.ifStatement(
-                t.binaryExpression(
-                    '===',
-                    value,
-                    t.numericLiteral(pattern.value),
+            ],
+            pattern.location,
+        );
+    } else if (
+        pattern.type === 'int' ||
+        pattern.type === 'float' ||
+        pattern.type === 'string' ||
+        pattern.type === 'boolean'
+    ) {
+        return blockStatement(
+            [
+                ifStatement(
+                    {
+                        type: 'eqLiteral',
+                        value,
+                        literal: {
+                            type: pattern.type,
+                            value:
+                                pattern.type === 'string'
+                                    ? pattern.text
+                                    : pattern.value,
+                            loc: pattern.location,
+                        } as Literal,
+                        loc: pattern.location,
+                    },
+                    success,
+                    null,
+                    pattern.location,
                 ),
-                success,
-            ),
-        ]);
-    } else if (pattern.type === 'string') {
-        return t.blockStatement([
-            t.ifStatement(
-                t.binaryExpression('===', value, t.stringLiteral(pattern.text)),
-                success,
-            ),
-        ]);
-    } else if (pattern.type === 'boolean') {
-        return t.blockStatement([
-            t.ifStatement(
-                t.binaryExpression(
-                    '===',
-                    value,
-                    t.booleanLiteral(pattern.value),
-                ),
-                success,
-            ),
-        ]);
+            ],
+            pattern.location,
+        );
+        // } else if (pattern.type === 'boolean') {
+        //     return t.blockStatement([
+        //         t.ifStatement(
+        //             t.binaryExpression(
+        //                 '===',
+        //                 value,
+        //                 t.booleanLiteral(pattern.value),
+        //             ),
+        //             success,
+        //         ),
+        //     ]);
     } else if (pattern.type === 'Array') {
+        if (
+            type.type !== 'ref' ||
+            type.ref.type !== 'builtin' ||
+            type.ref.name !== 'Array' ||
+            type.typeVbls.length !== 1
+        ) {
+            throw new Error(
+                `Array pattern, but not array type ${showType(env, type)}`,
+            );
+        }
+        const elType = type.typeVbls[0];
         // ok so I don't need to check that it's an array.
         // that's given by the type system.
         // So, processing in reverse order...
@@ -1465,33 +1537,67 @@ const printPattern = (
         if (pattern.spread) {
             success = printPattern(
                 env,
-                t.callExpression(
-                    t.memberExpression(value, t.identifier('slice')),
-                    [t.numericLiteral(pattern.preItems.length)].concat(
-                        pattern.postItems.length
-                            ? [t.numericLiteral(-pattern.postItems.length)]
-                            : [],
-                    ),
-                ),
+                {
+                    type: 'slice',
+                    value,
+                    start: pattern.preItems.length,
+                    end: pattern.postItems.length
+                        ? -pattern.postItems.length
+                        : null,
+                    loc: pattern.location,
+                },
+                // t.callExpression(
+                //     t.memberExpression(value, t.identifier('slice')),
+                //     [t.numericLiteral(pattern.preItems.length)].concat(
+                //         pattern.postItems.length
+                //             ? [t.numericLiteral(-pattern.postItems.length)]
+                //             : [],
+                //     ),
+                // ),
+                type,
                 pattern.spread,
                 success,
             );
         }
 
         // Then postitems, because it requires calculating length a bunch
-        const ln = t.memberExpression(value, t.identifier('length'));
+        const ln: Expr = { type: 'arrayLen', value, loc: value.loc };
+        // const ln = t.memberExpression(value, t.identifier('length'));
         pattern.postItems.forEach((item, i) => {
             success = printPattern(
                 env,
-                t.memberExpression(
+                {
+                    type: 'arrayIndex',
                     value,
-                    t.binaryExpression(
-                        '-',
-                        ln,
-                        t.numericLiteral(pattern.postItems.length - i),
-                    ),
-                    true,
-                ),
+                    idx: {
+                        type: 'apply',
+                        target: {
+                            type: 'builtin',
+                            loc: item.location,
+                            name: '-',
+                        },
+                        args: [
+                            ln,
+                            {
+                                type: 'int',
+                                value: pattern.postItems.length - i,
+                                loc: item.location,
+                            },
+                        ],
+                        loc: item.location,
+                    },
+                    loc: item.location,
+                },
+                // t.memberExpression(
+                //     value,
+                //     t.binaryExpression(
+                //         '-',
+                //         ln,
+                //         t.numericLiteral(pattern.postItems.length - i),
+                //     ),
+                //     true,
+                // ),
+                elType,
                 item,
                 success,
             );
@@ -1501,7 +1607,14 @@ const printPattern = (
         pattern.preItems.forEach((item, i) => {
             success = printPattern(
                 env,
-                t.memberExpression(value, t.numericLiteral(i), true),
+                {
+                    type: 'arrayIndex',
+                    value,
+                    idx: { type: 'int', value: i, loc: item.location },
+                    loc: item.location,
+                },
+                // t.memberExpression(value, t.numericLiteral(i), true),
+                elType,
                 item,
                 success,
             );
@@ -1513,18 +1626,35 @@ const printPattern = (
             pattern.postItems.length ||
             !pattern.spread
         ) {
-            success = t.blockStatement([
-                t.ifStatement(
-                    t.binaryExpression(
-                        pattern.spread ? '>=' : '===',
-                        ln,
-                        t.numericLiteral(
-                            pattern.preItems.length + pattern.postItems.length,
-                        ),
+            success = blockStatement(
+                [
+                    ifStatement(
+                        {
+                            type: 'apply',
+                            target: {
+                                type: 'builtin',
+                                loc: pattern.location,
+                                name: pattern.spread ? '>=' : '==',
+                            },
+                            args: [
+                                ln,
+                                {
+                                    type: 'int',
+                                    value:
+                                        pattern.preItems.length +
+                                        pattern.postItems.length,
+                                    loc: pattern.location,
+                                },
+                            ],
+                            loc: pattern.location,
+                        },
+                        success,
+                        null,
+                        pattern.location,
                     ),
-                    success,
-                ),
-            ]);
+                ],
+                pattern.location,
+            );
         }
 
         return success;
