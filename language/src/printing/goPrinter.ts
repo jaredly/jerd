@@ -3,6 +3,7 @@
 // import * as t from '@babel/types';
 import { idName } from '../typing/env';
 import { binOps } from '../typing/preset';
+import { showLocation } from '../typing/typeExpr';
 import { Env, Id, Symbol, Term, Type } from '../typing/types';
 import * as ir from './intermediateRepresentation';
 import {
@@ -25,6 +26,7 @@ const symToGo = (sym: Symbol) => atom(`${sym.name}_${sym.unique}`);
 export const fileToGo = (expressions: Array<Term>, env: Env) => {
     // const ast = fileToTypescript(expressions, env, {}, )
     const result: Array<PP> = [];
+    result.push(atom(`type handlers = []interface{}`));
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
         const irTerm = ir.printTerm(env, {}, term);
@@ -68,6 +70,7 @@ export const typeToGo = (env: Env, opts: OutputOptions, type: Type): PP => {
                     ? typeToGo(env, opts, type.res)
                     : null,
             ]);
+
         case 'var':
             return atom('interface {}');
     }
@@ -89,6 +92,9 @@ attribute
 
 */
 
+const isVoid = (t: Type) =>
+    t.type === 'ref' && t.ref.type === 'builtin' && t.ref.name === 'void';
+
 const defnToGo = (
     env: Env,
     opts: OutputOptions,
@@ -109,7 +115,7 @@ const defnToGo = (
                 ),
             ),
             atom(' '),
-            typeToGo(env, opts, term.res),
+            isVoid(term.res) ? null : typeToGo(env, opts, term.res),
             atom(' '),
             lambdaBodyToGo(env, opts, term.body),
             // term.body.type === 'Block'
@@ -144,6 +150,8 @@ const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
     switch (stmt.type) {
         case 'Block':
             return lambdaBodyToGo(env, opts, stmt);
+        case 'MatchFail':
+            return items([atom('panic'), args([atom('"Match fail"')])]);
         case 'Return':
             return items([atom('return '), termToGo(env, opts, stmt.value)]);
         // TODO include type here? could be good
@@ -213,6 +221,15 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                     atom(' '),
                     termToGo(env, opts, term.args[1]),
                 ]);
+            }
+            if (term.args.length !== term.targetType.args.length) {
+                throw new Error(
+                    `Wrong function args length in 'apply', found ${
+                        term.args.length
+                    } but targetType only has ${
+                        term.targetType.args.length
+                    } at ${showLocation(term.loc)}`,
+                );
             }
             return items([
                 termToGo(env, opts, term.target),

@@ -3,11 +3,12 @@
 
 type Loc = Location | null;
 
-const builtinSyms = {
-    handlers: { name: 'handlers', unique: 0 },
-    cond: { name: 'cond', unique: 1000 },
-};
-const handlerSym = { name: 'handlers', unique: 0 };
+// const builtinSyms = {
+//     handlers: { name: 'handlers', unique: 0 },
+//     cond: { name: 'cond', unique: 1000 },
+// };
+export const handlerSym = { name: 'handlers', unique: 0 };
+export const handlersType = builtinType('handlers');
 
 // hrm where do I put comments in life
 
@@ -33,6 +34,7 @@ export type Stmt =
     | { type: 'Define'; sym: Symbol; value: Expr; is: Type; loc: Loc }
     | { type: 'Assign'; sym: Symbol; value: Expr; is: Type; loc: Loc }
     | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
+    | { type: 'MatchFail'; loc: Loc }
     | { type: 'Return'; value: Expr; loc: Loc }
     | Block;
 export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
@@ -215,7 +217,11 @@ import {
     void_,
 } from '../typing/preset';
 import { showType } from '../typing/unify';
-import { applyEffectVariables, getEnumReferences } from '../typing/typeExpr';
+import {
+    applyEffectVariables,
+    getEnumReferences,
+    showLocation,
+} from '../typing/typeExpr';
 import { idName } from '../typing/env';
 
 export type OutputOptions = {
@@ -447,8 +453,6 @@ export const termToAstCPS = (
     return _termToAstCPS(env, opts, term, done);
 };
 
-const handlersType = builtinType('handlers');
-
 // cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 const _termToAstCPS = (
     env: Env,
@@ -481,11 +485,6 @@ const _termToAstCPS = (
                     `Handle target has effects! should be a lambda`,
                 );
             }
-            // START HERE:
-            // I think this is a reasonable approach, folks.
-            // this is feeling pretty good so far.
-            // I'm wondering if I want to specify handler as much as this...
-            // OHHHH WAIT NO I need to CPS this up still 🤔
             return {
                 type: 'handle',
                 target: printTerm(env, opts, term.target),
@@ -495,7 +494,6 @@ const _termToAstCPS = (
                 pure: {
                     arg: term.pure.arg,
                     body: printLambdaBody(env, opts, term.pure.body, done),
-                    // printTerm(env, opts, term.pure.body),
                 },
                 cases: term.cases.map((kase) => ({
                     ...kase,
@@ -687,8 +685,18 @@ const _termToAstCPS = (
                     // right?
                     inner = callExpression(
                         target,
-                        term.originalTargetType,
-                        term.is,
+                        // STOSHIP: add handler n stuff
+                        {
+                            ...term.originalTargetType,
+                            args: term.originalTargetType.args.concat([
+                                handlersType,
+                                pureFunction([term.is], void_),
+                            ]),
+                            res: void_,
+                        },
+                        // term.originalTargetType,
+                        // term.is,
+                        void_,
                         (argSyms.map((sym, i) =>
                             sym
                                 ? { type: 'var', sym, loc: null }
@@ -700,6 +708,13 @@ const _termToAstCPS = (
                         target.loc,
                     );
                 } else {
+                    if (!term.originalTargetType) {
+                        throw new Error(
+                            `No original targt type ${showLocation(
+                                term.location,
+                            )}`,
+                        );
+                    }
                     // hm. I feel like I need to introspect `done`.
                     // and have a way to flatten out immediate calls.
                     // or I could do that post-hoc?
@@ -715,7 +730,15 @@ const _termToAstCPS = (
                             // which might include inverting it.
                             callExpression(
                                 target,
-                                term.originalTargetType,
+                                // term.originalTargetType,
+                                {
+                                    ...term.originalTargetType,
+                                    args: term.originalTargetType.args.concat([
+                                        handlersType,
+                                        pureFunction([term.is], void_),
+                                    ]),
+                                    res: void_,
+                                },
                                 term.is,
                                 argSyms.map((sym, i) =>
                                     sym
@@ -782,7 +805,15 @@ const _termToAstCPS = (
             }
             return callExpression(
                 target,
-                term.originalTargetType,
+                // term.originalTargetType,
+                {
+                    ...term.originalTargetType,
+                    args: term.originalTargetType.args.concat([
+                        handlersType,
+                        pureFunction([term.is], void_),
+                    ]),
+                    res: void_,
+                },
                 term.is,
                 args
                     .map((arg, i) => printTerm(env, opts, arg))
@@ -1177,93 +1208,10 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 is: term.is,
                 loc: term.location,
             };
-            // return t.objectExpression(
-            //     ((term.base.spread != null
-            //         ? [t.spreadElement(printTerm(env, opts, term.base.spread))]
-            //         : []) as Array<t.ObjectProperty | t.SpreadElement>)
-            //         .concat(
-            //             ...Object.keys(term.subTypes).map(
-            //                 (id) =>
-            //                     (term.subTypes[id].spread
-            //                         ? [
-            //                               t.spreadElement(
-            //                                   printTerm(
-            //                                       env,
-            //                                       opts,
-            //                                       term.subTypes[id].spread!,
-            //                                   ),
-            //                               ),
-            //                           ]
-            //                         : []) as Array<
-            //                         t.ObjectProperty | t.SpreadElement
-            //                     >,
-            //             ),
-            //         )
-            //         .concat(
-            //             term.base.type === 'Concrete'
-            //                 ? [
-            //                       t.objectProperty(
-            //                           t.identifier('type'),
-            //                           t.stringLiteral(
-            //                               recordIdName(
-            //                                   env,
-            //                                   (term.base as any).ref,
-            //                               ),
-            //                           ),
-            //                       ),
-            //                   ]
-            //                 : [],
-            //         )
-            //         .concat(
-            //             ...Object.keys(term.subTypes).map(
-            //                 (id) =>
-            //                     term.subTypes[id].rows
-            //                         .map((row, i) =>
-            //                             row != null
-            //                                 ? t.objectProperty(
-            //                                       t.identifier(
-            //                                           recordAttributeName(
-            //                                               env,
-            //                                               id,
-            //                                               i,
-            //                                           ),
-            //                                       ),
-            //                                       printTerm(env, opts, row),
-            //                                   )
-            //                                 : null,
-            //                         )
-            //                         .filter(Boolean) as Array<t.ObjectProperty>,
-            //             ),
-            //         )
-            //         .concat(
-            //             term.base.type === 'Concrete'
-            //                 ? (term.base.rows
-            //                       .map((row, i) =>
-            //                           row != null
-            //                               ? t.objectProperty(
-            //                                     t.identifier(
-            //                                         recordAttributeName(
-            //                                             env,
-            //                                             (term.base as any).ref,
-            //                                             i,
-            //                                         ),
-            //                                     ),
-            //                                     printTerm(env, opts, row),
-            //                                 )
-            //                               : null,
-            //                       )
-            //                       .filter(Boolean) as Array<t.ObjectProperty>)
-            //                 : [],
-            //         ) as Array<any>,
-            // );
         }
         case 'Enum':
             return printTerm(env, opts, term.inner);
         case 'Attribute': {
-            // return t.memberExpression(
-            //     printTerm(env, opts, term.target),
-            //     t.identifier(recordAttributeName(env, term.ref, term.idx)),
-            // );
             return {
                 type: 'attribute',
                 target: printTerm(env, opts, term.target),
@@ -1289,34 +1237,10 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             };
         }
         case 'Switch': {
-            // So if compiling to swift, we might want
-            // to do rich switches? if we can. if like we're not doing array stuffs. maybe
-            // idk if we can though, might still not work
-
-            // const raspies
-            // return
-            /*
-            switch x {
-                Some => true,
-                None => false,
-            }
-
-            =>
-
-            () => {
-                if (x.type === 'some') {
-                    return true
-                } else if (x.type === 'none') {
-                    return false
-                } else {
-                    throw new Error('Invalid case analysis!')
-                }
-            }()
-            */
             // TODO: if the term is "basic", we can just pass it through
             const basic = isConstant(term.term);
 
-            const id = { name: '$discriminant', unique: env.local.unique++ };
+            const id = { name: 'discriminant', unique: env.local.unique++ };
 
             const value: Expr = basic
                 ? printTerm(env, opts, term.term)
@@ -1329,7 +1253,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     printPattern(
                         env,
                         value,
-                        kase.body.is,
+                        // kase.body.is,
+                        term.term.is,
                         kase.pattern,
                         blockStatement(
                             [returnStatement(printTerm(env, opts, kase.body))],
@@ -1340,13 +1265,17 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             });
 
             cases.push(
-                t.blockStatement([
-                    t.throwStatement(
-                        t.newExpression(t.identifier('Error'), [
-                            t.stringLiteral('Invalid case analysis'),
-                        ]),
-                    ),
-                ]),
+                blockStatement(
+                    [
+                        { type: 'MatchFail', loc: term.location },
+                        //     t.throwStatement(
+                        //         t.newExpression(t.identifier('Error'), [
+                        //             t.stringLiteral('Invalid case analysis'),
+                        //         ]),
+                        //     ),
+                    ],
+                    term.location,
+                ),
             );
 
             return iffe(
@@ -1383,6 +1312,7 @@ const printPattern = (
     pattern: Pattern,
     success: Block,
 ): Block => {
+    // console.log('printPattern', type, pattern);
     if (pattern.type === 'Binding') {
         return blockStatement(
             [
@@ -1684,40 +1614,6 @@ const printPattern = (
     throw new Error(`Pattern not yet supported ${(pattern as any).type}`);
 };
 
-// const recordIdName = (env: Env, ref: Reference) => {
-//     if (ref.type === 'builtin') {
-//         return ref.name;
-//     } else {
-//         const t = env.global.types[idName(ref.id)] as RecordDef;
-//         if (t.ffi != null) {
-//             return t.ffi.tag;
-//         }
-//         return idName(ref.id);
-//     }
-// };
-
-// const recordAttributeName = (
-//     env: Env,
-//     ref: Reference | string,
-//     idx: number,
-// ) => {
-//     if (typeof ref !== 'string' && ref.type === 'builtin') {
-//         return `${ref.name}_${idx}`;
-//     }
-//     const id = typeof ref === 'string' ? ref : idName(ref.id);
-//     const t = env.global.types[id] as RecordDef;
-//     if (t.ffi) {
-//         return t.ffi.names[idx];
-//     }
-//     if (typeof ref === 'string') {
-//         return `h${ref}_${idx}`;
-//     }
-//     // if (ref.type === 'builtin') {
-//     //     return `${ref.name}_${idx}`;
-//     // }
-//     return `h${idName(ref.id)}_${idx}`;
-// };
-
 const clearEffects = (
     vbls: Array<number>,
     effects: Array<EffectRef>,
@@ -1753,22 +1649,13 @@ const effectfulLambda = (
     const done: Symbol = { name: 'done', unique: env.local.unique++ };
     const doneT: LambdaType = {
         type: 'lambda',
-        args: [term.is.res],
+        args: [handlersType, term.is.res],
         typeVbls: [],
         effectVbls: [],
         effects: [],
         rest: null,
         location: null,
-        res: {
-            location: null,
-            type: 'ref',
-            ref: {
-                type: 'builtin',
-                name: 'void',
-            },
-            typeVbls: [],
-            effectVbls: [],
-        },
+        res: void_,
     };
     return arrowFunctionExpression(
         term.args
@@ -1777,53 +1664,18 @@ const effectfulLambda = (
                 type: term.is.args[i],
                 loc: null,
             }))
-            // .map((arg) => t.identifier(printSym(arg)))
             .concat([
                 { type: builtinType('handlers'), sym: handlerSym, loc: null },
-                // handlerVar(term.location),
-                // {
-                //     ...t.identifier('handlers'),
-                //     typeAnnotation: t.tsTypeAnnotation(
-                //         // STOPSHIP: Actually type this
-                //         t.tsAnyKeyword(),
-                //     ),
-                // },
                 { sym: done, type: doneT, loc: null },
-                // {
-                //     ...t.identifier('done'),
-                //     typeAnnotation: t.tsTypeAnnotation(
-                //         typeToAst(env, opts, {
-                //             type: 'lambda',
-                //             args: [term.is.res],
-                //             typeVbls: [],
-                //             effectVbls: [],
-                //             effects: [],
-                //             rest: null,
-                //             location: null,
-                //             res: {
-                //                 location: null,
-                //                 type: 'ref',
-                //                 ref: {
-                //                     type: 'builtin',
-                //                     name: 'void',
-                //                 },
-                //                 typeVbls: [],
-                //                 effectVbls: [],
-                //             },
-                //         }),
-                //     ),
-                // },
             ]),
-        // withExecutionLimit(
-        //     env,
-        //     opts,
+        // TODO: withExecutionLimit
         printLambdaBody(env, opts, term.body, {
             type: 'var',
             sym: done,
             loc: null,
         }),
-        // ),
-        term.is.res,
+        // term.is.res,
+        void_,
         term.location,
     );
 };
@@ -1838,8 +1690,3 @@ const showEffectRef = (eff: EffectRef) => {
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : ref.id.hash;
-
-// const dedup = (items: Array<string>): Array<string> => {
-//     const used: { [key: string]: boolean } = {};
-//     return items.filter((r) => (used[r] ? false : ((used[r] = true), true)));
-// };

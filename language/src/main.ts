@@ -551,6 +551,10 @@ const saveCache = (files: Array<string>, self: string) => {
 
 const mainGo = (fnames: Array<string>) => {
     for (let fname of fnames) {
+        if (fname.endsWith('type-errors.jd')) {
+            continue;
+        }
+        console.log(fname);
         const raw = fs.readFileSync(fname, 'utf8');
         const parsed: Array<Toplevel> = parse(raw);
 

@@ -767,6 +767,7 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
         location: arg.location,
         body: {
             type: 'apply',
+            originalTargetType: arg.is,
             location: arg.location,
             typeVbls: [],
             effectVbls: null,

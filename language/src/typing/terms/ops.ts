@@ -80,6 +80,7 @@ const typeOp = (
     }
     return {
         type: 'apply',
+        originalTargetType: is,
         location:
             left.location && right.location
                 ? {

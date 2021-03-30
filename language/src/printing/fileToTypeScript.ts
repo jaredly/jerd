@@ -142,6 +142,8 @@ export const fileToTypescript = (
         }
     }
 
+    // TODO: use the topo sort algorithm from the web editor
+    // to sort these correctly
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
 
@@ -180,22 +182,24 @@ export const fileToTypescript = (
         args: Array<Term>,
         location: Location | null,
     ): Term => {
+        const is: Type = {
+            type: 'lambda',
+            location,
+            args: argTypes,
+            res: resType,
+            rest: null,
+            typeVbls: [],
+            effectVbls: [],
+            effects: [],
+        };
         return {
             type: 'apply',
+            originalTargetType: is,
             target: {
                 type: 'ref',
                 ref: { type: 'builtin', name: name },
                 location,
-                is: {
-                    type: 'lambda',
-                    location,
-                    args: argTypes,
-                    res: resType,
-                    rest: null,
-                    typeVbls: [],
-                    effectVbls: [],
-                    effects: [],
-                },
+                is,
             },
             args: args,
             location,
