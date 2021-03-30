@@ -5,7 +5,7 @@ import { idName } from '../typing/env';
 import { binOps } from '../typing/preset';
 import { showLocation } from '../typing/typeExpr';
 import { Env, Id, Symbol, Term, Type } from '../typing/types';
-import * as ir from './intermediateRepresentation';
+import * as ir from './ir/intermediateRepresentation';
 import {
     PP,
     items,
@@ -205,7 +205,7 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                     ),
                 ),
                 atom(' '),
-                typeToGo(env, opts, term.res),
+                isVoid(term.res) ? null : typeToGo(env, opts, term.res),
                 atom(' '),
                 lambdaBodyToGo(env, opts, term.body),
             ]);
