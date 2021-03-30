@@ -6,6 +6,7 @@ import { binOps, pureFunction, void_ } from '../typing/preset';
 import { showLocation } from '../typing/typeExpr';
 import { Env, Id, Symbol, Term, Type } from '../typing/types';
 import * as ir from './ir/intermediateRepresentation';
+import { optimize, removeUnusedVariables } from './ir/optimize';
 import { handlersType } from './ir/types';
 import {
     PP,
@@ -31,7 +32,7 @@ export const fileToGo = (expressions: Array<Term>, env: Env) => {
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
         const irTerm = ir.printTerm(env, {}, term);
-        result.push(defnToGo(env, {}, hash, irTerm));
+        result.push(defnToGo(env, {}, hash, optimize(irTerm)));
     });
     result.push(
         items([
@@ -40,7 +41,11 @@ export const fileToGo = (expressions: Array<Term>, env: Env) => {
                 expressions.map((expr) =>
                     items([
                         atom('_ = '),
-                        termToGo(env, {}, ir.printTerm(env, {}, expr)),
+                        termToGo(
+                            env,
+                            {},
+                            optimize(ir.printTerm(env, {}, expr)),
+                        ),
                     ]),
                 ),
                 '',

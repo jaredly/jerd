@@ -12,6 +12,12 @@ export type Visitor = {
     stmt: (value: Stmt) => Stmt | null;
 };
 
+export const defaultVisitor: Visitor = {
+    expr: (expr) => null,
+    block: (block) => null,
+    stmt: (stmt) => null,
+};
+
 export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
     const transformed = visitor.expr(expr);
     if (transformed != null) {
