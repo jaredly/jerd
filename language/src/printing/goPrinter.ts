@@ -54,7 +54,8 @@ export const typeToGo = (env: Env, opts: OutputOptions, type: Type): PP => {
     switch (type.type) {
         case 'ref': {
             if (type.ref.type === 'builtin') {
-                return atom(type.ref.name);
+                // if it really is void (for []void{}, for example), we can pretend it's an int
+                return atom(type.ref.name === 'void' ? 'int' : type.ref.name);
             } else {
                 return atom(IdToString(type.ref.id));
             }
@@ -291,9 +292,9 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
             ]);
         case 'eqLiteral':
             return items([
-                termToGo(env, opts, term.literal),
-                atom(' == '),
                 termToGo(env, opts, term.value),
+                atom(' == '),
+                termToGo(env, opts, term.literal),
             ]);
         case 'arrayIndex':
             return items([

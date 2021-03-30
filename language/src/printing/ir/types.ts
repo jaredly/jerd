@@ -138,10 +138,7 @@ export type Expr =
                 }; // here we do clone and setValues and such
           is: Type;
           subTypes: {
-              [id: string]: {
-                  spread: Expr | null;
-                  rows: Array<Expr | null>;
-              };
+              [id: string]: RecordSubType;
           };
           loc: Loc;
           // ok
@@ -179,6 +176,10 @@ export type Expr =
       }
     | LambdaExpr;
 
+export type RecordSubType = {
+    spread: Expr | null;
+    rows: Array<Expr | null>;
+};
 export type LambdaExpr = {
     type: 'lambda';
     // hrmmm how do I represent the "handlers" and such?
