@@ -4,7 +4,7 @@ import { showType } from '../../typing/unify';
 import { getEnumReferences } from '../../typing/typeExpr';
 import { idName } from '../../typing/env';
 
-import { Expr, Block, Literal } from './types';
+import { Expr, Block, Literal, Loc } from './types';
 
 import { blockStatement, ifStatement } from './utils';
 
@@ -182,6 +182,30 @@ export const printPattern = (
                 `Array pattern, but not array type ${showType(env, type)}`,
             );
         }
+
+        // Then postitems, because it requires calculating length a bunch
+        const ln: Expr = { type: 'arrayLen', value, loc: value.loc };
+
+        const indexFromEnd = (i: number, loc: Loc): Expr => ({
+            type: 'apply',
+            targetType: pureFunction([int, int], int),
+            res: int,
+            target: {
+                type: 'builtin',
+                loc,
+                name: '-',
+            },
+            args: [
+                ln,
+                {
+                    type: 'int',
+                    value: i,
+                    loc,
+                },
+            ],
+            loc,
+        });
+
         const elType = type.typeVbls[0];
         // ok so I don't need to check that it's an array.
         // that's given by the type system.
@@ -193,9 +217,16 @@ export const printPattern = (
                 {
                     type: 'slice',
                     value,
-                    start: pattern.preItems.length,
+                    start: {
+                        type: 'int',
+                        value: pattern.preItems.length,
+                        loc: null,
+                    },
                     end: pattern.postItems.length
-                        ? -pattern.postItems.length
+                        ? indexFromEnd(
+                              pattern.postItems.length,
+                              pattern.location,
+                          )
                         : null,
                     loc: pattern.location,
                 },
@@ -213,8 +244,6 @@ export const printPattern = (
             );
         }
 
-        // Then postitems, because it requires calculating length a bunch
-        const ln: Expr = { type: 'arrayLen', value, loc: value.loc };
         // const ln = t.memberExpression(value, t.identifier('length'));
         pattern.postItems.forEach((item, i) => {
             success = printPattern(
@@ -222,25 +251,10 @@ export const printPattern = (
                 {
                     type: 'arrayIndex',
                     value,
-                    idx: {
-                        type: 'apply',
-                        targetType: pureFunction([int, int], int),
-                        res: int,
-                        target: {
-                            type: 'builtin',
-                            loc: item.location,
-                            name: '-',
-                        },
-                        args: [
-                            ln,
-                            {
-                                type: 'int',
-                                value: pattern.postItems.length - i,
-                                loc: item.location,
-                            },
-                        ],
-                        loc: item.location,
-                    },
+                    idx: indexFromEnd(
+                        pattern.postItems.length - i,
+                        item.location,
+                    ),
                     loc: item.location,
                 },
                 // t.memberExpression(

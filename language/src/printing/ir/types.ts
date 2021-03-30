@@ -87,8 +87,8 @@ export type Expr =
     | {
           type: 'slice';
           value: Expr;
-          start: number; // should these be exprs? probably
-          end: number | null;
+          start: Expr; // should these be exprs? probably
+          end: Expr | null;
           loc: Loc;
       }
     | { type: 'arrayIndex'; value: Expr; idx: Expr; loc: Loc }

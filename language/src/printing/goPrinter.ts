@@ -306,9 +306,9 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
             return items([
                 termToGo(env, opts, term.value),
                 atom('['),
-                atom(term.start.toString()),
+                termToGo(env, opts, term.start),
                 atom(':'),
-                term.end != null ? atom(term.end.toString()) : null,
+                term.end != null ? termToGo(env, opts, term.end) : null,
                 // termToGo(env, opts, term.start)
                 atom(']'),
             ]);
