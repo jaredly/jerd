@@ -45,27 +45,13 @@ export const printLambda = (
                             type: directVersion.is.args[i],
                             loc: null,
                         }), // TODO(sourcemap): hang on to location for lambda args?
-                        // t.identifier(printSym(arg)),
                     ),
-                    // withExecutionLimit(
-                    //     env,
-                    //     opts,
+                    // TODO withExecutionLimit
                     printLambdaBody(env, opts, directVersion.body, null),
-                    // ),
                     directVersion.is.res,
                     term.location,
                 ),
             };
-            // return t.objectExpression([
-            //     t.objectProperty(
-            //         t.identifier('direct'),
-            //         ,
-            //     ),
-            //     t.objectProperty(
-            //         t.identifier('effectful'),
-            //         effectfulLambda(env, opts, term),
-            //     ),
-            // ]);
         }
         return effectfulLambda(env, opts, term);
     } else {
@@ -75,12 +61,9 @@ export const printLambda = (
                 type: term.is.args[i],
                 loc: null,
             })),
-            // withExecutionLimit(
-            //     env,
-            //     opts,
+            // TODO withExecutionLimit
             printLambdaBody(env, opts, term.body, null),
             term.is.res,
-            // ),
             term.location,
         );
     }

@@ -2,10 +2,11 @@
 
 // import * as t from '@babel/types';
 import { idName } from '../typing/env';
-import { binOps } from '../typing/preset';
+import { binOps, pureFunction, void_ } from '../typing/preset';
 import { showLocation } from '../typing/typeExpr';
 import { Env, Id, Symbol, Term, Type } from '../typing/types';
 import * as ir from './ir/intermediateRepresentation';
+import { handlersType } from './ir/types';
 import {
     PP,
     items,
@@ -60,13 +61,32 @@ export const typeToGo = (env: Env, opts: OutputOptions, type: Type): PP => {
         }
 
         case 'lambda':
+            // Is this the right place to make this adjustment?
+            // We'll have to do it in a number of places, I imagine.
             return items([
                 atom('func '),
-                args(type.args.map((t) => typeToGo(env, opts, t))),
+                args(
+                    type.args
+                        .map((t) => typeToGo(env, opts, t))
+                        .concat(
+                            type.effects.length
+                                ? [
+                                      typeToGo(env, opts, handlersType),
+                                      typeToGo(
+                                          env,
+                                          opts,
+                                          pureFunction(
+                                              [handlersType, type.res],
+                                              void_,
+                                          ),
+                                      ),
+                                      //   typeToGo(env, opts, type.res),
+                                  ]
+                                : [],
+                        ),
+                ),
                 atom(' '),
-                type.res.type !== 'ref' ||
-                type.res.ref.type !== 'builtin' ||
-                type.res.ref.name !== 'void'
+                type.effects.length === 0 && !isVoid(type.res)
                     ? typeToGo(env, opts, type.res)
                     : null,
             ]);
@@ -173,6 +193,7 @@ const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
             return items([
                 atom('if '),
                 termToGo(env, opts, stmt.cond),
+                atom(' '),
                 lambdaBodyToGo(env, opts, stmt.yes),
                 ...(stmt.no
                     ? [atom(' else '), lambdaBodyToGo(env, opts, stmt.no)]
@@ -263,6 +284,46 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
             return atom(term.name);
         case 'term':
             return atom(IdToString(term.id));
+        case 'arrayLen':
+            return items([
+                atom('len'),
+                args([termToGo(env, opts, term.value)]),
+            ]);
+        case 'eqLiteral':
+            return items([
+                termToGo(env, opts, term.literal),
+                atom(' == '),
+                termToGo(env, opts, term.value),
+            ]);
+        case 'arrayIndex':
+            return items([
+                termToGo(env, opts, term.value),
+                atom('['),
+                termToGo(env, opts, term.idx),
+                atom(']'),
+            ]);
+        case 'slice':
+            return items([
+                termToGo(env, opts, term.value),
+                atom('['),
+                atom(term.start.toString()),
+                atom(':'),
+                term.end != null ? atom(term.end.toString()) : null,
+                // termToGo(env, opts, term.start)
+                atom(']'),
+            ]);
+        case 'array':
+            return items([
+                atom('[]'),
+                typeToGo(env, opts, term.elType),
+                args(
+                    term.items
+                        .filter((t) => t.type !== 'Spread')
+                        .map((item) => termToGo(env, opts, item as ir.Expr)),
+                    '{',
+                    '}',
+                ),
+            ]);
         default:
             let _x: never = term;
             return atom(`panic("Nope ${term.type}")`);

@@ -19,7 +19,19 @@ export const string: Type = builtinType('string');
 export const void_: Type = builtinType('void');
 export const bool: Type = builtinType('bool');
 
-export const binOps = ['++', '+', '>', '<', '/', '*', '==', '-', '^'];
+export const binOps = [
+    '++',
+    '+',
+    '>',
+    '<',
+    '/',
+    '*',
+    '==',
+    '-',
+    '^',
+    '>=',
+    '<=',
+];
 
 export const pureFunction = (
     args: Array<Type>,
