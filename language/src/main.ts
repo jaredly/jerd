@@ -552,7 +552,7 @@ const saveCache = (files: Array<string>, self: string) => {
 // STOPSHIP: Allow --assert to make these runnable
 // with assertions! that would be great
 // and I mean --run could be fun too
-const mainGo = (fnames: Array<string>) => {
+const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
     for (let fname of fnames) {
         if (fname.endsWith('type-errors.jd')) {
             continue;
@@ -562,7 +562,7 @@ const mainGo = (fnames: Array<string>) => {
         const parsed: Array<Toplevel> = parse(raw);
 
         const { expressions, env } = typeFile(parsed, fname);
-        const text = fileToGo(expressions, env);
+        const text = fileToGo(expressions, env, assert);
 
         const name = path.basename(fname).slice(0, -3);
 
@@ -691,7 +691,9 @@ if (process.argv[2] === 'go') {
     const fnames = process.argv
         .slice(3)
         .filter((name) => !name.startsWith('-'));
-    mainGo(expandDirectories(fnames));
+    const assert = process.argv.includes('--assert');
+    const run = process.argv.includes('--run');
+    mainGo(expandDirectories(fnames), assert, run);
 } else if (process.argv[2] === '--test') {
     runTests();
 } else {

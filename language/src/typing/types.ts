@@ -11,6 +11,9 @@ export const refsEqual = (one: Reference, two: Reference) => {
         : two.type === 'user' && idsEqual(one.id, two.id);
 };
 
+export const isBuiltin = (one: Term, name: string) =>
+    one.type === 'ref' && one.ref.type === 'builtin' && one.ref.name === name;
+
 export const idsEqual = (one: Id, two: Id): boolean =>
     one.hash === two.hash && one.pos === two.pos && one.size === two.size;
 

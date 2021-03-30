@@ -2,9 +2,18 @@
 
 // import * as t from '@babel/types';
 import { idName } from '../typing/env';
-import { binOps, pureFunction, void_ } from '../typing/preset';
+import { isType } from '../typing/getTypeError';
+import { binOps, bool, pureFunction, void_ } from '../typing/preset';
 import { showLocation } from '../typing/typeExpr';
-import { Env, Id, Symbol, Term, Type } from '../typing/types';
+import {
+    Env,
+    Id,
+    isBuiltin,
+    LambdaType,
+    Symbol,
+    Term,
+    Type,
+} from '../typing/types';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, removeUnusedVariables } from './ir/optimize';
 import { handlersType } from './ir/types';
@@ -25,10 +34,25 @@ export const HashToString = (hash: string) => `Hash_${hash}`;
 export const IdToString = (id: Id) => HashToString(idName(id));
 const symToGo = (sym: Symbol) => atom(`${sym.name}_${sym.unique}`);
 
-export const fileToGo = (expressions: Array<Term>, env: Env) => {
+export const fileToGo = (
+    expressions: Array<Term>,
+    env: Env,
+    assert: boolean,
+) => {
     // const ast = fileToTypescript(expressions, env, {}, )
     const result: Array<PP> = [];
     result.push(atom(`type handlers = []interface{}`));
+    result.push(
+        atom(`
+    func assertEqual(one, two interface{}) {
+        if one != two {
+            println("Failed!")
+        } else {
+            println("Passed!")
+        }
+    }
+    `),
+    );
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
         const irTerm = ir.printTerm(env, {}, term);
@@ -38,16 +62,40 @@ export const fileToGo = (expressions: Array<Term>, env: Env) => {
         items([
             atom('func main() '),
             block(
-                expressions.map((expr) =>
-                    items([
-                        atom('_ = '),
-                        termToGo(
-                            env,
-                            {},
-                            optimize(ir.printTerm(env, {}, expr)),
-                        ),
-                    ]),
-                ),
+                expressions.map((expr) => {
+                    if (assert && isType(env, expr.is, bool)) {
+                        if (
+                            expr.type === 'apply' &&
+                            isBuiltin(expr.target, '==')
+                        ) {
+                            const argTypes = (expr.target.is as LambdaType)
+                                .args;
+                            expr = {
+                                ...expr,
+                                target: {
+                                    type: 'ref',
+                                    ref: {
+                                        type: 'builtin',
+                                        name: 'assertEqual',
+                                    },
+                                    location: null,
+                                    is: pureFunction(argTypes, void_),
+                                },
+                                is: void_,
+                            };
+                        }
+                    }
+                    const t = termToGo(
+                        env,
+                        {},
+                        optimize(ir.printTerm(env, {}, expr)),
+                    );
+                    if (isType(env, expr.is, void_)) {
+                        return t;
+                    } else {
+                        return items([atom('_ = '), t]);
+                    }
+                }),
                 '',
             ),
         ]),
