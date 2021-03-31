@@ -102,6 +102,7 @@ const _termToAstCPS = (
             target: done,
             res: void_,
             targetType: pureFunction([handlersType, term.is], void_),
+            concreteType: pureFunction([handlersType, term.is], void_),
             args: [
                 {
                     type: 'var',
@@ -148,6 +149,7 @@ const _termToAstCPS = (
                         target: done,
                         res: void_,
                         targetType: pureFunction([handlersType], void_),
+                        concreteType: pureFunction([handlersType], void_),
                         args: [{ type: 'var', sym: handlerSym, loc: null }],
                         loc: null,
                     },

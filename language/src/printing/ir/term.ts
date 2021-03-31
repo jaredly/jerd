@@ -152,9 +152,11 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             return callExpression(
                 target,
                 term.originalTargetType,
+                // term.
                 term.is,
                 args.map((arg, i) => printTerm(env, opts, arg)),
                 term.location,
+                term.target.is as LambdaType,
             );
         }
 

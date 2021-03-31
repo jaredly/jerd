@@ -1,6 +1,7 @@
 // Printing Go! I think
 
 // import * as t from '@babel/types';
+import { listenerCount } from 'events';
 import { type } from 'os';
 import { nullLocation } from '../parsing/parser';
 import { idName, idFromName } from '../typing/env';
@@ -18,6 +19,7 @@ import {
     Term,
     Type,
 } from '../typing/types';
+import { walkType } from '../typing/typeType';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, removeUnusedVariables } from './ir/optimize';
 import { callExpression, handlersType } from './ir/types';
@@ -145,12 +147,9 @@ export const handleArgTypeVariables = (
     opts: OutputOptions,
     arg: ir.Expr,
     origType: Type,
+    type: Type,
 ): PP => {
-    // Hash_73d0baf5 becomes
-    // func (arg interface{}) interface{} {
-    //   (interface{})(Hash_73d0baf5(arg.(int)))
-    // }
-    if (origType.type === 'var') {
+    if (origType.type === 'var' && type.type !== 'var') {
         // hrmm
         // do I need a "type cast" thing for the IR? maybe?
         // like, I could get away with PP probably
@@ -160,6 +159,96 @@ export const handleArgTypeVariables = (
             atom(')'),
         ]);
     }
+    if (type.type === 'var' && origType.type !== 'var') {
+        return items([
+            termToGo(env, opts, arg),
+            atom('.('),
+            typeToGo(env, opts, origType),
+            atom(')'),
+        ]);
+    }
+    if (origType.type === 'lambda') {
+        let hadVar = false;
+        walkType(origType, (t) => {
+            if (t.type === 'var') {
+                hadVar = true;
+            }
+            return null;
+        });
+        let hasVar = false;
+        walkType(type, (t) => {
+            if (t.type === 'var') {
+                hasVar = true;
+            }
+            return null;
+        });
+        if (hadVar && !hasVar) {
+            const t = type as LambdaType;
+            // Hash_73d0baf5 becomes
+            // func (arg interface{}) interface{} {
+            //   (interface{})(Hash_73d0baf5(arg.(int)))
+            // }
+            const argVbls = origType.args.map((_, i) => ({
+                name: `arg_${i}`,
+                unique: env.local.unique++,
+            }));
+            return items([
+                atom('func '),
+                args(
+                    origType.args.map((arg, i) =>
+                        items([
+                            symToGo(argVbls[i]),
+                            atom(' '),
+                            typeToGo(env, opts, arg),
+                        ]),
+                    ),
+                ),
+                atom(' '),
+                typeToGo(env, opts, origType.res),
+                atom(' '),
+                block(
+                    [
+                        items([
+                            atom('return '),
+                            handleArgTypeVariables(
+                                env,
+                                opts,
+                                callExpression(
+                                    arg,
+                                    t,
+                                    t.res,
+                                    origType.args.map((_, i) => ({
+                                        type: 'var',
+                                        sym: argVbls[i],
+                                        loc: null,
+                                    })),
+                                    null,
+                                    origType,
+                                ),
+                                // arg,
+                                origType.res,
+                                t.res,
+                            ),
+                        ]),
+                    ],
+                    '',
+                ),
+            ]);
+
+            // return atom('convert_convert');
+        }
+        // return atom(`ok${origType.typeVbls.length}_vs_${t.typeVbls.length}`);
+        // let hadVar = false
+        // origType.args.forEach((arg, i) => {
+        //     hadVar
+        // })
+    }
+    // ugh now I need to know the concrete types of things...
+    // is this too much work?
+    // am I going down a weird rabbit hole?
+    // should I get back to javascript-land?
+    // probably javascript land, ftr.
+
     return termToGo(env, opts, arg);
 };
 
@@ -206,7 +295,7 @@ export const typeToGo = (env: Env, opts: OutputOptions, type: Type): PP => {
             ]);
 
         case 'var':
-            return atom('interface {}');
+            return atom('interface{}');
     }
 };
 
@@ -370,26 +459,20 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                 termToGo(env, opts, term.target),
                 args(
                     term.args.map((arg, i) =>
-                        // hrmmmmm I need to know the types that are expected
-                        // so I can know whether to transform them into interface{}
-                        // items([
-                        //     term.targetType.args[i].type === 'var'
-                        //         ? atom('(interface{})(')
-                        //         : null,
-                        //     termToGo(env, opts, arg),
-                        //     term.targetType.args[i].type === 'var'
-                        //         ? atom(')')
-                        //         : null,
-                        // ]),
                         handleArgTypeVariables(
                             env,
                             opts,
                             arg,
+                            // term.
+                            // hrmmmmmm actually maybe I need to know what the type is
+                            // currently?
                             term.targetType.args[i],
+                            term.concreteType.args[i],
                         ),
                     ),
                 ),
-                term.targetType.res.type === 'var'
+                term.targetType.res.type === 'var' &&
+                term.concreteType.res.type !== 'var'
                     ? // TODO pipe through the ids of things
                       items([
                           atom('.('),

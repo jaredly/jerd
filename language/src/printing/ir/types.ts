@@ -56,9 +56,11 @@ export const callExpression = (
     res: Type,
     args: Array<Expr>,
     loc: Loc,
+    concreteType?: LambdaType,
 ): Expr => ({
     type: 'apply',
     targetType,
+    concreteType: concreteType || targetType,
     res,
     target,
     args,
@@ -161,6 +163,7 @@ export type Expr =
     | {
           type: 'apply';
           targetType: LambdaType;
+          concreteType: LambdaType;
           res: Type;
           target: Expr;
           args: Array<Expr>;

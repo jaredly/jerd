@@ -186,6 +186,7 @@ export const printPattern = (
         const indexFromEnd = (i: number, loc: Loc): Expr => ({
             type: 'apply',
             targetType: pureFunction([int, int], int),
+            concreteType: pureFunction([int, int], int),
             res: int,
             target: {
                 type: 'builtin',
@@ -298,6 +299,7 @@ export const printPattern = (
                         {
                             type: 'apply',
                             targetType: pureFunction([int, int], bool),
+                            concreteType: pureFunction([int, int], bool),
                             res: bool,
                             target: {
                                 type: 'builtin',
