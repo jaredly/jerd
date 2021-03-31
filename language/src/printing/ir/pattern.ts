@@ -6,7 +6,7 @@ import { idName } from '../../typing/env';
 
 import { Expr, Block, Literal, Loc } from './types';
 
-import { blockStatement, ifStatement } from './utils';
+import { blockStatement, ifStatement, or } from './utils';
 
 // Here's how this looks.
 // If you succeed, return the success branch. otherwise, do nothing.
@@ -53,12 +53,9 @@ export const printPattern = (
         return blockStatement(
             [
                 ifStatement(
-                    tests.reduce((one: Expr, two: Expr) => ({
-                        type: 'or',
-                        left: one,
-                        right: two,
-                        loc: pattern.location,
-                    })),
+                    tests.reduce((one: Expr, two: Expr) =>
+                        or(one, two, pattern.location),
+                    ),
                     success,
                     null,
                     pattern.location,

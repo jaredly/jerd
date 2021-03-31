@@ -96,7 +96,7 @@ export type Expr =
     | { type: 'builtin'; name: string; loc: Loc }
     // used in switches
     | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc }
-    | { type: 'or'; left: Expr; right: Expr; loc: Loc }
+    // | { type: 'or'; left: Expr; right: Expr; loc: Loc }
     //
     | { type: 'effectfulOrDirect'; effectful: boolean; target: Expr; loc: Loc }
     | {

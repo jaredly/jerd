@@ -258,6 +258,7 @@ export const addEnum = (
     return { id: idid, env: { ...env, global: glob } };
 };
 
+export const idFromName = (name: string) => ({ hash: name, size: 1, pos: 0 });
 export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
 
 export const refName = (ref: Reference) =>

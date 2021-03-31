@@ -31,6 +31,8 @@ export const binOps = [
     '^',
     '>=',
     '<=',
+    '&&',
+    '||',
 ];
 
 export const pureFunction = (

@@ -2,6 +2,7 @@ import { showLocation } from '../../typing/typeExpr';
 import { Symbol } from '../../typing/types';
 import { defaultVisitor, transformExpr, Visitor } from './transform';
 import { Expr, Stmt } from './types';
+import { and } from './utils';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
@@ -9,14 +10,41 @@ export const optimize = (expr: Expr): Expr => {
     const transformers: Array<(e: Expr) => Expr> = [
         removeUnusedVariables,
         removeNestedBlocksWithoutDefines,
+        flattenNestedIfs,
     ];
     transformers.forEach((t) => (expr = t(expr)));
     return expr;
 };
 
-// export const flattenNestedIfs = (expr: Expr): Expr => {
-
-// }
+// TODO: need an `&&` logicOp type. Or just a general binOp type?
+// or something. Maybe have && be a builtin, binop.
+export const flattenNestedIfs = (expr: Expr): Expr => {
+    return transformRepeatedly(expr, {
+        ...defaultVisitor,
+        stmt: (stmt) => {
+            if (stmt.type !== 'if') {
+                return null;
+            }
+            if (stmt.no != null) {
+                return null;
+            }
+            if (stmt.yes.items.length !== 1) {
+                return null;
+            }
+            if (stmt.yes.items[0].type !== 'if') {
+                return null;
+            }
+            if (stmt.yes.items[0].no !== null) {
+                return null;
+            }
+            return {
+                ...stmt,
+                cond: and(stmt.cond, stmt.yes.items[0].cond, stmt.loc),
+                yes: stmt.yes.items[0].yes,
+            };
+        },
+    });
+};
 
 export const transformRepeatedly = (expr: Expr, visitor: Visitor): Expr => {
     while (true) {

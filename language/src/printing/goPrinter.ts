@@ -1,22 +1,27 @@
 // Printing Go! I think
 
 // import * as t from '@babel/types';
-import { idName } from '../typing/env';
+import { type } from 'os';
+import { nullLocation } from '../parsing/parser';
+import { idName, idFromName } from '../typing/env';
 import { isType } from '../typing/getTypeError';
 import { binOps, bool, pureFunction, void_ } from '../typing/preset';
 import { showLocation } from '../typing/typeExpr';
 import {
+    apply,
     Env,
     Id,
     isBuiltin,
     LambdaType,
+    RecordDef,
     Symbol,
     Term,
     Type,
 } from '../typing/types';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, removeUnusedVariables } from './ir/optimize';
-import { handlersType } from './ir/types';
+import { callExpression, handlersType } from './ir/types';
+import { builtin } from './ir/utils';
 import {
     PP,
     items,
@@ -51,8 +56,24 @@ export const fileToGo = (
             println("Passed!")
         }
     }
+    func assert(val bool) {
+        if !val {
+            println("Failed!")
+        } else {
+            println("Passed!")
+        }
+    }
     `),
     );
+
+    Object.keys(env.global.types).forEach((hash) => {
+        const defn = env.global.types[hash];
+        if (defn.type === 'Record') {
+            result.push(recordTypeToGo(env, {}, idFromName(hash), defn));
+            result.push(recordTypeToInterface(env, {}, idFromName(hash), defn));
+        }
+    });
+
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
         const irTerm = ir.printTerm(env, {}, term);
@@ -83,6 +104,22 @@ export const fileToGo = (
                                 },
                                 is: void_,
                             };
+                        } else {
+                            expr = apply(
+                                {
+                                    type: 'ref',
+                                    ref: { type: 'builtin', name: 'assert' },
+                                    location: null,
+                                    is: pureFunction([bool], void_),
+                                },
+                                [expr],
+                                null,
+                            );
+                            // expr = callExpression(
+                            //     builtin('assert', expr.location),
+                            //     [expr],
+                            //     expr.location
+                            // )
                         }
                     }
                     const t = termToGo(
@@ -101,6 +138,29 @@ export const fileToGo = (
         ]),
     );
     return result.map((item) => printToString(item, 100)).join('\n\n');
+};
+
+export const handleArgTypeVariables = (
+    env: Env,
+    opts: OutputOptions,
+    arg: ir.Expr,
+    origType: Type,
+): PP => {
+    // Hash_73d0baf5 becomes
+    // func (arg interface{}) interface{} {
+    //   (interface{})(Hash_73d0baf5(arg.(int)))
+    // }
+    if (origType.type === 'var') {
+        // hrmm
+        // do I need a "type cast" thing for the IR? maybe?
+        // like, I could get away with PP probably
+        return items([
+            atom('(interface{})('),
+            termToGo(env, opts, arg),
+            atom(')'),
+        ]);
+    }
+    return termToGo(env, opts, arg);
 };
 
 export const typeToGo = (env: Env, opts: OutputOptions, type: Type): PP => {
@@ -312,15 +372,21 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                     term.args.map((arg, i) =>
                         // hrmmmmm I need to know the types that are expected
                         // so I can know whether to transform them into interface{}
-                        items([
-                            term.targetType.args[i].type === 'var'
-                                ? atom('(interface{})(')
-                                : null,
-                            termToGo(env, opts, arg),
-                            term.targetType.args[i].type === 'var'
-                                ? atom(')')
-                                : null,
-                        ]),
+                        // items([
+                        //     term.targetType.args[i].type === 'var'
+                        //         ? atom('(interface{})(')
+                        //         : null,
+                        //     termToGo(env, opts, arg),
+                        //     term.targetType.args[i].type === 'var'
+                        //         ? atom(')')
+                        //         : null,
+                        // ]),
+                        handleArgTypeVariables(
+                            env,
+                            opts,
+                            arg,
+                            term.targetType.args[i],
+                        ),
                     ),
                 ),
                 term.targetType.res.type === 'var'
@@ -337,6 +403,8 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
         case 'builtin':
             return atom(term.name);
         case 'term':
+            // ok if this is um
+            // term.
             return atom(IdToString(term.id));
         case 'arrayLen':
             return items([
@@ -378,6 +446,7 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                     '}',
                 ),
             ]);
+        // case 'record':
         default:
             let _x: never = term;
             return atom(`panic("Nope ${term.type}")`);
@@ -435,3 +504,49 @@ const patternToGo = (param: any) => {
 
 //     return [atom('// Ok folks')];
 // };
+
+export const attributeId = (id: Id, idx: number) => `H${id.hash}_${idx}`;
+
+export const recordTypeToInterface = (
+    env: Env,
+    opts: OutputOptions,
+    id: Id,
+    defn: RecordDef,
+): PP => {
+    return items([
+        atom('type '),
+        atom('I_' + IdToString(id)),
+        atom(' interface '),
+        block(
+            defn.items.map((item, i) =>
+                items([
+                    atom(attributeId(id, i)),
+                    atom('() '),
+                    typeToGo(env, opts, item),
+                ]),
+            ),
+        ),
+    ]);
+};
+
+export const recordTypeToGo = (
+    env: Env,
+    opts: OutputOptions,
+    id: Id,
+    defn: RecordDef,
+): PP => {
+    return items([
+        atom('type '),
+        atom(IdToString(id)),
+        atom(' struct '),
+        block(
+            defn.items.map((item, i) =>
+                items([
+                    atom(attributeId(id, i)),
+                    atom(' '),
+                    typeToGo(env, opts, item),
+                ]),
+            ),
+        ),
+    ]);
+};

@@ -234,6 +234,23 @@ export type CPSAble =
           is: Type; // this matches the return type of target
       };
 
+// This doesn't do type checking
+export const apply = (
+    target: Term,
+    args: Array<Term>,
+    location: Location | null,
+): Term => ({
+    type: 'apply',
+    originalTargetType: target.is as LambdaType,
+    location,
+    target,
+    typeVbls: [],
+    effectVbls: null,
+    hadAllVariableEffects: false,
+    args,
+    is: (target.is as LambdaType).res, // this matches the return type of target
+});
+
 export type Let = {
     type: 'Let';
     location: Location | null;

@@ -570,6 +570,24 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
         const dest = path.join(buildDir, name, 'main.go');
         fs.mkdirSync(path.dirname(dest), { recursive: true });
         fs.writeFileSync(dest, `package main\n\n` + text);
+        if (run) {
+            const { stdout, error, stderr, status } = spawnSync(
+                'go',
+                ['run', dest],
+                { stdio: 'pipe', encoding: 'utf8' },
+            );
+            if (status !== 0) {
+                console.log(`❌ Execution failed ${chalk.blue(fname)}`);
+                console.log('---------------');
+                console.log(stdout);
+                console.log(stderr);
+                console.log('---------------');
+                // return false;
+            } else {
+                console.log(`✅ all clear ${chalk.blue(fname)}`);
+                // return true;
+            }
+        }
     }
 };
 

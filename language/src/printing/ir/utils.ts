@@ -130,6 +130,30 @@ export const blockStatement = (items: Array<Stmt>, loc: Loc): Block => ({
     loc,
 });
 
+export const builtin = (name: string, loc: Loc): Expr => ({
+    type: 'builtin',
+    name,
+    loc,
+});
+
+export const and = (left: Expr, right: Expr, loc: Loc) =>
+    callExpression(
+        builtin('&&', loc),
+        pureFunction([bool, bool], bool),
+        bool,
+        [left, right],
+        loc,
+    );
+
+export const or = (left: Expr, right: Expr, loc: Loc) =>
+    callExpression(
+        builtin('||', loc),
+        pureFunction([bool, bool], bool),
+        bool,
+        [left, right],
+        loc,
+    );
+
 export const arrowFunctionExpression = (
     args: Array<Arg>,
     body: Expr | Block,
