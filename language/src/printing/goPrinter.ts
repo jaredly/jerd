@@ -11,6 +11,7 @@ import { showLocation } from '../typing/typeExpr';
 import {
     apply,
     Env,
+    getAllSubTypes,
     Id,
     isBuiltin,
     LambdaType,
@@ -529,7 +530,46 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                     '}',
                 ),
             ]);
-        // case 'record':
+        case 'record':
+            if (term.base.type === 'Concrete') {
+                const d = env.global.types[
+                    idName(term.base.ref.id)
+                ] as RecordDef;
+                // eek I need to not rerun `spread` a ton of times.
+                // here's where I make a lambda I think?
+                // oof no its too late for that.
+                // hrmmm what's the right level for this...
+                // maybe I need a "expand all spreads" optimize step?
+                // yeah that sounds like it might do the trick.
+                // and then languages like this that don't do spreads
+                // don't have to worry about it.
+                // yup I think that's the right call.
+                return items([
+                    atom(IdToString(term.base.ref.id)),
+                    args(
+                        [
+                            ...(term.base.spread
+                                ? getAllRecordItems(
+                                      env,
+                                      term.base.ref.id,
+                                  ).map(({ type, id, i }) =>
+                                      items([
+                                          atom(attributeId(id, i)),
+                                          atom(': '),
+                                          termToGo(env, opts, term.base.spread),
+                                          atom('.'),
+                                          atom(attributeId(id, i)),
+                                      ]),
+                                  )
+                                : []),
+                        ],
+                        '{',
+                        '}',
+                    ),
+                ]);
+            } else {
+                return atom('"Nope var record"');
+            }
         default:
             let _x: never = term;
             return atom(`panic("Nope ${term.type}")`);
@@ -596,6 +636,7 @@ export const recordTypeToInterface = (
     id: Id,
     defn: RecordDef,
 ): PP => {
+    // TODO TODO TODO the things from subtypes
     return items([
         atom('type '),
         atom('I_' + IdToString(id)),
@@ -612,6 +653,22 @@ export const recordTypeToInterface = (
     ]);
 };
 
+const getAllRecordItems = (env: Env, id: Id) => {
+    const d = env.global.types[idName(id)] as RecordDef;
+    return d.items
+        .map((type, i) => ({ id, i, type }))
+        .concat(
+            ...getAllSubTypes(env.global, d).map((sub) => {
+                const d = env.global.types[idName(sub)] as RecordDef;
+                return d.items.map((type, i) => ({
+                    id: sub,
+                    i,
+                    type,
+                }));
+            }),
+        );
+};
+
 export const recordTypeToGo = (
     env: Env,
     opts: OutputOptions,
@@ -623,13 +680,27 @@ export const recordTypeToGo = (
         atom(IdToString(id)),
         atom(' struct '),
         block(
-            defn.items.map((item, i) =>
-                items([
-                    atom(attributeId(id, i)),
-                    atom(' '),
-                    typeToGo(env, opts, item),
-                ]),
-            ),
+            // TODO use getAllRecordItmes
+            defn.items
+                .map((item, i) =>
+                    items([
+                        atom(attributeId(id, i)),
+                        atom(' '),
+                        typeToGo(env, opts, item),
+                    ]),
+                )
+                .concat(
+                    ...getAllSubTypes(env.global, defn).map((sub) => {
+                        const d = env.global.types[idName(sub)] as RecordDef;
+                        return d.items.map((item, i) =>
+                            items([
+                                atom(attributeId(sub, i)),
+                                atom(' '),
+                                typeToGo(env, opts, item),
+                            ]),
+                        );
+                    }),
+                ),
         ),
     ]);
 };
