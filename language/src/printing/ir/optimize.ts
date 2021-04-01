@@ -289,6 +289,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
             {
                 type: 'ref',
                 location: null,
+                // @ts-ignore
                 ref: expr.base.ref,
                 typeVbls: [],
                 effectVbls: [],

@@ -541,6 +541,7 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
             return items([
                 termToGo(env, opts, term.target),
                 atom('.'),
+                // @ts-ignore
                 atom(attributeId(term.ref.id, term.idx)),
             ]);
         }
@@ -579,7 +580,7 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                 return atom('"Nope var record"');
             }
         default:
-            let _x: never = term;
+            // let _x: never = term;
             return atom(`panic("Nope ${term.type}")`);
     }
 };
