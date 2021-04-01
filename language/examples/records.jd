@@ -21,6 +21,8 @@ type Employee = {
     address: string,
 }
 
+//ok
+
 const you = Employee{...me, address: "Yes"}
 
 const them = Employee{name: "You", age: 100, what: 3, address: "No"}

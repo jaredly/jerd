@@ -1,9 +1,6 @@
 // Printing Go! I think
 
 // import * as t from '@babel/types';
-import { listenerCount } from 'events';
-import { type } from 'os';
-import { nullLocation } from '../parsing/parser';
 import { idName, idFromName } from '../typing/env';
 import { isType } from '../typing/getTypeError';
 import { binOps, bool, pureFunction, void_ } from '../typing/preset';
@@ -22,8 +19,12 @@ import {
 } from '../typing/types';
 import { walkType } from '../typing/typeType';
 import * as ir from './ir/intermediateRepresentation';
-import { optimize, removeUnusedVariables } from './ir/optimize';
-import { callExpression, handlersType } from './ir/types';
+import {
+    goOptimizations,
+    optimize,
+    removeUnusedVariables,
+} from './ir/optimize';
+import { callExpression, handlersType, Record } from './ir/types';
 import { builtin } from './ir/utils';
 import {
     PP,
@@ -79,8 +80,11 @@ export const fileToGo = (
 
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
-        const irTerm = ir.printTerm(env, {}, term);
-        result.push(defnToGo(env, {}, hash, optimize(irTerm)));
+        let irTerm = ir.printTerm(env, {}, term);
+        irTerm = optimize(irTerm);
+        irTerm = goOptimizations(env, irTerm);
+
+        result.push(defnToGo(env, {}, hash, irTerm));
     });
     result.push(
         items([
@@ -530,6 +534,16 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                     '}',
                 ),
             ]);
+        case 'attribute': {
+            // huh maybe I do want types all over the place
+            // because I need to know whether to
+            // coerce this to something...
+            return items([
+                termToGo(env, opts, term.target),
+                atom('.'),
+                atom(attributeId(term.ref.id, term.idx)),
+            ]);
+        }
         case 'record':
             if (term.base.type === 'Concrete') {
                 const d = env.global.types[
@@ -547,22 +561,16 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                 return items([
                     atom(IdToString(term.base.ref.id)),
                     args(
-                        [
-                            ...(term.base.spread
-                                ? getAllRecordItems(
-                                      env,
-                                      term.base.ref.id,
-                                  ).map(({ type, id, i }) =>
-                                      items([
-                                          atom(attributeId(id, i)),
-                                          atom(': '),
-                                          termToGo(env, opts, term.base.spread),
-                                          atom('.'),
-                                          atom(attributeId(id, i)),
-                                      ]),
-                                  )
-                                : []),
-                        ],
+                        getFlattenedRecordItems(
+                            env,
+                            term,
+                        ).map(({ id, i, value }) =>
+                            items([
+                                atom(attributeId(id, i)),
+                                atom(': '),
+                                termToGo(env, opts, value),
+                            ]),
+                        ),
                         '{',
                         '}',
                     ),
@@ -651,6 +659,41 @@ export const recordTypeToInterface = (
             ),
         ),
     ]);
+};
+
+// hrmmmmm why are some things not populated? 🤔
+const assertPresent = (v: ir.Expr | null): ir.Expr => {
+    if (!v) {
+        throw new Error(`Null expr`);
+    }
+    return v;
+};
+
+const getFlattenedRecordItems = (
+    env: Env,
+    record: Record,
+): Array<{ id: Id; i: number; value: ir.Expr }> => {
+    if (record.base.type === 'Variable') {
+        throw new Error('npe');
+    }
+    const id = record.base.ref.id;
+    const d = env.global.types[idName(id)] as RecordDef;
+    return record.base.rows
+        .map((value, i) => ({ id, i, value: value }))
+        .concat(
+            ...Object.keys(record.subTypes).map((k) =>
+                record.subTypes[k].rows.map((value, i) => ({
+                    id: idFromName(k),
+                    i,
+                    value: value,
+                })),
+            ),
+        )
+        .filter((x) => x.value != null) as Array<{
+        id: Id;
+        i: number;
+        value: ir.Expr;
+    }>;
 };
 
 const getAllRecordItems = (env: Env, id: Id) => {

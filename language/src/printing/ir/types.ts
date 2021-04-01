@@ -128,29 +128,7 @@ export type Expr =
           elType: Type;
           loc: Loc;
       }
-    | {
-          type: 'record';
-          base:
-              | { type: 'Variable'; var: Symbol; spread: Expr }
-              | {
-                    type: 'Concrete';
-                    ref: UserReference;
-                    rows: Array<Expr | null>;
-                    spread: Expr | null;
-                }; // here we do clone and setValues and such
-          is: Type;
-          subTypes: {
-              [id: string]: RecordSubType;
-          };
-          loc: Loc;
-          // ok
-          // so
-          // for js, we can spread
-          // for go, we need to list things individually I do believe
-          // so
-          // lets just keep things n such
-          // also we gon want to do some heavy iffe lifting for realsies.
-      }
+    | Record
     | {
           type: 'attribute';
           target: Expr;
@@ -170,7 +148,7 @@ export type Expr =
           //   args: Array<Expr>;
           loc: Loc;
       }
-    | { type: 'attribute'; target: Expr; id: Id; idx: number; loc: Loc }
+    // | { type: 'attribute'; target: Expr; id: Id; idx: number; loc: Loc }
     | {
           type: 'effectfulOrDirectLambda';
           effectful: LambdaExpr;
@@ -179,6 +157,29 @@ export type Expr =
       }
     | LambdaExpr;
 
+export type Record = {
+    type: 'record';
+    base:
+        | { type: 'Variable'; var: Symbol; spread: Expr }
+        | {
+              type: 'Concrete';
+              ref: UserReference;
+              rows: Array<Expr | null>;
+              spread: Expr | null;
+          }; // here we do clone and setValues and such
+    is: Type;
+    subTypes: {
+        [id: string]: RecordSubType;
+    };
+    loc: Loc;
+    // ok
+    // so
+    // for js, we can spread
+    // for go, we need to list things individually I do believe
+    // so
+    // lets just keep things n such
+    // also we gon want to do some heavy iffe lifting for realsies.
+};
 export type RecordSubType = {
     spread: Expr | null;
     rows: Array<Expr | null>;
