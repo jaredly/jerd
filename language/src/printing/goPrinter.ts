@@ -147,6 +147,10 @@ export const fileToGo = (
     return result.map((item) => printToString(item, 100)).join('\n\n');
 };
 
+// TODO move this to an optimize pass that converts to "{as any}" and "{as type}"
+// also, attributes might want to be "variable" and "concrete"?
+// alternatively, I could make all go attribute access be functions. although that would
+// sacrifice some speed I imagine?
 export const handleArgTypeVariables = (
     env: Env,
     opts: OutputOptions,
