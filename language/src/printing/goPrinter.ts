@@ -383,6 +383,14 @@ const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
             return items([atom('return '), termToGo(env, opts, stmt.value)]);
         // TODO include type here? could be good
         case 'Define':
+            if (!stmt.value) {
+                return items([
+                    atom('var '),
+                    symToGo(stmt.sym),
+                    atom(' '),
+                    typeToGo(env, opts, stmt.is),
+                ]);
+            }
             return items([
                 symToGo(stmt.sym),
                 atom(' := '),

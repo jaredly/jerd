@@ -1,50 +1,20 @@
-import * as t from '@babel/types';
-import generate from '@babel/generator';
-// um what now
-
 // we want to parse things I guess?
 
-import path from 'path';
-import fs from 'fs';
-import { hashObject } from '../typing/env';
-import parse, { Expression, Location, Toplevel } from '../parsing/parser';
+import * as t from '@babel/types';
+
+import { idFromName } from '../typing/env';
 import {
     declarationToAST,
     printType,
     termToAST,
-    typeToString,
     OutputOptions,
 } from './typeScriptPrinter';
-import { optimizeAST, removeTypescriptTypes } from './typeScriptOptimize';
-import typeExpr, { showLocation } from '../typing/typeExpr';
-import typeType, { newTypeVbl } from '../typing/typeType';
-import {
-    EffectRef,
-    Env,
-    getEffects,
-    Reference,
-    Term,
-    Type,
-    TypeConstraint,
-    typesEqual,
-} from '../typing/types';
-import {
-    showType,
-    unifyInTerm,
-    // unifyVariables,
-    getTypeErrorOld,
-} from '../typing/unify';
-import { items, printToString } from './printer';
-import { declarationToPretty, termToPretty } from './printTsLike';
-import {
-    typeDefine,
-    typeTypeDefn,
-    typeEnumDefn,
-    typeEffect,
-} from '../typing/env';
-import { typeFile } from '../typing/typeFile';
+import { optimizeAST } from './typeScriptOptimize';
+import { Env, selfEnv, Term, typesEqual } from '../typing/types';
+import { printToString } from './printer';
+import { declarationToPretty } from './printTsLike';
 
-import { bool, presetEnv } from '../typing/preset';
+import { bool } from '../typing/preset';
 import { wrapWithAssert } from './goPrinter';
 
 export const typeScriptPrelude = (
@@ -157,32 +127,12 @@ export const fileToTypescript = (
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
 
-        items.push(
-            declarationToAST(
-                {
-                    ...env,
-                    local: {
-                        ...env.local,
-                        self: { name: hash, type: term.is },
-                    },
-                },
-                opts,
-                hash,
-                term,
-                printToString(
-                    declarationToPretty(
-                        env,
-                        {
-                            hash: hash,
-                            size: 1,
-                            pos: 0,
-                        },
-                        term,
-                    ),
-                    100,
-                ),
-            ),
+        const comment = printToString(
+            declarationToPretty(env, idFromName(hash), term),
+            100,
         );
+        const senv = selfEnv(env, { name: hash, type: term.is });
+        items.push(declarationToAST(senv, opts, hash, term, comment));
     });
 
     expressions.forEach((term) => {

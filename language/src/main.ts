@@ -20,6 +20,7 @@ import parse, {
     Toplevel,
 } from './parsing/parser';
 import { fileToTypescript } from './printing/fileToTypeScript';
+import { fileToTypescript as fileToTypeScriptNew } from './printing/typeScriptPrinterSimple';
 import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
@@ -466,7 +467,8 @@ const processFile = (
         }
     }
 
-    const ast = fileToTypescript(expressions, env, {}, assert, true);
+    const ast = fileToTypeScriptNew(expressions, env, {}, assert, true);
+    // const ast = fileToTypescript(expressions, env, {}, assert, true);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,

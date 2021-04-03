@@ -1,17 +1,29 @@
 // Ok
 
 import * as t from '@babel/types';
-import { idName, refName } from '../typing/env';
+import { idFromName, idName, refName } from '../typing/env';
+import { binOps, bool } from '../typing/preset';
 import {
     EffectRef,
     Env,
     Id,
     RecordDef,
     Reference,
+    selfEnv,
     Symbol,
+    Term,
+    Type,
+    typesEqual,
 } from '../typing/types';
+import { typeScriptPrelude } from './fileToTypeScript';
+import { wrapWithAssert } from './goPrinter';
 import * as ir from './ir/intermediateRepresentation';
-import { Loc } from './ir/types';
+import { optimize } from './ir/optimize';
+import { handlerSym, Loc } from './ir/types';
+import { printToString } from './printer';
+import { declarationToPretty } from './printTsLike';
+import { optimizeAST } from './typeScriptOptimize';
+import { printType, typeToAst } from './typeScriptPrinter';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
@@ -33,6 +45,59 @@ export type OutputOptions = {
     readonly noTypes?: boolean;
     readonly limitExecutionTime?: boolean;
     readonly disciminant?: string;
+};
+
+export const withAnnotation = <T>(
+    env: Env,
+    opts: OutputOptions,
+    e: T,
+    type: Type,
+): T => ({
+    ...e,
+    // @ts-ignore
+    typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
+});
+
+export const declarationToTs = (
+    env: Env,
+    opts: OutputOptions,
+    hash: string,
+    term: ir.Expr,
+    type: Type,
+    comment?: string,
+): t.Statement => {
+    const expr = termToTs(env, opts, term);
+    let res =
+        opts.scope == null
+            ? t.variableDeclaration('const', [
+                  t.variableDeclarator(
+                      withAnnotation(
+                          env,
+                          opts,
+                          t.identifier('hash_' + hash),
+                          type,
+                      ),
+                      expr,
+                  ),
+              ])
+            : t.expressionStatement(
+                  t.assignmentExpression(
+                      '=',
+                      t.memberExpression(
+                          t.memberExpression(
+                              t.identifier(opts.scope),
+                              t.identifier('terms'),
+                          ),
+                          t.stringLiteral(idName({ hash, size: 1, pos: 0 })),
+                          true,
+                      ),
+                      expr,
+                  ),
+              );
+    if (comment) {
+        res = t.addComment(res, 'leading', comment);
+    }
+    return res;
 };
 
 export const termToTs = (
@@ -65,11 +130,38 @@ export const _termToTs = (
         case 'var':
             return t.identifier(printSym(term.sym));
         case 'IsRecord':
-            return t.memberExpression(
-                termToTs(env, opts, term.value),
-                t.identifier(opts.disciminant || 'type'),
+            return t.binaryExpression(
+                '===',
+                t.memberExpression(
+                    termToTs(env, opts, term.value),
+                    t.identifier(opts.disciminant || 'type'),
+                ),
+                t.stringLiteral(recordIdName(env, term.ref)),
             );
         case 'apply':
+            if (
+                term.target.type === 'builtin' &&
+                binOps.includes(term.target.name) &&
+                term.target.name !== '^' &&
+                term.args.length === 2
+            ) {
+                if (['||', '&&', '??'].includes(term.target.name)) {
+                    return t.logicalExpression(
+                        // @ts-ignore
+                        term.target.name,
+                        termToTs(env, opts, term.args[0]),
+                        termToTs(env, opts, term.args[1]),
+                    );
+                }
+                return t.binaryExpression(
+                    // @ts-ignore
+                    term.target.name === '++' ? '+' : term.target.name,
+                    termToTs(env, opts, term.args[0]),
+                    termToTs(env, opts, term.args[1]),
+                    // termToTs(env, opts, term.target),
+                    // term.args.map((arg) => termToTs(env, opts, arg)),
+                );
+            }
             return t.callExpression(
                 termToTs(env, opts, term.target),
                 term.args.map((arg) => termToTs(env, opts, arg)),
@@ -97,7 +189,7 @@ export const _termToTs = (
                 t.identifier('length'),
             );
         case 'builtin':
-            return t.identifier(term.name);
+            return t.identifier(term.name === '^' ? 'pow' : term.name);
         case 'effectfulOrDirect':
             return t.memberExpression(
                 termToTs(env, opts, term.target),
@@ -121,6 +213,8 @@ export const _termToTs = (
                 termToTs(env, opts, term.literal),
             );
         case 'handle': {
+            // term.hermmmmmm there's different behavior if it's
+            // in the direct case ... hmmm ....
             return t.callExpression(t.identifier('handleSimpleShallow2'), [
                 t.stringLiteral(term.effect.hash),
                 termToTs(env, opts, term.target),
@@ -130,7 +224,7 @@ export const _termToTs = (
                         .map(({ args, k, body }) => {
                             return t.arrowFunctionExpression(
                                 [
-                                    t.identifier('handlers'),
+                                    t.identifier(printSym(handlerSym)),
                                     args.length === 0
                                         ? t.identifier('_')
                                         : args.length === 1
@@ -148,19 +242,19 @@ export const _termToTs = (
                 ),
                 t.arrowFunctionExpression(
                     [
-                        t.identifier('handlers'),
+                        t.identifier(printSym(handlerSym)),
                         t.identifier(printSym(term.pure.arg)),
                     ],
                     lambdaBodyToTs(env, opts, term.pure.body),
                 ),
-                t.identifier('handlers'),
+                ...(term.done ? [t.identifier(printSym(handlerSym))] : []),
             ]);
         }
 
         case 'raise':
             // TODO: The IR should probably be doing more work here....
             const args: Array<t.Expression> = [
-                t.identifier('handlers'),
+                t.identifier(printSym(handlerSym)),
                 t.stringLiteral(term.effect.hash),
                 t.numericLiteral(term.idx),
             ];
@@ -177,9 +271,9 @@ export const _termToTs = (
             }
             args.push(
                 t.arrowFunctionExpression(
-                    [t.identifier('handlers'), t.identifier('value')],
+                    [t.identifier(printSym(handlerSym)), t.identifier('value')],
                     t.callExpression(termToTs(env, opts, term.done), [
-                        t.identifier('handlers'),
+                        t.identifier(printSym(handlerSym)),
                         t.identifier('value'),
                     ]),
                 ),
@@ -340,7 +434,7 @@ export const stmtToTs = (
                 t.variableDeclaration('let', [
                     t.variableDeclarator(
                         t.identifier(printSym(stmt.sym)),
-                        termToTs(env, opts, stmt.value),
+                        stmt.value ? termToTs(env, opts, stmt.value) : null,
                     ),
                 ]),
                 stmt.loc,
@@ -411,3 +505,50 @@ const showEffectRef = (eff: EffectRef) => {
 
 const printRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : ref.id.hash;
+
+export const fileToTypescript = (
+    expressions: Array<Term>,
+    env: Env,
+    opts: OutputOptions,
+    assert: boolean,
+    includeImport: boolean,
+) => {
+    const items = typeScriptPrelude(opts, includeImport);
+
+    // TODO: use the topo sort algorithm from the web editor
+    // to sort these correctly
+    Object.keys(env.global.terms).forEach((hash) => {
+        const term = env.global.terms[hash];
+
+        const comment = printToString(
+            declarationToPretty(env, idFromName(hash), term),
+            100,
+        );
+        const senv = selfEnv(env, { name: hash, type: term.is });
+        const irTerm = ir.printTerm(senv, {}, term);
+        items.push(
+            declarationToTs(
+                senv,
+                opts,
+                hash,
+                optimize(irTerm),
+                term.is,
+                comment,
+            ),
+        );
+    });
+
+    expressions.forEach((term) => {
+        if (assert && typesEqual(term.is, bool)) {
+            term = wrapWithAssert(term);
+        }
+        const irTerm = ir.printTerm(env, {}, term);
+        items.push(
+            t.expressionStatement(termToTs(env, opts, optimize(irTerm))),
+        );
+    });
+
+    const ast = t.file(t.program(items, [], 'script'));
+    optimizeAST(ast);
+    return ast;
+};

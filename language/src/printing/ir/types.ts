@@ -42,7 +42,7 @@ export type Toplevel =
 
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
-    | { type: 'Define'; sym: Symbol; value: Expr; is: Type; loc: Loc }
+    | { type: 'Define'; sym: Symbol; value: Expr | null; is: Type; loc: Loc }
     | { type: 'Assign'; sym: Symbol; value: Expr; is: Type; loc: Loc }
     | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
     | { type: 'MatchFail'; loc: Loc }
@@ -121,6 +121,7 @@ export type Expr =
               k: Symbol;
               body: Expr | Block;
           }>;
+          done: Expr | null;
       }
     | {
           type: 'array';

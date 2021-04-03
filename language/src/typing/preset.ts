@@ -54,7 +54,7 @@ export const pureFunction = (
 
 export function presetEnv() {
     const env = newEnv({
-        name: 'global',
+        name: 'self_unset',
         type: {
             type: 'ref',
             ref: { type: 'builtin', name: 'never' },

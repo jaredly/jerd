@@ -124,6 +124,15 @@ export const ifStatement = (
     };
 };
 
+export const asBlock = (item: Block | Expr): Block =>
+    item.type === 'Block'
+        ? item
+        : {
+              type: 'Block',
+              loc: item.loc,
+              items: [{ type: 'Return', value: item, loc: item.loc }],
+          };
+
 export const blockStatement = (items: Array<Stmt>, loc: Loc): Block => ({
     type: 'Block',
     items,

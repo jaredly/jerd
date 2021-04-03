@@ -135,6 +135,7 @@ const _termToAstCPS = (
                     ...kase,
                     body: printLambdaBody(env, opts, kase.body, done),
                 })),
+                done,
             };
         }
         case 'Let': {

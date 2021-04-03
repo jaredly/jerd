@@ -42,6 +42,8 @@ import {
     ifStatement,
     returnStatement,
     isConstant,
+    builtin,
+    asBlock,
 } from './utils';
 import { printPattern } from './pattern';
 import { printLambda, printLambdaBody } from './lambda';
@@ -166,20 +168,97 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             );
 
         case 'handle': {
-            return {
-                type: 'handle',
-                target: printTerm(env, opts, term.target),
-                loc: term.location,
-                effect: (term.effect as UserReference).id,
-                pure: {
-                    arg: term.pure.arg,
-                    body: printLambdaBody(env, opts, term.pure.body, null),
+            const sym: Symbol = { name: 'result', unique: env.local.unique++ };
+            return iffe(
+                {
+                    type: 'Block',
+                    items: [
+                        {
+                            type: 'Define',
+                            sym,
+                            loc: term.location,
+                            value: null,
+                            is: term.is,
+                        },
+                        {
+                            type: 'Expression',
+                            expr: {
+                                type: 'handle',
+                                target: printTerm(env, opts, term.target),
+                                loc: term.location,
+                                effect: (term.effect as UserReference).id,
+                                pure: {
+                                    arg: term.pure.arg,
+                                    // body: printLambdaBody(
+                                    //     env,
+                                    //     opts,
+                                    //     term.pure.body,
+                                    //     null,
+                                    // ),
+                                    body: {
+                                        type: 'Block',
+                                        loc: term.pure.body.location,
+                                        items: [
+                                            {
+                                                type: 'Assign',
+                                                sym,
+                                                is: term.pure.body.is,
+                                                loc: term.pure.body.location,
+                                                value: iffe(
+                                                    asBlock(
+                                                        printLambdaBody(
+                                                            env,
+                                                            opts,
+                                                            term.pure.body,
+                                                            null,
+                                                        ),
+                                                    ),
+                                                    term.pure.body.is,
+                                                ),
+                                            },
+                                        ],
+                                    },
+                                },
+                                cases: term.cases.map((kase) => ({
+                                    ...kase,
+                                    body: {
+                                        type: 'Block',
+                                        loc: kase.body.location,
+                                        items: [
+                                            {
+                                                type: 'Assign',
+                                                sym,
+                                                is: kase.body.is,
+                                                loc: kase.body.location,
+                                                value: iffe(
+                                                    asBlock(
+                                                        printLambdaBody(
+                                                            env,
+                                                            opts,
+                                                            kase.body,
+                                                            null,
+                                                        ),
+                                                    ),
+                                                    kase.body.is,
+                                                ),
+                                            },
+                                        ],
+                                    },
+                                })),
+                                done: null,
+                            },
+                            loc: term.location,
+                        },
+                        {
+                            type: 'Return',
+                            value: { type: 'var', sym, loc: term.location },
+                            loc: term.location,
+                        },
+                    ],
+                    loc: term.location,
                 },
-                cases: term.cases.map((kase) => ({
-                    ...kase,
-                    body: printLambdaBody(env, opts, kase.body, null),
-                })),
-            };
+                term.is,
+            );
         }
 
         case 'sequence': {

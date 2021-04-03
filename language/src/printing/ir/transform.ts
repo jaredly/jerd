@@ -31,7 +31,6 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
         case 'float':
         case 'term':
         case 'var':
-        case 'builtin':
             return expr;
         case 'eqLiteral':
             const t = transformExpr(expr.value, visitor);
@@ -230,10 +229,15 @@ export const transformStmt = (stmt: Stmt, visitor: Visitor): Stmt => {
             const expr = transformExpr(stmt.expr, visitor);
             return expr !== stmt.expr ? { ...stmt, expr } : stmt;
         }
-        case 'Define':
+        case 'Define': {
+            const value: Expr | null = stmt.value
+                ? transformExpr(stmt.value, visitor)
+                : stmt.value;
+            return value !== stmt.value ? { ...stmt, value } : stmt;
+        }
         case 'Return':
         case 'Assign': {
-            const value = transformExpr(stmt.value, visitor);
+            const value: Expr = transformExpr(stmt.value, visitor);
             return value !== stmt.value ? { ...stmt, value } : stmt;
         }
         case 'MatchFail':
