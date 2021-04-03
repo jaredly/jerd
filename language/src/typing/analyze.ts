@@ -119,7 +119,6 @@ export const termDependencies = (term: Term): Array<Reference> => {
         case 'float':
         case 'boolean':
         case 'self':
-        case 'ref':
             return [];
         default:
             let _x: never = term;

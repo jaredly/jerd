@@ -6,20 +6,23 @@ import {
     removeTypescriptTypes,
 } from '@jerd/language/src/printing/typeScriptOptimize';
 
+import * as ir from '@jerd/language/src/printing/ir/term';
 import { getSortedTermDependencies } from '@jerd/language/src/typing/analyze';
 import generate from '@babel/generator';
 import { idName } from '@jerd/language/src/typing/env';
 import { Env, Id, selfEnv, Term } from '@jerd/language/src/typing/types';
-import { printTerm } from '@jerd/language/src/printing/typeScriptPrinter';
+import { termToTs } from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { EvalEnv } from './Cell';
+import { optimize } from '@jerd/language/src/printing/ir/optimize';
 
 export class TimeoutError extends Error {}
 
 const termToJS = (env: Env, term: Term, idName: string) => {
-    let termAst: any = printTerm(
+    const irTerm = ir.printTerm(env, { limitExecutionTime: true }, term);
+    let termAst: any = termToTs(
         env,
         { scope: 'jdScope', limitExecutionTime: true },
-        term,
+        optimize(irTerm),
     );
     let ast = t.file(t.program([t.returnStatement(termAst)], [], 'script'));
     optimizeAST(ast);
@@ -43,19 +46,22 @@ const runWithExecutionLimit = (
     // const timeLimit = 200;
     const jdScope = {
         ...evalEnv,
+        builtins: {
+            ...evalEnv.builtins,
+            checkExecutionLimit: () => {
+                if (!executionLimit.enabled) {
+                    return;
+                }
+                executionLimit.ticks += 1;
+                // if (ticks++ % 100 === 0) {
+                if (Date.now() > executionLimit.maxTime) {
+                    throw new TimeoutError('Execution took too long');
+                }
+                // }
+            },
+        },
         terms: {
             ...evalEnv.terms,
-        },
-        checkExecutionLimit: () => {
-            if (!executionLimit.enabled) {
-                return;
-            }
-            executionLimit.ticks += 1;
-            // if (ticks++ % 100 === 0) {
-            if (Date.now() > executionLimit.maxTime) {
-                throw new TimeoutError('Execution took too long');
-            }
-            // }
         },
     };
     console.log('code', code);
@@ -74,7 +80,9 @@ export const runTerm = (env: Env, term: Term, id: Id, evalEnv: EvalEnv) => {
     const idn = idName(id);
     deps.forEach((dep) => {
         if (evalEnv.terms[dep] == null) {
-            console.log(dep, 'isnt there');
+            if (dep !== idn) {
+                console.log('Evaluating dependency', dep);
+            }
             const depTerm = idn === dep ? term : env.global.terms[dep];
             const self = { name: dep, type: term.is };
             const code = termToJS(selfEnv(env, self), depTerm, dep);

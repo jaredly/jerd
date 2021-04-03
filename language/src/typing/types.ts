@@ -11,6 +11,9 @@ export const refsEqual = (one: Reference, two: Reference) => {
         : two.type === 'user' && idsEqual(one.id, two.id);
 };
 
+export const isBuiltin = (one: Term, name: string) =>
+    one.type === 'ref' && one.ref.type === 'builtin' && one.ref.name === name;
+
 export const idsEqual = (one: Id, two: Id): boolean =>
     one.hash === two.hash && one.pos === two.pos && one.size === two.size;
 
@@ -221,6 +224,7 @@ export type CPSAble =
       }
     | {
           type: 'apply';
+          originalTargetType: LambdaType;
           location: Location | null;
           target: Term;
           typeVbls: Array<Type>;
@@ -229,6 +233,23 @@ export type CPSAble =
           args: Array<Term>;
           is: Type; // this matches the return type of target
       };
+
+// This doesn't do type checking
+export const apply = (
+    target: Term,
+    args: Array<Term>,
+    location: Location | null,
+): Term => ({
+    type: 'apply',
+    originalTargetType: target.is as LambdaType,
+    location,
+    target,
+    typeVbls: [],
+    effectVbls: null,
+    hadAllVariableEffects: false,
+    args,
+    is: (target.is as LambdaType).res, // this matches the return type of target
+});
 
 export type Let = {
     type: 'Let';

@@ -1,56 +1,24 @@
-import * as t from '@babel/types';
-import generate from '@babel/generator';
-// um what now
-
 // we want to parse things I guess?
 
-import path from 'path';
-import fs from 'fs';
-import { hashObject } from '../typing/env';
-import parse, { Expression, Location, Toplevel } from '../parsing/parser';
+import * as t from '@babel/types';
+
+import { idFromName } from '../typing/env';
 import {
     declarationToAST,
     printType,
-    termToAST,
-    typeToString,
+    // termToAST,
     OutputOptions,
 } from './typeScriptPrinter';
-import { optimizeAST, removeTypescriptTypes } from './typeScriptOptimize';
-import typeExpr, { showLocation } from '../typing/typeExpr';
-import typeType, { newTypeVbl } from '../typing/typeType';
-import {
-    EffectRef,
-    Env,
-    getEffects,
-    Reference,
-    Term,
-    Type,
-    TypeConstraint,
-    typesEqual,
-} from '../typing/types';
-import {
-    showType,
-    unifyInTerm,
-    // unifyVariables,
-    getTypeErrorOld,
-} from '../typing/unify';
-import { items, printToString } from './printer';
-import { declarationToPretty, termToPretty } from './printTsLike';
-import {
-    typeDefine,
-    typeTypeDefn,
-    typeEnumDefn,
-    typeEffect,
-} from '../typing/env';
-import { typeFile } from '../typing/typeFile';
+import { optimizeAST } from './typeScriptOptimize';
+import { Env, selfEnv, Term, typesEqual } from '../typing/types';
+import { printToString } from './printer';
+import { declarationToPretty } from './printTsLike';
 
-import { bool, presetEnv } from '../typing/preset';
+import { bool } from '../typing/preset';
+import { wrapWithAssert } from './goPrinter';
 
-export const fileToTypescript = (
-    expressions: Array<Term>,
-    env: Env,
+export const typeScriptPrelude = (
     opts: OutputOptions,
-    assert: boolean,
     includeImport: boolean,
 ) => {
     const items: Array<t.Statement> = [];
@@ -142,98 +110,39 @@ export const fileToTypescript = (
         }
     }
 
-    Object.keys(env.global.terms).forEach((hash) => {
-        const term = env.global.terms[hash];
-
-        items.push(
-            declarationToAST(
-                {
-                    ...env,
-                    local: {
-                        ...env.local,
-                        self: { name: hash, type: term.is },
-                    },
-                },
-                opts,
-                hash,
-                term,
-                printToString(
-                    declarationToPretty(
-                        env,
-                        {
-                            hash: hash,
-                            size: 1,
-                            pos: 0,
-                        },
-                        term,
-                    ),
-                    100,
-                ),
-            ),
-        );
-    });
-
-    const callBuiltin = (
-        name: string,
-        argTypes: Array<Type>,
-        resType: Type,
-        args: Array<Term>,
-        location: Location | null,
-    ): Term => {
-        return {
-            type: 'apply',
-            target: {
-                type: 'ref',
-                ref: { type: 'builtin', name: name },
-                location,
-                is: {
-                    type: 'lambda',
-                    location,
-                    args: argTypes,
-                    res: resType,
-                    rest: null,
-                    typeVbls: [],
-                    effectVbls: [],
-                    effects: [],
-                },
-            },
-            args: args,
-            location,
-            typeVbls: [],
-            effectVbls: null,
-            is: resType,
-        };
-    };
-
-    expressions.forEach((term) => {
-        if (assert && typesEqual(term.is, bool)) {
-            if (
-                term.type === 'apply' &&
-                term.target.type === 'ref' &&
-                term.target.ref.type === 'builtin' &&
-                term.target.ref.name === '=='
-            ) {
-                term = callBuiltin(
-                    'assertEqual',
-                    (term.target.is as any).args,
-                    bool,
-                    term.args,
-                    term.location,
-                );
-            } else {
-                term = callBuiltin(
-                    'assert',
-                    [bool],
-                    bool,
-                    [term],
-                    term.location,
-                );
-            }
-        }
-        items.push(termToAST(env, opts, term, printType(env, term.is)));
-    });
-
-    const ast = t.file(t.program(items, [], 'script'));
-    optimizeAST(ast);
-    return ast;
+    return items;
 };
+
+// export const fileToTypescript = (
+//     expressions: Array<Term>,
+//     env: Env,
+//     opts: OutputOptions,
+//     assert: boolean,
+//     includeImport: boolean,
+// ) => {
+//     const items = typeScriptPrelude(opts, includeImport);
+
+//     // TODO: use the topo sort algorithm from the web editor
+//     // to sort these correctly
+//     Object.keys(env.global.terms).forEach((hash) => {
+//         const term = env.global.terms[hash];
+
+//         const comment = printToString(
+//             declarationToPretty(env, idFromName(hash), term),
+//             100,
+//         );
+//         const senv = selfEnv(env, { name: hash, type: term.is });
+//         items.push(declarationToAST(senv, opts, hash, term, comment));
+//     });
+
+//     expressions.forEach((term) => {
+//         if (assert && typesEqual(term.is, bool)) {
+//             term = wrapWithAssert(term);
+//         }
+//         items.push(termToAST(env, opts, term, printType(env, term.is)));
+//     });
+
+//     const ast = t.file(t.program(items, [], 'script'));
+//     optimizeAST(ast);
+//     return ast;
+// };

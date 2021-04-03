@@ -1,4 +1,4 @@
-import { Location } from '../parsing/parser';
+import { Location, nullLocation } from '../parsing/parser';
 import {
     LocatedError,
     MismatchedArgument,
@@ -19,6 +19,9 @@ import {
     TypeReference,
     TypeVar,
 } from './types';
+
+export const isType = (env: Env, found: Type, expected: Type) =>
+    getTypeErorr(env, found, expected, nullLocation) == null;
 
 export const getTypeErorr = (
     env: Env,

@@ -18,13 +18,18 @@ import {
 import { Location } from '../parsing/parser';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
-import traverse from '@babel/traverse';
 import { binOps } from '../typing/preset';
-import { env } from 'process';
 import { showType } from '../typing/unify';
 import { optimizeAST } from './typeScriptOptimize';
 import { applyEffectVariables, getEnumReferences } from '../typing/typeExpr';
 import { idName } from '../typing/env';
+
+// Can I... misuse babel's AST to produce go?
+// what would get in my way?
+// hm the fact that typescript type annotations might not do the trick?
+// I mean, for go it might be fine.
+// not sure about swift or something like that.
+// can cross that bridge when we want to.
 
 // TODO: I want to abstract this out
 // Into a file that generates an intermediate representation
@@ -342,21 +347,21 @@ export const printLambdaBody = (
     }
 };
 
-export const termToAST = (
-    env: Env,
-    opts: OutputOptions,
-    term: Term,
-    comment?: string,
-): t.Statement => {
-    let res = withLocation(
-        t.expressionStatement(printTerm(env, opts, term)),
-        term.location,
-    );
-    if (comment) {
-        res = t.addComment(res, 'leading', comment);
-    }
-    return res;
-};
+// export const termToAST = (
+//     env: Env,
+//     opts: OutputOptions,
+//     term: Term,
+//     comment?: string,
+// ): t.Statement => {
+//     let res = withLocation(
+//         t.expressionStatement(printTerm(env, opts, term)),
+//         term.location,
+//     );
+//     if (comment) {
+//         res = t.addComment(res, 'leading', comment);
+//     }
+//     return res;
+// };
 
 export const declarationToAST = (
     env: Env,
@@ -762,6 +767,7 @@ const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
         location: arg.location,
         body: {
             type: 'apply',
+            originalTargetType: arg.is,
             location: arg.location,
             typeVbls: [],
             effectVbls: null,

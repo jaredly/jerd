@@ -9,10 +9,13 @@ Immediate:
     tagged by normal names. So I can just start rendering them.
     or wait. No, I do need to know the IDs, so that I can know
     what type to watch out for to trigger rendering. Yes.
-- [ ] array destructuring please
+- [x] array destructuring please
 - [ ] allow qualified binops, so + doesn't lie
 - [ ] generic effects please
 - [ ] intermediate output, target go or python
+  - what level of granularity? do I assume switches? naw, I don't think so.
+  - So the main task is doing the CPS transform, right?
+  - are there other tasks to be done here?
 - [ ] structured editor with type holes and such
 
 - um think about making type representation simpler :0: like typing-haskell-in-haskell

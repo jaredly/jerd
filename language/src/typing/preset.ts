@@ -1,6 +1,6 @@
 // Presets
 
-import { newEnv, Type, TypeVblDecl } from './types';
+import { LambdaType, newEnv, Type, TypeVblDecl } from './types';
 
 export const builtinType = (
     name: string,
@@ -19,13 +19,27 @@ export const string: Type = builtinType('string');
 export const void_: Type = builtinType('void');
 export const bool: Type = builtinType('bool');
 
-export const binOps = ['++', '+', '>', '<', '/', '*', '==', '-'];
+export const binOps = [
+    '++',
+    '+',
+    '>',
+    '<',
+    '/',
+    '*',
+    '==',
+    '-',
+    '^',
+    '>=',
+    '<=',
+    '&&',
+    '||',
+];
 
 export const pureFunction = (
     args: Array<Type>,
     res: Type,
     typeVbls: Array<TypeVblDecl> = [],
-): Type => {
+): LambdaType => {
     return {
         type: 'lambda',
         typeVbls,
@@ -40,7 +54,7 @@ export const pureFunction = (
 
 export function presetEnv() {
     const env = newEnv({
-        name: 'global',
+        name: 'self_unset',
         type: {
             type: 'ref',
             ref: { type: 'builtin', name: 'never' },

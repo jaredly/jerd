@@ -10,7 +10,6 @@ import {
     hashObject,
     idName,
     typeEnumInner,
-    typeRecord,
     typeRecordDefn,
     withoutLocations,
 } from './typing/env';
@@ -20,43 +19,15 @@ import parse, {
     Location,
     Toplevel,
 } from './parsing/parser';
-import {
-    declarationToAST,
-    printType,
-    termToAST,
-    typeToString,
-} from './printing/typeScriptPrinter';
 import { fileToTypescript } from './printing/fileToTypeScript';
-import {
-    optimizeAST,
-    removeTypescriptTypes,
-} from './printing/typeScriptOptimize';
+import { fileToTypescript as fileToTypeScriptNew } from './printing/typeScriptPrinterSimple';
+import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
+import { Env, Id, Term, TypeConstraint, typesEqual } from './typing/types';
+import { getTypeErrorOld } from './typing/unify';
+import { printToString } from './printing/printer';
 import {
-    EffectRef,
-    EnumDef,
-    Env,
-    getEffects,
-    Id,
-    RecordDef,
-    Reference,
-    Term,
-    Type,
-    TypeConstraint,
-    typesEqual,
-} from './typing/types';
-import {
-    showType,
-    unifyInTerm,
-    // unifyVariables,
-    getTypeErrorOld,
-} from './typing/unify';
-import { items, printToString } from './printing/printer';
-import {
-    declarationToPretty,
-    enumToPretty,
-    recordToPretty,
     termToPretty,
     typeToPretty,
     toplevelToPretty,
@@ -70,7 +41,7 @@ import {
 } from './typing/env';
 import { typeFile } from './typing/typeFile';
 
-import { bool, presetEnv } from './typing/preset';
+import { presetEnv } from './typing/preset';
 
 // const clone = cloner();
 
@@ -387,6 +358,96 @@ const writeFile = (filePath: string, content: string) => {
     fs.writeFileSync(filePath, content);
 };
 
+const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
+    let good = true;
+
+    // Test reprint
+    for (let expr of expressions) {
+        if (
+            reprintToplevel(
+                env,
+                raw,
+                {
+                    type: 'Expression',
+                    term: expr,
+                    location: expr.location!,
+                },
+                hashObject(expr),
+            ) === false
+        ) {
+            good = false;
+            break;
+        }
+    }
+
+    // Test reprint
+    for (let id of Object.keys(env.global.terms)) {
+        const tenv = {
+            ...env,
+            local: {
+                ...env.local,
+                self: {
+                    name: env.global.idNames[id],
+                    type: env.global.terms[id].is,
+                },
+            },
+        };
+        if (
+            reprintToplevel(
+                tenv,
+                raw,
+                {
+                    type: 'Define',
+                    id: { hash: id, size: 1, pos: 0 },
+                    term: env.global.terms[id],
+                    location: env.global.terms[id].location!,
+                    name: env.global.idNames[id],
+                },
+                id,
+            ) === false
+        ) {
+            good = false;
+            break;
+        }
+    }
+
+    // Type declarations
+    for (let tid of Object.keys(env.global.types)) {
+        const t = env.global.types[tid];
+        // ermm fix this hack
+        if (tid === 'Some' || tid === 'None') {
+            continue;
+        }
+        let top: ToplevelT;
+        if (t.type === 'Record') {
+            const id = { hash: tid, size: 1, pos: 0 };
+            top = {
+                type: 'RecordDef',
+                id: id,
+                def: t,
+                location: t.location!,
+                name: env.global.idNames[idName(id)],
+                attrNames: env.global.recordGroups[idName(id)],
+            };
+        } else {
+            const id = { hash: tid, size: 1, pos: 0 };
+            top = {
+                type: 'EnumDef',
+                id,
+                def: t,
+                location: t.location!,
+                name: env.global.idNames[idName(id)],
+            };
+        }
+        if (reprintToplevel(env, raw, top, tid) === false) {
+            good = false;
+            break;
+        }
+    }
+
+    return good;
+};
+
 const processFile = (
     fname: string,
     assert: boolean,
@@ -399,107 +460,15 @@ const processFile = (
     const { expressions, env } = typeFile(parsed, fname);
 
     if (reprint) {
-        let good = true;
-
-        // Test reprint
-        for (let expr of expressions) {
-            if (
-                reprintToplevel(
-                    env,
-                    raw,
-                    {
-                        type: 'Expression',
-                        term: expr,
-                        location: expr.location!,
-                    },
-                    hashObject(expr),
-                ) === false
-            ) {
-                good = false;
-                break;
-            }
-        }
-
-        // Test reprint
-        for (let id of Object.keys(env.global.terms)) {
-            const tenv = {
-                ...env,
-                local: {
-                    ...env.local,
-                    self: {
-                        name: env.global.idNames[id],
-                        type: env.global.terms[id].is,
-                    },
-                },
-            };
-            if (
-                reprintToplevel(
-                    tenv,
-                    raw,
-                    {
-                        type: 'Define',
-                        id: { hash: id, size: 1, pos: 0 },
-                        term: env.global.terms[id],
-                        location: env.global.terms[id].location!,
-                        name: env.global.idNames[id],
-                    },
-                    id,
-                ) === false
-            ) {
-                good = false;
-                break;
-            }
-        }
-
-        // Type declarations
-        for (let tid of Object.keys(env.global.types)) {
-            const t = env.global.types[tid];
-            // ermm fix this hack
-            if (tid === 'Some' || tid === 'None') {
-                continue;
-            }
-            let top: ToplevelT;
-            if (t.type === 'Record') {
-                const id = { hash: tid, size: 1, pos: 0 };
-                top = {
-                    type: 'RecordDef',
-                    id: id,
-                    def: t,
-                    location: t.location!,
-                    name: env.global.idNames[idName(id)],
-                    attrNames: env.global.recordGroups[idName(id)],
-                };
-            } else {
-                const id = { hash: tid, size: 1, pos: 0 };
-                top = {
-                    type: 'EnumDef',
-                    id,
-                    def: t,
-                    location: t.location!,
-                    name: env.global.idNames[idName(id)],
-                };
-            }
-            if (reprintToplevel(env, raw, top, tid) === false) {
-                good = false;
-                break;
-            }
-        }
-
+        const good = checkReprint(raw, expressions, env);
         if (!good) {
             console.log(`❌ Reprint failed for ${chalk.blue(fname)}`);
             return false;
         }
     }
 
-    const ast = fileToTypescript(
-        expressions,
-        env,
-        // { scope: 'jdScope'},
-        {},
-        // { scope: null },
-        assert,
-        true,
-    );
+    const ast = fileToTypeScriptNew(expressions, env, {}, assert, true);
+    // const ast = fileToTypescript(expressions, env, {}, assert, true);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
@@ -580,6 +549,48 @@ const saveCache = (files: Array<string>, self: string) => {
     const cache = { [self]: fs.statSync(self).mtimeMs };
     files.forEach((name) => (cache[name] = fs.statSync(name).mtimeMs));
     fs.writeFileSync(cacheFile, JSON.stringify(cache), 'utf8');
+};
+
+// STOPSHIP: Allow --assert to make these runnable
+// with assertions! that would be great
+// and I mean --run could be fun too
+const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
+    for (let fname of fnames) {
+        if (fname.endsWith('type-errors.jd')) {
+            continue;
+        }
+        console.log(fname);
+        const raw = fs.readFileSync(fname, 'utf8');
+        const parsed: Array<Toplevel> = parse(raw);
+
+        const { expressions, env } = typeFile(parsed, fname);
+        const text = fileToGo(expressions, env, assert);
+
+        const name = path.basename(fname).slice(0, -3);
+
+        const buildDir = path.join(path.dirname(fname), 'build', 'go');
+        const dest = path.join(buildDir, name, 'main.go');
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        fs.writeFileSync(dest, `package main\n\n` + text);
+        if (run) {
+            const { stdout, error, stderr, status } = spawnSync(
+                'go',
+                ['run', dest],
+                { stdio: 'pipe', encoding: 'utf8' },
+            );
+            if (status !== 0) {
+                console.log(`❌ Execution failed ${chalk.blue(fname)}`);
+                console.log('---------------');
+                console.log(stdout);
+                console.log(stderr);
+                console.log('---------------');
+                // return false;
+            } else {
+                console.log(`✅ all clear ${chalk.blue(fname)}`);
+                // return true;
+            }
+        }
+    }
 };
 
 const main = (
@@ -671,6 +682,7 @@ const main = (
 
 import { execSync, spawnSync } from 'child_process';
 import { LocatedError, TypeError } from './typing/errors';
+import { fileToGo } from './printing/goPrinter';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
@@ -694,7 +706,15 @@ const expandDirectories = (fnames: Array<string>) => {
     return result;
 };
 
-if (process.argv[2] === '--test') {
+if (process.argv[2] === 'go') {
+    console.log('go please');
+    const fnames = process.argv
+        .slice(3)
+        .filter((name) => !name.startsWith('-'));
+    const assert = process.argv.includes('--assert');
+    const run = process.argv.includes('--run');
+    mainGo(expandDirectories(fnames), assert, run);
+} else if (process.argv[2] === '--test') {
     runTests();
 } else {
     const fnames = process.argv
