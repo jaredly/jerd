@@ -533,7 +533,7 @@ export const fileToTypescript = (
     assert: boolean,
     includeImport: boolean,
 ) => {
-    const items = typeScriptPrelude(opts, includeImport);
+    const items = typeScriptPrelude(opts.scope, includeImport);
 
     // TODO: use the topo sort algorithm from the web editor
     // to sort these correctly

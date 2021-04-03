@@ -19,7 +19,7 @@ import parse, {
     Location,
     Toplevel,
 } from './parsing/parser';
-import { fileToTypescript } from './printing/fileToTypeScript';
+// import { fileToTypescript } from './printing/fileToTypeScript';
 import { fileToTypescript as fileToTypeScriptNew } from './printing/typeScriptPrinterSimple';
 import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';

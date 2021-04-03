@@ -4,10 +4,10 @@ import * as t from '@babel/types';
 
 import { idFromName } from '../typing/env';
 import {
-    declarationToAST,
+    // declarationToAST,
     printType,
     // termToAST,
-    OutputOptions,
+    // OutputOptions,
 } from './typeScriptPrinter';
 import { optimizeAST } from './typeScriptOptimize';
 import { Env, selfEnv, Term, typesEqual } from '../typing/types';
@@ -18,7 +18,8 @@ import { bool } from '../typing/preset';
 import { wrapWithAssert } from './goPrinter';
 
 export const typeScriptPrelude = (
-    opts: OutputOptions,
+    // opts: OutputOptions,
+    scope: string | undefined,
     includeImport: boolean,
 ) => {
     const items: Array<t.Statement> = [];
@@ -48,11 +49,11 @@ export const typeScriptPrelude = (
         'atan2',
     ];
 
-    if (opts.scope) {
+    if (scope) {
         items.push(
             t.variableDeclaration('const', [
                 t.variableDeclarator(
-                    t.identifier(opts.scope),
+                    t.identifier(scope),
                     t.objectExpression([
                         t.objectProperty(
                             t.identifier('builtins'),
@@ -87,8 +88,8 @@ export const typeScriptPrelude = (
                 t.stringLiteral('./prelude.mjs'),
             ),
         );
-        if (opts.scope != null) {
-            const scope = opts.scope;
+        if (scope != null) {
+            // const scope = scope;
             builtinNames.forEach((name) =>
                 items.push(
                     t.expressionStatement(
