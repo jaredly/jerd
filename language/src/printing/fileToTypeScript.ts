@@ -45,12 +45,10 @@ import {
 import { typeFile } from '../typing/typeFile';
 
 import { bool, presetEnv } from '../typing/preset';
+import { wrapWithAssert } from './goPrinter';
 
-export const fileToTypescript = (
-    expressions: Array<Term>,
-    env: Env,
+export const typeScriptPrelude = (
     opts: OutputOptions,
-    assert: boolean,
     includeImport: boolean,
 ) => {
     const items: Array<t.Statement> = [];
@@ -142,6 +140,18 @@ export const fileToTypescript = (
         }
     }
 
+    return items;
+};
+
+export const fileToTypescript = (
+    expressions: Array<Term>,
+    env: Env,
+    opts: OutputOptions,
+    assert: boolean,
+    includeImport: boolean,
+) => {
+    const items = typeScriptPrelude(opts, includeImport);
+
     // TODO: use the topo sort algorithm from the web editor
     // to sort these correctly
     Object.keys(env.global.terms).forEach((hash) => {
@@ -175,64 +185,9 @@ export const fileToTypescript = (
         );
     });
 
-    const callBuiltin = (
-        name: string,
-        argTypes: Array<Type>,
-        resType: Type,
-        args: Array<Term>,
-        location: Location | null,
-    ): Term => {
-        const is: Type = {
-            type: 'lambda',
-            location,
-            args: argTypes,
-            res: resType,
-            rest: null,
-            typeVbls: [],
-            effectVbls: [],
-            effects: [],
-        };
-        return {
-            type: 'apply',
-            originalTargetType: is,
-            target: {
-                type: 'ref',
-                ref: { type: 'builtin', name: name },
-                location,
-                is,
-            },
-            args: args,
-            location,
-            typeVbls: [],
-            effectVbls: null,
-            is: resType,
-        };
-    };
-
     expressions.forEach((term) => {
         if (assert && typesEqual(term.is, bool)) {
-            if (
-                term.type === 'apply' &&
-                term.target.type === 'ref' &&
-                term.target.ref.type === 'builtin' &&
-                term.target.ref.name === '=='
-            ) {
-                term = callBuiltin(
-                    'assertEqual',
-                    (term.target.is as any).args,
-                    bool,
-                    term.args,
-                    term.location,
-                );
-            } else {
-                term = callBuiltin(
-                    'assert',
-                    [bool],
-                    bool,
-                    [term],
-                    term.location,
-                );
-            }
+            term = wrapWithAssert(term);
         }
         items.push(termToAST(env, opts, term, printType(env, term.is)));
     });

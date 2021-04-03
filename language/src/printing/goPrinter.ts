@@ -92,42 +92,7 @@ export const fileToGo = (
             block(
                 expressions.map((expr) => {
                     if (assert && isType(env, expr.is, bool)) {
-                        if (
-                            expr.type === 'apply' &&
-                            isBuiltin(expr.target, '==')
-                        ) {
-                            const argTypes = (expr.target.is as LambdaType)
-                                .args;
-                            expr = {
-                                ...expr,
-                                target: {
-                                    type: 'ref',
-                                    ref: {
-                                        type: 'builtin',
-                                        name: 'assertEqual',
-                                    },
-                                    location: null,
-                                    is: pureFunction(argTypes, void_),
-                                },
-                                is: void_,
-                            };
-                        } else {
-                            expr = apply(
-                                {
-                                    type: 'ref',
-                                    ref: { type: 'builtin', name: 'assert' },
-                                    location: null,
-                                    is: pureFunction([bool], void_),
-                                },
-                                [expr],
-                                null,
-                            );
-                            // expr = callExpression(
-                            //     builtin('assert', expr.location),
-                            //     [expr],
-                            //     expr.location
-                            // )
-                        }
+                        expr = wrapWithAssert(expr);
                     }
                     const t = termToGo(
                         env,
@@ -145,6 +110,36 @@ export const fileToGo = (
         ]),
     );
     return result.map((item) => printToString(item, 100)).join('\n\n');
+};
+
+export const wrapWithAssert = (expr: Term): Term => {
+    if (expr.type === 'apply' && isBuiltin(expr.target, '==')) {
+        const argTypes = (expr.target.is as LambdaType).args;
+        return {
+            ...expr,
+            target: {
+                type: 'ref',
+                ref: {
+                    type: 'builtin',
+                    name: 'assertEqual',
+                },
+                location: null,
+                is: pureFunction(argTypes, void_),
+            },
+            is: void_,
+        };
+    } else {
+        return apply(
+            {
+                type: 'ref',
+                ref: { type: 'builtin', name: 'assert' },
+                location: null,
+                is: pureFunction([bool], void_),
+            },
+            [expr],
+            null,
+        );
+    }
 };
 
 // TODO move this to an optimize pass that converts to "{as any}" and "{as type}"

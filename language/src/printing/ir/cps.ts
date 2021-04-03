@@ -256,7 +256,6 @@ const _termToAstCPS = (
         case 'apply': {
             if (getEffects(term.target).length) {
                 throw new Error(`target affects in an apply, sorry`);
-                // return t.identifier('STOPSHIP target effects');
             }
             const u = env.local.unique++;
 

@@ -2,7 +2,14 @@
 
 import * as t from '@babel/types';
 import { idName, refName } from '../typing/env';
-import { Env, Id, RecordDef, Reference, Symbol } from '../typing/types';
+import {
+    EffectRef,
+    Env,
+    Id,
+    RecordDef,
+    Reference,
+    Symbol,
+} from '../typing/types';
 import * as ir from './ir/intermediateRepresentation';
 import { Loc } from './ir/types';
 
@@ -113,20 +120,186 @@ export const _termToTs = (
                 termToTs(env, opts, term.value),
                 termToTs(env, opts, term.literal),
             );
-        case 'handle':
+        case 'handle': {
+            return t.callExpression(t.identifier('handleSimpleShallow2'), [
+                t.stringLiteral(term.effect.hash),
+                termToTs(env, opts, term.target),
+                t.arrayExpression(
+                    term.cases
+                        .sort((a, b) => a.constr - b.constr)
+                        .map(({ args, k, body }) => {
+                            return t.arrowFunctionExpression(
+                                [
+                                    t.identifier('handlers'),
+                                    args.length === 0
+                                        ? t.identifier('_')
+                                        : args.length === 1
+                                        ? t.identifier(printSym(args[0]))
+                                        : t.arrayPattern(
+                                              args.map((s) =>
+                                                  t.identifier(printSym(s)),
+                                              ),
+                                          ),
+                                    t.identifier(printSym(k)),
+                                ],
+                                lambdaBodyToTs(env, opts, body),
+                            );
+                        }),
+                ),
+                t.arrowFunctionExpression(
+                    [
+                        t.identifier('handlers'),
+                        t.identifier(printSym(term.pure.arg)),
+                    ],
+                    lambdaBodyToTs(env, opts, term.pure.body),
+                ),
+                t.identifier('handlers'),
+            ]);
+        }
+
         case 'raise':
-        case 'record':
-            return t.identifier('NOPE');
+            // TODO: The IR should probably be doing more work here....
+            const args: Array<t.Expression> = [
+                t.identifier('handlers'),
+                t.stringLiteral(term.effect.hash),
+                t.numericLiteral(term.idx),
+            ];
+            if (term.args.length === 0) {
+                args.push(t.nullLiteral());
+            } else if (term.args.length === 1) {
+                args.push(termToTs(env, opts, term.args[0]));
+            } else {
+                args.push(
+                    t.arrayExpression(
+                        term.args.map((a) => termToTs(env, opts, a)),
+                    ),
+                );
+            }
+            args.push(
+                t.arrowFunctionExpression(
+                    [t.identifier('handlers'), t.identifier('value')],
+                    t.callExpression(termToTs(env, opts, term.done), [
+                        t.identifier('handlers'),
+                        t.identifier('value'),
+                    ]),
+                ),
+            );
+            return t.callExpression(scopedGlobal(opts, 'raise'), args);
+        case 'record': {
+            return t.objectExpression(
+                ((term.base.spread != null
+                    ? [t.spreadElement(termToTs(env, opts, term.base.spread))]
+                    : []) as Array<t.ObjectProperty | t.SpreadElement>)
+                    .concat(
+                        ...Object.keys(term.subTypes).map(
+                            (id) =>
+                                (term.subTypes[id].spread
+                                    ? [
+                                          t.spreadElement(
+                                              termToTs(
+                                                  env,
+                                                  opts,
+                                                  term.subTypes[id].spread!,
+                                              ),
+                                          ),
+                                      ]
+                                    : []) as Array<
+                                    t.ObjectProperty | t.SpreadElement
+                                >,
+                        ),
+                    )
+                    .concat(
+                        term.base.type === 'Concrete'
+                            ? [
+                                  t.objectProperty(
+                                      t.identifier('type'),
+                                      t.stringLiteral(
+                                          recordIdName(
+                                              env,
+                                              (term.base as any).ref,
+                                          ),
+                                      ),
+                                  ),
+                              ]
+                            : [],
+                    )
+                    .concat(
+                        ...Object.keys(term.subTypes).map(
+                            (id) =>
+                                term.subTypes[id].rows
+                                    .map((row, i) =>
+                                        row != null
+                                            ? t.objectProperty(
+                                                  t.identifier(
+                                                      recordAttributeName(
+                                                          env,
+                                                          id,
+                                                          i,
+                                                      ),
+                                                  ),
+                                                  termToTs(env, opts, row),
+                                              )
+                                            : null,
+                                    )
+                                    .filter(Boolean) as Array<t.ObjectProperty>,
+                        ),
+                    )
+                    .concat(
+                        term.base.type === 'Concrete'
+                            ? (term.base.rows
+                                  .map((row, i) =>
+                                      row != null
+                                          ? t.objectProperty(
+                                                t.identifier(
+                                                    recordAttributeName(
+                                                        env,
+                                                        (term.base as any).ref,
+                                                        i,
+                                                    ),
+                                                ),
+                                                termToTs(env, opts, row),
+                                            )
+                                          : null,
+                                  )
+                                  .filter(Boolean) as Array<t.ObjectProperty>)
+                            : [],
+                    ) as Array<any>,
+            );
+        }
+        // return t.identifier('STOPSHIP');
         case 'attribute':
             return t.memberExpression(
                 termToTs(env, opts, term.target),
                 t.identifier(recordAttributeName(env, term.ref, term.idx)),
             );
         case 'slice':
-            return t.identifier('not_impl');
+            return t.identifier('STOPSHIPnot_impl');
         default:
             let _v: never = term;
             throw new Error(`Not impl ${(term as any).type}`);
+    }
+};
+
+const scopedGlobal = (opts: OutputOptions, id: string) =>
+    opts.scope
+        ? t.memberExpression(
+              t.memberExpression(
+                  t.identifier(opts.scope),
+                  t.identifier('builtins'),
+              ),
+              t.identifier(id),
+          )
+        : t.identifier(id);
+
+const recordIdName = (env: Env, ref: Reference) => {
+    if (ref.type === 'builtin') {
+        return ref.name;
+    } else {
+        const t = env.global.types[idName(ref.id)] as RecordDef;
+        if (t.ffi != null) {
+            return t.ffi.tag;
+        }
+        return idName(ref.id);
     }
 };
 
@@ -228,3 +401,13 @@ export const lambdaBodyToTs = (
         return termToTs(env, opts, term);
     }
 };
+
+const showEffectRef = (eff: EffectRef) => {
+    if (eff.type === 'var') {
+        return printSym(eff.sym);
+    }
+    return printRef(eff.ref);
+};
+
+const printRef = (ref: Reference) =>
+    ref.type === 'builtin' ? ref.name : ref.id.hash;
