@@ -27,6 +27,7 @@ import {
 } from '@jerd/language/src/printing/printTsLike';
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import Editor from './Editor';
+import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
 import { getTypeErorr } from '@jerd/language/src/typing/getTypeError';
 
@@ -72,29 +73,55 @@ export type CellProps = {
     plugins: { [id: string]: PluginT };
 };
 
-const CellWrapper = ({ onRemove, children }) => {
+const CellWrapper = ({ onRemove, onToggleSource, children }) => {
     return (
         <div style={{ width: 800, padding: 4, position: 'relative' }}>
             {children}
-            <button
-                onClick={onRemove}
+            <div
                 css={{
+                    display: 'flex',
+                    flexDirection: 'column',
                     position: 'absolute',
                     top: 8,
-                    padding: '4px 8px',
-                    borderRadius: 4,
                     left: '100%',
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: 'white',
-                    cursor: 'pointer',
-                    ':hover': {
-                        backgroundColor: '#2b2b2b',
-                    },
                 }}
             >
-                ╳
-            </button>
+                <button
+                    onClick={onRemove}
+                    css={{
+                        padding: '4px 8px',
+                        borderRadius: 4,
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        color: 'white',
+                        cursor: 'pointer',
+                        ':hover': {
+                            backgroundColor: '#2b2b2b',
+                        },
+                    }}
+                >
+                    ╳
+                </button>
+                {onToggleSource ? (
+                    <button
+                        onClick={onToggleSource}
+                        css={{
+                            padding: '4px 8px',
+                            borderRadius: 4,
+                            border: 'none',
+                            backgroundColor: 'transparent',
+                            fontFamily: 'monospace',
+                            color: 'white',
+                            cursor: 'pointer',
+                            ':hover': {
+                                backgroundColor: '#2b2b2b',
+                            },
+                        }}
+                    >
+                        {'{}'}
+                    </button>
+                ) : null}
+            </div>
         </div>
     );
 };
@@ -110,9 +137,10 @@ export const CellView = ({
     plugins,
 }: CellProps) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
+    const [showSource, setShowSource] = React.useState(false);
     if (editing) {
         return (
-            <CellWrapper onRemove={onRemove}>
+            <CellWrapper onRemove={onRemove} onToggleSource={null}>
                 <Editor
                     env={env}
                     plugins={plugins}
@@ -151,7 +179,10 @@ export const CellView = ({
     }
 
     return (
-        <CellWrapper onRemove={onRemove}>
+        <CellWrapper
+            onRemove={onRemove}
+            onToggleSource={() => setShowSource(!showSource)}
+        >
             <RenderItem
                 onSetPlugin={(display) => {
                     onChange(env, { ...cell, display });
@@ -161,6 +192,7 @@ export const CellView = ({
                 content={cell.content}
                 onEdit={() => setEditing(true)}
                 addCell={addCell}
+                showSource={showSource}
                 collapsed={cell.collapsed}
                 setCollapsed={(collapsed) =>
                     onChange(env, { ...cell, collapsed })
@@ -361,6 +393,7 @@ const RenderItem = ({
     onEdit,
     addCell,
     plugins,
+    showSource,
 
     collapsed,
     setCollapsed,
@@ -371,6 +404,7 @@ const RenderItem = ({
     plugins: Plugins;
     content: Content;
     evalEnv: EvalEnv;
+    showSource: boolean;
     onRun: (id: Id) => void;
     addCell: (content: Content) => void;
     onEdit: () => void;
@@ -445,6 +479,7 @@ const RenderItem = ({
                     evalEnv={evalEnv}
                     onRun={onRun}
                 />
+                {showSource ? <ViewSource env={env} term={term} /> : null}
             </div>
         );
     } else if (content.type === 'term') {
@@ -498,6 +533,7 @@ const RenderItem = ({
                     evalEnv={evalEnv}
                     onRun={onRun}
                 />
+                {showSource ? <ViewSource env={env} term={term} /> : null}
             </div>
         );
     } else if (content.type === 'raw') {
@@ -538,6 +574,22 @@ const RenderItem = ({
             </div>
         );
     }
+};
+
+const ViewSource = ({ env, term }) => {
+    const source = React.useMemo(() => {
+        return termToJS(env, term, 'cell');
+    }, [env, term]);
+    return (
+        <div
+            css={{
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+            }}
+        >
+            {source}
+        </div>
+    );
 };
 
 // const Hash = ({id}) =>

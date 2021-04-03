@@ -17,7 +17,7 @@ import { optimize } from '@jerd/language/src/printing/ir/optimize';
 
 export class TimeoutError extends Error {}
 
-const termToJS = (env: Env, term: Term, idName: string) => {
+export const termToJS = (env: Env, term: Term, idName: string) => {
     const irTerm = ir.printTerm(env, { limitExecutionTime: true }, term);
     let termAst: any = termToTs(
         env,
