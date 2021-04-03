@@ -6,7 +6,7 @@ import { idFromName } from '../typing/env';
 import {
     declarationToAST,
     printType,
-    termToAST,
+    // termToAST,
     OutputOptions,
 } from './typeScriptPrinter';
 import { optimizeAST } from './typeScriptOptimize';
@@ -113,36 +113,36 @@ export const typeScriptPrelude = (
     return items;
 };
 
-export const fileToTypescript = (
-    expressions: Array<Term>,
-    env: Env,
-    opts: OutputOptions,
-    assert: boolean,
-    includeImport: boolean,
-) => {
-    const items = typeScriptPrelude(opts, includeImport);
+// export const fileToTypescript = (
+//     expressions: Array<Term>,
+//     env: Env,
+//     opts: OutputOptions,
+//     assert: boolean,
+//     includeImport: boolean,
+// ) => {
+//     const items = typeScriptPrelude(opts, includeImport);
 
-    // TODO: use the topo sort algorithm from the web editor
-    // to sort these correctly
-    Object.keys(env.global.terms).forEach((hash) => {
-        const term = env.global.terms[hash];
+//     // TODO: use the topo sort algorithm from the web editor
+//     // to sort these correctly
+//     Object.keys(env.global.terms).forEach((hash) => {
+//         const term = env.global.terms[hash];
 
-        const comment = printToString(
-            declarationToPretty(env, idFromName(hash), term),
-            100,
-        );
-        const senv = selfEnv(env, { name: hash, type: term.is });
-        items.push(declarationToAST(senv, opts, hash, term, comment));
-    });
+//         const comment = printToString(
+//             declarationToPretty(env, idFromName(hash), term),
+//             100,
+//         );
+//         const senv = selfEnv(env, { name: hash, type: term.is });
+//         items.push(declarationToAST(senv, opts, hash, term, comment));
+//     });
 
-    expressions.forEach((term) => {
-        if (assert && typesEqual(term.is, bool)) {
-            term = wrapWithAssert(term);
-        }
-        items.push(termToAST(env, opts, term, printType(env, term.is)));
-    });
+//     expressions.forEach((term) => {
+//         if (assert && typesEqual(term.is, bool)) {
+//             term = wrapWithAssert(term);
+//         }
+//         items.push(termToAST(env, opts, term, printType(env, term.is)));
+//     });
 
-    const ast = t.file(t.program(items, [], 'script'));
-    optimizeAST(ast);
-    return ast;
-};
+//     const ast = t.file(t.program(items, [], 'script'));
+//     optimizeAST(ast);
+//     return ast;
+// };

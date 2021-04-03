@@ -347,21 +347,21 @@ export const printLambdaBody = (
     }
 };
 
-export const termToAST = (
-    env: Env,
-    opts: OutputOptions,
-    term: Term,
-    comment?: string,
-): t.Statement => {
-    let res = withLocation(
-        t.expressionStatement(printTerm(env, opts, term)),
-        term.location,
-    );
-    if (comment) {
-        res = t.addComment(res, 'leading', comment);
-    }
-    return res;
-};
+// export const termToAST = (
+//     env: Env,
+//     opts: OutputOptions,
+//     term: Term,
+//     comment?: string,
+// ): t.Statement => {
+//     let res = withLocation(
+//         t.expressionStatement(printTerm(env, opts, term)),
+//         term.location,
+//     );
+//     if (comment) {
+//         res = t.addComment(res, 'leading', comment);
+//     }
+//     return res;
+// };
 
 export const declarationToAST = (
     env: Env,

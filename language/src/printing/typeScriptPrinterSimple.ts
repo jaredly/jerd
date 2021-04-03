@@ -124,9 +124,19 @@ export const _termToTs = (
                 term.args.map((arg) => t.identifier(printSym(arg.sym))),
                 lambdaBodyToTs(env, opts, term.body),
             );
-        // TODO: fix for scoping
         case 'term':
-            return t.identifier(printId(term.id));
+            if (opts.scope) {
+                return t.memberExpression(
+                    t.memberExpression(
+                        t.identifier(opts.scope),
+                        t.identifier('terms'),
+                    ),
+                    t.stringLiteral(term.id.hash),
+                    true,
+                );
+            } else {
+                return t.identifier(term.id.hash);
+            }
         case 'var':
             return t.identifier(printSym(term.sym));
         case 'IsRecord':
@@ -189,7 +199,17 @@ export const _termToTs = (
                 t.identifier('length'),
             );
         case 'builtin':
-            return t.identifier(term.name === '^' ? 'pow' : term.name);
+            if (opts.scope) {
+                return t.memberExpression(
+                    t.memberExpression(
+                        t.identifier(opts.scope),
+                        t.identifier('builtins'),
+                    ),
+                    t.identifier(term.name === '^' ? 'pow' : term.name),
+                );
+            } else {
+                return t.identifier(term.name === '^' ? 'pow' : term.name);
+            }
         case 'effectfulOrDirect':
             return t.memberExpression(
                 termToTs(env, opts, term.target),
