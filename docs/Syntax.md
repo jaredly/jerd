@@ -96,6 +96,36 @@ let (x, y, z) = // tuple
 - for loop????
 - loop/recur?
 
+## Loop/recur
+
+So clojure has loop/recur, where recur can only appear in the tail position.
+So you get explicit TCO.
+*but* in my case, adding an effect would break the TCO.
+So we might as well just have TCO implemented as an optimization when it's possible, right?
+
+the other reason I wanted loop/recur was for local mutability stuff.
+but I wonder if I shouldn't just follow roc's lead, and do "liveness detection" to re-use objects that can no longer be used....
+
+hmmmmmm
+ok, so next task: see if I can do tco, for funs.
+
+it would be extra neat if I could get mutually-recursive tco working, probably by inlining one into the other? or something. monomorphising it, essentially.
+
+
+Ok, in what circumstances can I do this?
+I think I want to do it at the IR level, not the Term level.
+Yeah, do it once CPS has been taken care of, that will simplify things.
+then I go through, and say "does this function have self-calls in the
+tail position".
+And if it does, I pop the whole thing in a "while(true)" loop, redefine
+replace the tail self-calls with "redefine variable + continue", and all other tails with "return" (which they already should be, btw), and we're good.
+
+Does this mean I just need a `while(true)` loop type in the IR? I think so. Also maybe break; and continue;
+
+
+
+
+
 # Variable declaration
 
 ```ts

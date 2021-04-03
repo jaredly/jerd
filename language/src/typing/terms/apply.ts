@@ -101,7 +101,9 @@ export const typeApply = (
         }
         if (target.is.args.length !== args.length) {
             throw new Error(
-                `Wrong number of arguments ${showType(env, target.is)}`,
+                `Wrong number of arguments ${showType(env, target.is)}, ${
+                    target.is.args.length
+                } vs ${args.length} at ${showLocation(target.location)}`,
             );
         }
         is = target.is;

@@ -12,3 +12,12 @@ const z = (n: int) => {
 }
 
 z(10) == 11
+
+
+const fib: (int, int, int) => int = (prev: int, cur: int, n: int):int => if n == 0 {
+    prev
+} else {
+    fib(cur, prev + cur, n - 1)
+}
+
+fib(0, 1, 10) == 55

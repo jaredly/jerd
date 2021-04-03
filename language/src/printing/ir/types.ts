@@ -45,6 +45,11 @@ export type Stmt =
     | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
     | { type: 'MatchFail'; loc: Loc }
     | { type: 'Return'; value: Expr; loc: Loc }
+    // Do I also want a "for-in" or a "for-range" stmt type?
+    // or do I just want to optimize a recursive function w/ switch +
+    // array destructuring?
+    // or I could just have Array.forEach
+    // | { type: 'Loop'; body: Block; loc: Loc }
     | Block;
 export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
 
