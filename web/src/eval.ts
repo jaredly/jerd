@@ -18,7 +18,7 @@ import { optimize } from '@jerd/language/src/printing/ir/optimize';
 export class TimeoutError extends Error {}
 
 const termToJS = (env: Env, term: Term, idName: string) => {
-    const irTerm = ir.printTerm(env, {}, term);
+    const irTerm = ir.printTerm(env, { limitExecutionTime: true }, term);
     let termAst: any = termToTs(
         env,
         { scope: 'jdScope', limitExecutionTime: true },
@@ -46,19 +46,22 @@ const runWithExecutionLimit = (
     // const timeLimit = 200;
     const jdScope = {
         ...evalEnv,
+        builtins: {
+            ...evalEnv.builtins,
+            checkExecutionLimit: () => {
+                if (!executionLimit.enabled) {
+                    return;
+                }
+                executionLimit.ticks += 1;
+                // if (ticks++ % 100 === 0) {
+                if (Date.now() > executionLimit.maxTime) {
+                    throw new TimeoutError('Execution took too long');
+                }
+                // }
+            },
+        },
         terms: {
             ...evalEnv.terms,
-        },
-        checkExecutionLimit: () => {
-            if (!executionLimit.enabled) {
-                return;
-            }
-            executionLimit.ticks += 1;
-            // if (ticks++ % 100 === 0) {
-            if (Date.now() > executionLimit.maxTime) {
-                throw new TimeoutError('Execution took too long');
-            }
-            // }
         },
     };
     console.log('code', code);

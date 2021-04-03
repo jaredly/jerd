@@ -16,8 +16,6 @@ export const handlerSym = { name: 'handlers', unique: 0 };
 export const handlersType = builtinType('handlers');
 
 export type OutputOptions = {
-    readonly scope?: string;
-    readonly noTypes?: boolean;
     readonly limitExecutionTime?: boolean;
 };
 
@@ -81,6 +79,7 @@ export type Literal =
     | { type: 'int'; value: number; loc: Loc }
     | { type: 'boolean'; value: boolean; loc: Loc }
     | { type: 'float'; value: number; loc: Loc };
+
 export type Expr =
     | Literal
     | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc }
@@ -89,7 +88,7 @@ export type Expr =
     | {
           type: 'slice';
           value: Expr;
-          start: Expr; // should these be exprs? probably
+          start: Expr;
           end: Expr | null;
           loc: Loc;
       }
@@ -98,8 +97,6 @@ export type Expr =
     | { type: 'builtin'; name: string; loc: Loc }
     // used in switches
     | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc }
-    // | { type: 'or'; left: Expr; right: Expr; loc: Loc }
-    //
     | { type: 'effectfulOrDirect'; effectful: boolean; target: Expr; loc: Loc }
     | {
           type: 'raise';
@@ -146,10 +143,8 @@ export type Expr =
           res: Type;
           target: Expr;
           args: Array<Expr>;
-          //   args: Array<Expr>;
           loc: Loc;
       }
-    // | { type: 'attribute'; target: Expr; id: Id; idx: number; loc: Loc }
     | {
           type: 'effectfulOrDirectLambda';
           effectful: LambdaExpr;

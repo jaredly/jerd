@@ -135,7 +135,7 @@ export const _termToTs = (
                     true,
                 );
             } else {
-                return t.identifier(term.id.hash);
+                return t.identifier(printId(term.id));
             }
         case 'var':
             return t.identifier(printSym(term.sym));

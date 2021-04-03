@@ -9,7 +9,7 @@ import {
     LambdaType,
     walkTerm,
 } from '../../typing/types';
-import { builtinType, void_ } from '../../typing/preset';
+import { builtinType, pureFunction, void_ } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
 
 import {
@@ -20,10 +20,11 @@ import {
     handlerSym,
     LambdaExpr,
     OutputOptions,
+    callExpression,
 } from './types';
 
 import { termToAstCPS } from './cps';
-import { arrowFunctionExpression } from './utils';
+import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 
 export const printLambda = (
@@ -46,8 +47,11 @@ export const printLambda = (
                             loc: null,
                         }), // TODO(sourcemap): hang on to location for lambda args?
                     ),
-                    // TODO withExecutionLimit
-                    printLambdaBody(env, opts, directVersion.body, null),
+                    withExecutionLimit(
+                        env,
+                        opts,
+                        printLambdaBody(env, opts, directVersion.body, null),
+                    ),
                     directVersion.is.res,
                     term.location,
                 ),
@@ -61,12 +65,53 @@ export const printLambda = (
                 type: term.is.args[i],
                 loc: null,
             })),
-            // TODO withExecutionLimit
-            printLambdaBody(env, opts, term.body, null),
+            withExecutionLimit(
+                env,
+                opts,
+                printLambdaBody(env, opts, term.body, null),
+            ),
             term.is.res,
             term.location,
         );
     }
+};
+
+export const withExecutionLimit = (
+    env: Env,
+    opts: OutputOptions,
+    body: Block | Expr,
+): Expr | Block => {
+    if (!opts.limitExecutionTime) {
+        return body;
+    }
+    return {
+        type: 'Block',
+        loc: body.loc,
+        items: [
+            {
+                type: 'Expression',
+                loc: body.loc,
+                expr: callExpression(
+                    builtin('checkExecutionLimit', body.loc),
+                    pureFunction([], void_),
+                    void_,
+                    [],
+                    body.loc,
+                ),
+            },
+            ...(body.type === 'Block'
+                ? body.items
+                : [{ type: 'Return', loc: body.loc, value: body } as Stmt]),
+        ],
+    };
+    // return t.blockStatement([
+    //     t.expressionStatement(
+    //         t.callExpression(scopedId(opts, 'checkExecutionLimit'), []),
+    //     ),
+    //     ...(body.type === 'BlockStatement'
+    //         ? body.body
+    //         : [t.returnStatement(body)]),
+    // ]);
 };
 
 // yeah we need to go in, and
@@ -114,12 +159,15 @@ const effectfulLambda = (
                 { type: builtinType('handlers'), sym: handlerSym, loc: null },
                 { sym: done, type: doneT, loc: null },
             ]),
-        // TODO: withExecutionLimit
-        printLambdaBody(env, opts, term.body, {
-            type: 'var',
-            sym: done,
-            loc: null,
-        }),
+        withExecutionLimit(
+            env,
+            opts,
+            printLambdaBody(env, opts, term.body, {
+                type: 'var',
+                sym: done,
+                loc: null,
+            }),
+        ),
         // term.is.res,
         void_,
         term.location,
@@ -130,7 +178,6 @@ export const printLambdaBody = (
     env: Env,
     opts: OutputOptions,
     term: Term,
-    // cps: null | { body: Expr; bind: t.Identifier },
     cps: null | Expr,
 ): Block | Expr => {
     if (cps == null) {
