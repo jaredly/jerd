@@ -18,7 +18,7 @@ import {
 import { typeScriptPrelude } from './fileToTypeScript';
 import { wrapWithAssert } from './goPrinter';
 import * as ir from './ir/intermediateRepresentation';
-import { optimize } from './ir/optimize';
+import { optimize, optimizeDefine } from './ir/optimize';
 import { handlerSym, Loc } from './ir/types';
 import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
@@ -442,6 +442,16 @@ export const stmtToTs = (
     stmt: ir.Stmt,
 ): t.Statement => {
     switch (stmt.type) {
+        case 'Continue':
+            return withLocation(t.continueStatement(), stmt.loc);
+        case 'Loop':
+            return withLocation(
+                t.whileStatement(
+                    withLocation(t.booleanLiteral(true), stmt.loc),
+                    blockToTs(env, opts, stmt.body),
+                ),
+                stmt.loc,
+            );
         case 'Block':
             return withLocation(
                 t.blockStatement(
@@ -551,7 +561,7 @@ export const fileToTypescript = (
                 senv,
                 opts,
                 hash,
-                optimize(irTerm),
+                optimizeDefine(env, irTerm, idFromName(hash)),
                 term.is,
                 comment,
             ),

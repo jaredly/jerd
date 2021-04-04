@@ -7,6 +7,7 @@ import {
     Reference,
     LambdaType,
     UserReference,
+    idsEqual,
 } from '../../typing/types';
 import { Location } from '../../parsing/parser';
 import { builtinType } from '../../typing/preset';
@@ -38,20 +39,25 @@ export type Toplevel =
           loc: Loc;
       };
 
+export type ReturnStmt = { type: 'Return'; value: Expr; loc: Loc };
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
     | { type: 'Define'; sym: Symbol; value: Expr | null; is: Type; loc: Loc }
     | { type: 'Assign'; sym: Symbol; value: Expr; is: Type; loc: Loc }
     | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
     | { type: 'MatchFail'; loc: Loc }
-    | { type: 'Return'; value: Expr; loc: Loc }
+    | ReturnStmt
     // Do I also want a "for-in" or a "for-range" stmt type?
     // or do I just want to optimize a recursive function w/ switch +
     // array destructuring?
     // or I could just have Array.forEach
-    // | { type: 'Loop'; body: Block; loc: Loc }
+    | { type: 'Loop'; body: Block; loc: Loc }
+    | { type: 'Continue'; loc: Loc }
     | Block;
 export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
+
+export const isTerm = (expr: Expr, id: Id) =>
+    expr.type === 'term' && idsEqual(id, expr.id);
 
 export const callExpression = (
     target: Expr,
@@ -141,15 +147,7 @@ export type Expr =
       }
     // effects have been taken care of at this point
     // do we need to know the types of things? perhaps for conversions?
-    | {
-          type: 'apply';
-          targetType: LambdaType;
-          concreteType: LambdaType;
-          res: Type;
-          target: Expr;
-          args: Array<Expr>;
-          loc: Loc;
-      }
+    | Apply
     | {
           type: 'effectfulOrDirectLambda';
           effectful: LambdaExpr;
@@ -158,6 +156,15 @@ export type Expr =
       }
     | LambdaExpr;
 
+export type Apply = {
+    type: 'apply';
+    targetType: LambdaType;
+    concreteType: LambdaType;
+    res: Type;
+    target: Expr;
+    args: Array<Expr>;
+    loc: Loc;
+};
 export type Record = {
     type: 'record';
     base:

@@ -1,22 +1,93 @@
 import { idFromName, idName } from '../../typing/env';
 import { void_ } from '../../typing/preset';
 import { showLocation } from '../../typing/typeExpr';
-import { Env, RecordDef, Symbol } from '../../typing/types';
-import { defaultVisitor, transformExpr, Visitor } from './transform';
-import { Expr, Record, RecordSubType, Stmt } from './types';
-import { and, iffe } from './utils';
+import {
+    Env,
+    Id,
+    isBuiltin,
+    RecordDef,
+    Symbol,
+    walkTerm,
+} from '../../typing/types';
+import {
+    defaultVisitor,
+    transformBlock,
+    transformExpr,
+    transformLambdaBody,
+    Visitor,
+} from './transform';
+import {
+    Apply,
+    Block,
+    Expr,
+    isTerm,
+    Record,
+    RecordSubType,
+    ReturnStmt,
+    Stmt,
+} from './types';
+import { and, asBlock, iffe } from './utils';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
+
+export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
+    expr = optimize(expr);
+    expr = optimizeTailCalls(env, expr, id);
+    return expr;
+};
 
 export const optimize = (expr: Expr): Expr => {
     const transformers: Array<(e: Expr) => Expr> = [
         removeUnusedVariables,
         removeNestedBlocksWithoutDefines,
         flattenNestedIfs,
+        flattenIffe,
     ];
     transformers.forEach((t) => (expr = t(expr)));
     return expr;
 };
+
+export const optimizer = (visitor: Visitor) => (expr: Expr): Expr =>
+    transformRepeatedly(expr, visitor);
+
+// This flattens IFFEs that are the bodies of a lambda expr, or
+// the value of a return statement.
+export const flattenIffe = optimizer({
+    ...defaultVisitor,
+    block: (block) => {
+        const items: Array<Stmt> = [];
+        let changed = false;
+        block.items.forEach((stmt) => {
+            if (
+                stmt.type === 'Return' &&
+                stmt.value.type === 'apply' &&
+                stmt.value.args.length === 0 &&
+                stmt.value.target.type === 'lambda'
+            ) {
+                items.push(...asBlock(stmt.value.target.body).items);
+                changed = true;
+            } else {
+                items.push(stmt);
+            }
+        });
+        return changed ? { ...block, items } : block;
+    },
+    expr: (expr) => {
+        if (
+            expr.type === 'lambda' &&
+            expr.body.type === 'apply' &&
+            expr.body.args.length === 0 &&
+            expr.body.target.type === 'lambda'
+        ) {
+            return {
+                ...expr,
+                body: expr.body.target.body,
+            };
+            // return false
+        }
+        return null;
+    },
+});
 
 // TODO: need an `&&` logicOp type. Or just a general binOp type?
 // or something. Maybe have && be a builtin, binop.
@@ -298,4 +369,122 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
     } else {
         return expr;
     }
+};
+
+export const hasTailCall = (body: Block | Expr, self: Id): boolean => {
+    console.log('check', self);
+    let found = false;
+    let hasLoop = false;
+    console.log(body.type);
+    transformLambdaBody(body, {
+        ...defaultVisitor,
+        stmt: (stmt) => {
+            console.log(stmt.type);
+            if (isSelfTail(stmt, self)) {
+                found = true;
+            } else if (stmt.type === 'Loop') {
+                hasLoop = true;
+            }
+            return null;
+        },
+        expr: (expr) => {
+            if (expr.type === 'lambda') {
+                console.log('got a lambda');
+                // don't recurse into lambdas
+                return false;
+            }
+            // no changes, but do recurse
+            return null;
+        },
+    });
+    return found && !hasLoop;
+};
+
+const isSelfTail = (stmt: Stmt, self: Id) =>
+    stmt.type === 'Return' &&
+    stmt.value.type === 'apply' &&
+    isTerm(stmt.value.target, self);
+
+export const optimizeTailCalls = (env: Env, expr: Expr, self: Id) => {
+    if (expr.type === 'lambda') {
+        const body = tailCallRecursion(
+            env,
+            expr.body,
+            expr.args.map((a) => a.sym),
+            self,
+        );
+        return body !== expr.body ? { ...expr, body } : expr;
+    }
+    return expr;
+};
+
+export const tailCallRecursion = (
+    env: Env,
+    body: Block | Expr,
+    argNames: Array<Symbol>,
+    self: Id,
+): Block | Expr => {
+    if (!hasTailCall(body, self)) {
+        console.log('no tail call', self);
+        return body;
+    }
+    console.log('yes');
+    return {
+        type: 'Block',
+        loc: body.loc,
+        items: [
+            {
+                type: 'Loop',
+                loc: body.loc,
+                body: transformBlock(asBlock(body), {
+                    ...defaultVisitor,
+                    block: (block) => {
+                        if (!block.items.some((s) => isSelfTail(s, self))) {
+                            return null;
+                        }
+
+                        const items: Array<Stmt> = [];
+                        block.items.forEach((stmt) => {
+                            if (isSelfTail(stmt, self)) {
+                                const apply = (stmt as ReturnStmt)
+                                    .value as Apply;
+                                const vbls = apply.args.map((arg, i) => {
+                                    const sym: Symbol = {
+                                        name: 'recur',
+                                        unique: env.local.unique++,
+                                    };
+                                    // TODO: we need the type of all the things I guess...
+                                    items.push({
+                                        type: 'Define',
+                                        sym,
+                                        loc: arg.loc,
+                                        value: arg,
+                                        is: void_,
+                                    });
+                                    return sym;
+                                });
+                                vbls.forEach((sym, i) => {
+                                    items.push({
+                                        type: 'Assign',
+                                        sym: argNames[i],
+                                        loc: apply.args[i].loc,
+                                        is: void_,
+                                        value: {
+                                            type: 'var',
+                                            sym,
+                                            loc: apply.args[i].loc,
+                                        },
+                                    });
+                                });
+                                items.push({ type: 'Continue', loc: stmt.loc });
+                            } else {
+                                items.push(stmt);
+                            }
+                        });
+                        return { ...block, items };
+                    },
+                }),
+            },
+        ],
+    };
 };

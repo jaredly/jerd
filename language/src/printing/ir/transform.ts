@@ -7,9 +7,9 @@ import { Block, Expr, LambdaExpr, RecordSubType, Stmt } from './types';
 // export const transformExpr = (expr: Expr, )
 
 export type Visitor = {
-    expr: (value: Expr) => Expr | null;
-    block: (value: Block) => Block | null;
-    stmt: (value: Stmt) => Stmt | null;
+    expr: (value: Expr) => Expr | null | false;
+    block: (value: Block) => Block | null | false;
+    stmt: (value: Stmt) => Stmt | null | false;
 };
 
 export const defaultVisitor: Visitor = {
@@ -20,6 +20,9 @@ export const defaultVisitor: Visitor = {
 
 export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
     const transformed = visitor.expr(expr);
+    if (transformed === false) {
+        return expr; // don't recurse
+    }
     if (transformed != null) {
         expr = transformed;
     }
@@ -207,6 +210,9 @@ export const transformLambdaBody = (
 
 export const transformBlock = (block: Block, visitor: Visitor): Block => {
     const tr = visitor.block(block);
+    if (tr === false) {
+        return block;
+    }
     if (tr != null) {
         block = tr;
     }
@@ -221,7 +227,10 @@ export const transformBlock = (block: Block, visitor: Visitor): Block => {
 
 export const transformStmt = (stmt: Stmt, visitor: Visitor): Stmt => {
     const tr = visitor.stmt(stmt);
-    if (tr) {
+    if (tr === false) {
+        return stmt;
+    }
+    if (tr != null) {
         stmt = tr;
     }
     switch (stmt.type) {
@@ -240,6 +249,11 @@ export const transformStmt = (stmt: Stmt, visitor: Visitor): Stmt => {
             const value: Expr = transformExpr(stmt.value, visitor);
             return value !== stmt.value ? { ...stmt, value } : stmt;
         }
+        case 'Loop': {
+            const body = transformBlock(stmt.body, visitor);
+            return body !== stmt.body ? { ...stmt, body } : stmt;
+        }
+        case 'Continue':
         case 'MatchFail':
             return stmt;
         case 'if': {
