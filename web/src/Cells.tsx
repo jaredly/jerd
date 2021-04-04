@@ -26,6 +26,7 @@ const Cells = ({ state, plugins, setState }) => {
             style={{
                 backgroundColor: '#1E1E1E',
                 padding: 20,
+                paddingBottom: '75vh',
                 color: '#D4D4D4',
                 display: 'flex',
                 flexDirection: 'column',

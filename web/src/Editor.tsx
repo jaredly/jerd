@@ -28,7 +28,7 @@ import {
 } from '@jerd/language/src/typing/errors';
 import { Display, EvalEnv, Plugins, RenderPlugin } from './Cell';
 import { runTerm } from './eval';
-import { getTypeErorr } from '@jerd/language/src/typing/getTypeError';
+import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import ColorTextarea from './ColorTextarea';
 
 type AutoName =
@@ -298,7 +298,7 @@ const getRenderPlugin = (
     } else {
         return null;
     }
-    const err = getTypeErorr(env, term.is, plugin.type, null);
+    const err = getTypeError(env, term.is, plugin.type, null);
     if (err == null) {
         return () => plugin.render(evaled);
     }

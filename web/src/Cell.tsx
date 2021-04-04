@@ -10,6 +10,7 @@ import {
     addEnum,
     idName,
     addEffect,
+    idFromName,
 } from '@jerd/language/src/typing/env';
 import {
     EnumDef,
@@ -29,7 +30,8 @@ import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import Editor from './Editor';
 import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
-import { getTypeErorr } from '@jerd/language/src/typing/getTypeError';
+import { getTypeError } from '@jerd/language/src/typing/getTypeError';
+import { void_ } from '@jerd/language/src/typing/preset';
 
 const maxWidth = 80;
 
@@ -217,7 +219,7 @@ const getMatchingPlugins = (
             if (!cell.display || !plugins[cell.display.type]) {
                 return Object.keys(plugins).filter((k) => {
                     if (
-                        getTypeErorr(env, t.is, plugins[k].type, null) === null
+                        getTypeError(env, t.is, plugins[k].type, null) === null
                     ) {
                         return true;
                     }
@@ -243,7 +245,7 @@ export const getPlugin = (
         case 'term':
             const t = env.global.terms[idName(content.id)];
             const plugin: PluginT = plugins[display.type];
-            const err = getTypeErorr(env, t.is, plugin.type, null);
+            const err = getTypeError(env, t.is, plugin.type, null);
             if (err == null) {
                 return () => plugin.render(value);
             }
@@ -479,7 +481,9 @@ const RenderItem = ({
                     evalEnv={evalEnv}
                     onRun={onRun}
                 />
-                {showSource ? <ViewSource env={env} term={term} /> : null}
+                {showSource ? (
+                    <ViewSource hash={content.id.hash} env={env} term={term} />
+                ) : null}
             </div>
         );
     } else if (content.type === 'term') {
@@ -533,7 +537,9 @@ const RenderItem = ({
                     evalEnv={evalEnv}
                     onRun={onRun}
                 />
-                {showSource ? <ViewSource env={env} term={term} /> : null}
+                {showSource ? (
+                    <ViewSource hash={content.id.hash} env={env} term={term} />
+                ) : null}
             </div>
         );
     } else if (content.type === 'raw') {
@@ -576,15 +582,29 @@ const RenderItem = ({
     }
 };
 
-const ViewSource = ({ env, term }) => {
+const ViewSource = ({ env, term, hash }) => {
     const source = React.useMemo(() => {
-        return termToJS(env, term, 'cell');
+        return termToJS(
+            selfEnv(env, {
+                name: hash,
+                type: term.is,
+            }),
+            term,
+            idFromName(hash),
+            false,
+        );
     }, [env, term]);
     return (
         <div
             css={{
                 whiteSpace: 'pre-wrap',
                 fontFamily: 'monospace',
+                lineHeight: 1.4,
+                color: '#bbb',
+                textShadow: '1px 1px 2px #000',
+                padding: '8px 12px',
+                background: '#333',
+                borderRadius: '4px',
             }}
         >
             {source}

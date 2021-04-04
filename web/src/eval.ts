@@ -9,27 +9,46 @@ import {
 import * as ir from '@jerd/language/src/printing/ir/term';
 import { getSortedTermDependencies } from '@jerd/language/src/typing/analyze';
 import generate from '@babel/generator';
-import { idName } from '@jerd/language/src/typing/env';
+import { idFromName, idName } from '@jerd/language/src/typing/env';
 import { Env, Id, selfEnv, Term } from '@jerd/language/src/typing/types';
 import { termToTs } from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { EvalEnv } from './Cell';
-import { optimize } from '@jerd/language/src/printing/ir/optimize';
+import {
+    optimize,
+    optimizeDefine,
+} from '@jerd/language/src/printing/ir/optimize';
 
 export class TimeoutError extends Error {}
 
-export const termToJS = (env: Env, term: Term, idName: string) => {
+export const termToJS = (env: Env, term: Term, id: Id, asReturn?: boolean) => {
     const irTerm = ir.printTerm(env, { limitExecutionTime: true }, term);
     let termAst: any = termToTs(
         env,
         { scope: 'jdScope', limitExecutionTime: true },
-        optimize(irTerm),
+        optimizeDefine(
+            env,
+            irTerm,
+            id,
+
+            // optimize(irTerm),
+        ),
     );
-    let ast = t.file(t.program([t.returnStatement(termAst)], [], 'script'));
+    let ast = t.file(
+        t.program(
+            [
+                asReturn
+                    ? t.returnStatement(termAst)
+                    : t.expressionStatement(termAst),
+            ],
+            [],
+            'script',
+        ),
+    );
     optimizeAST(ast);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
-        sourceFileName: idName,
+        sourceFileName: idName(id),
     });
 
     return code;
@@ -85,7 +104,12 @@ export const runTerm = (env: Env, term: Term, id: Id, evalEnv: EvalEnv) => {
             }
             const depTerm = idn === dep ? term : env.global.terms[dep];
             const self = { name: dep, type: term.is };
-            const code = termToJS(selfEnv(env, self), depTerm, dep);
+            const code = termToJS(
+                selfEnv(env, self),
+                depTerm,
+                idFromName(dep),
+                true,
+            );
             const innerEnv = {
                 ...evalEnv,
                 terms: { ...evalEnv.terms, ...results },
