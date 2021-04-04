@@ -11,6 +11,7 @@ Immediate:
     what type to watch out for to trigger rendering. Yes.
 - [x] array destructuring please
 - [ ] allow qualified binops, so + doesn't lie
+  - also so that I can do `str()` and it will pick the right one. So like, I need more builtins? And builtin types?
 - [ ] generic effects please
 - [/] intermediate output, target go or python
   - what level of granularity? do I assume switches? naw, I don't think so.

@@ -11,7 +11,7 @@ import {
     int,
     pureFunction,
 } from '@jerd/language/src/typing/preset';
-import { Plugins, PluginT } from '../Cell';
+import { EvalEnv, Plugins, PluginT } from '../Cell';
 
 // TODO: I should be able to generate these
 // automatically.
@@ -95,18 +95,59 @@ export const drawableToSvg = (d: Drawable, i?: number) => {
     }
 };
 
-const Animation = ({ fn }: { fn: (n: number) => Array<Drawable> }) => {
+const wrapWithExecutaionLimit = (evalEnv: EvalEnv, fn) => {
+    return (...args) => {
+        const need = evalEnv.executionLimit.enabled === false;
+        if (need) {
+            evalEnv.executionLimit.enabled = true;
+            evalEnv.executionLimit.maxTime = Date.now() + 200;
+            evalEnv.executionLimit.ticks = 0;
+        }
+        try {
+            const res = fn(...args);
+            if (need) {
+                evalEnv.executionLimit.enabled = false;
+            }
+            return res;
+        } catch (err) {
+            if (need) {
+                evalEnv.executionLimit.enabled = false;
+            }
+            throw err;
+        }
+    };
+};
+
+const Animation = ({
+    fn,
+    evalEnv,
+}: {
+    evalEnv: EvalEnv;
+    fn: (n: number) => Array<Drawable>;
+}) => {
     const [data, setData] = React.useState([]);
-    const fc = React.useRef(fn);
-    fc.current = fn;
+    const [error, setError] = React.useState(null);
+    const wrapped = React.useMemo(() => wrapWithExecutaionLimit(evalEnv, fn), [
+        fn,
+    ]);
+    const fc = React.useRef(wrapped);
+    fc.current = wrapped;
     React.useEffect(() => {
         let tick = 0;
         const tid = setInterval(() => {
             tick += 1;
-            setData(fc.current(tick));
+            try {
+                setData(fc.current(tick));
+            } catch (err) {
+                clearInterval(tid);
+                setError(err);
+            }
         }, 40);
         return () => clearInterval(tid);
     }, []);
+    if (error) {
+        return <div>{error.message}</div>;
+    }
     return (
         <div>
             <svg width="100%" height="200px" xmlns="http://www.w3.org/2000/svg">
@@ -121,8 +162,8 @@ const plugins: Plugins = {
         id: 'animation',
         name: 'Animation',
         type: pureFunction([int], builtinType('Array', [refType('4a4abfb4')])),
-        render: (fn: (n: number) => Array<Drawable>) => {
-            return <Animation fn={fn} />;
+        render: (fn: (n: number) => Array<Drawable>, evalEnv: EvalEnv) => {
+            return <Animation evalEnv={evalEnv} fn={fn} />;
         },
     },
     drawable: {

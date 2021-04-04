@@ -200,7 +200,7 @@ const Pin = ({ pin, env, evalEnv, plugins, onRun }) => {
     const plugin: PluginT = plugins[pin.display.type];
     const err = getTypeError(env, t.is, plugin.type, null);
     if (err == null) {
-        return plugin.render(evalEnv.terms[idName(pin.id)]);
+        return plugin.render(evalEnv.terms[idName(pin.id)], evalEnv);
     }
     return <div>Error folks</div>;
 };

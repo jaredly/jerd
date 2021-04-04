@@ -169,7 +169,14 @@ export default ({
         return null;
     }, [typed]);
 
-    const renderPlugin = getRenderPlugin(plugins, env, display, typed, evaled);
+    const renderPlugin = getRenderPlugin(
+        plugins,
+        env,
+        display,
+        typed,
+        evaled,
+        evalEnv,
+    );
 
     return (
         <div style={{ marginRight: 10 }}>
@@ -238,6 +245,7 @@ export default ({
             </div>
             {renderPlugin != null ? (
                 <RenderPlugin
+                    onPin={null}
                     display={display}
                     plugins={plugins}
                     onSetPlugin={onSetPlugin}
@@ -277,6 +285,7 @@ const getRenderPlugin = (
     display: Display | null,
     typed: ToplevelT | null,
     evaled: any,
+    evalEnv: EvalEnv,
 ) => {
     if (display == null || typed == null || evaled == null) {
         return null;
@@ -300,7 +309,7 @@ const getRenderPlugin = (
     }
     const err = getTypeError(env, term.is, plugin.type, null);
     if (err == null) {
-        return () => plugin.render(evaled);
+        return () => plugin.render(evaled, evalEnv);
     }
 
     return null;

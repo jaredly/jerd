@@ -52,6 +52,27 @@ export const pureFunction = (
     };
 };
 
+// This seems like it would work, right?
+`
+type ToStr<T> = {
+    str: T => string
+}
+type ToFloat<T> = {float: T => float}
+
+const IntToStr: ToStr<int> = ToStr<int>{str: intToString}
+const FloatToStr: ToStr<float> = ToStr<float>{str: floatToString}
+const IntToFloat: ToFloat<int> = ToFloat<int>{float: intToFloat}
+
+:str(x) (inferred to be IntToStr.str(x))
+:float(n) (inferred to be IntToFloat.float(n))
+
+or .str(x)? and .float(x)? I mean that's more consistent...
+clearer what's going on...
+
+and then .+? ./? I'd say all binops have implicit "." before them.
+And then we just do aggressive inlining.
+`;
+
 export function presetEnv() {
     const env = newEnv({
         name: 'self_unset',
@@ -78,6 +99,8 @@ export function presetEnv() {
         location: null,
     };
     env.global.builtins['++'] = pureFunction([string, string], string);
+    env.global.builtins['>='] = pureFunction([T0, T0], bool, [T]);
+    env.global.builtins['<='] = pureFunction([T0, T0], bool, [T]);
     env.global.builtins['>'] = pureFunction([T0, T0], bool, [T]);
     env.global.builtins['<'] = pureFunction([T0, T0], bool, [T]);
     env.global.builtins['=='] = pureFunction([T0, T0], bool, [T]);

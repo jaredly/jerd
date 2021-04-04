@@ -264,7 +264,7 @@ EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 
-binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<" / ">" / "<=" / ">=" / "=="
+binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<=" / ">=" / "=="  / "<" / ">" 
 
 Binop = Expression
 

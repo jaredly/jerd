@@ -53,7 +53,7 @@ export type PluginT = {
     id: string;
     name: string;
     type: Type;
-    render: (value: any) => JSX.Element;
+    render: (value: any, evalEnv: EvalEnv) => JSX.Element;
 };
 export type Plugins = { [id: string]: PluginT };
 export type Display = { type: string; opts: { [key: string]: any } };
@@ -239,6 +239,7 @@ export const getPlugin = (
     content: Content,
     // cell: Cell,
     value: any,
+    evalEnv: EvalEnv,
 ): (() => JSX.Element) | null => {
     if (!display || !plugins[display.type]) {
         return null;
@@ -250,7 +251,7 @@ export const getPlugin = (
             const plugin: PluginT = plugins[display.type];
             const err = getTypeError(env, t.is, plugin.type, null);
             if (err == null) {
-                return () => plugin.render(value);
+                return () => plugin.render(value, evalEnv);
             }
     }
     return null;
@@ -319,6 +320,7 @@ const RenderResult = ({
         cell.display,
         cell.content,
         evalEnv.terms[hash],
+        evalEnv,
     );
     if (renderPlugin != null) {
         return (
