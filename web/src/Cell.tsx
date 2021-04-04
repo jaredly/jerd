@@ -73,6 +73,7 @@ export type CellProps = {
     evalEnv: EvalEnv;
     addCell: (content: Content) => void;
     plugins: { [id: string]: PluginT };
+    onPin: (display: Display, id: Id) => void;
 };
 
 const CellWrapper = ({ onRemove, onToggleSource, children }) => {
@@ -136,6 +137,7 @@ export const CellView = ({
     onRun,
     evalEnv,
     addCell,
+    onPin,
     plugins,
 }: CellProps) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
@@ -189,6 +191,7 @@ export const CellView = ({
                 onSetPlugin={(display) => {
                     onChange(env, { ...cell, display });
                 }}
+                onPin={onPin}
                 cell={cell}
                 plugins={plugins}
                 content={cell.content}
@@ -263,6 +266,7 @@ const RenderResult = ({
     collapsed,
     setCollapsed,
     onSetPlugin,
+    onPin,
 }: {
     onSetPlugin: (d: Display | null) => void;
     plugins: Plugins;
@@ -273,6 +277,7 @@ const RenderResult = ({
     onRun: (id: Id) => void;
     collapsed: boolean;
     setCollapsed: (c: boolean) => void;
+    onPin: (display: Display, id: Id) => void;
 }) => {
     const hash = idName(id);
     if (!evalEnv.terms[hash]) {
@@ -321,6 +326,7 @@ const RenderResult = ({
                 display={cell.display}
                 plugins={plugins}
                 onSetPlugin={onSetPlugin}
+                onPin={() => onPin(cell.display, idFromName(hash))}
             >
                 {renderPlugin()}
             </RenderPlugin>
@@ -400,6 +406,7 @@ const RenderItem = ({
     collapsed,
     setCollapsed,
     onSetPlugin,
+    onPin,
 }: {
     env: Env;
     cell: Cell;
@@ -413,6 +420,7 @@ const RenderItem = ({
     collapsed: boolean;
     setCollapsed: (n: boolean) => void;
     onSetPlugin: (display: Display) => void;
+    onPin: (display: Display, id: Id) => void;
 }) => {
     const onClick = (id, kind) => {
         console.log(kind);
@@ -472,6 +480,7 @@ const RenderItem = ({
                 </div>
                 <RenderResult
                     onSetPlugin={onSetPlugin}
+                    onPin={onPin}
                     cell={cell}
                     plugins={plugins}
                     collapsed={collapsed}
@@ -528,6 +537,7 @@ const RenderItem = ({
                 </div>
                 <RenderResult
                     onSetPlugin={onSetPlugin}
+                    onPin={onPin}
                     cell={cell}
                     plugins={plugins}
                     collapsed={collapsed}
@@ -737,7 +747,13 @@ export const updateToplevel = (
     }
 };
 
-export const RenderPlugin = ({ children, display, plugins, onSetPlugin }) => {
+export const RenderPlugin = ({
+    children,
+    display,
+    plugins,
+    onSetPlugin,
+    onPin,
+}) => {
     return (
         <div
             style={{
@@ -759,6 +775,20 @@ export const RenderPlugin = ({ children, display, plugins, onSetPlugin }) => {
                     borderRadius: 4,
                 }}
             >
+                <button
+                    css={{
+                        cursor: 'pointer',
+                        fontSize: '50%',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: 'inherit',
+                        padding: 0,
+                        marginRight: 8,
+                    }}
+                    onClick={() => onPin()}
+                >
+                    📌
+                </button>
                 {plugins[display.type].name}
                 <button
                     css={{

@@ -32,3 +32,75 @@ oh yeah the fact that we have a global handler stack is bad news.
 but maybe we could pass it along as an extra arg?
 anyway, wait on this.
 
+## LLVM?
+could be fun
+
+### Records
+would need to nail down the struct representation.
+
+Person {...HasName, ...HasAge, donuts: int}
+
+// T: HasName
+looks like (value, HasNameOffset)
+where HasNameOffset tells us how to access stuff in value
+and then
+theThing.Name
+is
+add HasNameOffset to the offset for the Name (0), to get the thing.
+
+hrmmm nope um
+maybe I need change the pointer
+
+buuuut then how do I clone the whole shebang?
+yeah how do I make a copy of it?
+maybe pass in a function that knows how to clone it?
+my goodness this is complicated.
+
+Ok, so
+```ts
+const getName = <T: HasName>(named: T) => named.name
+```
+becomes ...
+```c
+char* getname(void* named, int nameOffset) {
+    return named[nameOffset + 0];
+}
+```
+
+and
+```ts
+const withName = <T: HasName>(named: T, newName: string) => T{...named, name: newName}
+```
+becomes
+```c
+void* withName(void* named, int nameOffset, fn cloneNamed, char* newName) {
+    cloned = cloneNamed(named);
+    cloned[nameOffset + 0] = newName;
+    return cloned
+}
+```
+
+### Lambdas?
+have to bring lambdas up to the top level, and the lambdas
+turn into structs containing the relevant scope variables I guess?
+
+```ts
+const m = (x: int) => (y: int) => x + y
+```
+becomes something like
+```ts
+const _ml1 = (scope: {x: int}, y: int) => scope.x + y
+// hmmmmmmmmmmmmmmmmm
+// so we need this packed up in such a way,
+// that a caller just needs to do `theLambda.fn(theLambda.scope, my, other, args)`
+type lambdaFn = {fn: *fn, scope: T}
+const m = (x: int) => lambdaFn{fn: _ml1, scope: {x: x}}
+```
+
+I assume this is something llvm would let me do...
+
+side note: should I do this kind of thing in js? so that I have js function transferability / hashability / etc.?
+
+idk. not at the moment I don't think.
+
+

@@ -3,7 +3,7 @@ import { jsx } from '@emotion/react';
 // The app
 
 import * as React from 'react';
-import { idName } from '@jerd/language/src/typing/env';
+import { idFromName, idName } from '@jerd/language/src/typing/env';
 import { CellView, Cell, Content } from './Cell';
 import { runTerm } from './eval';
 
@@ -40,6 +40,17 @@ const Cells = ({ state, plugins, setState }) => {
                     cell={state.cells[id]}
                     evalEnv={state.evalEnv}
                     plugins={plugins}
+                    onPin={(display, id) => {
+                        setState((state) => ({
+                            ...state,
+                            pins: state.pins.concat([
+                                {
+                                    display,
+                                    id,
+                                },
+                            ]),
+                        }));
+                    }}
                     onRemove={() => {
                         setState((state) => {
                             const cells = { ...state.cells };

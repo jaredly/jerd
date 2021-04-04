@@ -137,9 +137,9 @@ const Library = ({
                                             'unnamed',
                                     });
                                 }}
-                                key={hash}
+                                key={name}
                             >
-                                {env.global.idNames[hash] || hash}
+                                {name}
                                 <div style={{ flex: 1 }} />
                                 <div css={styles.hash}>#{hash}</div>
                             </div>

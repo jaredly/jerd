@@ -41,6 +41,7 @@ export const initialState = (): State => {
                     // Reset the local env
                     local: env.local,
                 },
+                pins: data.pins || [],
                 evalEnv: {
                     builtins,
                     terms: data.evalEnv.terms,
@@ -54,6 +55,7 @@ export const initialState = (): State => {
     return {
         env,
         cells: {},
+        pins: [],
         evalEnv: {
             builtins,
             terms: {},
