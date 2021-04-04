@@ -17,7 +17,7 @@ import { typeToPretty } from '../printing/printTsLike';
 import { showLocation } from './typeExpr';
 import { Location } from '../parsing/parser';
 import { WrongEffects } from './errors';
-import { getTypeErorr } from './getTypeError';
+import { getTypeError } from './getTypeError';
 
 /*
 
@@ -315,7 +315,7 @@ export const getTypeErrorOld = (
     location?: Location,
 ): UnificationResult => {
     if (true) {
-        const err = getTypeErorr(
+        const err = getTypeError(
             env,
             found,
             expected,

@@ -24,7 +24,7 @@ import {
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
-import { showType, getTypeErrorOld, assertFits } from './unify';
+import { showType, assertFits } from './unify';
 import { void_, string, bool } from './preset';
 import { hasSubType, idName, makeLocal, resolveIdentifier } from './env';
 import { typeLambda } from './terms/lambda';
@@ -33,8 +33,8 @@ import { typeRecord } from './terms/record';
 import { typeApply } from './terms/apply';
 import { typeSwitch } from './terms/switch';
 import { typeOps } from './terms/ops';
-import { LocatedError, UnresolvedIdentifier } from './errors';
-import { getTypeErorr } from './getTypeError';
+import { LocatedError, TypeError, UnresolvedIdentifier } from './errors';
+import { getTypeError } from './getTypeError';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -295,16 +295,18 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     const type = item.ann
                         ? typeType(innerEnv, item.ann)
                         : value.is;
-                    if (
-                        item.ann &&
-                        getTypeErrorOld(env, value.is, type) === false
-                    ) {
-                        throw new Error(
-                            `Value of const doesn't match type annotation. ${showType(
-                                env,
-                                value.is,
-                            )}, expected ${showType(env, type)}`,
+                    if (item.ann) {
+                        const err = getTypeError(
+                            env,
+                            value.is,
+                            type,
+                            expr.location,
                         );
+                        if (err != null) {
+                            throw new TypeError(
+                                `Value of const doesn't match type annotation.`,
+                            ).wrap(err);
+                        }
                     }
                     const sym = makeLocal(innerEnv, item.id, type);
                     inner.push({
@@ -329,7 +331,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const cond = typeExpr(env, expr.cond);
             const yes = typeExpr(env, expr.yes);
             const no = expr.no ? typeExpr(env, expr.no) : null;
-            const condErr = getTypeErorr(
+            const condErr = getTypeError(
                 env,
                 cond.is,
                 bool,
@@ -342,7 +344,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 ).wrap(condErr);
             }
 
-            const branchErr = getTypeErorr(
+            const branchErr = getTypeError(
                 env,
                 yes.is,
                 no ? no.is : void_,
@@ -496,17 +498,23 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
                 const t = typeExpr(env, term, eff.args[i]);
-                if (getTypeErrorOld(env, t.is, eff.args[i]) !== true) {
-                    throw new Error(
-                        `Wrong type for arg ${i}: ${showType(
-                            env,
-                            t.is,
-                        )}, expected ${showType(
-                            env,
-                            eff.args[i],
-                        )} - ${showLocation(t.location)}`,
-                    );
+                const err = getTypeError(env, t.is, eff.args[i], term.location);
+                if (err != null) {
+                    throw new TypeError(
+                        `Wrong type for arg ${i} in raise!()`,
+                    ).wrap(err);
                 }
+                // if (____(env, t.is, eff.args[i]) !== true) {
+                //     throw new Error(
+                //         `Wrong type for arg ${i}: ${showType(
+                //             env,
+                //             t.is,
+                //         )}, expected ${showType(
+                //             env,
+                //             eff.args[i],
+                //         )} - ${showLocation(t.location)}`,
+                //     );
+                // }
                 args.push(t);
             });
 
@@ -685,19 +693,15 @@ export const typeFitsEnum = (
 
     if (t.type === 'Enum') {
         const innerReferences = getEnumReferences(env, recordType);
-        // console.log(allReferences.map(showType));
-        // console.log(innerReferences.map(showType));
         for (let ref of innerReferences) {
             let found = false;
             for (let outer of allReferences) {
-                try {
-                    getTypeErrorOld(env, ref, outer);
-                } catch (err) {
+                const err = getTypeError(env, ref, outer, location);
+                if (err != null) {
                     continue;
                 }
                 found = true;
                 break;
-                // console.log(showType(env, outer), showType(env, ref));
             }
             if (!found) {
                 throw new Error(
@@ -715,19 +719,12 @@ export const typeFitsEnum = (
             }
         }
         return true;
-        // throw new Error('enum coersion not yet supported');
     }
-    // const enumDef = typeDef(env, enumRef.ref)
-    // if (enumDef == null || enumDef.type !== 'Enum') {
-    //     throw new Error(`Not an enum ${showType(env, enumRef)}`)
-    // }
     for (let ref of allReferences) {
         if (isRecord(recordType, ref.ref)) {
             return true;
         }
     }
-    // console.log('References', allReferences);
-    // console.log(recordType);
     return false;
 };
 

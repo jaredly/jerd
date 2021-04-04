@@ -2,7 +2,7 @@
 
 import { Env, Type, Term, LambdaType, EffectRef } from '../types';
 import { ApplySuffix } from '../../parsing/parser';
-import { showType, getTypeErrorOld } from '../unify';
+import { showType } from '../unify';
 import { resolveEffect } from '../env';
 import typeExpr, {
     applyEffectVariables,
@@ -10,7 +10,7 @@ import typeExpr, {
     showLocation,
 } from '../typeExpr';
 import typeType, { newTypeVbl } from '../typeType';
-import { getTypeErorr } from '../getTypeError';
+import { getTypeError } from '../getTypeError';
 import { LocatedError, TypeMismatch } from '../errors';
 
 export const typeApply = (
@@ -112,7 +112,7 @@ export const typeApply = (
     const resArgs: Array<Term> = [];
     args.forEach((term, i) => {
         const t: Term = typeExpr(env, term, is.args[i]);
-        const err = getTypeErorr(env, t.is, is.args[i], term.location);
+        const err = getTypeError(env, t.is, is.args[i], term.location);
         if (err !== null) {
             throw new LocatedError(
                 term.location,

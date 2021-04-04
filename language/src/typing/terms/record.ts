@@ -15,13 +15,15 @@ import {
     isRecord,
 } from '../types';
 import { Record } from '../../parsing/parser';
-import { showType, getTypeErrorOld } from '../unify';
+import { showType } from '../unify';
 import { idName } from '../env';
 import typeExpr, {
     applyTypeVariablesToRecord,
     showLocation,
 } from '../typeExpr';
 import typeType from '../typeType';
+import { getTypeError } from '../getTypeError';
+import { TypeError } from '../errors';
 
 // export const recordNamesAndSuch =
 
@@ -207,15 +209,21 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             );
         }
         const v = typeExpr(env, row.value);
-        if (!getTypeErrorOld(env, v.is, rowsToMod[i].type)) {
-            throw new Error(
+        const err = getTypeError(
+            env,
+            v.is,
+            rowsToMod[i].type,
+            row.value.location,
+        );
+        if (err != null) {
+            throw new TypeError(
                 `Invalid type for attribute ${row.id.text} at ${showLocation(
                     row.value.location,
                 )}. Expected ${showType(
                     env,
                     recordType.items[i],
                 )}, got ${showType(env, v.is)}`,
-            );
+            ).wrap(err);
         }
         rowsToMod[i].value = v;
     });

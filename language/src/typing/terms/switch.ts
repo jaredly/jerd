@@ -1,7 +1,7 @@
 import { Location, Switch } from '../../parsing/parser';
 import { idName } from '../env';
 import { LocatedError } from '../errors';
-import { getTypeErorr } from '../getTypeError';
+import { getTypeError } from '../getTypeError';
 import typeExpr, { getEnumReferences, showLocation } from '../typeExpr';
 import typePattern from '../typePattern';
 import {
@@ -17,15 +17,13 @@ import {
     Term,
     Type,
 } from '../types';
-import { getTypeErrorOld, showType } from '../unify';
+import { showType } from '../unify';
 import {
-    Constructor,
     Pattern as ExPattern,
     Groups,
     Matrix,
     anything,
     isExhaustive,
-    getUseless,
     constructor,
     or,
 } from './exhaustive';
@@ -144,7 +142,7 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
         if (is == null) {
             is = body.is;
         } else {
-            const err = getTypeErorr(env, body.is, is, c.body.location);
+            const err = getTypeError(env, body.is, is, c.body.location);
             if (err != null) {
                 throw new LocatedError(
                     c.body.location,
@@ -194,7 +192,7 @@ const arrayToExPattern = (
         throw new Error(`Non-array type with array spread`);
     }
     const elemType = type.typeVbls[0];
-    const notMatch = getTypeErorr(env, elemType, pattern.is, pattern.location!);
+    const notMatch = getTypeError(env, elemType, pattern.is, pattern.location!);
     if (notMatch != null) {
         throw notMatch;
     }

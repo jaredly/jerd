@@ -34,10 +34,10 @@ import {
     cloneGlobalEnv,
     EffectDef,
 } from './types';
-import { getTypeErrorOld } from './unify';
 import { ToplevelT } from '../printing/printTsLike';
 import { void_ } from './preset';
-import { LocatedError } from './errors';
+import { LocatedError, TypeError } from './errors';
+import { getTypeError } from './getTypeError';
 
 export const typeToplevelT = (
     env: Env,
@@ -421,8 +421,13 @@ export const typeDefineInner = (env: Env, item: Define) => {
         console.log(showLocation(item.location));
         throw err;
     }
-    if (item.ann && getTypeErrorOld(subEnv, term.is, self.type) !== true) {
-        throw new Error(`Term's type doesn't match annotation`);
+    if (item.ann) {
+        const err = getTypeError(subEnv, term.is, self.type, item.location);
+        if (err != null) {
+            throw new TypeError(`Term's type doesn't match annotation`).wrap(
+                err,
+            );
+        }
     }
 
     if (getEffects(term).length > 0) {

@@ -25,7 +25,6 @@ import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
 import { Env, Id, Term, TypeConstraint, typesEqual } from './typing/types';
-import { getTypeErrorOld } from './typing/unify';
 import { printToString } from './printing/printer';
 import {
     termToPretty,
@@ -124,8 +123,11 @@ const testInference = (parsed: Toplevel[]) => {
             };
             subEnv.local.self = self;
             const term = typeExpr(subEnv, item.expr);
-            if (getTypeErrorOld(subEnv, term.is, self.type) !== true) {
-                throw new Error(`Term's type doesn't match annotation`);
+            const err = getTypeError(subEnv, term.is, self.type, item.location);
+            if (err != null) {
+                throw new TypeError(
+                    `Term's type doesn't match annotation`,
+                ).wrap(err);
             }
             // So for self-recursive things, the final
             // thing should be exactly the same, not just
@@ -683,6 +685,7 @@ const main = (
 import { execSync, spawnSync } from 'child_process';
 import { LocatedError, TypeError } from './typing/errors';
 import { fileToGo } from './printing/goPrinter';
+import { getTypeError } from './typing/getTypeError';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');

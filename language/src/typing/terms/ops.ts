@@ -1,34 +1,11 @@
 // Binary operations
 
-import { Ops } from '../../parsing/parser';
-import {
-    Env,
-    Type,
-    Term,
-    Reference,
-    Symbol,
-    LambdaType,
-    Let,
-    typesEqual,
-    EffectRef,
-    isRecord,
-    TypeRef,
-    TypeReference,
-    RecordDef,
-    ArraySpread,
-    Id,
-    UserReference,
-    EnumDef,
-    GlobalEnv,
-    RecordType,
-    TypeVblDecl,
-    Pattern,
-} from '../types';
+import { nullLocation, Ops } from '../../parsing/parser';
+import { Env, Term, LambdaType, typesEqual } from '../types';
 import { Expression, Location } from '../../parsing/parser';
-import { subEnv } from '../types';
-import typeType, { walkType } from '../typeType';
-import { showType, getTypeErrorOld, assertFits } from '../unify';
+import { showType } from '../unify';
 import typeExpr, { applyTypeVariables, showLocation } from '../typeExpr';
+import { getTypeError } from '../getTypeError';
 
 const typeOp = (
     env: Env,
@@ -65,18 +42,31 @@ const typeOp = (
         is = applyTypeVariables(env, is, [left.is]) as LambdaType;
     }
 
-    if (getTypeErrorOld(env, left.is, is.args[0]) !== true) {
-        throw new Error(
-            `first arg to ${op} wrong type. ${showType(
-                env,
-                left.is,
-            )} vs ${showType(env, is.args[0])} at ${showLocation(
-                left.location,
-            )}`,
-        );
+    const firstErr = getTypeError(
+        env,
+        left.is,
+        is.args[0],
+        left.location || nullLocation,
+    );
+    if (firstErr != null) {
+        throw firstErr;
+        // throw new Error(
+        //     `first arg to ${op} wrong type. ${showType(
+        //         env,
+        //         left.is,
+        //     )} vs ${showType(env, is.args[0])} at ${showLocation(
+        //         left.location,
+        //     )}`,
+        // );
     }
-    if (getTypeErrorOld(env, rarg.is, is.args[1]) !== true) {
-        throw new Error(`second arg to ${op} wrong type`);
+    const secondErr = getTypeError(
+        env,
+        rarg.is,
+        is.args[1],
+        rarg.location || nullLocation,
+    );
+    if (secondErr != null) {
+        throw secondErr;
     }
     return {
         type: 'apply',

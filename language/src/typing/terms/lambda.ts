@@ -14,12 +14,12 @@ import {
     Env,
 } from '../types';
 import typeType, { newEnvWithTypeAndEffectVbls } from '../typeType';
-import { getTypeErrorOld } from '../unify';
 import { printToString } from '../../printing/printer';
 import { refToPretty, symToPretty } from '../../printing/printTsLike';
-import typeExpr, { showLocation } from '../typeExpr';
+import typeExpr from '../typeExpr';
 import { makeLocal, resolveEffect } from '../env';
-import { LocatedError } from '../errors';
+import { LocatedError, TypeError } from '../errors';
+import { getTypeError } from '../getTypeError';
 
 export const typeLambda = (env: Env, expr: Lambda): Term => {
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
@@ -42,16 +42,16 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
     });
     const body = typeExpr(inner, expr.body);
     if (expr.rettype) {
-        if (
-            getTypeErrorOld(
-                typeInner,
-                body.is,
-                typeType(typeInner, expr.rettype),
-            ) !== true
-        ) {
-            throw new Error(
+        const err = getTypeError(
+            typeInner,
+            body.is,
+            typeType(typeInner, expr.rettype),
+            expr.location,
+        );
+        if (err != null) {
+            throw new TypeError(
                 `Return type of lambda doesn't fit type declaration`,
-            );
+            ).wrap(err);
         }
     }
     const effects = getEffects(body);

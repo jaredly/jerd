@@ -372,14 +372,11 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
 };
 
 export const hasTailCall = (body: Block | Expr, self: Id): boolean => {
-    console.log('check', self);
     let found = false;
     let hasLoop = false;
-    console.log(body.type);
     transformLambdaBody(body, {
         ...defaultVisitor,
         stmt: (stmt) => {
-            console.log(stmt.type);
             if (isSelfTail(stmt, self)) {
                 found = true;
             } else if (stmt.type === 'Loop') {
@@ -389,7 +386,6 @@ export const hasTailCall = (body: Block | Expr, self: Id): boolean => {
         },
         expr: (expr) => {
             if (expr.type === 'lambda') {
-                console.log('got a lambda');
                 // don't recurse into lambdas
                 return false;
             }
@@ -425,10 +421,8 @@ export const tailCallRecursion = (
     self: Id,
 ): Block | Expr => {
     if (!hasTailCall(body, self)) {
-        console.log('no tail call', self);
         return body;
     }
-    console.log('yes');
     return {
         type: 'Block',
         loc: body.loc,

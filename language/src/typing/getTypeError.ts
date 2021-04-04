@@ -21,9 +21,9 @@ import {
 } from './types';
 
 export const isType = (env: Env, found: Type, expected: Type) =>
-    getTypeErorr(env, found, expected, nullLocation) == null;
+    getTypeError(env, found, expected, nullLocation) == null;
 
-export const getTypeErorr = (
+export const getTypeError = (
     env: Env,
     found: Type,
     expected: Type,
@@ -53,7 +53,7 @@ export const getTypeErorr = (
             ).wrapped(new TypeMismatch(env, found, expected, location));
         }
         for (let i = 0; i < found.typeVbls.length; i++) {
-            const err = getTypeErorr(
+            const err = getTypeError(
                 env,
                 found.typeVbls[i],
                 e.typeVbls[i],
@@ -85,7 +85,7 @@ export const getTypeErorr = (
             ).wrapped(new TypeMismatch(env, found, expected, location));
         }
         for (let i = 0; i < found.args.length; i++) {
-            const err = getTypeErorr(env, found.args[i], e.args[i], location);
+            const err = getTypeError(env, found.args[i], e.args[i], location);
             if (err !== null) {
                 return err.wrapped(new MismatchedArgument(i, found, e));
             }
@@ -97,7 +97,7 @@ export const getTypeErorr = (
             );
         }
         // for (let i=0; i<found.typeVbls.length; i++) {
-        //     const err = getTypeErorr(env, found.typeVbls[i], e.typeVbls[i], location)
+        //     const err = getTypeError(env, found.typeVbls[i], e.typeVbls[i], location)
         //     // TODO: do this better
         //     if (err !== null) {
         //         return err.wrapped(new MismatchedTypeVbl(env, i, found, expected, location))
@@ -111,7 +111,7 @@ export const getTypeErorr = (
                 location,
             ).wrapped(new TypeMismatch(env, found, expected, location));
         }
-        const res = getTypeErorr(env, found.res, e.res, location);
+        const res = getTypeError(env, found.res, e.res, location);
         if (res != null) {
             return res.wrapped(new TypeMismatch(env, found, e, location));
         }

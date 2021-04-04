@@ -1,39 +1,11 @@
 // This only really for testing
 
-import path from 'path';
-import fs from 'fs';
-import { hashObject } from '../typing/env';
-import parse, { Expression, Location, Toplevel } from '../parsing/parser';
-// import {
-//     declarationToAST,
-//     printType,
-//     termToAST,
-//     typeToString,
-// } from '../printing/typeScriptPrinter';
-// import {
-//     optimizeAST,
-//     removeTypescriptTypes,
-// } from '../printing/typeScriptOptimize';
+import { Expression, Toplevel } from '../parsing/parser';
 import typeExpr, { showLocation } from '../typing/typeExpr';
-import typeType, { newTypeVbl } from '../typing/typeType';
-import {
-    // EffectRef,
-    Env,
-    getEffects,
-    // Reference,
-    Term,
-    // Type,
-    // TypeConstraint,
-    // typesEqual,
-} from '../typing/types';
-import {
-    showType,
-    // unifyInTerm,
-    // unifyVariables,
-    // getTypeErrorOld,
-} from '../typing/unify';
-import { items, printToString } from '../printing/printer';
-import { declarationToPretty, termToPretty } from '../printing/printTsLike';
+import { Env, getEffects, Term } from '../typing/types';
+import { showType } from '../typing/unify';
+import { printToString } from '../printing/printer';
+import { termToPretty } from '../printing/printTsLike';
 import {
     typeDefine,
     typeTypeDefn,
@@ -41,7 +13,7 @@ import {
     typeEffect,
 } from '../typing/env';
 
-import { bool, presetEnv } from '../typing/preset';
+import { presetEnv } from '../typing/preset';
 import { LocatedError, TypeError } from './errors';
 
 export function typeFile(
