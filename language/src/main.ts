@@ -417,7 +417,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
     for (let tid of Object.keys(env.global.types)) {
         const t = env.global.types[tid];
         // ermm fix this hack
-        if (tid === 'Some' || tid === 'None') {
+        if (tid === 'Some' || tid === 'None' || tid === 'As') {
             continue;
         }
         let top: ToplevelT;
@@ -492,7 +492,7 @@ const processFile = (
     writeFile(dest, text);
 
     const preludeTS = require('fs').readFileSync(
-        './src/printing/prelude.ts',
+        './src/printing/builtins.ts',
         'utf8',
     );
 

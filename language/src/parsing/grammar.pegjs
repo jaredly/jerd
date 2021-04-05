@@ -96,8 +96,9 @@ WithSuffix = sub:Apsub suffixes:Suffix* {
 	return suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
 }
 
-Suffix = ApplySuffix / AttributeSuffix / IndexSuffix
+Suffix = ApplySuffix / AttributeSuffix / IndexSuffix / AsSuffix
 
+AsSuffix = __ "as" __ t:TypeRef {return {type: 'As', t, location: location()}}
 IndexSuffix = "[" slices:Slices "]" {
     return {
         type: 'Index',

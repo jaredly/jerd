@@ -93,6 +93,12 @@ export function presetEnv() {
     env.global.builtins['intToFloat'] = pureFunction([int], float);
 
     const T: TypeVblDecl = { unique: 10000, subTypes: [] };
+    const Y: TypeVblDecl = { unique: 10001, subTypes: [] };
+    const Y0: Type = {
+        type: 'var',
+        sym: { unique: 10001, name: 'Y' },
+        location: null,
+    };
     const T0: Type = {
         type: 'var',
         sym: { unique: 10000, name: 'T' },
@@ -135,6 +141,24 @@ export function presetEnv() {
     env.global.builtinTypes['bool'] = 0;
     env.global.builtinTypes['string'] = 0;
     env.global.builtinTypes['Array'] = 1;
+
+    env.global.typeNames['As'] = { hash: 'As', pos: 0, size: 1 };
+    env.global.types['As'] = {
+        unique: 2,
+        type: 'Record',
+        typeVbls: [T, Y],
+        effectVbls: [],
+        extends: [],
+        items: [pureFunction([T0], Y0)],
+        location: null,
+        ffi: null,
+    };
+    env.global.recordGroups['As'] = ['as'];
+    env.global.idNames['As'] = 'As';
+    env.global.attributeNames['as'] = {
+        idx: 0,
+        id: { hash: 'As', pos: 0, size: 1 },
+    };
 
     env.global.typeNames['Some'] = { hash: 'Some', pos: 0, size: 1 };
     env.global.idNames['Some'] = 'Some';

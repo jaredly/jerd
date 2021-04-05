@@ -25,8 +25,14 @@ import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
 import { showType, assertFits } from './unify';
-import { void_, string, bool } from './preset';
-import { hasSubType, idName, makeLocal, resolveIdentifier } from './env';
+import { void_, string, bool, pureFunction } from './preset';
+import {
+    hasSubType,
+    idFromName,
+    idName,
+    makeLocal,
+    resolveIdentifier,
+} from './env';
 import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
 import { typeRecord } from './terms/record';
@@ -376,6 +382,64 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             for (let suffix of expr.suffixes) {
                 if (suffix.type === 'Apply') {
                     target = typeApply(env, target, suffix);
+                } else if (suffix.type === 'As') {
+                    const ttype = typeType(env, suffix.t);
+                    const stype = target.is;
+                    // Look for an `As` that fits!
+                    const asRecord: UserReference = {
+                        type: 'user',
+                        id: { hash: 'As', pos: 0, size: 1 },
+                    };
+                    const goalType: Type = {
+                        type: 'ref',
+                        ref: asRecord,
+                        typeVbls: [stype, ttype],
+                        effectVbls: [],
+                        location: null,
+                    };
+                    const foundImpl = findAs(
+                        env,
+                        stype,
+                        ttype,
+                        suffix.location,
+                    );
+                    if (foundImpl == null) {
+                        // STOPSHIP: make a "type error" node type.
+                        // repls and stuff can allow compiling with them,
+                        // but if you want to actually compile a runnable thing,
+                        // it won't let you.
+                        throw new Error(
+                            `No impl found for as ${showType(
+                                env,
+                                stype,
+                            )} (as) ${showType(env, ttype)}`,
+                        );
+                    }
+
+                    const record: Term = {
+                        type: 'ref',
+                        ref: foundImpl,
+                        is: goalType,
+                        location: null,
+                    };
+                    target = {
+                        type: 'apply',
+                        originalTargetType: pureFunction([stype], ttype),
+                        args: [target],
+                        hadAllVariableEffects: false,
+                        target: {
+                            type: 'Attribute',
+                            target: record,
+                            idx: 0,
+                            ref: asRecord,
+                            location: null,
+                            is: pureFunction([stype], ttype),
+                        },
+                        typeVbls: [],
+                        effectVbls: null,
+                        is: ttype,
+                        location: null,
+                    };
                 } else if (suffix.type === 'Attribute') {
                     // OOOOKKK.
                     // So here we have some choices, right?
@@ -817,6 +881,43 @@ export const applyTypeVariablesToEnum = (
         ),
         location: type.location,
     };
+};
+
+export const findAs = (
+    env: Env,
+    stype: Type,
+    ttype: Type,
+    location: Location,
+): UserReference | null => {
+    const asRecord: UserReference = {
+        type: 'user',
+        id: { hash: 'As', pos: 0, size: 1 },
+    };
+    const goalType: Type = {
+        type: 'ref',
+        ref: asRecord,
+        typeVbls: [stype, ttype],
+        effectVbls: [],
+        location: null,
+    };
+    let found = null;
+    Object.keys(env.global.terms).some((k) => {
+        const t = env.global.terms[k];
+        if (getTypeError(env, goalType, t.is, location) == null) {
+            found = idFromName(k);
+            return true;
+        } else if (
+            t.type === 'ref' &&
+            t.ref.type === 'user' &&
+            t.ref.id.hash === 'As'
+        ) {
+            console.log('got the as', t);
+        }
+    });
+    if (found == null) {
+        return null;
+    }
+    return { type: 'user', id: found };
 };
 
 export default typeExpr;

@@ -8,14 +8,14 @@ import {
     removeTypescriptTypes,
 } from '@jerd/language/src/printing/typeScriptOptimize';
 import { typeFile } from '@jerd/language/src/typing/typeFile';
-import { fileToTypescript } from '@jerd/language/src/printing/fileToTypeScript';
-import * as builtins from '@jerd/language/src/printing/prelude';
+// import { fileToTypescript } from '@jerd/language/src/printing/fileToTypeScript';
+import * as builtins from '@jerd/language/src/printing/builtins';
 
 import { presetEnv } from '@jerd/language/src/typing/preset';
 import generate from '@babel/generator';
 import { idName } from '@jerd/language/src/typing/env';
 import { Env, Id, defaultRng } from '@jerd/language/src/typing/types';
-import { printTerm } from '@jerd/language/src/printing/typeScriptPrinter';
+// import { printTerm } from '@jerd/language/src/printing/typeScriptPrinter';
 import { Content, updateToplevel } from './Cell';
 
 import {

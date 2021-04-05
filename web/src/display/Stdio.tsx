@@ -15,7 +15,7 @@ import {
     void_,
 } from '@jerd/language/src/typing/preset';
 import { Plugins } from '../Cell';
-import { handleSimpleShallow2 } from '@jerd/language/src/printing/prelude';
+import { handleSimpleShallow2 } from '@jerd/language/src/printing/builtins';
 
 const ChatBot = ({ fn }) => {
     const [state, setState] = React.useState({
