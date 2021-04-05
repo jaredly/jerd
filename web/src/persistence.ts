@@ -2,7 +2,7 @@ import { State } from './App';
 
 import { presetEnv } from '@jerd/language/src/typing/preset';
 import { allLiteral } from '@jerd/language/src/typing/analyze';
-import * as builtins from '@jerd/language/src/printing/prelude';
+import * as builtins from '@jerd/language/src/printing/builtins';
 
 const saveKey = 'jd-repl-cache';
 
@@ -37,6 +37,23 @@ export const initialState = (): State => {
                         builtins: env.global.builtins,
                         builtinTypes: env.global.builtinTypes,
                         rng: env.global.rng,
+                        recordGroups: {
+                            ...env.global.recordGroups,
+                            ...data.env.global.recordGroups,
+                        },
+                        attributeNames: {
+                            ...env.global.attributeNames,
+                            ...data.env.global.attributeNames,
+                        },
+                        types: {
+                            ...env.global.types,
+                            ...data.env.global.types,
+                        },
+                        terms: {
+                            // In case we added new global terms
+                            ...env.global.terms,
+                            ...data.env.global.terms,
+                        },
                     },
                     // Reset the local env
                     local: env.local,

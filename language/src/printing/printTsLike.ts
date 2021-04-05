@@ -26,7 +26,15 @@ import {
     cloneGlobalEnv,
     selfEnv,
 } from '../typing/types';
-import { PP, items, args, block, atom, id as idPretty } from './printer';
+import {
+    PP,
+    items,
+    args,
+    block,
+    atom,
+    id as idPretty,
+    printToString,
+} from './printer';
 
 export type ToplevelT =
     // | Term
@@ -443,6 +451,14 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         ? term.ref.name
                         : idName(term.ref.id)
                 ];
+            if (!names) {
+                throw new Error(
+                    `No names? ${printToString(
+                        refToPretty(env, term.ref, 'record'),
+                        100,
+                    )}`,
+                );
+            }
             return items([
                 termToPretty(env, term.target),
                 atom('.'),

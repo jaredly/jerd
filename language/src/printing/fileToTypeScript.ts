@@ -32,6 +32,7 @@ export const typeScriptPrelude = (
         'assert',
         'assertEqual',
         'pureCPS',
+        'intToFloat',
         'pow',
         'ln',
         'PI',

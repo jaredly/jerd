@@ -289,7 +289,7 @@ export type Boolean = { type: 'boolean'; value: boolean; location: Location };
 export type WithSuffix = {
     type: 'WithSuffix';
     target: Expression;
-    suffixes: Array<ApplySuffix | AttributeSuffix | IndexSuffix>;
+    suffixes: Array<ApplySuffix | AttributeSuffix | IndexSuffix | AsSuffix>;
     location: { start: Loc; end: Loc };
 };
 export type ApplySuffix = {
@@ -298,6 +298,7 @@ export type ApplySuffix = {
     typevbls: Array<Type>;
     effectVbls: Array<Identifier>;
 };
+export type AsSuffix = { type: 'As'; t: TypeRef; location: Location };
 export type AttributeSuffix = {
     type: 'Attribute';
     id: Identifier;

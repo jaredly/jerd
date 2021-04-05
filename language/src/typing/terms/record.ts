@@ -16,7 +16,7 @@ import {
 } from '../types';
 import { Record } from '../../parsing/parser';
 import { showType } from '../unify';
-import { idName } from '../env';
+import { idFromName, idName } from '../env';
 import typeExpr, {
     applyTypeVariablesToRecord,
     showLocation,
@@ -58,14 +58,24 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         });
         is = { type: 'var', sym, location: expr.id.location };
     } else {
-        const id = env.global.typeNames[expr.id.text];
-        if (!id) {
-            console.log(env.global.typeNames);
-            throw new Error(
-                `No Record type ${expr.id.text} at ${showLocation(
-                    expr.location,
-                )}`,
-            );
+        let id: Id;
+        if (expr.id.hash) {
+            const hash = expr.id.hash.slice(1);
+            id = idFromName(hash);
+            console.log(expr.id.hash);
+            if (!env.global.types[hash]) {
+                throw new Error(`No type with id ${hash}`);
+            }
+        } else {
+            id = env.global.typeNames[expr.id.text];
+            if (!id) {
+                console.log(env.global.typeNames);
+                throw new Error(
+                    `No Record type ${expr.id.text} at ${showLocation(
+                        expr.location,
+                    )}`,
+                );
+            }
         }
         const typeVbls = expr.typeVbls.map((t) => typeType(env, t));
         const t = applyTypeVariablesToRecord(
