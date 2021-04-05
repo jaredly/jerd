@@ -98,7 +98,7 @@ WithSuffix = sub:Apsub suffixes:Suffix* {
 
 Suffix = ApplySuffix / AttributeSuffix / IndexSuffix / AsSuffix
 
-AsSuffix = __ "as" __ t:TypeRef {return {type: 'As', t, location: location()}}
+AsSuffix = __ "as" hash:IdHash? __ t:TypeRef {return {type: 'As', t, location: location(), hash}}
 IndexSuffix = "[" slices:Slices "]" {
     return {
         type: 'Index',

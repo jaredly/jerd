@@ -393,6 +393,12 @@ export const withoutLocations = <T>(obj: T): T => {
             if (key === 'name' && obj.unique != null) {
                 return;
             }
+            // Whether an attribute target was inferred or not
+            // shouldn't impact the hash.
+            // @ts-ignore
+            if (key === 'inferred' && obj.type === 'Attribute') {
+                return;
+            }
             // @ts-ignore
             res[key] = withoutLocations(obj[key]);
         });

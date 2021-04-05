@@ -249,7 +249,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   };
   const peg$c44 = "as";
   const peg$c45 = peg$literalExpectation("as", false);
-  const peg$c46 = function(t: any): any {return {type: 'As', t, location: location()}};
+  const peg$c46 = function(hash: any, t: any): any {return {type: 'As', t, location: location(), hash}};
   const peg$c47 = "[";
   const peg$c48 = peg$literalExpectation("[", false);
   const peg$c49 = "]";
@@ -1807,7 +1807,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   }
 
   function peg$parseAsSuffix(): any {
-    let s0, s1, s2, s3, s4;
+    let s0, s1, s2, s3, s4, s5;
 
     s0 = peg$currPos;
     s1 = peg$parse__();
@@ -1820,13 +1820,22 @@ function peg$parse(input: string, options?: IParseOptions) {
         if (peg$silentFails === 0) { peg$fail(peg$c45); }
       }
       if (s2 !== peg$FAILED) {
-        s3 = peg$parse__();
+        s3 = peg$parseIdHash();
+        if (s3 === peg$FAILED) {
+          s3 = null;
+        }
         if (s3 !== peg$FAILED) {
-          s4 = peg$parseTypeRef();
+          s4 = peg$parse__();
           if (s4 !== peg$FAILED) {
-            peg$savedPos = s0;
-            s1 = peg$c46(s4);
-            s0 = s1;
+            s5 = peg$parseTypeRef();
+            if (s5 !== peg$FAILED) {
+              peg$savedPos = s0;
+              s1 = peg$c46(s3, s5);
+              s0 = s1;
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
           } else {
             peg$currPos = s0;
             s0 = peg$FAILED;

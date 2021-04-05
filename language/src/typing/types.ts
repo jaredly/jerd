@@ -222,17 +222,18 @@ export type CPSAble =
           sts: Array<Term | Let>;
           is: Type;
       }
-    | {
-          type: 'apply';
-          originalTargetType: LambdaType;
-          location: Location | null;
-          target: Term;
-          typeVbls: Array<Type>;
-          effectVbls: Array<EffectRef> | null;
-          hadAllVariableEffects?: boolean;
-          args: Array<Term>;
-          is: Type; // this matches the return type of target
-      };
+    | Apply;
+export type Apply = {
+    type: 'apply';
+    originalTargetType: LambdaType;
+    location: Location | null;
+    target: Term;
+    typeVbls: Array<Type>;
+    effectVbls: Array<EffectRef> | null;
+    hadAllVariableEffects?: boolean;
+    args: Array<Term>;
+    is: Type; // this matches the return type of target
+};
 
 // This doesn't do type checking
 export const apply = (
@@ -399,6 +400,8 @@ export type Term =
           target: Term;
           ref: Reference;
           idx: number;
+          // Shouldn't impact hash
+          inferred: boolean;
           location: Location | null;
           is: Type;
       }

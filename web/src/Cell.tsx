@@ -756,6 +756,7 @@ export const RenderPlugin = ({
     onSetPlugin,
     onPin,
 }) => {
+    const [zoom, setZoom] = React.useState(false);
     return (
         <div
             style={{
@@ -763,6 +764,16 @@ export const RenderPlugin = ({
                 border: '2px solid #2b2b2b',
                 borderRadius: 4,
                 position: 'relative',
+                ...(zoom
+                    ? {
+                          position: 'fixed',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          zIndex: 1000,
+                          background: 'black',
+                      }
+                    : null),
             }}
         >
             <div
@@ -772,7 +783,7 @@ export const RenderPlugin = ({
                     right: -2,
                     padding: 8,
                     paddingTop: 6,
-                    backgroundColor: '#2b2b2b',
+                    backgroundColor: !zoom ? '#2b2b2b' : 'transparent',
                     fontSize: '80%',
                     borderRadius: 4,
                 }}
@@ -785,28 +796,47 @@ export const RenderPlugin = ({
                         border: 'none',
                         color: 'inherit',
                         padding: 0,
-                        marginRight: 8,
+                        marginRight: zoom ? 0 : 8,
                     }}
-                    onClick={() => onPin()}
+                    onClick={() => setZoom(!zoom)}
                 >
-                    📌
+                    🔍
                 </button>
-                {plugins[display.type].name}
-                <button
-                    css={{
-                        cursor: 'pointer',
-                        fontSize: '50%',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        color: 'inherit',
-                        padding: 0,
-                        marginLeft: 8,
-                    }}
-                    onClick={() => onSetPlugin(null)}
-                >
-                    ╳
-                </button>
+                {!zoom ? (
+                    <span>
+                        <button
+                            css={{
+                                cursor: 'pointer',
+                                fontSize: '50%',
+                                backgroundColor: 'transparent',
+                                border: 'none',
+                                color: 'inherit',
+                                padding: 0,
+                                marginRight: 8,
+                            }}
+                            onClick={() => onPin()}
+                        >
+                            📌
+                        </button>
+                        {plugins[display.type].name}
+                        <button
+                            css={{
+                                cursor: 'pointer',
+                                fontSize: '50%',
+                                backgroundColor: 'transparent',
+                                border: 'none',
+                                color: 'inherit',
+                                padding: 0,
+                                marginLeft: 8,
+                            }}
+                            onClick={() => onSetPlugin(null)}
+                        >
+                            ╳
+                        </button>
+                    </span>
+                ) : null}
             </div>
+
             <div style={{ padding: 8 }}>{children}</div>
         </div>
     );

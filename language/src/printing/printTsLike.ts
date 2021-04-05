@@ -25,6 +25,7 @@ import {
     Pattern,
     cloneGlobalEnv,
     selfEnv,
+    Apply,
 } from '../typing/types';
 import {
     PP,
@@ -373,6 +374,16 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
         case 'sequence':
             return block(term.sts.map((t) => termToPretty(env, t)));
         case 'apply':
+            const asInfo = getAsInfo(term);
+            if (asInfo != null) {
+                return items([
+                    termToPretty(env, asInfo.value),
+                    atom(' '),
+                    idPretty('as', idName(asInfo.id), 'as'),
+                    atom(' '),
+                    typeToPretty(env, asInfo.type),
+                ]);
+            }
             if (isBinOp(term.target) && term.args.length === 2) {
                 return items([
                     termToPretty(env, term.args[0]),
@@ -506,7 +517,6 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     if (row != null) {
                         res.push(
                             items([
-                                // atom(names[i] + '#' + i),
                                 idPretty(
                                     names[i],
                                     id + '#' + i.toString(),
@@ -518,8 +528,6 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         );
                     }
                 });
-                // decl.items.forEach((item, i) => {
-                // })
             });
             if (term.base.type === 'Concrete') {
                 const names = env.global.recordGroups[idName(term.base.ref.id)];
@@ -683,3 +691,22 @@ const isBinOp = (term: Term) =>
     term.type === 'ref' &&
     term.ref.type === 'builtin' &&
     !term.ref.name.match(/[\w_$]/);
+
+const getAsInfo = (term: Apply): { type: Type; value: Term; id: Id } | null => {
+    if (
+        term.args.length === 1 &&
+        term.target.type === 'Attribute' &&
+        term.target.target.type === 'ref' &&
+        term.target.target.is.type === 'ref' &&
+        term.target.target.is.ref.type === 'user' &&
+        term.target.target.is.ref.id.hash === 'As' &&
+        term.target.target.ref.type === 'user'
+    ) {
+        return {
+            type: term.target.target.is.typeVbls[1],
+            value: term.args[0],
+            id: term.target.target.ref.id,
+        };
+    }
+    return null;
+};

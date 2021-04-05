@@ -298,7 +298,12 @@ export type ApplySuffix = {
     typevbls: Array<Type>;
     effectVbls: Array<Identifier>;
 };
-export type AsSuffix = { type: 'As'; t: TypeRef; location: Location };
+export type AsSuffix = {
+    type: 'As';
+    hash: string | null;
+    t: TypeRef;
+    location: Location;
+};
 export type AttributeSuffix = {
     type: 'Attribute';
     id: Identifier;

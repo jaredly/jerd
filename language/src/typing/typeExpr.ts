@@ -32,6 +32,7 @@ import {
     idName,
     makeLocal,
     resolveIdentifier,
+    symPrefix,
 } from './env';
 import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
@@ -397,31 +398,81 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         effectVbls: [],
                         location: null,
                     };
-                    const foundImpl = findAs(
-                        env,
-                        stype,
-                        ttype,
-                        suffix.location,
-                    );
-                    if (foundImpl == null) {
-                        // STOPSHIP: make a "type error" node type.
-                        // repls and stuff can allow compiling with them,
-                        // but if you want to actually compile a runnable thing,
-                        // it won't let you.
-                        throw new Error(
-                            `No impl found for as ${showType(
+                    let foundImpl: Term;
+                    if (suffix.hash != null) {
+                        if (suffix.hash.startsWith(symPrefix)) {
+                            const symNum = +suffix.hash.slice(symPrefix.length);
+                            const local = env.local.locals[symNum];
+                            if (!local) {
+                                throw new LocatedError(
+                                    suffix.location,
+                                    `No symbol ${suffix.hash}`,
+                                );
+                            }
+                            const err = getTypeError(
                                 env,
-                                stype,
-                            )} (as) ${showType(env, ttype)}`,
-                        );
-                    }
+                                local.type,
+                                goalType,
+                                suffix.location,
+                            );
+                            if (err != null) {
+                                throw err;
+                            }
+                            foundImpl = {
+                                type: 'var',
+                                sym: local.sym,
+                                location: suffix.location,
+                                is: local.type,
+                            };
+                        } else {
+                            const t = env.global.terms[suffix.hash.slice(1)];
+                            if (!t) {
+                                throw new LocatedError(
+                                    suffix.location,
+                                    `Unknown term ${suffix.hash.slice(1)}`,
+                                );
+                            }
+                            const err = getTypeError(
+                                env,
+                                t.is,
+                                goalType,
+                                suffix.location,
+                            );
+                            if (err != null) {
+                                throw err;
+                            }
+                            foundImpl = {
+                                type: 'ref',
+                                ref: {
+                                    type: 'user',
+                                    id: idFromName(suffix.hash.slice(1)),
+                                },
+                                is: t.is,
+                                location: suffix.location,
+                            };
+                        }
+                    } else {
+                        const ref = findAs(env, stype, ttype, suffix.location);
+                        if (ref == null) {
+                            // STOPSHIP: make a "type error" node type.
+                            // repls and stuff can allow compiling with them,
+                            // but if you want to actually compile a runnable thing,
+                            // it won't let you.
+                            throw new Error(
+                                `No impl found for as ${showType(
+                                    env,
+                                    stype,
+                                )} (as) ${showType(env, ttype)}`,
+                            );
+                        }
 
-                    const record: Term = {
-                        type: 'ref',
-                        ref: foundImpl,
-                        is: goalType,
-                        location: null,
-                    };
+                        foundImpl = {
+                            type: 'ref',
+                            ref,
+                            is: goalType,
+                            location: null,
+                        };
+                    }
                     target = {
                         type: 'apply',
                         originalTargetType: pureFunction([stype], ttype),
@@ -429,10 +480,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         hadAllVariableEffects: false,
                         target: {
                             type: 'Attribute',
-                            target: record,
+                            target: foundImpl,
                             idx: 0,
                             ref: asRecord,
                             location: null,
+                            inferred: true,
                             is: pureFunction([stype], ttype),
                         },
                         typeVbls: [],
@@ -453,7 +505,11 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     // yeah that could be cool.
                     let idx: number;
                     let ref: UserReference;
-                    if (suffix.id.text.match(/^\d+$/)) {
+                    if (suffix.id.hash != null) {
+                        const [id, num] = suffix.id.hash.slice(1).split('#');
+                        ref = { type: 'user', id: idFromName(id) };
+                        idx = +num;
+                    } else if (suffix.id.text.match(/^\d+$/)) {
                         idx = +suffix.id.text;
                         if (
                             target.is.type !== 'ref' ||
@@ -516,6 +572,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         type: 'Attribute',
                         target,
                         location: suffix.location,
+                        inferred: false,
                         idx,
                         ref,
                         is: t.items[idx],
