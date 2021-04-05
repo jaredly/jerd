@@ -60,9 +60,6 @@ const runWithExecutionLimit = (
     idName: string,
     executionLimit: { ticks: number; maxTime: number; enabled: boolean },
 ) => {
-    // const start = Date.now();
-    // let ticks = 0;
-    // const timeLimit = 200;
     const jdScope = {
         ...evalEnv,
         builtins: {
@@ -72,11 +69,12 @@ const runWithExecutionLimit = (
                     return;
                 }
                 executionLimit.ticks += 1;
-                // if (ticks++ % 100 === 0) {
-                if (Date.now() > executionLimit.maxTime) {
-                    throw new TimeoutError('Execution took too long');
+                // Checking the time is probably a little expensive
+                if (executionLimit.ticks % 100 === 0) {
+                    if (Date.now() > executionLimit.maxTime) {
+                        throw new TimeoutError('Execution took too long');
+                    }
                 }
-                // }
             },
         },
         terms: {
