@@ -155,8 +155,11 @@ ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, locati
 
 // == Control structures ==
 
-Block = "{" _ one:Statement rest:(_ ";" _ Statement)* ";"? _ "}" {
-    return {type: 'block', items: [one, ...rest.map((r: any) => r[3])], location: location()}
+Statements = one:Statement rest:(_ ";" _ Statement)* ";"? {
+    return [one, ...rest.map((r: any) => r[3])]
+}
+Block = "{" _ items:Statements? _ "}" {
+    return {type: 'block', items: items || [], location: location()}
 }
 
 If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {

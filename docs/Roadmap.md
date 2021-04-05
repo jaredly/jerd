@@ -20,6 +20,9 @@ Immediate:
   - [x] initial go generation
   - [ ] fully handle type conversions
 - [ ] structured editor with type holes and such
+- [ ] documentation as data!
+- [ ] comments as data pleaseee
+- [ ] "commended-out" ast nodes, that are still parsed & type-checked?
 
 - um think about making type representation simpler :0: like typing-haskell-in-haskell
 

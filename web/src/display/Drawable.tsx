@@ -98,6 +98,9 @@ export const drawableToSvg = (d: Drawable, i?: number) => {
 const wrapWithExecutaionLimit = (evalEnv: EvalEnv, fn) => {
     return (...args) => {
         const need = evalEnv.executionLimit.enabled === false;
+        // STOPSHIP: Because we're doing this synchronously,
+        // we should save the previous one (if enabled) and
+        // restore it after our execution.
         if (need) {
             evalEnv.executionLimit.enabled = true;
             evalEnv.executionLimit.maxTime = Date.now() + 200;
@@ -125,6 +128,7 @@ const Animation = ({
     evalEnv: EvalEnv;
     fn: (n: number) => Array<Drawable>;
 }) => {
+    const [paused, setPaused] = React.useState(false);
     const [data, setData] = React.useState([]);
     const [error, setError] = React.useState(null);
     const wrapped = React.useMemo(() => wrapWithExecutaionLimit(evalEnv, fn), [
@@ -133,6 +137,9 @@ const Animation = ({
     const fc = React.useRef(wrapped);
     fc.current = wrapped;
     React.useEffect(() => {
+        if (paused) {
+            return null;
+        }
         let tick = 0;
         const tid = setInterval(() => {
             tick += 1;
@@ -144,12 +151,12 @@ const Animation = ({
             }
         }, 40);
         return () => clearInterval(tid);
-    }, []);
+    }, [paused]);
     if (error) {
         return <div>{error.message}</div>;
     }
     return (
-        <div>
+        <div onClick={() => setPaused(!paused)}>
             <svg width="100%" height="200px" xmlns="http://www.w3.org/2000/svg">
                 {data.map((d, i) => drawableToSvg(d, i))}
             </svg>
