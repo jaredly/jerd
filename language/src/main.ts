@@ -492,7 +492,7 @@ const processFile = (
     writeFile(dest, text);
 
     const preludeTS = require('fs').readFileSync(
-        './src/printing/prelude.ts',
+        './src/printing/builtins.ts',
         'utf8',
     );
 
