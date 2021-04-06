@@ -33,10 +33,12 @@ export const typeScriptPrelude = (
         'assertEqual',
         'pureCPS',
         'intToFloat',
+        'concat',
         'pow',
         'ln',
         'PI',
         'TAU',
+        // TODO automatically get these from the buitins.ts file
         // Probably want to group these...
         'sqrt',
         'max',

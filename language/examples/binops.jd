@@ -1,0 +1,14 @@
+
+type Ring<T> = {
+    "+++": (T, T) => T,
+    // "-": (T, T) => T
+}
+
+const IntArrayRing = Ring<Array<int>>{
+    "+++": (a: Array<int>, b: Array<int>) => concat<int>(a, b),
+    // TODO unary "!"
+    // "-": (a, b) => filter(a, x => contains(b, x)),
+}
+
+[1] +++ [2, 3]
+

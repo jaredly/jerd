@@ -69,7 +69,7 @@ export const typeToplevelT = (
                 name: item.id.text,
                 attrNames: (item.decl.items.filter(
                     (x) => x.type === 'Row',
-                ) as Array<RecordRow>).map((x) => x.id.text),
+                ) as Array<RecordRow>).map((x) => x.id),
             };
         }
         case 'Decorated': {
@@ -101,7 +101,7 @@ export const typeToplevelT = (
                 name: item.wrapped.id.text,
                 attrNames: (item.wrapped.decl.items.filter(
                     (x) => x.type === 'Row',
-                ) as Array<RecordRow>).map((x) => x.id.text),
+                ) as Array<RecordRow>).map((x) => x.id),
             };
         }
         case 'EnumDef': {
@@ -290,7 +290,7 @@ export const typeRecordDefn = (
               tag: ffiTag,
               names: record.items
                   .filter((r) => r.type === 'Row')
-                  .map((r) => (r as RecordRow).id.text),
+                  .map((r) => (r as RecordRow).id),
           }
         : null;
 
@@ -352,7 +352,7 @@ export const typeRecord = (
     return addRecord(
         env,
         defnRaw.id.text,
-        rows.map((r) => r.id.text),
+        rows.map((r) => r.id),
         defn,
     );
 

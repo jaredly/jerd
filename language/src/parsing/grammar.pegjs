@@ -72,7 +72,7 @@ RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items:
 RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 RecordLine = RecordSpread / RecordItem
 RecordSpread = "..." constr:Identifier {return {type: 'Spread', constr}}
-RecordItem = id:Identifier _ ":" _ type:Type {return {type: 'Row', id, rtype: type}}
+RecordItem = id:IdTextOrString _ ":" _ type:Type {return {type: 'Row', id: id.type === 'string' ? id.text : id, rtype: type}}
 
 
 
@@ -88,7 +88,7 @@ Expression = first:WithSuffix rest:BinOpRight* {
         return first
     }
 }
-BinOpRight = __ op:binop __ right:WithSuffix {
+BinOpRight = __ op:qualifiedBinop __ right:WithSuffix {
     return {op, right, location: location()}
 }
 // Apply / Attribute access
@@ -123,9 +123,15 @@ ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:Com
         location: location(),
     }
 }
-AttributeSuffix = "." id:Identifier {return {type: 'Attribute', id, location: location()}}
+AttributeSuffix = "." id:MaybeQuotedIdentifier {return {type: 'Attribute', id, location: location()}}
 
 Apsub = Literal / Lambda / Block / Handle / Raise / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / Identifier
+
+// TODO
+// / TraitCall
+// TraitCall = "." id:Identifier apply:ApplySuffix {
+//     return {type: 'TraitCall', id, apply, location: location()}
+// }
 
 EnumLiteral = id:Identifier typeVbls:TypeVblsApply? ":" expr:Expression {
     return {
@@ -143,7 +149,7 @@ RecordLiteral = id:Identifier typeVbls:TypeVblsApply? effectVbls:EffectVblsApply
 RecordLiteralRows = first:RecordLiteralRow rest:("," _ RecordLiteralRow _)* ","? {return [first, ...rest.map((r: any) => r[2])]}
 RecordLiteralSpread = "..." value:Expression {return {type: 'Spread', value}}
 RecordLiteralRow = RecordLiteralItem / RecordLiteralSpread
-RecordLiteralItem = id:Identifier _ ":" _ value:Expression {return {type: 'Row', id, value}}
+RecordLiteralItem = id:MaybeQuotedIdentifier _ ":" _ value:Expression {return {type: 'Row', id, value}}
 
 ArrayLiteral = ann:("<" _ Type _ ","? ">")? "[" _ items:ArrayItems? _ "]" {return {type: 'Array', items: items || [], location: location(), ann: ann ? ann[2] : null}}
 ArrayItems = first:ArrayItem rest:(_ "," _ ArrayItem)* ","? {
@@ -268,7 +274,15 @@ EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 
-binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<=" / ">=" / "=="  / "<" / ">" 
+qualifiedBinop = id:Identifier? op:binop {
+    if (id != null) {
+        return {type: 'Qualified', id, op}
+    } else {
+        return op
+    }
+}
+binop = [+*^/<>=-]+ {return text()}
+// binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<=" / ">=" / "=="  / "<" / ">" 
 
 Binop = Expression
 
@@ -325,7 +339,10 @@ Int "int"
 String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
 Identifier = text:IdText hash:IdHash? {
     return {type: "id", text, location: location(), hash}}
+MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {
+    return {type: "id", text: text.type === 'string' ? text.text : text, location: location(), hash}}
 IdText = !"enum" [0-9a-zA-Z_]+ {return text()}
+IdTextOrString = IdText / String
 IdHash = ("#" ":"? [0-9a-zA-Z]+ ("#" [0-9]+)?) {return text()}
 
 _ "whitespace"

@@ -50,14 +50,6 @@ const typeOp = (
     );
     if (firstErr != null) {
         throw firstErr;
-        // throw new Error(
-        //     `first arg to ${op} wrong type. ${showType(
-        //         env,
-        //         left.is,
-        //     )} vs ${showType(env, is.args[0])} at ${showLocation(
-        //         left.location,
-        //     )}`,
-        // );
     }
     const secondErr = getTypeError(
         env,
@@ -68,6 +60,7 @@ const typeOp = (
     if (secondErr != null) {
         throw secondErr;
     }
+
     return {
         type: 'apply',
         originalTargetType: is,
@@ -91,7 +84,7 @@ const typeOp = (
     };
 };
 
-const precedence = [['=='], ['++', '+', '-'], ['/', '*'], ['^']];
+const precedence = [['='], ['+', '-'], ['/', '*'], ['^']];
 
 type Section = {
     ops: Ops;
@@ -106,7 +99,7 @@ const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
     // for (let group of precedence) {
     const group = groups[0];
     const otherGroups = groups.slice(1);
-    if (!expr.rest.some((ex) => group.includes(ex.op))) {
+    if (!expr.rest.some((ex) => group.includes(ex.op[0]))) {
         return organizeOps(expr, otherGroups);
     }
 

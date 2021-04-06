@@ -141,6 +141,7 @@ export const acos = Math.acos;
 export const atan = Math.atan;
 export const atan2 = Math.atan2;
 export const intToFloat = (x: number) => x;
+export const concat = <T>(a: Array<T>, b: Array<T>) => a.concat(b);
 
 export { log, isSquare, intToString, handleSimpleShallow2 };
 export { raise, assert, assertEqual, pureCPS };

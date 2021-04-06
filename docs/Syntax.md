@@ -201,3 +201,22 @@ type Animal = ...Pet | Cow{
     fleas: int,
 }
 ```
+
+# Binops
+
+hmmmm
+So I'm thinking about allowing custom binops
+because I want to be able to define + and - and stuff
+and I'm like "is there a principled reason why I can't
+just allow any binops?
+but like maybe that's a slippery slope? idk
+
+Anyway, in the lisp-world, there are no "binops", it's all just functions thank you very much.
+
+
+In the generalized trait case, how do we distinguish
+between multiple things with the same name, and also like multiple type arguments and stuff.
+
+For every type error, maybe I want a distinct UI dealio down below?
+and you can select from the dropdown or something...
+
