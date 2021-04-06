@@ -67,7 +67,7 @@ export type RecordSpread = { type: 'Spread'; constr: Identifier };
 export type RecordRow = {
     type: 'Row';
     // null if this is being treated as a tuple
-    id: Identifier;
+    id: string;
     rtype: Type;
 };
 
@@ -156,7 +156,12 @@ export type Ops = {
     type: 'ops';
     first: Expression;
     location: Location;
-    rest: Array<{ op: string; right: Expression; location: Location }>;
+    rest: Array<{
+        op: string;
+        id: Identifier | null;
+        right: Expression;
+        location: Location;
+    }>;
 };
 export type Block = {
     type: 'block';

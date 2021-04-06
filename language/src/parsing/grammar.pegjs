@@ -88,8 +88,8 @@ Expression = first:WithSuffix rest:BinOpRight* {
         return first
     }
 }
-BinOpRight = __ op:qualifiedBinop __ right:WithSuffix {
-    return {op, right, location: location()}
+BinOpRight = __ id:(Identifier ".")? op:binop __ right:WithSuffix {
+    return {op, id: id ? id[0] : null, right, location: location()}
 }
 // Apply / Attribute access
 WithSuffix = sub:Apsub suffixes:Suffix* {
@@ -274,13 +274,6 @@ EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 
-qualifiedBinop = id:Identifier? op:binop {
-    if (id != null) {
-        return {type: 'Qualified', id, op}
-    } else {
-        return op
-    }
-}
 binop = [+*^/<>=-]+ {return text()}
 // binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<=" / ">=" / "=="  / "<" / ">" 
 
