@@ -67,7 +67,7 @@ export type RecordSpread = { type: 'Spread'; constr: Identifier };
 export type RecordRow = {
     type: 'Row';
     // null if this is being treated as a tuple
-    id: Identifier;
+    id: string;
     rtype: Type;
 };
 
@@ -156,7 +156,12 @@ export type Ops = {
     type: 'ops';
     first: Expression;
     location: Location;
-    rest: Array<{ op: string; right: Expression; location: Location }>;
+    rest: Array<{
+        op: string;
+        id: Identifier | null;
+        right: Expression;
+        location: Location;
+    }>;
 };
 export type Block = {
     type: 'block';
@@ -321,3 +326,16 @@ export type Slice = {
 };
 
 export default (raw: string): Array<Toplevel> => parse(raw);
+export const parseType = (raw: string): Type => {
+    const parsed: Array<Toplevel> = parse(`const thing: ${raw} = 1`);
+    if (parsed.length !== 1) {
+        throw new Error(`multiple toplevels`);
+    }
+    if (parsed[0].type !== 'define') {
+        throw new Error(`nor a define`);
+    }
+    if (!parsed[0].ann) {
+        throw new Error(`no type annotation`);
+    }
+    return parsed[0].ann;
+};

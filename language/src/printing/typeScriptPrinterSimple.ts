@@ -386,8 +386,17 @@ export const _termToTs = (
                 termToTs(env, opts, term.target),
                 t.identifier(recordAttributeName(env, term.ref, term.idx)),
             );
-        case 'slice':
-            return t.identifier('STOPSHIPnot_impl');
+        case 'slice': {
+            const start = termToTs(env, opts, term.start);
+            const end = term.end ? termToTs(env, opts, term.end) : null;
+            return t.callExpression(
+                t.memberExpression(
+                    termToTs(env, opts, term.value),
+                    t.identifier('slice'),
+                ),
+                [start].concat(end ? [end] : []),
+            );
+        }
         default:
             let _v: never = term;
             throw new Error(`Not impl ${(term as any).type}`);
@@ -542,8 +551,9 @@ export const fileToTypescript = (
     opts: OutputOptions,
     assert: boolean,
     includeImport: boolean,
+    builtinNames: Array<string>,
 ) => {
-    const items = typeScriptPrelude(opts.scope, includeImport);
+    const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
 
     // TODO: use the topo sort algorithm from the web editor
     // to sort these correctly

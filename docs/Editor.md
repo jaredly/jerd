@@ -15,6 +15,15 @@ ugh I really need to publish my literature review of structured editors.
 Would a github pages site make sense? probably.
 with a minimal build tool to turn markdown files into something that's interconnected.
 
+## Notebooks!
+
+I find myself doing some development, and stuff
+and then I want to switch do a different "notebook" or something
+Notebook would contain the cells & pins I think.
+But the codebase would be shared.
+hm it might be interesting to at least keep track of what
+notebook a term was "created" in.
+
 ## REPL
 
 Here's what this looks like

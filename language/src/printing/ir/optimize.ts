@@ -229,7 +229,7 @@ const isConstant = (arg: Expr) => {
 };
 
 export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
-    console.log('flatten');
+    // console.log('flatten');
     const inits: Array<Stmt> = [];
 
     const subTypes: { [key: string]: RecordSubType } = { ...expr.subTypes };

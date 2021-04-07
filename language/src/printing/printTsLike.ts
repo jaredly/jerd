@@ -186,7 +186,7 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
                 .concat(
                     recordDef.items.map((ex, i) =>
                         items([
-                            atom(names[i]),
+                            atom(maybeQuoteAttrName(names[i])),
                             atom(': '),
                             typeToPretty(env, ex),
                         ]),
@@ -195,6 +195,13 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
             ',',
         ),
     ]);
+};
+
+const maybeQuoteAttrName = (name: string) => {
+    if (name.match(/^[+*^/<>=-]+$/)) {
+        return '"' + name + '"';
+    }
+    return name;
 };
 
 export const enumToPretty = (env: Env, id: Id, enumDef: EnumDef) => {
@@ -475,7 +482,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 atom('.'),
                 // TODO: use a name n stuff
                 idPretty(
-                    names[term.idx],
+                    maybeQuoteAttrName(names[term.idx]),
                     refName(term.ref) + '#' + term.idx.toString(),
                     // term.idx.toString(),
                     'attribute',
@@ -518,7 +525,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         res.push(
                             items([
                                 idPretty(
-                                    names[i],
+                                    maybeQuoteAttrName(names[i]),
                                     id + '#' + i.toString(),
                                     'attribute',
                                 ),
@@ -538,7 +545,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                             t
                                 ? items([
                                       idPretty(
-                                          names[i],
+                                          maybeQuoteAttrName(names[i]),
                                           rid + '#' + i.toString(),
                                           'attribute',
                                       ),
@@ -625,9 +632,11 @@ const patternToPretty = (env: Env, pattern: Pattern): PP => {
                         pattern.items.map((item) =>
                             items([
                                 atom(
-                                    env.global.recordGroups[
-                                        idName(item.ref.id)
-                                    ][item.idx],
+                                    maybeQuoteAttrName(
+                                        env.global.recordGroups[
+                                            idName(item.ref.id)
+                                        ][item.idx],
+                                    ),
                                 ),
                                 atom(': '),
                                 patternToPretty(env, item.pattern),

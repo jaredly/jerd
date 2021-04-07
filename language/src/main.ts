@@ -24,7 +24,14 @@ import { fileToTypescript as fileToTypeScriptNew } from './printing/typeScriptPr
 import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
-import { Env, Id, Term, TypeConstraint, typesEqual } from './typing/types';
+import {
+    Env,
+    Id,
+    Term,
+    Type,
+    TypeConstraint,
+    typesEqual,
+} from './typing/types';
 import { printToString } from './printing/printer';
 import {
     termToPretty,
@@ -106,8 +113,11 @@ and thats ok
 //     return hash(res);
 // };
 
-const testInference = (parsed: Toplevel[]) => {
-    const env = presetEnv();
+const testInference = (
+    parsed: Toplevel[],
+    builtins: { [key: string]: Type },
+) => {
+    const env = presetEnv(builtins);
     for (const item of parsed) {
         if (item.type === 'define') {
             const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
@@ -161,10 +171,10 @@ const testInference = (parsed: Toplevel[]) => {
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 
-const processErrors = (fname: string) => {
+const processErrors = (fname: string, builtins: { [key: string]: Type }) => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
-    let env = presetEnv();
+    let env = presetEnv(builtins);
     const errors: Array<string> = [];
     parsed.forEach((item, i) => {
         if (item.type === 'effect') {
@@ -452,6 +462,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
 
 const processFile = (
     fname: string,
+    builtins: { [key: string]: Type | null },
     assert: boolean,
     run: boolean,
     reprint: boolean,
@@ -459,7 +470,14 @@ const processFile = (
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
-    const { expressions, env } = typeFile(parsed, fname);
+    const typedBuiltins: { [key: string]: Type } = {};
+    Object.keys(builtins).forEach((b) => {
+        const v = builtins[b];
+        if (v != null) {
+            typedBuiltins[b] = v;
+        }
+    });
+    const { expressions, env } = typeFile(parsed, typedBuiltins, fname);
 
     if (reprint) {
         const good = checkReprint(raw, expressions, env);
@@ -469,7 +487,14 @@ const processFile = (
         }
     }
 
-    const ast = fileToTypeScriptNew(expressions, env, {}, assert, true);
+    const ast = fileToTypeScriptNew(
+        expressions,
+        env,
+        {},
+        assert,
+        true,
+        Object.keys(builtins),
+    );
     // const ast = fileToTypescript(expressions, env, {}, assert, true);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
@@ -492,7 +517,7 @@ const processFile = (
     writeFile(dest, text);
 
     const preludeTS = require('fs').readFileSync(
-        './src/printing/builtins.ts',
+        './src/printing/builtins.ts.txt',
         'utf8',
     );
 
@@ -565,7 +590,7 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
         const raw = fs.readFileSync(fname, 'utf8');
         const parsed: Array<Toplevel> = parse(raw);
 
-        const { expressions, env } = typeFile(parsed, fname);
+        const { expressions, env } = typeFile(parsed, {}, fname);
         const text = fileToGo(expressions, env, assert);
 
         const name = path.basename(fname).slice(0, -3);
@@ -611,12 +636,24 @@ const main = (
     const reprint = true;
     console.log(chalk.yellow(`Reprint? ${reprint}`));
 
+    const tsBuiltins = loadBuiltins();
+    const typedBuiltins: { [key: string]: Type } = {};
+    Object.keys(tsBuiltins).forEach((b) => {
+        const v = tsBuiltins[b];
+        if (v != null) {
+            typedBuiltins[b] = v;
+        }
+    });
+
     const runFile = (fname: string) => {
         try {
             if (fname.endsWith('type-errors.jd')) {
-                processErrors(fname);
+                processErrors(fname, typedBuiltins);
             } else {
-                if (processFile(fname, assert, run, reprint) === false) {
+                if (
+                    processFile(fname, tsBuiltins, assert, run, reprint) ===
+                    false
+                ) {
                     numFailures += 1;
                     return false;
                 }
@@ -686,11 +723,20 @@ import { execSync, spawnSync } from 'child_process';
 import { LocatedError, TypeError } from './typing/errors';
 import { fileToGo } from './printing/goPrinter';
 import { getTypeError } from './typing/getTypeError';
+import { loadBuiltins } from './printing/loadBuiltins';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
-    testInference(parsed);
+    const tsBuiltins = loadBuiltins();
+    const typedBuiltins: { [key: string]: Type } = {};
+    Object.keys(tsBuiltins).forEach((b) => {
+        const v = tsBuiltins[b];
+        if (v != null) {
+            typedBuiltins[b] = v;
+        }
+    });
+    testInference(parsed, typedBuiltins);
 };
 
 const expandDirectories = (fnames: Array<string>) => {

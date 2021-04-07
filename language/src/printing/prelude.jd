@@ -22,5 +22,17 @@ type As<From, To> = {
     as: (From) => To,
 }
 const IntAsFloat = As<int, float>{as: intToFloat}
+const FloatAsInt = As<float, int>{as: floatToInt}
+const IntAsString = As<int, string>{as: intToString}
+const FloatAsString = As<float, string>{as: floatToString}
 
-const As<int, float>
+// Equality and stuff
+type Eq<T> = {
+    "==": (T, T) => bool,
+}
+
+const IntEq = Eq<int>{"==": intEq}
+const FloatEq = Eq<float>{"==": floatEq}
+const StringEq = Eq<string>{"==": stringEq}
+
+// For checking equality

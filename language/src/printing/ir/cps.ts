@@ -436,7 +436,7 @@ const _termToAstCPS = (
                 `Sequence encountered. This should probably be a lambda body?`,
             );
         default:
-            console.log('ELSE', term.type);
+            // console.log('ELSE', term.type);
             return callExpression(
                 done,
                 pureFunction([handlersType, term.is], void_),

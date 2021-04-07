@@ -21,34 +21,38 @@ export const typeScriptPrelude = (
     // opts: OutputOptions,
     scope: string | undefined,
     includeImport: boolean,
+    builtinNames: Array<string>,
 ) => {
     const items: Array<t.Statement> = [];
-    const builtinNames = [
-        'raise',
-        'isSquare',
-        'log',
-        'intToString',
-        'handleSimpleShallow2',
-        'assert',
-        'assertEqual',
-        'pureCPS',
-        'intToFloat',
-        'pow',
-        'ln',
-        'PI',
-        'TAU',
-        // Probably want to group these...
-        'sqrt',
-        'max',
-        'min',
-        'sin',
-        'cos',
-        'tan',
-        'asin',
-        'acos',
-        'atan',
-        'atan2',
-    ];
+    // STOPSHIP: Get the builtinNames here folks
+    // const builtinNames = [
+    //     'raise',
+    //     'isSquare',
+    //     'log',
+    //     'intToString',
+    //     'handleSimpleShallow2',
+    //     'assert',
+    //     'assertEqual',
+    //     'pureCPS',
+    //     'intToFloat',
+    //     'concat',
+    //     'pow',
+    //     'ln',
+    //     'PI',
+    //     'TAU',
+    //     // TODO automatically get these from the buitins.ts file
+    //     // Probably want to group these...
+    //     'sqrt',
+    //     'max',
+    //     'min',
+    //     'sin',
+    //     'cos',
+    //     'tan',
+    //     'asin',
+    //     'acos',
+    //     'atan',
+    //     'atan2',
+    // ];
 
     if (scope) {
         items.push(

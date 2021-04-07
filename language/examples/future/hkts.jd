@@ -1,0 +1,99 @@
+
+type Op<T: * -> *> = {
+    op: <A, B, C>(T<A>, T<B>, (A, B) => C) => T<C>
+}
+
+type Op1<T: * -> *> = {
+    op1: <A, B>(T<A>, B, (A, B) => C) => T<C>
+}
+
+// ok I think Pair is going to be a record type under the hood? maybe?
+// at least treated the same?
+// buut I dunno about type aliases.
+// probably should deal with them at some point
+type Pair<K> = (K, K)
+
+const PairOp = Op<T -> (T,  T)>{
+    op: ((x, y), (a, b), op) => (op(x, a), op(y, b))
+}
+
+const PairOp1 = T -> Op1<Pair>{
+    op: ((x, y), a, op) => (op(x, a), op(y, a))
+}
+
+const ContainedAddSub = <T: * -> *, K>(op: Op<T>, A: AddSub<K>) => AddSub<T<K>>{
+    "+": (a, b) => op(a, b, A."+"),
+    "-": (a, b) => op(a, b, A."-"),
+}
+
+const PairAddSub = <T,>(a: AddSub<T>): AddSub<Pair<T>> => ContainedAddSub<Pair>(PairOp, a)
+
+// const PairAddSub = T -> AddSub<(T, T)>{
+//     "+": ((ax, ay), (bx, by)) => (ax + bx, ay + by),
+//     "-": ((ax, ay), (bx, by)) => (ax - bx, ay - by),
+//     // scale: ((ax, ay), scale) => (ax * scale, ay * scale),
+// }
+
+const FloatAddSub = AddSub<float>{
+    "+": (a, b) => a + b,
+    "-": (a, b) => a - b,
+    scale: (v, scale) => v * scale,
+}
+
+const transform = <T,>(pos: T, center: T, addSub: AddSub<T>, scale: Scale<T>): T => {
+    pos addSub.+ center addSub.- scale.scale(pos, 0.5)
+}
+
+transform<float>(2, 4, FloatAddSub)
+
+transform<Pair<float>>((1.0, 2.0), (10.0, 10.0), PairAddSub<float>(FloatAddSub))
+
+type Monad<T : * -> *> = {
+    return: <Item,>(Item) => T<Item>, // so this one ... well I guess could be anything
+    // and these could also
+    bind: <Item, Changed>(T<Item>, Item => T<Changed>) => T<Changed>,
+    // as with this.
+    map:  <Item, Changed>(T<Item>, Item => Changed) => T<Changed>,
+}
+
+const OptionMonad = Monad<Option,>{
+    return: <Value>(v: Value) => Option<Value>:Some(v),
+    map: <In, Out>(v: Option<In>, op: (In) => Out): Option<Out> => switch v {
+        None => None,
+        Some(x) => Option<Out>:Some(op(x)),
+    },
+    bind: <In, Out>(v: Option<In>, op: (In) => Option<Out>): Option<Out> => switch v {
+        None => None,
+        Some(x) => op(x),
+    },
+}
+
+// hmmmmmmmmm
+// Ok so here's where we need a Type provided, right?
+// in order to use it as a value?
+// it doesn't really matter what type, at this point
+
+const OkMonad: Err -> Monad<Ok -> Result<Ok, Err>> = Err -> {
+    return: <Ok,>(c: Ok): Result<Ok, Err> => Ok(c),
+    map: <In, Out>(
+        v: Result<In, Err>,
+        op: (In) => Out,
+    ): Result<Out, Err> => switch v {
+        Fail(x) => Fail(x),
+        Ok(x) => Ok(op(x)),
+    },
+    bind: <In, Out>(
+        v: Result<In, Err>,
+        op: (In) => Result<Out, Err>,
+    ): Result<Out, Err> => switch v {
+        Fail(x) => Fail(x),
+        Ok(x) => op(x),
+    },
+}
+
+const ArrayAddable = T -> Addable<Array<T>>{
+    "+": (a: Array<T>, b: Array<T>) => concat<T>(a, b),
+}
+
+ArrayAddable."+"([1], [2, 3])
+
