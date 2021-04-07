@@ -238,7 +238,7 @@ const typeOp = (
     };
 };
 
-const precedence = [['='], ['+', '-'], ['/', '*'], ['^']];
+const precedence = [['='], ['>', '<'], ['+', '-'], ['/', '*'], ['^']];
 
 type Section = {
     ops: Ops;

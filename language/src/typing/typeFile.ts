@@ -2,7 +2,7 @@
 
 import { Expression, Toplevel } from '../parsing/parser';
 import typeExpr, { showLocation } from '../typing/typeExpr';
-import { Env, getEffects, Term } from '../typing/types';
+import { Env, getEffects, Term, Type } from '../typing/types';
 import { showType } from '../typing/unify';
 import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
@@ -18,12 +18,13 @@ import { LocatedError, TypeError } from './errors';
 
 export function typeFile(
     parsed: Toplevel[],
+    builtins: { [key: string]: Type },
     fname: string,
 ): {
     env: Env;
     expressions: Array<Term>;
 } {
-    let env = presetEnv();
+    let env = presetEnv(builtins);
 
     // const
     const expressions = [];

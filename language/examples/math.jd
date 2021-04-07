@@ -1,0 +1,10 @@
+
+sqrt(4.0) == 2.0
+
+const within = (found: float, expected: float, margin: float) => {
+    if found - margin < expected {
+    found + margin > expected
+    } else { false }
+}
+
+within(sin(PI), 0.0, 0.0001)

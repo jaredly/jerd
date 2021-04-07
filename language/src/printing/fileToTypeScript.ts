@@ -23,6 +23,7 @@ export const typeScriptPrelude = (
     includeImport: boolean,
 ) => {
     const items: Array<t.Statement> = [];
+    // STOPSHIP: Get the builtinNames here folks
     const builtinNames = [
         'raise',
         'isSquare',

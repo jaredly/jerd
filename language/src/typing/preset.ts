@@ -73,7 +73,7 @@ and then .+? ./? I'd say all binops have implicit "." before them.
 And then we just do aggressive inlining.
 `;
 
-export function presetEnv() {
+export function presetEnv(builtins: { [key: string]: Type }) {
     const env = newEnv({
         name: 'self_unset',
         type: {
@@ -84,13 +84,17 @@ export function presetEnv() {
             effectVbls: [],
         },
     });
-    env.global.builtins['true'] = bool;
-    env.global.builtins['false'] = bool;
+    env.global.builtins = {
+        ...env.global.builtins,
+        ...builtins,
+    };
+    // env.global.builtins['true'] = bool;
+    // env.global.builtins['false'] = bool;
 
     // Just for the eff paper
-    env.global.builtins['isSquare'] = pureFunction([int], bool);
-    env.global.builtins['intToString'] = pureFunction([int], string);
-    env.global.builtins['intToFloat'] = pureFunction([int], float);
+    // env.global.builtins['isSquare'] = pureFunction([int], bool);
+    // env.global.builtins['intToString'] = pureFunction([int], string);
+    // env.global.builtins['intToFloat'] = pureFunction([int], float);
 
     const T: TypeVblDecl = { unique: 10000, subTypes: [] };
     const Y: TypeVblDecl = { unique: 10001, subTypes: [] };

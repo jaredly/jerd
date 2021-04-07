@@ -1,6 +1,4 @@
-const log = console.log;
-
-const raise = (
+export const raise = (
     handlers: Array<Handler>,
     hash: string,
     idx: number,
@@ -28,7 +26,7 @@ type ShallowHandler<Get, Set> = (
     returnIntoFn: (newHandler: Handlers, value: Get) => void,
 ) => void;
 
-const handleSimpleShallow2 = <Get, Set, R>(
+export const handleSimpleShallow2 = <Get, Set, R>(
     hash: string,
     fn: (
         handler: Handlers,
@@ -96,21 +94,14 @@ const handleSimpleShallow2 = <Get, Set, R>(
     );
 };
 
-// Just for the eff paper 🙃
-const isSquare = (x: number) => {
-    const m = Math.sqrt(x);
-    return Math.floor(m) === m;
-};
-const intToString = (x: number) => x.toString();
-
-const assert = (x: boolean) => {
+export const assert = (x: boolean) => {
     if (!x) {
         throw new Error(`Assertion error.`);
     }
     return x;
 };
 
-const assertEqual = <T>(a: T, b: T) => {
+export const assertEqual = <T>(a: T, b: T) => {
     if (a != b) {
         throw new Error(`Assertion error. ${a} should equal ${b}`);
     }
@@ -119,29 +110,54 @@ const assertEqual = <T>(a: T, b: T) => {
 };
 
 // When a pure function is used in a place that's expecting CPS.
-const pureCPS = (f: any) => {
+export const pureCPS = (f: any) => {
     let res;
     f([], (_: any, v: any) => (res = v));
     return res;
 };
 
-export const pow = Math.pow;
-export const ln = Math.log;
-export const PI = Math.PI;
-export const TAU = Math.PI * 2;
-export const sqrt = Math.sqrt;
-export const max = Math.max;
-export const min = Math.min;
+/**
+ * These are annotated with type signatures, and so are accessible
+ * as builtins during type checking. The above functions can be used
+ * by the compiler, but are not available directly.
+ */
 
-export const sin = Math.sin;
-export const cos = Math.cos;
-export const tan = Math.tan;
-export const asin = Math.asin;
-export const acos = Math.acos;
-export const atan = Math.atan;
-export const atan2 = Math.atan2;
+//: (string) => void
+export const log = console.log;
+
+// Just for the eff paper 🙃
+//: (int) => bool
+export const isSquare = (x: number) => {
+    const m = Math.sqrt(x);
+    return Math.floor(m) === m;
+};
+
+//: (int) => string
+export const intToString = (x: number) => x.toString();
+//: (int) => float
 export const intToFloat = (x: number) => x;
-export const concat = <T>(a: Array<T>, b: Array<T>) => a.concat(b);
 
-export { log, isSquare, intToString, handleSimpleShallow2 };
-export { raise, assert, assertEqual, pureCPS };
+//: (float, float) => float
+export const pow = Math.pow;
+
+//: float
+export const TAU = Math.PI * 2,
+    PI = Math.PI;
+
+//: (float) => float
+export const sqrt = Math.sqrt;
+//: (float, float) => float
+export const max = Math.max,
+    min = Math.min;
+
+//: (float) => float
+export const sin = Math.sin,
+    ln = Math.log,
+    cos = Math.cos,
+    tan = Math.tan,
+    asin = Math.asin,
+    acos = Math.acos,
+    atan = Math.atan;
+//: (float, float) => float
+export const atan2 = Math.atan2;
+export const concat = <T>(a: Array<T>, b: Array<T>) => a.concat(b);
