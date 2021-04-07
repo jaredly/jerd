@@ -404,6 +404,10 @@ const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
                 atom(' = '),
                 termToGo(env, opts, stmt.value),
             ]);
+        case 'Loop':
+            return items([atom('for '), lambdaBodyToGo(env, opts, stmt.body)]);
+        case 'Continue':
+            return atom('continue');
         case 'if':
             return items([
                 atom('if '),

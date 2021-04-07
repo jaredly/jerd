@@ -5,8 +5,8 @@ import { parseType } from '../parsing/parser';
 import { presetEnv } from '../typing/preset';
 import { Type } from '../typing/types';
 import typeType from '../typing/typeType';
+// @ts-ignore
 import builtinsRaw from './builtins.ts.txt';
-import { removeTypescriptTypes } from './typeScriptOptimize';
 
 export const loadBuiltins = () => {
     const res = core.parseSync(builtinsRaw, {

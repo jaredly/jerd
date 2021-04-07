@@ -123,47 +123,6 @@ const typeNewOp = (
             return null;
         }
         fn = found;
-        // let found: Term | null = null;
-        // for (let k of Object.keys(env.global.terms)) {
-        //     const is = env.global.terms[k].is;
-        //     if (
-        //         is.type === 'ref' &&
-        //         is.ref.type === 'user' &&
-        //         idsEqual(is.ref.id, id)
-        //     ) {
-        //         found = {
-        //             type: 'ref',
-        //             ref: { type: 'user', id: idFromName(k) },
-        //             location: location,
-        //             is: env.global.terms[k].is,
-        //         };
-        //         break;
-        //     }
-        // }
-        // if (!found) {
-        //     throw new LocatedError(
-        //         location,
-        //         `Unable to find an implementor for the record for ${op}`,
-        //     );
-        // }
-        // let t = env.global.types[idName(id)] as RecordDef;
-        // if (found.is.type === 'ref') {
-        //     t = applyTypeVariablesToRecord(
-        //         env,
-        //         t,
-        //         found.is.typeVbls,
-        //         found.is.location,
-        //     );
-        // }
-        // fn = {
-        //     type: 'Attribute',
-        //     target: found,
-        //     idx: idx,
-        //     is: t.items[idx],
-        //     location: location,
-        //     ref: { type: 'user', id },
-        //     inferred: true,
-        // };
     } else {
         return null;
     }
