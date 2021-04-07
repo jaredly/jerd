@@ -462,7 +462,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
 
 const processFile = (
     fname: string,
-    builtins: { [key: string]: Type },
+    builtins: { [key: string]: Type | null },
     assert: boolean,
     run: boolean,
     reprint: boolean,
@@ -470,7 +470,14 @@ const processFile = (
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
-    const { expressions, env } = typeFile(parsed, builtins, fname);
+    const typedBuiltins: { [key: string]: Type } = {};
+    Object.keys(builtins).forEach((b) => {
+        const v = builtins[b];
+        if (v != null) {
+            typedBuiltins[b] = v;
+        }
+    });
+    const { expressions, env } = typeFile(parsed, typedBuiltins, fname);
 
     if (reprint) {
         const good = checkReprint(raw, expressions, env);
@@ -480,7 +487,14 @@ const processFile = (
         }
     }
 
-    const ast = fileToTypeScriptNew(expressions, env, {}, assert, true);
+    const ast = fileToTypeScriptNew(
+        expressions,
+        env,
+        {},
+        assert,
+        true,
+        Object.keys(builtins),
+    );
     // const ast = fileToTypescript(expressions, env, {}, assert, true);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
@@ -623,11 +637,18 @@ const main = (
     console.log(chalk.yellow(`Reprint? ${reprint}`));
 
     const tsBuiltins = loadBuiltins();
+    const typedBuiltins: { [key: string]: Type } = {};
+    Object.keys(tsBuiltins).forEach((b) => {
+        const v = tsBuiltins[b];
+        if (v != null) {
+            typedBuiltins[b] = v;
+        }
+    });
 
     const runFile = (fname: string) => {
         try {
             if (fname.endsWith('type-errors.jd')) {
-                processErrors(fname, tsBuiltins);
+                processErrors(fname, typedBuiltins);
             } else {
                 if (
                     processFile(fname, tsBuiltins, assert, run, reprint) ===
@@ -708,7 +729,14 @@ const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
     const tsBuiltins = loadBuiltins();
-    testInference(parsed, tsBuiltins);
+    const typedBuiltins: { [key: string]: Type } = {};
+    Object.keys(tsBuiltins).forEach((b) => {
+        const v = tsBuiltins[b];
+        if (v != null) {
+            typedBuiltins[b] = v;
+        }
+    });
+    testInference(parsed, typedBuiltins);
 };
 
 const expandDirectories = (fnames: Array<string>) => {

@@ -8,3 +8,6 @@ const within = (found: float, expected: float, margin: float) => {
 }
 
 within(sin(PI), 0.0, 0.0001)
+
+floatToInt(2.3) == 2
+

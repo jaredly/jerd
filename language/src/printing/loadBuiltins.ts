@@ -25,7 +25,7 @@ export const loadBuiltins = () => {
         }
     });
 
-    const builtins: { [key: string]: Type } = {};
+    const builtins: { [key: string]: Type | null } = {};
 
     res.program.body.forEach((item) => {
         if (
@@ -34,11 +34,8 @@ export const loadBuiltins = () => {
             item.declaration.type === 'VariableDeclaration'
         ) {
             const typeComment = commentsByLine[item.loc!.start.line - 1];
-            if (!typeComment) {
-                return;
-            }
-            const parsed = parseType(typeComment.slice(2));
-            const theType = typeType(presetEnv({}), parsed);
+            const parsed = typeComment ? parseType(typeComment.slice(2)) : null;
+            const theType = parsed ? typeType(presetEnv({}), parsed) : null;
 
             item.declaration.declarations.forEach((decl) => {
                 if (decl.id.type !== 'Identifier' || !decl.init) {
