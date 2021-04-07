@@ -119,25 +119,13 @@ export function presetEnv(builtins: { [key: string]: Type }) {
     env.global.builtins['/'] = pureFunction([T0, T0], T0, [T]);
     env.global.builtins['*'] = pureFunction([T0, T0], T0, [T]);
     env.global.builtins['^'] = pureFunction([T0, T0], T0, [T]);
+    env.global.builtins['&&'] = pureFunction([bool, bool], bool);
+    env.global.builtins['||'] = pureFunction([bool, bool], bool);
 
-    env.global.builtins['max'] = pureFunction([float, float], float);
-    env.global.builtins['min'] = pureFunction([float, float], float);
-    env.global.builtins['sqrt'] = pureFunction([float], float);
-    env.global.builtins['ln'] = pureFunction([float], float);
-    env.global.builtins['sin'] = pureFunction([float], float);
-    env.global.builtins['cos'] = pureFunction([float], float);
-    env.global.builtins['tan'] = pureFunction([float], float);
-    env.global.builtins['asin'] = pureFunction([float], float);
-    env.global.builtins['acos'] = pureFunction([float], float);
-    env.global.builtins['atan'] = pureFunction([float], float);
-    env.global.builtins['atan2'] = pureFunction([float, float], float);
-    env.global.builtins['PI'] = float;
-    env.global.builtins['TAU'] = float;
-
-    env.global.builtins['log'] = pureFunction([string], void_);
+    // env.global.builtins['log'] = pureFunction([string], void_);
     // const concat = <T>(one: Array<T>, two: Array<T>) => Array<T>
     const array = builtinType('Array', [T0]);
-    env.global.builtins['concat'] = pureFunction([array, array], array, [T]);
+    // env.global.builtins['concat'] = pureFunction([array, array], array, [T]);
     env.global.builtinTypes['unit'] = 0;
     env.global.builtinTypes['void'] = 0;
     env.global.builtinTypes['int'] = 0;

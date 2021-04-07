@@ -163,4 +163,15 @@ export const sin = Math.sin,
     atan = Math.atan;
 //: (float, float) => float
 export const atan2 = Math.atan2;
+//: <T>(Array<T>, Array<T>) => Array<T>
 export const concat = <T>(a: Array<T>, b: Array<T>) => a.concat(b);
+
+//: <T>(Array<T>) => int
+export const len = <T>(a: Array<T>) => a.length;
+
+//: (int, int) => bool
+export const intEq = (a: number, b: number) => a === b;
+//: (float, float) => bool
+export const floatEq = (a: number, b: number) => a === b;
+//: (string, string) => bool
+export const stringEq = (a: number, b: number) => a === b;

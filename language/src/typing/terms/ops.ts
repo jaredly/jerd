@@ -8,6 +8,8 @@ import {
     typesEqual,
     RecordDef,
     idsEqual,
+    Id,
+    Type,
 } from '../types';
 import { Expression, Location } from '../../parsing/parser';
 import { showType } from '../unify';
@@ -20,6 +22,61 @@ import { getTypeError } from '../getTypeError';
 import { idFromName, idName, resolveIdentifier } from '../env';
 import { LocatedError, UnresolvedIdentifier } from '../errors';
 import { refName } from '../typePattern';
+
+const findOp = (
+    env: Env,
+    id: Id,
+    idx: number,
+    type: Type,
+    location: Location,
+): Term | null => {
+    for (let k of Object.keys(env.global.terms)) {
+        const is = env.global.terms[k].is;
+        if (
+            is.type === 'ref' &&
+            is.ref.type === 'user' &&
+            idsEqual(is.ref.id, id)
+        ) {
+            const found: Term = {
+                type: 'ref',
+                ref: { type: 'user', id: idFromName(k) },
+                location: location,
+                is: env.global.terms[k].is,
+            };
+            let t = env.global.types[idName(id)] as RecordDef;
+            if (found.is.type === 'ref') {
+                t = applyTypeVariablesToRecord(
+                    env,
+                    t,
+                    found.is.typeVbls,
+                    found.is.location,
+                );
+            }
+            const tis = t.items[idx];
+            if (tis.type !== 'lambda') {
+                continue;
+            }
+            if (tis.args.length !== 2) {
+                continue;
+            }
+            const e1 = getTypeError(env, type, tis.args[0], location);
+            const e2 = getTypeError(env, type, tis.args[1], location);
+            if (e1 || e2) {
+                continue;
+            }
+            return {
+                type: 'Attribute',
+                target: found,
+                idx: idx,
+                is: t.items[idx],
+                location: location,
+                ref: { type: 'user', id },
+                inferred: true,
+            };
+        }
+    }
+    return null;
+};
 
 const typeNewOp = (
     env: Env,
@@ -61,47 +118,52 @@ const typeNewOp = (
         // TODO: allow ambiguity
     } else if (env.global.attributeNames[op]) {
         const { idx, id } = env.global.attributeNames[op];
-        let found: Term | null = null;
-        for (let k of Object.keys(env.global.terms)) {
-            const is = env.global.terms[k].is;
-            if (
-                is.type === 'ref' &&
-                is.ref.type === 'user' &&
-                idsEqual(is.ref.id, id)
-            ) {
-                found = {
-                    type: 'ref',
-                    ref: { type: 'user', id: idFromName(k) },
-                    location: location,
-                    is: env.global.terms[k].is,
-                };
-                break;
-            }
+        const found = findOp(env, id, idx, left.is, location);
+        if (found == null) {
+            return null;
         }
-        if (!found) {
-            throw new LocatedError(
-                location,
-                `Unable to find an implementor for the record for ${op}`,
-            );
-        }
-        let t = env.global.types[idName(id)] as RecordDef;
-        if (found.is.type === 'ref') {
-            t = applyTypeVariablesToRecord(
-                env,
-                t,
-                found.is.typeVbls,
-                found.is.location,
-            );
-        }
-        fn = {
-            type: 'Attribute',
-            target: found,
-            idx: idx,
-            is: t.items[idx],
-            location: location,
-            ref: { type: 'user', id },
-            inferred: true,
-        };
+        fn = found;
+        // let found: Term | null = null;
+        // for (let k of Object.keys(env.global.terms)) {
+        //     const is = env.global.terms[k].is;
+        //     if (
+        //         is.type === 'ref' &&
+        //         is.ref.type === 'user' &&
+        //         idsEqual(is.ref.id, id)
+        //     ) {
+        //         found = {
+        //             type: 'ref',
+        //             ref: { type: 'user', id: idFromName(k) },
+        //             location: location,
+        //             is: env.global.terms[k].is,
+        //         };
+        //         break;
+        //     }
+        // }
+        // if (!found) {
+        //     throw new LocatedError(
+        //         location,
+        //         `Unable to find an implementor for the record for ${op}`,
+        //     );
+        // }
+        // let t = env.global.types[idName(id)] as RecordDef;
+        // if (found.is.type === 'ref') {
+        //     t = applyTypeVariablesToRecord(
+        //         env,
+        //         t,
+        //         found.is.typeVbls,
+        //         found.is.location,
+        //     );
+        // }
+        // fn = {
+        //     type: 'Attribute',
+        //     target: found,
+        //     idx: idx,
+        //     is: t.items[idx],
+        //     location: location,
+        //     ref: { type: 'user', id },
+        //     inferred: true,
+        // };
     } else {
         return null;
     }
@@ -238,7 +300,14 @@ const typeOp = (
     };
 };
 
-const precedence = [['='], ['>', '<'], ['+', '-'], ['/', '*'], ['^']];
+const precedence = [
+    ['&', '|'],
+    ['='],
+    ['>', '<'],
+    ['+', '-'],
+    ['/', '*'],
+    ['^'],
+];
 
 type Section = {
     ops: Ops;
