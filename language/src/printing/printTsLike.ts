@@ -462,7 +462,14 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 ),
             ]);
         }
-        case 'Attribute':
+        case 'TupleAccess': {
+            return items([
+                termToPretty(env, term.target),
+                atom('.'),
+                atom(term.idx.toString()),
+            ]);
+        }
+        case 'Attribute': {
             const names =
                 env.global.recordGroups[
                     term.ref.type === 'builtin'
@@ -492,6 +499,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 // atom('#'),
                 // atom(term.idx.toString()),
             ]);
+        }
         case 'Enum':
             return items([
                 typeToPretty(env, term.is),
@@ -573,7 +581,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         }
         case 'Array':
-            const res = [];
+            // const res = [];
             return items([
                 atom('<'),
                 typeToPretty(env, term.is.typeVbls[0]),
@@ -589,6 +597,14 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     ),
                     '[',
                     ']',
+                ),
+            ]);
+        case 'Tuple':
+            return items([
+                args(
+                    term.items.map((item) => termToPretty(env, item)),
+                    '(',
+                    ')',
                 ),
             ]);
         default:

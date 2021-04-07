@@ -10,14 +10,18 @@ Immediate:
     or wait. No, I do need to know the IDs, so that I can know
     what type to watch out for to trigger rendering. Yes.
 - [x] array destructuring please
-- [ ] allow qualified binops, so + doesn't lie
+- [x] allow qualified binops, so + doesn't lie
   - also so that I can do `.str()` and it will pick the right one. So like, I need more builtins? And builtin types?
+- [x] better builtins setup (only defined in one place)
+- [ ] prelude in jerd, for operations and stuff
+- [ ] tuples, you need them yes
 - [ ] generic effects please
 - [/] intermediate output, target go or python
   - what level of granularity? do I assume switches? naw, I don't think so.
   - So the main task is doing the CPS transform, right?
   - are there other tasks to be done here?
   - [x] initial go generation
+  - [ ] do I monomorphize for go or swift targetting? orrr have an explicit "Box" and "Unbox" IR type.
   - [ ] fully handle type conversions
 - [ ] structured editor with type holes and such
 - [ ] documentation as data!

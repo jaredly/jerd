@@ -132,12 +132,19 @@ export type Expr =
           done: Expr | null;
       }
     | {
+          type: 'tuple';
+          items: Array<Expr>;
+          itemTypes: Array<Type>;
+          loc: Loc;
+      }
+    | {
           type: 'array';
           items: Array<Expr | { type: 'Spread'; value: Expr }>;
           elType: Type;
           loc: Loc;
       }
     | Record
+    | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc }
     | {
           type: 'attribute';
           target: Expr;

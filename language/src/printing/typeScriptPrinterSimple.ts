@@ -176,6 +176,10 @@ export const _termToTs = (
                 termToTs(env, opts, term.target),
                 term.args.map((arg) => termToTs(env, opts, arg)),
             );
+        case 'tuple':
+            return t.arrayExpression(
+                term.items.map((item) => termToTs(env, opts, item)),
+            );
         case 'array':
             return t.arrayExpression(
                 term.items.map((item) =>
@@ -386,6 +390,12 @@ export const _termToTs = (
                 termToTs(env, opts, term.target),
                 t.identifier(recordAttributeName(env, term.ref, term.idx)),
             );
+        case 'tupleAccess':
+            return t.memberExpression(
+                termToTs(env, opts, term.target),
+                t.numericLiteral(term.idx),
+                true,
+            );
         case 'slice': {
             const start = termToTs(env, opts, term.start);
             const end = term.end ? termToTs(env, opts, term.end) : null;
@@ -399,7 +409,7 @@ export const _termToTs = (
         }
         default:
             let _v: never = term;
-            throw new Error(`Not impl ${(term as any).type}`);
+            throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
     }
 };
 

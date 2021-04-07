@@ -53,12 +53,25 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
                   }
                 : expr;
         }
+        case 'tupleAccess': {
+            const target = transformExpr(expr.target, visitor);
+            return target !== expr.target ? { ...expr, target } : expr;
+        }
         case 'arrayIndex': {
             const value = transformExpr(expr.value, visitor);
             const idx = transformExpr(expr.idx, visitor);
             return value !== expr.value || idx !== expr.idx
                 ? { ...expr, value, idx }
                 : expr;
+        }
+        case 'tuple': {
+            let changed = false;
+            const items = expr.items.map((item) => {
+                const i = transformExpr(item, visitor);
+                changed = changed || i !== item;
+                return i;
+            });
+            return changed ? { ...expr, items } : expr;
         }
         case 'array': {
             let changed = false;
@@ -79,13 +92,6 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
             const value = transformExpr(expr.value, visitor);
             return value !== expr.value ? { ...expr, value } : expr;
         }
-        // case 'or': {
-        //     const left = transformExpr(expr.left, visitor);
-        //     const right = transformExpr(expr.right, visitor);
-        //     return left !== expr.left || right !== expr.right
-        //         ? { ...expr, left, right }
-        //         : expr;
-        // }
         case 'apply': {
             const target = transformExpr(expr.target, visitor);
             let changed = false;

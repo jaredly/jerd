@@ -114,8 +114,14 @@ export type Expression =
     | Record
     | Enum
     | ArrayLiteral
+    | TupleLiteral
     | Handle;
 
+export type TupleLiteral = {
+    type: 'Tuple';
+    location: Location;
+    items: Array<Expression>;
+};
 export type ArrayLiteral = {
     type: 'Array';
     location: Location;

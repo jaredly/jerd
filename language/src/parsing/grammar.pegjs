@@ -125,7 +125,7 @@ ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:Com
 }
 AttributeSuffix = "." id:MaybeQuotedIdentifier {return {type: 'Attribute', id, location: location()}}
 
-Apsub = Literal / Lambda / Block / Handle / Raise / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / Identifier
+Apsub = Literal / Lambda / Block / Handle / Raise / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / TupleLiteral / Identifier
 
 // TODO
 // / TraitCall
@@ -157,6 +157,13 @@ ArrayItems = first:ArrayItem rest:(_ "," _ ArrayItem)* ","? {
 }
 ArrayItem = ArraySpread / Expression
 ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, location: location() }}
+
+TupleLiteral = "(" _ items:TupleItems _ ")" {
+    return {type: 'Tuple', location: location(), items}
+}
+TupleItems = first:Expression rest:(_ "," _ Expression)* {
+    return [first, ...rest.map((r: any) => r[3])]
+}
 
 
 
@@ -192,7 +199,7 @@ Pattern = inner:PatternInner as_:(__ "as" __ Identifier)? {
     }
     return inner
 }
-PatternInner = ArrayPattern / RecordPattern / Literal / Identifier
+PatternInner = ArrayPattern / RecordPattern / TuplePattern / Literal / Identifier
 ArrayPattern = "[" _ items:ArrayPatternItems? _ "]" {return {type: 'Array', location: location(), items: items || []}}
 
 ArrayPatternItems = first:ArrayPatternItem rest:(_ "," _ ArrayPatternItem)* ","? {
@@ -207,8 +214,13 @@ RecordPattern = id:Identifier "{" items:RecordPatternCommas "}" {
 RecordPatternCommas = first:RecordPatternItem rest:(_ "," _ RecordPatternItem)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 RecordPatternItem = id:Identifier pattern:(_ ":" _ Pattern)? {
     return {id, pattern: pattern ? pattern[3] : null, location: location()}}
-// TODO: array literal!
-// TODO: constants!
+
+TuplePattern = "(" _ items:TuplePatternItems _ ")" {
+    return {type: 'Tuple', location: location(), items}
+}
+TuplePatternItems = first:Pattern rest:(_ "," _ Pattern)+ {
+    return [first, ...rest.map((r: any) => r[3])]
+}
 
 // How do patterns look?
 

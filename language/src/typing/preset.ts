@@ -134,6 +134,10 @@ export function presetEnv(builtins: { [key: string]: Type }) {
     env.global.builtinTypes['string'] = 0;
     env.global.builtinTypes['Array'] = 1;
 
+    for (let i = 2; i < 10; i++) {
+        env.global.builtinTypes['Tuple' + i] = i;
+    }
+
     env.global.typeNames['As'] = { hash: 'As', pos: 0, size: 1 };
     env.global.types['As'] = {
         unique: 2,
@@ -181,7 +185,6 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         idx: 0,
         id: { hash: 'Some', pos: 0, size: 1 },
     };
-    // and then no recordGroups
 
     return env;
 }

@@ -395,6 +395,8 @@ export type Term =
     | Switch
     | Enum
     | ArrayLiteral
+    | TupleLiteral
+    | TupleAccess
     | {
           type: 'Attribute';
           target: Term;
@@ -414,6 +416,21 @@ export type Term =
     | Var
     | Literal
     | Lambda;
+
+export type TupleLiteral = {
+    type: 'Tuple';
+    is: TypeReference;
+    items: Array<Term>;
+    location: Location | null;
+};
+
+export type TupleAccess = {
+    type: 'TupleAccess';
+    is: Type;
+    target: Term;
+    idx: number;
+    location: Location | null;
+};
 
 export type Literal = String | Float | Int | Boolean;
 export type Float = {
@@ -751,6 +768,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                     ),
             );
         case 'Attribute':
+        case 'TupleAccess':
             return getEffects(t.target);
         case 'Record': {
             const effects = [] as Array<EffectRef>;
@@ -782,6 +800,8 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             return getEffects(t.term).concat(
                 ...t.cases.map((c) => getEffects(c.body)),
             );
+        case 'Tuple':
+            return ([] as Array<EffectRef>).concat(...t.items.map(getEffects));
         default:
             let _x: never = t;
             throw new Error('Unhandled term');
@@ -860,6 +880,11 @@ export const walkTerm = (
             return;
         case 'Enum':
             return walkTerm(term.inner, handle);
+        case 'Tuple':
+            term.items.forEach((item) => {
+                walkTerm(item, handle);
+            });
+            return;
         case 'Array':
             term.items.forEach((item) => {
                 if (item.type === 'ArraySpread') {
@@ -869,6 +894,7 @@ export const walkTerm = (
                 }
             });
             return;
+        case 'TupleAccess':
         case 'Attribute':
             walkTerm(term.target, handle);
             return;

@@ -341,12 +341,28 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         }
         case 'Enum':
             return printTerm(env, opts, term.inner);
+        case 'TupleAccess': {
+            return {
+                type: 'tupleAccess',
+                target: printTerm(env, opts, term.target),
+                idx: term.idx,
+                loc: term.location,
+            };
+        }
         case 'Attribute': {
             return {
                 type: 'attribute',
                 target: printTerm(env, opts, term.target),
                 ref: term.ref,
                 idx: term.idx,
+                loc: term.location,
+            };
+        }
+        case 'Tuple': {
+            return {
+                type: 'tuple',
+                items: term.items.map((item) => printTerm(env, opts, item)),
+                itemTypes: term.is.typeVbls,
                 loc: term.location,
             };
         }
@@ -428,7 +444,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         }
         default:
             let _x: never = term;
-            throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
+            throw new Error(`Cannot print ${(term as any).type} to IR`);
     }
 };
 
