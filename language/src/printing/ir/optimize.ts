@@ -25,6 +25,7 @@ import {
     RecordSubType,
     ReturnStmt,
     Stmt,
+    Tuple,
 } from './types';
 import { and, asBlock, iffe } from './utils';
 
@@ -33,6 +34,7 @@ const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
     expr = optimize(expr);
     expr = optimizeTailCalls(env, expr, id);
+    expr = optimize(expr);
     return expr;
 };
 
@@ -42,6 +44,9 @@ export const optimize = (expr: Expr): Expr => {
         removeNestedBlocksWithoutDefines,
         flattenNestedIfs,
         flattenIffe,
+        foldConstantAssignments,
+        foldConstantTuples,
+        removeUnusedVariables,
     ];
     transformers.forEach((t) => (expr = t(expr)));
     return expr;
@@ -148,6 +153,71 @@ export const removeNestedBlocksWithoutDefines = (expr: Expr): Expr => {
                 }
             });
             return changed ? { ...block, items } : block;
+        },
+    });
+};
+
+export const foldConstantTuples = (expr: Expr): Expr => {
+    let tupleConstants: { [v: string]: Tuple | null } = {};
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        // Don't go into lambdas
+        expr: (value) => {
+            if (value.type === 'tupleAccess') {
+                if (value.target.type === 'var') {
+                    const t = tupleConstants[symName(value.target.sym)];
+                    if (t != null) {
+                        if (isConstant(t.items[value.idx])) {
+                            return t.items[value.idx];
+                        }
+                    }
+                }
+            }
+            if (value.type === 'var') {
+                const v = tupleConstants[symName(value.sym)];
+                if (v != null) {
+                    tupleConstants[symName(value.sym)] = null;
+                }
+            }
+            return null;
+        },
+        stmt: (value) => {
+            if (
+                (value.type === 'Define' || value.type === 'Assign') &&
+                value.value != null &&
+                value.value.type === 'tuple'
+            ) {
+                tupleConstants[symName(value.sym)] = value.value;
+            }
+            return null;
+        },
+    });
+};
+
+export const foldConstantAssignments = (expr: Expr): Expr => {
+    let constants: { [v: string]: Expr | null } = {};
+    let tupleConstants: { [v: string]: Tuple } = {};
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        // Don't go into lambdas
+        expr: (value) => {
+            if (value.type === 'var') {
+                const v = constants[symName(value.sym)];
+                if (v != null) {
+                    return v;
+                }
+            }
+            return null;
+        },
+        stmt: (value) => {
+            if (
+                (value.type === 'Define' || value.type === 'Assign') &&
+                value.value != null &&
+                isConstant(value.value)
+            ) {
+                constants[symName(value.sym)] = value.value;
+            }
+            return null;
         },
     });
 };

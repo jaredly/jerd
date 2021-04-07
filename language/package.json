@@ -12,6 +12,7 @@
         "watch-tests": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert examples --run --cache",
         "watch-go": "watchexec    -w main.js -w examples -- node --enable-source-maps main.js go examples --run --assert",
         "test": "node --enable-source-maps main.js --assert examples --run",
+        "test-one": "node --enable-source-maps main.js --assert --run",
         "watch": "esbuild --sourcemap --bundle src/main.ts --platform=node --watch --outfile=main.js",
         "sn": "jest -u"
     },

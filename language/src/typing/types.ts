@@ -339,6 +339,7 @@ export type Pattern =
     | Literal
     | AliasPattern
     | RecordPattern
+    | TuplePattern
     | ArrayPattern
     | EnumPattern
     | Binding;
@@ -384,6 +385,11 @@ export type ArrayPattern = {
     postItems: Array<Pattern>;
     location: Location | null;
     is: Type;
+};
+export type TuplePattern = {
+    type: 'Tuple';
+    items: Array<Pattern>;
+    location: Location | null;
 };
 
 export type Term =

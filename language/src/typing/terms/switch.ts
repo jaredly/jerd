@@ -15,6 +15,7 @@ import {
     refsEqual,
     subEnv,
     Term,
+    TuplePattern,
     Type,
 } from '../types';
 import { showType } from '../unify';
@@ -103,6 +104,9 @@ const patternToExPattern = (
         case 'Array': {
             return arrayToExPattern(type, pattern, groups, env);
         }
+        case 'Tuple': {
+            return tupleToExPattern(type, pattern, groups, env);
+        }
         default:
             throw new Error(`Unhandled pattern ${(pattern as any).type}`);
     }
@@ -178,6 +182,34 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
     };
 };
 
+const tupleToExPattern = (
+    type: Type,
+    pattern: TuplePattern,
+    groups: Groups,
+    env: Env,
+): ExPattern => {
+    if (
+        type.type !== 'ref' ||
+        type.ref.type !== 'builtin' ||
+        type.ref.name !== `Tuple${pattern.items.length}` ||
+        type.typeVbls.length !== pattern.items.length
+    ) {
+        throw new Error(`Non-tuple type with tuple`);
+    }
+    const vbls = type.typeVbls;
+    const n = pattern.items.length;
+
+    const groupId = 'tuple-' + n;
+    if (!groups[groupId]) {
+        groups[groupId] = [groupId];
+    }
+
+    const inner = pattern.items.map((item, i) =>
+        patternToExPattern(env, vbls[i], groups, item),
+    );
+    return constructor(groupId, groupId, inner);
+};
+
 const arrayToExPattern = (
     type: Type,
     pattern: ArrayPattern,
@@ -222,6 +254,17 @@ const arrayToExPattern = (
     const nilId = 'array-nil';
     groups[consListId] = [consId, nilId];
 
+    const toConsList = (items: Array<Pattern>, tail: ExPattern | null) => {
+        let last = tail == null ? constructor(nilId, consListId, []) : tail;
+        for (let i = items.length - 1; i >= 0; i--) {
+            last = constructor(consId, consListId, [
+                patternToExPattern(env, elemType, groups, items[i]),
+                last,
+            ]);
+        }
+        return last;
+    };
+
     // HRMMMM why is this not exhaustive:
     // [one, ...rest] => true,
     // [] => false
@@ -242,17 +285,6 @@ const arrayToExPattern = (
 
 
     */
-
-    const toConsList = (items: Array<Pattern>, tail: ExPattern | null) => {
-        let last = tail == null ? constructor(nilId, consListId, []) : tail;
-        for (let i = items.length - 1; i >= 0; i--) {
-            last = constructor(consId, consListId, [
-                patternToExPattern(env, elemType, groups, items[i]),
-                last,
-            ]);
-        }
-        return last;
-    };
 
     const head = toConsList(
         pattern.preItems,

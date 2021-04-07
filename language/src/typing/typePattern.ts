@@ -41,6 +41,17 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
             return pattern.ref;
         case 'Record':
             return pattern.ref;
+        case 'Tuple':
+            const vbls = expected.type === 'ref' ? expected.typeVbls : [];
+            return {
+                type: 'ref',
+                ref: { type: 'builtin', name: `Tuple${pattern.items.length}` },
+                typeVbls: pattern.items.map((item, i) =>
+                    patternIs(item, vbls[i]),
+                ),
+                effectVbls: [],
+                location: pattern.location,
+            };
         case 'Array':
             return {
                 type: 'ref',
@@ -320,6 +331,27 @@ const typePattern = (
             return {
                 type: 'Record',
                 ref: found,
+                items,
+                location: pattern.location,
+            };
+        }
+        case 'Tuple': {
+            const items: Array<Pattern> = [];
+            const n = pattern.items.length;
+            if (
+                expectedType.type !== 'ref' ||
+                expectedType.ref.type !== 'builtin' ||
+                expectedType.ref.name !== `Tuple${n}` ||
+                expectedType.typeVbls.length !== n
+            ) {
+                throw new Error(`${n}-tuple pattern type mismatch`);
+            }
+            pattern.items.forEach((item, i) => {
+                items.push(typePattern(env, item, expectedType.typeVbls[i]));
+            });
+
+            return {
+                type: 'Tuple',
                 items,
                 location: pattern.location,
             };

@@ -131,12 +131,7 @@ export type Expr =
           }>;
           done: Expr | null;
       }
-    | {
-          type: 'tuple';
-          items: Array<Expr>;
-          itemTypes: Array<Type>;
-          loc: Loc;
-      }
+    | Tuple
     | {
           type: 'array';
           items: Array<Expr | { type: 'Spread'; value: Expr }>;
@@ -163,6 +158,12 @@ export type Expr =
       }
     | LambdaExpr;
 
+export type Tuple = {
+    type: 'tuple';
+    items: Array<Expr>;
+    itemTypes: Array<Type>;
+    loc: Loc;
+};
 export type Apply = {
     type: 'apply';
     targetType: LambdaType;

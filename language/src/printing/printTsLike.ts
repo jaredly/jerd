@@ -665,6 +665,12 @@ const patternToPretty = (env: Env, pattern: Pattern): PP => {
             } else {
                 return refToPretty(env, pattern.ref.ref, 'record');
             }
+        case 'Tuple':
+            return args(
+                pattern.items.map((p) => patternToPretty(env, p)),
+                '(',
+                ')',
+            );
         case 'Array':
             return args(
                 pattern.preItems

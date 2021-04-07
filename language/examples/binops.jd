@@ -18,30 +18,15 @@ type Eq<T> = {
 // ugh ok I really need a tuple type
 const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
  = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
-    switch one {
-        [] => switch two {
-            [] => true,
-            _ => false
-        },
-        [one, ...rone] => switch two {
-            [two, ...rtwo] => if eq."=="(one, two) {
-                arrayEq(rone, rtwo, eq)
-            } else {
-                false
-            },
-            _ => false
+    switch (one, two) {
+        ([], []) => true,
+        ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
+            arrayEq(rone, rtwo, eq)
+        } else {
+            false
         },
         _ => false
     }
-    // switch (one, two) {
-    //     ([], []) => true,
-    //     ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
-    //         arrayEq(rone, rtwo, eq)
-    //     } else {
-    //         false
-    //     },
-    //     _ => false
-    // }
 }
 
 const IntEq = Eq<int>{ "==": (a: int, b: int) => intEq(a, b) }
