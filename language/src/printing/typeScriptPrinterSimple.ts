@@ -25,7 +25,13 @@ import { declarationToPretty } from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
 import { printType, typeToAst } from './typeScriptPrinter';
 
-const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
+const reservedSyms = ['default', 'async', 'await'];
+
+const printSym = (env: Env, sym: Symbol) =>
+    env.local.localNames[sym.name] === sym.unique &&
+    !reservedSyms.includes(sym.name)
+        ? sym.name
+        : sym.name + '$' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
 
 function withLocation<
@@ -120,8 +126,13 @@ export const _termToTs = (
         case 'boolean':
             return t.booleanLiteral(term.value);
         case 'lambda':
+            term.args.forEach((arg) => {
+                if (env.local.localNames[arg.sym.name] == null) {
+                    env.local.localNames[arg.sym.name] = arg.sym.unique;
+                }
+            });
             return t.arrowFunctionExpression(
-                term.args.map((arg) => t.identifier(printSym(arg.sym))),
+                term.args.map((arg) => t.identifier(printSym(env, arg.sym))),
                 lambdaBodyToTs(env, opts, term.body),
             );
         case 'term':
@@ -138,7 +149,7 @@ export const _termToTs = (
                 return t.identifier(printId(term.id));
             }
         case 'var':
-            return t.identifier(printSym(term.sym));
+            return t.identifier(printSym(env, term.sym));
         case 'IsRecord':
             return t.binaryExpression(
                 '===',
@@ -175,6 +186,10 @@ export const _termToTs = (
             return t.callExpression(
                 termToTs(env, opts, term.target),
                 term.args.map((arg) => termToTs(env, opts, arg)),
+            );
+        case 'tuple':
+            return t.arrayExpression(
+                term.items.map((item) => termToTs(env, opts, item)),
             );
         case 'array':
             return t.arrayExpression(
@@ -244,17 +259,19 @@ export const _termToTs = (
                         .map(({ args, k, body }) => {
                             return t.arrowFunctionExpression(
                                 [
-                                    t.identifier(printSym(handlerSym)),
+                                    t.identifier(printSym(env, handlerSym)),
                                     args.length === 0
                                         ? t.identifier('_')
                                         : args.length === 1
-                                        ? t.identifier(printSym(args[0]))
+                                        ? t.identifier(printSym(env, args[0]))
                                         : t.arrayPattern(
                                               args.map((s) =>
-                                                  t.identifier(printSym(s)),
+                                                  t.identifier(
+                                                      printSym(env, s),
+                                                  ),
                                               ),
                                           ),
-                                    t.identifier(printSym(k)),
+                                    t.identifier(printSym(env, k)),
                                 ],
                                 lambdaBodyToTs(env, opts, body),
                             );
@@ -262,19 +279,19 @@ export const _termToTs = (
                 ),
                 t.arrowFunctionExpression(
                     [
-                        t.identifier(printSym(handlerSym)),
-                        t.identifier(printSym(term.pure.arg)),
+                        t.identifier(printSym(env, handlerSym)),
+                        t.identifier(printSym(env, term.pure.arg)),
                     ],
                     lambdaBodyToTs(env, opts, term.pure.body),
                 ),
-                ...(term.done ? [t.identifier(printSym(handlerSym))] : []),
+                ...(term.done ? [t.identifier(printSym(env, handlerSym))] : []),
             ]);
         }
 
         case 'raise':
             // TODO: The IR should probably be doing more work here....
             const args: Array<t.Expression> = [
-                t.identifier(printSym(handlerSym)),
+                t.identifier(printSym(env, handlerSym)),
                 t.stringLiteral(term.effect.hash),
                 t.numericLiteral(term.idx),
             ];
@@ -291,9 +308,12 @@ export const _termToTs = (
             }
             args.push(
                 t.arrowFunctionExpression(
-                    [t.identifier(printSym(handlerSym)), t.identifier('value')],
+                    [
+                        t.identifier(printSym(env, handlerSym)),
+                        t.identifier('value'),
+                    ],
                     t.callExpression(termToTs(env, opts, term.done), [
-                        t.identifier(printSym(handlerSym)),
+                        t.identifier(printSym(env, handlerSym)),
                         t.identifier('value'),
                     ]),
                 ),
@@ -386,6 +406,12 @@ export const _termToTs = (
                 termToTs(env, opts, term.target),
                 t.identifier(recordAttributeName(env, term.ref, term.idx)),
             );
+        case 'tupleAccess':
+            return t.memberExpression(
+                termToTs(env, opts, term.target),
+                t.numericLiteral(term.idx),
+                true,
+            );
         case 'slice': {
             const start = termToTs(env, opts, term.start);
             const end = term.end ? termToTs(env, opts, term.end) : null;
@@ -399,7 +425,7 @@ export const _termToTs = (
         }
         default:
             let _v: never = term;
-            throw new Error(`Not impl ${(term as any).type}`);
+            throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
     }
 };
 
@@ -469,10 +495,13 @@ export const stmtToTs = (
                 stmt.loc,
             );
         case 'Define':
+            if (env.local.localNames[stmt.sym.name] == null) {
+                env.local.localNames[stmt.sym.name] = stmt.sym.unique;
+            }
             return withLocation(
                 t.variableDeclaration('let', [
                     t.variableDeclarator(
-                        t.identifier(printSym(stmt.sym)),
+                        t.identifier(printSym(env, stmt.sym)),
                         stmt.value ? termToTs(env, opts, stmt.value) : null,
                     ),
                 ]),
@@ -483,7 +512,7 @@ export const stmtToTs = (
                 t.expressionStatement(
                     t.assignmentExpression(
                         '=',
-                        t.identifier(printSym(stmt.sym)),
+                        t.identifier(printSym(env, stmt.sym)),
                         termToTs(env, opts, stmt.value),
                     ),
                 ),
@@ -535,9 +564,9 @@ export const lambdaBodyToTs = (
     }
 };
 
-const showEffectRef = (eff: EffectRef) => {
+const showEffectRef = (env: Env, eff: EffectRef) => {
     if (eff.type === 'var') {
-        return printSym(eff.sym);
+        return printSym(env, eff.sym);
     }
     return printRef(eff.ref);
 };

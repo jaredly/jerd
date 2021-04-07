@@ -131,6 +131,7 @@ export type Expr =
           }>;
           done: Expr | null;
       }
+    | Tuple
     | {
           type: 'array';
           items: Array<Expr | { type: 'Spread'; value: Expr }>;
@@ -138,6 +139,7 @@ export type Expr =
           loc: Loc;
       }
     | Record
+    | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc }
     | {
           type: 'attribute';
           target: Expr;
@@ -156,6 +158,12 @@ export type Expr =
       }
     | LambdaExpr;
 
+export type Tuple = {
+    type: 'tuple';
+    items: Array<Expr>;
+    itemTypes: Array<Type>;
+    loc: Loc;
+};
 export type Apply = {
     type: 'apply';
     targetType: LambdaType;

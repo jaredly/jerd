@@ -114,8 +114,14 @@ export type Expression =
     | Record
     | Enum
     | ArrayLiteral
+    | TupleLiteral
     | Handle;
 
+export type TupleLiteral = {
+    type: 'Tuple';
+    location: Location;
+    items: Array<Expression>;
+};
 export type ArrayLiteral = {
     type: 'Array';
     location: Location;
@@ -190,7 +196,12 @@ export type SwitchCase = {
     body: Expression;
     location: Location;
 };
-export type Pattern = AliasPattern | Literal | RecordPattern | ArrayPattern;
+export type Pattern =
+    | AliasPattern
+    | Literal
+    | RecordPattern
+    | ArrayPattern
+    | TuplePattern;
 export type AliasPattern = {
     type: 'Alias';
     name: Identifier;
@@ -209,6 +220,11 @@ export type RecordPatternItem = {
     location: Location;
 };
 
+export type TuplePattern = {
+    type: 'Tuple';
+    items: Array<Pattern>;
+    location: Location;
+};
 export type ArrayPattern = {
     type: 'Array';
     items: Array<ArrayPatternSpread | Pattern>;

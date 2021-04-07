@@ -512,6 +512,35 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     } else if (suffix.id.text.match(/^\d+$/)) {
                         idx = +suffix.id.text;
                         if (
+                            target.is.type === 'ref' &&
+                            target.is.ref.type === 'builtin' &&
+                            target.is.ref.name.startsWith('Tuple')
+                        ) {
+                            const n = +target.is.ref.name.slice('Tuple'.length);
+                            if (isNaN(n)) {
+                                throw new Error(
+                                    `Unknown tuple type ${target.is.ref.name}`,
+                                );
+                            }
+                            if (idx >= n) {
+                                throw new Error(
+                                    `Cannot access idx ${idx} of a ${n}-tuple`,
+                                );
+                            }
+                            if (target.is.typeVbls.length !== n) {
+                                throw new Error(`Invalid tuple type`);
+                            }
+                            target = {
+                                type: 'TupleAccess',
+                                idx,
+                                is: target.is.typeVbls[idx],
+                                location: suffix.location,
+                                target,
+                            };
+                            continue;
+                        }
+                        //
+                        if (
                             target.is.type !== 'ref' ||
                             target.is.ref.type !== 'user'
                         ) {
@@ -703,6 +732,26 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 inner,
                 location: expr.location,
                 is,
+            };
+        }
+        case 'Tuple': {
+            const items: Array<Term> = expr.items.map((item) => {
+                return typeExpr(env, item);
+            });
+            if (items.length < 2) {
+                throw new Error(`Can't have a 1-tuple`);
+            }
+            return {
+                type: 'Tuple',
+                location: expr.location,
+                items,
+                is: {
+                    type: 'ref',
+                    ref: { type: 'builtin', name: `Tuple${items.length}` },
+                    location: null,
+                    typeVbls: items.map((t) => t.is),
+                    effectVbls: [],
+                },
             };
         }
         case 'Array': {

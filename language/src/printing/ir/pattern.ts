@@ -83,6 +83,29 @@ export const printPattern = (
                 pattern.location,
             ),
         );
+    } else if (pattern.type === 'Tuple') {
+        // tbh this should probably be processed in reverse?
+        // although it probably doesn't matter, because
+        // these can't be effectful
+        const vbls = type.type === 'ref' ? type.typeVbls : [];
+        pattern.items.forEach((item, i) => {
+            success = printPattern(
+                env,
+                {
+                    type: 'tupleAccess',
+                    target: value,
+                    idx: i,
+                    loc: item.location,
+                },
+                vbls[i],
+                item,
+                success,
+            );
+        });
+        // Do I need an IF here? I don't think so,
+        // because I ensure that the type is tuple and
+        // it's incompatible with normal record types
+        return success;
     } else if (pattern.type === 'Record') {
         // tbh this should probably be processed in reverse?
         // although it probably doesn't matter, because
