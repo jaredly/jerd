@@ -48,14 +48,18 @@ const ArrayEq = <T,>(eq: Eq<T>) => Eq<Array<T>>{
     "==": (one: Array<T>, two: Array<T>) => arrayEq(one, two, eq)
 }
 
-const IntEq = Eq<int>{ "==": (a, b) => intEq(a, b) }
-
 // STOPSHIP: Next, get a prelude going so I can predefine IntEq and stuff.
 // and make adding builtins much easier.
 
+// vvvvvvv
+
+// const IntEq = Eq<int>{ "==": (a, b) => intEq(a, b) }
+// ArrayEq<int>(IntEq)."=="([1, 2], [1, 2])
+
+// ^^^^^^^
+
 // How do we build this on the fly?
 // [1, 2] == [1, 2]
-ArrayEq<int>(IntEq)."=="([1, 2], [1, 2])
 
 // So if we see `A<B>`, we look for `<T>(eq: Eg<T>) => Eq<A<T>>`
 // and `Eq<B>`
