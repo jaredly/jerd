@@ -1,14 +1,80 @@
 
-type Ring<T> = {
-    "+++": (T, T) => T,
-    // "-": (T, T) => T
+type Addable<T> = {
+    "+": (T, T) => T,
 }
 
-const IntArrayRing = Ring<Array<int>>{
-    "+++": (a: Array<int>, b: Array<int>) => concat<int>(a, b),
-    // TODO unary "!"
-    // "-": (a, b) => filter(a, x => contains(b, x)),
+const IntArrayAddable = Addable<Array<int>>{
+    "+": (a: Array<int>, b: Array<int>) => concat<int>(a, b),
 }
 
-[1] +++ [2, 3]
+[1] + [2, 3]
 
+// ok, but the real question is:
+
+type Eq<T> = {
+    "==": (T, T) => bool
+}
+
+// ugh ok I really need a tuple type
+const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
+ = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
+    switch one {
+        [] => switch two {
+            [] => true,
+            _ => false
+        },
+        [one, ...rone] => switch two {
+            [two, ...rtwo] => if eq."=="(one, two) {
+                arrayEq(rone, rtwo, eq)
+            } else {
+                false
+            },
+            _ => false
+        },
+        _ => false
+    }
+    // switch (one, two) {
+    //     ([], []) => true,
+    //     ([one, ...rone], [two, ...rtwo]) => if eq(one, two) {
+    //         arrayEq(rone, rtwo, eq)
+    //     } else {
+    //         false
+    //     },
+    //     _ => false
+    // }
+}
+
+const ArrayEq = <T,>(eq: Eq<T>) => Eq<Array<T>>{
+    "==": (one: Array<T>, two: Array<T>) => arrayEq(one, two, eq)
+}
+
+const IntEq = Eq<int>{ "==": (a, b) => intEq(a, b) }
+
+// STOPSHIP: Next, get a prelude going so I can predefine IntEq and stuff.
+// and make adding builtins much easier.
+
+// How do we build this on the fly?
+// [1, 2] == [1, 2]
+ArrayEq<int>(IntEq)."=="([1, 2], [1, 2])
+
+// So if we see `A<B>`, we look for `<T>(eq: Eg<T>) => Eq<A<T>>`
+// and `Eq<B>`
+// and construct the dealio
+
+// hm ok new plan, it just gets constant lifted (and hashed I guess? might as well)
+
+
+
+type Addable<T> = {
+    "+": (T, T) => T,
+}
+
+type AddSub<T> =  {
+    "+": (T, T) => T,
+    "-": (T, T) => T,
+    // scale: (T, float) => T,
+}
+
+type Scale<T> = {
+    scale: (T, float) => T,
+}

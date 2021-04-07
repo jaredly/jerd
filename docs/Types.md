@@ -29,6 +29,58 @@ It could just be a syntax trick tbh.
 hmm actually maybe the punning syntax should be the more awkward one? b/c for real optionals happen a ton.
 so `Some{5}` is `Some{contents: 5}`, and `Some{:contents}` is `Some{contents:contents}`. sounds legit.
 
+## Records with type variables
+
+// this record is not-yet type-applied?
+
+```ts
+const addTwoInt = (one: Array<int>, two: Array<int>, adder: Addable<Array<int>>) => {
+  adder."+"(one, two)
+}
+
+const ArrayAddable = T -> Addable<Array<T>>{
+    "+": (a: Array<T>, b: Array<T>) => concat<T>(a, b),
+}
+
+addTwoInt([1], [2,3], ArrayAddable<int>)
+
+// ^-- so here, with monomorphization, we can codegen
+// ArrayAddable<int> as its own struct.
+
+// What about fully generic?
+const addTwo = <T,>(one: Array<T>, two: Array<T>, adder: Addable<Array<T>>) => {
+  adder."+"(one, two)
+}
+
+// hm ok actually this is the same story.
+// Would I ever want to do something like this?
+const addTwo = (one: Array<int>, two: Array<float>, adder: T -> Addable<Array<T>>) => {
+  adder<int>."+"(one, one)
+  adder<float>."+"(two, two)
+}
+// Should that be allowed? Can I disallow it?
+// It feels like this would defy monomorphisation ...
+// Mitigation strategies:
+// - only allow type-variable record literals at the toplevel
+// - not allow them to be passed un-quantified into functions
+
+/*
+but like maybe I can monomorphize it?
+
+yeah, so it would mean: turn every (arg: T -> what) into multiple args, one for each incarnation.
+
+which seems at least theoretically possible?
+
+ok, and any definition inside of a function also gets expanded out into all necessary uses.
+
+hmk that does seem a little extensive. but still possible.
+
+Ok, so maybe I won't worry about restricting use of this,
+and just work on making it work correctly.
+
+*/
+
+```
 
 ## Enums
 
