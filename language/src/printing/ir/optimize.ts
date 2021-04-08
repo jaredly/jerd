@@ -36,7 +36,7 @@ export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
 export const optimize = (expr: Expr): Expr => {
     const transformers: Array<(e: Expr) => Expr> = [
         removeUnusedVariables,
-        removeNestedBlocksWithoutDefines,
+        removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
         flattenNestedIfs,
         flattenIffe,
         foldConstantAssignments,
@@ -131,13 +131,25 @@ export const transformRepeatedly = (expr: Expr, visitor: Visitor): Expr => {
     return expr;
 };
 
-export const removeNestedBlocksWithoutDefines = (expr: Expr): Expr => {
+export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
+    expr: Expr,
+): Expr => {
     return transformRepeatedly(expr, {
         ...defaultVisitor,
         block: (block) => {
             const items: Array<Stmt> = [];
             let changed = false;
+            let hasReturned = false;
             block.items.forEach((item) => {
+                if (hasReturned) {
+                    changed = true;
+                    return;
+                }
+                if (item.type === 'Return') {
+                    items.push(item);
+                    hasReturned = true;
+                    return;
+                }
                 if (
                     item.type === 'Block' &&
                     !item.items.some((item) => item.type === 'Define')
@@ -275,6 +287,13 @@ export const foldSingleUseAssignments = (expr: Expr): Expr => {
                 if (item.type === 'Define' && singles[symName(item.sym)]) {
                     defns[symName(item.sym)] = item.value!;
                     return; // skip this
+                }
+                if (
+                    item.type === 'Assign' &&
+                    item.value.type === 'var' &&
+                    symbolsEqual(item.sym, item.value.sym)
+                ) {
+                    return; // x = x, noop
                 }
                 items.push(item);
             });
