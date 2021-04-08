@@ -229,8 +229,6 @@ const _termToAstCPS = (
 
             const cond = printTerm(env, opts, term.cond);
 
-            // return
-
             return iffe(
                 blockStatement(
                     [

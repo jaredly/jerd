@@ -14,7 +14,7 @@ Immediate:
   - also so that I can do `.str()` and it will pick the right one. So like, I need more builtins? And builtin types?
 - [x] better builtins setup (only defined in one place)
 - [ ] prelude in jerd, for operations and stuff
-- [ ] tuples, you need them yes
+- [x] tuples, you need them yes
 - [ ] generic effects please
 - [/] intermediate output, target go or python
   - what level of granularity? do I assume switches? naw, I don't think so.
@@ -39,9 +39,9 @@ Immediate:
 - [x] simple-let. gotta have it
 - [x] type variables in type declarations
 - [x] effect handler return value fix
-- [ ] source maps!
+- [x] source maps!
   - [x] basics
-  - [ ] actually map all the things, so we can step through reasonably
+  - [x] actually map all the things, so we can step through reasonably
 - [x] verify that nested effects work
 - [x] implement all the examples from the eff paper
   - [x] basic (collect)
@@ -65,13 +65,13 @@ Immediate:
     - and then {direct: fn(), effectful: fn()}
   - recursive isn't working for some reason
 - [x] some coverage testing of what we already have, just to check.
-- [ ] records
+- [x] records
   - [x] basic
   - [x] spread to update
   - [x] ~inheritance (subtyping)
   - [x] generic
-  - [ ] FFIable types. (with nice attribute names and such)
-- [ ] nail down type checking, remove any subtyping.
+  - [x] FFIable types. (with nice attribute names and such)
+- [x] nail down type checking, remove any subtyping.
 - [x] give me Array<T> or give me sadness
 - [x] NamedTuples (records without attribute names) so I have `Some()`
   - ok copout on this one, I'm allowing you to do `Some{_: 10}`, to omit the attribute name. I don't love it, but I don't want to sink too much time into it.
@@ -79,7 +79,7 @@ Immediate:
   - [x] basic
   - [x] generic
   - [x] also subtyping? like polymorphic variants?
-- [ ] match
+- [x] match
   - [x] very basic
   - [x] record patterns
   - [x] exhaustiveness analysis
@@ -88,25 +88,26 @@ Immediate:
     - [x] basic impl of the Maranget paper
     - [x] hook it up folks!
   - [x] sub-enums
-  - [ ] arrays! slice! dice! thrice!
+  - [x] arrays! slice! dice! thrice!
   - [ ] guards I do believe (restrict to pure tho)
+  - [ ] ors too x | y
 - [x] some builtin macros!
   - [x] @typeError("message")
     - to indicate that this expression should trigger a type error. so I can verify that I'm excluding invalid stuff.
-  - [ ] @assert? or should I keep just doing my magic?
-- [ ] put this on a web sit! animations or some such.
+- [x] put this on a web sit! animations or some such.
   - [x] basic thing
-  - [ ] make source mapping really solid! Probably update that source map visualizer to track issues.
+  - [x] make source mapping really solid!
+  - [ ] Probably update that source map visualizer to track issues.
   - [ ] then we can do cursor-preserving auto-format. *but* we would also want type inference at that point. And when rendering, indicate which things are inferred. And have a way to show a type error or something.
-  - yeah, so first pass would be like a textarea per term, orr maybe a contenteditable? need look up the latest dealios.
-  - and then try doing a full-on structured editor. would start small & build up, with an eye to making it possible to generate the structured editor "visual syntax" from a grammar definition.
-  - modal for life. might make people sad though, should have a non-modal option.
+  - [x] yeah, so first pass would be like a textarea per term, orr maybe a contenteditable? need look up the latest dealios.
+  - [ ] and then try doing a full-on structured editor. would start small & build up, with an eye to making it possible to generate the structured editor "visual syntax" from a grammar definition.
+  - [ ] modal editing for life. might make people sad though, should have a non-modal option.
 
-- [ ] basic attempt at compiling to go or swift or something?
+- [x] basic attempt at compiling to go or swift or something?
   - Yeah I really should get on this before too long, so I can see what hurdles I run into.
-- [ ] loop/recur please. and maybe a foreach? idk. or a map? naw.
+- [x] loop/recur please (turns out just converting self-tail-call into while(true) is good)
 - [ ] generic effects (Store<T>)
-- [ ] tuples
+- [x] tuples
 - [ ] port the unison runtime effects tests, verify that all is well.
 - [ ] exit-only effects? (call/ec) Can I just use exceptions in the js? would need to check.
     I don't *think* I can in go... oh wait, panic/recover might get it done.
@@ -120,6 +121,5 @@ Immediate:
     - or should I use something other than effects? like it might be weird/confusing to have these "special" effects that don't trigger CPS, but aren't pure. ah lets have them be combined, at least for now. like my goodness.
 - [ ] type classes (inferred-ish? dunno how to dance that)
 - [ ] affine types prolly, once type classes are a thing
-
 - [ ] type inference!
 - [ ] effects inference!

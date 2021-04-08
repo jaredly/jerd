@@ -3,36 +3,28 @@ import {
     Type,
     Term,
     Reference,
-    Symbol,
     LambdaType,
     Let,
-    typesEqual,
     EffectRef,
     isRecord,
-    TypeRef,
     TypeReference,
     RecordDef,
-    ArraySpread,
-    Id,
     UserReference,
     EnumDef,
     GlobalEnv,
-    RecordType,
     TypeVblDecl,
-    Pattern,
 } from './types';
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
-import { showType, assertFits } from './unify';
-import { void_, string, bool, pureFunction } from './preset';
+import { showType } from './unify';
+import { void_, string, bool } from './preset';
 import {
     hasSubType,
     idFromName,
     idName,
     makeLocal,
     resolveIdentifier,
-    symPrefix,
 } from './env';
 import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
@@ -42,6 +34,9 @@ import { typeSwitch } from './terms/switch';
 import { typeOps } from './terms/ops';
 import { LocatedError, TypeError, UnresolvedIdentifier } from './errors';
 import { getTypeError } from './getTypeError';
+import { typeAs } from './terms/as-suffix';
+import { typeAttribute } from './terms/attribute';
+import { typeArray } from './terms/array';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -384,228 +379,9 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 if (suffix.type === 'Apply') {
                     target = typeApply(env, target, suffix);
                 } else if (suffix.type === 'As') {
-                    const ttype = typeType(env, suffix.t);
-                    const stype = target.is;
-                    // Look for an `As` that fits!
-                    const asRecord: UserReference = {
-                        type: 'user',
-                        id: { hash: 'As', pos: 0, size: 1 },
-                    };
-                    const goalType: Type = {
-                        type: 'ref',
-                        ref: asRecord,
-                        typeVbls: [stype, ttype],
-                        effectVbls: [],
-                        location: null,
-                    };
-                    let foundImpl: Term;
-                    if (suffix.hash != null) {
-                        if (suffix.hash.startsWith(symPrefix)) {
-                            const symNum = +suffix.hash.slice(symPrefix.length);
-                            const local = env.local.locals[symNum];
-                            if (!local) {
-                                throw new LocatedError(
-                                    suffix.location,
-                                    `No symbol ${suffix.hash}`,
-                                );
-                            }
-                            const err = getTypeError(
-                                env,
-                                local.type,
-                                goalType,
-                                suffix.location,
-                            );
-                            if (err != null) {
-                                throw err;
-                            }
-                            foundImpl = {
-                                type: 'var',
-                                sym: local.sym,
-                                location: suffix.location,
-                                is: local.type,
-                            };
-                        } else {
-                            const t = env.global.terms[suffix.hash.slice(1)];
-                            if (!t) {
-                                throw new LocatedError(
-                                    suffix.location,
-                                    `Unknown term ${suffix.hash.slice(1)}`,
-                                );
-                            }
-                            const err = getTypeError(
-                                env,
-                                t.is,
-                                goalType,
-                                suffix.location,
-                            );
-                            if (err != null) {
-                                throw err;
-                            }
-                            foundImpl = {
-                                type: 'ref',
-                                ref: {
-                                    type: 'user',
-                                    id: idFromName(suffix.hash.slice(1)),
-                                },
-                                is: t.is,
-                                location: suffix.location,
-                            };
-                        }
-                    } else {
-                        const ref = findAs(env, stype, ttype, suffix.location);
-                        if (ref == null) {
-                            // STOPSHIP: make a "type error" node type.
-                            // repls and stuff can allow compiling with them,
-                            // but if you want to actually compile a runnable thing,
-                            // it won't let you.
-                            throw new Error(
-                                `No impl found for as ${showType(
-                                    env,
-                                    stype,
-                                )} (as) ${showType(env, ttype)}`,
-                            );
-                        }
-
-                        foundImpl = {
-                            type: 'ref',
-                            ref,
-                            is: goalType,
-                            location: null,
-                        };
-                    }
-                    target = {
-                        type: 'apply',
-                        originalTargetType: pureFunction([stype], ttype),
-                        args: [target],
-                        hadAllVariableEffects: false,
-                        target: {
-                            type: 'Attribute',
-                            target: foundImpl,
-                            idx: 0,
-                            ref: asRecord,
-                            location: null,
-                            inferred: true,
-                            is: pureFunction([stype], ttype),
-                        },
-                        typeVbls: [],
-                        effectVbls: null,
-                        is: ttype,
-                        location: null,
-                    };
+                    target = typeAs(env, target, suffix);
                 } else if (suffix.type === 'Attribute') {
-                    // OOOOKKK.
-                    // So here we have some choices, right?
-                    // first we find the object this is likely to be attached to
-                    // ermmm yeah maybe this is where constraint solving becomes a thing?
-                    // which, ugh
-                    // So yeah, when parsing, if there are multiple things with the
-                    // same name, tough beans I'm sorry.
-                    // Oh maybe allow it to be "fully qualified"?
-                    // like `.<Person>name`? or `.Person::name`?
-                    // yeah that could be cool.
-                    let idx: number;
-                    let ref: UserReference;
-                    if (suffix.id.hash != null) {
-                        const [id, num] = suffix.id.hash.slice(1).split('#');
-                        ref = { type: 'user', id: idFromName(id) };
-                        idx = +num;
-                    } else if (suffix.id.text.match(/^\d+$/)) {
-                        idx = +suffix.id.text;
-                        if (
-                            target.is.type === 'ref' &&
-                            target.is.ref.type === 'builtin' &&
-                            target.is.ref.name.startsWith('Tuple')
-                        ) {
-                            const n = +target.is.ref.name.slice('Tuple'.length);
-                            if (isNaN(n)) {
-                                throw new Error(
-                                    `Unknown tuple type ${target.is.ref.name}`,
-                                );
-                            }
-                            if (idx >= n) {
-                                throw new Error(
-                                    `Cannot access idx ${idx} of a ${n}-tuple`,
-                                );
-                            }
-                            if (target.is.typeVbls.length !== n) {
-                                throw new Error(`Invalid tuple type`);
-                            }
-                            target = {
-                                type: 'TupleAccess',
-                                idx,
-                                is: target.is.typeVbls[idx],
-                                location: suffix.location,
-                                target,
-                            };
-                            continue;
-                        }
-                        //
-                        if (
-                            target.is.type !== 'ref' ||
-                            target.is.ref.type !== 'user'
-                        ) {
-                            throw new Error(
-                                `Not a record ${showType(
-                                    env,
-                                    target.is,
-                                )} at ${showLocation(suffix.location)}`,
-                            );
-                        }
-                        ref = target.is.ref;
-                    } else {
-                        if (!env.global.attributeNames[suffix.id.text]) {
-                            throw new Error(
-                                `Unknown attribute name ${suffix.id.text}`,
-                            );
-                        }
-                        const attr = env.global.attributeNames[suffix.id.text];
-                        idx = attr.idx;
-                        const id = attr.id;
-                        ref = { type: 'user', id };
-                        if (
-                            !isRecord(target.is, ref) &&
-                            !hasSubType(env, target.is, id)
-                        ) {
-                            throw new Error(
-                                `Expression at ${showLocation(
-                                    suffix.location,
-                                )} is not a ${idName(
-                                    id,
-                                )} or its supertype. It is a ${showType(
-                                    env,
-                                    target.is,
-                                )}`,
-                            );
-                        }
-                    }
-
-                    let t = env.global.types[idName(ref.id)];
-                    if (t.type !== 'Record') {
-                        throw new Error(`Not a record ${idName(ref.id)}`);
-                    }
-                    if (target.is.type === 'ref') {
-                        t = applyTypeVariablesToRecord(
-                            env,
-                            t,
-                            target.is.typeVbls,
-                            target.is.location,
-                        );
-                    }
-                    if (t.type !== 'Record') {
-                        throw new Error(
-                            `${idName(ref.id)} is not a record type`,
-                        );
-                    }
-
-                    target = {
-                        type: 'Attribute',
-                        target,
-                        location: suffix.location,
-                        inferred: false,
-                        idx,
-                        ref,
-                        is: t.items[idx],
-                    };
+                    target = typeAttribute(env, target, suffix);
                 } else if (suffix.type === 'Index') {
                     throw new Error(`Can't handle indexes yet`);
                 } else {
@@ -755,72 +531,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
         }
         case 'Array': {
-            // ok so the type of the first one determines it?
-            // I mean, what syntax are we thinking of here for explicitly typed array?
-            // like <x>[1, 2, 3]? I guess. It would be consistent. And like somewhat weird.
-            // ok we can cross that bridge in a minute.
-            // I guess another option would be to search for the common supertype, if it exists.
-            // oh and for an empty array? what do we do? erm yeah. gotta be explicit?
-            // or we could just type it as never...
-            let itemType: Type | null = expr.ann
-                ? typeType(env, expr.ann)
-                : null;
-            if (expr.ann == null && expr.items.length === 0) {
-                itemType = void_;
-            }
-            const items: Array<Term | ArraySpread> = expr.items.map((item) => {
-                if (item.type === 'ArraySpread') {
-                    const value = typeExpr(env, item.value);
-                    if (
-                        !isRecord(value.is, {
-                            type: 'builtin',
-                            name: 'Array',
-                        })
-                    ) {
-                        throw new Error(
-                            `Can't spread something that's not an array. ${showType(
-                                env,
-                                value.is,
-                            )} at ${showLocation(value.location)}`,
-                        );
-                    }
-                    if (itemType == null) {
-                        itemType = (value.is as TypeReference).typeVbls[0];
-                    } else {
-                        assertFits(
-                            env,
-                            (value.is as TypeReference).typeVbls[0],
-                            itemType,
-                            value.location,
-                        );
-                    }
-                    return {
-                        type: 'ArraySpread',
-                        location: item.location,
-                        value,
-                    };
-                } else {
-                    const value = typeExpr(env, item);
-                    if (itemType == null) {
-                        itemType = value.is;
-                    } else {
-                        assertFits(env, value.is, itemType);
-                    }
-                    return value;
-                }
-            });
-            return {
-                type: 'Array',
-                location: expr.location,
-                items,
-                is: {
-                    type: 'ref',
-                    ref: { type: 'builtin', name: 'Array' },
-                    location: null,
-                    typeVbls: [itemType!],
-                    effectVbls: [],
-                },
-            };
+            return typeArray(env, expr);
         }
         default:
             let _x: never = expr;

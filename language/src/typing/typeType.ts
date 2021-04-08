@@ -114,18 +114,11 @@ const typeType = (env: Env, type: ParseType | null): Type => {
         }
 
         case 'lambda': {
-            // console.log('And inner', showLocation(type.location));
             const {
                 typeInner,
                 typeVbls,
                 effectVbls,
             } = newEnvWithTypeAndEffectVbls(env, type.typevbls, type.effvbls);
-            // console.log(
-            //     `More`,
-            //     typeInner.local.typeVbls,
-            //     typeVbls,
-            //     env.local.typeVbls,
-            // );
 
             return {
                 type: 'lambda',

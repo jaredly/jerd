@@ -17,7 +17,6 @@ Web/editor (in the `web` directory)
 ## (intended) Features:
 
 - [x] algebraic effects
-- [ ] affine types for safe mutability
 - [x] compile to readable javascript
 - [x] code is hashed typed AST in a database, not text in files
     - for convenience of reading and stuff, there will be a readable
@@ -25,7 +24,7 @@ Web/editor (in the `web` directory)
       but it's also super useful for showing examples, and project templates,
       and runtime tests.
 - [ ] typed macros
-    - also untyepd macros I guess for when you want to make changes before the typing has happened.
+    - also untyped macros I guess (?) for when you want to make changes before the typing has happened.
     - but macros are written in this language, and so are referenced by hash, so you can run them once and store the results right? well I guess if they have access to the typing env, then it's possible for them to be less reproducible. I'll need to make sure they are deterministic.
 - [ ] modular implicits (type classes)
 - [ ] higher kinded types
@@ -42,6 +41,8 @@ Web/editor (in the `web` directory)
       dev env.
       inspured by that one language, that maybe was a color? or a nut?
       had a structured editor.
+- [ ] affine types for safe mutability
+    - I might actually not do this... following roc's lead seems like the more reasonable approach.
 
 
 

@@ -35,21 +35,12 @@ export const printPattern = (
         );
     } else if (pattern.type === 'Enum') {
         const allReferences = getEnumReferences(env, pattern.ref);
-        // let typ = t.memberExpression(value, t.identifier('type'));
-        let tests: Array<Expr> = allReferences.map(
-            (ref) => ({
-                type: 'IsRecord',
-                value,
-                ref: ref.ref,
-                loc: pattern.location,
-            }),
-
-            // t.binaryExpression(
-            //     '===',
-            //     typ,
-            //     t.stringLiteral(recordIdName(env, ref.ref)),
-            // ),
-        );
+        let tests: Array<Expr> = allReferences.map((ref) => ({
+            type: 'IsRecord',
+            value,
+            ref: ref.ref,
+            loc: pattern.location,
+        }));
         return blockStatement(
             [
                 ifStatement(
@@ -121,10 +112,6 @@ export const printPattern = (
                     idx: item.idx,
                     loc: item.location,
                 },
-                // t.memberExpression(
-                //     value,
-                //     t.identifier(recordAttributeName(env, item.ref, item.idx)),
-                // ),
                 decl.items[item.idx],
                 item.pattern,
                 success,
@@ -139,11 +126,6 @@ export const printPattern = (
                         ref: pattern.ref.ref,
                         loc: pattern.location,
                     },
-                    // t.binaryExpression(
-                    //     '===',
-                    //     t.memberExpression(value, t.identifier('type')),
-                    //     t.stringLiteral(recordIdName(env, pattern.ref.ref)),
-                    // ),
                     success,
                     null,
                     pattern.location,
@@ -180,17 +162,6 @@ export const printPattern = (
             ],
             pattern.location,
         );
-        // } else if (pattern.type === 'boolean') {
-        //     return t.blockStatement([
-        //         t.ifStatement(
-        //             t.binaryExpression(
-        //                 '===',
-        //                 value,
-        //                 t.booleanLiteral(pattern.value),
-        //             ),
-        //             success,
-        //         ),
-        //     ]);
     } else if (pattern.type === 'Array') {
         if (
             type.type !== 'ref' ||
@@ -251,21 +222,12 @@ export const printPattern = (
                         : null,
                     loc: pattern.location,
                 },
-                // t.callExpression(
-                //     t.memberExpression(value, t.identifier('slice')),
-                //     [t.numericLiteral(pattern.preItems.length)].concat(
-                //         pattern.postItems.length
-                //             ? [t.numericLiteral(-pattern.postItems.length)]
-                //             : [],
-                //     ),
-                // ),
                 type,
                 pattern.spread,
                 success,
             );
         }
 
-        // const ln = t.memberExpression(value, t.identifier('length'));
         pattern.postItems.forEach((item, i) => {
             success = printPattern(
                 env,
@@ -278,15 +240,6 @@ export const printPattern = (
                     ),
                     loc: item.location,
                 },
-                // t.memberExpression(
-                //     value,
-                //     t.binaryExpression(
-                //         '-',
-                //         ln,
-                //         t.numericLiteral(pattern.postItems.length - i),
-                //     ),
-                //     true,
-                // ),
                 elType,
                 item,
                 success,
@@ -303,7 +256,6 @@ export const printPattern = (
                     idx: { type: 'int', value: i, loc: item.location },
                     loc: item.location,
                 },
-                // t.memberExpression(value, t.numericLiteral(i), true),
                 elType,
                 item,
                 success,

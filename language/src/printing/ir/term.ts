@@ -104,7 +104,6 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             return printLambda(env, opts, term);
         case 'var':
             return { type: 'var', sym: term.sym, loc: term.location };
-        // return t.identifier(printSym(term.sym));
         case 'apply': {
             // TODO we should hang onto the arg names of the function we
             // are calling so we can use them when assigning to values.
@@ -128,7 +127,6 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             let target = printTerm(env, opts, term.target);
 
             if (term.hadAllVariableEffects) {
-                // target = t.memberExpression(target, t.identifier('direct'));
                 target = {
                     type: 'effectfulOrDirect',
                     target,

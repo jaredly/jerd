@@ -1012,7 +1012,6 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                 stmt.value.end == null &&
                 stmt.value.value.type === 'var'
             ) {
-                console.log('ok', stmt.sym);
                 const sym = {
                     name: stmt.sym.name + '_i',
                     unique: env.local.unique++,
