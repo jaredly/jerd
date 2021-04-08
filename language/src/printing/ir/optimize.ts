@@ -35,14 +35,14 @@ export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
 
 export const optimize = (expr: Expr): Expr => {
     const transformers: Array<(e: Expr) => Expr> = [
+        flattenIffe,
         removeUnusedVariables,
         removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
-        flattenNestedIfs,
-        flattenIffe,
-        foldConstantAssignments,
         foldConstantTuples,
-        removeUnusedVariables,
+        foldConstantAssignments,
         foldSingleUseAssignments,
+        flattenNestedIfs,
+        removeUnusedVariables,
     ];
     transformers.forEach((t) => (expr = t(expr)));
     return expr;
@@ -140,7 +140,7 @@ export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
             const items: Array<Stmt> = [];
             let changed = false;
             let hasReturned = false;
-            block.items.forEach((item) => {
+            block.items.forEach((item, i) => {
                 if (hasReturned) {
                     changed = true;
                     return;
@@ -152,7 +152,9 @@ export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
                 }
                 if (
                     item.type === 'Block' &&
-                    !item.items.some((item) => item.type === 'Define')
+                    // It's ok to have defines if it's the last item in the block
+                    (i === block.items.length - 1 ||
+                        !item.items.some((item) => item.type === 'Define'))
                 ) {
                     changed = true;
                     items.push(...item.items);

@@ -2,13 +2,25 @@ type Eq<T> = {
     "==": (T, T) => bool
 }
 
-// ugh ok I really need a tuple type
 const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
  = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
     switch (one, two) {
         ([], []) => true,
-        ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
+        ([one, tone, ...rone], [two, ttwo, ...rtwo]) => if eq."=="(one, two) {
             arrayEq(rone, rtwo, eq)
+        } else {
+            false
+        },
+        _ => false
+    }
+}
+
+const palendrome: <T,>(Array<T>, Eq<T>) => bool = <T,>(one: Array<T>, eq: Eq<T>): bool => {
+    switch one {
+        [] => true,
+        [_] => true,
+        [first, ...middle, last] => if eq."=="(first, last) {
+            palendrome(middle, eq)
         } else {
             false
         },
