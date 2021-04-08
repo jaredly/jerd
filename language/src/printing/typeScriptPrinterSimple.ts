@@ -602,7 +602,7 @@ export const fileToTypescript = (
                 hash,
                 optimizeDefine(env, irTerm, idFromName(hash)),
                 term.is,
-                comment,
+                '\n' + comment + '\n',
             ),
         );
     });
@@ -618,6 +618,8 @@ export const fileToTypescript = (
     });
 
     const ast = t.file(t.program(items, [], 'script'));
+    // TODO: port all of these to the IR optimizer, so that they work
+    // across targets.
     optimizeAST(ast);
     return ast;
 };
