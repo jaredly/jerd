@@ -1,16 +1,18 @@
 import { idFromName } from '../../typing/env';
-import { void_ } from '../../typing/preset';
-import { Env, Id, Symbol } from '../../typing/types';
+import { int, pureFunction, void_ } from '../../typing/preset';
+import { Env, Id, Symbol, symbolsEqual } from '../../typing/types';
 import {
     defaultVisitor,
     transformBlock,
     transformExpr,
     transformLambdaBody,
+    transformStmt,
     Visitor,
 } from './transform';
 import {
     Apply,
     Block,
+    callExpression,
     Expr,
     isTerm,
     Record,
@@ -19,7 +21,7 @@ import {
     Stmt,
     Tuple,
 } from './types';
-import { and, asBlock, iffe } from './utils';
+import { and, asBlock, builtin, iffe } from './utils';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
@@ -27,6 +29,7 @@ export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
     expr = optimize(expr);
     expr = optimizeTailCalls(env, expr, id);
     expr = optimize(expr);
+    expr = arraySliceLoopToIndex(env, expr);
     return expr;
 };
 
@@ -661,4 +664,209 @@ export const tailCallRecursion = (
     };
 };
 
-// export const
+export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
+    if (expr.type !== 'lambda') {
+        console.log('not a lambda', expr.type);
+        return expr;
+    }
+    // being fairly conservative here
+    if (
+        expr.body.type !== 'Block' ||
+        expr.body.items.length !== 1 ||
+        expr.body.items[0].type !== 'Loop'
+    ) {
+        console.log('not a block', expr.body.type);
+        return expr;
+    }
+    const arrayArgs = expr.args.filter(
+        (arg) =>
+            arg.type.type === 'ref' &&
+            arg.type.ref.type === 'builtin' &&
+            arg.type.ref.name === 'Array',
+    );
+    if (!arrayArgs.length) {
+        console.log('no arrays');
+        return expr;
+    }
+    const argMap: { [key: string]: null | boolean } = {};
+    // null = no slice
+    // false = disqualified
+    // true = slice
+    // Valid state transitions:
+    //   null -> true
+    //   null -> false
+    //   true -> false
+    arrayArgs.forEach((a) => (argMap[symName(a.sym)] = null));
+    // IF an array arg is used for anything other than
+    // - arr.length
+    // - arr[idx]
+    // - arr.slice
+    // Then it is disqualified
+    // Also, if it's not used for arr.slice, we don't need to mess
+    transformExpr(expr, {
+        ...defaultVisitor,
+        stmt: (stmt) => {
+            if (
+                stmt.type === 'Assign' &&
+                stmt.value.type === 'slice' &&
+                stmt.value.end === null &&
+                stmt.value.value.type === 'var' &&
+                symbolsEqual(stmt.sym, stmt.value.value.sym)
+            ) {
+                const n = symName(stmt.sym);
+                if (argMap[n] !== false) {
+                    argMap[n] = true;
+                }
+                return false;
+            }
+            return null;
+        },
+        expr: (expr) => {
+            switch (expr.type) {
+                case 'var':
+                    console.log('Found a far!', expr);
+                    argMap[symName(expr.sym)] = false;
+                    return null;
+                // Slices *are* disqualifying if they're not
+                // a self-assign slice
+                case 'arrayIndex':
+                case 'arrayLen':
+                    if (expr.value.type === 'var') {
+                        // don't recurse, these are valid uses
+                        return false;
+                    }
+                    return null;
+            }
+            return null;
+        },
+    });
+    // I wonder if there's a more general optimization
+    // that I can do that would remove the need for slices
+    // even when it's not self-recursive.......
+    const corrects = arrayArgs.filter((k) => argMap[symName(k.sym)] === true);
+    if (!corrects.length) {
+        console.log('no corrects', argMap);
+        return expr;
+    }
+    const indexForSym: { [key: string]: Symbol } = {};
+    const indices: Array<Symbol> = corrects.map((arg) => {
+        const unique = env.local.unique++;
+        const s = { name: arg.sym.name + '_i', unique };
+        indexForSym[symName(arg.sym)] = s;
+        return s;
+    });
+    const modified: Array<Expr> = [];
+    const stmtTransformer: Visitor = {
+        ...defaultVisitor,
+        stmt: (stmt) => {
+            if (
+                stmt.type === 'Assign' &&
+                stmt.value.type === 'slice' &&
+                stmt.value.end === null &&
+                stmt.value.value.type === 'var' &&
+                symbolsEqual(stmt.sym, stmt.value.value.sym)
+            ) {
+                const n = symName(stmt.sym);
+                if (argMap[n] === true) {
+                    return {
+                        ...stmt,
+                        sym: indexForSym[n],
+                        value: callExpression(
+                            builtin('+', expr.loc),
+                            pureFunction([int, int], int),
+                            int,
+                            [
+                                {
+                                    type: 'var',
+                                    loc: expr.loc,
+                                    sym: indexForSym[n],
+                                },
+                                stmt.value.start,
+                            ],
+                            expr.loc,
+                        ),
+                    };
+                }
+                return false;
+            }
+            return null;
+        },
+        expr: (expr) => {
+            switch (expr.type) {
+                case 'arrayIndex': {
+                    if (expr.value.type === 'var') {
+                        const n = symName(expr.value.sym);
+                        if (argMap[n] === true) {
+                            return {
+                                ...expr,
+                                idx: callExpression(
+                                    builtin('+', expr.loc),
+                                    pureFunction([int, int], int),
+                                    int,
+                                    [
+                                        expr.idx,
+                                        {
+                                            type: 'var',
+                                            loc: expr.loc,
+                                            sym: indexForSym[n],
+                                        },
+                                    ],
+                                    expr.loc,
+                                ),
+                            };
+                        }
+                    }
+                    return null;
+                }
+                case 'arrayLen':
+                    if (expr.value.type === 'var') {
+                        if (modified.includes(expr)) {
+                            return false;
+                        }
+                        const n = symName(expr.value.sym);
+                        if (argMap[n] === true) {
+                            modified.push(expr);
+                            return callExpression(
+                                builtin('-', expr.loc),
+                                pureFunction([int, int], int),
+                                int,
+                                [
+                                    expr,
+                                    {
+                                        type: 'var',
+                                        loc: expr.loc,
+                                        sym: indexForSym[n],
+                                    },
+                                ],
+                                expr.loc,
+                            );
+                        }
+                    }
+                    return null;
+            }
+            return null;
+        },
+    };
+    return {
+        ...expr,
+        body: {
+            ...expr.body,
+            items: indices
+                .map(
+                    (sym) =>
+                        ({
+                            type: 'Define',
+                            loc: null,
+                            is: int,
+                            sym,
+                            value: { type: 'int', value: 0, loc: null },
+                        } as Stmt),
+                )
+                .concat(
+                    expr.body.items.map((item) =>
+                        transformStmt(item, stmtTransformer),
+                    ),
+                ),
+        },
+    };
+};
