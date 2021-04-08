@@ -59,7 +59,7 @@ const aiq = ArrayEq<int>(IntEq)
 
 // hm ok new plan, it just gets constant lifted (and hashed I guess? might as well)
 
-
+1 + 2 * 3 == 7
 
 type Addable<T> = {
     "+": (T, T) => T,
@@ -68,7 +68,6 @@ type Addable<T> = {
 type AddSub<T> =  {
     "+": (T, T) => T,
     "-": (T, T) => T,
-    // scale: (T, float) => T,
 }
 
 type Scale<T> = {

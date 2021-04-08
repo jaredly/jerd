@@ -19,11 +19,52 @@ const palendrome: <T,>(Array<T>, Eq<T>) => bool = <T,>(one: Array<T>, eq: Eq<T>)
     switch one {
         [] => true,
         [_] => true,
+        // TODO: If the slice has an end, make a "arr_j" variable for it too
+        // and then subtract both ... from the `length` calculations...
+        // and maybe that's it?
         [first, ...middle, last] => if eq."=="(first, last) {
             palendrome(middle, eq)
         } else {
             false
         },
         _ => false
+    }
+}
+
+{
+    const a = [1,2,3];
+    // it would be "better" if we had an intermediate
+    // "slice" representation
+    // that turned
+    // let b = a.slice(1)
+    // into
+    // let b_i = 1
+    // and then anywhere b was used,
+    // use b_i and a instead.
+    // and then `let c = b.slice(1)`
+    // would be
+    // let c_i = b_i + i
+    // and then if `c` were actually used, we could create the slice?
+
+    // Ok, somewhat conservative take:
+    // if c = a.slice(n)
+    // and c isn't used anywhere other than (slice) (length) and (arrayIndex)
+    // then c is useless.
+    // c is replaced by c_i
+
+    // for more radical:
+    // oh wait, we can stack optimizations.
+    // so it's not *replaced* by c_i; c_i is added in addition
+    // and then c or c_i can get removed if they're actually unused.
+    // love it.
+    switch a {
+        [a, ...b] => switch b {
+            [b, ...c] => switch c {
+                [c] => a == 1 && b == 2 && c == 3,
+                _ => false,
+            },
+            _ => false,
+        },
+        _ => false,
     }
 }

@@ -81,7 +81,7 @@ export const fileToGo = (
     Object.keys(env.global.terms).forEach((hash) => {
         const term = env.global.terms[hash];
         let irTerm = ir.printTerm(env, {}, term);
-        irTerm = optimize(irTerm);
+        irTerm = optimize(env, irTerm);
         irTerm = goOptimizations(env, irTerm);
 
         result.push(defnToGo(env, {}, hash, irTerm));
@@ -97,7 +97,7 @@ export const fileToGo = (
                     const t = termToGo(
                         env,
                         {},
-                        optimize(ir.printTerm(env, {}, expr)),
+                        optimize(env, ir.printTerm(env, {}, expr)),
                     );
                     if (isType(env, expr.is, void_)) {
                         return t;

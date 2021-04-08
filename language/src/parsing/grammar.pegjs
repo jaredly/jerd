@@ -161,7 +161,7 @@ ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, locati
 TupleLiteral = "(" _ items:TupleItems _ ")" {
     return {type: 'Tuple', location: location(), items}
 }
-TupleItems = first:Expression rest:(_ "," _ Expression)* {
+TupleItems = first:Expression rest:(_ "," _ Expression)+ {
     return [first, ...rest.map((r: any) => r[3])]
 }
 

@@ -613,7 +613,7 @@ export const fileToTypescript = (
         }
         const irTerm = ir.printTerm(env, {}, term);
         items.push(
-            t.expressionStatement(termToTs(env, opts, optimize(irTerm))),
+            t.expressionStatement(termToTs(env, opts, optimize(env, irTerm))),
         );
     });
 

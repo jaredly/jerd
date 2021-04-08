@@ -111,6 +111,8 @@ export const termDependencies = (term: Term): Array<Reference> => {
         case 'lambda':
         case 'Record':
         case 'Switch':
+        case 'TupleAccess':
+        case 'Tuple':
         case 'Enum':
         case 'Array':
         case 'Attribute':

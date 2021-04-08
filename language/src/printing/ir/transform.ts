@@ -9,7 +9,7 @@ import { Block, Expr, LambdaExpr, RecordSubType, Stmt } from './types';
 export type Visitor = {
     expr: (value: Expr) => Expr | null | false;
     block: (value: Block) => Block | null | false;
-    stmt: (value: Stmt) => Stmt | null | false;
+    stmt: (value: Stmt) => Stmt | null | false | Array<Stmt>;
 };
 
 export const defaultVisitor: Visitor = {
@@ -223,22 +223,38 @@ export const transformBlock = (block: Block, visitor: Visitor): Block => {
         block = tr;
     }
     let changed = false;
-    const items = block.items.map((stmt) => {
+    const items: Array<Stmt> = [];
+    block.items.forEach((stmt) => {
         const s = transformStmt(stmt, visitor);
         changed = changed || s !== stmt;
-        return s;
+        if (Array.isArray(s)) {
+            items.push(...s);
+        } else {
+            items.push(s);
+        }
     });
     return changed ? { ...block, items } : block;
 };
 
-export const transformStmt = (stmt: Stmt, visitor: Visitor): Stmt => {
+export const transformStmt = (
+    stmt: Stmt,
+    visitor: Visitor,
+): Stmt | Array<Stmt> => {
     const tr = visitor.stmt(stmt);
     if (tr === false) {
         return stmt;
     }
     if (tr != null) {
+        if (Array.isArray(tr)) {
+            return tr.map((s) => transformOneStmt(s, visitor));
+        }
         stmt = tr;
     }
+    return transformOneStmt(stmt, visitor);
+};
+
+// NOTE: Does not visit the stmt!
+export const transformOneStmt = (stmt: Stmt, visitor: Visitor): Stmt => {
     switch (stmt.type) {
         case 'Expression': {
             const expr = transformExpr(stmt.expr, visitor);
