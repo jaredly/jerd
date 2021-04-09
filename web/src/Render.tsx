@@ -39,7 +39,7 @@ const shouldShowHash = (
 
 const colorsRaw =
     '1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf';
-const colors = [];
+const colors: Array<string> = [];
 for (let i = 0; i < colorsRaw.length; i += 6) {
     colors.push('#' + colorsRaw.slice(i, i + 6));
 }
@@ -50,7 +50,7 @@ export const renderAttributedTextToHTML = (
     allIds?: boolean,
     idColors: Array<string> = colors,
 ): string => {
-    const colorMap = {};
+    const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
     return text
         .map((item, i) => {
@@ -93,7 +93,7 @@ export const renderAttributedText = (
     allIds?: boolean,
     idColors: Array<string> = colors,
 ) => {
-    const colorMap = {};
+    const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
     return text.map((item, i) => {
         if (typeof item === 'string') {

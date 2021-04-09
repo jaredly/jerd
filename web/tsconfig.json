@@ -1,8 +1,10 @@
 {
     "compilerOptions": {
-        "jsx": "react"
-    },
-    "references": [
-        "../language"
-    ]
+        "jsx": "react",
+        "noEmit": true,
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    }
 }

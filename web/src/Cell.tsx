@@ -424,12 +424,12 @@ const RenderItem = ({
     onSetPlugin: (display: Display) => void;
     onPin: (display: Display, id: Id) => void;
 }) => {
-    const onClick = (id, kind) => {
+    const onClick = (id: string, kind: string) => {
         console.log(kind);
-        if (kind === 'term') {
+        if (kind === 'term' || kind === 'as') {
             addCell({
                 type: 'term',
-                id: { hash: id, size: 1, pos: 0 },
+                id: idFromName(id),
                 name: env.global.idNames[id],
             });
             return true;

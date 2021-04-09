@@ -120,20 +120,22 @@ export const newEnv = (
     },
 });
 
+export const newLocal = (): LocalEnv => ({
+    unique: 0,
+    self: { name: '_unset_self', type: void_ },
+    symMapping: {},
+    effectVbls: {},
+    locals: {},
+    localNames: {},
+    typeVblNames: {},
+    typeVbls: {},
+    tmpTypeVbls: {},
+});
+
 export const newWithGlobal = (env: GlobalEnv): Env => ({
     depth: 0,
     global: cloneGlobalEnv(env),
-    local: {
-        unique: 0,
-        self: { name: '_unset_self', type: void_ },
-        symMapping: {},
-        effectVbls: {},
-        locals: {},
-        localNames: {},
-        typeVblNames: {},
-        typeVbls: {},
-        tmpTypeVbls: {},
-    },
+    local: newLocal(),
 });
 
 export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {

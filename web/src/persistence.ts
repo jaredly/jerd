@@ -1,19 +1,18 @@
 import { State } from './App';
 
-import { presetEnv } from '@jerd/language/src/typing/preset';
 import { allLiteral } from '@jerd/language/src/typing/analyze';
 import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
+import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import * as builtins from '@jerd/language/src/printing/builtins';
+import { newLocal, newWithGlobal, Type } from '@jerd/language/src/typing/types';
 
 const saveKey = 'jd-repl-cache';
 
 export const stateToString = (state: State) => {
-    const terms = {};
+    const terms: { [key: string]: any } = {};
     Object.keys(state.evalEnv.terms).forEach((k) => {
         if (allLiteral(state.env, state.env.global.terms[k].is)) {
             terms[k] = state.evalEnv.terms[k];
-            // } else {
-            //     console.warn(`Not saving ${k}, not all literal`);
         }
     });
     return JSON.stringify({ ...state, evalEnv: { ...state.evalEnv, terms } });
@@ -26,7 +25,14 @@ export const saveState = (state: State) => {
 export const initialState = (): State => {
     const saved = window.localStorage.getItem(saveKey);
     const builtinsMap = loadBuiltins();
-    const env = presetEnv(builtinsMap);
+    const typedBuiltins: { [key: string]: Type } = {};
+    Object.keys(builtinsMap).forEach((b) => {
+        const v = builtinsMap[b];
+        if (v != null) {
+            typedBuiltins[b] = v;
+        }
+    });
+    const env = loadPrelude(typedBuiltins);
     if (saved) {
         try {
             const data = JSON.parse(saved);
@@ -36,29 +42,29 @@ export const initialState = (): State => {
                     ...data.env,
                     global: {
                         ...data.env.global,
-                        builtins: env.global.builtins,
-                        builtinTypes: env.global.builtinTypes,
-                        rng: env.global.rng,
+                        builtins: env.builtins,
+                        builtinTypes: env.builtinTypes,
+                        rng: env.rng,
                         recordGroups: {
-                            ...env.global.recordGroups,
+                            ...env.recordGroups,
                             ...data.env.global.recordGroups,
                         },
                         attributeNames: {
-                            ...env.global.attributeNames,
+                            ...env.attributeNames,
                             ...data.env.global.attributeNames,
                         },
                         types: {
-                            ...env.global.types,
+                            ...env.types,
                             ...data.env.global.types,
                         },
                         terms: {
                             // In case we added new global terms
-                            ...env.global.terms,
+                            ...env.terms,
                             ...data.env.global.terms,
                         },
                     },
                     // Reset the local env
-                    local: env.local,
+                    local: newLocal(),
                 },
                 pins: data.pins || [],
                 evalEnv: {
@@ -72,7 +78,7 @@ export const initialState = (): State => {
         }
     }
     return {
-        env,
+        env: newWithGlobal(env),
         cells: {},
         pins: [],
         evalEnv: {
