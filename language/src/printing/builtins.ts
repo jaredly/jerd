@@ -1,3 +1,5 @@
+// IMPORTANT: This must be kept in sync with builtins.ts.txt
+
 export const raise = (
     handlers: Array<Handler>,
     hash: string,
