@@ -1,6 +1,7 @@
 // Ok
 
 import * as t from '@babel/types';
+import { sortTerms } from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
 import { binOps, bool } from '../typing/preset';
 import {
@@ -584,9 +585,9 @@ export const fileToTypescript = (
 ) => {
     const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
 
-    // TODO: use the topo sort algorithm from the web editor
-    // to sort these correctly
-    Object.keys(env.global.terms).forEach((hash) => {
+    const orderedTerms = sortTerms(env, Object.keys(env.global.terms));
+
+    orderedTerms.forEach((hash) => {
         const term = env.global.terms[hash];
 
         const comment = printToString(

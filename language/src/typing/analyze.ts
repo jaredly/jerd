@@ -1,4 +1,4 @@
-import { idName, refName } from './env';
+import { idFromName, idName, refName } from './env';
 import { applyTypeVariablesToRecord, getEnumReferences } from './typeExpr';
 import {
     Env,
@@ -69,9 +69,39 @@ export const getUserDependencies = (term: Term): Array<Id> => {
     ) as Array<UserReference>).map((r) => r.id);
 };
 
-export const getDependencyMap = (env: Env, term: Term, id: Id) => {
+export const sortTerms = (env: Env, terms: Array<string>) => {
+    const allDeps: { [key: string]: Array<Id> } = {};
+    terms.forEach((id) =>
+        populateDependencyMap(
+            env,
+            allDeps,
+            env.global.terms[id],
+            idFromName(id),
+        ),
+    );
+
+    return sortAllDeps(allDeps);
+};
+
+export const sortAllDeps = (allDeps: { [key: string]: Array<Id> }) => {
+    const allIds: { [key: string]: Array<string> } = {};
+    Object.keys(allDeps).forEach((k) => (allIds[k] = allDeps[k].map(idName)));
+    const lastToFirst = topoSort(allIds);
+    lastToFirst.reverse();
+    return lastToFirst;
+};
+
+export const populateDependencyMap = (
+    env: Env,
+    allDeps: { [key: string]: Array<Id> },
+    term: Term,
+    id: Id,
+) => {
+    if (allDeps[idName(id)] != null) {
+        return;
+    }
     let toCheck = getUserDependencies(term);
-    const allDeps = { [idName(id)]: toCheck.slice() };
+    allDeps[idName(id)] = toCheck.slice();
     while (toCheck.length) {
         const next = toCheck.shift()!;
         const k = idName(next);
@@ -90,12 +120,9 @@ export const getDependencyMap = (env: Env, term: Term, id: Id) => {
 };
 
 export const getSortedTermDependencies = (env: Env, term: Term, id: Id) => {
-    const allDeps = getDependencyMap(env, term, id);
-    const allIds: { [key: string]: Array<string> } = {};
-    Object.keys(allDeps).forEach((k) => (allIds[k] = allDeps[k].map(idName)));
-    const lastToFirst = topoSort(allIds);
-    lastToFirst.reverse();
-    return lastToFirst;
+    const allDeps: { [key: string]: Array<Id> } = {};
+    populateDependencyMap(env, allDeps, term, id);
+    return sortAllDeps(allDeps);
 };
 
 export const termDependencies = (term: Term): Array<Reference> => {
