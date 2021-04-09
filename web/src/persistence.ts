@@ -2,6 +2,7 @@ import { State } from './App';
 
 import { presetEnv } from '@jerd/language/src/typing/preset';
 import { allLiteral } from '@jerd/language/src/typing/analyze';
+import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
 import * as builtins from '@jerd/language/src/printing/builtins';
 
 const saveKey = 'jd-repl-cache';
@@ -24,7 +25,8 @@ export const saveState = (state: State) => {
 
 export const initialState = (): State => {
     const saved = window.localStorage.getItem(saveKey);
-    const env = presetEnv();
+    const builtinsMap = loadBuiltins();
+    const env = presetEnv(builtinsMap);
     if (saved) {
         try {
             const data = JSON.parse(saved);

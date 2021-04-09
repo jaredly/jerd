@@ -13,6 +13,7 @@ export const loadBuiltins = () => {
         filename: 'builtins.ts',
         comments: true,
         sourceType: 'module',
+        presets: [require('@babel/preset-typescript')],
     });
     if (!res || res.type !== 'File') {
         throw new Error('failed to load');

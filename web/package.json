@@ -5,7 +5,7 @@
     "license": "MIT",
     "scripts": {
         "build": "esbuild src/run.tsx --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --outdir=.",
-        "start": "esbuild src/run.tsx --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --servedir=. --outdir=. --serve=:4343"
+        "start": "esbuild src/run.tsx --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --servedir=. --outdir=. --serve=:4343 --external:fs"
     },
     "dependencies": {
         "@emotion/react": "^11.1.5",
