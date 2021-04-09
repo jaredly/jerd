@@ -1,26 +1,26 @@
 
 type ToStr<T> = {
-    str: T => string
+    str: (T) => string
 }
 
 type ToFloat<T> = {
-    float: T => float
+    float: (T) => float
 }
 
 type ToInt<T> = {
-    int: T => int
+    int: (T) => int
 }
 
 const IntToStr: ToStr<int> = ToStr<int>{str: intToString}
 const FloatToStr: ToStr<float> = ToStr<float>{str: floatToString}
 const IntToFloat: ToFloat<int> = ToFloat<int>{float: intToFloat}
-const FloatToInt: ToInt<float> = ToInt<int>{int: floatToInt}
+const FloatToInt: ToInt<float> = ToInt<float>{int: floatToInt}
 
 // x as float
 // IntAs<float>(x)
-type As<From, To> = {
-    as: (From) => To,
-}
+// type As<From, To> = {
+//     as: (From) => To,
+// }
 const IntAsFloat = As<int, float>{as: intToFloat}
 const FloatAsInt = As<float, int>{as: floatToInt}
 const IntAsString = As<int, string>{as: intToString}

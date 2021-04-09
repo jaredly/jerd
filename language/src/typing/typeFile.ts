@@ -18,14 +18,12 @@ import { LocatedError, TypeError } from './errors';
 
 export function typeFile(
     parsed: Toplevel[],
-    builtins: { [key: string]: Type },
+    env: Env,
     fname: string,
 ): {
     env: Env;
     expressions: Array<Term>;
 } {
-    let env = presetEnv(builtins);
-
     // const
     const expressions = [];
 

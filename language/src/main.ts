@@ -27,6 +27,7 @@ import typeType, { newTypeVbl } from './typing/typeType';
 import {
     Env,
     Id,
+    newWithGlobal,
     Term,
     Type,
     TypeConstraint,
@@ -462,7 +463,9 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
 
 const processFile = (
     fname: string,
-    builtins: { [key: string]: Type | null },
+    // builtins: { [key: string]: Type | null },
+    initialEnv: Env,
+    builtinNames: Array<string>,
     assert: boolean,
     run: boolean,
     reprint: boolean,
@@ -470,14 +473,15 @@ const processFile = (
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
-    const typedBuiltins: { [key: string]: Type } = {};
-    Object.keys(builtins).forEach((b) => {
-        const v = builtins[b];
-        if (v != null) {
-            typedBuiltins[b] = v;
-        }
-    });
-    const { expressions, env } = typeFile(parsed, typedBuiltins, fname);
+    // const typedBuiltins: { [key: string]: Type } = {};
+    // Object.keys(builtins).forEach((b) => {
+    //     const v = builtins[b];
+    //     if (v != null) {
+    //         typedBuiltins[b] = v;
+    //     }
+    // });
+    // let initialEnv = presetEnv(typedBuiltins);
+    const { expressions, env } = typeFile(parsed, initialEnv, fname);
 
     if (reprint) {
         const good = checkReprint(raw, expressions, env);
@@ -493,7 +497,7 @@ const processFile = (
         {},
         assert,
         true,
-        Object.keys(builtins),
+        builtinNames,
     );
     // const ast = fileToTypescript(expressions, env, {}, assert, true);
     removeTypescriptTypes(ast);
@@ -590,7 +594,8 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
         const raw = fs.readFileSync(fname, 'utf8');
         const parsed: Array<Toplevel> = parse(raw);
 
-        const { expressions, env } = typeFile(parsed, {}, fname);
+        let initialEnv = presetEnv({});
+        const { expressions, env } = typeFile(parsed, initialEnv, fname);
         const text = fileToGo(expressions, env, assert);
 
         const name = path.basename(fname).slice(0, -3);
@@ -644,6 +649,8 @@ const main = (
             typedBuiltins[b] = v;
         }
     });
+    const builtinNames = Object.keys(tsBuiltins);
+    const initialEnv = loadPrelude(typedBuiltins);
 
     const runFile = (fname: string) => {
         try {
@@ -651,8 +658,14 @@ const main = (
                 processErrors(fname, typedBuiltins);
             } else {
                 if (
-                    processFile(fname, tsBuiltins, assert, run, reprint) ===
-                    false
+                    processFile(
+                        fname,
+                        newWithGlobal(initialEnv),
+                        builtinNames,
+                        assert,
+                        run,
+                        reprint,
+                    ) === false
                 ) {
                     numFailures += 1;
                     return false;
@@ -724,6 +737,7 @@ import { LocatedError, TypeError } from './typing/errors';
 import { fileToGo } from './printing/goPrinter';
 import { getTypeError } from './typing/getTypeError';
 import { loadBuiltins } from './printing/loadBuiltins';
+import { loadPrelude } from './printing/loadPrelude';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');

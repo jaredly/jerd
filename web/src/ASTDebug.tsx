@@ -1,33 +1,17 @@
 // The app
 
-import * as t from '@babel/types';
 import * as React from 'react';
 import parse, { Toplevel } from '@jerd/language/src/parsing/parser';
-import {
-    optimizeAST,
-    removeTypescriptTypes,
-} from '@jerd/language/src/printing/typeScriptOptimize';
-import { typeFile } from '@jerd/language/src/typing/typeFile';
-// import { fileToTypescript } from '@jerd/language/src/printing/fileToTypeScript';
-import * as builtins from '@jerd/language/src/printing/builtins';
 
 import { presetEnv } from '@jerd/language/src/typing/preset';
-import generate from '@babel/generator';
-import { idName } from '@jerd/language/src/typing/env';
-import { Env, Id, defaultRng } from '@jerd/language/src/typing/types';
-// import { printTerm } from '@jerd/language/src/printing/typeScriptPrinter';
+import { Env } from '@jerd/language/src/typing/types';
 import { Content, updateToplevel } from './Cell';
 
+import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import {
-    printToAttributedText,
-    printToString,
-} from '@jerd/language/src/printing/printer';
-import {
-    termToPretty,
     toplevelToPretty,
     ToplevelT,
 } from '@jerd/language/src/printing/printTsLike';
-import typeExpr from '@jerd/language/src/typing/typeExpr';
 import { typeToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';

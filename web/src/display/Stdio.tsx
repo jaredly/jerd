@@ -3,17 +3,7 @@ import { jsx } from '@emotion/react';
 // My first little render plugin!
 
 import * as React from 'react';
-import {
-    Type,
-    TypeReference,
-    UserReference,
-} from '@jerd/language/src/typing/types';
-import {
-    builtinType,
-    int,
-    pureFunction,
-    void_,
-} from '@jerd/language/src/typing/preset';
+import { void_ } from '@jerd/language/src/typing/preset';
 import { Plugins } from '../Cell';
 import { handleSimpleShallow2 } from '@jerd/language/src/printing/builtins';
 

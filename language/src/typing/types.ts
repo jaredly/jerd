@@ -4,6 +4,7 @@ import { Expression, Identifier, Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
 import seedrandom from 'seedrandom';
+import { void_ } from './preset';
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
@@ -109,6 +110,22 @@ export const newEnv = (
     local: {
         unique: 0,
         self,
+        symMapping: {},
+        effectVbls: {},
+        locals: {},
+        localNames: {},
+        typeVblNames: {},
+        typeVbls: {},
+        tmpTypeVbls: {},
+    },
+});
+
+export const newWithGlobal = (env: GlobalEnv): Env => ({
+    depth: 0,
+    global: cloneGlobalEnv(env),
+    local: {
+        unique: 0,
+        self: { name: '_unset_self', type: void_ },
         symMapping: {},
         effectVbls: {},
         locals: {},

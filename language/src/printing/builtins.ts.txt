@@ -139,6 +139,8 @@ export const intToString = (x: number) => x.toString();
 //: (int) => float
 export const intToFloat = (x: number) => x;
 
+//: (float) => string
+export const floatToString = (x: number) => x.toString();
 //: (float) => int
 export const floatToInt = Math.floor;
 

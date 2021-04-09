@@ -11,9 +11,9 @@ const IntArrayAddable = Addable<Array<int>>{
 
 // ok, but the real question is:
 
-type Eq<T> = {
-    "==": (T, T) => bool
-}
+// type Eq<T> = {
+//     "==": (T, T) => bool
+// }
 
 // ugh ok I really need a tuple type
 const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
@@ -29,7 +29,7 @@ const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
     }
 }
 
-const IntEq = Eq<int>{ "==": (a: int, b: int) => intEq(a, b) }
+// const IntEq = Eq<int>{ "==": (a: int, b: int) => intEq(a, b) }
 
 const goToTown = (t: Tuple2<int, int>) => t.0
 goToTown((2, 3)) == 2
