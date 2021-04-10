@@ -185,13 +185,13 @@ export const addEffect = (
     }
 
     const glob = cloneGlobalEnv(env.global);
-    glob.effectNames[name] = hash;
+    glob.effectNames[name] = idName(id);
     glob.idNames[idName(id)] = name;
     glob.effectConstrNames[idName(id)] = constrNames;
     constrNames.forEach((c, i) => {
         glob.effectConstructors[name + '.' + c] = {
             idx: i,
-            hash: hash,
+            idName: idName(id),
         };
     });
     // STOPSHIP bring this in
@@ -259,7 +259,7 @@ export const addEnum = (
 };
 
 export const idFromName = (name: string) => ({ hash: name, size: 1, pos: 0 });
-export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
+export const idName = (id: Id) => id.hash + (id.pos !== 0 ? '_' + id.pos : '');
 
 export const refName = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : idName(ref.id);
@@ -694,7 +694,7 @@ export const resolveIdentifier = (
     }
     if (env.global.names[text]) {
         const id = env.global.names[text];
-        const term = env.global.terms[id.hash];
+        const term = env.global.terms[idName(id)];
         // console.log(`${text} : its a global: ${showType(env, term.is)}`);
         return {
             type: 'ref',

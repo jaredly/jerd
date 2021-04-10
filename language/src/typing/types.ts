@@ -55,7 +55,7 @@ export type GlobalEnv = {
     attributeNames: { [key: string]: { id: Id; idx: number } };
 
     effectNames: { [key: string]: string };
-    effectConstructors: { [key: string]: { hash: string; idx: number } };
+    effectConstructors: { [key: string]: { idName: string; idx: number } };
     effectConstrNames: { [idName: string]: Array<string> };
     effects: {
         [key: string]: Array<{

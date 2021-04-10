@@ -458,4 +458,4 @@ const showEffectRef = (eff: EffectRef) => {
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 
 const printRef = (ref: Reference) =>
-    ref.type === 'builtin' ? ref.name : ref.id.hash;
+    ref.type === 'builtin' ? ref.name : idName(ref.id);

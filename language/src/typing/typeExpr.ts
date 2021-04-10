@@ -413,13 +413,13 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             if (!effid) {
                 throw new Error(`Unknown effect ${key}`);
             }
-            const eff = env.global.effects[effid.hash][effid.idx];
+            const eff = env.global.effects[effid.idName][effid.idx];
             if (eff.args.length !== expr.args.length) {
                 throw new Error(`Effect constructor wrong number of args`);
             }
             const ref: Reference = {
                 type: 'user',
-                id: idFromName(effid.hash),
+                id: idFromName(effid.idName),
             };
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
