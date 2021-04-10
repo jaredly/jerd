@@ -4,7 +4,7 @@
 import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { parse, SyntaxError } from '@jerd/language/src/parsing/grammar';
-import { Toplevel } from '@jerd/language/src/parsing/parser';
+import { nullLocation, Toplevel } from '@jerd/language/src/parsing/parser';
 import {
     printToAttributedText,
     printToString,
@@ -26,7 +26,8 @@ import {
     TypeError,
     UnresolvedIdentifier,
 } from '@jerd/language/src/typing/errors';
-import { Display, EvalEnv, Plugins, RenderPlugin } from './Cell';
+import { Display, EvalEnv, Plugins } from './State';
+import { RenderPlugin } from './Cell';
 import { runTerm } from './eval';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import ColorTextarea from './ColorTextarea';
@@ -103,10 +104,10 @@ export default ({
     onClose: () => void;
     onChange: (term: ToplevelT | string) => void;
     evalEnv: EvalEnv;
-    display: Display | null;
+    display: Display | null | undefined;
     plugins: Plugins;
 }) => {
-    const evalCache = React.useRef({});
+    const evalCache = React.useRef({} as { [key: string]: any });
 
     const [text, setText] = React.useState(() => {
         return typeof contents === 'string'
@@ -186,8 +187,8 @@ export default ({
                     value={text}
                     env={env}
                     contents={contents}
-                    onChange={(text) => setText(text)}
-                    onKeyDown={(evt) => {
+                    onChange={(text: string) => setText(text)}
+                    onKeyDown={(evt: any) => {
                         if (evt.metaKey && evt.key === 'Enter') {
                             console.log('run it');
                             onChange(typed == null ? text : typed);
@@ -282,7 +283,7 @@ export default ({
 const getRenderPlugin = (
     plugins: Plugins,
     env: Env,
-    display: Display | null,
+    display: Display | null | undefined,
     typed: ToplevelT | null,
     evaled: any,
     evalEnv: EvalEnv,
@@ -307,7 +308,7 @@ const getRenderPlugin = (
     } else {
         return null;
     }
-    const err = getTypeError(env, term.is, plugin.type, null);
+    const err = getTypeError(env, term.is, plugin.type, nullLocation);
     if (err == null) {
         return () => plugin.render(evaled, evalEnv);
     }

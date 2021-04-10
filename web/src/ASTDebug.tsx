@@ -4,8 +4,9 @@ import * as React from 'react';
 import parse, { Toplevel } from '@jerd/language/src/parsing/parser';
 
 import { presetEnv } from '@jerd/language/src/typing/preset';
-import { Env } from '@jerd/language/src/typing/types';
-import { Content, updateToplevel } from './Cell';
+import { Env, newWithGlobal, Type } from '@jerd/language/src/typing/types';
+import { updateToplevel } from './Cell';
+import { Content } from './State';
 
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import {
@@ -15,12 +16,14 @@ import {
 import { typeToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
+import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
+import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
 
 const key = 'jd-ast-debug';
 
 const colorsRaw =
     '1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf';
-const colors = [];
+const colors: Array<string> = [];
 for (let i = 0; i < colorsRaw.length; i += 6) {
     colors.push('#' + colorsRaw.slice(i, i + 6));
 }
@@ -37,7 +40,17 @@ export default () => {
         Array<{ top: ToplevelT; content: Content }>,
         any,
     ] = React.useMemo(() => {
-        let env = presetEnv();
+        const builtinsMap = loadBuiltins();
+        const typedBuiltins: { [key: string]: Type } = {};
+        Object.keys(builtinsMap).forEach((b) => {
+            const v = builtinsMap[b];
+            if (v != null) {
+                typedBuiltins[b] = v;
+            }
+        });
+        const global = loadPrelude(typedBuiltins);
+
+        let env = newWithGlobal(global);
         if (text.trim().length === 0) {
             return [env, [], null];
         }

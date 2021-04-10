@@ -18,6 +18,7 @@ import {
     Id,
     RecordDef,
     selfEnv,
+    Term,
     Type,
 } from '@jerd/language/src/typing/types';
 import {
@@ -32,37 +33,10 @@ import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { void_ } from '@jerd/language/src/typing/preset';
+import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
+import { nullLocation } from '@jerd/language/src/parsing/parser';
 
 const maxWidth = 80;
-
-export type Content =
-    | { type: 'term'; id: Id; name: string }
-    | { type: 'expr'; id: Id }
-    | { type: 'record'; id: Id; name: string; attrs: Array<string> }
-    | { type: 'enum'; id: Id; name: string }
-    | { type: 'effect'; id: Id; name: string; constrNames: Array<string> }
-    | { type: 'raw'; text: string };
-export type Cell = {
-    id: string;
-    content: Content;
-    display?: Display;
-    collapsed?: boolean;
-};
-
-export type PluginT = {
-    id: string;
-    name: string;
-    type: Type;
-    render: (value: any, evalEnv: EvalEnv) => JSX.Element;
-};
-export type Plugins = { [id: string]: PluginT };
-export type Display = { type: string; opts: { [key: string]: any } };
-
-export type EvalEnv = {
-    builtins: { [key: string]: any };
-    terms: { [hash: string]: any };
-    executionLimit: { ticks: number; maxTime: number; enabled: boolean };
-};
 
 export type CellProps = {
     cell: Cell;
@@ -76,7 +50,15 @@ export type CellProps = {
     onPin: (display: Display, id: Id) => void;
 };
 
-const CellWrapper = ({ onRemove, onToggleSource, children }) => {
+const CellWrapper = ({
+    onRemove,
+    onToggleSource,
+    children,
+}: {
+    children: React.ReactNode;
+    onRemove: () => void;
+    onToggleSource: (() => void) | null | undefined;
+}) => {
     return (
         <div style={{ width: 800, padding: 4, position: 'relative' }}>
             {children}
@@ -211,7 +193,7 @@ export const CellView = ({
 };
 
 const getMatchingPlugins = (
-    plugins,
+    plugins: Plugins,
     env: Env,
     cell: Cell,
 ): Array<string> | null => {
@@ -222,7 +204,12 @@ const getMatchingPlugins = (
             if (!cell.display || !plugins[cell.display.type]) {
                 return Object.keys(plugins).filter((k) => {
                     if (
-                        getTypeError(env, t.is, plugins[k].type, null) === null
+                        getTypeError(
+                            env,
+                            t.is,
+                            plugins[k].type,
+                            nullLocation,
+                        ) === null
                     ) {
                         return true;
                     }
@@ -233,9 +220,9 @@ const getMatchingPlugins = (
 };
 
 export const getPlugin = (
-    plugins,
+    plugins: Plugins,
     env: Env,
-    display: Display | null,
+    display: Display | undefined | null,
     content: Content,
     // cell: Cell,
     value: any,
@@ -249,7 +236,7 @@ export const getPlugin = (
         case 'term':
             const t = env.global.terms[idName(content.id)];
             const plugin: PluginT = plugins[display.type];
-            const err = getTypeError(env, t.is, plugin.type, null);
+            const err = getTypeError(env, t.is, plugin.type, nullLocation);
             if (err == null) {
                 return () => plugin.render(value, evalEnv);
             }
@@ -276,7 +263,7 @@ const RenderResult = ({
     env: Env;
     evalEnv: EvalEnv;
     onRun: (id: Id) => void;
-    collapsed: boolean;
+    collapsed: boolean | undefined;
     setCollapsed: (c: boolean) => void;
     onPin: (display: Display, id: Id) => void;
 }) => {
@@ -328,7 +315,7 @@ const RenderResult = ({
                 display={cell.display}
                 plugins={plugins}
                 onSetPlugin={onSetPlugin}
-                onPin={() => onPin(cell.display, idFromName(hash))}
+                onPin={() => onPin(cell.display!, idFromName(hash))}
             >
                 {renderPlugin()}
             </RenderPlugin>
@@ -419,9 +406,9 @@ const RenderItem = ({
     onRun: (id: Id) => void;
     addCell: (content: Content) => void;
     onEdit: () => void;
-    collapsed: boolean;
+    collapsed: boolean | undefined;
     setCollapsed: (n: boolean) => void;
-    onSetPlugin: (display: Display) => void;
+    onSetPlugin: (display: Display | null) => void;
     onPin: (display: Display, id: Id) => void;
 }) => {
     const onClick = (id: string, kind: string) => {
@@ -445,6 +432,7 @@ const RenderItem = ({
             addCell(recordContent(env, id));
             return true;
         }
+        return false;
     };
     // if (content.type === 'record')
     if (content.type === 'expr') {
@@ -594,7 +582,15 @@ const RenderItem = ({
     }
 };
 
-const ViewSource = ({ env, term, hash }) => {
+const ViewSource = ({
+    env,
+    term,
+    hash,
+}: {
+    env: Env;
+    term: Term;
+    hash: string;
+}) => {
     const source = React.useMemo(() => {
         return termToJS(
             selfEnv(env, {
@@ -641,7 +637,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
         return {
             type: 'Expression',
             term: env.global.terms[idName(content.id)],
-            location: null,
+            location: nullLocation,
         };
     }
     if (content.type === 'term') {
@@ -649,7 +645,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
             type: 'Define',
             term: env.global.terms[idName(content.id)],
             id: content.id,
-            location: null,
+            location: nullLocation,
             name: content.name,
         };
     }
@@ -659,7 +655,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
             def: env.global.types[idName(content.id)] as RecordDef,
             name: content.name,
             attrNames: content.attrs,
-            location: null,
+            location: nullLocation,
             id: content.id,
         };
     }
@@ -668,12 +664,12 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
             type: 'Effect',
             constrNames: env.global.effectConstrNames[idName(content.id)],
             name: content.name,
-            location: null,
+            location: nullLocation,
             id: content.id,
             effect: {
                 type: 'EffectDef',
                 constrs: env.global.effects[idName(content.id)],
-                location: null,
+                location: nullLocation,
             },
         };
     }
@@ -682,7 +678,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
             type: 'EnumDef',
             def: env.global.types[idName(content.id)] as EnumDef,
             name: content.name,
-            location: null,
+            location: nullLocation,
             id: content.id,
         };
     }
@@ -755,6 +751,12 @@ export const RenderPlugin = ({
     plugins,
     onSetPlugin,
     onPin,
+}: {
+    children: React.ReactNode;
+    display: Display | undefined | null;
+    plugins: Plugins;
+    onSetPlugin: (name: Display | null) => void;
+    onPin: null | (() => void);
 }) => {
     const [zoom, setZoom] = React.useState(false);
     return (
@@ -804,21 +806,23 @@ export const RenderPlugin = ({
                 </button>
                 {!zoom ? (
                     <span>
-                        <button
-                            css={{
-                                cursor: 'pointer',
-                                fontSize: '50%',
-                                backgroundColor: 'transparent',
-                                border: 'none',
-                                color: 'inherit',
-                                padding: 0,
-                                marginRight: 8,
-                            }}
-                            onClick={() => onPin()}
-                        >
-                            📌
-                        </button>
-                        {plugins[display.type].name}
+                        {onPin ? (
+                            <button
+                                css={{
+                                    cursor: 'pointer',
+                                    fontSize: '50%',
+                                    backgroundColor: 'transparent',
+                                    border: 'none',
+                                    color: 'inherit',
+                                    padding: 0,
+                                    marginRight: 8,
+                                }}
+                                onClick={() => onPin()}
+                            >
+                                📌
+                            </button>
+                        ) : null}
+                        {plugins[display!.type].name}
                         <button
                             css={{
                                 cursor: 'pointer',

@@ -12,7 +12,7 @@ import generate from '@babel/generator';
 import { idFromName, idName } from '@jerd/language/src/typing/env';
 import { Env, Id, selfEnv, Term } from '@jerd/language/src/typing/types';
 import { termToTs } from '@jerd/language/src/printing/typeScriptPrinterSimple';
-import { EvalEnv } from './Cell';
+import { EvalEnv } from './State';
 import {
     optimize,
     optimizeDefine,
@@ -59,7 +59,7 @@ const runWithExecutionLimit = (
     evalEnv: EvalEnv,
     idName: string,
     executionLimit: { ticks: number; maxTime: number; enabled: boolean },
-) => {
+): any => {
     const jdScope = {
         ...evalEnv,
         builtins: {
@@ -90,7 +90,7 @@ const runWithExecutionLimit = (
 };
 
 export const runTerm = (env: Env, term: Term, id: Id, evalEnv: EvalEnv) => {
-    const results = {};
+    const results: { [key: string]: any } = {};
 
     const deps = getSortedTermDependencies(env, term, id);
     console.log(deps);

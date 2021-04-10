@@ -2,7 +2,6 @@ import * as React from 'react';
 import { AttributedText } from '@jerd/language/src/printing/printer';
 import { idName } from '@jerd/language/src/typing/env';
 import { GlobalEnv } from '@jerd/language/src/typing/types';
-import { Content } from './Cell';
 
 const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('string')) {
@@ -89,7 +88,7 @@ const escapeHTML = (e: string) =>
 export const renderAttributedText = (
     env: GlobalEnv,
     text: Array<AttributedText>,
-    onClick?: (id: string, kind: string) => boolean | null,
+    onClick?: ((id: string, kind: string) => boolean) | undefined | null,
     allIds?: boolean,
     idColors: Array<string> = colors,
 ) => {

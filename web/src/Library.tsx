@@ -4,7 +4,7 @@ import { jsx, css } from '@emotion/react';
 
 import * as React from 'react';
 import { Env } from '@jerd/language/src/typing/types';
-import { Content } from './Cell';
+import { Content } from './State';
 import { idName } from '@jerd/language/src/typing/env';
 
 const styles = {

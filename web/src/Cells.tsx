@@ -4,8 +4,10 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { idFromName, idName } from '@jerd/language/src/typing/env';
-import { CellView, Cell, Content } from './Cell';
+import { CellView } from './Cell';
+import { Cell, Content, Plugins } from './State';
 import { runTerm } from './eval';
+import { State } from './App';
 
 export const genId = () => Math.random().toString(36).slice(2);
 export const blankCell: Cell = {
@@ -20,7 +22,15 @@ export const contentMatches = (one: Content, two: Content) => {
     return one.type === two.type && idName(one.id) === idName(two.id);
 };
 
-const Cells = ({ state, plugins, setState }) => {
+const Cells = ({
+    state,
+    plugins,
+    setState,
+}: {
+    state: State;
+    plugins: Plugins;
+    setState: (fn: (s: State) => State) => void;
+}) => {
     return (
         <div
             style={{
@@ -60,7 +70,7 @@ const Cells = ({ state, plugins, setState }) => {
                     }}
                     onRun={(id) => {
                         console.log('Running', id, state.env, state.evalEnv);
-                        let results;
+                        let results: { [key: string]: any };
                         try {
                             const term = state.env.global.terms[idName(id)];
                             if (!term) {

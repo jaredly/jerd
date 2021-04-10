@@ -4,15 +4,8 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { Env, Id } from '@jerd/language/src/typing/types';
-import {
-    Cell,
-    Display,
-    EvalEnv,
-    getPlugin,
-    getToplevel,
-    Plugins,
-    PluginT,
-} from './Cell';
+import { getToplevel } from './Cell';
+import { Cell, Display, EvalEnv, Plugins, PluginT } from './State';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { printToString } from '@jerd/language/src/printing/printer';
 
@@ -24,6 +17,7 @@ import Library from './Library';
 import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { runTerm } from './eval';
+import { nullLocation } from '@jerd/language/src/parsing/parser';
 
 const defaultPlugins: Plugins = {
     ...DrawablePlugins,
@@ -127,8 +121,8 @@ export default () => {
                             env={state.env}
                             evalEnv={state.evalEnv}
                             plugins={defaultPlugins}
-                            onRun={(id) => {
-                                let results;
+                            onRun={(id: Id) => {
+                                let results: { [key: string]: any };
                                 try {
                                     const term =
                                         state.env.global.terms[idName(id)];
@@ -187,7 +181,19 @@ export default () => {
     );
 };
 
-const Pin = ({ pin, env, evalEnv, plugins, onRun }) => {
+const Pin = ({
+    pin,
+    env,
+    evalEnv,
+    plugins,
+    onRun,
+}: {
+    pin: { id: Id; display: Display };
+    env: Env;
+    evalEnv: EvalEnv;
+    plugins: Plugins;
+    onRun: (id: Id) => void;
+}) => {
     if (!evalEnv.terms[idName(pin.id)]) {
         return (
             <div>
@@ -198,7 +204,7 @@ const Pin = ({ pin, env, evalEnv, plugins, onRun }) => {
     }
     const t = env.global.terms[idName(pin.id)];
     const plugin: PluginT = plugins[pin.display.type];
-    const err = getTypeError(env, t.is, plugin.type, null);
+    const err = getTypeError(env, t.is, plugin.type, nullLocation);
     if (err == null) {
         return plugin.render(evalEnv.terms[idName(pin.id)], evalEnv);
     }
