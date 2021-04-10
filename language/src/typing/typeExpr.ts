@@ -573,6 +573,7 @@ export const typeFitsEnum = (
     const allReferences = getEnumReferences(env, enumRef);
 
     if (t.type === 'Enum') {
+        // The "found" type is an enum.
         const innerReferences = getEnumReferences(env, recordType);
         for (let ref of innerReferences) {
             let found = false;
@@ -601,8 +602,10 @@ export const typeFitsEnum = (
         }
         return true;
     }
+    // Otherwise, the found type is a ref.
     for (let ref of allReferences) {
-        if (isRecord(recordType, ref.ref)) {
+        const err = getTypeError(env, recordType, ref, location);
+        if (err == null) {
             return true;
         }
     }
