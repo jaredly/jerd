@@ -5,7 +5,7 @@ import { jsx, css } from '@emotion/react';
 import * as React from 'react';
 import { Env } from '@jerd/language/src/typing/types';
 import { Content } from './State';
-import { idName } from '@jerd/language/src/typing/env';
+import { idFromName, idName } from '@jerd/language/src/typing/env';
 
 const styles = {
     group: css({
@@ -37,18 +37,18 @@ const styles = {
     }),
 };
 
-const typeContent = (env: Env, hash: string): Content => {
-    return env.global.types[hash].type === 'Enum'
+const typeContent = (env: Env, idRaw: string): Content => {
+    return env.global.types[idRaw].type === 'Enum'
         ? {
               type: 'enum',
-              id: { hash, size: 1, pos: 0 },
-              name: env.global.idNames[hash] || 'unnamed',
+              id: idFromName(idRaw),
+              name: env.global.idNames[idRaw] || 'unnamed',
           }
         : {
               type: 'record',
-              id: { hash, size: 1, pos: 0 },
-              name: env.global.idNames[hash] || 'unnamed',
-              attrs: env.global.recordGroups[hash],
+              id: idFromName(idRaw),
+              name: env.global.idNames[idRaw] || 'unnamed',
+              attrs: env.global.recordGroups[idRaw],
           };
 };
 
@@ -97,7 +97,7 @@ const Library = ({
                 {Object.keys(env.global.effectNames)
                     .sort()
                     .map((name) => {
-                        const hash = env.global.effectNames[name];
+                        const idRaw = env.global.effectNames[name];
                         return (
                             <div
                                 css={styles.item}
@@ -106,15 +106,15 @@ const Library = ({
                                     onOpen({
                                         type: 'effect',
                                         name,
-                                        id: { hash, size: 1, pos: 0 },
+                                        id: idFromName(idRaw),
                                         constrNames:
-                                            env.global.effectConstrNames[hash],
+                                            env.global.effectConstrNames[idRaw],
                                     })
                                 }
                             >
                                 {name}
                                 <div style={{ flex: 1 }} />
-                                <div css={styles.hash}>#{hash}</div>
+                                <div css={styles.hash}>#{idRaw}</div>
                             </div>
                         );
                     })}
@@ -124,16 +124,16 @@ const Library = ({
                 {Object.keys(env.global.names)
                     .sort()
                     .map((name) => {
-                        const hash = idName(env.global.names[name]);
+                        const idRaw = idName(env.global.names[name]);
                         return (
                             <div
                                 css={styles.item}
                                 onClick={() => {
                                     onOpen({
                                         type: 'term',
-                                        id: { hash, size: 1, pos: 0 },
+                                        id: idFromName(idRaw),
                                         name:
-                                            env.global.idNames[hash] ||
+                                            env.global.idNames[idRaw] ||
                                             'unnamed',
                                     });
                                 }}
@@ -141,7 +141,7 @@ const Library = ({
                             >
                                 {name}
                                 <div style={{ flex: 1 }} />
-                                <div css={styles.hash}>#{hash}</div>
+                                <div css={styles.hash}>#{idRaw}</div>
                             </div>
                         );
                     })}

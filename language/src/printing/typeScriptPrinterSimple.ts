@@ -68,7 +68,7 @@ export const withAnnotation = <T>(
 export const declarationToTs = (
     env: Env,
     opts: OutputOptions,
-    hash: string,
+    idRaw: string,
     term: ir.Expr,
     type: Type,
     comment?: string,
@@ -81,7 +81,7 @@ export const declarationToTs = (
                       withAnnotation(
                           env,
                           opts,
-                          t.identifier('hash_' + hash),
+                          t.identifier('hash_' + idRaw),
                           type,
                       ),
                       expr,
@@ -95,7 +95,7 @@ export const declarationToTs = (
                               t.identifier(opts.scope),
                               t.identifier('terms'),
                           ),
-                          t.stringLiteral(idName({ hash, size: 1, pos: 0 })),
+                          t.stringLiteral(idRaw),
                           true,
                       ),
                       expr,
@@ -587,21 +587,19 @@ export const fileToTypescript = (
 
     const orderedTerms = sortTerms(env, Object.keys(env.global.terms));
 
-    orderedTerms.forEach((hash) => {
-        const term = env.global.terms[hash];
+    orderedTerms.forEach((idRaw) => {
+        const term = env.global.terms[idRaw];
 
-        const comment = printToString(
-            declarationToPretty(env, idFromName(hash), term),
-            100,
-        );
-        const senv = selfEnv(env, { name: hash, type: term.is });
+        const id = idFromName(idRaw);
+        const comment = printToString(declarationToPretty(env, id, term), 100);
+        const senv = selfEnv(env, { name: idRaw, type: term.is });
         const irTerm = ir.printTerm(senv, {}, term);
         items.push(
             declarationToTs(
                 senv,
                 opts,
-                hash,
-                optimizeDefine(env, irTerm, idFromName(hash)),
+                idRaw,
+                optimizeDefine(env, irTerm, id),
                 term.is,
                 '\n' + comment + '\n',
             ),

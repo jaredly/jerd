@@ -8,13 +8,14 @@ import {
 } from '@jerd/language/src/printing/printTsLike';
 import { hashObject, typeToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedTextToHTML } from './Render';
+import { Env } from '@jerd/language/src/typing/types';
 
 const topHash = (t: ToplevelT) =>
     t.type === 'Expression' ? hashObject(t.term) : t.id.hash;
 
 const maybeParse = (
-    env,
-    value,
+    env: Env,
+    value: string,
     contents: ToplevelT | string,
 ): ToplevelT | null => {
     try {
@@ -35,13 +36,14 @@ const maybeParse = (
     }
 };
 
-export default ({ env, contents, value, onChange, onKeyDown }) => {
-    const ref = React.useRef(null);
+export default ({ env, contents, value, onChange, onKeyDown }: any) => {
+    const ref = React.useRef(null as HTMLDivElement | null);
     const set = React.useRef(false);
     React.useEffect(() => {
         if (!ref.current || set.current) {
             return;
         }
+        const c = ref.current;
         set.current = true;
         ref.current.innerHTML = '';
         const s = document.createElement('span');
@@ -92,17 +94,20 @@ export default ({ env, contents, value, onChange, onKeyDown }) => {
                         evt.stopPropagation();
                         console.log(evt.currentTarget, evt.target);
                         const sel = document.getSelection();
+                        if (!sel || !sel.anchorNode) {
+                            return;
+                        }
                         console.log(sel);
                         const node = document.createElement('span');
                         node.textContent = '    ';
                         if (sel.anchorNode.nodeName === '#text') {
                             const parent = sel.anchorNode.parentElement;
-                            // const idx = [...parent.childNodes].indexOf(sel.anchorNode)
-                            // console.log(parent, idx)
-                            parent.insertBefore(
-                                node,
-                                sel.anchorNode.nextSibling,
-                            );
+                            if (parent) {
+                                parent.insertBefore(
+                                    node,
+                                    sel.anchorNode.nextSibling,
+                                );
+                            }
                         } else {
                             sel.anchorNode.insertBefore(
                                 node,
@@ -114,7 +119,6 @@ export default ({ env, contents, value, onChange, onKeyDown }) => {
                         range.collapse();
                         sel.removeAllRanges();
                         sel.addRange(range);
-                        // console.log(document.getSelection());
                         return false;
                     }
                     onKeyDown(evt);

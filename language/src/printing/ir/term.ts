@@ -30,7 +30,7 @@ import {
     getEnumReferences,
     showLocation,
 } from '../../typing/typeExpr';
-import { idName } from '../../typing/env';
+import { idFromName, idName } from '../../typing/env';
 
 import { Loc, Expr, Stmt, callExpression, OutputOptions } from './types';
 
@@ -66,7 +66,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 opts,
                 {
                     type: 'user',
-                    id: { hash: env.local.self.name, size: 1, pos: 0 },
+                    // hmmmmmmmmm should IR retain the explicit `self`?
+                    // TODO think about this more
+                    id: idFromName(env.local.self.name),
                 },
                 term.location,
             );

@@ -364,20 +364,20 @@ const RenderResult = ({
     );
 };
 
-const enumContent = (env: Env, hash: string): Content => {
+const enumContent = (env: Env, rawId: string): Content => {
     return {
         type: 'enum',
-        id: { hash, size: 1, pos: 0 },
-        name: env.global.idNames[hash],
+        id: idFromName(rawId),
+        name: env.global.idNames[rawId],
     };
 };
 
-const recordContent = (env: Env, hash: string): Content => {
+const recordContent = (env: Env, rawId: string): Content => {
     return {
         type: 'record',
-        id: { hash, size: 1, pos: 0 },
-        name: env.global.idNames[hash],
-        attrs: env.global.recordGroups[hash],
+        id: idFromName(rawId),
+        name: env.global.idNames[rawId],
+        attrs: env.global.recordGroups[rawId],
     };
 };
 

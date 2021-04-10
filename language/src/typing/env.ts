@@ -355,21 +355,6 @@ export const typeRecord = (
         rows.map((r) => r.id),
         defn,
     );
-
-    // const hash = hashObject(defn);
-    // const idid = { hash, pos: 0, size: 1 };
-    // if (env.global.types[idName(idid)]) {
-    //     throw new Error(`Redefining ${idName(idid)}`);
-    // }
-    // const glob = cloneGlobalEnv(env.global);
-    // glob.types[idName(idid)] = defn;
-    // glob.typeNames[defnRaw.id.text] = idid;
-    // glob.idNames[idName(idid)] = defnRaw.id.text;
-    // glob.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
-    // rows.forEach((r, i) => {
-    //     glob.attributeNames[r.id.text] = { id: idid, idx: i };
-    // });
-    // return { id: idid, env: { ...env, global: glob } };
 };
 
 export const hashObject = (obj: any): string =>
@@ -574,7 +559,7 @@ export const resolveEffect = (
                 `Unknown effect hash ${hash} ${showLocation(location)}`,
             );
         }
-        const id = { hash: first, size: 1, pos: 0 };
+        const id = idFromName(first);
         return {
             type: 'ref',
             location,
@@ -599,11 +584,7 @@ export const resolveEffect = (
         type: 'ref',
         ref: {
             type: 'user',
-            id: {
-                hash: env.global.effectNames[text],
-                pos: 0,
-                size: 1,
-            },
+            id: idFromName(env.global.effectNames[text]),
         },
     };
 };
@@ -669,7 +650,7 @@ export const resolveIdentifier = (
 
         if (!env.global.terms[first]) {
             if (env.global.types[first]) {
-                const id = { hash: first, size: 1, pos: 0 };
+                const id = idFromName(first);
                 const t = env.global.types[idName(id)];
                 if (
                     t.type === 'Record' &&
@@ -682,7 +663,7 @@ export const resolveIdentifier = (
 
             throw new Error(`Unknown hash ${hash} ${showLocation(location)}`);
         }
-        const id = { hash: first, size: 1, pos: 0 };
+        const id = idFromName(first);
         const term = env.global.terms[first];
         return {
             type: 'ref',

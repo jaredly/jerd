@@ -419,7 +419,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             }
             const ref: Reference = {
                 type: 'user',
-                id: { hash: effid.hash, size: 1, pos: 0 },
+                id: idFromName(effid.hash),
             };
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {

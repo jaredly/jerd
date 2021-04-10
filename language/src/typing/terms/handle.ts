@@ -14,7 +14,7 @@ import {
 } from '../types';
 import { showType } from '../unify';
 import typeExpr from '../typeExpr';
-import { makeLocal } from '../env';
+import { idFromName, makeLocal } from '../env';
 
 export const typeHandle = (env: Env, expr: Handle): Term => {
     const target = typeExpr(env, expr.target);
@@ -30,7 +30,7 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
     const constrs = env.global.effects[effId];
     const effect: Reference = {
         type: 'user',
-        id: { hash: effId, size: 1, pos: 0 },
+        id: idFromName(effId),
     };
     const effects = getEffects(target).filter(
         (e) => e.type !== 'ref' || !refsEqual(effect, e.ref),
