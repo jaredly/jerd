@@ -1,5 +1,63 @@
 
-Immediate:
+## Immediate:
+
+Type system changes:
+- [ ] effects need to be able to refer to themselves (recursion)
+- [ ] types need to be able to refer to themselves (recursion)
+- [ ] mutually recursive types pleeeease
+- [ ] `enum Child<T>{A, T}` should definitely not work...
+
+  or, hrmmm mmaybe I need to allow effects to be effect-polymorphic?
+  like, I'm making this `timer` effect, to allow setTimeout.
+  and I'm not sure what effects the function I'm passing in should be
+  allowed to call.
+  how do I restrict that?
+  maybe that's the reason for the blanket "IO" type. Like "this is everything you
+  can do from an IO context".
+  But I want to be able to restrict that.
+```
+effect Time {
+  setTimeout: (() ={???}> void) => void,
+}
+```
+certainly you should be able to produce new timers from within a timer.
+but semantically,
+Time{Time} wouldn't be able to resolve, Time{Time{Time...etc}}
+how do we solve this? generally through type aliases, right?
+alias TimeWithTime{e} = Time{TimeWithTime{e}, e}
+
+anyway, that's quite complex.
+
+
+But at the end of the day, I want a platform to be able to say:
+"we provide Time, FS, and Web, and you can call any of those from any of those"
+
+hmmm should we have `@ffi effect`s? For ease of specifying?
+
+
+Type system changes:
+- should we have a `map` type? yeah, stringmap. builtin. Literal `{"yes": thing}`
+- general `Map` is also available, but it doesn't have the literal syntax I think? orr I think yeah you pass in a list, but if it's all literals, we optimize away the list or something
+- Some/None, gotta have it. because it would be super nice to have optional record items. (in js, None = undefined if the contents are conrete and not another optional... orr wait, None is always undefined, and `Some` is just the thing if the contents are concrete and not another optional, otherwise it's a one-tuple)
+
+Hmmmmm I wanttt a better solution for nullable / optional types.
+Ideally one that doesn't have to box nulls if possible.
+
+Editor things
+- [ ] multiple notebooks
+- [ ] export & import to file (will lose metadata, unfortunately maybe, unless I do a decorator)
+- [ ] 
+
+Codebase format changes:
+- [ ] allow multiple things with the same name?
+- [ ] modules! please
+- [ ] also have metadata about terms, including
+  - deprecatedBy (newTerm)
+  - derivedFrom (oldTerm)
+  - author name
+  - creationDate number
+
+
 - [x] fitsExpectations => make it exact, using nice errors. remove all unification whatnot for now.
 - [x] FFI type (something on record, parsed as a decorator)
 - [x] graphic repl (see shem)
