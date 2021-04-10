@@ -218,6 +218,3 @@ const OkMonad = <Err,>Monad{}<Result<_, Err>>{
 }
 
 */
-
-const IntAsFloat = As<int, float>{as: intToFloat}
-1 as float

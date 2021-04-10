@@ -13,7 +13,7 @@ Immediate:
 - [x] allow qualified binops, so + doesn't lie
   - also so that I can do `.str()` and it will pick the right one. So like, I need more builtins? And builtin types?
 - [x] better builtins setup (only defined in one place)
-- [ ] prelude in jerd, for operations and stuff
+- [x] prelude in jerd, for operations and stuff
 - [x] tuples, you need them yes
 - [ ] generic effects please
 - [/] intermediate output, target go or python
