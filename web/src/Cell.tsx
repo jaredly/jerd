@@ -511,8 +511,9 @@ const RenderItem = ({
                         printToAttributedText(
                             declarationToPretty(
                                 selfEnv(env, {
+                                    type: 'Term',
                                     name: content.name,
-                                    type: term.is,
+                                    ann: term.is,
                                 }),
                                 content.id,
                                 term,
@@ -602,8 +603,9 @@ const ViewSource = ({
     const source = React.useMemo(() => {
         return termToJS(
             selfEnv(env, {
+                type: 'Term',
                 name: hash,
-                type: term.is,
+                ann: term.is,
             }),
             term,
             idFromName(hash),

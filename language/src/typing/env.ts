@@ -33,6 +33,7 @@ import {
     Symbol,
     cloneGlobalEnv,
     EffectDef,
+    Self,
 } from './types';
 import { ToplevelT } from '../printing/printTsLike';
 import { void_ } from './preset';
@@ -264,11 +265,25 @@ export const idName = (id: Id) => id.hash + (id.pos !== 0 ? '_' + id.pos : '');
 export const refName = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : idName(ref.id);
 
-export const resolveType = (env: GlobalEnv, id: Identifier) => {
-    if (!env.typeNames[id.text]) {
+export const resolveType = (env: Env, id: Identifier): Id => {
+    if (id.hash != null) {
+        const rawId = id.hash.slice(1);
+        if (!env.global.types[rawId]) {
+            throw new Error(`Unknown type hash ${rawId}`);
+        }
+        return idFromName(rawId);
+    }
+    if (
+        env.local.self &&
+        env.local.self.type === 'Type' &&
+        id.text === env.local.self.name
+    ) {
+        return env.local.self.id;
+    }
+    if (!env.global.typeNames[id.text]) {
         throw new Error(`Unable to resolve type ${id.text}`);
     }
-    return env.typeNames[id.text];
+    return env.global.typeNames[id.text];
 };
 
 export const typeRecordDefn = (
@@ -304,9 +319,7 @@ export const typeRecordDefn = (
         extends: record.items
             .filter((r) => r.type === 'Spread')
             // TODO: only allow ffi to spread into ffi, etc.
-            .map((r) =>
-                resolveType(typeInner.global, (r as RecordSpread).constr),
-            ),
+            .map((r) => resolveType(typeInner, (r as RecordSpread).constr)),
         items: record.items
             .filter((r) => r.type === 'Row')
             .map((r) => typeType(typeInner, (r as RecordRow).rtype)),
@@ -399,9 +412,10 @@ export const typeDefineInner = (env: Env, item: Define) => {
         local: { ...env.local, tmpTypeVbls },
     };
 
-    const self = {
+    const self: Self = {
+        type: 'Term',
         name: item.id.text,
-        type: item.ann ? typeType(env, item.ann) : void_,
+        ann: item.ann ? typeType(env, item.ann) : void_,
     };
 
     subEnv.local.self = self;
@@ -413,7 +427,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
         throw err;
     }
     if (item.ann) {
-        const err = getTypeError(subEnv, term.is, self.type, item.location);
+        const err = getTypeError(subEnv, term.is, self.ann, item.location);
         if (err != null) {
             throw new TypeError(`Term's type doesn't match annotation`).wrap(
                 err,
@@ -685,11 +699,15 @@ export const resolveIdentifier = (
             is: type,
         };
     }
-    if (env.local.self && text === env.local.self.name) {
+    if (
+        env.local.self &&
+        env.local.self.type === 'Term' &&
+        text === env.local.self.name
+    ) {
         return {
             location,
             type: 'self',
-            is: env.local.self.type,
+            is: env.local.self.ann,
         };
     }
     if (env.global.names[text]) {

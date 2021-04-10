@@ -1,0 +1,24 @@
+
+type Some<T> = {
+    value: T
+}
+type None = {}
+
+enum Option<T> {
+    Some<T>,
+    None
+}
+
+// @typeError("found int, expected string")
+Option<string>:Some<string>{_: "hi"}
+
+type Nil = {}
+type Cons<T, L> = {
+    value: T,
+    rest: L
+}
+
+// enum LinkedList<T> {
+//     Nil,
+//     Cons<T, LinkedList<T>>,
+// }

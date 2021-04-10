@@ -4,7 +4,6 @@ import { Expression, Identifier, Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
 import seedrandom from 'seedrandom';
-import { void_ } from './preset';
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
@@ -65,12 +64,23 @@ export type GlobalEnv = {
     };
 };
 
+export type Self =
+    | {
+          type: 'Term';
+          name: string;
+          ann: Type;
+      }
+    | {
+          type: 'Type';
+          name: 'string';
+          vbls: number;
+          id: Id;
+          // vbls: Array<number>,
+      };
+
 export type LocalEnv = {
     unique: number;
-    self: {
-        name: string;
-        type: Type;
-    };
+    self: Self | null;
     locals: { [key: string]: { sym: Symbol; type: Type } };
     localNames: { [name: string]: number };
     typeVbls: { [unique: number]: { subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
@@ -85,10 +95,7 @@ export type LocalEnv = {
 
 export const defaultRng = (seed: string = 'seed') => seedrandom(seed);
 
-export const newEnv = (
-    self: { name: string; type: Type },
-    seed: string = 'seed',
-): Env => ({
+export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
     depth: 0,
     global: {
         rng: defaultRng(seed),
@@ -122,7 +129,7 @@ export const newEnv = (
 
 export const newLocal = (): LocalEnv => ({
     unique: 0,
-    self: { name: '_unset_self', type: void_ },
+    self: null,
     symMapping: {},
     effectVbls: {},
     locals: {},
@@ -157,13 +164,7 @@ export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
     };
 };
 
-export const selfEnv = (
-    env: Env,
-    self: {
-        name: string;
-        type: Type;
-    },
-): Env => {
+export const selfEnv = (env: Env, self: Self): Env => {
     return {
         ...env,
         local: {

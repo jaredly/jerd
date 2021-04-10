@@ -62,6 +62,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
     switch (term.type) {
         // these will never need effects, immediate is fine
         case 'self':
+            if (!env.local.self) {
+                throw new Error(`Self referenced without self set on env`);
+            }
             return printTermRef(
                 opts,
                 {

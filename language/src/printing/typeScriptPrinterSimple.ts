@@ -592,7 +592,7 @@ export const fileToTypescript = (
 
         const id = idFromName(idRaw);
         const comment = printToString(declarationToPretty(env, id, term), 100);
-        const senv = selfEnv(env, { name: idRaw, type: term.is });
+        const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
         const irTerm = ir.printTerm(senv, {}, term);
         items.push(
             declarationToTs(

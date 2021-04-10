@@ -116,7 +116,7 @@ switch Option<string>:Some<string>{_: "yes"} {
     Some{_: v} => v == "yes"
 }
 
-@typeError("found int, expected string")
+@typeError("doesn't fit enum")
 Option<string>:Some<int>{_: 10}
 
 @typeError("Not exhaustive")

@@ -75,8 +75,9 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
                 selfEnv(
                     { ...env, global: glob },
                     {
+                        type: 'Term',
                         name: toplevel.name,
-                        type: toplevel.term.is,
+                        ann: toplevel.term.is,
                     },
                 ),
                 toplevel.id,
@@ -378,7 +379,13 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 termToPretty(env, term.body),
             ]);
         case 'self':
-            return atom(env.local.self.name);
+            if (env.local.self && env.local.self.type === 'Term') {
+                return atom(env.local.self.name);
+            } else {
+                throw new Error(
+                    `Self reference, without a self defined on env`,
+                );
+            }
         case 'sequence':
             return block(term.sts.map((t) => termToPretty(env, t)));
         case 'apply':
