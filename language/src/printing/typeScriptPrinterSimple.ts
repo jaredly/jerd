@@ -591,8 +591,8 @@ export const fileToTypescript = (
         const term = env.global.terms[idRaw];
 
         const id = idFromName(idRaw);
-        const comment = printToString(declarationToPretty(env, id, term), 100);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
+        const comment = printToString(declarationToPretty(senv, id, term), 100);
         const irTerm = ir.printTerm(senv, {}, term);
         items.push(
             declarationToTs(
