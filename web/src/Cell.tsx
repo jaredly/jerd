@@ -481,7 +481,11 @@ const RenderItem = ({
                     onRun={onRun}
                 />
                 {showSource ? (
-                    <ViewSource hash={content.id.hash} env={env} term={term} />
+                    <ViewSource
+                        hash={idName(content.id)}
+                        env={env}
+                        term={term}
+                    />
                 ) : null}
             </div>
         );
@@ -538,7 +542,11 @@ const RenderItem = ({
                     onRun={onRun}
                 />
                 {showSource ? (
-                    <ViewSource hash={content.id.hash} env={env} term={term} />
+                    <ViewSource
+                        hash={idName(content.id)}
+                        env={env}
+                        term={term}
+                    />
                 ) : null}
             </div>
         );

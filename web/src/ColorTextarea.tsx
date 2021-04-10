@@ -10,9 +10,6 @@ import { hashObject, typeToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedTextToHTML } from './Render';
 import { Env } from '@jerd/language/src/typing/types';
 
-const topHash = (t: ToplevelT) =>
-    t.type === 'Expression' ? hashObject(t.term) : t.id.hash;
-
 const maybeParse = (
     env: Env,
     value: string,

@@ -35,7 +35,7 @@ import AutoresizeTextarea from 'react-textarea-autosize';
 import { UnresolvedIdentifier } from '@jerd/language/src/typing/errors';
 
 const topHash = (t: ToplevelT) =>
-    t.type === 'Expression' ? hashObject(t.term) : t.id.hash;
+    t.type === 'Expression' ? hashObject(t.term) : idName(t.id);
 
 export default ({
     env,

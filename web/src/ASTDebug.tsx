@@ -13,7 +13,7 @@ import {
     toplevelToPretty,
     ToplevelT,
 } from '@jerd/language/src/printing/printTsLike';
-import { typeToplevelT } from '@jerd/language/src/typing/env';
+import { idName, typeToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
@@ -120,7 +120,11 @@ export default () => {
                             colors,
                         )}
                         {/* @ts-ignore */}
-                        <div style={styles.hash}>#{item.content.id.hash}</div>
+                        <div style={styles.hash}>
+                            {/*
+                            @ts-ignore */}#
+                            {idName(item.content.id)}
+                        </div>
                     </div>
                 ))}
             </div>

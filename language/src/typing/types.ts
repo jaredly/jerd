@@ -639,7 +639,7 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
 
 const effectKey = (e: EffectRef) =>
     e.type === 'ref'
-        ? 'ref:' + (e.ref.type === 'builtin' ? e.ref.name : e.ref.id.hash)
+        ? 'ref:' + (e.ref.type === 'builtin' ? e.ref.name : idName(e.ref.id))
         : 'sym:' + e.sym.unique;
 
 // TODO: should I allow variables to be flexible here? idk
