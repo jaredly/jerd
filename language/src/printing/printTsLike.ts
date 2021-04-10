@@ -211,6 +211,7 @@ export const enumToPretty = (env: Env, id: Id, enumDef: EnumDef) => {
         enumDef.typeVbls.length
             ? typeVblDeclsToPretty(env, enumDef.typeVbls)
             : null,
+        atom(' '),
         block(
             enumDef.extends
                 .map((ex) => items([atom('...'), typeToPretty(env, ex)]))
