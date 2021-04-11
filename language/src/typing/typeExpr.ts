@@ -571,21 +571,26 @@ export const typeFitsEnum = (
     }
 
     const allReferences = getEnumReferences(env, enumRef);
+    const selfHash =
+        enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined;
 
     if (t.type === 'Enum') {
         // The "found" type is an enum.
         const innerReferences = getEnumReferences(env, recordType);
         for (let ref of innerReferences) {
             let found = false;
+            const errs: Array<TypeError> = [];
             for (let outer of allReferences) {
-                const err = getTypeError(env, ref, outer, location);
+                const err = getTypeError(env, ref, outer, location, selfHash);
                 if (err != null) {
+                    errs.push(err);
                     continue;
                 }
                 found = true;
                 break;
             }
             if (!found) {
+                errs.forEach((e) => console.log(e));
                 throw new Error(
                     `Enum ${showType(
                         env,
@@ -604,7 +609,7 @@ export const typeFitsEnum = (
     }
     // Otherwise, the found type is a ref.
     for (let ref of allReferences) {
-        const err = getTypeError(env, recordType, ref, location);
+        const err = getTypeError(env, recordType, ref, location, selfHash);
         if (err == null) {
             return true;
         }

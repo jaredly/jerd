@@ -11,6 +11,7 @@ import {
 import { Env, Symbol, subEnv, Type, Id } from './types';
 import { showLocation } from './typeExpr';
 import { resolveEffect, symPrefix } from './env';
+import { LocatedError, MismatchedTypeVbl } from './errors';
 
 export const walkType = (
     term: Type,
@@ -81,12 +82,52 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     // STOPSHIP: typeVbls and effectVbls for vars
                 };
             }
+            // if (type.id.hash && type.id.hash === '#self') {
+            //     return {
+            //         type: 'ref',
+            //         ref: {
+            //             type: 'builtin',
+            //             name: '<self>',
+            //         },
+            //         typeVbls,
+            //         effectVbls,
+            //         location: type.location,
+            //     };
+            // }
             if (env.local.typeVblNames[type.id.text] != null) {
                 return {
                     type: 'var',
                     sym: env.local.typeVblNames[type.id.text],
                     location: type.location,
                     // STOPSHIP: typeVbls and effectVbls for vars
+                };
+            }
+            if (
+                env.local.self &&
+                env.local.self.type === 'Type' &&
+                (env.local.self.name === type.id.text ||
+                    (type.id.hash && type.id.hash === '#self'))
+            ) {
+                // TODO: include the kind restrictions
+                if (env.local.self.vbls.length !== typeVbls.length) {
+                    throw new LocatedError(
+                        type.location,
+                        `Wrong number of type variables.`,
+                    );
+                }
+                return {
+                    type: 'ref',
+                    ref: {
+                        type: 'user',
+                        id: {
+                            hash: '<self>',
+                            pos: 0,
+                            size: 1,
+                        },
+                    },
+                    typeVbls,
+                    effectVbls,
+                    location: type.location,
                 };
             }
             if (env.global.typeNames[type.id.text] != null) {

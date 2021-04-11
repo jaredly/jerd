@@ -5,17 +5,25 @@ import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
 import seedrandom from 'seedrandom';
 
-export const refsEqual = (one: Reference, two: Reference) => {
+export const refsEqual = (
+    one: Reference,
+    two: Reference,
+    selfHash?: string,
+) => {
     return one.type === 'builtin'
         ? two.type === 'builtin' && one.name === two.name
-        : two.type === 'user' && idsEqual(one.id, two.id);
+        : // STOPSHIP: substitute the selfHash if one of the ids is self.
+          two.type === 'user' && idsEqual(one.id, two.id, selfHash);
 };
 
 export const isBuiltin = (one: Term, name: string) =>
     one.type === 'ref' && one.ref.type === 'builtin' && one.ref.name === name;
 
-export const idsEqual = (one: Id, two: Id): boolean =>
-    one.hash === two.hash && one.pos === two.pos && one.size === two.size;
+export const idsEqual = (one: Id, two: Id, selfHash?: string): boolean =>
+    (one.hash === '<self>' ? selfHash : one.hash) ===
+        (two.hash === '<self>' ? selfHash : two.hash) &&
+    one.pos === two.pos &&
+    one.size === two.size;
 
 export type Id = { hash: string; size: number; pos: number };
 export type Reference = { type: 'builtin'; name: string } | UserReference;
@@ -72,12 +80,14 @@ export type Self =
       }
     | {
           type: 'Type';
-          name: 'string';
-          vbls: number;
-          id: Id;
+          name: string;
+          vbls: Array<TypeVblDecl>;
+          //   id?: Id; // if we've already typed, and we're type checking
           // vbls: Array<number>,
       };
 
+// TBH I should have a completely different local env for
+// type checking (getTypeError) than I do for parsing.
 export type LocalEnv = {
     unique: number;
     self: Self | null;

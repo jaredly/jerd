@@ -34,6 +34,7 @@ import {
     cloneGlobalEnv,
     EffectDef,
     Self,
+    selfEnv,
 } from './types';
 import { ToplevelT } from '../printing/printTsLike';
 import { void_ } from './preset';
@@ -215,15 +216,20 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
         [], // TODO effect vbls
     );
 
+    const typeInnerWithSelf = selfEnv(typeInner, {
+        type: 'Type',
+        vbls: typeVbls,
+        name: defn.id.text,
+    });
     // console.log('Type Enum');
     // console.log(defn.items);
 
     const items = defn.items
         .filter((x) => x.type === 'External')
-        .map((x) => typeType(typeInner, x.ref) as TypeReference);
+        .map((x) => typeType(typeInnerWithSelf, x.ref) as TypeReference);
     const extend = defn.items
         .filter((x) => x.type === 'Spread')
-        .map((x) => typeType(typeInner, x.ref) as TypeReference);
+        .map((x) => typeType(typeInnerWithSelf, x.ref) as TypeReference);
     // console.log(items.length, extend.length);
     const d: TypeEnumDef = {
         type: 'Enum',
@@ -273,13 +279,14 @@ export const resolveType = (env: Env, id: Identifier): Id => {
         }
         return idFromName(rawId);
     }
-    if (
-        env.local.self &&
-        env.local.self.type === 'Type' &&
-        id.text === env.local.self.name
-    ) {
-        return env.local.self.id;
-    }
+    // if (
+    //     env.local.self &&
+    //     env.local.self.type === 'Type' &&
+    //     id.text === env.local.self.name
+    // ) {
+    //     throw new Error(`Can't resolve`)
+    //     // return env.local.self.id;
+    // }
     if (!env.global.typeNames[id.text]) {
         throw new Error(`Unable to resolve type ${id.text}`);
     }

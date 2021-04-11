@@ -18,7 +18,18 @@ type Cons<T, L> = {
     rest: L
 }
 
-// enum LinkedList<T> {
-//     Nil,
-//     Cons<T, LinkedList<T>>,
-// }
+enum LinkedList<T> {
+    Nil,
+    Cons<T, LinkedList<T>>,
+}
+
+const listToLinked: <T,>(Array<T>) => LinkedList<T>
+ = <T,>(list: Array<T>): LinkedList<T> => {
+    switch list {
+        [] => LinkedList<T>:Nil,
+        [one, ...rest] => LinkedList<T>:Cons<T, LinkedList<T>>{
+            value: one,
+            rest: listToLinked(rest),
+        }
+    }
+} 
