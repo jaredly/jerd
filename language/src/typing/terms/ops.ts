@@ -50,6 +50,7 @@ const findOp = (
                     t,
                     found.is.typeVbls,
                     found.is.location,
+                    id.hash,
                 );
             }
             const tis = t.items[idx];

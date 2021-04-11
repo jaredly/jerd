@@ -2,8 +2,11 @@
 ## Immediate:
 
 Type system changes:
+- [x] types need to be able to refer to themselves (recursion)
+  - [x] basic self-referrential enum
+  - [x] basic self-referrential struct
+  - [x] destructured items from an enum or struct should .. work correctly. Maybe modify the `apply type variables` to also substitute `self` references? tbh that sounds pretty good. I mean we could treat `self` as a variable ... hmm ... oh didn't need that. the applyTypeVariables worked for piggybacking.
 - [ ] effects need to be able to refer to themselves (recursion)
-- [ ] types need to be able to refer to themselves (recursion)
 - [ ] mutually recursive types pleeeease
 - [ ] `enum Child<T>{A, T}` should definitely not work...
 

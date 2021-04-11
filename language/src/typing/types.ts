@@ -82,8 +82,6 @@ export type Self =
           type: 'Type';
           name: string;
           vbls: Array<TypeVblDecl>;
-          //   id?: Id; // if we've already typed, and we're type checking
-          // vbls: Array<number>,
       };
 
 // TBH I should have a completely different local env for

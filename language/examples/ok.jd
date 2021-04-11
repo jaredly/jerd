@@ -23,6 +23,11 @@ enum LinkedList<T> {
     Cons<T, LinkedList<T>>,
 }
 
+type WithSelves = {
+    name: string,
+    selves: Array<WithSelves>,
+}
+
 const listToLinked: <T,>(Array<T>) => LinkedList<T>
  = <T,>(list: Array<T>): LinkedList<T> => {
     switch list {
@@ -33,3 +38,28 @@ const listToLinked: <T,>(Array<T>) => LinkedList<T>
         }
     }
 } 
+
+const linkedLength: <T>(LinkedList<T>) => int = <T,>(list: LinkedList<T>) => {
+    switch list {
+        Nil => 0,
+        // OH NOES, `rest` is typed "self", not the actual type.
+        Cons{rest} => 1 + linkedLength<T>(rest)
+    }
+}
+
+@typeError("same-typed arguments")
+<T,>(list: LinkedList<T>) => {
+    switch list {
+        Nil => 0,
+        // OH NOES, `rest` is typed "self", not the actual type.
+        Cons{rest} => 1 + rest
+    }
+}
+
+
+linkedLength<int>(listToLinked<int>([3,4,5])) == 3
+
+// enum Child#6db8c2b1<T#:0> {
+//     String#54e44b4c,
+//     T#:0,
+// }

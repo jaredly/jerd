@@ -91,7 +91,14 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
             glob.idNames[idName(toplevel.id)] = toplevel.name;
             glob.recordGroups[idName(toplevel.id)] = toplevel.attrNames;
             return recordToPretty(
-                { ...env, global: glob },
+                {
+                    ...selfEnv(env, {
+                        type: 'Type',
+                        name: idName(toplevel.id),
+                        vbls: toplevel.def.typeVbls,
+                    }),
+                    global: glob,
+                },
                 toplevel.id,
                 toplevel.def,
             );

@@ -30,6 +30,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
                     defn,
                     type.typeVbls,
                     null,
+                    type.ref.id.hash,
                 );
                 if (
                     rec.extends.some(

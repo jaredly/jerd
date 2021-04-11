@@ -226,10 +226,28 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
 
     const items = defn.items
         .filter((x) => x.type === 'External')
-        .map((x) => typeType(typeInnerWithSelf, x.ref) as TypeReference);
+        .map((x) => {
+            const row = typeType(typeInnerWithSelf, x.ref);
+            if (row.type !== 'ref') {
+                throw new Error(`Cannot have a ${row.type} as an enum item.`);
+            }
+            if (row.ref.type !== 'user') {
+                throw new Error(`Cannot have a builtin as an enum item.`);
+            }
+            const t = env.global.types[idName(row.ref.id)];
+            if (t.type !== 'Record') {
+                throw new Error(
+                    `${idName(row.ref.id)} is an enum. use ...spread syntax.`,
+                );
+            }
+            return row as TypeReference;
+        });
     const extend = defn.items
         .filter((x) => x.type === 'Spread')
-        .map((x) => typeType(typeInnerWithSelf, x.ref) as TypeReference);
+        .map((x) => {
+            const sub = typeType(typeInnerWithSelf, x.ref) as TypeReference;
+            return sub;
+        });
     // console.log(items.length, extend.length);
     const d: TypeEnumDef = {
         type: 'Enum',
@@ -299,14 +317,18 @@ export const typeRecordDefn = (
     unique?: number | null,
     ffiTag?: string,
 ): RecordDef => {
-    // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
-    // console.log('RECORD', typeVblsRaw, showLocation(location));
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         typeVblsRaw,
         [],
     );
-    // console.log('EBLS', typeInner.local.typeVbls);
+
+    const typeInnerWithSelf = selfEnv(typeInner, {
+        type: 'Type',
+        vbls: typeVbls,
+        name: id.text,
+    });
+
     const ffi = ffiTag
         ? {
               tag: ffiTag,
@@ -326,10 +348,12 @@ export const typeRecordDefn = (
         extends: record.items
             .filter((r) => r.type === 'Spread')
             // TODO: only allow ffi to spread into ffi, etc.
-            .map((r) => resolveType(typeInner, (r as RecordSpread).constr)),
+            .map((r) =>
+                resolveType(typeInnerWithSelf, (r as RecordSpread).constr),
+            ),
         items: record.items
             .filter((r) => r.type === 'Row')
-            .map((r) => typeType(typeInner, (r as RecordRow).rtype)),
+            .map((r) => typeType(typeInnerWithSelf, (r as RecordRow).rtype)),
     };
 };
 
