@@ -536,13 +536,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'Tuple',
                 location: expr.location,
                 items,
-                is: {
-                    type: 'ref',
-                    ref: { type: 'builtin', name: `Tuple${items.length}` },
-                    location: null,
-                    typeVbls: items.map((t) => t.is),
-                    effectVbls: [],
-                },
+                is: tupleType(items.map((t) => t.is)),
             };
         }
         case 'Array': {
@@ -553,6 +547,22 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             throw new Error(`Unexpected parse type ${(expr as any).type}`);
     }
 };
+
+export const arrayType = (elemType: Type): TypeReference => ({
+    type: 'ref',
+    ref: { type: 'builtin', name: 'Array' },
+    location: null,
+    typeVbls: [elemType],
+    effectVbls: [],
+});
+
+export const tupleType = (itemTypes: Array<Type>): TypeReference => ({
+    type: 'ref',
+    ref: { type: 'builtin', name: `Tuple${itemTypes.length}` },
+    location: null,
+    typeVbls: itemTypes,
+    effectVbls: [],
+});
 
 const typeDef = (
     env: GlobalEnv,

@@ -7,22 +7,25 @@ Type system changes:
   - [x] basic self-referrential struct
   - [x] destructured items from an enum or struct should .. work correctly. Maybe modify the `apply type variables` to also substitute `self` references? tbh that sounds pretty good. I mean we could treat `self` as a variable ... hmm ... oh didn't need that. the applyTypeVariables worked for piggybacking.
 - [ ] effects need to be able to refer to themselves (recursion)
+  - effecs need a 'substituteTypeVariabels
 - [ ] mutually recursive types pleeeease
-- [ ] `enum Child<T>{A, T}` should definitely not work...
+- [x] `enum Child<T>{A, T}` should definitely not work...
 
-  or, hrmmm mmaybe I need to allow effects to be effect-polymorphic?
-  like, I'm making this `timer` effect, to allow setTimeout.
-  and I'm not sure what effects the function I'm passing in should be
-  allowed to call.
-  how do I restrict that?
-  maybe that's the reason for the blanket "IO" type. Like "this is everything you
-  can do from an IO context".
-  But I want to be able to restrict that.
-```
-effect Time {
-  setTimeout: (() ={???}> void) => void,
+or, hrmmm mmaybe I need to allow effects to be effect-polymorphic?
+like, I'm making this `timer` effect, to allow setTimeout.
+and I'm not sure what effects the function I'm passing in should be
+allowed to call.
+how do I restrict that?
+maybe that's the reason for the blanket "IO" type. Like "this is everything you
+can do from an IO context".
+But I want to be able to restrict that.
+
+```ts
+effect Time{e} {
+  setTimeout: (() ={Time, e}> void) => void,
 }
 ```
+
 certainly you should be able to produce new timers from within a timer.
 but semantically,
 Time{Time} wouldn't be able to resolve, Time{Time{Time...etc}}
