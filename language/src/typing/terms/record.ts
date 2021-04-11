@@ -83,6 +83,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             env.global.types[idName(id)] as RecordDef,
             typeVbls,
             expr.location,
+            id.hash,
         );
         const ref: Reference = { type: 'user', id };
         const rows: Array<{ value: Term | null; type: Type }> = new Array(

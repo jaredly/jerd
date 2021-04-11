@@ -32,7 +32,6 @@ export const getTypeError = (
     if (found.type !== expected.type) {
         return new TypeMismatch(env, found, expected, location);
     } else if (found.type === 'var') {
-        // if (env.local.typeVblNames[found.sym.unique])
         const e = expected as TypeVar;
         if (!symbolsEqual(found.sym, e.sym)) {
             console.log(env.local.tmpTypeVbls);
@@ -43,6 +42,12 @@ export const getTypeError = (
         return null;
     } else if (found.type === 'ref') {
         const e = expected as TypeReference;
+        // ok folks, we need to handle `self`s correctly.
+        // basically,
+        // when we're getting types from an enum
+        // or a defn
+        // we need to swap them out.
+        // oh yeah that's the good stuff.
         if (!refsEqual(found.ref, e.ref)) {
             return new RefMismatch(env, found.ref, e.ref, location);
         }

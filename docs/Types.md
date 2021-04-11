@@ -13,6 +13,32 @@
 
 Functions can be polymorphic over types or effects. Both must appear in the arguments list to make any sense.
 
+## Self-referential my good folks
+
+So I don't currently support type aliases.
+
+First thing to figure out:
+self-referential enums, so I can represent the good ol' linked list.
+
+Second thing will be self-referential records. Like `type Mee = {mee: Array<Mee>}`.
+
+Third thing will be mutually-recursive, thank you very much.
+
+For the moment I represent the self-reference as a builtin type, but actually
+I think it should be a user-type with the hash of `self`, so that I can represent
+`pos: != 0`, for mutually recursive definitions, don'tcha know.
+
+The thing is, for hashing & I think for storage .... I want the node to be the `self`
+reference, because when producing the type I don't have the hash yet.
+alsoo for editing, one assumes that you want the self-reference to stay the same, instead of having it point to the old version.
+so... but for type checking, there's some amount of "I want this to point to the
+ID, so I don't have to be checking self left and right."
+ALTHOUGH, I could just pass the self-id in, instead of the whole env ... tbh that
+sounds great.
+
+ok `refsEqual` now accepts an optional third argument, that is the "self hash",
+to be substituted in for the false-self hash. love it to bits.
+
 ## Records
 
 Records can be polymorphic over types and effects.

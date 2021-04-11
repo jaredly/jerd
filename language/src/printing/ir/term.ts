@@ -30,7 +30,7 @@ import {
     getEnumReferences,
     showLocation,
 } from '../../typing/typeExpr';
-import { idName } from '../../typing/env';
+import { idFromName, idName } from '../../typing/env';
 
 import { Loc, Expr, Stmt, callExpression, OutputOptions } from './types';
 
@@ -62,11 +62,16 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
     switch (term.type) {
         // these will never need effects, immediate is fine
         case 'self':
+            if (!env.local.self) {
+                throw new Error(`Self referenced without self set on env`);
+            }
             return printTermRef(
                 opts,
                 {
                     type: 'user',
-                    id: { hash: env.local.self.name, size: 1, pos: 0 },
+                    // hmmmmmmmmm should IR retain the explicit `self`?
+                    // TODO think about this more
+                    id: idFromName(env.local.self.name),
                 },
                 term.location,
             );
@@ -456,4 +461,4 @@ const showEffectRef = (eff: EffectRef) => {
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 
 const printRef = (ref: Reference) =>
-    ref.type === 'builtin' ? ref.name : ref.id.hash;
+    ref.type === 'builtin' ? ref.name : idName(ref.id);

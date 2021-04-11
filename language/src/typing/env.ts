@@ -33,6 +33,8 @@ import {
     Symbol,
     cloneGlobalEnv,
     EffectDef,
+    Self,
+    selfEnv,
 } from './types';
 import { ToplevelT } from '../printing/printTsLike';
 import { void_ } from './preset';
@@ -185,13 +187,13 @@ export const addEffect = (
     }
 
     const glob = cloneGlobalEnv(env.global);
-    glob.effectNames[name] = hash;
+    glob.effectNames[name] = idName(id);
     glob.idNames[idName(id)] = name;
     glob.effectConstrNames[idName(id)] = constrNames;
     constrNames.forEach((c, i) => {
         glob.effectConstructors[name + '.' + c] = {
             idx: i,
-            hash: hash,
+            idName: idName(id),
         };
     });
     // STOPSHIP bring this in
@@ -214,15 +216,38 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
         [], // TODO effect vbls
     );
 
+    const typeInnerWithSelf = selfEnv(typeInner, {
+        type: 'Type',
+        vbls: typeVbls,
+        name: defn.id.text,
+    });
     // console.log('Type Enum');
     // console.log(defn.items);
 
     const items = defn.items
         .filter((x) => x.type === 'External')
-        .map((x) => typeType(typeInner, x.ref) as TypeReference);
+        .map((x) => {
+            const row = typeType(typeInnerWithSelf, x.ref);
+            if (row.type !== 'ref') {
+                throw new Error(`Cannot have a ${row.type} as an enum item.`);
+            }
+            if (row.ref.type !== 'user') {
+                throw new Error(`Cannot have a builtin as an enum item.`);
+            }
+            const t = env.global.types[idName(row.ref.id)];
+            if (t.type !== 'Record') {
+                throw new Error(
+                    `${idName(row.ref.id)} is an enum. use ...spread syntax.`,
+                );
+            }
+            return row as TypeReference;
+        });
     const extend = defn.items
         .filter((x) => x.type === 'Spread')
-        .map((x) => typeType(typeInner, x.ref) as TypeReference);
+        .map((x) => {
+            const sub = typeType(typeInnerWithSelf, x.ref) as TypeReference;
+            return sub;
+        });
     // console.log(items.length, extend.length);
     const d: TypeEnumDef = {
         type: 'Enum',
@@ -259,16 +284,31 @@ export const addEnum = (
 };
 
 export const idFromName = (name: string) => ({ hash: name, size: 1, pos: 0 });
-export const idName = (id: Id) => id.hash; // STOPSHIP incorporate other things
+export const idName = (id: Id) => id.hash + (id.pos !== 0 ? '_' + id.pos : '');
 
 export const refName = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : idName(ref.id);
 
-export const resolveType = (env: GlobalEnv, id: Identifier) => {
-    if (!env.typeNames[id.text]) {
+export const resolveType = (env: Env, id: Identifier): Id => {
+    if (id.hash != null) {
+        const rawId = id.hash.slice(1);
+        if (!env.global.types[rawId]) {
+            throw new Error(`Unknown type hash ${rawId}`);
+        }
+        return idFromName(rawId);
+    }
+    // if (
+    //     env.local.self &&
+    //     env.local.self.type === 'Type' &&
+    //     id.text === env.local.self.name
+    // ) {
+    //     throw new Error(`Can't resolve`)
+    //     // return env.local.self.id;
+    // }
+    if (!env.global.typeNames[id.text]) {
         throw new Error(`Unable to resolve type ${id.text}`);
     }
-    return env.typeNames[id.text];
+    return env.global.typeNames[id.text];
 };
 
 export const typeRecordDefn = (
@@ -277,14 +317,18 @@ export const typeRecordDefn = (
     unique?: number | null,
     ffiTag?: string,
 ): RecordDef => {
-    // const env = typeVbls.length ? envWithTypeVbls(env, typeVbls) : env;
-    // console.log('RECORD', typeVblsRaw, showLocation(location));
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         typeVblsRaw,
         [],
     );
-    // console.log('EBLS', typeInner.local.typeVbls);
+
+    const typeInnerWithSelf = selfEnv(typeInner, {
+        type: 'Type',
+        vbls: typeVbls,
+        name: id.text,
+    });
+
     const ffi = ffiTag
         ? {
               tag: ffiTag,
@@ -305,11 +349,11 @@ export const typeRecordDefn = (
             .filter((r) => r.type === 'Spread')
             // TODO: only allow ffi to spread into ffi, etc.
             .map((r) =>
-                resolveType(typeInner.global, (r as RecordSpread).constr),
+                resolveType(typeInnerWithSelf, (r as RecordSpread).constr),
             ),
         items: record.items
             .filter((r) => r.type === 'Row')
-            .map((r) => typeType(typeInner, (r as RecordRow).rtype)),
+            .map((r) => typeType(typeInnerWithSelf, (r as RecordRow).rtype)),
     };
 };
 
@@ -355,21 +399,6 @@ export const typeRecord = (
         rows.map((r) => r.id),
         defn,
     );
-
-    // const hash = hashObject(defn);
-    // const idid = { hash, pos: 0, size: 1 };
-    // if (env.global.types[idName(idid)]) {
-    //     throw new Error(`Redefining ${idName(idid)}`);
-    // }
-    // const glob = cloneGlobalEnv(env.global);
-    // glob.types[idName(idid)] = defn;
-    // glob.typeNames[defnRaw.id.text] = idid;
-    // glob.idNames[idName(idid)] = defnRaw.id.text;
-    // glob.recordGroups[idName(idid)] = rows.map((r) => r.id.text);
-    // rows.forEach((r, i) => {
-    //     glob.attributeNames[r.id.text] = { id: idid, idx: i };
-    // });
-    // return { id: idid, env: { ...env, global: glob } };
 };
 
 export const hashObject = (obj: any): string =>
@@ -414,9 +443,10 @@ export const typeDefineInner = (env: Env, item: Define) => {
         local: { ...env.local, tmpTypeVbls },
     };
 
-    const self = {
+    const self: Self = {
+        type: 'Term',
         name: item.id.text,
-        type: item.ann ? typeType(env, item.ann) : void_,
+        ann: item.ann ? typeType(env, item.ann) : void_,
     };
 
     subEnv.local.self = self;
@@ -428,7 +458,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
         throw err;
     }
     if (item.ann) {
-        const err = getTypeError(subEnv, term.is, self.type, item.location);
+        const err = getTypeError(subEnv, term.is, self.ann, item.location);
         if (err != null) {
             throw new TypeError(`Term's type doesn't match annotation`).wrap(
                 err,
@@ -574,7 +604,7 @@ export const resolveEffect = (
                 `Unknown effect hash ${hash} ${showLocation(location)}`,
             );
         }
-        const id = { hash: first, size: 1, pos: 0 };
+        const id = idFromName(first);
         return {
             type: 'ref',
             location,
@@ -599,11 +629,7 @@ export const resolveEffect = (
         type: 'ref',
         ref: {
             type: 'user',
-            id: {
-                hash: env.global.effectNames[text],
-                pos: 0,
-                size: 1,
-            },
+            id: idFromName(env.global.effectNames[text]),
         },
     };
 };
@@ -669,7 +695,7 @@ export const resolveIdentifier = (
 
         if (!env.global.terms[first]) {
             if (env.global.types[first]) {
-                const id = { hash: first, size: 1, pos: 0 };
+                const id = idFromName(first);
                 const t = env.global.types[idName(id)];
                 if (
                     t.type === 'Record' &&
@@ -682,7 +708,7 @@ export const resolveIdentifier = (
 
             throw new Error(`Unknown hash ${hash} ${showLocation(location)}`);
         }
-        const id = { hash: first, size: 1, pos: 0 };
+        const id = idFromName(first);
         const term = env.global.terms[first];
         return {
             type: 'ref',
@@ -704,16 +730,20 @@ export const resolveIdentifier = (
             is: type,
         };
     }
-    if (env.local.self && text === env.local.self.name) {
+    if (
+        env.local.self &&
+        env.local.self.type === 'Term' &&
+        text === env.local.self.name
+    ) {
         return {
             location,
             type: 'self',
-            is: env.local.self.type,
+            is: env.local.self.ann,
         };
     }
     if (env.global.names[text]) {
         const id = env.global.names[text];
-        const term = env.global.terms[id.hash];
+        const term = env.global.terms[idName(id)];
         // console.log(`${text} : its a global: ${showType(env, term.is)}`);
         return {
             type: 'ref',

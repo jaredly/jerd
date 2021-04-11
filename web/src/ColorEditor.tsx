@@ -35,7 +35,7 @@ import AutoresizeTextarea from 'react-textarea-autosize';
 import { UnresolvedIdentifier } from '@jerd/language/src/typing/errors';
 
 const topHash = (t: ToplevelT) =>
-    t.type === 'Expression' ? hashObject(t.term) : t.id.hash;
+    t.type === 'Expression' ? hashObject(t.term) : idName(t.id);
 
 export default ({
     env,
@@ -50,9 +50,9 @@ export default ({
             : printToString(toplevelToPretty(env, contents), 50);
     });
 
-    const ref = React.useRef(null);
+    const ref = React.useRef(null as null | HTMLDivElement);
 
-    const prevHash = React.useRef(null);
+    const prevHash = React.useRef(null as null | string);
 
     const [typed, err] = React.useMemo(() => {
         if (text.trim().length === 0) {
@@ -90,6 +90,9 @@ export default ({
     prevHash.current = typed != null ? topHash(typed) : null;
 
     React.useEffect(() => {
+        if (ref.current == null) {
+            return;
+        }
         if (typed != null) {
             ref.current.innerHTML = renderAttributedTextToHTML(
                 env.global,
@@ -139,7 +142,9 @@ export default ({
                               50,
                           ),
                       )}
-                {typed != null && typed.id != null ? (
+                {typed != null &&
+                typed.type !== 'Expression' &&
+                typed.id != null ? (
                     // @ts-ignore
                     <div style={styles.hash}>#{idName(typed.id)}</div>
                 ) : null}

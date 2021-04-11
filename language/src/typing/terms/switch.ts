@@ -137,6 +137,11 @@ export const exhaustivenessCheck = (
 
 export const typeSwitch = (env: Env, expr: Switch): Term => {
     const term = typeExpr(env, expr.expr);
+    // TODO: do I need this?
+    // const selfHash =
+    //     term.is.type === 'ref' && term.is.ref.type === 'user'
+    //         ? term.is.ref.id.hash
+    //         : undefined;
     const cases: Array<{ pattern: Pattern; body: Term }> = [];
     let is: Type | null = null;
     expr.cases.forEach((c) => {
@@ -146,7 +151,13 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
         if (is == null) {
             is = body.is;
         } else {
-            const err = getTypeError(env, body.is, is, c.body.location);
+            const err = getTypeError(
+                env,
+                body.is,
+                is,
+                c.body.location,
+                // selfHash,
+            );
             if (err != null) {
                 throw new LocatedError(
                     c.body.location,

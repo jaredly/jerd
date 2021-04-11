@@ -74,16 +74,7 @@ And then we just do aggressive inlining.
 `;
 
 export function presetEnv(builtins: { [key: string]: Type }) {
-    const env = newEnv({
-        name: 'self_unset',
-        type: {
-            type: 'ref',
-            ref: { type: 'builtin', name: 'never' },
-            location: null,
-            typeVbls: [],
-            effectVbls: [],
-        },
-    });
+    const env = newEnv(null);
     env.global.builtins = {
         ...env.global.builtins,
         ...builtins,

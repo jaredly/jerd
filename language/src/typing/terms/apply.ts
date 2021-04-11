@@ -9,9 +9,9 @@ import typeExpr, {
     applyTypeVariables,
     showLocation,
 } from '../typeExpr';
-import typeType, { newTypeVbl } from '../typeType';
+import typeType from '../typeType';
 import { getTypeError } from '../getTypeError';
-import { LocatedError, TypeMismatch } from '../errors';
+import { LocatedError } from '../errors';
 
 export const typeApply = (
     env: Env,
@@ -39,6 +39,7 @@ export const typeApply = (
             env,
             target.is,
             typeVbls,
+            '<self>',
         ) as LambdaType;
         // console.log(
         //     'Applying type variables',

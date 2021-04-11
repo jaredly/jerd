@@ -83,6 +83,7 @@ const subtEffectVars = (
 export const subtTypeVars = (
     t: Type,
     vbls: { [unique: number]: Type },
+    selfHash: string | undefined,
 ): Type => {
     return (
         walkType(t, (t) => {
@@ -93,10 +94,22 @@ export const subtTypeVars = (
                 return t;
             }
             if (t.type === 'ref') {
+                if (
+                    t.ref.type === 'user' &&
+                    t.ref.id.hash === '<self>' &&
+                    selfHash != null
+                ) {
+                    t = {
+                        ...t,
+                        ref: { ...t.ref, id: { ...t.ref.id, hash: selfHash } },
+                    };
+                }
                 if (t.typeVbls.length > 0) {
                     return {
                         ...t,
-                        typeVbls: t.typeVbls.map((t) => subtTypeVars(t, vbls)),
+                        typeVbls: t.typeVbls.map((t) =>
+                            subtTypeVars(t, vbls, selfHash),
+                        ),
                     };
                 }
                 if (t.ref.type === 'builtin') {
@@ -182,6 +195,7 @@ export const applyTypeVariablesToRecord = (
     type: RecordDef,
     vbls: Array<Type>,
     location: Location | null,
+    selfHash: string,
 ): RecordDef => {
     if (type.typeVbls.length !== vbls.length) {
         throw new Error(
@@ -194,7 +208,7 @@ export const applyTypeVariablesToRecord = (
     return {
         ...type,
         typeVbls: [],
-        items: type.items.map((t) => subtTypeVars(t, mapping)),
+        items: type.items.map((t) => subtTypeVars(t, mapping, selfHash)),
     };
 };
 
@@ -202,6 +216,7 @@ export const applyTypeVariables = (
     env: Env,
     type: Type,
     vbls: Array<Type>,
+    selfHash?: string,
 ): Type => {
     // console.log(
     //     `Applying ${showType(env, type)} with vbls ${vbls.map(showType).join(', ')}`,
@@ -231,10 +246,10 @@ export const applyTypeVariables = (
         return {
             ...type,
             typeVbls: [], // TODO allow partial application!
-            args: type.args.map((t) => subtTypeVars(t, mapping)),
+            args: type.args.map((t) => subtTypeVars(t, mapping, selfHash)),
             // TODO effects with type vars!
             rest: null, // TODO rest args
-            res: subtTypeVars(type.res, mapping),
+            res: subtTypeVars(type.res, mapping, selfHash),
         };
     }
     // should I go full-on whatsit? maybe not yet.
@@ -413,13 +428,13 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             if (!effid) {
                 throw new Error(`Unknown effect ${key}`);
             }
-            const eff = env.global.effects[effid.hash][effid.idx];
+            const eff = env.global.effects[effid.idName][effid.idx];
             if (eff.args.length !== expr.args.length) {
                 throw new Error(`Effect constructor wrong number of args`);
             }
             const ref: Reference = {
                 type: 'user',
-                id: { hash: effid.hash, size: 1, pos: 0 },
+                id: idFromName(effid.idName),
             };
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
@@ -570,21 +585,27 @@ export const typeFitsEnum = (
         );
     }
 
+    const selfHash =
+        enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined;
     const allReferences = getEnumReferences(env, enumRef);
 
     if (t.type === 'Enum') {
+        // The "found" type is an enum.
         const innerReferences = getEnumReferences(env, recordType);
         for (let ref of innerReferences) {
             let found = false;
+            const errs: Array<TypeError> = [];
             for (let outer of allReferences) {
                 const err = getTypeError(env, ref, outer, location);
                 if (err != null) {
+                    errs.push(err);
                     continue;
                 }
                 found = true;
                 break;
             }
             if (!found) {
+                errs.forEach((e) => console.log(e));
                 throw new Error(
                     `Enum ${showType(
                         env,
@@ -601,8 +622,10 @@ export const typeFitsEnum = (
         }
         return true;
     }
+    // Otherwise, the found type is a ref.
     for (let ref of allReferences) {
-        if (isRecord(recordType, ref.ref)) {
+        const err = getTypeError(env, recordType, ref, location);
+        if (err == null) {
             return true;
         }
     }
@@ -620,7 +643,12 @@ export const getEnumSuperTypes = (
     if (enumDef.type !== 'Enum') {
         throw new Error(`Not an enum, it's a record ${showType(env, enumRef)}`);
     }
-    enumDef = applyTypeVariablesToEnum(env, enumDef, enumRef.typeVbls);
+    enumDef = applyTypeVariablesToEnum(
+        env,
+        enumDef,
+        enumRef.typeVbls,
+        enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined,
+    );
     if (!enumDef.extends.length) {
         return enumDef.extends;
     }
@@ -640,7 +668,12 @@ export const getEnumReferences = (
     if (enumDef.type !== 'Enum') {
         throw new Error(`Not an enum, it's a record ${showType(env, enumRef)}`);
     }
-    enumDef = applyTypeVariablesToEnum(env, enumDef, enumRef.typeVbls);
+    enumDef = applyTypeVariablesToEnum(
+        env,
+        enumDef,
+        enumRef.typeVbls,
+        enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined,
+    );
     if (!enumDef.extends.length) {
         return enumDef.items;
     }
@@ -682,6 +715,7 @@ export const applyTypeVariablesToEnum = (
     env: Env,
     type: EnumDef,
     vbls: Array<Type>,
+    selfHash: string | undefined,
 ): EnumDef => {
     if (vbls.length === 0 && type.typeVbls.length === 0) {
         return type;
@@ -692,9 +726,11 @@ export const applyTypeVariablesToEnum = (
         type: 'Enum',
         typeVbls: [],
         effectVbls: [], // STOPSHIP effect vbls for enums
-        items: type.items.map((t) => subtTypeVars(t, mapping) as TypeReference),
+        items: type.items.map(
+            (t) => subtTypeVars(t, mapping, selfHash) as TypeReference,
+        ),
         extends: type.extends.map(
-            (t) => subtTypeVars(t, mapping) as TypeReference,
+            (t) => subtTypeVars(t, mapping, selfHash) as TypeReference,
         ),
         location: type.location,
     };

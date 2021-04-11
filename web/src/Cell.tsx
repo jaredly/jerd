@@ -364,20 +364,20 @@ const RenderResult = ({
     );
 };
 
-const enumContent = (env: Env, hash: string): Content => {
+const enumContent = (env: Env, rawId: string): Content => {
     return {
         type: 'enum',
-        id: { hash, size: 1, pos: 0 },
-        name: env.global.idNames[hash],
+        id: idFromName(rawId),
+        name: env.global.idNames[rawId],
     };
 };
 
-const recordContent = (env: Env, hash: string): Content => {
+const recordContent = (env: Env, rawId: string): Content => {
     return {
         type: 'record',
-        id: { hash, size: 1, pos: 0 },
-        name: env.global.idNames[hash],
-        attrs: env.global.recordGroups[hash],
+        id: idFromName(rawId),
+        name: env.global.idNames[rawId],
+        attrs: env.global.recordGroups[rawId],
     };
 };
 
@@ -481,7 +481,11 @@ const RenderItem = ({
                     onRun={onRun}
                 />
                 {showSource ? (
-                    <ViewSource hash={content.id.hash} env={env} term={term} />
+                    <ViewSource
+                        hash={idName(content.id)}
+                        env={env}
+                        term={term}
+                    />
                 ) : null}
             </div>
         );
@@ -507,8 +511,9 @@ const RenderItem = ({
                         printToAttributedText(
                             declarationToPretty(
                                 selfEnv(env, {
+                                    type: 'Term',
                                     name: content.name,
-                                    type: term.is,
+                                    ann: term.is,
                                 }),
                                 content.id,
                                 term,
@@ -538,7 +543,11 @@ const RenderItem = ({
                     onRun={onRun}
                 />
                 {showSource ? (
-                    <ViewSource hash={content.id.hash} env={env} term={term} />
+                    <ViewSource
+                        hash={idName(content.id)}
+                        env={env}
+                        term={term}
+                    />
                 ) : null}
             </div>
         );
@@ -594,8 +603,9 @@ const ViewSource = ({
     const source = React.useMemo(() => {
         return termToJS(
             selfEnv(env, {
+                type: 'Term',
                 name: hash,
-                type: term.is,
+                ann: term.is,
             }),
             term,
             idFromName(hash),

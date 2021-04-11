@@ -11,7 +11,8 @@ import {
     int,
     pureFunction,
 } from '@jerd/language/src/typing/preset';
-import { EvalEnv, Plugins, PluginT } from '../Cell';
+import { EvalEnv, Plugins, PluginT } from '../State';
+import { idFromName } from '@jerd/language/src/typing/env';
 
 // TODO: I should be able to generate these
 // automatically.
@@ -53,7 +54,7 @@ const refType = (hash: string, typeVbls: Array<Type> = []): TypeReference => ({
     typeVbls,
     ref: {
         type: 'user',
-        id: { hash, pos: 0, size: 1 },
+        id: idFromName(hash),
     },
 });
 
@@ -95,8 +96,8 @@ export const drawableToSvg = (d: Drawable, i?: number) => {
     }
 };
 
-const wrapWithExecutaionLimit = (evalEnv: EvalEnv, fn) => {
-    return (...args) => {
+const wrapWithExecutaionLimit = (evalEnv: EvalEnv, fn: any) => {
+    return (...args: any) => {
         const need = evalEnv.executionLimit.enabled === false;
         // STOPSHIP: Because we're doing this synchronously,
         // we should save the previous one (if enabled) and
@@ -130,7 +131,7 @@ const Animation = ({
 }) => {
     const [paused, setPaused] = React.useState(false);
     const [data, setData] = React.useState([]);
-    const [error, setError] = React.useState(null);
+    const [error, setError] = React.useState(null as any | null);
     const wrapped = React.useMemo(() => wrapWithExecutaionLimit(evalEnv, fn), [
         fn,
     ]);
@@ -138,7 +139,7 @@ const Animation = ({
     fc.current = wrapped;
     React.useEffect(() => {
         if (paused) {
-            return null;
+            return;
         }
         let tick = 0;
         const tid = setInterval(() => {
@@ -152,7 +153,7 @@ const Animation = ({
         }, 40);
         return () => clearInterval(tid);
     }, [paused]);
-    if (error) {
+    if (error != null) {
         return <div>{error.message}</div>;
     }
     return (

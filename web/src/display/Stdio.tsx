@@ -4,13 +4,16 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { void_ } from '@jerd/language/src/typing/preset';
-import { Plugins } from '../Cell';
+import { Plugins } from '../State';
 import { handleSimpleShallow2 } from '@jerd/language/src/printing/builtins';
+import { idFromName } from '@jerd/language/src/typing/env';
 
-const ChatBot = ({ fn }) => {
+type Output = { type: 'out'; text: string } | { type: 'in'; text: string };
+
+const ChatBot = ({ fn }: { fn: any }) => {
     const [state, setState] = React.useState({
-        output: [],
-        cont: null,
+        output: [] as Array<Output>,
+        cont: null as ((value: string) => void) | null,
         completed: false,
     });
     const [value, setValue] = React.useState('');
@@ -20,19 +23,19 @@ const ChatBot = ({ fn }) => {
             '7426668e',
             fn,
             [
-                (handlers, value, k) => {
+                (handlers, value: any, k) => {
                     setState((state) => ({
                         ...state,
                         cont: (readValue) =>
                             handleOnce(
-                                (handlers, done) =>
+                                (handlers: any, done: any) =>
                                     k(readValue, handlers, done),
                                 handlers,
                                 done,
                             ),
                     }));
                 },
-                (handlers, value, k) => {
+                (handlers, value: string, k) => {
                     setState((state) => ({
                         ...state,
                         output: state.output.concat([
@@ -40,7 +43,7 @@ const ChatBot = ({ fn }) => {
                         ]),
                     }));
                     handleOnce(
-                        (handlers, done) => k(null, handlers, done),
+                        (handlers: any, done: any) => k(null, handlers, done),
                         handlers,
                         done,
                     );
@@ -59,7 +62,7 @@ const ChatBot = ({ fn }) => {
             cont: null,
             completed: false,
         });
-        handleOnce(fn, null, (_, value) =>
+        handleOnce(fn, null, (_: any, value: any) =>
             setState((state) => ({ ...state, completed: true })),
         );
     }, [fn]);
@@ -106,7 +109,9 @@ const ChatBot = ({ fn }) => {
                                         },
                                     ]),
                                 }));
-                                state.cont(text);
+                                if (state.cont) {
+                                    state.cont(text);
+                                }
                             }
                         }}
                     />
@@ -132,7 +137,7 @@ const ChatBot = ({ fn }) => {
                             cont: null,
                             completed: false,
                         });
-                        handleOnce(fn, null, (_, value) =>
+                        handleOnce(fn, null, (_: any, value: any) =>
                             setState((state) => ({
                                 ...state,
                                 completed: true,
@@ -161,7 +166,7 @@ const plugins: Plugins = {
                     type: 'ref',
                     ref: {
                         type: 'user',
-                        id: { hash: '7426668e', size: 1, pos: 0 },
+                        id: idFromName('7426668e'),
                     },
                 },
             ],

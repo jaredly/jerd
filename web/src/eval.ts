@@ -10,7 +10,7 @@ import * as ir from '@jerd/language/src/printing/ir/term';
 import { getSortedTermDependencies } from '@jerd/language/src/typing/analyze';
 import generate from '@babel/generator';
 import { idFromName, idName } from '@jerd/language/src/typing/env';
-import { Env, Id, selfEnv, Term } from '@jerd/language/src/typing/types';
+import { Env, Id, Self, selfEnv, Term } from '@jerd/language/src/typing/types';
 import { termToTs } from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { EvalEnv } from './State';
 import {
@@ -101,7 +101,7 @@ export const runTerm = (env: Env, term: Term, id: Id, evalEnv: EvalEnv) => {
                 console.log('Evaluating dependency', dep);
             }
             const depTerm = idn === dep ? term : env.global.terms[dep];
-            const self = { name: dep, type: term.is };
+            const self: Self = { type: 'Term', name: dep, ann: term.is };
             const code = termToJS(
                 selfEnv(env, self),
                 depTerm,

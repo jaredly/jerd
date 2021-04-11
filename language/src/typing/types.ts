@@ -4,12 +4,12 @@ import { Expression, Identifier, Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
 import seedrandom from 'seedrandom';
-import { void_ } from './preset';
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
         ? two.type === 'builtin' && one.name === two.name
-        : two.type === 'user' && idsEqual(one.id, two.id);
+        : // STOPSHIP: substitute the selfHash if one of the ids is self.
+          two.type === 'user' && idsEqual(one.id, two.id);
 };
 
 export const isBuiltin = (one: Term, name: string) =>
@@ -55,7 +55,7 @@ export type GlobalEnv = {
     attributeNames: { [key: string]: { id: Id; idx: number } };
 
     effectNames: { [key: string]: string };
-    effectConstructors: { [key: string]: { hash: string; idx: number } };
+    effectConstructors: { [key: string]: { idName: string; idx: number } };
     effectConstrNames: { [idName: string]: Array<string> };
     effects: {
         [key: string]: Array<{
@@ -65,12 +65,23 @@ export type GlobalEnv = {
     };
 };
 
+export type Self =
+    | {
+          type: 'Term';
+          name: string;
+          ann: Type;
+      }
+    | {
+          type: 'Type';
+          name: string;
+          vbls: Array<TypeVblDecl>;
+      };
+
+// TBH I should have a completely different local env for
+// type checking (getTypeError) than I do for parsing.
 export type LocalEnv = {
     unique: number;
-    self: {
-        name: string;
-        type: Type;
-    };
+    self: Self | null;
     locals: { [key: string]: { sym: Symbol; type: Type } };
     localNames: { [name: string]: number };
     typeVbls: { [unique: number]: { subTypes: Array<Id> } }; // TODO: this will include kind or row constraint
@@ -85,10 +96,7 @@ export type LocalEnv = {
 
 export const defaultRng = (seed: string = 'seed') => seedrandom(seed);
 
-export const newEnv = (
-    self: { name: string; type: Type },
-    seed: string = 'seed',
-): Env => ({
+export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
     depth: 0,
     global: {
         rng: defaultRng(seed),
@@ -122,7 +130,7 @@ export const newEnv = (
 
 export const newLocal = (): LocalEnv => ({
     unique: 0,
-    self: { name: '_unset_self', type: void_ },
+    self: null,
     symMapping: {},
     effectVbls: {},
     locals: {},
@@ -157,13 +165,7 @@ export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
     };
 };
 
-export const selfEnv = (
-    env: Env,
-    self: {
-        name: string;
-        type: Type;
-    },
-): Env => {
+export const selfEnv = (env: Env, self: Self): Env => {
     return {
         ...env,
         local: {
@@ -639,7 +641,7 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
 
 const effectKey = (e: EffectRef) =>
     e.type === 'ref'
-        ? 'ref:' + (e.ref.type === 'builtin' ? e.ref.name : e.ref.id.hash)
+        ? 'ref:' + (e.ref.type === 'builtin' ? e.ref.name : idName(e.ref.id))
         : 'sym:' + e.sym.unique;
 
 // TODO: should I allow variables to be flexible here? idk

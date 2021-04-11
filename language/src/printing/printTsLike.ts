@@ -75,8 +75,9 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
                 selfEnv(
                     { ...env, global: glob },
                     {
+                        type: 'Term',
                         name: toplevel.name,
-                        type: toplevel.term.is,
+                        ann: toplevel.term.is,
                     },
                 ),
                 toplevel.id,
@@ -90,7 +91,14 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
             glob.idNames[idName(toplevel.id)] = toplevel.name;
             glob.recordGroups[idName(toplevel.id)] = toplevel.attrNames;
             return recordToPretty(
-                { ...env, global: glob },
+                {
+                    ...selfEnv(env, {
+                        type: 'Type',
+                        name: idName(toplevel.id),
+                        vbls: toplevel.def.typeVbls,
+                    }),
+                    global: glob,
+                },
                 toplevel.id,
                 toplevel.def,
             );
@@ -99,7 +107,14 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
             const glob = cloneGlobalEnv(env.global);
             glob.idNames[idName(toplevel.id)] = toplevel.name;
             return enumToPretty(
-                { ...env, global: glob },
+                {
+                    ...selfEnv(env, {
+                        type: 'Type',
+                        name: idName(toplevel.id),
+                        vbls: toplevel.def.typeVbls,
+                    }),
+                    global: glob,
+                },
                 toplevel.id,
                 toplevel.def,
             );
@@ -138,10 +153,14 @@ export const effectToPretty = (env: Env, id: Id, effect: EffectDef): PP => {
 };
 
 export const refToPretty = (env: Env, ref: Reference, kind: string) =>
-    ref.type === 'builtin' ? atom(ref.name) : idToPretty(env, ref.id, kind);
+    ref.type === 'user' && ref.id.hash === '<self>' && env.local.self
+        ? idPretty('self', 'self', kind)
+        : ref.type === 'builtin'
+        ? atom(ref.name)
+        : idToPretty(env, ref.id, kind);
 export const idToPretty = (env: Env, id: Id, kind: string) => {
     const name = env.global.idNames[idName(id)];
-    const hash = id.hash + (id.pos !== 0 ? '#' + id.pos : '');
+    const hash = id.hash + (id.pos !== 0 ? '_' + id.pos : '');
     return idPretty(name ? name : 'unnamed', hash, kind);
 };
 export const symToPretty = (sym: Symbol) =>
@@ -378,7 +397,13 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 termToPretty(env, term.body),
             ]);
         case 'self':
-            return atom(env.local.self.name);
+            if (env.local.self && env.local.self.type === 'Term') {
+                return atom(env.local.self.name);
+            } else {
+                throw new Error(
+                    `Self reference, without a self defined on env`,
+                );
+            }
         case 'sequence':
             return block(term.sts.map((t) => termToPretty(env, t)));
         case 'apply':

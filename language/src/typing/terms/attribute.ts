@@ -89,6 +89,7 @@ export const typeAttribute = (
             t,
             target.is.typeVbls,
             target.is.location,
+            ref.id.hash,
         );
     }
     if (t.type !== 'Record') {

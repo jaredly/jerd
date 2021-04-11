@@ -648,7 +648,7 @@ const patternToGo = (param: any) => {
 //     return [atom('// Ok folks')];
 // };
 
-export const attributeId = (id: Id, idx: number) => `H${id.hash}_${idx}`;
+export const attributeId = (id: Id, idx: number) => `H${idName(id)}_${idx}`;
 
 export const recordTypeToInterface = (
     env: Env,

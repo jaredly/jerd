@@ -8,6 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import {
     hashObject,
+    idFromName,
     idName,
     typeEnumInner,
     typeRecordDefn,
@@ -28,6 +29,7 @@ import {
     Env,
     Id,
     newWithGlobal,
+    Self,
     Term,
     Type,
     TypeConstraint,
@@ -127,14 +129,15 @@ const testInference = (
                 local: { ...env.local, tmpTypeVbls },
             };
             // TODO only do it
-            const self = {
+            const self: Self = {
+                type: 'Term',
                 name: item.id.text,
-                type: newTypeVbl(subEnv),
+                ann: newTypeVbl(subEnv),
                 // type: item.ann ? typeType(env, item.ann) : newTypeVbl(subEnv),
             };
             subEnv.local.self = self;
             const term = typeExpr(subEnv, item.expr);
-            const err = getTypeError(subEnv, term.is, self.type, item.location);
+            const err = getTypeError(subEnv, term.is, self.ann, item.location);
             if (err != null) {
                 throw new TypeError(
                     `Term's type doesn't match annotation`,
@@ -395,13 +398,14 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
 
     // Test reprint
     for (let id of Object.keys(env.global.terms)) {
-        const tenv = {
+        const tenv: Env = {
             ...env,
             local: {
                 ...env.local,
                 self: {
+                    type: 'Term',
                     name: env.global.idNames[id],
-                    type: env.global.terms[id].is,
+                    ann: env.global.terms[id].is,
                 },
             },
         };
@@ -411,7 +415,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
                 raw,
                 {
                     type: 'Define',
-                    id: { hash: id, size: 1, pos: 0 },
+                    id: idFromName(id),
                     term: env.global.terms[id],
                     location: env.global.terms[id].location!,
                     name: env.global.idNames[id],
@@ -433,7 +437,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
         }
         let top: ToplevelT;
         if (t.type === 'Record') {
-            const id = { hash: tid, size: 1, pos: 0 };
+            const id = idFromName(tid);
             top = {
                 type: 'RecordDef',
                 id: id,
@@ -443,7 +447,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
                 attrNames: env.global.recordGroups[idName(id)],
             };
         } else {
-            const id = { hash: tid, size: 1, pos: 0 };
+            const id = idFromName(tid);
             top = {
                 type: 'EnumDef',
                 id,
