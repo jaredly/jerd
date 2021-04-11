@@ -140,12 +140,13 @@ export const typeToplevelT = (
 };
 
 export const typeEffectInner = (env: Env, item: Effect): EffectDef => {
+    const innerEnv = selfEnv(env, {type: 'Effect', name: item.id.text, vbls: []})
     const defn: EffectDef = {
         type: 'EffectDef',
         constrs: item.constrs.map(({ type }) => {
             return {
-                args: type.args ? type.args.map((a) => typeType(env, a)) : [],
-                ret: typeType(env, type.res),
+                args: type.args ? type.args.map((a) => typeType(innerEnv, a)) : [],
+                ret: typeType(innerEnv, type.res),
             };
         }),
         location: item.location,
@@ -613,6 +614,17 @@ export const resolveEffect = (
                 id,
             },
         };
+    }
+
+    if (env.local.self && env.local.self.type === 'Effect' && env.local.self.name === text) {
+        return {
+            type: 'ref',
+            location,
+            ref: {
+                type: 'user',
+                id: {hash: '<self>', pos: 0, size: 1},
+            }
+        }
     }
 
     // TODO abstract this into "resolveEffect" probably

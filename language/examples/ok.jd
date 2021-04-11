@@ -61,3 +61,15 @@ linkedLength<int>(listToLinked<int>([3,4,5])) == 3
 //     String#54e44b4c,
 //     T#:0,
 // }
+
+effect Timer {
+    setTimeout: (() ={Timer}> void, int) => void,
+}
+
+// TODO try using it
+const setTimeout = (fn: () ={Timer}> void, num: int) => raise!(Timer.setTimeout(fn, num))
+
+setTimeout(() => setTimeout(() => {
+log("Hello folks")
+}, 100), 50)
+
