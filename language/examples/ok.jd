@@ -42,7 +42,6 @@ const listToLinked: <T,>(Array<T>) => LinkedList<T>
 const linkedLength: <T>(LinkedList<T>) => int = <T,>(list: LinkedList<T>) => {
     switch list {
         Nil => 0,
-        // OH NOES, `rest` is typed "self", not the actual type.
         Cons{rest} => 1 + linkedLength<T>(rest)
     }
 }
@@ -51,7 +50,6 @@ const linkedLength: <T>(LinkedList<T>) => int = <T,>(list: LinkedList<T>) => {
 <T,>(list: LinkedList<T>) => {
     switch list {
         Nil => 0,
-        // OH NOES, `rest` is typed "self", not the actual type.
         Cons{rest} => 1 + rest
     }
 }

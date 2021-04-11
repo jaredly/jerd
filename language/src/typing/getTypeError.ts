@@ -20,19 +20,14 @@ import {
     TypeVar,
 } from './types';
 
-export const isType = (
-    env: Env,
-    found: Type,
-    expected: Type,
-    selfHash?: string,
-) => getTypeError(env, found, expected, nullLocation, selfHash) == null;
+export const isType = (env: Env, found: Type, expected: Type) =>
+    getTypeError(env, found, expected, nullLocation) == null;
 
 export const getTypeError = (
     env: Env,
     found: Type,
     expected: Type,
     location: Location,
-    selfHash?: string,
 ): TypeError | null => {
     if (found.type !== expected.type) {
         return new TypeMismatch(env, found, expected, location);
@@ -53,7 +48,7 @@ export const getTypeError = (
         // or a defn
         // we need to swap them out.
         // oh yeah that's the good stuff.
-        if (!refsEqual(found.ref, e.ref, selfHash)) {
+        if (!refsEqual(found.ref, e.ref)) {
             return new RefMismatch(env, found.ref, e.ref, location);
         }
         if (found.typeVbls.length !== e.typeVbls.length) {
@@ -68,7 +63,6 @@ export const getTypeError = (
                 found.typeVbls[i],
                 e.typeVbls[i],
                 location,
-                selfHash,
             );
             // TODO: do this better
             if (err !== null) {
@@ -96,13 +90,7 @@ export const getTypeError = (
             ).wrapped(new TypeMismatch(env, found, expected, location));
         }
         for (let i = 0; i < found.args.length; i++) {
-            const err = getTypeError(
-                env,
-                found.args[i],
-                e.args[i],
-                location,
-                selfHash,
-            );
+            const err = getTypeError(env, found.args[i], e.args[i], location);
             if (err !== null) {
                 return err.wrapped(new MismatchedArgument(i, found, e));
             }
@@ -128,7 +116,7 @@ export const getTypeError = (
                 location,
             ).wrapped(new TypeMismatch(env, found, expected, location));
         }
-        const res = getTypeError(env, found.res, e.res, location, selfHash);
+        const res = getTypeError(env, found.res, e.res, location);
         if (res != null) {
             return res.wrapped(new TypeMismatch(env, found, e, location));
         }

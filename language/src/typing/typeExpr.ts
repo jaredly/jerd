@@ -596,7 +596,7 @@ export const typeFitsEnum = (
             let found = false;
             const errs: Array<TypeError> = [];
             for (let outer of allReferences) {
-                const err = getTypeError(env, ref, outer, location, selfHash);
+                const err = getTypeError(env, ref, outer, location);
                 if (err != null) {
                     errs.push(err);
                     continue;
@@ -624,7 +624,7 @@ export const typeFitsEnum = (
     }
     // Otherwise, the found type is a ref.
     for (let ref of allReferences) {
-        const err = getTypeError(env, recordType, ref, location, selfHash);
+        const err = getTypeError(env, recordType, ref, location);
         if (err == null) {
             return true;
         }
