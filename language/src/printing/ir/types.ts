@@ -106,7 +106,7 @@ export const typeForExpr = (env: Env, expr: Expr): Type => {
         case 'term':
             return env.global.terms[idName(expr.id)].is;
         case 'var':
-            return expr.is;
+            return void_; // STOPSHIP
         case 'slice':
             return typeForExpr(env, expr.value);
         case 'tuple':
@@ -173,7 +173,8 @@ export const typeForExpr = (env: Env, expr: Expr): Type => {
             return builtinType('effectfulOrDirect', []);
         case 'lambda':
             // hrmmmm yes
-            return expr.args; // hrmmmmmm yes I think we want the full ref type?
+            return void_; // STOPSHIP
+        // return expr.args; // hrmmmmmm yes I think we want the full ref type?
         // hm ok
         default:
             let _x: never = expr;

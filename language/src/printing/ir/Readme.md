@@ -35,10 +35,18 @@ hrmmmmm
 
 would definitely be worth looking at roc's IR (mono/src/ir)
 
+OH
+but
+hm
+does
+_handle_
+change.
+like, the definition of handleSimple2 or whatever it is.
 
+can it handle that? (the monomorphizing of handlers)
 
+ok yeah 
 
-
-
+I definitely need to try setting that up, before I go down the "typed IR" road, or any other roads here.
 
 
