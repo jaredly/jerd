@@ -1,7 +1,7 @@
 // Ok
 
 import * as t from '@babel/types';
-import { sortTerms } from '../typing/analyze';
+import { expressionDeps, sortTerms } from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
 import { binOps, bool } from '../typing/preset';
 import {
@@ -585,7 +585,7 @@ export const fileToTypescript = (
 ) => {
     const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
 
-    const orderedTerms = sortTerms(env, Object.keys(env.global.terms));
+    const orderedTerms = expressionDeps(env, expressions);
 
     orderedTerms.forEach((idRaw) => {
         const term = env.global.terms[idRaw];

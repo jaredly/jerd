@@ -70,6 +70,22 @@ export const getUserDependencies = (term: Term): Array<Id> => {
     ) as Array<UserReference>).map((r) => r.id);
 };
 
+export const expressionDeps = (env: Env, terms: Array<Term>) => {
+    const allDeps: { [key: string]: Array<Id> } = {};
+    terms.forEach((term) =>
+        getUserDependencies(term).forEach((id) =>
+            populateDependencyMap(
+                env,
+                allDeps,
+                env.global.terms[idName(id)],
+                id,
+            ),
+        ),
+    );
+
+    return sortAllDeps(allDeps);
+};
+
 export const sortTerms = (env: Env, terms: Array<string>) => {
     const allDeps: { [key: string]: Array<Id> } = {};
     terms.forEach((id) =>

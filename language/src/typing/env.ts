@@ -623,7 +623,7 @@ export const resolveEffect = (
         };
     }
     if (!env.global.effectNames[text]) {
-        throw new Error(`No effect named ${text}`);
+        throw new LocatedError(location, `No effect named ${text}`);
     }
     return {
         type: 'ref',

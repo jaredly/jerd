@@ -1,4 +1,44 @@
 
+
+
+effect Read {
+    read: () => string,
+}
+
+effect Write {
+    write: (string) => void,
+}
+
+const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {
+    handle! fn {
+        Write.write((x) => k) => {
+            log(x);
+            // Ooohhh hm interesting.
+            // yeahhh the type of k needs to reproduce the other things in fn.
+            // looks like it's not doing that yet.
+            // STOPSHIP:BUG
+            logWrite{e}(() ={Write, e}> k())
+        },
+        pure(k) => k
+    }
+}
+
+logWrite{}(() => raise!(Write.write("Hello")))
+
+const respondWith: {e}(string, () ={Read, e}> void) ={e}> void = {e}(v: string, fn: () ={Read, e}> void) => {
+    handle! fn {
+        Read.read(() => k) => respondWith(v, () ={Read, e}> k(v)),
+        pure(x) => x,
+    }
+}
+
+respondWith{}("Hello", () => logWrite{Read}(() => raise!(Write.write("Yes " ++ raise!(Read.read())))))
+
+
+
+
+
+/*
 type Some<T> = {
     value: T
 }
@@ -61,3 +101,5 @@ linkedLength<int>(listToLinked<int>([3,4,5])) == 3
 //     String#54e44b4c,
 //     T#:0,
 // }
+
+*/

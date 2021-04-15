@@ -1,5 +1,66 @@
 // IMPORTANT: This must be kept in sync with builtins.ts.txt
 
+// These are the new multi method
+
+export const raiseMulti = (
+    handler: HandlerMulti,
+    // hash: string,
+    idx: number,
+    args: any,
+    done: (handler: HandlerMulti, result: any) => void,
+): void => {
+    handler(idx, args, done);
+};
+
+type HandlerMulti = ShallowHandlerMulti<any, any>;
+
+type ShallowHandlerMulti<Get, Set> = (
+    idx: number,
+    args: Set,
+    returnIntoFn: (newHandler: HandlerMulti, value: Get) => void,
+) => void;
+
+export const handleSimpleShallow2Multi = <Get, Set, R>(
+    fn: (
+        handler: HandlerMulti,
+        cb: (handler: HandlerMulti, fnReturnValue: R) => void,
+    ) => void,
+    handleEffect: Array<
+        (
+            value: Set,
+            cb: (
+                gotten: Get,
+                newHandler: HandlerMulti,
+                returnIntoHandler: (fnReturnValue: R) => void,
+            ) => void,
+        ) => void
+    >,
+    handlePure: (handlers: any, fnReturnValue: R) => void,
+) => {
+    let fnsReturnPointer = handlePure;
+    const thisHandler: HandlerMulti = (idx, args, returnIntoFn) => {
+        handleEffect[idx](
+            args,
+            (handlersValueToSend, newHandler, returnIntoHandler) => {
+                if (returnIntoHandler === undefined) {
+                    /// @ts-ignore
+                    returnIntoHandler = newHandler;
+                    /// @ts-ignore
+                    newHandler = handlersValueToSend;
+                    /// @ts-ignore
+                    handlersValueToSend = null;
+                }
+                fnsReturnPointer = returnIntoHandler;
+
+                returnIntoFn(newHandler, handlersValueToSend);
+            },
+        );
+    };
+    fn(thisHandler, (handler, fnsReturnValue) => {
+        fnsReturnPointer(handler, fnsReturnValue);
+    });
+};
+
 export const raise = (
     handlers: Array<Handler>,
     hash: string,
