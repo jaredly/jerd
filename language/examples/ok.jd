@@ -27,12 +27,15 @@ logWrite{}(() => raise!(Write.write("Hello")))
 
 const respondWith: {e}(string, () ={Read, e}> void) ={e}> void = {e}(v: string, fn: () ={Read, e}> void) => {
     handle! fn {
-        Read.read(() => k) => respondWith(v, () ={Read, e}> k(v)),
+        Read.read(() => k) => respondWith{e}(v, () ={Read, e}> k(v)),
         pure(x) => x,
     }
 }
 
-respondWith{}("Hello", () => logWrite{Read}(() => raise!(Write.write("Yes " ++ raise!(Read.read())))))
+respondWith{}("Hello", () => logWrite{Read}(() => {
+    const v = "Yes " ++ raise!(Read.read());
+    raise!(Write.write(v))
+}))
 
 
 
