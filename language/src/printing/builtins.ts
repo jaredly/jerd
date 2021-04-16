@@ -62,25 +62,28 @@ type ShallowHandlerMulti<Get, Set> = (
 //     done(k$2);
 // });
 
-// Yeah this might be ~all we need, for handleSimpleShallow
-// so not even an external function. That would be quite clean.
-const ok = () => {
-    const done = (_) => {}; // got from somewhere
-    let handleFinish = done; // the pure case
-    // the function
-    fn(
-        // the handler. Is not called with any handlers, doesn't need them
-        // but it does have types!
-        (x: number, k: (a: any) => void) => {
-            log(x);
-            hash_75b7e6d0.effectful((handler, done$2) => {
-                handleFinish = done$2;
-                k(handler);
-            }, done);
-        },
-        (returnValue) => handleFinish(returnValue),
-    );
-};
+// THOUGHT: maybe even do one argument per effect sub-item?
+// so that we could do argument elimination?
+
+// // Yeah this might be ~all we need, for handleSimpleShallow
+// // so not even an external function. That would be quite clean.
+// const ok = () => {
+//     const done = (_) => {}; // got from somewhere
+//     let handleFinish = done; // the pure case
+//     // the function
+//     fn(
+//         // the handler. Is not called with any handlers, doesn't need them
+//         // but it does have types!
+//         (x: number, k: (a: any) => void) => {
+//             log(x);
+//             hash_75b7e6d0.effectful((handler, done$2) => {
+//                 handleFinish = done$2;
+//                 k(handler);
+//             }, done);
+//         },
+//         (returnValue) => handleFinish(returnValue),
+//     );
+// };
 
 export const handleSimpleShallow2Multi3 = <Get, Set, R>(
     fn: (

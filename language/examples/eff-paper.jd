@@ -206,30 +206,51 @@ const handleFail = <T,>{e}(fn: () ={e, Fail}> T, orElse: () ={e}> T) ={e}> handl
 // }
 
 
-const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
+const backtrack: <T,>(() ={Decide, Fail}> T, T) ={Fail}> T = <T,>(
+    fn: () ={Decide, Fail}> T,
+    default: T,
+): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrack(() ={Decide, Fail}> handleFail{Decide}(() ={Decide, Fail}> k(true), () => k(false)))
+            backtrack(() ={Decide, Fail}> handleFail{Decide}(
+                () ={Decide, Fail}> k(true),
+                () ={Decide}> handleFail{Decide}(
+                    () => k(false),
+                    () ={Decide}> default,
+                )
+            ), default)
         },
         pure(x) => x
     }
 }
 
-const backtrackReverse: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
+const backtrackReverse: <T,>(() ={Decide, Fail}> T, T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T, default: T): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrackReverse(() ={Decide, Fail}> handleFail{Decide}(() ={Decide, Fail}> k(false), () => k(true)))
+            backtrackReverse(() ={Decide, Fail}> handleFail{Decide}(
+                () ={Decide, Fail}> k(false),
+                () ={Decide}> handleFail{Decide}(
+                    () => k(true),
+                    () ={Decide}> default,
+                )
+            ), default)
         },
         pure(x) => x
     }
 }
 
-const backtrackPythag = (m: int, n: int) => handleFail<string>{}(() => backtrack<string>(() => pythagorean(m, n)), () => "No solution found")
+const backtrackPythag = (m: int, n: int) => handleFail<string>{}(
+    () => backtrack<string>(
+        () => pythagorean(m, n),
+        "no solution",
+    ),
+    () => "No solution found",
+)
 
 backtrackPythag(4, 15) == "5:12"
 backtrackPythag(7, 10) == "No solution found"
 
-const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(() => backtrackReverse<string>(() => pythagorean(m, n)), () => "No solution found")
+const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(() => backtrackReverse<string>(() => pythagorean(m, n), "nope"), () => "No solution found")
 backtrackPythagReverse(4, 15) == "9:12"
 10
 

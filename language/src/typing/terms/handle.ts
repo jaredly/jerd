@@ -32,10 +32,11 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         type: 'user',
         id: idFromName(effId),
     };
-    const effects = getEffects(target).filter(
-        (e) => e.type !== 'ref' || !refsEqual(effect, e.ref),
-    );
-    const otherEffects = effects.concat({ type: 'ref', ref: effect });
+    // const remainingEffects = getEffects(target).filter(
+    //     (e) => e.type !== 'ref' || !refsEqual(effect, e.ref),
+    // );
+    // const kEffects = getEffects(target);
+    // remainingEffects.concat({ type: 'ref', ref: effect });
 
     if (target.is.type !== 'lambda') {
         throw new Error(`Target of a handle must be a lambda`);
@@ -44,6 +45,7 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         throw new Error(`Target of a handle must take 0 args`);
     }
     const targetReturn = target.is.res;
+    const kEffects = target.is.effects;
 
     // but then, effects found in the bodies also get added.
     // so we'll need some deduping
@@ -68,7 +70,7 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
             typeVbls: [],
             effectVbls: [],
             args: isVoid(constr.ret) ? [] : [constr.ret],
-            effects: otherEffects,
+            effects: kEffects,
             rest: null,
             res: targetReturn,
         });
