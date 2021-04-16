@@ -33,9 +33,14 @@ doSomething(1, 2, handleA, handleB, (handleA, handleB, x) => {
 
 but what if
 
+hm
+ok
+so
 
+ok, so I don't have a ton of visibility into this system
+which is frustrating
 
-
+I'd love to have fixture tests or something.
 
 
 

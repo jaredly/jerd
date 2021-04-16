@@ -226,6 +226,18 @@ okk, so:
 
 
 
+
+OK SO THE NEW PLAN
+OF WHAT TO DO
+For every function call
+that is effectful
+
+initial arguments
+helloThings(10, 20, 30, handleOne, handleTwo, done)
+
+
+
+
 -->
 
 
