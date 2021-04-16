@@ -1,6 +1,7 @@
 // Ok
 
 import * as t from '@babel/types';
+import { nullLocation } from '../parsing/parser';
 import { expressionDeps, sortTerms } from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
 import { binOps, bool } from '../typing/preset';
@@ -38,7 +39,7 @@ const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursive
 function withLocation<
     T extends { start: number | null; end: number | null; loc: any }
 >(v: T, loc: Loc): T {
-    if (loc == null) {
+    if (loc == null || loc === nullLocation) {
         return v;
     }
     v.start = loc.start.offset;

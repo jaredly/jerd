@@ -44,4 +44,8 @@ I'd love to have fixture tests or something.
 
 
 
+ok, but so with this new handlers transform
+can I actually stay within the Terms fully typed world?
+that might be interesting.
+
 */

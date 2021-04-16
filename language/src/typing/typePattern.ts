@@ -401,7 +401,7 @@ const typePattern = (
     }
 };
 
-export const refName = (ref: Reference) =>
-    ref.type === 'builtin' ? 'builtin:' + ref.name : 'user:' + idName(ref.id);
+// const refName = (ref: Reference) =>
+//     ref.type === 'builtin' ? 'builtin:' + ref.name : 'user:' + idName(ref.id);
 
 export default typePattern;

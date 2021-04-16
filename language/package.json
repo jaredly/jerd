@@ -14,6 +14,7 @@
         "test": "node --enable-source-maps main.js --assert examples --run",
         "test-one": "node --enable-source-maps main.js --assert --run",
         "watch-one": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert --run --cache",
+        "start": "yarn watch",
         "watch": "esbuild --sourcemap --bundle --loader:.jd=text src/main.ts --platform=node --watch --outfile=main.js",
         "sn": "jest -u"
     },

@@ -8,6 +8,7 @@ import {
     Lambda,
     LambdaType,
     walkTerm,
+    EffectReference,
 } from '../../typing/types';
 import { builtinType, pureFunction, void_ } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
@@ -21,11 +22,14 @@ import {
     LambdaExpr,
     OutputOptions,
     callExpression,
+    Arg,
 } from './types';
 
 import { termToAstCPS } from './cps';
 import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
+import { idName, refName } from '../../typing/env';
+import { nullLocation } from '../../parsing/parser';
 
 export const printLambda = (
     env: Env,
@@ -50,7 +54,13 @@ export const printLambda = (
                     withExecutionLimit(
                         env,
                         opts,
-                        printLambdaBody(env, opts, directVersion.body, null),
+                        printLambdaBody(
+                            env,
+                            opts,
+                            directVersion.body,
+                            {},
+                            null,
+                        ),
                     ),
                     directVersion.is.res,
                     term.location,
@@ -68,7 +78,7 @@ export const printLambda = (
             withExecutionLimit(
                 env,
                 opts,
-                printLambdaBody(env, opts, term.body, null),
+                printLambdaBody(env, opts, term.body, {}, null),
             ),
             term.is.res,
             term.location,
@@ -132,6 +142,18 @@ const withNoEffects = (env: Env, term: Lambda): Lambda => {
     return { ...term, is };
 };
 
+const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+export const sortedExplicitEffects = (
+    effects: Array<EffectRef>,
+): Array<EffectReference> => {
+    return (effects.filter(
+        (e) => e.type === 'ref',
+    ) as Array<EffectReference>).sort((a, b) =>
+        cmp(refName(a.ref), refName(b.ref)),
+    );
+};
+
 const effectfulLambda = (
     env: Env,
     opts: OutputOptions,
@@ -148,21 +170,36 @@ const effectfulLambda = (
         location: null,
         res: void_,
     };
+    const effectHandlers: { [key: string]: Expr } = {};
+    const syms = sortedExplicitEffects(term.is.effects)
+        .map((eff) => {
+            const sym: Symbol = {
+                name: 'eff' + refName(eff.ref),
+                unique: env.local.unique++,
+            };
+            effectHandlers[refName(eff.ref)] = {
+                type: 'var',
+                sym,
+                loc: nullLocation,
+            };
+            return { sym, type: pureFunction([], void_), loc: null };
+        })
+        .filter(Boolean) as Array<Arg>;
     return arrowFunctionExpression(
         term.args
-            .map((sym, i) => ({
-                sym,
-                type: term.is.args[i],
-                loc: null,
-            }))
-            .concat([
-                { type: builtinType('handlers'), sym: handlerSym, loc: null },
-                { sym: done, type: doneT, loc: null },
-            ]),
+            .map(
+                (sym, i) =>
+                    ({
+                        sym,
+                        type: term.is.args[i],
+                        loc: null,
+                    } as Arg),
+            )
+            .concat([...syms, { sym: done, type: doneT, loc: null }]),
         withExecutionLimit(
             env,
             opts,
-            printLambdaBody(env, opts, term.body, {
+            printLambdaBody(env, opts, term.body, effectHandlers, {
                 type: 'var',
                 sym: done,
                 loc: null,
@@ -178,6 +215,7 @@ export const printLambdaBody = (
     env: Env,
     opts: OutputOptions,
     term: Term,
+    effectHandlers: { [id: string]: Expr },
     cps: null | Expr,
 ): Block | Expr => {
     if (cps == null) {
@@ -247,6 +285,7 @@ export const printLambdaBody = (
                                         env,
                                         opts,
                                         term.sts[i],
+                                        effectHandlers,
                                         inner,
                                     ),
                                     loc: term.sts[i].location,
@@ -257,7 +296,13 @@ export const printLambdaBody = (
                         loc: term.sts[i].location,
                     };
                 } else {
-                    inner = termToAstCPS(env, opts, term.sts[i], inner);
+                    inner = termToAstCPS(
+                        env,
+                        opts,
+                        term.sts[i],
+                        effectHandlers,
+                        inner,
+                    );
                 }
             }
             return {
@@ -273,7 +318,13 @@ export const printLambdaBody = (
                 items: [
                     {
                         type: 'Expression',
-                        expr: termToAstCPS(env, opts, term, cps),
+                        expr: termToAstCPS(
+                            env,
+                            opts,
+                            term,
+                            effectHandlers,
+                            cps,
+                        ),
                         loc: term.location,
                     },
                 ],

@@ -201,8 +201,9 @@ export type Case = {
     body: Term;
 };
 
+export type EffectReference = { type: 'ref'; ref: Reference; location?: null | Location }
 export type EffectRef =
-    | { type: 'ref'; ref: Reference; location?: null | Location }
+    | EffectReference
     | { type: 'var'; sym: Symbol; location?: null | Location }; // TODO var, also args
 
 export type CPSAble =

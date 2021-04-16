@@ -117,15 +117,17 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             // ughhhhhhhh I think my denormalization is biting me here.
             if (getEffects(term).length > 0) {
-                throw new Error(
-                    `This apply has effects, but isn't in a CPS context. Effects: ${getEffects(
-                        term,
-                    )
-                        .map(showEffectRef)
-                        .join(', ')} : Target: ${showType(
-                        env,
-                        term.target.is,
-                    )}`,
+                console.error(
+                    new Error(
+                        `This apply has effects, but isn't in a CPS context. Effects: ${getEffects(
+                            term,
+                        )
+                            .map(showEffectRef)
+                            .join(', ')} : Target: ${showType(
+                            env,
+                            term.target.is,
+                        )}`,
+                    ),
                 );
             }
 
@@ -213,6 +215,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                                             env,
                                                             opts,
                                                             term.pure.body,
+                                                            {},
                                                             null,
                                                         ),
                                                     ),
@@ -239,6 +242,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                                             env,
                                                             opts,
                                                             kase.body,
+                                                            {},
                                                             null,
                                                         ),
                                                     ),

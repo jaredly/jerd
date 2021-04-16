@@ -19,9 +19,8 @@ import typeExpr, {
     showLocation,
 } from '../typeExpr';
 import { getTypeError } from '../getTypeError';
-import { idFromName, idName, resolveIdentifier } from '../env';
+import { idFromName, idName, refName, resolveIdentifier } from '../env';
 import { LocatedError, UnresolvedIdentifier } from '../errors';
-import { refName } from '../typePattern';
 
 const findOp = (
     env: Env,

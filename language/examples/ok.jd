@@ -9,6 +9,11 @@ effect Write {
     write: (string) => void,
 }
 
+const getString = () ={Read}> raise!(Read.read())
+
+(a: int, b: string) ={Read, Write}> b + getString()
+
+/*
 const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {
     handle! fn {
         Write.write((x) => k) => {
@@ -32,6 +37,7 @@ respondWith{}("Hello", () => logWrite{Read}(() => {
     const v = "Yes " ++ raise!(Read.read());
     raise!(Write.write(v))
 }))
+*/
 
 
 
