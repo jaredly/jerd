@@ -187,6 +187,7 @@ const pythagorean = (m: int, n: int) ={Decide, Fail}> {
     const b = chooseInt(a + 1, n);
     const a2 = a * a;
     const b2 = b * b;
+    log("a " + a2 as string + " b " + b2 as string);
     if isSquare(a2 + b2) {
         intToString(a) ++ ":" ++ intToString(b)
     } else {
@@ -206,34 +207,27 @@ const handleFail = <T,>{e}(fn: () ={e, Fail}> T, orElse: () ={e}> T) ={e}> handl
 // }
 
 
-const backtrack: <T,>(() ={Decide, Fail}> T, T) ={Fail}> T = <T,>(
+const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(
     fn: () ={Decide, Fail}> T,
-    default: T,
 ): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrack(() ={Decide, Fail}> handleFail{Decide}(
+            backtrack(() ={Decide, Fail}> handleFail{Decide, Fail}(
                 () ={Decide, Fail}> k(true),
-                () ={Decide}> handleFail{Decide}(
-                    () => k(false),
-                    () ={Decide}> default,
-                )
-            ), default)
+                () ={Decide, Fail}> k(false),
+            ))
         },
         pure(x) => x
     }
 }
 
-const backtrackReverse: <T,>(() ={Decide, Fail}> T, T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T, default: T): T ={Fail}> {
+const backtrackReverse: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrackReverse(() ={Decide, Fail}> handleFail{Decide}(
+            backtrackReverse(() ={Decide, Fail}> handleFail{Decide, Fail}(
                 () ={Decide, Fail}> k(false),
-                () ={Decide}> handleFail{Decide}(
-                    () => k(true),
-                    () ={Decide}> default,
-                )
-            ), default)
+                () ={Decide, Fail}> k(true),
+            ))
         },
         pure(x) => x
     }
@@ -242,7 +236,6 @@ const backtrackReverse: <T,>(() ={Decide, Fail}> T, T) ={Fail}> T = <T,>(fn: () 
 const backtrackPythag = (m: int, n: int) => handleFail<string>{}(
     () => backtrack<string>(
         () => pythagorean(m, n),
-        "no solution",
     ),
     () => "No solution found",
 )
@@ -251,7 +244,7 @@ const backtrackPythag = (m: int, n: int) => handleFail<string>{}(
 backtrackPythag(4, 15) == "5:12"
 backtrackPythag(7, 10) == "No solution found"
 
-const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(() => backtrackReverse<string>(() => pythagorean(m, n), "nope"), () => "No solution found")
+const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(() => backtrackReverse<string>(() => pythagorean(m, n)), () => "No solution found")
 backtrackPythagReverse(4, 15) == "9:12"
 10
 
