@@ -314,6 +314,20 @@ export const handleSimpleShallow2 = <Get, Set, R>(
     );
 };
 
+export const assertCall = (
+    fn: (...anys: Array<any>) => boolean,
+    ...args: Array<any>
+) => {
+    if (!fn(...args)) {
+        throw new Error(
+            `Assertion error. ${args
+                .map((a) => JSON.stringify(a))
+                .join(' : ')}`,
+        );
+    }
+    return true;
+};
+
 export const assert = (x: boolean) => {
     if (!x) {
         throw new Error(`Assertion error.`);

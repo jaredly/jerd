@@ -247,6 +247,7 @@ const backtrackPythag = (m: int, n: int) => handleFail<string>{}(
     () => "No solution found",
 )
 
+// 🤔
 backtrackPythag(4, 15) == "5:12"
 backtrackPythag(7, 10) == "No solution found"
 

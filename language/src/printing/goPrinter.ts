@@ -128,6 +128,20 @@ export const wrapWithAssert = (expr: Term): Term => {
             },
             is: void_,
         };
+    } else if (expr.type === 'apply') {
+        return apply(
+            {
+                type: 'ref',
+                ref: { type: 'builtin', name: 'assertCall' },
+                location: null,
+                is: pureFunction(
+                    [expr.target.is, ...(expr.target.is as LambdaType).args],
+                    void_,
+                ),
+            },
+            [expr.target, ...expr.args],
+            null,
+        );
     } else {
         return apply(
             {
