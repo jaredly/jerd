@@ -13,10 +13,6 @@ const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> v
     handle! fn {
         Write.write((x) => k) => {
             log(x);
-            // Ooohhh hm interesting.
-            // yeahhh the type of k needs to reproduce the other things in fn.
-            // looks like it's not doing that yet.
-            // STOPSHIP:BUG i think
             logWrite{e}(k)
         },
         pure(k) => k

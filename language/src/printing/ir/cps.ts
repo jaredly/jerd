@@ -5,45 +5,23 @@ import {
     Env,
     Type,
     getEffects,
-    Symbol,
-    Reference,
     Let,
     Var,
     EffectRef,
-    Lambda,
-    LambdaType,
-    walkTerm,
-    Pattern,
     UserReference,
 } from '../../typing/types';
-import {
-    binOps,
-    bool,
-    builtinType,
-    int,
-    pureFunction,
-    void_,
-} from '../../typing/preset';
-import { showType } from '../../typing/unify';
-import {
-    applyEffectVariables,
-    getEnumReferences,
-    showLocation,
-} from '../../typing/typeExpr';
-import { idName } from '../../typing/env';
+import { bool, builtinType, pureFunction, void_ } from '../../typing/preset';
+import { showLocation } from '../../typing/typeExpr';
 
 import {
     Loc,
     Expr,
     Block,
-    Stmt,
     handlersType,
     handlerSym,
     stringLiteral,
     Arg,
-    LambdaExpr,
     callExpression,
-    Literal,
     OutputOptions,
 } from './types';
 import { printLambdaBody } from './lambda';
