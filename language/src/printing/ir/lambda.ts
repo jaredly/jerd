@@ -9,6 +9,7 @@ import {
     LambdaType,
     walkTerm,
     EffectReference,
+    getEffects,
 } from '../../typing/types';
 import { builtinType, pureFunction, never, void_ } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
@@ -287,7 +288,11 @@ export const printLambdaBody = (
                         type: 'lambda',
                         is: {
                             type: 'lambda',
-                            args: [never],
+                            args: [
+                                ...sortedExplicitEffects(
+                                    getEffects(term.sts[i]),
+                                ).map((eff) => effectHandlerType(env, eff)),
+                            ],
                             effects: [],
                             res: void_,
                             location: null,
@@ -296,16 +301,23 @@ export const printLambdaBody = (
                             rest: null,
                         },
                         args: [
+                            // ...sortedExplicitEffects(
+                            //     getEffects(term.sts[i]),
+                            // ).map((eff) => ({
+                            //     type: effectHandlerType(env, eff),
+                            //     sym: { name: 'ok', unique: 0 },
+                            //     loc: null,
+                            // })),
                             // {
                             //     sym: handlerSym,
                             //     type: builtinType('handlers'),
                             //     loc: null,
                             // },
-                            {
-                                sym: { name: '_ignored', unique: 1 },
-                                type: builtinType('void'),
-                                loc: null,
-                            },
+                            // {
+                            //     sym: { name: '_ignored', unique: 1 },
+                            //     type: builtinType('void'),
+                            //     loc: null,
+                            // },
                         ],
                         body: {
                             type: 'Block',

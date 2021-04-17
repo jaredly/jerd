@@ -13,6 +13,7 @@ import {
     Symbol,
     typesEqual,
     Reference,
+    refsEqual,
 } from '../../typing/types';
 import {
     bool,
@@ -189,7 +190,15 @@ const _termToAstCPS = (
                     },
                     res: void_,
                     loc: term.location,
-                    is: pureFunction([term.is], void_),
+                    is: pureFunction(
+                        [
+                            ...sortedExplicitEffects(
+                                getEffects(term.value),
+                            ).map((eff) => effectHandlerType(env, eff)),
+                            term.is,
+                        ],
+                        void_,
+                    ),
                 },
                 // cpsLambda(
                 //     term.location,
@@ -215,6 +224,75 @@ const _termToAstCPS = (
             const handler = effectHandlers[idName(term.ref.id)];
             if (!handler) {
                 throw new Error(`No handler for ${idName(term.ref.id)}`);
+            }
+            if (done.is.type !== 'lambda') {
+                throw new Error('done not a lambda');
+            }
+            const doneEffects = done.is.args
+                .map((arg) =>
+                    arg.type === 'effect-handler'
+                        ? { type: 'ref', ref: arg.ref, location: null }
+                        : null,
+                )
+                .filter(Boolean) as Array<EffectReference>;
+            // const doneHandlerTypes = doneEffects.map((eff) =>
+            //     effectHandlerType(env, eff),
+            // );
+            if (
+                doneEffects.length !== 1 ||
+                !refsEqual(doneEffects[0].ref, term.ref)
+            ) {
+                const effRef: EffectReference = { type: 'ref', ref: term.ref };
+                const hsym = { name: 'handler', unique: env.local.unique++ };
+                const vsym = { name: 'valuez', unique: env.local.unique++ };
+                const effT = effectHandlerType(env, effRef);
+                done = {
+                    type: 'lambda',
+                    args: [
+                        { sym: hsym, type: effT, loc: term.location },
+                        ...(typesEqual(constr.ret, void_)
+                            ? []
+                            : [
+                                  {
+                                      sym: vsym,
+                                      type: constr.ret,
+                                      loc: term.location,
+                                  },
+                              ]),
+                    ],
+                    is: pureFunction([effT], void_),
+                    loc: term.location,
+                    res: void_,
+                    body: {
+                        type: 'apply',
+                        target: done,
+                        args: [
+                            ...(doneEffects.map((eff) =>
+                                refsEqual(eff.ref, effRef.ref)
+                                    ? {
+                                          type: 'var',
+                                          sym: hsym,
+                                          loc: term.location,
+                                      }
+                                    : effectHandlers[refName(eff.ref)].expr,
+                            ) as Array<Expr>),
+                            ...((typesEqual(constr.ret, void_)
+                                ? []
+                                : [
+                                      {
+                                          type: 'var',
+                                          sym: vsym,
+                                          loc: term.location,
+                                          is: constr.ret,
+                                      },
+                                  ]) as Array<Expr>),
+                        ],
+                        is: void_,
+                        loc: term.location,
+                        targetType: done.is,
+                        concreteType: done.is,
+                    },
+                };
             }
             return {
                 type: 'apply',
@@ -435,14 +513,15 @@ const _termToAstCPS = (
                     // I mean that might make things simpler tbh.
                     inner = callExpression(
                         done,
-                        pureFunction(
-                            [
-                                // STOP handlersType,
-                                ...doneHandlerTypes,
-                                builtinType('any'),
-                            ],
-                            void_,
-                        ),
+                        // pureFunction(
+                        //     [
+                        //         // STOP handlersType,
+                        //         ...doneHandlerTypes,
+                        //         builtinType('any'),
+                        //     ],
+                        //     void_,
+                        // ),
+                        done.is,
                         void_,
                         [
                             ...effects.map(
