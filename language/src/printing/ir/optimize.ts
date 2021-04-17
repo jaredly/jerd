@@ -535,8 +535,6 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                 if (row == null) {
                     return {
                         type: 'attribute',
-                        // TODO: check if this is complex,
-                        // and if so, make a variable
                         target,
                         ref: { type: 'user', id: idFromName(k) },
                         idx: i,

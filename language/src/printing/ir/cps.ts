@@ -395,10 +395,13 @@ const _termToAstCPS = (
                         );
                     }
                     // oh I need done.is
-                    // if (done.type !== 'lambda') {
-                    //     throw new Error('done not a lambda');
-                    // }
-                    // const effects = done.is
+                    if (done.is.type !== 'lambda') {
+                        throw new Error('done not a lambda');
+                    }
+                    const effects = sortedExplicitEffects(done.is.effects);
+                    const doneHandlerTypes = effects.map((eff) =>
+                        effectHandlerType(env, eff),
+                    );
                     // hm. I feel like I need to introspect `done`.
                     // and have a way to flatten out immediate calls.
                     // or I could do that post-hoc?
@@ -408,16 +411,14 @@ const _termToAstCPS = (
                         pureFunction(
                             [
                                 // STOP handlersType,
-                                ...effectHandlerTypes,
+                                ...doneHandlerTypes,
                                 builtinType('any'),
                             ],
                             void_,
                         ),
                         void_,
                         [
-                            ...sortedExplicitEffects(
-                                term.target.is.effects,
-                            ).map(
+                            ...effects.map(
                                 (eff) => effectHandlers[refName(eff.ref)].expr,
                             ),
                             // so here is where we want to
@@ -428,14 +429,14 @@ const _termToAstCPS = (
                                 {
                                     ...term.originalTargetType,
                                     args: term.originalTargetType.args.concat([
-                                        ...effectHandlerTypes,
+                                        ...doneHandlerTypes,
                                         pureFunction([term.is], void_),
                                     ]),
                                     res: void_,
                                 },
                                 term.is,
                                 // 🤔
-                                explicitEffects
+                                effects
                                     .map(
                                         (eff) =>
                                             effectHandlers[refName(eff.ref)]
