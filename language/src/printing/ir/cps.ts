@@ -13,18 +13,18 @@ import {
 import { bool, builtinType, pureFunction, void_ } from '../../typing/preset';
 import { showLocation } from '../../typing/typeExpr';
 
+import { stringLiteral, callExpression } from './utils';
+
 import {
     Loc,
     Expr,
     Block,
     handlersType,
     handlerSym,
-    stringLiteral,
     Arg,
-    callExpression,
     OutputOptions,
 } from './types';
-import { printLambdaBody } from './lambda';
+import { printLambdaBody, sequenceToBlock } from './lambda';
 import { printTerm } from './term';
 import {
     ifStatement,
@@ -408,9 +408,7 @@ const _termToAstCPS = (
             );
         }
         case 'sequence':
-            throw new Error(
-                `Sequence encountered. This should probably be a lambda body?`,
-            );
+            return iffe(sequenceToBlock(env, opts, term, done), term.is);
         default:
             // console.log('ELSE', term.type);
             return callExpression(

@@ -237,13 +237,14 @@ export type CPSAble =
           no: Term | null;
           is: Type;
       }
-    | {
-          type: 'sequence';
-          location: Location | null;
-          sts: Array<Term | Let>;
-          is: Type;
-      }
+    | Sequence
     | Apply;
+export type Sequence = {
+    type: 'sequence';
+    location: Location | null;
+    sts: Array<Term | Let>;
+    is: Type;
+};
 export type Apply = {
     type: 'apply';
     originalTargetType: LambdaType;

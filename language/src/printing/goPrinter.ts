@@ -24,7 +24,8 @@ import {
     optimize,
     removeUnusedVariables,
 } from './ir/optimize';
-import { callExpression, handlersType, Record } from './ir/types';
+import { handlersType, Record } from './ir/types';
+import { callExpression } from './ir/utils';
 import { builtin } from './ir/utils';
 import {
     PP,

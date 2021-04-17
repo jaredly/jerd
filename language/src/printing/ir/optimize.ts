@@ -12,7 +12,6 @@ import {
 import {
     Apply,
     Block,
-    callExpression,
     Expr,
     isTerm,
     Record,
@@ -21,6 +20,7 @@ import {
     Stmt,
     Tuple,
 } from './types';
+import { callExpression } from './utils';
 import { and, asBlock, builtin, iffe } from './utils';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;

@@ -39,10 +39,8 @@ import {
     Stmt,
     handlersType,
     handlerSym,
-    stringLiteral,
     Arg,
     LambdaExpr,
-    callExpression,
     Literal,
     OutputOptions,
 } from './types';
@@ -177,3 +175,25 @@ export const arrowFunctionExpression = (
         loc,
     };
 };
+
+export const callExpression = (
+    target: Expr,
+    targetType: LambdaType,
+    res: Type,
+    args: Array<Expr>,
+    loc: Loc,
+    concreteType?: LambdaType,
+): Expr => ({
+    type: 'apply',
+    targetType,
+    concreteType: concreteType || targetType,
+    res,
+    target,
+    args,
+    loc,
+});
+export const stringLiteral = (value: string, loc: Loc): Expr => ({
+    type: 'string',
+    value,
+    loc,
+});

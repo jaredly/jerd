@@ -1,6 +1,6 @@
 // Checking if types are equivalent
 
-import { EffectRef, Term, Type, walkTerm } from './types';
+import { EffectRef, Term, Type } from './types';
 
 // export type SingleVarLookup = {
 //     vars: VarMapping;

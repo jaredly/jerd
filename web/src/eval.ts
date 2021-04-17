@@ -17,10 +17,12 @@ import {
     optimize,
     optimizeDefine,
 } from '@jerd/language/src/printing/ir/optimize';
+import { liftEffects } from '@jerd/language/src/printing/pre-ir/lift-effectful';
 
 export class TimeoutError extends Error {}
 
 export const termToJS = (env: Env, term: Term, id: Id, asReturn?: boolean) => {
+    term = liftEffects(env, term);
     const irTerm = ir.printTerm(env, { limitExecutionTime: true }, term);
     let termAst: any = termToTs(
         env,

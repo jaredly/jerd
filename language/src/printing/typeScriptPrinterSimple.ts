@@ -21,6 +21,7 @@ import { wrapWithAssert } from './goPrinter';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeDefine } from './ir/optimize';
 import { handlerSym, Loc } from './ir/types';
+import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
@@ -588,11 +589,12 @@ export const fileToTypescript = (
     const orderedTerms = expressionDeps(env, expressions);
 
     orderedTerms.forEach((idRaw) => {
-        const term = env.global.terms[idRaw];
+        let term = env.global.terms[idRaw];
 
         const id = idFromName(idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
         const comment = printToString(declarationToPretty(senv, id, term), 100);
+        term = liftEffects(env, term);
         const irTerm = ir.printTerm(senv, {}, term);
         items.push(
             declarationToTs(
@@ -610,6 +612,7 @@ export const fileToTypescript = (
         if (assert && typesEqual(term.is, bool)) {
             term = wrapWithAssert(term);
         }
+        term = liftEffects(env, term);
         const irTerm = ir.printTerm(env, {}, term);
         items.push(
             t.expressionStatement(termToTs(env, opts, optimize(env, irTerm))),

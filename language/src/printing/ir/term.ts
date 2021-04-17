@@ -32,7 +32,8 @@ import {
 } from '../../typing/typeExpr';
 import { idFromName, idName } from '../../typing/env';
 
-import { Loc, Expr, Stmt, callExpression, OutputOptions } from './types';
+import { Loc, Expr, Stmt, OutputOptions } from './types';
+import { callExpression } from './utils';
 
 import { maybeWrapPureFunction } from './cps';
 import {
