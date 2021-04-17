@@ -1,4 +1,17 @@
 
+## How to convert to the new handlers representation without it getting out of hand?
+
+### Refactors needed
+
+Ones that are non-breaking
+- [ ] liftEffects is nice
+- [ ] adding types to IR Exprs
+- [ ] type-checking the IR as I create it
+- [ ] converting types to passing-handlers instead of having-effects (this can be a place where we then convert, yeah that's great.)
+
+Ones that are breaking
+- [ ] switch from a single handlers variable to several
+
 ## Immediate:
 
 Type system changes:
