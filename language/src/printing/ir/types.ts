@@ -9,6 +9,8 @@ import {
     UserReference,
     idsEqual,
     Env,
+    EffectReference,
+    EffectRef,
 } from '../../typing/types';
 import { Location } from '../../parsing/parser';
 import {

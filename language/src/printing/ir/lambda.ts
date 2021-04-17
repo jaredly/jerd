@@ -25,7 +25,7 @@ import {
     Arg,
 } from './types';
 
-import { effectHandlerType, termToAstCPS } from './cps';
+import { EffectHandlers, effectHandlerType, termToAstCPS } from './cps';
 import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 import { idName, refName } from '../../typing/env';
@@ -162,21 +162,8 @@ const effectfulLambda = (
     const done: Symbol = { name: 'done', unique: env.local.unique++ };
 
     const explicitEffects = sortedExplicitEffects(term.is.effects);
-    // const effectHandlersToPass = explicitEffects.map((eff) => {
-    //     if (!effectHandlers[refName(eff.ref)]) {
-    //         console.log(effectHandlers);
-    //         throw new LocatedError(
-    //             term.location,
-    //             `No handler for ${refName(
-    //                 eff.ref,
-    //             )} while calling ${showType(env, term.is)}`,
-    //         );
-    //     }
-    //     return effectHandlers[refName(eff.ref)];
-    // });
     const effectHandlerTypes = explicitEffects.map((eff) => {
-        // return  effectHandlers[refName(eff.ref)]
-        return effectHandlerType(env, eff); // STOPSHIP
+        return effectHandlerType(env, eff);
     });
 
     const doneT: LambdaType = {
@@ -189,7 +176,7 @@ const effectfulLambda = (
         location: null,
         res: void_,
     };
-    const effectHandlers: { [key: string]: Expr } = {};
+    const effectHandlers: EffectHandlers = {};
     const syms = sortedExplicitEffects(term.is.effects)
         .map((eff) => {
             const sym: Symbol = {
@@ -197,10 +184,13 @@ const effectfulLambda = (
                 unique: env.local.unique++,
             };
             effectHandlers[refName(eff.ref)] = {
-                type: 'var',
+                expr: {
+                    type: 'var',
+                    sym,
+                    loc: nullLocation,
+                    is: effectHandlerType(env, eff),
+                },
                 sym,
-                loc: nullLocation,
-                is: effectHandlerType(env, eff),
             };
             return { sym, type: effectHandlerType(env, eff), loc: null };
         })
@@ -246,7 +236,7 @@ export const printLambdaBody = (
     env: Env,
     opts: OutputOptions,
     term: Term,
-    effectHandlers: { [id: string]: Expr },
+    effectHandlers: EffectHandlers,
     cps: null | Expr,
 ): Block | Expr => {
     if (cps == null) {

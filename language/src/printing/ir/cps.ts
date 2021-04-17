@@ -10,6 +10,7 @@ import {
     EffectRef,
     UserReference,
     EffectReference,
+    Symbol,
 } from '../../typing/types';
 import { bool, builtinType, pureFunction, void_ } from '../../typing/preset';
 import { showLocation } from '../../typing/typeExpr';
@@ -61,11 +62,13 @@ import { showType } from '../../typing/unify';
 //     };
 // };
 
+export type EffectHandlers = { [id: string]: { expr: Expr; sym: Symbol } };
+
 export const termToAstCPS = (
     env: Env,
     opts: OutputOptions,
     term: Term | Let,
-    effectHandlers: { [id: string]: Expr },
+    effectHandlers: EffectHandlers,
     done: Expr,
 ): Expr => {
     return _termToAstCPS(env, opts, term, effectHandlers, done);
@@ -86,7 +89,7 @@ const _termToAstCPS = (
     env: Env,
     opts: OutputOptions,
     term: Term | Let,
-    effectHandlers: { [id: string]: Expr },
+    effectHandlers: EffectHandlers,
     done: Expr,
 ): Expr => {
     //     // No effects in the term
@@ -171,7 +174,7 @@ const _termToAstCPS = (
                     type: 'tupleAccess',
                     idx: term.idx,
                     loc: term.location,
-                    target: handler,
+                    target: handler.expr,
                 },
                 args: term.args
                     .map((t) => printTerm(env, opts, t))
@@ -298,7 +301,7 @@ const _termToAstCPS = (
                         )} while calling ${showType(env, term.target.is)}`,
                     );
                 }
-                return effectHandlers[refName(eff.ref)];
+                return effectHandlers[refName(eff.ref)].expr;
             });
             const effectHandlerTypes = explicitEffects.map((eff) => {
                 // return  effectHandlers[refName(eff.ref)]
@@ -358,6 +361,11 @@ const _termToAstCPS = (
                             )}`,
                         );
                     }
+                    // oh I need done.is
+                    // if (done.type !== 'lambda') {
+                    //     throw new Error('done not a lambda');
+                    // }
+                    // const effects = done.is
                     // hm. I feel like I need to introspect `done`.
                     // and have a way to flatten out immediate calls.
                     // or I could do that post-hoc?
@@ -376,7 +384,9 @@ const _termToAstCPS = (
                         [
                             ...sortedExplicitEffects(
                                 term.target.is.effects,
-                            ).map((eff) => effectHandlers[refName(eff.ref)]),
+                            ).map(
+                                (eff) => effectHandlers[refName(eff.ref)].expr,
+                            ),
                             // so here is where we want to
                             // put the "body"
                             // which might include inverting it.
@@ -391,11 +401,24 @@ const _termToAstCPS = (
                                     res: void_,
                                 },
                                 term.is,
-                                argSyms.map((sym, i) =>
-                                    sym
-                                        ? { type: 'var', sym, loc: null }
-                                        : printTerm(env, opts, args[i]),
-                                ) as Array<Expr>,
+                                // 🤔
+                                explicitEffects
+                                    .map(
+                                        (eff) =>
+                                            effectHandlers[refName(eff.ref)]
+                                                .expr,
+                                    )
+                                    .concat(
+                                        argSyms.map((sym, i) =>
+                                            sym
+                                                ? {
+                                                      type: 'var',
+                                                      sym,
+                                                      loc: null,
+                                                  }
+                                                : printTerm(env, opts, args[i]),
+                                        ) as Array<Expr>,
+                                    ),
                                 target.loc,
                             ),
                         ],
@@ -410,6 +433,14 @@ const _termToAstCPS = (
                     // should just have a function like
                     // `resolveType(env, theType)`
                     // if (term.target.is.type === 'lambda' && )
+                    const arg = args[i];
+                    if (arg.type !== 'apply') {
+                        throw new Error('what are we doing');
+                    }
+                    const ty = arg.target.is;
+                    if (ty.type !== 'lambda') {
+                        throw new Error('apply target not a lambda');
+                    }
                     inner = termToAstCPS(
                         env,
                         opts,
@@ -417,11 +448,16 @@ const _termToAstCPS = (
                         effectHandlers,
                         arrowFunctionExpression(
                             [
-                                // STOP {
-                                //     sym: handlerSym,
-                                //     loc: null,
-                                //     type: builtinType('handlers'),
-                                // },
+                                ...sortedExplicitEffects(ty.effects).map(
+                                    (eff) => ({
+                                        sym:
+                                            effectHandlers[refName(eff.ref)]
+                                                .sym,
+                                        type: effectHandlerType(env, eff),
+                                        loc: null,
+                                        // hmm this is where doing things in reverse is a little weird?
+                                    }),
+                                ),
                                 {
                                     sym: argSyms[i]!,
                                     loc: args[i].location,
