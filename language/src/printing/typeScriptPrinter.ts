@@ -3,6 +3,10 @@
 import { Env, Type, Symbol, Reference, EffectRef } from '../typing/types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
+import { sortedExplicitEffects } from './ir/lambda';
+import { effectHandlerType } from './ir/cps';
+import { withAnnotation } from './typeScriptPrinterSimple';
+import { refName } from '../typing/env';
 
 // Can I... misuse babel's AST to produce go?
 // what would get in my way?
@@ -139,18 +143,42 @@ export const typeToAst = (
                     .concat(
                         type.effects.length
                             ? [
-                                  {
-                                      ...t.identifier('handlers'),
-                                      typeAnnotation: t.tsTypeAnnotation(
-                                          t.tsAnyKeyword(),
+                                  ...sortedExplicitEffects(
+                                      type.effects,
+                                  ).map((eff) =>
+                                      withAnnotation(
+                                          env,
+                                          opts,
+                                          t.identifier(
+                                              'eff' + refName(eff.ref),
+                                          ),
+                                          effectHandlerType(env, eff),
                                       ),
-                                  },
+                                  ),
                                   {
                                       ...t.identifier('done'),
                                       typeAnnotation: t.tsTypeAnnotation(
                                           t.tsFunctionType(
                                               null,
                                               [
+                                                  ...sortedExplicitEffects(
+                                                      type.effects,
+                                                  ).map((eff) =>
+                                                      withAnnotation(
+                                                          env,
+                                                          opts,
+                                                          t.identifier(
+                                                              'eff' +
+                                                                  refName(
+                                                                      eff.ref,
+                                                                  ),
+                                                          ),
+                                                          effectHandlerType(
+                                                              env,
+                                                              eff,
+                                                          ),
+                                                      ),
+                                                  ),
                                                   {
                                                       ...t.identifier('result'),
                                                       typeAnnotation: res,
@@ -161,13 +189,6 @@ export const typeToAst = (
                                               ),
                                           ),
                                       ),
-                                      //   typeToAst(env, opts, {
-                                      //       type: 'lambda',
-                                      //       args: [res]
-                                      //   })
-                                      /*t.tsTypeAnnotation(
-                                          t.tsAnyKeyword(),
-                                      )*/
                                   },
                               ]
                             : [],
