@@ -17,7 +17,17 @@ const both = () ={Read, Write}> {
     const value = raise!(Read.read());
     raise!(Write.write(value))
 }
+// Checking that this type checks and looks reasonable
 both
+
+// Ok now for the famous handlers!
+const provideString: (string, () ={Read}> string) => string = (v: string, fn: () ={Read}> string) => handle! fn {
+    Read.read(() => k) => provideString(v, () ={Read}> k(v + "got") + "back") + "provided",
+    pure(v) => v + "pure"
+}
+
+provideString("Yes", getString)
+
 
 /*
 const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {

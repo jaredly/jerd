@@ -36,7 +36,7 @@ import { idFromName, idName } from '../../typing/env';
 
 import { Loc, Expr, Stmt, callExpression, OutputOptions } from './types';
 
-import { maybeWrapPureFunction } from './cps';
+import { maybeWrapPureFunction, termToAstCPS } from './cps';
 import {
     iffe,
     arrowFunctionExpression,
@@ -207,7 +207,39 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             );
 
         case 'handle': {
+            /*
+            handle! fn {
+                Write.write((v) => k) => xyz,
+                pure(x) => z,
+            }
+
+            becomes
+
+
+            let fnReturnPointer = {pure as a function that just takes a value}
+            fn([
+                (value: string, done: (handler: handle123123) => void) => {
+                    const k = (handler, returnToHandler) => {
+                        fnReturnPointer = returnToHandler
+                        done(handler)
+                    }
+                    // k is now set.
+                }
+            ], (_handlerIThink, returnValue) => fnReturnPointer(returnValue))
+
+            // ok worth a shot
+
+            */
             const sym: Symbol = { name: 'result', unique: env.local.unique++ };
+            const doneS: Symbol = { name: 'done', unique: env.local.unique++ };
+            const finalValue: Symbol = {
+                name: 'finalValue',
+                unique: env.local.unique++,
+            };
+            const fnReturnPointer: Symbol = {
+                name: 'fnReturnPointer',
+                unique: env.local.unique++,
+            };
             return iffe(
                 {
                     type: 'Block',
@@ -220,20 +252,103 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                             is: term.is,
                         },
                         {
+                            type: 'Define',
+                            sym: doneS,
+                            loc: term.location,
+                            value: {
+                                type: 'lambda',
+                                args: [
+                                    {
+                                        sym: finalValue,
+                                        type: term.is,
+                                        loc: term.location,
+                                    },
+                                ],
+                                res: void_,
+                                loc: term.location,
+                                body: {
+                                    type: 'Block',
+                                    loc: term.location,
+                                    items: [
+                                        {
+                                            type: 'Assign',
+                                            sym,
+                                            value: {
+                                                type: 'var',
+                                                sym: finalValue,
+                                                loc: term.location,
+                                                is: term.is,
+                                            },
+                                            is: void_,
+                                            loc: term.location,
+                                        },
+                                    ],
+                                },
+                                is: pureFunction([term.is], void_),
+                            },
+                            is: term.is,
+                        },
+                        {
+                            type: 'Define',
+                            sym: fnReturnPointer,
+                            loc: term.location,
+                            value: {
+                                type: 'lambda',
+                                args: [
+                                    {
+                                        sym: term.pure.arg,
+                                        type: (term.target.is as LambdaType)
+                                            .res,
+                                        loc: term.pure.body.location,
+                                    },
+                                ],
+                                res: void_,
+                                loc: term.pure.body.location,
+                                is: pureFunction(
+                                    [(term.target.is as LambdaType).res],
+                                    void_,
+                                ),
+                                body: printLambdaBody(
+                                    env,
+                                    opts,
+                                    term.pure.body,
+                                    // {
+                                    //     type: 'lambda',
+                                    //     body: term.pure.body,
+                                    //     args: [term.pure.arg],
+                                    //     location: term.location,
+                                    //     is: pureFunction(
+                                    //         [(term.target.is as LambdaType).res],
+                                    //         term.is,
+                                    //     ),
+                                    // },
+                                    {},
+                                    {
+                                        type: 'var',
+                                        sym: doneS,
+                                        loc: null,
+                                        is: pureFunction([term.is], void_),
+                                    },
+                                ),
+                            },
+                            is: term.is,
+                        },
+                        {
                             type: 'Expression',
-                            expr: {
+                            expr: callExpression(
+                                printTerm(env, opts, term.target),
+                                term.target.is as LambdaType,
+                                void_,
+                                [],
+                                term.location,
+                            ),
+                            /* expr: {
                                 type: 'handle',
                                 target: printTerm(env, opts, term.target),
                                 loc: term.location,
                                 effect: (term.effect as UserReference).id,
                                 pure: {
                                     arg: term.pure.arg,
-                                    // body: printLambdaBody(
-                                    //     env,
-                                    //     opts,
-                                    //     term.pure.body,
-                                    //     null,
-                                    // ),
                                     body: {
                                         type: 'Block',
                                         loc: term.pure.body.location,
@@ -289,6 +404,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                 done: null,
                                 is: term.pure.body.is,
                             },
+                            */
                             loc: term.location,
                         },
                         {
