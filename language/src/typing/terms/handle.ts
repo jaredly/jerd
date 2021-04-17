@@ -11,6 +11,7 @@ import {
     Reference,
     refsEqual,
     Case,
+    EffectRef,
 } from '../types';
 import { showType } from '../unify';
 import typeExpr from '../typeExpr';
@@ -45,7 +46,10 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         throw new Error(`Target of a handle must take 0 args`);
     }
     const targetReturn = target.is.res;
-    const kEffects = target.is.effects;
+    const kEffects = [
+        { type: 'ref', ref: effect, location: null } as EffectRef,
+    ];
+    // target.is.effects;
 
     // but then, effects found in the bodies also get added.
     // so we'll need some deduping

@@ -13,7 +13,7 @@ const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> v
     handle! fn {
         Write.write((x) => k) => {
             log(x);
-            logWrite{e}(k)
+            logWrite{e}(() ={Write, e}> k())
         },
         pure(k) => k
     }

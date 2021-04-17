@@ -380,8 +380,9 @@ export const floatToInt = Math.floor;
 export const pow = Math.pow;
 
 //: float
-export const TAU = Math.PI * 2,
-    PI = Math.PI;
+export const TAU = Math.PI * 2;
+//: float
+export const PI = Math.PI;
 
 //: (float) => float
 export const sqrt = Math.sqrt;
