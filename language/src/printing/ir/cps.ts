@@ -11,8 +11,15 @@ import {
     UserReference,
     EffectReference,
     Symbol,
+    typesEqual,
 } from '../../typing/types';
-import { bool, builtinType, pureFunction, void_ } from '../../typing/preset';
+import {
+    bool,
+    builtinType,
+    never,
+    pureFunction,
+    void_,
+} from '../../typing/preset';
 import { showLocation } from '../../typing/typeExpr';
 
 import {
@@ -84,6 +91,26 @@ export const effectHandlerType = (env: Env, eff: EffectReference): Type => {
     };
 };
 
+export const effectConstructorType = (
+    env: Env,
+    eff: EffectReference,
+    constr: { args: Array<Type>; ret: Type },
+): Type => {
+    // const constr = env.global.effects[refName(eff.ref)][idx];
+    return pureFunction(
+        constr.args.concat([
+            pureFunction(
+                [
+                    effectHandlerType(env, eff),
+                    ...(typesEqual(constr.ret, void_) ? [] : [constr.ret]),
+                ],
+                void_,
+            ),
+        ]),
+        constr.ret,
+    );
+};
+
 // cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 const _termToAstCPS = (
     env: Env,
@@ -97,7 +124,7 @@ const _termToAstCPS = (
         return {
             type: 'apply',
             target: done,
-            res: void_,
+            is: void_,
             targetType: pureFunction([term.is], void_),
             concreteType: pureFunction([term.is], void_),
             args: [printTerm(env, opts, term)],
@@ -175,13 +202,18 @@ const _termToAstCPS = (
                     idx: term.idx,
                     loc: term.location,
                     target: handler.expr,
+                    is: effectConstructorType(
+                        env,
+                        { type: 'ref', ref: { type: 'user', id: term.ref.id } },
+                        constr,
+                    ),
                 },
                 args: term.args
                     .map((t) => printTerm(env, opts, t))
                     // TODO: if this isn't (theEffectHandler, theValue)
                     // we might need to wrap it (for example if it expects more effects than that)
                     .concat([done]),
-                res: void_,
+                is: void_,
                 targetType: t,
                 loc: term.location,
                 concreteType: t,
@@ -322,6 +354,7 @@ const _termToAstCPS = (
                         target,
                         effectful: true,
                         loc: target.loc,
+                        is: term.target.is,
                     };
                 }
                 let inner: Expr = done;
@@ -488,6 +521,7 @@ const _termToAstCPS = (
                     target,
                     effectful: true,
                     loc: target.loc,
+                    is: term.target.is,
                 };
             }
             return callExpression(

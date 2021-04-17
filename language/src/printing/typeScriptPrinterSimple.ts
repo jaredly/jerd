@@ -19,7 +19,7 @@ import {
 } from '../typing/types';
 import { typeScriptPrelude } from './fileToTypeScript';
 import { wrapWithAssert } from './goPrinter';
-import { effectHandlerType } from './ir/cps';
+import { effectConstructorType, effectHandlerType } from './ir/cps';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeDefine } from './ir/optimize';
 import { handlerSym, Loc } from './ir/types';
@@ -605,41 +605,14 @@ export const fileToTypescript = (
                 null,
                 t.tsTupleType(
                     constrs.map((constr) =>
-                        t.tsFunctionType(
-                            null,
-                            constr.args
-                                .map((type, i) =>
-                                    withAnnotation(
-                                        env,
-                                        opts,
-                                        t.identifier('a' + i),
-                                        type,
-                                        // typeToAst(env, opts, t),
-                                    ),
-                                )
-                                .concat(
-                                    withAnnotation(
-                                        env,
-                                        opts,
-                                        t.identifier('done'),
-                                        pureFunction(
-                                            [
-                                                effectHandlerType(env, {
-                                                    type: 'ref',
-                                                    ref: { type: 'user', id },
-                                                }),
-                                                ...(typesEqual(
-                                                    constr.ret,
-                                                    void_,
-                                                )
-                                                    ? []
-                                                    : [constr.ret]),
-                                            ],
-                                            void_,
-                                        ),
-                                    ),
-                                ),
-                            t.tsTypeAnnotation(t.tsVoidKeyword()),
+                        typeToAst(
+                            env,
+                            opts,
+                            effectConstructorType(
+                                env,
+                                { type: 'ref', ref: { type: 'user', id } },
+                                constr,
+                            ),
                         ),
                     ),
                 ),

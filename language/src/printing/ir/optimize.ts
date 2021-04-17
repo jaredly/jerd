@@ -1,5 +1,5 @@
 import { idFromName } from '../../typing/env';
-import { int, pureFunction, void_ } from '../../typing/preset';
+import { int, never, pureFunction, void_ } from '../../typing/preset';
 import { Env, Id, Symbol, symbolsEqual, Type } from '../../typing/types';
 import {
     defaultVisitor,
@@ -468,6 +468,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                         ref: b.ref,
                         idx: i,
                         loc: expr.loc,
+                        is: never, // STOPSHIP: find the type this should be
                     };
                 } else {
                     return row;
@@ -487,6 +488,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                             ref: { type: 'user', id: idFromName(k) },
                             idx: i,
                             loc: expr.loc,
+                            is: never, // STOPSHIP: find the type this should be
                         };
                     } else {
                         return row;
@@ -539,6 +541,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                         ref: { type: 'user', id: idFromName(k) },
                         idx: i,
                         loc: expr.loc,
+                        is: never, // STOPSHIP: find the type this should be
                     };
                 } else {
                     return row;

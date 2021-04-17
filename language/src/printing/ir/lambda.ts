@@ -10,7 +10,7 @@ import {
     walkTerm,
     EffectReference,
 } from '../../typing/types';
-import { builtinType, pureFunction, void_ } from '../../typing/preset';
+import { builtinType, pureFunction, never, void_ } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
 
 import {
@@ -41,6 +41,7 @@ export const printLambda = (
             const directVersion = withNoEffects(env, term);
             return {
                 type: 'effectfulOrDirectLambda',
+                is: never,
                 loc: term.location,
                 effectful: effectfulLambda(env, opts, term),
                 direct: arrowFunctionExpression(
@@ -284,6 +285,16 @@ export const printLambdaBody = (
                 if (i > 0) {
                     inner = {
                         type: 'lambda',
+                        is: {
+                            type: 'lambda',
+                            args: [never],
+                            effects: [],
+                            res: void_,
+                            location: null,
+                            typeVbls: [],
+                            effectVbls: [],
+                            rest: null,
+                        },
                         args: [
                             // {
                             //     sym: handlerSym,

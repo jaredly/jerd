@@ -17,6 +17,7 @@ export const int: Type = builtinType('int');
 export const float: Type = builtinType('float');
 export const string: Type = builtinType('string');
 export const void_: Type = builtinType('void');
+export const never: Type = builtinType('never');
 export const bool: Type = builtinType('bool');
 
 export const binOps = [

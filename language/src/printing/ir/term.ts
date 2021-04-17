@@ -20,8 +20,10 @@ import {
     binOps,
     bool,
     builtinType,
+    float,
     int,
     pureFunction,
+    string,
     void_,
 } from '../../typing/preset';
 import { showType } from '../../typing/unify';
@@ -52,10 +54,15 @@ export const printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
     return _printTerm(env, opts, term);
 };
 
-const printTermRef = (opts: OutputOptions, ref: Reference, loc: Loc): Expr => {
+const printTermRef = (
+    opts: OutputOptions,
+    ref: Reference,
+    loc: Loc,
+    is: Type,
+): Expr => {
     return ref.type === 'builtin'
-        ? { type: 'builtin', name: ref.name, loc }
-        : { type: 'term', id: ref.id, loc };
+        ? { type: 'builtin', name: ref.name, loc, is }
+        : { type: 'term', id: ref.id, loc, is };
 };
 
 const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
@@ -74,19 +81,40 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     id: idFromName(env.local.self.name),
                 },
                 term.location,
+                term.is,
             );
         // return t.identifier(`hash_${env.local.self.name}`);
         case 'boolean':
-            return { type: 'boolean', value: term.value, loc: term.location };
+            return {
+                type: 'boolean',
+                value: term.value,
+                loc: term.location,
+                is: bool,
+            };
         case 'int':
-            return { type: 'int', value: term.value, loc: term.location };
+            return {
+                type: 'int',
+                value: term.value,
+                loc: term.location,
+                is: int,
+            };
         case 'string':
-            return { type: 'string', value: term.text, loc: term.location };
+            return {
+                type: 'string',
+                value: term.text,
+                loc: term.location,
+                is: string,
+            };
         case 'float':
-            return { type: 'float', value: term.value, loc: term.location };
+            return {
+                type: 'float',
+                value: term.value,
+                loc: term.location,
+                is: float,
+            };
         case 'ref': {
             // Hmm do I want to include type annotation here? I guess I did at one point
-            return printTermRef(opts, term.ref, term.location);
+            return printTermRef(opts, term.ref, term.location, term.is);
         }
         case 'if': {
             return iffe(
@@ -108,7 +136,12 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         case 'lambda':
             return printLambda(env, opts, term);
         case 'var':
-            return { type: 'var', sym: term.sym, loc: term.location };
+            return {
+                type: 'var',
+                sym: term.sym,
+                loc: term.location,
+                is: term.is,
+            };
         case 'apply': {
             // TODO we should hang onto the arg names of the function we
             // are calling so we can use them when assigning to values.
@@ -139,6 +172,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     target,
                     effectful: false,
                     loc: target.loc,
+                    is: void_, // STOPSHIP: fix this I think
                 };
             }
 
@@ -253,12 +287,18 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                     },
                                 })),
                                 done: null,
+                                is: term.pure.body.is,
                             },
                             loc: term.location,
                         },
                         {
                             type: 'Return',
-                            value: { type: 'var', sym, loc: term.location },
+                            value: {
+                                type: 'var',
+                                sym,
+                                loc: term.location,
+                                is: term.is,
+                            },
                             loc: term.location,
                         },
                     ],
@@ -354,6 +394,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 target: printTerm(env, opts, term.target),
                 idx: term.idx,
                 loc: term.location,
+                is: term.is,
             };
         }
         case 'Attribute': {
@@ -363,6 +404,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 ref: term.ref,
                 idx: term.idx,
                 loc: term.location,
+                is: term.is,
             };
         }
         case 'Tuple': {
@@ -371,6 +413,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 items: term.items.map((item) => printTerm(env, opts, item)),
                 itemTypes: term.is.typeVbls,
                 loc: term.location,
+                is: term.is,
             };
         }
         case 'Array': {
@@ -387,6 +430,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 ),
                 loc: term.location,
                 elType,
+                is: term.is,
             };
         }
         case 'Switch': {
@@ -397,7 +441,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             const value: Expr = basic
                 ? printTerm(env, opts, term.term)
-                : { type: 'var', sym: id, loc: null };
+                : { type: 'var', sym: id, loc: null, is: term.term.is };
 
             let cases = [];
 

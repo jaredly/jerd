@@ -82,115 +82,116 @@ export const callExpression = (
     type: 'apply',
     targetType,
     concreteType: concreteType || targetType,
-    res,
     target,
     args,
     loc,
+    is: res,
 });
 export const stringLiteral = (value: string, loc: Loc): Expr => ({
     type: 'string',
     value,
     loc,
+    is: string,
 });
 
-export const typeForExpr = (env: Env, expr: Expr): Type => {
-    switch (expr.type) {
-        case 'string':
-            return string;
-        case 'int':
-            return int;
-        case 'boolean':
-            return bool;
-        case 'float':
-            return float;
-        case 'eqLiteral':
-            return bool;
-        case 'term':
-            return env.global.terms[idName(expr.id)].is;
-        case 'var':
-            return void_; // STOPSHIP
-        case 'slice':
-            return typeForExpr(env, expr.value);
-        case 'tuple':
-            // TODO tuple type
-            return tupleType(expr.itemTypes);
-        // return expr.itemTypes;
-        case 'arrayIndex': {
-            const t = typeForExpr(env, expr.value);
-            if (
-                t.type !== 'ref' ||
-                t.ref.type !== 'builtin' ||
-                t.ref.name !== 'Array' ||
-                t.typeVbls.length !== 1
-            ) {
-                throw new Error(`Arg`);
-            }
-            return t.typeVbls[0];
-        }
-        case 'arrayLen':
-            return int;
-        case 'builtin':
-            return env.global.builtins[expr.name];
-        case 'IsRecord':
-            return bool;
-        case 'effectfulOrDirect':
-            // ermmmm what do I do folks
-            return typeForExpr(env, expr.target);
-        case 'raise': {
-            // const t = env.global.effects[idName(expr.effect)][expr.idx]
-            // return t.ret
-            // raise will always pass to continuation, right?
-            return void_;
-        }
-        case 'handle':
-            return expr.done != null
-                ? void_
-                : typeForLambdaExpression(env, expr.pure.body);
-        case 'array':
-            return arrayType(expr.elType);
-        case 'record':
-            return expr.is;
-        case 'attribute': {
-            const t = env.global.types[refName(expr.ref)];
-            if (!t || t.type !== 'Record') {
-                throw new Error(`Not a record ${refName(expr.ref)}`);
-            }
-            return t.items[expr.idx];
-        }
-        case 'tupleAccess': {
-            const is = typeForExpr(env, expr.target);
-            if (
-                is.type !== 'ref' ||
-                is.ref.type !== 'builtin' ||
-                !is.ref.name.startsWith('Tuple')
-            ) {
-                throw new Error(`Not a tuple`);
-            }
-            return is.typeVbls[expr.idx];
-        }
-        case 'apply':
-            return expr.res;
-        case 'effectfulOrDirectLambda':
-            // TODO: what should this be? maybe pretend it's a builtin type?
-            return builtinType('effectfulOrDirect', []);
-        case 'lambda':
-            // hrmmmm yes
-            return void_; // STOPSHIP
-        // return expr.args; // hrmmmmmm yes I think we want the full ref type?
-        // hm ok
-        default:
-            let _x: never = expr;
-            throw new Error(`Unexpected stmt ${(expr as any).type}`);
-    }
-};
+// export const typeForExpr = (env: Env, expr: Expr): Type => {
+//     switch (expr.type) {
+//         case 'string':
+//             return string;
+//         case 'int':
+//             return int;
+//         case 'boolean':
+//             return bool;
+//         case 'float':
+//             return float;
+//         case 'eqLiteral':
+//             return bool;
+//         case 'term':
+//             return env.global.terms[idName(expr.id)].is;
+//         case 'var':
+//             return void_; // STOPSHIP
+//         case 'slice':
+//             return typeForExpr(env, expr.value);
+//         case 'tuple':
+//             // TODO tuple type
+//             return tupleType(expr.itemTypes);
+//         // return expr.itemTypes;
+//         case 'arrayIndex': {
+//             const t = typeForExpr(env, expr.value);
+//             if (
+//                 t.type !== 'ref' ||
+//                 t.ref.type !== 'builtin' ||
+//                 t.ref.name !== 'Array' ||
+//                 t.typeVbls.length !== 1
+//             ) {
+//                 throw new Error(`Arg`);
+//             }
+//             return t.typeVbls[0];
+//         }
+//         case 'arrayLen':
+//             return int;
+//         case 'builtin':
+//             return env.global.builtins[expr.name];
+//         case 'IsRecord':
+//             return bool;
+//         case 'effectfulOrDirect':
+//             // ermmmm what do I do folks
+//             return typeForExpr(env, expr.target);
+//         case 'raise': {
+//             // const t = env.global.effects[idName(expr.effect)][expr.idx]
+//             // return t.ret
+//             // raise will always pass to continuation, right?
+//             return void_;
+//         }
+//         case 'handle':
+//             return expr.done != null
+//                 ? void_
+//                 : typeForLambdaExpression(env, expr.pure.body);
+//         case 'array':
+//             return arrayType(expr.elType);
+//         case 'record':
+//             return expr.is;
+//         case 'attribute': {
+//             const t = env.global.types[refName(expr.ref)];
+//             if (!t || t.type !== 'Record') {
+//                 throw new Error(`Not a record ${refName(expr.ref)}`);
+//             }
+//             return t.items[expr.idx];
+//         }
+//         case 'tupleAccess': {
+//             const is = typeForExpr(env, expr.target);
+//             if (
+//                 is.type !== 'ref' ||
+//                 is.ref.type !== 'builtin' ||
+//                 !is.ref.name.startsWith('Tuple')
+//             ) {
+//                 throw new Error(`Not a tuple`);
+//             }
+//             return is.typeVbls[expr.idx];
+//         }
+//         case 'apply':
+//             return expr.is;
+//         case 'effectfulOrDirectLambda':
+//             // TODO: what should this be? maybe pretend it's a builtin type?
+//             return builtinType('effectfulOrDirect', []);
+//         case 'lambda':
+//             // hrmmmm yes
+//             return void_; // STOPSHIP
+//         // return expr.args; // hrmmmmmm yes I think we want the full ref type?
+//         // hm ok
+//         default:
+//             let _x: never = expr;
+//             throw new Error(`Unexpected stmt ${(expr as any).type}`);
+//     }
+// };
 
-export const typeForLambdaExpression = (env: Env, body: Expr | Block): Type => {
-    if (body.type === 'Block') {
-        return returnTypeForStmt(env, body) || void_;
-    } else {
-        return typeForExpr(env, body);
-    }
-};
+// export const typeForLambdaExpression = (env: Env, body: Expr | Block): Type => {
+//     if (body.type === 'Block') {
+//         return returnTypeForStmt(env, body) || void_;
+//     } else {
+//         return typeForExpr(env, body);
+//     }
+// };
 
 export const returnTypeForStmt = (env: Env, stmt: Stmt): Type | null => {
     switch (stmt.type) {
@@ -201,7 +202,7 @@ export const returnTypeForStmt = (env: Env, stmt: Stmt): Type | null => {
         case 'Define':
             return null;
         case 'Return':
-            return typeForExpr(env, stmt.value);
+            return stmt.value.is;
         case 'Block':
             const types = stmt.items
                 .map((s) => returnTypeForStmt(env, s))
@@ -226,15 +227,15 @@ export const returnTypeForStmt = (env: Env, stmt: Stmt): Type | null => {
 // also I don't support effects in record creation just yet.
 // oh wait, I think go and python can create records just fine
 export type Literal =
-    | { type: 'string'; value: string; loc: Loc }
-    | { type: 'int'; value: number; loc: Loc }
-    | { type: 'boolean'; value: boolean; loc: Loc }
-    | { type: 'float'; value: number; loc: Loc };
+    | { type: 'string'; value: string; loc: Loc; is: Type }
+    | { type: 'int'; value: number; loc: Loc; is: Type }
+    | { type: 'boolean'; value: boolean; loc: Loc; is: Type }
+    | { type: 'float'; value: number; loc: Loc; is: Type };
 
 export type Expr =
     | Literal
-    | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc }
-    | { type: 'term'; id: Id; loc: Loc }
+    | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
+    | { type: 'term'; id: Id; loc: Loc; is: Type }
     | { type: 'var'; sym: Symbol; loc: Loc; is: Type }
     | {
           type: 'slice';
@@ -242,13 +243,20 @@ export type Expr =
           start: Expr;
           end: Expr | null;
           loc: Loc;
+          is: Type;
       }
-    | { type: 'arrayIndex'; value: Expr; idx: Expr; loc: Loc }
-    | { type: 'arrayLen'; value: Expr; loc: Loc } // TODO this could just be represented with a buitin, right? yeah
-    | { type: 'builtin'; name: string; loc: Loc }
+    | { type: 'arrayIndex'; value: Expr; idx: Expr; loc: Loc; is: Type }
+    | { type: 'arrayLen'; value: Expr; loc: Loc; is: Type } // TODO this could just be represented with a buitin, right? yeah
+    | { type: 'builtin'; name: string; loc: Loc; is: Type }
     // used in switches
-    | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc }
-    | { type: 'effectfulOrDirect'; effectful: boolean; target: Expr; loc: Loc }
+    | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc; is: Type }
+    | {
+          type: 'effectfulOrDirect';
+          effectful: boolean;
+          target: Expr;
+          loc: Loc;
+          is: Type;
+      }
     | {
           type: 'raise';
           effect: Id;
@@ -256,6 +264,7 @@ export type Expr =
           args: Array<Expr>;
           done: Expr;
           loc: Loc;
+          is: Type;
       }
     | {
           type: 'handle';
@@ -270,6 +279,7 @@ export type Expr =
               body: Expr | Block;
           }>;
           done: Expr | null;
+          is: Type;
       }
     | Tuple
     | {
@@ -277,15 +287,17 @@ export type Expr =
           items: Array<Expr | { type: 'Spread'; value: Expr }>;
           elType: Type;
           loc: Loc;
+          is: Type;
       }
     | Record
-    | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc }
+    | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc; is: Type }
     | {
           type: 'attribute';
           target: Expr;
           ref: Reference;
           idx: number;
           loc: Loc;
+          is: Type;
       }
     // effects have been taken care of at this point
     // do we need to know the types of things? perhaps for conversions?
@@ -295,6 +307,7 @@ export type Expr =
           effectful: LambdaExpr;
           direct: LambdaExpr;
           loc: Loc;
+          is: Type;
       }
     | LambdaExpr;
 
@@ -303,15 +316,16 @@ export type Tuple = {
     items: Array<Expr>;
     itemTypes: Array<Type>;
     loc: Loc;
+    is: Type;
 };
 export type Apply = {
     type: 'apply';
     targetType: LambdaType;
     concreteType: LambdaType;
-    res: Type;
     target: Expr;
     args: Array<Expr>;
     loc: Loc;
+    is: Type;
 };
 export type Record = {
     type: 'record';
@@ -350,6 +364,7 @@ export type LambdaExpr = {
     res: Type;
     body: Expr | Block;
     loc: Loc;
+    is: Type;
 };
 
 export type Arg = { sym: Symbol; type: Type; loc: Loc };
