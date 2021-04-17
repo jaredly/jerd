@@ -17,15 +17,15 @@ import {
     Expr,
     Block,
     Stmt,
-    handlersType,
-    handlerSym,
+    // handlersType,
+    // handlerSym,
     LambdaExpr,
     OutputOptions,
     callExpression,
     Arg,
 } from './types';
 
-import { termToAstCPS } from './cps';
+import { effectHandlerType, termToAstCPS } from './cps';
 import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 import { idName, refName } from '../../typing/env';
@@ -160,9 +160,28 @@ const effectfulLambda = (
     term: Lambda,
 ): LambdaExpr => {
     const done: Symbol = { name: 'done', unique: env.local.unique++ };
+
+    const explicitEffects = sortedExplicitEffects(term.is.effects);
+    // const effectHandlersToPass = explicitEffects.map((eff) => {
+    //     if (!effectHandlers[refName(eff.ref)]) {
+    //         console.log(effectHandlers);
+    //         throw new LocatedError(
+    //             term.location,
+    //             `No handler for ${refName(
+    //                 eff.ref,
+    //             )} while calling ${showType(env, term.is)}`,
+    //         );
+    //     }
+    //     return effectHandlers[refName(eff.ref)];
+    // });
+    const effectHandlerTypes = explicitEffects.map((eff) => {
+        // return  effectHandlers[refName(eff.ref)]
+        return effectHandlerType(env, eff); // STOPSHIP
+    });
+
     const doneT: LambdaType = {
         type: 'lambda',
-        args: [handlersType, term.is.res],
+        args: [...effectHandlerTypes, term.is.res],
         typeVbls: [],
         effectVbls: [],
         effects: [],
@@ -181,8 +200,9 @@ const effectfulLambda = (
                 type: 'var',
                 sym,
                 loc: nullLocation,
+                is: effectHandlerType(env, eff),
             };
-            return { sym, type: pureFunction([], void_), loc: null };
+            return { sym, type: effectHandlerType(env, eff), loc: null };
         })
         .filter(Boolean) as Array<Arg>;
     return arrowFunctionExpression(
@@ -199,11 +219,22 @@ const effectfulLambda = (
         withExecutionLimit(
             env,
             opts,
-            printLambdaBody(env, opts, term.body, effectHandlers, {
-                type: 'var',
-                sym: done,
-                loc: null,
-            }),
+            printLambdaBody(
+                env,
+                opts,
+                term.body,
+                effectHandlers,
+                // so
+                // is this where we pre-pack things?
+                // or is it on-use?
+                // maybe on-use folks.
+                {
+                    type: 'var',
+                    sym: done,
+                    is: doneT,
+                    loc: null,
+                },
+            ),
         ),
         // term.is.res,
         void_,
@@ -264,11 +295,11 @@ export const printLambdaBody = (
                     inner = {
                         type: 'lambda',
                         args: [
-                            {
-                                sym: handlerSym,
-                                type: builtinType('handlers'),
-                                loc: null,
-                            },
+                            // {
+                            //     sym: handlerSym,
+                            //     type: builtinType('handlers'),
+                            //     loc: null,
+                            // },
                             {
                                 sym: { name: '_ignored', unique: 1 },
                                 type: builtinType('void'),

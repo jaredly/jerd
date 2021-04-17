@@ -4,7 +4,7 @@ import * as t from '@babel/types';
 import { nullLocation } from '../parsing/parser';
 import { expressionDeps, sortTerms } from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
-import { binOps, bool } from '../typing/preset';
+import { binOps, bool, pureFunction, void_ } from '../typing/preset';
 import {
     EffectRef,
     Env,
@@ -19,6 +19,7 @@ import {
 } from '../typing/types';
 import { typeScriptPrelude } from './fileToTypeScript';
 import { wrapWithAssert } from './goPrinter';
+import { effectHandlerType } from './ir/cps';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeDefine } from './ir/optimize';
 import { handlerSym, Loc } from './ir/types';
@@ -134,7 +135,14 @@ export const _termToTs = (
                 }
             });
             return t.arrowFunctionExpression(
-                term.args.map((arg) => t.identifier(printSym(env, arg.sym))),
+                term.args.map((arg) =>
+                    withAnnotation(
+                        env,
+                        opts,
+                        t.identifier(printSym(env, arg.sym)),
+                        arg.type,
+                    ),
+                ),
                 lambdaBodyToTs(env, opts, term.body),
             );
         case 'term':
@@ -588,6 +596,57 @@ export const fileToTypescript = (
 
     const orderedTerms = expressionDeps(env, expressions);
 
+    Object.keys(env.global.effects).forEach((r) => {
+        const id = idFromName(r);
+        const constrs = env.global.effects[r];
+        items.push(
+            t.tsTypeAliasDeclaration(
+                t.identifier('handle' + r),
+                null,
+                t.tsTupleType(
+                    constrs.map((constr) =>
+                        t.tsFunctionType(
+                            null,
+                            constr.args
+                                .map((type, i) =>
+                                    withAnnotation(
+                                        env,
+                                        opts,
+                                        t.identifier('a' + i),
+                                        type,
+                                        // typeToAst(env, opts, t),
+                                    ),
+                                )
+                                .concat(
+                                    withAnnotation(
+                                        env,
+                                        opts,
+                                        t.identifier('done'),
+                                        pureFunction(
+                                            [
+                                                effectHandlerType(env, {
+                                                    type: 'ref',
+                                                    ref: { type: 'user', id },
+                                                }),
+                                                ...(typesEqual(
+                                                    constr.ret,
+                                                    void_,
+                                                )
+                                                    ? []
+                                                    : [constr.ret]),
+                                            ],
+                                            void_,
+                                        ),
+                                    ),
+                                ),
+                            t.tsTypeAnnotation(t.tsVoidKeyword()),
+                        ),
+                    ),
+                ),
+            ),
+        );
+    });
+
     orderedTerms.forEach((idRaw) => {
         const term = env.global.terms[idRaw];
 
@@ -620,6 +679,6 @@ export const fileToTypescript = (
     const ast = t.file(t.program(items, [], 'script'));
     // TODO: port all of these to the IR optimizer, so that they work
     // across targets.
-    optimizeAST(ast);
+    // optimizeAST(ast);
     return ast;
 };

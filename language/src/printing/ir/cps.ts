@@ -9,6 +9,7 @@ import {
     Var,
     EffectRef,
     UserReference,
+    EffectReference,
 } from '../../typing/types';
 import { bool, builtinType, pureFunction, void_ } from '../../typing/preset';
 import { showLocation } from '../../typing/typeExpr';
@@ -68,6 +69,16 @@ export const termToAstCPS = (
     done: Expr,
 ): Expr => {
     return _termToAstCPS(env, opts, term, effectHandlers, done);
+};
+
+export const effectHandlerType = (env: Env, eff: EffectReference): Type => {
+    return {
+        type: 'ref',
+        ref: { type: 'builtin', name: 'handle' + refName(eff.ref) },
+        location: null,
+        typeVbls: [],
+        effectVbls: [],
+    };
 };
 
 // cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
@@ -156,9 +167,16 @@ const _termToAstCPS = (
             }
             return {
                 type: 'apply',
-                target: handler,
+                target: {
+                    type: 'tupleAccess',
+                    idx: term.idx,
+                    loc: term.location,
+                    target: handler,
+                },
                 args: term.args
                     .map((t) => printTerm(env, opts, t))
+                    // TODO: if this isn't (theEffectHandler, theValue)
+                    // we might need to wrap it (for example if it expects more effects than that)
                     .concat([done]),
                 res: void_,
                 targetType: t,
@@ -282,11 +300,10 @@ const _termToAstCPS = (
                 }
                 return effectHandlers[refName(eff.ref)];
             });
-            const effectHandlerTypes = sortedExplicitEffects(
-                term.target.is.effects,
-            ).map((eff) => {
+            const effectHandlerTypes = explicitEffects.map((eff) => {
                 // return  effectHandlers[refName(eff.ref)]
-                return void_; // STOPSHIP
+                return effectHandlerType(env, eff);
+                // return void_; // STOPSHIP
             });
 
             if (argsEffects.length > 0) {

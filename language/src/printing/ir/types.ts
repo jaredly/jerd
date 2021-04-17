@@ -233,7 +233,7 @@ export type Expr =
     | Literal
     | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc }
     | { type: 'term'; id: Id; loc: Loc }
-    | { type: 'var'; sym: Symbol; loc: Loc }
+    | { type: 'var'; sym: Symbol; loc: Loc; is: Type }
     | {
           type: 'slice';
           value: Expr;

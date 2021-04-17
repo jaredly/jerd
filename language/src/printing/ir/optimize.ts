@@ -1,6 +1,6 @@
 import { idFromName } from '../../typing/env';
 import { int, pureFunction, void_ } from '../../typing/preset';
-import { Env, Id, Symbol, symbolsEqual } from '../../typing/types';
+import { Env, Id, Symbol, symbolsEqual, Type } from '../../typing/types';
 import {
     defaultVisitor,
     transformBlock,
@@ -26,29 +26,29 @@ import { and, asBlock, builtin, iffe } from './utils';
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
 export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
-    expr = optimize(env, expr);
-    expr = optimizeTailCalls(env, expr, id);
-    expr = optimize(env, expr);
-    expr = arraySliceLoopToIndex(env, expr);
+    // expr = optimize(env, expr);
+    // expr = optimizeTailCalls(env, expr, id);
+    // expr = optimize(env, expr);
+    // expr = arraySliceLoopToIndex(env, expr);
     // expr = arraySlices(env, expr);
     return expr;
 };
 
 export const optimize = (env: Env, expr: Expr): Expr => {
-    const transformers: Array<(env: Env, e: Expr) => Expr> = [
-        flattenIffe,
-        removeUnusedVariables,
-        removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
-        foldConstantTuples,
-        foldConstantAssignments,
-        foldSingleUseAssignments,
-        flattenNestedIfs,
-        arraySlices,
-        foldConstantAssignments,
-        removeUnusedVariables,
-        flattenNestedIfs,
-    ];
-    transformers.forEach((t) => (expr = t(env, expr)));
+    // const transformers: Array<(env: Env, e: Expr) => Expr> = [
+    //     flattenIffe,
+    //     removeUnusedVariables,
+    //     removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
+    //     foldConstantTuples,
+    //     foldConstantAssignments,
+    //     foldSingleUseAssignments,
+    //     flattenNestedIfs,
+    //     arraySlices,
+    //     foldConstantAssignments,
+    //     removeUnusedVariables,
+    //     flattenNestedIfs,
+    // ];
+    // transformers.forEach((t) => (expr = t(env, expr)));
     return expr;
 };
 
@@ -457,7 +457,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                     loc: expr.loc,
                     is: expr.is,
                 });
-                target = { type: 'var', sym: v, loc: expr.loc };
+                target = { type: 'var', sym: v, loc: expr.loc, is: expr.is };
             }
             // const d = env.global.types[idName(expr.base.ref.id)] as RecordDef;
             const rows: Array<Expr> = expr.base.rows.map((row, i) => {
@@ -512,21 +512,22 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                     name: 'st' + k,
                     unique: env.local.unique++,
                 };
+                const t: Type = {
+                    type: 'ref',
+                    ref: { type: 'user', id: idFromName(k) },
+                    location: null,
+                    // STOPSHIP: ???
+                    typeVbls: [],
+                    effectVbls: [],
+                };
                 inits.push({
                     type: 'Define',
                     sym: v,
                     value: subType.spread,
                     loc: subType.spread.loc,
-                    is: {
-                        type: 'ref',
-                        ref: { type: 'user', id: idFromName(k) },
-                        location: null,
-                        // STOPSHIP: ???
-                        typeVbls: [],
-                        effectVbls: [],
-                    },
+                    is: t,
                 });
-                target = { type: 'var', sym: v, loc: expr.loc };
+                target = { type: 'var', sym: v, loc: expr.loc, is: t };
             }
             const rows: Array<Expr> = subType.rows.map((row, i) => {
                 if (row == null) {
@@ -676,6 +677,7 @@ export const tailCallRecursion = (
                                             type: 'var',
                                             sym,
                                             loc: apply.args[i].loc,
+                                            is: void_, //STOPSHIP this lies
                                         },
                                     });
                                 });
@@ -808,6 +810,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                                     type: 'var',
                                     loc: expr.loc,
                                     sym: indexForSym[n],
+                                    is: void_, // STOPSHIP this lies
                                 },
                                 stmt.value.start,
                             ],
@@ -837,6 +840,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                                             type: 'var',
                                             loc: expr.loc,
                                             sym: indexForSym[n],
+                                            is: void_, // STOPSHIP
                                         },
                                     ],
                                     expr.loc,
@@ -864,6 +868,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                                         type: 'var',
                                         loc: expr.loc,
                                         sym: indexForSym[n],
+                                        is: void_, // STOPSHIP
                                     },
                                 ],
                                 expr.loc,
@@ -921,6 +926,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
             type: 'var',
             loc: null,
             sym: arrayInfos[n].start,
+            is: void_, // STOPSHIP: this lies
         };
         let src = arrayInfos[n].src;
         const nxt = resolve(arrayInfos[n].src);

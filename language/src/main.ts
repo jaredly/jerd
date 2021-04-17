@@ -504,6 +504,12 @@ const processFile = (
         builtinNames,
     );
     // const ast = fileToTypescript(expressions, env, {}, assert, true);
+
+    const { code: tsCode } = generate(ast, {
+        // sourceMaps: true,
+        // sourceFileName: '../' + path.basename(fname),
+    });
+
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
@@ -513,6 +519,7 @@ const processFile = (
     const buildDir = path.join(path.dirname(fname), 'build');
 
     const dest = path.join(buildDir, path.basename(fname) + '.mjs');
+    const destTs = path.join(buildDir, path.basename(fname) + '.ts');
 
     const mapName = path.basename(fname) + '.mjs.map';
     writeFile(path.join(buildDir, mapName), JSON.stringify(map, null, 2));
@@ -523,6 +530,7 @@ const processFile = (
     const text = code + '\n\n//' + m + 'MappingURL=' + mapName;
 
     writeFile(dest, text);
+    writeFile(destTs, tsCode);
 
     const preludeTS = require('fs').readFileSync(
         './src/printing/builtins.ts.txt',
