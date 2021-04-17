@@ -6,7 +6,7 @@ import generate from '@babel/generator';
 import { sortedExplicitEffects } from './ir/lambda';
 import { effectHandlerType } from './ir/cps';
 import { withAnnotation } from './typeScriptPrinterSimple';
-import { refName } from '../typing/env';
+import { idName, refName } from '../typing/env';
 
 // Can I... misuse babel's AST to produce go?
 // what would get in my way?
@@ -95,6 +95,10 @@ export const typeToAst = (
             } else {
                 return t.tsTypeReference(t.identifier('t_' + type.ref.id.hash));
             }
+        case 'effect-handler':
+            return t.tsTypeReference(
+                t.identifier('handle' + refName(type.ref)),
+            );
         case 'var':
             return t.tsTypeReference(t.identifier(`T_${type.sym.unique}`));
         case 'lambda': {

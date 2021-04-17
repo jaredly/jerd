@@ -12,6 +12,7 @@ import {
     EffectReference,
     Symbol,
     typesEqual,
+    Reference,
 } from '../../typing/types';
 import {
     bool,
@@ -83,11 +84,9 @@ export const termToAstCPS = (
 
 export const effectHandlerType = (env: Env, eff: EffectReference): Type => {
     return {
-        type: 'ref',
-        ref: { type: 'builtin', name: 'handle' + refName(eff.ref) },
+        type: 'effect-handler',
+        ref: eff.ref,
         location: null,
-        typeVbls: [],
-        effectVbls: [],
     };
 };
 
@@ -156,25 +155,47 @@ const _termToAstCPS = (
         //             };
         //         }
         case 'Let': {
-            // return termToAstCPS(
-            //     env,
-            //     opts,
-            //     term.value,
-            //     cpsLambda(
-            //         { sym: term.binding, type: term.is, loc: term.location },
-            //         {
-            //             type: 'apply',
-            //             target: done,
-            //             res: void_,
-            //             targetType: pureFunction([handlersType], void_),
-            //             concreteType: pureFunction([handlersType], void_),
-            //             args: [{ type: 'var', sym: handlerSym, loc: null }],
-            //             loc: null,
-            //         },
-            //         term.location,
-            //     ),
-            // );
-            return stringLiteral('um', term.location);
+            return termToAstCPS(
+                env,
+                opts,
+                term.value,
+                effectHandlers,
+                {
+                    type: 'lambda',
+                    args: [
+                        ...sortedExplicitEffects(getEffects(term.value)).map(
+                            (eff) => ({
+                                sym: effectHandlers[refName(eff.ref)].sym,
+                                type: effectHandlerType(env, eff),
+                                loc: term.location,
+                            }),
+                        ),
+                        // effectHandlerType(env, )
+                        {
+                            sym: term.binding,
+                            type: term.value.is,
+                            // type: never,
+                            loc: term.location,
+                        },
+                    ],
+                    body: {
+                        type: 'apply',
+                        target: done,
+                        is: void_,
+                        targetType: pureFunction([], void_),
+                        concreteType: pureFunction([], void_),
+                        args: [],
+                        loc: null,
+                    },
+                    res: void_,
+                    loc: term.location,
+                    is: pureFunction([term.is], void_),
+                },
+                // cpsLambda(
+                //     term.location,
+                // ),
+            );
+            // return stringLiteral('um', term.location);
         }
         case 'raise': {
             if (
@@ -398,7 +419,13 @@ const _termToAstCPS = (
                     if (done.is.type !== 'lambda') {
                         throw new Error('done not a lambda');
                     }
-                    const effects = sortedExplicitEffects(done.is.effects);
+                    const effects = done.is.args
+                        .map((arg) =>
+                            arg.type === 'effect-handler'
+                                ? { type: 'ref', ref: arg.ref, location: null }
+                                : null,
+                        )
+                        .filter(Boolean) as Array<EffectReference>;
                     const doneHandlerTypes = effects.map((eff) =>
                         effectHandlerType(env, eff),
                     );
@@ -435,24 +462,15 @@ const _termToAstCPS = (
                                     res: void_,
                                 },
                                 term.is,
-                                // 🤔
-                                effects
-                                    .map(
-                                        (eff) =>
-                                            effectHandlers[refName(eff.ref)]
-                                                .expr,
-                                    )
-                                    .concat(
-                                        argSyms.map((sym, i) =>
-                                            sym
-                                                ? {
-                                                      type: 'var',
-                                                      sym,
-                                                      loc: null,
-                                                  }
-                                                : printTerm(env, opts, args[i]),
-                                        ) as Array<Expr>,
-                                    ),
+                                argSyms.map((sym, i) =>
+                                    sym
+                                        ? {
+                                              type: 'var',
+                                              sym,
+                                              loc: null,
+                                          }
+                                        : printTerm(env, opts, args[i]),
+                                ) as Array<Expr>,
                                 target.loc,
                             ),
                         ],

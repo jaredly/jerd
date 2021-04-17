@@ -201,7 +201,11 @@ export type Case = {
     body: Term;
 };
 
-export type EffectReference = { type: 'ref'; ref: Reference; location?: null | Location }
+export type EffectReference = {
+    type: 'ref';
+    ref: Reference;
+    location?: null | Location;
+};
 export type EffectRef =
     | EffectReference
     | { type: 'var'; sym: Symbol; location?: null | Location }; // TODO var, also args
@@ -691,7 +695,13 @@ export type TypeVar = {
     location: Location | null;
 };
 
-export type Type = TypeRef | LambdaType;
+export type EffectHandler = {
+    type: 'effect-handler';
+    ref: Reference;
+    location: Location | null;
+};
+
+export type Type = TypeRef | LambdaType | EffectHandler;
 
 // Here's the basics folks
 // kind lambdas can't have effects, thank goodness
