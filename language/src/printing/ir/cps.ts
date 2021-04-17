@@ -8,42 +8,25 @@ import {
     Let,
     Var,
     EffectRef,
-    UserReference,
     EffectReference,
     Symbol,
     typesEqual,
-    Reference,
     refsEqual,
 } from '../../typing/types';
-import {
-    bool,
-    builtinType,
-    never,
-    pureFunction,
-    void_,
-} from '../../typing/preset';
+import { pureFunction, void_ } from '../../typing/preset';
 import { showLocation } from '../../typing/typeExpr';
 
 import {
-    Loc,
     Expr,
-    Block,
     // handlersType,
     // handlerSym,
     stringLiteral,
-    Arg,
     callExpression,
     OutputOptions,
 } from './types';
-import { printLambdaBody, sortedExplicitEffects } from './lambda';
+import { sortedExplicitEffects } from './lambda';
 import { printTerm } from './term';
-import {
-    ifStatement,
-    iffe,
-    blockStatement,
-    arrowFunctionExpression,
-    isSimple,
-} from './utils';
+import { blockStatement, arrowFunctionExpression, isSimple } from './utils';
 import { idName, refName } from '../../typing/env';
 import { LocatedError } from '../../typing/errors';
 import { showType } from '../../typing/unify';
@@ -171,11 +154,9 @@ const _termToAstCPS = (
                                 loc: term.location,
                             }),
                         ),
-                        // effectHandlerType(env, )
                         {
                             sym: term.binding,
                             type: term.value.is,
-                            // type: never,
                             loc: term.location,
                         },
                     ],
@@ -493,7 +474,6 @@ const _termToAstCPS = (
                             )}`,
                         );
                     }
-                    // oh I need done.is
                     if (done.is.type !== 'lambda') {
                         throw new Error('done not a lambda');
                     }
