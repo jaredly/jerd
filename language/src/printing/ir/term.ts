@@ -15,6 +15,8 @@ import {
     walkTerm,
     Pattern,
     UserReference,
+    EffectReference,
+    typesEqual,
 } from '../../typing/types';
 import {
     binOps,
@@ -31,12 +33,18 @@ import {
     applyEffectVariables,
     getEnumReferences,
     showLocation,
+    tupleType,
 } from '../../typing/typeExpr';
-import { idFromName, idName } from '../../typing/env';
+import { idFromName, idName, refName } from '../../typing/env';
 
-import { Loc, Expr, Stmt, callExpression, OutputOptions } from './types';
+import { Loc, Expr, Stmt, callExpression, OutputOptions, Arg } from './types';
 
-import { maybeWrapPureFunction, termToAstCPS } from './cps';
+import {
+    effectConstructorType,
+    effectHandlerType,
+    maybeWrapPureFunction,
+    termToAstCPS,
+} from './cps';
 import {
     iffe,
     arrowFunctionExpression,
@@ -232,6 +240,12 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             */
             const sym: Symbol = { name: 'result', unique: env.local.unique++ };
             const doneS: Symbol = { name: 'done', unique: env.local.unique++ };
+            const doneVar: Expr = {
+                type: 'var',
+                sym: doneS,
+                loc: null,
+                is: pureFunction([term.is], void_),
+            };
             const finalValue: Symbol = {
                 name: 'finalValue',
                 unique: env.local.unique++,
@@ -240,6 +254,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 name: 'fnReturnPointer',
                 unique: env.local.unique++,
             };
+            const effRef: EffectReference = { type: 'ref', ref: term.effect };
+            const effDev = env.global.effects[refName(term.effect)];
             return iffe(
                 {
                     type: 'Block',
@@ -312,23 +328,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                     env,
                                     opts,
                                     term.pure.body,
-                                    // {
-                                    //     type: 'lambda',
-                                    //     body: term.pure.body,
-                                    //     args: [term.pure.arg],
-                                    //     location: term.location,
-                                    //     is: pureFunction(
-                                    //         [(term.target.is as LambdaType).res],
-                                    //         term.is,
-                                    //     ),
-                                    // },
+                                    // here's where we'd pass them in if they existed.
                                     {},
-                                    {
-                                        type: 'var',
-                                        sym: doneS,
-                                        loc: null,
-                                        is: pureFunction([term.is], void_),
-                                    },
+                                    doneVar,
                                 ),
                             },
                             is: term.is,
@@ -339,7 +341,166 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                 printTerm(env, opts, term.target),
                                 term.target.is as LambdaType,
                                 void_,
-                                [],
+                                [
+                                    // Here's where we'd change to have a builtin handlers type probably
+                                    {
+                                        type: 'tuple',
+                                        loc: term.location,
+                                        // TODO: Delete this attribute? duplicate. oh maybe not
+                                        itemTypes: term.cases.map((_, i) =>
+                                            effectConstructorType(
+                                                env,
+                                                {
+                                                    type: 'ref',
+                                                    ref: term.effect,
+                                                },
+                                                effDev[i],
+                                            ),
+                                        ),
+                                        items: term.cases.map((kase, i) => {
+                                            return {
+                                                type: 'lambda',
+                                                args: [
+                                                    ...kase.args.map(
+                                                        (sym, si) => ({
+                                                            sym,
+                                                            type:
+                                                                effDev[i].args[
+                                                                    si
+                                                                ],
+                                                            loc:
+                                                                kase.body
+                                                                    .location,
+                                                        }),
+                                                    ),
+                                                    {
+                                                        sym: kase.k,
+                                                        type: pureFunction(
+                                                            [
+                                                                effectHandlerType(
+                                                                    env,
+                                                                    effRef,
+                                                                ),
+                                                                ...(typesEqual(
+                                                                    effDev[i]
+                                                                        .ret,
+                                                                    void_,
+                                                                )
+                                                                    ? []
+                                                                    : [
+                                                                          effDev[
+                                                                              i
+                                                                          ].ret,
+                                                                      ]),
+                                                            ],
+                                                            void_,
+                                                        ),
+                                                    },
+                                                    // {
+                                                    //     sym: term.pure.arg,
+                                                    //     type: (term.target
+                                                    //         .is as LambdaType)
+                                                    //         .res,
+                                                    //     loc:
+                                                    //         term.pure.body
+                                                    //             .location,
+                                                    // },
+                                                ] as Array<Arg>,
+                                                res: void_,
+                                                loc: term.pure.body.location,
+                                                is: pureFunction(
+                                                    [
+                                                        (term.target
+                                                            .is as LambdaType)
+                                                            .res,
+                                                    ],
+                                                    void_,
+                                                ),
+                                                // OKKKK so the last thing to do here
+                                                // is redefine `k`
+                                                // so that it sets the fnReturnPointer
+                                                // I think that's it?
+                                                body: printLambdaBody(
+                                                    env,
+                                                    opts,
+                                                    kase.body,
+                                                    {},
+                                                    doneVar,
+                                                ),
+                                            };
+                                        }),
+                                        is: tupleType(
+                                            term.cases.map((_, i) =>
+                                                effectConstructorType(
+                                                    env,
+                                                    {
+                                                        type: 'ref',
+                                                        ref: term.effect,
+                                                    },
+                                                    effDev[i],
+                                                ),
+                                            ),
+                                        ), // lol
+                                    },
+                                    {
+                                        type: 'lambda',
+                                        args: [
+                                            {
+                                                sym: {
+                                                    name: '_ignored',
+                                                    unique: 0,
+                                                },
+                                                type: effectHandlerType(env, {
+                                                    type: 'ref',
+                                                    ref: term.effect,
+                                                }),
+                                                loc: term.pure.body.location,
+                                            },
+                                            {
+                                                sym: term.pure.arg,
+                                                type: (term.target
+                                                    .is as LambdaType).res,
+                                                loc: term.pure.body.location,
+                                            },
+                                        ],
+                                        res: void_,
+                                        loc: term.pure.body.location,
+                                        is: pureFunction(
+                                            [
+                                                effectHandlerType(env, {
+                                                    type: 'ref',
+                                                    ref: term.effect,
+                                                }),
+                                                (term.target.is as LambdaType)
+                                                    .res,
+                                            ],
+                                            void_,
+                                        ),
+                                        body: callExpression(
+                                            {
+                                                type: 'var',
+                                                sym: fnReturnPointer,
+                                                loc: term.location,
+                                                is: pureFunction(
+                                                    [term.is],
+                                                    void_,
+                                                ),
+                                            },
+                                            pureFunction([term.is], void_),
+                                            void_,
+                                            [
+                                                {
+                                                    type: 'var',
+                                                    sym: term.pure.arg,
+                                                    is: (term.target
+                                                        .is as LambdaType).res,
+                                                    loc: term.location,
+                                                },
+                                            ],
+                                            term.location,
+                                        ),
+                                    },
+                                ],
                                 term.location,
                             ),
                             /* expr: {

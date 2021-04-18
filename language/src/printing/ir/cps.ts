@@ -90,7 +90,8 @@ export const effectConstructorType = (
                 void_,
             ),
         ]),
-        constr.ret,
+        void_,
+        // constr.ret,
     );
 };
 
