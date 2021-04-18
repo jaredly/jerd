@@ -30,6 +30,7 @@ import { blockStatement, arrowFunctionExpression, isSimple } from './utils';
 import { idName, refName } from '../../typing/env';
 import { LocatedError } from '../../typing/errors';
 import { showType } from '../../typing/unify';
+import { printHandle } from './handle';
 
 // export const handlerVar = (loc: Loc): Expr => ({
 //     type: 'var',
@@ -116,6 +117,8 @@ const _termToAstCPS = (
         };
     }
     switch (term.type) {
+        case 'handle':
+            return printHandle(env, opts, term, effectHandlers, done);
         //         case 'handle': {
         //             if (getEffects(term.target).length > 0) {
         //                 throw new Error(

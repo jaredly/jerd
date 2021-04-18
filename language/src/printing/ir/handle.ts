@@ -50,6 +50,7 @@ import {
 
 import {
     effectConstructorType,
+    EffectHandlers,
     effectHandlerType,
     maybeWrapPureFunction,
     termToAstCPS,
@@ -68,7 +69,13 @@ import { printPattern } from './pattern';
 import { printLambda, printLambdaBody } from './lambda';
 import { printTerm } from './term';
 
-export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
+export const printHandle = (
+    env: Env,
+    opts: OutputOptions,
+    term: Handle,
+    effectHandlers: EffectHandlers,
+    cps: Expr | null,
+) => {
     /*
             handle! fn {
                 Write.write((v) => k) => xyz,
@@ -118,50 +125,54 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
         {
             type: 'Block',
             items: [
-                {
-                    type: 'Define',
-                    sym,
-                    loc: term.location,
-                    value: null,
-                    is: term.is,
-                },
-                {
-                    type: 'Define',
-                    sym: doneS,
-                    loc: term.location,
-                    value: {
-                        type: 'lambda',
-                        args: [
-                            {
-                                sym: finalValue,
-                                type: term.is,
-                                loc: term.location,
-                            },
-                        ],
-                        res: void_,
-                        loc: term.location,
-                        body: {
-                            type: 'Block',
-                            loc: term.location,
-                            items: [
-                                {
-                                    type: 'Assign',
-                                    sym,
-                                    value: {
-                                        type: 'var',
-                                        sym: finalValue,
-                                        loc: term.location,
-                                        is: term.is,
-                                    },
-                                    is: void_,
-                                    loc: term.location,
-                                },
-                            ],
-                        },
-                        is: pureFunction([term.is], void_),
-                    },
-                    is: term.is,
-                },
+                ...(cps
+                    ? []
+                    : ([
+                          {
+                              type: 'Define',
+                              sym,
+                              loc: term.location,
+                              value: null,
+                              is: term.is,
+                          },
+                          {
+                              type: 'Define',
+                              sym: doneS,
+                              loc: term.location,
+                              value: {
+                                  type: 'lambda',
+                                  args: [
+                                      {
+                                          sym: finalValue,
+                                          type: term.is,
+                                          loc: term.location,
+                                      },
+                                  ],
+                                  res: void_,
+                                  loc: term.location,
+                                  body: {
+                                      type: 'Block',
+                                      loc: term.location,
+                                      items: [
+                                          {
+                                              type: 'Assign',
+                                              sym,
+                                              value: {
+                                                  type: 'var',
+                                                  sym: finalValue,
+                                                  loc: term.location,
+                                                  is: term.is,
+                                              },
+                                              is: void_,
+                                              loc: term.location,
+                                          },
+                                      ],
+                                  },
+                                  is: pureFunction([term.is], void_),
+                              },
+                              is: term.is,
+                          },
+                      ] as Array<Stmt>)),
                 {
                     type: 'Define',
                     sym: fnReturnPointer,
@@ -194,7 +205,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                             opts,
                             term.pure.body,
                             // here's where we'd pass them in if they existed.
-                            {},
+                            effectHandlers,
                             doneVar,
                         ),
                     },
@@ -446,7 +457,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                                                 env,
                                                 opts,
                                                 kase.body,
-                                                {},
+                                                effectHandlers,
                                                 doneVar,
                                             ),
                                         ),

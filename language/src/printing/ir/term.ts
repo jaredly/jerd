@@ -66,6 +66,7 @@ import {
 import { printPattern } from './pattern';
 import { printLambda, printLambdaBody } from './lambda';
 import { printHandle } from './handle';
+import { LocatedError } from '../../typing/errors';
 
 export const printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
     return _printTerm(env, opts, term);
@@ -219,12 +220,13 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         }
 
         case 'raise':
-            throw new Error(
+            throw new LocatedError(
+                term.location,
                 "Cannot print a 'raise' outside of CPS. Effect tracking must have messed up.",
             );
 
         case 'handle':
-            return printHandle(env, opts, term);
+            return printHandle(env, opts, term, {}, null);
 
         case 'sequence': {
             // IIFE
