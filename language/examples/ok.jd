@@ -26,7 +26,7 @@ const provideString: (string, () ={Read}> string) => string = (v: string, fn: ()
     pure(v) => v + "pure"
 }
 
-provideString("Yes", getString)
+provideString("Yes", getString) == "Yesgotbackpureprovided"
 
 
 /*

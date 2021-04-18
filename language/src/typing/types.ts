@@ -210,6 +210,21 @@ export type EffectRef =
     | EffectReference
     | { type: 'var'; sym: Symbol; location?: null | Location }; // TODO var, also args
 
+export type Handle = {
+    type: 'handle';
+    location: Location | null;
+    target: Term; // this must needs be typed as a LambdaType
+    // These are the target's effects minus the one that is handled here.
+    effect: Reference;
+    cases: Array<Case>;
+    pure: {
+        arg: Symbol;
+        body: Term;
+    };
+    // this is the type of the bodies of the cases
+    // also of the pure, which is maybe simplest
+    is: Type;
+};
 export type CPSAble =
     | {
           type: 'raise';
@@ -219,21 +234,7 @@ export type CPSAble =
           args: Array<Term>;
           is: Type;
       }
-    | {
-          type: 'handle';
-          location: Location | null;
-          target: Term; // this must needs be typed as a LambdaType
-          // These are the target's effects minus the one that is handled here.
-          effect: Reference;
-          cases: Array<Case>;
-          pure: {
-              arg: Symbol;
-              body: Term;
-          };
-          // this is the type of the bodies of the cases
-          // also of the pure, which is maybe simplest
-          is: Type;
-      }
+    | Handle
     | {
           type: 'if';
           location: Location | null;
