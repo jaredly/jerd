@@ -511,7 +511,15 @@ export const stmtToTs = (
             return withLocation(
                 t.variableDeclaration('let', [
                     t.variableDeclarator(
-                        t.identifier(printSym(env, stmt.sym)),
+                        // If there's no initializer, include an annotation.
+                        stmt.value
+                            ? t.identifier(printSym(env, stmt.sym))
+                            : withAnnotation(
+                                  env,
+                                  opts,
+                                  t.identifier(printSym(env, stmt.sym)),
+                                  stmt.is,
+                              ),
                         stmt.value ? termToTs(env, opts, stmt.value) : null,
                     ),
                 ]),
