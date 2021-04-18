@@ -101,7 +101,7 @@ export const printHandle = (
             */
     const sym: Symbol = { name: 'result', unique: env.local.unique++ };
     const doneS: Symbol = { name: 'done', unique: env.local.unique++ };
-    const doneVar: Expr = {
+    const doneVar: Expr = cps || {
         type: 'var',
         sym: doneS,
         loc: null,
