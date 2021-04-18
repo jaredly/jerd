@@ -13,7 +13,7 @@ import {
     typesEqual,
     refsEqual,
 } from '../../typing/types';
-import { pureFunction, void_ } from '../../typing/preset';
+import { bool, pureFunction, void_ } from '../../typing/preset';
 import { showLocation } from '../../typing/typeExpr';
 
 import {
@@ -24,9 +24,15 @@ import {
     callExpression,
     OutputOptions,
 } from './types';
-import { sortedExplicitEffects } from './lambda';
+import { printLambdaBody, sortedExplicitEffects } from './lambda';
 import { printTerm } from './term';
-import { blockStatement, arrowFunctionExpression, isSimple } from './utils';
+import {
+    blockStatement,
+    arrowFunctionExpression,
+    isSimple,
+    ifStatement,
+    iffe,
+} from './utils';
 import { idName, refName } from '../../typing/env';
 import { LocatedError } from '../../typing/errors';
 import { showType } from '../../typing/unify';
@@ -106,90 +112,73 @@ const _termToAstCPS = (
 ): Expr => {
     //     // No effects in the term
     if (!getEffects(term).length && term.type !== 'Let') {
+        if (done.is.type !== 'lambda') {
+            throw new Error('done not a lambda');
+        }
+        const effects = done.is.args
+            .map((arg) =>
+                arg.type === 'effect-handler'
+                    ? { type: 'ref', ref: arg.ref, location: null }
+                    : null,
+            )
+            .filter(Boolean) as Array<EffectReference>;
+        const doneHandlerTypes = effects.map((eff) =>
+            effectHandlerType(env, eff),
+        );
         return {
             type: 'apply',
             target: done,
             is: void_,
-            targetType: pureFunction([term.is], void_),
-            concreteType: pureFunction([term.is], void_),
-            args: [printTerm(env, opts, term)],
+            targetType: pureFunction([...doneHandlerTypes, term.is], void_),
+            concreteType: pureFunction([...doneHandlerTypes, term.is], void_),
+            args: [
+                ...effects.map((eff) => effectHandlers[refName(eff.ref)].expr),
+                printTerm(env, opts, term),
+            ],
             loc: null,
         };
     }
     switch (term.type) {
         case 'handle':
             return printHandle(env, opts, term, effectHandlers, done);
-        //         case 'handle': {
-        //             if (getEffects(term.target).length > 0) {
-        //                 throw new Error(
-        //                     `Handle target has effects! should be a lambda`,
-        //                 );
-        //             }
-        //             return {
-        //                 type: 'handle',
-        //                 target: printTerm(env, opts, term.target),
-        //                 effect: (term.effect as UserReference).id,
-        //                 loc: term.location,
-        //                 // fail boat
-        //                 pure: {
-        //                     arg: term.pure.arg,
-        //                     body: printLambdaBody(env, opts, term.pure.body, done),
-        //                 },
-        //                 cases: term.cases.map((kase) => ({
-        //                     ...kase,
-        //                     body: printLambdaBody(env, opts, kase.body, done),
-        //                 })),
-        //                 done,
-        //             };
-        //         }
         case 'Let': {
-            return termToAstCPS(
-                env,
-                opts,
-                term.value,
-                effectHandlers,
-                {
-                    type: 'lambda',
-                    args: [
-                        ...sortedExplicitEffects(getEffects(term.value)).map(
-                            (eff) => ({
-                                sym: effectHandlers[refName(eff.ref)].sym,
-                                type: effectHandlerType(env, eff),
-                                loc: term.location,
-                            }),
-                        ),
-                        {
-                            sym: term.binding,
-                            type: term.value.is,
+            return termToAstCPS(env, opts, term.value, effectHandlers, {
+                type: 'lambda',
+                args: [
+                    ...sortedExplicitEffects(getEffects(term.value)).map(
+                        (eff) => ({
+                            sym: effectHandlers[refName(eff.ref)].sym,
+                            type: effectHandlerType(env, eff),
                             loc: term.location,
-                        },
-                    ],
-                    body: {
-                        type: 'apply',
-                        target: done,
-                        is: void_,
-                        targetType: pureFunction([], void_),
-                        concreteType: pureFunction([], void_),
-                        args: [],
-                        loc: null,
-                    },
-                    res: void_,
-                    loc: term.location,
-                    is: pureFunction(
-                        [
-                            ...sortedExplicitEffects(
-                                getEffects(term.value),
-                            ).map((eff) => effectHandlerType(env, eff)),
-                            term.is,
-                        ],
-                        void_,
+                        }),
                     ),
+                    {
+                        sym: term.binding,
+                        type: term.value.is,
+                        loc: term.location,
+                    },
+                ],
+                body: {
+                    type: 'apply',
+                    target: done,
+                    is: void_,
+                    targetType: pureFunction([], void_),
+                    concreteType: pureFunction([], void_),
+                    args: [],
+                    loc: null,
                 },
-                // cpsLambda(
-                //     term.location,
-                // ),
-            );
-            // return stringLiteral('um', term.location);
+                res: void_,
+                loc: term.location,
+                is: pureFunction(
+                    [
+                        ...sortedExplicitEffects(
+                            getEffects(term.value),
+                        ).map((eff) => effectHandlerType(env, eff)),
+                        term.is,
+                    ],
+                    void_,
+                ),
+            });
         }
         case 'raise': {
             if (
@@ -311,81 +300,128 @@ const _termToAstCPS = (
             //     done,
             // };
         }
-        //         case 'if': {
-        //             const condEffects = getEffects(term.cond);
-        //             if (condEffects.length) {
-        //                 return termToAstCPS(
-        //                     env,
-        //                     opts,
-        //                     term.cond,
-        //                     cpsLambda(
-        //                         {
-        //                             sym: { name: 'cond', unique: 1000 },
-        //                             type: bool,
-        //                             loc: term.cond.location,
-        //                         },
-        //                         {
-        //                             type: 'Block',
-        //                             items: [
-        //                                 ifStatement(
-        //                                     {
-        //                                         type: 'var',
-        //                                         sym: { name: 'cond', unique: 1000 },
-        //                                         loc: term.cond.location,
-        //                                     },
-        //                                     printLambdaBody(env, opts, term.yes, done),
-        //                                     term.no
-        //                                         ? printLambdaBody(
-        //                                               env,
-        //                                               opts,
-        //                                               term.no,
-        //                                               done,
-        //                                           )
-        //                                         : callExpression(
-        //                                               done,
-        //                                               pureFunction(
-        //                                                   [handlersType],
-        //                                                   void_,
-        //                                               ),
-        //                                               void_,
-        //                                               [handlerVar(term.location)],
-        //                                               term.location,
-        //                                           ),
-        //                                     term.location,
-        //                                 ),
-        //                             ],
-        //                             loc: term.location,
-        //                         },
-        //                         term.location,
-        //                     ),
-        //                 );
-        //             }
+        case 'if': {
+            if (done.is.type !== 'lambda') {
+                throw new Error('done not a lambda');
+            }
+            const effects = done.is.args
+                .map((arg) =>
+                    arg.type === 'effect-handler'
+                        ? { type: 'ref', ref: arg.ref, location: null }
+                        : null,
+                )
+                .filter(Boolean) as Array<EffectReference>;
+            const doneHandlerTypes = effects.map((eff) =>
+                effectHandlerType(env, eff),
+            );
 
-        //             const cond = printTerm(env, opts, term.cond);
+            // STOPSHIP: I'm sure none of this works.
+            // I should really write some tests.
+            const condEffects = getEffects(term.cond);
+            if (condEffects.length) {
+                return termToAstCPS(env, opts, term.cond, effectHandlers, {
+                    type: 'lambda',
+                    args: [
+                        {
+                            sym: { name: 'cond', unique: 1000 },
+                            type: bool,
+                            loc: term.cond.location,
+                        },
+                    ],
+                    is: pureFunction([bool], void_),
+                    body: {
+                        type: 'Block',
+                        items: [
+                            ifStatement(
+                                {
+                                    type: 'var',
+                                    sym: { name: 'cond', unique: 1000 },
+                                    loc: term.cond.location,
+                                    is: bool,
+                                },
+                                printLambdaBody(
+                                    env,
+                                    opts,
+                                    term.yes,
+                                    effectHandlers,
+                                    done,
+                                ),
+                                term.no
+                                    ? printLambdaBody(
+                                          env,
+                                          opts,
+                                          term.no,
+                                          effectHandlers,
+                                          done,
+                                      )
+                                    : callExpression(
+                                          done,
+                                          pureFunction(doneHandlerTypes, void_),
+                                          void_,
+                                          [
+                                              ...effects.map(
+                                                  (eff) =>
+                                                      effectHandlers[
+                                                          refName(eff.ref)
+                                                      ].expr,
+                                              ),
+                                          ],
+                                          term.location,
+                                      ),
+                                term.location,
+                            ),
+                        ],
+                        loc: term.location,
+                    },
+                    res: void_,
+                    loc: term.location,
+                });
+            }
 
-        //             return iffe(
-        //                 blockStatement(
-        //                     [
-        //                         ifStatement(
-        //                             cond,
-        //                             printLambdaBody(env, opts, term.yes, done),
-        //                             term.no
-        //                                 ? printLambdaBody(env, opts, term.no, done)
-        //                                 : callExpression(
-        //                                       done,
-        //                                       pureFunction([handlersType], void_),
-        //                                       void_,
-        //                                       [handlerVar(term.location)],
-        //                                       term.location,
-        //                                   ),
-        //                             term.location,
-        //                         ),
-        //                     ],
-        //                     term.location,
-        //                 ),
-        //                 void_,
-        //             );
-        //         }
+            const cond = printTerm(env, opts, term.cond);
+
+            return iffe(
+                blockStatement(
+                    [
+                        ifStatement(
+                            cond,
+                            printLambdaBody(
+                                env,
+                                opts,
+                                term.yes,
+                                effectHandlers,
+                                done,
+                            ),
+                            term.no
+                                ? printLambdaBody(
+                                      env,
+                                      opts,
+                                      term.no,
+                                      effectHandlers,
+                                      done,
+                                  )
+                                : callExpression(
+                                      done,
+                                      pureFunction(doneHandlerTypes, void_),
+                                      void_,
+                                      [
+                                          ...effects.map(
+                                              (eff) =>
+                                                  effectHandlers[
+                                                      refName(eff.ref)
+                                                  ].expr,
+                                          ),
+                                      ],
+                                      term.location,
+                                  ),
+                            term.location,
+                        ),
+                    ],
+                    term.location,
+                ),
+                void_,
+            );
+        }
         case 'apply': {
             if (getEffects(term.target).length) {
                 throw new Error(`target affects in an apply, sorry`);
@@ -544,13 +580,13 @@ const _termToAstCPS = (
                     if (isSimple(args[i])) {
                         continue;
                     }
-                    // TODO: follow type refs 🤔
-                    // should just have a function like
-                    // `resolveType(env, theType)`
-                    // if (term.target.is.type === 'lambda' && )
                     const arg = args[i];
+                    // TODO: handle um `raise`, because that's a thing
                     if (arg.type !== 'apply') {
-                        throw new Error('what are we doing');
+                        throw new LocatedError(
+                            arg.location,
+                            `Arg has effects, but isn't an apply ${arg.type}`,
+                        );
                     }
                     const ty = arg.target.is;
                     if (ty.type !== 'lambda') {

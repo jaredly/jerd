@@ -28,6 +28,20 @@ const provideString: (string, () ={Read}> string) => string = (v: string, fn: ()
 
 provideString("Yes", getString) == "Yesgotbackpureprovided"
 
+const provideStringPlain: (string, () ={Read}> string) => string = (v: string, fn: () ={Read}> string) => handle! fn {
+    Read.read(() => k) => provideStringPlain(v, () ={Read}> k(v)),
+    pure(v) => v,
+}
+
+const ifYes = () => if getString() == "Yes" {
+    "good"
+} else {
+    "nope"
+}
+
+provideStringPlain("Yes", ifYes) == "good"
+provideStringPlain("Yes?", ifYes) == "nope"
+
 
 /*
 const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {

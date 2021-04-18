@@ -89,6 +89,8 @@ export const typeToAst = (
                     t.identifier(
                         type.ref.name === 'int' || type.ref.name === 'float'
                             ? 'number'
+                            : type.ref.name === 'bool'
+                            ? 'boolean'
                             : type.ref.name,
                     ),
                 );
