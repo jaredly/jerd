@@ -199,6 +199,12 @@ const _termToAstCPS = (
             if (!handler) {
                 throw new Error(`No handler for ${idName(term.ref.id)}`);
             }
+            if (!done) {
+                throw new Error(`wot done`);
+            }
+            if (!done.is) {
+                throw new Error(`no done is ${done.type}`);
+            }
             if (done.is.type !== 'lambda') {
                 throw new Error('done not a lambda');
             }
@@ -582,53 +588,111 @@ const _termToAstCPS = (
                     }
                     const arg = args[i];
                     // TODO: handle um `raise`, because that's a thing
-                    if (arg.type !== 'apply') {
-                        throw new LocatedError(
-                            arg.location,
-                            `Arg has effects, but isn't an apply ${arg.type}`,
-                        );
-                    }
-                    const ty = arg.target.is;
-                    if (ty.type !== 'lambda') {
-                        throw new Error('apply target not a lambda');
-                    }
-                    inner = termToAstCPS(
-                        env,
-                        opts,
-                        args[i],
-                        effectHandlers,
-                        arrowFunctionExpression(
-                            [
-                                ...sortedExplicitEffects(ty.effects).map(
-                                    (eff) => ({
+                    if (arg.type === 'raise') {
+                        // const ty = arg.is
+                        const eff: EffectReference = {
+                            type: 'ref',
+                            ref: arg.ref,
+                        };
+                        inner = termToAstCPS(
+                            env,
+                            opts,
+                            args[i],
+                            effectHandlers,
+                            arrowFunctionExpression(
+                                [
+                                    {
                                         sym:
                                             effectHandlers[refName(eff.ref)]
                                                 .sym,
                                         type: effectHandlerType(env, eff),
                                         loc: null,
                                         // hmm this is where doing things in reverse is a little weird?
-                                    }),
-                                ),
-                                {
-                                    sym: argSyms[i]!,
-                                    loc: args[i].location,
-                                    type: args[i].is,
-                                },
-                            ],
-                            blockStatement(
-                                [
+                                    },
                                     {
-                                        type: 'Expression',
-                                        expr: inner,
-                                        loc: inner.loc,
+                                        sym: argSyms[i]!,
+                                        loc: args[i].location,
+                                        type: args[i].is,
                                     },
                                 ],
-                                inner.loc,
+                                blockStatement(
+                                    [
+                                        {
+                                            type: 'Expression',
+                                            expr: inner,
+                                            loc: inner.loc,
+                                        },
+                                    ],
+                                    inner.loc,
+                                ),
+                                void_,
+                                args[i].location,
+                                pureFunction(
+                                    [effectHandlerType(env, eff), args[i].is],
+                                    void_,
+                                ),
                             ),
-                            void_,
-                            args[i].location,
-                        ),
-                    );
+                        );
+                    } else {
+                        if (arg.type !== 'apply') {
+                            throw new LocatedError(
+                                arg.location,
+                                `Arg has effects, but isn't an apply ${arg.type}`,
+                            );
+                        }
+                        const ty = arg.target.is;
+                        if (ty.type !== 'lambda') {
+                            throw new Error('apply target not a lambda');
+                        }
+                        inner = termToAstCPS(
+                            env,
+                            opts,
+                            args[i],
+                            effectHandlers,
+                            arrowFunctionExpression(
+                                [
+                                    ...sortedExplicitEffects(ty.effects).map(
+                                        (eff) => ({
+                                            sym:
+                                                effectHandlers[refName(eff.ref)]
+                                                    .sym,
+                                            type: effectHandlerType(env, eff),
+                                            loc: null,
+                                            // hmm this is where doing things in reverse is a little weird?
+                                        }),
+                                    ),
+                                    {
+                                        sym: argSyms[i]!,
+                                        loc: args[i].location,
+                                        type: args[i].is,
+                                    },
+                                ],
+                                blockStatement(
+                                    [
+                                        {
+                                            type: 'Expression',
+                                            expr: inner,
+                                            loc: inner.loc,
+                                        },
+                                    ],
+                                    inner.loc,
+                                ),
+                                void_,
+                                args[i].location,
+                                pureFunction(
+                                    [
+                                        ...sortedExplicitEffects(
+                                            ty.effects,
+                                        ).map((eff) =>
+                                            effectHandlerType(env, eff),
+                                        ),
+                                        args[i].is,
+                                    ],
+                                    void_,
+                                ),
+                            ),
+                        );
+                    }
                 }
                 return inner;
             }

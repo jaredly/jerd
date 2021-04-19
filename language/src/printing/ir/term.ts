@@ -256,6 +256,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     ),
                     term.is,
                     term.location,
+                    pureFunction([], term.is),
                 ),
                 pureFunction([], term.is),
                 term.is,

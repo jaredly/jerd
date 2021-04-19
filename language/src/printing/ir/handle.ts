@@ -217,6 +217,10 @@ export const printHandle = (
                         printTerm(env, opts, term.target),
                         term.target.is as LambdaType,
                         void_,
+                        // STOPSHIP: we need to pass in any other handlers that we have
+                        // that this thin is expecting.
+                        // so really, add this to the effectHandlers map
+                        // START HERE PLESE
                         [
                             // Here's where we'd change to have a builtin handlers type probably
                             {

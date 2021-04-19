@@ -89,7 +89,7 @@ export const returnStatement = (expr: Expr): Stmt => ({
 
 export const iffe = (st: Block, res: Type): Expr => {
     return callExpression(
-        arrowFunctionExpression([], st, res, st.loc),
+        arrowFunctionExpression([], st, res, st.loc, pureFunction([], res)),
         pureFunction([], res),
         res,
         [],
@@ -139,15 +139,16 @@ export const blockStatement = (items: Array<Stmt>, loc: Loc): Block => ({
     loc,
 });
 
-export const builtin = (name: string, loc: Loc): Expr => ({
+export const builtin = (name: string, loc: Loc, is: Type): Expr => ({
     type: 'builtin',
     name,
     loc,
+    is,
 });
 
 export const and = (left: Expr, right: Expr, loc: Loc) =>
     callExpression(
-        builtin('&&', loc),
+        builtin('&&', loc, pureFunction([bool, bool], bool)),
         pureFunction([bool, bool], bool),
         bool,
         [left, right],
@@ -156,7 +157,7 @@ export const and = (left: Expr, right: Expr, loc: Loc) =>
 
 export const or = (left: Expr, right: Expr, loc: Loc) =>
     callExpression(
-        builtin('||', loc),
+        builtin('||', loc, pureFunction([bool, bool], bool)),
         pureFunction([bool, bool], bool),
         bool,
         [left, right],
@@ -168,6 +169,7 @@ export const arrowFunctionExpression = (
     body: Expr | Block,
     res: Type,
     loc: Loc,
+    is: Type,
 ): LambdaExpr => {
     return {
         type: 'lambda',
@@ -175,5 +177,6 @@ export const arrowFunctionExpression = (
         body,
         res,
         loc,
+        is,
     };
 };

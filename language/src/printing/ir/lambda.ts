@@ -66,6 +66,12 @@ export const printLambda = (
                     ),
                     directVersion.is.res,
                     term.location,
+                    pureFunction(
+                        directVersion.args.map(
+                            (sym, i) => directVersion.is.args[i],
+                        ),
+                        directVersion.is.res,
+                    ),
                 ),
             };
         }
@@ -84,6 +90,7 @@ export const printLambda = (
             ),
             term.is.res,
             term.location,
+            term.is,
         );
     }
 };
@@ -104,7 +111,11 @@ export const withExecutionLimit = (
                 type: 'Expression',
                 loc: body.loc,
                 expr: callExpression(
-                    builtin('checkExecutionLimit', body.loc),
+                    builtin(
+                        'checkExecutionLimit',
+                        body.loc,
+                        pureFunction([], void_),
+                    ),
                     pureFunction([], void_),
                     void_,
                     [],
@@ -231,6 +242,10 @@ const effectfulLambda = (
         // term.is.res,
         void_,
         term.location,
+        pureFunction(
+            term.is.args.concat(syms.map((s) => s.type)).concat([doneT]),
+            void_,
+        ),
     );
 };
 
