@@ -121,6 +121,19 @@ export const printHandle = (
     };
     const effRef: EffectReference = { type: 'ref', ref: term.effect };
     const effDev = env.global.effects[refName(term.effect)];
+    const handlerSym: Symbol = { name: 'handler', unique: env.local.unique++ };
+    effectHandlers = {
+        ...effectHandlers,
+        [refName(effRef.ref)]: {
+            sym: handlerSym,
+            expr: {
+                type: 'var',
+                sym: handlerSym,
+                loc: term.location,
+                is: effectHandlerType(env, effRef),
+            },
+        },
+    };
     return iffe(
         {
             type: 'Block',
@@ -212,274 +225,251 @@ export const printHandle = (
                     is: term.is,
                 },
                 {
+                    type: 'Define',
+                    sym: handlerSym,
+                    loc: term.location,
+                    is: effectHandlerType(env, effRef),
+                    value: {
+                        type: 'tuple',
+                        loc: term.location,
+                        // TODO: Delete this attribute? duplicate. oh maybe not
+                        itemTypes: term.cases.map((_, i) =>
+                            effectConstructorType(
+                                env,
+                                {
+                                    type: 'ref',
+                                    ref: term.effect,
+                                },
+                                effDev[i],
+                            ),
+                        ),
+                        items: term.cases.map((kase, i) => {
+                            const rawK: Symbol = {
+                                name: 'rawK',
+                                unique: env.local.unique++,
+                            };
+                            const kh: Symbol = {
+                                name: 'handlers',
+                                unique: env.local.unique++,
+                            };
+                            const returnToHandler: Symbol = {
+                                name: 'returnToHandler',
+                                unique: env.local.unique++,
+                            };
+                            const returnToHandlerType: Type = pureFunction(
+                                [effectHandlerType(env, effRef), effDev[i].ret],
+                                void_,
+                            );
+                            const isVoid = typesEqual(effDev[i].ret, void_);
+                            const value: Symbol | null = isVoid
+                                ? null
+                                : {
+                                      name: 'value',
+                                      unique: env.local.unique++,
+                                  };
+                            const kType: Type = pureFunction(
+                                [
+                                    effectHandlerType(env, effRef),
+                                    ...(typesEqual(effDev[i].ret, void_)
+                                        ? []
+                                        : [effDev[i].ret]),
+                                ],
+                                void_,
+                            );
+                            return {
+                                type: 'lambda',
+                                args: [
+                                    ...kase.args.map((sym, si) => ({
+                                        sym,
+                                        type: effDev[i].args[si],
+                                        loc: kase.body.location,
+                                    })),
+                                    {
+                                        sym: rawK,
+                                        type: kType,
+                                    },
+                                    // {
+                                    //     sym: term.pure.arg,
+                                    //     type: (term.target
+                                    //         .is as LambdaType)
+                                    //         .res,
+                                    //     loc:
+                                    //         term.pure.body
+                                    //             .location,
+                                    // },
+                                ] as Array<Arg>,
+                                res: void_,
+                                loc: term.pure.body.location,
+                                is: pureFunction(
+                                    [(term.target.is as LambdaType).res],
+                                    void_,
+                                ),
+                                // OKKKK so the last thing to do here
+                                // is redefine `k`
+                                // so that it sets the fnReturnPointer
+                                // I think that's it?
+                                body: prependToBody(
+                                    {
+                                        type: 'Define',
+                                        sym: kase.k,
+                                        loc: kase.body.location,
+                                        value: {
+                                            type: 'lambda',
+                                            is: pureFunction(
+                                                [
+                                                    ...(isVoid
+                                                        ? []
+                                                        : [effDev[i].ret]),
+                                                    effectHandlerType(
+                                                        env,
+                                                        effRef,
+                                                    ),
+                                                    returnToHandlerType,
+                                                ],
+                                                void_,
+                                            ),
+                                            res: void_,
+                                            args: [
+                                                ...(value == null
+                                                    ? []
+                                                    : [
+                                                          {
+                                                              sym: value,
+                                                              type:
+                                                                  effDev[i].ret,
+                                                              loc:
+                                                                  kase.body
+                                                                      .location,
+                                                          } as Arg,
+                                                      ]),
+                                                {
+                                                    sym: kh,
+                                                    type: effectHandlerType(
+                                                        env,
+                                                        effRef,
+                                                    ),
+                                                    loc: kase.body.location,
+                                                },
+                                                {
+                                                    sym: returnToHandler,
+                                                    type: returnToHandlerType,
+                                                    loc: kase.body.location,
+                                                },
+                                            ],
+                                            body: {
+                                                type: 'Block',
+                                                items: [
+                                                    {
+                                                        type: 'Assign',
+                                                        sym: fnReturnPointer,
+                                                        loc: kase.body.location,
+                                                        value: {
+                                                            type: 'var',
+                                                            sym: returnToHandler,
+                                                            loc:
+                                                                kase.body
+                                                                    .location,
+                                                            is: returnToHandlerType,
+                                                        },
+                                                        is: void_,
+                                                    },
+                                                    {
+                                                        type: 'Expression',
+                                                        loc: kase.body.location,
+                                                        expr: {
+                                                            type: 'apply',
+                                                            is: void_,
+                                                            targetType: kType,
+                                                            concreteType: kType,
+                                                            target: {
+                                                                type: 'var',
+                                                                sym: rawK,
+                                                                loc:
+                                                                    kase.body
+                                                                        .location,
+                                                                is: kType,
+                                                            },
+                                                            args: [
+                                                                {
+                                                                    type: 'var',
+                                                                    sym: kh,
+                                                                    is: effectHandlerType(
+                                                                        env,
+                                                                        effRef,
+                                                                    ),
+                                                                    loc:
+                                                                        kase
+                                                                            .body
+                                                                            .location,
+                                                                },
+                                                                ...(value
+                                                                    ? [
+                                                                          {
+                                                                              type:
+                                                                                  'var',
+                                                                              sym: value,
+                                                                              loc:
+                                                                                  kase
+                                                                                      .body
+                                                                                      .location,
+                                                                              is:
+                                                                                  effDev[
+                                                                                      i
+                                                                                  ]
+                                                                                      .ret,
+                                                                          } as Expr,
+                                                                      ]
+                                                                    : []),
+                                                            ],
+                                                            loc:
+                                                                kase.body
+                                                                    .location,
+                                                        },
+                                                    },
+                                                ],
+                                                loc: kase.body.location,
+                                            },
+                                            loc: kase.body.location,
+                                        },
+                                        is: void_,
+                                    },
+                                    printLambdaBody(
+                                        env,
+                                        opts,
+                                        kase.body,
+                                        effectHandlers,
+                                        doneVar,
+                                    ),
+                                ),
+                            };
+                        }),
+                        is: tupleType(
+                            term.cases.map((_, i) =>
+                                effectConstructorType(
+                                    env,
+                                    {
+                                        type: 'ref',
+                                        ref: term.effect,
+                                    },
+                                    effDev[i],
+                                ),
+                            ),
+                        ), // lol
+                    },
+                },
+                {
                     type: 'Expression',
                     expr: callExpression(
                         printTerm(env, opts, term.target),
                         term.target.is as LambdaType,
                         void_,
                         // STOPSHIP: we need to pass in any other handlers that we have
-                        // that this thin is expecting.
+                        // that this thing is expecting.
                         // so really, add this to the effectHandlers map
                         // START HERE PLESE
                         [
                             // Here's where we'd change to have a builtin handlers type probably
-                            {
-                                type: 'tuple',
-                                loc: term.location,
-                                // TODO: Delete this attribute? duplicate. oh maybe not
-                                itemTypes: term.cases.map((_, i) =>
-                                    effectConstructorType(
-                                        env,
-                                        {
-                                            type: 'ref',
-                                            ref: term.effect,
-                                        },
-                                        effDev[i],
-                                    ),
-                                ),
-                                items: term.cases.map((kase, i) => {
-                                    const rawK: Symbol = {
-                                        name: 'rawK',
-                                        unique: env.local.unique++,
-                                    };
-                                    const kh: Symbol = {
-                                        name: 'handlers',
-                                        unique: env.local.unique++,
-                                    };
-                                    const returnToHandler: Symbol = {
-                                        name: 'returnToHandler',
-                                        unique: env.local.unique++,
-                                    };
-                                    const returnToHandlerType: Type = pureFunction(
-                                        [
-                                            effectHandlerType(env, effRef),
-                                            effDev[i].ret,
-                                        ],
-                                        void_,
-                                    );
-                                    const isVoid = typesEqual(
-                                        effDev[i].ret,
-                                        void_,
-                                    );
-                                    const value: Symbol | null = isVoid
-                                        ? null
-                                        : {
-                                              name: 'value',
-                                              unique: env.local.unique++,
-                                          };
-                                    const kType: Type = pureFunction(
-                                        [
-                                            effectHandlerType(env, effRef),
-                                            ...(typesEqual(effDev[i].ret, void_)
-                                                ? []
-                                                : [effDev[i].ret]),
-                                        ],
-                                        void_,
-                                    );
-                                    return {
-                                        type: 'lambda',
-                                        args: [
-                                            ...kase.args.map((sym, si) => ({
-                                                sym,
-                                                type: effDev[i].args[si],
-                                                loc: kase.body.location,
-                                            })),
-                                            {
-                                                sym: rawK,
-                                                type: kType,
-                                            },
-                                            // {
-                                            //     sym: term.pure.arg,
-                                            //     type: (term.target
-                                            //         .is as LambdaType)
-                                            //         .res,
-                                            //     loc:
-                                            //         term.pure.body
-                                            //             .location,
-                                            // },
-                                        ] as Array<Arg>,
-                                        res: void_,
-                                        loc: term.pure.body.location,
-                                        is: pureFunction(
-                                            [
-                                                (term.target.is as LambdaType)
-                                                    .res,
-                                            ],
-                                            void_,
-                                        ),
-                                        // OKKKK so the last thing to do here
-                                        // is redefine `k`
-                                        // so that it sets the fnReturnPointer
-                                        // I think that's it?
-                                        body: prependToBody(
-                                            {
-                                                type: 'Define',
-                                                sym: kase.k,
-                                                loc: kase.body.location,
-                                                value: {
-                                                    type: 'lambda',
-                                                    is: pureFunction(
-                                                        [
-                                                            ...(isVoid
-                                                                ? []
-                                                                : [
-                                                                      effDev[i]
-                                                                          .ret,
-                                                                  ]),
-                                                            effectHandlerType(
-                                                                env,
-                                                                effRef,
-                                                            ),
-                                                            returnToHandlerType,
-                                                        ],
-                                                        void_,
-                                                    ),
-                                                    res: void_,
-                                                    args: [
-                                                        ...(value == null
-                                                            ? []
-                                                            : [
-                                                                  {
-                                                                      sym: value,
-                                                                      type:
-                                                                          effDev[
-                                                                              i
-                                                                          ].ret,
-                                                                      loc:
-                                                                          kase
-                                                                              .body
-                                                                              .location,
-                                                                  } as Arg,
-                                                              ]),
-                                                        {
-                                                            sym: kh,
-                                                            type: effectHandlerType(
-                                                                env,
-                                                                effRef,
-                                                            ),
-                                                            loc:
-                                                                kase.body
-                                                                    .location,
-                                                        },
-                                                        {
-                                                            sym: returnToHandler,
-                                                            type: returnToHandlerType,
-                                                            loc:
-                                                                kase.body
-                                                                    .location,
-                                                        },
-                                                    ],
-                                                    body: {
-                                                        type: 'Block',
-                                                        items: [
-                                                            {
-                                                                type: 'Assign',
-                                                                sym: fnReturnPointer,
-                                                                loc:
-                                                                    kase.body
-                                                                        .location,
-                                                                value: {
-                                                                    type: 'var',
-                                                                    sym: returnToHandler,
-                                                                    loc:
-                                                                        kase
-                                                                            .body
-                                                                            .location,
-                                                                    is: returnToHandlerType,
-                                                                },
-                                                                is: void_,
-                                                            },
-                                                            {
-                                                                type:
-                                                                    'Expression',
-                                                                loc:
-                                                                    kase.body
-                                                                        .location,
-                                                                expr: {
-                                                                    type:
-                                                                        'apply',
-                                                                    is: void_,
-                                                                    targetType: kType,
-                                                                    concreteType: kType,
-                                                                    target: {
-                                                                        type:
-                                                                            'var',
-                                                                        sym: rawK,
-                                                                        loc:
-                                                                            kase
-                                                                                .body
-                                                                                .location,
-                                                                        is: kType,
-                                                                    },
-                                                                    args: [
-                                                                        {
-                                                                            type:
-                                                                                'var',
-                                                                            sym: kh,
-                                                                            is: effectHandlerType(
-                                                                                env,
-                                                                                effRef,
-                                                                            ),
-                                                                            loc:
-                                                                                kase
-                                                                                    .body
-                                                                                    .location,
-                                                                        },
-                                                                        ...(value
-                                                                            ? [
-                                                                                  {
-                                                                                      type:
-                                                                                          'var',
-                                                                                      sym: value,
-                                                                                      loc:
-                                                                                          kase
-                                                                                              .body
-                                                                                              .location,
-                                                                                      is:
-                                                                                          effDev[
-                                                                                              i
-                                                                                          ]
-                                                                                              .ret,
-                                                                                  } as Expr,
-                                                                              ]
-                                                                            : []),
-                                                                    ],
-                                                                    loc:
-                                                                        kase
-                                                                            .body
-                                                                            .location,
-                                                                },
-                                                            },
-                                                        ],
-                                                        loc: kase.body.location,
-                                                    },
-                                                    loc: kase.body.location,
-                                                },
-                                                is: void_,
-                                            },
-                                            printLambdaBody(
-                                                env,
-                                                opts,
-                                                kase.body,
-                                                effectHandlers,
-                                                doneVar,
-                                            ),
-                                        ),
-                                    };
-                                }),
-                                is: tupleType(
-                                    term.cases.map((_, i) =>
-                                        effectConstructorType(
-                                            env,
-                                            {
-                                                type: 'ref',
-                                                ref: term.effect,
-                                            },
-                                            effDev[i],
-                                        ),
-                                    ),
-                                ), // lol
-                            },
+                            effectHandlers[refName(effRef.ref)].expr,
                             {
                                 type: 'lambda',
                                 args: [
