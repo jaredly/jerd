@@ -39,8 +39,15 @@ const ifYes = () => if getString() == "Yes" {
     "nope"
 }
 
-provideStringPlain("Yes", ifYes) == "good"
-provideStringPlain("Yes?", ifYes) == "nope"
+provideStringPlain("Yes", ifYes) + ":" + provideStringPlain("Yes?", ifYes) == "good:nope"
+
+const sideBar = (n: int) => if n == 5 {
+    getString()
+} else {
+    "wot"
+}
+
+provideStringPlain("Yes", () => sideBar(5)) + ":" + provideStringPlain("Yes?", () => sideBar(4)) == "Yes:wot"
 
 
 /*
