@@ -183,7 +183,6 @@ export const printHandle = (
                                   },
                                   is: pureFunction([term.is], void_),
                               },
-                              is: term.is,
                           },
                       ] as Array<Stmt>)),
                 {
@@ -222,7 +221,6 @@ export const printHandle = (
                             doneVar,
                         ),
                     },
-                    is: term.is,
                 },
                 {
                     type: 'Define',
@@ -431,7 +429,6 @@ export const printHandle = (
                                             },
                                             loc: kase.body.location,
                                         },
-                                        is: void_,
                                     },
                                     printLambdaBody(
                                         env,

@@ -8,6 +8,7 @@ import { binOps, bool, pureFunction, void_ } from '../typing/preset';
 import {
     EffectRef,
     Env,
+    getAllSubTypes,
     Id,
     RecordDef,
     Reference,
@@ -26,7 +27,7 @@ import { handlerSym, Loc } from './ir/types';
 import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
-import { printType, typeToAst } from './typeScriptPrinter';
+import { printType, typeIdToString, typeToAst } from './typeScriptPrinter';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -60,12 +61,15 @@ export const withAnnotation = <T>(
     env: Env,
     opts: OutputOptions,
     e: T,
-    type: Type,
-): T => ({
-    ...e,
-    // @ts-ignore
-    typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
-});
+    type: Type | null,
+): T =>
+    type
+        ? {
+              ...e,
+              // @ts-ignore
+              typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
+          }
+        : e;
 
 export const declarationToTs = (
     env: Env,
@@ -511,15 +515,16 @@ export const stmtToTs = (
             return withLocation(
                 t.variableDeclaration('let', [
                     t.variableDeclarator(
-                        // If there's no initializer, include an annotation.
-                        stmt.value
-                            ? t.identifier(printSym(env, stmt.sym))
-                            : withAnnotation(
-                                  env,
-                                  opts,
-                                  t.identifier(printSym(env, stmt.sym)),
-                                  stmt.is,
-                              ),
+                        withAnnotation(
+                            env,
+                            opts,
+                            t.identifier(printSym(env, stmt.sym)),
+                            stmt.is
+                                ? stmt.is
+                                : stmt.value
+                                ? stmt.value.is
+                                : null,
+                        ),
                         stmt.value ? termToTs(env, opts, stmt.value) : null,
                     ),
                 ]),
@@ -624,6 +629,51 @@ export const fileToTypescript = (
                         ),
                     ),
                 ),
+            ),
+        );
+    });
+
+    Object.keys(env.global.types).forEach((r) => {
+        const constr = env.global.types[r];
+        if (constr.type !== 'Record') {
+            return;
+        }
+        const id = idFromName(r);
+        const subTypes = getAllSubTypes(env.global, constr);
+        items.push(
+            t.tsTypeAliasDeclaration(
+                t.identifier(typeIdToString(id)),
+                constr.typeVbls.length
+                    ? t.tsTypeParameterDeclaration(
+                          constr.typeVbls.map((td) =>
+                              t.tSTypeParameter(null, null, 'T_' + td.unique),
+                          ),
+                      )
+                    : null,
+                t.tsTypeLiteral([
+                    t.tsPropertySignature(
+                        t.identifier('type'),
+                        t.tsTypeAnnotation(
+                            t.tsLiteralType(
+                                t.stringLiteral(
+                                    recordIdName(env, { type: 'user', id }),
+                                ),
+                            ),
+                        ),
+                    ),
+                    ...constr.items.map((item, i) =>
+                        t.tsPropertySignature(
+                            t.identifier(
+                                recordAttributeName(
+                                    env,
+                                    { type: 'user', id },
+                                    i,
+                                ),
+                            ),
+                            t.tsTypeAnnotation(typeToAst(env, opts, item)),
+                        ),
+                    ),
+                ]),
             ),
         );
     });

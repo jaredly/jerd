@@ -1,6 +1,6 @@
 // Print a type to typescript
 
-import { Env, Type, Symbol, Reference, EffectRef } from '../typing/types';
+import { Env, Type, Symbol, Reference, EffectRef, Id } from '../typing/types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import { sortedExplicitEffects } from './ir/lambda';
@@ -77,6 +77,8 @@ const withType = <T>(env: Env, opts: OutputOptions, expr: T, typ: Type): T => {
     };
 };
 
+export const typeIdToString = (id: Id) => `t_${idName(id)}`;
+
 export const typeToAst = (
     env: Env,
     opts: OutputOptions,
@@ -84,6 +86,11 @@ export const typeToAst = (
 ): t.TSType => {
     switch (type.type) {
         case 'ref':
+            const tvs = type.typeVbls.length
+                ? t.tsTypeParameterInstantiation(
+                      type.typeVbls.map((tv) => typeToAst(env, opts, tv)),
+                  )
+                : null;
             if (type.ref.type === 'builtin') {
                 return t.tsTypeReference(
                     t.identifier(
@@ -93,9 +100,13 @@ export const typeToAst = (
                             ? 'boolean'
                             : type.ref.name,
                     ),
+                    tvs,
                 );
             } else {
-                return t.tsTypeReference(t.identifier('t_' + type.ref.id.hash));
+                return t.tsTypeReference(
+                    t.identifier(typeIdToString(type.ref.id)),
+                    tvs,
+                );
             }
         case 'effect-handler':
             return t.tsTypeReference(
