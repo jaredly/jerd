@@ -35,7 +35,13 @@ export type OutputOptions = {
 // hrm where do I put comments in life
 
 export type Toplevel =
-    | { type: 'Define'; id: Id; body: Expr; is: Type; loc: Loc }
+    | {
+          type: 'Define';
+          id: Id;
+          body: Expr;
+          is: Type;
+          loc: Loc;
+      }
     | { type: 'Expression'; body: Expr; loc: Loc }
     | { type: 'Enum'; id: Id } // does this even need a reified representation?
     | {
@@ -54,7 +60,14 @@ export type Toplevel =
 export type ReturnStmt = { type: 'Return'; value: Expr; loc: Loc };
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
-    | { type: 'Define'; sym: Symbol; value: Expr | null; is?: Type; loc: Loc }
+    | {
+          type: 'Define';
+          sym: Symbol;
+          value: Expr | null;
+          is?: Type;
+          loc: Loc;
+          fakeInitialization?: boolean;
+      }
     | { type: 'Assign'; sym: Symbol; value: Expr; is: Type; loc: Loc }
     | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
     | { type: 'MatchFail'; loc: Loc }

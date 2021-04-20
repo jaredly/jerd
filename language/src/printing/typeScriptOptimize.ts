@@ -83,6 +83,10 @@ const flattenDoubleLambdas = (ast: t.File) => {
 
 export const removeTypescriptTypes = (ast: t.File) => {
     traverse(ast, {
+        // x as y --> x
+        TSAsExpression(path) {
+            path.replaceWith(path.node.expression);
+        },
         TSTypeAnnotation(path) {
             path.remove();
         },

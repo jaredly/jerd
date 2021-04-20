@@ -550,7 +550,14 @@ export const stmtToTs = (
                                 ? stmt.value.is
                                 : null,
                         ),
-                        stmt.value ? termToTs(env, opts, stmt.value) : null,
+                        stmt.value
+                            ? termToTs(env, opts, stmt.value)
+                            : stmt.fakeInitialization
+                            ? t.tsAsExpression(
+                                  t.identifier('undefined'),
+                                  t.tsAnyKeyword(),
+                              )
+                            : null,
                     ),
                 ]),
                 stmt.loc,

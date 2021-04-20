@@ -102,6 +102,7 @@ export const printHandle = (
                               loc: term.location,
                               value: null,
                               is: term.is,
+                              fakeInitialization: true,
                           },
                           {
                               type: 'Define',
