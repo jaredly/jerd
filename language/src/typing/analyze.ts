@@ -1,18 +1,13 @@
 import { idFromName, idName, refName } from './env';
+import { walkTerm } from './transform';
 import { applyTypeVariablesToRecord, getEnumReferences } from './typeExpr';
-import {
-    Env,
-    Id,
-    Reference,
-    Term,
-    Type,
-    UserReference,
-    walkTerm,
-} from './types';
+import { Env, Id, Reference, Term, Type, UserReference } from './types';
 
 export const allLiteral = (env: Env, type: Type): boolean => {
     switch (type.type) {
         case 'var':
+            return false;
+        case 'effect-handler':
             return false;
         case 'ref': {
             if (type.ref.type === 'builtin') {

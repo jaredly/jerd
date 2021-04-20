@@ -24,6 +24,7 @@ import { effectConstructorType, effectHandlerType } from './ir/cps';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeDefine } from './ir/optimize';
 import { handlerSym, Loc } from './ir/types';
+import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
@@ -679,7 +680,8 @@ export const fileToTypescript = (
     });
 
     orderedTerms.forEach((idRaw) => {
-        const term = env.global.terms[idRaw];
+        let term = env.global.terms[idRaw];
+        term = liftEffects(env, term);
 
         const id = idFromName(idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
@@ -698,6 +700,7 @@ export const fileToTypescript = (
     });
 
     expressions.forEach((term) => {
+        term = liftEffects(env, term);
         if (assert && typesEqual(term.is, bool)) {
             term = wrapWithAssert(term);
         }

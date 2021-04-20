@@ -9,7 +9,6 @@ import {
     Type,
     TypeConstraint,
     typesEqual,
-    walkTerm,
 } from './types';
 import { walkType } from './typeType';
 import { printToString } from '../printing/printer';
@@ -18,6 +17,7 @@ import { showLocation } from './typeExpr';
 import { Location } from '../parsing/parser';
 import { WrongEffects } from './errors';
 import { getTypeError } from './getTypeError';
+import { walkTerm } from './transform';
 
 /*
 

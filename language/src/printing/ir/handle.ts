@@ -1,72 +1,27 @@
 // The bulk of stuff happens here
 
 import {
-    Term,
     Handle,
     Env,
     Type,
-    getEffects,
     Symbol,
-    Reference,
-    Let,
-    Var,
-    EffectRef,
-    Lambda,
     LambdaType,
-    walkTerm,
-    Pattern,
-    UserReference,
     EffectReference,
     typesEqual,
 } from '../../typing/types';
-import {
-    binOps,
-    bool,
-    builtinType,
-    float,
-    int,
-    pureFunction,
-    string,
-    void_,
-} from '../../typing/preset';
-import { showType } from '../../typing/unify';
-import {
-    applyEffectVariables,
-    getEnumReferences,
-    showLocation,
-    tupleType,
-} from '../../typing/typeExpr';
-import { idFromName, idName, refName } from '../../typing/env';
+import { pureFunction, void_ } from '../../typing/preset';
+import { tupleType } from '../../typing/typeExpr';
+import { refName } from '../../typing/env';
 
-import {
-    Loc,
-    Expr,
-    Stmt,
-    callExpression,
-    OutputOptions,
-    Arg,
-    Block,
-} from './types';
+import { Expr, Stmt, callExpression, OutputOptions, Arg, Block } from './types';
 
 import {
     effectConstructorType,
     EffectHandlers,
     effectHandlerType,
-    maybeWrapPureFunction,
-    termToAstCPS,
 } from './cps';
-import {
-    iffe,
-    arrowFunctionExpression,
-    blockStatement,
-    ifStatement,
-    returnStatement,
-    isConstant,
-    builtin,
-    asBlock,
-} from './utils';
-import { printPattern } from './pattern';
-import { printLambda, printLambdaBody } from './lambda';
+import { iffe } from './utils';
+import { printLambdaBody } from './lambda';
 import { printTerm } from './term';
 
 export const printHandle = (

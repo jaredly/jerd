@@ -7,9 +7,9 @@ import {
     EffectRef,
     Lambda,
     LambdaType,
-    walkTerm,
     EffectReference,
     getEffects,
+    Sequence,
 } from '../../typing/types';
 import { builtinType, pureFunction, never, void_ } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
@@ -31,6 +31,7 @@ import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 import { idName, refName } from '../../typing/env';
 import { nullLocation } from '../../parsing/parser';
+import { walkTerm } from '../../typing/transform';
 
 export const printLambda = (
     env: Env,
@@ -249,6 +250,124 @@ const effectfulLambda = (
     );
 };
 
+export const sequenceToBlock = (
+    env: Env,
+    opts: OutputOptions,
+    term: Sequence,
+    effectHandlers: EffectHandlers,
+    cps: null | Expr,
+): Block => {
+    if (cps == null) {
+        return {
+            type: 'Block',
+            items: term.sts.map(
+                (s, i): Stmt => {
+                    if (s.type === 'Let') {
+                        return {
+                            type: 'Define',
+                            sym: s.binding,
+                            value: printTerm(env, opts, s.value),
+                            loc: s.location,
+                            is: s.is,
+                        };
+                    } else if (i === term.sts.length - 1) {
+                        return {
+                            type: 'Return',
+                            value: printTerm(env, opts, s),
+                            loc: s.location,
+                        };
+                    } else {
+                        return {
+                            type: 'Expression',
+                            expr: printTerm(env, opts, s),
+                            loc: s.location,
+                        };
+                    }
+                },
+            ),
+            loc: term.location,
+        };
+    } else {
+        // so we start from the last
+        // and we know what we want to bind to, right? or something?
+        // in what case would we want to CPS something that
+        // can't be CPSd?
+        let inner: Expr = cps;
+        for (let i = term.sts.length - 1; i >= 0; i--) {
+            if (i > 0) {
+                inner = {
+                    type: 'lambda',
+                    is: {
+                        type: 'lambda',
+                        args: [
+                            ...sortedExplicitEffects(
+                                getEffects(term.sts[i]),
+                            ).map((eff) => effectHandlerType(env, eff)),
+                        ],
+                        effects: [],
+                        res: void_,
+                        location: null,
+                        typeVbls: [],
+                        effectVbls: [],
+                        rest: null,
+                    },
+                    args: [
+                        // ...sortedExplicitEffects(
+                        //     getEffects(term.sts[i]),
+                        // ).map((eff) => ({
+                        //     type: effectHandlerType(env, eff),
+                        //     sym: { name: 'ok', unique: 0 },
+                        //     loc: null,
+                        // })),
+                        // {
+                        //     sym: handlerSym,
+                        //     type: builtinType('handlers'),
+                        //     loc: null,
+                        // },
+                        // {
+                        //     sym: { name: '_ignored', unique: 1 },
+                        //     type: builtinType('void'),
+                        //     loc: null,
+                        // },
+                    ],
+                    body: {
+                        type: 'Block',
+                        loc: term.sts[i].location,
+                        items: [
+                            {
+                                type: 'Expression',
+                                expr: termToAstCPS(
+                                    env,
+                                    opts,
+                                    term.sts[i],
+                                    effectHandlers,
+                                    inner,
+                                ),
+                                loc: term.sts[i].location,
+                            },
+                        ],
+                    },
+                    res: void_,
+                    loc: term.sts[i].location,
+                };
+            } else {
+                inner = termToAstCPS(
+                    env,
+                    opts,
+                    term.sts[i],
+                    effectHandlers,
+                    inner,
+                );
+            }
+        }
+        return {
+            type: 'Block',
+            items: [{ type: 'Expression', expr: inner, loc: term.location }],
+            loc: term.location,
+        };
+    }
+};
+
 export const printLambdaBody = (
     env: Env,
     opts: OutputOptions,
@@ -258,119 +377,13 @@ export const printLambdaBody = (
 ): Block | Expr => {
     if (cps == null) {
         if (term.type === 'sequence') {
-            return {
-                type: 'Block',
-                items: term.sts.map(
-                    (s, i): Stmt => {
-                        if (s.type === 'Let') {
-                            return {
-                                type: 'Define',
-                                sym: s.binding,
-                                value: printTerm(env, opts, s.value),
-                                loc: s.location,
-                                is: s.is,
-                            };
-                        } else if (i === term.sts.length - 1) {
-                            return {
-                                type: 'Return',
-                                value: printTerm(env, opts, s),
-                                loc: s.location,
-                            };
-                        } else {
-                            return {
-                                type: 'Expression',
-                                expr: printTerm(env, opts, s),
-                                loc: s.location,
-                            };
-                        }
-                    },
-                ),
-                loc: term.location,
-            };
+            return sequenceToBlock(env, opts, term, effectHandlers, cps);
         } else {
             return printTerm(env, opts, term);
         }
     } else {
         if (term.type === 'sequence') {
-            // so we start from the last
-            // and we know what we want to bind to, right? or something?
-            // in what case would we want to CPS something that
-            // can't be CPSd?
-            let inner: Expr = cps;
-            for (let i = term.sts.length - 1; i >= 0; i--) {
-                if (i > 0) {
-                    inner = {
-                        type: 'lambda',
-                        is: {
-                            type: 'lambda',
-                            args: [
-                                ...sortedExplicitEffects(
-                                    getEffects(term.sts[i]),
-                                ).map((eff) => effectHandlerType(env, eff)),
-                            ],
-                            effects: [],
-                            res: void_,
-                            location: null,
-                            typeVbls: [],
-                            effectVbls: [],
-                            rest: null,
-                        },
-                        args: [
-                            // ...sortedExplicitEffects(
-                            //     getEffects(term.sts[i]),
-                            // ).map((eff) => ({
-                            //     type: effectHandlerType(env, eff),
-                            //     sym: { name: 'ok', unique: 0 },
-                            //     loc: null,
-                            // })),
-                            // {
-                            //     sym: handlerSym,
-                            //     type: builtinType('handlers'),
-                            //     loc: null,
-                            // },
-                            // {
-                            //     sym: { name: '_ignored', unique: 1 },
-                            //     type: builtinType('void'),
-                            //     loc: null,
-                            // },
-                        ],
-                        body: {
-                            type: 'Block',
-                            loc: term.sts[i].location,
-                            items: [
-                                {
-                                    type: 'Expression',
-                                    expr: termToAstCPS(
-                                        env,
-                                        opts,
-                                        term.sts[i],
-                                        effectHandlers,
-                                        inner,
-                                    ),
-                                    loc: term.sts[i].location,
-                                },
-                            ],
-                        },
-                        res: void_,
-                        loc: term.sts[i].location,
-                    };
-                } else {
-                    inner = termToAstCPS(
-                        env,
-                        opts,
-                        term.sts[i],
-                        effectHandlers,
-                        inner,
-                    );
-                }
-            }
-            return {
-                type: 'Block',
-                items: [
-                    { type: 'Expression', expr: inner, loc: term.location },
-                ],
-                loc: term.location,
-            };
+            return sequenceToBlock(env, opts, term, effectHandlers, cps);
         } else {
             return {
                 type: 'Block',

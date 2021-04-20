@@ -1,4 +1,31 @@
 
+## GLSL? also Wasm?
+
+So when thinking about targetting GLSL, I obviously can't allocate to the heap. I can do stack things.
+But I definitely can't do ... hmm ... the arrays and stuff.
+So I wonder if it would be interesting/useful to *infer* something like "noalloc", indicating that a function (and everything under it) *does not allocate*. and similarly, "noheap" means it doesn't need to allocate on the heap.
+This way you could know *at the type level* that it would be trivially compileable into GLSL.
+ok also how do I handle globals in this world?
+I guess there would be a State type or something that you expect
+yeah it would kindof be like a web server handler. You have the (input, output) as two variables to your toplevel function.
+andddd the compiler uses the types of those things to determine what you are doing.
+
+my goodness shadertoy has some rad things https://www.shadertoy.com/view/ls3GRr
+oh wow https://www.youtube.com/watch?v=8--5LwHRhjk
+
+and then I'd need aggressive inlining I think?
+hmmm
+
+ok so I don't really need to have that functionality to start playing with things, right? I could just start doing some compilations?
+
+Yeah, and so like in compilation, ...
+ok so things that it doesn't support:
+- heap allocation (arrays folks)
+- recursion of any kind (gotta tail-call optimize I guess?)
+- first-class functions
+
+Yeah so I think I could try having a really basic compilation strategy, and then add fanciness.
+
 ## TypeScript
 
 Yup we've got it. So far typescript is able to handle everying we've thrown at it. I mean we haven't done strict typing for the handlers, but that's it.

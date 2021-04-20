@@ -7,16 +7,8 @@ import {
     getEffects,
     Symbol,
     Reference,
-    Let,
-    Var,
     EffectRef,
-    Lambda,
     LambdaType,
-    walkTerm,
-    Pattern,
-    UserReference,
-    EffectReference,
-    typesEqual,
 } from '../../typing/types';
 import {
     binOps,

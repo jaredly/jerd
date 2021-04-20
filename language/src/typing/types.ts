@@ -243,13 +243,14 @@ export type CPSAble =
           no: Term | null;
           is: Type;
       }
-    | {
-          type: 'sequence';
-          location: Location | null;
-          sts: Array<Term | Let>;
-          is: Type;
-      }
+    | Sequence
     | Apply;
+export type Sequence = {
+    type: 'sequence';
+    location: Location | null;
+    sts: Array<Term | Let>;
+    is: Type;
+};
 export type Apply = {
     type: 'apply';
     originalTargetType: LambdaType;
@@ -861,92 +862,4 @@ export const dedupEffects = (effects: Array<EffectRef>) => {
     return Object.keys(used)
         .sort()
         .map((k) => used[k]);
-};
-
-export const walkTerm = (
-    term: Term | Let,
-    handle: (term: Term | Let) => void,
-): void => {
-    handle(term);
-    switch (term.type) {
-        case 'Let':
-            return walkTerm(term.value, handle);
-        case 'raise':
-            return term.args.forEach((t) => walkTerm(t, handle));
-        case 'if':
-            walkTerm(term.cond, handle);
-            walkTerm(term.yes, handle);
-            if (term.no) {
-                walkTerm(term.no, handle);
-            }
-            return;
-        case 'handle':
-            walkTerm(term.target, handle);
-            walkTerm(term.pure.body, handle);
-            term.cases.forEach((kase) => walkTerm(kase.body, handle));
-            return;
-        case 'sequence':
-            return term.sts.forEach((t) => walkTerm(t, handle));
-        case 'apply':
-            walkTerm(term.target, handle);
-            return term.args.forEach((t) => walkTerm(t, handle));
-        case 'lambda':
-            return walkTerm(term.body, handle);
-        case 'Record':
-            if (term.base.spread) {
-                walkTerm(term.base.spread, handle);
-            }
-            if (term.base.type === 'Concrete') {
-                term.base.rows.forEach((term) =>
-                    term ? walkTerm(term, handle) : null,
-                );
-            }
-            Object.keys(term.subTypes).forEach((id) => {
-                const subType = term.subTypes[id];
-                if (subType.spread != null) {
-                    walkTerm(subType.spread, handle);
-                }
-                subType.rows.forEach((row) =>
-                    row ? walkTerm(row, handle) : null,
-                );
-            });
-            return;
-        case 'Switch':
-            walkTerm(term.term, handle);
-            term.cases.forEach((kase) => {
-                walkTerm(kase.body, handle);
-            });
-            return;
-        case 'Enum':
-            return walkTerm(term.inner, handle);
-        case 'Tuple':
-            term.items.forEach((item) => {
-                walkTerm(item, handle);
-            });
-            return;
-        case 'Array':
-            term.items.forEach((item) => {
-                if (item.type === 'ArraySpread') {
-                    walkTerm(item.value, handle);
-                } else {
-                    walkTerm(item, handle);
-                }
-            });
-            return;
-        case 'TupleAccess':
-        case 'Attribute':
-            walkTerm(term.target, handle);
-            return;
-        case 'string':
-        case 'int':
-        case 'float':
-        case 'boolean':
-        case 'self':
-        case 'ref':
-        case 'var':
-            return;
-        default:
-            let _x: never = term;
-            throw new Error(`Unexpected term type ${(term as any).type}`);
-    }
 };
