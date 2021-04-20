@@ -769,6 +769,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
         case 'apply':
             return dedupEffects(
                 (t.target.is as LambdaType).effects.concat(
+                    getEffects(t.target),
                     ...t.args.map(getEffects),
                 ),
             );

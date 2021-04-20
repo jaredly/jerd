@@ -28,36 +28,55 @@ const provideString: (string, () ={Read}> string) => string = (v: string, fn: ()
 
 provideString("Yes", getString) == "Yesgotbackpureprovided"
 
-const provideStringPlain: (string, () ={Read}> string) => string = (v: string, fn: () ={Read}> string) => handle! fn {
-    Read.read(() => k) => provideStringPlain(v, () ={Read}> k(v)),
+const provideStringPlain: <T>(string, () ={Read}> T) => T = <T,>(v: string, fn: () ={Read}> T) => handle! fn {
+    Read.read(() => k) => provideStringPlain<T>(v, () ={Read}> k(v)),
     pure(v) => v,
 }
 
-const ifYes = () => if getString() == "Yes" {
-    "good"
-} else {
-    "nope"
+const ifYes = () => {
+    if getString() == "Yes" {
+        "good"
+    } else {
+        "nope"
+    }
 }
 
-provideStringPlain("Yes", ifYes) + ":" + provideStringPlain("Yes?", ifYes) == "good:nope"
+provideStringPlain<string>("Yes", ifYes) + ":" + provideStringPlain<string>("Yes?", ifYes) == "good:nope"
 
-const sideBar = (n: int) => if n == 5 {
+const sideBar = (n: int) => {if n == 5 {
     getString()
 } else {
     "wot"
-}
+}}
 
-provideStringPlain("Yes", () => sideBar(5)) + ":" + provideStringPlain("Yes?", () => sideBar(4)) == "Yes:wot"
+provideStringPlain<string>("Yes", () => sideBar(5)) + ":" + provideStringPlain<string>("Yes?", () => sideBar(4)) == "Yes:wot"
 
 // Different done things
 // START HERE: This needs to take things into account
 // Somehow, we need to wrap the final done
 // also why is my IFFE getting a handler passed to it 🤔
-() ={Read, Write}> {
+() => {
     raise!(Write.write("hello"));
     getString()
 }
 
+const callAgain = () ={Read}> {
+    const v = getString();
+    () => v
+}
+
+provideStringPlain<string>("what", () ={Read}> callAgain()()) == "what"
+
+type Person = {name: string, age: int}
+
+// () => Person{name: getString(), age: 5}
+
+const getPerson = () => Person{name: getString(), age: 5}
+
+const spreadPerson = () => Person{...getPerson(), age: 20}
+
+provideStringPlain<Person>("Me", getPerson).name == "Me"
+provideStringPlain<Person>("Me", spreadPerson).name == "Me"
 
 /*
 const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {

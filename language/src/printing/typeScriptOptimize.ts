@@ -86,6 +86,12 @@ export const removeTypescriptTypes = (ast: t.File) => {
         TSTypeAnnotation(path) {
             path.remove();
         },
+        TSTypeParameterDeclaration(path) {
+            path.remove();
+        },
+        TSTypeParameterInstantiation(path) {
+            path.remove();
+        },
         TSTypeAliasDeclaration(path) {
             path.remove();
         },

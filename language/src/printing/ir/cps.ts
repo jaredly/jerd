@@ -186,14 +186,14 @@ const _termToAstCPS = (
             });
         }
         case 'raise': {
-            if (
-                ([] as Array<EffectRef>).concat(...term.args.map(getEffects))
-                    .length > 0
-            ) {
-                return stringLiteral('raise args effects', null);
+            if (term.args.some((a) => getEffects(a).length > 0)) {
+                throw new LocatedError(
+                    term.location,
+                    'Raise arguments have effects. Call liftEffects first',
+                );
             }
             if (term.ref.type === 'builtin') {
-                throw new Error('ok');
+                throw new Error('Cannot raise builtins');
             }
             const constr = env.global.effects[idName(term.ref.id)][term.idx];
             const t = pureFunction(
@@ -204,14 +204,10 @@ const _termToAstCPS = (
             if (!handler) {
                 throw new Error(`No handler for ${idName(term.ref.id)}`);
             }
-            if (!done) {
-                throw new Error(`wot done`);
-            }
-            if (!done.is) {
-                throw new Error(`no done is ${done.type}`);
-            }
             if (done.is.type !== 'lambda') {
-                throw new Error('done not a lambda');
+                throw new Error(
+                    `CPS continuation function is not a lambda ${done.is.type}`,
+                );
             }
             const doneEffects = done.is.args
                 .map((arg) =>
@@ -220,9 +216,6 @@ const _termToAstCPS = (
                         : null,
                 )
                 .filter(Boolean) as Array<EffectReference>;
-            // const doneHandlerTypes = doneEffects.map((eff) =>
-            //     effectHandlerType(env, eff),
-            // );
             if (
                 doneEffects.length !== 1 ||
                 !refsEqual(doneEffects[0].ref, term.ref)
@@ -302,14 +295,6 @@ const _termToAstCPS = (
                 loc: term.location,
                 concreteType: t,
             };
-            // return {
-            //     type: 'raise',
-            //     effect: term.ref.id,
-            //     idx: term.idx,
-            //     args: term.args.map((t) => printTerm(env, opts, t)),
-            //     loc: term.location,
-            //     done,
-            // };
         }
         case 'if': {
             if (done.is.type !== 'lambda') {
@@ -328,65 +313,10 @@ const _termToAstCPS = (
 
             // STOPSHIP: I'm sure none of this works.
             // I should really write some tests.
-            const condEffects = getEffects(term.cond);
-            if (condEffects.length) {
-                return termToAstCPS(env, opts, term.cond, effectHandlers, {
-                    type: 'lambda',
-                    args: [
-                        {
-                            sym: { name: 'cond', unique: 1000 },
-                            type: bool,
-                            loc: term.cond.location,
-                        },
-                    ],
-                    is: pureFunction([bool], void_),
-                    body: {
-                        type: 'Block',
-                        items: [
-                            ifStatement(
-                                {
-                                    type: 'var',
-                                    sym: { name: 'cond', unique: 1000 },
-                                    loc: term.cond.location,
-                                    is: bool,
-                                },
-                                printLambdaBody(
-                                    env,
-                                    opts,
-                                    term.yes,
-                                    effectHandlers,
-                                    done,
-                                ),
-                                term.no
-                                    ? printLambdaBody(
-                                          env,
-                                          opts,
-                                          term.no,
-                                          effectHandlers,
-                                          done,
-                                      )
-                                    : callExpression(
-                                          done,
-                                          pureFunction(doneHandlerTypes, void_),
-                                          void_,
-                                          [
-                                              ...effects.map(
-                                                  (eff) =>
-                                                      effectHandlers[
-                                                          refName(eff.ref)
-                                                      ].expr,
-                                              ),
-                                          ],
-                                          term.location,
-                                      ),
-                                term.location,
-                            ),
-                        ],
-                        loc: term.location,
-                    },
-                    res: void_,
-                    loc: term.location,
-                });
+            if (getEffects(term.cond).length > 0) {
+                throw new Error(
+                    `If condition has effects. Call liftEffects first.`,
+                );
             }
 
             const cond = printTerm(env, opts, term.cond);
@@ -476,233 +406,6 @@ const _termToAstCPS = (
                 throw new Error(
                     `Apply has args effects. Call liftEffects first.`,
                 );
-                // const argSyms = args.map((arg, i) =>
-                //     isSimple(arg)
-                //         ? null
-                //         : { name: `arg_${i}`, unique: env.local.unique++ },
-                // );
-                // let target = printTerm(env, opts, term.target);
-                // if (term.hadAllVariableEffects) {
-                //     target = {
-                //         type: 'effectfulOrDirect',
-                //         target,
-                //         effectful: true,
-                //         loc: target.loc,
-                //         is: term.target.is,
-                //     };
-                // }
-                // let inner: Expr = done;
-                // if (term.target.is.effects.length > 0) {
-                //     // ok so the thing is,
-                //     // i only need to cps it out if the arg
-                //     // is an apply that does cps.
-                //     // but not if that arg has an arg that does cps,
-                //     // right?
-                //     inner = callExpression(
-                //         target,
-                //         // STOSHIP: add handler n stuff
-                //         {
-                //             ...term.originalTargetType,
-                //             args: term.originalTargetType.args.concat([
-                //                 ...effectHandlerTypes,
-                //                 pureFunction([term.is], void_),
-                //             ]),
-                //             res: void_,
-                //         },
-                //         void_,
-                //         (argSyms.map((sym, i) =>
-                //             sym
-                //                 ? { type: 'var', sym, loc: null }
-                //                 : printTerm(env, opts, args[i]),
-                //         ) as Array<Expr>).concat([
-                //             ...effectHandlersToPass,
-                //             inner,
-                //         ]),
-                //         target.loc,
-                //     );
-                // } else {
-                //     if (!term.originalTargetType) {
-                //         throw new Error(
-                //             `No original targt type ${showLocation(
-                //                 term.location,
-                //             )}`,
-                //         );
-                //     }
-                //     if (done.is.type !== 'lambda') {
-                //         throw new Error('done not a lambda');
-                //     }
-                //     const effects = done.is.args
-                //         .map((arg) =>
-                //             arg.type === 'effect-handler'
-                //                 ? { type: 'ref', ref: arg.ref, location: null }
-                //                 : null,
-                //         )
-                //         .filter(Boolean) as Array<EffectReference>;
-                //     const doneHandlerTypes = effects.map((eff) =>
-                //         effectHandlerType(env, eff),
-                //     );
-                //     // hm. I feel like I need to introspect `done`.
-                //     // and have a way to flatten out immediate calls.
-                //     // or I could do that post-hoc?
-                //     // I mean that might make things simpler tbh.
-                //     inner = callExpression(
-                //         done,
-                //         // pureFunction(
-                //         //     [
-                //         //         // STOP handlersType,
-                //         //         ...doneHandlerTypes,
-                //         //         builtinType('any'),
-                //         //     ],
-                //         //     void_,
-                //         // ),
-                //         done.is,
-                //         void_,
-                //         [
-                //             ...effects.map(
-                //                 (eff) => effectHandlers[refName(eff.ref)].expr,
-                //             ),
-                //             // so here is where we want to
-                //             // put the "body"
-                //             // which might include inverting it.
-                //             callExpression(
-                //                 target,
-                //                 {
-                //                     ...term.originalTargetType,
-                //                     args: term.originalTargetType.args.concat([
-                //                         ...doneHandlerTypes,
-                //                         pureFunction([term.is], void_),
-                //                     ]),
-                //                     res: void_,
-                //                 },
-                //                 term.is,
-                //                 argSyms.map((sym, i) =>
-                //                     sym
-                //                         ? {
-                //                               type: 'var',
-                //                               sym,
-                //                               loc: null,
-                //                           }
-                //                         : printTerm(env, opts, args[i]),
-                //                 ) as Array<Expr>,
-                //                 target.loc,
-                //             ),
-                //         ],
-                //         target.loc,
-                //     );
-                // }
-                // for (let i = args.length - 1; i >= 0; i--) {
-                //     if (isSimple(args[i])) {
-                //         continue;
-                //     }
-                //     const arg = args[i];
-                //     // TODO: handle um `raise`, because that's a thing
-                //     if (arg.type === 'raise') {
-                //         // const ty = arg.is
-                //         const eff: EffectReference = {
-                //             type: 'ref',
-                //             ref: arg.ref,
-                //         };
-                //         inner = termToAstCPS(
-                //             env,
-                //             opts,
-                //             args[i],
-                //             effectHandlers,
-                //             arrowFunctionExpression(
-                //                 [
-                //                     {
-                //                         sym:
-                //                             effectHandlers[refName(eff.ref)]
-                //                                 .sym,
-                //                         type: effectHandlerType(env, eff),
-                //                         loc: null,
-                //                         // hmm this is where doing things in reverse is a little weird?
-                //                     },
-                //                     {
-                //                         sym: argSyms[i]!,
-                //                         loc: args[i].location,
-                //                         type: args[i].is,
-                //                     },
-                //                 ],
-                //                 blockStatement(
-                //                     [
-                //                         {
-                //                             type: 'Expression',
-                //                             expr: inner,
-                //                             loc: inner.loc,
-                //                         },
-                //                     ],
-                //                     inner.loc,
-                //                 ),
-                //                 void_,
-                //                 args[i].location,
-                //                 pureFunction(
-                //                     [effectHandlerType(env, eff), args[i].is],
-                //                     void_,
-                //                 ),
-                //             ),
-                //         );
-                //     } else {
-                //         if (arg.type !== 'apply') {
-                //             throw new LocatedError(
-                //                 arg.location,
-                //                 `Arg has effects, but isn't an apply ${arg.type}`,
-                //             );
-                //         }
-                //         const ty = arg.target.is;
-                //         if (ty.type !== 'lambda') {
-                //             throw new Error('apply target not a lambda');
-                //         }
-                //         inner = termToAstCPS(
-                //             env,
-                //             opts,
-                //             args[i],
-                //             effectHandlers,
-                //             arrowFunctionExpression(
-                //                 [
-                //                     ...sortedExplicitEffects(ty.effects).map(
-                //                         (eff) => ({
-                //                             sym:
-                //                                 effectHandlers[refName(eff.ref)]
-                //                                     .sym,
-                //                             type: effectHandlerType(env, eff),
-                //                             loc: null,
-                //                             // hmm this is where doing things in reverse is a little weird?
-                //                         }),
-                //                     ),
-                //                     {
-                //                         sym: argSyms[i]!,
-                //                         loc: args[i].location,
-                //                         type: args[i].is,
-                //                     },
-                //                 ],
-                //                 blockStatement(
-                //                     [
-                //                         {
-                //                             type: 'Expression',
-                //                             expr: inner,
-                //                             loc: inner.loc,
-                //                         },
-                //                     ],
-                //                     inner.loc,
-                //                 ),
-                //                 void_,
-                //                 args[i].location,
-                //                 pureFunction(
-                //                     [
-                //                         ...sortedExplicitEffects(
-                //                             ty.effects,
-                //                         ).map((eff) =>
-                //                             effectHandlerType(env, eff),
-                //                         ),
-                //                         args[i].is,
-                //                     ],
-                //                     void_,
-                //                 ),
-                //             ),
-                //         );
-                //     }
-                // }
-                // return inner;
             }
             let target = printTerm(env, opts, term.target);
             if (term.hadAllVariableEffects) {
