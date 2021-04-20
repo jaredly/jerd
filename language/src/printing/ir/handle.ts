@@ -23,6 +23,8 @@ import {
 import { iffe } from './utils';
 import { printLambdaBody, sortedExplicitEffects } from './lambda';
 import { printTerm } from './term';
+import { showType } from '../../typing/unify';
+import { printType } from '../typeScriptPrinter';
 
 export const printHandle = (
     env: Env,
@@ -74,6 +76,7 @@ export const printHandle = (
         name: 'fnReturnPointer',
         unique: env.local.unique++,
     };
+    const targetType = term.target.is as LambdaType;
     const effRef: EffectReference = { type: 'ref', ref: term.effect };
     const effDev = env.global.effects[refName(term.effect)];
     const handlerSym: Symbol = { name: 'handler', unique: env.local.unique++ };
@@ -211,7 +214,10 @@ export const printHandle = (
                                 unique: env.local.unique++,
                             };
                             const returnToHandlerType: Type = pureFunction(
-                                [effectHandlerType(env, effRef), effDev[i].ret],
+                                [
+                                    effectHandlerType(env, effRef),
+                                    targetType.res,
+                                ],
                                 void_,
                             );
                             const isVoid = typesEqual(effDev[i].ret, void_);
@@ -242,22 +248,10 @@ export const printHandle = (
                                         sym: rawK,
                                         type: kType,
                                     },
-                                    // {
-                                    //     sym: term.pure.arg,
-                                    //     type: (term.target
-                                    //         .is as LambdaType)
-                                    //         .res,
-                                    //     loc:
-                                    //         term.pure.body
-                                    //             .location,
-                                    // },
                                 ] as Array<Arg>,
                                 res: void_,
                                 loc: term.pure.body.location,
-                                is: pureFunction(
-                                    [(term.target.is as LambdaType).res],
-                                    void_,
-                                ),
+                                is: pureFunction([targetType.res], void_),
                                 // OKKKK so the last thing to do here
                                 // is redefine `k`
                                 // so that it sets the fnReturnPointer
@@ -267,6 +261,9 @@ export const printHandle = (
                                         type: 'Define',
                                         sym: kase.k,
                                         loc: kase.body.location,
+                                        comment:
+                                            'the type ' +
+                                            printType(env, returnToHandlerType),
                                         value: {
                                             type: 'lambda',
                                             is: pureFunction(

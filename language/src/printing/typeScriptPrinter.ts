@@ -53,8 +53,10 @@ export const printType = (env: Env, type: Type): string => {
         }
         case 'var':
             return `type-var-${type.sym.name}`;
+        case 'effect-handler':
+            return `[effect handler ${printRef(type.ref)}]`;
         default:
-            throw new Error(`Cannot print`);
+            throw new Error(`Cannot print ${(type as any).type}`);
     }
 };
 

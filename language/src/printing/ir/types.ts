@@ -64,6 +64,7 @@ export type Stmt =
           type: 'Define';
           sym: Symbol;
           value: Expr | null;
+          comment?: string;
           is?: Type;
           loc: Loc;
           fakeInitialization?: boolean;

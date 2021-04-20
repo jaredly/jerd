@@ -439,7 +439,6 @@ export const _termToTs = (
                     ) as Array<any>,
             );
         }
-        // return t.identifier('STOPSHIP');
         case 'attribute':
             return t.memberExpression(
                 termToTs(env, opts, term.target),
@@ -537,7 +536,7 @@ export const stmtToTs = (
             if (env.local.localNames[stmt.sym.name] == null) {
                 env.local.localNames[stmt.sym.name] = stmt.sym.unique;
             }
-            return withLocation(
+            let res = withLocation(
                 t.variableDeclaration('let', [
                     t.variableDeclarator(
                         withAnnotation(
@@ -562,6 +561,17 @@ export const stmtToTs = (
                 ]),
                 stmt.loc,
             );
+            if (stmt.value && stmt.value.is) {
+                res = t.addComment(
+                    res,
+                    'leading',
+                    '> ' + printType(env, stmt.value.is),
+                );
+            }
+            if (stmt.comment) {
+                res = t.addComment(res, 'leading', stmt.comment);
+            }
+            return res;
         case 'Assign':
             return withLocation(
                 t.expressionStatement(
