@@ -161,11 +161,21 @@ const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 export const sortedExplicitEffects = (
     effects: Array<EffectRef>,
 ): Array<EffectReference> => {
-    return (effects.filter(
-        (e) => e.type === 'ref',
-    ) as Array<EffectReference>).sort((a, b) =>
-        cmp(refName(a.ref), refName(b.ref)),
-    );
+    const deduped: { [key: string]: EffectReference } = {};
+    effects.forEach((eff) => {
+        if (eff.type === 'ref') {
+            deduped[refName(eff.ref)] = eff;
+        }
+    });
+    const ids = Object.keys(deduped);
+    ids.sort(cmp);
+    return ids.map((id) => deduped[id]);
+
+    // return (effects.filter(
+    //     (e) => e.type === 'ref',
+    // ) as Array<EffectReference>).sort((a, b) =>
+    //     cmp(refName(a.ref), refName(b.ref)),
+    // );
 };
 
 const effectfulLambda = (

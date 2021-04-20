@@ -10,6 +10,7 @@ import {
     Env,
     getAllSubTypes,
     Id,
+    LambdaType,
     RecordDef,
     Reference,
     selfEnv,
@@ -133,13 +134,15 @@ export const _termToTs = (
             return t.numericLiteral(term.value);
         case 'boolean':
             return t.booleanLiteral(term.value);
-        case 'lambda':
+        case 'lambda': {
+            const ty = term.is as LambdaType;
             term.args.forEach((arg) => {
                 if (env.local.localNames[arg.sym.name] == null) {
                     env.local.localNames[arg.sym.name] = arg.sym.unique;
                 }
             });
-            return t.arrowFunctionExpression(
+
+            let res = t.arrowFunctionExpression(
                 term.args.map((arg) =>
                     withAnnotation(
                         env,
@@ -150,6 +153,27 @@ export const _termToTs = (
                 ),
                 lambdaBodyToTs(env, opts, term.body),
             );
+            if (ty.typeVbls.length) {
+                res = {
+                    ...res,
+                    typeParameters: ty.typeVbls.length
+                        ? t.tsTypeParameterDeclaration(
+                              ty.typeVbls.map((name) =>
+                                  t.tsTypeParameter(
+                                      null,
+                                      null,
+                                      `T_${name.unique}`,
+                                  ),
+                              ),
+                          )
+                        : null,
+                };
+            }
+            if (term.note != null) {
+                res = t.addComment(res, 'leading', term.note);
+            }
+            return res;
+        }
         case 'term':
             if (opts.scope) {
                 return t.memberExpression(
@@ -681,11 +705,11 @@ export const fileToTypescript = (
 
     orderedTerms.forEach((idRaw) => {
         let term = env.global.terms[idRaw];
-        term = liftEffects(env, term);
 
         const id = idFromName(idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
         const comment = printToString(declarationToPretty(senv, id, term), 100);
+        term = liftEffects(env, term);
         const irTerm = ir.printTerm(senv, {}, term);
         items.push(
             declarationToTs(

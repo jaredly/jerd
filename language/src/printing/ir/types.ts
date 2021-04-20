@@ -356,6 +356,7 @@ export type RecordSubType = {
 };
 export type LambdaExpr = {
     type: 'lambda';
+    note?: string;
     // hrmmm how do I represent the "handlers" and such?
     // do I just have a "handlers" type? Will swift require more of me? no it has an Any
     // I could just say "builtin any"

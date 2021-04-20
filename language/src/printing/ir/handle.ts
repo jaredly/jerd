@@ -21,7 +21,7 @@ import {
     effectHandlerType,
 } from './cps';
 import { iffe } from './utils';
-import { printLambdaBody } from './lambda';
+import { printLambdaBody, sortedExplicitEffects } from './lambda';
 import { printTerm } from './term';
 
 export const printHandle = (
@@ -420,8 +420,11 @@ export const printHandle = (
                         // so really, add this to the effectHandlers map
                         // START HERE PLESE
                         [
+                            ...sortedExplicitEffects(
+                                (term.target.is as LambdaType).effects,
+                            ).map((r) => effectHandlers[refName(r.ref)].expr),
                             // Here's where we'd change to have a builtin handlers type probably
-                            effectHandlers[refName(effRef.ref)].expr,
+                            // effectHandlers[refName(effRef.ref)].expr,
                             {
                                 type: 'lambda',
                                 args: [
@@ -553,16 +556,20 @@ export const printHandle = (
                             */
                     loc: term.location,
                 },
-                {
-                    type: 'Return',
-                    value: {
-                        type: 'var',
-                        sym,
-                        loc: term.location,
-                        is: term.is,
-                    },
-                    loc: term.location,
-                },
+                ...(cps
+                    ? []
+                    : [
+                          {
+                              type: 'Return',
+                              value: {
+                                  type: 'var',
+                                  sym,
+                                  loc: term.location,
+                                  is: term.is,
+                              },
+                              loc: term.location,
+                          },
+                      ]),
             ],
             loc: term.location,
         },

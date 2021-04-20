@@ -144,7 +144,7 @@ export const typeToAst = (
                 type.typeVbls.length
                     ? t.tsTypeParameterDeclaration(
                           type.typeVbls.map((name) =>
-                              t.tsTypeParameter(null, null, `T_${name}`),
+                              t.tsTypeParameter(null, null, `T_${name.unique}`),
                           ),
                       )
                     : null,

@@ -803,7 +803,11 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                         ...stmt,
                         sym: indexForSym[n],
                         value: callExpression(
-                            builtin('+', expr.loc),
+                            builtin(
+                                '+',
+                                expr.loc,
+                                pureFunction([int, int], int),
+                            ),
                             pureFunction([int, int], int),
                             int,
                             [
@@ -832,7 +836,11 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                             return {
                                 ...expr,
                                 idx: callExpression(
-                                    builtin('+', expr.loc),
+                                    builtin(
+                                        '+',
+                                        expr.loc,
+                                        pureFunction([int, int], int),
+                                    ),
                                     pureFunction([int, int], int),
                                     int,
                                     [
@@ -860,7 +868,11 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                         if (argMap[n] === true) {
                             modified.push(expr);
                             return callExpression(
-                                builtin('-', expr.loc),
+                                builtin(
+                                    '-',
+                                    expr.loc,
+                                    pureFunction([int, int], int),
+                                ),
                                 pureFunction([int, int], int),
                                 int,
                                 [
@@ -934,7 +946,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
         if (nxt != null) {
             src = nxt.src;
             start = callExpression(
-                builtin('+', expr.loc),
+                builtin('+', expr.loc, pureFunction([int, int], int)),
                 pureFunction([int, int], int),
                 int,
                 [start, nxt.start],
@@ -958,7 +970,11 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                             ...expr,
                             value: { ...expr.value, sym: res.src },
                             start: callExpression(
-                                builtin('+', expr.loc),
+                                builtin(
+                                    '+',
+                                    expr.loc,
+                                    pureFunction([int, int], int),
+                                ),
                                 pureFunction([int, int], int),
                                 int,
                                 [expr.start, res.start],
@@ -977,7 +993,11 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                             ...expr,
                             value: { ...expr.value, sym: res.src },
                             idx: callExpression(
-                                builtin('+', expr.loc),
+                                builtin(
+                                    '+',
+                                    expr.loc,
+                                    pureFunction([int, int], int),
+                                ),
                                 pureFunction([int, int], int),
                                 int,
                                 [expr.idx, res.start],
@@ -993,7 +1013,11 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                             return null;
                         }
                         return callExpression(
-                            builtin('-', expr.loc),
+                            builtin(
+                                '-',
+                                expr.loc,
+                                pureFunction([int, int], int),
+                            ),
                             pureFunction([int, int], int),
                             int,
                             [

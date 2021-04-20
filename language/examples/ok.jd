@@ -49,6 +49,15 @@ const sideBar = (n: int) => if n == 5 {
 
 provideStringPlain("Yes", () => sideBar(5)) + ":" + provideStringPlain("Yes?", () => sideBar(4)) == "Yes:wot"
 
+// Different done things
+// START HERE: This needs to take things into account
+// Somehow, we need to wrap the final done
+// also why is my IFFE getting a handler passed to it 🤔
+() ={Read, Write}> {
+    raise!(Write.write("hello"));
+    getString()
+}
+
 
 /*
 const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {

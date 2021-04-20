@@ -1,6 +1,12 @@
 
 ## Immediate:
 
+HANDLE REFACTOR
+- [x] lift-effects, love it
+- [ ] need to wrap functions that are expected to have different arguments
+      like `inner` in basic-effects, the `done` expects two effect handlers, but the final call to `log` only provides 1. How can I simplify that example?
+
+
 Type system changes:
 - [x] types need to be able to refer to themselves (recursion)
   - [x] basic self-referrential enum

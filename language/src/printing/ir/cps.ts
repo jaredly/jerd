@@ -148,6 +148,7 @@ const _termToAstCPS = (
         case 'Let': {
             return termToAstCPS(env, opts, term.value, effectHandlers, {
                 type: 'lambda',
+                // note: 'let-lambda',
                 args: [
                     ...sortedExplicitEffects(getEffects(term.value)).map(
                         (eff) => ({

@@ -81,16 +81,20 @@ export const typeScriptPrelude = (
 
     if (includeImport) {
         items.push(
-            t.importDeclaration(
-                [
-                    ...builtinNames.map((name) =>
-                        t.importSpecifier(
-                            t.identifier(name),
-                            t.identifier(name),
+            t.addComment(
+                t.importDeclaration(
+                    [
+                        ...builtinNames.map((name) =>
+                            t.importSpecifier(
+                                t.identifier(name),
+                                t.identifier(name),
+                            ),
                         ),
-                    ),
-                ],
-                t.stringLiteral('./prelude.mjs'),
+                    ],
+                    t.stringLiteral('./prelude.mjs'),
+                ),
+                'leading',
+                '@ts-ignore',
             ),
         );
         if (scope != null) {
