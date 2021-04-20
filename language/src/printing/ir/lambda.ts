@@ -257,6 +257,7 @@ const effectfulLambda = (
             term.is.args.concat(syms.map((s) => s.type)).concat([doneT]),
             void_,
         ),
+        'effectful-lambda',
     );
 };
 
@@ -310,9 +311,10 @@ export const sequenceToBlock = (
                     is: {
                         type: 'lambda',
                         args: [
-                            ...sortedExplicitEffects(
-                                getEffects(term.sts[i]),
-                            ).map((eff) => effectHandlerType(env, eff)),
+                            // STOPSHIP: this doesn't need effects, right?
+                            // ...sortedExplicitEffects(
+                            //     getEffects(term.sts[i]),
+                            // ).map((eff) => effectHandlerType(env, eff)),
                         ],
                         effects: [],
                         res: void_,
@@ -322,13 +324,13 @@ export const sequenceToBlock = (
                         rest: null,
                     },
                     args: [
-                        // ...sortedExplicitEffects(
-                        //     getEffects(term.sts[i]),
-                        // ).map((eff) => ({
-                        //     type: effectHandlerType(env, eff),
-                        //     sym: { name: 'ok', unique: 0 },
-                        //     loc: null,
-                        // })),
+                        // ...sortedExplicitEffects(getEffects(term.sts[i])).map(
+                        //     (eff) => ({
+                        //         type: effectHandlerType(env, eff),
+                        //         sym: { name: 'ok', unique: 0 },
+                        //         loc: null,
+                        //     }),
+                        // ),
                         // {
                         //     sym: handlerSym,
                         //     type: builtinType('handlers'),

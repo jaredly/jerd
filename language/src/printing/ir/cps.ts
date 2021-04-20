@@ -12,58 +12,23 @@ import {
     Symbol,
     typesEqual,
     refsEqual,
+    EffectHandler,
+    Reference,
 } from '../../typing/types';
-import { bool, pureFunction, void_ } from '../../typing/preset';
-import { showLocation } from '../../typing/typeExpr';
+import { pureFunction, void_ } from '../../typing/preset';
 
-import {
-    Expr,
-    // handlersType,
-    // handlerSym,
-    stringLiteral,
-    callExpression,
-    OutputOptions,
-} from './types';
+import { Expr, callExpression, OutputOptions, Loc, Arg } from './types';
 import {
     printLambdaBody,
     sequenceToBlock,
     sortedExplicitEffects,
 } from './lambda';
 import { printTerm } from './term';
-import {
-    blockStatement,
-    arrowFunctionExpression,
-    isSimple,
-    ifStatement,
-    iffe,
-} from './utils';
+import { blockStatement, ifStatement, iffe } from './utils';
 import { idName, refName } from '../../typing/env';
 import { LocatedError } from '../../typing/errors';
 import { showType } from '../../typing/unify';
 import { printHandle } from './handle';
-
-// export const handlerVar = (loc: Loc): Expr => ({
-//     type: 'var',
-//     sym: handlerSym,
-//     loc,
-// });
-
-// export const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {
-//     return {
-//         type: 'lambda',
-//         args: [
-//             {
-//                 sym: handlerSym,
-//                 type: builtinType('handlers'),
-//                 loc: null,
-//             },
-//             arg,
-//         ],
-//         body,
-//         res: void_,
-//         loc,
-//     };
-// };
 
 export type EffectHandlers = { [id: string]: { expr: Expr; sym: Symbol } };
 
@@ -148,7 +113,7 @@ const _termToAstCPS = (
         case 'Let': {
             return termToAstCPS(env, opts, term.value, effectHandlers, {
                 type: 'lambda',
-                // note: 'let-lambda',
+                note: 'let-lambda',
                 args: [
                     ...sortedExplicitEffects(getEffects(term.value)).map(
                         (eff) => ({
@@ -226,6 +191,7 @@ const _termToAstCPS = (
                 const effT = effectHandlerType(env, effRef);
                 done = {
                     type: 'lambda',
+                    note: 'raise-done',
                     args: [
                         { sym: hsym, type: effT, loc: term.location },
                         ...(typesEqual(constr.ret, void_)
@@ -287,9 +253,17 @@ const _termToAstCPS = (
                 },
                 args: term.args
                     .map((t) => printTerm(env, opts, t))
-                    // TODO: if this isn't (theEffectHandler, theValue)
+                    // STOPSHIP: if this isn't (theEffectHandler, theValue)
                     // we might need to wrap it (for example if it expects more effects than that)
-                    .concat([done]),
+                    .concat([
+                        maybeWrapForEffects(
+                            env,
+                            [{ type: 'ref', ref: term.ref } as EffectReference],
+                            effectHandlers,
+                            done,
+                            term.location,
+                        ),
+                    ]),
                 is: void_,
                 targetType: t,
                 loc: term.location,
@@ -311,8 +285,6 @@ const _termToAstCPS = (
                 effectHandlerType(env, eff),
             );
 
-            // STOPSHIP: I'm sure none of this works.
-            // I should really write some tests.
             if (getEffects(term.cond).length > 0) {
                 throw new Error(
                     `If condition has effects. Call liftEffects first.`,
@@ -430,7 +402,16 @@ const _termToAstCPS = (
                 term.is,
                 args
                     .map((arg, i) => printTerm(env, opts, arg))
-                    .concat([...effectHandlersToPass, done]),
+                    .concat([
+                        ...effectHandlersToPass,
+                        maybeWrapForEffects(
+                            env,
+                            explicitEffects,
+                            effectHandlers,
+                            done,
+                            term.location,
+                        ),
+                    ]),
                 target.loc,
             );
         }
@@ -452,6 +433,94 @@ const _termToAstCPS = (
                 term.location,
             );
     }
+};
+
+export const maybeWrapForEffects = (
+    env: Env,
+    expected: Array<EffectReference>,
+    effectHandlers: EffectHandlers,
+    term: Expr,
+    loc: Loc,
+): Expr => {
+    if (term.is.type !== 'lambda') {
+        throw new LocatedError(term.loc, `Term must be a lambda.`);
+    }
+    const hasValue =
+        term.is.args[term.is.args.length - 1].type !== 'effect-handler';
+    // We expect done to be "effect handlers" + "result value"
+    const effects: Array<Reference> = (hasValue
+        ? term.is.args.slice(0, -1)
+        : term.is.args
+    )
+        .filter((arg) => arg.type === 'effect-handler')
+        .map((arg) => (arg as EffectHandler).ref);
+    if (effects.length !== term.is.args.length - (hasValue ? 1 : 0)) {
+        console.log(term.is.args, effects);
+        throw new LocatedError(
+            loc || term.loc,
+            `Compiler error; done expects something other than effect handlers`,
+        );
+    }
+    if (
+        effects.length === expected.length &&
+        !effects.some((ref, i) => !refsEqual(ref, expected[i].ref))
+    ) {
+        return term;
+    }
+    const valueType = hasValue ? term.is.args[term.is.args.length - 1] : null;
+    const valueSym: Symbol | null = hasValue
+        ? { name: `value`, unique: env.local.unique++ }
+        : null;
+    // console.log(effects, expected);
+    const handlers: { [key: string]: Expr } = {};
+    const args: Array<Arg> = expected
+        .map((eff) => {
+            const sym: Symbol = {
+                name: `handle${refName(eff.ref)}`,
+                unique: env.local.unique++,
+            };
+            const ty = effectHandlerType(env, eff);
+            handlers[refName(eff.ref)] = { type: 'var', sym, loc, is: ty };
+            return {
+                sym,
+                type: ty,
+                loc: loc,
+            };
+        })
+        .concat(hasValue ? [{ sym: valueSym!, type: valueType!, loc }] : []);
+
+    return {
+        type: 'lambda',
+        note: 'wrapped for effects',
+        loc: loc || term.loc,
+        args,
+        res: void_,
+        body: {
+            type: 'apply',
+            target: term,
+            is: void_,
+            loc,
+            targetType: term.is,
+            concreteType: term.is,
+            args: effects
+                .map((ref) => {
+                    if (handlers[refName(ref)]) {
+                        return handlers[refName(ref)];
+                    }
+                    return effectHandlers[refName(ref)].expr;
+                })
+                .concat(
+                    hasValue
+                        ? [{ sym: valueSym!, type: 'var', loc, is: valueType! }]
+                        : [],
+                ),
+        },
+        is: pureFunction(
+            expected.map((eff) => effectHandlerType(env, eff)),
+            void_,
+        ),
+    };
+    // throw new LocatedError(loc || term.loc, `Mismatch`);
 };
 
 export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {

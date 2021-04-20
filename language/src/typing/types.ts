@@ -8,8 +8,7 @@ import seedrandom from 'seedrandom';
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
         ? two.type === 'builtin' && one.name === two.name
-        : // STOPSHIP: substitute the selfHash if one of the ids is self.
-          two.type === 'user' && idsEqual(one.id, two.id);
+        : two.type === 'user' && idsEqual(one.id, two.id);
 };
 
 export const isBuiltin = (one: Term, name: string) =>

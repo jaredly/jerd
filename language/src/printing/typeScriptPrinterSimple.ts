@@ -27,7 +27,7 @@ import { optimize, optimizeDefine } from './ir/optimize';
 import { handlerSym, Loc } from './ir/types';
 import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
-import { declarationToPretty } from './printTsLike';
+import { declarationToPretty, termToPretty } from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
 import { printType, typeIdToString, typeToAst } from './typeScriptPrinter';
 
@@ -746,8 +746,15 @@ export const fileToTypescript = (
             term = wrapWithAssert(term);
         }
         const irTerm = ir.printTerm(env, {}, term);
+        const comment = printToString(termToPretty(env, term), 100);
         items.push(
-            t.expressionStatement(termToTs(env, opts, optimize(env, irTerm))),
+            t.addComment(
+                t.expressionStatement(
+                    termToTs(env, opts, optimize(env, irTerm)),
+                ),
+                'leading',
+                '\n' + comment + '\n',
+            ),
         );
     });
 

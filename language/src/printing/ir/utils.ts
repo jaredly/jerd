@@ -136,6 +136,7 @@ export const arrowFunctionExpression = (
     res: Type,
     loc: Loc,
     is: Type,
+    note?: string,
 ): LambdaExpr => {
     return {
         type: 'lambda',
@@ -144,5 +145,6 @@ export const arrowFunctionExpression = (
         res,
         loc,
         is,
+        note,
     };
 };
