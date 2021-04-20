@@ -198,7 +198,7 @@ export const _termToTs = (
                 ),
                 t.stringLiteral(recordIdName(env, term.ref)),
             );
-        case 'apply':
+        case 'apply': {
             if (
                 term.target.type === 'builtin' &&
                 binOps.includes(term.target.name) &&
@@ -222,10 +222,15 @@ export const _termToTs = (
                     // term.args.map((arg) => termToTs(env, opts, arg)),
                 );
             }
-            return t.callExpression(
+            let res = t.callExpression(
                 termToTs(env, opts, term.target),
                 term.args.map((arg) => termToTs(env, opts, arg)),
             );
+            if (term.note) {
+                res = t.addComment(res, 'leading', term.note);
+            }
+            return res;
+        }
         case 'tuple':
             return t.arrayExpression(
                 term.items.map((item) => termToTs(env, opts, item)),

@@ -95,6 +95,21 @@ const getPersonName = () => Person{name: getString(), age: 5}.name
 
 provideStringPlain<string>("ok", getPersonName) == "ok"
 
+// Now for some variables!
+
+
+const provideIncrementV: <T>{e}(string, int, () ={Read, e}> T) => T = <T,>{e}(v: string, i: int, fn: () ={Read, e}> T) ={e}> handle! fn {
+    Read.read(() => k) => provideIncrement<T>{}(v, i + 1, () ={Read}> k(v + i as string)),
+    pure(v) => v,
+}
+
+
+
+
+
+
+
+
 /*
 const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {
     handle! fn {

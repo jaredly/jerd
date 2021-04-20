@@ -420,14 +420,21 @@ export const printHandle = (
                             {
                                 type: 'lambda',
                                 args: [
-                                    {
-                                        sym: returnHandler,
-                                        type: effectHandlerType(env, {
-                                            type: 'ref',
-                                            ref: term.effect,
-                                        }),
+                                    ...sortedExplicitEffects(
+                                        (term.target.is as LambdaType).effects,
+                                    ).map((r) => ({
+                                        sym: effectHandlers[refName(r.ref)].sym,
+                                        type: effectHandlerType(env, r),
                                         loc: term.pure.body.location,
-                                    },
+                                    })),
+                                    // {
+                                    //     sym: returnHandler,
+                                    //     type: effectHandlerType(env, {
+                                    //         type: 'ref',
+                                    //         ref: term.effect,
+                                    //     }),
+                                    //     loc: term.pure.body.location,
+                                    // },
                                     {
                                         sym: term.pure.arg,
                                         type: (term.target.is as LambdaType)
@@ -465,10 +472,16 @@ export const printHandle = (
                                     [
                                         {
                                             type: 'var',
-                                            sym: returnHandler,
+                                            sym:
+                                                effectHandlers[
+                                                    refName(effRef.ref)
+                                                ].sym,
                                             is: effectHandlerType(env, effRef),
                                             loc: term.location,
                                         },
+                                        // ...sortedExplicitEffects(
+                                        //     (term.target.is as LambdaType).effects,
+                                        // ).map((r) => effectHandlers[refName(r.ref)].expr),
                                         {
                                             type: 'var',
                                             sym: term.pure.arg,

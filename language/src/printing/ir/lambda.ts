@@ -256,6 +256,7 @@ const effectfulLambda = (
         pureFunction(
             term.is.args.concat(syms.map((s) => s.type)).concat([doneT]),
             void_,
+            term.is.typeVbls,
         ),
         'effectful-lambda',
     );

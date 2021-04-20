@@ -446,6 +446,7 @@ export const maybeWrapForEffects = (
         throw new LocatedError(term.loc, `Term must be a lambda.`);
     }
     const hasValue =
+        term.is.args.length &&
         term.is.args[term.is.args.length - 1].type !== 'effect-handler';
     // We expect done to be "effect handlers" + "result value"
     const effects: Array<Reference> = (hasValue

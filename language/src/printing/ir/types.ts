@@ -334,6 +334,7 @@ export type Tuple = {
 };
 export type Apply = {
     type: 'apply';
+    note?: string;
     targetType: LambdaType;
     concreteType: LambdaType;
     target: Expr;
