@@ -51,23 +51,41 @@ const processArgs = (
     };
 };
 
+const subSequence = (lets: Array<Let | Term>, modified: Term): Term => ({
+    type: 'sequence',
+    is: modified.is,
+    location: modified.location,
+    sts: lets.concat([modified]),
+});
+
+/**
+ * The fact the effects can occur just about anywhere makes the transform to
+ * continuation-passing-style quite complicated.
+ * We can dramatically simplify things by pulling all nested effects into `let`s.
+ * This will introduce a lot of intermediate IIFEs, but we remove those later in
+ * the IR optimization pass.
+ */
 export const liftEffects = (env: Env, term: Term) => {
     const visitor: Visitor = {
         term: (term: Term) => {
             switch (term.type) {
+                case 'Switch': {
+                    if (getEffects(term.term).length > 0) {
+                        const lets: Array<Let | Term> = [];
+                        const sub = processArg(env, term.term, 0, lets);
+                        return subSequence(lets, { ...term, term: sub });
+                    }
+                    return null;
+                }
                 case 'Record': {
                     let spread = term.base.spread;
                     if (spread && getEffects(spread).length > 0) {
                         const lets: Array<Let | Term> = [];
                         spread = processArg(env, spread, 0, lets);
-                        return {
-                            type: 'sequence',
-                            is: term.is,
-                            location: term.location,
-                            sts: lets.concat([
-                                { ...term, base: { ...term.base, spread } },
-                            ]),
-                        };
+                        return subSequence(lets, {
+                            ...term,
+                            base: { ...term.base, spread },
+                        });
                     }
                     if (term.base.type === 'Concrete') {
                         if (
@@ -79,14 +97,10 @@ export const liftEffects = (env: Env, term: Term) => {
                             const rows = term.base.rows.map((arg, i) =>
                                 arg ? processArg(env, arg, i, lets) : arg,
                             );
-                            return {
-                                type: 'sequence',
-                                is: term.is,
-                                location: term.location,
-                                sts: lets.concat([
-                                    { ...term, base: { ...term.base, rows } },
-                                ]),
-                            };
+                            return subSequence(lets, {
+                                ...term,
+                                base: { ...term.base, rows },
+                            });
                         }
                     }
                     return null;
@@ -104,22 +118,12 @@ export const liftEffects = (env: Env, term: Term) => {
                                 0,
                                 lets,
                             );
-                            return {
-                                type: 'sequence',
-                                is: term.is,
-                                location: term.location,
-                                sts: lets.concat([{ ...term, target }]),
-                            };
+                            return subSequence(lets, { ...term, target });
                         }
                         return null;
                     }
                     const { lets, args } = processArgs(env, term.args);
-                    return {
-                        type: 'sequence',
-                        is: term.is,
-                        location: term.location,
-                        sts: lets.concat([{ ...term, args }]),
-                    };
+                    return subSequence(lets, { ...term, args });
                 }
                 case 'if': {
                     if (getEffects(term.cond).length === 0) {
@@ -127,12 +131,7 @@ export const liftEffects = (env: Env, term: Term) => {
                     }
                     const lets: Array<Let | Term> = [];
                     const cond = processArg(env, term.cond, 0, lets);
-                    return {
-                        type: 'sequence',
-                        is: term.is,
-                        location: term.location,
-                        sts: lets.concat([{ ...term, cond }]),
-                    };
+                    return subSequence(lets, { ...term, cond });
                 }
                 case 'raise': {
                     const hasArgsEffects = term.args.some(
@@ -142,12 +141,7 @@ export const liftEffects = (env: Env, term: Term) => {
                         return null;
                     }
                     const { lets, args } = processArgs(env, term.args);
-                    return {
-                        type: 'sequence',
-                        is: term.is,
-                        location: term.location,
-                        sts: lets.concat([{ ...term, args }]),
-                    };
+                    return subSequence(lets, { ...term, args });
                 }
             }
             return null;
