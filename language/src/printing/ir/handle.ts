@@ -415,16 +415,10 @@ export const printHandle = (
                         printTerm(env, opts, term.target),
                         term.target.is as LambdaType,
                         void_,
-                        // STOPSHIP: we need to pass in any other handlers that we have
-                        // that this thing is expecting.
-                        // so really, add this to the effectHandlers map
-                        // START HERE PLESE
                         [
                             ...sortedExplicitEffects(
                                 (term.target.is as LambdaType).effects,
                             ).map((r) => effectHandlers[refName(r.ref)].expr),
-                            // Here's where we'd change to have a builtin handlers type probably
-                            // effectHandlers[refName(effRef.ref)].expr,
                             {
                                 type: 'lambda',
                                 args: [
@@ -491,69 +485,6 @@ export const printHandle = (
                         ],
                         term.location,
                     ),
-                    /* expr: {
-                                type: 'handle',
-                                target: printTerm(env, opts, term.target),
-                                loc: term.location,
-                                effect: (term.effect as UserReference).id,
-                                pure: {
-                                    arg: term.pure.arg,
-                                    body: {
-                                        type: 'Block',
-                                        loc: term.pure.body.location,
-                                        items: [
-                                            {
-                                                type: 'Assign',
-                                                sym,
-                                                is: term.pure.body.is,
-                                                loc: term.pure.body.location,
-                                                value: iffe(
-                                                    asBlock(
-                                                        printLambdaBody(
-                                                            env,
-                                                            opts,
-                                                            term.pure.body,
-                                                            {},
-                                                            null,
-                                                        ),
-                                                    ),
-                                                    term.pure.body.is,
-                                                ),
-                                            },
-                                        ],
-                                    },
-                                },
-                                cases: term.cases.map((kase) => ({
-                                    ...kase,
-                                    body: {
-                                        type: 'Block',
-                                        loc: kase.body.location,
-                                        items: [
-                                            {
-                                                type: 'Assign',
-                                                sym,
-                                                is: kase.body.is,
-                                                loc: kase.body.location,
-                                                value: iffe(
-                                                    asBlock(
-                                                        printLambdaBody(
-                                                            env,
-                                                            opts,
-                                                            kase.body,
-                                                            {},
-                                                            null,
-                                                        ),
-                                                    ),
-                                                    kase.body.is,
-                                                ),
-                                            },
-                                        ],
-                                    },
-                                })),
-                                done: null,
-                                is: term.pure.body.is,
-                            },
-                            */
                     loc: term.location,
                 },
                 ...(cps
