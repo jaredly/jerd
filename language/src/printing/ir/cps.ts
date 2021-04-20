@@ -253,8 +253,6 @@ const _termToAstCPS = (
                 },
                 args: term.args
                     .map((t) => printTerm(env, opts, t))
-                    // STOPSHIP: if this isn't (theEffectHandler, theValue)
-                    // we might need to wrap it (for example if it expects more effects than that)
                     .concat([
                         maybeWrapForEffects(
                             env,
@@ -369,9 +367,7 @@ const _termToAstCPS = (
                 return effectHandlers[refName(eff.ref)].expr;
             });
             const effectHandlerTypes = explicitEffects.map((eff) => {
-                // return  effectHandlers[refName(eff.ref)]
                 return effectHandlerType(env, eff);
-                // return void_; // STOPSHIP
             });
 
             if (term.args.some((t) => getEffects(t).length > 0)) {
@@ -476,10 +472,14 @@ export const maybeWrapForEffects = (
     const handlers: { [key: string]: Expr } = {};
     const args: Array<Arg> = expected
         .map((eff) => {
-            const sym: Symbol = {
-                name: `handle${refName(eff.ref)}`,
-                unique: env.local.unique++,
-            };
+            const sym = effectHandlers[refName(eff.ref)].sym;
+            if (!sym) {
+                throw new Error(`No handler sym for ${refName(eff.ref)}`);
+            }
+            // const sym: Symbol = {
+            //     name: `handle${refName(eff.ref)}`,
+            //     unique: env.local.unique++,
+            // };
             const ty = effectHandlerType(env, eff);
             handlers[refName(eff.ref)] = { type: 'var', sym, loc, is: ty };
             return {

@@ -39,9 +39,6 @@ const ArrayEq = <T,>(eq: Eq<T>) => Eq<Array<T>>{
     len(one) == len(two) && arrayEq(one, two, eq)
 }
 
-// STOPSHIP: Next, get a prelude going so I can predefine IntEq and stuff.
-// and make adding builtins much easier.
-
 // vvvvvvv
 
 ArrayEq<int>(IntEq)."=="([1, 2], [1, 2])

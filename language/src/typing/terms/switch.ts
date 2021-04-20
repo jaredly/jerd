@@ -178,12 +178,6 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
         expr.location,
     );
 
-    // STOPSHIP: gotta ensure exhaustivity here folks!
-    // hrmmm this could be tricky
-    // ok, so maybe we can have paths?
-    // [idName, attr, etc.]
-    // and if [idName] => true, then that record is covered
-    // and if [] => true, then we have a wildcard coverage.
     return {
         type: 'Switch',
         term,

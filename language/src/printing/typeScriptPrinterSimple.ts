@@ -566,13 +566,13 @@ export const stmtToTs = (
                 ]),
                 stmt.loc,
             );
-            if (stmt.value && stmt.value.is) {
-                res = t.addComment(
-                    res,
-                    'leading',
-                    '> ' + printType(env, stmt.value.is),
-                );
-            }
+            // if (stmt.value && stmt.value.is) {
+            //     res = t.addComment(
+            //         res,
+            //         'leading',
+            //         '> ' + printType(env, stmt.value.is),
+            //     );
+            // }
             if (stmt.comment) {
                 res = t.addComment(res, 'leading', stmt.comment);
             }

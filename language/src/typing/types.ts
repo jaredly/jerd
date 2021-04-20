@@ -623,8 +623,6 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
         if (two.type === 'ref' && two.ref.type === 'builtin') {
             return one.type === 'ref' && refsEqual(two.ref, one.ref);
         }
-        // STOPSHIP: resolve type references
-        // throw new Error(`Need to lookup types sorry`);
         return false;
     }
     if (one.type === 'var') {

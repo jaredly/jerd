@@ -250,18 +250,8 @@ const typePattern = (
             // }
 
             subTypeIds.forEach((id) => {
-                // STOPSHIP: need to substitute type variables
                 const t = env.global.types[idName(id)] as RecordDef;
                 subTypeTypes[idName(id)] = t;
-                // const rows = new Array(t.items.length);
-                // t.items.forEach((type, i) => {
-                //     rows[i] = { type, value: null };
-                // });
-                // subTypes[idName(id)] = {
-                //     covered: false,
-                //     spread: null,
-                //     rows,
-                // };
                 env.global.recordGroups[idName(id)].forEach(
                     (name, i) => (names[name] = { i, id }),
                 );

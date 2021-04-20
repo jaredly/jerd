@@ -82,18 +82,6 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     // STOPSHIP: typeVbls and effectVbls for vars
                 };
             }
-            // if (type.id.hash && type.id.hash === '#self') {
-            //     return {
-            //         type: 'ref',
-            //         ref: {
-            //             type: 'builtin',
-            //             name: '<self>',
-            //         },
-            //         typeVbls,
-            //         effectVbls,
-            //         location: type.location,
-            //     };
-            // }
             if (env.local.typeVblNames[type.id.text] != null) {
                 return {
                     type: 'var',

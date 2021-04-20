@@ -1,25 +1,20 @@
 // Print a type to typescript
 
-import { Env, Type, Symbol, Reference, EffectRef, Id } from '../typing/types';
+import {
+    Env,
+    Type,
+    Symbol,
+    Reference,
+    EffectRef,
+    Id,
+    LambdaType,
+} from '../typing/types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import { sortedExplicitEffects } from './ir/lambda';
 import { effectHandlerType } from './ir/cps';
 import { withAnnotation } from './typeScriptPrinterSimple';
 import { idName, refName } from '../typing/env';
-
-// Can I... misuse babel's AST to produce go?
-// what would get in my way?
-// hm the fact that typescript type annotations might not do the trick?
-// I mean, for go it might be fine.
-// not sure about swift or something like that.
-// can cross that bridge when we want to.
-
-// TODO: I want to abstract this out
-// Into a file that generates an intermediate representation
-// that can then be turned into TypeScript, or Go, or Swift or something.
-// And then the specific "turn it into typescript" bit can be much simpler.
-// But for now I should probably flesh out the language a bit more.
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 
@@ -122,101 +117,50 @@ export const typeToAst = (
         case 'var':
             return t.tsTypeReference(t.identifier(`T_${type.sym.unique}`));
         case 'lambda': {
+            const args = type.args.map((arg, i) =>
+                withType<t.Identifier>(
+                    env,
+                    opts,
+                    t.identifier('arg_' + i),
+                    arg,
+                ),
+            );
+            const tvbls = type.typeVbls.length
+                ? t.tsTypeParameterDeclaration(
+                      type.typeVbls.map((name) =>
+                          t.tsTypeParameter(null, null, `T_${name.unique}`),
+                      ),
+                  )
+                : null;
             const res = t.tsTypeAnnotation(typeToAst(env, opts, type.res));
-
-            const findTypeVariables = (type: Type): Array<Symbol> => {
-                switch (type.type) {
-                    case 'var':
-                        return [type.sym];
-                    case 'ref':
-                        return [];
-                    case 'lambda':
-                        return ([] as Array<Symbol>)
-                            .concat(...type.args.map(findTypeVariables))
-                            .concat(findTypeVariables(type.res));
-                    default:
-                        return [];
-                }
-            };
-
-            // const vbls = dedup(findTypeVariables(type).map((m) => `${m.name}`));
-            // hrmmm a function type should really keep track of its own type variables.
-            // like, explicitly.
-            // so that we know the difference between
-            // <T, R>(x: T, () => R) => T
-            // and
-            // <T>(x: T, <R>() => R) => T
+            // TODO: If "had all variable effects", this should produce an inline record type.
+            if (
+                type.effects.length > 0 &&
+                type.effects.every((t) => t.type === 'var')
+            ) {
+                return t.tsTypeLiteral([
+                    t.tsPropertySignature(
+                        t.identifier('effectful'),
+                        t.tsTypeAnnotation(
+                            t.tsFunctionType(
+                                tvbls,
+                                args.concat(effectArgs(env, opts, type, res)),
+                                t.tsTypeAnnotation(t.tsVoidKeyword()),
+                            ),
+                        ),
+                    ),
+                    t.tsPropertySignature(
+                        t.identifier('direct'),
+                        t.tsTypeAnnotation(t.tsFunctionType(tvbls, args, res)),
+                    ),
+                ]);
+            }
 
             return t.tsFunctionType(
-                type.typeVbls.length
-                    ? t.tsTypeParameterDeclaration(
-                          type.typeVbls.map((name) =>
-                              t.tsTypeParameter(null, null, `T_${name.unique}`),
-                          ),
-                      )
-                    : null,
-                type.args
-                    .map((arg, i) =>
-                        withType<t.Identifier>(
-                            env,
-                            opts,
-                            t.identifier('arg_' + i),
-                            arg,
-                        ),
-                    )
-                    .concat(
-                        type.effects.length
-                            ? [
-                                  ...sortedExplicitEffects(
-                                      type.effects,
-                                  ).map((eff) =>
-                                      withAnnotation(
-                                          env,
-                                          opts,
-                                          t.identifier(
-                                              'eff' + refName(eff.ref),
-                                          ),
-                                          effectHandlerType(env, eff),
-                                      ),
-                                  ),
-                                  {
-                                      ...t.identifier('done'),
-                                      typeAnnotation: t.tsTypeAnnotation(
-                                          t.tsFunctionType(
-                                              null,
-                                              [
-                                                  ...sortedExplicitEffects(
-                                                      type.effects,
-                                                  ).map((eff) =>
-                                                      withAnnotation(
-                                                          env,
-                                                          opts,
-                                                          t.identifier(
-                                                              'eff' +
-                                                                  refName(
-                                                                      eff.ref,
-                                                                  ),
-                                                          ),
-                                                          effectHandlerType(
-                                                              env,
-                                                              eff,
-                                                          ),
-                                                      ),
-                                                  ),
-                                                  {
-                                                      ...t.identifier('result'),
-                                                      typeAnnotation: res,
-                                                  },
-                                              ],
-                                              t.tsTypeAnnotation(
-                                                  t.tsVoidKeyword(),
-                                              ),
-                                          ),
-                                      ),
-                                  },
-                              ]
-                            : [],
-                    ),
+                tvbls,
+                args.concat(
+                    type.effects.length ? effectArgs(env, opts, type, res) : [],
+                ),
                 type.effects.length
                     ? t.tsTypeAnnotation(t.tsVoidKeyword())
                     : res,
@@ -224,6 +168,45 @@ export const typeToAst = (
         }
     }
 };
+
+const effectArgs = (
+    env: Env,
+    opts: OutputOptions,
+    type: LambdaType,
+    res: t.TSTypeAnnotation,
+) => [
+    ...sortedExplicitEffects(type.effects).map((eff) =>
+        withAnnotation(
+            env,
+            opts,
+            t.identifier('eff' + refName(eff.ref)),
+            effectHandlerType(env, eff),
+        ),
+    ),
+    {
+        ...t.identifier('done'),
+        typeAnnotation: t.tsTypeAnnotation(
+            t.tsFunctionType(
+                null,
+                [
+                    ...sortedExplicitEffects(type.effects).map((eff) =>
+                        withAnnotation(
+                            env,
+                            opts,
+                            t.identifier('eff' + refName(eff.ref)),
+                            effectHandlerType(env, eff),
+                        ),
+                    ),
+                    {
+                        ...t.identifier('result'),
+                        typeAnnotation: res,
+                    },
+                ],
+                t.tsTypeAnnotation(t.tsVoidKeyword()),
+            ),
+        ),
+    },
+];
 
 const showEffectRef = (eff: EffectRef) => {
     if (eff.type === 'var') {

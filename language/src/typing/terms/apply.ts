@@ -65,11 +65,6 @@ export const typeApply = (
             ...target,
             is: applyEffectVariables(env, target.is, mappedVbls) as LambdaType,
         };
-        // console.log(
-        //     `Mapped effect variables - ${showType(env,
-        //         pre,
-        //     )} ---> ${showType(env, target.is)}`,
-        // );
     }
 
     let is: LambdaType;
@@ -131,7 +126,6 @@ export const typeApply = (
     return {
         type: 'apply',
         originalTargetType,
-        // STOPSHIP(sourcemap): this should be better
         location: target.location,
         typeVbls,
         effectVbls: mappedVbls,
