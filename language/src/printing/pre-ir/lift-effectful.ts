@@ -69,6 +69,30 @@ export const liftEffects = (env: Env, term: Term) => {
     const visitor: Visitor = {
         term: (term: Term) => {
             switch (term.type) {
+                case 'Attribute':
+                case 'TupleAccess': {
+                    if (getEffects(term.target).length === 0) {
+                        return null;
+                    }
+                    const lets: Array<Let | Term> = [];
+                    const target = processArg(env, term.target, 0, lets);
+                    return subSequence(lets, { ...term, target });
+                }
+                case 'Tuple': {
+                    if (
+                        !term.items.some((term) => getEffects(term).length > 0)
+                    ) {
+                        return null;
+                    }
+                    const lets: Array<Let | Term> = [];
+                    const items = term.items.map((arg, i) =>
+                        processArg(env, arg, i, lets),
+                    );
+                    return subSequence(lets, {
+                        ...term,
+                        items,
+                    });
+                }
                 case 'Array': {
                     if (
                         !term.items.some((term) =>

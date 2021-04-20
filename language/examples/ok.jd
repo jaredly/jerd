@@ -89,6 +89,11 @@ provideIncrement<Array<string>>("Hi", 0, () => [...getStringArr(), getString()])
     getString()
 }
 
+() => (getString(), 1.0).0
+
+const getPersonName = () => Person{name: getString(), age: 5}.name
+
+provideStringPlain<string>("ok", getPersonName) == "ok"
 
 /*
 const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {
