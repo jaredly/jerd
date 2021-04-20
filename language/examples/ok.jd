@@ -20,6 +20,11 @@ const both = () ={Read, Write}> {
 // Checking that this type checks and looks reasonable
 both
 
+const provideIncrement: <T>(string, int, () ={Read}> T) => T = <T,>(v: string, i: int, fn: () ={Read}> T) => handle! fn {
+    Read.read(() => k) => provideIncrement<T>(v, i + 1, () ={Read}> k(v + i as string)),
+    pure(v) => v,
+}
+
 // Ok now for the famous handlers!
 const provideString: (string, () ={Read}> string) => string = (v: string, fn: () ={Read}> string) => handle! fn {
     Read.read(() => k) => provideString(v, () ={Read}> k(v + "got") + "back") + "provided",
@@ -77,6 +82,8 @@ const spreadPerson = () => Person{...getPerson(), age: 20}
 
 provideStringPlain<Person>("Me", getPerson).name == "Me"
 provideStringPlain<Person>("Me", spreadPerson).name == "Me"
+
+provideIncrement<Array<string>>("Hi", 0, () => [getString(), getString()]) == ["Hi0", "Hi1"]
 
 /*
 const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {

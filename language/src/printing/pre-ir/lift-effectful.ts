@@ -69,6 +69,30 @@ export const liftEffects = (env: Env, term: Term) => {
     const visitor: Visitor = {
         term: (term: Term) => {
             switch (term.type) {
+                case 'Array': {
+                    if (
+                        !term.items.some((term) =>
+                            term.type === 'ArraySpread'
+                                ? getEffects(term.value).length > 0
+                                : getEffects(term).length > 0,
+                        )
+                    ) {
+                        return null;
+                    }
+                    const lets: Array<Let | Term> = [];
+                    const items = term.items.map((arg, i) =>
+                        arg.type === 'ArraySpread'
+                            ? {
+                                  ...arg,
+                                  value: processArg(env, arg.value, i, lets),
+                              }
+                            : processArg(env, arg, i, lets),
+                    );
+                    return subSequence(lets, {
+                        ...term,
+                        items,
+                    });
+                }
                 case 'Switch': {
                     if (getEffects(term.term).length > 0) {
                         const lets: Array<Let | Term> = [];

@@ -160,18 +160,16 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             // ughhhhhhhh I think my denormalization is biting me here.
             if (getEffects(term).length > 0) {
-                console.error(
-                    new LocatedError(
-                        term.location,
-                        `This apply has effects, but isn't in a CPS context. Effects: ${getEffects(
-                            term,
-                        )
-                            .map(showEffectRef)
-                            .join(', ')} : Target: ${showType(
-                            env,
-                            term.target.is,
-                        )}`,
-                    ),
+                throw new LocatedError(
+                    term.location,
+                    `This apply has effects, but isn't in a CPS context. Effects: ${getEffects(
+                        term,
+                    )
+                        .map(showEffectRef)
+                        .join(', ')} : Target: ${showType(
+                        env,
+                        term.target.is,
+                    )}`,
                 );
             }
 
