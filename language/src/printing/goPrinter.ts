@@ -239,6 +239,7 @@ export const handleArgTypeVariables = (
                                         type: 'var',
                                         sym: argVbls[i],
                                         loc: null,
+                                        is: void_, // STOPSHIP
                                     })),
                                     null,
                                     origType,
@@ -280,6 +281,8 @@ export const typeToGo = (env: Env, opts: OutputOptions, type: Type): PP => {
                 return atom(IdToString(type.ref.id));
             }
         }
+        case 'effect-handler':
+            throw new Error('nope');
 
         case 'lambda':
             // Is this the right place to make this adjustment?
@@ -398,6 +401,9 @@ const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
         // TODO include type here? could be good
         case 'Define':
             if (!stmt.value) {
+                if (!stmt.is) {
+                    throw new Error(`no is for define`);
+                }
                 return items([
                     atom('var '),
                     symToGo(stmt.sym),
@@ -506,7 +512,7 @@ const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
                     ? // TODO pipe through the ids of things
                       items([
                           atom('.('),
-                          typeToGo(env, opts, term.res),
+                          typeToGo(env, opts, term.is),
                           atom(')'),
                       ])
                     : null,

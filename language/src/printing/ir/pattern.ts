@@ -1,5 +1,5 @@
 import { Env, Type, Pattern } from '../../typing/types';
-import { bool, int, pureFunction } from '../../typing/preset';
+import { bool, int, pureFunction, void_ } from '../../typing/preset';
 import { showType } from '../../typing/unify';
 import { getEnumReferences } from '../../typing/typeExpr';
 import { idName } from '../../typing/env';
@@ -40,6 +40,7 @@ export const printPattern = (
             value,
             ref: ref.ref,
             loc: pattern.location,
+            is: bool,
         }));
         return blockStatement(
             [
@@ -87,6 +88,7 @@ export const printPattern = (
                     target: value,
                     idx: i,
                     loc: item.location,
+                    is: vbls[i],
                 },
                 vbls[i],
                 item,
@@ -111,6 +113,7 @@ export const printPattern = (
                     ref: item.ref,
                     idx: item.idx,
                     loc: item.location,
+                    is: item.is,
                 },
                 decl.items[item.idx],
                 item.pattern,
@@ -125,6 +128,7 @@ export const printPattern = (
                         value,
                         ref: pattern.ref.ref,
                         loc: pattern.location,
+                        is: bool,
                     },
                     success,
                     null,
@@ -154,6 +158,7 @@ export const printPattern = (
                             loc: pattern.location,
                         } as Literal,
                         loc: pattern.location,
+                        is: bool,
                     },
                     success,
                     null,
@@ -175,17 +180,18 @@ export const printPattern = (
         }
 
         // Then postitems, because it requires calculating length a bunch
-        const ln: Expr = { type: 'arrayLen', value, loc: value.loc };
+        const ln: Expr = { type: 'arrayLen', value, loc: value.loc, is: int };
 
         const indexFromEnd = (i: number, loc: Loc): Expr => ({
             type: 'apply',
             targetType: pureFunction([int, int], int),
             concreteType: pureFunction([int, int], int),
-            res: int,
+            is: int,
             target: {
                 type: 'builtin',
                 loc,
                 name: '-',
+                is: pureFunction([int, int], int),
             },
             args: [
                 ln,
@@ -193,6 +199,7 @@ export const printPattern = (
                     type: 'int',
                     value: i,
                     loc,
+                    is: int,
                 },
             ],
             loc,
@@ -213,6 +220,7 @@ export const printPattern = (
                         type: 'int',
                         value: pattern.preItems.length,
                         loc: null,
+                        is: int,
                     },
                     end: pattern.postItems.length
                         ? indexFromEnd(
@@ -221,6 +229,7 @@ export const printPattern = (
                           )
                         : null,
                     loc: pattern.location,
+                    is: type,
                 },
                 type,
                 pattern.spread,
@@ -239,6 +248,7 @@ export const printPattern = (
                         item.location,
                     ),
                     loc: item.location,
+                    is: type.typeVbls[0],
                 },
                 elType,
                 item,
@@ -253,8 +263,9 @@ export const printPattern = (
                 {
                     type: 'arrayIndex',
                     value,
-                    idx: { type: 'int', value: i, loc: item.location },
+                    idx: { type: 'int', value: i, loc: item.location, is: int },
                     loc: item.location,
+                    is: elType,
                 },
                 elType,
                 item,
@@ -275,11 +286,12 @@ export const printPattern = (
                             type: 'apply',
                             targetType: pureFunction([int, int], bool),
                             concreteType: pureFunction([int, int], bool),
-                            res: bool,
+                            is: bool,
                             target: {
                                 type: 'builtin',
                                 loc: pattern.location,
                                 name: pattern.spread ? '>=' : '==',
+                                is: pureFunction([int, int], int),
                             },
                             args: [
                                 ln,
@@ -289,6 +301,7 @@ export const printPattern = (
                                         pattern.preItems.length +
                                         pattern.postItems.length,
                                     loc: pattern.location,
+                                    is: int,
                                 },
                             ],
                             loc: pattern.location,
