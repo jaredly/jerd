@@ -568,7 +568,7 @@ export const printHandle = (
                                   is: term.is,
                               },
                               loc: term.location,
-                          },
+                          } as Stmt,
                       ]),
             ],
             loc: term.location,
