@@ -14,17 +14,18 @@ import {
     refsEqual,
     EffectHandler,
     Reference,
+    LambdaType,
 } from '../../typing/types';
 import { pureFunction, void_ } from '../../typing/preset';
 
-import { Expr, callExpression, OutputOptions, Loc, Arg } from './types';
+import { Expr, callExpression, OutputOptions, Loc, Arg, Stmt } from './types';
 import {
     printLambdaBody,
     sequenceToBlock,
     sortedExplicitEffects,
 } from './lambda';
 import { printTerm } from './term';
-import { blockStatement, ifStatement, iffe } from './utils';
+import { blockStatement, ifStatement, iffe, asBlock } from './utils';
 import { idName, refName } from '../../typing/env';
 import { LocatedError } from '../../typing/errors';
 import { showType } from '../../typing/unify';
@@ -71,6 +72,71 @@ export const effectConstructorType = (
     );
 };
 
+const callDone = (
+    env: Env,
+    opts: OutputOptions,
+    effectHandlers: EffectHandlers,
+    done: Expr,
+    value: Expr,
+): Expr => {
+    if (done.is.type !== 'lambda') {
+        throw new Error('done not a lambda');
+    }
+    const effects = done.is.args
+        .map((arg) =>
+            arg.type === 'effect-handler'
+                ? { type: 'ref', ref: arg.ref, location: null }
+                : null,
+        )
+        .filter(Boolean) as Array<EffectReference>;
+    const doneHandlerTypes = effects.map((eff) => effectHandlerType(env, eff));
+    // const called =
+    if (typesEqual(value.is, void_)) {
+        const stmts: Array<Stmt> = [
+            { type: 'Expression', expr: value, loc: value.loc },
+            done.type === 'lambda' && done.is.args.length === 0
+                ? asBlock(done.body)
+                : {
+                      type: 'Expression',
+                      expr: {
+                          type: 'apply',
+                          target: done,
+                          is: void_,
+                          targetType: pureFunction(
+                              [...doneHandlerTypes],
+                              void_,
+                          ),
+                          concreteType: pureFunction(
+                              [...doneHandlerTypes],
+                              void_,
+                          ),
+                          args: [
+                              ...effects.map(
+                                  (eff) =>
+                                      effectHandlers[refName(eff.ref)].expr,
+                              ),
+                          ],
+                          loc: null,
+                      },
+                      loc: value.loc,
+                  },
+        ];
+        return iffe({ type: 'Block', items: stmts, loc: value.loc }, void_);
+    }
+    return {
+        type: 'apply',
+        target: done,
+        is: void_,
+        targetType: pureFunction([...doneHandlerTypes, value.is], void_),
+        concreteType: pureFunction([...doneHandlerTypes, value.is], void_),
+        args: [
+            ...effects.map((eff) => effectHandlers[refName(eff.ref)].expr),
+            value,
+        ],
+        loc: null,
+    };
+};
+
 // cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 const _termToAstCPS = (
     env: Env,
@@ -81,36 +147,51 @@ const _termToAstCPS = (
 ): Expr => {
     //     // No effects in the term
     if (!getEffects(term).length && term.type !== 'Let') {
-        if (done.is.type !== 'lambda') {
-            throw new Error('done not a lambda');
-        }
-        const effects = done.is.args
-            .map((arg) =>
-                arg.type === 'effect-handler'
-                    ? { type: 'ref', ref: arg.ref, location: null }
-                    : null,
-            )
-            .filter(Boolean) as Array<EffectReference>;
-        const doneHandlerTypes = effects.map((eff) =>
-            effectHandlerType(env, eff),
+        return callDone(
+            env,
+            opts,
+            effectHandlers,
+            done,
+            printTerm(env, opts, term),
         );
-        return {
-            type: 'apply',
-            target: done,
-            is: void_,
-            targetType: pureFunction([...doneHandlerTypes, term.is], void_),
-            concreteType: pureFunction([...doneHandlerTypes, term.is], void_),
-            args: [
-                ...effects.map((eff) => effectHandlers[refName(eff.ref)].expr),
-                printTerm(env, opts, term),
-            ],
-            loc: null,
-        };
     }
     switch (term.type) {
         case 'handle':
             return printHandle(env, opts, term, effectHandlers, done);
         case 'Let': {
+            if (getEffects(term).length === 0) {
+                return iffe(
+                    {
+                        type: 'Block',
+                        loc: term.location,
+                        items: [
+                            {
+                                type: 'Define',
+                                sym: term.binding,
+                                value: printTerm(env, opts, term.value),
+                                loc: term.location,
+                                is: term.value.is,
+                            },
+                            done.type === 'lambda' && done.args.length === 0
+                                ? asBlock(done.body)
+                                : {
+                                      type: 'Expression',
+                                      expr: {
+                                          type: 'apply',
+                                          target: done,
+                                          is: void_,
+                                          targetType: done.is as LambdaType,
+                                          concreteType: done.is as LambdaType,
+                                          args: [],
+                                          loc: null,
+                                      },
+                                      loc: term.location,
+                                  },
+                        ],
+                    },
+                    void_,
+                );
+            }
             return termToAstCPS(env, opts, term.value, effectHandlers, {
                 type: 'lambda',
                 note: 'let-lambda',
@@ -128,15 +209,18 @@ const _termToAstCPS = (
                         loc: term.location,
                     },
                 ],
-                body: {
-                    type: 'apply',
-                    target: done,
-                    is: void_,
-                    targetType: pureFunction([], void_),
-                    concreteType: pureFunction([], void_),
-                    args: [],
-                    loc: null,
-                },
+                body:
+                    done.type === 'lambda' && done.args.length === 0
+                        ? done.body
+                        : {
+                              type: 'apply',
+                              target: done,
+                              is: void_,
+                              targetType: pureFunction([], void_),
+                              concreteType: pureFunction([], void_),
+                              args: [],
+                              loc: null,
+                          },
                 res: void_,
                 loc: term.location,
                 is: pureFunction(
@@ -207,35 +291,41 @@ const _termToAstCPS = (
                     is: pureFunction([effT], void_),
                     loc: term.location,
                     res: void_,
-                    body: {
-                        type: 'apply',
-                        target: done,
-                        args: [
-                            ...(doneEffects.map((eff) =>
-                                refsEqual(eff.ref, effRef.ref)
-                                    ? {
-                                          type: 'var',
-                                          sym: hsym,
-                                          loc: term.location,
-                                      }
-                                    : effectHandlers[refName(eff.ref)].expr,
-                            ) as Array<Expr>),
-                            ...((typesEqual(constr.ret, void_)
-                                ? []
-                                : [
-                                      {
-                                          type: 'var',
-                                          sym: vsym,
-                                          loc: term.location,
-                                          is: constr.ret,
-                                      },
-                                  ]) as Array<Expr>),
-                        ],
-                        is: void_,
-                        loc: term.location,
-                        targetType: done.is,
-                        concreteType: done.is,
-                    },
+                    body:
+                        done.type === 'lambda' &&
+                        done.args.length === 0 &&
+                        doneEffects.length === 0
+                            ? done.body
+                            : {
+                                  type: 'apply',
+                                  target: done,
+                                  args: [
+                                      ...(doneEffects.map((eff) =>
+                                          refsEqual(eff.ref, effRef.ref)
+                                              ? {
+                                                    type: 'var',
+                                                    sym: hsym,
+                                                    loc: term.location,
+                                                }
+                                              : effectHandlers[refName(eff.ref)]
+                                                    .expr,
+                                      ) as Array<Expr>),
+                                      ...((typesEqual(constr.ret, void_)
+                                          ? []
+                                          : [
+                                                {
+                                                    type: 'var',
+                                                    sym: vsym,
+                                                    loc: term.location,
+                                                    is: constr.ret,
+                                                },
+                                            ]) as Array<Expr>),
+                                  ],
+                                  is: void_,
+                                  loc: term.location,
+                                  targetType: done.is,
+                                  concreteType: done.is,
+                              },
                 };
             }
             return {
@@ -501,26 +591,36 @@ export const maybeWrapForEffects = (
         loc: loc || term.loc,
         args,
         res: void_,
-        body: {
-            type: 'apply',
-            target: term,
-            is: void_,
-            loc,
-            targetType: term.is,
-            concreteType: term.is,
-            args: effects
-                .map((ref) => {
-                    if (handlers[refName(ref)]) {
-                        return handlers[refName(ref)];
-                    }
-                    return effectHandlers[refName(ref)].expr;
-                })
-                .concat(
-                    hasValue
-                        ? [{ sym: valueSym!, type: 'var', loc, is: valueType! }]
-                        : [],
-                ),
-        },
+        body:
+            term.type === 'lambda' && term.args.length === 0
+                ? term.body
+                : {
+                      type: 'apply',
+                      target: term,
+                      is: void_,
+                      loc,
+                      targetType: term.is,
+                      concreteType: term.is,
+                      args: effects
+                          .map((ref) => {
+                              if (handlers[refName(ref)]) {
+                                  return handlers[refName(ref)];
+                              }
+                              return effectHandlers[refName(ref)].expr;
+                          })
+                          .concat(
+                              hasValue
+                                  ? [
+                                        {
+                                            sym: valueSym!,
+                                            type: 'var',
+                                            loc,
+                                            is: valueType!,
+                                        },
+                                    ]
+                                  : [],
+                          ),
+                  },
         is: pureFunction(
             expected.map((eff) => effectHandlerType(env, eff)),
             void_,
