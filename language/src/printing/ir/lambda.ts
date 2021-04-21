@@ -72,6 +72,7 @@ export const printLambda = (
                             (sym, i) => directVersion.is.args[i],
                         ),
                         directVersion.is.res,
+                        directVersion.is.typeVbls,
                     ),
                 ),
             };
@@ -140,7 +141,7 @@ export const withExecutionLimit = (
 
 // yeah we need to go in, and
 // apply the effect variables all over
-const withNoEffects = (env: Env, term: Lambda): Lambda => {
+export const withNoEffects = (env: Env, term: Lambda): Lambda => {
     const vbls = term.is.effectVbls;
     const is = applyEffectVariables(env, term.is, []) as LambdaType;
     // lol clone

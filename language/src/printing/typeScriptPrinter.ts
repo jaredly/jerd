@@ -15,6 +15,7 @@ import { sortedExplicitEffects } from './ir/lambda';
 import { effectHandlerType } from './ir/cps';
 import { withAnnotation } from './typeScriptPrinterSimple';
 import { idName, refName } from '../typing/env';
+import { applyEffectVariables, subtTypeVars } from '../typing/typeExpr';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 
@@ -135,9 +136,15 @@ export const typeToAst = (
             const res = t.tsTypeAnnotation(typeToAst(env, opts, type.res));
             // TODO: If "had all variable effects", this should produce an inline record type.
             if (
+                type.effectVbls.length > 0 &&
                 type.effects.length > 0 &&
                 type.effects.every((t) => t.type === 'var')
             ) {
+                const direct: LambdaType = applyEffectVariables(
+                    env,
+                    type,
+                    [],
+                ) as LambdaType;
                 return t.tsTypeLiteral([
                     t.tsPropertySignature(
                         t.identifier('effectful'),
@@ -151,7 +158,22 @@ export const typeToAst = (
                     ),
                     t.tsPropertySignature(
                         t.identifier('direct'),
-                        t.tsTypeAnnotation(t.tsFunctionType(tvbls, args, res)),
+                        t.tsTypeAnnotation(
+                            t.tsFunctionType(
+                                tvbls,
+                                direct.args.map((arg, i) =>
+                                    withType<t.Identifier>(
+                                        env,
+                                        opts,
+                                        t.identifier('arg_' + i),
+                                        arg,
+                                    ),
+                                ),
+                                t.tsTypeAnnotation(
+                                    typeToAst(env, opts, direct.res),
+                                ),
+                            ),
+                        ),
                     ),
                 ]);
             }

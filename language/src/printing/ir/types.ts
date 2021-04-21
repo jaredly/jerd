@@ -92,8 +92,10 @@ export const callExpression = (
     args: Array<Expr>,
     loc: Loc,
     concreteType?: LambdaType,
+    note?: string,
 ): Expr => ({
     type: 'apply',
+    note,
     targetType,
     concreteType: concreteType || targetType,
     target,

@@ -354,18 +354,23 @@ const _termToAstCPS = (
             const explicitEffects = sortedExplicitEffects(
                 term.target.is.effects,
             );
-            const effectHandlersToPass = explicitEffects.map((eff) => {
-                if (!effectHandlers[refName(eff.ref)]) {
-                    console.log(effectHandlers);
-                    throw new LocatedError(
-                        term.location,
-                        `No handler for ${refName(
-                            eff.ref,
-                        )} while calling ${showType(env, term.target.is)}`,
-                    );
-                }
-                return effectHandlers[refName(eff.ref)].expr;
-            });
+            const effectHandlersToPass = term.hadAllVariableEffects
+                ? []
+                : explicitEffects.map((eff) => {
+                      if (!effectHandlers[refName(eff.ref)]) {
+                          console.log(effectHandlers);
+                          throw new LocatedError(
+                              term.location,
+                              `No handler for ${refName(
+                                  eff.ref,
+                              )} while calling ${showType(
+                                  env,
+                                  term.target.is,
+                              )}`,
+                          );
+                      }
+                      return effectHandlers[refName(eff.ref)].expr;
+                  });
             const effectHandlerTypes = explicitEffects.map((eff) => {
                 return effectHandlerType(env, eff);
             });

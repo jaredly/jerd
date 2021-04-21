@@ -28,7 +28,7 @@ const processArg = (
     lets.push({
         type: 'Let',
         binding: sym,
-        is: void_,
+        is: arg.is,
         location: arg.location,
         value: arg,
     });
