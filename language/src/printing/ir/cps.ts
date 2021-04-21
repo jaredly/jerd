@@ -270,7 +270,9 @@ const _termToAstCPS = (
                 !refsEqual(doneEffects[0].ref, term.ref)
             ) {
                 const effRef: EffectReference = { type: 'ref', ref: term.ref };
-                const hsym = { name: 'handler', unique: env.local.unique++ };
+                const hsym: Symbol = effectHandlers[refName(term.ref)]
+                    ? effectHandlers[refName(term.ref)].sym
+                    : { name: 'handler', unique: env.local.unique++ };
                 const vsym = { name: 'valuez', unique: env.local.unique++ };
                 const effT = effectHandlerType(env, effRef);
                 done = {
@@ -492,7 +494,22 @@ const _termToAstCPS = (
                 },
                 term.is,
                 args
-                    .map((arg, i) => printTerm(env, opts, arg))
+                    .map(
+                        (arg, i) =>
+                            // STOPSHIP: START HERE
+                            // this is where we need to do adjustment,
+                            // not just on the functions themselves,
+                            // but also on any function arguments they have
+                            // that might be expecting an effect.
+                            // Is this the right thing semantically?
+                            // Am I just going to be making wheels within wheels?
+                            // maybeWrapForType(env,
+                            //     term.originalTargetType.args[i],
+                            //     effectHandlers,
+                            printTerm(env, opts, arg),
+                        // term.location
+                        // )
+                    )
                     .concat([
                         ...effectHandlersToPass,
                         maybeWrapForEffects(
@@ -525,6 +542,19 @@ const _termToAstCPS = (
             );
     }
 };
+
+// export const maybeWrapForType = (
+//     env: Env,
+//     type: Type,
+//     effectHandlers: EffectHandlers,
+//     term: Expr,
+//     loc: Loc,
+// ): Expr => {
+//     if (type.type !== 'lambda' || term.is.type !== 'lambda') {
+//         return term
+//     }
+//     return maybeWrapForEffects(env, sortedExplicitEffects(type.effects), effectHandlers, term, loc)
+// }
 
 export const maybeWrapForEffects = (
     env: Env,

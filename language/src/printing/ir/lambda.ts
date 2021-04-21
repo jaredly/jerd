@@ -204,6 +204,8 @@ const effectfulLambda = (
     const effectHandlers: EffectHandlers = {};
     const syms = sortedExplicitEffects(term.is.effects)
         .map((eff) => {
+            // const sym = effectHandlers[refName(eff.ref)]
+            //     ? effectHandlers[refName(eff.ref)].sym
             const sym: Symbol = {
                 name: 'eff' + refName(eff.ref),
                 unique: env.local.unique++,
