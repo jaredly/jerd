@@ -1,7 +1,20 @@
 // Ok folks
 
+import { bool, pureFunction, void_ } from './preset';
 import { applyEffectVariables } from './typeExpr';
-import { Case, EffectRef, Env, Lambda, LambdaType, Let, Term } from './types';
+import {
+    apply,
+    Case,
+    EffectRef,
+    Env,
+    isBuiltin,
+    Lambda,
+    LambdaType,
+    Let,
+    Term,
+    Type,
+    Var,
+} from './types';
 
 export type Visitor = {
     term: (value: Term) => Term | null | false;
@@ -306,4 +319,92 @@ const clearEffects = (
     return effects.filter(
         (e) => e.type !== 'var' || !vbls.includes(e.sym.unique),
     );
+};
+
+export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
+    // console.error(`Maybe ${showType(env, arg.is)} : ${showType(env, t)}`);
+    if (t.type !== 'lambda' || t.effects.length === 0) {
+        return arg;
+    }
+    if (arg.is.type !== 'lambda') {
+        throw new Error(
+            `arg not a lambda, would be cool to statically keep these in sync`,
+        );
+    }
+    if (arg.is.effects.length !== 0) {
+        return arg;
+    }
+    const args: Array<Var> = arg.is.args.map((t, i) => ({
+        type: 'var',
+        is: t,
+        location: null,
+        sym: {
+            unique: env.local.unique++,
+            name: `arg_${i}`,
+        },
+    }));
+    return {
+        type: 'lambda',
+        args: args.map((a) => a.sym),
+        is: {
+            ...arg.is,
+            effects: t.effects,
+        },
+        location: arg.location,
+        body: {
+            type: 'apply',
+            originalTargetType: pureFunction([], arg.is.res),
+            location: arg.location,
+            typeVbls: [],
+            effectVbls: null,
+            args,
+            target: arg,
+            is: arg.is.res,
+        },
+        // effects: t.effects,
+    };
+};
+
+export const wrapWithAssert = (expr: Term): Term => {
+    if (expr.type === 'apply' && isBuiltin(expr.target, '==')) {
+        const argTypes = (expr.target.is as LambdaType).args;
+        return {
+            ...expr,
+            target: {
+                type: 'ref',
+                ref: {
+                    type: 'builtin',
+                    name: 'assertEqual',
+                },
+                location: null,
+                is: pureFunction(argTypes, void_),
+            },
+            is: void_,
+        };
+    } else if (expr.type === 'apply') {
+        return apply(
+            {
+                type: 'ref',
+                ref: { type: 'builtin', name: 'assertCall' },
+                location: null,
+                is: pureFunction(
+                    [expr.target.is, ...(expr.target.is as LambdaType).args],
+                    void_,
+                ),
+            },
+            [expr.target, ...expr.args],
+            null,
+        );
+    } else {
+        return apply(
+            {
+                type: 'ref',
+                ref: { type: 'builtin', name: 'assert' },
+                location: null,
+                is: pureFunction([bool], void_),
+            },
+            [expr],
+            null,
+        );
+    }
 };

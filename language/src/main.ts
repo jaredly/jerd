@@ -600,7 +600,7 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
 
         let initialEnv = presetEnv({});
         const { expressions, env } = typeFile(parsed, initialEnv, fname);
-        const text = fileToGo(expressions, env, assert);
+        const text = 'DISABLED'; // fileToGo(expressions, env, assert);
 
         const name = path.basename(fname).slice(0, -3);
 
@@ -740,7 +740,7 @@ const main = (
 
 import { execSync, spawnSync } from 'child_process';
 import { LocatedError, TypeError } from './typing/errors';
-import { fileToGo } from './printing/goPrinter';
+// import { fileToGo } from './printing/goPrinter';
 import { getTypeError } from './typing/getTypeError';
 import { loadBuiltins } from './printing/loadBuiltins';
 import { loadPrelude } from './printing/loadPrelude';

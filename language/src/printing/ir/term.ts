@@ -38,7 +38,7 @@ import { LambdaType as ILambdaType } from './types';
 import { Loc, Expr, Stmt, OutputOptions, Type } from './types';
 import { callExpression, pureFunction, typeFromTermType } from './utils';
 
-import { maybeWrapPureFunction } from './cps';
+import { maybeWrapPureFunction } from '../../typing/transform';
 import {
     iffe,
     arrowFunctionExpression,

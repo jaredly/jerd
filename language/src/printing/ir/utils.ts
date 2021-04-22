@@ -16,6 +16,7 @@ import {
     Pattern,
     UserReference,
     TypeVblDecl,
+    LambdaType as TermLambdaType,
 } from '../../typing/types';
 import {
     binOps,
@@ -83,6 +84,10 @@ export const float: Type = builtinType('float');
 export const string: Type = builtinType('string');
 export const void_: Type = builtinType('void');
 export const bool: Type = builtinType('bool');
+
+export const lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
+    return typeFromTermType(type) as LambdaType;
+};
 
 export const typeFromTermType = (type: TermType): Type => {
     switch (type.type) {

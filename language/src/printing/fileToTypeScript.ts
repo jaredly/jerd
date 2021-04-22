@@ -15,7 +15,7 @@ import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 
 import { bool } from '../typing/preset';
-import { wrapWithAssert } from './goPrinter';
+// import { wrapWithAssert } from './goPrinter';
 
 export const typeScriptPrelude = (
     // opts: OutputOptions,

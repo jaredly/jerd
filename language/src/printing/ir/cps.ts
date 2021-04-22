@@ -13,6 +13,7 @@ import {
 import {
     bool,
     builtinType,
+    lambdaTypeFromTermType,
     pureFunction,
     typeFromTermType,
     void_,
@@ -36,6 +37,7 @@ import {
     arrowFunctionExpression,
     isSimple,
 } from './utils';
+import { maybeWrapPureFunction } from '../../typing/transform';
 
 export const handlerVar = (loc: Loc): Expr => ({
     type: 'var',
@@ -79,17 +81,19 @@ const _termToAstCPS = (
 ): Expr => {
     // No effects in the term
     if (!getEffects(term).length && term.type !== 'Let') {
+        const tt = typeFromTermType(term.is);
         return {
             type: 'apply',
             target: done,
             res: void_,
-            targetType: pureFunction([handlersType, term.is], void_),
-            concreteType: pureFunction([handlersType, term.is], void_),
+            targetType: pureFunction([handlersType, tt], void_),
+            concreteType: pureFunction([handlersType, tt], void_),
             args: [
                 {
                     type: 'var',
                     sym: handlerSym,
                     loc: null,
+                    is: handlersType,
                 },
                 printTerm(env, opts, term),
             ],
@@ -126,14 +130,25 @@ const _termToAstCPS = (
                 opts,
                 term.value,
                 cpsLambda(
-                    { sym: term.binding, type: term.is, loc: term.location },
+                    {
+                        sym: term.binding,
+                        type: typeFromTermType(term.is),
+                        loc: term.location,
+                    },
                     {
                         type: 'apply',
                         target: done,
                         res: void_,
                         targetType: pureFunction([handlersType], void_),
                         concreteType: pureFunction([handlersType], void_),
-                        args: [{ type: 'var', sym: handlerSym, loc: null }],
+                        args: [
+                            {
+                                type: 'var',
+                                sym: handlerSym,
+                                loc: null,
+                                is: handlersType,
+                            },
+                        ],
                         loc: null,
                     },
                     term.location,
@@ -180,6 +195,7 @@ const _termToAstCPS = (
                                         type: 'var',
                                         sym: { name: 'cond', unique: 1000 },
                                         loc: term.cond.location,
+                                        is: bool,
                                     },
                                     printLambdaBody(env, opts, term.yes, done),
                                     term.no
@@ -277,11 +293,16 @@ const _termToAstCPS = (
                         target,
                         // STOSHIP: add handler n stuff
                         {
-                            ...term.originalTargetType,
-                            args: term.originalTargetType.args.concat([
-                                handlersType,
-                                pureFunction([term.is], void_),
-                            ]),
+                            ...lambdaTypeFromTermType(term.originalTargetType),
+                            args: term.originalTargetType.args
+                                .map(typeFromTermType)
+                                .concat([
+                                    handlersType,
+                                    pureFunction(
+                                        [typeFromTermType(term.is)],
+                                        void_,
+                                    ),
+                                ]),
                             res: void_,
                         },
                         // term.originalTargetType,
@@ -322,14 +343,21 @@ const _termToAstCPS = (
                                 target,
                                 // term.originalTargetType,
                                 {
-                                    ...term.originalTargetType,
-                                    args: term.originalTargetType.args.concat([
-                                        handlersType,
-                                        pureFunction([term.is], void_),
-                                    ]),
+                                    ...lambdaTypeFromTermType(
+                                        term.originalTargetType,
+                                    ),
+                                    args: term.originalTargetType.args
+                                        .map(typeFromTermType)
+                                        .concat([
+                                            handlersType,
+                                            pureFunction(
+                                                [typeFromTermType(term.is)],
+                                                void_,
+                                            ),
+                                        ]),
                                     res: void_,
                                 },
-                                term.is,
+                                typeFromTermType(term.is),
                                 argSyms.map((sym, i) =>
                                     sym
                                         ? { type: 'var', sym, loc: null }
@@ -363,7 +391,7 @@ const _termToAstCPS = (
                                 {
                                     sym: argSyms[i]!,
                                     loc: args[i].location,
-                                    type: args[i].is,
+                                    type: typeFromTermType(args[i].is),
                                 },
                             ],
                             blockStatement(
@@ -397,14 +425,16 @@ const _termToAstCPS = (
                 target,
                 // term.originalTargetType,
                 {
-                    ...term.originalTargetType,
-                    args: term.originalTargetType.args.concat([
-                        handlersType,
-                        pureFunction([term.is], void_),
-                    ]),
+                    ...lambdaTypeFromTermType(term.originalTargetType),
+                    args: term.originalTargetType.args
+                        .map(typeFromTermType)
+                        .concat([
+                            handlersType,
+                            pureFunction([typeFromTermType(term.is)], void_),
+                        ]),
                     res: void_,
                 },
-                term.is,
+                typeFromTermType(term.is),
                 args
                     .map((arg, i) => printTerm(env, opts, arg))
                     .concat([handlerVar(target.loc), done]),
@@ -412,59 +442,18 @@ const _termToAstCPS = (
             );
         }
         case 'sequence':
-            return iffe(sequenceToBlock(env, opts, term, done), term.is);
+            return iffe(
+                sequenceToBlock(env, opts, term, done),
+                typeFromTermType(term.is),
+            );
         default:
             // console.log('ELSE', term.type);
             return callExpression(
                 done,
-                pureFunction([handlersType, term.is], void_),
+                pureFunction([handlersType, typeFromTermType(term.is)], void_),
                 void_,
                 [handlerVar(term.location), printTerm(env, opts, term)],
                 term.location,
             );
     }
-};
-
-export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
-    // console.error(`Maybe ${showType(env, arg.is)} : ${showType(env, t)}`);
-    if (t.type !== 'lambda' || t.effects.length === 0) {
-        return arg;
-    }
-    if (arg.is.type !== 'lambda') {
-        throw new Error(
-            `arg not a lambda, would be cool to statically keep these in sync`,
-        );
-    }
-    if (arg.is.effects.length !== 0) {
-        return arg;
-    }
-    const args: Array<Var> = arg.is.args.map((t, i) => ({
-        type: 'var',
-        is: t,
-        location: null,
-        sym: {
-            unique: env.local.unique++,
-            name: `arg_${i}`,
-        },
-    }));
-    return {
-        type: 'lambda',
-        args: args.map((a) => a.sym),
-        is: {
-            ...arg.is,
-            effects: t.effects,
-        },
-        location: arg.location,
-        body: {
-            type: 'apply',
-            originalTargetType: pureFunction([], arg.is.res),
-            location: arg.location,
-            typeVbls: [],
-            effectVbls: null,
-            args,
-            target: arg,
-            is: arg.is.res,
-        },
-        // effects: t.effects,
-    };
 };

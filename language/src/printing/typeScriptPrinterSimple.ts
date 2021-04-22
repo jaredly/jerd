@@ -17,7 +17,7 @@ import {
     typesEqual,
 } from '../typing/types';
 import { typeScriptPrelude } from './fileToTypeScript';
-import { wrapWithAssert } from './goPrinter';
+import { wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeDefine } from './ir/optimize';
 import { Loc } from './ir/types';

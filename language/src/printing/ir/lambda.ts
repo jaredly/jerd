@@ -128,7 +128,7 @@ const effectfulLambda = (
     const done: Symbol = { name: 'done', unique: env.local.unique++ };
     const doneT: LambdaType = {
         type: 'lambda',
-        args: [typeFromTermType(handlersType), typeFromTermType(term.is.res)],
+        args: [handlersType, typeFromTermType(term.is.res)],
         typeVbls: [],
         rest: null,
         loc: term.location,
