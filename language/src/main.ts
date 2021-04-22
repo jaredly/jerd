@@ -586,9 +586,6 @@ const saveCache = (files: Array<string>, self: string) => {
     fs.writeFileSync(cacheFile, JSON.stringify(cache), 'utf8');
 };
 
-// STOPSHIP: Allow --assert to make these runnable
-// with assertions! that would be great
-// and I mean --run could be fun too
 const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
     for (let fname of fnames) {
         if (fname.endsWith('type-errors.jd')) {

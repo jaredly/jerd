@@ -792,7 +792,7 @@ const plainRecord = (id: Id, location: Location): Term => ({
         ref: { type: 'user', id },
         location,
         typeVbls: [],
-        effectVbls: [],
+        // effectVbls: [],
     },
     subTypes: {},
 });

@@ -10,7 +10,7 @@ export const builtinType = (
     ref: { type: 'builtin', name },
     location: null,
     typeVbls,
-    effectVbls: [],
+    // effectVbls: [],
 });
 
 export const int: Type = builtinType('int');

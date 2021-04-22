@@ -40,7 +40,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
                                 ref: { type: 'user', id },
                                 location: null,
                                 typeVbls: [],
-                                effectVbls: [],
+                                // effectVbls: [],
                             }),
                     )
                 ) {

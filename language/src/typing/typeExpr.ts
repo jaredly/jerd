@@ -268,7 +268,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     location: expr.location,
                     ref: { type: 'builtin', name: 'float' },
                     typeVbls: [],
-                    effectVbls: [],
+                    // effectVbls: [],
                 },
             };
         case 'int':
@@ -281,7 +281,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     location: expr.location,
                     ref: { type: 'builtin', name: 'int' },
                     typeVbls: [],
-                    effectVbls: [],
+                    // effectVbls: [],
                 },
             };
         case 'boolean':
@@ -496,7 +496,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 ref: { type: 'user', id },
                 location: expr.id.location,
                 typeVbls,
-                effectVbls: [],
+                // effectVbls: [],
             };
 
             const inner = typeExpr(env, expr.expr);
@@ -553,7 +553,7 @@ export const arrayType = (elemType: Type): TypeReference => ({
     ref: { type: 'builtin', name: 'Array' },
     location: null,
     typeVbls: [elemType],
-    effectVbls: [],
+    // effectVbls: [],
 });
 
 export const tupleType = (itemTypes: Array<Type>): TypeReference => ({
@@ -561,7 +561,7 @@ export const tupleType = (itemTypes: Array<Type>): TypeReference => ({
     ref: { type: 'builtin', name: `Tuple${itemTypes.length}` },
     location: null,
     typeVbls: itemTypes,
-    effectVbls: [],
+    // effectVbls: [],
 });
 
 const typeDef = (
@@ -760,7 +760,7 @@ export const findAs = (
         type: 'ref',
         ref: asRecord,
         typeVbls: [stype, ttype],
-        effectVbls: [],
+        // effectVbls: [],
         location: null,
     };
     let found = null;

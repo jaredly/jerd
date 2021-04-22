@@ -278,7 +278,7 @@ export type TypeRef = {
     type: 'TypeRef';
     id: Identifier;
     typeVbls: Array<Type> | null;
-    effectVbls: Array<Identifier> | null;
+    // effectVbls: Array<Identifier> | null;
     location: Location;
 };
 export type LambdaType = {

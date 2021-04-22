@@ -20,7 +20,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
         type: 'ref',
         ref: asRecord,
         typeVbls: [stype, ttype],
-        effectVbls: [],
+        // effectVbls: [],
         location: null,
     };
     let foundImpl: Term;

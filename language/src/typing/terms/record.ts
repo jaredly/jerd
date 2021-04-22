@@ -108,7 +108,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             ref,
             location: expr.id.location,
             typeVbls,
-            effectVbls: [], // STOPSHIP: allow effect variables to be specified for records
+            // effectVbls: [], // STOPSHIP: allow effect variables to be specified for records
         };
     }
 

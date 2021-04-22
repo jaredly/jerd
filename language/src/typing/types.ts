@@ -681,7 +681,7 @@ export type TypeReference = {
     ref: Reference;
     location: Location | null;
     typeVbls: Array<Type>;
-    effectVbls: Array<EffectRef>;
+    // effectVbls: Array<EffectRef>;
 };
 export type TypeRef = TypeReference | TypeVar; // will also support vbls at some point I guess
 

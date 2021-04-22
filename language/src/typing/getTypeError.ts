@@ -72,14 +72,14 @@ export const getTypeError = (
             }
         }
 
-        if (!effectsMatch(found.effectVbls, e.effectVbls)) {
-            return new WrongEffects(
-                found.effectVbls,
-                e.effectVbls,
-                env,
-                location,
-            ).wrapped(new TypeMismatch(env, found, expected, location));
-        }
+        // if (!effectsMatch(found.effectVbls, e.effectVbls)) {
+        //     return new WrongEffects(
+        //         found.effectVbls,
+        //         e.effectVbls,
+        //         env,
+        //         location,
+        //     ).wrapped(new TypeMismatch(env, found, expected, location));
+        // }
         return null;
     } else if (found.type === 'lambda') {
         const e = expected as LambdaType;

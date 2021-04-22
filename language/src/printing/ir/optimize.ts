@@ -531,7 +531,6 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                         type: 'ref',
                         ref: { type: 'user', id: idFromName(k) },
                         loc: null,
-                        // STOPSHIP: ???
                         typeVbls: [],
                     },
                 });
@@ -686,8 +685,7 @@ export const tailCallRecursion = (
                                             type: 'var',
                                             sym,
                                             loc: apply.args[i].loc,
-                                            // STOPSHIP
-                                            is: apply.args[i].is, // void_
+                                            is: apply.args[i].is,
                                         },
                                     });
                                 });

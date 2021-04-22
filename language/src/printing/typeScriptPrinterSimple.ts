@@ -403,7 +403,6 @@ export const _termToTs = (
                     ) as Array<any>,
             );
         }
-        // return t.identifier('STOPSHIP');
         case 'attribute':
             return t.memberExpression(
                 termToTs(env, opts, term.target),
