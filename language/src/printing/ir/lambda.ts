@@ -98,7 +98,11 @@ export const withExecutionLimit = (
                 type: 'Expression',
                 loc: body.loc,
                 expr: callExpression(
-                    builtin('checkExecutionLimit', body.loc),
+                    builtin(
+                        'checkExecutionLimit',
+                        body.loc,
+                        pureFunction([], void_),
+                    ),
                     pureFunction([], void_),
                     void_,
                     [],

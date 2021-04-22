@@ -183,7 +183,7 @@ export const printPattern = (
         }
 
         // Then postitems, because it requires calculating length a bunch
-        const ln: Expr = { type: 'arrayLen', value, loc: value.loc };
+        const ln: Expr = { type: 'arrayLen', value, loc: value.loc, is: int };
 
         const indexFromEnd = (i: number, loc: Loc): Expr => ({
             type: 'apply',
@@ -194,6 +194,7 @@ export const printPattern = (
                 type: 'builtin',
                 loc,
                 name: '-',
+                is: pureFunction([int, int], int),
             },
             args: [
                 ln,
@@ -231,6 +232,7 @@ export const printPattern = (
                           )
                         : null,
                     loc: pattern.location,
+                    is: typeFromTermType(type),
                 },
                 type,
                 pattern.spread,
@@ -249,6 +251,7 @@ export const printPattern = (
                         item.location,
                     ),
                     loc: item.location,
+                    is: typeFromTermType(elType),
                 },
                 elType,
                 item,
@@ -270,6 +273,7 @@ export const printPattern = (
                         is: int,
                     },
                     loc: item.location,
+                    is: typeFromTermType(elType),
                 },
                 elType,
                 item,
@@ -295,6 +299,7 @@ export const printPattern = (
                                 type: 'builtin',
                                 loc: pattern.location,
                                 name: pattern.spread ? '>=' : '==',
+                                is: pureFunction([int, int], bool),
                             },
                             args: [
                                 ln,

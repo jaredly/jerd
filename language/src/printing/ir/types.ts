@@ -255,10 +255,11 @@ export type Expr =
           start: Expr;
           end: Expr | null;
           loc: Loc;
+          is: Type;
       }
-    | { type: 'arrayIndex'; value: Expr; idx: Expr; loc: Loc }
-    | { type: 'arrayLen'; value: Expr; loc: Loc } // TODO this could just be represented with a buitin, right? yeah
-    | { type: 'builtin'; name: string; loc: Loc }
+    | { type: 'arrayIndex'; value: Expr; idx: Expr; loc: Loc; is: Type }
+    | { type: 'arrayLen'; value: Expr; loc: Loc; is: Type } // TODO this could just be represented with a buitin, right? yeah
+    | { type: 'builtin'; name: string; loc: Loc; is: Type }
     // used in switches
     | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc }
     | { type: 'effectfulOrDirect'; effectful: boolean; target: Expr; loc: Loc }

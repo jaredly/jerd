@@ -73,7 +73,7 @@ const printTermRef = (
     is: Type,
 ): Expr => {
     return ref.type === 'builtin'
-        ? { type: 'builtin', name: ref.name, loc }
+        ? { type: 'builtin', name: ref.name, loc, is }
         : { type: 'term', id: ref.id, loc, is };
 };
 
