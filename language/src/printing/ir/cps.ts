@@ -10,20 +10,23 @@ import {
     EffectRef,
     UserReference,
 } from '../../typing/types';
-import { bool, builtinType, pureFunction, void_ } from '../../typing/preset';
+import {
+    bool,
+    builtinType,
+    pureFunction,
+    typeFromTermType,
+    void_,
+} from './utils';
 import { showLocation } from '../../typing/typeExpr';
 
-import { stringLiteral, callExpression } from './utils';
-
 import {
-    Loc,
-    Expr,
-    Block,
-    handlersType,
+    stringLiteral,
+    callExpression,
     handlerSym,
-    Arg,
-    OutputOptions,
-} from './types';
+    handlersType,
+} from './utils';
+
+import { Loc, Expr, Block, Arg, OutputOptions } from './types';
 import { printLambdaBody, sequenceToBlock } from './lambda';
 import { printTerm } from './term';
 import {
@@ -38,6 +41,7 @@ export const handlerVar = (loc: Loc): Expr => ({
     type: 'var',
     sym: handlerSym,
     loc,
+    is: handlersType,
 });
 
 export const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {

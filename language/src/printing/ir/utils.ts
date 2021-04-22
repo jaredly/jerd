@@ -3,7 +3,7 @@
 import {
     Term,
     Env,
-    Type,
+    Type as TermType,
     getEffects,
     Symbol,
     Reference,
@@ -11,18 +11,20 @@ import {
     Var,
     EffectRef,
     Lambda,
-    LambdaType,
+    // LambdaType,
     walkTerm,
     Pattern,
     UserReference,
+    TypeVblDecl,
 } from '../../typing/types';
 import {
     binOps,
-    bool,
-    builtinType,
-    int,
-    pureFunction,
-    void_,
+    // bool,
+    // builtinType,
+    // int,
+    // pureFunction,
+    // string,
+    // void_,
 } from '../../typing/preset';
 import { showType } from '../../typing/unify';
 import {
@@ -37,13 +39,78 @@ import {
     Expr,
     Block,
     Stmt,
-    handlersType,
-    handlerSym,
     Arg,
     LambdaExpr,
     Literal,
+    Type,
     OutputOptions,
+    LambdaType,
 } from './types';
+import { Location } from '../../parsing/parser';
+
+export const builtinType = (
+    name: string,
+    typeVbls: Array<Type> = [],
+    loc: Location | null = null,
+): Type => ({
+    type: 'ref',
+    ref: { type: 'builtin', name },
+    loc,
+    typeVbls,
+});
+
+export const pureFunction = (
+    args: Array<Type>,
+    res: Type,
+    typeVbls: Array<TypeVblDecl> = [],
+    loc: Location | null = null,
+): LambdaType => {
+    return {
+        type: 'lambda',
+        typeVbls,
+        args,
+        rest: null,
+        res,
+        loc,
+    };
+};
+
+export const handlerSym = { name: 'handlers', unique: 0 };
+export const handlersType = builtinType('handlers');
+
+export const int: Type = builtinType('int');
+export const float: Type = builtinType('float');
+export const string: Type = builtinType('string');
+export const void_: Type = builtinType('void');
+export const bool: Type = builtinType('bool');
+
+export const typeFromTermType = (type: TermType): Type => {
+    switch (type.type) {
+        case 'ref':
+            return {
+                type: 'ref',
+                ref: type.ref,
+                loc: type.location,
+                typeVbls: type.typeVbls.map((t) => typeFromTermType(t)),
+                // STOPSHIP: effect vbls here?
+            };
+        case 'var':
+            return {
+                type: 'var',
+                sym: type.sym,
+                loc: type.location,
+            };
+        case 'lambda':
+            return {
+                type: 'lambda',
+                loc: type.location,
+                typeVbls: type.typeVbls,
+                args: type.args.map(typeFromTermType),
+                rest: type.rest ? typeFromTermType(type.rest) : null,
+                res: typeFromTermType(type.res),
+            };
+    }
+};
 
 export const isConstant = (arg: Term) => {
     switch (arg.type) {
@@ -196,4 +263,5 @@ export const stringLiteral = (value: string, loc: Loc): Expr => ({
     type: 'string',
     value,
     loc,
+    is: string,
 });

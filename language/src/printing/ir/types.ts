@@ -1,36 +1,68 @@
 // types for the IR
 
 import {
-    Type,
+    // Type,
     Symbol,
     Id,
     Reference,
-    LambdaType,
+    // LambdaType,
     UserReference,
     idsEqual,
     Env,
+    TypeVblDecl,
 } from '../../typing/types';
 import { Location } from '../../parsing/parser';
-import {
-    bool,
-    builtinType,
-    float,
-    int,
-    string,
-    void_,
-} from '../../typing/preset';
-import { idName, refName } from '../../typing/env';
-import { arrayType, tupleType } from '../../typing/typeExpr';
 
 export type Loc = Location | null;
-export const handlerSym = { name: 'handlers', unique: 0 };
-export const handlersType = builtinType('handlers');
 
 export type OutputOptions = {
     readonly limitExecutionTime?: boolean;
 };
 
 // hrm where do I put comments in life
+
+//             -
+//             o
+// Ok, so the ]=[
+//             o
+//             -
+
+// Ok, so the IR doesn't have effects, right?
+// That's one of the main ideas.
+// Does the IR have type variables?
+// Yes?
+// because js can, and monomoriphising is probably too large
+// And then another level, where we remove the type variables, right?
+// And then would I have these things be parameterized by the `Type`?
+// rggggggggggggg yeah I mean I guess so?
+
+export type Type =
+    | {
+          type: 'var';
+          sym: Symbol;
+          loc: Location | null;
+      }
+    | {
+          type: 'ref';
+          ref: Reference;
+          loc: Location | null;
+          typeVbls: Array<Type>;
+      }
+    | LambdaType
+    | {
+          type: 'effect-handler';
+          ref: Reference;
+          loc: Location | null;
+      };
+
+export type LambdaType = {
+    type: 'lambda';
+    loc: Location | null;
+    typeVbls: Array<TypeVblDecl>; // hmm how about subtypes. Do we keep those?
+    args: Array<Type>;
+    rest: Type | null;
+    res: Type;
+};
 
 export type Toplevel =
     | { type: 'Define'; id: Id; body: Expr; is: Type; loc: Loc }
@@ -207,16 +239,16 @@ export const isTerm = (expr: Expr, id: Id) =>
 // also I don't support effects in record creation just yet.
 // oh wait, I think go and python can create records just fine
 export type Literal =
-    | { type: 'string'; value: string; loc: Loc }
-    | { type: 'int'; value: number; loc: Loc }
-    | { type: 'boolean'; value: boolean; loc: Loc }
-    | { type: 'float'; value: number; loc: Loc };
+    | { type: 'string'; value: string; loc: Loc; is: Type }
+    | { type: 'int'; value: number; loc: Loc; is: Type }
+    | { type: 'boolean'; value: boolean; loc: Loc; is: Type }
+    | { type: 'float'; value: number; loc: Loc; is: Type };
 
 export type Expr =
     | Literal
-    | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc }
-    | { type: 'term'; id: Id; loc: Loc }
-    | { type: 'var'; sym: Symbol; loc: Loc }
+    | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
+    | { type: 'term'; id: Id; loc: Loc; is: Type }
+    | { type: 'var'; sym: Symbol; loc: Loc; is: Type }
     | {
           type: 'slice';
           value: Expr;

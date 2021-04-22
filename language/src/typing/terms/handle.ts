@@ -16,6 +16,7 @@ import {
 import { showType } from '../unify';
 import typeExpr from '../typeExpr';
 import { idFromName, makeLocal } from '../env';
+import { void_ } from '../preset';
 
 export const typeHandle = (env: Env, expr: Handle): Term => {
     const target = typeExpr(env, expr.target);
@@ -109,7 +110,5 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
 };
 
 export const isVoid = (x: Type) => {
-    return (
-        x.type === 'ref' && x.ref.type === 'builtin' && x.ref.name === 'void'
-    );
+    return typesEqual(x, void_);
 };

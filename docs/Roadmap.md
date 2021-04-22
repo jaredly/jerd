@@ -4,7 +4,8 @@
 ### Refactors needed
 
 Ones that are non-breaking
-- [ ] liftEffects is nice
+- [x] liftEffects is nice
+- [ ] use helpers for lots of IR exprs
 - [ ] adding types to IR Exprs
 - [ ] type-checking the IR as I create it
 - [ ] converting types to passing-handlers instead of having-effects (this can be a place where we then convert, yeah that's great.)

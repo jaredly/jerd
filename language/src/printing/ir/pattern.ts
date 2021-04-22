@@ -1,12 +1,19 @@
 import { Env, Type, Pattern } from '../../typing/types';
-import { bool, int, pureFunction } from '../../typing/preset';
 import { showType } from '../../typing/unify';
 import { getEnumReferences } from '../../typing/typeExpr';
 import { idName } from '../../typing/env';
 
 import { Expr, Block, Literal, Loc } from './types';
 
-import { blockStatement, ifStatement, or } from './utils';
+import {
+    blockStatement,
+    bool,
+    ifStatement,
+    int,
+    or,
+    pureFunction,
+    typeFromTermType,
+} from './utils';
 
 // Here's how this looks.
 // If you succeed, return the success branch. otherwise, do nothing.
@@ -26,7 +33,7 @@ export const printPattern = (
                     type: 'Define',
                     sym: pattern.sym,
                     value,
-                    is: type,
+                    is: typeFromTermType(type),
                     loc: pattern.location,
                 },
                 success,
@@ -66,7 +73,7 @@ export const printPattern = (
                         type: 'Define',
                         sym: pattern.name,
                         value,
-                        is: type,
+                        is: typeFromTermType(type),
                         loc: pattern.location,
                     },
                     success,
@@ -154,6 +161,7 @@ export const printPattern = (
                             loc: pattern.location,
                         } as Literal,
                         loc: pattern.location,
+                        is: bool,
                     },
                     success,
                     null,
@@ -193,6 +201,7 @@ export const printPattern = (
                     type: 'int',
                     value: i,
                     loc,
+                    is: int,
                 },
             ],
             loc,
@@ -213,6 +222,7 @@ export const printPattern = (
                         type: 'int',
                         value: pattern.preItems.length,
                         loc: null,
+                        is: int,
                     },
                     end: pattern.postItems.length
                         ? indexFromEnd(
@@ -253,7 +263,12 @@ export const printPattern = (
                 {
                     type: 'arrayIndex',
                     value,
-                    idx: { type: 'int', value: i, loc: item.location },
+                    idx: {
+                        type: 'int',
+                        value: i,
+                        loc: item.location,
+                        is: int,
+                    },
                     loc: item.location,
                 },
                 elType,
@@ -289,6 +304,7 @@ export const printPattern = (
                                         pattern.preItems.length +
                                         pattern.postItems.length,
                                     loc: pattern.location,
+                                    is: int,
                                 },
                             ],
                             loc: pattern.location,

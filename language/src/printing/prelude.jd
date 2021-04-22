@@ -36,3 +36,24 @@ const FloatEq = Eq<float>{"==": floatEq}
 const StringEq = Eq<string>{"==": stringEq}
 
 // For checking equality
+
+const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
+ = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
+    switch (one, two) {
+        ([], []) => true,
+        ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
+            arrayEq(rone, rtwo, eq)
+        } else {
+            false
+        },
+        _ => false
+    }
+}
+
+const ArrayEq = <T,>(eq: Eq<T>) => Eq<Array<T>>{
+    "==": (one: Array<T>, two: Array<T>) => 
+    len(one) == len(two) && arrayEq(one, two, eq)
+}
+const ArrayStringEq = ArrayEq<string>(StringEq)
+const ArrayIntEq = ArrayEq<int>(IntEq)
+const ArrayFloatEq = ArrayEq<float>(FloatEq)

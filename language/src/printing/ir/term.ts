@@ -3,7 +3,7 @@
 import {
     Term,
     Env,
-    Type,
+    Type as TermType,
     getEffects,
     Symbol,
     Reference,
@@ -20,8 +20,10 @@ import {
     binOps,
     bool,
     builtinType,
+    float,
     int,
-    pureFunction,
+    // pureFunction,
+    string,
     void_,
 } from '../../typing/preset';
 import { showType } from '../../typing/unify';
@@ -31,9 +33,10 @@ import {
     showLocation,
 } from '../../typing/typeExpr';
 import { idFromName, idName } from '../../typing/env';
+import { LambdaType as ILambdaType } from './types';
 
-import { Loc, Expr, Stmt, OutputOptions } from './types';
-import { callExpression } from './utils';
+import { Loc, Expr, Stmt, OutputOptions, Type } from './types';
+import { callExpression, pureFunction, typeFromTermType } from './utils';
 
 import { maybeWrapPureFunction } from './cps';
 import {
@@ -49,14 +52,29 @@ import {
 import { printPattern } from './pattern';
 import { printLambda, printLambdaBody } from './lambda';
 
+// hrmmmmmmmm should I define new types for the IR?
+// urhghhhhghghhggh
+// like
+// probably?
+// I mean
+// the IR doesn't have effects
+// so yeah?
+// like that would be the principled way to do it
+// hrgggggghhhhh
+
 export const printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
     return _printTerm(env, opts, term);
 };
 
-const printTermRef = (opts: OutputOptions, ref: Reference, loc: Loc): Expr => {
+const printTermRef = (
+    opts: OutputOptions,
+    ref: Reference,
+    loc: Loc,
+    is: Type,
+): Expr => {
     return ref.type === 'builtin'
         ? { type: 'builtin', name: ref.name, loc }
-        : { type: 'term', id: ref.id, loc };
+        : { type: 'term', id: ref.id, loc, is };
 };
 
 const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
@@ -75,19 +93,45 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     id: idFromName(env.local.self.name),
                 },
                 term.location,
+                typeFromTermType(term.is),
             );
         // return t.identifier(`hash_${env.local.self.name}`);
         case 'boolean':
-            return { type: 'boolean', value: term.value, loc: term.location };
+            return {
+                type: 'boolean',
+                value: term.value,
+                loc: term.location,
+                is: typeFromTermType(bool),
+            };
         case 'int':
-            return { type: 'int', value: term.value, loc: term.location };
+            return {
+                type: 'int',
+                value: term.value,
+                loc: term.location,
+                is: typeFromTermType(int),
+            };
         case 'string':
-            return { type: 'string', value: term.text, loc: term.location };
+            return {
+                type: 'string',
+                value: term.text,
+                loc: term.location,
+                is: typeFromTermType(string),
+            };
         case 'float':
-            return { type: 'float', value: term.value, loc: term.location };
+            return {
+                type: 'float',
+                value: term.value,
+                loc: term.location,
+                is: typeFromTermType(float),
+            };
         case 'ref': {
             // Hmm do I want to include type annotation here? I guess I did at one point
-            return printTermRef(opts, term.ref, term.location);
+            return printTermRef(
+                opts,
+                term.ref,
+                term.location,
+                typeFromTermType(term.is),
+            );
         }
         case 'if': {
             return iffe(
@@ -102,14 +146,19 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     ],
                     term.location,
                 ),
-                term.is,
+                typeFromTermType(term.is),
             );
         }
         // a lambda, I guess also doesn't need cps, but internally it does.
         case 'lambda':
             return printLambda(env, opts, term);
         case 'var':
-            return { type: 'var', sym: term.sym, loc: term.location };
+            return {
+                type: 'var',
+                sym: term.sym,
+                loc: term.location,
+                is: typeFromTermType(term.is),
+            };
         case 'apply': {
             // TODO we should hang onto the arg names of the function we
             // are calling so we can use them when assigning to values.
@@ -157,12 +206,12 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             return callExpression(
                 target,
-                term.originalTargetType,
+                typeFromTermType(term.originalTargetType) as ILambdaType,
                 // term.
-                term.is,
+                typeFromTermType(term.is),
                 args.map((arg, i) => printTerm(env, opts, arg)),
                 term.location,
-                term.target.is as LambdaType,
+                typeFromTermType(term.target.is as LambdaType) as ILambdaType,
             );
         }
 
@@ -182,7 +231,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                             sym,
                             loc: term.location,
                             value: null,
-                            is: term.is,
+                            is: typeFromTermType(term.is),
                         },
                         {
                             type: 'Expression',
@@ -206,7 +255,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                             {
                                                 type: 'Assign',
                                                 sym,
-                                                is: term.pure.body.is,
+                                                is: typeFromTermType(
+                                                    term.pure.body.is,
+                                                ),
                                                 loc: term.pure.body.location,
                                                 value: iffe(
                                                     asBlock(
@@ -217,7 +268,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                                             null,
                                                         ),
                                                     ),
-                                                    term.pure.body.is,
+                                                    typeFromTermType(
+                                                        term.pure.body.is,
+                                                    ),
                                                 ),
                                             },
                                         ],
@@ -232,7 +285,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                             {
                                                 type: 'Assign',
                                                 sym,
-                                                is: kase.body.is,
+                                                is: typeFromTermType(
+                                                    kase.body.is,
+                                                ),
                                                 loc: kase.body.location,
                                                 value: iffe(
                                                     asBlock(
@@ -243,7 +298,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                                             null,
                                                         ),
                                                     ),
-                                                    kase.body.is,
+                                                    typeFromTermType(
+                                                        kase.body.is,
+                                                    ),
                                                 ),
                                             },
                                         ],
@@ -255,13 +312,18 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         },
                         {
                             type: 'Return',
-                            value: { type: 'var', sym, loc: term.location },
+                            value: {
+                                type: 'var',
+                                sym,
+                                loc: term.location,
+                                is: typeFromTermType(term.is),
+                            },
                             loc: term.location,
                         },
                     ],
                     loc: term.location,
                 },
-                term.is,
+                typeFromTermType(term.is),
             );
         }
 
@@ -277,7 +339,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                       type: 'Define',
                                       sym: s.binding,
                                       value: printTerm(env, opts, s.value),
-                                      is: s.is,
+                                      is: typeFromTermType(s.is),
                                       loc: s.location,
                                   }
                                 : i === term.sts.length - 1
@@ -290,11 +352,11 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         ),
                         term.location,
                     ),
-                    term.is,
+                    typeFromTermType(term.is),
                     term.location,
                 ),
-                pureFunction([], term.is),
-                term.is,
+                pureFunction([], typeFromTermType(term.is)),
+                typeFromTermType(term.is),
                 [],
                 term.location,
             );
@@ -339,7 +401,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     };
                     return obj;
                 }, {}),
-                is: term.is,
+                is: typeFromTermType(term.is),
                 loc: term.location,
             };
         }
@@ -366,7 +428,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             return {
                 type: 'tuple',
                 items: term.items.map((item) => printTerm(env, opts, item)),
-                itemTypes: term.is.typeVbls,
+                itemTypes: term.is.typeVbls.map(typeFromTermType),
                 loc: term.location,
             };
         }
@@ -383,7 +445,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         : printTerm(env, opts, item),
                 ),
                 loc: term.location,
-                elType,
+                elType: typeFromTermType(elType),
             };
         }
         case 'Switch': {
@@ -394,7 +456,12 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             const value: Expr = basic
                 ? printTerm(env, opts, term.term)
-                : { type: 'var', sym: id, loc: null };
+                : {
+                      type: 'var',
+                      sym: id,
+                      loc: null,
+                      is: typeFromTermType(term.term.is),
+                  };
 
             let cases = [];
 
@@ -443,7 +510,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     ].filter(Boolean) as Array<Stmt>,
                     term.location,
                 ),
-                term.is,
+                typeFromTermType(term.is),
             );
         }
         default:

@@ -6,27 +6,32 @@ import {
     Symbol,
     EffectRef,
     Lambda,
-    LambdaType,
+    // LambdaType,
     walkTerm,
     Sequence,
 } from '../../typing/types';
-import { builtinType, pureFunction, void_ } from '../../typing/preset';
+import { builtinType, pureFunction, void_ } from './utils';
 import { applyEffectVariables } from '../../typing/typeExpr';
 
 import {
     Expr,
     Block,
     Stmt,
-    handlersType,
-    handlerSym,
     LambdaExpr,
     OutputOptions,
+    LambdaType,
 } from './types';
-import { callExpression } from './utils';
+import {
+    callExpression,
+    typeFromTermType,
+    handlersType,
+    handlerSym,
+} from './utils';
 
 import { termToAstCPS } from './cps';
 import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
+import { withNoEffects } from '../../typing/transform';
 
 export const printLambda = (
     env: Env,
@@ -44,7 +49,7 @@ export const printLambda = (
                     directVersion.args.map(
                         (sym, i) => ({
                             sym,
-                            type: directVersion.is.args[i],
+                            type: typeFromTermType(directVersion.is.args[i]),
                             loc: null,
                         }), // TODO(sourcemap): hang on to location for lambda args?
                     ),
@@ -53,7 +58,7 @@ export const printLambda = (
                         opts,
                         printLambdaBody(env, opts, directVersion.body, null),
                     ),
-                    directVersion.is.res,
+                    typeFromTermType(directVersion.is.res),
                     term.location,
                 ),
             };
@@ -63,7 +68,7 @@ export const printLambda = (
         return arrowFunctionExpression(
             term.args.map((sym, i) => ({
                 sym,
-                type: term.is.args[i],
+                type: typeFromTermType(term.is.args[i]),
                 loc: null,
             })),
             withExecutionLimit(
@@ -71,7 +76,7 @@ export const printLambda = (
                 opts,
                 printLambdaBody(env, opts, term.body, null),
             ),
-            term.is.res,
+            typeFromTermType(term.is.res),
             term.location,
         );
     }
@@ -115,24 +120,6 @@ export const withExecutionLimit = (
     // ]);
 };
 
-// yeah we need to go in, and
-// apply the effect variables all over
-const withNoEffects = (env: Env, term: Lambda): Lambda => {
-    const vbls = term.is.effectVbls;
-    const is = applyEffectVariables(env, term.is, []) as LambdaType;
-    // lol clone
-    term = JSON.parse(JSON.stringify(term)) as Lambda;
-    walkTerm(term, (t) => {
-        if (t.type === 'apply') {
-            const is = t.target.is as LambdaType;
-            if (is.effects) {
-                is.effects = clearEffects(vbls, is.effects);
-            }
-        }
-    });
-    return { ...term, is };
-};
-
 const effectfulLambda = (
     env: Env,
     opts: OutputOptions,
@@ -141,19 +128,17 @@ const effectfulLambda = (
     const done: Symbol = { name: 'done', unique: env.local.unique++ };
     const doneT: LambdaType = {
         type: 'lambda',
-        args: [handlersType, term.is.res],
+        args: [typeFromTermType(handlersType), typeFromTermType(term.is.res)],
         typeVbls: [],
-        effectVbls: [],
-        effects: [],
         rest: null,
-        location: null,
+        loc: term.location,
         res: void_,
     };
     return arrowFunctionExpression(
         term.args
             .map((sym, i) => ({
                 sym,
-                type: term.is.args[i],
+                type: typeFromTermType(term.is.args[i]),
                 loc: null,
             }))
             .concat([
@@ -167,6 +152,7 @@ const effectfulLambda = (
                 type: 'var',
                 sym: done,
                 loc: null,
+                is: doneT,
             }),
         ),
         // term.is.res,
@@ -192,7 +178,7 @@ export const sequenceToBlock = (
                             sym: s.binding,
                             value: printTerm(env, opts, s.value),
                             loc: s.location,
-                            is: s.is,
+                            is: typeFromTermType(s.is),
                         };
                     } else if (i === term.sts.length - 1) {
                         return {
@@ -293,13 +279,4 @@ export const printLambdaBody = (
             };
         }
     }
-};
-
-const clearEffects = (
-    vbls: Array<number>,
-    effects: Array<EffectRef>,
-): Array<EffectRef> => {
-    return effects.filter(
-        (e) => e.type !== 'var' || !vbls.includes(e.sym.unique),
-    );
 };

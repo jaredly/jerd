@@ -1,6 +1,7 @@
 // Ok folks
 
-import { Case, Let, Term } from './types';
+import { applyEffectVariables } from './typeExpr';
+import { Case, EffectRef, Env, Lambda, LambdaType, Let, Term } from './types';
 
 export type Visitor = {
     term: (value: Term) => Term | null | false;
@@ -278,4 +279,31 @@ export const walkTerm = (
             let _x: never = term;
             throw new Error(`Unexpected term type ${(term as any).type}`);
     }
+};
+
+// yeah we need to go in, and
+// apply the effect variables all over
+export const withNoEffects = (env: Env, term: Lambda): Lambda => {
+    const vbls = term.is.effectVbls;
+    const is = applyEffectVariables(env, term.is, []) as LambdaType;
+    // lol clone
+    term = JSON.parse(JSON.stringify(term)) as Lambda;
+    walkTerm(term, (t) => {
+        if (t.type === 'apply') {
+            const is = t.target.is as LambdaType;
+            if (is.effects) {
+                is.effects = clearEffects(vbls, is.effects);
+            }
+        }
+    });
+    return { ...term, is };
+};
+
+const clearEffects = (
+    vbls: Array<number>,
+    effects: Array<EffectRef>,
+): Array<EffectRef> => {
+    return effects.filter(
+        (e) => e.type !== 'var' || !vbls.includes(e.sym.unique),
+    );
 };

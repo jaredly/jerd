@@ -1,5 +1,5 @@
 import { idFromName } from '../../typing/env';
-import { int, pureFunction, void_ } from '../../typing/preset';
+// import { int, pureFunction, void_ } from '../../typing/preset';
 import { Env, Id, Symbol, symbolsEqual } from '../../typing/types';
 import {
     defaultVisitor,
@@ -19,8 +19,15 @@ import {
     ReturnStmt,
     Stmt,
     Tuple,
+    Type,
 } from './types';
-import { callExpression } from './utils';
+import {
+    callExpression,
+    int,
+    pureFunction,
+    typeFromTermType,
+    void_,
+} from './utils';
 import { and, asBlock, builtin, iffe } from './utils';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
@@ -457,7 +464,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                     loc: expr.loc,
                     is: expr.is,
                 });
-                target = { type: 'var', sym: v, loc: expr.loc };
+                target = { type: 'var', sym: v, loc: expr.loc, is: expr.is };
             }
             // const d = env.global.types[idName(expr.base.ref.id)] as RecordDef;
             const rows: Array<Expr> = expr.base.rows.map((row, i) => {
@@ -520,13 +527,12 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                     is: {
                         type: 'ref',
                         ref: { type: 'user', id: idFromName(k) },
-                        location: null,
+                        loc: null,
                         // STOPSHIP: ???
                         typeVbls: [],
-                        effectVbls: [],
                     },
                 });
-                target = { type: 'var', sym: v, loc: expr.loc };
+                target = { type: 'var', sym: v, loc: expr.loc, is: expr.is };
             }
             const rows: Array<Expr> = subType.rows.map((row, i) => {
                 if (row == null) {
@@ -567,11 +573,10 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
             },
             {
                 type: 'ref',
-                location: null,
+                loc: null,
                 // @ts-ignore
                 ref: expr.base.ref,
                 typeVbls: [],
-                effectVbls: [],
             },
         );
     } else {
@@ -676,6 +681,8 @@ export const tailCallRecursion = (
                                             type: 'var',
                                             sym,
                                             loc: apply.args[i].loc,
+                                            // STOPSHIP
+                                            is: apply.args[i].is, // void_
                                         },
                                     });
                                 });
@@ -776,11 +783,11 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
         // console.log('no corrects', argMap);
         return expr;
     }
-    const indexForSym: { [key: string]: Symbol } = {};
+    const indexForSym: { [key: string]: { sym: Symbol; type: Type } } = {};
     const indices: Array<Symbol> = corrects.map((arg) => {
         const unique = env.local.unique++;
         const s = { name: arg.sym.name + '_i', unique };
-        indexForSym[symName(arg.sym)] = s;
+        indexForSym[symName(arg.sym)] = { sym: s, type: arg.type };
         return s;
     });
     const modified: Array<Expr> = [];
@@ -798,7 +805,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                 if (argMap[n] === true) {
                     return {
                         ...stmt,
-                        sym: indexForSym[n],
+                        sym: indexForSym[n].sym,
                         value: callExpression(
                             builtin('+', expr.loc),
                             pureFunction([int, int], int),
@@ -807,7 +814,8 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                                 {
                                     type: 'var',
                                     loc: expr.loc,
-                                    sym: indexForSym[n],
+                                    sym: indexForSym[n].sym,
+                                    is: indexForSym[n].type,
                                 },
                                 stmt.value.start,
                             ],
@@ -836,7 +844,8 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                                         {
                                             type: 'var',
                                             loc: expr.loc,
-                                            sym: indexForSym[n],
+                                            sym: indexForSym[n].sym,
+                                            is: indexForSym[n].type,
                                         },
                                     ],
                                     expr.loc,
@@ -863,7 +872,8 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                                     {
                                         type: 'var',
                                         loc: expr.loc,
-                                        sym: indexForSym[n],
+                                        sym: indexForSym[n].sym,
+                                        is: indexForSym[n].type,
                                     },
                                 ],
                                 expr.loc,
@@ -896,7 +906,12 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                             loc: null,
                             is: int,
                             sym,
-                            value: { type: 'int', value: 0, loc: null },
+                            value: {
+                                type: 'int',
+                                value: 0,
+                                loc: null,
+                                is: int,
+                            },
                         } as Stmt),
                 )
                 .concat(items),
@@ -921,6 +936,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
             type: 'var',
             loc: null,
             sym: arrayInfos[n].start,
+            is: int,
         };
         let src = arrayInfos[n].src;
         const nxt = resolve(arrayInfos[n].src);
