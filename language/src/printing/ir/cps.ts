@@ -60,6 +60,7 @@ export const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {
         body,
         res: void_,
         loc,
+        is: pureFunction([handlersType, arg.type], void_),
     };
 };
 
@@ -85,7 +86,7 @@ const _termToAstCPS = (
         return {
             type: 'apply',
             target: done,
-            res: void_,
+            is: void_,
             targetType: pureFunction([handlersType, tt], void_),
             concreteType: pureFunction([handlersType, tt], void_),
             args: [
@@ -121,6 +122,7 @@ const _termToAstCPS = (
                     ...kase,
                     body: printLambdaBody(env, opts, kase.body, done),
                 })),
+                is: void_,
                 done,
             };
         }
@@ -138,7 +140,7 @@ const _termToAstCPS = (
                     {
                         type: 'apply',
                         target: done,
-                        res: void_,
+                        is: void_,
                         targetType: pureFunction([handlersType], void_),
                         concreteType: pureFunction([handlersType], void_),
                         args: [
@@ -171,6 +173,7 @@ const _termToAstCPS = (
                 idx: term.idx,
                 args: term.args.map((t) => printTerm(env, opts, t)),
                 loc: term.location,
+                is: void_,
                 done,
             };
         }
@@ -280,6 +283,8 @@ const _termToAstCPS = (
                         target,
                         effectful: true,
                         loc: target.loc,
+                        // STOPSHIP: is this the right thing?
+                        is: typeFromTermType(term.target.is),
                     };
                 }
                 let inner: Expr = done;
@@ -418,6 +423,7 @@ const _termToAstCPS = (
                     target,
                     effectful: true,
                     loc: target.loc,
+                    is: typeFromTermType(term.target.is),
                 };
                 // target = memberExpression(target, t.identifier('effectful'));
             }

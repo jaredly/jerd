@@ -6,11 +6,16 @@ import {
     Symbol,
     EffectRef,
     Lambda,
-    // LambdaType,
+    LambdaType as ILambdaType,
     walkTerm,
     Sequence,
 } from '../../typing/types';
-import { builtinType, pureFunction, void_ } from './utils';
+import {
+    builtinType,
+    lambdaTypeFromTermType,
+    pureFunction,
+    void_,
+} from './utils';
 import { applyEffectVariables } from '../../typing/typeExpr';
 
 import {
@@ -61,6 +66,14 @@ export const printLambda = (
                     typeFromTermType(directVersion.is.res),
                     term.location,
                 ),
+                is: {
+                    type: 'effectful-or-direct',
+                    loc: term.location,
+                    effectful: lambdaTypeFromTermType(term.is as ILambdaType),
+                    direct: lambdaTypeFromTermType(
+                        directVersion.is as ILambdaType,
+                    ),
+                },
             };
         }
         return effectfulLambda(env, opts, term);
@@ -214,12 +227,12 @@ export const sequenceToBlock = (
                     args: [
                         {
                             sym: handlerSym,
-                            type: builtinType('handlers'),
+                            type: handlersType,
                             loc: null,
                         },
                         {
                             sym: { name: '_ignored', unique: 1 },
-                            type: builtinType('void'),
+                            type: void_,
                             loc: null,
                         },
                     ],
@@ -241,6 +254,7 @@ export const sequenceToBlock = (
                     },
                     res: void_,
                     loc: term.sts[i].location,
+                    is: pureFunction([handlersType, void_], void_),
                 };
             } else {
                 inner = termToAstCPS(env, opts, term.sts[i], inner);

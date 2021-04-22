@@ -40,19 +40,25 @@ export type Type =
     | {
           type: 'var';
           sym: Symbol;
-          loc: Location | null;
+          loc: Loc;
       }
     | {
           type: 'ref';
           ref: Reference;
-          loc: Location | null;
+          loc: Loc;
           typeVbls: Array<Type>;
       }
     | LambdaType
     | {
           type: 'effect-handler';
           ref: Reference;
-          loc: Location | null;
+          loc: Loc;
+      }
+    | {
+          type: 'effectful-or-direct';
+          effectful: LambdaType;
+          direct: LambdaType;
+          loc: Loc;
       };
 
 export type LambdaType = {
@@ -261,8 +267,15 @@ export type Expr =
     | { type: 'arrayLen'; value: Expr; loc: Loc; is: Type } // TODO this could just be represented with a buitin, right? yeah
     | { type: 'builtin'; name: string; loc: Loc; is: Type }
     // used in switches
-    | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc }
-    | { type: 'effectfulOrDirect'; effectful: boolean; target: Expr; loc: Loc }
+    | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc; is: Type }
+    | {
+          type: 'effectfulOrDirect';
+          effectful: boolean;
+          target: Expr;
+          loc: Loc;
+          is: Type;
+      }
+    // TODO: these will go away, right
     | {
           type: 'raise';
           effect: Id;
@@ -270,6 +283,7 @@ export type Expr =
           args: Array<Expr>;
           done: Expr;
           loc: Loc;
+          is: Type;
       }
     | {
           type: 'handle';
@@ -284,6 +298,7 @@ export type Expr =
               body: Expr | Block;
           }>;
           done: Expr | null;
+          is: Type;
       }
     | Tuple
     | {
@@ -291,15 +306,17 @@ export type Expr =
           items: Array<Expr | { type: 'Spread'; value: Expr }>;
           elType: Type;
           loc: Loc;
+          is: Type;
       }
     | Record
-    | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc }
+    | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc; is: Type }
     | {
           type: 'attribute';
           target: Expr;
           ref: Reference;
           idx: number;
           loc: Loc;
+          is: Type;
       }
     // effects have been taken care of at this point
     // do we need to know the types of things? perhaps for conversions?
@@ -309,6 +326,7 @@ export type Expr =
           effectful: LambdaExpr;
           direct: LambdaExpr;
           loc: Loc;
+          is: Type;
       }
     | LambdaExpr;
 
@@ -317,15 +335,16 @@ export type Tuple = {
     items: Array<Expr>;
     itemTypes: Array<Type>;
     loc: Loc;
+    is: Type;
 };
 export type Apply = {
     type: 'apply';
     targetType: LambdaType;
     concreteType: LambdaType;
-    res: Type;
     target: Expr;
     args: Array<Expr>;
     loc: Loc;
+    is: Type;
 };
 export type Record = {
     type: 'record';
@@ -364,6 +383,7 @@ export type LambdaExpr = {
     res: Type;
     body: Expr | Block;
     loc: Loc;
+    is: Type;
 };
 
 export type Arg = { sym: Symbol; type: Type; loc: Loc };

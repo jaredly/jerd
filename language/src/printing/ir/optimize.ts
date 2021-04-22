@@ -1,6 +1,6 @@
-import { idFromName } from '../../typing/env';
+import { idFromName, idName } from '../../typing/env';
 // import { int, pureFunction, void_ } from '../../typing/preset';
-import { Env, Id, Symbol, symbolsEqual } from '../../typing/types';
+import { Env, Id, RecordDef, Symbol, symbolsEqual } from '../../typing/types';
 import {
     defaultVisitor,
     transformBlock,
@@ -466,7 +466,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                 });
                 target = { type: 'var', sym: v, loc: expr.loc, is: expr.is };
             }
-            // const d = env.global.types[idName(expr.base.ref.id)] as RecordDef;
+            const d = env.global.types[idName(expr.base.ref.id)] as RecordDef;
             const rows: Array<Expr> = expr.base.rows.map((row, i) => {
                 if (row == null) {
                     return {
@@ -475,6 +475,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                         ref: b.ref,
                         idx: i,
                         loc: expr.loc,
+                        is: typeFromTermType(d.items[i]),
                     };
                 } else {
                     return row;
@@ -484,6 +485,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
 
             Object.keys(expr.subTypes).forEach((k) => {
                 const subType = expr.subTypes[k];
+                const d = env.global.types[k] as RecordDef;
                 const rows: Array<Expr> = subType.rows.map((row, i) => {
                     if (row == null) {
                         return {
@@ -494,6 +496,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                             ref: { type: 'user', id: idFromName(k) },
                             idx: i,
                             loc: expr.loc,
+                            is: typeFromTermType(d.items[i]),
                         };
                     } else {
                         return row;
@@ -534,6 +537,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                 });
                 target = { type: 'var', sym: v, loc: expr.loc, is: expr.is };
             }
+            const d = env.global.types[k] as RecordDef;
             const rows: Array<Expr> = subType.rows.map((row, i) => {
                 if (row == null) {
                     return {
@@ -544,6 +548,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                         ref: { type: 'user', id: idFromName(k) },
                         idx: i,
                         loc: expr.loc,
+                        is: typeFromTermType(d.items[i]),
                     };
                 } else {
                     return row;

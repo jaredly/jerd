@@ -187,6 +187,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     target,
                     effectful: false,
                     loc: target.loc,
+                    // STOPSHIP is this right?
+                    is: typeFromTermType(term.target.is),
                 };
             }
 
@@ -237,6 +239,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                             type: 'Expression',
                             expr: {
                                 type: 'handle',
+                                is: typeFromTermType(term.is),
                                 target: printTerm(env, opts, term.target),
                                 loc: term.location,
                                 effect: (term.effect as UserReference).id,
@@ -413,6 +416,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 target: printTerm(env, opts, term.target),
                 idx: term.idx,
                 loc: term.location,
+                is: typeFromTermType(term.is),
             };
         }
         case 'Attribute': {
@@ -422,6 +426,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 ref: term.ref,
                 idx: term.idx,
                 loc: term.location,
+                is: typeFromTermType(term.is),
             };
         }
         case 'Tuple': {
@@ -430,6 +435,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 items: term.items.map((item) => printTerm(env, opts, item)),
                 itemTypes: term.is.typeVbls.map(typeFromTermType),
                 loc: term.location,
+                is: typeFromTermType(term.is),
             };
         }
         case 'Array': {
@@ -446,6 +452,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 ),
                 loc: term.location,
                 elType: typeFromTermType(elType),
+                is: typeFromTermType(term.is),
             };
         }
         case 'Switch': {

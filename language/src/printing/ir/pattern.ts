@@ -47,6 +47,7 @@ export const printPattern = (
             value,
             ref: ref.ref,
             loc: pattern.location,
+            is: bool,
         }));
         return blockStatement(
             [
@@ -94,6 +95,7 @@ export const printPattern = (
                     target: value,
                     idx: i,
                     loc: item.location,
+                    is: typeFromTermType(vbls[i]),
                 },
                 vbls[i],
                 item,
@@ -118,6 +120,7 @@ export const printPattern = (
                     ref: item.ref,
                     idx: item.idx,
                     loc: item.location,
+                    is: typeFromTermType(item.is),
                 },
                 decl.items[item.idx],
                 item.pattern,
@@ -132,6 +135,7 @@ export const printPattern = (
                         value,
                         ref: pattern.ref.ref,
                         loc: pattern.location,
+                        is: bool,
                     },
                     success,
                     null,
@@ -189,7 +193,7 @@ export const printPattern = (
             type: 'apply',
             targetType: pureFunction([int, int], int),
             concreteType: pureFunction([int, int], int),
-            res: int,
+            is: int,
             target: {
                 type: 'builtin',
                 loc,
@@ -294,7 +298,6 @@ export const printPattern = (
                             type: 'apply',
                             targetType: pureFunction([int, int], bool),
                             concreteType: pureFunction([int, int], bool),
-                            res: bool,
                             target: {
                                 type: 'builtin',
                                 loc: pattern.location,
@@ -313,6 +316,7 @@ export const printPattern = (
                                 },
                             ],
                             loc: pattern.location,
+                            is: bool,
                         },
                         success,
                         null,

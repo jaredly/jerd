@@ -246,13 +246,17 @@ export const arrowFunctionExpression = (
         body,
         res,
         loc,
+        is: pureFunction(
+            args.map((arg) => arg.type),
+            res,
+        ),
     };
 };
 
 export const callExpression = (
     target: Expr,
     targetType: LambdaType,
-    res: Type,
+    is: Type,
     args: Array<Expr>,
     loc: Loc,
     concreteType?: LambdaType,
@@ -260,7 +264,7 @@ export const callExpression = (
     type: 'apply',
     targetType,
     concreteType: concreteType || targetType,
-    res,
+    is,
     target,
     args,
     loc,
