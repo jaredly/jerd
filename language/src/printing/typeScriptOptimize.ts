@@ -96,8 +96,20 @@ const flattenImmediateCallsToLets = (ast: t.File) => {
     traverse(ast, {
         CallExpression(path) {
             // Toplevel iffes definitely shouldn't be messed with.
-            // STOPSHIP: This should actually crawl up the chain to verify
-            // that we're in a function of some sort.
+            // STOPSHIP: verify that this does what I think it should
+            let found = false;
+            let test: any = path;
+            while (test.parentPath) {
+                if (test.parentPath.isFunction()) {
+                    found = true;
+                    break;
+                }
+                test = test.parentPath;
+            }
+            if (!found) {
+                // Not in a function
+                return;
+            }
             if (path.parentPath.parent.type !== 'BlockStatement') {
                 return;
             }

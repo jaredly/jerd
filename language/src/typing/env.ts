@@ -196,7 +196,6 @@ export const addEffect = (
             idName: idName(id),
         };
     });
-    // STOPSHIP bring this in
     glob.effects[hash] = defn.constrs;
     return { env: { ...env, global: glob }, id };
 };

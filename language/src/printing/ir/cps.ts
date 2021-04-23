@@ -83,23 +83,21 @@ const _termToAstCPS = (
     // No effects in the term
     if (!getEffects(term).length && term.type !== 'Let') {
         const tt = typeFromTermType(term.is);
-        return {
-            type: 'apply',
-            target: done,
-            is: void_,
-            targetType: pureFunction([handlersType, tt], void_),
-            concreteType: pureFunction([handlersType, tt], void_),
-            args: [
+        return callExpression(
+            done,
+            pureFunction([handlersType, tt], void_),
+            void_,
+            [
                 {
                     type: 'var',
                     sym: handlerSym,
-                    loc: null,
+                    loc: term.location,
                     is: handlersType,
                 },
                 printTerm(env, opts, term),
             ],
-            loc: null,
-        };
+            term.location,
+        );
     }
     switch (term.type) {
         case 'handle': {
@@ -137,22 +135,20 @@ const _termToAstCPS = (
                         type: typeFromTermType(term.is),
                         loc: term.location,
                     },
-                    {
-                        type: 'apply',
-                        target: done,
-                        is: void_,
-                        targetType: pureFunction([handlersType], void_),
-                        concreteType: pureFunction([handlersType], void_),
-                        args: [
+                    callExpression(
+                        done,
+                        pureFunction([handlersType], void_),
+                        void_,
+                        [
                             {
                                 type: 'var',
                                 sym: handlerSym,
-                                loc: null,
+                                loc: term.location,
                                 is: handlersType,
                             },
                         ],
-                        loc: null,
-                    },
+                        term.location,
+                    ),
                     term.location,
                 ),
             );

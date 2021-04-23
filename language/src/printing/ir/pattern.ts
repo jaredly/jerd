@@ -8,6 +8,7 @@ import { Expr, Block, Literal, Loc } from './types';
 import {
     blockStatement,
     bool,
+    callExpression,
     ifStatement,
     int,
     or,
@@ -189,28 +190,27 @@ export const printPattern = (
         // Then postitems, because it requires calculating length a bunch
         const ln: Expr = { type: 'arrayLen', value, loc: value.loc, is: int };
 
-        const indexFromEnd = (i: number, loc: Loc): Expr => ({
-            type: 'apply',
-            targetType: pureFunction([int, int], int),
-            concreteType: pureFunction([int, int], int),
-            is: int,
-            target: {
-                type: 'builtin',
-                loc,
-                name: '-',
-                is: pureFunction([int, int], int),
-            },
-            args: [
-                ln,
+        const indexFromEnd = (i: number, loc: Loc): Expr =>
+            callExpression(
                 {
-                    type: 'int',
-                    value: i,
+                    type: 'builtin',
                     loc,
-                    is: int,
+                    name: '-',
+                    is: pureFunction([int, int], int),
                 },
-            ],
-            loc,
-        });
+                pureFunction([int, int], int),
+                int,
+                [
+                    ln,
+                    {
+                        type: 'int',
+                        value: i,
+                        loc,
+                        is: int,
+                    },
+                ],
+                loc,
+            );
 
         const elType = type.typeVbls[0];
         // ok so I don't need to check that it's an array.
@@ -294,17 +294,16 @@ export const printPattern = (
             success = blockStatement(
                 [
                     ifStatement(
-                        {
-                            type: 'apply',
-                            targetType: pureFunction([int, int], bool),
-                            concreteType: pureFunction([int, int], bool),
-                            target: {
+                        callExpression(
+                            {
                                 type: 'builtin',
                                 loc: pattern.location,
                                 name: pattern.spread ? '>=' : '==',
                                 is: pureFunction([int, int], bool),
                             },
-                            args: [
+                            pureFunction([int, int], bool),
+                            bool,
+                            [
                                 ln,
                                 {
                                     type: 'int',
@@ -315,9 +314,8 @@ export const printPattern = (
                                     is: int,
                                 },
                             ],
-                            loc: pattern.location,
-                            is: bool,
-                        },
+                            pattern.location,
+                        ),
                         success,
                         null,
                         pattern.location,

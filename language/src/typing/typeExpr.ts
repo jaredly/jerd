@@ -239,10 +239,8 @@ export const applyTypeVariables = (
                     throw new Error(`Expected a subtype of ${idName(sub)}`);
                 }
             }
-            // if (hasSubType(typ, ))
             mapping[t.typeVbls[i].unique] = typ;
         });
-        // console.log(`Mapping`, mapping);
         return {
             ...type,
             typeVbls: [], // TODO allow partial application!

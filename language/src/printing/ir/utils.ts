@@ -97,9 +97,6 @@ export const typeFromTermType = (type: TermType): Type => {
                 ref: type.ref,
                 loc: type.location,
                 typeVbls: type.typeVbls.map((t) => typeFromTermType(t)),
-                // STOPSHIP: effect vbls here?
-                // hmm yeah I dunno if I can do refs with effect vbls.
-                // maybe I'll just cut those out for the moment.
             };
         case 'var':
             return {
