@@ -1,5 +1,4 @@
 import { idFromName, idName } from '../../typing/env';
-// import { int, pureFunction, void_ } from '../../typing/preset';
 import { Env, Id, RecordDef, Symbol, symbolsEqual } from '../../typing/types';
 import {
     defaultVisitor,
@@ -21,13 +20,7 @@ import {
     Tuple,
     Type,
 } from './types';
-import {
-    callExpression,
-    int,
-    pureFunction,
-    typeFromTermType,
-    void_,
-} from './utils';
+import { callExpression, int, pureFunction, typeFromTermType } from './utils';
 import { and, asBlock, builtin, iffe } from './utils';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
@@ -671,7 +664,7 @@ export const tailCallRecursion = (
                                         sym,
                                         loc: arg.loc,
                                         value: arg,
-                                        is: void_,
+                                        is: arg.is,
                                     });
                                     return sym;
                                 });
@@ -680,7 +673,7 @@ export const tailCallRecursion = (
                                         type: 'Assign',
                                         sym: argNames[i],
                                         loc: apply.args[i].loc,
-                                        is: void_,
+                                        is: apply.args[i].is,
                                         value: {
                                             type: 'var',
                                             sym,

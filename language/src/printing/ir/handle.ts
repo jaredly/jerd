@@ -1,57 +1,17 @@
 // The bulk of stuff happens here
 
 import {
-    Term,
     Env,
-    Type as TermType,
-    getEffects,
     Symbol,
-    Reference,
-    Let,
-    Var,
-    EffectRef,
-    Lambda,
     LambdaType,
-    walkTerm,
-    Pattern,
     Handle,
     UserReference,
 } from '../../typing/types';
-import {
-    binOps,
-    bool,
-    builtinType,
-    float,
-    int,
-    // pureFunction,
-    string,
-    void_,
-} from '../../typing/preset';
-import { showType } from '../../typing/unify';
-import {
-    applyEffectVariables,
-    getEnumReferences,
-    showLocation,
-} from '../../typing/typeExpr';
-import { idFromName, idName } from '../../typing/env';
-import { LambdaType as ILambdaType } from './types';
+import { OutputOptions, Type } from './types';
+import { typeFromTermType } from './utils';
 
-import { Loc, Expr, Stmt, OutputOptions, Type } from './types';
-import { callExpression, pureFunction, typeFromTermType } from './utils';
-
-import { maybeWrapPureFunction } from '../../typing/transform';
-import {
-    iffe,
-    arrowFunctionExpression,
-    blockStatement,
-    ifStatement,
-    returnStatement,
-    isConstant,
-    builtin,
-    asBlock,
-} from './utils';
-import { printPattern } from './pattern';
-import { printLambda, printLambdaBody } from './lambda';
+import { iffe, asBlock } from './utils';
+import { printLambdaBody } from './lambda';
 import { printTerm } from './term';
 
 export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {

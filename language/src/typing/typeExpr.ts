@@ -329,7 +329,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         location: item.location,
                         binding: sym,
                         value,
-                        is: void_,
+                        is: type,
                     });
                 } else {
                     inner.push(typeExpr(innerEnv, item));
