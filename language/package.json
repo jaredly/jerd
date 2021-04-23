@@ -7,14 +7,15 @@
     "scripts": {
         "prepare": "yarn build",
         "build": "yarn peg && yarn compile",
-        "compile": "esbuild --sourcemap --bundle src/main.ts --platform=node --outfile=main.js",
+        "compile": "esbuild --sourcemap --bundle --loader:.jd=text src/main.ts --platform=node --outfile=main.js",
+        "watch": "yarn run compile --watch",
         "peg": "pegjs --plugin ts-pegjs -o src/parsing/grammar.ts src/parsing/grammar.pegjs",
-        "watch-tests": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert examples --run --cache",
+        "watch-tests": "watchexec -w src -w examples -- node --enable-source-maps bootstrap.js --assert examples --run --cache",
+        "watch-tests-old": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert examples --run --cache",
         "watch-go": "watchexec    -w main.js -w examples -- node --enable-source-maps main.js go examples --run --assert",
         "test": "node --enable-source-maps main.js --assert examples --run",
         "test-one": "node --enable-source-maps main.js --assert --run",
         "watch-one": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert --run --cache",
-        "watch": "esbuild --sourcemap --bundle --loader:.jd=text src/main.ts --platform=node --watch --outfile=main.js",
         "sn": "jest -u"
     },
     "bin": {
