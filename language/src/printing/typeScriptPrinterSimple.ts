@@ -444,7 +444,7 @@ const scopedGlobal = (opts: OutputOptions, id: string) =>
           )
         : t.identifier(id);
 
-const recordIdName = (env: Env, ref: Reference) => {
+export const recordIdName = (env: Env, ref: Reference) => {
     if (ref.type === 'builtin') {
         return ref.name;
     } else {
@@ -456,7 +456,7 @@ const recordIdName = (env: Env, ref: Reference) => {
     }
 };
 
-const recordAttributeName = (
+export const recordAttributeName = (
     env: Env,
     ref: Reference | string,
     idx: number,

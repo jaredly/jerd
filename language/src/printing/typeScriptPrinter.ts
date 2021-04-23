@@ -1,9 +1,18 @@
 // Print a type to typescript
 
-import { Env, Type, Symbol, Reference, EffectRef, Id } from '../typing/types';
+import {
+    Env,
+    Type,
+    Symbol,
+    Reference,
+    EffectRef,
+    Id,
+    RecordDef,
+} from '../typing/types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
 import { idName } from '../typing/env';
+import { recordAttributeName } from './typeScriptPrinterSimple';
 
 // Can I... misuse babel's AST to produce go?
 // what would get in my way?
@@ -113,34 +122,48 @@ export const typeToAst = (
         case 'lambda': {
             const res = t.tsTypeAnnotation(typeToAst(env, opts, type.res));
 
-            const findTypeVariables = (type: Type): Array<Symbol> => {
-                switch (type.type) {
-                    case 'var':
-                        return [type.sym];
-                    case 'ref':
-                        return [];
-                    case 'lambda':
-                        return ([] as Array<Symbol>)
-                            .concat(...type.args.map(findTypeVariables))
-                            .concat(findTypeVariables(type.res));
-                    default:
-                        return [];
-                }
-            };
-
-            // const vbls = dedup(findTypeVariables(type).map((m) => `${m.name}`));
-            // hrmmm a function type should really keep track of its own type variables.
-            // like, explicitly.
-            // so that we know the difference between
-            // <T, R>(x: T, () => R) => T
-            // and
-            // <T>(x: T, <R>() => R) => T
-
             return t.tsFunctionType(
                 type.typeVbls.length
                     ? t.tsTypeParameterDeclaration(
-                          type.typeVbls.map((name) =>
-                              t.tsTypeParameter(null, null, `T_${name.unique}`),
+                          type.typeVbls.map((vbl) =>
+                              t.tsTypeParameter(
+                                  // Here we make a type literal
+                                  vbl.subTypes.length
+                                      ? t.tsTypeLiteral(
+                                            ([] as Array<t.TSPropertySignature>).concat(
+                                                ...vbl.subTypes.map((id) =>
+                                                    allRecordMembers(
+                                                        env,
+                                                        id,
+                                                    ).map(({ item, i, id }) =>
+                                                        t.tsPropertySignature(
+                                                            t.identifier(
+                                                                recordAttributeName(
+                                                                    env,
+                                                                    {
+                                                                        type:
+                                                                            'user',
+                                                                        id,
+                                                                    },
+                                                                    i,
+                                                                ),
+                                                            ),
+                                                            t.tsTypeAnnotation(
+                                                                typeToAst(
+                                                                    env,
+                                                                    opts,
+                                                                    item,
+                                                                ),
+                                                            ),
+                                                        ),
+                                                    ),
+                                                ),
+                                            ),
+                                        )
+                                      : null,
+                                  null,
+                                  `T_${vbl.unique}`,
+                              ),
                           ),
                       )
                     : null,
@@ -195,6 +218,23 @@ export const typeToAst = (
             );
         }
     }
+};
+
+const allRecordMembers = (env: Env, id: Id) => {
+    const constr = env.global.types[idName(id)] as RecordDef;
+    return constr.items
+        .map((item, i) => ({ id, item, i }))
+        .concat(
+            ...constr.extends.map((id) =>
+                (env.global.types[idName(id)] as RecordDef).items.map(
+                    (item, i) => ({
+                        id,
+                        item,
+                        i,
+                    }),
+                ),
+            ),
+        );
 };
 
 const showEffectRef = (eff: EffectRef) => {
