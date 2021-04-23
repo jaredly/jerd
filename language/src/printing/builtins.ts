@@ -417,4 +417,4 @@ export const intEq = (a: number, b: number) => a === b;
 //: (float, float) => bool
 export const floatEq = (a: number, b: number) => a === b;
 //: (string, string) => bool
-export const stringEq = (a: number, b: number) => a === b;
+export const stringEq = (a: string, b: string) => a === b;

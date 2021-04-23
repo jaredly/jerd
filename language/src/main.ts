@@ -641,7 +641,7 @@ const main = (
     failFast: boolean,
 ) => {
     const { shouldSkip, successRerun } = cache
-        ? loadCache(fnames, process.argv[1])
+        ? loadCache(fnames, 'main.js')
         : { shouldSkip: null, successRerun: true };
     console.log(chalk.bold.green(`\n# Processing ${fnames.length} files\n`));
     const passed: { [key: string]: boolean } = {};
@@ -736,7 +736,7 @@ const main = (
     if (cache) {
         saveCache(
             Object.keys(passed).filter((p) => passed[p]),
-            process.argv[1],
+            'main.js',
         );
     }
     return numFailures > 0;

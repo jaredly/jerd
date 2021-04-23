@@ -652,6 +652,26 @@ export const fileToTypescript = (
                             t.tsTypeAnnotation(typeToAst(env, opts, item)),
                         ),
                     ),
+                    ...([] as Array<t.TSPropertySignature>).concat(
+                        ...subTypes.map((id) =>
+                            env.global.types[
+                                idName(id)
+                            ].items.map((item: Type, i: number) =>
+                                t.tsPropertySignature(
+                                    t.identifier(
+                                        recordAttributeName(
+                                            env,
+                                            { type: 'user', id },
+                                            i,
+                                        ),
+                                    ),
+                                    t.tsTypeAnnotation(
+                                        typeToAst(env, opts, item),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
                 ]),
             ),
         );
