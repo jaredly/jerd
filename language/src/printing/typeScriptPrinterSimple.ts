@@ -44,7 +44,7 @@ const printSym = (env: Env, sym: Symbol) =>
         : sym.name + '$' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
 
-function withLocation<
+export function withLocation<
     T extends { start: number | null; end: number | null; loc: any }
 >(v: T, loc: Loc): T {
     if (loc == null) {
@@ -68,10 +68,16 @@ export const withAnnotation = <T>(
     opts: OutputOptions,
     e: T,
     type: IRType,
-): T => ({
-    ...e,
-    typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
-});
+): T => {
+    if (type == null) {
+        console.error(e);
+        throw new Error(`no type`);
+    }
+    return {
+        ...e,
+        typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
+    };
+};
 
 export const declarationToTs = (
     env: Env,
@@ -547,7 +553,15 @@ export const stmtToTs = (
             return withLocation(
                 t.variableDeclaration('let', [
                     t.variableDeclarator(
-                        t.identifier(printSym(env, stmt.sym)),
+                        withAnnotation(
+                            env,
+                            opts,
+                            withLocation(
+                                t.identifier(printSym(env, stmt.sym)),
+                                stmt.loc,
+                            ),
+                            stmt.is,
+                        ),
                         stmt.value ? termToTs(env, opts, stmt.value) : null,
                     ),
                 ]),

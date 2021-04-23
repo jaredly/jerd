@@ -7,6 +7,7 @@
 
 import * as t from '@babel/types';
 import traverse from '@babel/traverse';
+import { withLocation } from './typeScriptPrinterSimple';
 
 export const optimizeAST = (ast: t.File) => {
     flattenImmediateCallsToLets(ast);
@@ -167,7 +168,15 @@ const flattenImmediateCallsToLets = (ast: t.File) => {
                                     ? t.expressionStatement(arg)
                                     : t.variableDeclaration('const', [
                                           t.variableDeclarator(
-                                              t.identifier(name),
+                                              //   withLocation(
+                                              // param.typeAnnotation ?
+
+                                              // t.identifier(name),
+                                              param.type === 'Identifier'
+                                                  ? param
+                                                  : t.identifier(name),
+                                              //     param.loc,
+                                              //   ),
                                               arg,
                                           ),
                                       ]);

@@ -107,6 +107,11 @@ export const typeToAst = (
                   )
                 : null;
             if (type.ref.type === 'builtin') {
+                if (type.ref.name.startsWith('Tuple')) {
+                    return t.tsTupleType(
+                        type.typeVbls.map((t) => typeToAst(env, opts, t)),
+                    );
+                }
                 return t.tsTypeReference(
                     t.identifier(
                         type.ref.name === 'int' || type.ref.name === 'float'
