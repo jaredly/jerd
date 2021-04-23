@@ -1,8 +1,9 @@
 // Print a type to typescript
 
-import { Env, Type, Symbol, Reference, EffectRef } from '../typing/types';
+import { Env, Type, Symbol, Reference, EffectRef, Id } from '../typing/types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
+import { idName } from '../typing/env';
 
 // Can I... misuse babel's AST to produce go?
 // what would get in my way?
@@ -25,16 +26,21 @@ type OutputOptions = {
     readonly limitExecutionTime?: boolean;
 };
 
+export const typeIdToString = (id: Id) => `t_${idName(id)}`;
+
 export const printType = (env: Env, type: Type): string => {
     switch (type.type) {
         case 'ref':
             if (type.ref.type === 'builtin') {
                 return type.ref.name === 'int' || type.ref.name === 'float'
                     ? 'number'
+                    : type.ref.name === 'bool'
+                    ? 'boolean'
                     : type.ref.name;
             } else {
                 return type.ref.id.hash;
             }
+
         case 'lambda': {
             let args = type.args.map((t) => printType(env, t)).join(', ');
             if (type.rest) {
@@ -80,16 +86,27 @@ export const typeToAst = (
 ): t.TSType => {
     switch (type.type) {
         case 'ref':
+            const tvars = type.typeVbls.length
+                ? t.tsTypeParameterInstantiation(
+                      type.typeVbls.map((t) => typeToAst(env, opts, t)),
+                  )
+                : null;
             if (type.ref.type === 'builtin') {
                 return t.tsTypeReference(
                     t.identifier(
                         type.ref.name === 'int' || type.ref.name === 'float'
                             ? 'number'
+                            : type.ref.name === 'bool'
+                            ? 'boolean'
                             : type.ref.name,
                     ),
+                    tvars,
                 );
             } else {
-                return t.tsTypeReference(t.identifier('t_' + type.ref.id.hash));
+                return t.tsTypeReference(
+                    t.identifier(typeIdToString(type.ref.id)),
+                    tvars,
+                );
             }
         case 'var':
             return t.tsTypeReference(t.identifier(`T_${type.sym.unique}`));
@@ -123,7 +140,7 @@ export const typeToAst = (
                 type.typeVbls.length
                     ? t.tsTypeParameterDeclaration(
                           type.typeVbls.map((name) =>
-                              t.tsTypeParameter(null, null, `T_${name}`),
+                              t.tsTypeParameter(null, null, `T_${name.unique}`),
                           ),
                       )
                     : null,

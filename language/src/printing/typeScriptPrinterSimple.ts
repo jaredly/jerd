@@ -7,6 +7,7 @@ import { binOps, bool } from '../typing/preset';
 import {
     EffectRef,
     Env,
+    getAllSubTypes,
     Id,
     RecordDef,
     Reference,
@@ -26,7 +27,8 @@ import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
-import { printType, typeToAst } from './typeScriptPrinter';
+import { printType, typeIdToString, typeToAst } from './typeScriptPrinter';
+import { effectConstructorType } from './ir/cps';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -585,6 +587,75 @@ export const fileToTypescript = (
     builtinNames: Array<string>,
 ) => {
     const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
+
+    // Object.keys(env.global.effects).forEach((r) => {
+    //     const id = idFromName(r);
+    //     const constrs = env.global.effects[r];
+    //     items.push(
+    //         t.tsTypeAliasDeclaration(
+    //             t.identifier('handle' + r),
+    //             null,
+    //             t.tsTupleType(
+    //                 constrs.map((constr) =>
+    //                     typeToAst(
+    //                         env,
+    //                         opts,
+    //                         effectConstructorType(
+    //                             env,
+    //                             { type: 'ref', ref: { type: 'user', id } },
+    //                             constr,
+    //                         ),
+    //                     ),
+    //                 ),
+    //             ),
+    //         ),
+    //     );
+    // });
+
+    Object.keys(env.global.types).forEach((r) => {
+        const constr = env.global.types[r];
+        if (constr.type !== 'Record') {
+            return;
+        }
+        const id = idFromName(r);
+        const subTypes = getAllSubTypes(env.global, constr);
+        items.push(
+            t.tsTypeAliasDeclaration(
+                t.identifier(typeIdToString(id)),
+                constr.typeVbls.length
+                    ? t.tsTypeParameterDeclaration(
+                          constr.typeVbls.map((td) =>
+                              t.tSTypeParameter(null, null, 'T_' + td.unique),
+                          ),
+                      )
+                    : null,
+                t.tsTypeLiteral([
+                    t.tsPropertySignature(
+                        t.identifier('type'),
+                        t.tsTypeAnnotation(
+                            t.tsLiteralType(
+                                t.stringLiteral(
+                                    recordIdName(env, { type: 'user', id }),
+                                ),
+                            ),
+                        ),
+                    ),
+                    ...constr.items.map((item, i) =>
+                        t.tsPropertySignature(
+                            t.identifier(
+                                recordAttributeName(
+                                    env,
+                                    { type: 'user', id },
+                                    i,
+                                ),
+                            ),
+                            t.tsTypeAnnotation(typeToAst(env, opts, item)),
+                        ),
+                    ),
+                ]),
+            ),
+        );
+    });
 
     const orderedTerms = expressionDeps(env, expressions);
 

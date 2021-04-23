@@ -3,12 +3,13 @@
 import {
     Term,
     Env,
-    Type,
+    // Type,
     getEffects,
     Let,
     Var,
     EffectRef,
     UserReference,
+    EffectReference,
 } from '../../typing/types';
 import {
     bool,
@@ -27,7 +28,7 @@ import {
     handlersType,
 } from './utils';
 
-import { Loc, Expr, Block, Arg, OutputOptions } from './types';
+import { Loc, Expr, Block, Arg, OutputOptions, Type } from './types';
 import { printLambdaBody, sequenceToBlock } from './lambda';
 import { printTerm } from './term';
 import {
@@ -38,6 +39,42 @@ import {
     isSimple,
 } from './utils';
 import { maybeWrapPureFunction } from '../../typing/transform';
+
+// export const effectHandlerType = (env: Env, eff: EffectReference): Type => {
+//     return {
+//         type: 'effect-handler',
+//         ref: eff.ref,
+//         location: null,
+//     };
+// };
+
+export const effectConstructorType = (
+    env: Env,
+    eff: EffectReference,
+    constr: { args: Array<Type>; ret: Type },
+): Type => {
+    // const constr = env.global.effects[refName(eff.ref)][idx];
+    return builtinType('any');
+    // return pureFunction(
+    //     constr.args.concat([
+    //         pureFunction(
+    //             [
+    //                 effectHandlerType(env, eff),
+    //                 ...(typesEqual(constr.ret, void_) ? [] : [constr.ret]),
+    //             ],
+    //             void_,
+    //             [],
+    //             null,
+    //             'eff-done',
+    //         ),
+    //     ]),
+    //     void_,
+    //     [],
+    //     null,
+    //     'eff-constr',
+    //     // constr.ret,
+    // );
+};
 
 export const handlerVar = (loc: Loc): Expr => ({
     type: 'var',
