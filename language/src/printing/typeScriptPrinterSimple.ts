@@ -70,7 +70,6 @@ export const withAnnotation = <T>(
     type: Type,
 ): T => ({
     ...e,
-    // @ts-ignore
     typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
 });
 

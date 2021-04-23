@@ -122,7 +122,7 @@ export const typeToAst = (
         case 'lambda': {
             const res = t.tsTypeAnnotation(typeToAst(env, opts, type.res));
 
-            return t.tsFunctionType(
+            const l = t.tsFunctionType(
                 type.typeVbls.length
                     ? t.tsTypeParameterDeclaration(
                           type.typeVbls.map((vbl) =>
@@ -196,6 +196,11 @@ export const typeToAst = (
                     ? t.tsTypeAnnotation(t.tsVoidKeyword())
                     : res,
             );
+            // if (true) {
+            //     return t.addComment(l, 'leading', 'aaa');
+            // } else {
+            return l;
+            // }
         }
     }
 };

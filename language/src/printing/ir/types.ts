@@ -71,6 +71,7 @@ export type LambdaType = {
     args: Array<Type>;
     rest: Type | null;
     res: Type;
+    note?: string;
 };
 
 export type Toplevel =

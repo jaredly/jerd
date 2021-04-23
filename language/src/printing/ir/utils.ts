@@ -107,8 +107,28 @@ export const typeFromTermType = (type: TermType): Type => {
                 loc: type.location,
             };
         case 'lambda':
+            if (type.effects.length) {
+                return {
+                    type: 'lambda',
+                    note: 'effects',
+                    loc: type.location,
+                    typeVbls: type.typeVbls,
+                    args: type.args
+                        .map(typeFromTermType)
+                        .concat([
+                            handlersType,
+                            pureFunction(
+                                [handlersType, typeFromTermType(type.res)],
+                                void_,
+                            ),
+                        ]),
+                    rest: type.rest ? typeFromTermType(type.rest) : null,
+                    res: void_,
+                };
+            }
             return {
                 type: 'lambda',
+                note: 'noeffects',
                 loc: type.location,
                 typeVbls: type.typeVbls,
                 args: type.args.map(typeFromTermType),
