@@ -89,6 +89,15 @@ export const removeTypescriptTypes = (ast: t.File) => {
         TSTypeAliasDeclaration(path) {
             path.remove();
         },
+        ImportDeclaration(path) {
+            // lol hack
+            if (
+                path.node.specifiers.length === 1 &&
+                path.node.specifiers[0].local.name === 'Handlers'
+            ) {
+                path.remove();
+            }
+        },
     });
 };
 
