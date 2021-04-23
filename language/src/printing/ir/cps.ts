@@ -88,7 +88,7 @@ export const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {
         [
             {
                 sym: handlerSym,
-                type: builtinType('handlers'),
+                type: handlersType,
                 loc: loc,
             },
             arg,
@@ -422,7 +422,7 @@ const _termToAstCPS = (
                                 {
                                     sym: handlerSym,
                                     loc: null,
-                                    type: builtinType('handlers'),
+                                    type: handlersType,
                                 },
                                 {
                                     sym: argSyms[i]!,

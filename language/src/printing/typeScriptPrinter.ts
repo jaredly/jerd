@@ -2,8 +2,8 @@
 
 import {
     Env,
-    Type,
     Symbol,
+    Type as TermType,
     Reference,
     EffectRef,
     Id,
@@ -13,6 +13,8 @@ import * as t from '@babel/types';
 import generate from '@babel/generator';
 import { idName } from '../typing/env';
 import { recordAttributeName } from './typeScriptPrinterSimple';
+import { Type } from './ir/types';
+import { typeFromTermType } from './ir/utils';
 
 // Can I... misuse babel's AST to produce go?
 // what would get in my way?
@@ -37,7 +39,7 @@ type OutputOptions = {
 
 export const typeIdToString = (id: Id) => `t_${idName(id)}`;
 
-export const printType = (env: Env, type: Type): string => {
+export const printType = (env: Env, type: TermType): string => {
     switch (type.type) {
         case 'ref':
             if (type.ref.type === 'builtin') {
@@ -94,6 +96,10 @@ export const typeToAst = (
     type: Type,
 ): t.TSType => {
     switch (type.type) {
+        case 'effect-handler':
+            return t.tsAnyKeyword();
+        case 'effectful-or-direct':
+            return t.tsAnyKeyword();
         case 'ref':
             const tvars = type.typeVbls.length
                 ? t.tsTypeParameterInstantiation(
@@ -141,7 +147,9 @@ export const typeToAst = (
                                                             opts,
                                                             id,
                                                             i,
-                                                            item,
+                                                            typeFromTermType(
+                                                                item,
+                                                            ),
                                                         ),
                                                     ),
                                                 ),
@@ -154,53 +162,53 @@ export const typeToAst = (
                           ),
                       )
                     : null,
-                type.args
-                    .map((arg, i) =>
-                        withType<t.Identifier>(
-                            env,
-                            opts,
-                            t.identifier('arg_' + i),
-                            arg,
-                        ),
-                    )
-                    .concat(
-                        type.effects.length
-                            ? [
-                                  {
-                                      ...t.identifier('handlers'),
-                                      typeAnnotation: t.tsTypeAnnotation(
-                                          t.tsAnyKeyword(),
-                                      ),
-                                  },
-                                  {
-                                      ...t.identifier('done'),
-                                      typeAnnotation: t.tsTypeAnnotation(
-                                          t.tsFunctionType(
-                                              null,
-                                              [
-                                                  {
-                                                      ...t.identifier('result'),
-                                                      typeAnnotation: res,
-                                                  },
-                                              ],
-                                              t.tsTypeAnnotation(
-                                                  t.tsVoidKeyword(),
-                                              ),
-                                          ),
-                                      ),
-                                  },
-                              ]
-                            : [],
+                type.args.map((arg, i) =>
+                    withType<t.Identifier>(
+                        env,
+                        opts,
+                        t.identifier('arg_' + i),
+                        arg,
                     ),
-                type.effects.length
-                    ? t.tsTypeAnnotation(t.tsVoidKeyword())
-                    : res,
+                ),
+                // .concat(
+                //     type.effects.length
+                //         ? [
+                //               {
+                //                   ...t.identifier('handlers'),
+                //                   typeAnnotation: t.tsTypeAnnotation(
+                //                       t.tsAnyKeyword(),
+                //                   ),
+                //               },
+                //               {
+                //                   ...t.identifier('done'),
+                //                   typeAnnotation: t.tsTypeAnnotation(
+                //                       t.tsFunctionType(
+                //                           null,
+                //                           [
+                //                               {
+                //                                   ...t.identifier('result'),
+                //                                   typeAnnotation: res,
+                //                               },
+                //                           ],
+                //                           t.tsTypeAnnotation(
+                //                               t.tsVoidKeyword(),
+                //                           ),
+                //                       ),
+                //                   ),
+                //               },
+                //           ]
+                //         : [],
+                // ),
+                // type.effects.length
+                //     ? t.tsTypeAnnotation(t.tsVoidKeyword())
+                // :
+                res,
             );
-            // if (true) {
-            //     return t.addComment(l, 'leading', 'aaa');
-            // } else {
-            return l;
-            // }
+            if (type.note) {
+                return t.addComment(l, 'leading', type.note);
+            } else {
+                return l;
+            }
         }
     }
 };

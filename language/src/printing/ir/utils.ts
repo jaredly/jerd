@@ -79,7 +79,7 @@ export const pureFunction = (
 };
 
 export const handlerSym = { name: 'handlers', unique: 0 };
-export const handlersType = builtinType('handlers');
+export const handlersType = builtinType('Handlers');
 
 export const int: Type = builtinType('int');
 export const float: Type = builtinType('float');

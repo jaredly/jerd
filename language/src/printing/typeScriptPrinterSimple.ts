@@ -22,7 +22,7 @@ import { wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeDefine } from './ir/optimize';
 import { Loc } from './ir/types';
-import { handlerSym } from './ir/utils';
+import { handlerSym, typeFromTermType } from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
@@ -70,7 +70,9 @@ export const withAnnotation = <T>(
     type: Type,
 ): T => ({
     ...e,
-    typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
+    typeAnnotation: t.tsTypeAnnotation(
+        typeToAst(env, opts, typeFromTermType(type)),
+    ),
 });
 
 export const declarationToTs = (
@@ -645,14 +647,26 @@ export const fileToTypescript = (
                         ),
                     ),
                     ...constr.items.map((item, i) =>
-                        recordMemberSignature(env, opts, id, i, item),
+                        recordMemberSignature(
+                            env,
+                            opts,
+                            id,
+                            i,
+                            typeFromTermType(item),
+                        ),
                     ),
                     ...([] as Array<t.TSPropertySignature>).concat(
                         ...subTypes.map((id) =>
                             env.global.types[
                                 idName(id)
                             ].items.map((item: Type, i: number) =>
-                                recordMemberSignature(env, opts, id, i, item),
+                                recordMemberSignature(
+                                    env,
+                                    opts,
+                                    id,
+                                    i,
+                                    typeFromTermType(item),
+                                ),
                             ),
                         ),
                     ),

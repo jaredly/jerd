@@ -235,11 +235,11 @@ export const raise = (
     }
 };
 
-type Handler = { hash: string; fn: ShallowHandler<any, any> };
+export type Handler = { hash: string; fn: ShallowHandler<any, any> };
 
-type Handlers = Array<Handler>;
+export type Handlers = Array<Handler>;
 
-type ShallowHandler<Get, Set> = (
+export type ShallowHandler<Get, Set> = (
     currentHandlers: Handlers,
     idx: number,
     args: Set,

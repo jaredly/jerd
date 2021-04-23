@@ -49,6 +49,17 @@ export const typeScriptPrelude = (
                 t.stringLiteral('./prelude.mjs'),
             ),
         );
+        items.push(
+            t.importDeclaration(
+                [
+                    t.importSpecifier(
+                        t.identifier('Handlers'),
+                        t.identifier('Handlers'),
+                    ),
+                ],
+                t.stringLiteral('./prelude.mjs'),
+            ),
+        );
         if (scope != null) {
             // const scope = scope;
             builtinNames.forEach((name) =>

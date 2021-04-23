@@ -157,7 +157,7 @@ const effectfulLambda = (
                 loc: null,
             }))
             .concat([
-                { type: builtinType('handlers'), sym: handlerSym, loc: null },
+                { type: handlersType, sym: handlerSym, loc: null },
                 { sym: done, type: doneT, loc: null },
             ]),
         withExecutionLimit(
