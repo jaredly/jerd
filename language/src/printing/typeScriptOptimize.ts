@@ -91,6 +91,9 @@ export const removeTypescriptTypes = (ast: t.File) => {
         },
         ImportDeclaration(path) {
             // lol hack
+            // this is so typescript is happy
+            // but it's not valid javascript
+            // and there's not really a way to tell
             if (
                 path.node.specifiers.length === 1 &&
                 path.node.specifiers[0].local.name === 'Handlers'
