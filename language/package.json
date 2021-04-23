@@ -13,6 +13,7 @@
         "watch-tests": "watchexec -w src -w examples -- node --enable-source-maps bootstrap.js --assert examples --run --cache",
         "watch-tests-old": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert examples --run --cache",
         "watch-go": "watchexec    -w main.js -w examples -- node --enable-source-maps main.js go examples --run --assert",
+        "ts-examples": "tsc --build examples/build/tsconfig.json",
         "test": "node --enable-source-maps main.js --assert examples --run",
         "test-one": "node --enable-source-maps main.js --assert --run",
         "watch-one": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert --run --cache",
