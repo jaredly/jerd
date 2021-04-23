@@ -136,25 +136,12 @@ export const typeToAst = (
                                                         env,
                                                         id,
                                                     ).map(({ item, i, id }) =>
-                                                        t.tsPropertySignature(
-                                                            t.identifier(
-                                                                recordAttributeName(
-                                                                    env,
-                                                                    {
-                                                                        type:
-                                                                            'user',
-                                                                        id,
-                                                                    },
-                                                                    i,
-                                                                ),
-                                                            ),
-                                                            t.tsTypeAnnotation(
-                                                                typeToAst(
-                                                                    env,
-                                                                    opts,
-                                                                    item,
-                                                                ),
-                                                            ),
+                                                        recordMemberSignature(
+                                                            env,
+                                                            opts,
+                                                            id,
+                                                            i,
+                                                            item,
                                                         ),
                                                     ),
                                                 ),
@@ -201,13 +188,6 @@ export const typeToAst = (
                                               ),
                                           ),
                                       ),
-                                      //   typeToAst(env, opts, {
-                                      //       type: 'lambda',
-                                      //       args: [res]
-                                      //   })
-                                      /*t.tsTypeAnnotation(
-                                          t.tsAnyKeyword(),
-                                      )*/
                                   },
                               ]
                             : [],
@@ -220,7 +200,20 @@ export const typeToAst = (
     }
 };
 
-const allRecordMembers = (env: Env, id: Id) => {
+export const recordMemberSignature = (
+    env: Env,
+    opts: OutputOptions,
+    id: Id,
+    i: number,
+    item: Type,
+) => {
+    return t.tsPropertySignature(
+        t.identifier(recordAttributeName(env, { type: 'user', id }, i)),
+        t.tsTypeAnnotation(typeToAst(env, opts, item)),
+    );
+};
+
+export const allRecordMembers = (env: Env, id: Id) => {
     const constr = env.global.types[idName(id)] as RecordDef;
     return constr.items
         .map((item, i) => ({ id, item, i }))

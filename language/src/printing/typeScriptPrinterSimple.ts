@@ -27,7 +27,12 @@ import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
-import { printType, typeIdToString, typeToAst } from './typeScriptPrinter';
+import {
+    printType,
+    recordMemberSignature,
+    typeIdToString,
+    typeToAst,
+} from './typeScriptPrinter';
 import { effectConstructorType } from './ir/cps';
 
 const reservedSyms = ['default', 'async', 'await'];
@@ -641,34 +646,14 @@ export const fileToTypescript = (
                         ),
                     ),
                     ...constr.items.map((item, i) =>
-                        t.tsPropertySignature(
-                            t.identifier(
-                                recordAttributeName(
-                                    env,
-                                    { type: 'user', id },
-                                    i,
-                                ),
-                            ),
-                            t.tsTypeAnnotation(typeToAst(env, opts, item)),
-                        ),
+                        recordMemberSignature(env, opts, id, i, item),
                     ),
                     ...([] as Array<t.TSPropertySignature>).concat(
                         ...subTypes.map((id) =>
                             env.global.types[
                                 idName(id)
                             ].items.map((item: Type, i: number) =>
-                                t.tsPropertySignature(
-                                    t.identifier(
-                                        recordAttributeName(
-                                            env,
-                                            { type: 'user', id },
-                                            i,
-                                        ),
-                                    ),
-                                    t.tsTypeAnnotation(
-                                        typeToAst(env, opts, item),
-                                    ),
-                                ),
+                                recordMemberSignature(env, opts, id, i, item),
                             ),
                         ),
                     ),
