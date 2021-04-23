@@ -47,21 +47,19 @@ export const handlerVar = (loc: Loc): Expr => ({
 });
 
 export const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {
-    return {
-        type: 'lambda',
-        args: [
+    return arrowFunctionExpression(
+        [
             {
                 sym: handlerSym,
                 type: builtinType('handlers'),
-                loc: null,
+                loc: loc,
             },
             arg,
         ],
         body,
-        res: void_,
+        void_,
         loc,
-        is: pureFunction([handlersType, arg.type], void_),
-    };
+    );
 };
 
 export const termToAstCPS = (

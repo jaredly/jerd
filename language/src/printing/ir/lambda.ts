@@ -143,14 +143,12 @@ const effectfulLambda = (
     term: Lambda,
 ): LambdaExpr => {
     const done: Symbol = { name: 'done', unique: env.local.unique++ };
-    const doneT: LambdaType = {
-        type: 'lambda',
-        args: [handlersType, typeFromTermType(term.is.res)],
-        typeVbls: [],
-        rest: null,
-        loc: term.location,
-        res: void_,
-    };
+    const doneT: LambdaType = pureFunction(
+        [handlersType, typeFromTermType(term.is.res)],
+        void_,
+        [],
+        term.location,
+    );
     return arrowFunctionExpression(
         term.args
             .map((sym, i) => ({
@@ -222,9 +220,8 @@ export const sequenceToBlock = (
         let inner: Expr = cps;
         for (let i = term.sts.length - 1; i >= 0; i--) {
             if (i > 0) {
-                inner = {
-                    type: 'lambda',
-                    args: [
+                inner = arrowFunctionExpression(
+                    [
                         {
                             sym: handlerSym,
                             type: handlersType,
@@ -236,7 +233,7 @@ export const sequenceToBlock = (
                             loc: null,
                         },
                     ],
-                    body: {
+                    {
                         type: 'Block',
                         loc: term.sts[i].location,
                         items: [
@@ -252,10 +249,9 @@ export const sequenceToBlock = (
                             },
                         ],
                     },
-                    res: void_,
-                    loc: term.sts[i].location,
-                    is: pureFunction([handlersType, void_], void_),
-                };
+                    void_,
+                    term.sts[i].location,
+                );
             } else {
                 inner = termToAstCPS(env, opts, term.sts[i], inner);
             }
