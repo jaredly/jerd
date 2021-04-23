@@ -5,8 +5,9 @@
 
 Ones that are non-breaking
 - [x] liftEffects is nice
-- [ ] use helpers for lots of IR exprs
-- [ ] adding types to IR Exprs
+- [x] adding types to IR Exprs
+- [x] use helpers for lots of IR exprs
+- [ ] helpers need less types
 - [ ] type-checking the IR as I create it
 - [ ] converting types to passing-handlers instead of having-effects (this can be a place where we then convert, yeah that's great.)
 

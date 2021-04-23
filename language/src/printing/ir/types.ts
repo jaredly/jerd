@@ -10,6 +10,9 @@ import {
     idsEqual,
     Env,
     TypeVblDecl,
+    refsEqual,
+    symbolsEqual,
+    typeVblDeclsEqual,
 } from '../../typing/types';
 import { Location } from '../../parsing/parser';
 
@@ -198,42 +201,51 @@ export const isTerm = (expr: Expr, id: Id) =>
 //     }
 // };
 
-// export const typeForLambdaExpression = (env: Env, body: Expr | Block): Type => {
-//     if (body.type === 'Block') {
-//         return returnTypeForStmt(env, body) || void_;
-//     } else {
-//         return typeForExpr(env, body);
-//     }
-// };
+export const typeForLambdaExpression = (body: Expr | Block): Type | null => {
+    if (body.type === 'Block') {
+        return returnTypeForStmt(body);
+    } else {
+        return body.is;
+    }
+};
 
-// export const returnTypeForStmt = (env: Env, stmt: Stmt): Type | null => {
-//     switch (stmt.type) {
-//         case 'Assign':
-//         case 'Continue':
-//         case 'MatchFail':
-//         case 'Expression':
-//         case 'Define':
-//             return null;
-//         case 'Return':
-//             return typeForExpr(env, stmt.value);
-//         case 'Block':
-//             const types = stmt.items
-//                 .map((s) => returnTypeForStmt(env, s))
-//                 .filter((t) => t != null);
-//             // TODO ensure the types line up? Do I need to do that here?
-//             return types.length === 0 ? null : types[0];
-//         case 'Loop':
-//             return returnTypeForStmt(env, stmt.body);
-//         case 'if':
-//             return (
-//                 returnTypeForStmt(env, stmt.yes) ||
-//                 (stmt.no ? returnTypeForStmt(env, stmt.no) : null)
-//             );
-//         default:
-//             let _x: never = stmt;
-//             throw new Error(`Unexpected stmt ${(stmt as any).type}`);
-//     }
-// };
+export const returnTypeForStmt = (stmt: Stmt): Type | null => {
+    switch (stmt.type) {
+        case 'Assign':
+        case 'Continue':
+        case 'MatchFail':
+        case 'Expression':
+        case 'Define':
+            return null;
+        case 'Return':
+            return stmt.value.is;
+        case 'Block':
+            const types = stmt.items
+                .map((s) => returnTypeForStmt(s))
+                .filter((t) => t != null) as Array<Type>;
+            if (types.length > 1) {
+                for (let i = 1; i < types.length; i++) {
+                    if (!typesEqual(types[i], types[0])) {
+                        throw new Error(
+                            `Return types don't agree. This is a compiler error.`,
+                        );
+                    }
+                }
+            }
+            // TODO ensure the types line up? Do I need to do that here?
+            return types.length === 0 ? null : types[0];
+        case 'Loop':
+            return returnTypeForStmt(stmt.body);
+        case 'if':
+            return (
+                returnTypeForStmt(stmt.yes) ||
+                (stmt.no ? returnTypeForStmt(stmt.no) : null)
+            );
+        default:
+            let _x: never = stmt;
+            throw new Error(`Unexpected stmt ${(stmt as any).type}`);
+    }
+};
 
 // const _ = (e: Expr) => {
 //     // Assert that all Exprs have `is` type definitions
@@ -388,3 +400,40 @@ export type LambdaExpr = {
 
 export type Arg = { sym: Symbol; type: Type; loc: Loc };
 // and that's all folks
+
+export const typesEqual = (one: Type | null, two: Type | null): boolean => {
+    if (one == null || two == null) {
+        return one == two;
+    }
+    if (one.type === 'ref' || two.type === 'ref') {
+        if (one.type === 'ref' && two.type === 'ref') {
+            return refsEqual(one.ref, two.ref);
+        }
+        if (one.type === 'ref' && one.ref.type === 'builtin') {
+            return two.type === 'ref' && refsEqual(one.ref, two.ref);
+        }
+        if (two.type === 'ref' && two.ref.type === 'builtin') {
+            return one.type === 'ref' && refsEqual(two.ref, one.ref);
+        }
+        // STOPSHIP: resolve type references
+        // throw new Error(`Need to lookup types sorry`);
+        return false;
+    }
+    if (one.type === 'var') {
+        return two.type === 'var' && symbolsEqual(one.sym, two.sym);
+    }
+    if (one.type === 'lambda') {
+        return (
+            two.type === 'lambda' &&
+            one.typeVbls.length === two.typeVbls.length &&
+            one.typeVbls.every((v, i) =>
+                typeVblDeclsEqual(v, two.typeVbls[i]),
+            ) &&
+            one.args.length === two.args.length &&
+            one.args.every((arg, i) => typesEqual(arg, two.args[i])) &&
+            typesEqual(one.res, two.res) &&
+            typesEqual(one.rest, two.rest)
+        );
+    }
+    return false;
+};

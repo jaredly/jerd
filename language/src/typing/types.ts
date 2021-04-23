@@ -27,6 +27,11 @@ export type Symbol = { name: string; unique: number };
 export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
+export const typeVblDeclsEqual = (one: TypeVblDecl, two: TypeVblDecl) =>
+    one.unique === two.unique &&
+    one.subTypes.length === two.subTypes.length &&
+    one.subTypes.every((s, i) => idsEqual(s, two.subTypes[i]));
+
 /*********** ENV STUFF ************/
 
 export type Env = {

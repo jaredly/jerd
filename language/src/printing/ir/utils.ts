@@ -46,6 +46,8 @@ import {
     Type,
     OutputOptions,
     LambdaType,
+    returnTypeForStmt,
+    typeForLambdaExpression,
 } from './types';
 import { Location } from '../../parsing/parser';
 
@@ -236,9 +238,10 @@ export const or = (left: Expr, right: Expr, loc: Loc) =>
 export const arrowFunctionExpression = (
     args: Array<Arg>,
     body: Expr | Block,
-    res: Type,
+    _res: Type,
     loc: Loc,
 ): LambdaExpr => {
+    const res = typeForLambdaExpression(body) || void_;
     return {
         type: 'lambda',
         args,
