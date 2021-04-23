@@ -32,6 +32,7 @@ import {
     recordMemberSignature,
     typeIdToString,
     typeToAst,
+    typeVblsToParameters,
 } from './typeScriptPrinter';
 import { effectConstructorType } from './ir/cps';
 
@@ -166,11 +167,16 @@ export const _termToTs = (
             if (term.is.typeVbls.length) {
                 return {
                     ...res,
-                    typeParameters: t.tsTypeParameterDeclaration(
-                        term.is.typeVbls.map((tp) =>
-                            t.tsTypeParameter(null, null, `T_${tp.unique}`),
-                        ),
+                    typeParameters: typeVblsToParameters(
+                        env,
+                        opts,
+                        term.is.typeVbls,
                     ),
+                    // t.tsTypeParameterDeclaration(
+                    //     term.is.typeVbls.map((tp) =>
+                    //         t.tsTypeParameter(null, null, `T_${tp.unique}`),
+                    //     ),
+                    // ),
                 };
             } else {
                 return t.addComment(res, 'leading', 'novbls');
@@ -679,11 +685,7 @@ export const fileToTypescript = (
             t.tsTypeAliasDeclaration(
                 t.identifier(typeIdToString(id)),
                 constr.typeVbls.length
-                    ? t.tsTypeParameterDeclaration(
-                          constr.typeVbls.map((td) =>
-                              t.tSTypeParameter(null, null, 'T_' + td.unique),
-                          ),
-                      )
+                    ? typeVblsToParameters(env, opts, constr.typeVbls)
                     : null,
                 t.tsTypeLiteral([
                     t.tsPropertySignature(

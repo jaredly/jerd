@@ -8,6 +8,7 @@ import {
     EffectRef,
     Id,
     RecordDef,
+    TypeVblDecl,
 } from '../typing/types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
@@ -135,37 +136,7 @@ export const typeToAst = (
 
             const l = t.tsFunctionType(
                 type.typeVbls.length
-                    ? t.tsTypeParameterDeclaration(
-                          type.typeVbls.map((vbl) =>
-                              t.tsTypeParameter(
-                                  // Here we make a type literal
-                                  vbl.subTypes.length
-                                      ? t.tsTypeLiteral(
-                                            ([] as Array<t.TSPropertySignature>).concat(
-                                                ...vbl.subTypes.map((id) =>
-                                                    allRecordMembers(
-                                                        env,
-                                                        id,
-                                                    ).map(({ item, i, id }) =>
-                                                        recordMemberSignature(
-                                                            env,
-                                                            opts,
-                                                            id,
-                                                            i,
-                                                            typeFromTermType(
-                                                                item,
-                                                            ),
-                                                        ),
-                                                    ),
-                                                ),
-                                            ),
-                                        )
-                                      : null,
-                                  null,
-                                  `T_${vbl.unique}`,
-                              ),
-                          ),
-                      )
+                    ? typeVblsToParameters(env, opts, type.typeVbls)
                     : null,
                 type.args.map((arg, i) =>
                     withType<t.Identifier>(
@@ -217,6 +188,40 @@ export const typeToAst = (
         }
     }
 };
+export const typeVblsToParameters = (
+    env: Env,
+    opts: OutputOptions,
+    vbls: Array<TypeVblDecl>,
+) =>
+    t.tsTypeParameterDeclaration(
+        vbls.map((vbl) =>
+            t.tsTypeParameter(
+                // Here we make a type literal
+                vbl.subTypes.length
+                    ? t.tsTypeLiteral(
+                          ([] as Array<t.TSPropertySignature>).concat(
+                              ...vbl.subTypes.map((id) =>
+                                  allRecordMembers(
+                                      env,
+                                      id,
+                                  ).map(({ item, i, id }) =>
+                                      recordMemberSignature(
+                                          env,
+                                          opts,
+                                          id,
+                                          i,
+                                          typeFromTermType(item),
+                                      ),
+                                  ),
+                              ),
+                          ),
+                      )
+                    : null,
+                null,
+                `T_${vbl.unique}`,
+            ),
+        ),
+    );
 
 export const recordMemberSignature = (
     env: Env,
