@@ -409,7 +409,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                   sym: id,
                                   value: printTerm(env, opts, term.term),
                                   loc: term.location,
-                                  is: term.is,
+                                  is: term.term.is,
                               },
                         ...cases,
                     ].filter(Boolean) as Array<Stmt>,

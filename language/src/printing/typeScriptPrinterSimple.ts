@@ -25,7 +25,7 @@ import { Loc, Type as IRType } from './ir/types';
 import { handlersType, handlerSym, typeFromTermType } from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
-import { declarationToPretty } from './printTsLike';
+import { declarationToPretty, enumToPretty, termToPretty } from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
 import {
     printType,
@@ -35,6 +35,7 @@ import {
     typeVblsToParameters,
 } from './typeScriptPrinter';
 import { effectConstructorType } from './ir/cps';
+import { getEnumReferences } from '../typing/typeExpr';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -676,10 +677,38 @@ export const fileToTypescript = (
 
     Object.keys(env.global.types).forEach((r) => {
         const constr = env.global.types[r];
-        if (constr.type !== 'Record') {
+        const id = idFromName(r);
+        if (constr.type === 'Enum') {
+            const comment = printToString(enumToPretty(env, id, constr), 100);
+            const refs = getEnumReferences(env, {
+                type: 'ref',
+                ref: { type: 'user', id },
+                typeVbls: constr.typeVbls.map((t, i) => ({
+                    type: 'var',
+                    sym: { name: 'T', unique: t.unique },
+                    location: null,
+                })),
+                location: null,
+            });
+            items.push(
+                t.addComment(
+                    t.tsTypeAliasDeclaration(
+                        t.identifier(typeIdToString(id)),
+                        constr.typeVbls.length
+                            ? typeVblsToParameters(env, opts, constr.typeVbls)
+                            : null,
+                        t.tsUnionType(
+                            refs.map((ref) =>
+                                typeToAst(env, opts, typeFromTermType(ref)),
+                            ),
+                        ),
+                    ),
+                    'leading',
+                    comment,
+                ),
+            );
             return;
         }
-        const id = idFromName(r);
         const subTypes = getAllSubTypes(env.global, constr);
         items.push(
             t.tsTypeAliasDeclaration(
@@ -750,13 +779,20 @@ export const fileToTypescript = (
     });
 
     expressions.forEach((term) => {
+        const comment = printToString(termToPretty(env, term), 100);
         if (assert && typesEqual(term.is, bool)) {
             term = wrapWithAssert(term);
         }
         term = liftEffects(env, term);
         const irTerm = ir.printTerm(env, {}, term);
         items.push(
-            t.expressionStatement(termToTs(env, opts, optimize(env, irTerm))),
+            t.addComment(
+                t.expressionStatement(
+                    termToTs(env, opts, optimize(env, irTerm)),
+                ),
+                'leading',
+                '\n' + comment + '\n',
+            ),
         );
     });
 
