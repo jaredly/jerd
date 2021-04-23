@@ -98,6 +98,9 @@ export const removeTypescriptTypes = (ast: t.File) => {
                 path.remove();
             }
         },
+        TSTypeParameterDeclaration(path) {
+            path.remove();
+        },
     });
 };
 

@@ -65,6 +65,7 @@ export const printLambda = (
                     ),
                     typeFromTermType(directVersion.is.res),
                     term.location,
+                    term.is.typeVbls,
                 ),
                 is: {
                     type: 'effectful-or-direct',
@@ -174,6 +175,7 @@ const effectfulLambda = (
         // term.is.res,
         void_,
         term.location,
+        term.is.typeVbls,
     );
 };
 

@@ -16,28 +16,28 @@ const IntArrayAddable = Addable<Array<int>>{
 // }
 
 // ugh ok I really need a tuple type
-const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
- = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
-    switch (one, two) {
-        ([], []) => true,
-        ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
-            arrayEq(rone, rtwo, eq)
-        } else {
-            false
-        },
-        _ => false
-    }
-}
+// const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
+//  = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
+//     switch (one, two) {
+//         ([], []) => true,
+//         ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
+//             arrayEq(rone, rtwo, eq)
+//         } else {
+//             false
+//         },
+//         _ => false
+//     }
+// }
 
 // const IntEq = Eq<int>{ "==": (a: int, b: int) => intEq(a, b) }
 
 const goToTown = (t: Tuple2<int, int>) => t.0
 goToTown((2, 3)) == 2
 
-const ArrayEq = <T,>(eq: Eq<T>) => Eq<Array<T>>{
-    "==": (one: Array<T>, two: Array<T>) => 
-    len(one) == len(two) && arrayEq(one, two, eq)
-}
+// const ArrayEq = <T,>(eq: Eq<T>) => Eq<Array<T>>{
+//     "==": (one: Array<T>, two: Array<T>) => 
+//     len(one) == len(two) && arrayEq(one, two, eq)
+// }
 
 // STOPSHIP: Next, get a prelude going so I can predefine IntEq and stuff.
 // and make adding builtins much easier.
@@ -49,7 +49,7 @@ ArrayEq<int>(IntEq)."=="([1, 2, 3], [1, 2, 3])
 
 // ^^^^^^^
 
-const aiq = ArrayEq<int>(IntEq)
+// const aiq = ArrayEq<int>(IntEq)
 // How do we build this on the fly?
 [1, 2] == [1, 2]
 
