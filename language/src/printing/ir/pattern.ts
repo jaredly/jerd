@@ -164,6 +164,7 @@ export const printPattern = (
                                     ? pattern.text
                                     : pattern.value,
                             loc: pattern.location,
+                            is: typeFromTermType(type),
                         } as Literal,
                         loc: pattern.location,
                         is: bool,

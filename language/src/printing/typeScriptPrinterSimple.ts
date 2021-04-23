@@ -21,8 +21,8 @@ import { typeScriptPrelude } from './fileToTypeScript';
 import { wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeDefine } from './ir/optimize';
-import { Loc } from './ir/types';
-import { handlerSym, typeFromTermType } from './ir/utils';
+import { Loc, Type as IRType } from './ir/types';
+import { handlersType, handlerSym, typeFromTermType } from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
@@ -67,12 +67,10 @@ export const withAnnotation = <T>(
     env: Env,
     opts: OutputOptions,
     e: T,
-    type: Type,
+    type: IRType,
 ): T => ({
     ...e,
-    typeAnnotation: t.tsTypeAnnotation(
-        typeToAst(env, opts, typeFromTermType(type)),
-    ),
+    typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
 });
 
 export const declarationToTs = (
@@ -92,7 +90,7 @@ export const declarationToTs = (
                           env,
                           opts,
                           t.identifier('hash_' + idRaw),
-                          type,
+                          typeFromTermType(type),
                       ),
                       expr,
                   ),
@@ -121,7 +119,13 @@ export const termToTs = (
     env: Env,
     opts: OutputOptions,
     term: ir.Expr,
-): t.Expression => withLocation(_termToTs(env, opts, term), term.loc);
+): t.Expression =>
+    withAnnotation(
+        env,
+        opts,
+        withLocation(_termToTs(env, opts, term), term.loc),
+        term.is,
+    );
 
 export const _termToTs = (
     env: Env,
@@ -142,10 +146,30 @@ export const _termToTs = (
                     env.local.localNames[arg.sym.name] = arg.sym.unique;
                 }
             });
-            return t.arrowFunctionExpression(
-                term.args.map((arg) => t.identifier(printSym(env, arg.sym))),
+            const res = t.arrowFunctionExpression(
+                term.args.map((arg) =>
+                    withAnnotation(
+                        env,
+                        opts,
+                        t.identifier(printSym(env, arg.sym)),
+                        arg.type,
+                    ),
+                ),
                 lambdaBodyToTs(env, opts, term.body),
             );
+            if (term.is.typeVbls.length) {
+                return {
+                    ...res,
+                    typeParameters: t.tsTypeParameterDeclaration(
+                        term.is.typeVbls.map((tp) =>
+                            t.tsTypeParameter(null, null, `T_${tp.unique}`),
+                        ),
+                    ),
+                };
+            } else {
+                return t.addComment(res, 'leading', 'novbls');
+            }
+            return res;
         case 'term':
             if (opts.scope) {
                 return t.memberExpression(
@@ -290,8 +314,20 @@ export const _termToTs = (
                 ),
                 t.arrowFunctionExpression(
                     [
-                        t.identifier(printSym(env, handlerSym)),
-                        t.identifier(printSym(env, term.pure.arg)),
+                        withAnnotation(
+                            env,
+                            opts,
+                            t.identifier(printSym(env, handlerSym)),
+                            handlersType,
+                        ),
+                        withAnnotation(
+                            env,
+                            opts,
+                            // STOPSHIP: Pure needs the type folks.
+                            t.identifier(printSym(env, term.pure.arg)),
+                            term.pure.argType,
+                            // term.target as LambdaType
+                        ),
                     ],
                     lambdaBodyToTs(env, opts, term.pure.body),
                 ),

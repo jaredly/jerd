@@ -91,6 +91,7 @@ export const printLambda = (
             ),
             typeFromTermType(term.is.res),
             term.location,
+            term.is.typeVbls,
         );
     }
 };

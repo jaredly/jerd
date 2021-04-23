@@ -303,7 +303,7 @@ export type Expr =
           target: Expr;
           effect: Id;
           loc: Loc;
-          pure: { arg: Symbol; body: Expr | Block };
+          pure: { arg: Symbol; body: Expr | Block; argType: Type };
           cases: Array<{
               constr: number;
               args: Array<Symbol>;
@@ -396,7 +396,7 @@ export type LambdaExpr = {
     res: Type;
     body: Expr | Block;
     loc: Loc;
-    is: Type;
+    is: LambdaType;
 };
 
 export type Arg = { sym: Symbol; type: Type; loc: Loc };

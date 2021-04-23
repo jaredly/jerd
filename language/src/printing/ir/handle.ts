@@ -76,6 +76,9 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                         loc: term.location,
                         effect: (term.effect as UserReference).id,
                         pure: {
+                            argType: typeFromTermType(
+                                (term.target.is as LambdaType).res,
+                            ),
                             arg: term.pure.arg,
                             // body: printLambdaBody(
                             //     env,

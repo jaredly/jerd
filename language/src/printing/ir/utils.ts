@@ -260,6 +260,7 @@ export const arrowFunctionExpression = (
     body: Expr | Block,
     _res: Type,
     loc: Loc,
+    typeVbls?: Array<TypeVblDecl>,
 ): LambdaExpr => {
     const res = typeForLambdaExpression(body) || void_;
     return {
@@ -271,6 +272,7 @@ export const arrowFunctionExpression = (
         is: pureFunction(
             args.map((arg) => arg.type),
             res,
+            typeVbls,
         ),
     };
 };

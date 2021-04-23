@@ -10,6 +10,7 @@ import {
     EffectRef,
     UserReference,
     EffectReference,
+    LambdaType,
 } from '../../typing/types';
 import {
     bool,
@@ -149,6 +150,9 @@ const _termToAstCPS = (
                 // fail boat
                 pure: {
                     arg: term.pure.arg,
+                    argType: typeFromTermType(
+                        (term.target.is as LambdaType).res,
+                    ),
                     body: printLambdaBody(env, opts, term.pure.body, done),
                 },
                 cases: term.cases.map((kase) => ({
