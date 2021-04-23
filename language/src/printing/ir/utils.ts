@@ -110,7 +110,6 @@ export const typeFromTermType = (type: TermType): Type => {
             if (type.effects.length) {
                 return {
                     type: 'lambda',
-                    note: 'effects',
                     loc: type.location,
                     typeVbls: type.typeVbls,
                     args: type.args
@@ -128,7 +127,6 @@ export const typeFromTermType = (type: TermType): Type => {
             }
             return {
                 type: 'lambda',
-                note: 'noeffects',
                 loc: type.location,
                 typeVbls: type.typeVbls,
                 args: type.args.map(typeFromTermType),

@@ -33,7 +33,7 @@ import {
     typeIdToString,
     typeToAst,
     typeVblsToParameters,
-} from './typeScriptPrinter';
+} from './typeScriptTypePrinter';
 import { effectConstructorType } from './ir/cps';
 import { getEnumReferences } from '../typing/typeExpr';
 
@@ -173,14 +173,7 @@ export const _termToTs = (
                         opts,
                         term.is.typeVbls,
                     ),
-                    // t.tsTypeParameterDeclaration(
-                    //     term.is.typeVbls.map((tp) =>
-                    //         t.tsTypeParameter(null, null, `T_${tp.unique}`),
-                    //     ),
-                    // ),
                 };
-            } else {
-                return t.addComment(res, 'leading', 'novbls');
             }
             return res;
         case 'term':

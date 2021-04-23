@@ -117,50 +117,6 @@
 //     return result.map((item) => printToString(item, 100)).join('\n\n');
 // };
 
-// export const wrapWithAssert = (expr: Term): Term => {
-//     if (expr.type === 'apply' && isBuiltin(expr.target, '==')) {
-//         const argTypes = (expr.target.is as LambdaType).args;
-//         return {
-//             ...expr,
-//             target: {
-//                 type: 'ref',
-//                 ref: {
-//                     type: 'builtin',
-//                     name: 'assertEqual',
-//                 },
-//                 location: null,
-//                 is: pureFunction(argTypes, void_),
-//             },
-//             is: void_,
-//         };
-//     } else if (expr.type === 'apply') {
-//         return apply(
-//             {
-//                 type: 'ref',
-//                 ref: { type: 'builtin', name: 'assertCall' },
-//                 location: null,
-//                 is: pureFunction(
-//                     [expr.target.is, ...(expr.target.is as LambdaType).args],
-//                     void_,
-//                 ),
-//             },
-//             [expr.target, ...expr.args],
-//             null,
-//         );
-//     } else {
-//         return apply(
-//             {
-//                 type: 'ref',
-//                 ref: { type: 'builtin', name: 'assert' },
-//                 location: null,
-//                 is: pureFunction([bool], void_),
-//             },
-//             [expr],
-//             null,
-//         );
-//     }
-// };
-
 // // TODO move this to an optimize pass that converts to "{as any}" and "{as type}"
 // // also, attributes might want to be "variable" and "concrete"?
 // // alternatively, I could make all go attribute access be functions. although that would

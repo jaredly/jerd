@@ -259,11 +259,14 @@ export const handleSimpleShallow2 = <Get, Set, R>(
             cb: (
                 gotten: Get,
                 newHandler: Handlers,
-                returnIntoHandler: (fnReturnValue: R) => void,
+                returnIntoHandler: (
+                    handlers: Handlers,
+                    fnReturnValue: R,
+                ) => void,
             ) => void,
         ) => void
     >,
-    handlePure: (handlers: any, fnReturnValue: R) => void,
+    handlePure: (handlers: Handlers, fnReturnValue: R) => void,
     otherHandlers?: any | null,
 ) => {
     let fnsReturnPointer = handlePure;
