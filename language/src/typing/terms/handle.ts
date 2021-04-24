@@ -67,7 +67,10 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         const constr = constrs[idx];
         const inner = subEnv(env);
         const args = (kase.args || []).map((id, i) => {
-            return makeLocal(inner, id, constr.args[i]);
+            return {
+                sym: makeLocal(inner, id, constr.args[i]),
+                type: constr.args[i],
+            };
         });
         const k = makeLocal(inner, kase.k, {
             type: 'lambda',
@@ -93,7 +96,7 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         cases.push({
             constr: idx,
             args,
-            k,
+            k: { sym: k, type: void_ },
             body,
         });
     });

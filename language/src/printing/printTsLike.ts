@@ -737,9 +737,9 @@ const caseToPretty = (
         ),
         // atom(kase.constr.toString()),
         atom('('),
-        args(kase.args.map(symToPretty)),
+        args(kase.args.map((arg) => symToPretty(arg.sym))),
         atom(' => '),
-        symToPretty(kase.k),
+        symToPretty(kase.k.sym),
         atom(') => '),
         termToPretty(env, kase.body),
     ]);

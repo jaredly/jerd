@@ -201,8 +201,8 @@ export const subEnv = (env: Env): Env => {
 
 export type Case = {
     constr: number; // the index
-    args: Array<Symbol>;
-    k: Symbol;
+    args: Array<{ sym: Symbol; type: Type }>;
+    k: { sym: Symbol; type: Type };
     body: Term;
 };
 

@@ -291,54 +291,78 @@ export const _termToTs = (
         case 'handle': {
             // term.hermmmmmm there's different behavior if it's
             // in the direct case ... hmmm ....
-            return t.callExpression(t.identifier('handleSimpleShallow2'), [
-                t.stringLiteral(term.effect.hash),
-                termToTs(env, opts, term.target),
-                t.arrayExpression(
-                    term.cases
-                        .sort((a, b) => a.constr - b.constr)
-                        .map(({ args, k, body }) => {
-                            return t.arrowFunctionExpression(
-                                [
-                                    t.identifier(printSym(env, handlerSym)),
-                                    args.length === 0
-                                        ? t.identifier('_')
-                                        : args.length === 1
-                                        ? t.identifier(printSym(env, args[0]))
-                                        : t.arrayPattern(
-                                              args.map((s) =>
+            const expr = t.callExpression(
+                t.identifier('handleSimpleShallow2'),
+                [
+                    t.stringLiteral(term.effect.hash),
+                    termToTs(env, opts, term.target),
+                    t.arrayExpression(
+                        term.cases
+                            .sort((a, b) => a.constr - b.constr)
+                            .map(({ args, k, body }) => {
+                                return t.arrowFunctionExpression(
+                                    [
+                                        t.identifier(printSym(env, handlerSym)),
+                                        args.length === 0
+                                            ? t.identifier('_')
+                                            : args.length === 1
+                                            ? withAnnotation(
+                                                  env,
+                                                  opts,
                                                   t.identifier(
-                                                      printSym(env, s),
+                                                      printSym(
+                                                          env,
+                                                          args[0].sym,
+                                                      ),
+                                                  ),
+                                                  args[0].type,
+                                              )
+                                            : t.arrayPattern(
+                                                  args.map((s) =>
+                                                      t.identifier(
+                                                          printSym(env, s.sym),
+                                                      ),
                                                   ),
                                               ),
-                                          ),
-                                    t.identifier(printSym(env, k)),
-                                ],
-                                lambdaBodyToTs(env, opts, body),
-                            );
-                        }),
-                ),
-                t.arrowFunctionExpression(
-                    [
-                        withAnnotation(
-                            env,
-                            opts,
-                            t.identifier(printSym(env, handlerSym)),
-                            handlersType,
-                        ),
-                        withAnnotation(
-                            env,
-                            opts,
-                            // STOPSHIP: Pure needs the type folks.
-                            t.identifier(printSym(env, term.pure.arg)),
-                            term.pure.argType,
-                            // term.target as LambdaType
-                        ),
-                    ],
-                    lambdaBodyToTs(env, opts, term.pure.body),
-                ),
-                ...(term.done ? [t.identifier(printSym(env, handlerSym))] : []),
-            ]);
+                                        t.identifier(printSym(env, k.sym)),
+                                    ],
+                                    lambdaBodyToTs(env, opts, body),
+                                );
+                            }),
+                    ),
+                    t.arrowFunctionExpression(
+                        [
+                            withAnnotation(
+                                env,
+                                opts,
+                                t.identifier(printSym(env, handlerSym)),
+                                handlersType,
+                            ),
+                            withAnnotation(
+                                env,
+                                opts,
+                                // STOPSHIP: Pure needs the type folks.
+                                t.identifier(printSym(env, term.pure.arg)),
+                                term.pure.argType,
+                                // term.target as LambdaType
+                            ),
+                        ],
+                        lambdaBodyToTs(env, opts, term.pure.body),
+                    ),
+                    ...(term.done
+                        ? [t.identifier(printSym(env, handlerSym))]
+                        : []),
+                ],
+            );
+            return {
+                ...expr,
+                typeParameters: t.tsTypeParameterInstantiation([
+                    t.tsAnyKeyword(),
+                    t.tsAnyKeyword(),
+                    t.tsAnyKeyword(),
+                    // typeToAst(env, opts, term.is),
+                ]),
+            };
         }
 
         case 'raise':

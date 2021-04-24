@@ -313,8 +313,8 @@ export type Expr =
           pure: { arg: Symbol; body: Expr | Block; argType: Type };
           cases: Array<{
               constr: number;
-              args: Array<Symbol>;
-              k: Symbol;
+              args: Array<{ sym: Symbol; type: Type }>;
+              k: { sym: Symbol; type: Type };
               body: Expr | Block;
           }>;
           done: Expr | null;

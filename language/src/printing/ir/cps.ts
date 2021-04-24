@@ -157,6 +157,14 @@ const _termToAstCPS = (
                 },
                 cases: term.cases.map((kase) => ({
                     ...kase,
+                    args: kase.args.map((arg) => ({
+                        ...arg,
+                        type: typeFromTermType(arg.type),
+                    })),
+                    k: {
+                        ...kase.k,
+                        type: typeFromTermType(kase.k.type),
+                    },
                     body: printLambdaBody(env, opts, kase.body, done),
                 })),
                 is: void_,

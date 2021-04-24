@@ -73,6 +73,14 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                         },
                         cases: term.cases.map((kase) => ({
                             ...kase,
+                            args: kase.args.map((arg) => ({
+                                ...arg,
+                                type: typeFromTermType(arg.type),
+                            })),
+                            k: {
+                                ...kase.k,
+                                type: typeFromTermType(kase.k.type),
+                            },
                             body: {
                                 type: 'Block',
                                 loc: kase.body.location,

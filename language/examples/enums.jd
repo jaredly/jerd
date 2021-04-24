@@ -150,7 +150,7 @@ switch y {
     None => true
 }
 
-switch y1 {
+const check = (y1: OptionOrTwice<int>) => switch y1 {
     Twice{two: 5} => false,
     Twice => false,
     Option as x => switch x {
@@ -158,6 +158,8 @@ switch y1 {
         None => true
     },
 }
+
+check(y1)
 
 /*
 

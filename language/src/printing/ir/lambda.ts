@@ -232,7 +232,7 @@ export const sequenceToBlock = (
                         },
                         {
                             sym: { name: '_ignored', unique: 1 },
-                            type: void_,
+                            type: builtinType('unknown'),
                             loc: null,
                         },
                     ],

@@ -256,14 +256,29 @@ export const handleSimpleShallow2 = <Get, Set, R>(
         (
             handlers: Handlers,
             value: Set,
-            cb: (
+            // cb: (
+            //     gotten: Get,
+            //     newHandler: Handlers,
+            //     returnIntoHandler: (
+            //         handlers: Handlers,
+            //         fnReturnValue: R,
+            //     ) => void,
+            // ) => void,
+            cb: ((
                 gotten: Get,
                 newHandler: Handlers,
                 returnIntoHandler: (
                     handlers: Handlers,
                     fnReturnValue: R,
                 ) => void,
-            ) => void,
+            ) => void) &
+                ((
+                    newHandler: Handlers,
+                    returnIntoHandler: (
+                        handlers: Handlers,
+                        fnReturnValue: R,
+                    ) => void,
+                ) => void),
         ) => void
     >,
     handlePure: (handlers: Handlers, fnReturnValue: R) => void,
@@ -276,6 +291,7 @@ export const handleSimpleShallow2 = <Get, Set, R>(
             handleEffect[idx](
                 currentHandlers,
                 args,
+                /// @ts-ignore
                 (handlersValueToSend, newHandler, returnIntoHandler) => {
                     if (returnIntoHandler === undefined) {
                         /// @ts-ignore

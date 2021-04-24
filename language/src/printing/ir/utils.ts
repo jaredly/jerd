@@ -11,7 +11,7 @@ import {
     Var,
     EffectRef,
     Lambda,
-    // LambdaType,
+    LambdaType as TLambdaType,
     walkTerm,
     Pattern,
     UserReference,
@@ -91,6 +91,35 @@ export const lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
     return typeFromTermType(type) as LambdaType;
 };
 
+export const _lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
+    if (type.effects.length) {
+        return {
+            type: 'lambda',
+            loc: type.location,
+            typeVbls: type.typeVbls,
+            args: type.args
+                .map(typeFromTermType)
+                .concat([
+                    handlersType,
+                    pureFunction(
+                        [handlersType, typeFromTermType(type.res)],
+                        void_,
+                    ),
+                ]),
+            rest: type.rest ? typeFromTermType(type.rest) : null,
+            res: void_,
+        };
+    }
+    return {
+        type: 'lambda',
+        loc: type.location,
+        typeVbls: type.typeVbls,
+        args: type.args.map(typeFromTermType),
+        rest: type.rest ? typeFromTermType(type.rest) : null,
+        res: typeFromTermType(type.res),
+    };
+};
+
 export const typeFromTermType = (type: TermType): Type => {
     switch (type.type) {
         case 'ref':
@@ -108,31 +137,26 @@ export const typeFromTermType = (type: TermType): Type => {
             };
         case 'lambda':
             if (type.effects.length) {
-                return {
-                    type: 'lambda',
-                    loc: type.location,
-                    typeVbls: type.typeVbls,
-                    args: type.args
-                        .map(typeFromTermType)
-                        .concat([
-                            handlersType,
-                            pureFunction(
-                                [handlersType, typeFromTermType(type.res)],
-                                void_,
-                            ),
-                        ]),
-                    rest: type.rest ? typeFromTermType(type.rest) : null,
-                    res: void_,
-                };
+                if (
+                    type.effects.every((x) => x.type === 'var') &&
+                    type.effectVbls.length === 1
+                ) {
+                    const directVersion = applyEffectVariables(
+                        null as any,
+                        type,
+                        [],
+                    );
+                    return {
+                        type: 'effectful-or-direct',
+                        loc: type.location,
+                        effectful: _lambdaTypeFromTermType(type),
+                        direct: _lambdaTypeFromTermType(
+                            directVersion as TLambdaType,
+                        ),
+                    };
+                }
             }
-            return {
-                type: 'lambda',
-                loc: type.location,
-                typeVbls: type.typeVbls,
-                args: type.args.map(typeFromTermType),
-                rest: type.rest ? typeFromTermType(type.rest) : null,
-                res: typeFromTermType(type.res),
-            };
+            return _lambdaTypeFromTermType(type);
     }
 };
 

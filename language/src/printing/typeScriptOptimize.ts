@@ -90,6 +90,9 @@ export const removeTypescriptTypes = (ast: t.File) => {
         TSTypeAliasDeclaration(path) {
             path.remove();
         },
+        TSTypeParameterInstantiation(path) {
+            path.remove();
+        },
         TSAsExpression(path) {
             path.replaceWith(path.node.expression);
         },
