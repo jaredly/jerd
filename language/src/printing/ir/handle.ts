@@ -25,6 +25,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                     sym,
                     loc: term.location,
                     value: null,
+                    fakeInit: true,
                     is: typeFromTermType(term.is),
                 },
                 {

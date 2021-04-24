@@ -90,6 +90,9 @@ export const removeTypescriptTypes = (ast: t.File) => {
         TSTypeAliasDeclaration(path) {
             path.remove();
         },
+        TSAsExpression(path) {
+            path.replaceWith(path.node.expression);
+        },
         ImportDeclaration(path) {
             // lol hack
             // this is so typescript is happy
