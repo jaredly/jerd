@@ -481,7 +481,7 @@ const _termToAstCPS = (
                 env,
                 target,
                 // term.originalTargetType,
-                lambdaTypeFromTermType(term.originalTargetType),
+                lambdaTypeFromTermType(term.target.is),
                 // {
                 //     ...lambdaTypeFromTermType(term.originalTargetType),
                 //     args: term.originalTargetType.args

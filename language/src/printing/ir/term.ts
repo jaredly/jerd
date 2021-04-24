@@ -211,7 +211,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             return callExpression(
                 env,
                 target,
-                typeFromTermType(term.originalTargetType) as ILambdaType,
+                typeFromTermType(term.target.is) as ILambdaType,
                 // term.
                 typeFromTermType(term.is),
                 args.map((arg, i) => printTerm(env, opts, arg)),
@@ -308,7 +308,10 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             };
         }
         case 'Enum':
-            return printTerm(env, opts, term.inner);
+            return {
+                ...printTerm(env, opts, term.inner),
+                is: typeFromTermType(term.is),
+            };
         case 'TupleAccess': {
             return {
                 type: 'tupleAccess',

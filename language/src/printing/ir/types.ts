@@ -415,6 +415,22 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
         return one == two;
     }
     if (one.type === 'ref' || two.type === 'ref') {
+        // HACK: We should be able to remove the `unknown` types
+        if (
+            one.type === 'ref' &&
+            one.ref.type === 'builtin' &&
+            one.ref.name === 'unknown'
+        ) {
+            return true;
+        }
+        if (
+            two.type === 'ref' &&
+            two.ref.type === 'builtin' &&
+            two.ref.name === 'unknown'
+        ) {
+            return true;
+        }
+
         if (one.type === 'ref' && two.type === 'ref') {
             return refsEqual(one.ref, two.ref);
         }
