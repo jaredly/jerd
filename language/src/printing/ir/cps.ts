@@ -489,13 +489,15 @@ const _termToAstCPS = (
             return callExpression(
                 env,
                 target,
-                lambdaTypeFromTermType(term.target.is),
+                lambdaTypeFromTermType(term.originalTargetType),
                 typeFromTermType(term.is),
                 // target.is.res,
                 args
                     .map((arg, i) => printTerm(env, opts, arg))
                     .concat([handlerVar(target.loc), done]),
                 target.loc,
+                undefined,
+                term.typeVbls.map((t) => typeFromTermType(t)),
             );
         }
         case 'sequence':

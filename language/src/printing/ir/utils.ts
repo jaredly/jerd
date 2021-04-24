@@ -340,18 +340,34 @@ export const callExpression = (
             // throw new TypeMismatch(env, arg.is, targetType.args[i], arg.loc);
         }
     });
-    // if (!typesEqual(is, tt.res)) {
+    // const ris = typeVbls
+    //     ? (applyTypeVariables(env, target.is, typeVbls) as LambdaType).res
+    //     : is;
+    // if (!typesEqual(ris, is)) {
     //     // throw new Error(`return types disagree`);
+    //     console.log('.....');
+    //     console.log(JSON.stringify(is));
+    //     console.log(JSON.stringify(ris));
     //     throw new LocatedError(
     //         target.loc,
     //         `Return types disagree! Found \n${showType(
     //             env,
     //             is,
-    //         )}, expected \n${showType(env, tt.res)}\n${showType(env, tt)}`,
+    //         )}, expected \n${showType(env, ris)}\n${showType(env, tt)}`,
     //     );
     // }
     return {
         type: 'apply',
+        // START HERE:
+        // bring the type variables in
+        // and then apply them to the target type.
+        // So that we can get rid of `is`, and `targetType` hopefully.
+        // And so we can print out typescript type applications.
+        // because that would be nice.
+        // And also so that concreteType wouldn't be needed --
+        // concreteType would just be the targetType with typeVbls applied
+        // OHH also I can remove targetType & concreteType on this
+        // IR object. That would be so rad.
         typeVbls: typeVbls || [],
         // targetType,
         targetType: target.is as LambdaType,
@@ -411,3 +427,122 @@ function typeVblDeclsToPretty(env: Env, typeVbls: TypeVblDecl[]): PP | null {
 }
 export const showType = (env: Env, t: Type): string =>
     printToString(typeToPretty(env, t), 100);
+
+export const applyTypeVariables = (
+    env: Env,
+    type: Type,
+    vbls: Array<Type>,
+    selfHash?: string,
+): Type => {
+    if (type.type === 'lambda') {
+        const t: LambdaType = type as LambdaType;
+
+        const mapping: { [unique: number]: Type } = {};
+        if (vbls.length !== t.typeVbls.length) {
+            console.log('the variables', t.typeVbls);
+            console.log(showType(env, type));
+            throw new LocatedError(
+                type.loc,
+                `Wrong number of type variables: found ${vbls.length}, expected ${t.typeVbls.length}`,
+            );
+        }
+        // Umm should I still be doing the subtype checks?
+        // vbls.forEach((typ, i) => {
+        //     // STOPSHIP CHECK HERE
+        //     const subs = t.typeVbls[i].subTypes;
+        //     for (let sub of subs) {
+        //         if (!hasSubType(env, typ, sub)) {
+        //             throw new Error(`Expected a subtype of ${idName(sub)}`);
+        //         }
+        //     }
+        //     mapping[t.typeVbls[i].unique] = typ;
+        // });
+        return {
+            ...type,
+            typeVbls: [], // TODO allow partial application!
+            args: type.args.map((t) => subtTypeVars(t, mapping, selfHash)),
+            // TODO effects with type vars!
+            rest: null, // TODO rest args
+            res: subtTypeVars(type.res, mapping, selfHash),
+        };
+    }
+    // should I go full-on whatsit? maybe not yet.
+    throw new Error(`Can't apply variables to non-lambdas just yet`);
+};
+
+export const subtTypeVars = (
+    t: Type,
+    vbls: { [unique: number]: Type },
+    selfHash: string | undefined,
+): Type => {
+    return (
+        walkType(t, (t) => {
+            if (t.type === 'var') {
+                if (vbls[t.sym.unique]) {
+                    return vbls[t.sym.unique];
+                }
+                return t;
+            }
+            if (t.type === 'ref') {
+                if (
+                    t.ref.type === 'user' &&
+                    t.ref.id.hash === '<self>' &&
+                    selfHash != null
+                ) {
+                    t = {
+                        ...t,
+                        ref: { ...t.ref, id: { ...t.ref.id, hash: selfHash } },
+                    };
+                }
+                if (t.typeVbls.length > 0) {
+                    return {
+                        ...t,
+                        typeVbls: t.typeVbls.map((t) =>
+                            subtTypeVars(t, vbls, selfHash),
+                        ),
+                    };
+                }
+                if (t.ref.type === 'builtin') {
+                    return null;
+                }
+            }
+            return null;
+        }) || t
+    );
+};
+
+export const walkType = (
+    term: Type,
+    handle: (term: Type) => Type | null,
+): Type | null => {
+    const changed = handle(term);
+    if (changed) {
+        return changed;
+    }
+    if (term.type === 'lambda') {
+        const newArgs = term.args.slice();
+        let changed = false;
+        term.args.forEach((arg, i) => {
+            const neww = walkType(arg, handle);
+            if (neww != null) {
+                changed = true;
+                newArgs[i] = neww;
+            }
+        });
+        const newres = walkType(term.res, handle);
+        if (newres != null) {
+            changed = true;
+        }
+        if (changed) {
+            return {
+                type: 'lambda',
+                typeVbls: term.typeVbls.slice(),
+                loc: term.loc,
+                args: newArgs,
+                res: newres || term.res,
+                rest: null, // STOPSHIP handle rest
+            };
+        }
+    }
+    return null;
+};
