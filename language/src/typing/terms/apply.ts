@@ -41,12 +41,12 @@ export const typeApply = (
             typeVbls,
             '<self>',
         ) as LambdaType;
-        // console.log(
-        //     'Applying type variables',
-        //     typeVbls.map((t) => showType(env, t)).join(', '),
-        //     showType(env, target.is),
-        //     showType(env, applied),
-        // );
+        console.log(
+            'Applying type variables',
+            typeVbls.map((t) => showType(env, t)).join(', '),
+            '\n' + showType(env, target.is),
+            '\n' + showType(env, applied),
+        );
         // @ts-ignore
         target = {
             ...target,

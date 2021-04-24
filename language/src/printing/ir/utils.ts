@@ -346,7 +346,7 @@ export const callExpression = (
     //         `Return types disagree! Found \n${showType(
     //             env,
     //             is,
-    //         )}, expected \n${showType(env, tt.res)}`,
+    //         )}, expected \n${showType(env, tt.res)}\n${showType(env, tt)}`,
     //     );
     // }
     return {
@@ -356,6 +356,7 @@ export const callExpression = (
         concreteType: concreteType || targetType,
         note,
         is: is, // targetType.res,
+        // is: tt.res,
         target,
         args,
         loc,
@@ -400,7 +401,11 @@ export const typeToPretty = (env: Env, type: Type): PP => {
 };
 
 function typeVblDeclsToPretty(env: Env, typeVbls: TypeVblDecl[]): PP | null {
-    throw new Error('Function not implemented.');
+    return items([
+        atom('<'),
+        args(typeVbls.map((t) => atom('T_' + t.unique))),
+        atom('>'),
+    ]);
 }
 export const showType = (env: Env, t: Type): string =>
     printToString(typeToPretty(env, t), 100);

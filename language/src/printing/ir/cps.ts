@@ -484,26 +484,14 @@ const _termToAstCPS = (
                     loc: target.loc,
                     is: typeFromTermType(term.target.is),
                 };
-                // target = memberExpression(target, t.identifier('effectful'));
             }
-            // console.log(term.target.type, term.hadAllVariableEffects);
+            // const lt =
             return callExpression(
                 env,
-                // { ...target, is: typeFromTermType(term.target.is) },
                 target,
-                // term.originalTargetType,
                 lambdaTypeFromTermType(term.target.is),
-                // {
-                //     ...lambdaTypeFromTermType(term.originalTargetType),
-                //     args: term.originalTargetType.args
-                //         .map(typeFromTermType)
-                //         .concat([
-                //             handlersType,
-                //             pureFunction([typeFromTermType(term.is)], void_),
-                //         ]),
-                //     res: void_,
-                // },
-                typeFromTermType(term.is),
+                // typeFromTermType(term.is),
+                target.is.res,
                 args
                     .map((arg, i) => printTerm(env, opts, arg))
                     .concat([handlerVar(target.loc), done]),
