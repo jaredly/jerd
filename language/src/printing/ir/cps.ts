@@ -185,7 +185,10 @@ const _termToAstCPS = (
                     callExpression(
                         env,
                         done,
-                        pureFunction([handlersType], void_),
+                        pureFunction(
+                            [handlersType, builtinType('undefined')],
+                            void_,
+                        ),
                         void_,
                         [
                             {
@@ -193,6 +196,12 @@ const _termToAstCPS = (
                                 sym: handlerSym,
                                 loc: term.location,
                                 is: handlersType,
+                            },
+                            {
+                                type: 'builtin',
+                                name: 'undefined',
+                                loc: term.location,
+                                is: builtinType('undefined'),
                             },
                         ],
                         term.location,
