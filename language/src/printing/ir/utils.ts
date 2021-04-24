@@ -315,6 +315,7 @@ export const callExpression = (
     args: Array<Expr>,
     loc: Loc,
     concreteType?: LambdaType,
+    typeVbls?: Array<Type>,
 ): Expr => {
     const tt = target.is as LambdaType;
     if (tt.args.length !== args.length) {
@@ -351,6 +352,7 @@ export const callExpression = (
     // }
     return {
         type: 'apply',
+        typeVbls: typeVbls || [],
         // targetType,
         targetType: target.is as LambdaType,
         concreteType: concreteType || targetType,

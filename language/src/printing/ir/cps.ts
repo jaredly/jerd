@@ -490,8 +490,8 @@ const _termToAstCPS = (
                 env,
                 target,
                 lambdaTypeFromTermType(term.target.is),
-                // typeFromTermType(term.is),
-                target.is.res,
+                typeFromTermType(term.is),
+                // target.is.res,
                 args
                     .map((arg, i) => printTerm(env, opts, arg))
                     .concat([handlerVar(target.loc), done]),

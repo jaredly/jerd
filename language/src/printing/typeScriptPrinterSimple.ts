@@ -67,6 +67,7 @@ export type OutputOptions = {
 
 export const maybeWithComment = <T>(e: T, comment?: string): T => {
     if (comment) {
+        // @ts-ignore
         return t.addComment(e, 'leading', comment);
     } else {
         return e;

@@ -359,6 +359,7 @@ export type Tuple = {
 };
 export type Apply = {
     type: 'apply';
+    typeVbls: Array<Type>;
     targetType: LambdaType;
     concreteType: LambdaType;
     target: Expr;

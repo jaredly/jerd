@@ -308,6 +308,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             };
         }
         case 'Enum':
+            // @ts-ignore
             return {
                 ...printTerm(env, opts, term.inner),
                 is: typeFromTermType(term.is),
