@@ -48,8 +48,10 @@ import {
     LambdaType,
     returnTypeForStmt,
     typeForLambdaExpression,
+    typesEqual,
 } from './types';
 import { Location } from '../../parsing/parser';
+import { LocatedError } from '../../typing/errors';
 
 export const builtinType = (
     name: string,
@@ -201,8 +203,10 @@ export const returnStatement = (expr: Expr): Stmt => ({
 });
 
 export const iffe = (st: Block, res: Type): Expr => {
+    // TODO
+    // const res = typeForLambdaExpression(body) || void_;
     return callExpression(
-        arrowFunctionExpression([], st, res, st.loc),
+        arrowFunctionExpression([], st, st.loc),
         pureFunction([], res),
         res,
         [],
@@ -280,7 +284,6 @@ export const or = (left: Expr, right: Expr, loc: Loc) =>
 export const arrowFunctionExpression = (
     args: Array<Arg>,
     body: Expr | Block,
-    _res: Type,
     loc: Loc,
     typeVbls?: Array<TypeVblDecl>,
 ): LambdaExpr => {
@@ -300,21 +303,33 @@ export const arrowFunctionExpression = (
 };
 
 export const callExpression = (
+    // env: Env,
     target: Expr,
     targetType: LambdaType,
     is: Type,
     args: Array<Expr>,
     loc: Loc,
     concreteType?: LambdaType,
-): Expr => ({
-    type: 'apply',
-    targetType,
-    concreteType: concreteType || targetType,
-    is,
-    target,
-    args,
-    loc,
-});
+): Expr => {
+    // if (targetType.args.length !== args.length) {
+    //     throw new Error(`Wrong arg number`);
+    // }
+    // args.forEach((arg, i) => {
+    //     if (!typesEqual(arg.is, targetType.args[i])) {
+    //         console.log(arg.is, targetType.args[i]);
+    //         throw new LocatedError(arg.loc, `Wrong arg type ${i}`);
+    //     }
+    // });
+    return {
+        type: 'apply',
+        targetType,
+        concreteType: concreteType || targetType,
+        is,
+        target,
+        args,
+        loc,
+    };
+};
 export const stringLiteral = (value: string, loc: Loc): Expr => ({
     type: 'string',
     value,

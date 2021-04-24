@@ -95,7 +95,6 @@ export const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {
             arg,
         ],
         body,
-        void_,
         loc,
     );
 };
@@ -452,7 +451,6 @@ const _termToAstCPS = (
                                 ],
                                 inner.loc,
                             ),
-                            void_,
                             args[i].location,
                         ),
                     );

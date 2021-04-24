@@ -63,7 +63,6 @@ export const printLambda = (
                         opts,
                         printLambdaBody(env, opts, directVersion.body, null),
                     ),
-                    typeFromTermType(directVersion.is.res),
                     term.location,
                     term.is.typeVbls,
                 ),
@@ -90,7 +89,6 @@ export const printLambda = (
                 opts,
                 printLambdaBody(env, opts, term.body, null),
             ),
-            typeFromTermType(term.is.res),
             term.location,
             term.is.typeVbls,
         );
@@ -172,8 +170,6 @@ const effectfulLambda = (
                 is: doneT,
             }),
         ),
-        // term.is.res,
-        void_,
         term.location,
         term.is.typeVbls,
     );
@@ -252,7 +248,6 @@ export const sequenceToBlock = (
                             },
                         ],
                     },
-                    void_,
                     term.sts[i].location,
                 );
             } else {
