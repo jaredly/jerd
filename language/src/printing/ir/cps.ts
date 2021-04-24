@@ -345,19 +345,20 @@ const _termToAstCPS = (
                         env,
                         target,
                         // STOSHIP: add handler n stuff
-                        {
-                            ...lambdaTypeFromTermType(term.originalTargetType),
-                            args: term.originalTargetType.args
-                                .map(typeFromTermType)
-                                .concat([
-                                    handlersType,
-                                    pureFunction(
-                                        [typeFromTermType(term.is)],
-                                        void_,
-                                    ),
-                                ]),
-                            res: void_,
-                        },
+                        lambdaTypeFromTermType(term.target.is),
+                        // {
+                        //     ...lambdaTypeFromTermType(term.target.is),
+                        //     args: term.originalTargetType.args
+                        //         .map(typeFromTermType)
+                        //         .concat([
+                        //             handlersType,
+                        //             pureFunction(
+                        //                 [typeFromTermType(term.is)],
+                        //                 void_,
+                        //             ),
+                        //         ]),
+                        //     res: void_,
+                        // },
                         // term.originalTargetType,
                         // term.is,
                         void_,
@@ -396,22 +397,22 @@ const _termToAstCPS = (
                             callExpression(
                                 env,
                                 target,
-                                // term.originalTargetType,
-                                {
-                                    ...lambdaTypeFromTermType(
-                                        term.originalTargetType,
-                                    ),
-                                    args: term.originalTargetType.args
-                                        .map(typeFromTermType)
-                                        .concat([
-                                            handlersType,
-                                            pureFunction(
-                                                [typeFromTermType(term.is)],
-                                                void_,
-                                            ),
-                                        ]),
-                                    res: void_,
-                                },
+                                lambdaTypeFromTermType(term.target.is),
+                                // {
+                                //     ...lambdaTypeFromTermType(
+                                //         term.originalTargetType,
+                                //     ),
+                                //     args: term.originalTargetType.args
+                                //         .map(typeFromTermType)
+                                //         .concat([
+                                //             handlersType,
+                                //             pureFunction(
+                                //                 [typeFromTermType(term.is)],
+                                //                 void_,
+                                //             ),
+                                //         ]),
+                                //     res: void_,
+                                // },
                                 typeFromTermType(term.is),
                                 argSyms.map((sym, i) =>
                                     sym
@@ -480,16 +481,17 @@ const _termToAstCPS = (
                 env,
                 target,
                 // term.originalTargetType,
-                {
-                    ...lambdaTypeFromTermType(term.originalTargetType),
-                    args: term.originalTargetType.args
-                        .map(typeFromTermType)
-                        .concat([
-                            handlersType,
-                            pureFunction([typeFromTermType(term.is)], void_),
-                        ]),
-                    res: void_,
-                },
+                lambdaTypeFromTermType(term.originalTargetType),
+                // {
+                //     ...lambdaTypeFromTermType(term.originalTargetType),
+                //     args: term.originalTargetType.args
+                //         .map(typeFromTermType)
+                //         .concat([
+                //             handlersType,
+                //             pureFunction([typeFromTermType(term.is)], void_),
+                //         ]),
+                //     res: void_,
+                // },
                 typeFromTermType(term.is),
                 args
                     .map((arg, i) => printTerm(env, opts, arg))

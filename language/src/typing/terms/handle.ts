@@ -12,6 +12,7 @@ import {
     refsEqual,
     Case,
     EffectRef,
+    LambdaType,
 } from '../types';
 import { showType } from '../unify';
 import typeExpr from '../typeExpr';
@@ -72,7 +73,7 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
                 type: constr.args[i],
             };
         });
-        const k = makeLocal(inner, kase.k, {
+        const kType: LambdaType = {
             type: 'lambda',
             location: kase.location,
             typeVbls: [],
@@ -81,7 +82,8 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
             effects: kEffects,
             rest: null,
             res: targetReturn,
-        });
+        };
+        const k = makeLocal(inner, kase.k, kType);
 
         const body = typeExpr(inner, kase.body);
         if (!typesEqual(body.is, pure.is)) {
@@ -96,7 +98,7 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         cases.push({
             constr: idx,
             args,
-            k: { sym: k, type: void_ },
+            k: { sym: k, type: kType },
             body,
         });
     });

@@ -335,7 +335,12 @@ export const _termToTs = (
                                                       ),
                                                   ),
                                               ),
-                                        t.identifier(printSym(env, k.sym)),
+                                        withAnnotation(
+                                            env,
+                                            opts,
+                                            t.identifier(printSym(env, k.sym)),
+                                            k.type,
+                                        ),
                                     ],
                                     lambdaBodyToTs(env, opts, body),
                                 );

@@ -100,6 +100,7 @@ export const _lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
             type: 'lambda',
             loc: type.location,
             typeVbls: type.typeVbls,
+            note: 'from with effects',
             args: type.args
                 .map(typeFromTermType)
                 .concat([
@@ -323,13 +324,13 @@ export const callExpression = (
         if (!typesEqual(arg.is, targetType.args[i])) {
             // console.log(args);
             // console.log(arg.is, targetType.args[i]);
-            // throw new LocatedError(
-            //     arg.loc,
-            //     `Type Mismatch! Found ${showType(
-            //         env,
-            //         arg.is,
-            //     )}, expected ${showType(env, targetType.args[i])}`,
-            // );
+            throw new LocatedError(
+                arg.loc,
+                `Type Mismatch! Found \n${showType(
+                    env,
+                    arg.is,
+                )}, expected \n${showType(env, targetType.args[i])}`,
+            );
             note = `Type Mismatch at arg ${i}! Found ${showType(
                 env,
                 arg.is,
@@ -371,6 +372,7 @@ export const typeToPretty = (env: Env, type: Type): PP => {
             return refToPretty(env, type.ref, 'type');
         case 'lambda':
             return items([
+                type.note ? atom('[' + type.note + ']') : null,
                 type.typeVbls.length
                     ? typeVblDeclsToPretty(env, type.typeVbls)
                     : null,
