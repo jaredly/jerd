@@ -17,6 +17,7 @@ import { printTerm } from './term';
 export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
     const sym: Symbol = { name: 'result', unique: env.local.unique++ };
     return iffe(
+        env,
         {
             type: 'Block',
             items: [
@@ -57,6 +58,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                                         is: typeFromTermType(term.pure.body.is),
                                         loc: term.pure.body.location,
                                         value: iffe(
+                                            env,
                                             asBlock(
                                                 printLambdaBody(
                                                     env,
@@ -91,6 +93,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                                         is: typeFromTermType(kase.body.is),
                                         loc: kase.body.location,
                                         value: iffe(
+                                            env,
                                             asBlock(
                                                 printLambdaBody(
                                                     env,

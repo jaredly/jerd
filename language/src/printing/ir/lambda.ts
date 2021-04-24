@@ -111,6 +111,7 @@ export const withExecutionLimit = (
                 type: 'Expression',
                 loc: body.loc,
                 expr: callExpression(
+                    env,
                     builtin(
                         'checkExecutionLimit',
                         body.loc,

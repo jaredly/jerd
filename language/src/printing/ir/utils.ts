@@ -27,7 +27,6 @@ import {
     // string,
     // void_,
 } from '../../typing/preset';
-import { showType } from '../../typing/unify';
 import {
     applyEffectVariables,
     getEnumReferences,
@@ -51,7 +50,9 @@ import {
     typesEqual,
 } from './types';
 import { Location } from '../../parsing/parser';
-import { LocatedError } from '../../typing/errors';
+import { LocatedError, TypeMismatch } from '../../typing/errors';
+import { args, atom, items, PP, printToString } from '../printer';
+import { refToPretty, symToPretty } from '../printTsLike';
 
 export const builtinType = (
     name: string,
@@ -202,10 +203,11 @@ export const returnStatement = (expr: Expr): Stmt => ({
     loc: expr.loc,
 });
 
-export const iffe = (st: Block, res: Type): Expr => {
+export const iffe = (env: Env, st: Block, res: Type): Expr => {
     // TODO
     // const res = typeForLambdaExpression(body) || void_;
     return callExpression(
+        env,
         arrowFunctionExpression([], st, st.loc),
         pureFunction([], res),
         res,
@@ -263,8 +265,9 @@ export const builtin = (name: string, loc: Loc, is: Type): Expr => ({
     is,
 });
 
-export const and = (left: Expr, right: Expr, loc: Loc) =>
+export const and = (env: Env, left: Expr, right: Expr, loc: Loc) =>
     callExpression(
+        env,
         builtin('&&', loc, pureFunction([bool, bool], bool)),
         pureFunction([bool, bool], bool),
         bool,
@@ -272,8 +275,9 @@ export const and = (left: Expr, right: Expr, loc: Loc) =>
         loc,
     );
 
-export const or = (left: Expr, right: Expr, loc: Loc) =>
+export const or = (env: Env, left: Expr, right: Expr, loc: Loc) =>
     callExpression(
+        env,
         builtin('||', loc, pureFunction([bool, bool], bool)),
         pureFunction([bool, bool], bool),
         bool,
@@ -303,7 +307,7 @@ export const arrowFunctionExpression = (
 };
 
 export const callExpression = (
-    // env: Env,
+    env: Env,
     target: Expr,
     targetType: LambdaType,
     is: Type,
@@ -311,19 +315,33 @@ export const callExpression = (
     loc: Loc,
     concreteType?: LambdaType,
 ): Expr => {
-    // if (targetType.args.length !== args.length) {
-    //     throw new Error(`Wrong arg number`);
-    // }
-    // args.forEach((arg, i) => {
-    //     if (!typesEqual(arg.is, targetType.args[i])) {
-    //         console.log(arg.is, targetType.args[i]);
-    //         throw new LocatedError(arg.loc, `Wrong arg type ${i}`);
-    //     }
-    // });
+    if (targetType.args.length !== args.length) {
+        throw new Error(`Wrong arg number`);
+    }
+    let note = undefined;
+    args.forEach((arg, i) => {
+        if (!typesEqual(arg.is, targetType.args[i])) {
+            // console.log(args);
+            // console.log(arg.is, targetType.args[i]);
+            // throw new LocatedError(
+            //     arg.loc,
+            //     `Type Mismatch! Found ${showType(
+            //         env,
+            //         arg.is,
+            //     )}, expected ${showType(env, targetType.args[i])}`,
+            // );
+            note = `Type Mismatch at arg ${i}! Found ${showType(
+                env,
+                arg.is,
+            )}, expected ${showType(env, targetType.args[i])}`;
+            // throw new TypeMismatch(env, arg.is, targetType.args[i], arg.loc);
+        }
+    });
     return {
         type: 'apply',
         targetType,
         concreteType: concreteType || targetType,
+        note,
         is,
         target,
         args,
@@ -336,3 +354,39 @@ export const stringLiteral = (value: string, loc: Loc): Expr => ({
     loc,
     is: string,
 });
+
+export const typeToPretty = (env: Env, type: Type): PP => {
+    switch (type.type) {
+        case 'ref':
+            if (type.typeVbls.length) {
+                return items([
+                    refToPretty(env, type.ref, 'type'),
+                    args(
+                        type.typeVbls.map((t) => typeToPretty(env, t)),
+                        '<',
+                        '>',
+                    ),
+                ]);
+            }
+            return refToPretty(env, type.ref, 'type');
+        case 'lambda':
+            return items([
+                type.typeVbls.length
+                    ? typeVblDeclsToPretty(env, type.typeVbls)
+                    : null,
+                args(type.args.map((t) => typeToPretty(env, t))),
+                atom(' => '),
+                typeToPretty(env, type.res),
+            ]);
+        case 'var':
+            return symToPretty(type.sym);
+        default:
+            throw new Error(`Unexpected type ${JSON.stringify(type)}`);
+    }
+};
+
+function typeVblDeclsToPretty(env: Env, typeVbls: TypeVblDecl[]): PP | null {
+    throw new Error('Function not implemented.');
+}
+export const showType = (env: Env, t: Type): string =>
+    printToString(typeToPretty(env, t), 100);

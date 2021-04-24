@@ -54,7 +54,7 @@ export const printPattern = (
             [
                 ifStatement(
                     tests.reduce((one: Expr, two: Expr) =>
-                        or(one, two, pattern.location),
+                        or(env, one, two, pattern.location),
                     ),
                     success,
                     null,
@@ -193,6 +193,7 @@ export const printPattern = (
 
         const indexFromEnd = (i: number, loc: Loc): Expr =>
             callExpression(
+                env,
                 {
                     type: 'builtin',
                     loc,
@@ -296,6 +297,7 @@ export const printPattern = (
                 [
                     ifStatement(
                         callExpression(
+                            env,
                             {
                                 type: 'builtin',
                                 loc: pattern.location,

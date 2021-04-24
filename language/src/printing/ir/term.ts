@@ -136,6 +136,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         }
         case 'if': {
             return iffe(
+                env,
                 blockStatement(
                     [
                         ifStatement(
@@ -208,6 +209,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             });
 
             return callExpression(
+                env,
                 target,
                 typeFromTermType(term.originalTargetType) as ILambdaType,
                 // term.
@@ -230,6 +232,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         case 'sequence': {
             // IIFE
             return callExpression(
+                env,
                 arrowFunctionExpression(
                     [],
                     blockStatement(
@@ -399,6 +402,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             );
 
             return iffe(
+                env,
                 blockStatement(
                     [
                         basic

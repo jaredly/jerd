@@ -117,7 +117,7 @@ export const flattenNestedIfs = (env: Env, expr: Expr): Expr => {
             }
             return {
                 ...stmt,
-                cond: and(stmt.cond, stmt.yes.items[0].cond, stmt.loc),
+                cond: and(env, stmt.cond, stmt.yes.items[0].cond, stmt.loc),
                 yes: stmt.yes.items[0].yes,
             };
         },
@@ -559,6 +559,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
 
     if (inits.length) {
         return iffe(
+            env,
             {
                 type: 'Block',
                 items: inits.concat({
@@ -783,7 +784,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
     const indices: Array<Symbol> = corrects.map((arg) => {
         const unique = env.local.unique++;
         const s = { name: arg.sym.name + '_i', unique };
-        indexForSym[symName(arg.sym)] = { sym: s, type: arg.type };
+        indexForSym[symName(arg.sym)] = { sym: s, type: int };
         return s;
     });
     const modified: Array<Expr> = [];
@@ -803,6 +804,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                         ...stmt,
                         sym: indexForSym[n].sym,
                         value: callExpression(
+                            env,
                             builtin(
                                 '+',
                                 expr.loc,
@@ -836,6 +838,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                             return {
                                 ...expr,
                                 idx: callExpression(
+                                    env,
                                     builtin(
                                         '+',
                                         expr.loc,
@@ -868,6 +871,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                         if (argMap[n] === true) {
                             modified.push(expr);
                             return callExpression(
+                                env,
                                 builtin(
                                     '-',
                                     expr.loc,
@@ -951,6 +955,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
         if (nxt != null) {
             src = nxt.src;
             start = callExpression(
+                env,
                 builtin('+', expr.loc, pureFunction([int, int], int)),
                 pureFunction([int, int], int),
                 int,
@@ -975,6 +980,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                             ...expr,
                             value: { ...expr.value, sym: res.src },
                             start: callExpression(
+                                env,
                                 builtin(
                                     '+',
                                     expr.loc,
@@ -998,6 +1004,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                             ...expr,
                             value: { ...expr.value, sym: res.src },
                             idx: callExpression(
+                                env,
                                 builtin(
                                     '+',
                                     expr.loc,
@@ -1018,6 +1025,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                             return null;
                         }
                         return callExpression(
+                            env,
                             builtin(
                                 '-',
                                 expr.loc,

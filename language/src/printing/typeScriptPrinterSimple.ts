@@ -65,6 +65,14 @@ export type OutputOptions = {
     readonly disciminant?: string;
 };
 
+export const maybeWithComment = <T>(e: T, comment?: string): T => {
+    if (comment) {
+        return t.addComment(e, 'leading', comment);
+    } else {
+        return e;
+    }
+};
+
 export const withAnnotation = <T>(
     env: Env,
     opts: OutputOptions,
@@ -224,9 +232,12 @@ export const _termToTs = (
                     // term.args.map((arg) => termToTs(env, opts, arg)),
                 );
             }
-            return t.callExpression(
-                termToTs(env, opts, term.target),
-                term.args.map((arg) => termToTs(env, opts, arg)),
+            return maybeWithComment(
+                t.callExpression(
+                    termToTs(env, opts, term.target),
+                    term.args.map((arg) => termToTs(env, opts, arg)),
+                ),
+                term.note,
             );
         case 'tuple':
             return t.arrayExpression(

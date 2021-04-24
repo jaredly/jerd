@@ -363,6 +363,7 @@ export type Apply = {
     concreteType: LambdaType;
     target: Expr;
     args: Array<Expr>;
+    note?: string;
     loc: Loc;
     is: Type;
 };

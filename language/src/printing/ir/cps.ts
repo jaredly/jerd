@@ -119,6 +119,7 @@ const _termToAstCPS = (
     if (!getEffects(term).length && term.type !== 'Let') {
         const tt = typeFromTermType(term.is);
         return callExpression(
+            env,
             done,
             pureFunction([handlersType, tt], void_),
             void_,
@@ -182,6 +183,7 @@ const _termToAstCPS = (
                         loc: term.location,
                     },
                     callExpression(
+                        env,
                         done,
                         pureFunction([handlersType], void_),
                         void_,
@@ -251,6 +253,7 @@ const _termToAstCPS = (
                                               done,
                                           )
                                         : callExpression(
+                                              env,
                                               done,
                                               pureFunction(
                                                   [handlersType],
@@ -273,6 +276,7 @@ const _termToAstCPS = (
             const cond = printTerm(env, opts, term.cond);
 
             return iffe(
+                env,
                 blockStatement(
                     [
                         ifStatement(
@@ -281,6 +285,7 @@ const _termToAstCPS = (
                             term.no
                                 ? printLambdaBody(env, opts, term.no, done)
                                 : callExpression(
+                                      env,
                                       done,
                                       pureFunction([handlersType], void_),
                                       void_,
@@ -337,6 +342,7 @@ const _termToAstCPS = (
                     // but not if that arg has an arg that does cps,
                     // right?
                     inner = callExpression(
+                        env,
                         target,
                         // STOSHIP: add handler n stuff
                         {
@@ -378,6 +384,7 @@ const _termToAstCPS = (
                     // or I could do that post-hoc?
                     // I mean that might make things simpler tbh.
                     inner = callExpression(
+                        env,
                         done,
                         pureFunction([handlersType, builtinType('any')], void_),
                         void_,
@@ -387,6 +394,7 @@ const _termToAstCPS = (
                             // put the "body"
                             // which might include inverting it.
                             callExpression(
+                                env,
                                 target,
                                 // term.originalTargetType,
                                 {
@@ -469,6 +477,7 @@ const _termToAstCPS = (
                 // target = memberExpression(target, t.identifier('effectful'));
             }
             return callExpression(
+                env,
                 target,
                 // term.originalTargetType,
                 {
@@ -490,12 +499,14 @@ const _termToAstCPS = (
         }
         case 'sequence':
             return iffe(
+                env,
                 sequenceToBlock(env, opts, term, done),
                 typeFromTermType(term.is),
             );
         default:
             // console.log('ELSE', term.type);
             return callExpression(
+                env,
                 done,
                 pureFunction([handlersType, typeFromTermType(term.is)], void_),
                 void_,
