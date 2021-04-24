@@ -316,26 +316,21 @@ export const callExpression = (
     loc: Loc,
     concreteType?: LambdaType,
 ): Expr => {
-    if (targetType.args.length !== args.length) {
+    const tt = target.is as LambdaType;
+    if (tt.args.length !== args.length) {
         throw new Error(
-            `Wrong arg number, expected ${targetType.args.length}, found ${args.length}`,
+            `Wrong arg number expected ${tt.args.length}, provided ${args.length}`,
         );
     }
-    // const tt = target.is as LambdaType;
-    // if (tt.args.length !== args.length) {
-    //     throw new Error(
-    //         `Wrong arg number expected ${tt.args.length}, provided ${args.length}`,
-    //     );
-    // }
     let note = undefined;
     args.forEach((arg, i) => {
-        if (!typesEqual(arg.is, targetType.args[i])) {
+        if (!typesEqual(arg.is, tt.args[i])) {
             throw new LocatedError(
                 arg.loc,
                 `Type Mismatch! Found \n${showType(
                     env,
                     arg.is,
-                )}, expected \n${showType(env, targetType.args[i])}`,
+                )}, expected \n${showType(env, tt.args[i])}`,
             );
             // note = `Type Mismatch at arg ${i}! Found ${showType(
             //     env,
@@ -344,15 +339,23 @@ export const callExpression = (
             // throw new TypeMismatch(env, arg.is, targetType.args[i], arg.loc);
         }
     });
-    // if (!typesEqual(is, targetType.res)) {
-    //     throw new Error(`return types disagree`);
+    // if (!typesEqual(is, tt.res)) {
+    //     // throw new Error(`return types disagree`);
+    //     throw new LocatedError(
+    //         target.loc,
+    //         `Return types disagree! Found \n${showType(
+    //             env,
+    //             is,
+    //         )}, expected \n${showType(env, tt.res)}`,
+    //     );
     // }
     return {
         type: 'apply',
-        targetType,
+        // targetType,
+        targetType: target.is as LambdaType,
         concreteType: concreteType || targetType,
         note,
-        is: targetType.res,
+        is: is, // targetType.res,
         target,
         args,
         loc,

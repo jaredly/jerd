@@ -486,8 +486,10 @@ const _termToAstCPS = (
                 };
                 // target = memberExpression(target, t.identifier('effectful'));
             }
+            // console.log(term.target.type, term.hadAllVariableEffects);
             return callExpression(
                 env,
+                // { ...target, is: typeFromTermType(term.target.is) },
                 target,
                 // term.originalTargetType,
                 lambdaTypeFromTermType(term.target.is),
