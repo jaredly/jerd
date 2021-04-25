@@ -680,7 +680,7 @@ export const effectsMatch = (
         const k = effectKey(e);
         twos[k] = true;
         if (!ones[k]) {
-            console.log(`Missing`, k, one.map(effectKey), two.map(effectKey));
+            // console.log(`Missing`, k, one.map(effectKey), two.map(effectKey));
             return false;
         }
     }

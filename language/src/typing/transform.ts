@@ -323,7 +323,7 @@ export const withNoEffects = (env: Env, term: Lambda): Lambda => {
         }
         if (t.is.type === 'lambda' && t !== term) {
             if (t.is.effectVbls.length) {
-                console.log('dropout', showLocation(t.location));
+                // console.log('dropout', showLocation(t.location));
                 return false;
             }
         }

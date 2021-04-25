@@ -51,9 +51,9 @@ export const printLambda = (
             term.is.effectVbls.length
         ) {
             const directVersion = withNoEffects(env, term);
-            console.log(`Direct version folks`);
-            console.log(printToString(termToPretty(env, term), 100));
-            console.log(printToString(termToPretty(env, directVersion), 100));
+            // console.log(`Direct version folks`);
+            // console.log(printToString(termToPretty(env, term), 100));
+            // console.log(printToString(termToPretty(env, directVersion), 100));
             return {
                 type: 'effectfulOrDirectLambda',
                 loc: term.location,
