@@ -587,7 +587,7 @@ export const resolveEffect = (
                 }
             });
             if (!found) {
-                throw new Error(`Could not resolve effect symbol`);
+                throw new Error(`Could not resolve effect symbol ${hash}`);
             }
             return {
                 type: 'var',

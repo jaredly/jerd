@@ -673,18 +673,14 @@ export const effectsMatch = (
 ) => {
     const ones: { [k: string]: boolean } = {};
     const twos: { [k: string]: boolean } = {};
-    // one.forEach((e) => {
-    //     if (e.type === 'var' && mapping && mapping[e.sym.unique] != null) {
-    //         ones[`sym:${mapping[e.sym.unique]}`] = true;
-    //     } else {
-    //         ones[effectKey(e)] = true;
-    //     }
-    // });
+    one.forEach((e) => {
+        ones[effectKey(e)] = true;
+    });
     for (let e of two) {
         const k = effectKey(e);
         twos[k] = true;
         if (!ones[k]) {
-            // console.log(`Missing`, k, one, two);
+            console.log(`Missing`, k, one.map(effectKey), two.map(effectKey));
             return false;
         }
     }

@@ -299,7 +299,9 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
                     : null,
                 type.effectVbls.length
                     ? args(
-                          type.effectVbls.map((n) => atom(`e_${n}`)),
+                          type.effectVbls.map((n) =>
+                              symToPretty({ name: 'e', unique: n }),
+                          ),
                           '{',
                           '}',
                       )
@@ -376,7 +378,9 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     : null,
                 term.is.effectVbls.length
                     ? args(
-                          term.is.effectVbls.map((n) => atom(`e_${n}`)),
+                          term.is.effectVbls.map((n) =>
+                              symToPretty({ name: 'e', unique: n }),
+                          ),
                           '{',
                           '}',
                       )
