@@ -244,7 +244,10 @@ const backtrackPythag = (m: int, n: int) => handleFail<string>{}(
 backtrackPythag(4, 15) == "5:12"
 backtrackPythag(7, 10) == "No solution found"
 
-const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(() => backtrackReverse<string>(() => pythagorean(m, n)), () => "No solution found")
+const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(
+    () => backtrackReverse<string>(() => pythagorean(m, n)),
+    () => "No solution found"
+)
 backtrackPythagReverse(4, 15) == "9:12"
 10
 

@@ -135,6 +135,7 @@ export const typeApply = (
         effectVbls: mappedVbls,
         hadAllVariableEffects:
             effectVbls != null &&
+            effectVbls.length === 1 &&
             prevEffects.length > 0 &&
             prevEffects.filter((e) => e.type === 'ref').length === 0,
         target,

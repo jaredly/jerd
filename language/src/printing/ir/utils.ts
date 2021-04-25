@@ -344,6 +344,17 @@ export const callExpression = (
     }
     let note = undefined;
     // console.log(showType(env, tt), showType(env, target.is), typeVbls);
+    // START HERE:
+    // so within `collect` (eff-paper),
+    // we're not correctly identifying the recursive call
+    // as an effectful-or-direct, and we're not wrapping it.
+    // Also,
+    // backtrackpythagreverse,
+    // which calls handleFail with a pure function,
+    // looks like it might be doing a wrapPureFunction
+    // when it shouldn't be.
+    // probably because it's not taking the applied function
+    // into account?
     args.forEach((arg, i) => {
         if (!typesEqual(arg.is, tt.args[i])) {
             throw new LocatedError(

@@ -52,6 +52,9 @@ import {
 import { printPattern } from './pattern';
 import { printLambda, printLambdaBody } from './lambda';
 import { printHandle } from './handle';
+import { termToPretty } from '../printTsLike';
+import { printToString } from '../printer';
+import { LocatedError } from '../../typing/errors';
 
 // hrmmmmmmmm should I define new types for the IR?
 // urhghhhhghghhggh
@@ -85,6 +88,14 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             if (!env.local.self) {
                 throw new Error(`Self referenced without self set on env`);
             }
+            const t = typeFromTermType(term.is);
+            console.log(
+                'self here',
+                showLocation(term.location),
+                showType(env, term.is),
+                t.type,
+            );
+            console.log(new Error().stack!.split('\n').slice(3, 7).join('\n'));
             return printTermRef(
                 opts,
                 {
@@ -94,7 +105,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     id: idFromName(env.local.self.name),
                 },
                 term.location,
-                typeFromTermType(term.is),
+                t,
             );
         // return t.identifier(`hash_${env.local.self.name}`);
         case 'boolean':
@@ -183,15 +194,21 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             let target = printTerm(env, opts, term.target);
 
-            if (term.hadAllVariableEffects) {
+            if (target.is.type === 'effectful-or-direct') {
                 target = {
                     type: 'effectfulOrDirect',
                     target,
                     effectful: false,
                     loc: target.loc,
                     // STOPSHIP is this right?
-                    is: typeFromTermType(term.target.is),
+                    is: target.is.direct,
                 };
+            } else if (term.hadAllVariableEffects) {
+                console.log(printToString(termToPretty(env, term), 100));
+                throw new LocatedError(
+                    term.location,
+                    `target should be effectful-or-direct folks`,
+                );
             }
 
             const argTypes =

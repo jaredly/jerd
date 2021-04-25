@@ -44,7 +44,10 @@ export const printLambda = (
     term: Lambda,
 ): Expr => {
     if (term.is.effects.length > 0) {
-        if (term.is.effects.every((x) => x.type === 'var')) {
+        if (
+            term.is.effects.every((x) => x.type === 'var') &&
+            term.is.effectVbls.length
+        ) {
             const directVersion = withNoEffects(env, term);
             return {
                 type: 'effectfulOrDirectLambda',
