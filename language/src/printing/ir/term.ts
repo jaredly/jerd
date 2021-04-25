@@ -215,13 +215,21 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 );
             }
 
+            const appliedTargetType =
+                term.target.is.type === 'lambda' &&
+                term.target.is.effectVbls.length > 0
+                    ? applyEffectVariables(env, term.target.is, [])
+                    : term.target.is;
+
             const argTypes =
-                term.target.is.type === 'lambda' ? term.target.is.args : [];
+                appliedTargetType.type === 'lambda'
+                    ? appliedTargetType.args
+                    : [];
             if (argTypes.length !== term.args.length) {
                 throw new Error(
                     `Need to resolve target type: ${showType(
                         env,
-                        term.target.is,
+                        appliedTargetType,
                     )} - ${showType(env, term.is)}`,
                 );
             }
