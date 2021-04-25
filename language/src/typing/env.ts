@@ -445,7 +445,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
     const self: Self = {
         type: 'Term',
         name: item.id.text,
-        ann: item.ann ? typeType(env, item.ann) : void_,
+        ann: item.ann ? typeType(subEnv, item.ann) : void_,
     };
 
     subEnv.local.self = self;
@@ -587,7 +587,7 @@ export const resolveEffect = (
                 }
             });
             if (!found) {
-                throw new Error(`Could not resolve effect symbol`);
+                throw new Error(`Could not resolve effect symbol ${hash}`);
             }
             return {
                 type: 'var',

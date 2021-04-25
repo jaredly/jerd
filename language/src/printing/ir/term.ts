@@ -52,6 +52,9 @@ import {
 import { printPattern } from './pattern';
 import { printLambda, printLambdaBody } from './lambda';
 import { printHandle } from './handle';
+import { termToPretty } from '../printTsLike';
+import { printToString } from '../printer';
+import { LocatedError } from '../../typing/errors';
 
 // hrmmmmmmmm should I define new types for the IR?
 // urhghhhhghghhggh
@@ -85,6 +88,14 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             if (!env.local.self) {
                 throw new Error(`Self referenced without self set on env`);
             }
+            const t = typeFromTermType(term.is);
+            // console.log(
+            //     'self here',
+            //     showLocation(term.location),
+            //     showType(env, term.is),
+            //     t.type,
+            // );
+            // console.log(new Error().stack!.split('\n').slice(3, 11).join('\n'));
             return printTermRef(
                 opts,
                 {
@@ -94,7 +105,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     id: idFromName(env.local.self.name),
                 },
                 term.location,
-                typeFromTermType(term.is),
+                t,
             );
         // return t.identifier(`hash_${env.local.self.name}`);
         case 'boolean':
@@ -169,7 +180,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             // ughhhhhhhh I think my denormalization is biting me here.
             if (getEffects(term).length > 0) {
-                throw new Error(
+                throw new LocatedError(
+                    term.location,
                     `This apply has effects, but isn't in a CPS context. Effects: ${getEffects(
                         term,
                     )
@@ -183,24 +195,41 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             let target = printTerm(env, opts, term.target);
 
-            if (term.hadAllVariableEffects) {
+            if (target.is.type === 'effectful-or-direct') {
                 target = {
                     type: 'effectfulOrDirect',
                     target,
                     effectful: false,
                     loc: target.loc,
                     // STOPSHIP is this right?
-                    is: typeFromTermType(term.target.is),
+                    is: target.is.direct,
                 };
+            } else if (term.hadAllVariableEffects) {
+                console.log(printToString(termToPretty(env, term), 100));
+                console.log(printToString(termToPretty(env, term.target), 100));
+                console.log(showType(env, term.target.is));
+                console.log(getEffects(term.target));
+                throw new LocatedError(
+                    term.location,
+                    `target should be effectful-or-direct folks`,
+                );
             }
 
+            const appliedTargetType =
+                term.target.is.type === 'lambda' &&
+                term.target.is.effectVbls.length > 0
+                    ? applyEffectVariables(env, term.target.is, [])
+                    : term.target.is;
+
             const argTypes =
-                term.target.is.type === 'lambda' ? term.target.is.args : [];
+                appliedTargetType.type === 'lambda'
+                    ? appliedTargetType.args
+                    : [];
             if (argTypes.length !== term.args.length) {
                 throw new Error(
                     `Need to resolve target type: ${showType(
                         env,
-                        term.target.is,
+                        appliedTargetType,
                     )} - ${showType(env, term.is)}`,
                 );
             }
@@ -217,6 +246,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 args.map((arg, i) => printTerm(env, opts, arg)),
                 term.location,
                 typeFromTermType(term.target.is as LambdaType) as ILambdaType,
+                term.typeVbls.map(typeFromTermType),
             );
         }
 

@@ -37,6 +37,8 @@ import { termToAstCPS } from './cps';
 import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 import { withNoEffects } from '../../typing/transform';
+import { printToString } from '../printer';
+import { termToPretty } from '../printTsLike';
 
 export const printLambda = (
     env: Env,
@@ -44,8 +46,14 @@ export const printLambda = (
     term: Lambda,
 ): Expr => {
     if (term.is.effects.length > 0) {
-        if (term.is.effects.every((x) => x.type === 'var')) {
+        if (
+            term.is.effects.every((x) => x.type === 'var') &&
+            term.is.effectVbls.length
+        ) {
             const directVersion = withNoEffects(env, term);
+            // console.log(`Direct version folks`);
+            // console.log(printToString(termToPretty(env, term), 100));
+            // console.log(printToString(termToPretty(env, directVersion), 100));
             return {
                 type: 'effectfulOrDirectLambda',
                 loc: term.location,
@@ -66,14 +74,15 @@ export const printLambda = (
                     term.location,
                     term.is.typeVbls,
                 ),
-                is: {
-                    type: 'effectful-or-direct',
-                    loc: term.location,
-                    effectful: lambdaTypeFromTermType(term.is as ILambdaType),
-                    direct: lambdaTypeFromTermType(
-                        directVersion.is as ILambdaType,
-                    ),
-                },
+                is: lambdaTypeFromTermType(term.is as ILambdaType),
+                // {
+                //     type: 'effectful-or-direct',
+                //     loc: term.location,
+                //     effectful: lambdaTypeFromTermType(term.is as ILambdaType),
+                //     direct: lambdaTypeFromTermType(
+                //         directVersion.is as ILambdaType,
+                //     ),
+                // },
             };
         }
         return effectfulLambda(env, opts, term);

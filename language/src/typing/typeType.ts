@@ -229,6 +229,8 @@ export const newEnvWithTypeAndEffectVbls = (
         const unique = parseUnique(
             id.hash,
             Object.keys(typeInner.local.effectVbls).length,
+            // START HERE: getTypeError needs to be different
+            // env.local.unique++,
         );
         const sym: Symbol = { name: id.text, unique };
         typeInner.local.effectVbls[id.text] = sym;

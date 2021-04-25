@@ -152,20 +152,20 @@ export const effectToPretty = (env: Env, id: Id, effect: EffectDef): PP => {
     ]);
 };
 
-export const refToPretty = (env: Env, ref: Reference, kind: string) =>
-    ref.type === 'user' && ref.id.hash === '<self>' && env.local.self
+export const refToPretty = (env: Env | null, ref: Reference, kind: string) =>
+    env && ref.type === 'user' && ref.id.hash === '<self>' && env.local.self
         ? idPretty('self', 'self', kind)
         : ref.type === 'builtin'
         ? atom(ref.name)
         : idToPretty(env, ref.id, kind);
-export const idToPretty = (env: Env, id: Id, kind: string) => {
-    const name = env.global.idNames[idName(id)];
+export const idToPretty = (env: Env | null, id: Id, kind: string) => {
+    const name = env ? env.global.idNames[idName(id)] : null;
     const hash = id.hash + (id.pos !== 0 ? '_' + id.pos : '');
     return idPretty(name ? name : 'unnamed', hash, kind);
 };
 export const symToPretty = (sym: Symbol) =>
     idPretty(sym.name, ':' + sym.unique.toString(), 'sym');
-export const effToPretty = (env: Env, eff: EffectRef) =>
+export const effToPretty = (env: Env | null, eff: EffectRef) =>
     eff.type === 'ref'
         ? refToPretty(env, eff.ref, 'effect')
         : symToPretty(eff.sym);
@@ -251,7 +251,10 @@ const interleave = <T>(items: Array<T>, sep: T) => {
     return res;
 };
 
-const typeVblDeclsToPretty = (env: Env, typeVbls: Array<TypeVblDecl>): PP => {
+const typeVblDeclsToPretty = (
+    env: Env | null,
+    typeVbls: Array<TypeVblDecl>,
+): PP => {
     return args(
         typeVbls.map((v) =>
             items([
@@ -275,7 +278,7 @@ const typeVblDeclsToPretty = (env: Env, typeVbls: Array<TypeVblDecl>): PP => {
     );
 };
 
-export const typeToPretty = (env: Env, type: Type): PP => {
+export const typeToPretty = (env: Env | null, type: Type): PP => {
     switch (type.type) {
         case 'ref':
             if (type.typeVbls.length) {
@@ -296,7 +299,9 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                     : null,
                 type.effectVbls.length
                     ? args(
-                          type.effectVbls.map((n) => atom(`e_${n}`)),
+                          type.effectVbls.map((n) =>
+                              symToPretty({ name: 'e', unique: n }),
+                          ),
                           '{',
                           '}',
                       )
@@ -373,7 +378,9 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     : null,
                 term.is.effectVbls.length
                     ? args(
-                          term.is.effectVbls.map((n) => atom(`e_${n}`)),
+                          term.is.effectVbls.map((n) =>
+                              symToPretty({ name: 'e', unique: n }),
+                          ),
                           '{',
                           '}',
                       )

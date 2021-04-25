@@ -48,6 +48,7 @@ import {
     returnTypeForStmt,
     typeForLambdaExpression,
     typesEqual,
+    MaybeEffLambda,
 } from './types';
 import { Location } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
@@ -90,8 +91,10 @@ export const string: Type = builtinType('string');
 export const void_: Type = builtinType('void');
 export const bool: Type = builtinType('bool');
 
-export const lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
-    return typeFromTermType(type) as LambdaType;
+export const lambdaTypeFromTermType = (
+    type: TermLambdaType,
+): LambdaType | MaybeEffLambda => {
+    return typeFromTermType(type) as LambdaType | MaybeEffLambda;
 };
 
 export const _lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
@@ -311,19 +314,47 @@ export const callExpression = (
     env: Env,
     target: Expr,
     targetType: LambdaType,
-    is: Type,
+    _is: Type,
     args: Array<Expr>,
     loc: Loc,
     concreteType?: LambdaType,
     typeVbls?: Array<Type>,
 ): Expr => {
-    const tt = target.is as LambdaType;
+    let tt = target.is as LambdaType;
     if (tt.args.length !== args.length) {
         throw new Error(
             `Wrong arg number expected ${tt.args.length}, provided ${args.length}`,
         );
     }
+    if (typeVbls) {
+        try {
+            tt = applyTypeVariables(
+                env,
+                target.is,
+                typeVbls,
+                undefined,
+                loc,
+            ) as LambdaType;
+        } catch (err) {
+            throw new LocatedError(
+                loc,
+                `Um Failed to apply type variables.`,
+            ).wrap(err);
+        }
+    }
     let note = undefined;
+    // console.log(showType(env, tt), showType(env, target.is), typeVbls);
+    // START HERE:
+    // so within `collect` (eff-paper),
+    // we're not correctly identifying the recursive call
+    // as an effectful-or-direct, and we're not wrapping it.
+    // Also,
+    // backtrackpythagreverse,
+    // which calls handleFail with a pure function,
+    // looks like it might be doing a wrapPureFunction
+    // when it shouldn't be.
+    // probably because it's not taking the applied function
+    // into account?
     args.forEach((arg, i) => {
         if (!typesEqual(arg.is, tt.args[i])) {
             throw new LocatedError(
@@ -340,8 +371,8 @@ export const callExpression = (
             // throw new TypeMismatch(env, arg.is, targetType.args[i], arg.loc);
         }
     });
-    // const ris = typeVbls
-    //     ? (applyTypeVariables(env, target.is, typeVbls) as LambdaType).res
+    // is = typeVbls
+    //     ? .res
     //     : is;
     // if (!typesEqual(ris, is)) {
     //     // throw new Error(`return types disagree`);
@@ -373,7 +404,7 @@ export const callExpression = (
         targetType: target.is as LambdaType,
         concreteType: concreteType || targetType,
         note,
-        is: is, // targetType.res,
+        is: tt.res, // targetType.res,
         // is: tt.res,
         target,
         args,
@@ -433,6 +464,7 @@ export const applyTypeVariables = (
     type: Type,
     vbls: Array<Type>,
     selfHash?: string,
+    loc?: Loc,
 ): Type => {
     if (type.type === 'lambda') {
         const t: LambdaType = type as LambdaType;
@@ -442,21 +474,20 @@ export const applyTypeVariables = (
             console.log('the variables', t.typeVbls);
             console.log(showType(env, type));
             throw new LocatedError(
-                type.loc,
+                loc || type.loc,
                 `Wrong number of type variables: found ${vbls.length}, expected ${t.typeVbls.length}`,
             );
         }
-        // Umm should I still be doing the subtype checks?
-        // vbls.forEach((typ, i) => {
-        //     // STOPSHIP CHECK HERE
-        //     const subs = t.typeVbls[i].subTypes;
-        //     for (let sub of subs) {
-        //         if (!hasSubType(env, typ, sub)) {
-        //             throw new Error(`Expected a subtype of ${idName(sub)}`);
-        //         }
-        //     }
-        //     mapping[t.typeVbls[i].unique] = typ;
-        // });
+        vbls.forEach((typ, i) => {
+            // Umm should I still be doing the subtype checks?
+            // const subs = t.typeVbls[i].subTypes;
+            // for (let sub of subs) {
+            //     if (!hasSubType(env, typ, sub)) {
+            //         throw new Error(`Expected a subtype of ${idName(sub)}`);
+            //     }
+            // }
+            mapping[t.typeVbls[i].unique] = typ;
+        });
         return {
             ...type,
             typeVbls: [], // TODO allow partial application!

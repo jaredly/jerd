@@ -95,7 +95,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
     }
     return {
         type: 'apply',
-        originalTargetType: pureFunction([stype], ttype),
+        // originalTargetType: pureFunction([stype], ttype),
         args: [target],
         hadAllVariableEffects: false,
         target: {

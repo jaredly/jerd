@@ -694,7 +694,9 @@ const main = (
             }
             if (err instanceof TypeError) {
                 console.error(err.toString());
-                console.error(err.stack);
+                console.error(
+                    err.stack!.slice(err.message.length + 'Error: '.length),
+                );
             } else {
                 console.error(err);
             }

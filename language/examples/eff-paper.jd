@@ -212,7 +212,7 @@ const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(
 ): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrack(() ={Decide, Fail}> handleFail{Decide, Fail}(
+            backtrack<T>(() ={Decide, Fail}> handleFail<T>{Decide, Fail}(
                 () ={Decide, Fail}> k(true),
                 () ={Decide, Fail}> k(false),
             ))
@@ -224,7 +224,7 @@ const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(
 const backtrackReverse: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
     handle! fn {
         Decide.decide(() => k) => {
-            backtrackReverse(() ={Decide, Fail}> handleFail{Decide, Fail}(
+            backtrackReverse<T>(() ={Decide, Fail}> handleFail<T>{Decide, Fail}(
                 () ={Decide, Fail}> k(false),
                 () ={Decide, Fail}> k(true),
             ))
@@ -244,7 +244,10 @@ const backtrackPythag = (m: int, n: int) => handleFail<string>{}(
 backtrackPythag(4, 15) == "5:12"
 backtrackPythag(7, 10) == "No solution found"
 
-const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(() => backtrackReverse<string>(() => pythagorean(m, n)), () => "No solution found")
+const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(
+    () => backtrackReverse<string>(() => pythagorean(m, n)),
+    () => "No solution found"
+)
 backtrackPythagReverse(4, 15) == "9:12"
 10
 
@@ -257,8 +260,8 @@ effect Store {
 
 const withInitialValue: <T,>(int, () ={Store}> T) => T = <T,>(value: int, fn: () ={Store}> T): T ={}> {
     handle! fn {
-        Store.get(() => k) => withInitialValue(value, () => k(value)),
-        Store.set((newValue) => k) => withInitialValue(newValue, k),
+        Store.get(() => k) => withInitialValue<T>(value, () => k(value)),
+        Store.set((newValue) => k) => withInitialValue<T>(newValue, k),
         pure(x) => x
     }
 }

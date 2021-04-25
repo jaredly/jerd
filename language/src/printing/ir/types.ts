@@ -57,12 +57,13 @@ export type Type =
           ref: Reference;
           loc: Loc;
       }
-    | {
-          type: 'effectful-or-direct';
-          effectful: LambdaType;
-          direct: LambdaType;
-          loc: Loc;
-      };
+    | MaybeEffLambda;
+export type MaybeEffLambda = {
+    type: 'effectful-or-direct';
+    effectful: LambdaType;
+    direct: LambdaType;
+    loc: Loc;
+};
 
 export type LambdaType = {
     type: 'lambda';

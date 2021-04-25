@@ -20,7 +20,8 @@ export const typeApply = (
 ): Term => {
     const { args, effectVbls } = suffix;
     const typeVbls = suffix.typevbls.map((t) => typeType(env, t));
-    const originalTargetType = target.is as LambdaType;
+    // const originalTargetType = target.is as LambdaType;
+    let applied = target.is;
     if (typeVbls.length) {
         // ahhhh it's my old nemesis come back to haunt me.
         // yes indeed I do need to know what the types of these things are
@@ -35,23 +36,23 @@ export const typeApply = (
         // or rather, doing it like this
         // does weird things to the pretty-printing end.
         // Because we lose the `<T>`.
-        const applied = applyTypeVariables(
+        applied = applyTypeVariables(
             env,
             target.is,
             typeVbls,
             '<self>',
         ) as LambdaType;
-        console.log(
-            'Applying type variables',
-            typeVbls.map((t) => showType(env, t)).join(', '),
-            '\n' + showType(env, target.is),
-            '\n' + showType(env, applied),
-        );
+        // console.log(
+        //     'Applying type variables',
+        //     typeVbls.map((t) => showType(env, t)).join(', '),
+        //     '\n' + showType(env, target.is),
+        //     '\n' + showType(env, applied),
+        // );
         // @ts-ignore
-        target = {
-            ...target,
-            is: applied,
-        };
+        // target = {
+        //     ...target,
+        //     is: applied,
+        // };
     }
 
     const prevEffects = target.is.type === 'lambda' ? target.is.effects : [];
@@ -59,12 +60,9 @@ export const typeApply = (
         ? effectVbls.map((id) => resolveEffect(env, id))
         : null;
     if (mappedVbls != null) {
-        const pre = target.is;
+        // const pre = target.is;
         // @ts-ignore
-        target = {
-            ...target,
-            is: applyEffectVariables(env, target.is, mappedVbls) as LambdaType,
-        };
+        applied = applyEffectVariables(env, applied, mappedVbls) as LambdaType;
         // console.log(
         //     `Mapped effect variables - ${showType(env,
         //         pre,
@@ -93,21 +91,21 @@ export const typeApply = (
         // }
         throw new Error(`Target is a var, can't do it`);
     } else {
-        if (target.is.type !== 'lambda') {
+        if (applied.type !== 'lambda') {
             throw new Error(
-                `Trying to call ${showType(env, target.is)} at ${showLocation(
+                `Trying to call ${showType(env, applied)} at ${showLocation(
                     target.location,
                 )}`,
             );
         }
-        if (target.is.args.length !== args.length) {
+        if (applied.args.length !== args.length) {
             throw new Error(
-                `Wrong number of arguments ${showType(env, target.is)}, ${
-                    target.is.args.length
+                `Wrong number of arguments ${showType(env, applied)}, ${
+                    applied.args.length
                 } vs ${args.length} at ${showLocation(target.location)}`,
             );
         }
-        is = target.is;
+        is = applied;
     }
 
     const resArgs: Array<Term> = [];
@@ -130,13 +128,14 @@ export const typeApply = (
 
     return {
         type: 'apply',
-        originalTargetType,
+        // originalTargetType,
         // STOPSHIP(sourcemap): this should be better
         location: target.location,
         typeVbls,
         effectVbls: mappedVbls,
         hadAllVariableEffects:
             effectVbls != null &&
+            effectVbls.length === 1 &&
             prevEffects.length > 0 &&
             prevEffects.filter((e) => e.type === 'ref').length === 0,
         target,

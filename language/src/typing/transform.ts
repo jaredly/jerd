@@ -1,7 +1,7 @@
 // Ok folks
 
 import { bool, pureFunction, void_ } from './preset';
-import { applyEffectVariables } from './typeExpr';
+import { applyEffectVariables, showLocation } from './typeExpr';
 import {
     apply,
     Case,
@@ -208,9 +208,11 @@ export const transform = (term: Term, visitor: Visitor): Term => {
 
 export const walkTerm = (
     term: Term | Let,
-    handle: (term: Term | Let) => void,
+    handle: (term: Term | Let) => void | false,
 ): void => {
-    handle(term);
+    if (handle(term) === false) {
+        return; // no recursion
+    }
     switch (term.type) {
         case 'Let':
             return walkTerm(term.value, handle);
@@ -298,15 +300,35 @@ export const walkTerm = (
 // apply the effect variables all over
 export const withNoEffects = (env: Env, term: Lambda): Lambda => {
     const vbls = term.is.effectVbls;
-    const is = applyEffectVariables(env, term.is, []) as LambdaType;
+    const is = applyEffectVariables(
+        env,
+        term.is,
+        [],
+        term.location,
+    ) as LambdaType;
     // lol clone
     term = JSON.parse(JSON.stringify(term)) as Lambda;
     walkTerm(term, (t) => {
         if (t.type === 'apply') {
+            if (t.effectVbls) {
+                t.effectVbls = t.effectVbls.filter(
+                    (e) => e.type !== 'var' || e.sym.unique !== vbls[0],
+                );
+            }
+            // t.effectVbls;
             const is = t.target.is as LambdaType;
-            if (is.effects) {
+            if (is.effects && !is.effectVbls.length) {
                 is.effects = clearEffects(vbls, is.effects);
             }
+        }
+        if (t.is.type === 'lambda' && t !== term) {
+            if (t.is.effectVbls.length) {
+                // console.log('dropout', showLocation(t.location));
+                return false;
+            }
+        }
+        if (t.type === 'lambda' && t.is.effects.length) {
+            t.is.effects = clearEffects(vbls, t.is.effects);
         }
     });
     return { ...term, is };
@@ -353,7 +375,7 @@ export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
         location: arg.location,
         body: {
             type: 'apply',
-            originalTargetType: pureFunction([], arg.is.res),
+            // originalTargetType: pureFunction([], arg.is.res),
             location: arg.location,
             typeVbls: [],
             effectVbls: null,
