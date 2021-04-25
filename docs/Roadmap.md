@@ -7,9 +7,11 @@ Ones that are non-breaking
 - [x] liftEffects is nice
 - [x] adding types to IR Exprs
 - [x] use helpers for lots of IR exprs
-- [ ] helpers need less types
-- [ ] type-checking the IR as I create it
-- [ ] converting types to passing-handlers instead of having-effects (this can be a place where we then convert, yeah that's great.)
+- [x] helpers need less types
+- [x] type-checking the IR as I create it
+- [x] converting types to passing-handlers instead of having-effects (this can be a place where we then convert, yeah that's great.)
+- [ ] fix the `unknown` type hack. sequences should be able to know that the `done` doesn't need another variable. And if the `done` does need another variable, it really shouldn't. So yeah sequences need to be smarter about that. I guess I could inspect the `done`.
+- [ ] abstract out all the places where we're using `handlerVar` &c explicitly.
 
 Ones that are breaking
 - [ ] switch from a single handlers variable to several

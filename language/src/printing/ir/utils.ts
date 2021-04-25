@@ -307,11 +307,8 @@ export const arrowFunctionExpression = (
 export const callExpression = (
     env: Env,
     target: Expr,
-    // _targetType: LambdaType,
-    // _is: Type,
     args: Array<Expr>,
     loc: Loc,
-    // _concreteType?: LambdaType,
     typeVbls?: Array<Type>,
 ): Expr => {
     let tt = target.is as LambdaType;

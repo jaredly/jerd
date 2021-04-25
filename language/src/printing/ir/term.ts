@@ -360,7 +360,6 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             return {
                 type: 'tuple',
                 items: term.items.map((item) => printTerm(env, opts, item)),
-                itemTypes: term.is.typeVbls.map(typeFromTermType),
                 loc: term.location,
                 is: typeFromTermType(term.is),
             };

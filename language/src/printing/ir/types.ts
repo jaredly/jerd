@@ -119,97 +119,6 @@ export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
 export const isTerm = (expr: Expr, id: Id) =>
     expr.type === 'term' && idsEqual(id, expr.id);
 
-// export const typeForExpr = (env: Env, expr: Expr): Type => {
-//     switch (expr.type) {
-//         case 'string':
-//             return string;
-//         case 'int':
-//             return int;
-//         case 'boolean':
-//             return bool;
-//         case 'float':
-//             return float;
-//         case 'eqLiteral':
-//             return bool;
-//         case 'term':
-//             return env.global.terms[idName(expr.id)].is;
-//         case 'var':
-//             return void_; // STOPSHIP
-//         case 'slice':
-//             return typeForExpr(env, expr.value);
-//         case 'tuple':
-//             // TODO tuple type
-//             return tupleType(expr.itemTypes);
-//         // return expr.itemTypes;
-//         case 'arrayIndex': {
-//             const t = typeForExpr(env, expr.value);
-//             if (
-//                 t.type !== 'ref' ||
-//                 t.ref.type !== 'builtin' ||
-//                 t.ref.name !== 'Array' ||
-//                 t.typeVbls.length !== 1
-//             ) {
-//                 throw new Error(`Arg`);
-//             }
-//             return t.typeVbls[0];
-//         }
-//         case 'arrayLen':
-//             return int;
-//         case 'builtin':
-//             return env.global.builtins[expr.name];
-//         case 'IsRecord':
-//             return bool;
-//         case 'effectfulOrDirect':
-//             // ermmmm what do I do folks
-//             return typeForExpr(env, expr.target);
-//         case 'raise': {
-//             // const t = env.global.effects[idName(expr.effect)][expr.idx]
-//             // return t.ret
-//             // raise will always pass to continuation, right?
-//             return void_;
-//         }
-//         case 'handle':
-//             return expr.done != null
-//                 ? void_
-//                 : typeForLambdaExpression(env, expr.pure.body);
-//         case 'array':
-//             return arrayType(expr.elType);
-//         case 'record':
-//             return expr.is;
-//         case 'attribute': {
-//             const t = env.global.types[refName(expr.ref)];
-//             if (!t || t.type !== 'Record') {
-//                 throw new Error(`Not a record ${refName(expr.ref)}`);
-//             }
-//             return t.items[expr.idx];
-//         }
-//         case 'tupleAccess': {
-//             const is = typeForExpr(env, expr.target);
-//             if (
-//                 is.type !== 'ref' ||
-//                 is.ref.type !== 'builtin' ||
-//                 !is.ref.name.startsWith('Tuple')
-//             ) {
-//                 throw new Error(`Not a tuple`);
-//             }
-//             return is.typeVbls[expr.idx];
-//         }
-//         case 'apply':
-//             return expr.res;
-//         case 'effectfulOrDirectLambda':
-//             // TODO: what should this be? maybe pretend it's a builtin type?
-//             return builtinType('effectfulOrDirect', []);
-//         case 'lambda':
-//             // hrmmmm yes
-//             return void_; // STOPSHIP
-//         // return expr.args; // hrmmmmmm yes I think we want the full ref type?
-//         // hm ok
-//         default:
-//             let _x: never = expr;
-//             throw new Error(`Unexpected stmt ${(expr as any).type}`);
-//     }
-// };
-
 export const typeForLambdaExpression = (body: Expr | Block): Type | null => {
     if (body.type === 'Block') {
         return returnTypeForStmt(body);
@@ -354,7 +263,6 @@ export type Expr =
 export type Tuple = {
     type: 'tuple';
     items: Array<Expr>;
-    itemTypes: Array<Type>;
     loc: Loc;
     is: Type;
 };
@@ -382,13 +290,6 @@ export type Record = {
         [id: string]: RecordSubType;
     };
     loc: Loc;
-    // ok
-    // so
-    // for js, we can spread
-    // for go, we need to list things individually I do believe
-    // so
-    // lets just keep things n such
-    // also we gon want to do some heavy iffe lifting for realsies.
 };
 export type RecordSubType = {
     spread: Expr | null;
@@ -396,10 +297,6 @@ export type RecordSubType = {
 };
 export type LambdaExpr = {
     type: 'lambda';
-    // hrmmm how do I represent the "handlers" and such?
-    // do I just have a "handlers" type? Will swift require more of me? no it has an Any
-    // I could just say "builtin any"
-    // but what about the sym? Do I generate new syms? probably not.
     args: Array<Arg>;
     res: Type;
     body: Expr | Block;
