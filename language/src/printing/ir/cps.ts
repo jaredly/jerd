@@ -129,8 +129,6 @@ const _termToAstCPS = (
         return callExpression(
             env,
             done,
-            pureFunction([handlersType, tt], void_),
-            void_,
             [
                 {
                     type: 'var',
@@ -193,11 +191,6 @@ const _termToAstCPS = (
                     callExpression(
                         env,
                         done,
-                        pureFunction(
-                            [handlersType, builtinType('undefined')],
-                            void_,
-                        ),
-                        void_,
                         [
                             {
                                 type: 'var',
@@ -272,11 +265,6 @@ const _termToAstCPS = (
                                         : callExpression(
                                               env,
                                               done,
-                                              pureFunction(
-                                                  [handlersType],
-                                                  void_,
-                                              ),
-                                              void_,
                                               [handlerVar(term.location)],
                                               term.location,
                                           ),
@@ -304,8 +292,6 @@ const _termToAstCPS = (
                                 : callExpression(
                                       env,
                                       done,
-                                      pureFunction([handlersType], void_),
-                                      void_,
                                       [handlerVar(term.location)],
                                       term.location,
                                   ),
@@ -361,10 +347,6 @@ const _termToAstCPS = (
                     inner = callExpression(
                         env,
                         target,
-                        target.is.type === 'effectful-or-direct'
-                            ? target.is.effectful
-                            : (target.is as ILambdaType),
-                        void_,
                         (argSyms.map((sym, i) =>
                             sym
                                 ? { type: 'var', sym, loc: null }
@@ -390,8 +372,6 @@ const _termToAstCPS = (
                     inner = callExpression(
                         env,
                         done,
-                        pureFunction([handlersType, builtinType('any')], void_),
-                        void_,
                         [
                             handlerVar(target.loc),
                             // so here is where we want to
@@ -400,10 +380,6 @@ const _termToAstCPS = (
                             callExpression(
                                 env,
                                 target,
-                                target.is.type === 'effectful-or-direct'
-                                    ? target.is.effectful
-                                    : (target.is as ILambdaType),
-                                typeFromTermType(term.is),
                                 argSyms.map((sym, i) =>
                                     sym
                                         ? { type: 'var', sym, loc: null }
@@ -470,14 +446,10 @@ const _termToAstCPS = (
             return callExpression(
                 env,
                 target,
-                target.is as ILambdaType,
-                typeFromTermType(term.is),
-                // target.is.res,
                 args
                     .map((arg, i) => printTerm(env, opts, arg))
                     .concat([handlerVar(target.loc), done]),
                 target.loc,
-                undefined,
                 term.typeVbls.map((t) => typeFromTermType(t)),
             );
         }
@@ -492,8 +464,6 @@ const _termToAstCPS = (
             return callExpression(
                 env,
                 done,
-                pureFunction([handlersType, typeFromTermType(term.is)], void_),
-                void_,
                 [handlerVar(term.location), printTerm(env, opts, term)],
                 term.location,
             );

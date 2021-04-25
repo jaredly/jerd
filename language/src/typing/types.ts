@@ -265,7 +265,6 @@ export type Sequence = {
 };
 export type Apply = {
     type: 'apply';
-    // originalTargetType: LambdaType;
     location: Location | null;
     target: Term;
     typeVbls: Array<Type>;
@@ -282,7 +281,6 @@ export const apply = (
     location: Location | null,
 ): Term => ({
     type: 'apply',
-    // originalTargetType: target.is as LambdaType,
     location,
     target,
     typeVbls: [],

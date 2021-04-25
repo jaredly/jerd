@@ -213,8 +213,6 @@ export const iffe = (env: Env, st: Block, res: Type): Expr => {
     return callExpression(
         env,
         arrowFunctionExpression([], st, st.loc),
-        pureFunction([], res),
-        res,
         [],
         st.loc,
     );
@@ -273,8 +271,6 @@ export const and = (env: Env, left: Expr, right: Expr, loc: Loc) =>
     callExpression(
         env,
         builtin('&&', loc, pureFunction([bool, bool], bool)),
-        pureFunction([bool, bool], bool),
-        bool,
         [left, right],
         loc,
     );
@@ -283,8 +279,6 @@ export const or = (env: Env, left: Expr, right: Expr, loc: Loc) =>
     callExpression(
         env,
         builtin('||', loc, pureFunction([bool, bool], bool)),
-        pureFunction([bool, bool], bool),
-        bool,
         [left, right],
         loc,
     );
@@ -313,11 +307,11 @@ export const arrowFunctionExpression = (
 export const callExpression = (
     env: Env,
     target: Expr,
-    targetType: LambdaType,
-    _is: Type,
+    // _targetType: LambdaType,
+    // _is: Type,
     args: Array<Expr>,
     loc: Loc,
-    _concreteType?: LambdaType,
+    // _concreteType?: LambdaType,
     typeVbls?: Array<Type>,
 ): Expr => {
     let tt = target.is as LambdaType;
@@ -343,18 +337,6 @@ export const callExpression = (
         }
     }
     let note = undefined;
-    // console.log(showType(env, tt), showType(env, target.is), typeVbls);
-    // START HERE:
-    // so within `collect` (eff-paper),
-    // we're not correctly identifying the recursive call
-    // as an effectful-or-direct, and we're not wrapping it.
-    // Also,
-    // backtrackpythagreverse,
-    // which calls handleFail with a pure function,
-    // looks like it might be doing a wrapPureFunction
-    // when it shouldn't be.
-    // probably because it's not taking the applied function
-    // into account?
     args.forEach((arg, i) => {
         if (!typesEqual(arg.is, tt.args[i])) {
             throw new LocatedError(
@@ -371,34 +353,11 @@ export const callExpression = (
             // throw new TypeMismatch(env, arg.is, targetType.args[i], arg.loc);
         }
     });
-    // is = typeVbls
-    //     ? .res
-    //     : is;
-    // if (!typesEqual(ris, is)) {
-    //     // throw new Error(`return types disagree`);
-    //     console.log('.....');
-    //     console.log(JSON.stringify(is));
-    //     console.log(JSON.stringify(ris));
-    //     throw new LocatedError(
-    //         target.loc,
-    //         `Return types disagree! Found \n${showType(
-    //             env,
-    //             is,
-    //         )}, expected \n${showType(env, ris)}\n${showType(env, tt)}`,
-    //     );
-    // }
     return {
         type: 'apply',
-        // START HERE:
-        // bring the type variables in
-        // and then apply them to the target type.
-        // So that we can get rid of `is`, and `targetType` hopefully.
-        // And so we can print out typescript type applications.
-        // because that would be nice.
         typeVbls: typeVbls || [],
-        // targetType: target.is as LambdaType,
         note,
-        is: tt.res, // targetType.res,
+        is: tt.res,
         target,
         args,
         loc,

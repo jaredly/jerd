@@ -126,8 +126,6 @@ export const withExecutionLimit = (
                         body.loc,
                         pureFunction([], void_),
                     ),
-                    pureFunction([], void_),
-                    void_,
                     [],
                     body.loc,
                 ),

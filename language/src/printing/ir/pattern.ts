@@ -200,8 +200,6 @@ export const printPattern = (
                     name: '-',
                     is: pureFunction([int, int], int),
                 },
-                pureFunction([int, int], int),
-                int,
                 [
                     ln,
                     {
@@ -304,8 +302,6 @@ export const printPattern = (
                                 name: pattern.spread ? '>=' : '==',
                                 is: pureFunction([int, int], bool),
                             },
-                            pureFunction([int, int], bool),
-                            bool,
                             [
                                 ln,
                                 {

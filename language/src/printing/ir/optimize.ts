@@ -810,8 +810,6 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                                 expr.loc,
                                 pureFunction([int, int], int),
                             ),
-                            pureFunction([int, int], int),
-                            int,
                             [
                                 {
                                     type: 'var',
@@ -844,8 +842,6 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                                         expr.loc,
                                         pureFunction([int, int], int),
                                     ),
-                                    pureFunction([int, int], int),
-                                    int,
                                     [
                                         expr.idx,
                                         {
@@ -877,8 +873,6 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                                     expr.loc,
                                     pureFunction([int, int], int),
                                 ),
-                                pureFunction([int, int], int),
-                                int,
                                 [
                                     expr,
                                     {
@@ -957,8 +951,6 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
             start = callExpression(
                 env,
                 builtin('+', expr.loc, pureFunction([int, int], int)),
-                pureFunction([int, int], int),
-                int,
                 [start, nxt.start],
                 expr.loc,
             );
@@ -986,8 +978,6 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                                     expr.loc,
                                     pureFunction([int, int], int),
                                 ),
-                                pureFunction([int, int], int),
-                                int,
                                 [expr.start, res.start],
                                 expr.loc,
                             ),
@@ -1010,8 +1000,6 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                                     expr.loc,
                                     pureFunction([int, int], int),
                                 ),
-                                pureFunction([int, int], int),
-                                int,
                                 [expr.idx, res.start],
                                 expr.loc,
                             ),
@@ -1031,8 +1019,6 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                                 expr.loc,
                                 pureFunction([int, int], int),
                             ),
-                            pureFunction([int, int], int),
-                            int,
                             [
                                 {
                                     ...expr,
