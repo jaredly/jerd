@@ -1,10 +1,16 @@
 // Types for the typed tree
 
-import { Expression, Identifier, Location } from '../parsing/parser';
+import {
+    Expression,
+    Identifier,
+    Location,
+    nullLocation,
+} from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
 import seedrandom from 'seedrandom';
 import { applyEffectVariables, applyTypeVariables } from './typeExpr';
+import { getTypeError } from './getTypeError';
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
@@ -620,36 +626,37 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
     if (one == null || two == null) {
         return one == two;
     }
-    if (one.type === 'ref' || two.type === 'ref') {
-        if (one.type === 'ref' && two.type === 'ref') {
-            return refsEqual(one.ref, two.ref);
-        }
-        if (one.type === 'ref' && one.ref.type === 'builtin') {
-            return two.type === 'ref' && refsEqual(one.ref, two.ref);
-        }
-        if (two.type === 'ref' && two.ref.type === 'builtin') {
-            return one.type === 'ref' && refsEqual(two.ref, one.ref);
-        }
-        // STOPSHIP: resolve type references
-        // throw new Error(`Need to lookup types sorry`);
-        return false;
-    }
-    if (one.type === 'var') {
-        return two.type === 'var' && symbolsEqual(one.sym, two.sym);
-    }
-    if (one.type === 'lambda') {
-        return (
-            two.type === 'lambda' &&
-            deepEqual(one.typeVbls, two.typeVbls) &&
-            one.args.length === two.args.length &&
-            one.args.every((arg, i) => typesEqual(arg, two.args[i])) &&
-            one.effects.length === two.effects.length &&
-            effectsMatch(one.effects, two.effects) &&
-            typesEqual(one.res, two.res) &&
-            typesEqual(one.rest, two.rest)
-        );
-    }
-    return false;
+    return getTypeError(null, one, two, nullLocation) === null;
+    // if (one.type === 'ref' || two.type === 'ref') {
+    //     if (one.type === 'ref' && two.type === 'ref') {
+    //         return refsEqual(one.ref, two.ref);
+    //     }
+    //     if (one.type === 'ref' && one.ref.type === 'builtin') {
+    //         return two.type === 'ref' && refsEqual(one.ref, two.ref);
+    //     }
+    //     if (two.type === 'ref' && two.ref.type === 'builtin') {
+    //         return one.type === 'ref' && refsEqual(two.ref, one.ref);
+    //     }
+    //     // STOPSHIP: resolve type references
+    //     // throw new Error(`Need to lookup types sorry`);
+    //     return false;
+    // }
+    // if (one.type === 'var') {
+    //     return two.type === 'var' && symbolsEqual(one.sym, two.sym);
+    // }
+    // if (one.type === 'lambda') {
+    //     return (
+    //         two.type === 'lambda' &&
+    //         deepEqual(one.typeVbls, two.typeVbls) &&
+    //         one.args.length === two.args.length &&
+    //         one.args.every((arg, i) => typesEqual(arg, two.args[i])) &&
+    //         one.effects.length === two.effects.length &&
+    //         effectsMatch(one.effects, two.effects) &&
+    //         typesEqual(one.res, two.res) &&
+    //         typesEqual(one.rest, two.rest)
+    //     );
+    // }
+    // return false;
 };
 
 const effectKey = (e: EffectRef) =>
@@ -662,12 +669,17 @@ export const effectsMatch = (
     one: Array<EffectRef>,
     two: Array<EffectRef>,
     lessAllowed: boolean = false,
+    // mapping?: { [oneUnique: number]: number },
 ) => {
     const ones: { [k: string]: boolean } = {};
     const twos: { [k: string]: boolean } = {};
-    one.forEach((e) => {
-        ones[effectKey(e)] = true;
-    });
+    // one.forEach((e) => {
+    //     if (e.type === 'var' && mapping && mapping[e.sym.unique] != null) {
+    //         ones[`sym:${mapping[e.sym.unique]}`] = true;
+    //     } else {
+    //         ones[effectKey(e)] = true;
+    //     }
+    // });
     for (let e of two) {
         const k = effectKey(e);
         twos[k] = true;

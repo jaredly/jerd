@@ -19,8 +19,14 @@ export class TypeError extends Error {
     wrapped(wrapper: TypeError) {
         return wrapper.wrap(this);
     }
-    toString() {
+    getMessage() {
         return this.message;
+    }
+    toString(): string {
+        return (
+            this.getMessage() +
+            (this.inner ? '\n --> ' + this.inner.toString() : '')
+        );
     }
     showParents() {}
 }
@@ -44,23 +50,28 @@ export class UnresolvedIdentifier extends LocatedError {
         this.hint = hint;
     }
 
-    toString() {
+    getMessage() {
         return `Unresolved identifier: ${this.id.text} hasn't been defined anywhere!`;
     }
 }
 
 export class VarMismatch extends LocatedError {
-    env: Env;
+    env: Env | null;
     found: Symbol;
     expected: Symbol;
-    constructor(env: Env, found: Symbol, expected: Symbol, location: Location) {
+    constructor(
+        env: Env | null,
+        found: Symbol,
+        expected: Symbol,
+        location: Location,
+    ) {
         super(location);
         this.env = env;
         this.found = found;
         this.expected = expected;
     }
 
-    toString() {
+    getMessage() {
         return `Mismatched refs! found ${printToString(
             symToPretty(this.found),
             100,
@@ -69,11 +80,11 @@ export class VarMismatch extends LocatedError {
 }
 
 export class RefMismatch extends LocatedError {
-    env: Env;
+    env: Env | null;
     found: Reference;
     expected: Reference;
     constructor(
-        env: Env,
+        env: Env | null,
         found: Reference,
         expected: Reference,
         location: Location,
@@ -84,7 +95,7 @@ export class RefMismatch extends LocatedError {
         this.expected = expected;
     }
 
-    toString() {
+    getMessage() {
         return `Mismatched refs! found ${printToString(
             refToPretty(this.env, this.found, 'error'),
             100,
@@ -96,16 +107,21 @@ export class RefMismatch extends LocatedError {
 }
 
 export class TypeMismatch extends LocatedError {
-    env: Env;
+    env: Env | null;
     found: Type;
     expected: Type;
-    constructor(env: Env, found: Type, expected: Type, location: Location) {
+    constructor(
+        env: Env | null,
+        found: Type,
+        expected: Type,
+        location: Location,
+    ) {
         super(location);
         this.env = env;
         this.found = found;
         this.expected = expected;
     }
-    toString() {
+    getMessage() {
         return `Type Mismatch! Found ${showType(
             this.env,
             this.found,
@@ -116,49 +132,67 @@ export class TypeMismatch extends LocatedError {
 export class WrongEffects extends LocatedError {
     found: EffectRef[];
     expected: EffectRef[];
-    env: Env;
+    env: Env | null;
+    mapping: { [k: number]: number };
     constructor(
         found: EffectRef[],
         expected: EffectRef[],
-        env: Env,
+        env: Env | null,
         location: Location,
+        mapping: { [k: number]: number },
     ) {
         super(location);
         this.found = found;
         this.expected = expected;
         this.env = env;
+        this.mapping = mapping;
     }
-    toString() {
+    getMessage() {
         return `Effects don't match!\nFound: ${this.found
             .map((e) => effToString(this.env, e))
             .join(', ')}\nExpected: ${this.expected
             .map((e) => effToString(this.env, e))
-            .join(', ')}`;
+            .join(', ')}\nWhile applying the mapping: ${JSON.stringify(
+            this.mapping,
+        )}`;
     }
 }
 
-export const effToString = (env: Env, eff: EffectRef) =>
+export const effToString = (env: Env | null, eff: EffectRef) =>
     printToString(effToPretty(env, eff), 100);
 
 export class MismatchedArgument extends LocatedError {
+    env: Env | null;
     idx: number;
     found: LambdaType;
     expected: LambdaType;
-    constructor(idx: number, found: LambdaType, expected: LambdaType) {
+    constructor(
+        env: Env | null,
+        idx: number,
+        found: LambdaType,
+        expected: LambdaType,
+    ) {
         super(found.location);
+        this.env = env;
         this.idx = idx;
         this.found = found;
         this.expected = expected;
+    }
+    getMessage() {
+        return `Mismatch at argument ${this.idx}:\n${showType(
+            this.env,
+            this.found,
+        )}\nExpected\n${showType(this.env, this.expected)}`;
     }
 }
 
 export class MismatchedTypeVbl extends LocatedError {
     idx: number;
-    env: Env;
+    env: Env | null;
     found: Type;
     expected: Type;
     constructor(
-        env: Env,
+        env: Env | null,
         idx: number,
         found: Type,
         expected: Type,
@@ -170,7 +204,7 @@ export class MismatchedTypeVbl extends LocatedError {
         this.found = found;
         this.expected = expected;
     }
-    toString() {
+    getMessage() {
         return `Mismatch type variable ${this.idx}, in type ${showType(
             this.env,
             this.found,
