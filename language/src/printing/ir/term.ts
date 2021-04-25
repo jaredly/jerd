@@ -89,13 +89,13 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 throw new Error(`Self referenced without self set on env`);
             }
             const t = typeFromTermType(term.is);
-            console.log(
-                'self here',
-                showLocation(term.location),
-                showType(env, term.is),
-                t.type,
-            );
-            console.log(new Error().stack!.split('\n').slice(3, 7).join('\n'));
+            // console.log(
+            //     'self here',
+            //     showLocation(term.location),
+            //     showType(env, term.is),
+            //     t.type,
+            // );
+            // console.log(new Error().stack!.split('\n').slice(3, 11).join('\n'));
             return printTermRef(
                 opts,
                 {
@@ -180,7 +180,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             // ughhhhhhhh I think my denormalization is biting me here.
             if (getEffects(term).length > 0) {
-                throw new Error(
+                throw new LocatedError(
+                    term.location,
                     `This apply has effects, but isn't in a CPS context. Effects: ${getEffects(
                         term,
                     )

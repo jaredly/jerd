@@ -307,11 +307,15 @@ export const withNoEffects = (env: Env, term: Lambda): Lambda => {
     // lol clone
     term = JSON.parse(JSON.stringify(term)) as Lambda;
     walkTerm(term, (t) => {
-        if (t.type === 'apply') {
-            const is = t.target.is as LambdaType;
-            if (is.effects) {
-                is.effects = clearEffects(vbls, is.effects);
-            }
+        if (t.type === 'apply' && t.effectVbls) {
+            t.effectVbls = t.effectVbls.filter(
+                (e) => e.type !== 'var' || e.sym.unique !== vbls[0],
+            );
+            // t.effectVbls;
+            // const is = t.target.is as LambdaType;
+            // if (is.effects) {
+            //     is.effects = clearEffects(vbls, is.effects);
+            // }
         }
     });
     return { ...term, is };
