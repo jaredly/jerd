@@ -317,7 +317,7 @@ export const callExpression = (
     _is: Type,
     args: Array<Expr>,
     loc: Loc,
-    concreteType?: LambdaType,
+    _concreteType?: LambdaType,
     typeVbls?: Array<Type>,
 ): Expr => {
     let tt = target.is as LambdaType;
@@ -395,17 +395,10 @@ export const callExpression = (
         // So that we can get rid of `is`, and `targetType` hopefully.
         // And so we can print out typescript type applications.
         // because that would be nice.
-        // And also so that concreteType wouldn't be needed --
-        // concreteType would just be the targetType with typeVbls applied
-        // OHH also I can remove targetType & concreteType on this
-        // IR object. That would be so rad.
         typeVbls: typeVbls || [],
-        // targetType,
-        targetType: target.is as LambdaType,
-        concreteType: concreteType || targetType,
+        // targetType: target.is as LambdaType,
         note,
         is: tt.res, // targetType.res,
-        // is: tt.res,
         target,
         args,
         loc,

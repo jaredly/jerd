@@ -20,7 +20,6 @@ export const typeApply = (
 ): Term => {
     const { args, effectVbls } = suffix;
     const typeVbls = suffix.typevbls.map((t) => typeType(env, t));
-    // const originalTargetType = target.is as LambdaType;
     let applied = target.is;
     if (typeVbls.length) {
         // ahhhh it's my old nemesis come back to haunt me.
@@ -128,8 +127,6 @@ export const typeApply = (
 
     return {
         type: 'apply',
-        // originalTargetType,
-        // STOPSHIP(sourcemap): this should be better
         location: target.location,
         typeVbls,
         effectVbls: mappedVbls,

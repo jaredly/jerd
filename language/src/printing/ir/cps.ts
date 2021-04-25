@@ -361,26 +361,9 @@ const _termToAstCPS = (
                     inner = callExpression(
                         env,
                         target,
-                        // STOSHIP: add handler n stuff
                         target.is.type === 'effectful-or-direct'
                             ? target.is.effectful
                             : (target.is as ILambdaType),
-                        // lambdaTypeFromTermType(term.target.is),
-                        // {
-                        //     ...lambdaTypeFromTermType(term.target.is),
-                        //     args: term.originalTargetType.args
-                        //         .map(typeFromTermType)
-                        //         .concat([
-                        //             handlersType,
-                        //             pureFunction(
-                        //                 [typeFromTermType(term.is)],
-                        //                 void_,
-                        //             ),
-                        //         ]),
-                        //     res: void_,
-                        // },
-                        // term.originalTargetType,
-                        // term.is,
                         void_,
                         (argSyms.map((sym, i) =>
                             sym
@@ -420,21 +403,6 @@ const _termToAstCPS = (
                                 target.is.type === 'effectful-or-direct'
                                     ? target.is.effectful
                                     : (target.is as ILambdaType),
-                                // {
-                                //     ...lambdaTypeFromTermType(
-                                //         term.originalTargetType,
-                                //     ),
-                                //     args: term.originalTargetType.args
-                                //         .map(typeFromTermType)
-                                //         .concat([
-                                //             handlersType,
-                                //             pureFunction(
-                                //                 [typeFromTermType(term.is)],
-                                //                 void_,
-                                //             ),
-                                //         ]),
-                                //     res: void_,
-                                // },
                                 typeFromTermType(term.is),
                                 argSyms.map((sym, i) =>
                                     sym
