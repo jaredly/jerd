@@ -48,6 +48,7 @@ import {
     returnTypeForStmt,
     typeForLambdaExpression,
     typesEqual,
+    MaybeEffLambda,
 } from './types';
 import { Location } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
@@ -90,8 +91,10 @@ export const string: Type = builtinType('string');
 export const void_: Type = builtinType('void');
 export const bool: Type = builtinType('bool');
 
-export const lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
-    return typeFromTermType(type) as LambdaType;
+export const lambdaTypeFromTermType = (
+    type: TermLambdaType,
+): LambdaType | MaybeEffLambda => {
+    return typeFromTermType(type) as LambdaType | MaybeEffLambda;
 };
 
 export const _lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
@@ -333,9 +336,10 @@ export const callExpression = (
                 loc,
             ) as LambdaType;
         } catch (err) {
-            throw new LocatedError(loc, `Um ${JSON.stringify(target)}`).wrap(
-                err,
-            );
+            throw new LocatedError(
+                loc,
+                `Um Failed to apply type variables.`,
+            ).wrap(err);
         }
     }
     let note = undefined;

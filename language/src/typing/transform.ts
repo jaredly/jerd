@@ -298,7 +298,12 @@ export const walkTerm = (
 // apply the effect variables all over
 export const withNoEffects = (env: Env, term: Lambda): Lambda => {
     const vbls = term.is.effectVbls;
-    const is = applyEffectVariables(env, term.is, []) as LambdaType;
+    const is = applyEffectVariables(
+        env,
+        term.is,
+        [],
+        term.location,
+    ) as LambdaType;
     // lol clone
     term = JSON.parse(JSON.stringify(term)) as Lambda;
     walkTerm(term, (t) => {

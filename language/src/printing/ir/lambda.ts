@@ -66,14 +66,15 @@ export const printLambda = (
                     term.location,
                     term.is.typeVbls,
                 ),
-                is: {
-                    type: 'effectful-or-direct',
-                    loc: term.location,
-                    effectful: lambdaTypeFromTermType(term.is as ILambdaType),
-                    direct: lambdaTypeFromTermType(
-                        directVersion.is as ILambdaType,
-                    ),
-                },
+                is: lambdaTypeFromTermType(term.is as ILambdaType),
+                // {
+                //     type: 'effectful-or-direct',
+                //     loc: term.location,
+                //     effectful: lambdaTypeFromTermType(term.is as ILambdaType),
+                //     direct: lambdaTypeFromTermType(
+                //         directVersion.is as ILambdaType,
+                //     ),
+                // },
             };
         }
         return effectfulLambda(env, opts, term);

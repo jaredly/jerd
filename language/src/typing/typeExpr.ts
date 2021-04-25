@@ -37,6 +37,7 @@ import { getTypeError } from './getTypeError';
 import { typeAs } from './terms/as-suffix';
 import { typeAttribute } from './terms/attribute';
 import { typeArray } from './terms/array';
+import { Loc } from '../printing/ir/types';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -135,6 +136,7 @@ export const applyEffectVariables = (
     env: Env | null,
     type: Type,
     vbls: Array<EffectRef>,
+    loc?: Loc,
 ): Type => {
     if (type.type === 'lambda') {
         const t: LambdaType = type as LambdaType;
@@ -142,10 +144,11 @@ export const applyEffectVariables = (
         const mapping: { [unique: number]: Array<EffectRef> } = {};
 
         if (type.effectVbls.length !== 1) {
-            throw new Error(
+            throw new LocatedError(
+                loc || type.location,
                 `Multiple effect variables not yet supported: ${
                     env ? showType(env, type) : 'no env for printing'
-                } : ${showLocation(type.location)}`,
+                }`,
             );
         }
 

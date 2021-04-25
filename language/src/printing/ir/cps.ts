@@ -29,7 +29,15 @@ import {
     handlersType,
 } from './utils';
 
-import { Loc, Expr, Block, Arg, OutputOptions, Type } from './types';
+import {
+    Loc,
+    Expr,
+    Block,
+    Arg,
+    LambdaType as ILambdaType,
+    OutputOptions,
+    Type,
+} from './types';
 import { printLambdaBody, sequenceToBlock } from './lambda';
 import { printTerm } from './term';
 import {
@@ -354,7 +362,10 @@ const _termToAstCPS = (
                         env,
                         target,
                         // STOSHIP: add handler n stuff
-                        lambdaTypeFromTermType(term.target.is),
+                        target.is.type === 'effectful-or-direct'
+                            ? target.is.effectful
+                            : (target.is as ILambdaType),
+                        // lambdaTypeFromTermType(term.target.is),
                         // {
                         //     ...lambdaTypeFromTermType(term.target.is),
                         //     args: term.originalTargetType.args
@@ -406,7 +417,9 @@ const _termToAstCPS = (
                             callExpression(
                                 env,
                                 target,
-                                lambdaTypeFromTermType(term.target.is),
+                                target.is.type === 'effectful-or-direct'
+                                    ? target.is.effectful
+                                    : (target.is as ILambdaType),
                                 // {
                                 //     ...lambdaTypeFromTermType(
                                 //         term.originalTargetType,
@@ -476,20 +489,20 @@ const _termToAstCPS = (
                 return inner;
             }
             let target = printTerm(env, opts, term.target);
-            if (term.hadAllVariableEffects) {
+            if (target.is.type === 'effectful-or-direct') {
                 target = {
                     type: 'effectfulOrDirect',
                     target,
                     effectful: true,
                     loc: target.loc,
-                    is: typeFromTermType(term.target.is),
+                    is: target.is.effectful,
                 };
             }
             // const lt =
             return callExpression(
                 env,
                 target,
-                lambdaTypeFromTermType(term.target.is),
+                target.is as ILambdaType,
                 typeFromTermType(term.is),
                 // target.is.res,
                 args
