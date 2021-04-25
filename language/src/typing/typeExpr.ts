@@ -132,7 +132,7 @@ export const showLocation = (loc: Location | null, startOnly?: boolean) => {
 };
 
 export const applyEffectVariables = (
-    env: Env,
+    env: Env | null,
     type: Type,
     vbls: Array<EffectRef>,
 ): Type => {
@@ -143,10 +143,9 @@ export const applyEffectVariables = (
 
         if (type.effectVbls.length !== 1) {
             throw new Error(
-                `Multiple effect variables not yet supported: ${showType(
-                    env,
-                    type,
-                )} : ${showLocation(type.location)}`,
+                `Multiple effect variables not yet supported: ${
+                    env ? showType(env, type) : 'no env for printing'
+                } : ${showLocation(type.location)}`,
             );
         }
 
@@ -213,7 +212,7 @@ export const applyTypeVariablesToRecord = (
 };
 
 export const applyTypeVariables = (
-    env: Env,
+    env: Env | null,
     type: Type,
     vbls: Array<Type>,
     selfHash?: string,
@@ -233,10 +232,12 @@ export const applyTypeVariables = (
         }
         vbls.forEach((typ, i) => {
             // STOPSHIP CHECK HERE
-            const subs = t.typeVbls[i].subTypes;
-            for (let sub of subs) {
-                if (!hasSubType(env, typ, sub)) {
-                    throw new Error(`Expected a subtype of ${idName(sub)}`);
+            if (env) {
+                const subs = t.typeVbls[i].subTypes;
+                for (let sub of subs) {
+                    if (!hasSubType(env, typ, sub)) {
+                        throw new Error(`Expected a subtype of ${idName(sub)}`);
+                    }
                 }
             }
             mapping[t.typeVbls[i].unique] = typ;

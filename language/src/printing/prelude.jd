@@ -42,7 +42,7 @@ const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
     switch (one, two) {
         ([], []) => true,
         ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
-            arrayEq(rone, rtwo, eq)
+            arrayEq<T>(rone, rtwo, eq)
         } else {
             false
         },
@@ -52,7 +52,7 @@ const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
 
 const ArrayEq = <T,>(eq: Eq<T>) => Eq<Array<T>>{
     "==": (one: Array<T>, two: Array<T>) => 
-    len(one) == len(two) && arrayEq(one, two, eq)
+    len<T>(one) == len<T>(two) && arrayEq<T>(one, two, eq)
 }
 const ArrayStringEq = ArrayEq<string>(StringEq)
 const ArrayIntEq = ArrayEq<int>(IntEq)

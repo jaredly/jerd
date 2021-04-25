@@ -382,7 +382,7 @@ const _termToAstCPS = (
                         target.loc,
                     );
                 } else {
-                    if (!term.originalTargetType) {
+                    if (!term.target.is) {
                         throw new Error(
                             `No original targt type ${showLocation(
                                 term.location,
@@ -489,7 +489,7 @@ const _termToAstCPS = (
             return callExpression(
                 env,
                 target,
-                lambdaTypeFromTermType(term.originalTargetType),
+                lambdaTypeFromTermType(term.target.is),
                 typeFromTermType(term.is),
                 // target.is.res,
                 args

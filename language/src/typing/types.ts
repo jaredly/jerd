@@ -4,6 +4,7 @@ import { Expression, Identifier, Location } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
 import seedrandom from 'seedrandom';
+import { applyEffectVariables, applyTypeVariables } from './typeExpr';
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
@@ -258,7 +259,7 @@ export type Sequence = {
 };
 export type Apply = {
     type: 'apply';
-    originalTargetType: LambdaType;
+    // originalTargetType: LambdaType;
     location: Location | null;
     target: Term;
     typeVbls: Array<Type>;
@@ -275,7 +276,7 @@ export const apply = (
     location: Location | null,
 ): Term => ({
     type: 'apply',
-    originalTargetType: target.is as LambdaType,
+    // originalTargetType: target.is as LambdaType,
     location,
     target,
     typeVbls: [],
@@ -765,12 +766,15 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                     getEffects(i.type === 'ArraySpread' ? i.value : i),
                 ),
             );
-        case 'apply':
+        case 'apply': {
+            let is = t.target.is as LambdaType;
+            if (t.effectVbls) {
+                is = applyEffectVariables(null, is, t.effectVbls) as LambdaType;
+            }
             return dedupEffects(
-                (t.target.is as LambdaType).effects.concat(
-                    ...t.args.map(getEffects),
-                ),
+                (is as LambdaType).effects.concat(...t.args.map(getEffects)),
             );
+        }
         case 'sequence':
             return ([] as Array<EffectRef>).concat(...t.sts.map(getEffects));
         case 'raise':

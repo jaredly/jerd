@@ -217,6 +217,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 args.map((arg, i) => printTerm(env, opts, arg)),
                 term.location,
                 typeFromTermType(term.target.is as LambdaType) as ILambdaType,
+                term.typeVbls.map(typeFromTermType),
             );
         }
 

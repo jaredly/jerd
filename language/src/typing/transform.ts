@@ -353,7 +353,7 @@ export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
         location: arg.location,
         body: {
             type: 'apply',
-            originalTargetType: pureFunction([], arg.is.res),
+            // originalTargetType: pureFunction([], arg.is.res),
             location: arg.location,
             typeVbls: [],
             effectVbls: null,

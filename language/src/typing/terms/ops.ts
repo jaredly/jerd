@@ -159,7 +159,7 @@ const typeNewOp = (
 
     return {
         type: 'apply',
-        originalTargetType: fn.is,
+        // originalTargetType: fn.is,
         location:
             left.location && right.location
                 ? {
@@ -238,7 +238,7 @@ const typeOp = (
 
     return {
         type: 'apply',
-        originalTargetType: is,
+        // originalTargetType: is,
         location:
             left.location && right.location
                 ? {
