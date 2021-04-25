@@ -129,7 +129,7 @@ export const getTypeError = (
                     `Type variable has different number of subtypes`,
                 );
             }
-            for (let j = 0; found.typeVbls[i].subTypes.length; j++) {
+            for (let j = 0; j < found.typeVbls[i].subTypes.length; j++) {
                 if (
                     !idsEqual(
                         found.typeVbls[i].subTypes[j],

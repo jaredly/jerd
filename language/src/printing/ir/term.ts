@@ -206,6 +206,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 };
             } else if (term.hadAllVariableEffects) {
                 console.log(printToString(termToPretty(env, term), 100));
+                console.log(printToString(termToPretty(env, term.target), 100));
+                console.log(showType(env, term.target.is));
+                console.log(getEffects(term.target));
                 throw new LocatedError(
                     term.location,
                     `target should be effectful-or-direct folks`,
