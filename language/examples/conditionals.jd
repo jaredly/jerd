@@ -11,5 +11,14 @@ const y = (h: int) => if h < 10 {
     h * 3
 }
 
+const z = (n: int) => {
+    if n < 10 {
+        log("Ok")
+    };
+    n + 2
+}
+ 
+z(3)
+
 // TODO: cps it up folks
 // oh I should have some jest tests in here, yes I should.

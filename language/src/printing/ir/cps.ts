@@ -92,19 +92,14 @@ export const handlerVar = (loc: Loc): Expr => ({
     is: handlersType,
 });
 
+export const handlerArg = (loc: Loc): Arg => ({
+    sym: handlerSym,
+    type: handlersType,
+    loc: loc,
+});
+
 export const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {
-    return arrowFunctionExpression(
-        [
-            {
-                sym: handlerSym,
-                type: handlersType,
-                loc: loc,
-            },
-            arg,
-        ],
-        body,
-        loc,
-    );
+    return arrowFunctionExpression([handlerArg(loc), arg], body, loc);
 };
 
 export const termToAstCPS = (
@@ -128,15 +123,7 @@ const _termToAstCPS = (
         return callExpression(
             env,
             done,
-            [
-                {
-                    type: 'var',
-                    sym: handlerSym,
-                    loc: term.location,
-                    is: handlersType,
-                },
-                printTerm(env, opts, term),
-            ],
+            [handlerVar(term.location), printTerm(env, opts, term)],
             term.location,
         );
     }
@@ -190,12 +177,7 @@ const _termToAstCPS = (
                         env,
                         done,
                         [
-                            {
-                                type: 'var',
-                                sym: handlerSym,
-                                loc: term.location,
-                                is: handlersType,
-                            },
+                            handlerVar(term.location),
                             {
                                 type: 'builtin',
                                 name: 'undefined',
@@ -246,12 +228,7 @@ const _termToAstCPS = (
                             printLambdaBody(env, opts, term.yes, done),
                             term.no
                                 ? printLambdaBody(env, opts, term.no, done)
-                                : callExpression(
-                                      env,
-                                      done,
-                                      [handlerVar(term.location)],
-                                      term.location,
-                                  ),
+                                : callDone(env, done, null, term.location),
                             term.location,
                         ),
                     ],
@@ -289,16 +266,6 @@ const _termToAstCPS = (
                     is: target.is.effectful,
                 };
             }
-            // const lt =
-            // return callExpression(
-            //     env,
-            //     target,
-            //     args
-            //         .map((arg, i) => printTerm(env, opts, arg))
-            //         .concat([handlerVar(term.location), done]),
-            //     term.location,
-            //     term.typeVbls.map((t) => typeFromTermType(t)),
-            // );
             return passDone(
                 env,
                 target,
@@ -315,13 +282,6 @@ const _termToAstCPS = (
                 typeFromTermType(term.is),
             );
         default:
-            // console.log('ELSE', term.type);
-            // return callExpression(
-            //     env,
-            //     done,
-            //     [handlerVar(term.location), printTerm(env, opts, term)],
-            //     term.location,
-            // );
             return callDone(
                 env,
                 done,
@@ -354,9 +314,18 @@ export const passDone = (
     );
 };
 
-export const callDone = (env: Env, done: Expr, returnValue: Expr, loc: Loc) => {
+export const callDone = (
+    env: Env,
+    done: Expr,
+    returnValue: Expr | null,
+    loc: Loc,
+) => {
     if (done.is.type !== 'lambda') {
         throw new Error(`Done is not a lambda ${done.is.type}`);
     }
-    return callExpression(env, done, [handlerVar(loc), returnValue], loc);
+    const args = [handlerVar(loc)];
+    if (returnValue != null) {
+        args.push(returnValue);
+    }
+    return callExpression(env, done, args, loc);
 };

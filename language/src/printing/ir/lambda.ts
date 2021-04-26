@@ -23,14 +23,9 @@ import {
     OutputOptions,
     LambdaType,
 } from './types';
-import {
-    callExpression,
-    typeFromTermType,
-    handlersType,
-    handlerSym,
-} from './utils';
+import { callExpression, typeFromTermType, handlersType } from './utils';
 
-import { termToAstCPS } from './cps';
+import { termToAstCPS, handlerArg } from './cps';
 import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 import { withNoEffects } from '../../typing/transform';
@@ -149,11 +144,11 @@ const effectfulLambda = (
             .map((sym, i) => ({
                 sym,
                 type: typeFromTermType(term.is.args[i]),
-                loc: null,
+                loc: term.location,
             }))
             .concat([
-                { type: handlersType, sym: handlerSym, loc: null },
-                { sym: done, type: doneT, loc: null },
+                handlerArg(term.location),
+                { sym: done, type: doneT, loc: term.location },
             ]),
         withExecutionLimit(
             env,
@@ -216,11 +211,7 @@ export const sequenceToBlock = (
             if (i > 0) {
                 inner = arrowFunctionExpression(
                     [
-                        {
-                            sym: handlerSym,
-                            type: handlersType,
-                            loc: null,
-                        },
+                        handlerArg(term.sts[i].location),
                         {
                             sym: { name: '_ignored', unique: 1 },
                             type: builtinType('unknown'),
