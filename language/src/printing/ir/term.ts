@@ -256,7 +256,6 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         }
 
         case 'sequence': {
-            // IIFE
             return callExpression(
                 env,
                 arrowFunctionExpression(
@@ -288,14 +287,6 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             );
         }
         case 'Record': {
-            // ok whats the story here?
-            // options include:
-            // ['h@sh', arg1, arg2]
-            // {type: 'h@sh', 0: arg1, 1: arg2, 2: arg3}
-            // {type: 'h@sh', h@sh_0: arg1, h@sh_1: arg2, h@sh_2: arg3}
-            // the last one requires the least record keeping, I think.
-            // although serializes more.
-            // yeah I think we need the last one.
             return {
                 type: 'record',
                 base:
@@ -382,7 +373,6 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             };
         }
         case 'Switch': {
-            // TODO: if the term is "basic", we can just pass it through
             const basic = isConstant(term.term);
 
             const id = { name: 'discriminant', unique: env.local.unique++ };
@@ -403,7 +393,6 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     printPattern(
                         env,
                         value,
-                        // kase.body.is,
                         term.term.is,
                         kase.pattern,
                         blockStatement(
@@ -416,14 +405,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             cases.push(
                 blockStatement(
-                    [
-                        { type: 'MatchFail', loc: term.location },
-                        //     t.throwStatement(
-                        //         t.newExpression(t.identifier('Error'), [
-                        //             t.stringLiteral('Invalid case analysis'),
-                        //         ]),
-                        //     ),
-                    ],
+                    [{ type: 'MatchFail', loc: term.location }],
                     term.location,
                 ),
             );

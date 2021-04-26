@@ -116,7 +116,6 @@ export const termToAstCPS = (
     return _termToAstCPS(env, opts, term, done);
 };
 
-// cps: t.Identifier // is it the done fn, or the thing I want you to bind to?
 const _termToAstCPS = (
     env: Env,
     opts: OutputOptions,
@@ -153,7 +152,6 @@ const _termToAstCPS = (
                 target: printTerm(env, opts, term.target),
                 effect: (term.effect as UserReference).id,
                 loc: term.location,
-                // fail boat
                 pure: {
                     arg: term.pure.arg,
                     argType: typeFromTermType(
@@ -234,48 +232,7 @@ const _termToAstCPS = (
         case 'if': {
             const condEffects = getEffects(term.cond);
             if (condEffects.length) {
-                return termToAstCPS(
-                    env,
-                    opts,
-                    term.cond,
-                    cpsLambda(
-                        {
-                            sym: { name: 'cond', unique: 1000 },
-                            type: bool,
-                            loc: term.cond.location,
-                        },
-                        {
-                            type: 'Block',
-                            items: [
-                                ifStatement(
-                                    {
-                                        type: 'var',
-                                        sym: { name: 'cond', unique: 1000 },
-                                        loc: term.cond.location,
-                                        is: bool,
-                                    },
-                                    printLambdaBody(env, opts, term.yes, done),
-                                    term.no
-                                        ? printLambdaBody(
-                                              env,
-                                              opts,
-                                              term.no,
-                                              done,
-                                          )
-                                        : callExpression(
-                                              env,
-                                              done,
-                                              [handlerVar(term.location)],
-                                              term.location,
-                                          ),
-                                    term.location,
-                                ),
-                            ],
-                            loc: term.location,
-                        },
-                        term.location,
-                    ),
-                );
+                throw new Error(`Condition effects -- call liftEffects first`);
             }
 
             const cond = printTerm(env, opts, term.cond);
@@ -317,120 +274,10 @@ const _termToAstCPS = (
                 return maybeWrapPureFunction(env, arg, argTypes[i]);
             });
 
-            const argsEffects = ([] as Array<EffectRef>).concat(
-                ...term.args.map(getEffects),
-            );
-            if (argsEffects.length > 0) {
-                const argSyms = args.map((arg, i) =>
-                    isSimple(arg)
-                        ? null
-                        : { name: `arg_${i}`, unique: env.local.unique++ },
+            if (term.args.some((arg) => getEffects(arg).length > 0)) {
+                throw new Error(
+                    `Apply arg had an effect - you need to run liftEffects first.`,
                 );
-                let target = printTerm(env, opts, term.target);
-                if (term.hadAllVariableEffects) {
-                    target = {
-                        type: 'effectfulOrDirect',
-                        target,
-                        effectful: true,
-                        loc: target.loc,
-                        // STOPSHIP: is this the right thing?
-                        is: typeFromTermType(term.target.is),
-                    };
-                }
-                let inner: Expr = done;
-                if (term.target.is.effects.length > 0) {
-                    // ok so the thing is,
-                    // i only need to cps it out if the arg
-                    // is an apply that does cps.
-                    // but not if that arg has an arg that does cps,
-                    // right?
-                    inner = callExpression(
-                        env,
-                        target,
-                        (argSyms.map((sym, i) =>
-                            sym
-                                ? { type: 'var', sym, loc: null }
-                                : printTerm(env, opts, args[i]),
-                        ) as Array<Expr>).concat([
-                            handlerVar(target.loc),
-                            inner,
-                        ]),
-                        target.loc,
-                    );
-                } else {
-                    if (!term.target.is) {
-                        throw new Error(
-                            `No original targt type ${showLocation(
-                                term.location,
-                            )}`,
-                        );
-                    }
-                    // hm. I feel like I need to introspect `done`.
-                    // and have a way to flatten out immediate calls.
-                    // or I could do that post-hoc?
-                    // I mean that might make things simpler tbh.
-                    inner = callExpression(
-                        env,
-                        done,
-                        [
-                            handlerVar(target.loc),
-                            // so here is where we want to
-                            // put the "body"
-                            // which might include inverting it.
-                            callExpression(
-                                env,
-                                target,
-                                argSyms.map((sym, i) =>
-                                    sym
-                                        ? { type: 'var', sym, loc: null }
-                                        : printTerm(env, opts, args[i]),
-                                ) as Array<Expr>,
-                                target.loc,
-                            ),
-                        ],
-                        target.loc,
-                    );
-                }
-                for (let i = args.length - 1; i >= 0; i--) {
-                    if (isSimple(args[i])) {
-                        continue;
-                    }
-                    // TODO: follow type refs 🤔
-                    // should just have a function like
-                    // `resolveType(env, theType)`
-                    // if (term.target.is.type === 'lambda' && )
-                    inner = termToAstCPS(
-                        env,
-                        opts,
-                        args[i],
-                        arrowFunctionExpression(
-                            [
-                                {
-                                    sym: handlerSym,
-                                    loc: null,
-                                    type: handlersType,
-                                },
-                                {
-                                    sym: argSyms[i]!,
-                                    loc: args[i].location,
-                                    type: typeFromTermType(args[i].is),
-                                },
-                            ],
-                            blockStatement(
-                                [
-                                    {
-                                        type: 'Expression',
-                                        expr: inner,
-                                        loc: inner.loc,
-                                    },
-                                ],
-                                inner.loc,
-                            ),
-                            args[i].location,
-                        ),
-                    );
-                }
-                return inner;
             }
             let target = printTerm(env, opts, term.target);
             if (target.is.type === 'effectful-or-direct') {
@@ -443,13 +290,21 @@ const _termToAstCPS = (
                 };
             }
             // const lt =
-            return callExpression(
+            // return callExpression(
+            //     env,
+            //     target,
+            //     args
+            //         .map((arg, i) => printTerm(env, opts, arg))
+            //         .concat([handlerVar(term.location), done]),
+            //     term.location,
+            //     term.typeVbls.map((t) => typeFromTermType(t)),
+            // );
+            return passDone(
                 env,
                 target,
-                args
-                    .map((arg, i) => printTerm(env, opts, arg))
-                    .concat([handlerVar(target.loc), done]),
-                target.loc,
+                args.map((arg, i) => printTerm(env, opts, arg)),
+                done,
+                term.location,
                 term.typeVbls.map((t) => typeFromTermType(t)),
             );
         }
@@ -461,11 +316,47 @@ const _termToAstCPS = (
             );
         default:
             // console.log('ELSE', term.type);
-            return callExpression(
+            // return callExpression(
+            //     env,
+            //     done,
+            //     [handlerVar(term.location), printTerm(env, opts, term)],
+            //     term.location,
+            // );
+            return callDone(
                 env,
                 done,
-                [handlerVar(term.location), printTerm(env, opts, term)],
+                printTerm(env, opts, term),
                 term.location,
             );
     }
+};
+
+// Should I have a function
+// that gets the "handler arguments"?
+// and the "done argument"?
+// I need a function that is "does this done function want an argument"
+// right?
+
+export const passDone = (
+    env: Env,
+    target: Expr,
+    args: Array<Expr>,
+    done: Expr,
+    loc: Loc,
+    typeVbls?: Array<Type>,
+) => {
+    return callExpression(
+        env,
+        target,
+        args.concat([handlerVar(loc), done]),
+        loc,
+        typeVbls,
+    );
+};
+
+export const callDone = (env: Env, done: Expr, returnValue: Expr, loc: Loc) => {
+    if (done.is.type !== 'lambda') {
+        throw new Error(`Done is not a lambda ${done.is.type}`);
+    }
+    return callExpression(env, done, [handlerVar(loc), returnValue], loc);
 };

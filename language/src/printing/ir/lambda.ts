@@ -4,10 +4,8 @@ import {
     Term,
     Env,
     Symbol,
-    EffectRef,
     Lambda,
     LambdaType as ILambdaType,
-    walkTerm,
     Sequence,
 } from '../../typing/types';
 import {
@@ -16,7 +14,6 @@ import {
     pureFunction,
     void_,
 } from './utils';
-import { applyEffectVariables } from '../../typing/typeExpr';
 
 import {
     Expr,
@@ -37,8 +34,6 @@ import { termToAstCPS } from './cps';
 import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 import { withNoEffects } from '../../typing/transform';
-import { printToString } from '../printer';
-import { termToPretty } from '../printTsLike';
 
 export const printLambda = (
     env: Env,
@@ -75,14 +70,6 @@ export const printLambda = (
                     term.is.typeVbls,
                 ),
                 is: lambdaTypeFromTermType(term.is as ILambdaType),
-                // {
-                //     type: 'effectful-or-direct',
-                //     loc: term.location,
-                //     effectful: lambdaTypeFromTermType(term.is as ILambdaType),
-                //     direct: lambdaTypeFromTermType(
-                //         directVersion.is as ILambdaType,
-                //     ),
-                // },
             };
         }
         return effectfulLambda(env, opts, term);
