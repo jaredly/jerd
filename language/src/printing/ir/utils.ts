@@ -54,6 +54,7 @@ import { Location } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
 import { args, atom, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
+// import { getTypeError } from '../../typing/getTypeError';
 
 export const builtinType = (
     name: string,
@@ -335,13 +336,17 @@ export const callExpression = (
     }
     let note = undefined;
     args.forEach((arg, i) => {
+        // const err= getTypeError(env, arg.is, tt.args[i], loc)
         if (!typesEqual(arg.is, tt.args[i])) {
             throw new LocatedError(
                 arg.loc,
                 `Type Mismatch! Found \n${showType(
                     env,
                     arg.is,
-                )}, expected \n${showType(env, tt.args[i])}`,
+                )}, expected \n${showType(env, tt.args[i])}\n${showType(
+                    env,
+                    target.is,
+                )}`,
             );
             // note = `Type Mismatch at arg ${i}! Found ${showType(
             //     env,

@@ -17,6 +17,7 @@ import {
     builtinType,
     lambdaTypeFromTermType,
     pureFunction,
+    showType,
     typeFromTermType,
     void_,
 } from './utils';
@@ -120,12 +121,7 @@ const _termToAstCPS = (
     // No effects in the term
     if (!getEffects(term).length && term.type !== 'Let') {
         const tt = typeFromTermType(term.is);
-        return callExpression(
-            env,
-            done,
-            [handlerVar(term.location), printTerm(env, opts, term)],
-            term.location,
-        );
+        return callDone(env, done, printTerm(env, opts, term), term.location);
     }
     switch (term.type) {
         case 'handle': {
@@ -173,20 +169,7 @@ const _termToAstCPS = (
                         type: typeFromTermType(term.is),
                         loc: term.location,
                     },
-                    callExpression(
-                        env,
-                        done,
-                        [
-                            handlerVar(term.location),
-                            {
-                                type: 'builtin',
-                                name: 'undefined',
-                                loc: term.location,
-                                is: builtinType('undefined'),
-                            },
-                        ],
-                        term.location,
-                    ),
+                    callDone(env, done, null, term.location),
                     term.location,
                 ),
             );
@@ -305,6 +288,33 @@ export const passDone = (
     loc: Loc,
     typeVbls?: Array<Type>,
 ) => {
+    const tt = target.is as ILambdaType;
+    const dt = done.is as ILambdaType;
+    const edt = tt.args[tt.args.length - 1] as ILambdaType;
+    if (edt.args.length > dt.args.length) {
+        const args: Array<Arg> = edt.args.map((type, i) => ({
+            type,
+            loc,
+            sym: { name: `arg_${i}`, unique: env.local.unique++ },
+        }));
+        done = arrowFunctionExpression(
+            args,
+            callExpression(
+                env,
+                done,
+                args.slice(0, dt.args.length).map((arg) => ({
+                    type: 'var',
+                    sym: arg.sym,
+                    is: arg.type,
+                    loc,
+                })),
+                loc,
+                [],
+            ),
+            loc,
+        );
+    }
+
     return callExpression(
         env,
         target,
@@ -324,7 +334,8 @@ export const callDone = (
         throw new Error(`Done is not a lambda ${done.is.type}`);
     }
     const args = [handlerVar(loc)];
-    if (returnValue != null) {
+    const dt = done.is as ILambdaType;
+    if (returnValue != null && dt.args.length === 2) {
         args.push(returnValue);
     }
     return callExpression(env, done, args, loc);

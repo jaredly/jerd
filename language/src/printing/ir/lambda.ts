@@ -212,11 +212,19 @@ export const sequenceToBlock = (
                 inner = arrowFunctionExpression(
                     [
                         handlerArg(term.sts[i].location),
-                        {
-                            sym: { name: '_ignored', unique: 1 },
-                            type: builtinType('unknown'),
-                            loc: null,
-                        },
+                        // BUG CHECK:
+                        // If we run into problems with done
+                        // not being passed around correctly
+                        // in cps,
+                        // which like could totally happen
+                        // erm
+                        // just re-enable this, and probably live with it?
+                        // idk, I'm worried about the case
+                        // where some function is passed to another one
+                        // or something.
+                        // but maybe that just wouldn't happen? idk
+                        //
+                        // { sym: { name: '_ignored', unique: 1 }, type: builtinType('unknown'), loc: null, },
                     ],
                     {
                         type: 'Block',
