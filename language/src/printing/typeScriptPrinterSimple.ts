@@ -21,7 +21,11 @@ import { typeScriptPrelude } from './fileToTypeScript';
 import { wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeDefine } from './ir/optimize';
-import { Loc, Type as IRType } from './ir/types';
+import {
+    Loc,
+    Type as IRType,
+    OutputOptions as IOutputOptions,
+} from './ir/types';
 import { handlersType, handlerSym, typeFromTermType } from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
@@ -62,7 +66,7 @@ export type OutputOptions = {
     readonly scope?: string;
     readonly noTypes?: boolean;
     readonly limitExecutionTime?: boolean;
-    readonly disciminant?: string;
+    readonly discriminant?: string;
 };
 
 export const maybeWithComment = <T>(e: T, comment?: string): T => {
@@ -205,7 +209,7 @@ export const _termToTs = (
                 '===',
                 t.memberExpression(
                     termToTs(env, opts, term.value),
-                    t.identifier(opts.disciminant || 'type'),
+                    t.identifier(opts.discriminant || 'type'),
                 ),
                 t.stringLiteral(recordIdName(env, term.ref)),
             );
@@ -686,6 +690,7 @@ export const fileToTypescript = (
     expressions: Array<Term>,
     env: Env,
     opts: OutputOptions,
+    irOpts: IOutputOptions,
     assert: boolean,
     includeImport: boolean,
     builtinNames: Array<string>,
@@ -799,6 +804,10 @@ export const fileToTypescript = (
 
     const orderedTerms = expressionDeps(env, expressions);
 
+    // const irOpts = {
+    // limitExecutionTime: opts.limitExecutionTime,
+    // };
+
     orderedTerms.forEach((idRaw) => {
         let term = env.global.terms[idRaw];
 
@@ -806,7 +815,7 @@ export const fileToTypescript = (
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
         const comment = printToString(declarationToPretty(senv, id, term), 100);
         term = liftEffects(env, term);
-        const irTerm = ir.printTerm(senv, {}, term);
+        const irTerm = ir.printTerm(senv, irOpts, term);
         items.push(
             declarationToTs(
                 senv,
@@ -825,7 +834,7 @@ export const fileToTypescript = (
             term = wrapWithAssert(term);
         }
         term = liftEffects(env, term);
-        const irTerm = ir.printTerm(env, {}, term);
+        const irTerm = ir.printTerm(env, irOpts, term);
         items.push(
             t.addComment(
                 t.expressionStatement(

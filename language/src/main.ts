@@ -20,8 +20,7 @@ import parse, {
     Location,
     Toplevel,
 } from './parsing/parser';
-// import { fileToTypescript } from './printing/fileToTypeScript';
-import { fileToTypescript as fileToTypeScriptNew } from './printing/typeScriptPrinterSimple';
+import { fileToTypescript } from './printing/typeScriptPrinterSimple';
 import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
@@ -495,15 +494,17 @@ const processFile = (
         }
     }
 
-    const ast = fileToTypeScriptNew(
+    const ast = fileToTypescript(
         expressions,
         env,
         {},
+        {
+            explicitHandlerFns: false,
+        },
         assert,
         true,
         builtinNames,
     );
-    // const ast = fileToTypescript(expressions, env, {}, assert, true);
     const { code: tsCode } = generate(ast, {
         sourceMaps: false,
         sourceFileName: '../' + path.basename(fname),
