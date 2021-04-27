@@ -164,12 +164,17 @@ const pickMax: (() ={Decide}> int) => int = (fn: () ={Decide}> int): int => hand
 pickMax(chooseDiff) == 25
 
 // #2.3.2
-effect Fail {
-    fail: () => int, // TODO this should really be an exit continuation...
-}
-const fail = () ={Fail}> raise!(Fail.fail())
+// Note that I'm using one effect for Decide and Fail, to fit within
+// restrictions required by my implementation of polymorphic effects.
 
-const chooseInt: (int, int) ={Decide, Fail}> int = (m: int, n: int): int ={Decide, Fail}> {
+effect DecideOrFail {
+    decide: () => bool,
+    fail: () => int, // TODO this should really be an exit continuation... and return never
+}
+const fail = () ={DecideOrFail}> raise!(DecideOrFail.fail())
+const decide = () ={DecideOrFail}> raise!(DecideOrFail.decide())
+
+const chooseInt: (int, int) ={DecideOrFail}> int = (m: int, n: int): int ={DecideOrFail}> {
     if m > n {
         fail();
         10
@@ -182,7 +187,7 @@ const chooseInt: (int, int) ={Decide, Fail}> int = (m: int, n: int): int ={Decid
     }
 }
 
-const pythagorean = (m: int, n: int) ={Decide, Fail}> {
+const pythagorean = (m: int, n: int) ={DecideOrFail}> {
     const a = chooseInt(m, n - 1);
     const b = chooseInt(a + 1, n);
     const a2 = a * a;
@@ -196,47 +201,38 @@ const pythagorean = (m: int, n: int) ={Decide, Fail}> {
     }
 }
 
-const handleFail = <T,>{e}(fn: () ={e, Fail}> T, orElse: () ={e}> T) ={e}> handle! fn {
-    Fail.fail(() => _) => orElse(),
-    pure(x) => x
-}
-
-// const handleFailPure = <T,>(fn: () ={Fail}> T, orElse: () ={}> T) ={}> handle! fn {
-//     Fail.fail(() => _) => orElse(),
-//     pure(x) => x
-// }
-
-
-const backtrack: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(
-    fn: () ={Decide, Fail}> T,
-): T ={Fail}> {
+const backtrack: <T,>(() ={DecideOrFail}> T, () ={}> T) ={}> T = <T,>(
+    fn: () ={DecideOrFail}> T,
+    orElse: () ={}> T,
+): T ={}> {
     handle! fn {
-        Decide.decide(() => k) => {
-            backtrack<T>(() ={Decide, Fail}> handleFail<T>{Decide, Fail}(
-                () ={Decide, Fail}> k(true),
-                () ={Decide, Fail}> k(false),
-            ))
+        DecideOrFail.decide(() => k) => {
+            backtrack<T>(() => k(true), () => backtrack<T>(() => k(false), orElse))
+        },
+        DecideOrFail.fail(() => _) => {
+            orElse()
         },
         pure(x) => x
     }
 }
 
-const backtrackReverse: <T,>(() ={Decide, Fail}> T) ={Fail}> T = <T,>(fn: () ={Decide, Fail}> T): T ={Fail}> {
+const backtrackReverse: <T,>(() ={DecideOrFail}> T, () ={}> T) ={}> T = <T,>(
+    fn: () ={DecideOrFail}> T,
+    orElse: () ={}> T,
+): T ={}> {
     handle! fn {
-        Decide.decide(() => k) => {
-            backtrackReverse<T>(() ={Decide, Fail}> handleFail<T>{Decide, Fail}(
-                () ={Decide, Fail}> k(false),
-                () ={Decide, Fail}> k(true),
-            ))
+        DecideOrFail.decide(() => k) => {
+            backtrackReverse<T>(() => k(false), () => backtrackReverse<T>(() => k(true), orElse))
+        },
+        DecideOrFail.fail(() => _) => {
+            orElse()
         },
         pure(x) => x
     }
 }
 
-const backtrackPythag = (m: int, n: int) => handleFail<string>{}(
-    () => backtrack<string>(
-        () => pythagorean(m, n),
-    ),
+const backtrackPythag = (m: int, n: int) => backtrack<string>(
+    () => pythagorean(m, n),
     () => "No solution found",
 )
 
@@ -244,8 +240,8 @@ const backtrackPythag = (m: int, n: int) => handleFail<string>{}(
 backtrackPythag(4, 15) == "5:12"
 backtrackPythag(7, 10) == "No solution found"
 
-const backtrackPythagReverse = (m: int, n: int) => handleFail<string>{}(
-    () => backtrackReverse<string>(() => pythagorean(m, n)),
+const backtrackPythagReverse = (m: int, n: int) => backtrackReverse<string>(
+    () => pythagorean(m, n),
     () => "No solution found"
 )
 backtrackPythagReverse(4, 15) == "9:12"

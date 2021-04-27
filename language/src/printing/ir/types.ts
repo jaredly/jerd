@@ -20,6 +20,7 @@ export type Loc = Location | null;
 
 export type OutputOptions = {
     readonly limitExecutionTime?: boolean;
+    readonly explicitHandlerFns?: boolean;
 };
 
 // hrm where do I put comments in life

@@ -11,7 +11,14 @@ Ones that are non-breaking
 - [x] type-checking the IR as I create it
 - [x] converting types to passing-handlers instead of having-effects (this can be a place where we then convert, yeah that's great.)
 - [x] fix the `unknown` type hack. sequences should be able to know that the `done` doesn't need another variable. And if the `done` does need another variable, it really shouldn't. So yeah sequences need to be smarter about that. I guess I could inspect the `done`. ... and that might be the best way to do it? Oh but first I want to abstract the "call done" thing into a central place (because that's where handlers are passed). And then I can have that be the only place where I check if the done wants a value.
+- [ ] move handler & raise generation into the IR. This'll be a little dicey(?) because some functions don't have
 - [ ] abstract out all the places where we're using `handlerVar` &c explicitly.
+
+orr hmmm can I jump into it right now?
+just try to do the new effects bonanza?
+oh ok what if
+I have a setting for the new version. yeah that's nice.
+and outputoption I believe?
 
 Ones that are breaking
 - [ ] switch from a single handlers variable to several, so we can handle polymorphic effects

@@ -91,17 +91,17 @@ export const typeApply = (
         throw new Error(`Target is a var, can't do it`);
     } else {
         if (applied.type !== 'lambda') {
-            throw new Error(
-                `Trying to call ${showType(env, applied)} at ${showLocation(
-                    target.location,
-                )}`,
+            throw new LocatedError(
+                target.location,
+                `Trying to call ${showType(env, applied)}`,
             );
         }
         if (applied.args.length !== args.length) {
-            throw new Error(
+            throw new LocatedError(
+                target.location,
                 `Wrong number of arguments ${showType(env, applied)}, ${
                     applied.args.length
-                } vs ${args.length} at ${showLocation(target.location)}`,
+                } vs ${args.length}`,
             );
         }
         is = applied;
