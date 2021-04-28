@@ -306,6 +306,7 @@ export const arrowFunctionExpression = (
     body: Expr | Block,
     loc: Loc,
     typeVbls?: Array<TypeVblDecl>,
+    tags?: Array<string>,
 ): LambdaExpr => {
     const res = typeForLambdaExpression(body) || void_;
     return {
@@ -319,6 +320,7 @@ export const arrowFunctionExpression = (
             res,
             typeVbls,
         ),
+        tags,
     };
 };
 

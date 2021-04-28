@@ -304,6 +304,7 @@ export type LambdaExpr = {
     body: Expr | Block;
     loc: Loc;
     is: LambdaType;
+    tags?: Array<string>;
 };
 
 export type Arg = { sym: Symbol; type: Type; loc: Loc };

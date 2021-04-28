@@ -167,7 +167,7 @@ export const _termToTs = (
                     env.local.localNames[arg.sym.name] = arg.sym.unique;
                 }
             });
-            const res = t.arrowFunctionExpression(
+            let res = t.arrowFunctionExpression(
                 term.args.map((arg) =>
                     withAnnotation(
                         env,
@@ -178,6 +178,13 @@ export const _termToTs = (
                 ),
                 lambdaBodyToTs(env, opts, term.body),
             );
+            if (term.tags != null) {
+                res = t.addComment(
+                    res,
+                    'leading',
+                    ' tags: ' + term.tags.join(', ') + ' ',
+                );
+            }
             if (term.is.typeVbls.length) {
                 return {
                     ...res,

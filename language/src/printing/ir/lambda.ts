@@ -63,6 +63,7 @@ export const printLambda = (
                     ),
                     term.location,
                     term.is.typeVbls,
+                    term.tags,
                 ),
                 is: lambdaTypeFromTermType(term.is as ILambdaType),
             };
@@ -82,6 +83,7 @@ export const printLambda = (
             ),
             term.location,
             term.is.typeVbls,
+            term.tags,
         );
     }
 };
@@ -162,6 +164,7 @@ const effectfulLambda = (
         ),
         term.location,
         term.is.typeVbls,
+        term.tags,
     );
 };
 
