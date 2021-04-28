@@ -93,17 +93,18 @@ export type Toplevel =
           loc: Loc;
       };
 
+export type Define = {
+    type: 'Define';
+    sym: Symbol;
+    value: Expr | null;
+    is: Type;
+    loc: Loc;
+    fakeInit?: boolean;
+};
 export type ReturnStmt = { type: 'Return'; value: Expr; loc: Loc };
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
-    | {
-          type: 'Define';
-          sym: Symbol;
-          value: Expr | null;
-          is: Type;
-          loc: Loc;
-          fakeInit?: boolean;
-      }
+    | Define
     | { type: 'Assign'; sym: Symbol; value: Expr; is: Type; loc: Loc }
     | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
     | { type: 'MatchFail'; loc: Loc }

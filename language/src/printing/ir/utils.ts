@@ -49,8 +49,9 @@ import {
     typeForLambdaExpression,
     typesEqual,
     MaybeEffLambda,
+    Define,
 } from './types';
-import { Location } from '../../parsing/parser';
+import { Location, nullLocation } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
 import { args, atom, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
@@ -208,9 +209,17 @@ export const returnStatement = (expr: Expr): Stmt => ({
     loc: expr.loc,
 });
 
-export const iffe = (env: Env, st: Block, res: Type): Expr => {
-    // TODO
-    // const res = typeForLambdaExpression(body) || void_;
+export const define = (sym: Symbol, value?: Expr): Define => {
+    return {
+        type: 'Define',
+        sym,
+        value: value ? value : null,
+        is: value ? value.is : void_,
+        loc: value ? value.loc : nullLocation,
+    };
+};
+
+export const iffe = (env: Env, st: Block): Expr => {
     return callExpression(
         env,
         arrowFunctionExpression([], st, st.loc),
@@ -219,7 +228,7 @@ export const iffe = (env: Env, st: Block, res: Type): Expr => {
     );
 };
 
-export const block = (items: Array<Stmt>, loc: Loc) => {
+export const block = (items: Array<Stmt>, loc: Loc): Block => {
     return {
         type: 'Block',
         items: items,

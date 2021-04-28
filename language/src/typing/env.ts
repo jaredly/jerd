@@ -165,6 +165,11 @@ export const typeEffect = (env: Env, item: Effect): Env => {
     ).env;
 };
 
+export const newSym = (env: Env, name: string): Symbol => ({
+    name,
+    unique: env.local.unique++,
+});
+
 // export const addToplevel = (
 //     env: Env,
 //     item: ToplevelT
