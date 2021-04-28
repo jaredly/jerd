@@ -558,25 +558,15 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
     }
 
     if (inits.length) {
-        return iffe(
-            env,
-            {
-                type: 'Block',
-                items: inits.concat({
-                    type: 'Return',
-                    loc: expr.loc,
-                    value: expr,
-                }),
+        return iffe(env, {
+            type: 'Block',
+            items: inits.concat({
+                type: 'Return',
                 loc: expr.loc,
-            },
-            {
-                type: 'ref',
-                loc: null,
-                // @ts-ignore
-                ref: expr.base.ref,
-                typeVbls: [],
-            },
-        );
+                value: expr,
+            }),
+            loc: expr.loc,
+        });
     } else {
         return expr;
     }

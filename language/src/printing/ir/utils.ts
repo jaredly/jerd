@@ -219,6 +219,14 @@ export const iffe = (env: Env, st: Block, res: Type): Expr => {
     );
 };
 
+export const block = (items: Array<Stmt>, loc: Loc) => {
+    return {
+        type: 'Block',
+        items: items,
+        loc,
+    };
+};
+
 export const ifBlock = (x: Block | Expr): Block => {
     if (x.type === 'Block') {
         return x;

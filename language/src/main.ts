@@ -499,7 +499,7 @@ const processFile = (
         env,
         {},
         {
-            explicitHandlerFns: false,
+            explicitHandlerFns: true,
         },
         assert,
         true,

@@ -3,7 +3,7 @@
 import {
     Term,
     Env,
-    // Type,
+    Type as TermType,
     getEffects,
     Let,
     Var,
@@ -11,6 +11,7 @@ import {
     UserReference,
     EffectReference,
     LambdaType,
+    Symbol,
 } from '../../typing/types';
 import {
     bool,
@@ -49,41 +50,43 @@ import {
     isSimple,
 } from './utils';
 import { maybeWrapPureFunction } from '../../typing/transform';
+import { isVoid } from '../../typing/terms/handle';
 
-// export const effectHandlerType = (env: Env, eff: EffectReference): Type => {
-//     return {
-//         type: 'effect-handler',
-//         ref: eff.ref,
-//         location: null,
-//     };
-// };
+export type EffectHandlers = { [id: string]: { expr: Expr; sym: Symbol } };
+
+export const effectHandlerType = (env: Env, eff: EffectReference): Type => {
+    return {
+        type: 'effect-handler',
+        ref: eff.ref,
+        loc: null,
+    };
+};
 
 export const effectConstructorType = (
     env: Env,
     eff: EffectReference,
-    constr: { args: Array<Type>; ret: Type },
+    constr: { args: Array<TermType>; ret: TermType },
 ): Type => {
-    // const constr = env.global.effects[refName(eff.ref)][idx];
-    return builtinType('any');
-    // return pureFunction(
-    //     constr.args.concat([
-    //         pureFunction(
-    //             [
-    //                 effectHandlerType(env, eff),
-    //                 ...(typesEqual(constr.ret, void_) ? [] : [constr.ret]),
-    //             ],
-    //             void_,
-    //             [],
-    //             null,
-    //             'eff-done',
-    //         ),
-    //     ]),
-    //     void_,
-    //     [],
-    //     null,
-    //     'eff-constr',
-    //     // constr.ret,
-    // );
+    return pureFunction(
+        constr.args
+            .map(typeFromTermType)
+            .concat([
+                pureFunction(
+                    [
+                        effectHandlerType(env, eff),
+                        ...(isVoid(constr.ret)
+                            ? []
+                            : [typeFromTermType(constr.ret)]),
+                    ],
+                    void_,
+                    [],
+                    null,
+                ),
+            ]),
+        void_,
+        [],
+        null,
+    );
 };
 
 export const handlerVar = (loc: Loc): Expr => ({
@@ -217,7 +220,6 @@ const _termToAstCPS = (
                     ],
                     term.location,
                 ),
-                void_,
             );
         }
         case 'apply': {
@@ -259,11 +261,7 @@ const _termToAstCPS = (
             );
         }
         case 'sequence':
-            return iffe(
-                env,
-                sequenceToBlock(env, opts, term, done),
-                typeFromTermType(term.is),
-            );
+            return iffe(env, sequenceToBlock(env, opts, term, done));
         default:
             return callDone(
                 env,

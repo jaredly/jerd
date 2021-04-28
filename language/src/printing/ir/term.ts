@@ -159,7 +159,6 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     ],
                     term.location,
                 ),
-                typeFromTermType(term.is),
             );
         }
         // a lambda, I guess also doesn't need cps, but internally it does.
@@ -427,7 +426,6 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     ].filter(Boolean) as Array<Stmt>,
                     term.location,
                 ),
-                typeFromTermType(term.is),
             );
         }
         default:
