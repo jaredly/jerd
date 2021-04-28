@@ -92,8 +92,13 @@ BinOpRight = __ id:(Identifier ".")? op:binop __ right:WithSuffix {
     return {op, id: id ? id[0] : null, right, location: location()}
 }
 // Apply / Attribute access
-WithSuffix = sub:Apsub suffixes:Suffix* {
-	return suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
+WithSuffix = decorators:(Decorator _)* sub:Apsub suffixes:Suffix* {
+	const main = suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
+    if (decorators.length) {
+        return {type: 'Decorated', wrapped: main, decorators: decorators.map((d: any) => d[0])}
+    } else {
+        return main
+    }
 }
 
 Suffix = ApplySuffix / AttributeSuffix / IndexSuffix / AsSuffix

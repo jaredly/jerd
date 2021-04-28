@@ -38,7 +38,6 @@ import {
 } from './printer';
 
 export type ToplevelT =
-    // | Term
     | {
           type: 'Effect';
           id: Id;
@@ -48,7 +47,14 @@ export type ToplevelT =
           constrNames: Array<string>;
       }
     | { type: 'Expression'; term: Term; location: Location }
-    | { type: 'Define'; id: Id; term: Term; location: Location; name: string }
+    | {
+          type: 'Define';
+          id: Id;
+          term: Term;
+          location: Location;
+          name: string;
+          tags?: Array<string>;
+      }
     | {
           type: 'EnumDef';
           def: EnumDef;
@@ -373,6 +379,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         case 'lambda':
             return items([
+                term.tags ? items(term.tags.map((t) => atom(`@${t}`))) : null,
                 term.is.typeVbls.length
                     ? typeVblDeclsToPretty(env, term.is.typeVbls)
                     : null,

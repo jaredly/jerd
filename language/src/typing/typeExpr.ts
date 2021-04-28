@@ -544,6 +544,15 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
         case 'Array': {
             return typeArray(env, expr);
         }
+        case 'Decorated': {
+            const inner = typeExpr(env, expr.wrapped);
+            if (inner.type === 'lambda') {
+                inner.tags = expr.decorators.map((d) => d.id.text);
+            } else {
+                throw new Error(`Only lambdas can be decorated right now`);
+            }
+            return inner;
+        }
         default:
             let _x: never = expr;
             throw new Error(`Unexpected parse type ${(expr as any).type}`);

@@ -507,6 +507,7 @@ export type Lambda = {
     args: Array<Symbol>;
     body: Term;
     is: LambdaType;
+    tags?: Array<string>;
 };
 
 // from thih

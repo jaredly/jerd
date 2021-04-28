@@ -15,6 +15,13 @@ export type Decorated = {
     decorators: Array<Decorator>;
 };
 
+export type DecoratedExpression = {
+    type: 'Decorated';
+    location: Location;
+    wrapped: Expression;
+    decorators: Array<Decorator>;
+};
+
 export type Decorator = {
     type: 'Decorator';
     id: Identifier;
@@ -105,6 +112,7 @@ export type Define = {
 export type Expression =
     | Literal
     | WithSuffix
+    | DecoratedExpression
     | Lambda
     | Raise
     | Ops

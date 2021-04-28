@@ -102,6 +102,9 @@ export function typeFile(
                         100,
                     )}`,
                 );
+            } else if (item.wrapped.type === 'define') {
+                const { term, env: nenv } = typeDefine(env, item.wrapped);
+                env = nenv;
             } else {
                 throw new Error(`Unhandled decorator`);
             }

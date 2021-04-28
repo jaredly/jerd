@@ -246,8 +246,13 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c44 = function(id: any, op: any, right: any): any {
       return {op, id: id ? id[0] : null, right, location: location()}
   };
-  const peg$c45 = function(sub: any, suffixes: any): any {
-  	return suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
+  const peg$c45 = function(decorators: any, sub: any, suffixes: any): any {
+  	const main = suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
+      if (decorators.length) {
+          return {type: 'Decorated', wrapped: main, decorators: decorators.map((d: any) => d[0])}
+      } else {
+          return main
+      }
   };
   const peg$c46 = "as";
   const peg$c47 = peg$literalExpectation("as", false);
@@ -1782,21 +1787,60 @@ function peg$parse(input: string, options?: IParseOptions) {
   }
 
   function peg$parseWithSuffix(): any {
-    let s0, s1, s2, s3;
+    let s0, s1, s2, s3, s4;
 
     s0 = peg$currPos;
-    s1 = peg$parseApsub();
-    if (s1 !== peg$FAILED) {
-      s2 = [];
-      s3 = peg$parseSuffix();
-      while (s3 !== peg$FAILED) {
-        s2.push(s3);
-        s3 = peg$parseSuffix();
+    s1 = [];
+    s2 = peg$currPos;
+    s3 = peg$parseDecorator();
+    if (s3 !== peg$FAILED) {
+      s4 = peg$parse_();
+      if (s4 !== peg$FAILED) {
+        s3 = [s3, s4];
+        s2 = s3;
+      } else {
+        peg$currPos = s2;
+        s2 = peg$FAILED;
       }
+    } else {
+      peg$currPos = s2;
+      s2 = peg$FAILED;
+    }
+    while (s2 !== peg$FAILED) {
+      s1.push(s2);
+      s2 = peg$currPos;
+      s3 = peg$parseDecorator();
+      if (s3 !== peg$FAILED) {
+        s4 = peg$parse_();
+        if (s4 !== peg$FAILED) {
+          s3 = [s3, s4];
+          s2 = s3;
+        } else {
+          peg$currPos = s2;
+          s2 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s2;
+        s2 = peg$FAILED;
+      }
+    }
+    if (s1 !== peg$FAILED) {
+      s2 = peg$parseApsub();
       if (s2 !== peg$FAILED) {
-        peg$savedPos = s0;
-        s1 = peg$c45(s1, s2);
-        s0 = s1;
+        s3 = [];
+        s4 = peg$parseSuffix();
+        while (s4 !== peg$FAILED) {
+          s3.push(s4);
+          s4 = peg$parseSuffix();
+        }
+        if (s3 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c45(s1, s2, s3);
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
       } else {
         peg$currPos = s0;
         s0 = peg$FAILED;
