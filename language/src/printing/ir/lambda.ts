@@ -35,6 +35,12 @@ export const printLambda = (
     opts: OutputOptions,
     term: Lambda,
 ): Expr => {
+    if (term.tags && term.tags.includes('newHandlers')) {
+        opts = {
+            ...opts,
+            explicitHandlerFns: true,
+        };
+    }
     if (term.is.effects.length > 0) {
         if (
             term.is.effects.every((x) => x.type === 'var') &&
