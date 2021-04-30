@@ -13,6 +13,7 @@ import {
     Block,
     Expr,
     isTerm,
+    OutputOptions,
     Record,
     RecordSubType,
     ReturnStmt,
@@ -394,11 +395,15 @@ export const removeUnusedVariables = (env: Env, expr: Expr): Expr => {
 
 /// Optimizations for go, and possibly other languages
 
-export const goOptimizations = (env: Env, expr: Expr): Expr => {
-    const transformers: Array<(env: Env, e: Expr) => Expr> = [
-        flattenRecordSpreads,
-    ];
-    transformers.forEach((t) => (expr = t(env, expr)));
+export const goOptimizations = (
+    env: Env,
+    opts: OutputOptions,
+    expr: Expr,
+): Expr => {
+    const transformers: Array<
+        (env: Env, opts: OutputOptions, e: Expr) => Expr
+    > = [flattenRecordSpreads];
+    transformers.forEach((t) => (expr = t(env, opts, expr)));
     return expr;
 };
 
@@ -406,7 +411,11 @@ const hasSpreads = (expr: Record) =>
     (expr.base.type === 'Concrete' && expr.base.spread != null) ||
     Object.keys(expr.subTypes).some((k) => expr.subTypes[k].spread != null);
 
-export const flattenRecordSpreads = (env: Env, expr: Expr): Expr => {
+export const flattenRecordSpreads = (
+    env: Env,
+    opts: OutputOptions,
+    expr: Expr,
+): Expr => {
     return transformRepeatedly(expr, {
         ...defaultVisitor,
         expr: (expr) => {
@@ -417,7 +426,7 @@ export const flattenRecordSpreads = (env: Env, expr: Expr): Expr => {
             if (!hasSpreads(expr)) {
                 return null;
             }
-            return flattenRecordSpread(env, expr);
+            return flattenRecordSpread(env, opts, expr);
         },
     });
 };
@@ -436,7 +445,11 @@ const isConstant = (arg: Expr) => {
     }
 };
 
-export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
+export const flattenRecordSpread = (
+    env: Env,
+    opts: OutputOptions,
+    expr: Record,
+): Expr => {
     // console.log('flatten');
     const inits: Array<Stmt> = [];
 
@@ -468,7 +481,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                         ref: b.ref,
                         idx: i,
                         loc: expr.loc,
-                        is: typeFromTermType(d.items[i]),
+                        is: typeFromTermType(env, opts, d.items[i]),
                     };
                 } else {
                     return row;
@@ -489,7 +502,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                             ref: { type: 'user', id: idFromName(k) },
                             idx: i,
                             loc: expr.loc,
-                            is: typeFromTermType(d.items[i]),
+                            is: typeFromTermType(env, opts, d.items[i]),
                         };
                     } else {
                         return row;
@@ -540,7 +553,7 @@ export const flattenRecordSpread = (env: Env, expr: Record): Expr => {
                         ref: { type: 'user', id: idFromName(k) },
                         idx: i,
                         loc: expr.loc,
-                        is: typeFromTermType(d.items[i]),
+                        is: typeFromTermType(env, opts, d.items[i]),
                     };
                 } else {
                     return row;

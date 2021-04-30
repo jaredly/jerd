@@ -55,6 +55,7 @@ import { Location, nullLocation } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
 import { args, atom, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
+import { handlerTypesForEffects } from './cps';
 // import { getTypeError } from '../../typing/getTypeError';
 
 export const builtinType = (
@@ -94,28 +95,31 @@ export const void_: Type = builtinType('void');
 export const bool: Type = builtinType('bool');
 
 export const lambdaTypeFromTermType = (
+    env: Env,
+    opts: OutputOptions,
     type: TermLambdaType,
 ): LambdaType | MaybeEffLambda => {
-    return typeFromTermType(type) as LambdaType | MaybeEffLambda;
+    return typeFromTermType(env, opts, type) as LambdaType | MaybeEffLambda;
 };
 
-export const _lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
+export const _lambdaTypeFromTermType = (
+    env: Env,
+    opts: OutputOptions,
+    type: TermLambdaType,
+): LambdaType => {
+    const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     if (type.effects.length) {
         return {
             type: 'lambda',
             loc: type.location,
             typeVbls: type.typeVbls,
             note: 'from with effects',
-            args: type.args
-                .map(typeFromTermType)
-                .concat([
-                    handlersType,
-                    pureFunction(
-                        [handlersType, typeFromTermType(type.res)],
-                        void_,
-                    ),
-                ]),
-            rest: type.rest ? typeFromTermType(type.rest) : null,
+            args: type.args.map(mapType).concat([
+                ...handlerTypesForEffects(env, opts, type.effects),
+                // handlersType,
+                pureFunction([handlersType, mapType(type.res)], void_),
+            ]),
+            rest: type.rest ? mapType(type.rest) : null,
             res: void_,
         };
     }
@@ -123,20 +127,26 @@ export const _lambdaTypeFromTermType = (type: TermLambdaType): LambdaType => {
         type: 'lambda',
         loc: type.location,
         typeVbls: type.typeVbls,
-        args: type.args.map(typeFromTermType),
-        rest: type.rest ? typeFromTermType(type.rest) : null,
-        res: typeFromTermType(type.res),
+        args: type.args.map(mapType),
+        rest: type.rest ? mapType(type.rest) : null,
+        res: mapType(type.res),
     };
 };
 
-export const typeFromTermType = (type: TermType): Type => {
+export const typeFromTermType = (
+    env: Env,
+    opts: OutputOptions,
+    type: TermType,
+): Type => {
     switch (type.type) {
         case 'ref':
             return {
                 type: 'ref',
                 ref: type.ref,
                 loc: type.location,
-                typeVbls: type.typeVbls.map((t) => typeFromTermType(t)),
+                typeVbls: type.typeVbls.map((t) =>
+                    typeFromTermType(env, opts, t),
+                ),
             };
         case 'var':
             return {
@@ -158,14 +168,16 @@ export const typeFromTermType = (type: TermType): Type => {
                     return {
                         type: 'effectful-or-direct',
                         loc: type.location,
-                        effectful: _lambdaTypeFromTermType(type),
+                        effectful: _lambdaTypeFromTermType(env, opts, type),
                         direct: _lambdaTypeFromTermType(
+                            env,
+                            opts,
                             directVersion as TLambdaType,
                         ),
                     };
                 }
             }
-            return _lambdaTypeFromTermType(type);
+            return _lambdaTypeFromTermType(env, opts, type);
     }
 };
 

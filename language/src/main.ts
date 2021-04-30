@@ -498,9 +498,7 @@ const processFile = (
         expressions,
         env,
         {},
-        {
-            explicitHandlerFns: true,
-        },
+        { explicitHandlerFns: false },
         assert,
         true,
         builtinNames,

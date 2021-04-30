@@ -7,6 +7,7 @@ import {
     Handle,
     UserReference,
     EffectReference,
+    Type as TermType,
 } from '../../typing/types';
 import { Expr, OutputOptions, Stmt, Type } from './types';
 import {
@@ -21,6 +22,7 @@ import { printLambdaBody } from './lambda';
 import { printTerm } from './term';
 
 export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
+    const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     const sym: Symbol = { name: 'result', unique: env.local.unique++ };
     return iffe(env, {
         type: 'Block',
@@ -31,20 +33,18 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                 loc: term.location,
                 value: null,
                 fakeInit: true,
-                is: typeFromTermType(term.is),
+                is: mapType(term.is),
             },
             {
                 type: 'Expression',
                 expr: {
                     type: 'handle',
-                    is: typeFromTermType(term.is),
+                    is: mapType(term.is),
                     target: printTerm(env, opts, term.target),
                     loc: term.location,
                     effect: (term.effect as UserReference).id,
                     pure: {
-                        argType: typeFromTermType(
-                            (term.target.is as LambdaType).res,
-                        ),
+                        argType: mapType((term.target.is as LambdaType).res),
                         arg: term.pure.arg,
                         // body: printLambdaBody(
                         //     env,
@@ -59,7 +59,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                                 {
                                     type: 'Assign',
                                     sym,
-                                    is: typeFromTermType(term.pure.body.is),
+                                    is: mapType(term.pure.body.is),
                                     loc: term.pure.body.location,
                                     value: iffe(
                                         env,
@@ -80,11 +80,11 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                         ...kase,
                         args: kase.args.map((arg) => ({
                             ...arg,
-                            type: typeFromTermType(arg.type),
+                            type: mapType(arg.type),
                         })),
                         k: {
                             ...kase.k,
-                            type: typeFromTermType(kase.k.type),
+                            type: mapType(kase.k.type),
                         },
                         body: {
                             type: 'Block',
@@ -93,7 +93,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                                 {
                                     type: 'Assign',
                                     sym,
-                                    is: typeFromTermType(kase.body.is),
+                                    is: mapType(kase.body.is),
                                     loc: kase.body.location,
                                     value: iffe(
                                         env,
@@ -120,7 +120,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
                     type: 'var',
                     sym,
                     loc: term.location,
-                    is: typeFromTermType(term.is),
+                    is: mapType(term.is),
                 },
                 loc: term.location,
             },

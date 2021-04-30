@@ -111,7 +111,7 @@ export const declarationToTs = (
                           env,
                           opts,
                           t.identifier('hash_' + idRaw),
-                          typeFromTermType(type),
+                          typeFromTermType(env, opts, type),
                       ),
                       expr,
                   ),
@@ -752,7 +752,11 @@ export const fileToTypescript = (
                             : null,
                         t.tsUnionType(
                             refs.map((ref) =>
-                                typeToAst(env, opts, typeFromTermType(ref)),
+                                typeToAst(
+                                    env,
+                                    opts,
+                                    typeFromTermType(env, opts, ref),
+                                ),
                             ),
                         ),
                     ),
@@ -786,7 +790,7 @@ export const fileToTypescript = (
                             opts,
                             id,
                             i,
-                            typeFromTermType(item),
+                            typeFromTermType(env, opts, item),
                         ),
                     ),
                     ...([] as Array<t.TSPropertySignature>).concat(
@@ -799,7 +803,7 @@ export const fileToTypescript = (
                                     opts,
                                     id,
                                     i,
-                                    typeFromTermType(item),
+                                    typeFromTermType(env, opts, item),
                                 ),
                             ),
                         ),

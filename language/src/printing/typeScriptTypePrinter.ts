@@ -210,7 +210,7 @@ export const typeVblsToParameters = (
                                           opts,
                                           id,
                                           i,
-                                          typeFromTermType(item),
+                                          typeFromTermType(env, opts, item),
                                       ),
                                   ),
                               ),

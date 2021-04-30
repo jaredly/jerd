@@ -3,7 +3,7 @@ import { showType } from '../../typing/unify';
 import { getEnumReferences } from '../../typing/typeExpr';
 import { idName } from '../../typing/env';
 
-import { Expr, Block, Literal, Loc } from './types';
+import { Expr, Block, Literal, Loc, OutputOptions } from './types';
 
 import {
     blockStatement,
@@ -21,11 +21,13 @@ import {
 // my post-processing pass with flatten out all useless iffes.
 export const printPattern = (
     env: Env,
+    opts: OutputOptions,
     value: Expr,
     type: Type,
     pattern: Pattern,
     success: Block,
 ): Block => {
+    const mapType = (t: Type) => typeFromTermType(env, opts, t);
     // console.log('printPattern', type, pattern);
     if (pattern.type === 'Binding') {
         return blockStatement(
@@ -34,7 +36,7 @@ export const printPattern = (
                     type: 'Define',
                     sym: pattern.sym,
                     value,
-                    is: typeFromTermType(type),
+                    is: mapType(type),
                     loc: pattern.location,
                 },
                 success,
@@ -66,6 +68,7 @@ export const printPattern = (
     } else if (pattern.type === 'Alias') {
         return printPattern(
             env,
+            opts,
             value,
             type,
             pattern.inner,
@@ -75,7 +78,7 @@ export const printPattern = (
                         type: 'Define',
                         sym: pattern.name,
                         value,
-                        is: typeFromTermType(type),
+                        is: mapType(type),
                         loc: pattern.location,
                     },
                     success,
@@ -91,12 +94,13 @@ export const printPattern = (
         pattern.items.forEach((item, i) => {
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'tupleAccess',
                     target: value,
                     idx: i,
                     loc: item.location,
-                    is: typeFromTermType(vbls[i]),
+                    is: mapType(vbls[i]),
                 },
                 vbls[i],
                 item,
@@ -115,13 +119,14 @@ export const printPattern = (
             const decl = env.global.types[idName(item.ref.id)];
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'attribute',
                     target: value,
                     ref: item.ref,
                     idx: item.idx,
                     loc: item.location,
-                    is: typeFromTermType(item.is),
+                    is: mapType(item.is),
                 },
                 decl.items[item.idx],
                 item.pattern,
@@ -164,7 +169,7 @@ export const printPattern = (
                                     ? pattern.text
                                     : pattern.value,
                             loc: pattern.location,
-                            is: typeFromTermType(type),
+                            is: mapType(type),
                         } as Literal,
                         loc: pattern.location,
                         is: bool,
@@ -220,6 +225,7 @@ export const printPattern = (
         if (pattern.spread) {
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'slice',
                     value,
@@ -236,7 +242,7 @@ export const printPattern = (
                           )
                         : null,
                     loc: pattern.location,
-                    is: typeFromTermType(type),
+                    is: mapType(type),
                 },
                 type,
                 pattern.spread,
@@ -247,6 +253,7 @@ export const printPattern = (
         pattern.postItems.forEach((item, i) => {
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'arrayIndex',
                     value,
@@ -255,7 +262,7 @@ export const printPattern = (
                         item.location,
                     ),
                     loc: item.location,
-                    is: typeFromTermType(elType),
+                    is: mapType(elType),
                 },
                 elType,
                 item,
@@ -267,6 +274,7 @@ export const printPattern = (
         pattern.preItems.forEach((item, i) => {
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'arrayIndex',
                     value,
@@ -277,7 +285,7 @@ export const printPattern = (
                         is: int,
                     },
                     loc: item.location,
-                    is: typeFromTermType(elType),
+                    is: mapType(elType),
                 },
                 elType,
                 item,

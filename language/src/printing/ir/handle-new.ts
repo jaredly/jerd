@@ -51,7 +51,10 @@ export const printHandle = (
     */
     const sym: Symbol = newSym(env, 'result');
     const doneS: Symbol = newSym(env, 'done');
-    const doneT: Type = pureFunction([typeFromTermType(term.is)], void_);
+    const doneT: Type = pureFunction(
+        [typeFromTermType(env, opts, term.is)],
+        void_,
+    );
     const doneVar: Expr = cps || {
         type: 'var',
         sym: doneS,

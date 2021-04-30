@@ -82,13 +82,14 @@ const printTermRef = (
 };
 
 const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
+    const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     switch (term.type) {
         // these will never need effects, immediate is fine
         case 'self':
             if (!env.local.self) {
                 throw new Error(`Self referenced without self set on env`);
             }
-            const t = typeFromTermType(term.is);
+            const t = mapType(term.is);
             // console.log(
             //     'self here',
             //     showLocation(term.location),
@@ -113,28 +114,28 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 type: 'boolean',
                 value: term.value,
                 loc: term.location,
-                is: typeFromTermType(bool),
+                is: mapType(bool),
             };
         case 'int':
             return {
                 type: 'int',
                 value: term.value,
                 loc: term.location,
-                is: typeFromTermType(int),
+                is: mapType(int),
             };
         case 'string':
             return {
                 type: 'string',
                 value: term.text,
                 loc: term.location,
-                is: typeFromTermType(string),
+                is: mapType(string),
             };
         case 'float':
             return {
                 type: 'float',
                 value: term.value,
                 loc: term.location,
-                is: typeFromTermType(float),
+                is: mapType(float),
             };
         case 'ref': {
             // Hmm do I want to include type annotation here? I guess I did at one point
@@ -142,7 +143,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 opts,
                 term.ref,
                 term.location,
-                typeFromTermType(term.is),
+                mapType(term.is),
             );
         }
         case 'if': {
@@ -169,7 +170,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 type: 'var',
                 sym: term.sym,
                 loc: term.location,
-                is: typeFromTermType(term.is),
+                is: mapType(term.is),
             };
         case 'apply': {
             // TODO we should hang onto the arg names of the function we
@@ -241,7 +242,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 target,
                 args.map((arg, i) => printTerm(env, opts, arg)),
                 term.location,
-                term.typeVbls.map(typeFromTermType),
+                term.typeVbls.map(mapType),
             );
         }
 
@@ -266,7 +267,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                       type: 'Define',
                                       sym: s.binding,
                                       value: printTerm(env, opts, s.value),
-                                      is: typeFromTermType(s.is),
+                                      is: mapType(s.is),
                                       loc: s.location,
                                   }
                                 : i === term.sts.length - 1
@@ -317,7 +318,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     };
                     return obj;
                 }, {}),
-                is: typeFromTermType(term.is),
+                is: mapType(term.is),
                 loc: term.location,
             };
         }
@@ -325,7 +326,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             // @ts-ignore
             return {
                 ...printTerm(env, opts, term.inner),
-                is: typeFromTermType(term.is),
+                is: mapType(term.is),
             };
         case 'TupleAccess': {
             return {
@@ -333,7 +334,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 target: printTerm(env, opts, term.target),
                 idx: term.idx,
                 loc: term.location,
-                is: typeFromTermType(term.is),
+                is: mapType(term.is),
             };
         }
         case 'Attribute': {
@@ -343,7 +344,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 ref: term.ref,
                 idx: term.idx,
                 loc: term.location,
-                is: typeFromTermType(term.is),
+                is: mapType(term.is),
             };
         }
         case 'Tuple': {
@@ -351,7 +352,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 type: 'tuple',
                 items: term.items.map((item) => printTerm(env, opts, item)),
                 loc: term.location,
-                is: typeFromTermType(term.is),
+                is: mapType(term.is),
             };
         }
         case 'Array': {
@@ -367,8 +368,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         : printTerm(env, opts, item),
                 ),
                 loc: term.location,
-                elType: typeFromTermType(elType),
-                is: typeFromTermType(term.is),
+                elType: mapType(elType),
+                is: mapType(term.is),
             };
         }
         case 'Switch': {
@@ -382,7 +383,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                       type: 'var',
                       sym: id,
                       loc: null,
-                      is: typeFromTermType(term.term.is),
+                      is: mapType(term.term.is),
                   };
 
             let cases = [];
@@ -391,6 +392,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 cases.push(
                     printPattern(
                         env,
+                        opts,
                         value,
                         term.term.is,
                         kase.pattern,

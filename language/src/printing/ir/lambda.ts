@@ -25,7 +25,12 @@ import {
 } from './types';
 import { callExpression, typeFromTermType, handlersType } from './utils';
 
-import { termToAstCPS, handlerArg } from './cps';
+import {
+    termToAstCPS,
+    handlerArg,
+    handlerTypesForEffects,
+    handleArgsForEffects,
+} from './cps';
 import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 import { withNoEffects } from '../../typing/transform';
@@ -58,7 +63,11 @@ export const printLambda = (
                     directVersion.args.map(
                         (sym, i) => ({
                             sym,
-                            type: typeFromTermType(directVersion.is.args[i]),
+                            type: typeFromTermType(
+                                env,
+                                opts,
+                                directVersion.is.args[i],
+                            ),
                             loc: null,
                         }), // TODO(sourcemap): hang on to location for lambda args?
                     ),
@@ -71,7 +80,7 @@ export const printLambda = (
                     term.is.typeVbls,
                     term.tags,
                 ),
-                is: lambdaTypeFromTermType(term.is as ILambdaType),
+                is: lambdaTypeFromTermType(env, opts, term.is as ILambdaType),
             };
         }
         return effectfulLambda(env, opts, term);
@@ -79,7 +88,7 @@ export const printLambda = (
         return arrowFunctionExpression(
             term.args.map((sym, i) => ({
                 sym,
-                type: typeFromTermType(term.is.args[i]),
+                type: typeFromTermType(env, opts, term.is.args[i]),
                 loc: null,
             })),
             withExecutionLimit(
@@ -142,7 +151,10 @@ const effectfulLambda = (
 ): LambdaExpr => {
     const done: Symbol = { name: 'done', unique: env.local.unique++ };
     const doneT: LambdaType = pureFunction(
-        [handlersType, typeFromTermType(term.is.res)],
+        [
+            ...handlerTypesForEffects(env, opts, term.is.effects),
+            typeFromTermType(env, opts, term.is.res),
+        ],
         void_,
         [],
         term.location,
@@ -151,11 +163,17 @@ const effectfulLambda = (
         term.args
             .map((sym, i) => ({
                 sym,
-                type: typeFromTermType(term.is.args[i]),
+                type: typeFromTermType(env, opts, term.is.args[i]),
                 loc: term.location,
             }))
             .concat([
-                handlerArg(term.location),
+                ...handleArgsForEffects(
+                    env,
+                    opts,
+                    term.is.effects,
+                    term.location,
+                ),
+                // handlerArg(term.location),
                 { sym: done, type: doneT, loc: term.location },
             ]),
         withExecutionLimit(
@@ -191,7 +209,7 @@ export const sequenceToBlock = (
                             sym: s.binding,
                             value: printTerm(env, opts, s.value),
                             loc: s.location,
-                            is: typeFromTermType(s.is),
+                            is: typeFromTermType(env, opts, s.is),
                         };
                     } else if (i === term.sts.length - 1) {
                         return {
@@ -220,7 +238,8 @@ export const sequenceToBlock = (
             if (i > 0) {
                 inner = arrowFunctionExpression(
                     [
-                        handlerArg(term.sts[i].location),
+                        ...handleArgsForEffects(env, opts, [], term.location),
+                        //         handlerArg(term.sts[i].location),
                         // BUG CHECK:
                         // If we run into problems with done
                         // not being passed around correctly

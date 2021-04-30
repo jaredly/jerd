@@ -64,19 +64,19 @@ export const effectHandlerType = (env: Env, eff: EffectReference): Type => {
 
 export const effectConstructorType = (
     env: Env,
+    opts: OutputOptions,
     eff: EffectReference,
     constr: { args: Array<TermType>; ret: TermType },
 ): Type => {
+    const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     return pureFunction(
         constr.args
-            .map(typeFromTermType)
+            .map(mapType)
             .concat([
                 pureFunction(
                     [
                         effectHandlerType(env, eff),
-                        ...(isVoid(constr.ret)
-                            ? []
-                            : [typeFromTermType(constr.ret)]),
+                        ...(isVoid(constr.ret) ? [] : [mapType(constr.ret)]),
                     ],
                     void_,
                     [],
@@ -103,7 +103,20 @@ export const handlerArg = (loc: Loc): Arg => ({
 });
 
 export const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {
-    return arrowFunctionExpression([handlerArg(loc), arg], body, loc);
+    return arrowFunctionExpression(
+        [
+            // START HERE: Replace this last use of handlerArg with handleArgsForEffects
+            // and then pass around an effectHandlers map probably, so we know what the
+            // syms are
+            // and then try just changing handlerArgsForEffects and handlerTypesForEffects
+            // and seeing if it works? That would be very cool.
+            // ...handleArgsForEffects(env, opts, [], term.location),
+            handlerArg(loc),
+            arg,
+        ],
+        body,
+        loc,
+    );
 };
 
 export const termToAstCPS = (
@@ -121,9 +134,10 @@ const _termToAstCPS = (
     term: Term | Let,
     done: Expr,
 ): Expr => {
+    const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     // No effects in the term
     if (!getEffects(term).length && term.type !== 'Let') {
-        const tt = typeFromTermType(term.is);
+        const tt = mapType(term.is);
         return callDone(env, done, printTerm(env, opts, term), term.location);
     }
     switch (term.type) {
@@ -140,20 +154,18 @@ const _termToAstCPS = (
                 loc: term.location,
                 pure: {
                     arg: term.pure.arg,
-                    argType: typeFromTermType(
-                        (term.target.is as LambdaType).res,
-                    ),
+                    argType: mapType((term.target.is as LambdaType).res),
                     body: printLambdaBody(env, opts, term.pure.body, done),
                 },
                 cases: term.cases.map((kase) => ({
                     ...kase,
                     args: kase.args.map((arg) => ({
                         ...arg,
-                        type: typeFromTermType(arg.type),
+                        type: mapType(arg.type),
                     })),
                     k: {
                         ...kase.k,
-                        type: typeFromTermType(kase.k.type),
+                        type: mapType(kase.k.type),
                     },
                     body: printLambdaBody(env, opts, kase.body, done),
                 })),
@@ -169,7 +181,7 @@ const _termToAstCPS = (
                 cpsLambda(
                     {
                         sym: term.binding,
-                        type: typeFromTermType(term.is),
+                        type: mapType(term.is),
                         loc: term.location,
                     },
                     callDone(env, done, null, term.location),
@@ -257,7 +269,7 @@ const _termToAstCPS = (
                 args.map((arg, i) => printTerm(env, opts, arg)),
                 done,
                 term.location,
-                term.typeVbls.map((t) => typeFromTermType(t)),
+                term.typeVbls.map(mapType),
             );
         }
         case 'sequence':
@@ -277,6 +289,33 @@ const _termToAstCPS = (
 // and the "done argument"?
 // I need a function that is "does this done function want an argument"
 // right?
+export const handlerTypesForEffects = (
+    env: Env,
+    opts: OutputOptions,
+    effects: Array<EffectRef>,
+) => {
+    if (opts.explicitHandlerFns) {
+        // throw new Error('todo');
+        // return [];
+        return [handlersType];
+    } else {
+        return [handlersType];
+    }
+};
+
+export const handleArgsForEffects = (
+    env: Env,
+    opts: OutputOptions,
+    effects: Array<EffectRef>,
+    loc: Loc,
+) => {
+    if (opts.explicitHandlerFns) {
+        // return [];
+        return [handlerArg(loc)];
+    } else {
+        return [handlerArg(loc)];
+    }
+};
 
 export const passDone = (
     env: Env,
