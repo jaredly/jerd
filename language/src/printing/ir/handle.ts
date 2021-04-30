@@ -22,6 +22,9 @@ import { printLambdaBody } from './lambda';
 import { printTerm } from './term';
 
 export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
+    if (opts.explicitHandlerFns) {
+        return printHandleNew(env, opts, term, null);
+    }
     const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     const sym: Symbol = { name: 'result', unique: env.local.unique++ };
     return iffe(env, {
@@ -131,6 +134,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
 
 import { EffectHandlers, effectHandlerType } from './cps';
 import { refName } from '../../typing/env';
+import { printHandleNew } from './handle-new';
 
 // export const printHandleNew = (
 //     env: Env,

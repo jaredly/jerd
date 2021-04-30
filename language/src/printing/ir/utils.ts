@@ -32,7 +32,7 @@ import {
     getEnumReferences,
     showLocation,
 } from '../../typing/typeExpr';
-import { idName } from '../../typing/env';
+import { idName, newSym } from '../../typing/env';
 
 import {
     Loc,
@@ -50,6 +50,7 @@ import {
     typesEqual,
     MaybeEffLambda,
     Define,
+    Assign,
 } from './types';
 import { Location, nullLocation } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
@@ -221,13 +222,52 @@ export const returnStatement = (expr: Expr): Stmt => ({
     loc: expr.loc,
 });
 
-export const define = (sym: Symbol, value?: Expr): Define => {
+export const withSym = <T>(
+    env: Env,
+    name: string,
+    fn: (sym: Symbol) => T,
+): T => {
+    const sym = newSym(env, name);
+    return fn(sym);
+};
+
+export const expressionStatement = (expr: Expr): Stmt => ({
+    type: 'Expression',
+    expr,
+    loc: expr.loc,
+});
+
+export const assign = (sym: Symbol, value: Expr): Assign => {
+    return {
+        type: 'Assign',
+        sym,
+        value: value,
+        is: value.is,
+        loc: value.loc,
+    };
+};
+
+export const var_ = (sym: Symbol, loc: Loc, is: Type): Expr => ({
+    type: 'var',
+    sym,
+    loc,
+    is,
+});
+
+export const define = (
+    sym: Symbol,
+    value?: Expr,
+    loc?: Loc,
+    type?: Type,
+    fakeInit?: boolean,
+): Define => {
     return {
         type: 'Define',
         sym,
         value: value ? value : null,
-        is: value ? value.is : void_,
-        loc: value ? value.loc : nullLocation,
+        is: value ? value.is : type || void_,
+        loc: value ? value.loc : loc || nullLocation,
+        fakeInit,
     };
 };
 

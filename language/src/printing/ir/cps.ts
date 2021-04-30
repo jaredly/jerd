@@ -102,18 +102,15 @@ export const handlerArg = (loc: Loc): Arg => ({
     loc: loc,
 });
 
-export const cpsLambda = (arg: Arg, body: Expr | Block, loc: Loc): Expr => {
+export const cpsLambda = (
+    env: Env,
+    opts: OutputOptions,
+    arg: Arg,
+    body: Expr | Block,
+    loc: Loc,
+): Expr => {
     return arrowFunctionExpression(
-        [
-            // START HERE: Replace this last use of handlerArg with handleArgsForEffects
-            // and then pass around an effectHandlers map probably, so we know what the
-            // syms are
-            // and then try just changing handlerArgsForEffects and handlerTypesForEffects
-            // and seeing if it works? That would be very cool.
-            // ...handleArgsForEffects(env, opts, [], term.location),
-            handlerArg(loc),
-            arg,
-        ],
+        [...handleArgsForEffects(env, opts, [], loc), arg],
         body,
         loc,
     );
@@ -179,6 +176,8 @@ const _termToAstCPS = (
                 opts,
                 term.value,
                 cpsLambda(
+                    env,
+                    opts,
                     {
                         sym: term.binding,
                         type: mapType(term.is),

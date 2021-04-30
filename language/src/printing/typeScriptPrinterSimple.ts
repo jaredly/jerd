@@ -67,6 +67,7 @@ export type OutputOptions = {
     readonly noTypes?: boolean;
     readonly limitExecutionTime?: boolean;
     readonly discriminant?: string;
+    readonly optimize?: boolean;
 };
 
 export const maybeWithComment = <T>(e: T, comment?: string): T => {
@@ -826,13 +827,16 @@ export const fileToTypescript = (
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
         const comment = printToString(declarationToPretty(senv, id, term), 100);
         term = liftEffects(env, term);
-        const irTerm = ir.printTerm(senv, irOpts, term);
+        let irTerm = ir.printTerm(senv, irOpts, term);
+        if (opts.optimize) {
+            irTerm = optimizeDefine(env, irTerm, id);
+        }
         items.push(
             declarationToTs(
                 senv,
                 opts,
                 idRaw,
-                optimizeDefine(env, irTerm, id),
+                irTerm,
                 term.is,
                 '\n' + comment + '\n',
             ),

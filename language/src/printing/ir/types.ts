@@ -101,11 +101,18 @@ export type Define = {
     loc: Loc;
     fakeInit?: boolean;
 };
+export type Assign = {
+    type: 'Assign';
+    sym: Symbol;
+    value: Expr;
+    is: Type;
+    loc: Loc;
+};
 export type ReturnStmt = { type: 'Return'; value: Expr; loc: Loc };
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
     | Define
-    | { type: 'Assign'; sym: Symbol; value: Expr; is: Type; loc: Loc }
+    | Assign
     | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
     | { type: 'MatchFail'; loc: Loc }
     | ReturnStmt

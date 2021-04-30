@@ -8,27 +8,37 @@ const hello = () => {
     "hello world"
 }
 
-// const sayHi = () => {
-//     log(hello())
-// }
-
 effect Log {
     log: (string) => void,
 }
 
 
-const collectNew: {e}(() ={Log, e}> void) ={e}> string = 
+// Start iwth the basic
+const collectNew: (() ={Log}> void) ={}> string = 
 @newHandlers
-{e}(fn: () ={Log, e}> void): string => {
+(fn: () ={Log}> void): string => {
     handle! fn {
         Log.log((v) => k) => {
-            v ++ "\n" ++ collectNew{e}(() ={e, Log}> k())
+            v ++ "\n" ++ collectNew(() ={Log}> k())
         },
         pure(a) => "end"
     }
 }
 
 collectNew
+
+// const collectNew: {e}(() ={Log, e}> void) ={e}> string = 
+// @newHandlers
+// {e}(fn: () ={Log, e}> void): string => {
+//     handle! fn {
+//         Log.log((v) => k) => {
+//             v ++ "\n" ++ collectNew{e}(() ={e, Log}> k())
+//         },
+//         pure(a) => "end"
+//     }
+// }
+
+// collectNew
 
 // This is so we can test the results
 const collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
