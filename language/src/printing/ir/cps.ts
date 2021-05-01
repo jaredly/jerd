@@ -135,7 +135,13 @@ const _termToAstCPS = (
     // No effects in the term
     if (!getEffects(term).length && term.type !== 'Let') {
         const tt = mapType(term.is);
-        return callDone(env, done, printTerm(env, opts, term), term.location);
+        return callDone(
+            env,
+            opts,
+            done,
+            printTerm(env, opts, term),
+            term.location,
+        );
     }
     switch (term.type) {
         case 'handle': {
@@ -183,7 +189,7 @@ const _termToAstCPS = (
                         type: mapType(term.is),
                         loc: term.location,
                     },
-                    callDone(env, done, null, term.location),
+                    callDone(env, opts, done, null, term.location),
                     term.location,
                 ),
             );
@@ -225,7 +231,13 @@ const _termToAstCPS = (
                             printLambdaBody(env, opts, term.yes, done),
                             term.no
                                 ? printLambdaBody(env, opts, term.no, done)
-                                : callDone(env, done, null, term.location),
+                                : callDone(
+                                      env,
+                                      opts,
+                                      done,
+                                      null,
+                                      term.location,
+                                  ),
                             term.location,
                         ),
                     ],
@@ -264,6 +276,7 @@ const _termToAstCPS = (
             }
             return passDone(
                 env,
+                opts,
                 target,
                 args.map((arg, i) => printTerm(env, opts, arg)),
                 done,
@@ -276,6 +289,7 @@ const _termToAstCPS = (
         default:
             return callDone(
                 env,
+                opts,
                 done,
                 printTerm(env, opts, term),
                 term.location,
@@ -295,10 +309,24 @@ export const handlerTypesForEffects = (
 ) => {
     if (opts.explicitHandlerFns) {
         // throw new Error('todo');
-        // return [];
-        return [handlersType];
+        return [];
+        // return [handlersType];
     } else {
         return [handlersType];
+    }
+};
+
+export const handleValuesForEffects = (
+    env: Env,
+    opts: OutputOptions,
+    types: Array<Type>,
+    loc: Loc,
+): Array<Expr> => {
+    if (opts.explicitHandlerFns) {
+        return [];
+        // return [handlerVar(loc)];
+    } else {
+        return [handlerVar(loc)];
     }
 };
 
@@ -309,8 +337,8 @@ export const handleArgsForEffects = (
     loc: Loc,
 ) => {
     if (opts.explicitHandlerFns) {
-        // return [];
-        return [handlerArg(loc)];
+        return [];
+        // return [handlerArg(loc)];
     } else {
         return [handlerArg(loc)];
     }
@@ -318,6 +346,7 @@ export const handleArgsForEffects = (
 
 export const passDone = (
     env: Env,
+    opts: OutputOptions,
     target: Expr,
     args: Array<Expr>,
     done: Expr,
@@ -354,7 +383,15 @@ export const passDone = (
     return callExpression(
         env,
         target,
-        args.concat([handlerVar(loc), done]),
+        args.concat([
+            ...handleValuesForEffects(
+                env,
+                opts,
+                (target.is as ILambdaType).args,
+                target.loc,
+            ),
+            done,
+        ]),
         loc,
         typeVbls,
     );
@@ -362,6 +399,7 @@ export const passDone = (
 
 export const callDone = (
     env: Env,
+    opts: OutputOptions,
     done: Expr,
     returnValue: Expr | null,
     loc: Loc,
@@ -369,10 +407,15 @@ export const callDone = (
     if (done.is.type !== 'lambda') {
         throw new Error(`Done is not a lambda ${done.is.type}`);
     }
-    const args = [handlerVar(loc)];
     const dt = done.is as ILambdaType;
-    if (returnValue != null && dt.args.length === 2) {
+    const args = handleValuesForEffects(env, opts, dt.args, loc);
+    const lastArg = dt.args.length > 0 ? dt.args[dt.args.length - 1] : null;
+    const wantsValue = lastArg ? lastArg.type !== 'effect-handler' : false;
+    if (returnValue != null && wantsValue) {
         args.push(returnValue);
     }
+    // if (returnValue != null && dt.args.length === 2) {
+    //     args.push(returnValue);
+    // }
     return callExpression(env, done, args, loc);
 };

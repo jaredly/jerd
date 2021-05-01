@@ -98,6 +98,9 @@ export const typeToAst = (
 ): t.TSType => {
     switch (type.type) {
         case 'effect-handler':
+            if (type.ref.type === 'builtin') {
+                return t.tsTypeReference(t.identifier(type.ref.name));
+            }
             return t.tsAnyKeyword();
         case 'effectful-or-direct':
             return t.tsAnyKeyword();

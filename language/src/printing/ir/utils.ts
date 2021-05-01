@@ -87,7 +87,12 @@ export const pureFunction = (
 };
 
 export const handlerSym = { name: 'handlers', unique: 0 };
-export const handlersType = builtinType('Handlers');
+export const handlersType: Type = {
+    type: 'effect-handler',
+    ref: { type: 'builtin', name: 'Handlers' },
+    loc: nullLocation,
+};
+// export const handlersType = builtinType('Handlers');
 
 export const int: Type = builtinType('int');
 export const float: Type = builtinType('float');
@@ -118,7 +123,13 @@ export const _lambdaTypeFromTermType = (
             args: type.args.map(mapType).concat([
                 ...handlerTypesForEffects(env, opts, type.effects),
                 // handlersType,
-                pureFunction([handlersType, mapType(type.res)], void_),
+                pureFunction(
+                    [
+                        ...handlerTypesForEffects(env, opts, type.effects),
+                        mapType(type.res),
+                    ],
+                    void_,
+                ),
             ]),
             rest: type.rest ? mapType(type.rest) : null,
             res: void_,
@@ -385,8 +396,11 @@ export const callExpression = (
 ): Expr => {
     let tt = target.is as LambdaType;
     if (tt.args.length !== args.length) {
-        throw new Error(
-            `Wrong arg number expected ${tt.args.length}, provided ${args.length}`,
+        throw new LocatedError(
+            loc,
+            `Wrong arg number expected ${tt.args.length}, provided ${
+                args.length
+            }\n${showType(env, tt)}`,
         );
     }
     if (typeVbls) {
@@ -469,6 +483,12 @@ export const typeToPretty = (env: Env, type: Type): PP => {
             ]);
         case 'var':
             return symToPretty(type.sym);
+        case 'effect-handler':
+            if (type.ref.type === 'builtin') {
+                return atom(type.ref.name);
+            } else {
+                throw new Error(`effect handler wanted`);
+            }
         default:
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);
     }

@@ -321,6 +321,9 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
     if (one == null || two == null) {
         return one == two;
     }
+    if (one.type === 'effect-handler' && two.type === 'effect-handler') {
+        return refsEqual(one.ref, two.ref);
+    }
     if (one.type === 'ref' || two.type === 'ref') {
         // HACK: We should be able to remove the `unknown` types
         if (

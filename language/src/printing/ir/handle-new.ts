@@ -14,6 +14,7 @@ import {
     Stmt,
     Type,
     LambdaType as ILambdaType,
+    Loc,
 } from './types';
 import {
     arrowFunctionExpression,
@@ -39,8 +40,27 @@ export const printHandleNew = (
     env: Env,
     opts: OutputOptions,
     term: Handle,
-    cps: Expr | null,
+    done: Expr | null,
 ): Expr => {
+    if (!done) {
+        const resT = typeFromTermType(env, opts, term.is);
+        return withSyncDone(env, opts, resT, term.location, (done) =>
+            _printHandleNew(env, opts, term, done),
+        );
+    }
+
+    return iffe(
+        env,
+        block(_printHandleNew(env, opts, term, done), term.location),
+    );
+};
+
+export const _printHandleNew = (
+    env: Env,
+    opts: OutputOptions,
+    term: Handle,
+    done: Expr,
+): Array<Stmt> => {
     /*
     handle! fn {
         Write.write((v) => k) => xyz,
@@ -62,23 +82,6 @@ export const printHandleNew = (
 
     // ok worth a shot
     */
-    const sym: Symbol = newSym(env, 'result');
-    const doneS: Symbol = newSym(env, 'done');
-    const doneT: Type = pureFunction(
-        [
-            ...handlerTypesForEffects(env, opts, []),
-            typeFromTermType(env, opts, term.is),
-        ],
-        void_,
-    );
-    const doneVar: Expr = cps || {
-        type: 'var',
-        sym: doneS,
-        loc: term.location,
-        is: doneT,
-    };
-    const resT = typeFromTermType(env, opts, term.is);
-
     const fnReturnPointer = newSym(env, 'fnReturnPointer');
     const targetIs = term.target.is as LambdaType;
     const targetType = lambdaTypeFromTermType(
@@ -88,44 +91,55 @@ export const printHandleNew = (
     ) as ILambdaType;
 
     // TODO can I make this as straightforward as I can?
+    return [
+        define(fnReturnPointer, arrowFunctionExpression(
+            [
+                ...handleArgsForEffects(env, opts, [], term.location),
+                {
+                    type: targetType.res,
+                    sym: term.pure.arg,
+                    loc: term.location,
+                },
+            ],
+            printLambdaBody(env, opts, term.pure.body, done),
+            term.location,
+        )),
+    ];
+};
+
+export const withSyncDone = (
+    env: Env,
+    opts: OutputOptions,
+    vt: Type,
+    loc: Loc,
+    fn: (done: Expr) => Array<Stmt>,
+): Expr => {
+    const sym: Symbol = newSym(env, 'result');
+    const doneS: Symbol = newSym(env, 'done');
+    const doneT: Type = pureFunction(
+        [...handlerTypesForEffects(env, opts, []), vt],
+        void_,
+    );
+
     return iffe(
         env,
         block(
             [
-                define(sym, undefined, term.location, resT, true),
+                define(sym, undefined, loc, vt, true),
                 define(doneS, withSym(env, 'value', (value) =>
                     arrowFunctionExpression(
                         [
-                            ...handleArgsForEffects(
-                                env,
-                                opts,
-                                [],
-                                term.location,
-                            ),
-                            { type: resT, sym: value, loc: term.location },
+                            ...handleArgsForEffects(env, opts, [], loc),
+                            { type: vt, sym: value, loc },
                         ],
-                        block(
-                            [assign(sym, var_(value, term.location, resT))],
-                            term.location,
-                        ),
-                        term.location,
+                        block([assign(sym, var_(value, loc, vt))], loc),
+                        loc,
                     ),
                 )),
-                define(fnReturnPointer, arrowFunctionExpression(
-                    [
-                        ...handleArgsForEffects(env, opts, [], term.location),
-                        {
-                            type: targetType.res,
-                            sym: term.pure.arg,
-                            loc: term.location,
-                        },
-                    ],
-                    printLambdaBody(env, opts, term.pure.body, doneVar),
-                    term.location,
-                )),
-                returnStatement(var_(sym, term.location, resT)),
+                ...fn(var_(doneS, loc, doneT)),
+                returnStatement(var_(sym, loc, vt)),
             ],
-            term.location,
+            loc,
         ),
     );
 };
