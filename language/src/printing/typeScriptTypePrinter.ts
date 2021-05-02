@@ -12,7 +12,7 @@ import {
 } from '../typing/types';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
-import { idName } from '../typing/env';
+import { idName, refName } from '../typing/env';
 import { recordAttributeName } from './typeScriptPrinterSimple';
 import { Type } from './ir/types';
 import { typeFromTermType } from './ir/utils';
@@ -101,7 +101,10 @@ export const typeToAst = (
             if (type.ref.type === 'builtin') {
                 return t.tsTypeReference(t.identifier(type.ref.name));
             }
-            return t.tsAnyKeyword();
+            // return t.tsAnyKeyword();
+            return t.tsTypeReference(
+                t.identifier('handle' + refName(type.ref)),
+            );
         case 'effectful-or-direct':
             return t.tsAnyKeyword();
         case 'ref':

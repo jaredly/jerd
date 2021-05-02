@@ -705,29 +705,30 @@ export const fileToTypescript = (
 ) => {
     const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
 
-    // Object.keys(env.global.effects).forEach((r) => {
-    //     const id = idFromName(r);
-    //     const constrs = env.global.effects[r];
-    //     items.push(
-    //         t.tsTypeAliasDeclaration(
-    //             t.identifier('handle' + r),
-    //             null,
-    //             t.tsTupleType(
-    //                 constrs.map((constr) =>
-    //                     typeToAst(
-    //                         env,
-    //                         opts,
-    //                         effectConstructorType(
-    //                             env,
-    //                             { type: 'ref', ref: { type: 'user', id } },
-    //                             constr,
-    //                         ),
-    //                     ),
-    //                 ),
-    //             ),
-    //         ),
-    //     );
-    // });
+    Object.keys(env.global.effects).forEach((r) => {
+        const id = idFromName(r);
+        const constrs = env.global.effects[r];
+        items.push(
+            t.tsTypeAliasDeclaration(
+                t.identifier('handle' + r),
+                null,
+                t.tsTupleType(
+                    constrs.map((constr) =>
+                        typeToAst(
+                            env,
+                            opts,
+                            effectConstructorType(
+                                env,
+                                opts,
+                                { type: 'ref', ref: { type: 'user', id } },
+                                constr,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+    });
 
     Object.keys(env.global.types).forEach((r) => {
         const constr = env.global.types[r];

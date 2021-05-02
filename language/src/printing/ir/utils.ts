@@ -17,6 +17,7 @@ import {
     UserReference,
     TypeVblDecl,
     LambdaType as TermLambdaType,
+    EffectReference,
 } from '../../typing/types';
 import {
     binOps,
@@ -32,7 +33,7 @@ import {
     getEnumReferences,
     showLocation,
 } from '../../typing/typeExpr';
-import { idName, newSym } from '../../typing/env';
+import { idName, newSym, refName } from '../../typing/env';
 
 import {
     Loc,
@@ -58,6 +59,29 @@ import { args, atom, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
 import { handlerTypesForEffects } from './cps';
 // import { getTypeError } from '../../typing/getTypeError';
+
+const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+export const sortedExplicitEffects = (
+    effects: Array<EffectRef>,
+): Array<EffectReference> => {
+    const deduped: { [key: string]: EffectReference } = {};
+    effects.forEach((eff) => {
+        if (eff.type === 'ref') {
+            deduped[refName(eff.ref)] = eff;
+        }
+    });
+    const ids = Object.keys(deduped);
+    ids.sort(cmp);
+    return ids.map((id) => deduped[id]);
+};
+
+export const tupleType = (itemTypes: Array<Type>, loc: Loc): Type => ({
+    type: 'ref',
+    ref: { type: 'builtin', name: `Tuple${itemTypes.length}` },
+    loc,
+    typeVbls: itemTypes,
+});
 
 export const builtinType = (
     name: string,
