@@ -195,18 +195,6 @@ const printEffectHandler = (
     return {
         type: 'tuple',
         loc: term.location,
-        // TODO: Delete this attribute? duplicate. oh maybe not
-        // itemTypes: term.cases.map((_, i) =>
-        //     effectConstructorType(
-        //         env,
-        //         opts,
-        //         {
-        //             type: 'ref',
-        //             ref: term.effect,
-        //         },
-        //         effDev[i],
-        //     ),
-        // ),
         items: term.cases.map((kase, i) => {
             const rawK: Symbol = {
                 name: 'rawK',

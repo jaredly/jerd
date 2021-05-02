@@ -19,7 +19,9 @@ import {
     lambdaTypeFromTermType,
     pureFunction,
     showType,
+    sortedExplicitEffects,
     typeFromTermType,
+    var_,
     void_,
 } from './utils';
 import { showLocation } from '../../typing/typeExpr';
@@ -51,6 +53,7 @@ import {
 } from './utils';
 import { maybeWrapPureFunction } from '../../typing/transform';
 import { isVoid } from '../../typing/terms/handle';
+import { newSym, refName } from '../../typing/env';
 
 export type EffectHandlers = { [id: string]: { expr: Expr; sym: Symbol } };
 
@@ -309,7 +312,10 @@ export const handlerTypesForEffects = (
 ) => {
     if (opts.explicitHandlerFns) {
         // throw new Error('todo');
-        return [];
+
+        return sortedExplicitEffects(effects).map((eff) =>
+            effectHandlerType(env, eff),
+        );
         // return [handlersType];
     } else {
         return [handlersType];
@@ -323,8 +329,11 @@ export const handleValuesForEffects = (
     loc: Loc,
 ): Array<Expr> => {
     if (opts.explicitHandlerFns) {
-        return [];
+        // return [];
         // return [handlerVar(loc)];
+        return types
+            .filter((t) => t.type === 'effect-handler')
+            .map((t, i) => var_({ name: 'handle_it', unique: 0 }, loc, t));
     } else {
         return [handlerVar(loc)];
     }
@@ -335,10 +344,15 @@ export const handleArgsForEffects = (
     opts: OutputOptions,
     effects: Array<EffectRef>,
     loc: Loc,
-) => {
+): Array<Arg> => {
     if (opts.explicitHandlerFns) {
-        return [];
-        // return [handlerArg(loc)];
+        // return [];
+        // // return [handlerArg(loc)];
+        return sortedExplicitEffects(effects).map((eff) => ({
+            type: effectHandlerType(env, eff),
+            sym: newSym(env, 'handle' + refName(eff.ref)),
+            loc,
+        }));
     } else {
         return [handlerArg(loc)];
     }
