@@ -98,6 +98,7 @@ export const withAnnotation = <T>(
 export const declarationToTs = (
     env: Env,
     opts: OutputOptions,
+    irOpts: IOutputOptions,
     idRaw: string,
     term: ir.Expr,
     type: Type,
@@ -112,7 +113,7 @@ export const declarationToTs = (
                           env,
                           opts,
                           t.identifier('hash_' + idRaw),
-                          typeFromTermType(env, opts, type),
+                          typeFromTermType(env, irOpts, type),
                       ),
                       expr,
                   ),
@@ -313,6 +314,9 @@ export const _termToTs = (
                 termToTs(env, opts, term.literal),
             );
         case 'handle': {
+            if (1) {
+                throw new Error('handle made it through');
+            }
             // term.hermmmmmm there's different behavior if it's
             // in the direct case ... hmmm ....
             const expr = t.callExpression(
@@ -836,6 +840,7 @@ export const fileToTypescript = (
             declarationToTs(
                 senv,
                 opts,
+                irOpts,
                 idRaw,
                 irTerm,
                 term.is,

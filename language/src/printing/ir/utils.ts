@@ -116,7 +116,6 @@ export const handlersType: Type = {
     ref: { type: 'builtin', name: 'Handlers' },
     loc: nullLocation,
 };
-// export const handlersType = builtinType('Handlers');
 
 export const int: Type = builtinType('int');
 export const float: Type = builtinType('float');
@@ -144,17 +143,18 @@ export const _lambdaTypeFromTermType = (
             loc: type.location,
             typeVbls: type.typeVbls,
             note: 'from with effects',
-            args: type.args.map(mapType).concat([
-                ...handlerTypesForEffects(env, opts, type.effects),
-                // handlersType,
-                pureFunction(
-                    [
-                        ...handlerTypesForEffects(env, opts, type.effects),
-                        mapType(type.res),
-                    ],
-                    void_,
-                ),
-            ]),
+            args: type.args
+                .map(mapType)
+                .concat([
+                    ...handlerTypesForEffects(env, opts, type.effects),
+                    pureFunction(
+                        [
+                            ...handlerTypesForEffects(env, opts, type.effects),
+                            mapType(type.res),
+                        ],
+                        void_,
+                    ),
+                ]),
             rest: type.rest ? mapType(type.rest) : null,
             res: void_,
         };

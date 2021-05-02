@@ -19,6 +19,7 @@ import {
     Block,
     typesEqual,
     Arg,
+    CPS,
 } from './types';
 import {
     arrowFunctionExpression,
@@ -47,12 +48,13 @@ import {
     handlerTypesForEffects,
     handleValuesForEffects,
 } from './cps';
+import { args } from '../printer';
 
 export const printHandleNew = (
     env: Env,
     opts: OutputOptions,
     term: Handle,
-    done: Expr | null,
+    done: CPS | null,
 ): Expr => {
     if (!done) {
         const resT = typeFromTermType(env, opts, term.is);
@@ -71,7 +73,7 @@ export const _printHandleNew = (
     env: Env,
     opts: OutputOptions,
     term: Handle,
-    done: Expr,
+    cps: CPS,
 ): Array<Stmt> => {
     /*
     handle! fn {
@@ -103,23 +105,30 @@ export const _printHandleNew = (
 
     const effectRef: EffectRef = { type: 'ref', ref: term.effect };
 
+    const { args, handlers } = handleArgsForEffects(
+        env,
+        opts,
+        [effectRef],
+        term.location,
+    );
+
     const fnReturn = arrowFunctionExpression(
         [
-            ...handleArgsForEffects(env, opts, [effectRef], term.location),
+            ...args,
             {
                 type: targetType.res,
                 sym: term.pure.arg,
                 loc: term.location,
             },
         ],
-        printLambdaBody(env, opts, term.pure.body, done),
+        printLambdaBody(env, opts, term.pure.body, cps),
         term.location,
     );
 
     const fnDone = withSym(env, 'returnValue', (returnValue) =>
         arrowFunctionExpression(
             [
-                ...handleArgsForEffects(env, opts, [effectRef], term.location),
+                ...args,
                 {
                     sym: returnValue,
                     type: targetType.res,
@@ -133,6 +142,7 @@ export const _printHandleNew = (
                     ...handleValuesForEffects(
                         env,
                         opts,
+                        { ...cps.handlers, ...handlers },
                         fnReturn.is.args,
                         term.location,
                     ),
@@ -149,10 +159,19 @@ export const _printHandleNew = (
         opts,
         term,
         fnReturnPointer,
-        done,
+        cps,
         term.location,
     );
     const thisHandlerSym = newSym(env, 'thisHandler');
+    const withThisHandler = {
+        ...cps.handlers,
+        ...handlers,
+        [refName(effectRef.ref)]: var_(
+            thisHandlerSym,
+            term.location,
+            effectHandlerType(env, effectRef),
+        ),
+    };
 
     // TODO can I make this as straightforward as I can?
     return [
@@ -166,6 +185,7 @@ export const _printHandleNew = (
                     ...handleValuesForEffects(
                         env,
                         opts,
+                        withThisHandler,
                         targetType.args,
                         term.location,
                     ),
@@ -182,7 +202,7 @@ const printEffectHandler = (
     opts: OutputOptions,
     term: Handle,
     fnReturnPointer: Symbol,
-    done: Expr,
+    cps: CPS,
     loc: Loc,
 ): Expr => {
     const targetType = lambdaTypeFromTermType(
@@ -337,7 +357,7 @@ const printEffectHandler = (
                         opts,
                         kase.body,
                         // effectHandlers,
-                        done,
+                        cps,
                     ),
                 ),
                 // void_,
@@ -368,7 +388,7 @@ export const withSyncDone = (
     opts: OutputOptions,
     vt: Type,
     loc: Loc,
-    fn: (done: Expr) => Array<Stmt>,
+    fn: (cps: CPS) => Array<Stmt>,
 ): Expr => {
     const sym: Symbol = newSym(env, 'result');
     const doneS: Symbol = newSym(env, 'done');
@@ -376,6 +396,7 @@ export const withSyncDone = (
         [...handlerTypesForEffects(env, opts, []), vt],
         void_,
     );
+    const { args, handlers } = handleArgsForEffects(env, opts, [], loc);
 
     return iffe(
         env,
@@ -384,15 +405,12 @@ export const withSyncDone = (
                 define(sym, undefined, loc, vt, true),
                 define(doneS, withSym(env, 'value', (value) =>
                     arrowFunctionExpression(
-                        [
-                            ...handleArgsForEffects(env, opts, [], loc),
-                            { type: vt, sym: value, loc },
-                        ],
+                        [...args, { type: vt, sym: value, loc }],
                         block([assign(sym, var_(value, loc, vt))], loc),
                         loc,
                     ),
                 )),
-                ...fn(var_(doneS, loc, doneT)),
+                ...fn({ done: var_(doneS, loc, doneT), handlers }),
                 returnStatement(var_(sym, loc, vt)),
             ],
             loc,

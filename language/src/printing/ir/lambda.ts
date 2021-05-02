@@ -22,8 +22,9 @@ import {
     LambdaExpr,
     OutputOptions,
     LambdaType,
+    CPS,
 } from './types';
-import { callExpression, typeFromTermType, handlersType } from './utils';
+import { callExpression, typeFromTermType } from './utils';
 
 import {
     termToAstCPS,
@@ -34,6 +35,7 @@ import {
 import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 import { withNoEffects } from '../../typing/transform';
+import { cpus } from 'os';
 
 export const printLambda = (
     env: Env,
@@ -159,6 +161,12 @@ const effectfulLambda = (
         [],
         term.location,
     );
+    const { args, handlers } = handleArgsForEffects(
+        env,
+        opts,
+        term.is.effects,
+        term.location,
+    );
     return arrowFunctionExpression(
         term.args
             .map((sym, i) => ({
@@ -167,12 +175,7 @@ const effectfulLambda = (
                 loc: term.location,
             }))
             .concat([
-                ...handleArgsForEffects(
-                    env,
-                    opts,
-                    term.is.effects,
-                    term.location,
-                ),
+                ...args,
                 // handlerArg(term.location),
                 { sym: done, type: doneT, loc: term.location },
             ]),
@@ -180,10 +183,13 @@ const effectfulLambda = (
             env,
             opts,
             printLambdaBody(env, opts, term.body, {
-                type: 'var',
-                sym: done,
-                loc: null,
-                is: doneT,
+                done: {
+                    type: 'var',
+                    sym: done,
+                    loc: null,
+                    is: doneT,
+                },
+                handlers: handlers,
             }),
         ),
         term.location,
@@ -196,7 +202,7 @@ export const sequenceToBlock = (
     env: Env,
     opts: OutputOptions,
     term: Sequence,
-    cps: null | Expr,
+    cps: null | CPS,
 ): Block => {
     if (cps == null) {
         return {
@@ -233,52 +239,66 @@ export const sequenceToBlock = (
         // and we know what we want to bind to, right? or something?
         // in what case would we want to CPS something that
         // can't be CPSd?
-        let inner: Expr = cps;
+        let inner: CPS = cps;
         for (let i = term.sts.length - 1; i >= 0; i--) {
             if (i > 0) {
-                inner = arrowFunctionExpression(
-                    [
-                        ...handleArgsForEffects(env, opts, [], term.location),
-                        //         handlerArg(term.sts[i].location),
-                        // BUG CHECK:
-                        // If we run into problems with done
-                        // not being passed around correctly
-                        // in cps,
-                        // which like could totally happen
-                        // erm
-                        // just re-enable this, and probably live with it?
-                        // idk, I'm worried about the case
-                        // where some function is passed to another one
-                        // or something.
-                        // but maybe that just wouldn't happen? idk
-                        //
-                        // { sym: { name: '_ignored', unique: 1 }, type: builtinType('unknown'), loc: null, },
-                    ],
-                    {
-                        type: 'Block',
-                        loc: term.sts[i].location,
-                        items: [
-                            {
-                                type: 'Expression',
-                                expr: termToAstCPS(
-                                    env,
-                                    opts,
-                                    term.sts[i],
-                                    inner,
-                                ),
-                                loc: term.sts[i].location,
-                            },
-                        ],
-                    },
-                    term.sts[i].location,
+                const { args, handlers } = handleArgsForEffects(
+                    env,
+                    opts,
+                    [],
+                    term.location,
                 );
+                inner = {
+                    handlers: { ...inner.handlers, ...handlers },
+                    done: arrowFunctionExpression(
+                        [
+                            ...args,
+                            //         handlerArg(term.sts[i].location),
+                            // BUG CHECK:
+                            // If we run into problems with done
+                            // not being passed around correctly
+                            // in cps,
+                            // which like could totally happen
+                            // erm
+                            // just re-enable this, and probably live with it?
+                            // idk, I'm worried about the case
+                            // where some function is passed to another one
+                            // or something.
+                            // but maybe that just wouldn't happen? idk
+                            //
+                            // { sym: { name: '_ignored', unique: 1 }, type: builtinType('unknown'), loc: null, },
+                        ],
+                        {
+                            type: 'Block',
+                            loc: term.sts[i].location,
+                            items: [
+                                {
+                                    type: 'Expression',
+                                    expr: termToAstCPS(
+                                        env,
+                                        opts,
+                                        term.sts[i],
+                                        inner,
+                                    ),
+                                    loc: term.sts[i].location,
+                                },
+                            ],
+                        },
+                        term.sts[i].location,
+                    ),
+                };
             } else {
-                inner = termToAstCPS(env, opts, term.sts[i], inner);
+                inner = {
+                    ...inner,
+                    done: termToAstCPS(env, opts, term.sts[i], inner),
+                };
             }
         }
         return {
             type: 'Block',
-            items: [{ type: 'Expression', expr: inner, loc: term.location }],
+            items: [
+                { type: 'Expression', expr: inner.done, loc: term.location },
+            ],
             loc: term.location,
         };
     }
@@ -288,7 +308,7 @@ export const printLambdaBody = (
     env: Env,
     opts: OutputOptions,
     term: Term,
-    cps: null | Expr,
+    cps: null | CPS,
 ): Block | Expr => {
     if (cps == null) {
         if (term.type === 'sequence') {

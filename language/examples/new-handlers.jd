@@ -1,0 +1,21 @@
+
+effect Log {
+    log: (string) => void,
+}
+
+// Start iwth the basic
+const collectNew: (() ={Log}> void) ={}> string = 
+(fn: () ={Log}> void): string => {
+    handle! fn {
+        Log.log((v) => k) => {
+            v ++ "\n" ++ collectNew(() ={Log}> k())
+        },
+        pure(a) => "end"
+    }
+}
+
+collectNew(() => {
+    raise!(Log.log("Hello"));
+    raise!(Log.log("Folks"));
+}) == "Hello\nfolks\nend"
+

@@ -132,7 +132,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
     });
 };
 
-import { EffectHandlers, effectHandlerType } from './cps';
+import { effectHandlerType } from './cps';
 import { refName } from '../../typing/env';
 import { printHandleNew } from './handle-new';
 

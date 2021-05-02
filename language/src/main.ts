@@ -494,11 +494,13 @@ const processFile = (
         }
     }
 
+    const irOpts = { explicitHandlerFns: true };
+
     const ast = fileToTypescript(
         expressions,
         env,
         {},
-        { explicitHandlerFns: false },
+        irOpts,
         assert,
         true,
         builtinNames,

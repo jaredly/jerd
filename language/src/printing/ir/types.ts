@@ -9,6 +9,8 @@ import {
     UserReference,
     idsEqual,
     Env,
+    GlobalEnv,
+    LocalEnv,
     TypeVblDecl,
     refsEqual,
     symbolsEqual,
@@ -18,10 +20,26 @@ import { Location } from '../../parsing/parser';
 
 export type Loc = Location | null;
 
+export type EffectHandlers = {
+    [key: string]: Expr;
+};
+
+export type CPS = {
+    done: Expr;
+    handlers: EffectHandlers;
+};
+
 export type OutputOptions = {
     readonly limitExecutionTime?: boolean;
     readonly explicitHandlerFns?: boolean;
 };
+
+// export type IREnv = {
+//     global: GlobalEnv,
+//     local: LocalEnv,
+//     depth: number,
+//     effectHandlers: {[hey: string]: Expr}
+// }
 
 // hrm where do I put comments in life
 
@@ -53,12 +71,13 @@ export type Type =
           typeVbls: Array<Type>;
       }
     | LambdaType
-    | {
-          type: 'effect-handler';
-          ref: Reference;
-          loc: Loc;
-      }
+    | EffectHandler
     | MaybeEffLambda;
+export type EffectHandler = {
+    type: 'effect-handler';
+    ref: Reference;
+    loc: Loc;
+};
 export type MaybeEffLambda = {
     type: 'effectful-or-direct';
     effectful: LambdaType;

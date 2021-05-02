@@ -41,6 +41,9 @@ import {
     LambdaType as ILambdaType,
     OutputOptions,
     Type,
+    CPS,
+    EffectHandlers,
+    EffectHandler,
 } from './types';
 import { printLambdaBody, sequenceToBlock } from './lambda';
 import { printTerm } from './term';
@@ -55,7 +58,7 @@ import { maybeWrapPureFunction } from '../../typing/transform';
 import { isVoid } from '../../typing/terms/handle';
 import { newSym, refName } from '../../typing/env';
 
-export type EffectHandlers = { [id: string]: { expr: Expr; sym: Symbol } };
+// export type EffectHandlers = { [id: string]: { expr: Expr; sym: Symbol } };
 
 export const effectHandlerType = (env: Env, eff: EffectReference): Type => {
     return {
@@ -105,34 +108,34 @@ export const handlerArg = (loc: Loc): Arg => ({
     loc: loc,
 });
 
-export const cpsLambda = (
-    env: Env,
-    opts: OutputOptions,
-    arg: Arg,
-    body: Expr | Block,
-    loc: Loc,
-): Expr => {
-    return arrowFunctionExpression(
-        [...handleArgsForEffects(env, opts, [], loc), arg],
-        body,
-        loc,
-    );
-};
+// export const cpsLambda = (
+//     env: Env,
+//     opts: OutputOptions,
+//     arg: Arg,
+//     body: Expr | Block,
+//     loc: Loc,
+// ): Expr => {
+//     return arrowFunctionExpression(
+//         [...handleArgsForEffects(env, opts, [], loc), arg],
+//         body,
+//         loc,
+//     );
+// };
 
 export const termToAstCPS = (
     env: Env,
     opts: OutputOptions,
     term: Term | Let,
-    done: Expr,
+    cps: CPS,
 ): Expr => {
-    return _termToAstCPS(env, opts, term, done);
+    return _termToAstCPS(env, opts, term, cps);
 };
 
 const _termToAstCPS = (
     env: Env,
     opts: OutputOptions,
     term: Term | Let,
-    done: Expr,
+    cps: CPS,
 ): Expr => {
     const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     // No effects in the term
@@ -141,7 +144,7 @@ const _termToAstCPS = (
         return callDone(
             env,
             opts,
-            done,
+            cps,
             printTerm(env, opts, term),
             term.location,
         );
@@ -161,7 +164,7 @@ const _termToAstCPS = (
                 pure: {
                     arg: term.pure.arg,
                     argType: mapType((term.target.is as LambdaType).res),
-                    body: printLambdaBody(env, opts, term.pure.body, done),
+                    body: printLambdaBody(env, opts, term.pure.body, cps),
                 },
                 cases: term.cases.map((kase) => ({
                     ...kase,
@@ -173,29 +176,40 @@ const _termToAstCPS = (
                         ...kase.k,
                         type: mapType(kase.k.type),
                     },
-                    body: printLambdaBody(env, opts, kase.body, done),
+                    body: printLambdaBody(env, opts, kase.body, cps),
                 })),
                 is: void_,
-                done,
+                done: cps.done,
             };
         }
         case 'Let': {
-            return termToAstCPS(
+            const { args, handlers } = handleArgsForEffects(
                 env,
                 opts,
-                term.value,
-                cpsLambda(
-                    env,
-                    opts,
-                    {
-                        sym: term.binding,
-                        type: mapType(term.is),
-                        loc: term.location,
-                    },
-                    callDone(env, opts, done, null, term.location),
+                [],
+                term.location,
+            );
+            return termToAstCPS(env, opts, term.value, {
+                ...cps,
+                done: arrowFunctionExpression(
+                    [
+                        ...args,
+                        {
+                            sym: term.binding,
+                            type: mapType(term.is),
+                            loc: term.location,
+                        },
+                    ],
+                    callDone(
+                        env,
+                        opts,
+                        { ...cps, handlers: { ...cps.handlers, ...handlers } },
+                        null,
+                        term.location,
+                    ),
                     term.location,
                 ),
-            );
+            });
         }
         case 'raise': {
             if (
@@ -214,7 +228,7 @@ const _termToAstCPS = (
                 args: term.args.map((t) => printTerm(env, opts, t)),
                 loc: term.location,
                 is: void_,
-                done,
+                done: cps.done,
             };
         }
         case 'if': {
@@ -231,16 +245,10 @@ const _termToAstCPS = (
                     [
                         ifStatement(
                             cond,
-                            printLambdaBody(env, opts, term.yes, done),
+                            printLambdaBody(env, opts, term.yes, cps),
                             term.no
-                                ? printLambdaBody(env, opts, term.no, done)
-                                : callDone(
-                                      env,
-                                      opts,
-                                      done,
-                                      null,
-                                      term.location,
-                                  ),
+                                ? printLambdaBody(env, opts, term.no, cps)
+                                : callDone(env, opts, cps, null, term.location),
                             term.location,
                         ),
                     ],
@@ -282,18 +290,18 @@ const _termToAstCPS = (
                 opts,
                 target,
                 args.map((arg, i) => printTerm(env, opts, arg)),
-                done,
+                cps,
                 term.location,
                 term.typeVbls.map(mapType),
             );
         }
         case 'sequence':
-            return iffe(env, sequenceToBlock(env, opts, term, done));
+            return iffe(env, sequenceToBlock(env, opts, term, cps));
         default:
             return callDone(
                 env,
                 opts,
-                done,
+                cps,
                 printTerm(env, opts, term),
                 term.location,
             );
@@ -311,12 +319,9 @@ export const handlerTypesForEffects = (
     effects: Array<EffectRef>,
 ) => {
     if (opts.explicitHandlerFns) {
-        // throw new Error('todo');
-
         return sortedExplicitEffects(effects).map((eff) =>
             effectHandlerType(env, eff),
         );
-        // return [handlersType];
     } else {
         return [handlersType];
     }
@@ -325,6 +330,7 @@ export const handlerTypesForEffects = (
 export const handleValuesForEffects = (
     env: Env,
     opts: OutputOptions,
+    effectHandlers: EffectHandlers,
     types: Array<Type>,
     loc: Loc,
 ): Array<Expr> => {
@@ -332,8 +338,9 @@ export const handleValuesForEffects = (
         // return [];
         // return [handlerVar(loc)];
         return (
-            types
-                .filter((t) => t.type === 'effect-handler')
+            (types.filter(
+                (t) => t.type === 'effect-handler',
+            ) as Array<EffectHandler>)
                 // START HERE: I think I want `Env` to be expanded
                 // to include effect mappings.
                 // But really I want to change out the `Env` used in the IR
@@ -348,7 +355,13 @@ export const handleValuesForEffects = (
                 // it should be {done: Expr, effectHandlers: {}}
                 // right?
                 // seems legit
-                .map((t, i) => var_({ name: 'handle_it', unique: 0 }, loc, t))
+                .map((t, i) => {
+                    const v = effectHandlers[refName(t.ref)];
+                    if (!v) {
+                        throw new Error(`No effect handler defined`);
+                    }
+                    return v;
+                })
         );
     } else {
         return [handlerVar(loc)];
@@ -363,17 +376,23 @@ export const handleArgsForEffects = (
     opts: OutputOptions,
     effects: Array<EffectRef>,
     loc: Loc,
-): Array<Arg> => {
+): { args: Array<Arg>; handlers: EffectHandlers } => {
     if (opts.explicitHandlerFns) {
-        // return [];
-        // // return [handlerArg(loc)];
-        return sortedExplicitEffects(effects).map((eff) => ({
-            type: effectHandlerType(env, eff),
-            sym: newSym(env, 'handle' + refName(eff.ref)),
-            loc,
-        }));
+        const args: Array<Arg> = [];
+        const handlers: EffectHandlers = {};
+        sortedExplicitEffects(effects).forEach((eff) => {
+            const sym = newSym(env, 'handle' + refName(eff.ref));
+            const t = effectHandlerType(env, eff);
+            args.push({
+                type: t,
+                sym: sym,
+                loc,
+            });
+            handlers[refName(eff.ref)] = var_(sym, loc, t);
+        });
+        return { args, handlers };
     } else {
-        return [handlerArg(loc)];
+        return { args: [handlerArg(loc)], handlers: {} };
     }
 };
 
@@ -382,12 +401,12 @@ export const passDone = (
     opts: OutputOptions,
     target: Expr,
     args: Array<Expr>,
-    done: Expr,
+    cps: CPS,
     loc: Loc,
     typeVbls?: Array<Type>,
 ) => {
     const tt = target.is as ILambdaType;
-    const dt = done.is as ILambdaType;
+    const dt = cps.done.is as ILambdaType;
     const edt = tt.args[tt.args.length - 1] as ILambdaType;
     if (edt.args.length > dt.args.length) {
         const args: Array<Arg> = edt.args.map((type, i) => ({
@@ -395,22 +414,25 @@ export const passDone = (
             loc,
             sym: { name: `arg_${i}`, unique: env.local.unique++ },
         }));
-        done = arrowFunctionExpression(
-            args,
-            callExpression(
-                env,
-                done,
-                args.slice(0, dt.args.length).map((arg) => ({
-                    type: 'var',
-                    sym: arg.sym,
-                    is: arg.type,
+        cps = {
+            ...cps,
+            done: arrowFunctionExpression(
+                args,
+                callExpression(
+                    env,
+                    cps.done,
+                    args.slice(0, dt.args.length).map((arg) => ({
+                        type: 'var',
+                        sym: arg.sym,
+                        is: arg.type,
+                        loc,
+                    })),
                     loc,
-                })),
+                    [],
+                ),
                 loc,
-                [],
             ),
-            loc,
-        );
+        };
     }
 
     return callExpression(
@@ -420,10 +442,11 @@ export const passDone = (
             ...handleValuesForEffects(
                 env,
                 opts,
+                cps.handlers,
                 (target.is as ILambdaType).args,
                 target.loc,
             ),
-            done,
+            cps.done,
         ]),
         loc,
         typeVbls,
@@ -433,15 +456,15 @@ export const passDone = (
 export const callDone = (
     env: Env,
     opts: OutputOptions,
-    done: Expr,
+    cps: CPS,
     returnValue: Expr | null,
     loc: Loc,
 ) => {
-    if (done.is.type !== 'lambda') {
-        throw new Error(`Done is not a lambda ${done.is.type}`);
+    if (cps.done.is.type !== 'lambda') {
+        throw new Error(`Done is not a lambda ${cps.done.is.type}`);
     }
-    const dt = done.is as ILambdaType;
-    const args = handleValuesForEffects(env, opts, dt.args, loc);
+    const dt = cps.done.is as ILambdaType;
+    const args = handleValuesForEffects(env, opts, cps.handlers, dt.args, loc);
     const lastArg = dt.args.length > 0 ? dt.args[dt.args.length - 1] : null;
     const wantsValue = lastArg ? lastArg.type !== 'effect-handler' : false;
     if (returnValue != null && wantsValue) {
@@ -450,5 +473,5 @@ export const callDone = (
     // if (returnValue != null && dt.args.length === 2) {
     //     args.push(returnValue);
     // }
-    return callExpression(env, done, args, loc);
+    return callExpression(env, cps.done, args, loc);
 };
