@@ -7,6 +7,7 @@ import {
     Handle,
     UserReference,
     EffectReference,
+    EffectRef,
 } from '../../typing/types';
 import {
     Expr,
@@ -19,6 +20,7 @@ import {
 import {
     arrowFunctionExpression,
     assign,
+    callExpression,
     define,
     expressionStatement,
     lambdaTypeFromTermType,
@@ -34,7 +36,11 @@ import { iffe, asBlock, block } from './utils';
 import { printLambdaBody } from './lambda';
 import { printTerm } from './term';
 import { newSym } from '../../typing/env';
-import { handleArgsForEffects, handlerTypesForEffects } from './cps';
+import {
+    handleArgsForEffects,
+    handlerTypesForEffects,
+    handleValuesForEffects,
+} from './cps';
 
 export const printHandleNew = (
     env: Env,
@@ -83,27 +89,74 @@ export const _printHandleNew = (
     // ok worth a shot
     */
     const fnReturnPointer = newSym(env, 'fnReturnPointer');
-    const targetIs = term.target.is as LambdaType;
     const targetType = lambdaTypeFromTermType(
         env,
         opts,
-        targetIs,
+        term.target.is as LambdaType,
     ) as ILambdaType;
 
-    // TODO can I make this as straightforward as I can?
-    return [
-        define(fnReturnPointer, arrowFunctionExpression(
+    const effectRef: EffectRef = { type: 'ref', ref: term.effect };
+
+    const fnReturn = arrowFunctionExpression(
+        [
+            ...handleArgsForEffects(env, opts, [effectRef], term.location),
+            {
+                type: targetType.res,
+                sym: term.pure.arg,
+                loc: term.location,
+            },
+        ],
+        printLambdaBody(env, opts, term.pure.body, done),
+        term.location,
+    );
+
+    const fnDone = withSym(env, 'returnValue', (returnValue) =>
+        arrowFunctionExpression(
             [
-                ...handleArgsForEffects(env, opts, [], term.location),
+                ...handleArgsForEffects(env, opts, [effectRef], term.location),
                 {
+                    sym: returnValue,
                     type: targetType.res,
-                    sym: term.pure.arg,
                     loc: term.location,
                 },
             ],
-            printLambdaBody(env, opts, term.pure.body, done),
+            callExpression(
+                env,
+                var_(fnReturnPointer, term.location, fnReturn.is),
+                [
+                    ...handleValuesForEffects(
+                        env,
+                        opts,
+                        fnReturn.is.args,
+                        term.location,
+                    ),
+                    var_(returnValue, term.location, targetType.res),
+                ],
+                term.location,
+            ),
             term.location,
-        )),
+        ),
+    );
+
+    // TODO can I make this as straightforward as I can?
+    return [
+        define(fnReturnPointer, fnReturn),
+        expressionStatement(
+            callExpression(
+                env,
+                printTerm(env, opts, term.target),
+                [
+                    ...handleValuesForEffects(
+                        env,
+                        opts,
+                        targetType.args,
+                        term.location,
+                    ),
+                    fnDone,
+                ],
+                term.location,
+            ),
+        ),
     ];
 };
 
