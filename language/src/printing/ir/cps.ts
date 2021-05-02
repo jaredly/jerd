@@ -340,6 +340,14 @@ export const handleValuesForEffects = (
                 // world entirely.
                 // So it would keep `global`, and then `local` would just have unique maybe,
                 // and then it would have `effectHandlers`. Which would be great.
+                // WAIT
+                // NO
+                // ok different plan:
+                // the `cps` variable which gets passed around
+                // and which is sometimes null
+                // it should be {done: Expr, effectHandlers: {}}
+                // right?
+                // seems legit
                 .map((t, i) => var_({ name: 'handle_it', unique: 0 }, loc, t))
         );
     } else {
@@ -347,6 +355,9 @@ export const handleValuesForEffects = (
     }
 };
 
+// This should return a new mapping for effectHandlers too
+// because we're creating them
+// for the body.
 export const handleArgsForEffects = (
     env: Env,
     opts: OutputOptions,
