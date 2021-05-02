@@ -331,9 +331,17 @@ export const handleValuesForEffects = (
     if (opts.explicitHandlerFns) {
         // return [];
         // return [handlerVar(loc)];
-        return types
-            .filter((t) => t.type === 'effect-handler')
-            .map((t, i) => var_({ name: 'handle_it', unique: 0 }, loc, t));
+        return (
+            types
+                .filter((t) => t.type === 'effect-handler')
+                // START HERE: I think I want `Env` to be expanded
+                // to include effect mappings.
+                // But really I want to change out the `Env` used in the IR
+                // world entirely.
+                // So it would keep `global`, and then `local` would just have unique maybe,
+                // and then it would have `effectHandlers`. Which would be great.
+                .map((t, i) => var_({ name: 'handle_it', unique: 0 }, loc, t))
+        );
     } else {
         return [handlerVar(loc)];
     }
