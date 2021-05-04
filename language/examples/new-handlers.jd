@@ -25,7 +25,7 @@ effect Read {
 
 // Now for reading
 const provide: <T>(string, () ={Read}> T) ={}> T = 
-<T>(v: string, fn: () ={Read}> T): T => {
+<T,>(v: string, fn: () ={Read}> T): T => {
     handle! fn {
         Read.read(() => k) => {
             provide<T>(v + ".", () => k(v))
@@ -34,7 +34,24 @@ const provide: <T>(string, () ={Read}> T) ={}> T =
     }
 }
 
-provide<string>("Hello", () => raise!(Read.read())) == "Hello"
+provide<string,>("Hello", () => raise!(Read.read())) == "Hello"
 
+
+// Start with the basic
+const appendLog: (() ={Log}> string) ={}> string = 
+(fn: () ={Log}> string): string => {
+    handle! fn {
+        Log.log((v) => k) => {
+            v ++ "\n" ++ appendLog(() ={Log}> k())
+        },
+        pure(a) => a
+    }
+}
+
+appendLog(() => {
+    raise!(Log.log("Hello"));
+    raise!(Log.log("Folks"));
+    "Final value"
+}) == "Hello\nFolks\nFinal value"
 
 

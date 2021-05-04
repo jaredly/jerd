@@ -176,7 +176,6 @@ export const _printHandleNew = (
             loc: term.location,
         });
     }
-    console.log('taregt', targetReturnsVoid, showType(env, targetType));
 
     const fnReturn = arrowFunctionExpression(
         doneArgs,
