@@ -51,6 +51,7 @@ import {
     passDone,
 } from './cps';
 import { args } from '../printer';
+import { isVoid } from '../../typing/terms/handle';
 
 export const printHandleNew = (
     env: Env,
@@ -160,29 +161,24 @@ export const _printHandleNew = (
         term.location,
     );
 
+    const doneArgs = args.slice();
+    if (!typesEqual(targetType.res, void_)) {
+        doneArgs.push({
+            type: targetType.res,
+            sym: term.pure.arg,
+            loc: term.location,
+        });
+    }
+
     const fnReturn = arrowFunctionExpression(
-        [
-            ...args,
-            {
-                type: targetType.res,
-                sym: term.pure.arg,
-                loc: term.location,
-            },
-        ],
+        doneArgs,
         printLambdaBody(env, opts, term.pure.body, cps),
         term.location,
     );
 
     const fnDone = withSym(env, 'returnValue', (returnValue) =>
         arrowFunctionExpression(
-            [
-                ...args,
-                {
-                    sym: returnValue,
-                    type: targetType.res,
-                    loc: term.location,
-                },
-            ],
+            doneArgs,
             callExpression(
                 env,
                 var_(fnReturnPointer, term.location, fnReturn.is),
@@ -194,7 +190,9 @@ export const _printHandleNew = (
                         fnReturn.is.args,
                         term.location,
                     ),
-                    var_(returnValue, term.location, targetType.res),
+                    ...(typesEqual(targetType.res, void_)
+                        ? []
+                        : [var_(returnValue, term.location, targetType.res)]),
                 ],
                 term.location,
             ),
