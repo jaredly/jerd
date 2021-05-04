@@ -156,7 +156,12 @@ const effectfulLambda = (
     term: Lambda,
 ): LambdaExpr => {
     const done: Symbol = { name: 'done', unique: env.local.unique++ };
-    const doneArgs = handlerTypesForEffects(env, opts, term.is.effects);
+    const doneArgs = handlerTypesForEffects(
+        env,
+        opts,
+        term.is.effects,
+        term.location,
+    );
     if (!isVoid(term.is.res)) {
         doneArgs.push(typeFromTermType(env, opts, term.is.res));
     }
@@ -186,7 +191,7 @@ const effectfulLambda = (
                 done: {
                     type: 'var',
                     sym: done,
-                    loc: null,
+                    loc: term.location,
                     is: doneT,
                 },
                 handlers: handlers,

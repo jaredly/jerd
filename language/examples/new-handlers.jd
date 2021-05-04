@@ -57,3 +57,18 @@ appendLog(() => {
 }) == "Hello\nFolks\nFinal value"
 
 
+// Start with the basic
+const collectPoly: {e}(() ={Log, e}> void) ={e}> string = 
+{e}(fn: () ={Log, e}> void): string => {
+    handle! fn {
+        Log.log((v) => k) => {
+            v ++ "\n" ++ collectPoly{e}(() ={Log, e}> k())
+        },
+        pure(a) => "end"
+    }
+}
+
+collectPoly{}(() => raise!(Log.log("Good news"))) == "Good news\nend"
+
+provide<string,>("Folks", () ={Read}> collectPoly{Read}(() ={Read, Log}> raise!(Log.log("Good news " + raise!(Read.read())))))
+ == "Good news folks\nend"

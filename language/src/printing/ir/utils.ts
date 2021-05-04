@@ -139,7 +139,12 @@ export const _lambdaTypeFromTermType = (
 ): LambdaType => {
     const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     if (type.effects.length) {
-        const doneArgs = handlerTypesForEffects(env, opts, type.effects);
+        const doneArgs = handlerTypesForEffects(
+            env,
+            opts,
+            type.effects,
+            type.location,
+        );
         if (!isVoid(type.res)) {
             doneArgs.push(mapType(type.res));
         }
@@ -151,7 +156,12 @@ export const _lambdaTypeFromTermType = (
             args: type.args
                 .map(mapType)
                 .concat([
-                    ...handlerTypesForEffects(env, opts, type.effects),
+                    ...handlerTypesForEffects(
+                        env,
+                        opts,
+                        type.effects,
+                        type.location,
+                    ),
                     pureFunction(doneArgs, void_),
                 ]),
             rest: type.rest ? mapType(type.rest) : null,

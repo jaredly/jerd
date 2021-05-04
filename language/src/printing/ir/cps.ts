@@ -57,15 +57,19 @@ import {
 import { maybeWrapPureFunction } from '../../typing/transform';
 import { isVoid } from '../../typing/terms/handle';
 import { newSym, refName } from '../../typing/env';
-import { printRaise } from './handle-new';
+import { printHandleNew, printRaise } from './handle-new';
 
 // export type EffectHandlers = { [id: string]: { expr: Expr; sym: Symbol } };
 
-export const effectHandlerType = (env: Env, eff: EffectReference): Type => {
+export const effectHandlerType = (
+    env: Env,
+    eff: EffectReference,
+    loc: Loc,
+): Type => {
     return {
         type: 'effect-handler',
         ref: eff.ref,
-        loc: null,
+        loc,
     };
 };
 
@@ -74,6 +78,7 @@ export const effectConstructorType = (
     opts: OutputOptions,
     eff: EffectReference,
     constr: { args: Array<TermType>; ret: TermType },
+    loc: Loc,
 ): Type => {
     const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     return pureFunction(
@@ -82,7 +87,7 @@ export const effectConstructorType = (
             .concat([
                 pureFunction(
                     [
-                        effectHandlerType(env, eff),
+                        effectHandlerType(env, eff, loc),
                         ...(isVoid(constr.ret) ? [] : [mapType(constr.ret)]),
                     ],
                     void_,
@@ -156,6 +161,9 @@ const _termToAstCPS = (
                 throw new Error(
                     `Handle target has effects! should be a lambda`,
                 );
+            }
+            if (opts.explicitHandlerFns) {
+                return printHandleNew(env, opts, term, cps);
             }
             return {
                 type: 'handle',
@@ -324,10 +332,11 @@ export const handlerTypesForEffects = (
     env: Env,
     opts: OutputOptions,
     effects: Array<EffectRef>,
+    loc: Loc,
 ) => {
     if (opts.explicitHandlerFns) {
         return sortedExplicitEffects(effects).map((eff) =>
-            effectHandlerType(env, eff),
+            effectHandlerType(env, eff, loc),
         );
     } else {
         return [handlersType];
@@ -389,7 +398,7 @@ export const handleArgsForEffects = (
         const handlers: EffectHandlers = {};
         sortedExplicitEffects(effects).forEach((eff) => {
             const sym = newSym(env, 'handle' + refName(eff.ref));
-            const t = effectHandlerType(env, eff);
+            const t = effectHandlerType(env, eff, loc);
             args.push({
                 type: t,
                 sym: sym,
@@ -443,6 +452,14 @@ export const passDone = (
             ),
         };
     }
+
+    // START HERE:
+    // Ok, so here's where we need to .... do something
+    // If 'done' wants more/fewer handlers than I'm likely to provide
+    // (as target.is.effects will indicate)
+    // then I need to wrap done in a function that just requests
+    // then handlers that I'm going to provide, and which gets the
+    // rest from the ambient cps.handlers info.
 
     return callExpression(
         env,

@@ -40,6 +40,7 @@ import {
 } from './typeScriptTypePrinter';
 import { effectConstructorType } from './ir/cps';
 import { getEnumReferences } from '../typing/typeExpr';
+import { nullLocation } from '../parsing/parser';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -726,6 +727,7 @@ export const fileToTypescript = (
                                 opts,
                                 { type: 'ref', ref: { type: 'user', id } },
                                 constr,
+                                nullLocation,
                             ),
                         ),
                     ),

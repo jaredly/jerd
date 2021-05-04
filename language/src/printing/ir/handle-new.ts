@@ -97,6 +97,7 @@ export const printRaise = (
                 ref: term.ref,
             },
             env.global.effects[refName(term.ref)][term.idx],
+            term.location,
         ),
     };
     // hmmmmmmmmmmmmmmm ok so if raise doesn't have a return value
@@ -230,7 +231,7 @@ export const _printHandleNew = (
         [refName(effectRef.ref)]: var_(
             thisHandlerSym,
             term.location,
-            effectHandlerType(env, effectRef),
+            effectHandlerType(env, effectRef, term.location),
         ),
     };
 
@@ -295,7 +296,10 @@ const printEffectHandler = (
                 unique: env.local.unique++,
             };
             const returnToHandlerType: Type = pureFunction(
-                [effectHandlerType(env, effRef), targetReturnType],
+                [
+                    effectHandlerType(env, effRef, term.location),
+                    targetReturnType,
+                ],
                 void_,
             );
             const ret = typeFromTermType(env, opts, effDev[i].ret);
@@ -308,7 +312,7 @@ const printEffectHandler = (
                   };
             const rawKType: Type = pureFunction(
                 [
-                    effectHandlerType(env, effRef),
+                    effectHandlerType(env, effRef, term.location),
                     ...(typesEqual(ret, void_) ? [] : [ret]),
                 ],
                 void_,
@@ -348,7 +352,11 @@ const printEffectHandler = (
                                       ]),
                                 {
                                     sym: kh,
-                                    type: effectHandlerType(env, effRef),
+                                    type: effectHandlerType(
+                                        env,
+                                        effRef,
+                                        term.location,
+                                    ),
                                     loc: kase.body.location,
                                 },
                                 {
@@ -390,6 +398,7 @@ const printEffectHandler = (
                                                     is: effectHandlerType(
                                                         env,
                                                         effRef,
+                                                        term.location,
                                                     ),
                                                     loc: kase.body.location,
                                                 },
@@ -442,6 +451,7 @@ const printEffectHandler = (
                         ref: term.effect,
                     },
                     effDev[i],
+                    term.location,
                 ),
             ),
             term.location,
@@ -460,7 +470,7 @@ export const withSyncDone = (
     const doneS: Symbol = newSym(env, 'done');
     const doneT: Type = pureFunction(
         // No effects here, we don't have any info about them I dont think.
-        [...handlerTypesForEffects(env, opts, []), vt],
+        [...handlerTypesForEffects(env, opts, [], loc), vt],
         void_,
     );
     const { args, handlers } = handleArgsForEffects(env, opts, [], loc);
