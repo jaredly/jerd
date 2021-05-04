@@ -7,12 +7,14 @@ import {
     Lambda,
     LambdaType as ILambdaType,
     Sequence,
+    getEffects,
 } from '../../typing/types';
 import {
     builtinType,
     lambdaTypeFromTermType,
     pureFunction,
     showType,
+    sortedExplicitEffects,
     void_,
 } from './utils';
 
@@ -238,18 +240,16 @@ export const sequenceToBlock = (
         // in what case would we want to CPS something that
         // can't be CPSd?
         let inner: CPS = cps;
-        console.log('statements', term.sts.length);
         for (let i = term.sts.length - 1; i >= 0; i--) {
-            console.log('looking at', i, showType(env, inner.done.is));
             if (i > 0) {
                 const { args, handlers } = handleArgsForEffects(
                     env,
                     opts,
-                    [],
+                    getEffects(term.sts[i]),
                     term.location,
                 );
                 inner = {
-                    handlers: { ...inner.handlers, ...handlers },
+                    ...inner,
                     done: arrowFunctionExpression(
                         [
                             ...args,
@@ -274,12 +274,13 @@ export const sequenceToBlock = (
                             items: [
                                 {
                                     type: 'Expression',
-                                    expr: termToAstCPS(
-                                        env,
-                                        opts,
-                                        term.sts[i],
-                                        inner,
-                                    ),
+                                    expr: termToAstCPS(env, opts, term.sts[i], {
+                                        ...inner,
+                                        handlers: {
+                                            ...inner.handlers,
+                                            ...handlers,
+                                        },
+                                    }),
                                     loc: term.sts[i].location,
                                 },
                             ],

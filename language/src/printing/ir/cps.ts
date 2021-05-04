@@ -414,9 +414,7 @@ export const passDone = (
     const expectedDoneType = targetType.args[
         targetType.args.length - 1
     ] as ILambdaType;
-    console.log('passDone', expectedDoneType.args, doneType.args);
     if (expectedDoneType.args.length > doneType.args.length) {
-        console.log('fixing');
         const args: Array<Arg> = expectedDoneType.args.map((type, i) => ({
             type,
             loc,

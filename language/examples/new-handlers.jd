@@ -17,5 +17,5 @@ const collectNew: (() ={Log}> void) ={}> string =
 collectNew(() => {
     raise!(Log.log("Hello"));
     raise!(Log.log("Folks"));
-}) == "Hello\nfolks\nend"
+}) == "Hello\nFolks\nend"
 
