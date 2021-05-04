@@ -12,6 +12,7 @@ import {
     builtinType,
     lambdaTypeFromTermType,
     pureFunction,
+    showType,
     void_,
 } from './utils';
 
@@ -36,6 +37,7 @@ import { arrowFunctionExpression, builtin } from './utils';
 import { printTerm } from './term';
 import { withNoEffects } from '../../typing/transform';
 import { cpus } from 'os';
+import { isVoid } from '../../typing/terms/handle';
 
 export const printLambda = (
     env: Env,
@@ -152,15 +154,11 @@ const effectfulLambda = (
     term: Lambda,
 ): LambdaExpr => {
     const done: Symbol = { name: 'done', unique: env.local.unique++ };
-    const doneT: LambdaType = pureFunction(
-        [
-            ...handlerTypesForEffects(env, opts, term.is.effects),
-            typeFromTermType(env, opts, term.is.res),
-        ],
-        void_,
-        [],
-        term.location,
-    );
+    const doneArgs = handlerTypesForEffects(env, opts, term.is.effects);
+    if (!isVoid(term.is.res)) {
+        doneArgs.push(typeFromTermType(env, opts, term.is.res));
+    }
+    const doneT: LambdaType = pureFunction(doneArgs, void_, [], term.location);
     const { args, handlers } = handleArgsForEffects(
         env,
         opts,
@@ -240,7 +238,9 @@ export const sequenceToBlock = (
         // in what case would we want to CPS something that
         // can't be CPSd?
         let inner: CPS = cps;
+        console.log('statements', term.sts.length);
         for (let i = term.sts.length - 1; i >= 0; i--) {
+            console.log('looking at', i, showType(env, inner.done.is));
             if (i > 0) {
                 const { args, handlers } = handleArgsForEffects(
                     env,

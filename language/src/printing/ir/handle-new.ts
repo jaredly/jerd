@@ -8,6 +8,7 @@ import {
     UserReference,
     EffectReference,
     EffectRef,
+    Raise,
 } from '../../typing/types';
 import {
     Expr,
@@ -47,6 +48,7 @@ import {
     handleArgsForEffects,
     handlerTypesForEffects,
     handleValuesForEffects,
+    passDone,
 } from './cps';
 import { args } from '../printer';
 
@@ -67,6 +69,52 @@ export const printHandleNew = (
         env,
         block(_printHandleNew(env, opts, term, done), term.location),
     );
+};
+
+export const printRaise = (
+    env: Env,
+    opts: OutputOptions,
+    term: Raise,
+    cps: CPS,
+): Expr => {
+    const raise = cps.handlers[refName(term.ref)];
+    if (!raise) {
+        throw new Error(`No handler for ${refName(term.ref)}`);
+    }
+    // TODO: Need to index I think?
+    const target: Expr = {
+        type: 'tupleAccess',
+        idx: term.idx,
+        loc: term.location,
+        target: raise,
+        is: effectConstructorType(
+            env,
+            opts,
+            {
+                type: 'ref',
+                ref: term.ref,
+            },
+            env.global.effects[refName(term.ref)][term.idx],
+        ),
+    };
+    // hmmmmmmmmmmmmmmm ok so if raise doesn't have a return value
+    // and the next thing wants a `void` value,
+    // what is a body to do?
+    return passDone(
+        env,
+        opts,
+        target,
+        term.args.map((arg) => printTerm(env, opts, arg)),
+        cps,
+        term.location,
+        [],
+    );
+    // return callExpression(
+    //     env,
+    //     target,
+    //     [...term.args.map((arg) => printTerm(env, opts, arg)), cps.done],
+    //     term.location,
+    // );
 };
 
 export const _printHandleNew = (

@@ -236,16 +236,17 @@ export type Handle = {
     // also of the pure, which is maybe simplest
     is: Type;
 };
+export type Raise = {
+    type: 'raise';
+    location: Location | null;
+    ref: Reference;
+    idx: number;
+    args: Array<Term>;
+    is: Type;
+};
 
 export type CPSAble =
-    | {
-          type: 'raise';
-          location: Location | null;
-          ref: Reference;
-          idx: number;
-          args: Array<Term>;
-          is: Type;
-      }
+    | Raise
     | Handle
     | {
           type: 'if';

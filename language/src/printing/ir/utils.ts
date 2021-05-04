@@ -55,9 +55,10 @@ import {
 } from './types';
 import { Location, nullLocation } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
-import { args, atom, items, PP, printToString } from '../printer';
+import { args, atom, id, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
 import { handlerTypesForEffects } from './cps';
+import { isVoid } from '../../typing/terms/handle';
 // import { getTypeError } from '../../typing/getTypeError';
 
 const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
@@ -138,6 +139,10 @@ export const _lambdaTypeFromTermType = (
 ): LambdaType => {
     const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     if (type.effects.length) {
+        const doneArgs = handlerTypesForEffects(env, opts, type.effects);
+        if (!isVoid(type.res)) {
+            doneArgs.push(mapType(type.res));
+        }
         return {
             type: 'lambda',
             loc: type.location,
@@ -147,13 +152,7 @@ export const _lambdaTypeFromTermType = (
                 .map(mapType)
                 .concat([
                     ...handlerTypesForEffects(env, opts, type.effects),
-                    pureFunction(
-                        [
-                            ...handlerTypesForEffects(env, opts, type.effects),
-                            mapType(type.res),
-                        ],
-                        void_,
-                    ),
+                    pureFunction(doneArgs, void_),
                 ]),
             rest: type.rest ? mapType(type.rest) : null,
             res: void_,
@@ -511,7 +510,8 @@ export const typeToPretty = (env: Env, type: Type): PP => {
             if (type.ref.type === 'builtin') {
                 return atom(type.ref.name);
             } else {
-                throw new Error(`effect handler wanted`);
+                return id('handler', refName(type.ref), 'effect-handler');
+                // throw new Error(`effect handler wanted`);
             }
         default:
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);

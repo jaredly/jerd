@@ -57,6 +57,7 @@ import {
 import { maybeWrapPureFunction } from '../../typing/transform';
 import { isVoid } from '../../typing/terms/handle';
 import { newSym, refName } from '../../typing/env';
+import { printRaise } from './handle-new';
 
 // export type EffectHandlers = { [id: string]: { expr: Expr; sym: Symbol } };
 
@@ -212,6 +213,9 @@ const _termToAstCPS = (
             });
         }
         case 'raise': {
+            if (opts.explicitHandlerFns) {
+                return printRaise(env, opts, term, cps);
+            }
             if (
                 ([] as Array<EffectRef>).concat(...term.args.map(getEffects))
                     .length > 0
@@ -405,11 +409,15 @@ export const passDone = (
     loc: Loc,
     typeVbls?: Array<Type>,
 ) => {
-    const tt = target.is as ILambdaType;
-    const dt = cps.done.is as ILambdaType;
-    const edt = tt.args[tt.args.length - 1] as ILambdaType;
-    if (edt.args.length > dt.args.length) {
-        const args: Array<Arg> = edt.args.map((type, i) => ({
+    const targetType = target.is as ILambdaType;
+    const doneType = cps.done.is as ILambdaType;
+    const expectedDoneType = targetType.args[
+        targetType.args.length - 1
+    ] as ILambdaType;
+    console.log('passDone', expectedDoneType.args, doneType.args);
+    if (expectedDoneType.args.length > doneType.args.length) {
+        console.log('fixing');
+        const args: Array<Arg> = expectedDoneType.args.map((type, i) => ({
             type,
             loc,
             sym: { name: `arg_${i}`, unique: env.local.unique++ },
@@ -421,7 +429,7 @@ export const passDone = (
                 callExpression(
                     env,
                     cps.done,
-                    args.slice(0, dt.args.length).map((arg) => ({
+                    args.slice(0, doneType.args.length).map((arg) => ({
                         type: 'var',
                         sym: arg.sym,
                         is: arg.type,
