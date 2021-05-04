@@ -187,7 +187,10 @@ const _termToAstCPS = (
             const { args, handlers } = handleArgsForEffects(
                 env,
                 opts,
-                [],
+                // UMMMM yeah this is probably it
+                // like
+                // um
+                getEffects(term.value),
                 term.location,
             );
             return termToAstCPS(env, opts, term.value, {

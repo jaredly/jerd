@@ -28,13 +28,15 @@ const provide: <T>(string, () ={Read}> T) ={}> T =
 <T,>(v: string, fn: () ={Read}> T): T => {
     handle! fn {
         Read.read(() => k) => {
-            provide<T>(v + ".", () => k(v))
+            provide<T>("<" + v + ">", () => k(v))
         },
         pure(a) => a
     }
 }
 
 provide<string,>("Hello", () => raise!(Read.read())) == "Hello"
+// Multiple, lets do lets
+provide<string,>("Hello", () => raise!(Read.read()) + raise!(Read.read())) == "Hello<Hello>"
 
 
 // Start with the basic

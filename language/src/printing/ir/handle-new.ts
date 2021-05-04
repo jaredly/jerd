@@ -459,6 +459,7 @@ export const withSyncDone = (
     const sym: Symbol = newSym(env, 'result');
     const doneS: Symbol = newSym(env, 'done');
     const doneT: Type = pureFunction(
+        // No effects here, we don't have any info about them I dont think.
         [...handlerTypesForEffects(env, opts, []), vt],
         void_,
     );
