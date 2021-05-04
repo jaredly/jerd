@@ -3,7 +3,7 @@ effect Log {
     log: (string) => void,
 }
 
-// Start iwth the basic
+// Start with the basic
 const collectNew: (() ={Log}> void) ={}> string = 
 (fn: () ={Log}> void): string => {
     handle! fn {
@@ -18,4 +18,23 @@ collectNew(() => {
     raise!(Log.log("Hello"));
     raise!(Log.log("Folks"));
 }) == "Hello\nFolks\nend"
+
+effect Read {
+    read: () => string,
+}
+
+// Now for reading
+const provide: <T>(string, () ={Read}> T) ={}> T = 
+<T>(v: string, fn: () ={Read}> T): T => {
+    handle! fn {
+        Read.read(() => k) => {
+            provide<T>(v + ".", () => k(v))
+        },
+        pure(a) => a
+    }
+}
+
+provide<string>("Hello", () => raise!(Read.read())) == "Hello"
+
+
 

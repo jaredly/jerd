@@ -31,6 +31,7 @@ import {
     lambdaTypeFromTermType,
     pureFunction,
     returnStatement,
+    showType,
     tupleType,
     typeFromTermType,
     var_,
@@ -151,6 +152,11 @@ export const _printHandleNew = (
         opts,
         term.target.is as LambdaType,
     ) as ILambdaType;
+    const targetReturnType = typeFromTermType(
+        env,
+        opts,
+        (term.target.is as LambdaType).res,
+    );
 
     const effectRef: EffectRef = { type: 'ref', ref: term.effect };
 
@@ -162,13 +168,15 @@ export const _printHandleNew = (
     );
 
     const doneArgs = args.slice();
-    if (!typesEqual(targetType.res, void_)) {
+    const targetReturnsVoid = typesEqual(targetReturnType, void_);
+    if (!targetReturnsVoid) {
         doneArgs.push({
-            type: targetType.res,
+            type: targetReturnType,
             sym: term.pure.arg,
             loc: term.location,
         });
     }
+    console.log('taregt', targetReturnsVoid, showType(env, targetType));
 
     const fnReturn = arrowFunctionExpression(
         doneArgs,
@@ -178,7 +186,15 @@ export const _printHandleNew = (
 
     const fnDone = withSym(env, 'returnValue', (returnValue) =>
         arrowFunctionExpression(
-            doneArgs,
+            targetReturnsVoid
+                ? args
+                : args.concat([
+                      {
+                          type: targetReturnType,
+                          sym: returnValue,
+                          loc: term.location,
+                      },
+                  ]),
             callExpression(
                 env,
                 var_(fnReturnPointer, term.location, fnReturn.is),
@@ -190,9 +206,9 @@ export const _printHandleNew = (
                         fnReturn.is.args,
                         term.location,
                     ),
-                    ...(typesEqual(targetType.res, void_)
+                    ...(targetReturnsVoid
                         ? []
-                        : [var_(returnValue, term.location, targetType.res)]),
+                        : [var_(returnValue, term.location, targetReturnType)]),
                 ],
                 term.location,
             ),
@@ -256,6 +272,11 @@ const printEffectHandler = (
         opts,
         term.target.is as LambdaType,
     ) as ILambdaType;
+    const targetReturnType = typeFromTermType(
+        env,
+        opts,
+        (term.target.is as LambdaType).res,
+    );
     const effRef: EffectReference = { type: 'ref', ref: term.effect };
     const effDev = env.global.effects[refName(term.effect)];
     return {
@@ -275,7 +296,7 @@ const printEffectHandler = (
                 unique: env.local.unique++,
             };
             const returnToHandlerType: Type = pureFunction(
-                [effectHandlerType(env, effRef), targetType.res],
+                [effectHandlerType(env, effRef), targetReturnType],
                 void_,
             );
             const ret = typeFromTermType(env, opts, effDev[i].ret);
