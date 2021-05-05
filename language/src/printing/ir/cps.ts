@@ -425,7 +425,7 @@ export const maybeWrapForEffects = (
     expectedType = expectedType as LambdaType;
     const termEffects = sortedExplicitEffects(termType.effects);
     const expectedEffects = sortedExplicitEffects(expectedType.effects);
-    console.log('term', termEffects, 'expected', expectedEffects);
+    // console.log('term', termEffects, 'expected', expectedEffects);
     if (
         !(
             termEffects.length !== expectedEffects.length ||
@@ -445,8 +445,6 @@ export const maybeWrapForEffects = (
         expr.loc,
     );
     let returnValue = null;
-
-    // const cpsArgs = parseCPSArgs(expectedType.args)
 
     // ugh
     // ok, so the format of these functions,
@@ -473,28 +471,11 @@ export const maybeWrapForEffects = (
         };
     });
     const doneArg: Arg = {
-        // ohh this one needs to have expectedEffects
-        // the wrapDone needs to go the other way I think
-        // type: (expr.is as ILambdaType).args.slice(-1)[0],
         type: expectedDone,
         sym: newSym(env, 'done'),
         loc: expr.loc,
     };
 
-    console.log('Wrapping, doneArg', showType(env, doneArg.type));
-
-    // let returnType = null;
-    // if (expectedDoneType.args.length > expectedDoneEffects.length) {
-    //     const sym = newSym(env, 'returnValue');
-    //     returnType =
-    //         expectedDoneType.args[expectedDoneType.args.length - 1];
-    //     args.push({
-    //         sym,
-    //         type: returnType,
-    //         loc,
-    //     });
-    //     returnValue = sym;
-    // }
     const cps = {
         done: maybeWrapDone(
             env,
@@ -524,10 +505,10 @@ export const maybeWrapForEffects = (
 
         expr.loc,
     );
-    console.log('Wrapped');
-    console.log('- ', showType(env, expr.is));
-    console.log('- ', showType(env, result.is));
-    console.log('- ', showType(env, cps.done.is));
+    // console.log('Wrapped');
+    // console.log('- ', showType(env, expr.is));
+    // console.log('- ', showType(env, result.is));
+    // console.log('- ', showType(env, cps.done.is));
     return result;
 };
 
@@ -585,7 +566,7 @@ export const passDone = (
     loc: Loc,
     typeVbls?: Array<Type>,
 ) => {
-    console.log('>> calling passDone with', showType(env, target.is));
+    // console.log('>> calling passDone with', showType(env, target.is));
     const targetType = target.is as ILambdaType;
     const doneType = cps.done.is as ILambdaType;
     const expectedDoneType = targetType.args[
@@ -656,17 +637,17 @@ export const passDone = (
                 loc,
             ),
         };
-        console.log(`Wrapped again in passdone`);
-        console.log('- ', showType(env, oldCps.done.is));
-        console.log('- ', showType(env, cps.done.is));
-        console.log(
-            'expectedDoneEffects',
-            expectedDoneEffects.map((t) => refName(t.ref)),
-        );
-        console.log(
-            'providedDoneEffects',
-            providedDoneEffects.map((t) => refName(t.ref)),
-        );
+        // console.log(`Wrapped again in passdone`);
+        // console.log('- ', showType(env, oldCps.done.is));
+        // console.log('- ', showType(env, cps.done.is));
+        // console.log(
+        //     'expectedDoneEffects',
+        //     expectedDoneEffects.map((t) => refName(t.ref)),
+        // );
+        // console.log(
+        //     'providedDoneEffects',
+        //     providedDoneEffects.map((t) => refName(t.ref)),
+        // );
         // console.log('args', args);
         // throw new Error(`Dones differ yes`);
     } else if (expectedDoneType.args.length > doneType.args.length) {
@@ -703,7 +684,7 @@ export const passDone = (
     // then I need to wrap done in a function that just requests
     // then handlers that I'm going to provide, and which gets the
     // rest from the ambient cps.handlers info.
-    console.log('<<');
+    // console.log('<<');
 
     return callExpression(
         env,
@@ -777,99 +758,13 @@ export const maybeWrapDone = (
         ),
         done.loc,
     );
-    console.log(
-        'Wrapped done\n',
-        showType(env, done.is),
-        '\n',
-        showType(env, result.is),
-    );
+    // console.log(
+    //     'Wrapped done\n',
+    //     showType(env, done.is),
+    //     '\n',
+    //     showType(env, result.is),
+    // );
     return result;
-    //     const expectedDoneEffects = expectedDoneType.args.filter(
-    //         (arg) => arg.type === 'effect-handler',
-    //     ) as Array<EffectHandler>;
-    //     const providedDoneEffects = doneType.args.filter(
-    //         (arg) => arg.type === 'effect-handler',
-    //     ) as Array<EffectHandler>;
-    //     if (
-    //         expectedDoneEffects.length !== providedDoneEffects.length ||
-    //         expectedDoneEffects.some(
-    //             (t, i) => !refsEqual(t.ref, providedDoneEffects[i].ref),
-    //         )
-    //     ) {
-    //         // START HERE: Flesh this out
-    //         const { args, handlers } = handleArgsForEffects(
-    //             env,
-    //             opts,
-    //             expectedDoneEffects.map((t) => ({ type: 'ref', ref: t.ref })),
-    //             loc,
-    //         );
-    //         let returnValue = null;
-    //         let returnType = null;
-    //         if (expectedDoneType.args.length > expectedDoneEffects.length) {
-    //             const sym = newSym(env, 'returnValue');
-    //             returnType =
-    //                 expectedDoneType.args[expectedDoneType.args.length - 1];
-    //             args.push({
-    //                 sym,
-    //                 type: returnType,
-    //                 loc,
-    //             });
-    //             returnValue = sym;
-    //         }
-    //         cps = {
-    //             ...cps,
-    //             done: arrowFunctionExpression(
-    //                 args,
-    //                 callDone(
-    //                     env,
-    //                     opts,
-    //                     cps,
-    //                     returnValue ? var_(returnValue, loc, returnType!) : null,
-    //                     loc,
-    //                 ),
-    //                 // callExpression(
-    //                 //     env,
-    //                 //     cps.done,
-    //                 //     // args.slice(0, doneType.args.length).map((arg) => ({
-    //                 //     //     type: 'var',
-    //                 //     //     sym: arg.sym,
-    //                 //     //     is: arg.type,
-    //                 //     //     loc,
-    //                 //     // })),
-    //                 //     loc,
-    //                 //     [],
-    //                 // ),
-    //                 loc,
-    //             ),
-    //         };
-    //         console.log(args);
-    //         // throw new Error(`Dones differ yes`);
-    //     } else if (expectedDoneType.args.length > doneType.args.length) {
-    //         const args: Array<Arg> = expectedDoneType.args.map((type, i) => ({
-    //             type,
-    //             loc,
-    //             sym: { name: `arg_${i}`, unique: env.local.unique++ },
-    //         }));
-    //         cps = {
-    //             ...cps,
-    //             done: arrowFunctionExpression(
-    //                 args,
-    //                 callExpression(
-    //                     env,
-    //                     cps.done,
-    //                     args.slice(0, doneType.args.length).map((arg) => ({
-    //                         type: 'var',
-    //                         sym: arg.sym,
-    //                         is: arg.type,
-    //                         loc,
-    //                     })),
-    //                     loc,
-    //                     [],
-    //                 ),
-    //                 loc,
-    //             ),
-    //         };
-    //     }
 };
 
 export const callDone = (
@@ -889,8 +784,5 @@ export const callDone = (
     if (returnValue != null && wantsValue) {
         args.push(returnValue);
     }
-    // if (returnValue != null && dt.args.length === 2) {
-    //     args.push(returnValue);
-    // }
     return callExpression(env, cps.done, args, loc);
 };
