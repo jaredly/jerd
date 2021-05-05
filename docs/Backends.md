@@ -15,6 +15,10 @@ oh wow https://www.youtube.com/watch?v=8--5LwHRhjk
 
 https://twitter.com/greweb/status/1385709154048921604/photo/1
 
+https://www.twitch.tv/videos/1007480150
+
+https://www.shadertoy.com/view/ld3Sz7
+
 and then I'd need aggressive inlining I think?
 hmmm
 

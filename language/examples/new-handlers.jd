@@ -71,4 +71,11 @@ const collectPoly: {e}(() ={Log, e}> void) ={e}> string =
 collectPoly{}(() => raise!(Log.log("Good news"))) == "Good news\nend"
 
 provide<string,>("Folks", () ={Read}> collectPoly{Read}(() ={Read, Log}> raise!(Log.log("Good news " + raise!(Read.read())))))
- == "Good news folks\nend"
+ == "Good news Folks\nend"
+
+
+const twoLevelsDeep = {e}(handler: (() ={e}> string) ={}> string, handled: () ={e}> string): string => {
+    handler(handled)
+}
+
+// twoLevelsDeep{Read}((fn: () ={Read}> string) ={}> provide<string>("Hello", fn), () ={Read}> raise!(Read.read())) == "Hello"

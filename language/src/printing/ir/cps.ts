@@ -12,11 +12,13 @@ import {
     EffectReference,
     LambdaType,
     Symbol,
+    refsEqual,
 } from '../../typing/types';
 import {
     bool,
     builtinType,
     lambdaTypeFromTermType,
+    parseCPSArgs,
     pureFunction,
     showType,
     sortedExplicitEffects,
@@ -304,8 +306,28 @@ const _termToAstCPS = (
                 env,
                 opts,
                 target,
-                args.map((arg, i) => printTerm(env, opts, arg)),
+                args.map((arg, i) =>
+                    maybeWrapForEffects(
+                        env,
+                        opts,
+                        printTerm(env, opts, arg),
+                        arg.is,
+                        argTypes[i],
+                        cps.handlers,
+                        // (term.target.is as LambdaType).effects
+                    ),
+                ),
                 cps,
+                // {
+                //     done: maybeWrapDone(
+                //         env,
+                //         opts,
+                //         cps.done,
+                //         (term.target.is as LambdaType).effects,
+                //         cps.handlers,
+                //     ),
+                //     handlers: cps.handlers,
+                // },
                 term.location,
                 term.typeVbls.map(mapType),
             );
@@ -374,7 +396,9 @@ export const handleValuesForEffects = (
                 .map((t, i) => {
                     const v = effectHandlers[refName(t.ref)];
                     if (!v) {
-                        throw new Error(`No effect handler defined`);
+                        throw new Error(
+                            `No effect handler defined for ${refName(t.ref)}`,
+                        );
                     }
                     return v;
                 })
@@ -382,6 +406,129 @@ export const handleValuesForEffects = (
     } else {
         return [handlerVar(loc)];
     }
+};
+
+// STOPSHIP: handle type variables?
+export const maybeWrapForEffects = (
+    env: Env,
+    opts: OutputOptions,
+    expr: Expr,
+    termType: TermType,
+    expectedType: TermType,
+    outerHandlers: EffectHandlers,
+    // passedEffects: Array<EffectRef>
+) => {
+    if (expr.is.type !== 'lambda') {
+        return expr;
+    }
+    termType = termType as LambdaType;
+    expectedType = expectedType as LambdaType;
+    const termEffects = sortedExplicitEffects(termType.effects);
+    const expectedEffects = sortedExplicitEffects(expectedType.effects);
+    console.log('term', termEffects, 'expected', expectedEffects);
+    if (
+        !(
+            termEffects.length !== expectedEffects.length ||
+            termEffects.some(
+                (t, i) => !refsEqual(t.ref, expectedEffects[i].ref),
+            )
+        )
+    ) {
+        console.log('no need to wrap');
+        return expr;
+    }
+
+    const { args, handlers } = handleArgsForEffects(
+        env,
+        opts,
+        expectedEffects,
+        expr.loc,
+    );
+    let returnValue = null;
+
+    // const cpsArgs = parseCPSArgs(expectedType.args)
+
+    // ugh
+    // ok, so the format of these functions,
+    // and I should really just make a separate function type
+    // like `cpsLambda`, that has `effectHandlers` and `done`
+    // specified separately from `args`
+    // but as we have it, we have
+    // [normal args], [effect handlers], [done]
+    // right?
+    // And so, the normal args um might need modification too I guess?
+    // also we'll be doing passDone
+    const expectedLambda = lambdaTypeFromTermType(
+        env,
+        opts,
+        expectedType,
+    ) as ILambdaType;
+    const expectedDone = expectedLambda.args[expectedLambda.args.length - 1];
+
+    const otherArgs: Array<Arg> = expectedType.args.map((t, i) => {
+        return {
+            type: typeFromTermType(env, opts, t),
+            sym: newSym(env, `arg${i}`),
+            loc: expr.loc,
+        };
+    });
+    const doneArg: Arg = {
+        // ohh this one needs to have expectedEffects
+        // the wrapDone needs to go the other way I think
+        // type: (expr.is as ILambdaType).args.slice(-1)[0],
+        type: expectedDone,
+        sym: newSym(env, 'done'),
+        loc: expr.loc,
+    };
+
+    console.log('Wrapping, doneArg', showType(env, doneArg.type));
+
+    // let returnType = null;
+    // if (expectedDoneType.args.length > expectedDoneEffects.length) {
+    //     const sym = newSym(env, 'returnValue');
+    //     returnType =
+    //         expectedDoneType.args[expectedDoneType.args.length - 1];
+    //     args.push({
+    //         sym,
+    //         type: returnType,
+    //         loc,
+    //     });
+    //     returnValue = sym;
+    // }
+    const cps = {
+        done: maybeWrapDone(
+            env,
+            opts,
+            var_(doneArg.sym, expr.loc, doneArg.type),
+            expectedEffects,
+            outerHandlers,
+        ),
+        handlers: { ...outerHandlers, ...handlers },
+    };
+    const result = arrowFunctionExpression(
+        // TODO: pass the done one? idk
+        otherArgs.concat(args).concat([doneArg]),
+        passDone(
+            env,
+            opts,
+            expr,
+            otherArgs.map((arg, i) => {
+                // maybe wrap here too?
+                return var_(arg.sym, arg.loc, arg.type);
+            }),
+
+            cps,
+            expr.loc,
+            [], // STOPSHIP type vbls?
+        ),
+
+        expr.loc,
+    );
+    console.log('Wrapped');
+    console.log('- ', showType(env, expr.is));
+    console.log('- ', showType(env, result.is));
+    console.log('- ', showType(env, cps.done.is));
+    return result;
 };
 
 // This should return a new mapping for effectHandlers too
@@ -412,6 +559,23 @@ export const handleArgsForEffects = (
     }
 };
 
+// Ok, next hurdle. When passing in a function
+// that expects more handlers than are provided
+// because the receiving function has an effect variable,
+// we need to wrap it in another lambda
+// that does the translation.
+
+// Q: Should I refuse to allow using {e} more than one level deep?
+// like {e}(fn: (() ={e}> void) => void) => string?
+// Is that a problem at all?
+// I should least have a test that does this, to see what it
+// would even look like.
+
+// Huh ok maybe I do want to support that. Will need to account
+// for that.
+
+// export const
+
 export const passDone = (
     env: Env,
     opts: OutputOptions,
@@ -421,12 +585,91 @@ export const passDone = (
     loc: Loc,
     typeVbls?: Array<Type>,
 ) => {
+    console.log('>> calling passDone with', showType(env, target.is));
     const targetType = target.is as ILambdaType;
     const doneType = cps.done.is as ILambdaType;
     const expectedDoneType = targetType.args[
         targetType.args.length - 1
     ] as ILambdaType;
-    if (expectedDoneType.args.length > doneType.args.length) {
+
+    // What is a `done`?
+    // It takes some number of handler arguments
+    // and potentially a value.
+    // Should I make a custom type just for that?
+    // I dunno, that might make things wierd
+    // when I want to call it.
+    // But, on the other hand, `done`s aren't really
+    // meant to be general-purpose functions, they don't
+    // exist in user space.
+    // So I could potentially get away with that.
+    // ok
+    // but for the moment, I'll just be hacking things together
+    // with introspecting the types of arguments.
+    // yup.
+    const expectedDoneEffects = expectedDoneType.args.filter(
+        (arg) => arg.type === 'effect-handler',
+    ) as Array<EffectHandler>;
+    const providedDoneEffects = doneType.args.filter(
+        (arg) => arg.type === 'effect-handler',
+    ) as Array<EffectHandler>;
+    if (
+        expectedDoneEffects.length !== providedDoneEffects.length ||
+        expectedDoneEffects.some(
+            (t, i) => !refsEqual(t.ref, providedDoneEffects[i].ref),
+        )
+    ) {
+        // console.log('Wrapping done in passDone folks');
+        // console.log('- expected', showType(env, expectedDoneType));
+        // console.log('- found', showType(env, cps.done.is));
+        // START HERE: Flesh this out
+        const { args, handlers } = handleArgsForEffects(
+            env,
+            opts,
+            expectedDoneEffects.map((t) => ({ type: 'ref', ref: t.ref })),
+            loc,
+        );
+        let returnValue = null;
+        let returnType = null;
+        if (expectedDoneType.args.length > expectedDoneEffects.length) {
+            const sym = newSym(env, 'returnValue');
+            returnType =
+                expectedDoneType.args[expectedDoneType.args.length - 1];
+            args.push({
+                sym,
+                type: returnType,
+                loc,
+            });
+            returnValue = sym;
+        }
+        const oldCps = cps;
+        cps = {
+            ...cps,
+            done: arrowFunctionExpression(
+                args,
+                callDone(
+                    env,
+                    opts,
+                    cps,
+                    returnValue ? var_(returnValue, loc, returnType!) : null,
+                    loc,
+                ),
+                loc,
+            ),
+        };
+        console.log(`Wrapped again in passdone`);
+        console.log('- ', showType(env, oldCps.done.is));
+        console.log('- ', showType(env, cps.done.is));
+        console.log(
+            'expectedDoneEffects',
+            expectedDoneEffects.map((t) => refName(t.ref)),
+        );
+        console.log(
+            'providedDoneEffects',
+            providedDoneEffects.map((t) => refName(t.ref)),
+        );
+        // console.log('args', args);
+        // throw new Error(`Dones differ yes`);
+    } else if (expectedDoneType.args.length > doneType.args.length) {
         const args: Array<Arg> = expectedDoneType.args.map((type, i) => ({
             type,
             loc,
@@ -460,6 +703,7 @@ export const passDone = (
     // then I need to wrap done in a function that just requests
     // then handlers that I'm going to provide, and which gets the
     // rest from the ambient cps.handlers info.
+    console.log('<<');
 
     return callExpression(
         env,
@@ -477,6 +721,155 @@ export const passDone = (
         loc,
         typeVbls,
     );
+};
+
+const getDoneReturnType = (doneType: Type) => {
+    if (doneType.type !== 'lambda') {
+        throw new Error(`Not a lambda`);
+    }
+    const lastArg = doneType.args[doneType.args.length - 1];
+    if (!lastArg) {
+        return null;
+    }
+    if (lastArg.type === 'effect-handler') {
+        return null;
+    }
+    return lastArg;
+};
+
+export const maybeWrapDone = (
+    env: Env,
+    opts: OutputOptions,
+    done: Expr,
+    expectedEffects: Array<EffectRef>,
+    outerHandlers: EffectHandlers,
+) => {
+    const { args, handlers } = handleArgsForEffects(
+        env,
+        opts,
+        expectedEffects,
+        done.loc,
+    );
+
+    let returnValue: Arg | null = null;
+    const returnType = getDoneReturnType(done.is);
+    if (returnType) {
+        returnValue = {
+            sym: newSym(env, 'returnValue'),
+            type: returnType,
+            loc: done.loc,
+        };
+    }
+
+    // console.log('wrapping done folks', args);
+
+    const result = arrowFunctionExpression(
+        // TODO: pass the done one? idk
+        args.concat(returnValue ? [returnValue] : []),
+        callDone(
+            env,
+            opts,
+            { done, handlers: { ...outerHandlers, ...handlers } },
+            returnValue
+                ? var_(returnValue.sym, returnValue.loc, returnValue.type)
+                : null,
+            done.loc,
+        ),
+        done.loc,
+    );
+    console.log(
+        'Wrapped done\n',
+        showType(env, done.is),
+        '\n',
+        showType(env, result.is),
+    );
+    return result;
+    //     const expectedDoneEffects = expectedDoneType.args.filter(
+    //         (arg) => arg.type === 'effect-handler',
+    //     ) as Array<EffectHandler>;
+    //     const providedDoneEffects = doneType.args.filter(
+    //         (arg) => arg.type === 'effect-handler',
+    //     ) as Array<EffectHandler>;
+    //     if (
+    //         expectedDoneEffects.length !== providedDoneEffects.length ||
+    //         expectedDoneEffects.some(
+    //             (t, i) => !refsEqual(t.ref, providedDoneEffects[i].ref),
+    //         )
+    //     ) {
+    //         // START HERE: Flesh this out
+    //         const { args, handlers } = handleArgsForEffects(
+    //             env,
+    //             opts,
+    //             expectedDoneEffects.map((t) => ({ type: 'ref', ref: t.ref })),
+    //             loc,
+    //         );
+    //         let returnValue = null;
+    //         let returnType = null;
+    //         if (expectedDoneType.args.length > expectedDoneEffects.length) {
+    //             const sym = newSym(env, 'returnValue');
+    //             returnType =
+    //                 expectedDoneType.args[expectedDoneType.args.length - 1];
+    //             args.push({
+    //                 sym,
+    //                 type: returnType,
+    //                 loc,
+    //             });
+    //             returnValue = sym;
+    //         }
+    //         cps = {
+    //             ...cps,
+    //             done: arrowFunctionExpression(
+    //                 args,
+    //                 callDone(
+    //                     env,
+    //                     opts,
+    //                     cps,
+    //                     returnValue ? var_(returnValue, loc, returnType!) : null,
+    //                     loc,
+    //                 ),
+    //                 // callExpression(
+    //                 //     env,
+    //                 //     cps.done,
+    //                 //     // args.slice(0, doneType.args.length).map((arg) => ({
+    //                 //     //     type: 'var',
+    //                 //     //     sym: arg.sym,
+    //                 //     //     is: arg.type,
+    //                 //     //     loc,
+    //                 //     // })),
+    //                 //     loc,
+    //                 //     [],
+    //                 // ),
+    //                 loc,
+    //             ),
+    //         };
+    //         console.log(args);
+    //         // throw new Error(`Dones differ yes`);
+    //     } else if (expectedDoneType.args.length > doneType.args.length) {
+    //         const args: Array<Arg> = expectedDoneType.args.map((type, i) => ({
+    //             type,
+    //             loc,
+    //             sym: { name: `arg_${i}`, unique: env.local.unique++ },
+    //         }));
+    //         cps = {
+    //             ...cps,
+    //             done: arrowFunctionExpression(
+    //                 args,
+    //                 callExpression(
+    //                     env,
+    //                     cps.done,
+    //                     args.slice(0, doneType.args.length).map((arg) => ({
+    //                         type: 'var',
+    //                         sym: arg.sym,
+    //                         is: arg.type,
+    //                         loc,
+    //                     })),
+    //                     loc,
+    //                     [],
+    //                 ),
+    //                 loc,
+    //             ),
+    //         };
+    //     }
 };
 
 export const callDone = (

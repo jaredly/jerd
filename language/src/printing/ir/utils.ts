@@ -52,6 +52,7 @@ import {
     MaybeEffLambda,
     Define,
     Assign,
+    EffectHandler,
 } from './types';
 import { Location, nullLocation } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
@@ -176,6 +177,27 @@ export const _lambdaTypeFromTermType = (
         rest: type.rest ? mapType(type.rest) : null,
         res: mapType(type.res),
     };
+};
+
+export const parseCPSArgs = (args: Array<Type>) => {
+    const normal: Array<Type> = [];
+    const handlers: Array<EffectHandler> = [];
+    const done = args[args.length - 1];
+    let inEffects = false;
+    args.slice(0, -1).forEach((arg, i) => {
+        if (!inEffects && arg.type === 'effect-handler') {
+            inEffects = true;
+        }
+        if (!inEffects) {
+            normal.push(arg);
+            return;
+        } else if (arg.type === 'effect-handler') {
+            handlers.push(arg);
+            return;
+        }
+        throw new Error(`Unexpected cps arg`);
+    });
+    return { normal, handlers, done };
 };
 
 export const typeFromTermType = (
@@ -458,7 +480,7 @@ export const callExpression = (
         if (!typesEqual(arg.is, tt.args[i])) {
             throw new LocatedError(
                 arg.loc,
-                `Type Mismatch! Found \n${showType(
+                `Type Mismatch in arg ${i}! Found \n${showType(
                     env,
                     arg.is,
                 )}, expected \n${showType(env, tt.args[i])}\n${showType(
