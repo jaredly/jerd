@@ -55,12 +55,13 @@ import {
     EffectHandler,
     CPSLambdaType,
     DoneLambdaType,
+    CPS,
 } from './types';
 import { Location, nullLocation } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
 import { args, atom, id, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
-import { handlerTypesForEffects } from './cps';
+import { handleArgsForEffects, handlerTypesForEffects } from './cps';
 import { isVoid } from '../../typing/terms/handle';
 // import { getTypeError } from '../../typing/getTypeError';
 
@@ -455,6 +456,62 @@ export const or = (env: Env, left: Expr, right: Expr, loc: Loc) =>
         [left, right],
         loc,
     );
+
+export const cpsArrowFunctionExpression = (
+    env: Env,
+    opts: OutputOptions,
+    args: Array<Arg>,
+    effects: Array<EffectRef>,
+    doneType: Type,
+    makeBody: (cps: CPS) => Expr | Block,
+    loc: Loc,
+    typeVbls?: Array<TypeVblDecl>,
+    tags?: Array<string>,
+): LambdaExpr => {
+    const done: Symbol = { name: 'done', unique: env.local.unique++ };
+    const doneArgs = handlerTypesForEffects(env, opts, effects, loc);
+    if (!typesEqual(doneType, void_)) {
+        doneArgs.push(doneType);
+    }
+    const doneT: LambdaType = pureFunction(doneArgs, void_, [], loc);
+    const { args: hargs, handlers } = handleArgsForEffects(
+        env,
+        opts,
+        effects,
+        loc,
+    );
+
+    args = args.concat([
+        ...hargs,
+        // handlerArg(term.location),
+        { sym: done, type: doneT, loc },
+    ]);
+
+    const body = makeBody({
+        done: {
+            type: 'var',
+            sym: done,
+            loc: loc,
+            is: doneT,
+        },
+        handlers: handlers,
+    });
+
+    const res = typeForLambdaExpression(body) || void_;
+    return {
+        type: 'lambda',
+        args,
+        body,
+        res,
+        loc,
+        is: pureFunction(
+            args.map((arg) => arg.type),
+            res,
+            typeVbls,
+        ),
+        tags,
+    };
+};
 
 export const arrowFunctionExpression = (
     args: Array<Arg>,

@@ -11,6 +11,7 @@ import {
 } from '../../typing/types';
 import {
     builtinType,
+    cpsArrowFunctionExpression,
     lambdaTypeFromTermType,
     pureFunction,
     showType,
@@ -155,48 +156,22 @@ const effectfulLambda = (
     opts: OutputOptions,
     term: Lambda,
 ): LambdaExpr => {
-    const done: Symbol = { name: 'done', unique: env.local.unique++ };
-    const doneArgs = handlerTypesForEffects(
+    return cpsArrowFunctionExpression(
         env,
         opts,
+        term.args.map((sym, i) => ({
+            sym,
+            type: typeFromTermType(env, opts, term.is.args[i]),
+            loc: term.location,
+        })),
         term.is.effects,
-        term.location,
-    );
-    if (!isVoid(term.is.res)) {
-        doneArgs.push(typeFromTermType(env, opts, term.is.res));
-    }
-    const doneT: LambdaType = pureFunction(doneArgs, void_, [], term.location);
-    const { args, handlers } = handleArgsForEffects(
-        env,
-        opts,
-        term.is.effects,
-        term.location,
-    );
-    return arrowFunctionExpression(
-        term.args
-            .map((sym, i) => ({
-                sym,
-                type: typeFromTermType(env, opts, term.is.args[i]),
-                loc: term.location,
-            }))
-            .concat([
-                ...args,
-                // handlerArg(term.location),
-                { sym: done, type: doneT, loc: term.location },
-            ]),
-        withExecutionLimit(
-            env,
-            opts,
-            printLambdaBody(env, opts, term.body, {
-                done: {
-                    type: 'var',
-                    sym: done,
-                    loc: term.location,
-                    is: doneT,
-                },
-                handlers: handlers,
-            }),
-        ),
+        typeFromTermType(env, opts, term.is.res),
+        (cps: CPS) =>
+            withExecutionLimit(
+                env,
+                opts,
+                printLambdaBody(env, opts, term.body, cps),
+            ),
         term.location,
         term.is.typeVbls,
         term.tags,
