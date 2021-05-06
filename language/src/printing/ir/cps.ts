@@ -577,8 +577,48 @@ export const passDone = (
     // console.log('>> calling passDone with', showType(env, target.is));
     const targetType = target.is as CPSLambdaType;
     if (target.is.type !== 'cps-lambda') {
-        console.log(target.is);
-        throw new Error('Not a cps lambda');
+        // console.log(target.is);
+        // throw new Error('Not a cps lambda');
+
+        return callExpression(
+            env,
+            target,
+            // is this when we might translate the arguments?
+            // I think it might be.
+            args
+                .map(
+                    (arg, i) =>
+                        // START HERE: Is this the way to get
+                        // two levels deep to work? idk!
+                        // maybeWrapForEffects(
+                        //     env,
+                        //     opts,
+                        //     arg,
+                        //     expectedArgTypes[i],
+                        //     argTypes[i],
+                        //     cps.handlers,
+                        //     // (term.target.is as LambdaType).effects
+                        // ),
+                        arg,
+                    // arg,
+                )
+                .concat([
+                    ...handleValuesForEffects(
+                        env,
+                        opts,
+                        cps.handlers,
+                        // STOPSHIP: THIS WILL BEAK with cpslambda
+                        // The thing to do is ha ve handleValuesForEffects
+                        // take an array of refs, not types
+                        target.is.args,
+                        // expectLambdaType(target.is).args,
+                        target.loc,
+                    ),
+                    cps.done,
+                ]),
+            loc,
+            typeVbls,
+        );
     }
     const doneType = expectLambdaType(env, opts, cps.done.is);
     // const expectedDoneType = targetType.args[
