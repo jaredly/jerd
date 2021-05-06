@@ -17,6 +17,7 @@ import {
 import {
     bool,
     builtinType,
+    expectLambdaType,
     lambdaTypeFromTermType,
     parseCPSArgs,
     pureFunction,
@@ -46,6 +47,8 @@ import {
     CPS,
     EffectHandlers,
     EffectHandler,
+    CPSLambdaType,
+    typesEqual,
 } from './types';
 import { printLambdaBody, sequenceToBlock } from './lambda';
 import { printTerm } from './term';
@@ -458,11 +461,9 @@ export const maybeWrapForEffects = (
     // right?
     // And so, the normal args um might need modification too I guess?
     // also we'll be doing passDone
-    const expectedLambda = lambdaTypeFromTermType(
-        env,
-        opts,
-        expectedType,
-    ) as ILambdaType;
+    const expectedLambda = expectLambdaType(
+        lambdaTypeFromTermType(env, opts, expectedType),
+    );
     const expectedDone = expectedLambda.args[expectedLambda.args.length - 1];
 
     const otherArgs: Array<Arg> = expectedType.args.map((t, i) => {
@@ -572,11 +573,11 @@ export const passDone = (
     typeVbls?: Array<Type>,
 ) => {
     // console.log('>> calling passDone with', showType(env, target.is));
-    const targetType = target.is as ILambdaType;
-    const doneType = cps.done.is as ILambdaType;
-    const expectedDoneType = targetType.args[
-        targetType.args.length - 1
-    ] as ILambdaType;
+    const targetType = target.is as CPSLambdaType;
+    const doneType = expectLambdaType(cps.done.is);
+    // const expectedDoneType = targetType.args[
+    //     targetType.args.length - 1
+    // ] as ILambdaType;
 
     // What is a `done`?
     // It takes some number of handler arguments
@@ -592,9 +593,12 @@ export const passDone = (
     // but for the moment, I'll just be hacking things together
     // with introspecting the types of arguments.
     // yup.
-    const expectedDoneEffects = expectedDoneType.args.filter(
-        (arg) => arg.type === 'effect-handler',
-    ) as Array<EffectHandler>;
+    // const expectedDoneEffects = expectedDoneType.args.filter(
+    //     (arg) => arg.type === 'effect-handler',
+    // ) as Array<EffectHandler>;
+    const expectedDoneEffects: Array<EffectHandler> = sortedExplicitEffects(
+        targetType.effects,
+    ).map((ef) => ({ type: 'effect-handler', ref: ef.ref, loc }));
     const providedDoneEffects = doneType.args.filter(
         (arg) => arg.type === 'effect-handler',
     ) as Array<EffectHandler>;
@@ -615,14 +619,14 @@ export const passDone = (
             loc,
         );
         let returnValue = null;
-        let returnType = null;
-        if (expectedDoneType.args.length > expectedDoneEffects.length) {
+        // let returnType = null;
+        if (!typesEqual(void_, targetType.returnValue)) {
             const sym = newSym(env, 'returnValue');
-            returnType =
-                expectedDoneType.args[expectedDoneType.args.length - 1];
+            // returnType =
+            //     expectedDoneType.args[expectedDoneType.args.length - 1];
             args.push({
                 sym,
-                type: returnType,
+                type: targetType.returnValue,
                 loc,
             });
             returnValue = sym;
@@ -636,7 +640,9 @@ export const passDone = (
                     env,
                     opts,
                     cps,
-                    returnValue ? var_(returnValue, loc, returnType!) : null,
+                    returnValue
+                        ? var_(returnValue, loc, targetType.returnValue)
+                        : null,
                     loc,
                 ),
                 loc,
@@ -655,31 +661,33 @@ export const passDone = (
         // );
         // console.log('args', args);
         // throw new Error(`Dones differ yes`);
-    } else if (expectedDoneType.args.length > doneType.args.length) {
-        const args: Array<Arg> = expectedDoneType.args.map((type, i) => ({
-            type,
-            loc,
-            sym: { name: `arg_${i}`, unique: env.local.unique++ },
-        }));
-        cps = {
-            ...cps,
-            done: arrowFunctionExpression(
-                args,
-                callExpression(
-                    env,
-                    cps.done,
-                    args.slice(0, doneType.args.length).map((arg) => ({
-                        type: 'var',
-                        sym: arg.sym,
-                        is: arg.type,
-                        loc,
-                    })),
-                    loc,
-                    [],
-                ),
-                loc,
-            ),
-        };
+
+        // STOPSHIP: reenable this, figure it out
+        // } else if (expectedDoneType.args.length > doneType.args.length) {
+        //     const args: Array<Arg> = expectedDoneType.args.map((type, i) => ({
+        //         type,
+        //         loc,
+        //         sym: { name: `arg_${i}`, unique: env.local.unique++ },
+        //     }));
+        //     cps = {
+        //         ...cps,
+        //         done: arrowFunctionExpression(
+        //             args,
+        //             callExpression(
+        //                 env,
+        //                 cps.done,
+        //                 args.slice(0, doneType.args.length).map((arg) => ({
+        //                     type: 'var',
+        //                     sym: arg.sym,
+        //                     is: arg.type,
+        //                     loc,
+        //                 })),
+        //                 loc,
+        //                 [],
+        //             ),
+        //             loc,
+        //         ),
+        //     };
     }
 
     // START HERE:
@@ -718,7 +726,11 @@ export const passDone = (
                     env,
                     opts,
                     cps.handlers,
-                    (target.is as ILambdaType).args,
+                    // STOPSHIP: THIS WILL BEAK with cpslambda
+                    // The thing to do is ha ve handleValuesForEffects
+                    // take an array of refs, not types
+                    target.is.type === 'lambda' ? target.is.args : [],
+                    // expectLambdaType(target.is).args,
                     target.loc,
                 ),
                 cps.done,
@@ -760,7 +772,7 @@ export const maybeWrapDone = (
     expectedEffects: Array<EffectReference>,
     outerHandlers: EffectHandlers,
 ) => {
-    const doneEffects = (done.is as ILambdaType).args.filter(
+    const doneEffects = expectLambdaType(done.is).args.filter(
         (t) => t.type === 'effect-handler',
     ) as Array<EffectHandler>;
     if (
@@ -824,7 +836,7 @@ export const callDone = (
     if (cps.done.is.type !== 'lambda') {
         throw new Error(`Done is not a lambda ${cps.done.is.type}`);
     }
-    const dt = cps.done.is as ILambdaType;
+    const dt = expectLambdaType(cps.done.is);
     const args = handleValuesForEffects(env, opts, cps.handlers, dt.args, loc);
     const lastArg = dt.args.length > 0 ? dt.args[dt.args.length - 1] : null;
     const wantsValue = lastArg ? lastArg.type !== 'effect-handler' : false;

@@ -53,6 +53,8 @@ import {
     Define,
     Assign,
     EffectHandler,
+    CPSLambdaType,
+    DoneLambdaType,
 } from './types';
 import { Location, nullLocation } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
@@ -63,6 +65,44 @@ import { isVoid } from '../../typing/terms/handle';
 // import { getTypeError } from '../../typing/getTypeError';
 
 const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+export const expectLambdaType = (t: Type): LambdaType => {
+    if (t.type !== 'lambda') {
+        throw new Error('not a lambda type');
+    }
+    return t;
+};
+
+export const doneLambdaToLambda = (
+    env: Env,
+    opts: OutputOptions,
+    type: DoneLambdaType,
+): LambdaType => {
+    throw new Error('nipe');
+};
+
+export const cpsLambdaToLambda = (
+    env: Env,
+    opts: OutputOptions,
+    type: CPSLambdaType,
+): LambdaType => {
+    const doneArgs = handlerTypesForEffects(env, opts, type.effects, type.loc);
+    if (!typesEqual(type.returnValue, void_)) {
+        doneArgs.push(type.returnValue);
+    }
+    return {
+        type: 'lambda',
+        loc: type.loc,
+        typeVbls: type.typeVbls,
+        note: type.note,
+        args: type.args.concat([
+            ...handlerTypesForEffects(env, opts, type.effects, type.loc),
+            pureFunction(doneArgs, void_),
+        ]),
+        res: void_,
+        rest: null,
+    };
+};
 
 export const sortedExplicitEffects = (
     effects: Array<EffectRef>,
@@ -129,7 +169,7 @@ export const lambdaTypeFromTermType = (
     env: Env,
     opts: OutputOptions,
     type: TermLambdaType,
-): LambdaType | MaybeEffLambda => {
+): LambdaType | CPSLambdaType | MaybeEffLambda => {
     return typeFromTermType(env, opts, type) as LambdaType | MaybeEffLambda;
 };
 
@@ -137,36 +177,18 @@ export const _lambdaTypeFromTermType = (
     env: Env,
     opts: OutputOptions,
     type: TermLambdaType,
-): LambdaType => {
+): LambdaType | CPSLambdaType => {
     const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     if (type.effects.length) {
-        const doneArgs = handlerTypesForEffects(
-            env,
-            opts,
-            type.effects,
-            type.location,
-        );
-        if (!isVoid(type.res)) {
-            doneArgs.push(mapType(type.res));
-        }
         return {
-            type: 'lambda',
+            type: 'cps-lambda',
             loc: type.location,
             typeVbls: type.typeVbls,
             note: 'from with effects',
-            args: type.args
-                .map(mapType)
-                .concat([
-                    ...handlerTypesForEffects(
-                        env,
-                        opts,
-                        type.effects,
-                        type.location,
-                    ),
-                    pureFunction(doneArgs, void_),
-                ]),
-            rest: type.rest ? mapType(type.rest) : null,
-            res: void_,
+            args: type.args.map(mapType),
+            effects: type.effects,
+            effectVbls: type.effectVbls,
+            returnValue: mapType(type.res),
         };
     }
     return {
@@ -235,11 +257,17 @@ export const typeFromTermType = (
                     return {
                         type: 'effectful-or-direct',
                         loc: type.location,
-                        effectful: _lambdaTypeFromTermType(env, opts, type),
-                        direct: _lambdaTypeFromTermType(
+                        effectful: _lambdaTypeFromTermType(
                             env,
                             opts,
-                            directVersion as TLambdaType,
+                            type,
+                        ) as CPSLambdaType,
+                        direct: expectLambdaType(
+                            _lambdaTypeFromTermType(
+                                env,
+                                opts,
+                                directVersion as TLambdaType,
+                            ),
                         ),
                     };
                 }
@@ -451,7 +479,18 @@ export const callExpression = (
     loc: Loc,
     typeVbls?: Array<Type>,
 ): Expr => {
-    let tt = target.is as LambdaType;
+    if (target.is.type === 'cps-lambda') {
+        return {
+            type: 'apply',
+            typeVbls: typeVbls || [],
+            is: void_,
+            target,
+            args,
+            loc,
+        };
+    }
+
+    let tt = expectLambdaType(target.is);
     let note = undefined;
     if (CHECK_CALLS) {
         if (tt.args.length !== args.length) {

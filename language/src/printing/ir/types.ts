@@ -15,6 +15,8 @@ import {
     refsEqual,
     symbolsEqual,
     typeVblDeclsEqual,
+    EffectReference,
+    EffectRef,
 } from '../../typing/types';
 import { Location } from '../../parsing/parser';
 
@@ -71,6 +73,8 @@ export type Type =
           typeVbls: Array<Type>;
       }
     | LambdaType
+    | CPSLambdaType
+    | DoneLambdaType
     | EffectHandler
     | MaybeEffLambda;
 export type EffectHandler = {
@@ -80,7 +84,7 @@ export type EffectHandler = {
 };
 export type MaybeEffLambda = {
     type: 'effectful-or-direct';
-    effectful: LambdaType;
+    effectful: CPSLambdaType;
     direct: LambdaType;
     loc: Loc;
 };
@@ -93,6 +97,28 @@ export type LambdaType = {
     rest: Type | null;
     res: Type;
     note?: string;
+};
+
+export type CPSLambdaType = {
+    type: 'cps-lambda';
+    loc: Location | null;
+    typeVbls: Array<TypeVblDecl>; // hmm how about subtypes. Do we keep those?
+    args: Array<Type>;
+    // TODO: effectVbls?
+    effectVbls: Array<number>;
+    effects: Array<EffectRef>;
+    returnValue: Type; // NOTE: This is the `done`'s returnValue type
+    note?: string;
+};
+
+export type DoneLambdaType = {
+    type: 'done-lambda';
+    loc: Location | null;
+    // Umm do we need this?
+    // typeVbls: Array<TypeVblDecl>; // hmm how about subtypes. Do we keep those?
+    // args: Array<Type>;
+    effects: Array<EffectReference>;
+    returnValue: Type;
 };
 
 export type Toplevel =

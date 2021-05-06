@@ -27,6 +27,7 @@ import {
     assign,
     callExpression,
     define,
+    expectLambdaType,
     expressionStatement,
     lambdaTypeFromTermType,
     pureFunction,
@@ -150,11 +151,9 @@ export const _printHandleNew = (
     // ok worth a shot
     */
     const fnReturnPointer = newSym(env, 'fnReturnPointer');
-    const targetType = lambdaTypeFromTermType(
-        env,
-        opts,
-        term.target.is as LambdaType,
-    ) as ILambdaType;
+    const targetType = expectLambdaType(
+        lambdaTypeFromTermType(env, opts, term.target.is as LambdaType),
+    );
     const targetReturnType = typeFromTermType(
         env,
         opts,
@@ -269,11 +268,9 @@ const printEffectHandler = (
     cps: CPS,
     loc: Loc,
 ): Expr => {
-    const targetType = lambdaTypeFromTermType(
-        env,
-        opts,
-        term.target.is as LambdaType,
-    ) as ILambdaType;
+    const targetType = expectLambdaType(
+        lambdaTypeFromTermType(env, opts, term.target.is as LambdaType),
+    );
     const targetReturnType = typeFromTermType(
         env,
         opts,

@@ -5,7 +5,7 @@ import {
     Env,
     Symbol,
     Lambda,
-    LambdaType as ILambdaType,
+    LambdaType as TLambdaType,
     Sequence,
     getEffects,
 } from '../../typing/types';
@@ -86,7 +86,7 @@ export const printLambda = (
                     term.is.typeVbls,
                     term.tags,
                 ),
-                is: lambdaTypeFromTermType(env, opts, term.is as ILambdaType),
+                is: lambdaTypeFromTermType(env, opts, term.is as TLambdaType),
             };
         }
         return effectfulLambda(env, opts, term);

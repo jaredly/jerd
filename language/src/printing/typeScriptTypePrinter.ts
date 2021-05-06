@@ -15,7 +15,11 @@ import generate from '@babel/generator';
 import { idName, refName } from '../typing/env';
 import { recordAttributeName } from './typeScriptPrinterSimple';
 import { Type } from './ir/types';
-import { typeFromTermType } from './ir/utils';
+import {
+    cpsLambdaToLambda,
+    doneLambdaToLambda,
+    typeFromTermType,
+} from './ir/utils';
 
 // Can I... misuse babel's AST to produce go?
 // what would get in my way?
@@ -137,6 +141,10 @@ export const typeToAst = (
             }
         case 'var':
             return t.tsTypeReference(t.identifier(`T_${type.sym.unique}`));
+        case 'cps-lambda':
+            return typeToAst(env, opts, cpsLambdaToLambda(env, opts, type));
+        case 'done-lambda':
+            return typeToAst(env, opts, doneLambdaToLambda(env, opts, type));
         case 'lambda': {
             const res = t.tsTypeAnnotation(typeToAst(env, opts, type.res));
 
