@@ -17,6 +17,7 @@ import {
 import {
     bool,
     builtinType,
+    cpsArrowFunctionExpression,
     expectLambdaType,
     lambdaTypeFromTermType,
     parseCPSArgs,
@@ -428,9 +429,9 @@ export const maybeWrapForEffects = (
         return expr;
     }
     termType = termType as LambdaType;
-    expectedType = expectedType as LambdaType;
+    const expectedTypel = expectedType as LambdaType;
     const termEffects = sortedExplicitEffects(termType.effects);
-    const expectedEffects = sortedExplicitEffects(expectedType.effects);
+    const expectedEffects = sortedExplicitEffects(expectedTypel.effects);
     // console.log('term', termEffects, 'expected', expectedEffects);
     if (
         !(
@@ -444,13 +445,13 @@ export const maybeWrapForEffects = (
         return expr;
     }
 
-    const { args, handlers } = handleArgsForEffects(
-        env,
-        opts,
-        expectedEffects,
-        expr.loc,
-    );
-    let returnValue = null;
+    // const { args, handlers } = handleArgsForEffects(
+    //     env,
+    //     opts,
+    //     expectedEffects,
+    //     expr.loc,
+    // );
+    // let returnValue = null;
 
     // ugh
     // ok, so the format of these functions,
@@ -465,58 +466,89 @@ export const maybeWrapForEffects = (
     const expectedLambda = expectLambdaType(
         env,
         opts,
-        lambdaTypeFromTermType(env, opts, expectedType),
+        lambdaTypeFromTermType(env, opts, expectedTypel),
     );
     const expectedDone = expectedLambda.args[expectedLambda.args.length - 1];
 
-    const otherArgs: Array<Arg> = expectedType.args.map((t, i) => {
+    const otherArgs: Array<Arg> = expectedTypel.args.map((t, i) => {
         return {
             type: typeFromTermType(env, opts, t),
             sym: newSym(env, `arg${i}`),
             loc: expr.loc,
         };
     });
-    const doneArg: Arg = {
-        type: expectedDone,
-        sym: newSym(env, 'done'),
-        loc: expr.loc,
-    };
 
-    const cps = {
-        done: maybeWrapDone(
-            env,
-            opts,
-            var_(doneArg.sym, expr.loc, doneArg.type),
-            expectedEffects,
-            outerHandlers,
-        ),
-        handlers: { ...outerHandlers, ...handlers },
-    };
-    const result = arrowFunctionExpression(
-        // TODO: pass the done one? idk
-        otherArgs.concat(args).concat([doneArg]),
-        passDone(
-            env,
-            opts,
-            expr,
-            otherArgs.map((arg, i) => {
-                // maybe wrap here too?
-                return var_(arg.sym, arg.loc, arg.type);
-            }),
-            expectedType.args,
-            expectedType.args,
-            cps,
-            expr.loc,
-            [], // STOPSHIP type vbls?
-        ),
+    // const doneArg: Arg = {
+    //     type: expectedDone,
+    //     sym: newSym(env, 'done'),
+    //     loc: expr.loc,
+    // };
+    // const cps = {
+    //     done: maybeWrapDone(
+    //         env,
+    //         opts,
+    //         var_(doneArg.sym, expr.loc, doneArg.type),
+    //         expectedEffects,
+    //         outerHandlers,
+    //     ),
+    //     handlers: { ...outerHandlers, ...handlers },
+    // };
+    // const result = arrowFunctionExpression(
+    //     // TODO: pass the done one? idk
+    //     otherArgs.concat(args).concat([doneArg]),
+    //     passDone(
+    //         env,
+    //         opts,
+    //         expr,
+    //         otherArgs.map((arg, i) => {
+    //             // maybe wrap here too?
+    //             return var_(arg.sym, arg.loc, arg.type);
+    //         }),
+    //         expectedType.args,
+    //         expectedType.args,
+    //         cps,
+    //         expr.loc,
+    //         [], // STOPSHIP type vbls?
+    //     ),
 
-        expr.loc,
-    );
+    //     expr.loc,
+    // );
+
     // console.log('Wrapped');
     // console.log('- ', showType(env, expr.is));
     // console.log('- ', showType(env, result.is));
     // console.log('- ', showType(env, cps.done.is));
-    return result;
+    // return result;
+    const doneArgs = (expectedDone as ILambdaType).args;
+    let doneType = doneArgs[doneArgs.length - 1];
+    if (!doneType || doneType.type === 'effect-handler') {
+        doneType = void_;
+    }
+
+    return cpsArrowFunctionExpression(
+        env,
+        opts,
+        otherArgs,
+        expectedEffects,
+        doneType,
+        (cps) =>
+            passDone(
+                env,
+                opts,
+                expr,
+                otherArgs.map((arg, i) => {
+                    // maybe wrap here too?
+                    return var_(arg.sym, arg.loc, arg.type);
+                }),
+                expectedTypel.args,
+                expectedTypel.args,
+                cps,
+                expr.loc,
+                [], // STOPSHIP type vbls?
+            ),
+        expr.loc,
+        [], // STOPSHIP type vbls?
+    );
 };
 
 // This should return a new mapping for effectHandlers too
