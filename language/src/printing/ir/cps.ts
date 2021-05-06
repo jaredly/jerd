@@ -63,6 +63,7 @@ import { maybeWrapPureFunction } from '../../typing/transform';
 import { isVoid } from '../../typing/terms/handle';
 import { newSym, refName } from '../../typing/env';
 import { printHandleNew, printRaise } from './handle-new';
+import { LocatedError } from '../../typing/errors';
 
 // export type EffectHandlers = { [id: string]: { expr: Expr; sym: Symbol } };
 
@@ -576,10 +577,17 @@ export const passDone = (
 ) => {
     // console.log('>> calling passDone with', showType(env, target.is));
     const targetType = target.is as CPSLambdaType;
+    // START HERE:
+    // turn my `done` lambdas into `done-lambdas`
+    // And use that information to be useful.
+    // Although first, figure out why this path is being hit
+    // ever. Probably a `pureFunction` happening, which I can fix up.
+    // OOOOOH Ok I think the issue is:
+    // ArrowFunctionExpression is constructing `pureFunction`
+    // We should have a `cpsArrowFunctionExpression`
+    // Which at first translates to being the same thing.
     if (target.is.type !== 'cps-lambda') {
-        // console.log(target.is);
-        // throw new Error('Not a cps lambda');
-
+        // throw new LocatedError(loc, 'npe');
         return callExpression(
             env,
             target,
@@ -588,7 +596,7 @@ export const passDone = (
             args
                 .map(
                     (arg, i) =>
-                        // START HERE: Is this the way to get
+                        // Is this the way to get
                         // two levels deep to work? idk!
                         // maybeWrapForEffects(
                         //     env,
@@ -607,11 +615,7 @@ export const passDone = (
                         env,
                         opts,
                         cps.handlers,
-                        // STOPSHIP: THIS WILL BEAK with cpslambda
-                        // The thing to do is ha ve handleValuesForEffects
-                        // take an array of refs, not types
-                        target.is.args,
-                        // expectLambdaType(target.is).args,
+                        (target.is as ILambdaType).args,
                         target.loc,
                     ),
                     cps.done,
