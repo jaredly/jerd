@@ -462,6 +462,8 @@ export const maybeWrapForEffects = (
     // And so, the normal args um might need modification too I guess?
     // also we'll be doing passDone
     const expectedLambda = expectLambdaType(
+        env,
+        opts,
         lambdaTypeFromTermType(env, opts, expectedType),
     );
     const expectedDone = expectedLambda.args[expectedLambda.args.length - 1];
@@ -574,7 +576,11 @@ export const passDone = (
 ) => {
     // console.log('>> calling passDone with', showType(env, target.is));
     const targetType = target.is as CPSLambdaType;
-    const doneType = expectLambdaType(cps.done.is);
+    if (target.is.type !== 'cps-lambda') {
+        console.log(target.is);
+        throw new Error('Not a cps lambda');
+    }
+    const doneType = expectLambdaType(env, opts, cps.done.is);
     // const expectedDoneType = targetType.args[
     //     targetType.args.length - 1
     // ] as ILambdaType;
@@ -772,7 +778,7 @@ export const maybeWrapDone = (
     expectedEffects: Array<EffectReference>,
     outerHandlers: EffectHandlers,
 ) => {
-    const doneEffects = expectLambdaType(done.is).args.filter(
+    const doneEffects = expectLambdaType(env, opts, done.is).args.filter(
         (t) => t.type === 'effect-handler',
     ) as Array<EffectHandler>;
     if (
@@ -836,7 +842,7 @@ export const callDone = (
     if (cps.done.is.type !== 'lambda') {
         throw new Error(`Done is not a lambda ${cps.done.is.type}`);
     }
-    const dt = expectLambdaType(cps.done.is);
+    const dt = expectLambdaType(env, opts, cps.done.is);
     const args = handleValuesForEffects(env, opts, cps.handlers, dt.args, loc);
     const lastArg = dt.args.length > 0 ? dt.args[dt.args.length - 1] : null;
     const wantsValue = lastArg ? lastArg.type !== 'effect-handler' : false;

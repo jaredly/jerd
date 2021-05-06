@@ -152,6 +152,8 @@ export const _printHandleNew = (
     */
     const fnReturnPointer = newSym(env, 'fnReturnPointer');
     const targetType = expectLambdaType(
+        env,
+        opts,
         lambdaTypeFromTermType(env, opts, term.target.is as LambdaType),
     );
     const targetReturnType = typeFromTermType(
@@ -269,6 +271,8 @@ const printEffectHandler = (
     loc: Loc,
 ): Expr => {
     const targetType = expectLambdaType(
+        env,
+        opts,
         lambdaTypeFromTermType(env, opts, term.target.is as LambdaType),
     );
     const targetReturnType = typeFromTermType(

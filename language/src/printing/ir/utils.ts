@@ -66,7 +66,14 @@ import { isVoid } from '../../typing/terms/handle';
 
 const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-export const expectLambdaType = (t: Type): LambdaType => {
+export const expectLambdaType = (
+    env: Env,
+    opts: OutputOptions,
+    t: Type,
+): LambdaType => {
+    if (t.type === 'cps-lambda') {
+        return cpsLambdaToLambda(env, opts, t);
+    }
     if (t.type !== 'lambda') {
         throw new Error('not a lambda type');
     }
@@ -94,7 +101,7 @@ export const cpsLambdaToLambda = (
         type: 'lambda',
         loc: type.loc,
         typeVbls: type.typeVbls,
-        note: type.note,
+        note: 'from cps lambda',
         args: type.args.concat([
             ...handlerTypesForEffects(env, opts, type.effects, type.loc),
             pureFunction(doneArgs, void_),
@@ -263,6 +270,8 @@ export const typeFromTermType = (
                             type,
                         ) as CPSLambdaType,
                         direct: expectLambdaType(
+                            env,
+                            opts,
                             _lambdaTypeFromTermType(
                                 env,
                                 opts,
@@ -490,7 +499,7 @@ export const callExpression = (
         };
     }
 
-    let tt = expectLambdaType(target.is);
+    let tt = expectLambdaType(env, {}, target.is);
     let note = undefined;
     if (CHECK_CALLS) {
         if (tt.args.length !== args.length) {
