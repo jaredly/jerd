@@ -2,6 +2,20 @@
 
 Very much based off of eff-lang, but taking, like unison, the choice of making handlers "shallow" (https://www.eff-lang.org/handlers-tutorial.pdf).
 
+## Two-layers-deep effect variables?
+
+Allowing something like
+```ts
+const twoLevelsDeep = {e}(handler: (() ={e}> string) ={}> string, handled: () ={e}> string): string => {
+    handler(handled)
+}
+```
+would require rather more fineagaling. 
+which I'm not really feeling up to right now.
+I have some slight ideas how it might work,
+where I would have a multi-handler variable "eHandler"
+that is a tuple or something.
+
 ## My "web framework" example
 
 What should `onClick` handlers be able to do? (and `useEffect`? idk)

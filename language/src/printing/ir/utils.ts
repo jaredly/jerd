@@ -442,6 +442,8 @@ export const arrowFunctionExpression = (
     };
 };
 
+const CHECK_CALLS = false;
+
 export const callExpression = (
     env: Env,
     target: Expr,
@@ -450,51 +452,54 @@ export const callExpression = (
     typeVbls?: Array<Type>,
 ): Expr => {
     let tt = target.is as LambdaType;
-    if (tt.args.length !== args.length) {
-        throw new LocatedError(
-            loc,
-            `Wrong arg number expected ${tt.args.length}, provided ${
-                args.length
-            }\n${showType(env, tt)}`,
-        );
-    }
-    if (typeVbls) {
-        try {
-            tt = applyTypeVariables(
-                env,
-                target.is,
-                typeVbls,
-                undefined,
-                loc,
-            ) as LambdaType;
-        } catch (err) {
-            throw new LocatedError(
-                loc,
-                `Um Failed to apply type variables.`,
-            ).wrap(err);
-        }
-    }
     let note = undefined;
-    args.forEach((arg, i) => {
-        // const err= getTypeError(env, arg.is, tt.args[i], loc)
-        if (!typesEqual(arg.is, tt.args[i])) {
+    if (CHECK_CALLS) {
+        if (tt.args.length !== args.length) {
             throw new LocatedError(
-                arg.loc,
-                `Type Mismatch in arg ${i}! Found \n${showType(
-                    env,
-                    arg.is,
-                )}, expected \n${showType(env, tt.args[i])}\n${showType(
+                loc,
+                `Wrong arg number expected ${tt.args.length}, provided ${
+                    args.length
+                }\n${showType(env, tt)}`,
+            );
+        }
+        if (typeVbls) {
+            try {
+                tt = applyTypeVariables(
                     env,
                     target.is,
-                )}`,
-            );
-            // note = `Type Mismatch at arg ${i}! Found ${showType(
-            //     env,
-            //     arg.is,
-            // )}, expected ${showType(env, targetType.args[i])}`;
-            // throw new TypeMismatch(env, arg.is, targetType.args[i], arg.loc);
+                    typeVbls,
+                    undefined,
+                    loc,
+                ) as LambdaType;
+            } catch (err) {
+                throw new LocatedError(
+                    loc,
+                    `Um Failed to apply type variables.`,
+                ).wrap(err);
+            }
         }
-    });
+        args.forEach((arg, i) => {
+            // const err= getTypeError(env, arg.is, tt.args[i], loc)
+            if (!typesEqual(arg.is, tt.args[i])) {
+                throw new LocatedError(
+                    arg.loc,
+                    `Type Mismatch in arg ${i}! Found \n${showType(
+                        env,
+                        arg.is,
+                    )}, expected \n${showType(env, tt.args[i])}\n${showType(
+                        env,
+                        target.is,
+                    )}`,
+                );
+                // note = `Type Mismatch at arg ${i}! Found ${showType(
+                //     env,
+                //     arg.is,
+                // )}, expected ${showType(env, targetType.args[i])}`;
+                // throw new TypeMismatch(env, arg.is, targetType.args[i], arg.loc);
+            }
+        });
+    }
+
     return {
         type: 'apply',
         typeVbls: typeVbls || [],

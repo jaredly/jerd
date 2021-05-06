@@ -317,6 +317,8 @@ const _termToAstCPS = (
                         // (term.target.is as LambdaType).effects
                     ),
                 ),
+                args.map((arg) => arg.is),
+                argTypes,
                 cps,
                 // {
                 //     done: maybeWrapDone(
@@ -434,7 +436,7 @@ export const maybeWrapForEffects = (
             )
         )
     ) {
-        console.log('no need to wrap');
+        // console.log('no need to wrap');
         return expr;
     }
 
@@ -497,7 +499,8 @@ export const maybeWrapForEffects = (
                 // maybe wrap here too?
                 return var_(arg.sym, arg.loc, arg.type);
             }),
-
+            expectedType.args,
+            expectedType.args,
             cps,
             expr.loc,
             [], // STOPSHIP type vbls?
@@ -562,6 +565,8 @@ export const passDone = (
     opts: OutputOptions,
     target: Expr,
     args: Array<Expr>,
+    argTypes: Array<TermType>,
+    expectedArgTypes: Array<TermType>,
     cps: CPS,
     loc: Loc,
     typeVbls?: Array<Type>,
@@ -689,16 +694,35 @@ export const passDone = (
     return callExpression(
         env,
         target,
-        args.concat([
-            ...handleValuesForEffects(
-                env,
-                opts,
-                cps.handlers,
-                (target.is as ILambdaType).args,
-                target.loc,
-            ),
-            cps.done,
-        ]),
+        // is this when we might translate the arguments?
+        // I think it might be.
+        args
+            .map(
+                (arg, i) =>
+                    // START HERE: Is this the way to get
+                    // two levels deep to work? idk!
+                    // maybeWrapForEffects(
+                    //     env,
+                    //     opts,
+                    //     arg,
+                    //     expectedArgTypes[i],
+                    //     argTypes[i],
+                    //     cps.handlers,
+                    //     // (term.target.is as LambdaType).effects
+                    // ),
+                    arg,
+                // arg,
+            )
+            .concat([
+                ...handleValuesForEffects(
+                    env,
+                    opts,
+                    cps.handlers,
+                    (target.is as ILambdaType).args,
+                    target.loc,
+                ),
+                cps.done,
+            ]),
         loc,
         typeVbls,
     );
@@ -718,13 +742,36 @@ const getDoneReturnType = (doneType: Type) => {
     return lastArg;
 };
 
+// Assumes to be sorted
+const effectsMatch = (
+    one: Array<EffectReference>,
+    two: Array<EffectReference>,
+) => {
+    return (
+        one.length === two.length &&
+        one.every((t, i) => refsEqual(t.ref, two[i].ref))
+    );
+};
+
 export const maybeWrapDone = (
     env: Env,
     opts: OutputOptions,
     done: Expr,
-    expectedEffects: Array<EffectRef>,
+    expectedEffects: Array<EffectReference>,
     outerHandlers: EffectHandlers,
 ) => {
+    const doneEffects = (done.is as ILambdaType).args.filter(
+        (t) => t.type === 'effect-handler',
+    ) as Array<EffectHandler>;
+    if (
+        effectsMatch(
+            expectedEffects,
+            doneEffects.map((r) => ({ type: 'ref', ref: r.ref })),
+        )
+    ) {
+        return done;
+    }
+
     const { args, handlers } = handleArgsForEffects(
         env,
         opts,

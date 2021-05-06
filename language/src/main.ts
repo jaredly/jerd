@@ -494,7 +494,7 @@ const processFile = (
         }
     }
 
-    const irOpts = { explicitHandlerFns: true };
+    const irOpts = { explicitHandlerFns: false };
 
     const ast = fileToTypescript(
         expressions,

@@ -315,9 +315,6 @@ export const _termToTs = (
                 termToTs(env, opts, term.literal),
             );
         case 'handle': {
-            if (1) {
-                throw new Error('handle made it through');
-            }
             // term.hermmmmmm there's different behavior if it's
             // in the direct case ... hmmm ....
             const expr = t.callExpression(

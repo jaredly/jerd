@@ -74,8 +74,78 @@ provide<string,>("Folks", () ={Read}> collectPoly{Read}(() ={Read, Log}> raise!(
  == "Good news Folks\nend"
 
 
-const twoLevelsDeep = {e}(handler: (() ={e}> string) ={}> string, handled: () ={e}> string): string => {
-    handler(handled)
-}
+// const twoLevelsDeep = {e}(handler: (() ={e}> string) ={}> string, handled: () ={e}> string): string => {
+//     handler(handled)
+// }
 
 // twoLevelsDeep{Read}((fn: () ={Read}> string) ={}> provide<string>("Hello", fn), () ={Read}> raise!(Read.read())) == "Hello"
+
+effect Stdio {
+    read: () => string,
+    write: (string) => void,
+}
+
+effect Log {
+    log: (string) => void,
+}
+
+
+const log = (k: string) ={Log}> raise!(Log.log(k))
+
+// TODO when I've got type arguments, make this generic.
+const respondWith:
+    (string) => <T>{e}(() ={Stdio, e}> T) ={Log, e}> T
+ = (responseValue: string) => <T,>{e}(fn: () ={Stdio, e}> T) ={Log, e}> {
+    handle! fn {
+        Stdio.read(() => k) => respondWith(responseValue ++ ".")<T>{e}(() ={Stdio, e}> k(responseValue)),
+        Stdio.write((v) => k) => {
+            log(v);
+            respondWith(responseValue ++ "-")<T>{e}(() ={Stdio, e}> k())
+        },
+        pure(a) => a
+    }
+}
+
+// This is so we can test the results
+const collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
+    handle! fn {
+        Log.log((v) => k) => {
+            v ++ "\n" ++ collect{e}(() ={e, Log}> k())
+        },
+        pure(a) => "end"
+    }
+}
+
+const farther = (name: string): string => {
+    log("yes please " ++ name);
+    raise!(Stdio.read())
+}
+
+
+
+const inner = (name: string): void ={Stdio, Log}> {
+    log(farther("Folks") ++ " from farther");
+    log("getting");
+    log(name);
+    log(raise!(Stdio.read()) ++ " and " ++ raise!(Stdio.read()));
+    log("And then " ++ raise!(Stdio.read()));
+    log("Dones")
+}
+
+// respondWith
+
+const test1 = () => {
+    respondWith("<read>")<void>{Log}(() ={Stdio, Log}> inner("Yes"))
+}
+
+collect{}(test1) == "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
+
+// // This is so we can test the results
+// const collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
+//     handle! fn {
+//         Log.log((v) => k) => {
+//             v ++ "\n" ++ collect{e}(() ={e, Log}> k())
+//         },
+//         pure(a) => "end"
+//     }
+// }

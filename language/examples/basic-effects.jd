@@ -54,13 +54,13 @@ const log = (k: string) ={Log}> raise!(Log.log(k))
 
 // TODO when I've got type arguments, make this generic.
 const respondWith:
-    (string) => <T>(() ={Stdio, Log}> T) ={Log}> T
- = (responseValue: string) => <T,>(fn: () ={Stdio, Log}> T) ={Log}> {
+    (string) => <T,>{e}(() ={Stdio, e}> T) ={Log, e}> T
+ = (responseValue: string) => <T,>{e}(fn: () ={Stdio, e}> T) ={Log, e}> {
     handle! fn {
-        Stdio.read(() => k) => respondWith(responseValue ++ ".")<T>(() ={Stdio, Log}> k(responseValue)),
+        Stdio.read(() => k) => respondWith(responseValue ++ ".")<T>{e}(() ={Stdio, e}> k(responseValue)),
         Stdio.write((v) => k) => {
             log(v);
-            respondWith(responseValue ++ "-")<T>(() ={Stdio, Log}> k())
+            respondWith(responseValue ++ "-")<T>{e}(() ={Stdio, e}> k())
         },
         pure(a) => a
     }
@@ -162,7 +162,7 @@ const inner = (name: string): void => {
 // const test2 = () => callOne((a, b) => log(b))
 
 const test1 = () => {
-    respondWith("<read>")<void>(() => inner("Yes"))
+    respondWith("<read>")<void>{Log}(() => inner("Yes"))
 }
 
 collect{}(test1) == "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
@@ -176,7 +176,7 @@ const maybeRaise = (shouldRaise: bool) => {
 }
 
 const test2 = () => {
-    respondWith("<read>")<void>(() => log(maybeRaise(true) ++ maybeRaise(false)))
+    respondWith("<read>")<void>{Log}(() => log(maybeRaise(true) ++ maybeRaise(false)))
 }
 
 collect{}(test2) == "<read>didn't raise\nend"
@@ -190,7 +190,7 @@ const raiseIf = (check: string) => {
 }
 
 const test3 = () => {
-    log(respondWith("<read>")<string>(() ={Stdio, Log}> raiseIf("<read>")))
+    log(respondWith("<read>")<string>{Log}(() ={Stdio, Log}> raiseIf("<read>")))
 }
 
 collect{}(test3) == "<read>.\nend"
@@ -201,7 +201,7 @@ const letBind = () => {
 }
 
 const test4 = () => {
-    respondWith("<read>")<void>(letBind)
+    respondWith("<read>")<void>{Log}(letBind)
 }
 
 collect{}(test4) == "<read>Hello\nend"

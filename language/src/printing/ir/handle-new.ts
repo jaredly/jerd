@@ -108,6 +108,8 @@ export const printRaise = (
         opts,
         target,
         term.args.map((arg) => printTerm(env, opts, arg)),
+        term.args.map((a) => a.is),
+        term.args.map((a) => a.is),
         cps,
         term.location,
         [],
