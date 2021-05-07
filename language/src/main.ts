@@ -502,6 +502,7 @@ const processFile = (
     };
     const oopts: OutputOptions = {
         optimize: true,
+        optimizeAggressive: true,
     };
 
     const ast = fileToTypescript(

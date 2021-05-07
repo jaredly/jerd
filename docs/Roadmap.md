@@ -1,6 +1,15 @@
 
 ## Lets do fun things! Raymarching and such
 
+- [ ] desperately need inlining. What will that take?
+      Should I do whole-program-opt in the IR?
+
+Whole program opt:
+- if a function is always called with one argument as the same value (either a constant, or like a global hash, or something), then delete that argument, and inline that value.
+  Ok this is whole-program, and would be moderately complex.
+- inline anything that doesn't have lets? might as well. Could have an @inline annotation if we wanted. But cooler to do it automatically.
+
+
 - [ ] it would be really nice to be able to spread a larger type into a smaller type, ya know? like `Vec3{...someVec4}`. Just sayin.
 
 

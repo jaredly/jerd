@@ -13,6 +13,7 @@ import {
     Block,
     Expr,
     isTerm,
+    LambdaExpr,
     OutputOptions,
     Record,
     RecordSubType,
@@ -35,6 +36,18 @@ export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
     return expr;
 };
 
+export type Exprs = { [idName: string]: Expr };
+
+export const optimizeAggressive = (
+    env: Env,
+    exprs: Exprs,
+    expr: Expr,
+    id: Id,
+): Expr => {
+    expr = inlint(env, exprs, expr);
+    return expr;
+};
+
 export const optimize = (env: Env, expr: Expr): Expr => {
     const transformers: Array<(env: Env, e: Expr) => Expr> = [
         flattenIffe,
@@ -48,6 +61,7 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         foldConstantAssignments,
         removeUnusedVariables,
         flattenNestedIfs,
+        flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;
@@ -55,6 +69,71 @@ export const optimize = (env: Env, expr: Expr): Expr => {
 
 export const optimizer = (visitor: Visitor) => (env: Env, expr: Expr): Expr =>
     transformRepeatedly(expr, visitor);
+
+export const flattenImmediateCalls = optimizer({
+    ...defaultVisitor,
+    expr: (expr) => {
+        if (
+            expr.type !== 'apply' ||
+            expr.target.type !== 'lambda' ||
+            expr.target.body.type === 'Block'
+        ) {
+            return null;
+        }
+        if (expr.args.length === 0) {
+            return expr.target.body;
+        }
+        // each arg must *either* be single-use, or simple
+        const complex = expr.args
+            .map((arg, i) => (isConstant(arg) ? null : i))
+            .filter((x) => x != null) as Array<number>;
+        const multiUse = complex.length
+            ? checkMultiUse(expr.target, complex)
+            : [];
+        if (multiUse.length > 0) {
+            console.log('complex multi-use', multiUse);
+            return null;
+        }
+        const byUnique: { [key: number]: Expr } = {};
+        expr.args.forEach(
+            (arg, i) => (byUnique[expr.target.args[i].sym.unique] = arg),
+        );
+        const args = expr.args;
+        // console.log(expr.target.body);
+        console.log(byUnique);
+        return transformExpr(expr.target.body, {
+            ...defaultVisitor,
+            expr: (expr) => {
+                if (
+                    expr.type === 'var' &&
+                    byUnique[expr.sym.unique] != null // &&
+                    // !args.includes(expr)
+                ) {
+                    return byUnique[expr.sym.unique];
+                }
+                return null;
+            },
+        });
+        // console.log('yes please', expr.args);
+        // return null;
+    },
+});
+
+const checkMultiUse = (expr: LambdaExpr, indices: Array<number>) => {
+    const uniques = indices.map((i) => expr.args[i].sym.unique);
+    const uses: { [u: number]: number } = {};
+    uniques.forEach((u) => (uses[u] = 0));
+    transformExpr(expr.body as Expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (expr.type === 'var' && uniques.includes(expr.sym.unique)) {
+                uses[expr.sym.unique] += 1;
+            }
+            return null;
+        },
+    });
+    return indices.filter((i) => uses[expr.args[i].sym.unique] > 1);
+};
 
 // This flattens IFFEs that are the bodies of a lambda expr, or
 // the value of a return statement.
@@ -1063,6 +1142,46 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                         value: stmt.value.start,
                     },
                 ];
+            }
+            return null;
+        },
+    });
+};
+
+const isInlinable = (t: LambdaExpr) => {
+    return t.body.type !== 'Block';
+};
+
+const getInlineableFunction = (
+    env: Env,
+    exprs: Exprs,
+    target: Expr,
+): Expr | null => {
+    // lol this would be nice
+    // if (target.type === 'builtin')
+    if (target.type === 'term') {
+        // Hmm this might just be a rename. Can't count on it being an expr
+        const t = exprs[idName(target.id)];
+        if (!t || t.type !== 'lambda') {
+            return null;
+        }
+        if (isInlinable(t)) {
+            return t;
+        }
+    }
+    return null;
+};
+
+export const inlint = (env: Env, exprs: Exprs, expr: Expr): Expr => {
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (expr.type === 'apply') {
+                const lambda = getInlineableFunction(env, exprs, expr.target);
+                // ooh I already have another opt for immediate applys. So I don't have to mess really.
+                if (lambda) {
+                    return { ...expr, target: lambda };
+                }
             }
             return null;
         },

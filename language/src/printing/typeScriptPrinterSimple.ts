@@ -20,11 +20,12 @@ import {
 import { typeScriptPrelude } from './fileToTypeScript';
 import { wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
-import { optimize, optimizeDefine } from './ir/optimize';
+import { optimize, optimizeAggressive, optimizeDefine } from './ir/optimize';
 import {
     Loc,
     Type as IRType,
     OutputOptions as IOutputOptions,
+    Expr,
 } from './ir/types';
 import { handlersType, handlerSym, typeFromTermType } from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
@@ -41,6 +42,7 @@ import {
 import { effectConstructorType } from './ir/cps';
 import { getEnumReferences } from '../typing/typeExpr';
 import { nullLocation } from '../parsing/parser';
+import { defaultVisitor, transformExpr } from './ir/transform';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -69,6 +71,7 @@ export type OutputOptions = {
     readonly limitExecutionTime?: boolean;
     readonly discriminant?: string;
     readonly optimize?: boolean;
+    readonly optimizeAggressive?: boolean;
 };
 
 export const maybeWithComment = <T>(e: T, comment?: string): T => {
@@ -833,6 +836,9 @@ export const fileToTypescript = (
     // limitExecutionTime: opts.limitExecutionTime,
     // };
 
+    let unique = { current: 1000000 };
+    const irTerms: { [idName: string]: Expr } = {};
+
     orderedTerms.forEach((idRaw) => {
         let term = env.global.terms[idRaw];
 
@@ -841,9 +847,13 @@ export const fileToTypescript = (
         const comment = printToString(declarationToPretty(senv, id, term), 100);
         term = liftEffects(env, term);
         let irTerm = ir.printTerm(senv, irOpts, term);
+        if (opts.optimizeAggressive) {
+            irTerm = optimizeAggressive(env, irTerms, irTerm, id);
+        }
         if (opts.optimize) {
             irTerm = optimizeDefine(env, irTerm, id);
         }
+        irTerms[idRaw] = reUnique(unique, irTerm);
         items.push(
             declarationToTs(
                 senv,
@@ -894,4 +904,40 @@ export const fileToTypescript = (
         optimizeAST(ast);
     }
     return ast;
+};
+
+export const reUnique = (unique: { current: number }, expr: Expr) => {
+    const mapping: { [orig: number]: number } = {};
+    const addSym = (sym: Symbol) => {
+        mapping[sym.unique] = unique.current++;
+        return { ...sym, unique: mapping[sym.unique] };
+    };
+    const getSym = (sym: Symbol): Symbol => ({
+        ...sym,
+        unique: mapping[sym.unique],
+    });
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        stmt: (value) => {
+            if (value.type === 'Define' || value.type === 'Assign') {
+                return { ...value, sym: addSym(value.sym) };
+            }
+            return null;
+        },
+        expr: (value) => {
+            switch (value.type) {
+                case 'lambda':
+                    return {
+                        ...value,
+                        args: value.args.map((arg) => ({
+                            ...arg,
+                            sym: addSym(arg.sym),
+                        })),
+                    };
+                case 'var':
+                    return { ...value, sym: getSym(value.sym) };
+            }
+            return null;
+        },
+    });
 };
