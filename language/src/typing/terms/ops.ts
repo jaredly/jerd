@@ -262,7 +262,7 @@ const typeOp = (
         if (!typesEqual(left.is, rarg.is)) {
             throw new LocatedError(
                 left.location,
-                `Binops must have same-typed arguments: ${showType(
+                `Fallback binops ${op} must have same-typed arguments: ${showType(
                     env,
                     left.is,
                 )} vs ${showType(env, rarg.is)} at ${showLocation(

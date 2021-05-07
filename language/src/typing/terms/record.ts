@@ -215,9 +215,9 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 : subTypeTypes[idName(id!)];
         if (rowsToMod[i].value != null) {
             throw new Error(
-                `Multiple values provided for ${names[i]} at ${showLocation(
-                    row.id.location,
-                )}`,
+                `Multiple values provided for ${i} ${
+                    names[i]
+                } at ${showLocation(row.id.location)}`,
             );
         }
         const v = typeExpr(env, row.value);
