@@ -159,6 +159,7 @@ export const transform = (term: Term, visitor: Visitor): Term => {
                 ? { ...term, term: t, cases }
                 : term;
         }
+        case 'unary':
         case 'Enum': {
             const inner = transform(term.inner, visitor);
             return inner !== term.inner ? { ...term, inner } : term;
@@ -262,6 +263,7 @@ export const walkTerm = (
                 walkTerm(kase.body, handle);
             });
             return;
+        case 'unary':
         case 'Enum':
             return walkTerm(term.inner, handle);
         case 'Tuple':

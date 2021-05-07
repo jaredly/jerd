@@ -540,6 +540,8 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 // atom(term.idx.toString()),
             ]);
         }
+        case 'unary':
+            return items([atom(term.op), termToPretty(env, term.inner)]);
         case 'Enum':
             return items([
                 typeToPretty(env, term.is),

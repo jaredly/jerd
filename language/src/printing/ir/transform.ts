@@ -35,6 +35,10 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
         case 'term':
         case 'var':
             return expr;
+        case 'unary': {
+            const t = transformExpr(expr.inner, visitor);
+            return t !== expr.inner ? { ...expr, inner: t } : expr;
+        }
         case 'eqLiteral':
             const t = transformExpr(expr.value, visitor);
             return t !== expr.value ? { ...expr, value: t } : expr;

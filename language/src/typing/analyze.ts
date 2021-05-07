@@ -158,6 +158,7 @@ export const termDependencies = (term: Term): Array<Reference> => {
         case 'TupleAccess':
         case 'Tuple':
         case 'Enum':
+        case 'unary':
         case 'Array':
         case 'Attribute':
         case 'string':

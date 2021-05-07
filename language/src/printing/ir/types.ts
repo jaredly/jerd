@@ -236,6 +236,7 @@ export type Literal =
 
 export type Expr =
     | Literal
+    | { type: 'unary'; inner: Expr; is: Type; loc: Loc; op: string }
     | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
     | { type: 'term'; id: Id; loc: Loc; is: Type }
     | { type: 'var'; sym: Symbol; loc: Loc; is: Type }

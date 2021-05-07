@@ -23,7 +23,7 @@ import typeExpr, {
 } from '../typeExpr';
 import typeType from '../typeType';
 import { getTypeError } from '../getTypeError';
-import { TypeError } from '../errors';
+import { LocatedError, TypeError } from '../errors';
 
 // export const recordNamesAndSuch =
 
@@ -70,7 +70,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             id = env.global.typeNames[expr.id.text];
             if (!id) {
                 console.log(env.global.typeNames);
-                throw new Error(
+                throw new LocatedError(
+                    expr.location,
                     `No Record type ${expr.id.text} at ${showLocation(
                         expr.location,
                     )}`,
@@ -227,7 +228,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             row.value.location,
         );
         if (err != null) {
-            throw new TypeError(
+            throw new LocatedError(
+                row.value.location,
                 `Invalid type for attribute ${row.id.text} at ${showLocation(
                     row.value.location,
                 )}. Expected ${showType(
@@ -244,7 +246,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         const r = base.ref;
         base.rows.forEach((row, i) => {
             if (row.value == null) {
-                throw new Error(
+                throw new LocatedError(
+                    expr.location,
                     `Record missing attribute "${
                         env.global.recordGroups[idName(r.id)][i]
                     }" at ${showLocation(expr.location)}`,

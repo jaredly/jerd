@@ -1,0 +1,268 @@
+
+@ffi
+type Vec2 = {
+    x: float,
+    y: float
+}
+
+@ffi
+type Vec3 = {
+    ...Vec2,
+    z: float
+}
+
+@ffi
+type Vec4 = {
+    ...Vec3,
+    w: float,
+}
+
+// const int MAX_MARCHING_STEPS = 255;
+// const float MIN_DIST = 0.0;
+// const float MAX_DIST = 100.0;
+// const float EPSILON = 0.0001;
+
+const length = (v: Vec3) => {
+    sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+}
+
+/**
+ * Signed distance function for a sphere centered at the origin with radius 1.0;
+ */
+const sphereSDF = (samplePoint: Vec3) => length(samplePoint) - 1.0
+
+// /**
+//  * Signed distance function describing the scene.
+//  * 
+//  * Absolute value of the return value indicates the distance to the surface.
+//  * Sign indicates whether the point is inside or outside the surface,
+//  * negative indicating inside.
+//  */
+const sceneSDF = (samplePoint: Vec3) => sphereSDF(samplePoint)
+
+type AddSub<A> = {
+    "+": (A, A) => A,
+    "-": (A, A) => A
+}
+
+type Mul<A, B, C> = {
+    "*": (A, B) => C
+}
+
+const AddSubVec3 = AddSub<Vec3>{
+    "+": (one: Vec3, two: Vec3) => Vec3{x: one.x + two.x, y: one.y + two.y, z: one.z + two.z},
+    "-": (one: Vec3, two: Vec3) => Vec3{x: one.x - two.x, y: one.y - two.y, z: one.z - two.z},
+}
+
+const AddSubVec2 = AddSub<Vec2>{
+    "+": (one: Vec2, two: Vec2) => Vec2{x: one.x + two.x, y: one.y + two.y},
+    "-": (one: Vec2, two: Vec2) => Vec2{x: one.x - two.x, y: one.y - two.y},
+}
+
+const ScaleVec3 = Mul<float, Vec3, Vec3>{
+    "*": (scale: float, v: Vec3) => Vec3{x: v.x * scale, y: v.y * scale, z: v.z * scale}
+}
+
+type Div<A, B, C> = {
+    "/": (A, B) => C
+}
+
+const ScaleVec3Rev = Div<Vec3, float, Vec3>{
+    "/": (v: Vec3, scale: float) => Vec3{x: v.x / scale, y: v.y / scale, z: v.z / scale}
+}
+
+const ScaleVec2Rev = Div<Vec2, float, Vec2>{
+    "/": (v: Vec2, scale: float) => Vec2{x: v.x / scale, y: v.y / scale}
+}
+
+// type Negate<T> = {
+//     "-": (T) => T
+// }
+
+// const NegFloat = Negate<float>{
+//     "-": (v: float) => v * -1.0
+// }
+
+2.0 * Vec3{x: 1.0, y: 2.0, z: 3.0}
+
+
+// /**
+//  * Return the shortest distance from the eyepoint to the scene surface along
+//  * the marching direction. If no part of the surface is found between start and end,
+//  * return end.
+//  * 
+//  * eye: the eye point, acting as the origin of the ray
+//  * marchingDirection: the normalized direction to march in
+//  * start: the starting distance away from the eye
+//  * end: the max distance away from the ey to march before giving up
+//  */
+// float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end) {
+//     float depth = start;
+//     for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
+//         float dist = sceneSDF(eye + depth * marchingDirection);
+//         if (dist < EPSILON) {
+// 			return depth;
+//         }
+//         depth += dist;
+//         if (depth >= end) {
+//             return end;
+//         }
+//     }
+//     return end;
+// }
+const EPSILON = 0.00001
+
+const shortestDistanceToSurface:
+(Vec3, Vec3, float, float, int) => float
+ = (eye: Vec3, marchingDirection: Vec3, start: float, end: float, stepsLeft: int) => {
+     const dist = sceneSDF(eye + start * marchingDirection);
+     if dist < EPSILON {
+         start
+     } else {
+         const depth = start + dist;
+         if depth >= end || stepsLeft <= 0 {
+            end
+         } else {
+            shortestDistanceToSurface(eye, marchingDirection, depth, end, stepsLeft - 1)
+         }
+     }
+}
+
+const radians = (degrees: float) => degrees / 180.0 * PI
+
+const normalize = (v: Vec3) => v / length(v)
+
+const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
+
+// /**
+//  * Return the normalized direction to march in from the eye point for a single pixel.
+//  * 
+//  * fieldOfView: vertical field of view in degrees
+//  * size: resolution of the output image
+//  * fragCoord: the x,y coordinate of the pixel in the output image
+//  */
+// vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
+//     vec2 xy = fragCoord - size / 2.0;
+//     float z = size.y / tan(radians(fieldOfView) / 2.0);
+//     return normalize(vec3(xy, -z));
+// }
+const rayDirection = (fieldOfView: float, size: Vec2, fragCoord: Vec2) => {
+    const xy = fragCoord - size / 2.0;
+    const z = size.y / tan(radians(fieldOfView) / 2.0);
+    normalize(vec3(xy, -z))
+}
+
+rayDirection
+
+// /**
+//  * Using the gradient of the SDF, estimate the normal on the surface at point p.
+//  */
+// vec3 estimateNormal(vec3 p) {
+//     return normalize(vec3(
+//         sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
+//         sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
+//         sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
+//     ));
+// }
+
+// /**
+//  * Lighting contribution of a single point light source via Phong illumination.
+//  * 
+//  * The vec3 returned is the RGB color of the light's contribution.
+//  *
+//  * k_a: Ambient color
+//  * k_d: Diffuse color
+//  * k_s: Specular color
+//  * alpha: Shininess coefficient
+//  * p: position of point being lit
+//  * eye: the position of the camera
+//  * lightPos: the position of the light
+//  * lightIntensity: color/intensity of the light
+//  *
+//  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
+//  */
+// vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
+//                           vec3 lightPos, vec3 lightIntensity) {
+//     vec3 N = estimateNormal(p);
+//     vec3 L = normalize(lightPos - p);
+//     vec3 V = normalize(eye - p);
+//     vec3 R = normalize(reflect(-L, N));
+    
+//     float dotLN = dot(L, N);
+//     float dotRV = dot(R, V);
+    
+//     if (dotLN < 0.0) {
+//         // Light not visible from this point on the surface
+//         return vec3(0.0, 0.0, 0.0);
+//     } 
+    
+//     if (dotRV < 0.0) {
+//         // Light reflection in opposite direction as viewer, apply only diffuse
+//         // component
+//         return lightIntensity * (k_d * dotLN);
+//     }
+//     return lightIntensity * (k_d * dotLN + k_s * pow(dotRV, alpha));
+// }
+
+// /**
+//  * Lighting via Phong illumination.
+//  * 
+//  * The vec3 returned is the RGB color of that point after lighting is applied.
+//  * k_a: Ambient color
+//  * k_d: Diffuse color
+//  * k_s: Specular color
+//  * alpha: Shininess coefficient
+//  * p: position of point being lit
+//  * eye: the position of the camera
+//  *
+//  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
+//  */
+// vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
+//     const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
+//     vec3 color = ambientLight * k_a;
+    
+//     vec3 light1Pos = vec3(4.0 * sin(iTime),
+//                           2.0,
+//                           4.0 * cos(iTime));
+//     vec3 light1Intensity = vec3(0.4, 0.4, 0.4);
+    
+//     color += phongContribForLight(k_d, k_s, alpha, p, eye,
+//                                   light1Pos,
+//                                   light1Intensity);
+    
+//     vec3 light2Pos = vec3(2.0 * sin(0.37 * iTime),
+//                           2.0 * cos(0.37 * iTime),
+//                           2.0);
+//     vec3 light2Intensity = vec3(0.4, 0.4, 0.4);
+    
+//     color += phongContribForLight(k_d, k_s, alpha, p, eye,
+//                                   light2Pos,
+//                                   light2Intensity);    
+//     return color;
+// }
+
+
+// void mainImage( out vec4 fragColor, in vec2 fragCoord )
+// {
+// 	vec3 dir = rayDirection(45.0, iResolution.xy, fragCoord);
+//     vec3 eye = vec3(0.0, 0.0, 5.0);
+//     float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST);
+    
+//     if (dist > MAX_DIST - EPSILON) {
+//         // Didn't hit anything
+//         fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+// 		return;
+//     }
+    
+//     // The closest point on the surface to the eyepoint along the view ray
+//     vec3 p = eye + dist * dir;
+    
+//     vec3 K_a = vec3(0.2, 0.2, 0.2);
+//     vec3 K_d = vec3(0.7, 0.2, 0.2);
+//     vec3 K_s = vec3(1.0, 1.0, 1.0);
+//     float shininess = 10.0;
+    
+//     vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, eye);
+    
+//     fragColor = vec4(color, 1.0);
+// }

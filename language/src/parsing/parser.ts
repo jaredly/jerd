@@ -109,9 +109,17 @@ export type Define = {
 //     attrs: Array<{ id: Identifier; args: Array<Type> }>;
 // };
 
+export type Unary = {
+    type: 'Unary';
+    op: string;
+    inner: Expression;
+    location: Location;
+};
+
 export type Expression =
     | Literal
     | WithSuffix
+    | Unary
     | DecoratedExpression
     | Lambda
     | Raise

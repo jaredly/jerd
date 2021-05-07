@@ -322,6 +322,14 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 loc: term.location,
             };
         }
+        case 'unary':
+            return {
+                type: 'unary',
+                inner: printTerm(env, opts, term.inner),
+                is: mapType(term.is),
+                loc: term.location,
+                op: term.op,
+            };
         case 'Enum':
             // @ts-ignore
             return {

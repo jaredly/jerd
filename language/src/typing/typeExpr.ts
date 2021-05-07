@@ -13,12 +13,13 @@ import {
     EnumDef,
     GlobalEnv,
     TypeVblDecl,
+    typesEqual,
 } from './types';
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
 import { showType } from './unify';
-import { void_, string, bool } from './preset';
+import { void_, string, bool, float } from './preset';
 import {
     hasSubType,
     idFromName,
@@ -31,7 +32,7 @@ import { typeHandle } from './terms/handle';
 import { typeRecord } from './terms/record';
 import { typeApply } from './terms/apply';
 import { typeSwitch } from './terms/switch';
-import { typeOps } from './terms/ops';
+import { findUnaryOp, typeOps } from './terms/ops';
 import { LocatedError, TypeError, UnresolvedIdentifier } from './errors';
 import { getTypeError } from './getTypeError';
 import { typeAs } from './terms/as-suffix';
@@ -552,6 +553,49 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 throw new Error(`Only lambdas can be decorated right now`);
             }
             return inner;
+        }
+        case 'Unary': {
+            const inner = typeExpr(env, expr.inner);
+            if (!env.global.attributeNames[expr.op]) {
+                if (expr.op === '-' && typesEqual(inner.is, float)) {
+                    return {
+                        type: 'unary',
+                        op: '-',
+                        inner,
+                        location: expr.location,
+                        is: float,
+                    };
+                }
+
+                throw new LocatedError(
+                    expr.location,
+                    `Unknown unary op ${expr.op}`,
+                );
+            }
+            const { idx, id } = env.global.attributeNames[expr.op];
+            const fn = findUnaryOp(env, id, idx, inner.is, expr.location);
+            if (!fn) {
+                if (expr.op === '-' && typesEqual(inner.is, float)) {
+                    return {
+                        type: 'unary',
+                        op: '-',
+                        inner,
+                        location: expr.location,
+                        is: float,
+                    };
+                }
+                throw new LocatedError(expr.location, `No matching unary fn`);
+            }
+            return {
+                type: 'apply',
+                location: expr.location,
+                target: fn,
+                hadAllVariableEffects: false,
+                effectVbls: null,
+                typeVbls: [],
+                args: [inner],
+                is: (fn.is as LambdaType).res,
+            };
         }
         default:
             let _x: never = expr;

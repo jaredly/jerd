@@ -508,6 +508,13 @@ export const _termToTs = (
                     ) as Array<any>,
             );
         }
+        case 'unary':
+            return t.unaryExpression(
+                // @ts-ignore
+                term.op,
+                termToTs(env, opts, term.inner),
+                // t.identifier(recordAttributeName(env, term.ref, term.idx)),
+            );
         case 'attribute':
             return t.memberExpression(
                 termToTs(env, opts, term.target),

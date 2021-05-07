@@ -431,8 +431,17 @@ export type TuplePattern = {
     location: Location | null;
 };
 
+export type Unary = {
+    type: 'unary';
+    op: '-' | '!';
+    inner: Term;
+    location: Location | null;
+    is: Type;
+};
+
 export type Term =
     | CPSAble
+    | Unary
     | { type: 'self'; is: Type; location: Location | null }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
@@ -846,6 +855,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             return effects;
         }
         case 'Enum':
+        case 'unary':
             return getEffects(t.inner);
         case 'Switch':
             return getEffects(t.term).concat(
@@ -930,6 +940,7 @@ export const walkTerm = (
             });
             return;
         case 'Enum':
+        case 'unary':
             return walkTerm(term.inner, handle);
         case 'Tuple':
             term.items.forEach((item) => {

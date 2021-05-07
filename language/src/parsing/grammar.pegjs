@@ -81,16 +81,23 @@ RecordItem = id:IdTextOrString _ ":" _ type:Type {return {type: 'Row', id: id.ty
 // ===== Expressions ======
 
 // Binop
-Expression = first:WithSuffix rest:BinOpRight* {
+Expression = first:WithUnary rest:BinOpRight* {
     if (rest.length) {
         return {type: 'ops', first, rest, location: location()}
     } else {
         return first
     }
 }
-BinOpRight = __ id:(Identifier ".")? op:binop __ right:WithSuffix {
+BinOpRight = __ id:(Identifier ".")? op:binop __ right:WithUnary {
     return {op, id: id ? id[0] : null, right, location: location()}
 }
+WithUnary = op:UnaryOp? inner:WithSuffix {
+    if (op != null) {
+        return {type: 'Unary', op, inner, location: location()}
+    }
+    return inner
+}
+UnaryOp = "-" / "!"
 // Apply / Attribute access
 WithSuffix = decorators:(Decorator _)* sub:Apsub suffixes:Suffix* {
 	const main = suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub

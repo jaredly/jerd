@@ -13,6 +13,10 @@ Ones that are non-breaking
 - [x] fix the `unknown` type hack. sequences should be able to know that the `done` doesn't need another variable. And if the `done` does need another variable, it really shouldn't. So yeah sequences need to be smarter about that. I guess I could inspect the `done`. ... and that might be the best way to do it? Oh but first I want to abstract the "call done" thing into a central place (because that's where handlers are passed). And then I can have that be the only place where I check if the done wants a value.
 - [x] fix the backtracking handler to be compatible with the new method
 - [x] make an outputoption for the new version
+- [x] make a cps-lambda type so I'm not making up garbage everywhere, looking for effects and stuff.
+- [ ] make a done-lambda type to y'all
+- [ ] re-enable call checking, figure out why types aren't happening right for the T0 thats actually void.
+- [ ] update the new stuff to use these new types its great
 
 
 More non-breaking please:

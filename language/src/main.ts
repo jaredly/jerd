@@ -20,7 +20,10 @@ import parse, {
     Location,
     Toplevel,
 } from './parsing/parser';
-import { fileToTypescript } from './printing/typeScriptPrinterSimple';
+import {
+    fileToTypescript,
+    OutputOptions,
+} from './printing/typeScriptPrinterSimple';
 import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
@@ -494,12 +497,17 @@ const processFile = (
         }
     }
 
-    const irOpts = { explicitHandlerFns: false };
+    const irOpts: IOutputOptions = {
+        explicitHandlerFns: false,
+    };
+    const oopts: OutputOptions = {
+        optimize: true,
+    };
 
     const ast = fileToTypescript(
         expressions,
         env,
-        {},
+        oopts,
         irOpts,
         assert,
         true,
@@ -751,6 +759,7 @@ import { LocatedError, TypeError } from './typing/errors';
 import { getTypeError } from './typing/getTypeError';
 import { loadBuiltins } from './printing/loadBuiltins';
 import { loadPrelude } from './printing/loadPrelude';
+import { OutputOptions as IOutputOptions } from './printing/ir/types';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
