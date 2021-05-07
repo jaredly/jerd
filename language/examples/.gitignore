@@ -1,4 +1,4 @@
 *.ts
-*.js
+./*.js
 !*.test.ts
 build

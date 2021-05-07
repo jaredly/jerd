@@ -54,6 +54,7 @@ export type GlobalEnv = {
     names: { [key: string]: Id };
     idNames: { [idName: string]: string };
     terms: { [key: string]: Term };
+    exportedTerms: { [key: string]: Id };
     builtins: { [key: string]: Type };
 
     // number here is "number of type arguments"
@@ -114,6 +115,7 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
         rng: defaultRng(seed),
         names: {},
         idNames: {},
+        exportedTerms: {},
         terms: {},
         builtins: {},
         builtinTypes: {},
@@ -163,6 +165,7 @@ export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
         rng: env.rng,
         attributeNames: { ...env.attributeNames },
         recordGroups: { ...env.recordGroups },
+        exportedTerms: { ...env.exportedTerms },
         names: { ...env.names },
         idNames: { ...env.idNames },
         terms: { ...env.terms },

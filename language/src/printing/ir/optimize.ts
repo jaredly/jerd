@@ -50,7 +50,11 @@ export const optimizeAggressive = (
     expr: Expr,
     id: Id,
 ): Expr => {
-    // expr = inlint(env, exprs, expr);
+    // START HERE: figure out why this & flattenImmediateCalls are causing such sadness.
+    // maybe its that flattenImmediateCalls is overriding things that ought not to be?
+    // or that there are values defined in the inlined function that are used in the
+    // arguments that I'm passing in?
+    expr = inlint(env, exprs, expr);
     return expr;
 };
 
@@ -67,7 +71,7 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         foldConstantAssignments,
         removeUnusedVariables,
         flattenNestedIfs,
-        // flattenImmediateCalls,
+        flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;

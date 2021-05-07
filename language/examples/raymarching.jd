@@ -128,7 +128,7 @@ const rotateY = (theta: float) => {
 
     Mat4{
         r1: vec4(c, 0.0, s, 0.0),
-        r2: vec4(0.0, 1.0, 0.0, 0.0),
+        r2: vec4(c, 1.0, c, 0.0),
         r3: vec4(-s, 0.0, c, 0.0),
         r4: vec4(0.0, 0.0, 0.0, 1.0)
     };
@@ -140,6 +140,19 @@ const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 const sdf_boxcheap =  (p: Vec3, c: Vec3, s: Vec3) => {
     vmax(vabs(p - c) - s)
 }
+
+const intersectSDF = (distA: float, distB: float) =>{
+    max(distA, distB);
+}
+
+const unionSDF = (distA: float, distB : float) =>{
+    min(distA, distB);
+}
+
+const differenceSDF = (distA: float, distB: float) =>{
+    max(distA, -distB);
+}
+
 // /**
 //  * Signed distance function describing the scene.
 //  * 
@@ -149,15 +162,20 @@ const sdf_boxcheap =  (p: Vec3, c: Vec3, s: Vec3) => {
 //  */
 const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     const cubePoint = samplePoint;
-    const cubePoint = cubePoint - Vec3{x: 0.0, y: 0.0, z: 1.0};
+    const cubePoint = cubePoint - Vec3{x: 0.0, y: 0.0, z: -0.5};
     const cubePoint = xyz(rotateY(iTime / PI) * Vec4{...cubePoint, w: 1.0});
-    const cubeSize = Vec3{x: 0.2, y: 0.2, z: 0.2};
-    min(
-        min(
+    const size = sin(iTime) * 0.1 + 0.3;
+    const cosize = cos(iTime) * 0.1 + 0.3;
+    const cubeSize = Vec3{x: size, y: cosize, z: size};
+    const circles = min(
             sphereSDF(samplePoint, Vec3{x: 0.25, y: 0.0, z: -1.0}, 0.5),
             sphereSDF(samplePoint, Vec3{x: -0.5, y: 0.0, z: -1.0}, 0.5)
-        ),
+        );
+    // unionSDF(
+        intersectSDF(
+            circles,
         vmax(vabs(cubePoint) - cubeSize)
+        // ),
     )
 }
 
@@ -301,6 +319,7 @@ const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha:
     color
 }
 
+@ffi
 const mainImage = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 	const dir = rayDirection(45.0, iResolution, fragCoord);
     const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
@@ -308,13 +327,13 @@ const mainImage = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     
     if dist > MAX_DIST - EPSILON {
         // Didn't hit anything
-        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 0.0};
+        Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0};
     } else {
         // The closest point on the surface to the eyepoint along the view ray
         const p = eye + dist * dir;
         
-        const K_a = Vec3{x: 0.2, y: 0.2, z: 0.3};
-        const K_d = Vec3{x: 0.7, y: 0.2, z: 0.7};
+        const K_a = Vec3{x: 0.9, y: 0.2, z: 0.3};
+        const K_d = Vec3{x: 0.0, y: 0.2, z: 0.7};
         const K_s = Vec3{x: 1.0, y: 1.0, z: 1.0};
         const shininess = 10.0;
         

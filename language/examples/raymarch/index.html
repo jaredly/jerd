@@ -1,41 +1,15 @@
 <!DOCTYPE html>
-<meta charset="utf8" />
-<title>Exerimenz</title>
+<head>
+    <meta charset="utf8" />
+    <title>Exerimenz</title>
+    <!-- <script src="https://unpkg.com/ffmpeg.js@4.2.9003/ffmpeg-mp4.js"></script> -->
+    <script src="./pngjs.js"></script>
+</head>
 <body>
-    <canvas id="thec">
-    <script type="module">
-        import { mainImage } from '../build/raymarching.jd.mjs';
-        console.log('ok');
-        let iTime = 0;
-        const resolution = {type: 'Vec2', x: 200, y: 200}
-        thec.width = resolution.x;
-        thec.height = resolution.y;
-        const ctx = thec.getContext('2d')
-
-        const render = (iTime) => {
-            for (let x = 0; x < resolution.x; x++) {
-                for (let y = 0; y < resolution.y; y++) {
-                    const color = mainImage(iTime, {
-                        type: 'Vec2',
-                        x, y,
-                    }, resolution)
-                    ctx.fillStyle = `rgba(${color.x * 255},${color.y * 255},${color.z * 255},${color.w})`
-                    ctx.fillRect(x, y, 1, 1)
-                }
-            }
-        }
-
-        const it = setInterval(() => {
-            iTime += 1
-            render(iTime)
-            if (iTime > 20) {
-                clearInterval(it)
-            }
-        }, 500)
-
-        window.onclick = () => {
-            clearInterval(it)
-        }
-
-    </script>
+    <canvas id="thec"></canvas>
+    <br />
+    <canvas style="image-rendering: pixelated" id="preview"></canvas>
+    <br />
+    <video id="thevid" loop></video>
+    <script type="module" src="./App.js"></script>
 </body>

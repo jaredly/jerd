@@ -865,18 +865,6 @@ export const fileToTypescript = (
                 '\n' + comment + '\n',
             ),
         );
-        // if (!opts.scope) {
-        //     items.push(
-        //         t.exportNamedDeclaration(
-        //             t.variableDeclaration('const', [
-        //                 t.variableDeclarator(
-        //                     t.identifier(env.global.idNames[idRaw]),
-        //                     t.identifier('hash_' + idRaw),
-        //                 ),
-        //             ]),
-        //         ),
-        //     );
-        // }
     });
 
     expressions.forEach((term) => {
@@ -893,6 +881,21 @@ export const fileToTypescript = (
                 ),
                 'leading',
                 '\n' + comment + '\n',
+            ),
+        );
+    });
+
+    Object.keys(env.global.exportedTerms).forEach((name) => {
+        items.push(
+            t.exportNamedDeclaration(
+                t.variableDeclaration('const', [
+                    t.variableDeclarator(
+                        t.identifier(name),
+                        t.identifier(
+                            'hash_' + idName(env.global.exportedTerms[name]),
+                        ),
+                    ),
+                ]),
             ),
         );
     });

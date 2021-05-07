@@ -42,6 +42,15 @@ export function typeFile(
             env = typeEnumDefn(env, item).env;
         } else if (item.type === 'Decorated') {
             if (item.decorators[0].id.text === 'ffi') {
+                if (item.wrapped.type === 'define') {
+                    const { term, env: nenv, id } = typeDefine(
+                        env,
+                        item.wrapped,
+                    );
+                    env = nenv;
+                    env.global.exportedTerms[item.wrapped.id.text] = id;
+                    continue;
+                }
                 if (item.wrapped.type !== 'StructDef') {
                     throw new Error(`@ffi can only be applied to RecordDef`);
                 }

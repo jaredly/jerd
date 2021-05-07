@@ -484,7 +484,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
 export const typeDefine = (
     env: Env,
     item: Define,
-): { hash: string; term: Term; env: Env } => {
+): { hash: string; term: Term; env: Env; id: Id } => {
     const term = typeDefineInner(env, item);
 
     const hash: string = hashObject(term);
@@ -500,7 +500,7 @@ export const typeDefine = (
     glob.names[item.id.text] = id;
     glob.idNames[idName(id)] = item.id.text;
     glob.terms[hash] = term;
-    return { hash, term, env: { ...env, global: glob } };
+    return { hash, term, env: { ...env, global: glob }, id };
 };
 
 export const addDefine = (env: Env, name: string, term: Term) => {
