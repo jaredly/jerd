@@ -22,7 +22,13 @@ import {
     Tuple,
     Type,
 } from './types';
-import { callExpression, int, pureFunction, typeFromTermType } from './utils';
+import {
+    callExpression,
+    define,
+    int,
+    pureFunction,
+    typeFromTermType,
+} from './utils';
 import { and, asBlock, builtin, iffe } from './utils';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
@@ -44,7 +50,7 @@ export const optimizeAggressive = (
     expr: Expr,
     id: Id,
 ): Expr => {
-    expr = inlint(env, exprs, expr);
+    // expr = inlint(env, exprs, expr);
     return expr;
 };
 
@@ -61,7 +67,7 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         foldConstantAssignments,
         removeUnusedVariables,
         flattenNestedIfs,
-        flattenImmediateCalls,
+        // flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;
@@ -70,54 +76,72 @@ export const optimize = (env: Env, expr: Expr): Expr => {
 export const optimizer = (visitor: Visitor) => (env: Env, expr: Expr): Expr =>
     transformRepeatedly(expr, visitor);
 
-export const flattenImmediateCalls = optimizer({
-    ...defaultVisitor,
-    expr: (expr) => {
-        if (
-            expr.type !== 'apply' ||
-            expr.target.type !== 'lambda' ||
-            expr.target.body.type === 'Block'
-        ) {
-            return null;
-        }
-        if (expr.args.length === 0) {
-            return expr.target.body;
-        }
-        // each arg must *either* be single-use, or simple
-        const complex = expr.args
-            .map((arg, i) => (isConstant(arg) ? null : i))
-            .filter((x) => x != null) as Array<number>;
-        const multiUse = complex.length
-            ? checkMultiUse(expr.target, complex)
-            : [];
-        if (multiUse.length > 0) {
-            console.log('complex multi-use', multiUse);
-            return null;
-        }
-        const byUnique: { [key: number]: Expr } = {};
-        expr.args.forEach(
-            (arg, i) => (byUnique[expr.target.args[i].sym.unique] = arg),
-        );
-        const args = expr.args;
-        // console.log(expr.target.body);
-        console.log(byUnique);
-        return transformExpr(expr.target.body, {
-            ...defaultVisitor,
-            expr: (expr) => {
-                if (
-                    expr.type === 'var' &&
-                    byUnique[expr.sym.unique] != null // &&
-                    // !args.includes(expr)
-                ) {
-                    return byUnique[expr.sym.unique];
-                }
+export const flattenImmediateCalls = (env: Env, expr: Expr) =>
+    transformRepeatedly(expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (
+                expr.type !== 'apply' ||
+                expr.target.type !== 'lambda' ||
+                expr.target.body.type === 'Block'
+            ) {
                 return null;
-            },
-        });
-        // console.log('yes please', expr.args);
-        // return null;
-    },
-});
+            }
+            if (expr.args.length === 0) {
+                return expr.target.body;
+            }
+            // each arg must *either* be single-use, or simple
+            const complex = expr.args
+                .map((arg, i) => (isConstant(arg) ? null : i))
+                .filter((x) => x != null) as Array<number>;
+            const multiUse = complex.length
+                ? checkMultiUse(expr.target, complex)
+                : [];
+            const byUnique: { [key: number]: Expr } = {};
+            const targs = expr.target.args;
+            expr.args.forEach((arg, i) => {
+                if (!multiUse.includes(i)) {
+                    byUnique[targs[i].sym.unique] = arg;
+                }
+            });
+            const args = expr.args;
+            // console.log(expr.target.body);
+            // console.log(byUnique);
+            const newBody = transformExpr(expr.target.body, {
+                ...defaultVisitor,
+                expr: (expr) => {
+                    if (
+                        expr.type === 'var' &&
+                        byUnique[expr.sym.unique] != null // &&
+                        // !args.includes(expr)
+                    ) {
+                        return byUnique[expr.sym.unique];
+                    }
+                    return null;
+                },
+            });
+
+            if (multiUse.length > 0) {
+                const inits: Array<Stmt> = multiUse.map((i) =>
+                    define(targs[i].sym, expr.args[i]),
+                );
+                return iffe(env, {
+                    type: 'Block',
+                    items: inits.concat({
+                        type: 'Return',
+                        loc: expr.loc,
+                        value: newBody,
+                    }),
+                    loc: expr.loc,
+                });
+            }
+
+            return newBody;
+
+            // console.log('yes please', expr.args);
+            // return null;
+        },
+    });
 
 const checkMultiUse = (expr: LambdaExpr, indices: Array<number>) => {
     const uniques = indices.map((i) => expr.args[i].sym.unique);
@@ -221,6 +245,17 @@ export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
 ): Expr => {
     return transformRepeatedly(expr, {
         ...defaultVisitor,
+        expr: (expr) => {
+            if (
+                expr.type === 'lambda' &&
+                expr.body.type === 'Block' &&
+                expr.body.items.length === 1 &&
+                expr.body.items[0].type === 'Return'
+            ) {
+                return { ...expr, body: expr.body.items[0].value };
+            }
+            return null;
+        },
         block: (block) => {
             const items: Array<Stmt> = [];
             let changed = false;
@@ -1150,6 +1185,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
 
 const isInlinable = (t: LambdaExpr) => {
     return t.body.type !== 'Block';
+    // return false;
 };
 
 const getInlineableFunction = (
