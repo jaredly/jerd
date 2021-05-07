@@ -162,20 +162,23 @@ const differenceSDF = (distA: float, distB: float) =>{
 //  */
 const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     const cubePoint = samplePoint;
-    const cubePoint = cubePoint - Vec3{x: 0.0, y: 0.0, z: -0.5};
+    const cubePoint = cubePoint - Vec3{x: 0.0, y: 0.0, z: -1.0};
     const cubePoint = xyz(rotateY(iTime / PI) * Vec4{...cubePoint, w: 1.0});
-    const size = sin(iTime) * 0.1 + 0.3;
-    const cosize = cos(iTime) * 0.1 + 0.3;
+    const size = sin(iTime) * 0.2 + 0.4;
+    const cosize = cos(iTime) * 0.2 + 0.4;
+    const offset = 0.6;
     const cubeSize = Vec3{x: size, y: cosize, z: size};
+    const innerCubeSize = Vec3{x: size * offset, y: cosize * offset, z: size * offset};
     const circles = min(
             sphereSDF(samplePoint, Vec3{x: 0.25, y: 0.0, z: -1.0}, 0.5),
             sphereSDF(samplePoint, Vec3{x: -0.5, y: 0.0, z: -1.0}, 0.5)
         );
-    // unionSDF(
-        intersectSDF(
+    unionSDF(
+        differenceSDF(
             circles,
         vmax(vabs(cubePoint) - cubeSize)
-        // ),
+    ),
+        vmax(vabs(cubePoint) - innerCubeSize)
     )
 }
 
