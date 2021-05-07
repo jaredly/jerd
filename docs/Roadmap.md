@@ -1,4 +1,13 @@
 
+## Lets do fun things! Raymarching and such
+
+- [ ] it would be really nice to be able to spread a larger type into a smaller type, ya know? like `Vec3{...someVec4}`. Just sayin.
+
+
+
+
+
+
 ## How to convert to the new handlers representation without it getting out of hand?
 
 ### Refactors needed

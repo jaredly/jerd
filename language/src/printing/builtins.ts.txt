@@ -405,9 +405,12 @@ export const PI = Math.PI;
 
 //: (float) => float
 export const sqrt = Math.sqrt;
+//: (float) => float
+export const abs = Math.abs;
 //: (float, float) => float
-export const max = Math.max,
-    min = Math.min;
+export const max = Math.max;
+//: (float, float) => float
+export const min = Math.min;
 
 //: (float) => float
 export const sin = Math.sin;

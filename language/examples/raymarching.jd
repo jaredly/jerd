@@ -17,29 +17,6 @@ type Vec4 = {
     w: float,
 }
 
-const MAX_MARCHING_STEPS = 255
-const MIN_DIST = 0.0
-const MAX_DIST = 100.0
-const EPSILON = 0.0001
-
-const length = (v: Vec3) => {
-    sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
-}
-
-/**
- * Signed distance function for a sphere centered at the origin with radius 1.0;
- */
-const sphereSDF = (samplePoint: Vec3) => length(samplePoint) - 1.0
-
-// /**
-//  * Signed distance function describing the scene.
-//  * 
-//  * Absolute value of the return value indicates the distance to the surface.
-//  * Sign indicates whether the point is inside or outside the surface,
-//  * negative indicating inside.
-//  */
-const sceneSDF = (samplePoint: Vec3) => sphereSDF(samplePoint)
-
 type AddSub<A> = {
     "+": (A, A) => A,
     "-": (A, A) => A
@@ -87,13 +64,102 @@ const negVec3 = (v: Vec3) => {
     Vec3{x: -v.x, y: -v.y, z: -v.z}
 }
 
-// type Negate<T> = {
-//     "-": (T) => T
-// }
+const MAX_MARCHING_STEPS = 255
+const MIN_DIST = 0.0
+const MAX_DIST = 100.0
+const EPSILON = 0.0001
 
-// const NegFloat = Negate<float>{
-//     "-": (v: float) => v * -1.0
-// }
+const length = (v: Vec3) => {
+    sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+}
+
+const radians = (degrees: float) => degrees / 180.0 * PI
+
+const normalize = (v: Vec3) => v / length(v)
+
+const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
+
+const dot = (a: Vec3, b: Vec3) => {
+    a.x * b.x + a.y * b.y + a.z * b.z
+}
+
+const dot4 = (a: Vec4, b: Vec4) => {
+    a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
+}
+
+const reflect = (I: Vec3, N: Vec3) => {
+    I - 2.0 * dot(N, I) * N
+}
+
+const distance = (one: Vec3, two: Vec3) => length(two - one)
+
+/**
+ * Signed distance function for a sphere centered at the origin with radius 1.0;
+ */
+const sphereSDF = (samplePoint: Vec3, center: Vec3, radius: float) => distance(samplePoint, center) - radius
+
+const vmax = (v: Vec3) => {
+    max(max(v.x, v.y), v.z);
+}
+
+const vabs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
+
+const vec4 = (x: float, y: float ,z: float, w: float) => Vec4{x:x, y:y, z:z, w:w}
+
+type Mat4 = {
+    r1: Vec4,
+    r2: Vec4,
+    r3: Vec4,
+    r4: Vec4,
+}
+
+const MatByVector = Mul<Mat4, Vec4, Vec4>{
+    "*": (mat: Mat4, vec: Vec4) => Vec4{
+        x: dot4(mat.r1, vec),
+        y: dot4(mat.r2, vec),
+        z: dot4(mat.r3, vec),
+        w: dot4(mat.r4, vec)
+    }
+}
+
+const rotateY = (theta: float) => {
+    const c = cos(theta);
+    const s = sin(theta);
+
+    Mat4{
+        r1: vec4(c, 0.0, s, 0.0),
+        r2: vec4(0.0, 1.0, 0.0, 0.0),
+        r3: vec4(-s, 0.0, c, 0.0),
+        r4: vec4(0.0, 0.0, 0.0, 1.0)
+    };
+}
+
+const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
+// const xyz = (v: Vec4) => Vec3{...v}
+
+const sdf_boxcheap =  (p: Vec3, c: Vec3, s: Vec3) => {
+    vmax(vabs(p - c) - s)
+}
+// /**
+//  * Signed distance function describing the scene.
+//  * 
+//  * Absolute value of the return value indicates the distance to the surface.
+//  * Sign indicates whether the point is inside or outside the surface,
+//  * negative indicating inside.
+//  */
+const sceneSDF = (iTime: float, samplePoint: Vec3) => {
+    const cubePoint = samplePoint;
+    const cubePoint = cubePoint - Vec3{x: 0.0, y: 0.0, z: 1.0};
+    const cubePoint = xyz(rotateY(iTime) * Vec4{...cubePoint, w: 1.0});
+    const cubeSize = Vec3{x: 0.2, y: 0.2, z: 0.2};
+    min(
+        min(
+            sphereSDF(samplePoint, Vec3{x: 0.25, y: 0.0, z: -1.0}, 0.5),
+            sphereSDF(samplePoint, Vec3{x: -0.5, y: 0.0, z: -1.0}, 0.5)
+        ),
+        vmax(vabs(cubePoint) - cubeSize)
+    )
+}
 
 2.0 * Vec3{x: 1.0, y: 2.0, z: 3.0}
 
@@ -108,25 +174,11 @@ const negVec3 = (v: Vec3) => {
 //  * start: the starting distance away from the eye
 //  * end: the max distance away from the ey to march before giving up
 //  */
-// float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end) {
-//     float depth = start;
-//     for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
-//         float dist = sceneSDF(eye + depth * marchingDirection);
-//         if (dist < EPSILON) {
-// 			return depth;
-//         }
-//         depth += dist;
-//         if (depth >= end) {
-//             return end;
-//         }
-//     }
-//     return end;
-// }
 
 const shortestDistanceToSurface:
-(Vec3, Vec3, float, float, int) => float
- = (eye: Vec3, marchingDirection: Vec3, start: float, end: float, stepsLeft: int) => {
-     const dist = sceneSDF(eye + start * marchingDirection);
+(float, Vec3, Vec3, float, float, int) => float
+ = (iTime: float, eye: Vec3, marchingDirection: Vec3, start: float, end: float, stepsLeft: int) => {
+     const dist = sceneSDF(iTime, eye + start * marchingDirection);
      if dist < EPSILON {
          start
      } else {
@@ -134,23 +186,9 @@ const shortestDistanceToSurface:
          if depth >= end || stepsLeft <= 0 {
             end
          } else {
-            shortestDistanceToSurface(eye, marchingDirection, depth, end, stepsLeft - 1)
+            shortestDistanceToSurface(iTime, eye, marchingDirection, depth, end, stepsLeft - 1)
          }
      }
-}
-
-const radians = (degrees: float) => degrees / 180.0 * PI
-
-const normalize = (v: Vec3) => v / length(v)
-
-const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
-
-const dot = (a: Vec3, b: Vec3) => {
-    a.x * b.x + a.y * b.y + a.z * b.z
-}
-
-const reflect = (I: Vec3, N: Vec3) => {
-    I - 2.0 * dot(N, I) * N
 }
 
 // /**
@@ -160,11 +198,6 @@ const reflect = (I: Vec3, N: Vec3) => {
 //  * size: resolution of the output image
 //  * fragCoord: the x,y coordinate of the pixel in the output image
 //  */
-// vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
-//     vec2 xy = fragCoord - size / 2.0;
-//     float z = size.y / tan(radians(fieldOfView) / 2.0);
-//     return normalize(vec3(xy, -z));
-// }
 const rayDirection = (fieldOfView: float, size: Vec2, fragCoord: Vec2) => {
     const xy = fragCoord - size / 2.0;
     const z = size.y / tan(radians(fieldOfView) / 2.0);
@@ -174,18 +207,11 @@ const rayDirection = (fieldOfView: float, size: Vec2, fragCoord: Vec2) => {
 // /**
 //  * Using the gradient of the SDF, estimate the normal on the surface at point p.
 //  */
-// vec3 estimateNormal(vec3 p) {
-//     return normalize(vec3(
-//         sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
-//         sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
-//         sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
-//     ));
-// }
 // TODO: pass in a function here! Of course will have to be constant folded.
-const estimateNormal = (p: Vec3) => normalize(Vec3{
-    x: sceneSDF(Vec3{...p, x: p.x + EPSILON}) - sceneSDF(Vec3{...p, x: p.x - EPSILON}),
-    y: sceneSDF(Vec3{...p, y: p.y + EPSILON}) - sceneSDF(Vec3{...p, y: p.y - EPSILON}),
-    z: sceneSDF(Vec3{...p, z: p.z + EPSILON}) - sceneSDF(Vec3{...p, z: p.z - EPSILON}),
+const estimateNormal = (iTime: float, p: Vec3) => normalize(Vec3{
+    x: sceneSDF(iTime, Vec3{...p, x: p.x + EPSILON}) - sceneSDF(iTime, Vec3{...p, x: p.x - EPSILON}),
+    y: sceneSDF(iTime, Vec3{...p, y: p.y + EPSILON}) - sceneSDF(iTime, Vec3{...p, y: p.y - EPSILON}),
+    z: sceneSDF(iTime, Vec3{...p, z: p.z + EPSILON}) - sceneSDF(iTime, Vec3{...p, z: p.z - EPSILON}),
 })
 
 estimateNormal
@@ -207,6 +233,7 @@ estimateNormal
 //  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
 //  */
 const phongContribForLight = (
+    iTime: float,
     k_d: Vec3,
     k_s: Vec3,
     alpha: float,
@@ -215,7 +242,7 @@ const phongContribForLight = (
     lightPos: Vec3,
     lightIntensity: Vec3,
 ) => {
-    const N = estimateNormal(p);
+    const N = estimateNormal(iTime, p);
     const L = normalize(lightPos - p);
     const V = normalize(eye - p);
     // oooh now we'll have to deal with multiple names for things!
@@ -236,31 +263,6 @@ const phongContribForLight = (
         }
     }
 }
-
-phongContribForLight
-
-// vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
-//                           vec3 lightPos, vec3 lightIntensity) {
-//     vec3 N = estimateNormal(p);
-//     vec3 L = normalize(lightPos - p);
-//     vec3 V = normalize(eye - p);
-//     vec3 R = normalize(reflect(-L, N));
-    
-//     float dotLN = dot(L, N);
-//     float dotRV = dot(R, V);
-    
-//     if (dotLN < 0.0) {
-//         // Light not visible from this point on the surface
-//         return vec3(0.0, 0.0, 0.0);
-//     } 
-    
-//     if (dotRV < 0.0) {
-//         // Light reflection in opposite direction as viewer, apply only diffuse
-//         // component
-//         return lightIntensity * (k_d * dotLN);
-//     }
-//     return lightIntensity * (k_d * dotLN + k_s * pow(dotRV, alpha));
-// }
 
 // /**
 //  * Lighting via Phong illumination.
@@ -284,7 +286,7 @@ const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha:
                           z: 4.0 * cos(iTime)};
     const light1Intensity = Vec3{x: 0.4, y: 0.4, z: 0.4};
     
-    const color = color + phongContribForLight(k_d, k_s, alpha, p, eye,
+    const color = color + phongContribForLight(iTime, k_d, k_s, alpha, p, eye,
                                   light1Pos,
                                   light1Intensity);
     
@@ -293,41 +295,16 @@ const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha:
                           z: 2.0};
     const light2Intensity = Vec3{x: 0.4, y: 0.4, z: 0.4};
     
-    const color = color + phongContribForLight(k_d, k_s, alpha, p, eye,
+    const color = color + phongContribForLight(iTime, k_d, k_s, alpha, p, eye,
                                   light2Pos,
                                   light2Intensity);    
     color
 }
 
-phongIllumination
-// vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
-//     const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
-//     vec3 color = ambientLight * k_a;
-    
-//     vec3 light1Pos = vec3(4.0 * sin(iTime),
-//                           2.0,
-//                           4.0 * cos(iTime));
-//     vec3 light1Intensity = vec3(0.4, 0.4, 0.4);
-    
-//     color += phongContribForLight(k_d, k_s, alpha, p, eye,
-//                                   light1Pos,
-//                                   light1Intensity);
-    
-//     vec3 light2Pos = vec3(2.0 * sin(0.37 * iTime),
-//                           2.0 * cos(0.37 * iTime),
-//                           2.0);
-//     vec3 light2Intensity = vec3(0.4, 0.4, 0.4);
-    
-//     color += phongContribForLight(k_d, k_s, alpha, p, eye,
-//                                   light2Pos,
-//                                   light2Intensity);    
-//     return color;
-// }
-
 const mainImage = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 	const dir = rayDirection(45.0, iResolution, fragCoord);
     const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
-    const dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+    const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
     
     if dist > MAX_DIST - EPSILON {
         // Didn't hit anything
@@ -348,28 +325,3 @@ const mainImage = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 }
 
 mainImage
-
-// void mainImage( out vec4 fragColor, in vec2 fragCoord )
-// {
-// 	vec3 dir = rayDirection(45.0, iResolution.xy, fragCoord);
-//     vec3 eye = vec3(0.0, 0.0, 5.0);
-//     float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST);
-    
-//     if (dist > MAX_DIST - EPSILON) {
-//         // Didn't hit anything
-//         fragColor = vec4(0.0, 0.0, 0.0, 0.0);
-// 		return;
-//     }
-    
-//     // The closest point on the surface to the eyepoint along the view ray
-//     vec3 p = eye + dist * dir;
-    
-//     vec3 K_a = vec3(0.2, 0.2, 0.2);
-//     vec3 K_d = vec3(0.7, 0.2, 0.2);
-//     vec3 K_s = vec3(1.0, 1.0, 1.0);
-//     float shininess = 10.0;
-    
-//     vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, eye);
-    
-//     fragColor = vec4(color, 1.0);
-// }

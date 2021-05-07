@@ -108,17 +108,19 @@ export const declarationToTs = (
     const expr = termToTs(env, opts, term);
     let res =
         opts.scope == null
-            ? t.variableDeclaration('const', [
-                  t.variableDeclarator(
-                      withAnnotation(
-                          env,
-                          opts,
-                          t.identifier('hash_' + idRaw),
-                          typeFromTermType(env, irOpts, type),
+            ? t.exportNamedDeclaration(
+                  t.variableDeclaration('const', [
+                      t.variableDeclarator(
+                          withAnnotation(
+                              env,
+                              opts,
+                              t.identifier('hash_' + idRaw),
+                              typeFromTermType(env, irOpts, type),
+                          ),
+                          expr,
                       ),
-                      expr,
-                  ),
-              ])
+                  ]),
+              )
             : t.expressionStatement(
                   t.assignmentExpression(
                       '=',
@@ -853,6 +855,18 @@ export const fileToTypescript = (
                 '\n' + comment + '\n',
             ),
         );
+        if (!opts.scope) {
+            items.push(
+                t.exportNamedDeclaration(
+                    t.variableDeclaration('const', [
+                        t.variableDeclarator(
+                            t.identifier(env.global.idNames[idRaw]),
+                            t.identifier('hash_' + idRaw),
+                        ),
+                    ]),
+                ),
+            );
+        }
     });
 
     expressions.forEach((term) => {
