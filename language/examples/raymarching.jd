@@ -150,7 +150,7 @@ const sdf_boxcheap =  (p: Vec3, c: Vec3, s: Vec3) => {
 const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     const cubePoint = samplePoint;
     const cubePoint = cubePoint - Vec3{x: 0.0, y: 0.0, z: 1.0};
-    const cubePoint = xyz(rotateY(iTime) * Vec4{...cubePoint, w: 1.0});
+    const cubePoint = xyz(rotateY(iTime / PI) * Vec4{...cubePoint, w: 1.0});
     const cubeSize = Vec3{x: 0.2, y: 0.2, z: 0.2};
     min(
         min(
@@ -313,8 +313,8 @@ const mainImage = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
         // The closest point on the surface to the eyepoint along the view ray
         const p = eye + dist * dir;
         
-        const K_a = Vec3{x: 0.2, y: 0.2, z: 0.2};
-        const K_d = Vec3{x: 0.7, y: 0.2, z: 0.2};
+        const K_a = Vec3{x: 0.2, y: 0.2, z: 0.3};
+        const K_d = Vec3{x: 0.7, y: 0.2, z: 0.7};
         const K_s = Vec3{x: 1.0, y: 1.0, z: 1.0};
         const shininess = 10.0;
         
