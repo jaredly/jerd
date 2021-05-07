@@ -481,7 +481,7 @@ export const cpsArrowFunctionExpression = (
         loc,
     );
 
-    args = args.concat([
+    const allArgs = args.concat([
         ...hargs,
         // handlerArg(term.location),
         { sym: done, type: doneT, loc },
@@ -500,15 +500,24 @@ export const cpsArrowFunctionExpression = (
     const res = typeForLambdaExpression(body) || void_;
     return {
         type: 'lambda',
-        args,
+        args: allArgs,
         body,
         res,
         loc,
-        is: pureFunction(
-            args.map((arg) => arg.type),
-            res,
-            typeVbls,
-        ),
+        is: {
+            type: 'cps-lambda',
+            loc,
+            typeVbls: typeVbls || [],
+            args: args.map((arg) => arg.type),
+            effectVbls: [],
+            effects,
+            returnValue: doneType,
+        },
+        // is: pureFunction(
+        //     args.map((arg) => arg.type),
+        //     res,
+        //     typeVbls,
+        // ),
         tags,
     };
 };

@@ -445,14 +445,6 @@ export const maybeWrapForEffects = (
         return expr;
     }
 
-    // const { args, handlers } = handleArgsForEffects(
-    //     env,
-    //     opts,
-    //     expectedEffects,
-    //     expr.loc,
-    // );
-    // let returnValue = null;
-
     // ugh
     // ok, so the format of these functions,
     // and I should really just make a separate function type
@@ -477,42 +469,6 @@ export const maybeWrapForEffects = (
             loc: expr.loc,
         };
     });
-
-    // const doneArg: Arg = {
-    //     type: expectedDone,
-    //     sym: newSym(env, 'done'),
-    //     loc: expr.loc,
-    // };
-    // const cps = {
-    //     done: maybeWrapDone(
-    //         env,
-    //         opts,
-    //         var_(doneArg.sym, expr.loc, doneArg.type),
-    //         expectedEffects,
-    //         outerHandlers,
-    //     ),
-    //     handlers: { ...outerHandlers, ...handlers },
-    // };
-    // const result = arrowFunctionExpression(
-    //     // TODO: pass the done one? idk
-    //     otherArgs.concat(args).concat([doneArg]),
-    //     passDone(
-    //         env,
-    //         opts,
-    //         expr,
-    //         otherArgs.map((arg, i) => {
-    //             // maybe wrap here too?
-    //             return var_(arg.sym, arg.loc, arg.type);
-    //         }),
-    //         expectedType.args,
-    //         expectedType.args,
-    //         cps,
-    //         expr.loc,
-    //         [], // STOPSHIP type vbls?
-    //     ),
-
-    //     expr.loc,
-    // );
 
     // console.log('Wrapped');
     // console.log('- ', showType(env, expr.is));
@@ -612,54 +568,13 @@ export const passDone = (
     // START HERE:
     // turn my `done` lambdas into `done-lambdas`
     // And use that information to be useful.
-    // Although first, figure out why this path is being hit
-    // ever. Probably a `pureFunction` happening, which I can fix up.
-    // OOOOOH Ok I think the issue is:
-    // ArrowFunctionExpression is constructing `pureFunction`
-    // We should have a `cpsArrowFunctionExpression`
-    // Which at first translates to being the same thing.
     if (target.is.type !== 'cps-lambda') {
-        // throw new LocatedError(loc, 'npe');
-        return callExpression(
-            env,
-            target,
-            // is this when we might translate the arguments?
-            // I think it might be.
-            args
-                .map(
-                    (arg, i) =>
-                        // Is this the way to get
-                        // two levels deep to work? idk!
-                        // maybeWrapForEffects(
-                        //     env,
-                        //     opts,
-                        //     arg,
-                        //     expectedArgTypes[i],
-                        //     argTypes[i],
-                        //     cps.handlers,
-                        //     // (term.target.is as LambdaType).effects
-                        // ),
-                        arg,
-                    // arg,
-                )
-                .concat([
-                    ...handleValuesForEffects(
-                        env,
-                        opts,
-                        cps.handlers,
-                        (target.is as ILambdaType).args,
-                        target.loc,
-                    ),
-                    cps.done,
-                ]),
+        throw new LocatedError(
             loc,
-            typeVbls,
+            'passDone called with a regular lambda type. it should be a cps-lambda',
         );
     }
     const doneType = expectLambdaType(env, opts, cps.done.is);
-    // const expectedDoneType = targetType.args[
-    //     targetType.args.length - 1
-    // ] as ILambdaType;
 
     // What is a `done`?
     // It takes some number of handler arguments
@@ -811,7 +726,8 @@ export const passDone = (
                     // STOPSHIP: THIS WILL BEAK with cpslambda
                     // The thing to do is ha ve handleValuesForEffects
                     // take an array of refs, not types
-                    target.is.type === 'lambda' ? target.is.args : [],
+                    // target.is.type === 'lambda' ? target.is.args : [],
+                    [],
                     // expectLambdaType(target.is).args,
                     target.loc,
                 ),

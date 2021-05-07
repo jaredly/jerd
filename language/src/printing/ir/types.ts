@@ -355,7 +355,7 @@ export type LambdaExpr = {
     res: Type;
     body: Expr | Block;
     loc: Loc;
-    is: LambdaType;
+    is: LambdaType | CPSLambdaType;
     tags?: Array<string>;
 };
 
