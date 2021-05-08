@@ -537,24 +537,9 @@ export const _termToTs = (
             // I mean I could post-process the js....
             // ugh so weird.
             // but ` as : ` will never be what I want, right?
+            // Ok so that's how I fixed it.
 
-            // return {
-            //     type: 'TSAsExpression',
-            //     expression: result,
-            //     typeAnnotation: t.tsTypeReference(t.identifier('hello')),
-            //     // typeAnnotation: t.identifier('hello'),
-            // };
-            // return result;
-            // return t.tsAsExpression(t.nullLiteral(), t.tsAnyKeyword());
             return t.tsAsExpression(result, typeToAst(env, opts, term.is));
-            // return t.identifier('hello');
-            // return t.tsAsExpression(
-            //     t.identifier('hello'),
-            //     // t.tsTypeAnnotation(t.tsTypeReference(t.identifier('hello'))),
-            //     t.tsTypeReference(t.identifier('hello')),
-            //     // typeToAst(env, opts, void_),
-            // );
-            // return withAnnotation(env, opts, result, term.is);
         }
         case 'unary':
             return t.unaryExpression(

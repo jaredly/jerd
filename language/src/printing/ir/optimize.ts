@@ -58,26 +58,26 @@ export const optimizeAggressive = (
     expr: Expr,
     id: Id,
 ): Expr => {
-    expr = inlint(env, exprs, expr, id);
+    // expr = inlint(env, exprs, expr, id);
     return expr;
 };
 
 export const optimize = (env: Env, expr: Expr): Expr => {
     const transformers: Array<(env: Env, e: Expr) => Expr> = [
         flattenIffe,
-        removeUnusedVariables,
-        removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
-        foldConstantTuples,
-        foldConstantAssignments,
-        foldSingleUseAssignments,
-        flattenNestedIfs,
-        arraySlices,
-        foldConstantAssignments,
-        removeUnusedVariables,
-        flattenNestedIfs,
+        // removeUnusedVariables,
+        // removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
+        // foldConstantTuples,
+        // foldConstantAssignments,
+        // foldSingleUseAssignments,
+        // flattenNestedIfs,
+        // arraySlices,
+        // foldConstantAssignments,
+        // removeUnusedVariables,
+        // flattenNestedIfs,
         // START HERE: Now we have some errors
         // to track down in various places. Track them down.
-        flattenImmediateCalls,
+        // flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;
@@ -207,6 +207,20 @@ export const flattenIffe = optimizer({
                 body: expr.body.target.body,
             };
             // return false
+        }
+        if (
+            expr.type === 'lambda' &&
+            expr.body.type === 'Block' &&
+            expr.body.items.length === 1 &&
+            expr.body.items[0].type === 'Expression' &&
+            expr.body.items[0].expr.type === 'apply' &&
+            expr.body.items[0].expr.target.type === 'lambda' &&
+            expr.body.items[0].expr.args.length === 0
+        ) {
+            return {
+                ...expr,
+                body: expr.body.items[0].expr.target.body,
+            };
         }
         return null;
     },
@@ -469,6 +483,9 @@ export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
         // Don't go into lambdas
         expr: (value) => {
             if (value.type === 'lambda') {
+                return false;
+            }
+            if (value.type === 'handle') {
                 return false;
             }
             if (value.type === 'var') {
