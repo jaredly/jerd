@@ -18,7 +18,7 @@ import {
     typesEqual,
 } from '../typing/types';
 import { typeScriptPrelude } from './fileToTypeScript';
-import { wrapWithAssert } from '../typing/transform';
+import { walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeAggressive, optimizeDefine } from './ir/optimize';
 import {
@@ -46,7 +46,8 @@ import { defaultVisitor, transformExpr } from './ir/transform';
 
 const reservedSyms = ['default', 'async', 'await'];
 
-const printSym = (env: Env, sym: Symbol) =>
+const printSym = (env: Env, opts: OutputOptions, sym: Symbol) =>
+    !opts.showAllUniques &&
     env.local.localNames[sym.name] === sym.unique &&
     !reservedSyms.includes(sym.name)
         ? sym.name
@@ -72,6 +73,7 @@ export type OutputOptions = {
     readonly discriminant?: string;
     readonly optimize?: boolean;
     readonly optimizeAggressive?: boolean;
+    readonly showAllUniques?: boolean;
 };
 
 export const maybeWithComment = <T>(e: T, comment?: string): T => {
@@ -180,7 +182,7 @@ export const _termToTs = (
                     withAnnotation(
                         env,
                         opts,
-                        t.identifier(printSym(env, arg.sym)),
+                        t.identifier(printSym(env, opts, arg.sym)),
                         arg.type,
                     ),
                 ),
@@ -218,7 +220,7 @@ export const _termToTs = (
                 return t.identifier(printId(term.id));
             }
         case 'var':
-            return t.identifier(printSym(env, term.sym));
+            return t.identifier(printSym(env, opts, term.sym));
         case 'IsRecord':
             return t.binaryExpression(
                 '===',
@@ -333,7 +335,9 @@ export const _termToTs = (
                             .map(({ args, k, body }) => {
                                 return t.arrowFunctionExpression(
                                     [
-                                        t.identifier(printSym(env, handlerSym)),
+                                        t.identifier(
+                                            printSym(env, opts, handlerSym),
+                                        ),
                                         args.length === 0
                                             ? t.identifier('_')
                                             : args.length === 1
@@ -343,6 +347,7 @@ export const _termToTs = (
                                                   t.identifier(
                                                       printSym(
                                                           env,
+                                                          opts,
                                                           args[0].sym,
                                                       ),
                                                   ),
@@ -351,14 +356,20 @@ export const _termToTs = (
                                             : t.arrayPattern(
                                                   args.map((s) =>
                                                       t.identifier(
-                                                          printSym(env, s.sym),
+                                                          printSym(
+                                                              env,
+                                                              opts,
+                                                              s.sym,
+                                                          ),
                                                       ),
                                                   ),
                                               ),
                                         withAnnotation(
                                             env,
                                             opts,
-                                            t.identifier(printSym(env, k.sym)),
+                                            t.identifier(
+                                                printSym(env, opts, k.sym),
+                                            ),
                                             k.type,
                                         ),
                                     ],
@@ -371,14 +382,16 @@ export const _termToTs = (
                             withAnnotation(
                                 env,
                                 opts,
-                                t.identifier(printSym(env, handlerSym)),
+                                t.identifier(printSym(env, opts, handlerSym)),
                                 handlersType,
                             ),
                             withAnnotation(
                                 env,
                                 opts,
                                 // STOPSHIP: Pure needs the type folks.
-                                t.identifier(printSym(env, term.pure.arg)),
+                                t.identifier(
+                                    printSym(env, opts, term.pure.arg),
+                                ),
                                 term.pure.argType,
                                 // term.target as LambdaType
                             ),
@@ -386,7 +399,7 @@ export const _termToTs = (
                         lambdaBodyToTs(env, opts, term.pure.body),
                     ),
                     ...(term.done
-                        ? [t.identifier(printSym(env, handlerSym))]
+                        ? [t.identifier(printSym(env, opts, handlerSym))]
                         : []),
                 ],
             );
@@ -404,7 +417,7 @@ export const _termToTs = (
         case 'raise':
             // TODO: The IR should probably be doing more work here....
             const args: Array<t.Expression> = [
-                t.identifier(printSym(env, handlerSym)),
+                t.identifier(printSym(env, opts, handlerSym)),
                 t.stringLiteral(term.effect.hash),
                 t.numericLiteral(term.idx),
             ];
@@ -422,11 +435,11 @@ export const _termToTs = (
             args.push(
                 t.arrowFunctionExpression(
                     [
-                        t.identifier(printSym(env, handlerSym)),
+                        t.identifier(printSym(env, opts, handlerSym)),
                         t.identifier('value'),
                     ],
                     t.callExpression(termToTs(env, opts, term.done), [
-                        t.identifier(printSym(env, handlerSym)),
+                        t.identifier(printSym(env, opts, handlerSym)),
                         t.identifier('value'),
                     ]),
                 ),
@@ -624,7 +637,7 @@ export const stmtToTs = (
                             env,
                             opts,
                             withLocation(
-                                t.identifier(printSym(env, stmt.sym)),
+                                t.identifier(printSym(env, opts, stmt.sym)),
                                 stmt.loc,
                             ),
                             stmt.is,
@@ -646,7 +659,7 @@ export const stmtToTs = (
                 t.expressionStatement(
                     t.assignmentExpression(
                         '=',
-                        t.identifier(printSym(env, stmt.sym)),
+                        t.identifier(printSym(env, opts, stmt.sym)),
                         termToTs(env, opts, stmt.value),
                     ),
                 ),
@@ -698,12 +711,12 @@ export const lambdaBodyToTs = (
     }
 };
 
-const showEffectRef = (env: Env, eff: EffectRef) => {
-    if (eff.type === 'var') {
-        return printSym(env, eff.sym);
-    }
-    return printRef(eff.ref);
-};
+// const showEffectRef = (env: Env, eff: EffectRef) => {
+//     if (eff.type === 'var') {
+//         return printSym(env, opts, eff.sym);
+//     }
+//     return printRef(eff.ref);
+// };
 
 const printRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : ref.id.hash;
@@ -846,6 +859,9 @@ export const fileToTypescript = (
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
         const comment = printToString(declarationToPretty(senv, id, term), 100);
         term = liftEffects(env, term);
+        // TODO: This is too easy to miss. Bake it in somewhere.
+        // Maybe have a toplevel `ir.printTerm` that does the check?
+        senv.local.unique = maxUnique(term) + 1;
         let irTerm = ir.printTerm(senv, irOpts, term);
         if (opts.optimizeAggressive) {
             irTerm = optimizeAggressive(env, irTerms, irTerm, id);
@@ -903,10 +919,20 @@ export const fileToTypescript = (
     const ast = t.file(t.program(items, [], 'script'));
     // TODO: port all of these to the IR optimizer, so that they work
     // across targets.
-    if (opts.optimize) {
-        optimizeAST(ast);
-    }
+    // if (opts.optimize) {
+    //     optimizeAST(ast);
+    // }
     return ast;
+};
+
+export const maxUnique = (term: Term) => {
+    let max = 0;
+    walkTerm(term, (term) => {
+        if (term.type === 'var') {
+            max = Math.max(max, term.sym.unique);
+        }
+    });
+    return max;
 };
 
 export const reUnique = (unique: { current: number }, expr: Expr) => {

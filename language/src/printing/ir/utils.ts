@@ -160,7 +160,7 @@ export const pureFunction = (
     };
 };
 
-export const handlerSym = { name: 'handlers', unique: 0 };
+export const handlerSym = { name: 'handlers', unique: 15000 };
 export const handlersType: Type = {
     type: 'effect-handler',
     ref: { type: 'builtin', name: 'Handlers' },
