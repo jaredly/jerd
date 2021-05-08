@@ -60,7 +60,7 @@ export const optimizeAggressive = (
     expr: Expr,
     id: Id,
 ): Expr => {
-    // expr = inlint(env, exprs, expr, id);
+    expr = inlint(env, exprs, expr, id);
     return expr;
 };
 
