@@ -65,19 +65,19 @@ export const optimizeAggressive = (
 export const optimize = (env: Env, expr: Expr): Expr => {
     const transformers: Array<(env: Env, e: Expr) => Expr> = [
         flattenIffe,
-        // removeUnusedVariables,
-        // removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
-        // foldConstantTuples,
-        // foldConstantAssignments,
-        // foldSingleUseAssignments,
-        // flattenNestedIfs,
-        // arraySlices,
-        // foldConstantAssignments,
-        // removeUnusedVariables,
-        // flattenNestedIfs,
+        removeUnusedVariables,
+        removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
+        foldConstantTuples,
+        foldConstantAssignments,
+        foldSingleUseAssignments,
+        flattenNestedIfs,
+        arraySlices,
+        foldConstantAssignments,
+        removeUnusedVariables,
+        flattenNestedIfs,
         // START HERE: Now we have some errors
         // to track down in various places. Track them down.
-        // flattenImmediateCalls,
+        flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;
@@ -206,7 +206,6 @@ export const flattenIffe = optimizer({
                 ...expr,
                 body: expr.body.target.body,
             };
-            // return false
         }
         if (
             expr.type === 'lambda' &&

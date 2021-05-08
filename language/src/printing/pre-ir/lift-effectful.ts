@@ -15,7 +15,7 @@ const processArg = (
         return arg;
     }
     const sym: Symbol = {
-        name: `arg_${i}`,
+        name: `arg_lift_${i}`,
         unique: env.local.unique++,
     };
     lets.push({
