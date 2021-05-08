@@ -836,7 +836,7 @@ export const fileToTypescript = (
     // limitExecutionTime: opts.limitExecutionTime,
     // };
 
-    let unique = { current: 1000000 };
+    // let unique = { current: 1000000 };
     const irTerms: { [idName: string]: Expr } = {};
 
     orderedTerms.forEach((idRaw) => {
@@ -853,7 +853,7 @@ export const fileToTypescript = (
         if (opts.optimize) {
             irTerm = optimizeDefine(env, irTerm, id);
         }
-        irTerms[idRaw] = reUnique(unique, irTerm);
+        irTerms[idRaw] = irTerm;
         items.push(
             declarationToTs(
                 senv,

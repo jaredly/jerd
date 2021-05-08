@@ -1,5 +1,13 @@
 import { idFromName, idName } from '../../typing/env';
-import { Env, Id, RecordDef, Symbol, symbolsEqual } from '../../typing/types';
+import {
+    Env,
+    Id,
+    idsEqual,
+    RecordDef,
+    Symbol,
+    symbolsEqual,
+} from '../../typing/types';
+import { reUnique } from '../typeScriptPrinterSimple';
 import {
     defaultVisitor,
     transformBlock,
@@ -54,7 +62,7 @@ export const optimizeAggressive = (
     // maybe its that flattenImmediateCalls is overriding things that ought not to be?
     // or that there are values defined in the inlined function that are used in the
     // arguments that I'm passing in?
-    expr = inlint(env, exprs, expr);
+    expr = inlint(env, exprs, expr, id);
     return expr;
 };
 
@@ -71,7 +79,7 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         foldConstantAssignments,
         removeUnusedVariables,
         flattenNestedIfs,
-        flattenImmediateCalls,
+        // flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;
@@ -1187,8 +1195,20 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
     });
 };
 
-const isInlinable = (t: LambdaExpr) => {
-    return t.body.type !== 'Block';
+const isInlinable = (t: LambdaExpr, self: Id) => {
+    // TODO: make this much faster folks
+    if (t.body.type === 'Block') {
+        return false;
+    }
+    let found = false;
+    transformExpr(t, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            found = found || (expr.type === 'term' && idsEqual(self, expr.id));
+            return null;
+        },
+    });
+    return !found;
     // return false;
 };
 
@@ -1196,31 +1216,70 @@ const getInlineableFunction = (
     env: Env,
     exprs: Exprs,
     target: Expr,
+    self: Id,
 ): Expr | null => {
     // lol this would be nice
     // if (target.type === 'builtin')
     if (target.type === 'term') {
+        // Self recursion, can't do it folks.
+        if (idsEqual(self, target.id)) {
+            return null;
+        }
+        // console.log('inline', target.id, self);
         // Hmm this might just be a rename. Can't count on it being an expr
         const t = exprs[idName(target.id)];
         if (!t || t.type !== 'lambda') {
             return null;
         }
-        if (isInlinable(t)) {
+        // hmm just reject self-recursive things please I think
+        if (isInlinable(t, target.id)) {
             return t;
         }
+    }
+    // It's might be a constant!
+    if (target.type === 'attribute' && target.target.type === 'term') {
+        const t = exprs[idName(target.target.id)];
+        if (!t || t.type !== 'record') {
+            return null;
+        }
+        target.ref;
     }
     return null;
 };
 
-export const inlint = (env: Env, exprs: Exprs, expr: Expr): Expr => {
+const maxUnique = (expr: Expr) => {
+    let max = 0;
+    transformExpr(expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (expr.type === 'var') {
+                max = Math.max(max, expr.sym.unique);
+            }
+            return null;
+        },
+    });
+    return max;
+};
+
+export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
+    const outerMax = maxUnique(expr);
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
             if (expr.type === 'apply') {
-                const lambda = getInlineableFunction(env, exprs, expr.target);
+                const lambda = getInlineableFunction(
+                    env,
+                    exprs,
+                    expr.target,
+                    self,
+                );
                 // ooh I already have another opt for immediate applys. So I don't have to mess really.
                 if (lambda) {
-                    return { ...expr, target: lambda };
+                    const innerMax = maxUnique(lambda);
+                    const unique = {
+                        current: Math.max(outerMax, innerMax) + 1,
+                    };
+                    return { ...expr, target: reUnique(unique, lambda) };
                 }
             }
             return null;
