@@ -19,6 +19,7 @@ import {
 import {
     Apply,
     Block,
+    Define,
     Expr,
     isTerm,
     LambdaExpr,
@@ -153,13 +154,16 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
                 ) {
                     const expr = stmt.expr;
                     const lets: Array<Stmt> = stmt.expr.target.args
-                        .map((arg, i) => ({
-                            type: 'Define',
-                            loc: arg.loc,
-                            is: arg.type,
-                            value: expr.args[i],
-                            sym: arg.sym,
-                        }))
+                        .map(
+                            (arg, i) =>
+                                ({
+                                    type: 'Define',
+                                    loc: arg.loc,
+                                    is: arg.type,
+                                    value: expr.args[i],
+                                    sym: arg.sym,
+                                } as Define),
+                        )
                         .filter((arg) => arg.sym.unique !== handlerSym.unique);
                     const byUnique: { [key: number]: Expr } = {};
                     stmt.expr.target.args.forEach((arg, i) => {
@@ -200,16 +204,23 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
             return null;
         },
         expr: (expr) => {
-            if (
-                expr.type !== 'apply' ||
-                expr.target.type !== 'lambda' ||
-                // TODO handle blocks folks
-                expr.target.body.type === 'Block'
-            ) {
+            if (expr.type !== 'apply' || expr.target.type !== 'lambda') {
                 return null;
             }
+            let body: Expr;
+            if (expr.target.body.type === 'Block') {
+                if (
+                    expr.target.body.items.length !== 1 ||
+                    expr.target.body.items[0].type !== 'Expression'
+                ) {
+                    return null;
+                }
+                body = expr.target.body.items[0].expr;
+            } else {
+                body = expr.target.body;
+            }
             if (expr.args.length === 0) {
-                return expr.target.body;
+                return body;
             }
             // each arg must *either* be single-use, or simple
             const complex = expr.args
@@ -226,10 +237,10 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
                 }
             });
             const args = expr.args;
-            // console.log(expr.target.body);
+            // console.log(body);
             // console.log(byUnique);
             // console.log('new body');
-            const newBody = transformExpr(expr.target.body, {
+            const newBody = transformExpr(body, {
                 ...defaultVisitor,
                 expr: (expr) => {
                     if (
