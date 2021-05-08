@@ -27,7 +27,7 @@ import {
     OutputOptions as IOutputOptions,
     Expr,
 } from './ir/types';
-import { handlersType, handlerSym, typeFromTermType } from './ir/utils';
+import { handlersType, handlerSym, typeFromTermType, void_ } from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
 import { declarationToPretty, enumToPretty, termToPretty } from './printTsLike';
@@ -446,7 +446,7 @@ export const _termToTs = (
             );
             return t.callExpression(scopedGlobal(opts, 'raise'), args);
         case 'record': {
-            return t.objectExpression(
+            const result = t.objectExpression(
                 ((term.base.spread != null
                     ? [t.spreadElement(termToTs(env, opts, term.base.spread))]
                     : []) as Array<t.ObjectProperty | t.SpreadElement>)
@@ -525,6 +525,36 @@ export const _termToTs = (
                             : [],
                     ) as Array<any>,
             );
+            // STOPSHIP: What the heck is going on here.
+            // When I try to use tsAsExpression
+            // Firstly: it ignores the type I try to give it,
+            // which is weird.
+            // But also, it prints them as invalid syntax.
+            // `x as : thetype`
+            // I wonder if I upgrade babel or something?
+            // Nope, still happening.
+            // Ok so its a bug, which is quite annoying.
+            // I mean I could post-process the js....
+            // ugh so weird.
+            // but ` as : ` will never be what I want, right?
+
+            // return {
+            //     type: 'TSAsExpression',
+            //     expression: result,
+            //     typeAnnotation: t.tsTypeReference(t.identifier('hello')),
+            //     // typeAnnotation: t.identifier('hello'),
+            // };
+            // return result;
+            // return t.tsAsExpression(t.nullLiteral(), t.tsAnyKeyword());
+            return t.tsAsExpression(result, typeToAst(env, opts, term.is));
+            // return t.identifier('hello');
+            // return t.tsAsExpression(
+            //     t.identifier('hello'),
+            //     // t.tsTypeAnnotation(t.tsTypeReference(t.identifier('hello'))),
+            //     t.tsTypeReference(t.identifier('hello')),
+            //     // typeToAst(env, opts, void_),
+            // );
+            // return withAnnotation(env, opts, result, term.is);
         }
         case 'unary':
             return t.unaryExpression(
@@ -854,6 +884,7 @@ export const fileToTypescript = (
 
     orderedTerms.forEach((idRaw) => {
         let term = env.global.terms[idRaw];
+        // console.log(idRaw, env.global.idNames[idRaw]);
 
         const id = idFromName(idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
@@ -869,6 +900,7 @@ export const fileToTypescript = (
         if (opts.optimize) {
             irTerm = optimizeDefine(env, irTerm, id);
         }
+        // console.log('otho');
         irTerms[idRaw] = irTerm;
         items.push(
             declarationToTs(

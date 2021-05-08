@@ -86,8 +86,9 @@ export const optimize = (env: Env, expr: Expr): Expr => {
 export const optimizer = (visitor: Visitor) => (env: Env, expr: Expr): Expr =>
     transformRepeatedly(expr, visitor);
 
-export const flattenImmediateCalls = (env: Env, expr: Expr) =>
-    transformRepeatedly(expr, {
+export const flattenImmediateCalls = (env: Env, expr: Expr) => {
+    // console.log('flatten');
+    return transformRepeatedly(expr, {
         ...defaultVisitor,
         expr: (expr) => {
             if (
@@ -117,6 +118,7 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) =>
             const args = expr.args;
             // console.log(expr.target.body);
             // console.log(byUnique);
+            // console.log('new body');
             const newBody = transformExpr(expr.target.body, {
                 ...defaultVisitor,
                 expr: (expr) => {
@@ -125,11 +127,12 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) =>
                         byUnique[expr.sym.unique] != null // &&
                         // !args.includes(expr)
                     ) {
-                        return byUnique[expr.sym.unique];
+                        return [byUnique[expr.sym.unique]];
                     }
                     return null;
                 },
             });
+            // console.log('ok');
 
             if (multiUse.length > 0) {
                 const inits: Array<Stmt> = multiUse.map((i) =>
@@ -152,6 +155,7 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) =>
             // return null;
         },
     });
+};
 
 const checkMultiUse = (expr: LambdaExpr, indices: Array<number>) => {
     const uniques = indices.map((i) => expr.args[i].sym.unique);

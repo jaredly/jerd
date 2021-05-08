@@ -108,10 +108,12 @@ export const processFile = (
         true,
         builtinNames,
     );
-    const { code: tsCode } = generate(ast, {
+    let { code: tsCode } = generate(ast, {
         sourceMaps: false,
         sourceFileName: '../' + path.basename(fname),
     });
+    // Fixing the weird bug with babel's typescript generation
+    tsCode = tsCode.replace(/ as : /g, ' as ');
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,

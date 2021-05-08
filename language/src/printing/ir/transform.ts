@@ -7,7 +7,7 @@ import { Block, Expr, LambdaExpr, RecordSubType, Stmt } from './types';
 // export const transformExpr = (expr: Expr, )
 
 export type Visitor = {
-    expr: (value: Expr) => Expr | null | false;
+    expr: (value: Expr) => Expr | null | false | [Expr];
     block: (value: Block) => Block | null | false;
     stmt: (value: Stmt) => Stmt | null | false | Array<Stmt>;
 };
@@ -22,6 +22,10 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
     const transformed = visitor.expr(expr);
     if (transformed === false) {
         return expr; // don't recurse
+    }
+    // transform, but don't recurse
+    if (Array.isArray(transformed)) {
+        return transformed[0];
     }
     if (transformed != null) {
         expr = transformed;
