@@ -33,6 +33,7 @@ import {
 import {
     callExpression,
     define,
+    handlerSym,
     int,
     pureFunction,
     typeFromTermType,
@@ -86,14 +87,123 @@ export const optimize = (env: Env, expr: Expr): Expr => {
 export const optimizer = (visitor: Visitor) => (env: Env, expr: Expr): Expr =>
     transformRepeatedly(expr, visitor);
 
+export const hasReturns = (stmt: Stmt): boolean => {
+    switch (stmt.type) {
+        case 'Return':
+            return true;
+        case 'Block':
+            return stmt.items.some(hasReturns);
+        case 'Loop':
+            return hasReturns(stmt.body);
+        case 'if':
+            return (
+                hasReturns(stmt.yes) || (stmt.no != null && hasReturns(stmt.no))
+            );
+        default:
+            return false;
+    }
+};
+
+export const substituteVariables = (byUnique: {
+    [key: number]: Expr;
+}): Visitor => {
+    return {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (
+                expr.type === 'var' &&
+                byUnique[expr.sym.unique] != null // &&
+                // !args.includes(expr)
+            ) {
+                return [byUnique[expr.sym.unique]];
+            }
+            return null;
+        },
+    };
+};
+
+// export const substituteVariables = (
+//     expr: Expr,
+//     byUnique: { [key: number]: Expr },
+// ) => {
+//     return transformExpr(expr, {
+//         ...defaultVisitor,
+//         expr: (expr) => {
+//             if (
+//                 expr.type === 'var' &&
+//                 byUnique[expr.sym.unique] != null // &&
+//                 // !args.includes(expr)
+//             ) {
+//                 return [byUnique[expr.sym.unique]];
+//             }
+//             return null;
+//         },
+//     });
+// };
+
 export const flattenImmediateCalls = (env: Env, expr: Expr) => {
     // console.log('flatten');
     return transformRepeatedly(expr, {
         ...defaultVisitor,
+        stmt: (stmt) => {
+            if (stmt.type === 'Expression') {
+                if (
+                    stmt.expr.type === 'apply' &&
+                    stmt.expr.target.type === 'lambda'
+                ) {
+                    const expr = stmt.expr;
+                    const lets: Array<Stmt> = stmt.expr.target.args
+                        .map((arg, i) => ({
+                            type: 'Define',
+                            loc: arg.loc,
+                            is: arg.type,
+                            value: expr.args[i],
+                            sym: arg.sym,
+                        }))
+                        .filter((arg) => arg.sym.unique !== handlerSym.unique);
+                    const byUnique: { [key: number]: Expr } = {};
+                    stmt.expr.target.args.forEach((arg, i) => {
+                        byUnique[arg.sym.unique] = expr.args[i];
+                    });
+                    if (stmt.expr.target.body.type === 'Block') {
+                        if (hasReturns(stmt.expr.target.body)) {
+                            return null;
+                        }
+                        stmt.expr.target.body.items.forEach((stmt) => {
+                            const res = transformStmt(
+                                stmt,
+                                substituteVariables(byUnique),
+                            );
+                            if (Array.isArray(res)) {
+                                lets.push(...res);
+                            } else {
+                                lets.push(res);
+                            }
+                        });
+                    } else {
+                        lets.push({
+                            type: 'Expression',
+                            loc: stmt.loc,
+                            expr: transformExpr(
+                                stmt.expr.target.body,
+                                substituteVariables(byUnique),
+                            ),
+                        });
+                    }
+                    return lets;
+                }
+            }
+            if (stmt.type === 'Return') {
+                // if (stmt.)
+                // TODO
+            }
+            return null;
+        },
         expr: (expr) => {
             if (
                 expr.type !== 'apply' ||
                 expr.target.type !== 'lambda' ||
+                // TODO handle blocks folks
                 expr.target.body.type === 'Block'
             ) {
                 return null;
