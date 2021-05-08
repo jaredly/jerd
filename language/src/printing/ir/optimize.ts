@@ -77,7 +77,7 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         flattenNestedIfs,
         // START HERE: Now we have some errors
         // to track down in various places. Track them down.
-        // flattenImmediateCalls,
+        flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;
