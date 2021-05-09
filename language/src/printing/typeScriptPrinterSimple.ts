@@ -20,7 +20,11 @@ import {
 import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
-import { optimize, optimizeAggressive, optimizeDefine } from './ir/optimize';
+import {
+    optimize,
+    optimizeAggressive,
+    optimizeDefine,
+} from './ir/optimize/optimize';
 import {
     Loc,
     Type as IRType,
@@ -900,7 +904,7 @@ export const fileToTypescript = (
         if (opts.optimize) {
             irTerm = optimizeDefine(env, irTerm, id);
         }
-        uniquesReallyAreUnique(irTerm);
+        // uniquesReallyAreUnique(irTerm);
         // console.log('otho');
         irTerms[idRaw] = irTerm;
         items.push(
@@ -911,7 +915,7 @@ export const fileToTypescript = (
                 idRaw,
                 irTerm,
                 term.is,
-                '\n' + comment + '\n',
+                '*\n```\n' + comment + '\n```\n',
             ),
         );
     });

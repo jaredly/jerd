@@ -6,8 +6,9 @@ import { Block, Expr, LambdaExpr, RecordSubType, Stmt } from './types';
 
 // export const transformExpr = (expr: Expr, )
 
+export type ExprVisitor = (value: Expr) => Expr | null | false | [Expr];
 export type Visitor = {
-    expr: (value: Expr) => Expr | null | false | [Expr];
+    expr: ExprVisitor;
     block: (value: Block) => Block | null | false;
     stmt: (value: Stmt) => Stmt | null | false | Array<Stmt>;
 };

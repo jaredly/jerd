@@ -1,4 +1,4 @@
-import { idFromName, idName } from '../../typing/env';
+import { idFromName, idName } from '../../../typing/env';
 import {
     Env,
     Id,
@@ -7,8 +7,8 @@ import {
     refsEqual,
     Symbol,
     symbolsEqual,
-} from '../../typing/types';
-import { reUnique } from '../typeScriptPrinterSimple';
+} from '../../../typing/types';
+import { reUnique } from '../../typeScriptPrinterSimple';
 import {
     defaultVisitor,
     transformBlock,
@@ -16,7 +16,7 @@ import {
     transformLambdaBody,
     transformStmt,
     Visitor,
-} from './transform';
+} from '../transform';
 import {
     Apply,
     Block,
@@ -31,7 +31,7 @@ import {
     Stmt,
     Tuple,
     Type,
-} from './types';
+} from '../types';
 import {
     callExpression,
     define,
@@ -39,8 +39,10 @@ import {
     int,
     pureFunction,
     typeFromTermType,
-} from './utils';
-import { and, asBlock, builtin, iffe } from './utils';
+} from '../utils';
+import { and, asBlock, builtin, iffe } from '../utils';
+import { flattenImmediateCalls } from './flattenImmediateCalls';
+import { inlint } from './inline';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
@@ -78,8 +80,8 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         foldConstantAssignments,
         removeUnusedVariables,
         flattenNestedIfs,
-        // START HERE: Now we have some errors
-        // to track down in various places. Track them down.
+        // // START HERE: Now we have some errors
+        // // to track down in various places. Track them down.
         flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
@@ -88,212 +90,6 @@ export const optimize = (env: Env, expr: Expr): Expr => {
 
 export const optimizer = (visitor: Visitor) => (env: Env, expr: Expr): Expr =>
     transformRepeatedly(expr, visitor);
-
-export const hasReturns = (stmt: Stmt): boolean => {
-    switch (stmt.type) {
-        case 'Return':
-            return true;
-        case 'Block':
-            return stmt.items.some(hasReturns);
-        case 'Loop':
-            return hasReturns(stmt.body);
-        case 'if':
-            return (
-                hasReturns(stmt.yes) || (stmt.no != null && hasReturns(stmt.no))
-            );
-        default:
-            return false;
-    }
-};
-
-export const substituteVariables = (byUnique: {
-    [key: number]: Expr;
-}): Visitor => {
-    return {
-        ...defaultVisitor,
-        expr: (expr) => {
-            if (
-                expr.type === 'var' &&
-                byUnique[expr.sym.unique] != null // &&
-                // !args.includes(expr)
-            ) {
-                return [byUnique[expr.sym.unique]];
-            }
-            return null;
-        },
-    };
-};
-
-// export const substituteVariables = (
-//     expr: Expr,
-//     byUnique: { [key: number]: Expr },
-// ) => {
-//     return transformExpr(expr, {
-//         ...defaultVisitor,
-//         expr: (expr) => {
-//             if (
-//                 expr.type === 'var' &&
-//                 byUnique[expr.sym.unique] != null // &&
-//                 // !args.includes(expr)
-//             ) {
-//                 return [byUnique[expr.sym.unique]];
-//             }
-//             return null;
-//         },
-//     });
-// };
-
-export const flattenImmediateCalls = (env: Env, expr: Expr) => {
-    // console.log('flatten');
-    return transformRepeatedly(expr, {
-        ...defaultVisitor,
-        stmt: (stmt) => {
-            if (stmt.type === 'Expression') {
-                if (
-                    stmt.expr.type === 'apply' &&
-                    stmt.expr.target.type === 'lambda'
-                ) {
-                    const expr = stmt.expr;
-                    const lets: Array<Stmt> = stmt.expr.target.args
-                        .map(
-                            (arg, i) =>
-                                ({
-                                    type: 'Define',
-                                    loc: arg.loc,
-                                    is: arg.type,
-                                    value: expr.args[i],
-                                    sym: arg.sym,
-                                } as Define),
-                        )
-                        .filter((arg) => arg.sym.unique !== handlerSym.unique);
-                    const byUnique: { [key: number]: Expr } = {};
-                    stmt.expr.target.args.forEach((arg, i) => {
-                        byUnique[arg.sym.unique] = expr.args[i];
-                    });
-                    if (stmt.expr.target.body.type === 'Block') {
-                        if (hasReturns(stmt.expr.target.body)) {
-                            return null;
-                        }
-                        stmt.expr.target.body.items.forEach((stmt) => {
-                            const res = transformStmt(
-                                stmt,
-                                substituteVariables(byUnique),
-                            );
-                            if (Array.isArray(res)) {
-                                lets.push(...res);
-                            } else {
-                                lets.push(res);
-                            }
-                        });
-                    } else {
-                        lets.push({
-                            type: 'Expression',
-                            loc: stmt.loc,
-                            expr: transformExpr(
-                                stmt.expr.target.body,
-                                substituteVariables(byUnique),
-                            ),
-                        });
-                    }
-                    return lets;
-                }
-            }
-            if (stmt.type === 'Return') {
-                // if (stmt.)
-                // TODO
-            }
-            return null;
-        },
-        expr: (expr) => {
-            if (expr.type !== 'apply' || expr.target.type !== 'lambda') {
-                return null;
-            }
-            let body: Expr;
-            if (expr.target.body.type === 'Block') {
-                if (
-                    expr.target.body.items.length !== 1 ||
-                    expr.target.body.items[0].type !== 'Expression'
-                ) {
-                    return null;
-                }
-                body = expr.target.body.items[0].expr;
-            } else {
-                body = expr.target.body;
-            }
-            if (expr.args.length === 0) {
-                return body;
-            }
-            // each arg must *either* be single-use, or simple
-            const complex = expr.args
-                .map((arg, i) => (isConstant(arg) ? null : i))
-                .filter((x) => x != null) as Array<number>;
-            const multiUse = complex.length
-                ? checkMultiUse(expr.target, complex)
-                : [];
-            const byUnique: { [key: number]: Expr } = {};
-            const targs = expr.target.args;
-            expr.args.forEach((arg, i) => {
-                if (!multiUse.includes(i)) {
-                    byUnique[targs[i].sym.unique] = arg;
-                }
-            });
-            const args = expr.args;
-            // console.log(body);
-            // console.log(byUnique);
-            // console.log('new body');
-            const newBody = transformExpr(body, {
-                ...defaultVisitor,
-                expr: (expr) => {
-                    if (
-                        expr.type === 'var' &&
-                        byUnique[expr.sym.unique] != null // &&
-                        // !args.includes(expr)
-                    ) {
-                        return [byUnique[expr.sym.unique]];
-                    }
-                    return null;
-                },
-            });
-            // console.log('ok');
-
-            if (multiUse.length > 0) {
-                const inits: Array<Stmt> = multiUse.map((i) =>
-                    define(targs[i].sym, expr.args[i]),
-                );
-                return iffe(env, {
-                    type: 'Block',
-                    items: inits.concat({
-                        type: 'Return',
-                        loc: expr.loc,
-                        value: newBody,
-                    }),
-                    loc: expr.loc,
-                });
-            }
-
-            return newBody;
-
-            // console.log('yes please', expr.args);
-            // return null;
-        },
-    });
-};
-
-const checkMultiUse = (expr: LambdaExpr, indices: Array<number>) => {
-    const uniques = indices.map((i) => expr.args[i].sym.unique);
-    const uses: { [u: number]: number } = {};
-    uniques.forEach((u) => (uses[u] = 0));
-    transformExpr(expr.body as Expr, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            if (expr.type === 'var' && uniques.includes(expr.sym.unique)) {
-                uses[expr.sym.unique] += 1;
-            }
-            return null;
-        },
-    });
-    return indices.filter((i) => uses[expr.args[i].sym.unique] > 1);
-};
 
 // This flattens IFFEs that are the bodies of a lambda expr, or
 // the value of a return statement.
@@ -618,6 +414,14 @@ export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
             return null;
         },
         stmt: (value) => {
+            // Remove x = x
+            if (
+                value.type === 'Assign' &&
+                value.value.type === 'var' &&
+                value.sym.unique === value.value.sym.unique
+            ) {
+                return [];
+            }
             if (
                 (value.type === 'Define' || value.type === 'Assign') &&
                 value.value != null &&
@@ -700,7 +504,7 @@ export const flattenRecordSpreads = (
     });
 };
 
-const isConstant = (arg: Expr): boolean => {
+export const isConstant = (arg: Expr): boolean => {
     switch (arg.type) {
         case 'int':
         case 'float':
@@ -1339,112 +1143,6 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                         value: stmt.value.start,
                     },
                 ];
-            }
-            return null;
-        },
-    });
-};
-
-const isInlinable = (t: LambdaExpr, self: Id) => {
-    // TODO: make this much faster folks
-    if (t.body.type === 'Block') {
-        return false;
-    }
-    let found = false;
-    transformExpr(t, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            found = found || (expr.type === 'term' && idsEqual(self, expr.id));
-            return null;
-        },
-    });
-    return !found;
-    // return false;
-};
-
-const getInlineableFunction = (
-    env: Env,
-    exprs: Exprs,
-    target: Expr,
-    self: Id,
-): Expr | null => {
-    // lol this would be nice
-    // if (target.type === 'builtin')
-    if (target.type === 'term') {
-        // Self recursion, can't do it folks.
-        if (idsEqual(self, target.id)) {
-            return null;
-        }
-        // console.log('inline', target.id, self);
-        // Hmm this might just be a rename. Can't count on it being an expr
-        const t = exprs[idName(target.id)];
-        if (!t || t.type !== 'lambda') {
-            return null;
-        }
-        // hmm just reject self-recursive things please I think
-        if (isInlinable(t, target.id)) {
-            return t;
-        }
-    }
-    // It's might be a constant!
-    if (target.type === 'attribute' && target.target.type === 'term') {
-        const t = exprs[idName(target.target.id)];
-        if (!t || t.type !== 'record' || t.base.type !== 'Concrete') {
-            return null;
-        }
-        if (!refsEqual(target.ref, t.base.ref)) {
-            console.error('attribute not right ref');
-            return null;
-        }
-        // these can't be self-referrential, at least not right now
-        const value = t.base.rows[target.idx];
-        if (!value || value.type !== 'lambda') {
-            return null;
-        }
-        if (isInlinable(value as LambdaExpr, self)) {
-            return value;
-        }
-        // target.ref;
-    }
-    return null;
-};
-
-const maxUnique = (expr: Expr) => {
-    let max = 0;
-    transformExpr(expr, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            if (expr.type === 'var') {
-                max = Math.max(max, expr.sym.unique);
-            }
-            return null;
-        },
-    });
-    return max;
-};
-
-export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
-    let outerMax = maxUnique(expr);
-    return transformExpr(expr, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            if (expr.type === 'apply') {
-                const lambda = getInlineableFunction(
-                    env,
-                    exprs,
-                    expr.target,
-                    self,
-                );
-                // ooh I already have another opt for immediate applys. So I don't have to mess really.
-                if (lambda) {
-                    const innerMax = maxUnique(lambda);
-                    const unique = {
-                        current: Math.max(outerMax, innerMax) + 1,
-                    };
-                    const t = reUnique(unique, lambda);
-                    outerMax = unique.current;
-                    return { ...expr, target: t };
-                }
             }
             return null;
         },

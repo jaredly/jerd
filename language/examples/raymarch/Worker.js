@@ -29,8 +29,14 @@ const render = (iTime, resolution) => {
 const run = (frames, resolution) => {
     for (let i = 0; i < frames; i++) {
         // console.log('rendeirng', i);
+        const start = performance.now();
         const data = render(i / 10, resolution);
-        postMessage({ type: 'frame', i, data });
+        postMessage({
+            type: 'frame',
+            i,
+            data,
+            time: performance.now() - start,
+        });
     }
     postMessage({ type: 'done' });
 };

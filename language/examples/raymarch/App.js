@@ -104,6 +104,7 @@ ffmpeg.onmessage = function (e) {
 
 fullWorker.addEventListener('message', (evt) => {
     if (evt.data.type === 'frame') {
+        console.log(evt.data.time, evt.data.i);
         // imageDatas.push(evt.data.data);
         ctx.putImageData(evt.data.data, 0, 0);
         const dataUrl = thec.toDataURL('image/jpeg');

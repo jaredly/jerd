@@ -1,8 +1,11 @@
 
 ## Lets do fun things! Raymarching and such
 
-- [ ] desperately need inlining. What will that take?
+- [x] desperately need inlining. What will that take?
       Should I do whole-program-opt in the IR?
+- [ ] make uniques actually truly unique
+- [ ] now that I have uniques, I don't have to worry about declaration collisions.
+- [ ] make a transformer to sweep through blocks and move up empty defines to the first assign
 
 Whole program opt:
 - if a function is always called with one argument as the same value (either a constant, or like a global hash, or something), then delete that argument, and inline that value.

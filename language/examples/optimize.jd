@@ -70,3 +70,21 @@ const palendrome: <T,>(Array<T>, Eq<T>) => bool = <T,>(one: Array<T>, eq: Eq<T>)
         _ => false,
     }
 }
+
+const recurse: (int) => int = (n: int) => {
+    if n > 5 {
+        recurse(n - 1) + 1
+    } else {
+        3
+    }
+}
+
+const m = {
+    const x = recurse({
+        const y = recurse(4);
+        y + 2 + y
+    } + 3);
+    x + 3 + x
+}
+
+m
