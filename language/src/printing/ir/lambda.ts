@@ -41,6 +41,7 @@ import { printTerm } from './term';
 import { withNoEffects } from '../../typing/transform';
 import { cpus } from 'os';
 import { isVoid } from '../../typing/terms/handle';
+import { reUnique } from '../typeScriptPrinterSimple';
 
 export const printLambda = (
     env: Env,
@@ -65,7 +66,6 @@ export const printLambda = (
             return {
                 type: 'effectfulOrDirectLambda',
                 loc: term.location,
-                effectful: effectfulLambda(env, opts, term),
                 direct: arrowFunctionExpression(
                     directVersion.args.map(
                         (sym, i) => ({
@@ -87,6 +87,10 @@ export const printLambda = (
                     term.is.typeVbls,
                     term.tags,
                 ),
+                effectful: reUnique(
+                    env.local.unique,
+                    effectfulLambda(env, opts, term),
+                ) as LambdaExpr,
                 is: lambdaTypeFromTermType(env, opts, term.is as TLambdaType),
             };
         }

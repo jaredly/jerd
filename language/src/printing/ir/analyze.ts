@@ -4,6 +4,7 @@ import { LocatedError } from '../../typing/errors';
 import { Symbol } from '../../typing/types';
 import { defaultVisitor, transformExpr } from './transform';
 import { Expr, Loc } from './types';
+import { handlerSym } from './utils';
 
 export const collectSymDeclarations = (expr: Expr) => {
     const decls: Array<{ sym: Symbol; loc: Loc; type: string }> = [];
@@ -11,7 +12,8 @@ export const collectSymDeclarations = (expr: Expr) => {
         ...defaultVisitor,
         stmt: (stmt) => {
             switch (stmt.type) {
-                case 'Assign':
+                // Oh wait, assign shouldn't count
+                // case 'Assign':
                 case 'Define':
                     decls.push({
                         sym: stmt.sym,
@@ -44,6 +46,9 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
     const seen: { [key: string]: Array<{ sym: Symbol; loc: Loc }> } = {};
     const duplicates = [];
     decls.forEach((decl) => {
+        if (decl.sym.unique === handlerSym.unique) {
+            return; // ignore them
+        }
         if (!seen[decl.sym.unique]) {
             seen[decl.sym.unique] = [decl];
         } else {

@@ -3,6 +3,7 @@ effect Log {
     log: (string) => void,
 }
 
+
 // Start with the basic
 const collectNew: (() ={Log}> void) ={}> string = 
 (fn: () ={Log}> void): string => {

@@ -40,7 +40,7 @@ import {
     typeVblsToParameters,
 } from './typeScriptTypePrinter';
 import { effectConstructorType } from './ir/cps';
-import { getEnumReferences } from '../typing/typeExpr';
+import { getEnumReferences, showLocation } from '../typing/typeExpr';
 import { nullLocation } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
@@ -892,6 +892,7 @@ export const fileToTypescript = (
                     .wrap(err)
                     .toString(),
             );
+            console.log(showLocation(term.location));
             // throw new LocatedError(
             //     term.location,
             //     `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
@@ -992,6 +993,10 @@ export const maxUnique = (term: Term) => {
 export const reUnique = (unique: { current: number }, expr: Expr) => {
     const mapping: { [orig: number]: number } = {};
     const addSym = (sym: Symbol) => {
+        if (sym.unique === handlerSym.unique) {
+            mapping[sym.unique] = sym.unique;
+            return sym;
+        }
         mapping[sym.unique] = unique.current++;
         return { ...sym, unique: mapping[sym.unique] };
     };
@@ -1002,13 +1007,29 @@ export const reUnique = (unique: { current: number }, expr: Expr) => {
     return transformExpr(expr, {
         ...defaultVisitor,
         stmt: (value) => {
-            if (value.type === 'Define' || value.type === 'Assign') {
+            if (value.type === 'Define') {
                 return { ...value, sym: addSym(value.sym) };
+            }
+            if (value.type === 'Assign') {
+                return { ...value, sym: getSym(value.sym) };
             }
             return null;
         },
         expr: (value) => {
             switch (value.type) {
+                case 'handle':
+                    return {
+                        ...value,
+                        cases: value.cases.map((kase) => ({
+                            ...kase,
+                            args: kase.args.map((arg) => ({
+                                ...arg,
+                                sym: addSym(arg.sym),
+                            })),
+                            k: { ...kase.k, sym: addSym(kase.k.sym) },
+                        })),
+                        pure: { ...value.pure, arg: addSym(value.pure.arg) },
+                    };
                 case 'lambda':
                     return {
                         ...value,

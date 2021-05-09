@@ -15,7 +15,8 @@ effect Log {
 
 // Start iwth the basic
 const collectNew: (() ={Log}> void) ={}> string = 
-@newHandlers
+// Ok we'll have to deal with newHandlers later
+// @newHandlers
 (fn: () ={Log}> void): string => {
     handle! fn {
         Log.log((v) => k) => {
