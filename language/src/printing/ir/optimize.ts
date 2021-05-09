@@ -4,6 +4,7 @@ import {
     Id,
     idsEqual,
     RecordDef,
+    refsEqual,
     Symbol,
     symbolsEqual,
 } from '../../typing/types';
@@ -1388,10 +1389,22 @@ const getInlineableFunction = (
     // It's might be a constant!
     if (target.type === 'attribute' && target.target.type === 'term') {
         const t = exprs[idName(target.target.id)];
-        if (!t || t.type !== 'record') {
+        if (!t || t.type !== 'record' || t.base.type !== 'Concrete') {
             return null;
         }
-        target.ref;
+        if (!refsEqual(target.ref, t.base.ref)) {
+            console.error('attribute not right ref');
+            return null;
+        }
+        // these can't be self-referrential, at least not right now
+        const value = t.base.rows[target.idx];
+        if (!value || value.type !== 'lambda') {
+            return null;
+        }
+        if (isInlinable(value as LambdaExpr, self)) {
+            return value;
+        }
+        // target.ref;
     }
     return null;
 };
