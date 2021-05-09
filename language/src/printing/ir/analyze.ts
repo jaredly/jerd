@@ -24,7 +24,7 @@ export const collectSymDeclarations = (expr: Expr) => {
         },
         expr: (expr) => {
             if (expr.type === 'lambda') {
-                console.log('expr', expr.loc);
+                // console.log('expr', expr.loc);
                 expr.args.forEach((arg) => {
                     decls.push({ sym: arg.sym, loc: expr.loc, type: 'arg' });
                 });
@@ -50,13 +50,17 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
             seen[decl.sym.unique].push(decl);
         }
     });
-    console.log(seen);
+    // console.log(seen);
+    let failed: Array<string> = [];
     Object.keys(seen).forEach((number) => {
         if (seen[number].length > 1) {
-            throw new LocatedError(
-                seen[number][1].loc,
-                `Multiple declarations for unique ${number}.`,
-            );
+            failed.push(number);
         }
     });
+    if (failed.length > 0) {
+        throw new LocatedError(
+            seen[failed[0]][1].loc,
+            `Multiple declarations for unique ${failed[0]}.`,
+        );
+    }
 };

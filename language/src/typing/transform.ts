@@ -11,6 +11,7 @@ import {
     Lambda,
     LambdaType,
     Let,
+    Pattern,
     Term,
     Type,
     Var,
@@ -204,6 +205,43 @@ export const transform = (term: Term, visitor: Visitor): Term => {
         default:
             let _x: never = term;
             throw new Error(`Unexpected term type ${(term as any).type}`);
+    }
+};
+
+export const walkPattern = (
+    pattern: Pattern,
+    handle: (pat: Pattern) => void | false,
+): void => {
+    if (handle(pattern) === false) {
+        return;
+    }
+    switch (pattern.type) {
+        case 'Binding':
+        case 'Enum':
+        case 'string':
+        case 'float':
+        case 'int':
+        case 'boolean':
+            return;
+        case 'Alias':
+            walkPattern(pattern.inner, handle);
+            return;
+        case 'Array':
+            pattern.preItems.forEach((p) => walkPattern(p, handle));
+            if (pattern.spread) {
+                walkPattern(pattern.spread, handle);
+            }
+            pattern.postItems.forEach((p) => walkPattern(p, handle));
+            return;
+        case 'Tuple':
+            pattern.items.forEach((p) => walkPattern(p, handle));
+            return;
+        case 'Record':
+            pattern.items.forEach((item) => walkPattern(item.pattern, handle));
+            return;
+        default:
+            let _x: never = pattern;
+            throw new Error(`Unhandled pattern ${(pattern as any).type}`);
     }
 };
 

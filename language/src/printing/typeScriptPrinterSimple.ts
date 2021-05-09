@@ -18,7 +18,7 @@ import {
     typesEqual,
 } from '../typing/types';
 import { typeScriptPrelude } from './fileToTypeScript';
-import { walkTerm, wrapWithAssert } from '../typing/transform';
+import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import { optimize, optimizeAggressive, optimizeDefine } from './ir/optimize';
 import {
@@ -44,6 +44,7 @@ import { getEnumReferences } from '../typing/typeExpr';
 import { nullLocation } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
+import { LocatedError } from '../typing/errors';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -880,13 +881,28 @@ export const fileToTypescript = (
         // TODO: This is too easy to miss. Bake it in somewhere.
         // Maybe have a toplevel `ir.printTerm` that does the check?
         let irTerm = ir.printTerm(senv, irOpts, term);
-        // uniquesReallyAreUnique(irTerm);
-        if (opts.optimizeAggressive) {
-            irTerm = optimizeAggressive(env, irTerms, irTerm, id);
+        try {
+            uniquesReallyAreUnique(irTerm);
+        } catch (err) {
+            console.error(
+                new LocatedError(
+                    term.location,
+                    `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+                )
+                    .wrap(err)
+                    .toString(),
+            );
+            // throw new LocatedError(
+            //     term.location,
+            //     `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+            // ).wrap(err);
         }
-        if (opts.optimize) {
-            irTerm = optimizeDefine(env, irTerm, id);
-        }
+        // if (opts.optimizeAggressive) {
+        //     irTerm = optimizeAggressive(env, irTerms, irTerm, id);
+        // }
+        // if (opts.optimize) {
+        //     irTerm = optimizeDefine(env, irTerm, id);
+        // }
         // console.log('otho');
         irTerms[idRaw] = irTerm;
         items.push(
@@ -947,8 +963,27 @@ export const fileToTypescript = (
 export const maxUnique = (term: Term) => {
     let max = 0;
     walkTerm(term, (term) => {
+        // hmm this just gets usages
+        // which doesn't quite cut it
         if (term.type === 'var') {
             max = Math.max(max, term.sym.unique);
+        }
+        if (term.type === 'lambda') {
+            term.args.forEach((arg) => {
+                max = Math.max(max, arg.unique);
+            });
+        }
+        if (term.type === 'Switch') {
+            term.cases.forEach((kase) => {
+                walkPattern(kase.pattern, (pattern) => {
+                    if (pattern.type === 'Binding') {
+                        max = Math.max(max, pattern.sym.unique);
+                    }
+                    if (pattern.type === 'Alias') {
+                        max = Math.max(max, pattern.name.unique);
+                    }
+                });
+            });
         }
     });
     return max;
