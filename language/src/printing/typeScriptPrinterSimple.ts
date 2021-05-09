@@ -43,6 +43,7 @@ import { effectConstructorType } from './ir/cps';
 import { getEnumReferences } from '../typing/typeExpr';
 import { nullLocation } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
+import { uniquesReallyAreUnique } from './ir/analyze';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -879,6 +880,7 @@ export const fileToTypescript = (
         // TODO: This is too easy to miss. Bake it in somewhere.
         // Maybe have a toplevel `ir.printTerm` that does the check?
         let irTerm = ir.printTerm(senv, irOpts, term);
+        // uniquesReallyAreUnique(irTerm);
         if (opts.optimizeAggressive) {
             irTerm = optimizeAggressive(env, irTerms, irTerm, id);
         }
