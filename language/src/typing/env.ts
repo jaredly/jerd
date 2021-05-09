@@ -35,6 +35,7 @@ import {
     EffectDef,
     Self,
     selfEnv,
+    newLocal,
 } from './types';
 import { ToplevelT } from '../printing/printTsLike';
 import { void_ } from './preset';
@@ -167,7 +168,7 @@ export const typeEffect = (env: Env, item: Effect): Env => {
 
 export const newSym = (env: Env, name: string): Symbol => ({
     name,
-    unique: env.local.unique++,
+    unique: env.local.unique.current++,
 });
 
 // export const addToplevel = (
@@ -445,6 +446,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
     const subEnv: Env = {
         ...env,
         local: { ...env.local, tmpTypeVbls },
+        // local: { ...newLocal(), tmpTypeVbls },
     };
 
     const self: Self = {
@@ -641,6 +643,7 @@ export const resolveEffect = (
 export const symPrefix = '#:';
 
 export const makeLocal = (env: Env, id: Identifier, type: Type): Symbol => {
+    // const unique = env.local.unique.current++;
     let max = Object.keys(env.local.locals).reduce(
         (max, k) => Math.max(env.local.locals[k].sym.unique, max),
         0,

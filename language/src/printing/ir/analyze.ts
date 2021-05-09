@@ -39,9 +39,9 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
     // hrmmm why not tho...
     // START HERE: it looks like we make a new locals thing ... for each .. oh right ... hmm
     // yeah ok ... so we do need to ensure uniqueness ... and not just
-    // OK NEXT STEP: switch to unique++ instead of `len` for uniques.
+    // OK NEXT STEP: switch to unique.current++ instead of `len` for uniques.
     const decls = collectSymDeclarations(expr);
-    const seen: { [key: number]: Array<{ sym: Symbol; loc: Loc }> } = {};
+    const seen: { [key: string]: Array<{ sym: Symbol; loc: Loc }> } = {};
     const duplicates = [];
     decls.forEach((decl) => {
         if (!seen[decl.sym.unique]) {

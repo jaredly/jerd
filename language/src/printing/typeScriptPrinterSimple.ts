@@ -875,7 +875,7 @@ export const fileToTypescript = (
         const id = idFromName(idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
         const comment = printToString(declarationToPretty(senv, id, term), 100);
-        senv.local.unique = maxUnique(term) + 1;
+        senv.local.unique.current = maxUnique(term) + 1;
         term = liftEffects(senv, term);
         // TODO: This is too easy to miss. Bake it in somewhere.
         // Maybe have a toplevel `ir.printTerm` that does the check?

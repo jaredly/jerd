@@ -363,7 +363,7 @@ export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
         is: t,
         location: null,
         sym: {
-            unique: env.local.unique++,
+            unique: env.local.unique.current++,
             name: `arg_${i}`,
         },
     }));

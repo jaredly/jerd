@@ -12,7 +12,7 @@ import parse, {
     Toplevel,
 } from './parsing/parser';
 import typeExpr, { showLocation } from './typing/typeExpr';
-import { Env } from './typing/types';
+import { Env, newLocal } from './typing/types';
 import { printToString } from './printing/printer';
 import { toplevelToPretty, ToplevelT } from './printing/printTsLike';
 
@@ -113,7 +113,13 @@ export const reprintToplevel = (
                 ...toplevel,
                 type: 'Define',
                 id: toplevel.id,
-                term: typeExpr(env, (printed[0] as Define).expr),
+                term: typeExpr(
+                    {
+                        ...env,
+                        // local: newLocal(),
+                    },
+                    (printed[0] as Define).expr,
+                ),
             };
             nhash = hashObject(retyped.term);
         } else {

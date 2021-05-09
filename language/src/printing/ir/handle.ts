@@ -26,7 +26,7 @@ export const printHandle = (env: Env, opts: OutputOptions, term: Handle) => {
         return printHandleNew(env, opts, term, null);
     }
     const mapType = (t: TermType) => typeFromTermType(env, opts, t);
-    const sym: Symbol = { name: 'result', unique: env.local.unique++ };
+    const sym: Symbol = { name: 'result', unique: env.local.unique.current++ };
     return iffe(env, {
         type: 'Block',
         items: [
@@ -165,8 +165,8 @@ import { printHandleNew } from './handle-new';
 //             // ok worth a shot
 
 //             */
-//     const sym: Symbol = { name: 'result', unique: env.local.unique++ };
-//     const doneS: Symbol = { name: 'done', unique: env.local.unique++ };
+//     const sym: Symbol = { name: 'result', unique: env.local.unique.current++ };
+//     const doneS: Symbol = { name: 'done', unique: env.local.unique.current++ };
 //     const doneT: Type = pureFunction([
 //             typeFromTermType(term.is)], void_)
 //     const doneVar: Expr = cps || {
@@ -177,20 +177,20 @@ import { printHandleNew } from './handle-new';
 //     };
 //     const returnHandler: Symbol = {
 //         name: 'returnHandler',
-//         unique: env.local.unique++,
+//         unique: env.local.unique.current++,
 //     };
 //     const finalValue: Symbol = {
 //         name: 'finalValue',
-//         unique: env.local.unique++,
+//         unique: env.local.unique.current++,
 //     };
 //     const fnReturnPointer: Symbol = {
 //         name: 'fnReturnPointer',
-//         unique: env.local.unique++,
+//         unique: env.local.unique.current++,
 //     };
 //     const targetType = term.target.is as LambdaType;
 //     const effRef: EffectReference = { type: 'ref', ref: term.effect };
 //     const effDev = env.global.effects[refName(term.effect)];
-//     const handlerSym: Symbol = { name: 'handler', unique: env.local.unique++ };
+//     const handlerSym: Symbol = { name: 'handler', unique: env.local.unique.current++ };
 //     effectHandlers = {
 //         ...effectHandlers,
 //         [refName(effRef.ref)]: {
@@ -308,15 +308,15 @@ import { printHandleNew } from './handle-new';
 //                         items: term.cases.map((kase, i) => {
 //                             const rawK: Symbol = {
 //                                 name: 'rawK',
-//                                 unique: env.local.unique++,
+//                                 unique: env.local.unique.current++,
 //                             };
 //                             const kh: Symbol = {
 //                                 name: 'handlers',
-//                                 unique: env.local.unique++,
+//                                 unique: env.local.unique.current++,
 //                             };
 //                             const returnToHandler: Symbol = {
 //                                 name: 'returnToHandler',
-//                                 unique: env.local.unique++,
+//                                 unique: env.local.unique.current++,
 //                             };
 //                             const returnToHandlerType: Type = pureFunction(
 //                                 [
@@ -330,7 +330,7 @@ import { printHandleNew } from './handle-new';
 //                                 ? null
 //                                 : {
 //                                       name: 'value',
-//                                       unique: env.local.unique++,
+//                                       unique: env.local.unique.current++,
 //                                   };
 //                             const rawKType: Type = pureFunction(
 //                                 [

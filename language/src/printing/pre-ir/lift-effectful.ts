@@ -16,7 +16,7 @@ const processArg = (
     }
     const sym: Symbol = {
         name: `arg_lift_${i}`,
-        unique: env.local.unique++,
+        unique: env.local.unique.current++,
     };
     lets.push({
         type: 'Let',

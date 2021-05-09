@@ -282,7 +282,7 @@ const _termToAstCPS = (
             if (getEffects(term.target).length) {
                 throw new Error(`target affects in an apply, sorry`);
             }
-            const u = env.local.unique++;
+            const u = env.local.unique.current++;
 
             if (term.target.is.type !== 'lambda') {
                 throw new Error(`Target is not a function`);
@@ -664,7 +664,7 @@ export const passDone = (
         //     const args: Array<Arg> = expectedDoneType.args.map((type, i) => ({
         //         type,
         //         loc,
-        //         sym: { name: `arg_${i}`, unique: env.local.unique++ },
+        //         sym: { name: `arg_${i}`, unique: env.local.unique.current++ },
         //     }));
         //     cps = {
         //         ...cps,

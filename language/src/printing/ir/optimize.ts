@@ -730,7 +730,10 @@ export const flattenRecordSpread = (
             if (isConstant(expr.base.spread)) {
                 target = expr.base.spread;
             } else {
-                const v: Symbol = { name: 'arg', unique: env.local.unique++ };
+                const v: Symbol = {
+                    name: 'arg',
+                    unique: env.local.unique.current++,
+                };
                 inits.push({
                     type: 'Define',
                     sym: v,
@@ -794,7 +797,7 @@ export const flattenRecordSpread = (
             } else {
                 const v: Symbol = {
                     name: 'st' + k,
-                    unique: env.local.unique++,
+                    unique: env.local.unique.current++,
                 };
                 inits.push({
                     type: 'Define',
@@ -928,7 +931,7 @@ export const tailCallRecursion = (
                                 const vbls = apply.args.map((arg, i) => {
                                     const sym: Symbol = {
                                         name: 'recur',
-                                        unique: env.local.unique++,
+                                        unique: env.local.unique.current++,
                                     };
                                     // TODO: we need the type of all the things I guess...
                                     items.push({
@@ -1053,7 +1056,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
     }
     const indexForSym: { [key: string]: { sym: Symbol; type: Type } } = {};
     const indices: Array<Symbol> = corrects.map((arg) => {
-        const unique = env.local.unique++;
+        const unique = env.local.unique.current++;
         const s = { name: arg.sym.name + '_i', unique };
         indexForSym[symName(arg.sym)] = { sym: s, type: int };
         return s;
@@ -1315,7 +1318,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
             ) {
                 const sym = {
                     name: stmt.sym.name + '_i',
-                    unique: env.local.unique++,
+                    unique: env.local.unique.current++,
                 };
                 arrayInfos[symName(stmt.sym)] = {
                     start: sym,

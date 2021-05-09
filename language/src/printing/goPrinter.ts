@@ -169,7 +169,7 @@
 //             // }
 //             const argVbls = origType.args.map((_, i) => ({
 //                 name: `arg_${i}`,
-//                 unique: env.local.unique++,
+//                 unique: env.local.unique.current++,
 //             }));
 //             return items([
 //                 atom('func '),

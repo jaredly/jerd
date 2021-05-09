@@ -93,7 +93,7 @@ export type Self =
 // TBH I should have a completely different local env for
 // type checking (getTypeError) than I do for parsing.
 export type LocalEnv = {
-    unique: number;
+    unique: { current: number };
     self: Self | null;
     locals: { [key: string]: { sym: Symbol; type: Type } };
     localNames: { [name: string]: number };
@@ -130,7 +130,7 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
         effects: {},
     },
     local: {
-        unique: 0,
+        unique: { current: 0 },
         self,
         symMapping: {},
         effectVbls: {},
@@ -143,7 +143,7 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
 });
 
 export const newLocal = (): LocalEnv => ({
-    unique: 0,
+    unique: { current: 0 },
     self: null,
     symMapping: {},
     effectVbls: {},

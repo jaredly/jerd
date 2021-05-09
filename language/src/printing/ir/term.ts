@@ -383,7 +383,10 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         case 'Switch': {
             const basic = isConstant(term.term);
 
-            const id = { name: 'discriminant', unique: env.local.unique++ };
+            const id = {
+                name: 'discriminant',
+                unique: env.local.unique.current++,
+            };
 
             const value: Expr = basic
                 ? printTerm(env, opts, term.term)

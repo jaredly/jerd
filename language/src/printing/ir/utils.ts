@@ -468,7 +468,7 @@ export const cpsArrowFunctionExpression = (
     typeVbls?: Array<TypeVblDecl>,
     tags?: Array<string>,
 ): LambdaExpr => {
-    const done: Symbol = { name: 'done', unique: env.local.unique++ };
+    const done: Symbol = { name: 'done', unique: env.local.unique.current++ };
     const doneArgs = handlerTypesForEffects(env, opts, effects, loc);
     if (!typesEqual(doneType, void_)) {
         doneArgs.push(doneType);

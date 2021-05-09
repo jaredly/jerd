@@ -288,15 +288,15 @@ const printEffectHandler = (
         items: term.cases.map((kase, i) => {
             const rawK: Symbol = {
                 name: 'rawK',
-                unique: env.local.unique++,
+                unique: env.local.unique.current++,
             };
             const kh: Symbol = {
                 name: 'handlers',
-                unique: env.local.unique++,
+                unique: env.local.unique.current++,
             };
             const returnToHandler: Symbol = {
                 name: 'returnToHandler',
-                unique: env.local.unique++,
+                unique: env.local.unique.current++,
             };
             const returnToHandlerType: Type = pureFunction(
                 [
@@ -311,7 +311,7 @@ const printEffectHandler = (
                 ? null
                 : {
                       name: 'value',
-                      unique: env.local.unique++,
+                      unique: env.local.unique.current++,
                   };
             const rawKType: Type = pureFunction(
                 [
