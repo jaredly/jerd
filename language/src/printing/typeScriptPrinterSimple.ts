@@ -884,26 +884,23 @@ export const fileToTypescript = (
         try {
             uniquesReallyAreUnique(irTerm);
         } catch (err) {
-            console.error(
-                new LocatedError(
-                    term.location,
-                    `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
-                )
-                    .wrap(err)
-                    .toString(),
-            );
-            console.log(showLocation(term.location));
-            // throw new LocatedError(
-            //     term.location,
-            //     `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
-            // ).wrap(err);
+            const outer = new LocatedError(
+                term.location,
+                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+            )
+                .wrap(err)
+                .toString();
+            // console.error( outer);
+            // console.log(showLocation(term.location));
+            throw outer;
         }
-        // if (opts.optimizeAggressive) {
-        //     irTerm = optimizeAggressive(env, irTerms, irTerm, id);
-        // }
-        // if (opts.optimize) {
-        //     irTerm = optimizeDefine(env, irTerm, id);
-        // }
+        if (opts.optimizeAggressive) {
+            irTerm = optimizeAggressive(env, irTerms, irTerm, id);
+        }
+        if (opts.optimize) {
+            irTerm = optimizeDefine(env, irTerm, id);
+        }
+        uniquesReallyAreUnique(irTerm);
         // console.log('otho');
         irTerms[idRaw] = irTerm;
         items.push(

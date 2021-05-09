@@ -699,7 +699,7 @@ export const flattenRecordSpreads = (
     });
 };
 
-const isConstant = (arg: Expr) => {
+const isConstant = (arg: Expr): boolean => {
     switch (arg.type) {
         case 'int':
         case 'float':
@@ -708,6 +708,10 @@ const isConstant = (arg: Expr) => {
         case 'builtin':
         case 'var':
             return true;
+        case 'tupleAccess':
+            return isConstant(arg.target);
+        case 'attribute':
+            return isConstant(arg.target);
         default:
             return false;
     }
@@ -1407,7 +1411,7 @@ const maxUnique = (expr: Expr) => {
 };
 
 export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
-    const outerMax = maxUnique(expr);
+    let outerMax = maxUnique(expr);
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
@@ -1424,7 +1428,9 @@ export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
                     const unique = {
                         current: Math.max(outerMax, innerMax) + 1,
                     };
-                    return { ...expr, target: reUnique(unique, lambda) };
+                    const t = reUnique(unique, lambda);
+                    outerMax = unique.current;
+                    return { ...expr, target: t };
                 }
             }
             return null;
