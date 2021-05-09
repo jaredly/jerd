@@ -52,6 +52,7 @@ export const walkType = (
 };
 
 export const newTypeVbl = (env: Env): Type => {
+    // TODO: change this too
     const unique = Object.keys(env.local.tmpTypeVbls).length;
     env.local.tmpTypeVbls[unique] = [];
     return {

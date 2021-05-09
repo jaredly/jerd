@@ -47,6 +47,7 @@ export const typeToplevelT = (
     item: Toplevel,
     unique?: number | null,
 ): ToplevelT => {
+    env = { ...env, local: newLocal() };
     switch (item.type) {
         case 'define': {
             // TODO type annotation
@@ -643,12 +644,12 @@ export const resolveEffect = (
 export const symPrefix = '#:';
 
 export const makeLocal = (env: Env, id: Identifier, type: Type): Symbol => {
-    // const unique = env.local.unique.current++;
-    let max = Object.keys(env.local.locals).reduce(
-        (max, k) => Math.max(env.local.locals[k].sym.unique, max),
-        0,
-    );
-    const unique = max + 1; // Object.keys(env.local.locals).length;
+    const unique = env.local.unique.current++;
+    // let max = Object.keys(env.local.locals).reduce(
+    //     (max, k) => Math.max(env.local.locals[k].sym.unique, max),
+    //     0,
+    // );
+    // const unique = max + 1; // Object.keys(env.local.locals).length;
 
     const found =
         id.hash && id.hash.startsWith(symPrefix)

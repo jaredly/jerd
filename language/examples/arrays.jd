@@ -9,12 +9,11 @@ const b = ["Good", ...z, "uhuh"]
 
 const m = <string,>[]
 
-// switch a[0] {
-//     None => false,
-//     // Some{_: "ho"} => false,
-//     // Some{_: "hi"} => true,
-//     _ => false
-// }
+switch a {
+    [] => false,
+    [..._, "Yes"] => true,
+    _ => false
+}
 
 switch [] {
     [one, ...rest] => false,

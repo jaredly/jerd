@@ -129,7 +129,13 @@ export const reprintToplevel = (
             retyped = {
                 ...toplevel,
                 type: 'Expression',
-                term: typeExpr(env, printed[0] as Expression),
+                term: typeExpr(
+                    {
+                        ...env,
+                        local: newLocal(),
+                    },
+                    printed[0] as Expression,
+                ),
             };
             nhash = hashObject(retyped.term);
         }

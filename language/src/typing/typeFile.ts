@@ -2,7 +2,7 @@
 
 import { Expression, Toplevel } from '../parsing/parser';
 import typeExpr, { showLocation } from '../typing/typeExpr';
-import { Env, getEffects, Term, Type } from '../typing/types';
+import { Env, getEffects, newLocal, Term, Type } from '../typing/types';
 import { showType } from '../typing/unify';
 import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
@@ -29,6 +29,10 @@ export function typeFile(
 
     // const out = prelude.slice();
     for (const item of parsed) {
+        // Clear out the locals. This is definitely not the
+        // right way to do this lol.
+        env = { ...env, local: newLocal() };
+
         if (item.type === 'define') {
             // console.log('>> A define', item.id.text);
             const { term, env: nenv } = typeDefine(env, item);
