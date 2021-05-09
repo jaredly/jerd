@@ -116,7 +116,10 @@ export const reprintToplevel = (
                 term: typeExpr(
                     {
                         ...env,
-                        // local: newLocal(),
+                        local: {
+                            ...newLocal(),
+                            self: env.local.self,
+                        },
                     },
                     (printed[0] as Define).expr,
                 ),

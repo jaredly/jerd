@@ -445,8 +445,8 @@ export const typeDefineInner = (env: Env, item: Define) => {
     const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
     const subEnv: Env = {
         ...env,
-        local: { ...env.local, tmpTypeVbls },
-        // local: { ...newLocal(), tmpTypeVbls },
+        // local: { ...env.local, tmpTypeVbls },
+        local: { ...newLocal(), tmpTypeVbls },
     };
 
     const self: Self = {
