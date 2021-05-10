@@ -69,7 +69,12 @@ export const optimizeAggressive = (
 
 export const optimize = (env: Env, expr: Expr): Expr => {
     const transformers: Array<(env: Env, e: Expr) => Expr> = [
+        // UGH so if I comment this out (which I really ought to be able to do)
+        // then the flattenImmediateCalls optimizer produces some invalid
+        // thing somehow that babel's checkBlockScopedCollisions dealio
+        // gets mad at.
         flattenIffe,
+
         removeUnusedVariables,
         removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
         foldConstantTuples,
@@ -540,7 +545,7 @@ export const flattenRecordSpread = (
                 target = expr.base.spread;
             } else {
                 const v: Symbol = {
-                    name: 'arg',
+                    name: 'arg_spread',
                     unique: env.local.unique.current++,
                 };
                 inits.push({

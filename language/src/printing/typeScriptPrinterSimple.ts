@@ -899,10 +899,10 @@ export const fileToTypescript = (
             throw outer;
         }
         if (opts.optimizeAggressive) {
-            irTerm = optimizeAggressive(env, irTerms, irTerm, id);
+            irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         }
         if (opts.optimize) {
-            irTerm = optimizeDefine(env, irTerm, id);
+            irTerm = optimizeDefine(senv, irTerm, id);
         }
         // uniquesReallyAreUnique(irTerm);
         // console.log('otho');

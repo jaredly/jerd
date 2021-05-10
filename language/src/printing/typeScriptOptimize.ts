@@ -83,35 +83,48 @@ const flattenDoubleLambdas = (ast: t.File) => {
 };
 
 export const removeTypescriptTypes = (ast: t.File) => {
-    traverse(ast, {
-        TSTypeAnnotation(path) {
-            path.remove();
-        },
-        TSTypeAliasDeclaration(path) {
-            path.remove();
-        },
-        TSTypeParameterInstantiation(path) {
-            path.remove();
-        },
-        TSAsExpression(path) {
-            path.replaceWith(path.node.expression);
-        },
-        ImportDeclaration(path) {
-            // lol hack
-            // this is so typescript is happy
-            // but it's not valid javascript
-            // and there's not really a way to tell
-            if (
-                path.node.specifiers.length === 1 &&
-                path.node.specifiers[0].local.name === 'Handlers'
-            ) {
+    traverse(
+        ast,
+        {
+            TSTypeAnnotation(path) {
                 path.remove();
-            }
+            },
+            TSTypeAliasDeclaration(path) {
+                path.remove();
+            },
+            TSTypeParameterInstantiation(path) {
+                path.remove();
+            },
+            TSAsExpression(path) {
+                path.replaceWith(path.node.expression);
+            },
+            ImportDeclaration(path) {
+                // lol hack
+                // this is so typescript is happy
+                // but it's not valid javascript
+                // and there's not really a way to tell
+                if (
+                    path.node.specifiers.length === 1 &&
+                    path.node.specifiers[0].local.name === 'Handlers'
+                ) {
+                    path.remove();
+                }
+            },
+            TSTypeParameterDeclaration(path) {
+                path.remove();
+            },
         },
-        TSTypeParameterDeclaration(path) {
-            path.remove();
+        undefined,
+        null,
+        {
+            isScope: () => false,
+            hub: {
+                buildError(id, name, err) {
+                    return new err(name);
+                },
+            },
         },
-    });
+    );
 };
 
 const flattenImmediateCallsToLets = (ast: t.File) => {

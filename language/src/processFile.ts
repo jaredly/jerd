@@ -114,16 +114,17 @@ export const processFile = (
     });
     // Fixing the weird bug with babel's typescript generation
     tsCode = tsCode.replace(/ as : /g, ' as ');
+    const buildDir = path.join(path.dirname(fname), 'build');
+    const tsDest = path.join(buildDir, path.basename(fname) + '.ts');
+
+    writeFile(tsDest, tsCode);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
         sourceMaps: true,
         sourceFileName: '../' + path.basename(fname),
     });
 
-    const buildDir = path.join(path.dirname(fname), 'build');
-
     const dest = path.join(buildDir, path.basename(fname) + '.mjs');
-    const tsDest = path.join(buildDir, path.basename(fname) + '.ts');
 
     const mapName = path.basename(fname) + '.mjs.map';
     writeFile(path.join(buildDir, mapName), JSON.stringify(map, null, 2));
@@ -134,7 +135,6 @@ export const processFile = (
     const text = code + '\n\n//' + m + 'MappingURL=' + mapName;
 
     writeFile(dest, text);
-    writeFile(tsDest, tsCode);
 
     const preludeTS = require('fs').readFileSync(
         './src/printing/builtins.ts.txt',

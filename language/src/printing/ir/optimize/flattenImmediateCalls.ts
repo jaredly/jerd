@@ -63,6 +63,30 @@ export const hasReturns = (stmt: Stmt): boolean => {
     }
 };
 
+export const hasNonFinalReturn = (block: Block) => {
+    const lastItem = block.items[block.items.length - 1];
+    let hasNonFinalReturn = false;
+    transformStmt(block, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            return false; // don't traverse into expressions
+            // if (expr.type === 'lambda' || expr.type === 'handle') {
+            //     return false
+            // }
+            // return null
+        },
+        stmt: (stmt) => {
+            if (stmt.type === 'Return' && stmt !== lastItem) {
+                hasNonFinalReturn = true;
+                return false;
+            }
+            return null;
+        },
+    });
+    return hasNonFinalReturn;
+};
+
+// STOPSHIP: Bail if there's a `return` that's not the last item of the lambda
 export const flattenDefineLambdas = (
     env: Env,
     stmt: Stmt,
@@ -70,6 +94,14 @@ export const flattenDefineLambdas = (
     let prefixes: Array<Stmt> = [];
     const result = transformStmt(stmt, {
         ...defaultVisitor,
+        // Don't go into sub-blocks
+        block: (block) => {
+            return false;
+        },
+        // stmt: stmt => {
+        //     // don't recurse into stmts? I mean....
+        //     return false
+        // },
         expr: (expr) => {
             // Don't go into lambdas
             if (expr.type === 'lambda' || expr.type === 'handle') {
@@ -83,7 +115,11 @@ export const flattenDefineLambdas = (
                 return null;
             }
 
-            const sym = newSym(env, `arg`);
+            if (hasNonFinalReturn(expr.target.body)) {
+                return null;
+            }
+
+            const sym = newSym(env, `lambdaBlockResult`);
 
             const args = expr.args;
             const stmts: Array<Stmt> = expr.target.args
@@ -125,6 +161,11 @@ export const flattenDefineLambdas = (
                         return null;
                     },
                     stmt: (stmt) => {
+                        // oooh hm this won't quite work
+                        // because for my "match" dealios
+                        // I depend on `returns` actually returning.
+                        // I might need to set a `done` flag?
+                        // or something? Yeah.
                         if (stmt.type === 'Return') {
                             return {
                                 type: 'Assign',
@@ -169,148 +210,180 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
     return transformRepeatedly(expr, {
         ...defaultVisitor,
         stmt: (stmt) => {
-            // definitely unique
-            if (true) {
-                return flattenDefineLambdas(env, stmt);
+            // not the place
+            if (stmt.type === 'Block') {
+                return null;
             }
+            // Take care of the top-level expression-statement case,
+            // where we actually want to ignore the return.
+            if (
+                stmt.type === 'Expression' &&
+                stmt.expr.type === 'apply' &&
+                stmt.expr.target.type === 'lambda'
+            ) {
+                if (stmt.expr.target.body.type !== 'Block') {
+                    return null;
+                }
+                if (hasNonFinalReturn(stmt.expr.target.body)) {
+                    return null;
+                }
+                const items = stmt.expr.target.body.items;
+                const lastItem = items[items.length - 1];
+                if (lastItem.type === 'Return') {
+                    const changed = items.slice();
+                    changed[items.length - 1] = {
+                        type: 'Expression',
+                        expr: lastItem.value,
+                        loc: lastItem.loc,
+                    };
+                    return changed;
+                }
+                return items;
+            }
+            // definitely unique
+            // if (true) {
+            return flattenDefineLambdas(env, stmt);
+            // return null;
+            // }
             // if (stmt.type === 'Define' && stmt.value) {
             //     return flattenDefineLambdas(env, stmt);
             // }
 
-            if (stmt.type === 'Define') {
-                if (
-                    !stmt.value ||
-                    stmt.value.type !== 'apply' ||
-                    stmt.value.target.type !== 'lambda' ||
-                    stmt.value.target.body.type !== 'Block'
-                ) {
-                    return null;
-                }
-                const sym = stmt.sym;
-                const target = stmt.value.target;
-                const args = stmt.value.args;
-                const stmts: Array<Stmt> = (stmt.value.target.args
-                    .map(
-                        (arg, i) =>
-                            ({
-                                type: 'Define',
-                                loc: arg.loc,
-                                is: arg.type,
-                                value: args[i],
-                                sym: arg.sym,
-                            } as Define),
-                    )
-                    .filter(
-                        (arg) => arg.sym.unique !== handlerSym.unique,
-                    ) as Array<Stmt>).concat([{ ...stmt, value: null }]);
-                const byUnique: { [key: number]: Expr } | null =
-                    target.args.length > 0 ? {} : null;
-                if (byUnique) {
-                    stmt.value.target.args.forEach((arg, i) => {
-                        byUnique[arg.sym.unique] = args[i];
-                    });
-                }
-                stmt.value.target.body.items.forEach((item) => {
-                    const result = transformStmt(item, {
-                        ...defaultVisitor,
-                        expr: (expr) => {
-                            // stop recursion
-                            if (
-                                expr.type === 'lambda' ||
-                                expr.type === 'handle'
-                            ) {
-                                return false;
-                            }
-                            return null;
-                        },
-                        stmt: (stmt) => {
-                            if (stmt.type === 'Return') {
-                                return {
-                                    type: 'Assign',
-                                    sym,
-                                    value: stmt.value,
-                                    loc: stmt.loc,
-                                    is: stmt.value.is,
-                                };
-                            }
-                            return null;
-                        },
-                    });
-                    let results = Array.isArray(result) ? result : [result];
-                    if (byUnique) {
-                        results = ([] as Array<Stmt>).concat(
-                            ...results.map(
-                                (result): Array<Stmt> => {
-                                    const m = transformStmt(
-                                        result,
-                                        substituteVariables(byUnique),
-                                    );
-                                    return Array.isArray(m) ? m : [m];
-                                },
-                            ),
-                        );
-                    }
-                    stmts.push(...results);
-                });
-                return stmts;
-            }
-            if (stmt.type === 'Expression') {
-                if (
-                    stmt.expr.type === 'apply' &&
-                    stmt.expr.target.type === 'lambda'
-                ) {
-                    const expr = stmt.expr;
-                    const lets: Array<Stmt> = stmt.expr.target.args
-                        .map(
-                            (arg, i) =>
-                                ({
-                                    type: 'Define',
-                                    loc: arg.loc,
-                                    is: arg.type,
-                                    value: expr.args[i],
-                                    sym: arg.sym,
-                                } as Define),
-                        )
-                        .filter((arg) => arg.sym.unique !== handlerSym.unique);
-                    const byUnique: { [key: number]: Expr } = {};
-                    stmt.expr.target.args.forEach((arg, i) => {
-                        byUnique[arg.sym.unique] = expr.args[i];
-                    });
-                    if (stmt.expr.target.body.type === 'Block') {
-                        // NOTE we should be able to manage this actually
-                        if (hasReturns(stmt.expr.target.body)) {
-                            return null;
-                        }
-                        stmt.expr.target.body.items.forEach((stmt) => {
-                            const res = transformStmt(
-                                stmt,
-                                substituteVariables(byUnique),
-                            );
-                            if (Array.isArray(res)) {
-                                lets.push(...res);
-                            } else {
-                                lets.push(res);
-                            }
-                        });
-                    } else {
-                        lets.push({
-                            type: 'Expression',
-                            loc: stmt.loc,
-                            expr: transformExpr(
-                                stmt.expr.target.body,
-                                substituteVariables(byUnique),
-                            ),
-                        });
-                    }
-                    return lets;
-                }
-            }
-            if (stmt.type === 'Return') {
-                // if (stmt.)
-                // TODO
-            }
-            return null;
+            // if (stmt.type === 'Define') {
+            //     if (
+            //         !stmt.value ||
+            //         stmt.value.type !== 'apply' ||
+            //         stmt.value.target.type !== 'lambda' ||
+            //         stmt.value.target.body.type !== 'Block'
+            //     ) {
+            //         return null;
+            //     }
+            //     const sym = stmt.sym;
+            //     const target = stmt.value.target;
+            //     const args = stmt.value.args;
+            //     const stmts: Array<Stmt> = (stmt.value.target.args
+            //         .map(
+            //             (arg, i) =>
+            //                 ({
+            //                     type: 'Define',
+            //                     loc: arg.loc,
+            //                     is: arg.type,
+            //                     value: args[i],
+            //                     sym: arg.sym,
+            //                 } as Define),
+            //         )
+            //         .filter(
+            //             (arg) => arg.sym.unique !== handlerSym.unique,
+            //         ) as Array<Stmt>).concat([{ ...stmt, value: null }]);
+            //     const byUnique: { [key: number]: Expr } | null =
+            //         target.args.length > 0 ? {} : null;
+            //     if (byUnique) {
+            //         stmt.value.target.args.forEach((arg, i) => {
+            //             byUnique[arg.sym.unique] = args[i];
+            //         });
+            //     }
+            //     stmt.value.target.body.items.forEach((item) => {
+            //         const result = transformStmt(item, {
+            //             ...defaultVisitor,
+            //             expr: (expr) => {
+            //                 // stop recursion
+            //                 if (
+            //                     expr.type === 'lambda' ||
+            //                     expr.type === 'handle'
+            //                 ) {
+            //                     return false;
+            //                 }
+            //                 return null;
+            //             },
+            //             stmt: (stmt) => {
+            //                 if (stmt.type === 'Return') {
+            //                     return {
+            //                         type: 'Assign',
+            //                         sym,
+            //                         value: stmt.value,
+            //                         loc: stmt.loc,
+            //                         is: stmt.value.is,
+            //                     };
+            //                 }
+            //                 return null;
+            //             },
+            //         });
+            //         let results = Array.isArray(result) ? result : [result];
+            //         if (byUnique) {
+            //             results = ([] as Array<Stmt>).concat(
+            //                 ...results.map(
+            //                     (result): Array<Stmt> => {
+            //                         const m = transformStmt(
+            //                             result,
+            //                             substituteVariables(byUnique),
+            //                         );
+            //                         return Array.isArray(m) ? m : [m];
+            //                     },
+            //                 ),
+            //             );
+            //         }
+            //         stmts.push(...results);
+            //     });
+            //     return stmts;
+            // }
+            // if (stmt.type === 'Expression') {
+            //     if (
+            //         stmt.expr.type === 'apply' &&
+            //         stmt.expr.target.type === 'lambda'
+            //     ) {
+            //         const expr = stmt.expr;
+            //         const lets: Array<Stmt> = stmt.expr.target.args
+            //             .map(
+            //                 (arg, i) =>
+            //                     ({
+            //                         type: 'Define',
+            //                         loc: arg.loc,
+            //                         is: arg.type,
+            //                         value: expr.args[i],
+            //                         sym: arg.sym,
+            //                     } as Define),
+            //             )
+            //             .filter((arg) => arg.sym.unique !== handlerSym.unique);
+            //         const byUnique: { [key: number]: Expr } = {};
+            //         stmt.expr.target.args.forEach((arg, i) => {
+            //             byUnique[arg.sym.unique] = expr.args[i];
+            //         });
+            //         if (stmt.expr.target.body.type === 'Block') {
+            //             // NOTE we should be able to manage this actually
+            //             if (hasReturns(stmt.expr.target.body)) {
+            //                 return null;
+            //             }
+            //             stmt.expr.target.body.items.forEach((stmt) => {
+            //                 const res = transformStmt(
+            //                     stmt,
+            //                     substituteVariables(byUnique),
+            //                 );
+            //                 if (Array.isArray(res)) {
+            //                     lets.push(...res);
+            //                 } else {
+            //                     lets.push(res);
+            //                 }
+            //             });
+            //         } else {
+            //             lets.push({
+            //                 type: 'Expression',
+            //                 loc: stmt.loc,
+            //                 expr: transformExpr(
+            //                     stmt.expr.target.body,
+            //                     substituteVariables(byUnique),
+            //                 ),
+            //             });
+            //         }
+            //         return lets;
+            //     }
+            // }
+            // if (stmt.type === 'Return') {
+            //     // if (stmt.)
+            //     // TODO
+            // }
+            // return null;
         },
+
         expr: (expr) => {
             if (expr.type !== 'apply' || expr.target.type !== 'lambda') {
                 return null;

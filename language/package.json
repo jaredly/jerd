@@ -17,7 +17,7 @@
         "ts-examples": "tsc --build examples/build/tsconfig.json",
         "test": "node --enable-source-maps main.js --assert examples --run",
         "test-one": "node --enable-source-maps main.js --assert --run",
-        "watch-one": "watchexec -w src -w examples -- node --enable-source-maps bootstrap.js --assert --run --cache",
+        "watch-one": "watchexec -w src -w examples -- node --stack-trace-limit=100 --enable-source-maps bootstrap.js --assert --run --cache",
         "sn": "jest -u"
     },
     "bin": {
