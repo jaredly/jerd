@@ -1,0 +1,117 @@
+
+@ffi
+type Vec2 = {
+    x: float,
+    y: float
+}
+
+@ffi
+type Vec3 = {
+    ...Vec2,
+    z: float
+}
+
+@ffi
+type Vec4 = {
+    ...Vec3,
+    w: float,
+}
+
+type AddSub<A> = {
+    "+": (A, A) => A,
+    "-": (A, A) => A
+}
+
+type Mul<A, B, C> = {
+    "*": (A, B) => C
+}
+
+const AddSubVec3 = AddSub<Vec3>{
+    "+": (one: Vec3, two: Vec3) => Vec3{x: one.x + two.x, y: one.y + two.y, z: one.z + two.z},
+    "-": (one: Vec3, two: Vec3) => Vec3{x: one.x - two.x, y: one.y - two.y, z: one.z - two.z},
+}
+
+const AddSubVec2 = AddSub<Vec2>{
+    "+": (one: Vec2, two: Vec2) => Vec2{x: one.x + two.x, y: one.y + two.y},
+    "-": (one: Vec2, two: Vec2) => Vec2{x: one.x - two.x, y: one.y - two.y},
+}
+
+const MulVec3 = Mul<Vec3, Vec3, Vec3>{
+    "*": (one: Vec3, two: Vec3) => Vec3{x: one.x * two.x, y: one.y * two.y, z: one.z * two.z},
+}
+
+const ScaleVec3_ = Mul<Vec3, float, Vec3>{
+    "*": (v: Vec3, scale: float) => Vec3{x: v.x * scale, y: v.y * scale, z: v.z * scale}
+}
+
+const ScaleVec3 = Mul<float, Vec3, Vec3>{
+    "*": (scale: float, v: Vec3) => Vec3{x: v.x * scale, y: v.y * scale, z: v.z * scale}
+}
+
+type Div<A, B, C> = {
+    "/": (A, B) => C
+}
+
+const ScaleVec3Rev = Div<Vec3, float, Vec3>{
+    "/": (v: Vec3, scale: float) => Vec3{x: v.x / scale, y: v.y / scale, z: v.z / scale}
+}
+
+const ScaleVec2Rev = Div<Vec2, float, Vec2>{
+    "/": (v: Vec2, scale: float) => Vec2{x: v.x / scale, y: v.y / scale}
+}
+
+const negVec3 = (v: Vec3) => {
+    Vec3{x: -v.x, y: -v.y, z: -v.z}
+}
+
+const length = (v: Vec3) => {
+    sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+}
+
+const radians = (degrees: float) => degrees / 180.0 * PI
+
+const normalize = (v: Vec3) => v / length(v)
+
+const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
+
+const dot = (a: Vec3, b: Vec3) => {
+    a.x * b.x + a.y * b.y + a.z * b.z
+}
+
+const dot4 = (a: Vec4, b: Vec4) => {
+    a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
+}
+
+const reflect = (I: Vec3, N: Vec3) => {
+    I - 2.0 * dot(N, I) * N
+}
+
+const distance = (one: Vec3, two: Vec3) => length(two - one)
+
+const vec4 = (x: float, y: float ,z: float, w: float) => Vec4{x:x, y:y, z:z, w:w}
+
+type Mat4 = {
+    r1: Vec4,
+    r2: Vec4,
+    r3: Vec4,
+    r4: Vec4,
+}
+
+const MatByVector = Mul<Mat4, Vec4, Vec4>{
+    "*": (mat: Mat4, vec: Vec4) => Vec4{
+        x: dot4(mat.r1, vec),
+        y: dot4(mat.r2, vec),
+        z: dot4(mat.r3, vec),
+        w: dot4(mat.r4, vec)
+    }
+}
+
+const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
+
+// END GLSL PRELUDE
+
+@ffi
+@glsl
+const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+    Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
+}

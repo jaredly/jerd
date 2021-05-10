@@ -864,7 +864,20 @@ export const fileToTypescript = (
         );
     });
 
-    const orderedTerms = expressionDeps(env, expressions);
+    const orderedTerms = expressionDeps(
+        env,
+        expressions.concat(
+            Object.keys(env.global.exportedTerms).map((name) => ({
+                type: 'ref',
+                ref: {
+                    type: 'user',
+                    id: env.global.exportedTerms[name],
+                },
+                location: nullLocation,
+                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
+            })),
+        ),
+    );
 
     // const irOpts = {
     // limitExecutionTime: opts.limitExecutionTime,
