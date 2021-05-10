@@ -140,6 +140,7 @@ export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
                         current: Math.max(outerMax, innerMax) + 1,
                     };
                     const t = reUnique(unique, lambda);
+                    env.local.unique.current = unique.current;
                     outerMax = unique.current;
                     return { ...expr, target: t };
                 }

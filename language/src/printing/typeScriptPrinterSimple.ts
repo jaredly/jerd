@@ -904,11 +904,10 @@ export const fileToTypescript = (
             const outer = new LocatedError(
                 term.location,
                 `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
-            )
-                .wrap(err)
-                .toString();
-            // console.error( outer);
-            // console.log(showLocation(term.location));
+            ).wrap(err);
+            //     .toString();
+            // // console.error( outer);
+            // // console.log(showLocation(term.location));
             throw outer;
         }
         if (opts.optimizeAggressive) {
@@ -917,7 +916,8 @@ export const fileToTypescript = (
         if (opts.optimize) {
             irTerm = optimizeDefine(senv, irTerm, id);
         }
-        // uniquesReallyAreUnique(irTerm);
+        // then pop over to glslPrinter and start making things work.
+        uniquesReallyAreUnique(irTerm);
         // console.log('otho');
         irTerms[idRaw] = irTerm;
         items.push(

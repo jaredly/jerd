@@ -76,6 +76,7 @@ export const processFile = (
     assert: boolean,
     run: boolean,
     reprint: boolean,
+    glsl: boolean,
 ): boolean => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);

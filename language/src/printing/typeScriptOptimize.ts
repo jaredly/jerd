@@ -118,6 +118,7 @@ export const removeTypescriptTypes = (ast: t.File) => {
         null,
         {
             isScope: () => false,
+            // @ts-ignore
             hub: {
                 buildError(id, name, err) {
                     return new err(name);

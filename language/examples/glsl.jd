@@ -110,8 +110,16 @@ const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 
 // END GLSL PRELUDE
 
+/**
+ * What do I want this to do?
+ * - produce a parallel function called `justRedGLSL`
+ *   that accepts any initialization variables
+ *   and calls `new GlslCanvas`?
+ *   OR do I just have a separate pass, that's not the
+ *   javascript one? Lets start with that tbh.
+ */
+
 @ffi
-@glsl
 const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
 }

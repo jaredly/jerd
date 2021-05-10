@@ -108,6 +108,7 @@ const MatByVector = Mul<Mat4, Vec4, Vec4>{
 
 const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 
+// END GLSL PRELUDE
 
 const MAX_MARCHING_STEPS = 255
 const MIN_DIST = 0.0

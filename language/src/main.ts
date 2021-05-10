@@ -295,6 +295,7 @@ const main = (
     run: boolean,
     cache: boolean,
     failFast: boolean,
+    glsl: boolean,
 ) => {
     const { shouldSkip, successRerun } = cache
         ? loadCache(fnames, 'main.js')
@@ -331,6 +332,7 @@ const main = (
                         assert,
                         run,
                         reprint,
+                        glsl,
                     ) === false
                 ) {
                     numFailures += 1;
@@ -458,6 +460,7 @@ if (process.argv[2] === 'go') {
     const run = process.argv.includes('--run');
     const cache = process.argv.includes('--cache');
     const failFast = process.argv.includes('--fail-fast');
+    const glsl = process.argv.includes('--glsl');
     try {
         const failed = main(
             expandDirectories(fnames),
@@ -465,6 +468,7 @@ if (process.argv[2] === 'go') {
             run,
             cache,
             failFast,
+            glsl,
         );
         if (failed) {
             process.exit(1);
