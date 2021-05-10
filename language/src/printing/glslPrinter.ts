@@ -3,7 +3,7 @@
 // import * as t from '@babel/types';
 import { expressionDeps, sortTerms } from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
-import { binOps, bool } from '../typing/preset';
+import { bool } from '../typing/preset';
 import {
     EffectRef,
     Env,
@@ -31,8 +31,15 @@ import {
     OutputOptions as IOutputOptions,
     Expr,
     Record,
+    Apply,
 } from './ir/types';
-import { handlersType, handlerSym, typeFromTermType, void_ } from './ir/utils';
+import {
+    handlersType,
+    handlerSym,
+    pureFunction,
+    typeFromTermType,
+    void_,
+} from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
 import { args, atom, block, id, items, PP, printToString } from './printer';
 import * as pp from './printer';
@@ -51,7 +58,8 @@ import { nullLocation } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
-import { maxUnique } from './typeScriptPrinterSimple';
+import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
+import { explicitSpreads } from './ir/optimize/explicitSpreads';
 
 export type OutputOptions = {
     // readonly scope?: string;
@@ -104,7 +112,47 @@ const builtinTypes: {
     },
 };
 
-const glslBuiltins = {};
+const refType = (idRaw: string): ir.Type => ({
+    type: 'ref',
+    ref: {
+        type: 'user',
+        id: idFromName(idRaw),
+    },
+    typeVbls: [],
+    loc: nullLocation,
+});
+
+const Vec2: ir.Type = refType('629a8360');
+
+/*
+Ok how we do want to do this override?
+One way is: replace the hash (e.g. )
+
+*/
+const glslBuiltins: { [key: string]: Expr } = {
+    '6b6b626e': {
+        type: 'record',
+        base: {
+            type: 'Concrete',
+            ref: {
+                type: 'user',
+                id: idFromName('0864b2ac'),
+            },
+            spread: null,
+            rows: [
+                {
+                    type: 'builtin',
+                    name: '/',
+                    loc: nullLocation,
+                    is: pureFunction([Vec2, Vec2], Vec2),
+                },
+            ],
+        },
+        subTypes: {},
+        loc: nullLocation,
+        is: refType('0864b2ac'),
+    },
+};
 
 // Ok plan is:
 // - produce a js file that `export default`s a map of `termName` to `glsl string`
@@ -155,8 +203,20 @@ export const typeToGlsl = (
 };
 
 export const symToGlsl = (env: Env, opts: OutputOptions, sym: Symbol) => {
-    return atom(`S${sym.name}_${sym.unique}`);
+    // return atom(`${sym.name}_${sym.unique}`);
+    return atom(printSym(env, opts, sym));
 };
+
+const reservedSyms = ['const'];
+
+const printSym = (env: Env, opts: OutputOptions, sym: Symbol) =>
+    !opts.showAllUniques &&
+    env.local.localNames[sym.name] === sym.unique &&
+    !reservedSyms.includes(sym.name)
+        ? sym.name
+        : // TODO: Need to fix this to ensure we have
+          // hygene
+          sym.name + '_' + sym.unique;
 
 export const declarationToGlsl = (
     env: Env,
@@ -194,6 +254,9 @@ export const declarationToGlsl = (
             ),
         ]);
     } else {
+        // if (!isBuiltin(term.is) || isLiteral(term)) {
+        //     fail it folks
+        // }
         return items([
             atom('const '),
             typeToGlsl(env, opts, term.is),
@@ -201,6 +264,7 @@ export const declarationToGlsl = (
             atom('V' + idRaw),
             atom(' = '),
             termToGlsl(env, opts, term),
+            atom(';'),
         ]);
     }
 };
@@ -213,6 +277,21 @@ export const stmtToGlsl = (
     switch (stmt.type) {
         case 'Return':
             return items([atom('return '), termToGlsl(env, opts, stmt.value)]);
+        case 'Define':
+            if (!stmt.value) {
+                return items([
+                    typeToGlsl(env, opts, stmt.is),
+                    atom(' '),
+                    symToGlsl(env, opts, stmt.sym),
+                ]);
+            }
+            return items([
+                typeToGlsl(env, opts, stmt.is),
+                atom(' '),
+                symToGlsl(env, opts, stmt.sym),
+                atom(' = '),
+                termToGlsl(env, opts, stmt.value),
+            ]);
         default:
             return atom(`nope_stmt_${stmt.type}`);
     }
@@ -226,6 +305,8 @@ export const stmtToGlsl = (
 //   spread everything, and we can add some stuff
 //   back in. But yeah, need to do that pass before
 //   optimizing other stuff.
+// - The other thing we need to do is
+//   handle apply's of builtins
 export const printRecord = (
     env: Env,
     opts: OutputOptions,
@@ -305,16 +386,48 @@ export const printRecord = (
     return atom(`nope_record${idRaw}`);
 };
 
+export const binops = ['+', '-', '/', '*', '==', '|', '^'];
+export const isBinop = (op: string) => binops.includes(op);
+
+export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
+    if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {
+        return items([
+            atom('('),
+            termToGlsl(env, opts, apply.args[0]),
+            atom(' '),
+            atom(apply.target.name),
+            atom(' '),
+            termToGlsl(env, opts, apply.args[1]),
+            atom(')'),
+        ]);
+    }
+    return items([
+        termToGlsl(env, opts, apply.target),
+        args(apply.args.map((arg) => termToGlsl(env, opts, arg))),
+    ]);
+};
+
 export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
     switch (expr.type) {
         case 'record':
             return printRecord(env, opts, expr);
         case 'float':
+            return atom(expr.value.toFixed(5));
         case 'int':
         case 'string':
             return atom(expr.value.toString());
         case 'var':
             return symToGlsl(env, opts, expr.sym);
+        case 'apply':
+            return printApply(env, opts, expr);
+        case 'builtin':
+            return atom(expr.name);
+        case 'attribute':
+            return items([
+                termToGlsl(env, opts, expr.target),
+                atom('.'),
+                atom(recordAttributeName(env, expr.ref, expr.idx)),
+            ]);
         case 'tupleAccess':
             return items([
                 termToGlsl(env, opts, expr.target),
@@ -342,6 +455,10 @@ export const fileToGlsl = (
     includeImport: boolean,
     builtinNames: Array<string>,
 ): string => {
+    // Object.keys(glslBuiltins).forEach(id => {
+    //     env.global.terms[id] = glslBuiltins[id]
+    // })
+
     // const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
     const items: Array<PP> = [
         // pp.items([atom('#version 300 es')]),
@@ -491,6 +608,10 @@ export const fileToGlsl = (
     const irTerms: { [idName: string]: Expr } = {};
 
     orderedTerms.forEach((idRaw) => {
+        if (glslBuiltins[idRaw]) {
+            irTerms[idRaw] = glslBuiltins[idRaw];
+            return;
+        }
         // TODO: dedup w/ typescript here
         let term = env.global.terms[idRaw];
 
@@ -509,6 +630,7 @@ export const fileToGlsl = (
             ).wrap(err);
             throw outer;
         }
+        irTerm = explicitSpreads(senv, irOpts, irTerm);
         irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         irTerm = optimizeDefine(senv, irTerm, id);
         uniquesReallyAreUnique(irTerm);

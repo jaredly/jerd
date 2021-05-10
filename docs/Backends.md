@@ -1,6 +1,20 @@
 
 ## GLSL? also Wasm?
 
+OK Big question:
+Do I bake in the vector types that glsl expects?
+like, should I just bite the bullet and make builtins for them?
+Or should I continue what I'm doing and hacking it in?
+idk
+
+Also, for things like builtins
+like, I kinda like the idea of being able to run a CPU version of the shader with no extra work, running in js or whatever.
+And so it is useful to have implemented pure-jerd versions of these builtins, for portability.
+Yeah I think i'll keep on with this, at least for the moment.
+
+Ok, now I need to get the loop going for rayMarching I do believe.
+
+
 So when thinking about targetting GLSL, I obviously can't allocate to the heap. I can do stack things.
 But I definitely can't do ... hmm ... the arrays and stuff.
 So I wonder if it would be interesting/useful to *infer* something like "noalloc", indicating that a function (and everything under it) *does not allocate*. and similarly, "noheap" means it doesn't need to allocate on the heap.

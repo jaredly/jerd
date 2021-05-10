@@ -286,6 +286,21 @@ export const typeFromTermType = (
     }
 };
 
+export const isConstantExpr = (arg: Expr) => {
+    switch (arg.type) {
+        case 'int':
+        case 'float':
+        case 'string':
+        case 'boolean':
+        case 'term':
+        case 'builtin':
+        case 'var':
+            return true;
+        default:
+            return false;
+    }
+};
+
 export const isConstant = (arg: Term) => {
     switch (arg.type) {
         case 'int':
@@ -382,6 +397,25 @@ export const iffe = (env: Env, st: Block): Expr => {
         [],
         st.loc,
     );
+};
+
+export const attribute = (
+    env: Env,
+    opts: OutputOptions,
+    target: Expr,
+    ref: Reference,
+    idx: number,
+    loc: Loc,
+): Expr => {
+    const decl = env.global.types[refName(ref)];
+    return {
+        type: 'attribute',
+        target,
+        ref,
+        idx,
+        loc,
+        is: typeFromTermType(env, opts, decl.items[idx]),
+    };
 };
 
 export const block = (items: Array<Stmt>, loc: Loc): Block => {

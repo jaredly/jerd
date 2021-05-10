@@ -76,7 +76,13 @@ const getInlineableFunction = (
         // console.log('inline', target.id, self);
         // Hmm this might just be a rename. Can't count on it being an expr
         const t = exprs[idName(target.id)];
-        if (!t || t.type !== 'lambda') {
+        if (!t) {
+            return null;
+        }
+        if (t.type !== 'lambda') {
+            if (t.type === 'term' || t.type === 'builtin') {
+                return t;
+            }
             return null;
         }
         // hmm just reject self-recursive things please I think
@@ -96,7 +102,13 @@ const getInlineableFunction = (
         }
         // these can't be self-referrential, at least not right now
         const value = t.base.rows[target.idx];
-        if (!value || value.type !== 'lambda') {
+        if (!value) {
+            return null;
+        }
+        if (value.type !== 'lambda') {
+            if (value.type === 'term' || value.type === 'builtin') {
+                return value;
+            }
             return null;
         }
         if (isInlinable(value as LambdaExpr, self)) {

@@ -127,5 +127,5 @@ const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 @ffi
 const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     const percent = fragCoord / iResolution;
-    Vec4{...percent, z: 1.0, w: 1.0}
+    Vec4{...percent, z: sin(iTime / 0.5) * 0.5 + 0.5, w: 1.0}
 }
