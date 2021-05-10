@@ -1,4 +1,4 @@
 // General thing
 
-export { Expr, Block, Stmt } from './types';
+export { Expr, Block, Stmt, Type } from './types';
 export { printTerm } from './term';

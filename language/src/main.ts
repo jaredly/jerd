@@ -458,7 +458,9 @@ if (process.argv[2] === 'go') {
         .filter((name) => !name.startsWith('-'));
     const assert = process.argv.includes('--assert');
     const run = process.argv.includes('--run');
-    const cache = process.argv.includes('--cache');
+    const cache =
+        process.argv.includes('--cache') &&
+        !process.argv.includes('--no-cache');
     const failFast = process.argv.includes('--fail-fast');
     const glsl = process.argv.includes('--glsl');
     try {

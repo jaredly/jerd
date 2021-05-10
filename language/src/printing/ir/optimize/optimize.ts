@@ -73,7 +73,7 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         // then the flattenImmediateCalls optimizer produces some invalid
         // thing somehow that babel's checkBlockScopedCollisions dealio
         // gets mad at.
-        flattenIffe,
+        // flattenIffe,
 
         removeUnusedVariables,
         removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
@@ -85,8 +85,6 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         foldConstantAssignments,
         removeUnusedVariables,
         flattenNestedIfs,
-        // // START HERE: Now we have some errors
-        // // to track down in various places. Track them down.
         flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));

@@ -34,7 +34,12 @@ import {
 import { handlersType, handlerSym, typeFromTermType, void_ } from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
-import { declarationToPretty, enumToPretty, termToPretty } from './printTsLike';
+import {
+    declarationToPretty,
+    enumToPretty,
+    recordToPretty,
+    termToPretty,
+} from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
 import {
     printType,
@@ -110,10 +115,8 @@ export const withAnnotation = <T>(
 export const declarationToTs = (
     env: Env,
     opts: OutputOptions,
-    irOpts: IOutputOptions,
     idRaw: string,
     term: ir.Expr,
-    type: Type,
     comment?: string,
 ): t.Statement => {
     const expr = termToTs(env, opts, term);
@@ -126,7 +129,7 @@ export const declarationToTs = (
                               env,
                               opts,
                               t.identifier('hash_' + idRaw),
-                              typeFromTermType(env, irOpts, type),
+                              term.is,
                           ),
                           expr,
                       ),
@@ -817,49 +820,54 @@ export const fileToTypescript = (
             );
             return;
         }
+        const comment = printToString(recordToPretty(env, id, constr), 100);
         const subTypes = getAllSubTypes(env.global, constr);
         items.push(
-            t.tsTypeAliasDeclaration(
-                t.identifier(typeIdToString(id)),
-                constr.typeVbls.length
-                    ? typeVblsToParameters(env, opts, constr.typeVbls)
-                    : null,
-                t.tsTypeLiteral([
-                    t.tsPropertySignature(
-                        t.identifier('type'),
-                        t.tsTypeAnnotation(
-                            t.tsLiteralType(
-                                t.stringLiteral(
-                                    recordIdName(env, { type: 'user', id }),
+            t.addComment(
+                t.tsTypeAliasDeclaration(
+                    t.identifier(typeIdToString(id)),
+                    constr.typeVbls.length
+                        ? typeVblsToParameters(env, opts, constr.typeVbls)
+                        : null,
+                    t.tsTypeLiteral([
+                        t.tsPropertySignature(
+                            t.identifier('type'),
+                            t.tsTypeAnnotation(
+                                t.tsLiteralType(
+                                    t.stringLiteral(
+                                        recordIdName(env, { type: 'user', id }),
+                                    ),
                                 ),
                             ),
                         ),
-                    ),
-                    ...constr.items.map((item, i) =>
-                        recordMemberSignature(
-                            env,
-                            opts,
-                            id,
-                            i,
-                            typeFromTermType(env, opts, item),
+                        ...constr.items.map((item, i) =>
+                            recordMemberSignature(
+                                env,
+                                opts,
+                                id,
+                                i,
+                                typeFromTermType(env, opts, item),
+                            ),
                         ),
-                    ),
-                    ...([] as Array<t.TSPropertySignature>).concat(
-                        ...subTypes.map((id) =>
-                            env.global.types[
-                                idName(id)
-                            ].items.map((item: Type, i: number) =>
-                                recordMemberSignature(
-                                    env,
-                                    opts,
-                                    id,
-                                    i,
-                                    typeFromTermType(env, opts, item),
+                        ...([] as Array<t.TSPropertySignature>).concat(
+                            ...subTypes.map((id) =>
+                                env.global.types[
+                                    idName(id)
+                                ].items.map((item: Type, i: number) =>
+                                    recordMemberSignature(
+                                        env,
+                                        opts,
+                                        id,
+                                        i,
+                                        typeFromTermType(env, opts, item),
+                                    ),
                                 ),
                             ),
                         ),
-                    ),
-                ]),
+                    ]),
+                ),
+                'leading',
+                '*\n```\n' + comment + '\n```\n',
             ),
         );
     });
@@ -924,10 +932,8 @@ export const fileToTypescript = (
             declarationToTs(
                 senv,
                 opts,
-                irOpts,
                 idRaw,
                 irTerm,
-                term.is,
                 '*\n```\n' + comment + '\n```\n',
             ),
         );

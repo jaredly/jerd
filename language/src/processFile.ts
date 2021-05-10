@@ -66,6 +66,7 @@ import { loadPrelude } from './printing/loadPrelude';
 import { OutputOptions as IOutputOptions } from './printing/ir/types';
 import { reprintToplevel } from './reprint';
 import { writeFile } from './main';
+import { fileToGlsl } from './printing/glslPrinter';
 
 // const clone = cloner();
 
@@ -100,6 +101,24 @@ export const processFile = (
         showAllUniques: true,
     };
 
+    const buildDir = path.join(path.dirname(fname), 'build');
+
+    if (glsl) {
+        const pp = fileToGlsl(
+            expressions,
+            env,
+            oopts,
+            irOpts,
+            assert,
+            true,
+            builtinNames,
+        );
+
+        const glslDest = path.join(buildDir, path.basename(fname) + '.glsl');
+        writeFile(glslDest, pp);
+        return true;
+    }
+
     const ast = fileToTypescript(
         expressions,
         env,
@@ -115,9 +134,7 @@ export const processFile = (
     });
     // Fixing the weird bug with babel's typescript generation
     tsCode = tsCode.replace(/ as : /g, ' as ');
-    const buildDir = path.join(path.dirname(fname), 'build');
     const tsDest = path.join(buildDir, path.basename(fname) + '.ts');
-
     writeFile(tsDest, tsCode);
     removeTypescriptTypes(ast);
     const { code, map } = generate(ast, {
