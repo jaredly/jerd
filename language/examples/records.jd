@@ -146,8 +146,7 @@ const aDog = Animal{name: "wolrf", furColor: "red"}
 const aPerson = Person{name: "ralf", age: 23, what: 2}
 
 WereWolf{...aDog, ...aPerson}.name == "ralf"
-// BUG BUG BUG
-// Spreads need to be orderd, sorry folks.
+// Test that ordered spreads work correctly
 WereWolf{...aPerson, ...aDog}.name == "wolrf"
 
 

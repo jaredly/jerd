@@ -175,6 +175,12 @@ const glslBuiltins: { [key: string]: Expr } = {
         builtinVal('+', pureFunction([Vec2, Vec2], Vec2)),
         builtinVal('-', pureFunction([Vec2, Vec2], Vec2)),
     ]),
+    '028f8a0e': record('46a4ed38', [
+        builtinVal('*', pureFunction([Vec3, Vec3], Vec3)),
+    ]),
+    b1f0ad60: record('46a4ed38', [
+        builtinVal('*', pureFunction([Vec3, float], Vec3)),
+    ]),
 };
 
 // Ok plan is:
@@ -377,7 +383,10 @@ export const printRecord = (
                         if (item) {
                             return item;
                         }
-                        const spread = record.subTypes[arg.sub].spread;
+                        // const spread = findSpreadForSub(record, arg.sub)
+                        const spread =
+                            record.subTypes[arg.sub].spread ||
+                            record.base.spread;
                         // OOOOOH BUG BUG
                         // Turns out we need spreads to be ordered
                         // because if we spread multiple things
@@ -386,9 +395,10 @@ export const printRecord = (
                         // Ok so yeah need to walk through spreads
                         // Seeing if any of them will provide the thing I'm missing.
                         if (!spread) {
+                            console.log(record.base);
                             throw new LocatedError(
                                 record.loc,
-                                `Invalid state: missing record item ${idRaw} ${arg.sub} ${arg.idx}`,
+                                `Invalid state: missing spread for record item ${idRaw} ${arg.sub} ${arg.idx}`,
                             );
                         }
                         return {

@@ -1,5 +1,5 @@
-import { idFromName, newSym } from '../../../typing/env';
-import { Env } from '../../../typing/types';
+import { idFromName, idName, newSym } from '../../../typing/env';
+import { Env, getAllSubTypes, RecordDef } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, OutputOptions, Stmt } from '../types';
 import {
@@ -38,6 +38,7 @@ export const explicitSpreads = (
             }
             const items: Array<Stmt> = [];
             let base = expr.base;
+            const subTypes = { ...expr.subTypes };
             if (base.type === 'Concrete' && base.spread) {
                 const b = base;
                 let v: Expr;
@@ -58,8 +59,29 @@ export const explicitSpreads = (
                             : attribute(env, opts, v!, b.ref, i, expr.loc),
                     ),
                 };
+
+                // STOPSHIP: this doesn't um properly spread multiple spreads
+
+                const recordDef = env.global.types[
+                    idName(base.ref.id)
+                ] as RecordDef;
+                getAllSubTypes(env.global, recordDef).forEach((sub) => {
+                    const sn = idName(sub);
+                    expr.subTypes[sn].rows.forEach((row, i) => {
+                        if (!row) {
+                            subTypes[sn].rows[i] = attribute(
+                                env,
+                                opts,
+                                v,
+                                { type: 'user', id: sub },
+                                i,
+                                expr.loc,
+                            );
+                        }
+                    });
+                });
             }
-            const subTypes = { ...expr.subTypes };
+
             Object.keys(subTypes).forEach((t) => {
                 const sub = subTypes[t];
                 if (sub.spread) {
@@ -91,6 +113,28 @@ export const explicitSpreads = (
                                   ),
                         ),
                     };
+                    const recordDef = env.global.types[t] as RecordDef;
+                    getAllSubTypes(env.global, recordDef).forEach((sub) => {
+                        const sn = idName(sub);
+                        expr.subTypes[sn].rows.forEach((row, i) => {
+                            if (!row) {
+                                subTypes[sn].rows[i] = attribute(
+                                    env,
+                                    opts,
+                                    v!,
+                                    { type: 'user', id: sub },
+                                    i,
+                                    expr.loc,
+                                );
+                            }
+                        });
+                        // const d = env.global.types[idName(sub)] as RecordDef;
+                        // return d.items.map((type, i) => ({
+                        //     id: sub,
+                        //     i,
+                        //     type,
+                        // }));
+                    });
                 }
             });
             items.push({

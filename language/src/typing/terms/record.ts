@@ -138,6 +138,9 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     // be specifying each item
     // ok, I think we need to
 
+    // SubType spreads need to be ordered
+    const spreadOrder: Array<string> = [];
+
     // const names = env.global.recordGroups[idName(id)];
     expr.rows.forEach((row, idx) => {
         if (row.type === 'Spread') {
@@ -148,6 +151,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     Object.keys(subTypes).forEach(
                         (k) => (subTypes[k].covered = true),
                     );
+                    if (base.spread != null) {
+                        throw new LocatedError(
+                            expr.location,
+                            `Multiple spreads of the base type don't make any sense.`,
+                        );
+                    }
                     base.spread = v;
                     return;
                 }
@@ -158,6 +167,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 Object.keys(subTypes).forEach(
                     (k) => (subTypes[k].covered = true),
                 );
+                if (base.spread != null) {
+                    throw new LocatedError(
+                        expr.location,
+                        `Multiple spreads of the base type don't make any sense.`,
+                    );
+                }
                 base.spread = v;
                 return;
             }
@@ -167,8 +182,18 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     // ermmm we're gonna ignore type variables here
                     isRecord(v.is, { type: 'user', id })
                 ) {
-                    subTypes[idName(id)].spread = v;
-                    subTypes[idName(id)].covered = true;
+                    spreadOrder.push(idName(id));
+                    const sub = subTypes[idName(id)];
+                    if (sub.spread != null) {
+                        throw new LocatedError(
+                            expr.location,
+                            `Multiple spreads of the same subtype (${idName(
+                                id,
+                            )}) don't make any sense.`,
+                        );
+                    }
+                    sub.spread = v;
+                    sub.covered = true;
                     getAllSubTypes(
                         env.global,
                         subTypeTypes[idName(id)],
@@ -265,6 +290,16 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             rows: Array<Term | null>;
         };
     } = {};
+
+    // This will initialized the finishedSubTypes object
+    // with the subtypes in the proper order to preserve spreads.
+    spreadOrder.forEach((id) => {
+        finishedSubTypes[id] = {
+            covered: false,
+            spread: null,
+            rows: [],
+        };
+    });
 
     Object.keys(subTypes).forEach((id) => {
         finishedSubTypes[id] = {

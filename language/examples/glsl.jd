@@ -118,9 +118,9 @@ const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 
 const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     const p2 = samplePoint - Vec3{
-        x: sin(iTime) / 2.0,
+        x: -sin(iTime * 2.0) / 2.0,
         y: 0.0,
-        z: cos(iTime) / 2.0,
+        z: cos(iTime * 2.0) / 2.0,
     };
     min(
 

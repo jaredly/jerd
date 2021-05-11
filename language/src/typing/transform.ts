@@ -437,7 +437,7 @@ export const wrapWithAssert = (expr: Term): Term => {
                     type: 'builtin',
                     name: 'assertEqual',
                 },
-                location: null,
+                location: expr.location,
                 is: pureFunction(argTypes, void_),
             },
             is: void_,
@@ -447,7 +447,7 @@ export const wrapWithAssert = (expr: Term): Term => {
             {
                 type: 'ref',
                 ref: { type: 'builtin', name: 'assertCall' },
-                location: null,
+                location: expr.location,
                 is: pureFunction(
                     [expr.target.is, ...(expr.target.is as LambdaType).args],
                     void_,
@@ -461,7 +461,7 @@ export const wrapWithAssert = (expr: Term): Term => {
             {
                 type: 'ref',
                 ref: { type: 'builtin', name: 'assert' },
-                location: null,
+                location: expr.location,
                 is: pureFunction([bool], void_),
             },
             [expr],
