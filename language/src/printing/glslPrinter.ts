@@ -357,16 +357,6 @@ export const stmtToGlsl = (
     }
 };
 
-// START HERE:
-// - We need to /explicitify/ spreads,
-//   *unless* we're spreading between valid
-//   subsets, and not overriding anything.
-//   But for the first pass, let's just
-//   spread everything, and we can add some stuff
-//   back in. But yeah, need to do that pass before
-//   optimizing other stuff.
-// - The other thing we need to do is
-//   handle apply's of builtins
 export const printRecord = (
     env: Env,
     opts: OutputOptions,
@@ -388,9 +378,17 @@ export const printRecord = (
                             return item;
                         }
                         const spread = record.subTypes[arg.sub].spread;
+                        // OOOOOH BUG BUG
+                        // Turns out we need spreads to be ordered
+                        // because if we spread multiple things
+                        // that have some overlap
+                        // then we have a consistency error
+                        // Ok so yeah need to walk through spreads
+                        // Seeing if any of them will provide the thing I'm missing.
                         if (!spread) {
-                            throw new Error(
-                                `Invalid state: missing record item`,
+                            throw new LocatedError(
+                                record.loc,
+                                `Invalid state: missing record item ${idRaw} ${arg.sub} ${arg.idx}`,
                             );
                         }
                         return {

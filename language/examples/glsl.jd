@@ -213,6 +213,101 @@ const rayDirection = (fieldOfView: float, size: Vec2, fragCoord: Vec2) => {
     normalize(vec3(xy, -z))
 }
 
+// /**
+//  * Using the gradient of the SDF, estimate the normal on the surface at point p.
+//  */
+// TODO: pass in a function here! Of course will have to be constant folded.
+const estimateNormal = (iTime: float, p: Vec3) => normalize(Vec3{
+    x: sceneSDF(iTime, Vec3{...p, x: p.x + EPSILON}) - sceneSDF(iTime, Vec3{...p, x: p.x - EPSILON}),
+    y: sceneSDF(iTime, Vec3{...p, y: p.y + EPSILON}) - sceneSDF(iTime, Vec3{...p, y: p.y - EPSILON}),
+    z: sceneSDF(iTime, Vec3{...p, z: p.z + EPSILON}) - sceneSDF(iTime, Vec3{...p, z: p.z - EPSILON}),
+})
+
+// /**
+//  * Lighting contribution of a single point light source via Phong illumination.
+//  * 
+//  * The vec3 returned is the RGB color of the light's contribution.
+//  *
+//  * k_a: Ambient color
+//  * k_d: Diffuse color
+//  * k_s: Specular color
+//  * alpha: Shininess coefficient
+//  * p: position of point being lit
+//  * eye: the position of the camera
+//  * lightPos: the position of the light
+//  * lightIntensity: color/intensity of the light
+//  *
+//  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
+//  */
+const phongContribForLight = (
+    iTime: float,
+    k_d: Vec3,
+    k_s: Vec3,
+    alpha: float,
+    p: Vec3,
+    eye: Vec3,
+    lightPos: Vec3,
+    lightIntensity: Vec3,
+) => {
+    const N = estimateNormal(iTime, p);
+    const L = normalize(lightPos - p);
+    const V = normalize(eye - p);
+    // oooh now we'll have to deal with multiple names for things!
+    // I do declare
+    const R = normalize(reflect(negVec3(L), N));
+
+    const dotLN = dot(L, N);
+    const dotRV = dot(R, V);
+    if dotLN < 0.0 {
+        Vec3{x: 0.0, y: 0.0, z: 0.0}
+    } else {
+        if dotRV < 0.0 {
+            const m = k_d * dotLN;
+            lightIntensity * m
+        } else {
+            const m = k_d * dotLN + k_s * pow(dotRV, alpha);
+            lightIntensity * m
+        }
+    }
+}
+
+// /**
+//  * Lighting via Phong illumination.
+//  * 
+//  * The vec3 returned is the RGB color of that point after lighting is applied.
+//  * k_a: Ambient color
+//  * k_d: Diffuse color
+//  * k_s: Specular color
+//  * alpha: Shininess coefficient
+//  * p: position of point being lit
+//  * eye: the position of the camera
+//  *
+//  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
+//  */
+const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha: float, p: Vec3, eye: Vec3) => {
+    const ambientLight = 0.5 * Vec3{x: 1.0, y: 1.0, z: 1.0};
+    const color = ambientLight * k_a;
+    
+    const light1Pos = Vec3{x: 4.0 * sin(iTime),
+                          y: 2.0,
+                          z: 4.0 * cos(iTime)};
+    const light1Intensity = Vec3{x: 0.4, y: 0.4, z: 0.4};
+    
+    const color = color + phongContribForLight(iTime, k_d, k_s, alpha, p, eye,
+                                  light1Pos,
+                                  light1Intensity);
+    
+    const light2Pos = Vec3{x: 2.0 * sin(0.37 * iTime),
+                          y: 2.0 * cos(0.37 * iTime),
+                          z: 2.0};
+    const light2Intensity = Vec3{x: 0.4, y: 0.4, z: 0.4};
+    
+    const color = color + phongContribForLight(iTime, k_d, k_s, alpha, p, eye,
+                                  light2Pos,
+                                  light2Intensity);    
+    color
+}
+
 
 /**
  * What do I want this to do?
@@ -234,7 +329,17 @@ const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
         // Didn't hit anything
         Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0};
     } else {
-        const percent = fragCoord / iResolution;
-        Vec4{...percent, z: sin(iTime / 0.5) * 0.5 + 0.5, w: 1.0}
+        // const percent = fragCoord / iResolution;
+        // Vec4{...percent, z: sin(iTime / 0.5) * 0.5 + 0.5, w: 1.0}
+        const p = eye + dist * dir;
+        
+        const K_a = Vec3{x: 0.9, y: 0.2, z: 0.3};
+        const K_d = Vec3{x: 0.0, y: 0.2, z: 0.7};
+        const K_s = Vec3{x: 1.0, y: 1.0, z: 1.0};
+        const shininess = 10.0;
+        
+        const color = phongIllumination(iTime, K_a, K_d, K_s, shininess, p, eye);
+        
+        Vec4{...color, w: 1.0};
     }
 }
