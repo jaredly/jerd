@@ -6,11 +6,17 @@ export const items = (items: Array<PP | null>): PP => ({
     type: 'items',
     items: items.filter((x) => x != null) as Array<PP>,
 });
-export const args = (contents: Array<PP>, left = '(', right = ')'): PP => ({
+export const args = (
+    contents: Array<PP>,
+    left = '(',
+    right = ')',
+    trailing = true,
+): PP => ({
     type: 'args',
     contents,
     left,
     right,
+    trailing,
 });
 export const block = (contents: Array<PP>, sep: string = ';'): PP => ({
     type: 'block',
@@ -33,7 +39,13 @@ export type PP =
     | { type: 'atom'; text: string; attributes?: Array<string> }
     | { type: 'id'; text: string; id: string; kind: string }
     | { type: 'block'; contents: Array<PP>; sep: string } // surrounded by {}
-    | { type: 'args'; contents: Array<PP>; left: string; right: string } // surrounded by ()
+    | {
+          type: 'args';
+          contents: Array<PP>;
+          left: string;
+          right: string;
+          trailing: boolean;
+      } // surrounded by ()
     | { type: 'items'; items: Array<PP> };
 
 const white = (x: number) => new Array(x).fill(' ').join('');
@@ -124,13 +136,15 @@ export const printToStringInner = (
         let res = pp.left;
         current.pos += 1;
         current.indent += 4;
-        pp.contents.forEach((item) => {
+        pp.contents.forEach((item, i) => {
             current.pos = current.indent;
             res +=
                 '\n' +
                 white(current.indent) +
-                printToStringInner(item, maxWidth, options, current) +
-                ',';
+                printToStringInner(item, maxWidth, options, current);
+            if (pp.trailing || i < pp.contents.length - 1) {
+                res += ',';
+            }
         });
         current.indent -= 4;
         if (res.length > 1) {
@@ -227,13 +241,15 @@ export const printToAttributedText = (
         ];
         current.pos += 1;
         current.indent += 4;
-        pp.contents.forEach((item) => {
+        pp.contents.forEach((item, i) => {
             current.pos = current.indent;
             res.push(
                 '\n' + white(current.indent),
                 ...printToAttributedText(item, maxWidth, current),
-                { text: ',', attributes: ['comma'] },
             );
+            if (pp.trailing || i < pp.contents.length - 1) {
+                res.push({ text: ',', attributes: ['comma'] });
+            }
         });
         current.indent -= 4;
         if (res.length > 1) {

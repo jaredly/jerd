@@ -34,10 +34,8 @@ export const explicitSpreads = (
                     (s) => !!expr.subTypes[s].spread,
                 )
             ) {
-                console.log('no spreads', expr.subTypes);
                 return null;
             }
-            // console.log('spreads');
             const items: Array<Stmt> = [];
             let base = expr.base;
             if (base.type === 'Concrete' && base.spread) {

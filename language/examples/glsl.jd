@@ -115,6 +115,105 @@ const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 
 // END GLSL PRELUDE
 
+
+const sceneSDF = (iTime: float, samplePoint: Vec3) => {
+    const p2 = samplePoint - Vec3{
+        x: sin(iTime) / 2.0,
+        y: 0.0,
+        z: cos(iTime) / 2.0,
+    };
+    min(
+
+    length(samplePoint) - 0.1,
+    length(p2) - 0.1
+    // const cubePoint = samplePoint;
+    )
+    // const cubePoint = cubePoint - Vec3{x: 0.0, y: 0.0, z: -1.0};
+    // const cubePoint = xyz(rotateY(iTime / PI) * Vec4{...cubePoint, w: 1.0});
+    // const size = sin(iTime) * 0.2 + 0.4;
+    // const cosize = cos(iTime) * 0.2 + 0.4;
+    // const offset = 0.6;
+    // const cubeSize = Vec3{x: size, y: cosize, z: size};
+    // const innerCubeSize = Vec3{x: size * offset, y: cosize * offset, z: size * offset};
+    // const circles = min(
+    //         sphereSDF(samplePoint, Vec3{x: 0.25, y: 0.0, z: -1.0}, 0.5),
+    //         sphereSDF(samplePoint, Vec3{x: -0.5, y: 0.0, z: -1.0}, 0.5)
+    //     );
+    // unionSDF(
+    //     differenceSDF(
+    //         circles,
+    //     vmax(vabs(cubePoint) - cubeSize)
+    // ),
+    //     vmax(vabs(cubePoint) - innerCubeSize)
+    // )
+}
+
+
+const MAX_MARCHING_STEPS = 255
+const MIN_DIST = 0.0
+const MAX_DIST = 100.0
+const EPSILON = 0.0001
+
+
+// Ok folks, here comes the hard part!!
+// We've already turned this into a while loop, which was fun
+// NOW can we turn it into a for loop with a constant condition?
+/*
+First step:
+come up with a for loop. We know that one of the arguments has to be
+either always increasing or always decreasing, and that we want
+a non-recursive option that bails.
+What's the easiest way to do this?
+have the body be:
+if stepsLeft <= 0 {
+    end
+} else {
+    ...
+}
+that way we know we have a solid way out, whatever else happens.
+BUT also we need to know what the "step" is, how quickly to decrease it.
+I think we might just say "the recursive loop has to be adding or subtracting a constant int".
+
+ok lol so the simple fix is to say "all loops max out at 1000 lol"
+we'll try that first
+
+*/
+const shortestDistanceToSurface:
+(float, Vec3, Vec3, float, float, int) => float
+ = (iTime: float, eye: Vec3, marchingDirection: Vec3, start: float, end: float, stepsLeft: int) => {
+     if stepsLeft <= 0 {
+         end
+     } else {
+        const dist = sceneSDF(iTime, eye + start * marchingDirection);
+        if dist < EPSILON {
+            start
+        } else {
+            const depth = start + dist;
+            if depth >= end {
+                end
+            } else {
+                shortestDistanceToSurface(iTime, eye, marchingDirection, depth, end, stepsLeft - 1)
+            }
+        }
+     }
+}
+
+
+
+// /**
+//  * Return the normalized direction to march in from the eye point for a single pixel.
+//  * 
+//  * fieldOfView: vertical field of view in degrees
+//  * size: resolution of the output image
+//  * fragCoord: the x,y coordinate of the pixel in the output image
+//  */
+const rayDirection = (fieldOfView: float, size: Vec2, fragCoord: Vec2) => {
+    const xy = fragCoord - size / 2.0;
+    const z = size.y / tan(radians(fieldOfView) / 2.0);
+    normalize(vec3(xy, -z))
+}
+
+
 /**
  * What do I want this to do?
  * - produce a parallel function called `justRedGLSL`
@@ -126,6 +225,16 @@ const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 
 @ffi
 const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
-    const percent = fragCoord / iResolution;
-    Vec4{...percent, z: sin(iTime / 0.5) * 0.5 + 0.5, w: 1.0}
+	const dir = rayDirection(45.0, iResolution, fragCoord);
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+
+
+    if dist > MAX_DIST - EPSILON {
+        // Didn't hit anything
+        Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0};
+    } else {
+        const percent = fragCoord / iResolution;
+        Vec4{...percent, z: sin(iTime / 0.5) * 0.5 + 0.5, w: 1.0}
+    }
 }

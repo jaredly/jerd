@@ -69,11 +69,10 @@ export const optimizeAggressive = (
 
 export const optimize = (env: Env, expr: Expr): Expr => {
     const transformers: Array<(env: Env, e: Expr) => Expr> = [
-        // UGH so if I comment this out (which I really ought to be able to do)
-        // then the flattenImmediateCalls optimizer produces some invalid
-        // thing somehow that babel's checkBlockScopedCollisions dealio
-        // gets mad at.
-        // flattenIffe,
+        // OK so this iffe thing is still the only thing
+        // helping us with the `if` at the end of
+        // shortestDistanceToSurface
+        flattenIffe,
 
         removeUnusedVariables,
         removeNestedBlocksWithoutDefinesAndCodeAfterReturns,

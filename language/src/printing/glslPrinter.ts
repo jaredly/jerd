@@ -34,6 +34,7 @@ import {
     Apply,
 } from './ir/types';
 import {
+    float,
     handlersType,
     handlerSym,
     pureFunction,
@@ -123,6 +124,30 @@ const refType = (idRaw: string): ir.Type => ({
 });
 
 const Vec2: ir.Type = refType('629a8360');
+const Vec3: ir.Type = refType('14d8ae44');
+const Vec4: ir.Type = refType('5026f640');
+
+const record = (idRaw: string, rows: Array<Expr>): Expr => {
+    return {
+        type: 'record',
+        base: {
+            type: 'Concrete',
+            ref: { type: 'user', id: idFromName(idRaw) },
+            spread: null,
+            rows: rows,
+        },
+        subTypes: {},
+        loc: nullLocation,
+        is: refType(idRaw),
+    };
+};
+
+const builtinVal = (name: string, type: ir.Type): Expr => ({
+    type: 'builtin',
+    name: name,
+    loc: nullLocation,
+    is: type,
+});
 
 /*
 Ok how we do want to do this override?
@@ -130,28 +155,26 @@ One way is: replace the hash (e.g. )
 
 */
 const glslBuiltins: { [key: string]: Expr } = {
-    '6b6b626e': {
-        type: 'record',
-        base: {
-            type: 'Concrete',
-            ref: {
-                type: 'user',
-                id: idFromName('0864b2ac'),
-            },
-            spread: null,
-            rows: [
-                {
-                    type: 'builtin',
-                    name: '/',
-                    loc: nullLocation,
-                    is: pureFunction([Vec2, Vec2], Vec2),
-                },
-            ],
-        },
-        subTypes: {},
-        loc: nullLocation,
-        is: refType('0864b2ac'),
-    },
+    '6b6b626e': record('0864b2ac', [
+        builtinVal('/', pureFunction([Vec2, Vec2], Vec2)),
+    ]),
+    '8b11a434': record('0864b2ac', [
+        builtinVal('/', pureFunction([Vec3, float], Vec3)),
+    ]),
+    '26eb98a2': record('46a4ed38', [
+        builtinVal('*', pureFunction([float, Vec3], Vec3)),
+    ]),
+    e2590e8c: record('0864b2ac', [
+        builtinVal('/', pureFunction([Vec2, float], Vec2)),
+    ]),
+    '3f234c18': record('3a129423', [
+        builtinVal('+', pureFunction([Vec3, Vec3], Vec3)),
+        builtinVal('-', pureFunction([Vec3, Vec3], Vec3)),
+    ]),
+    '47a61cb4': record('3a129423', [
+        builtinVal('+', pureFunction([Vec2, Vec2], Vec2)),
+        builtinVal('-', pureFunction([Vec2, Vec2], Vec2)),
+    ]),
 };
 
 // Ok plan is:
@@ -239,6 +262,9 @@ export const declarationToGlsl = (
                         symToGlsl(env, opts, arg.sym),
                     ]),
                 ),
+                '(',
+                ')',
+                false,
             ),
             atom(' '),
             block(
@@ -257,15 +283,18 @@ export const declarationToGlsl = (
         // if (!isBuiltin(term.is) || isLiteral(term)) {
         //     fail it folks
         // }
-        return items([
-            atom('const '),
-            typeToGlsl(env, opts, term.is),
-            atom(' '),
-            atom('V' + idRaw),
-            atom(' = '),
-            termToGlsl(env, opts, term),
-            atom(';'),
-        ]);
+        return addComment(
+            items([
+                atom('const '),
+                typeToGlsl(env, opts, term.is),
+                atom(' '),
+                atom('V' + idRaw),
+                atom(' = '),
+                termToGlsl(env, opts, term),
+                atom(';'),
+            ]),
+            comment,
+        );
     }
 };
 
@@ -275,6 +304,31 @@ export const stmtToGlsl = (
     stmt: ir.Stmt,
 ): PP => {
     switch (stmt.type) {
+        case 'Loop':
+            return items([
+                atom('for '),
+                atom('(int i=0; i<10000; i++) '),
+                stmtToGlsl(env, opts, stmt.body),
+            ]);
+        // return items([
+        //     atom('while '),
+        //     atom('(true) '),
+        //     stmtToGlsl(env, opts, stmt.body),
+        // ]);
+        case 'Continue':
+            return atom('continue');
+        case 'if':
+            return items([
+                atom('if ('),
+                termToGlsl(env, opts, stmt.cond),
+                atom(') '),
+                stmtToGlsl(env, opts, stmt.yes),
+                ...(stmt.no
+                    ? [atom(' else '), stmtToGlsl(env, opts, stmt.no)]
+                    : []),
+            ]);
+        case 'Block':
+            return block(stmt.items.map((s) => stmtToGlsl(env, opts, s)));
         case 'Return':
             return items([atom('return '), termToGlsl(env, opts, stmt.value)]);
         case 'Define':
@@ -288,6 +342,12 @@ export const stmtToGlsl = (
             return items([
                 typeToGlsl(env, opts, stmt.is),
                 atom(' '),
+                symToGlsl(env, opts, stmt.sym),
+                atom(' = '),
+                termToGlsl(env, opts, stmt.value),
+            ]);
+        case 'Assign':
+            return items([
                 symToGlsl(env, opts, stmt.sym),
                 atom(' = '),
                 termToGlsl(env, opts, stmt.value),
@@ -318,8 +378,6 @@ export const printRecord = (
     const base = record.base;
     const idRaw = idName(record.base.ref.id);
     if (builtinTypes[idRaw]) {
-        console.log(record);
-        const spread = record.base.spread;
         let args: Array<ir.Expr> = [];
         if (builtinTypes[idRaw].args.length) {
             args = builtinTypes[idRaw].args.map(
@@ -362,31 +420,31 @@ export const printRecord = (
                 },
             );
         } else {
-            throw new Error('nope olksd');
+            throw new Error('nope custom record atm');
         }
         return items([
             atom(builtinTypes[idRaw].name),
-            pp.args(
-                args.map((arg) => termToGlsl(env, opts, arg)),
-                // record.base.rows.map((row, i) =>
-                //     row
-                //         ? termToGlsl(env, opts, row)
-                //         : spread
-                //         ? items([
-                //               termToGlsl(env, opts, spread),
-                //               atom('['),
-                //               atom(i.toString()),
-                //               atom(']'),
-                //           ])
-                //         : atom('no_spread_or_row'),
-                // ),
-            ),
+            pp.args(args.map((arg) => termToGlsl(env, opts, arg))),
         ]);
     }
     return atom(`nope_record${idRaw}`);
 };
 
-export const binops = ['+', '-', '/', '*', '==', '|', '^'];
+export const binops = [
+    '>',
+    '<',
+    '>=',
+    '<=',
+    '+',
+    '-',
+    '/',
+    '*',
+    '==',
+    '|',
+    '||',
+    '&&',
+    '^',
+];
 export const isBinop = (op: string) => binops.includes(op);
 
 export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
@@ -411,6 +469,10 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
     switch (expr.type) {
         case 'record':
             return printRecord(env, opts, expr);
+        case 'term':
+            return idToGlsl(env, opts, expr.id, false);
+        case 'unary':
+            return items([atom(expr.op), termToGlsl(env, opts, expr.inner)]);
         case 'float':
             return atom(expr.value.toFixed(5));
         case 'int':
@@ -463,6 +525,7 @@ export const fileToGlsl = (
     const items: Array<PP> = [
         // pp.items([atom('#version 300 es')]),
         pp.items([atom('precision mediump float;')]),
+        pp.items([atom('const float PI = 3.14159;')]),
         pp.items([
             atom('uniform '),
             atom('float'),
@@ -673,11 +736,16 @@ export const fileToGlsl = (
                         atom('gl_FragColor'),
                         atom(' = '),
                         idToGlsl(env, opts, id, false),
-                        args([
-                            atom('u_time'),
-                            atom('gl_FragCoord.xy'),
-                            atom('u_resolution'),
-                        ]),
+                        args(
+                            [
+                                atom('u_time'),
+                                atom('gl_FragCoord.xy'),
+                                atom('u_resolution'),
+                            ],
+                            '(',
+                            ')',
+                            false,
+                        ),
                     ]),
                 ]),
             ]),
