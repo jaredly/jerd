@@ -479,6 +479,7 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     // which will then find the color of the provided pixel
 	const dir = rayDirection(45.0, iResolution, fragCoord);
     const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    // TODO: trace!()
     const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
 
     const light = 0.2;
@@ -536,3 +537,5 @@ const randFolks = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     const two = Vec4{...red * v, w: 1.0} + fishingBoueys(iTime, fragCoord, iResolution);
     two / 2.0
 }
+
+// const volumetric
