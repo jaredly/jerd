@@ -292,7 +292,7 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
 type Init = {
     typedBuiltins: { [key: string]: Type };
     initialEnv: GlobalEnv;
-    builtinNames: Array<String>;
+    builtinNames: Array<string>;
 };
 
 const loadInit = (): Init => {
@@ -502,7 +502,7 @@ if (process.argv[2] === 'go') {
                 init,
             );
             if (failed) {
-                process.exit(1);
+                console.log('Failed');
             }
         } catch (err) {
             console.error(err);

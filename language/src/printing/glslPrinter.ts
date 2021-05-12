@@ -37,6 +37,7 @@ import {
     float,
     handlersType,
     handlerSym,
+    int,
     pureFunction,
     typeFromTermType,
     void_,
@@ -155,6 +156,8 @@ One way is: replace the hash (e.g. )
 
 */
 const glslBuiltins: { [key: string]: Expr } = {
+    '6f186ad1': record('As', [builtinVal('float', pureFunction([int], float))]),
+
     '090f77e7': record('5ac12902', [
         builtinVal('/', pureFunction([Vec2, Vec2], Vec2)),
     ]),
@@ -167,9 +170,13 @@ const glslBuiltins: { [key: string]: Expr } = {
     afc24bbe: record('5ac12902', [
         builtinVal('/', pureFunction([Vec2, float], Vec2)),
     ]),
-    '2e3aec3a': record('4f27cf5e', [
+    '0555d260': record('b99b22d8', [
         builtinVal('+', pureFunction([Vec4, Vec4], Vec4)),
         builtinVal('-', pureFunction([Vec4, Vec4], Vec4)),
+    ]),
+    '3b80b971': record('b99b22d8', [
+        builtinVal('+', pureFunction([Vec3, float], Vec3)),
+        builtinVal('-', pureFunction([Vec3, float], Vec3)),
     ]),
     '56d43c0e': record('5ac12902', [
         builtinVal('/', pureFunction([Vec4, float], Vec4)),
@@ -177,11 +184,11 @@ const glslBuiltins: { [key: string]: Expr } = {
     '28569bc0': record('1de4e4c0', [
         builtinVal('*', pureFunction([Vec2, float], Vec2)),
     ]),
-    '28231a34': record('4f27cf5e', [
+    '1c6fdd91': record('b99b22d8', [
         builtinVal('+', pureFunction([Vec3, Vec3], Vec3)),
         builtinVal('-', pureFunction([Vec3, Vec3], Vec3)),
     ]),
-    '7d6a3886': record('4f27cf5e', [
+    '70bb2056': record('b99b22d8', [
         builtinVal('+', pureFunction([Vec2, Vec2], Vec2)),
         builtinVal('-', pureFunction([Vec2, Vec2], Vec2)),
     ]),

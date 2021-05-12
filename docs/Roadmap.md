@@ -6,6 +6,7 @@
 - [ ] make uniques actually truly unique
 - [ ] now that I have uniques, I don't have to worry about declaration collisions.
 - [ ] make a transformer to sweep through blocks and move up empty defines to the first assign
+- [ ] ugh I need parenthesis for overriding op precedence.
 
 Whole program opt:
 - if a function is always called with one argument as the same value (either a constant, or like a global hash, or something), then delete that argument, and inline that value.
