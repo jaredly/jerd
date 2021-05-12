@@ -1,12 +1,22 @@
 
 ## GLSL? also Wasm?
 
+How to do constant inlining?
+
+
+
 Next steps:
-- I'd really like a web something, which could showcase the power of having a language that compiles to javascript and glsl.
+- [x] I'd really like a web something, which could showcase the power of having a language that compiles to javascript and glsl. 
+- [ ] tracing!!! Just basics for the moment, but having overlays would be so coool
+    when tracing a value, have optional min & max reported, so it can show a little bar
+- [ ] verify that no lambdas remain, e.g. things I can't print.
+- [ ] do constant monomorphization! This could be so powerful. Pass in lambdas, get the job done!
 
+Ok, plan being:
+Have a new IR type, that's like `term`, but is `genTerm`, meaning this isn't a user term, it's something else. And it'll have `id` which is the original ID, but then a list of other hashes, representing the variables we're substituting.
 
-
-
+And then `irTerms` is where we find the generated term?
+or maybe we want a new mapping just for `genTerm`s? idk.
 
 
 OK Big question:

@@ -171,8 +171,11 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
 }
 
 const shortestDistanceToSurface:
-(float, Vec3, Vec3, float, float, int) => float
+(
+    (float, Vec3) => float,
+    float, Vec3, Vec3, float, float, int) => float
     = (
+        sceneSDF: (float, Vec3) => float,
         iTime: float,
         // marchSource
         eye: Vec3,
@@ -193,7 +196,7 @@ const shortestDistanceToSurface:
             if depth >= end {
                 end
             } else {
-                shortestDistanceToSurface(iTime, eye, marchingDirection, depth, end, stepsLeft - 1)
+                shortestDistanceToSurface(sceneSDF, iTime, eye, marchingDirection, depth, end, stepsLeft - 1)
             }
         }
     }
@@ -213,7 +216,7 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     // which will then find the color of the provided pixel
 	const dir = rayDirection(45.0, iResolution, fragCoord);
     const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
-    const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+    const dist = shortestDistanceToSurface(sceneSDF, iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
 
     if dist > MAX_DIST - EPSILON {
         // Nothing visible

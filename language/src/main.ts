@@ -29,6 +29,7 @@ import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
 import {
     Env,
+    GlobalEnv,
     Id,
     newWithGlobal,
     Self,
@@ -288,24 +289,13 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
         }
     }
 };
+type Init = {
+    typedBuiltins: { [key: string]: Type };
+    initialEnv: GlobalEnv;
+    builtinNames: Array<String>;
+};
 
-const main = (
-    fnames: Array<string>,
-    assert: boolean,
-    run: boolean,
-    cache: boolean,
-    failFast: boolean,
-    glsl: boolean,
-) => {
-    const { shouldSkip, successRerun } = cache
-        ? loadCache(fnames, 'main.js')
-        : { shouldSkip: null, successRerun: true };
-    console.log(chalk.bold.green(`\n# Processing ${fnames.length} files\n`));
-    const passed: { [key: string]: boolean } = {};
-    let numFailures = 0;
-    const reprint = true;
-    console.log(chalk.yellow(`Reprint? ${reprint}`));
-
+const loadInit = (): Init => {
     const tsBuiltins = loadBuiltins();
     console.log('loaded builtins');
     const typedBuiltins: { [key: string]: Type } = {};
@@ -318,6 +308,29 @@ const main = (
     const builtinNames = Object.keys(tsBuiltins);
     const initialEnv = loadPrelude(typedBuiltins);
     console.log('loaded prelude');
+
+    return { typedBuiltins, initialEnv, builtinNames };
+};
+
+const main = (
+    fnames: Array<string>,
+    assert: boolean,
+    run: boolean,
+    cache: boolean,
+    failFast: boolean,
+    glsl: boolean,
+    init: Init,
+) => {
+    const { shouldSkip, successRerun } = cache
+        ? loadCache(fnames, 'main.js')
+        : { shouldSkip: null, successRerun: true };
+    console.log(chalk.bold.green(`\n# Processing ${fnames.length} files\n`));
+    const passed: { [key: string]: boolean } = {};
+    let numFailures = 0;
+    const reprint = true;
+    console.log(chalk.yellow(`Reprint? ${reprint}`));
+
+    const { typedBuiltins, initialEnv, builtinNames } = init;
 
     const runFile = (fname: string) => {
         try {
@@ -442,6 +455,19 @@ const expandDirectories = (fnames: Array<string>) => {
     return result;
 };
 
+const watchFiles = (files: Array<string>, fn: () => void) => {
+    if (files.length > 1) {
+        console.log(files);
+        throw new Error('only one file yet');
+    }
+    fs.watchFile(files[0], (curr, prev) => {
+        if (curr.mtimeMs > prev.mtimeMs) {
+            fn();
+        }
+    });
+    fn();
+};
+
 if (process.argv[2] === 'go') {
     console.log('go please');
     const fnames = process.argv
@@ -450,6 +476,38 @@ if (process.argv[2] === 'go') {
     const assert = process.argv.includes('--assert');
     const run = process.argv.includes('--run');
     mainGo(expandDirectories(fnames), assert, run);
+} else if (process.argv[2] === 'watch') {
+    // This is just for recompiling something
+    const fnames = process.argv
+        .slice(3)
+        .filter((name) => !name.startsWith('-'));
+    const assert = process.argv.includes('--assert');
+    const run = process.argv.includes('--run');
+    const cache =
+        process.argv.includes('--cache') &&
+        !process.argv.includes('--no-cache');
+    const failFast = process.argv.includes('--fail-fast');
+    const glsl = process.argv.includes('--glsl');
+
+    const init = loadInit();
+    watchFiles(fnames, () => {
+        try {
+            const failed = main(
+                expandDirectories(fnames),
+                assert,
+                run,
+                cache,
+                failFast,
+                glsl,
+                init,
+            );
+            if (failed) {
+                process.exit(1);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
 } else if (process.argv[2] === '--test') {
     runTests();
 } else {
@@ -471,6 +529,7 @@ if (process.argv[2] === 'go') {
             cache,
             failFast,
             glsl,
+            loadInit(),
         );
         if (failed) {
             process.exit(1);
