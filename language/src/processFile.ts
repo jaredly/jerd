@@ -116,6 +116,7 @@ export const processFile = (
 
         const glslDest = path.join(buildDir, path.basename(fname) + '.glsl');
         writeFile(glslDest, pp);
+        console.log('Wrote glsl to', chalk.green.bold(glslDest));
         return true;
     }
 

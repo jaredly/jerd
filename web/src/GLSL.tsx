@@ -41,11 +41,13 @@ const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 }
 `;
 
+type Vec2 = { type: 'Vec2'; x: number; y: number };
+
 type Hover = {
     text: string;
     x: number;
     y: number;
-    pos: { type: 'Vec2'; x: number; y: number };
+    pos: Vec2;
 };
 
 const printResult = (value: any): string => {
@@ -82,10 +84,12 @@ export default () => {
 
     const currentHover = React.useRef(hover);
     currentHover.current = hover;
-    const canvas = React.useRef(null);
-    const sandboxRef = React.useRef(null);
+    const canvas = React.useRef(null as null | HTMLCanvasElement);
+    const sandboxRef = React.useRef(null as null | WebGL2RenderingContext);
     const updateRef = React.useRef(null);
-    const jsRef = React.useRef(null);
+    const jsRef = React.useRef(
+        null as null | ((v: number, pos: Vec2, size: Vec2) => any),
+    );
     const currentTime = React.useRef(0.0);
 
     const [isRunning, setIsRunning] = React.useState(true);
@@ -199,8 +203,10 @@ export default () => {
         if (!canvas.current) {
             return console.error('npe');
         }
-        // @ts-ignore
         const gl = canvas.current.getContext('webgl2');
+        if (!gl) {
+            throw new Error(`No webgl2 sorry`);
+        }
         const defaultFrag = `#version 300 es
 
 precision mediump float;
@@ -264,7 +270,11 @@ void main() {
                         const box = evt.currentTarget.getBoundingClientRect();
                         const dx = evt.clientX - box.left;
                         const dy = box.height - (evt.clientY - box.top);
-                        const pos = { type: 'Vec2', x: dx * 2, y: dy * 2 };
+                        const pos: Vec2 = {
+                            type: 'Vec2',
+                            x: dx * 2,
+                            y: dy * 2,
+                        };
                         const fn = jsRef.current;
                         if (!fn) {
                             return;

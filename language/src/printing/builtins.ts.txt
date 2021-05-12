@@ -419,6 +419,8 @@ export const floor = Math.floor;
 //: (float) => float
 export const ceil = Math.ceil;
 
+//: (float, float) => float
+export const mod = (a: number, b: number) => a % b;
 //: (float) => float
 export const sin = Math.sin;
 //: (float) => float

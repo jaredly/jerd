@@ -92,6 +92,9 @@ const negVec3 = (v: Vec3) => {
     Vec3{x: -v.x, y: -v.y, z: -v.z}
 }
 
+const length2 = (v: Vec2) => {
+    sqrt(v.x * v.x + v.y * v.y)
+}
 const length = (v: Vec3) => {
     sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
 }
@@ -119,6 +122,7 @@ const reflect = (I: Vec3, N: Vec3) => {
 }
 
 const distance = (one: Vec3, two: Vec3) => length(two - one)
+const distance2 = (one: Vec2, two: Vec2) => length2(two - one)
 
 const vec4 = (x: float, y: float ,z: float, w: float) => Vec4{x:x, y:y, z:z, w:w}
 
@@ -178,8 +182,23 @@ const opRepLim = ( p: Vec3, c: float, l: Vec3) => {
 
 const fract = (v: float) => v - floor(v)
 
-const random = (st: Vec2) => {
-    fract(sin(dot2(st, Vec2{x: 12.9898, y: 78.233})) * 43758.5453123);
+// const random = (st: Vec2) => {
+//     fract(sin(dot2(st, Vec2{x: 12.9898, y: 78.233})) * 43758.5453123);
+// }
+
+// const PHI = 1.61803398874989484820459  // Φ = Golden Ratio   
+
+// const gold_noise = (xy: Vec2, seed: float) => {
+//     fract(tan(distance2(xy * PHI, xy) * seed) * xy.x);
+// }
+
+const random = (co: Vec2) => {
+    const a = 12.9898;
+    const b = 78.233;
+    const c = 43758.5453;
+    const dt = dot2(co, Vec2{x: a,y: b});
+    const sn = mod(dt, 3.14);
+    fract(sin(sn) * c);
 }
 
 const sceneSDF = (iTime: float, samplePoint: Vec3) => {
@@ -512,6 +531,7 @@ const randFolks = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     const scale = 14.0;
     const small = roundv2(fragCoord / scale) * scale;
     const small = Vec2{x: small.x, y: small.y + iTime};
+    // const v = random(small / iResolution) / 10.0 + 0.9;
     const v = random(small / iResolution) / 10.0 + 0.9;
     const two = Vec4{...red * v, w: 1.0} + fishingBoueys(iTime, fragCoord, iResolution);
     two / 2.0
