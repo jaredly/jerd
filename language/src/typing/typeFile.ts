@@ -53,13 +53,13 @@ export function typeFile(
             if (item.wrapped.type === 'define') {
                 const { term, env: nenv, id } = typeDefine(env, item.wrapped);
                 env = nenv;
-                if (item.decorators[0].id.text === 'ffi') {
+                const tags = item.decorators.map((d) => d.id.text);
+                env.global.metaData[idName(id)] = {
+                    tags,
+                    createdMs: Date.now(),
+                };
+                if (tags.includes('ffi')) {
                     env.global.exportedTerms[item.wrapped.id.text] = id;
-                } else {
-                    env.global.metaData[idName(id)] = {
-                        tags: item.decorators.map((d) => d.id.text),
-                        createdMs: Date.now(),
-                    };
                 }
                 continue;
             }

@@ -155,7 +155,7 @@ One way is: replace the hash (e.g. )
 
 */
 const glslBuiltins: { [key: string]: Expr } = {
-    '6b6b626e': record('5ac12902', [
+    '090f77e7': record('5ac12902', [
         builtinVal('/', pureFunction([Vec2, Vec2], Vec2)),
     ]),
     '68f73ad4': record('5ac12902', [
@@ -166,6 +166,16 @@ const glslBuiltins: { [key: string]: Expr } = {
     ]),
     afc24bbe: record('5ac12902', [
         builtinVal('/', pureFunction([Vec2, float], Vec2)),
+    ]),
+    '2e3aec3a': record('4f27cf5e', [
+        builtinVal('+', pureFunction([Vec4, Vec4], Vec4)),
+        builtinVal('-', pureFunction([Vec4, Vec4], Vec4)),
+    ]),
+    '56d43c0e': record('5ac12902', [
+        builtinVal('/', pureFunction([Vec4, float], Vec4)),
+    ]),
+    '28569bc0': record('1de4e4c0', [
+        builtinVal('*', pureFunction([Vec2, float], Vec2)),
     ]),
     '28231a34': record('4f27cf5e', [
         builtinVal('+', pureFunction([Vec3, Vec3], Vec3)),

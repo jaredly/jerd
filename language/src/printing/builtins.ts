@@ -414,6 +414,10 @@ export const abs = Math.abs;
 export const max = Math.max;
 //: (float, float) => float
 export const min = Math.min;
+//: (float) => float
+export const floor = Math.floor;
+//: (float) => float
+export const ceil = Math.ceil;
 
 //: (float) => float
 export const sin = Math.sin;

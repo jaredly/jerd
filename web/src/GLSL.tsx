@@ -41,7 +41,37 @@ const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 }
 `;
 
-type Hover = { text: string; x: number; y: number };
+type Hover = {
+    text: string;
+    x: number;
+    y: number;
+    pos: { type: 'Vec2'; x: number; y: number };
+};
+
+const printResult = (value: any): string => {
+    if (value == null) {
+        return `null`;
+    }
+    if (typeof value === 'number') {
+        return value.toFixed(4);
+    }
+    if (typeof value === 'object') {
+        if (value.type === 'Vec2') {
+            return `(${printResult(value.x)}, ${printResult(value.y)})`;
+        }
+        if (value.type === 'Vec3') {
+            return `(${printResult(value.x)}, ${printResult(
+                value.y,
+            )}, ${printResult(value.z)})`;
+        }
+        if (value.type === 'Vec4') {
+            return `(${printResult(value.x)}, ${printResult(
+                value.y,
+            )}, ${printResult(value.z)}, ${printResult(value.w)})`;
+        }
+    }
+    return JSON.stringify(value);
+};
 
 export default () => {
     const [text, setText] = React.useState(
@@ -50,6 +80,8 @@ export default () => {
     const [output, setOutput] = React.useState('');
     const [hover, setHover] = React.useState(null as Hover | null);
 
+    const currentHover = React.useRef(hover);
+    currentHover.current = hover;
     const canvas = React.useRef(null);
     const sandboxRef = React.useRef(null);
     const updateRef = React.useRef(null);
@@ -62,11 +94,33 @@ export default () => {
         if (!isRunning) {
             return;
         }
+        let start = Date.now();
         const fn = () => {
-            currentTime.current += 0.01;
+            currentTime.current += (Date.now() - start) / 1000;
+            start = Date.now();
             if (updateRef.current) {
                 // @ts-ignore
                 updateRef.current(currentTime.current);
+                if (currentHover.current) {
+                    const fn = jsRef.current;
+                    if (!fn) {
+                        return;
+                    }
+                    const box = canvas.current!.getBoundingClientRect();
+                    const value = fn(
+                        currentTime.current,
+                        currentHover.current.pos,
+                        {
+                            type: 'Vec2',
+                            x: box.width * 2,
+                            y: box.height * 2,
+                        },
+                    );
+                    setHover({
+                        ...currentHover.current,
+                        text: printResult(value),
+                    });
+                }
             }
             rid = requestAnimationFrame(fn);
         };
@@ -100,6 +154,10 @@ export default () => {
             const mains = Object.keys(env.global.metaData).filter((k) =>
                 env.global.metaData[k].tags.includes('main'),
             );
+            if (!mains.length) {
+                console.error('No `main` found');
+                return;
+            }
             const main = idFromName(mains[0]);
             // @ts-ignore
             const evalEnv = (window.evalEnv = {
@@ -155,7 +213,7 @@ void main() {
 }`;
         // const string_frag_code =
         //     'void main(){\ngl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n}\n';
-        setup(gl, defaultFrag);
+        setup(gl, defaultFrag, 0.0);
         // sandbox.load(string_frag_code);
         sandboxRef.current = gl;
     }, []);
@@ -193,6 +251,9 @@ void main() {
                     height={800}
                     ref={canvas}
                     onClick={(evt) => setIsRunning(!isRunning)}
+                    onMouseLeave={(evt) => {
+                        setHover(null);
+                    }}
                     onMouseMove={(evt) => {
                         // START HERE:
                         // Ok folks, what we really want is a `trace!()` macro
@@ -203,21 +264,21 @@ void main() {
                         const box = evt.currentTarget.getBoundingClientRect();
                         const dx = evt.clientX - box.left;
                         const dy = box.height - (evt.clientY - box.top);
+                        const pos = { type: 'Vec2', x: dx * 2, y: dy * 2 };
+                        const fn = jsRef.current;
+                        if (!fn) {
+                            return;
+                        }
+                        const value = fn(currentTime.current, pos, {
+                            type: 'Vec2',
+                            x: box.width * 2,
+                            y: box.height * 2,
+                        });
                         setHover({
-                            text: JSON.stringify(
-                                // @ts-ignore
-                                jsRef.current(
-                                    currentTime.current,
-                                    { type: 'Vec2', x: dx * 2, y: dy * 2 },
-                                    {
-                                        type: 'Vec2',
-                                        x: box.width * 2,
-                                        y: box.height * 2,
-                                    },
-                                ),
-                            ),
+                            text: printResult(value),
                             x: evt.clientX,
                             y: evt.clientY,
+                            pos: pos,
                         });
                     }}
                 />
@@ -225,9 +286,11 @@ void main() {
                     <div
                         style={{
                             position: 'absolute',
+                            fontFamily: 'monospace',
                             top: hover.y + 8,
                             left: hover.x + 8,
-                            padding: 16,
+                            padding: 4,
+                            opacity: 0.4,
                             backgroundColor: 'white',
                             border: '1px solid black',
                             pointerEvents: 'none',

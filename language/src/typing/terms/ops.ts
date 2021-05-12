@@ -22,6 +22,8 @@ import { getTypeError } from '../getTypeError';
 import { idFromName, idName, resolveIdentifier } from '../env';
 import { LocatedError, UnresolvedIdentifier } from '../errors';
 import { refName } from '../typePattern';
+import { walkType } from '../typeType';
+import { float, int, numeric } from '../preset';
 
 export const findUnaryOp = (
     env: Env,
@@ -246,13 +248,13 @@ const typeOp = (
 
     let is = env.global.builtins[op];
     if (!is) {
-        throw new Error(`Unexpected binary op ${op}`);
+        throw new LocatedError(location, `Unexpected binary op ${op}`);
     }
     if (is.type !== 'lambda') {
-        throw new Error(`${op} is not a function`);
+        throw new LocatedError(location, `${op} is not a function`);
     }
     if (is.args.length !== 2) {
-        throw new Error(`${op} is not a binary function`);
+        throw new LocatedError(location, `${op} is not a binary function`);
     }
     // Shortcut
     const rarg =
@@ -271,6 +273,26 @@ const typeOp = (
             );
         }
         is = applyTypeVariables(env, is, [left.is]) as LambdaType;
+    }
+
+    if (
+        is.args[0].type === 'ref' &&
+        is.args[0].ref.type === 'builtin' &&
+        is.args[0].ref.name === 'numeric'
+    ) {
+        if (typesEqual(left.is, int) || typesEqual(left.is, float)) {
+            is = walkType(is, (t) =>
+                typesEqual(t, numeric) ? left.is : null,
+            )! as LambdaType;
+        } else {
+            throw new LocatedError(
+                location,
+                `Numeric functions only work on int and float, not ${showType(
+                    env,
+                    left.is,
+                )}`,
+            );
+        }
     }
 
     const firstErr = getTypeError(
