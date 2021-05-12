@@ -181,6 +181,10 @@ const glslBuiltins: { [key: string]: Expr } = {
     b1f0ad60: record('46a4ed38', [
         builtinVal('*', pureFunction([Vec3, float], Vec3)),
     ]),
+    '4f54de00': builtinVal('normalize', pureFunction([Vec3], Vec3)),
+    '61ebd00a': builtinVal('length', pureFunction([Vec3], Vec3)),
+    '46be6aa2': builtinVal('clamp', pureFunction([Vec3, Vec3, Vec3], Vec3)),
+    '158b3394': builtinVal('round', pureFunction([Vec3], Vec3)),
 };
 
 // Ok plan is:
@@ -432,7 +436,12 @@ export const printRecord = (
         }
         return items([
             atom(builtinTypes[idRaw].name),
-            pp.args(args.map((arg) => termToGlsl(env, opts, arg))),
+            pp.args(
+                args.map((arg) => termToGlsl(env, opts, arg)),
+                '(',
+                ')',
+                false,
+            ),
         ]);
     }
     return atom(`nope_record${idRaw}`);
@@ -469,7 +478,12 @@ export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     }
     return items([
         termToGlsl(env, opts, apply.target),
-        args(apply.args.map((arg) => termToGlsl(env, opts, arg))),
+        args(
+            apply.args.map((arg) => termToGlsl(env, opts, arg)),
+            '(',
+            ')',
+            false,
+        ),
     ]);
 };
 
@@ -531,8 +545,9 @@ export const fileToGlsl = (
 
     // const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
     const items: Array<PP> = [
-        // pp.items([atom('#version 300 es')]),
+        pp.items([atom('#version 300 es')]),
         pp.items([atom('precision mediump float;')]),
+        pp.items([atom('out vec4 fragColor;')]),
         pp.items([atom('const float PI = 3.14159;')]),
         pp.items([
             atom('uniform '),
@@ -741,7 +756,7 @@ export const fileToGlsl = (
                 atom('void main() '),
                 block([
                     pp.items([
-                        atom('gl_FragColor'),
+                        atom('fragColor'),
                         atom(' = '),
                         idToGlsl(env, opts, id, false),
                         args(
@@ -776,5 +791,5 @@ export const fileToGlsl = (
     // if (opts.optimize) {
     //     optimizeAST(ast);
     // }
-    return items.map((item) => printToString(item, 1000)).join('\n\n');
+    return items.map((item) => printToString(item, 100)).join('\n\n');
 };

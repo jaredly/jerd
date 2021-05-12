@@ -183,8 +183,25 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
         vmax(vabs(cubePoint) - cubeSize)
     ),
         vmax(vabs(cubePoint) - innerCubeSize)
-    )
+    );
+    // reduce(
+    //     range(0, 10),
+    //     (result, i) => {
+    //         unionSDF()
+    //     },
+    //     result
+    // )
 }
+
+// Ok, so now what I want to do
+// is make a bunch of circles
+// and, like,
+// do I need an array for that?
+// Can I turn an array reduce into ...
+// something?
+// Should I have a builtin "range"?
+// And then "reduce" + "range" just becomes a for loop accumulator?
+// That sounds reasonable.
 
 2.0 * Vec3{x: 1.0, y: 2.0, z: 3.0}
 

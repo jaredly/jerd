@@ -116,16 +116,60 @@ const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 // END GLSL PRELUDE
 
 
-const sceneSDF = (iTime: float, samplePoint: Vec3) => {
-    const p2 = samplePoint - Vec3{
-        x: -sin(iTime * 2.0) / 2.0,
-        y: 0.0,
-        z: cos(iTime * 2.0) / 2.0,
-    };
-    min(
+// Ok, so now what I want to do
+// is make a bunch of circles
+// and, like,
+// do I need an array for that?
+// Can I turn an array reduce into ...
+// something?
+// Should I have a builtin "range"?
+// And then "reduce" + "range" just becomes a for loop accumulator?
+// That sounds reasonable.
 
-    length(samplePoint) - 0.1,
-    length(p2) - 0.1
+const sminCubic = ( a: float, b: float, k: float ) =>
+{
+    const h = max( k - abs(a - b), 0.0 ) / k;
+    const sixth = 1.0 / 6.0;
+    min( a, b ) - h * h * h * k * sixth;
+}
+
+const clampF = (v: float, minv: float, maxv: float) => max(min(v, maxv), minv)
+
+const clamp = (v: Vec3, min: Vec3, max: Vec3) => Vec3{
+    x: clampF(v.x, min.x, max.x),
+    y: clampF(v.y, min.y, max.y),
+    z: clampF(v.z, min.z, max.z),
+}
+
+// const roundf = (v: float) => 
+
+const roundv = (v: Vec3) => Vec3{
+    x: round(v.x),
+    y: round(v.y),
+    z: round(v.z),
+}
+
+const opRepLim = ( p: Vec3, c: float, l: Vec3) => {
+    p - c * clamp(roundv(p / c), negVec3(l), l);
+}
+
+const sceneSDF = (iTime: float, samplePoint: Vec3) => {
+    const double = iTime * 2.0;
+    const p2 = samplePoint - Vec3{
+        x: -sin(double) / 2.0,
+        y: sin(iTime / 4.0) / 2.0,
+        z: cos(double) / 2.0,
+    };
+    const p1 = samplePoint;
+    const p2 = opRepLim(p2, 0.1, Vec3{
+        x: 1.0,
+        y: 1.0,
+        z: 1.0,
+    });
+    sminCubic(
+        length(p1) - 0.5,
+        length(p2) - 0.03,
+        0.1,
     // const cubePoint = samplePoint;
     )
     // const cubePoint = cubePoint - Vec3{x: 0.0, y: 0.0, z: -1.0};
@@ -146,13 +190,20 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     // ),
     //     vmax(vabs(cubePoint) - innerCubeSize)
     // )
+
 }
+
+    // reduce(
+    //     range(0, 10),
+    //     (result, i) => unionSDF(result, circle(samplePoint, pos, size)),
+    //     result
+    // )
 
 
 const MAX_MARCHING_STEPS = 255
 const MIN_DIST = 0.0
 const MAX_DIST = 100.0
-const EPSILON = 0.0001
+const EPSILON = 0.00005
 
 
 // Ok folks, here comes the hard part!!
@@ -180,10 +231,19 @@ we'll try that first
 */
 const shortestDistanceToSurface:
 (float, Vec3, Vec3, float, float, int) => float
- = (iTime: float, eye: Vec3, marchingDirection: Vec3, start: float, end: float, stepsLeft: int) => {
-     if stepsLeft <= 0 {
-         end
-     } else {
+    = (
+        iTime: float,
+        // marchSource
+        eye: Vec3,
+        // marchDirection
+        marchingDirection: Vec3,
+        start: float,
+        end: float,
+        stepsLeft: int,
+    ) => {
+    if stepsLeft <= 0 {
+        end
+    } else {
         const dist = sceneSDF(iTime, eye + start * marchingDirection);
         if dist < EPSILON {
             start
@@ -195,7 +255,7 @@ const shortestDistanceToSurface:
                 shortestDistanceToSurface(iTime, eye, marchingDirection, depth, end, stepsLeft - 1)
             }
         }
-     }
+    }
 }
 
 
@@ -239,6 +299,7 @@ const estimateNormal = (iTime: float, p: Vec3) => normalize(Vec3{
 //  *
 //  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
 //  */
+
 const phongContribForLight = (
     iTime: float,
     k_d: Vec3,
@@ -249,6 +310,7 @@ const phongContribForLight = (
     lightPos: Vec3,
     lightIntensity: Vec3,
 ) => {
+    // TODO: Make structs please! Would be very nice to have multi-value returns.
     const N = estimateNormal(iTime, p);
     const L = normalize(lightPos - p);
     const V = normalize(eye - p);
@@ -256,11 +318,12 @@ const phongContribForLight = (
     // I do declare
     const R = normalize(reflect(negVec3(L), N));
 
+    // Normal vs direction of the light
     const dotLN = dot(L, N);
-    const dotRV = dot(R, V);
     if dotLN < 0.0 {
         Vec3{x: 0.0, y: 0.0, z: 0.0}
     } else {
+        const dotRV = dot(R, V);
         if dotRV < 0.0 {
             const m = k_d * dotLN;
             lightIntensity * m
@@ -308,6 +371,11 @@ const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha:
     color
 }
 
+const white = Vec3{x: 1.0,y: 1.0,z: 1.0}
+const red = Vec3{x: 1.0,y: 0.0,z: 0.0}
+const blue = Vec3{x: 0.0,y: 0.0,z: 1.0}
+const green = Vec3{x: 0.0,y: 1.0,z: 0.0}
+const black = Vec3{x: 0.0,y: 0.0,z: 0.0}
 
 /**
  * What do I want this to do?
@@ -317,29 +385,90 @@ const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha:
  *   OR do I just have a separate pass, that's not the
  *   javascript one? Lets start with that tbh.
  */
-
-@ffi
 const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+    Vec4{...red, w: 1.0}
+}
+
+// @ffi
+const phongLit = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+    // The direction to march in from the eye position
+    // which will then find the color of the provided pixel
 	const dir = rayDirection(45.0, iResolution, fragCoord);
     const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
     const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
 
-
     if dist > MAX_DIST - EPSILON {
         // Didn't hit anything
-        Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0};
+        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0};
     } else {
-        // const percent = fragCoord / iResolution;
-        // Vec4{...percent, z: sin(iTime / 0.5) * 0.5 + 0.5, w: 1.0}
-        const p = eye + dist * dir;
+        const worldPosForPixel = eye + dist * dir;
         
         const K_a = Vec3{x: 0.9, y: 0.2, z: 0.3};
         const K_d = Vec3{x: 0.0, y: 0.2, z: 0.7};
         const K_s = Vec3{x: 1.0, y: 1.0, z: 1.0};
         const shininess = 10.0;
-        
-        const color = phongIllumination(iTime, K_a, K_d, K_s, shininess, p, eye);
-        
+
+        const color = phongIllumination(iTime, K_a, K_d, K_s, shininess, worldPosForPixel, eye);
+
         Vec4{...color, w: 1.0};
+    }
+}
+
+
+const isPointingTowardLight = (iTime: float, p: Vec3, lightPos: Vec3) => {
+    const N = estimateNormal(iTime, p);
+    const L = normalize(lightPos - p);
+
+    const dotLN = dot(L, N);
+    dotLN >= 0.0
+}
+
+@ffi
+const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+    // The direction to march in from the eye position
+    // which will then find the color of the provided pixel
+	const dir = rayDirection(45.0, iResolution, fragCoord);
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+
+    if dist > MAX_DIST - EPSILON {
+        // Nothing visible
+        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0};
+    } else {
+        const worldPosForPixel = eye + dist * dir;
+        
+        const K_a = Vec3{x: 0.9, y: 0.2, z: 0.3};
+        const K_d = Vec3{x: 0.0, y: 0.2, z: 0.7};
+        const K_s = Vec3{x: 1.0, y: 1.0, z: 1.0};
+        const shininess = 10.0;
+
+        const light1Pos = Vec3{
+            x: 10.0 * sin(iTime),
+                            y: 10.0 * cos(iTime),
+                            z: 5.0
+                        };
+
+        const toLight = light1Pos - worldPosForPixel;
+
+        if isPointingTowardLight(iTime, worldPosForPixel, light1Pos) {
+            const marchToLight = shortestDistanceToSurface(
+                iTime, light1Pos, -1.0 * normalize(toLight), MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS,
+            );
+
+            if marchToLight > MAX_DIST - EPSILON * 10.0 {
+                Vec4{...white * 0.1, w: 1.0}
+            } else {
+                const offset = marchToLight - length(toLight);
+                const penumbra = 0.1;
+                // In shadow!
+                if offset < -EPSILON * 1000.0 {
+                    Vec4{...white * 0.1, w: 1.0}
+                } else {
+                    Vec4{...white, w: 1.0}
+                }
+            }
+        } else {
+            Vec4{...white * 0.1, w: 1.0}
+        }
     }
 }

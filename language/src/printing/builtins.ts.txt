@@ -398,6 +398,9 @@ export const floatToInt = Math.floor;
 //: (float, float) => float
 export const pow = Math.pow;
 
+//: (float) => float
+export const round = Math.round;
+
 //: float
 export const TAU = Math.PI * 2;
 //: float
