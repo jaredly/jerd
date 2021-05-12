@@ -10,6 +10,9 @@ import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import { OutputOptions } from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { fileToGlsl } from '@jerd/language/src/printing/glslPrinter';
 import { setup } from './setupGLSL';
+import { runTerm } from './eval';
+import { idFromName, idName } from '@jerd/language/src/typing/env';
+import * as builtins from '@jerd/language/src/printing/builtins';
 
 const key = 'glsl-jerd';
 
@@ -38,38 +41,53 @@ const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 }
 `;
 
+type Hover = { text: string; x: number; y: number };
+
 export default () => {
     const [text, setText] = React.useState(
         () => window.localStorage.getItem(key) || defaultSource,
     );
     const [output, setOutput] = React.useState('');
+    const [hover, setHover] = React.useState(null as Hover | null);
 
     const canvas = React.useRef(null);
     const sandboxRef = React.useRef(null);
     const updateRef = React.useRef(null);
+    const jsRef = React.useRef(null);
+    const currentTime = React.useRef(0.0);
+
+    const [isRunning, setIsRunning] = React.useState(true);
 
     React.useEffect(() => {
-        let t = 0;
+        if (!isRunning) {
+            return;
+        }
         const fn = () => {
-            t += 0.01;
+            currentTime.current += 0.01;
             if (updateRef.current) {
-                updateRef.current(t);
+                // @ts-ignore
+                updateRef.current(currentTime.current);
             }
             rid = requestAnimationFrame(fn);
         };
         let rid = requestAnimationFrame(fn);
         return () => cancelAnimationFrame(rid);
-    }, []);
+    }, [isRunning]);
 
     React.useEffect(() => {
         const tid = setTimeout(() => {
             const parsed: Array<Toplevel> = parse(text);
 
-            const { expressions, env } = typeFile(
-                parsed,
-                initialEnv,
-                'sandbox.jd',
-            );
+            let res;
+            try {
+                res = typeFile(parsed, initialEnv, 'sandbox.jd');
+            } catch (err) {
+                console.error(err);
+                console.error(err.toString());
+                console.log(err);
+                return;
+            }
+            const { expressions, env } = res;
             const irOpts: IOutputOptions = {
                 explicitHandlerFns: false,
             };
@@ -78,6 +96,28 @@ export default () => {
                 optimizeAggressive: true,
                 showAllUniques: true,
             };
+
+            const mains = Object.keys(env.global.metaData).filter((k) =>
+                env.global.metaData[k].tags.includes('main'),
+            );
+            const main = idFromName(mains[0]);
+            // @ts-ignore
+            const evalEnv = (window.evalEnv = {
+                builtins,
+                terms: {},
+                executionLimit: { ticks: 0, maxTime: 0, enabled: false },
+            });
+
+            const result = runTerm(
+                env,
+                env.global.terms[mains[0]],
+                main,
+                evalEnv,
+                false,
+            );
+            const fn = result[idName(main)];
+            console.log(fn);
+            jsRef.current = fn;
 
             const pp = fileToGlsl(
                 expressions,
@@ -89,40 +129,10 @@ export default () => {
                 builtinNames,
             );
             setOutput(pp);
+            // @ts-ignore
             const update = setup(sandboxRef.current, pp);
+            // @ts-ignore
             updateRef.current = update;
-            // const string_vert_code = `#version 300 es
-            // #ifdef GL_ES
-            // precision mediump float;
-            // #endif
-            // in vec2 a_position;
-            // in vec2 a_texcoord;
-            // out vec2 v_texcoord;
-            // out vec2 v_position;
-            // void main() {
-            //     v_position = a_position;
-            //     v_texcoord = a_texcoord;
-            // }`;
-
-            // const string_vert_code = `#version 300 es
-            // precision mediump float;
-            // in vec4 a_position;
-            // in vec4 a_normal;
-            // in vec2 a_texcoord;
-            // in vec4 a_color;
-            // out vec4 v_position;
-            // out vec4 v_normal;
-            // out vec2 v_texcoord;
-            // out vec4 v_color;
-
-            // // in vec4 a_position;
-            // // out vec4 Position;
-            // void main(){
-            //     v_position = a_position;
-            // }
-            // `;
-
-            // sandboxRef.current.load(pp);
         }, 100);
         return () => clearTimeout(tid);
     }, [text]);
@@ -131,11 +141,8 @@ export default () => {
         if (!canvas.current) {
             return console.error('npe');
         }
+        // @ts-ignore
         const gl = canvas.current.getContext('webgl2');
-        // // @ts-ignore
-        // const sandbox = new window.glsl.Canvas(canvas.current);
-        // // @ts-ignore
-        // const sandbox = new window.GlslCanvas(canvas.current);
         const defaultFrag = `#version 300 es
 
 precision mediump float;
@@ -185,7 +192,44 @@ void main() {
                     width={800}
                     height={800}
                     ref={canvas}
+                    onClick={(evt) => setIsRunning(!isRunning)}
+                    onMouseMove={(evt) => {
+                        const box = evt.currentTarget.getBoundingClientRect();
+                        const dx = evt.clientX - box.left;
+                        const dy = box.height - (evt.clientY - box.top);
+                        setHover({
+                            text: JSON.stringify(
+                                // @ts-ignore
+                                jsRef.current(
+                                    currentTime.current,
+                                    { type: 'Vec2', x: dx * 2, y: dy * 2 },
+                                    {
+                                        type: 'Vec2',
+                                        x: box.width * 2,
+                                        y: box.height * 2,
+                                    },
+                                ),
+                            ),
+                            x: evt.clientX,
+                            y: evt.clientY,
+                        });
+                    }}
                 />
+                {hover ? (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: hover.y + 8,
+                            left: hover.x + 8,
+                            padding: 16,
+                            backgroundColor: 'white',
+                            border: '1px solid black',
+                            pointerEvents: 'none',
+                        }}
+                    >
+                        {hover.text}
+                    </div>
+                ) : null}
             </div>
         </div>
     );
