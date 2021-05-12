@@ -55,6 +55,15 @@ export type GlobalEnv = {
     idNames: { [idName: string]: string };
     terms: { [key: string]: Term };
     exportedTerms: { [key: string]: Id };
+    metaData: {
+        [idName: string]: {
+            tags: Array<string>;
+            author?: string;
+            supersedes?: string;
+            supersededBy?: string;
+            createdMs: number;
+        };
+    };
     builtins: { [key: string]: Type };
 
     // number here is "number of type arguments"
@@ -116,6 +125,7 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
         names: {},
         idNames: {},
         exportedTerms: {},
+        metaData: {},
         terms: {},
         builtins: {},
         builtinTypes: {},
@@ -166,6 +176,7 @@ export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
         attributeNames: { ...env.attributeNames },
         recordGroups: { ...env.recordGroups },
         exportedTerms: { ...env.exportedTerms },
+        metaData: { ...env.metaData },
         names: { ...env.names },
         idNames: { ...env.idNames },
         terms: { ...env.terms },

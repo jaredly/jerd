@@ -539,11 +539,6 @@ export const fileToGlsl = (
     includeImport: boolean,
     builtinNames: Array<string>,
 ): string => {
-    // Object.keys(glslBuiltins).forEach(id => {
-    //     env.global.terms[id] = glslBuiltins[id]
-    // })
-
-    // const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
     const items: Array<PP> = [
         pp.items([atom('#version 300 es')]),
         pp.items([atom('precision mediump float;')]),
@@ -676,29 +671,37 @@ export const fileToGlsl = (
     //     );
     // });
 
-    const orderedTerms = expressionDeps(
-        env,
-        expressions.concat(
-            Object.keys(env.global.exportedTerms).map((name) => ({
-                type: 'ref',
-                ref: {
-                    type: 'user',
-                    id: env.global.exportedTerms[name],
-                },
-                location: nullLocation,
-                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
-            })),
-        ),
+    const mains = Object.keys(env.global.metaData).filter((k) =>
+        env.global.metaData[k].tags.includes('main'),
     );
+    if (mains.length > 1) {
+        console.warn(`Only one main allowed; ignoring the others`);
+    }
+    if (!mains.length) {
+        console.error(`No @main defined!`);
+        return '// Error: No @main defined';
+    }
+    const mainId = idFromName(mains[0]);
+    const mainTerm: Term = {
+        type: 'ref',
+        ref: {
+            type: 'user',
+            id: mainId,
+        },
+        location: nullLocation,
+        is: env.global.terms[idName(mainId)].is,
+    };
+
+    const orderedTerms = expressionDeps(env, expressions.concat([mainTerm]));
 
     const irTerms: { [idName: string]: Expr } = {};
 
     orderedTerms.forEach((idRaw) => {
+        // Don't output anything that I'm overriding with builtins
         if (glslBuiltins[idRaw]) {
             irTerms[idRaw] = glslBuiltins[idRaw];
             return;
         }
-        // TODO: dedup w/ typescript here
         let term = env.global.terms[idRaw];
 
         const id = idFromName(idRaw);
@@ -725,71 +728,35 @@ export const fileToGlsl = (
             declarationToGlsl(
                 senv,
                 opts,
-                // irOpts,
                 idRaw,
                 irTerm,
-                // term.is,
                 '*\n```\n' + comment + '\n```\n',
             ),
         );
     });
 
-    // expressions.forEach((term) => {
-    //     const comment = printToString(termToPretty(env, term), 100);
-    //     if (assert && typesEqual(term.is, bool)) {
-    //         term = wrapWithAssert(term);
-    //     }
-    //     term = liftEffects(env, term);
-    //     const irTerm = ir.printTerm(env, irOpts, term);
-    //     items.push(
-    //         addComment(
-    //             termToGlsl(env, opts, optimize(env, irTerm)),
-    //             '\n' + comment + '\n',
-    //         ),
-    //     );
-    // });
-
-    Object.keys(env.global.exportedTerms).forEach((name) => {
-        const id = env.global.exportedTerms[name];
-        items.push(
-            pp.items([
-                atom('void main() '),
-                block([
-                    pp.items([
-                        atom('fragColor'),
-                        atom(' = '),
-                        idToGlsl(env, opts, id, false),
-                        args(
-                            [
-                                atom('u_time'),
-                                atom('gl_FragCoord.xy'),
-                                atom('u_resolution'),
-                            ],
-                            '(',
-                            ')',
-                            false,
-                        ),
-                    ]),
+    items.push(
+        pp.items([
+            atom('void main() '),
+            block([
+                pp.items([
+                    atom('fragColor'),
+                    atom(' = '),
+                    idToGlsl(env, opts, mainId, false),
+                    args(
+                        [
+                            atom('u_time'),
+                            atom('gl_FragCoord.xy'),
+                            atom('u_resolution'),
+                        ],
+                        '(',
+                        ')',
+                        false,
+                    ),
                 ]),
             ]),
-            // t.exportNamedDeclaration(
-            //     t.variableDeclaration('const', [
-            //         t.variableDeclarator(
-            //             t.identifier(name),
-            //             t.identifier(
-            //                 'hash_' + idName(env.global.exportedTerms[name]),
-            //             ),
-            //         ),
-            //     ]),
-            // ),
-        );
-    });
+        ]),
+    );
 
-    // const ast = t.file(t.program(items, [], 'script'));
-    // TODO: port all of these to the IR optimizer, so that they work
-    // across targets.
-    // if (opts.optimize) {
-    //     optimizeAST(ast);
-    // }
     return items.map((item) => printToString(item, 100)).join('\n\n');
 };

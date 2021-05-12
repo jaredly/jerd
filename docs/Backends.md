@@ -1,6 +1,14 @@
 
 ## GLSL? also Wasm?
 
+Next steps:
+- I'd really like a web something, which could showcase the power of having a language that compiles to javascript and glsl.
+
+
+
+
+
+
 OK Big question:
 Do I bake in the vector types that glsl expects?
 like, should I just bite the bullet and make builtins for them?

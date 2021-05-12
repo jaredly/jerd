@@ -423,7 +423,7 @@ const isPointingTowardLight = (iTime: float, p: Vec3, lightPos: Vec3) => {
     dotLN >= 0.0
 }
 
-@ffi
+@main
 const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     // The direction to march in from the eye position
     // which will then find the color of the provided pixel

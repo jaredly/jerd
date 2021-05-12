@@ -11,6 +11,7 @@ import {
     typeTypeDefn,
     typeEnumDefn,
     typeEffect,
+    idName,
 } from '../typing/env';
 
 import { presetEnv } from '../typing/preset';
@@ -35,8 +36,12 @@ export function typeFile(
 
         if (item.type === 'define') {
             // console.log('>> A define', item.id.text);
-            const { term, env: nenv } = typeDefine(env, item);
+            const { term, env: nenv, id } = typeDefine(env, item);
             env = nenv;
+            env.global.metaData[idName(id)] = {
+                tags: [],
+                createdMs: Date.now(),
+            };
             // console.log('< unified type', showType(env, term.is));
         } else if (item.type === 'effect') {
             env = typeEffect(env, item);
@@ -45,14 +50,20 @@ export function typeFile(
         } else if (item.type === 'EnumDef') {
             env = typeEnumDefn(env, item).env;
         } else if (item.type === 'Decorated') {
+            if (item.wrapped.type === 'define') {
+                const { term, env: nenv, id } = typeDefine(env, item.wrapped);
+                env = nenv;
+                if (item.decorators[0].id.text === 'ffi') {
+                    env.global.exportedTerms[item.wrapped.id.text] = id;
+                } else {
+                    env.global.metaData[idName(id)] = {
+                        tags: item.decorators.map((d) => d.id.text),
+                        createdMs: Date.now(),
+                    };
+                }
+            }
             if (item.decorators[0].id.text === 'ffi') {
                 if (item.wrapped.type === 'define') {
-                    const { term, env: nenv, id } = typeDefine(
-                        env,
-                        item.wrapped,
-                    );
-                    env = nenv;
-                    env.global.exportedTerms[item.wrapped.id.text] = id;
                     continue;
                 }
                 if (item.wrapped.type !== 'StructDef') {

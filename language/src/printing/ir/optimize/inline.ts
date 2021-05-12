@@ -85,10 +85,11 @@ const getInlineableFunction = (
             }
             return null;
         }
+        return null;
         // hmm just reject self-recursive things please I think
-        if (isInlinable(t, target.id)) {
-            return t;
-        }
+        // if (isInlinable(t, target.id)) {
+        //     return t;
+        // }
     }
     // It's might be a constant!
     if (target.type === 'attribute' && target.target.type === 'term') {
@@ -111,10 +112,10 @@ const getInlineableFunction = (
             }
             return null;
         }
-        if (isInlinable(value as LambdaExpr, self)) {
-            return value;
-        }
-        // target.ref;
+        return null;
+        // if (isInlinable(value as LambdaExpr, self)) {
+        //     return value;
+        // }
     }
     return null;
 };
