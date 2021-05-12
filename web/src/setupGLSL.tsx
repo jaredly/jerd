@@ -28,6 +28,7 @@ void main() {
     gl_Position = position;
 }`;
 
+// Many thanks to https://github.com/tsherif/webgl2examples/
 export const setup = (gl: WebGL2RenderingContext, fragmentShader: string) => {
     const fragment = createShader(gl, gl.FRAGMENT_SHADER, fragmentShader);
     const vertex = createShader(gl, gl.VERTEX_SHADER, defaultVertextShader);
@@ -50,7 +51,10 @@ export const setup = (gl: WebGL2RenderingContext, fragmentShader: string) => {
     gl.deleteShader(vertex);
 
     const utime = gl.getUniformLocation(program, 'u_time');
-    gl.uniform1f(utime, 1.0);
+    gl.uniform1f(utime, 0.0);
+
+    const uresolution = gl.getUniformLocation(program, 'u_resolution');
+    gl.uniform2f(uresolution, gl.canvas.width, gl.canvas.height);
 
     var triangleArray = gl.createVertexArray();
     gl.bindVertexArray(triangleArray);

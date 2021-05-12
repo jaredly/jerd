@@ -26,9 +26,21 @@ const builtinNames = Object.keys(tsBuiltins);
 const initialGlobal = loadPrelude(typedBuiltins);
 const initialEnv = newWithGlobal(initialGlobal);
 
+const defaultSource = `// Hello world
+
+@ffi type Vec2 = {x: float, y: float}
+@ffi type Vec3 = { ...Vec2, z: float}
+@ffi type Vec4 = { ...Vec3, w: float}
+
+@main
+const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+  Vec4{x: sin(iTime * 3.0) * 0.5 + 0.5, y: 1.0, z: 0.0, w: 1.0}
+}
+`;
+
 export default () => {
     const [text, setText] = React.useState(
-        () => window.localStorage.getItem(key) || '// Hello world',
+        () => window.localStorage.getItem(key) || defaultSource,
     );
     const [output, setOutput] = React.useState('');
 
@@ -38,13 +50,15 @@ export default () => {
 
     React.useEffect(() => {
         let t = 0;
-        const iid = setInterval(() => {
-            t += 0.1;
+        const fn = () => {
+            t += 0.01;
             if (updateRef.current) {
                 updateRef.current(t);
             }
-        }, 100);
-        return () => clearInterval(iid);
+            rid = requestAnimationFrame(fn);
+        };
+        let rid = requestAnimationFrame(fn);
+        return () => cancelAnimationFrame(rid);
     }, []);
 
     React.useEffect(() => {
@@ -166,7 +180,12 @@ void main() {
                 </div>
             </div>
             <div>
-                <canvas width={400} height={400} ref={canvas} />
+                <canvas
+                    style={{ width: 400, height: 400 }}
+                    width={800}
+                    height={800}
+                    ref={canvas}
+                />
             </div>
         </div>
     );
