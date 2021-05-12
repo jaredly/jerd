@@ -29,7 +29,11 @@ void main() {
 }`;
 
 // Many thanks to https://github.com/tsherif/webgl2examples/
-export const setup = (gl: WebGL2RenderingContext, fragmentShader: string) => {
+export const setup = (
+    gl: WebGL2RenderingContext,
+    fragmentShader: string,
+    currentTime: number,
+) => {
     const fragment = createShader(gl, gl.FRAGMENT_SHADER, fragmentShader);
     const vertex = createShader(gl, gl.VERTEX_SHADER, defaultVertextShader);
     const program = gl.createProgram();
@@ -51,7 +55,7 @@ export const setup = (gl: WebGL2RenderingContext, fragmentShader: string) => {
     gl.deleteShader(vertex);
 
     const utime = gl.getUniformLocation(program, 'u_time');
-    gl.uniform1f(utime, 0.0);
+    gl.uniform1f(utime, currentTime);
 
     const uresolution = gl.getUniformLocation(program, 'u_resolution');
     gl.uniform2f(uresolution, gl.canvas.width, gl.canvas.height);

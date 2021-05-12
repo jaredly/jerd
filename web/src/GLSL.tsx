@@ -130,7 +130,7 @@ export default () => {
             );
             setOutput(pp);
             // @ts-ignore
-            const update = setup(sandboxRef.current, pp);
+            const update = setup(sandboxRef.current, pp, currentTime.current);
             // @ts-ignore
             updateRef.current = update;
         }, 100);
@@ -194,6 +194,12 @@ void main() {
                     ref={canvas}
                     onClick={(evt) => setIsRunning(!isRunning)}
                     onMouseMove={(evt) => {
+                        // START HERE:
+                        // Ok folks, what we really want is a `trace!()` macro
+                        // that will populate this hover dealio as we mouse around
+                        // so that we can real-time introspect what's going on
+                        // yes that's right my good folks.
+                        // all the good stuff, right here.
                         const box = evt.currentTarget.getBoundingClientRect();
                         const dx = evt.clientX - box.left;
                         const dy = box.height - (evt.clientY - box.top);

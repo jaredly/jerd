@@ -175,7 +175,7 @@ const glslBuiltins: { [key: string]: Expr } = {
         builtinVal('+', pureFunction([Vec2, Vec2], Vec2)),
         builtinVal('-', pureFunction([Vec2, Vec2], Vec2)),
     ]),
-    '028f8a0e': record('1de4e4c0', [
+    '73d73040': record('1de4e4c0', [
         builtinVal('*', pureFunction([Vec3, Vec3], Vec3)),
     ]),
     '1d31aa6e': record('1de4e4c0', [
