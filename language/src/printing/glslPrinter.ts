@@ -103,7 +103,7 @@ const builtinTypes: {
             { idx: 0, sub: null },
         ],
     },
-    '54570db9': {
+    d92781e8: {
         name: 'mat4',
         args: [
             { idx: 0, sub: null },
@@ -127,6 +127,7 @@ const refType = (idRaw: string): ir.Type => ({
 const Vec2: ir.Type = refType('629a8360');
 const Vec3: ir.Type = refType('14d8ae44');
 const Vec4: ir.Type = refType('5026f640');
+const Mat4: ir.Type = refType('d92781e8');
 
 const record = (idRaw: string, rows: Array<Expr>): Expr => {
     return {
@@ -178,11 +179,18 @@ const glslBuiltins: { [key: string]: Expr } = {
         builtinVal('+', pureFunction([Vec3, float], Vec3)),
         builtinVal('-', pureFunction([Vec3, float], Vec3)),
     ]),
+    '6d631644': record('b99b22d8', [
+        builtinVal('+', pureFunction([Vec2, float], Vec2)),
+        builtinVal('-', pureFunction([Vec2, float], Vec2)),
+    ]),
     '56d43c0e': record('5ac12902', [
         builtinVal('/', pureFunction([Vec4, float], Vec4)),
     ]),
     '28569bc0': record('1de4e4c0', [
         builtinVal('*', pureFunction([Vec2, float], Vec2)),
+    ]),
+    '16557d10': record('1de4e4c0', [
+        builtinVal('*', pureFunction([Mat4, Vec4], Vec4)),
     ]),
     '1c6fdd91': record('b99b22d8', [
         builtinVal('+', pureFunction([Vec3, Vec3], Vec3)),

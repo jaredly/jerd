@@ -56,6 +56,11 @@ const AddSubVec2 = AddSub<Vec2, Vec2, Vec2>{
     "-": (one: Vec2, two: Vec2) => Vec2{x: one.x - two.x, y: one.y - two.y},
 }
 
+const AddSubVec2_ = AddSub<Vec2, float, Vec2>{
+    "+": (one: Vec2, two: float) => Vec2{x: one.x + two, y: one.y + two},
+    "-": (one: Vec2, two: float) => Vec2{x: one.x - two, y: one.y - two},
+}
+
 const AddSubVec3_ = AddSub<Vec3, float, Vec3>{
     "+": (one: Vec3, two: float) => Vec3{x: one.x + two, y: one.y + two, z: one.z + two},
     "-": (one: Vec3, two: float) => Vec3{x: one.x - two, y: one.y - two, z: one.z - two},
@@ -187,7 +192,7 @@ const opRepLim = ( p: Vec3, c: float, l: Vec3) => {
 
 const fract = (v: float) => v - floor(v)
 
-const random2 = (st: Vec2) => {
+const random = (st: Vec2) => {
     fract(sin(dot2(st, Vec2{x: 12.9898, y: 78.233})) * 43758.5453123);
 }
 
@@ -197,11 +202,15 @@ const random3 = (xy: Vec2, seed: float) => {
     fract(tan(distance2(xy * PHI, xy) * seed) * xy.x);
 }
 
+// const random = (xy: Vec2) => {
+//     fract(tan(distance2(xy * PHI, xy) * 200.0) * xy.x);
+// }
+
 const vmax = (v: Vec3) => {
     max(max(v.x, v.y), v.z);
 }
 
-const random = (co: Vec2) => {
+const random2 = (co: Vec2) => {
     const a = 12.9898;
     const b = 78.233;
     const c = 43758.5453;
@@ -222,24 +231,26 @@ const box = (samplePoint: Vec3, pos: Vec3, dims: Vec3) => {
 //     }
 // }
 
-const sceneSDF = (iTime: float, samplePoint: Vec3) => {
+const sceneSDFBoxes = (iTime: float, samplePoint: Vec3) => {
     const double = iTime * 2.0;
-    const p2 = samplePoint - Vec3{
-        x: -sin(double) / 2.0,
-        y: sin(iTime / 4.0) / 2.0,
-        z: cos(double) / 2.0,
-    };
+    // const p2 = samplePoint - Vec3{
+    //     x: -sin(double) / 2.0,
+    //     y: sin(iTime / 4.0) / 2.0,
+    //     z: cos(double) / 2.0,
+    // };
     // const p1 = samplePoint;
+
     const p1 = opRepLim(samplePoint, 0.3, Vec3{
         x: 2.0,
         y: 0.0,
         z: 0.0,
     });
-    const p2 = opRepLim(p2, 0.1, Vec3{
-        x: 1.0,
-        y: 1.0,
-        z: 1.0,
-    });
+    // const p2 = opRepLim(p2, 0.1, Vec3{
+    //     x: 1.0,
+    //     y: 1.0,
+    //     z: 1.0,
+    // });
+
     min(
         max(
             vmax(vabs(p1) - Vec3{x: 0.1, y: 0.3, z: 0.4}),
@@ -250,6 +261,90 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
             y: 0.0,
             z: -5.0,
         }) - Vec3{x: 1.4, y: 1.4, z: 0.3})
+    )
+}
+
+
+const rotate = (tx: float, ty: float, tz: float) => {
+    // gamma, beta, alpha
+    const cg = cos(tx); // roll
+    const sg = sin(tx);
+    const cb = cos(ty); // pitch
+    const sb = sin(ty);
+    const ca = cos(tz); // yaw
+    const sa = sin(tz);
+
+    Mat4{
+        r1: vec4(ca * cb, ca * sb * sg - sa * cg, ca * sb * cg + sa * sg, 0.0),
+        r2: vec4(sa * cb, sa * sb * sg + ca * cg, sa * sb * cg - ca * sg, 0.0),
+        r3: vec4(-sb, cb * sg, cb * cg, 0.0),
+        r4: vec4(0.0, 0.0, 0.0, 1.0)
+    };
+}
+
+const rotateY = (theta: float) => {
+    const c = cos(theta);
+    const s = sin(theta);
+
+    Mat4{
+        r1: vec4(c, 0.0, s, 0.0),
+        r2: vec4(0.0, 1.0, 0.0, 0.0),
+        r3: vec4(-s, 0.0, c, 0.0),
+        r4: vec4(0.0, 0.0, 0.0, 1.0)
+    };
+}
+
+const rotate3 = (v: Vec3, x: float, y: float, z: float) => {
+    xyz(rotate(x, y, z) * Vec4{...v, w: 1.0})
+}
+
+const sceneSDF = (iTime: float, samplePoint: Vec3) => {
+    const double = iTime * 2.0;
+    // const p2 = samplePoint - Vec3{
+    //     x: -sin(double) / 2.0,
+    //     y: sin(iTime / 4.0) / 2.0,
+    //     z: cos(double) / 2.0,
+    // };
+    // const p1 = samplePoint;
+    const pBack = samplePoint - Vec3{
+        x: 0.0,
+        y: 0.0,
+        z: -5.0,
+    };
+    // const samplePoint = rotate3(samplePoint, 0.0, PI / 8.0, 0.0);
+    const samplePoint = rotate3(samplePoint, 0.0, PI / 2.3, 0.0);
+
+    // const p1 = opRepLim(samplePoint, 0.4, Vec3{
+    //     x: 1.0,
+    //     y: 1.0,
+    //     z: 0.0,
+    // });
+    const p1 = samplePoint;
+    const samplePoint = samplePoint - Vec3{x: 0.0, y: 0.0, z: -0.20};
+
+    // const samplePoint = rotate3(samplePoint, 1.0 * PI / 4.0, 2.0 * PI / 4.0, 2.0 * PI / 4.0);
+    // const p1 = opRepLim(samplePoint, 0.3, Vec3{
+    //     x: 2.03
+    //     y: 0.0,
+    //     z: 0.0,
+    // });
+    // const p2 = opRepLim(p2, 0.1, Vec3{
+    //     x: 1.0,
+    //     y: 1.0,
+    //     z: 1.0,
+    // });
+
+    min(
+        min(
+            max(
+                vmax(vabs(samplePoint) - 0.2),
+                -vmax(vabs(samplePoint) - Vec3{x: 0.15, y: 0.15, z: 0.3})
+            ),
+            vmax(vabs(pBack) - Vec3{x: 1.4, y: 1.4, z: 0.3})
+        ),
+        vmax(vabs(p1) - Vec3{
+            x: 0.10, y: 0.10, z: 0.02
+        }),
     )
 }
 
@@ -462,8 +557,8 @@ const avg = (one: Vec4, two: Vec4): Vec4 => {
 //     const dist = 
 // }
 
-const volumetricSample = (iTime: float, seed: float, light: Vec3, eye: Vec3, dist: float, dir: Vec3, left: int) => {
-    const rdist = random(Vec2{x: seed, y: left as float}) * dist;
+const volumetricSample = (iTime: float, seed: Vec2, light: Vec3, eye: Vec3, dist: float, dir: Vec3, left: int) => {
+    const rdist = random(Vec2{x: seed.x, y: seed.y + left as float}) * dist;
     const sample = eye + rdist * dir;
     const lightDist = distance(sample, light);
 
@@ -479,8 +574,8 @@ const volumetricSample = (iTime: float, seed: float, light: Vec3, eye: Vec3, dis
     }
 }
 
-const volumetric : (float, float, Vec3, Vec3, float, Vec3, float, int) => float
- = (iTime: float, seed: float, light: Vec3, eye: Vec3, dist: float, dir: Vec3, current: float, left: int) => {
+const volumetric : (float, Vec2, Vec3, Vec3, float, Vec3, float, int) => float
+ = (iTime: float, seed: Vec2, light: Vec3, eye: Vec3, dist: float, dir: Vec3, current: float, left: int) => {
     if left <= 0 {
         current
     } else {
@@ -503,6 +598,7 @@ const lightSurface = (
     worldPosForPixel: Vec3,
     light1Pos: Vec3,
     light: float,
+    hit: float,
 ) => {
         if isPointingTowardLight(iTime, worldPosForPixel, light1Pos) {
             const toLight = light1Pos - worldPosForPixel;
@@ -519,7 +615,7 @@ const lightSurface = (
                 if offset < -EPSILON * 1000.0 {
                     Vec4{...white * light, w: 1.0}
                 } else {
-                    Vec4{...white, w: 1.0}
+                    Vec4{...white * hit, w: 1.0}
                 }
             }
         } else {
@@ -538,7 +634,6 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     // TODO: trace!()
     const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
 
-    const light = 0.2;
 
     if dist > MAX_DIST - EPSILON {
         // Nothing visible
@@ -547,18 +642,21 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
         const worldPosForPixel = eye + dist * dir;
 
         const light1Pos = Vec3{
-            x: 0.5 * sin(iTime / 2.0),
+            x: 0.2 + sin(iTime) / 2.0,
             y: 0.0,
+            // x: 0.5 * sin(iTime / 2.0),
+            // y: 0.5 * cos(iTime / 2.0),
             z: 0.0
         };
 
-        // const surfaces = lightSurface(
-        //     iTime, worldPosForPixel, light1Pos, light);
+        const surfaces = lightSurface(
+            iTime, worldPosForPixel, light1Pos, 0.0, 0.01);
         const samples = 5;
         
         const brightness = volumetric(
             iTime,
-            random(fragCoord / iResolution) * iTime,
+            // random() + iTime, // random(Vec2{x: iTime / 100.0, y: 0.0}),
+            fragCoord / iResolution + iTime / 1000.0, //iTime,
             // fragCoord.x + fragCoord.y * iResolution.y,
             light1Pos,
             eye,

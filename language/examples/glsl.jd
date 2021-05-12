@@ -247,7 +247,6 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     //     result
     // )
 
-
 const MAX_MARCHING_STEPS = 255
 const MIN_DIST = 0.0
 const MAX_DIST = 100.0
