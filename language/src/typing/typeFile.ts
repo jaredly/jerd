@@ -61,27 +61,40 @@ export function typeFile(
                         createdMs: Date.now(),
                     };
                 }
+                continue;
             }
-            if (item.decorators[0].id.text === 'ffi') {
-                if (item.wrapped.type === 'define') {
-                    continue;
-                }
-                if (item.wrapped.type !== 'StructDef') {
-                    throw new Error(`@ffi can only be applied to RecordDef`);
-                }
-                // the tag is the name by default
-                const tag =
-                    item.decorators[0].args.length === 1
-                        ? typeExpr(env, item.decorators[0].args[0])
-                        : null;
-                if (tag && tag.type !== 'string') {
-                    throw new Error(`ffi tag must be a string literal`);
-                }
-                env = typeTypeDefn(
-                    env,
-                    item.wrapped,
-                    tag ? tag.text : item.wrapped.id.text,
+            if (item.wrapped.type === 'StructDef') {
+                const unique = item.decorators.filter(
+                    (d) => d.id.text === 'unique',
                 );
+                const ffi = item.decorators.filter((d) => d.id.text === 'ffi');
+                let unum = undefined;
+                if (unique.length) {
+                    if (
+                        unique[0].args.length !== 1 ||
+                        unique[0].args[0].type !== 'float'
+                    ) {
+                        throw new LocatedError(
+                            item.location,
+                            `@unique must have a float argument`,
+                        );
+                    }
+                    unum = unique[0].args[0].value;
+                }
+                let tag = undefined;
+                if (ffi.length) {
+                    tag = item.wrapped.id.text;
+                    if (ffi[0].args.length === 1) {
+                        if (ffi[0].args[0].type !== 'string') {
+                            throw new LocatedError(
+                                item.location,
+                                `ffi arg must be a string`,
+                            );
+                        }
+                        tag = ffi[0].args[0].text;
+                    }
+                }
+                env = typeTypeDefn(env, item.wrapped, tag, unum);
             } else if (item.decorators[0].id.text === 'typeError') {
                 const args = item.decorators[0].args.map((expr) =>
                     typeExpr(env, expr),
@@ -126,9 +139,6 @@ export function typeFile(
                         100,
                     )}`,
                 );
-            } else if (item.wrapped.type === 'define') {
-                const { term, env: nenv } = typeDefine(env, item.wrapped);
-                env = nenv;
             } else {
                 throw new Error(`Unhandled decorator`);
             }

@@ -78,27 +78,27 @@ const builtinTypes: {
         args: Array<{ sub: string | null; idx: number }>;
     };
 } = {
-    '629a8360': {
+    '43802a16': {
         name: 'vec2',
         args: [
             { idx: 0, sub: null },
             { idx: 1, sub: null },
         ],
     },
-    '14d8ae44': {
+    '9f1c0644': {
         name: 'vec3',
         args: [
-            { idx: 0, sub: '629a8360' },
-            { idx: 1, sub: '629a8360' },
+            { idx: 0, sub: '43802a16' },
+            { idx: 1, sub: '43802a16' },
             { idx: 0, sub: null },
         ],
     },
-    '5026f640': {
+    '3b941378': {
         name: 'vec4',
         args: [
-            { idx: 0, sub: '629a8360' },
-            { idx: 1, sub: '629a8360' },
-            { idx: 0, sub: '14d8ae44' },
+            { idx: 0, sub: '43802a16' },
+            { idx: 1, sub: '43802a16' },
+            { idx: 0, sub: '9f1c0644' },
             { idx: 0, sub: null },
         ],
     },
@@ -155,36 +155,38 @@ One way is: replace the hash (e.g. )
 
 */
 const glslBuiltins: { [key: string]: Expr } = {
-    '6b6b626e': record('0864b2ac', [
+    '6b6b626e': record('5ac12902', [
         builtinVal('/', pureFunction([Vec2, Vec2], Vec2)),
     ]),
-    '8b11a434': record('0864b2ac', [
+    '68f73ad4': record('5ac12902', [
         builtinVal('/', pureFunction([Vec3, float], Vec3)),
     ]),
-    '26eb98a2': record('46a4ed38', [
+    c4a91006: record('1de4e4c0', [
         builtinVal('*', pureFunction([float, Vec3], Vec3)),
     ]),
-    e2590e8c: record('0864b2ac', [
+    afc24bbe: record('5ac12902', [
         builtinVal('/', pureFunction([Vec2, float], Vec2)),
     ]),
-    '3f234c18': record('3a129423', [
+    '28231a34': record('4f27cf5e', [
         builtinVal('+', pureFunction([Vec3, Vec3], Vec3)),
         builtinVal('-', pureFunction([Vec3, Vec3], Vec3)),
     ]),
-    '47a61cb4': record('3a129423', [
+    '7d6a3886': record('4f27cf5e', [
         builtinVal('+', pureFunction([Vec2, Vec2], Vec2)),
         builtinVal('-', pureFunction([Vec2, Vec2], Vec2)),
     ]),
-    '028f8a0e': record('46a4ed38', [
+    '028f8a0e': record('1de4e4c0', [
         builtinVal('*', pureFunction([Vec3, Vec3], Vec3)),
     ]),
-    b1f0ad60: record('46a4ed38', [
+    '1d31aa6e': record('1de4e4c0', [
         builtinVal('*', pureFunction([Vec3, float], Vec3)),
     ]),
-    '4f54de00': builtinVal('normalize', pureFunction([Vec3], Vec3)),
-    '61ebd00a': builtinVal('length', pureFunction([Vec3], Vec3)),
-    '46be6aa2': builtinVal('clamp', pureFunction([Vec3, Vec3, Vec3], Vec3)),
-    '158b3394': builtinVal('round', pureFunction([Vec3], Vec3)),
+    '255c39c3': builtinVal('dot', pureFunction([Vec3, Vec3], float)),
+    ce463a80: builtinVal('normalize', pureFunction([Vec3], Vec3)),
+    '1cc335a2': builtinVal('length', pureFunction([Vec3], Vec3)),
+    '5483fdc2': builtinVal('clamp', pureFunction([Vec3, Vec3, Vec3], Vec3)),
+    f2f2e188: builtinVal('clamp', pureFunction([float, float, float], float)),
+    '65acfcda': builtinVal('round', pureFunction([Vec3], Vec3)),
 };
 
 // Ok plan is:

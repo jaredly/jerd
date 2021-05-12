@@ -16,7 +16,7 @@ import { EvalEnv } from './State';
 import {
     optimize,
     optimizeDefine,
-} from '@jerd/language/src/printing/ir/optimize';
+} from '@jerd/language/src/printing/ir/optimize/optimize';
 import { liftEffects } from '@jerd/language/src/printing/pre-ir/lift-effectful';
 
 export class TimeoutError extends Error {}

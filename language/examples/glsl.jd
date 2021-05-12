@@ -25,13 +25,20 @@ type Mat4 = {
     r4: Vec4,
 }
 
+@unique(0.0)
 type AddSub<A> = {
     "+": (A, A) => A,
     "-": (A, A) => A
 }
 
+@unique(1.0)
 type Mul<A, B, C> = {
     "*": (A, B) => C
+}
+
+@unique(2.0)
+type Div<A, B, C> = {
+    "/": (A, B) => C
 }
 
 const AddSubVec3 = AddSub<Vec3>{
@@ -54,10 +61,6 @@ const ScaleVec3_ = Mul<Vec3, float, Vec3>{
 
 const ScaleVec3 = Mul<float, Vec3, Vec3>{
     "*": (scale: float, v: Vec3) => Vec3{x: v.x * scale, y: v.y * scale, z: v.z * scale}
-}
-
-type Div<A, B, C> = {
-    "/": (A, B) => C
 }
 
 const MulVec2 = Div<Vec2, Vec2, Vec2>{

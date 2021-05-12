@@ -211,8 +211,9 @@ export const typeTypeDefn = (
     env: Env,
     defn: StructDef,
     ffiTag?: string,
+    unum?: number,
 ): Env => {
-    return typeRecord(env, defn, ffiTag).env;
+    return typeRecord(env, defn, ffiTag, unum).env;
 };
 
 export const typeEnumInner = (env: Env, defn: EnumDef) => {
@@ -346,7 +347,7 @@ export const typeRecordDefn = (
 
     return {
         type: 'Record',
-        unique: unique != null ? unique : env.global.rng(),
+        unique: ffiTag ? 0 : unique != null ? unique : env.global.rng(),
         typeVbls,
         location,
         effectVbls,
