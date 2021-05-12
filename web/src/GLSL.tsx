@@ -9,6 +9,7 @@ import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
 import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import { OutputOptions } from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { fileToGlsl } from '@jerd/language/src/printing/glslPrinter';
+import { setup } from './setupGLSL';
 
 const key = 'glsl-jerd';
 
@@ -33,6 +34,18 @@ export default () => {
 
     const canvas = React.useRef(null);
     const sandboxRef = React.useRef(null);
+    const updateRef = React.useRef(null);
+
+    React.useEffect(() => {
+        let t = 0;
+        const iid = setInterval(() => {
+            t += 0.1;
+            if (updateRef.current) {
+                updateRef.current(t);
+            }
+        }, 100);
+        return () => clearInterval(iid);
+    }, []);
 
     React.useEffect(() => {
         const tid = setTimeout(() => {
@@ -62,18 +75,20 @@ export default () => {
                 builtinNames,
             );
             setOutput(pp);
-            const string_vert_code = `#version 300 es
-            #ifdef GL_ES
-            precision mediump float;
-            #endif
-            in vec2 a_position;
-            in vec2 a_texcoord;
-            out vec2 v_texcoord;
-            out vec2 v_position;
-            void main() {
-                v_position = a_position;
-                v_texcoord = a_texcoord;
-            }`;
+            const update = setup(sandboxRef.current, pp);
+            updateRef.current = update;
+            // const string_vert_code = `#version 300 es
+            // #ifdef GL_ES
+            // precision mediump float;
+            // #endif
+            // in vec2 a_position;
+            // in vec2 a_texcoord;
+            // out vec2 v_texcoord;
+            // out vec2 v_position;
+            // void main() {
+            //     v_position = a_position;
+            //     v_texcoord = a_texcoord;
+            // }`;
 
             // const string_vert_code = `#version 300 es
             // precision mediump float;
@@ -93,7 +108,7 @@ export default () => {
             // }
             // `;
 
-            sandboxRef.current.load(pp, string_vert_code);
+            // sandboxRef.current.load(pp);
         }, 100);
         return () => clearTimeout(tid);
     }, [text]);
@@ -102,13 +117,26 @@ export default () => {
         if (!canvas.current) {
             return console.error('npe');
         }
-        // const ctx = canvas.current.getContext('webgl2')
-        // @ts-ignore
-        const sandbox = new window.GlslCanvas(canvas.current);
+        const gl = canvas.current.getContext('webgl2');
+        // // @ts-ignore
+        // const sandbox = new window.glsl.Canvas(canvas.current);
+        // // @ts-ignore
+        // const sandbox = new window.GlslCanvas(canvas.current);
+        const defaultFrag = `#version 300 es
+
+precision mediump float;
+
+out vec4 fragColor;
+uniform float u_time;
+uniform vec2 u_resolution;
+void main() {
+    fragColor = vec4(1.00000, 1.00000, 0.00000, 1.00000);
+}`;
         // const string_frag_code =
         //     'void main(){\ngl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n}\n';
+        setup(gl, defaultFrag);
         // sandbox.load(string_frag_code);
-        sandboxRef.current = sandbox;
+        sandboxRef.current = gl;
     }, []);
 
     return (
@@ -138,7 +166,7 @@ export default () => {
                 </div>
             </div>
             <div>
-                <canvas ref={canvas} />
+                <canvas width={400} height={400} ref={canvas} />
             </div>
         </div>
     );
