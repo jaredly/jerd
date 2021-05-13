@@ -19,6 +19,15 @@ And then `irTerms` is where we find the generated term?
 or maybe we want a new mapping just for `genTerm`s? idk.
 
 
+- [ ] support writing back to a render buffer, so I can simulate conway's life! And the double pendulum dealio
+
+
+
+
+
+
+
+
 OK Big question:
 Do I bake in the vector types that glsl expects?
 like, should I just bite the bullet and make builtins for them?

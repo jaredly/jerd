@@ -231,7 +231,7 @@ const box = (samplePoint: Vec3, pos: Vec3, dims: Vec3) => {
 //     }
 // }
 
-const sceneSDFBoxes = (iTime: float, samplePoint: Vec3) => {
+const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     const double = iTime * 2.0;
     // const p2 = samplePoint - Vec3{
     //     x: -sin(double) / 2.0,
@@ -298,7 +298,7 @@ const rotate3 = (v: Vec3, x: float, y: float, z: float) => {
     xyz(rotate(x, y, z) * Vec4{...v, w: 1.0})
 }
 
-const sceneSDF = (iTime: float, samplePoint: Vec3) => {
+const sceneSDFsingle = (iTime: float, samplePoint: Vec3) => {
     const double = iTime * 2.0;
     // const p2 = samplePoint - Vec3{
     //     x: -sin(double) / 2.0,
@@ -312,7 +312,7 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
         z: -5.0,
     };
     // const samplePoint = rotate3(samplePoint, 0.0, PI / 8.0, 0.0);
-    const samplePoint = rotate3(samplePoint, 0.0, PI / 2.3, 0.0);
+    const samplePoint = rotate3(samplePoint, 0.0, PI / 3.0, 0.0);
 
     // const p1 = opRepLim(samplePoint, 0.4, Vec3{
     //     x: 1.0,
@@ -557,8 +557,8 @@ const avg = (one: Vec4, two: Vec4): Vec4 => {
 //     const dist = 
 // }
 
-const volumetricSample = (iTime: float, seed: Vec2, light: Vec3, eye: Vec3, dist: float, dir: Vec3, left: int) => {
-    const rdist = random(Vec2{x: seed.x, y: seed.y + left as float}) * dist;
+const volumetricSample = (iTime: float, light: Vec3, eye: Vec3, dist: float, percent: float, dir: Vec3, left: int) => {
+    const rdist = percent * dist;
     const sample = eye + rdist * dir;
     const lightDist = distance(sample, light);
 
@@ -574,11 +574,14 @@ const volumetricSample = (iTime: float, seed: Vec2, light: Vec3, eye: Vec3, dist
     }
 }
 
-const volumetric : (float, Vec2, Vec3, Vec3, float, Vec3, float, int) => float
- = (iTime: float, seed: Vec2, light: Vec3, eye: Vec3, dist: float, dir: Vec3, current: float, left: int) => {
+const volumetric : (float, Vec2, Vec3, Vec3, float, Vec3, float, int, float) => float
+ = (iTime: float, seed: Vec2, light: Vec3, eye: Vec3, dist: float, dir: Vec3, current: float, left: int, total: float) => {
     if left <= 0 {
         current
     } else {
+        const percent = left as float / total;
+        // const percent = random(Vec2{x: seed.x, y: seed.y + left as float});
+        const sample = volumetricSample(iTime, light, eye, dist, percent, dir, left);
         volumetric(
             iTime,
             seed,
@@ -586,8 +589,9 @@ const volumetric : (float, Vec2, Vec3, Vec3, float, Vec3, float, int) => float
             eye,
             dist,
             dir,
-            current + volumetricSample(iTime, seed, light, eye, dist, dir, left),
-            left - 1
+            current + sample,
+            left - 1,
+            total
         )
     }
     // random(Vec2{x: seed, y: 1.0}) * 10.0
@@ -642,16 +646,21 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
         const worldPosForPixel = eye + dist * dir;
 
         const light1Pos = Vec3{
-            x: 0.2 + sin(iTime) / 2.0,
+            x: 0.0 + sin(iTime) / 2.0,
             y: 0.0,
             // x: 0.5 * sin(iTime / 2.0),
             // y: 0.5 * cos(iTime / 2.0),
             z: 0.0
         };
 
+
+        const light1Pos = Vec3{ x: 0.0, y: 0.0, z: 0.0 };
+
+
         const surfaces = lightSurface(
             iTime, worldPosForPixel, light1Pos, 0.0, 0.01);
-        const samples = 5;
+        const samples = sin(iTime * 0.5) * 10.0 + 20.0;
+        // const samples = samples as int;
         
         const brightness = volumetric(
             iTime,
@@ -663,7 +672,7 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
             dist,
             dir,
             0.0,
-        samples) * 0.3 / samples as float;
+        samples as int, samples) * 1.0 / samples;
 
         // avg(surfaces, Vec4{...white * brightness, w: 1.0})
         Vec4{...white * brightness, w: 1.0}
