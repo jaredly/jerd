@@ -159,6 +159,7 @@ One way is: replace the hash (e.g. )
 const glslBuiltins: { [key: string]: Expr } = {
     '6f186ad1': record('As', [builtinVal('float', pureFunction([int], float))]),
     '184a69ed': record('As', [builtinVal('int', pureFunction([float], int))]),
+    '4478b64a': builtinVal('cross', pureFunction([Vec3, Vec3], Vec3)),
 
     '090f77e7': record('5ac12902', [
         builtinVal('/', pureFunction([Vec2, Vec2], Vec2)),
