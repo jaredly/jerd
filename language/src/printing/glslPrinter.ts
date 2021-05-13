@@ -582,6 +582,13 @@ export const fileToGlsl = (
         ]),
         pp.items([
             atom('uniform '),
+            atom('vec3'),
+            atom(' '),
+            atom('u_camera'),
+            atom(';'),
+        ]),
+        pp.items([
+            atom('uniform '),
             atom('vec2'),
             atom(' '),
             atom('u_resolution'),
@@ -777,6 +784,7 @@ export const fileToGlsl = (
                             atom('u_time'),
                             atom('gl_FragCoord.xy'),
                             atom('u_resolution'),
+                            // atom('u_camera'),
                         ],
                         '(',
                         ')',

@@ -240,7 +240,7 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     // };
     // const p1 = samplePoint;
 
-    const p1 = opRepLim(samplePoint, 0.3, Vec3{
+    const p1 = opRepLim(samplePoint, 0.25, Vec3{
         x: 2.0,
         y: 0.0,
         z: 0.0,
@@ -253,14 +253,14 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
 
     min(
         max(
-            vmax(vabs(p1) - Vec3{x: 0.1, y: 0.3, z: 0.4}),
-            -vmax(vabs(p1) - Vec3{x: 0.11, y: 0.2, z: 0.3})
+            vmax(vabs(p1) - Vec3{x: 0.1, y: 0.3, z: 0.6}),
+            -vmax(vabs(p1) - Vec3{x: 0.11, y: 0.2, z: 0.55})
         ),
         vmax(vabs(samplePoint - Vec3{
             x: 0.0,
             y: 0.0,
             z: -0.1,
-        }) - Vec3{x: 1.2, y: 1.0, z: 0.1})
+        }) - Vec3{x: 10.2, y: 10.0, z: 0.1})
     )
 }
 
@@ -579,8 +579,8 @@ const volumetric : (float, Vec2, Vec3, Vec3, float, Vec3, float, int, float) => 
     if left <= 0 {
         current
     } else {
-        // const percent = left as float / total;
-        const percent = random(Vec2{x: seed.x, y: seed.y + left as float});
+        const percent = left as float / total;
+        // const percent = random(Vec2{x: seed.x, y: seed.y + left as float});
         const sample = volumetricSample(iTime, light, eye, dist, percent, dir, left);
         volumetric(
             iTime,
@@ -648,9 +648,10 @@ const viewMatrix = (eye: Vec3, center: Vec3, up: Vec3) => {
 
 // @ffi
 // @main
-const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera: Vec3) => {
 	const viewDir = rayDirection(45.0, iResolution, fragCoord);
-    const eye = Vec3{x: 0.0, y: -5.0, z: 6.0};
+    const eye = uCamera;
+    // const eye = Vec3{...uCamera, z: 6.0};
     
     const viewToWorld = viewMatrix(eye, Vec3{x: 0.0, y: 0.0, z: 0.0}, Vec3{x: 0.0, y: 1.0, z: 0.0});
     
@@ -674,7 +675,7 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 
         const light1Pos = Vec3{
             // x: 0.17,
-            x: 0.0 + sin(iTime / 2.0) / 1.0,
+            x: 0.15 + sin(iTime / 2.0) / 1.0,
             y: 0.0,
             // x: 0.5 * sin(iTime / 2.0),
             // y: 0.5 * cos(iTime / 2.0),
@@ -701,10 +702,10 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
             dist,
             dir,
             0.0,
-        samples as int, samples) * 1.0 / samples;
+        samples as int, samples) * 3.0 / samples;
 
         // avg(surfaces, Vec4{...white * brightness, w: 1.0})
-        Vec4{...white * brightness, w: 1.0}
+        Vec4{...white * brightness * brightness * brightness, w: 1.0}
         // surfaces
     }
 }
@@ -740,7 +741,8 @@ const randFolks = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
     const small = Vec2{x: small.x, y: small.y + iTime};
     // const v = random(small / iResolution) / 10.0 + 0.9;
     const v = random(small / iResolution) / 10.0 + 0.9;
-    const bouey = fishingBoueys(iTime, fragCoord, iResolution);
+    const uCamera = Vec3{x: 0.0, y: -5.0, z: 2.0};
+    const bouey = fishingBoueys(iTime, fragCoord, iResolution, uCamera);
     // const two = Vec4{...blue * v, w: 1.0} + bouey;
     // two / 2.0
     bouey
