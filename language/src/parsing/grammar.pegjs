@@ -188,9 +188,14 @@ Block = "{" _ items:Statements? _ "}" {
     return {type: 'block', items: items || [], location: location()}
 }
 
-If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
+If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ (Block / IfElse))? {
     return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
 }
+
+IfElse = v:If {
+    return {type: 'block', items: [v], location: location()}
+}
+
 
 Switch = "switch" __ expr:Expression __ "{" _
     cases:SwitchCases

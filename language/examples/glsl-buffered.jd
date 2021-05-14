@@ -33,27 +33,15 @@ const writeBuffer = (
     const dist = distance2(pos, fragCoord / iResolution);
     if dist < 0.01 {
         Vec4{x: 1.0, y: 1.0, z: 0.0, w: 1.0}
+    } else if dist < 0.03 {
+        avg(texture(buffer, fragCoord / iResolution),
+        Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0})
     } else {
-        if dist < 0.03 {
-            avg(texture(buffer, fragCoord / iResolution),
-            Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0})
-        } else {
-            texture(buffer, fragCoord / iResolution)
-        // const mix = texture(buffer, fragCoord) + newColor(iTime, fragCoord / iResolution);
-        // mix / 2.0
-        }
+        texture(buffer, fragCoord / iResolution)
     }
 }
 
-
-// const initial = (
-//     fragCoord
-// )
-
-
-
-
-const live = Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0}
+const live = Vec4{x: 1.0, y: 0.6, z: 1.0, w: 1.0}
 const dead = Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
 
 const isLive = (color: Vec4) => color.x > 0.5
@@ -67,7 +55,37 @@ const neighbor = (offset: Vec2, coord: Vec2, res: Vec2, buffer: sampler2D) => {
     }
 }
 
+// const neighbors: FixedArray<Vec2, 8> = [
+//     Vec2{x: -1.0, y:  0.0}
+//     Vec2{x: -1.0, y:  1.0}
+//     Vec2{x: -1.0, y: -1.0}
+//     Vec2{x:  1.0, y:  0.0}
+//     Vec2{x:  1.0, y:  1.0}
+//     Vec2{x:  1.0, y: -1.0}
+//     Vec2{x:  0.0, y:  1.0}
+//     Vec2{x:  0.0, y: -1.0}
+// ]
+
+// Or maybe it's just that, at the IR level,
+// arrays might have known or unknown length.
+// And if we can infer the length, then we
+// can do stuff.
+// And if we can't, then we can't.
+
+// reduce needs to be built-in I believe.
+// And maybe it takes a fixed array?
+// How are fixed arrays typed?
+// Maybe they're mostly not?
+// const reduce = <T, R>(value: FixedArray<T>, initial: R, fn: (T, R) => R) => { }
+
 const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
+    // Ok, so reduce can be inlined
+    // the lambda cannot
+    // I need a much more robust system of inlining
+    // That can handle literally anythign in the IR.
+    // So that I can be confident.
+    // reduce(neighbors, 0, (total, offset) => total + neighbor(offset, coord, res, buffer))
+
     neighbor(Vec2{x: -1.0, y:  0.0}, coord, res, buffer) +
     neighbor(Vec2{x: -1.0, y:  1.0}, coord, res, buffer) +
     neighbor(Vec2{x: -1.0, y: -1.0}, coord, res, buffer) +
@@ -99,11 +117,11 @@ const gameOfLife = (
         const neighbors = countNeighbors(fragCoord, iResolution, buffer);
         if self && neighbors == 2 {
             live
-        } else {if neighbors == 3 {
+        } else if neighbors == 3 {
             live
         } else {
             dead
-        }}
+        }
     }
 }
 
