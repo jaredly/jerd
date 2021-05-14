@@ -385,6 +385,10 @@ export const isSquare = (x: number) => {
     return Math.floor(m) === m;
 };
 
+//: (sampler2D, Vec2#43802a16) => Vec4#3b941378
+export const texture = (sampler: any, coord: { x: number; y: number }) =>
+    sampler[y][x];
+
 //: (int) => string
 export const intToString = (x: number) => x.toString();
 //: (int) => float

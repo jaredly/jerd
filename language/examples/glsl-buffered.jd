@@ -1,0 +1,120 @@
+
+const MAX_MARCHING_STEPS = 255
+const MIN_DIST = 0.0
+const MAX_DIST = 100.0
+const EPSILON = 0.00005
+
+const newColor = (iTime: float, fragPos: Vec2) => {
+    const pos = Vec2{x: random(Vec2{x: iTime, y: 0.0}), y: random(Vec2{x: 0.0, y: iTime})};
+    const dist = distance2(pos, fragPos);
+    if dist < 0.03 {
+        Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
+    } else {
+        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+    }
+}
+
+const avg = (a: Vec4, b: Vec4) => {
+    const sum = a + b;
+    sum / 2.0;
+}
+
+// @ffi
+// @buffer0
+const writeBuffer = (
+    iTime: float,
+    fragCoord: Vec2,
+    iResolution: Vec2,
+    uCamera: Vec3,
+    // last buffer
+    buffer: sampler2D,
+) => {
+    const pos = Vec2{x: random(Vec2{x: iTime, y: 0.0}), y: random(Vec2{x: 0.0, y: iTime})};
+    const dist = distance2(pos, fragCoord / iResolution);
+    if dist < 0.01 {
+        Vec4{x: 1.0, y: 1.0, z: 0.0, w: 1.0}
+    } else {
+        if dist < 0.03 {
+            avg(texture(buffer, fragCoord / iResolution),
+            Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0})
+        } else {
+            texture(buffer, fragCoord / iResolution)
+        // const mix = texture(buffer, fragCoord) + newColor(iTime, fragCoord / iResolution);
+        // mix / 2.0
+        }
+    }
+}
+
+
+// const initial = (
+//     fragCoord
+// )
+
+
+
+
+const live = Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0}
+const dead = Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+
+const isLive = (color: Vec4) => color.x > 0.5
+
+const neighbor = (offset: Vec2, coord: Vec2, res: Vec2, buffer: sampler2D) => {
+    const coord = coord + offset;
+    if isLive(texture(buffer, coord / res)) {
+        1
+    } else {
+        0
+    }
+}
+
+const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
+    neighbor(Vec2{x: -1.0, y:  0.0}, coord, res, buffer) +
+    neighbor(Vec2{x: -1.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x: -1.0, y: -1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y:  0.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y: -1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  0.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  0.0, y: -1.0}, coord, res, buffer)
+}
+
+@ffi
+@buffer0
+const gameOfLife = (
+    iTime: float,
+    fragCoord: Vec2,
+    iResolution: Vec2,
+    uCamera: Vec3,
+    // last buffer
+    buffer: sampler2D,
+) => {
+    if iTime < 1.0 {
+        if random(fragCoord / iResolution) > 0.95 {
+            live
+        } else {
+            dead
+        }
+    } else {
+        const self = isLive(texture(buffer, fragCoord / iResolution));
+        const neighbors = countNeighbors(fragCoord, iResolution, buffer);
+        if self && neighbors == 2 {
+            live
+        } else {if neighbors == 3 {
+            live
+        } else {
+            dead
+        }}
+    }
+}
+
+@ffi
+@main
+const main = (
+    iTime: float,
+    fragCoord: Vec2,
+    iResolution: Vec2,
+    uCamera: Vec3,
+    buffer0: sampler2D,
+) => {
+    texture(buffer0, fragCoord / iResolution)
+}

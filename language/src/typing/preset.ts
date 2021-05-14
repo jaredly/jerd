@@ -130,6 +130,8 @@ export function presetEnv(builtins: { [key: string]: Type }) {
     env.global.builtinTypes['bool'] = 0;
     env.global.builtinTypes['string'] = 0;
     env.global.builtinTypes['Array'] = 1;
+    // GLSL my good folks
+    env.global.builtinTypes['sampler2D'] = 0;
 
     for (let i = 2; i < 10; i++) {
         env.global.builtinTypes['Tuple' + i] = i;

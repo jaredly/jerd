@@ -10,7 +10,7 @@ import {
 // because we'll need it in a web ui.
 import { Env, Symbol, subEnv, Type, Id } from './types';
 import { showLocation } from './typeExpr';
-import { resolveEffect, symPrefix } from './env';
+import { idFromName, resolveEffect, symPrefix } from './env';
 import { LocatedError, MismatchedTypeVbl } from './errors';
 
 export const walkType = (
@@ -81,6 +81,18 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     sym: { unique, name: type.id.text },
                     location: type.location,
                     // STOPSHIP: typeVbls and effectVbls for vars
+                };
+            }
+            if (type.id.hash) {
+                return {
+                    type: 'ref',
+                    ref: {
+                        type: 'user',
+                        id: idFromName(type.id.hash.slice(1)),
+                    },
+                    typeVbls,
+                    // effectVbls,
+                    location: type.location,
                 };
             }
             // if (type.id.hash && type.id.hash === '#self') {

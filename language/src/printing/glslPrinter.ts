@@ -3,7 +3,7 @@
 // import * as t from '@babel/types';
 import { expressionDeps, sortTerms } from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
-import { bool } from '../typing/preset';
+// import { bool } from '../typing/preset';
 import {
     EffectRef,
     Env,
@@ -34,6 +34,7 @@ import {
     Apply,
 } from './ir/types';
 import {
+    bool,
     float,
     handlersType,
     handlerSym,
@@ -214,6 +215,9 @@ const glslBuiltins: { [key: string]: Expr } = {
     '5483fdc2': builtinVal('clamp', pureFunction([Vec3, Vec3, Vec3], Vec3)),
     f2f2e188: builtinVal('clamp', pureFunction([float, float, float], float)),
     '65acfcda': builtinVal('round', pureFunction([Vec3], Vec3)),
+    '9275f914': record('553b4b8e', [
+        builtinVal('==', pureFunction([int, int], bool)),
+    ]),
 };
 
 // Ok plan is:
@@ -573,6 +577,7 @@ export const fileToGlsl = (
         pp.items([atom('precision mediump float;')]),
         pp.items([atom('out vec4 fragColor;')]),
         pp.items([atom('const float PI = 3.14159;')]),
+        atom('uniform sampler2D u_buffer0;'),
         pp.items([
             atom('uniform '),
             atom('float'),
@@ -707,6 +712,31 @@ export const fileToGlsl = (
     //     );
     // });
 
+    const buffers: Array<string> = [];
+    Object.keys(env.global.metaData).forEach((k) => {
+        const b = env.global.metaData[k].tags.filter((t) =>
+            t.startsWith('buffer'),
+        );
+        if (!b.length) {
+            return;
+        }
+        if (b.length > 1) {
+            throw new Error(`multiple buffer tags`);
+        }
+        const num = parseInt(b[0].slice('buffer'.length));
+        if (isNaN(num)) {
+            throw new Error(`Invalid buffer tag ${b[0]}`);
+        }
+        buffers[num] = k;
+    });
+    for (let i = 0; i < buffers.length; i++) {
+        if (!buffers[i]) {
+            throw new Error(
+                `No buffer ${i} defined. Must have all buffers in a row.`,
+            );
+        }
+    }
+
     const mains = Object.keys(env.global.metaData).filter((k) =>
         env.global.metaData[k].tags.includes('main'),
     );
@@ -728,7 +758,24 @@ export const fileToGlsl = (
         is: env.global.terms[idName(mainId)].is,
     };
 
-    const orderedTerms = expressionDeps(env, expressions.concat([mainTerm]));
+    const orderedTerms = expressionDeps(
+        env,
+        expressions.concat([
+            mainTerm,
+            ...buffers.map(
+                (id) =>
+                    ({
+                        type: 'ref',
+                        ref: {
+                            type: 'user',
+                            id: idFromName(id),
+                        },
+                        location: nullLocation,
+                        is: env.global.terms[id].is,
+                    } as Term),
+            ),
+        ]),
+    );
 
     const irTerms: { [idName: string]: Expr } = {};
 
@@ -771,6 +818,37 @@ export const fileToGlsl = (
         );
     });
 
+    const mainArgs = [
+        atom('u_time'),
+        atom('gl_FragCoord.xy'),
+        atom('u_resolution'),
+        atom('u_camera'),
+    ];
+
+    if (buffers.length > 1) {
+        throw new Error('multi buffer not impl');
+    }
+    if (buffers.length) {
+        mainArgs.push(atom('u_buffer0'));
+        items.push(atom('#if defined(BUFFER_0)'));
+
+        items.push(
+            pp.items([
+                atom('void main() '),
+                block([
+                    pp.items([
+                        atom('fragColor'),
+                        atom(' = '),
+                        idToGlsl(env, opts, idFromName(buffers[0]), false),
+                        args(mainArgs, '(', ')', false),
+                    ]),
+                ]),
+            ]),
+        );
+
+        items.push(atom('#else'));
+    }
+
     items.push(
         pp.items([
             atom('void main() '),
@@ -779,21 +857,15 @@ export const fileToGlsl = (
                     atom('fragColor'),
                     atom(' = '),
                     idToGlsl(env, opts, mainId, false),
-                    args(
-                        [
-                            atom('u_time'),
-                            atom('gl_FragCoord.xy'),
-                            atom('u_resolution'),
-                            atom('u_camera'),
-                        ],
-                        '(',
-                        ')',
-                        false,
-                    ),
+                    args(mainArgs, '(', ')', false),
                 ]),
             ]),
         ]),
     );
+
+    if (buffers.length) {
+        items.push(atom('#endif\n'));
+    }
 
     return items.map((item) => printToString(item, 100)).join('\n\n');
 };
