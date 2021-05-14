@@ -784,7 +784,7 @@ export const fileToGlsl = (
                             atom('u_time'),
                             atom('gl_FragCoord.xy'),
                             atom('u_resolution'),
-                            // atom('u_camera'),
+                            atom('u_camera'),
                         ],
                         '(',
                         ')',
