@@ -1709,6 +1709,49 @@ function peg$parse(input: string, options?: IParseOptions) {
     let s0, s1, s2, s3;
 
     s0 = peg$currPos;
+    if (input.charCodeAt(peg$currPos) === 40) {
+      s1 = peg$c4;
+      peg$currPos++;
+    } else {
+      s1 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$c5); }
+    }
+    if (s1 !== peg$FAILED) {
+      s2 = peg$parseInParen();
+      if (s2 !== peg$FAILED) {
+        if (input.charCodeAt(peg$currPos) === 41) {
+          s3 = peg$c6;
+          peg$currPos++;
+        } else {
+          s3 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c7); }
+        }
+        if (s3 !== peg$FAILED) {
+          s1 = [s1, s2, s3];
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+    } else {
+      peg$currPos = s0;
+      s0 = peg$FAILED;
+    }
+    if (s0 === peg$FAILED) {
+      s0 = peg$parseInParen();
+    }
+
+    return s0;
+  }
+
+  function peg$parseInParen(): any {
+    let s0, s1, s2, s3;
+
+    s0 = peg$currPos;
     s1 = peg$parseWithUnary();
     if (s1 !== peg$FAILED) {
       s2 = [];

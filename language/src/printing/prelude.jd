@@ -160,6 +160,16 @@ const ScaleVec2Rev = Div<Vec2, float, Vec2>{
     "/": (v: Vec2, scale: float) => Vec2{x: v.x / scale, y: v.y / scale}
 }
 
+// Ugh I need a "just add", and not sure how to distinguish
+// between something else.
+// Do I need to make the jump to 'multiple names' now?
+// I mean I think I probably do.
+// Ok, so we want "type-directed name resolution", right?
+// I also want rather more inference of like function types and stuff.
+
+// So yeah, names added in order of creation, so most recently added one
+// will be the "first choice", but if it misses, then go on to other ones.
+
 const negVec3 = (v: Vec3) => {
     Vec3{x: -v.x, y: -v.y, z: -v.z}
 }
@@ -253,6 +263,8 @@ const opRepLim = ( p: Vec3, c: float, l: Vec3) => {
 }
 
 const fract = (v: float) => v - floor(v)
+const fract3 = (v: Vec3) => Vec3{x: fract(v.x), y: fract(v.y), z: fract(v.z)}
+const abs3 = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 
 const random = (st: Vec2) => {
     fract(sin(dot2(st, Vec2{x: 12.9898, y: 78.233})) * 43758.5453123);

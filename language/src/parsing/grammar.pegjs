@@ -81,7 +81,8 @@ RecordItem = id:IdTextOrString _ ":" _ type:Type {return {type: 'Row', id: id.ty
 // ===== Expressions ======
 
 // Binop
-Expression = first:WithUnary rest:BinOpRight* {
+Expression = "(" InParen ")" / InParen
+InParen = first:WithUnary rest:BinOpRight* {
     if (rest.length) {
         return {type: 'ops', first, rest, location: location()}
     } else {

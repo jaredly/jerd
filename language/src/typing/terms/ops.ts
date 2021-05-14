@@ -20,7 +20,7 @@ import typeExpr, {
 } from '../typeExpr';
 import { getTypeError } from '../getTypeError';
 import { idFromName, idName, resolveIdentifier } from '../env';
-import { LocatedError, UnresolvedIdentifier } from '../errors';
+import { LocatedError, TypeMismatch, UnresolvedIdentifier } from '../errors';
 import { refName } from '../typePattern';
 import { walkType } from '../typeType';
 import { float, int, numeric } from '../preset';
@@ -280,7 +280,10 @@ const typeOp = (
         is.args[0].ref.type === 'builtin' &&
         is.args[0].ref.name === 'numeric'
     ) {
-        if (typesEqual(left.is, int) || typesEqual(left.is, float)) {
+        if (!typesEqual(left.is, rarg.is)) {
+            throw new TypeMismatch(env, left.is, rarg.is, left.location);
+        }
+        if (true || typesEqual(left.is, int) || typesEqual(left.is, float)) {
             is = walkType(is, (t) =>
                 typesEqual(t, numeric) ? left.is : null,
             )! as LambdaType;
