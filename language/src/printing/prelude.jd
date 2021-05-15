@@ -144,6 +144,14 @@ const Scale4 = Div<Vec4, float, Vec4>{
     "/": (v: Vec4, scale: float) => Vec4{x: v.x / scale, y: v.y / scale, z: v.z / scale, w: v.w / scale}
 }
 
+const Scale42 = Div<Vec4, Vec4, Vec4>{
+    "/": (v: Vec4, scale: Vec4) => Vec4{x: v.x / scale.x, y: v.y / scale.y, z: v.z / scale.z, w: v.w / scale.w}
+}
+
+const Mul42 = Mul<Vec4, Vec4, Vec4>{
+    "*": (v: Vec4, scale: Vec4) => Vec4{x: v.x * scale.x, y: v.y * scale.y, z: v.z * scale.z, w: v.w * scale.w}
+}
+
 const MulVec2 = Div<Vec2, Vec2, Vec2>{
     "/": (v: Vec2, scale: Vec2) => Vec2{x: v.x / scale.x, y: v.y / scale.y}
 }
@@ -280,6 +288,10 @@ const random3 = (xy: Vec2, seed: float) => {
 //     fract(tan(distance2(xy * PHI, xy) * 200.0) * xy.x);
 // }
 
+const vmax2 = (v: Vec2) => {
+    max(v.x, v.y)
+}
+
 const vmax = (v: Vec3) => {
     max(max(v.x, v.y), v.z);
 }
@@ -294,7 +306,14 @@ const random2 = (co: Vec2) => {
 }
 
 const vabs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
+const vabs2 = (v: Vec2) => Vec2{x: abs(v.x), y: abs(v.y)}
 
 const box = (samplePoint: Vec3, pos: Vec3, dims: Vec3) => {
     vmax(vabs(samplePoint - pos) - dims)
+}
+
+const lerp = (a: float, b: float, c: float) => c * (b - a) + a
+
+const mix = (a: Vec3, b: Vec3, c: float) => {
+    Vec3{x: lerp(a.x, b.x, c), y: lerp(a.y, b.y, c), z: lerp(a.z, b.z, c)}
 }

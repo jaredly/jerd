@@ -81,8 +81,7 @@ RecordItem = id:IdTextOrString _ ":" _ type:Type {return {type: 'Row', id: id.ty
 // ===== Expressions ======
 
 // Binop
-Expression = "(" InParen ")" / InParen
-InParen = first:WithUnary rest:BinOpRight* {
+Expression = first:WithUnary rest:BinOpRight* {
     if (rest.length) {
         return {type: 'ops', first, rest, location: location()}
     } else {
@@ -172,9 +171,12 @@ ArrayItem = ArraySpread / Expression
 ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, location: location() }}
 
 TupleLiteral = "(" _ items:TupleItems _ ")" {
+    if (items.length === 1) {
+        return items[0]
+    }
     return {type: 'Tuple', location: location(), items}
 }
-TupleItems = first:Expression rest:(_ "," _ Expression)+ {
+TupleItems = first:Expression rest:(_ "," _ Expression)* {
     return [first, ...rest.map((r: any) => r[3])]
 }
 

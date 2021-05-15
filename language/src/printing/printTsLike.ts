@@ -432,12 +432,15 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 ]);
             }
             if (isBinOp(term.target) && term.args.length === 2) {
+                // TODO: if term.args[0] is a binop with higher precedence, maybe wrap it?
                 return items([
+                    atom('('),
                     termToPretty(env, term.args[0]),
                     atom(' '),
                     termToPretty(env, term.target),
                     atom(' '),
                     termToPretty(env, term.args[1]),
+                    atom(')'),
                 ]);
             }
             return items([

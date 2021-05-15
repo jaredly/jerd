@@ -189,8 +189,14 @@ const glslBuiltins: { [key: string]: Expr } = {
     '56d43c0e': record('5ac12902', [
         builtinVal('/', pureFunction([Vec4, float], Vec4)),
     ]),
+    '5776a60e': record('5ac12902', [
+        builtinVal('/', pureFunction([Vec4, Vec4], Vec4)),
+    ]),
     '28569bc0': record('1de4e4c0', [
         builtinVal('*', pureFunction([Vec2, float], Vec2)),
+    ]),
+    '1b694fee': record('1de4e4c0', [
+        builtinVal('*', pureFunction([Vec4, Vec4], Vec4)),
     ]),
     '16557d10': record('1de4e4c0', [
         builtinVal('*', pureFunction([Mat4, Vec4], Vec4)),
@@ -217,6 +223,9 @@ const glslBuiltins: { [key: string]: Expr } = {
     '65acfcda': builtinVal('round', pureFunction([Vec3], Vec3)),
     '9275f914': record('553b4b8e', [
         builtinVal('==', pureFunction([int, int], bool)),
+    ]),
+    c41f7386: record('553b4b8e', [
+        builtinVal('==', pureFunction([float, float], bool)),
     ]),
 };
 

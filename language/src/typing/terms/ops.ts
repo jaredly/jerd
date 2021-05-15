@@ -23,7 +23,7 @@ import { idFromName, idName, resolveIdentifier } from '../env';
 import { LocatedError, TypeMismatch, UnresolvedIdentifier } from '../errors';
 import { refName } from '../typePattern';
 import { walkType } from '../typeType';
-import { float, int, numeric } from '../preset';
+import { float, int, numeric, string } from '../preset';
 
 export const findUnaryOp = (
     env: Env,
@@ -283,7 +283,12 @@ const typeOp = (
         if (!typesEqual(left.is, rarg.is)) {
             throw new TypeMismatch(env, left.is, rarg.is, left.location);
         }
-        if (true || typesEqual(left.is, int) || typesEqual(left.is, float)) {
+        // STOPSHIP: have an actual solution for strings
+        if (
+            typesEqual(left.is, string) ||
+            typesEqual(left.is, int) ||
+            typesEqual(left.is, float)
+        ) {
             is = walkType(is, (t) =>
                 typesEqual(t, numeric) ? left.is : null,
             )! as LambdaType;
