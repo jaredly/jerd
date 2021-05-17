@@ -10,18 +10,23 @@ const hsv2rgb = (c: Vec3) => {
   c.z * mix(kxxx, clamp(p - kxxx, Vec3{x: 0.0, y: 0.0, z: 0.0}, Vec3{x: 1.0, y: 1.0, z: 1.0}), c.y);
 }
 
+@ffi
 const r1 = 100.0
+@ffi
 const r2 = 100.0
-const m1 = 2.0
-const m2 = 2.0
+const m1 = 20.0
+const m2 = 20.0
+
 // const a1 = 7.0 * PI / 8.0
 // const a2 = 7.0 * PI / 8.0
 // const a1_v = 0.0
 // const a2_v = 0.0
-const g = 0.01
+
+const g = 0.15
 const TWO_PI = PI * 2.0
 
 // a1 and a2 want to be between -PI and PI
+
 const normalizeTheta = (t: float) => if (t > PI) {
     t - TWO_PI;
 } else if (t < -PI) {
@@ -29,9 +34,10 @@ const normalizeTheta = (t: float) => if (t > PI) {
 } else {
     t
 }
+
 // a1_v and a2_v... I don't know
 
-const MaxVelocity = 1.0
+const MaxVelocity = 0.01
 
 // Get this to be positive
 const pixOff = Vec4{x: PI, y: PI, z: MaxVelocity, w: MaxVelocity}
@@ -42,22 +48,27 @@ const outOfRange = (v: float) => v < 0.0 || v > 1.0
 // to 0...1, 0...1
 const dataToPixel = (v: Vec4) => {
     const res = (v + pixOff) / pixScale;
-    if outOfRange(res.x) || outOfRange(res.y) {
-    // if outOfRange(res.z) || outOfRange(res.w) {
-        Vec4{x: 0.0, y: 0.0, z: res.x, w: res.y}
-        // res
-    } else {
+    // if outOfRange(res.x) || outOfRange(res.y) {
+    // // if outOfRange(res.z) || outOfRange(res.w) {
+    //     Vec4{x: 0.0, y: 0.0, z: res.x, w: res.y}
+    //     // res
+    // } else {
         res
-    }
+    // }
 }
 // from 0...1, 0...1
 const pixelToData = (v: Vec4) => v * pixScale - pixOff
 
+@ffi
 const update = (a1: float, a2: float, a1_v: float, a2_v: float) => {
     const num1 = -g * (2.0 * m1 + m2) * sin(a1);
     const num2 = -m2 * g * sin(a1 - 2.0 * a2);
     const num3 = -2.0 * sin(a1 - a2) * m2;
     const num4 = a2_v * a2_v * r2 + a1_v * a1_v * r1 * cos(a1 - a2);
+    // BUG BUG BUG
+    //    den$8 = r1 * ((2 * m1 + m2 - m2) * cos(2 * a1$0 - 2 * a2$1));
+    // whyyyyy are my binops wrong???
+    // prolly because I haven't really tested them yoooo
     const den = r1 * (2.0 * m1 + m2 - m2 * cos(2.0 * a1 - 2.0 * a2));
     const a1_a = (num1 + num2 + num3 * num4) / den;
 
@@ -119,7 +130,7 @@ const pendulum = (
     buffer: sampler2D,
 ) => {
     if iTime <= 0.01 {
-        vec4(0.25, 0.0, 0.5, 0.0)
+        vec4(0.5, 0.4, 0.5, 0.5)
         // if fragCoord.x == 0.0 && fragCoord.y == 0.0 {
         //     const t = fragCoord / iResolution;
         //     vec4(t.x, t.y, 0.0, 0.0)
@@ -183,12 +194,12 @@ const main = (
 
         const p1 = fragCoord - iResolution / 2.0;
         const sdf = min(min(min(min(min(
-            vmax2(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, current.x * 50.0)}),
-            vmax2(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, current.y * 50.0)})),
-            vmax2(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, current.z * 50.0)})),
-            vmax2(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, current.w * 50.0)})),
-            vmax2(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, updated.z * 50.0)})),
-            vmax2(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, updated.w * 50.0)}));
+            vmax2(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
+            vmax2(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
+            vmax2(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax2(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax2(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax2(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
         if sdf < 0.0 {
             Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0}
         } else {
