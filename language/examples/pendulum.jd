@@ -37,7 +37,7 @@ const normalizeTheta = (t: float) => if (t > PI) {
 
 // a1_v and a2_v... I don't know
 
-const MaxVelocity = 0.01
+const MaxVelocity = 0.1
 
 // Get this to be positive
 const pixOff = Vec4{x: PI, y: PI, z: MaxVelocity, w: MaxVelocity}
@@ -90,8 +90,8 @@ const update = (a1: float, a2: float, a1_v: float, a2_v: float) => {
     vec4(a1, a2, a1_v, a2_v)
 }
 
-// @ffi
-// @buffer0
+@ffi
+@buffer0
 const pendulum = (
     iTime: float,
     fragCoord: Vec2,
@@ -105,13 +105,13 @@ const pendulum = (
         vec4(t.x, t.y, 0.0, 0.0)
     } else {
         const current = texture(buffer, fragCoord / iResolution);
-        if current.x == 0.0 && current.y == 0.0 {
-            // this is our bail condition. Leave it alone
-            current
-        } else {
+        // if current.x == 0.0 && current.y == 0.0 {
+        //     // this is our bail condition. Leave it alone
+        //     current
+        // } else {
             const current = pixelToData(current);
             dataToPixel(update(current.x, current.y, current.z, current.w))
-        }
+        // }
     }
 }
 
@@ -119,9 +119,9 @@ const pendulum = (
 // from storing data in the texture. How many decimal places?
 // And so, do I need to use multiple pixels for a simple set of pendula?
 
-@ffi
-@buffer0
-const pendulum = (
+// @ffi
+// @buffer0
+const pendulumDebug = (
     iTime: float,
     fragCoord: Vec2,
     iResolution: Vec2,
@@ -130,7 +130,7 @@ const pendulum = (
     buffer: sampler2D,
 ) => {
     if iTime <= 0.01 {
-        vec4(0.5, 0.4, 0.5, 0.5)
+        vec4(0.25, 0.4, 0.5, 0.5)
         // if fragCoord.x == 0.0 && fragCoord.y == 0.0 {
         //     const t = fragCoord / iResolution;
         //     vec4(t.x, t.y, 0.0, 0.0)
@@ -163,10 +163,28 @@ const pendulum = (
 }
 
 // const 
-
 @ffi
 @main
 const main = (
+    iTime: float,
+    fragCoord: Vec2,
+    iResolution: Vec2,
+    uCamera: Vec3,
+    buffer: sampler2D,
+) => {
+    // const currentp = texture(buffer, Vec2{x: 0.0, y: 0.0});
+    // const current = pixelToData(currentp);
+    const t = texture(buffer, fragCoord / iResolution);
+    const rgb = hsv2rgb(Vec3{x: t.x, y: t.y, z: 1.0});
+    // const rgb = hsv2rgb(Vec3{x: t.z, y: t.w, z: 1.0});
+    Vec4{...rgb, w: 1.0}
+    // // Vec4{...rgb, w: 1.0}
+    // vec4(t.z, t.w, 0.0, 1.0)
+}
+
+// @ffi
+// @main
+const mainDebug = (
     iTime: float,
     fragCoord: Vec2,
     iResolution: Vec2,
