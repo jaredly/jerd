@@ -71,6 +71,7 @@ export type OutputOptions = {
     // readonly discriminant?: string;
     // readonly optimize?: boolean;
     // readonly optimizeAggressive?: boolean;
+    readonly includeCanonicalNames?: boolean;
     readonly showAllUniques?: boolean;
 };
 
@@ -244,12 +245,16 @@ export const idToGlsl = (
     id: Id,
     isType: boolean,
 ) => {
-    const name = idName(id);
-    if (isType && builtinTypes[name] != null) {
-        return atom(builtinTypes[name].name);
+    const idRaw = idName(id);
+    if (isType && builtinTypes[idRaw] != null) {
+        return atom(builtinTypes[idRaw].name);
+    }
+    const readableName = env.global.idNames[idRaw];
+    if (opts.includeCanonicalNames && readableName) {
+        return atom(readableName + '_' + idRaw);
     }
     const prefix = isType ? 'T' : 'V';
-    return atom(prefix + name);
+    return atom(prefix + idRaw);
 };
 
 export const refToGlsl = (
@@ -340,7 +345,8 @@ export const declarationToGlsl = (
                 atom('const '),
                 typeToGlsl(env, opts, term.is),
                 atom(' '),
-                atom('V' + idRaw),
+                idToGlsl(env, opts, idFromName(idRaw), false),
+                // atom('V' + idRaw),
                 atom(' = '),
                 termToGlsl(env, opts, term),
                 atom(';'),
@@ -538,7 +544,7 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
         case 'unary':
             return items([atom(expr.op), termToGlsl(env, opts, expr.inner)]);
         case 'float':
-            return atom(expr.value.toFixed(5));
+            return atom(expr.value.toFixed(5).replace(/0+$/, '0'));
         case 'int':
         case 'string':
             return atom(expr.value.toString());
@@ -571,6 +577,117 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
 
 export const addComment = (value: PP, comment: string) =>
     items([atom(`/* ${comment} */\n`), value]);
+
+// Object.keys(env.global.effects).forEach((r) => {
+//     const id = idFromName(r);
+//     const constrs = env.global.effects[r];
+//     items.push(
+//         t.tsTypeAliasDeclaration(
+//             t.identifier('handle' + r),
+//             null,
+//             t.tsTupleType(
+//                 constrs.map((constr) =>
+//                     typeToAst(
+//                         env,
+//                         opts,
+//                         effectConstructorType(
+//                             env,
+//                             opts,
+//                             { type: 'ref', ref: { type: 'user', id } },
+//                             constr,
+//                             nullLocation,
+//                         ),
+//                     ),
+//                 ),
+//             ),
+//         ),
+//     );
+// });
+
+// Object.keys(env.global.types).forEach((r) => {
+//     const constr = env.global.types[r];
+//     const id = idFromName(r);
+//     if (constr.type === 'Enum') {
+//         const comment = printToString(enumToPretty(env, id, constr), 100);
+//         const refs = getEnumReferences(env, {
+//             type: 'ref',
+//             ref: { type: 'user', id },
+//             typeVbls: constr.typeVbls.map((t, i) => ({
+//                 type: 'var',
+//                 sym: { name: 'T', unique: t.unique },
+//                 location: null,
+//             })),
+//             location: null,
+//         });
+//         items.push(
+//             t.addComment(
+//                 t.tsTypeAliasDeclaration(
+//                     t.identifier(typeIdToString(id)),
+//                     constr.typeVbls.length
+//                         ? typeVblsToParameters(env, opts, constr.typeVbls)
+//                         : null,
+//                     t.tsUnionType(
+//                         refs.map((ref) =>
+//                             typeToAst(
+//                                 env,
+//                                 opts,
+//                                 typeFromTermType(env, opts, ref),
+//                             ),
+//                         ),
+//                     ),
+//                 ),
+//                 'leading',
+//                 comment,
+//             ),
+//         );
+//         return;
+//     }
+//     const subTypes = getAllSubTypes(env.global, constr);
+//     items.push(
+//         t.tsTypeAliasDeclaration(
+//             t.identifier(typeIdToString(id)),
+//             constr.typeVbls.length
+//                 ? typeVblsToParameters(env, opts, constr.typeVbls)
+//                 : null,
+//             t.tsTypeLiteral([
+//                 t.tsPropertySignature(
+//                     t.identifier('type'),
+//                     t.tsTypeAnnotation(
+//                         t.tsLiteralType(
+//                             t.stringLiteral(
+//                                 recordIdName(env, { type: 'user', id }),
+//                             ),
+//                         ),
+//                     ),
+//                 ),
+//                 ...constr.items.map((item, i) =>
+//                     recordMemberSignature(
+//                         env,
+//                         opts,
+//                         id,
+//                         i,
+//                         typeFromTermType(env, opts, item),
+//                     ),
+//                 ),
+//                 ...([] as Array<t.TSPropertySignature>).concat(
+//                     ...subTypes.map((id) =>
+//                         env.global.types[
+//                             idName(id)
+//                         ].items.map((item: Type, i: number) =>
+//                             recordMemberSignature(
+//                                 env,
+//                                 opts,
+//                                 id,
+//                                 i,
+//                                 typeFromTermType(env, opts, item),
+//                             ),
+//                         ),
+//                     ),
+//                 ),
+//             ]),
+//         ),
+//     );
+// });
 
 export const fileToGlsl = (
     expressions: Array<Term>,
@@ -609,117 +726,6 @@ export const fileToGlsl = (
             atom(';'),
         ]),
     ];
-
-    // Object.keys(env.global.effects).forEach((r) => {
-    //     const id = idFromName(r);
-    //     const constrs = env.global.effects[r];
-    //     items.push(
-    //         t.tsTypeAliasDeclaration(
-    //             t.identifier('handle' + r),
-    //             null,
-    //             t.tsTupleType(
-    //                 constrs.map((constr) =>
-    //                     typeToAst(
-    //                         env,
-    //                         opts,
-    //                         effectConstructorType(
-    //                             env,
-    //                             opts,
-    //                             { type: 'ref', ref: { type: 'user', id } },
-    //                             constr,
-    //                             nullLocation,
-    //                         ),
-    //                     ),
-    //                 ),
-    //             ),
-    //         ),
-    //     );
-    // });
-
-    // Object.keys(env.global.types).forEach((r) => {
-    //     const constr = env.global.types[r];
-    //     const id = idFromName(r);
-    //     if (constr.type === 'Enum') {
-    //         const comment = printToString(enumToPretty(env, id, constr), 100);
-    //         const refs = getEnumReferences(env, {
-    //             type: 'ref',
-    //             ref: { type: 'user', id },
-    //             typeVbls: constr.typeVbls.map((t, i) => ({
-    //                 type: 'var',
-    //                 sym: { name: 'T', unique: t.unique },
-    //                 location: null,
-    //             })),
-    //             location: null,
-    //         });
-    //         items.push(
-    //             t.addComment(
-    //                 t.tsTypeAliasDeclaration(
-    //                     t.identifier(typeIdToString(id)),
-    //                     constr.typeVbls.length
-    //                         ? typeVblsToParameters(env, opts, constr.typeVbls)
-    //                         : null,
-    //                     t.tsUnionType(
-    //                         refs.map((ref) =>
-    //                             typeToAst(
-    //                                 env,
-    //                                 opts,
-    //                                 typeFromTermType(env, opts, ref),
-    //                             ),
-    //                         ),
-    //                     ),
-    //                 ),
-    //                 'leading',
-    //                 comment,
-    //             ),
-    //         );
-    //         return;
-    //     }
-    //     const subTypes = getAllSubTypes(env.global, constr);
-    //     items.push(
-    //         t.tsTypeAliasDeclaration(
-    //             t.identifier(typeIdToString(id)),
-    //             constr.typeVbls.length
-    //                 ? typeVblsToParameters(env, opts, constr.typeVbls)
-    //                 : null,
-    //             t.tsTypeLiteral([
-    //                 t.tsPropertySignature(
-    //                     t.identifier('type'),
-    //                     t.tsTypeAnnotation(
-    //                         t.tsLiteralType(
-    //                             t.stringLiteral(
-    //                                 recordIdName(env, { type: 'user', id }),
-    //                             ),
-    //                         ),
-    //                     ),
-    //                 ),
-    //                 ...constr.items.map((item, i) =>
-    //                     recordMemberSignature(
-    //                         env,
-    //                         opts,
-    //                         id,
-    //                         i,
-    //                         typeFromTermType(env, opts, item),
-    //                     ),
-    //                 ),
-    //                 ...([] as Array<t.TSPropertySignature>).concat(
-    //                     ...subTypes.map((id) =>
-    //                         env.global.types[
-    //                             idName(id)
-    //                         ].items.map((item: Type, i: number) =>
-    //                             recordMemberSignature(
-    //                                 env,
-    //                                 opts,
-    //                                 id,
-    //                                 i,
-    //                                 typeFromTermType(env, opts, item),
-    //                             ),
-    //                         ),
-    //                     ),
-    //                 ),
-    //             ]),
-    //         ),
-    //     );
-    // });
 
     const buffers: Array<string> = [];
     Object.keys(env.global.metaData).forEach((k) => {

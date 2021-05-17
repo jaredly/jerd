@@ -90,31 +90,6 @@ const update = (a1: float, a2: float, a1_v: float, a2_v: float) => {
     vec4(a1, a2, a1_v, a2_v)
 }
 
-@ffi
-@buffer0
-const pendulum = (
-    iTime: float,
-    fragCoord: Vec2,
-    iResolution: Vec2,
-    uCamera: Vec3,
-    // last buffer
-    buffer: sampler2D,
-) => {
-    if iTime <= 0.01 {
-        const t = fragCoord / iResolution;
-        vec4(t.x, t.y, 0.0, 0.0)
-    } else {
-        const current = texture(buffer, fragCoord / iResolution);
-        // if current.x == 0.0 && current.y == 0.0 {
-        //     // this is our bail condition. Leave it alone
-        //     current
-        // } else {
-            const current = pixelToData(current);
-            dataToPixel(update(current.x, current.y, current.z, current.w))
-        // }
-    }
-}
-
 // START HERE: I need more info on what kind of precision I can expect
 // from storing data in the texture. How many decimal places?
 // And so, do I need to use multiple pixels for a simple set of pendula?
@@ -162,6 +137,32 @@ const pendulumDebug = (
     }
 }
 
+@ffi
+@buffer0
+const pendulum = (
+    iTime: float,
+    fragCoord: Vec2,
+    iResolution: Vec2,
+    uCamera: Vec3,
+    // last buffer
+    buffer: sampler2D,
+) => {
+    if iTime <= 0.01 {
+        const t = fragCoord / iResolution;
+        vec4(t.x, t.y, 0.5, 0.5)
+        // vec4(0.75, 0.25, t.x, t.y)
+    } else {
+        const current = texture(buffer, fragCoord / iResolution);
+        // if current.x == 0.0 && current.y == 0.0 {
+        //     // this is our bail condition. Leave it alone
+        //     current
+        // } else {
+            const current = pixelToData(current);
+            dataToPixel(update(current.x, current.y, current.z, current.w))
+        // }
+    }
+}
+
 // const 
 @ffi
 @main
@@ -175,8 +176,8 @@ const main = (
     // const currentp = texture(buffer, Vec2{x: 0.0, y: 0.0});
     // const current = pixelToData(currentp);
     const t = texture(buffer, fragCoord / iResolution);
+    // const rgb = hsv2rgb(Vec3{x: t.w, y: t.w, z: 1.0});
     const rgb = hsv2rgb(Vec3{x: t.x, y: t.y, z: 1.0});
-    // const rgb = hsv2rgb(Vec3{x: t.z, y: t.w, z: 1.0});
     Vec4{...rgb, w: 1.0}
     // // Vec4{...rgb, w: 1.0}
     // vec4(t.z, t.w, 0.0, 1.0)

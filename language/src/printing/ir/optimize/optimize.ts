@@ -74,17 +74,17 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         // shortestDistanceToSurface
         flattenIffe,
 
-        // removeUnusedVariables,
-        // removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
-        // foldConstantTuples,
-        // foldConstantAssignments,
-        // foldSingleUseAssignments,
-        // flattenNestedIfs,
-        // arraySlices,
-        // foldConstantAssignments,
-        // removeUnusedVariables,
-        // flattenNestedIfs,
-        // flattenImmediateCalls,
+        removeUnusedVariables,
+        removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
+        foldConstantTuples,
+        foldConstantAssignments,
+        foldSingleUseAssignments,
+        flattenNestedIfs,
+        arraySlices,
+        foldConstantAssignments,
+        removeUnusedVariables,
+        flattenNestedIfs,
+        flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;

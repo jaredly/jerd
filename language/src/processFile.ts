@@ -98,7 +98,8 @@ export const processFile = (
     const oopts: OutputOptions = {
         optimize: true,
         optimizeAggressive: true,
-        showAllUniques: true,
+        // showAllUniques: true,
+        includeCanonicalNames: true,
     };
 
     const buildDir = path.join(path.dirname(fname), 'build');
