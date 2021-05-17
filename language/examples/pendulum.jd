@@ -149,8 +149,8 @@ const pendulum = (
 ) => {
     if iTime <= 0.01 {
         const t = fragCoord / iResolution;
-        vec4(t.x, t.y, 0.5, 0.5)
-        // vec4(0.75, 0.25, t.x, t.y)
+        // vec4(t.x, t.y, 0.5, 0.5)
+        vec4(0.0, 0.0, t.x, t.y)
     } else {
         const current = texture(buffer, fragCoord / iResolution);
         // if current.x == 0.0 && current.y == 0.0 {
@@ -191,7 +191,7 @@ const main = (
     const c1 = Vec2{x: sin(current.x) * r1, y: -cos(current.x) * r1};
     const c2 = Vec2{x: c1.x + sin(current.y) * r2, y: c1.y - cos(current.y) * r2};
     // const sdf = min(min(
-        
+
     //     max(
     //         rect(p1, uMouse - iResolution / 2.0, 10.0, 10.0),
     //         -rect(p1, uMouse - iResolution / 2.0, 9.0, 9.0),
@@ -208,11 +208,17 @@ const main = (
         vec4(1.0, 0.0, 0.0, 1.0)
     } else if circle(p1, c2, 10.0) < 0.0 {
         vec4(1.0, 1.0, 0.0, 1.0)
-    } else if 
-    max(rect(p1, uMouse - iResolution / 2.0, 10.0, 10.0),
-    -rect(p1, uMouse - iResolution / 2.0, 9.0, 9.0)) < 0.0 {
+    } else if max(rect(p1, uMouse - iResolution / 2.0, 10.0, 10.0), -rect(p1, uMouse - iResolution / 2.0, 9.0, 9.0)) < 0.0 {
         vec4(0.0, 0.0, 0.0, 1.0)
 
+    // } else if rect(p1, uMouse - iResolution / 2.0, 50.0, 50.0) < 0.0 {
+    } else if length2(p1 - (uMouse - iResolution / 2.0)) < 100.0 {
+        const t = texture(buffer, fragCoord / iResolution);
+        // const rgb = hsv2rgb(Vec3{x: t.w, y: t.w, z: 1.0});
+        const rgb = hsv2rgb(Vec3{x: t.z, y: t.w, z: 1.0});
+        Vec4{...rgb, w: 1.0}
+    } else if length2(p1 - (uMouse - iResolution / 2.0)) < 101.0 {
+        vec4(0.0, 0.0, 0.0, 1.0)
     // if sdf < 0.0 {
     //     vec4(1.0, 0.0, 0.0, 1.0)
     } else {
@@ -268,9 +274,5 @@ const mainDebug = (
         } else {
             Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
         }
-
-        // texture(buffer, fragCoord / iResolution)
-        // Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
-        // currentp
     }
 }

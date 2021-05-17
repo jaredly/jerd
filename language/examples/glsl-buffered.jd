@@ -127,12 +127,21 @@ const gameOfLife = (
 
 @ffi
 @main
+@mouse
 const main = (
     iTime: float,
     fragCoord: Vec2,
     iResolution: Vec2,
     uCamera: Vec3,
     buffer0: sampler2D,
+    mouse: Vec2
 ) => {
-    texture(buffer0, fragCoord / iResolution)
+    const diff = mouse - fragCoord;
+    if length2(diff) < 250.0 {
+        const newCoord = mouse - diff / 4.0;
+        // vec4(0.0,0.0,0.0,0.0)
+        texture(buffer0, newCoord / iResolution)
+    } else {
+        texture(buffer0, fragCoord / iResolution)
+    }
 }

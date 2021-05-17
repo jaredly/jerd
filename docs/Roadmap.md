@@ -1,4 +1,44 @@
 
+## Ok, grand vision folks
+This will probably get people excited.
+Make an explorable explanation for the pendulum fractal.
+For the code, we could go fairly simple and have the rendered version w/ "knobs" a la worrydream's thing, and then you can "edit" to get into a full text editor scenario.
+But that will be on a per-term basis.
+But then there will probably be a full tree-notablemind-style dealio for the text, where it's rich text, and we can have nested things, and headings that expand.
+And maybe a toggle at the top that's like "I know GLSL / shader stuff" vs "I don't"? And "I know trig & pendulum physics" vs "I don't"? Although maybe we can just let people scroll?
+
+Anyway, I feel like it would be super cool.
+And then let people see the generated GLSL, for funs and such.
+
+Basic layout:
+- do one where we're just drawing the pendulum, nailing down the `update` function
+- we'll cover "storing the state in a texture"
+- but only for the top left point
+- then do the full fractal
+- then bring back the visualization for a single point
+- then bring in the mouse pointer
+- then bring in another buffer to track the last several points? or wait, there's "u_trails".... maybe I can use that instead? that sounds reasonable. that'll require some constant folding I do believe.
+
+Yeah, but allowing people to right-click on a thing and "add a trace" sounds super fun :D :D :D
+
+
+> SO
+> Things to impl to get to this glorious future:
+- all the inlining, thanks
+
+oooh so having a `min()` function that takes varargs and then does a reduce on the array
+in glsl, varargs become a FixedArray...which I still need to figure out how to represent
+OH but then, if it then just ends up being `foreach i of values { res += i }`, then I can do loop unrolling! because values has a fixed length.
+
+
+Should I turn back on call args type-checking?
+I think I'll need to get done-lambda going? In order to do that?
+
+So I also want pretty-printing I guess
+but I'll need to keep track of comments in order to do that.
+
+
+
 ## Lets do fun things! Raymarching and such
 
 - [x] desperately need inlining. What will that take?
