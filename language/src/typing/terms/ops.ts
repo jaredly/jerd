@@ -360,6 +360,19 @@ type Section = {
     op: string | null;
 };
 
+// Ok yeah here's the issue.
+// I need to A * (B - C * D)
+//
+
+// So, we have Item (op) Item (op) Item (op) Item
+// And within each Item, we might start over the precedence bundle
+
+// Takes a flat list of ops
+// and nests them
+// const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
+
+// }
+
 const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
     if (!groups.length) {
         return expr;
@@ -423,8 +436,23 @@ const _typeOps = (env: Env, expr: Ops): Term => {
     return left;
 };
 
+const organizeDeep = (ops: Ops): Ops => {
+    let first = ops.first;
+    if (first.type === 'ops') {
+        // This might only solve 1 layer deep?
+        first = organizeDeep(first);
+    }
+    const rest = ops.rest.map((item) => {
+        if (item.right.type === 'ops') {
+            return { ...item, right: organizeDeep(item.right) };
+        }
+        return item;
+    });
+    return organizeOps({ ...ops, first, rest }, precedence);
+};
+
 export const typeOps = (env: Env, expr: Ops): Term => {
-    return _typeOps(env, organizeOps(expr, precedence));
+    return _typeOps(env, organizeDeep(expr));
     // ok, left associative, right? I think so.
     // let left: Term = typeExpr(env, expr.first);
     // expr.rest.forEach(({ op, right, location }) => {

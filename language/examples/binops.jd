@@ -79,5 +79,8 @@ const m1 = 10.0
 const m2 = 20.0
 const a1 = 0.23
 const a2 = 0.34
-const den = r1 * (2.0 - m2 * 5.0)
-den == 23.0
+const den = 1.0 * (2.0 - 3.0 * 5.0)
+den == -13.0
+
+const deep  = 1.0 * (2.0 - 3.0 * (4.0 + 2.0 * 10.0))
+deep == -70.0
