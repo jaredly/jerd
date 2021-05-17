@@ -713,6 +713,13 @@ export const fileToGlsl = (
         ]),
         pp.items([
             atom('uniform '),
+            atom('vec2'),
+            atom(' '),
+            atom('u_mouse'),
+            atom(';'),
+        ]),
+        pp.items([
+            atom('uniform '),
             atom('vec3'),
             atom(' '),
             atom('u_camera'),
@@ -763,6 +770,7 @@ export const fileToGlsl = (
         return '// Error: No @main defined';
     }
     const mainId = idFromName(mains[0]);
+    const mainTags = env.global.metaData[mains[0]].tags;
     const mainTerm: Term = {
         type: 'ref',
         ref: {
@@ -833,7 +841,7 @@ export const fileToGlsl = (
         );
     });
 
-    const mainArgs = [
+    let mainArgs = [
         atom('u_time'),
         atom('gl_FragCoord.xy'),
         atom('u_resolution'),
@@ -862,6 +870,10 @@ export const fileToGlsl = (
         );
 
         items.push(atom('#else'));
+    }
+
+    if (mainTags.includes('mouse')) {
+        mainArgs = mainArgs.concat([atom('u_mouse')]);
     }
 
     items.push(

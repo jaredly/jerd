@@ -3,10 +3,18 @@
 
 - [x] desperately need inlining. What will that take?
       Should I do whole-program-opt in the IR?
-- [ ] make uniques actually truly unique
+- [x] make uniques actually truly unique
+- [x] ugh I need parenthesis for overriding op precedence.
+- [ ] full and correct inlining of functions. Every function should be inlineable, unless it is recursive. We will then only use inlining for:
+  - eliminating lambdas
+
+How / what to inline and stuff?
+- Ok, so we also want to fix the "toplevel struct" issue.
+- OH yes let's have struct support too folks. So we can do tuples and whatnot, thats nice
+- ALSO: type-directed name resolution, allow multiple names for things, so that we can overload vec4 and stuff, that would be extremely nice. Also so we can have "-" as a unary op and a binary op and so we can have "+" be for strings.
+
 - [ ] now that I have uniques, I don't have to worry about declaration collisions.
 - [ ] make a transformer to sweep through blocks and move up empty defines to the first assign
-- [ ] ugh I need parenthesis for overriding op precedence.
 
 Whole program opt:
 - if a function is always called with one argument as the same value (either a constant, or like a global hash, or something), then delete that argument, and inline that value.

@@ -163,24 +163,68 @@ const pendulum = (
     }
 }
 
+const rect = (samplePos: Vec2, center: Vec2, w: float, h: float) => {
+    vmax2(vabs2(samplePos - center) - Vec2{x: w, y: h})
+}
+
+const circle = (samplePos: Vec2, center: Vec2, r: float) => {
+    length2(samplePos - center) - r
+}
+
 // const 
 @ffi
 @main
+@mouse
 const main = (
     iTime: float,
     fragCoord: Vec2,
     iResolution: Vec2,
     uCamera: Vec3,
     buffer: sampler2D,
+    uMouse: Vec2,
 ) => {
-    // const currentp = texture(buffer, Vec2{x: 0.0, y: 0.0});
-    // const current = pixelToData(currentp);
-    const t = texture(buffer, fragCoord / iResolution);
-    // const rgb = hsv2rgb(Vec3{x: t.w, y: t.w, z: 1.0});
-    const rgb = hsv2rgb(Vec3{x: t.x, y: t.y, z: 1.0});
-    Vec4{...rgb, w: 1.0}
-    // // Vec4{...rgb, w: 1.0}
-    // vec4(t.z, t.w, 0.0, 1.0)
+    const currentPos = uMouse / iResolution;
+    const currentp = texture(buffer, currentPos);
+    const current = pixelToData(currentp);
+
+    const p1 = fragCoord - iResolution / 2.0;
+    const c1 = Vec2{x: sin(current.x) * r1, y: -cos(current.x) * r1};
+    const c2 = Vec2{x: c1.x + sin(current.y) * r2, y: c1.y - cos(current.y) * r2};
+    // const sdf = min(min(
+        
+    //     max(
+    //         rect(p1, uMouse - iResolution / 2.0, 10.0, 10.0),
+    //         -rect(p1, uMouse - iResolution / 2.0, 9.0, 9.0),
+    //     )
+    // );
+        // vmax2(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
+        // vmax2(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
+        // vmax2(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax2(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax2(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax2(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
+
+    if circle(p1, c1, 10.0) < 0.0 {
+        vec4(1.0, 0.0, 0.0, 1.0)
+    } else if circle(p1, c2, 10.0) < 0.0 {
+        vec4(1.0, 1.0, 0.0, 1.0)
+    } else if 
+    max(rect(p1, uMouse - iResolution / 2.0, 10.0, 10.0),
+    -rect(p1, uMouse - iResolution / 2.0, 9.0, 9.0)) < 0.0 {
+        vec4(0.0, 0.0, 0.0, 1.0)
+
+    // if sdf < 0.0 {
+    //     vec4(1.0, 0.0, 0.0, 1.0)
+    } else {
+        // const currentp = texture(buffer, Vec2{x: 0.0, y: 0.0});
+        // const current = pixelToData(currentp);
+        const t = texture(buffer, fragCoord / iResolution);
+        // const rgb = hsv2rgb(Vec3{x: t.w, y: t.w, z: 1.0});
+        const rgb = hsv2rgb(Vec3{x: t.y, y: t.x, z: 1.0});
+        Vec4{...rgb, w: 1.0}
+        // // Vec4{...rgb, w: 1.0}
+        // vec4(t.z, t.w, 0.0, 1.0)
+    }
 }
 
 // @ffi
