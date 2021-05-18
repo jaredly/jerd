@@ -923,43 +923,6 @@ export const fileToGlsl = (
         );
     });
 
-    let mainArgs = [
-        atom('u_time'),
-        atom('gl_FragCoord.xy'),
-        atom('u_resolution'),
-        atom('u_camera'),
-    ];
-
-    const bufferArgs = [];
-
-    if (buffers.length > 1) {
-        throw new Error('multi buffer not impl');
-    }
-    if (buffers.length) {
-        mainArgs.push(atom('u_buffer0'));
-        bufferArgs.push(atom('u_buffer0'));
-        items.push(atom('#if defined(BUFFER_0)'));
-
-        items.push(
-            pp.items([
-                atom('void main() '),
-                block([
-                    pp.items([
-                        atom('fragColor'),
-                        atom(' = '),
-                        idToGlsl(env, opts, idFromName(buffers[0]), false),
-                        args(mainArgs, '(', ')', false),
-                    ]),
-                ]),
-            ]),
-        );
-
-        items.push(atom('#else'));
-    }
-
-    // if (mainTags.includes('mouse')) {
-    //     mainArgs = mainArgs.concat([atom('u_mouse')]);
-    // }
     const glslEnv: Record = {
         type: 'record',
         base: {
@@ -983,6 +946,32 @@ export const fileToGlsl = (
         loc: nullLocation,
     };
 
+    let mainArgs = [termToGlsl(env, opts, glslEnv), atom('gl_FragCoord.xy')];
+
+    if (buffers.length > 1) {
+        throw new Error('multi buffer not impl');
+    }
+    if (buffers.length) {
+        mainArgs.push(atom('u_buffer0'));
+        items.push(atom('#if defined(BUFFER_0)'));
+
+        items.push(
+            pp.items([
+                atom('void main() '),
+                block([
+                    pp.items([
+                        atom('fragColor'),
+                        atom(' = '),
+                        idToGlsl(env, opts, idFromName(buffers[0]), false),
+                        args(mainArgs, '(', ')', false),
+                    ]),
+                ]),
+            ]),
+        );
+
+        items.push(atom('#else'));
+    }
+
     items.push(
         pp.items([
             atom('void main() '),
@@ -991,16 +980,7 @@ export const fileToGlsl = (
                     atom('fragColor'),
                     atom(' = '),
                     idToGlsl(env, opts, mainId, false),
-                    args(
-                        [
-                            termToGlsl(env, opts, glslEnv),
-                            atom('gl_FragCoord.xy'),
-                            ...bufferArgs,
-                        ],
-                        '(',
-                        ')',
-                        false,
-                    ),
+                    args(mainArgs, '(', ')', false),
                     // args(mainArgs, '(', ')', false),
                 ]),
             ]),

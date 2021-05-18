@@ -99,22 +99,19 @@ const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
 @ffi
 @buffer0
 const gameOfLife = (
-    iTime: float,
+    env: GLSLEnv,
     fragCoord: Vec2,
-    iResolution: Vec2,
-    uCamera: Vec3,
-    // last buffer
     buffer: sampler2D,
 ) => {
-    if iTime < 0.01 {
-        if random(fragCoord / iResolution) < 0.75 {
+    if env.time < 0.01 {
+        if random(fragCoord / env.resolution) > 0.95 {
             live
         } else {
             dead
         }
     } else {
-        const self = isLive(texture(buffer, fragCoord / iResolution));
-        const neighbors = countNeighbors(fragCoord, iResolution, buffer);
+        const self = isLive(texture(buffer, fragCoord / env.resolution));
+        const neighbors = countNeighbors(fragCoord, env.resolution, buffer);
         if self && neighbors == 2 {
             live
         } else if neighbors == 3 {
@@ -204,7 +201,6 @@ I guess.
 
 @ffi
 @main
-@mouse
 const main = (
     env: GLSLEnv,
     fragCoord: Vec2,
