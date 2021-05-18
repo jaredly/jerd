@@ -509,14 +509,14 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera
 
 @ffi
 @main
-const randFolks = (iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera: Vec3) => {
+const randFolks = (env: GLSLEnv, fragCoord: Vec2) => {
     const scale = 40.0;
     const small = roundv2(fragCoord / scale) * scale;
-    const small = Vec2{x: small.x, y: small.y + iTime};
+    const small = Vec2{x: small.x, y: small.y + env.time};
     // const v = random(small / iResolution) / 10.0 + 0.9;
-    const v = random(small / iResolution) / 10.0 + 0.9;
+    const v = random(small / env.resolution) / 10.0 + 0.9;
     // const uCamera = Vec3{x: 0.0, y: -5.0, z: 2.0};
-    const bouey = fishingBoueys(iTime, fragCoord, iResolution, uCamera * -1.0);
+    const bouey = fishingBoueys(env.time, fragCoord, env.resolution, env.camera * -1.0);
     // const two = Vec4{...blue * v, w: 1.0} + bouey;
     // two / 2.0
     bouey
