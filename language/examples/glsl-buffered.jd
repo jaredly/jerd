@@ -106,8 +106,8 @@ const gameOfLife = (
     // last buffer
     buffer: sampler2D,
 ) => {
-    if iTime < 1.0 {
-        if random(fragCoord / iResolution) > 0.95 {
+    if iTime < 0.01 {
+        if random(fragCoord / iResolution) < 0.75 {
             live
         } else {
             dead
@@ -125,23 +125,97 @@ const gameOfLife = (
     }
 }
 
+// What do we want to do here?
+// hmmm I would also like argument-level destructuring
+
+
+// type Uniforms = {
+//     time: float,
+//     resolution: Vec2,
+//     camera: Vec3,
+//     // oh this is basically a tuple!
+//     // [a, b, c]
+//     // yeah that would be rad
+//     // Should I have a syntax shortcut for it?
+//     // It wouldn't be super relevant for javascript
+//     // or go, really
+//     // Also it might be a pain to convert between the two?
+//     // I mean in javascript its fine
+//     // @[1, 2, 3]
+//     // ![1, 2, 3]
+//     // maybe the at-sign
+//     // 
+//     buffers: FixedArray<3, sampler2D>,
+//     // buffer0: sampler2D,
+//     // buffer1: sampler2D,
+// }
+
+/*
+BUT
+like
+
+how do I do it right
+yeah
+is it type-directed?
+and how many buffers are there?
+do I just have a different "if" per buffer?
+
+well
+I guess
+I could just do:
+`if it's a tuple, where the first thing is a function that returns a vec4`
+and then arguments are provided as:
+- float is the time
+- orrrr
+
+ok better:
+the function takes:
+- GLSLInput type
+`uTime, iResolution, uCamera, uMouse`
+and then any number of buffers
+and returns a Vec4
+yeah that's good.
+
+oh wait, where's fragCoord? just like there?
+oh yeah I also need struct support.
+Well I guess here we come.
+
+And then we try to compile it to GLSL?
+I guess.
+
+
+*/
+
+// renderGLSL = <T, N>(main: T<N> => Vec4, buffers: FixedArray<N, T<N> => Vec4) => {
+// }
+
+// renderGLSL<Uniforms>(
+
+// )
+
+// renderGLSL(Glsl{
+//     buffers: [
+//         // hmmmm
+//     ],
+//     main: (iTime: float, fragCoord: Vec2, resolution: Vec2, camera: Vec3, buffer: sampler2D, mouse: Vec2) => {
+
+//     }
+// })
+
 @ffi
 @main
 @mouse
 const main = (
-    iTime: float,
+    env: GLSLEnv,
     fragCoord: Vec2,
-    iResolution: Vec2,
-    uCamera: Vec3,
     buffer0: sampler2D,
-    mouse: Vec2
 ) => {
-    const diff = mouse - fragCoord;
+    const diff = env.mouse - fragCoord;
     if length2(diff) < 250.0 {
-        const newCoord = mouse - diff / 4.0;
+        const newCoord = env.mouse - diff / 4.0;
         // vec4(0.0,0.0,0.0,0.0)
-        texture(buffer0, newCoord / iResolution)
+        texture(buffer0, newCoord / env.resolution)
     } else {
-        texture(buffer0, fragCoord / iResolution)
+        texture(buffer0, fragCoord / env.resolution)
     }
 }

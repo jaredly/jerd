@@ -35,6 +35,7 @@ import {
 } from './ir/types';
 import {
     bool,
+    builtin,
     float,
     handlersType,
     handlerSym,
@@ -427,61 +428,59 @@ export const printRecord = (
     const idRaw = idName(record.base.ref.id);
     if (builtinTypes[idRaw]) {
         let args: Array<ir.Expr> = [];
-        if (builtinTypes[idRaw].args.length) {
-            args = builtinTypes[idRaw].args.map(
-                (arg): ir.Expr => {
-                    if (arg.sub) {
-                        const item = record.subTypes[arg.sub].rows[arg.idx];
-                        if (item) {
-                            return item;
-                        }
-                        // const spread = findSpreadForSub(record, arg.sub)
-                        const spread =
-                            record.subTypes[arg.sub].spread ||
-                            record.base.spread;
-                        // OOOOOH BUG BUG
-                        // Turns out we need spreads to be ordered
-                        // because if we spread multiple things
-                        // that have some overlap
-                        // then we have a consistency error
-                        // Ok so yeah need to walk through spreads
-                        // Seeing if any of them will provide the thing I'm missing.
-                        if (!spread) {
-                            console.log(record.base);
-                            throw new LocatedError(
-                                record.loc,
-                                `Invalid state: missing spread for record item ${idRaw} ${arg.sub} ${arg.idx}`,
-                            );
-                        }
-                        return {
-                            type: 'tupleAccess',
-                            target: spread,
-                            idx: arg.idx,
-                            loc: record.loc,
-                            // STOPSHIP: fix this tho
-                            is: void_,
-                        };
-                    }
-                    const item = base.rows[arg.idx];
+        if (!builtinTypes[idRaw].args.length) {
+            throw new Error('nope custom record atm');
+        }
+        args = builtinTypes[idRaw].args.map(
+            (arg): ir.Expr => {
+                if (arg.sub) {
+                    const item = record.subTypes[arg.sub].rows[arg.idx];
                     if (item) {
                         return item;
                     }
-                    if (!base.spread) {
-                        throw new Error(`no spread`);
+                    // const spread = findSpreadForSub(record, arg.sub)
+                    const spread =
+                        record.subTypes[arg.sub].spread || record.base.spread;
+                    // OOOOOH BUG BUG
+                    // Turns out we need spreads to be ordered
+                    // because if we spread multiple things
+                    // that have some overlap
+                    // then we have a consistency error
+                    // Ok so yeah need to walk through spreads
+                    // Seeing if any of them will provide the thing I'm missing.
+                    if (!spread) {
+                        console.log(record.base);
+                        throw new LocatedError(
+                            record.loc,
+                            `Invalid state: missing spread for record item ${idRaw} ${arg.sub} ${arg.idx}`,
+                        );
                     }
                     return {
                         type: 'tupleAccess',
-                        target: base.spread,
+                        target: spread,
                         idx: arg.idx,
                         loc: record.loc,
                         // STOPSHIP: fix this tho
                         is: void_,
                     };
-                },
-            );
-        } else {
-            throw new Error('nope custom record atm');
-        }
+                }
+                const item = base.rows[arg.idx];
+                if (item) {
+                    return item;
+                }
+                if (!base.spread) {
+                    throw new Error(`no spread`);
+                }
+                return {
+                    type: 'tupleAccess',
+                    target: base.spread,
+                    idx: arg.idx,
+                    loc: record.loc,
+                    // STOPSHIP: fix this tho
+                    is: void_,
+                };
+            },
+        );
         return items([
             atom(builtinTypes[idRaw].name),
             pp.args(
@@ -492,7 +491,26 @@ export const printRecord = (
             ),
         ]);
     }
-    return atom(`nope_record${idRaw}`);
+    // hmm so I need a canonical ordering for these items
+    // if (record.subTypes)
+    // return atom(`nope_record${idRaw}`);
+    if (record.base.spread) {
+        throw new Error(`Unexpected spread`);
+    }
+    const args = record.base.rows.map((row) => {
+        if (!row) {
+            throw new Error(`empty row for record`);
+        }
+        return termToGlsl(env, opts, row);
+    });
+    if (Object.keys(record.subTypes).length) {
+        throw new Error(`subtypes not yet supported`);
+    }
+
+    return items([
+        idToGlsl(env, opts, idFromName(idRaw), true),
+        pp.args(args, '(', ')', false),
+    ]);
 };
 
 export const binops = [
@@ -604,91 +622,6 @@ export const addComment = (value: PP, comment: string) =>
 //     );
 // });
 
-// Object.keys(env.global.types).forEach((r) => {
-//     const constr = env.global.types[r];
-//     const id = idFromName(r);
-//     if (constr.type === 'Enum') {
-//         const comment = printToString(enumToPretty(env, id, constr), 100);
-//         const refs = getEnumReferences(env, {
-//             type: 'ref',
-//             ref: { type: 'user', id },
-//             typeVbls: constr.typeVbls.map((t, i) => ({
-//                 type: 'var',
-//                 sym: { name: 'T', unique: t.unique },
-//                 location: null,
-//             })),
-//             location: null,
-//         });
-//         items.push(
-//             t.addComment(
-//                 t.tsTypeAliasDeclaration(
-//                     t.identifier(typeIdToString(id)),
-//                     constr.typeVbls.length
-//                         ? typeVblsToParameters(env, opts, constr.typeVbls)
-//                         : null,
-//                     t.tsUnionType(
-//                         refs.map((ref) =>
-//                             typeToAst(
-//                                 env,
-//                                 opts,
-//                                 typeFromTermType(env, opts, ref),
-//                             ),
-//                         ),
-//                     ),
-//                 ),
-//                 'leading',
-//                 comment,
-//             ),
-//         );
-//         return;
-//     }
-//     const subTypes = getAllSubTypes(env.global, constr);
-//     items.push(
-//         t.tsTypeAliasDeclaration(
-//             t.identifier(typeIdToString(id)),
-//             constr.typeVbls.length
-//                 ? typeVblsToParameters(env, opts, constr.typeVbls)
-//                 : null,
-//             t.tsTypeLiteral([
-//                 t.tsPropertySignature(
-//                     t.identifier('type'),
-//                     t.tsTypeAnnotation(
-//                         t.tsLiteralType(
-//                             t.stringLiteral(
-//                                 recordIdName(env, { type: 'user', id }),
-//                             ),
-//                         ),
-//                     ),
-//                 ),
-//                 ...constr.items.map((item, i) =>
-//                     recordMemberSignature(
-//                         env,
-//                         opts,
-//                         id,
-//                         i,
-//                         typeFromTermType(env, opts, item),
-//                     ),
-//                 ),
-//                 ...([] as Array<t.TSPropertySignature>).concat(
-//                     ...subTypes.map((id) =>
-//                         env.global.types[
-//                             idName(id)
-//                         ].items.map((item: Type, i: number) =>
-//                             recordMemberSignature(
-//                                 env,
-//                                 opts,
-//                                 id,
-//                                 i,
-//                                 typeFromTermType(env, opts, item),
-//                             ),
-//                         ),
-//                     ),
-//                 ),
-//             ]),
-//         ),
-//     );
-// });
-
 export const fileToGlsl = (
     expressions: Array<Term>,
     env: Env,
@@ -758,6 +691,155 @@ export const fileToGlsl = (
             );
         }
     }
+
+    Object.keys(env.global.types).forEach((r) => {
+        const constr = env.global.types[r];
+        const id = idFromName(r);
+        if (constr.type === 'Enum') {
+            return; // no enum support I dont think
+            // const comment = printToString(enumToPretty(env, id, constr), 100);
+            // const refs = getEnumReferences(env, {
+            //     type: 'ref',
+            //     ref: { type: 'user', id },
+            //     typeVbls: constr.typeVbls.map((t, i) => ({
+            //         type: 'var',
+            //         sym: { name: 'T', unique: t.unique },
+            //         location: null,
+            //     })),
+            //     location: null,
+            // });
+            // items.push(
+            //     t.addComment(
+            //         t.tsTypeAliasDeclaration(
+            //             t.identifier(typeIdToString(id)),
+            //             constr.typeVbls.length
+            //                 ? typeVblsToParameters(env, opts, constr.typeVbls)
+            //                 : null,
+            //             t.tsUnionType(
+            //                 refs.map((ref) =>
+            //                     typeToAst(
+            //                         env,
+            //                         opts,
+            //                         typeFromTermType(env, opts, ref),
+            //                     ),
+            //                 ),
+            //             ),
+            //         ),
+            //         'leading',
+            //         comment,
+            //     ),
+            // );
+            return;
+        }
+        if (constr.typeVbls.length) {
+            // No type vbls allowed sorry
+            return;
+        }
+        if (!constr.items.length) {
+            return;
+        }
+        if (builtinTypes[r]) {
+            return;
+        }
+        const subTypes = getAllSubTypes(env.global, constr);
+        items.push(
+            pp.items([
+                atom('struct '),
+                idToGlsl(env, opts, id, true),
+                block([
+                    ...constr.items.map((item, i) =>
+                        pp.items([
+                            typeToGlsl(
+                                env,
+                                opts,
+                                typeFromTermType(env, irOpts, item),
+                            ),
+                            atom(' '),
+                            atom(
+                                recordAttributeName(
+                                    env,
+                                    { type: 'user', id },
+                                    i,
+                                ),
+                            ),
+                        ]),
+                    ),
+                    ...([] as Array<PP>).concat(
+                        ...subTypes.map((id) =>
+                            env.global.types[idName(id)].items.map(
+                                (item: Type, i: number) =>
+                                    pp.items([
+                                        typeToGlsl(
+                                            env,
+                                            opts,
+                                            typeFromTermType(env, irOpts, item),
+                                        ),
+                                        atom(' '),
+                                        atom(
+                                            recordAttributeName(
+                                                env,
+                                                { type: 'user', id },
+                                                i,
+                                            ),
+                                        ),
+                                    ]),
+                                // recordMemberSignature(
+                                //     env,
+                                //     opts,
+                                //     id,
+                                //     i,
+                                //     typeFromTermType(env, opts, item),
+                                // ),
+                            ),
+                        ),
+                    ),
+                ]),
+                atom(';'),
+            ]),
+            // t.tsTypeAliasDeclaration(
+            //     t.identifier(typeIdToString(id)),
+            //     constr.typeVbls.length
+            //         ? typeVblsToParameters(env, opts, constr.typeVbls)
+            //         : null,
+            //     t.tsTypeLiteral([
+            //         t.tsPropertySignature(
+            //             t.identifier('type'),
+            //             t.tsTypeAnnotation(
+            //                 t.tsLiteralType(
+            //                     t.stringLiteral(
+            //                         recordIdName(env, { type: 'user', id }),
+            //                     ),
+            //                 ),
+            //             ),
+            //         ),
+            //         ...constr.items.map((item, i) =>
+            //             recordMemberSignature(
+            //                 env,
+            //                 opts,
+            //                 id,
+            //                 i,
+            //                 typeFromTermType(env, opts, item),
+            //             ),
+            //         ),
+            //         ...([] as Array<t.TSPropertySignature>).concat(
+            //             ...subTypes.map((id) =>
+            //                 env.global.types[
+            //                     idName(id)
+            //                 ].items.map((item: Type, i: number) =>
+            //                     recordMemberSignature(
+            //                         env,
+            //                         opts,
+            //                         id,
+            //                         i,
+            //                         typeFromTermType(env, opts, item),
+            //                     ),
+            //                 ),
+            //             ),
+            //         ),
+            //     ]),
+            // ),
+        );
+    });
 
     const mains = Object.keys(env.global.metaData).filter((k) =>
         env.global.metaData[k].tags.includes('main'),
@@ -848,11 +930,14 @@ export const fileToGlsl = (
         atom('u_camera'),
     ];
 
+    const bufferArgs = [];
+
     if (buffers.length > 1) {
         throw new Error('multi buffer not impl');
     }
     if (buffers.length) {
         mainArgs.push(atom('u_buffer0'));
+        bufferArgs.push(atom('u_buffer0'));
         items.push(atom('#if defined(BUFFER_0)'));
 
         items.push(
@@ -872,9 +957,31 @@ export const fileToGlsl = (
         items.push(atom('#else'));
     }
 
-    if (mainTags.includes('mouse')) {
-        mainArgs = mainArgs.concat([atom('u_mouse')]);
-    }
+    // if (mainTags.includes('mouse')) {
+    //     mainArgs = mainArgs.concat([atom('u_mouse')]);
+    // }
+    const glslEnv: Record = {
+        type: 'record',
+        base: {
+            type: 'Concrete',
+            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'] },
+            spread: null,
+            rows: [
+                builtin('u_time', nullLocation, float),
+                builtin('u_resolution', nullLocation, Vec2),
+                builtin('u_camera', nullLocation, Vec3),
+                builtin('u_mouse', nullLocation, Vec2),
+            ],
+        },
+        is: {
+            type: 'ref',
+            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'] },
+            loc: nullLocation,
+            typeVbls: [],
+        },
+        subTypes: {},
+        loc: nullLocation,
+    };
 
     items.push(
         pp.items([
@@ -884,7 +991,17 @@ export const fileToGlsl = (
                     atom('fragColor'),
                     atom(' = '),
                     idToGlsl(env, opts, mainId, false),
-                    args(mainArgs, '(', ')', false),
+                    args(
+                        [
+                            termToGlsl(env, opts, glslEnv),
+                            atom('gl_FragCoord.xy'),
+                            ...bufferArgs,
+                        ],
+                        '(',
+                        ')',
+                        false,
+                    ),
+                    // args(mainArgs, '(', ')', false),
                 ]),
             ]),
         ]),

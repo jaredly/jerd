@@ -317,3 +317,11 @@ const lerp = (a: float, b: float, c: float) => c * (b - a) + a
 const mix = (a: Vec3, b: Vec3, c: float) => {
     Vec3{x: lerp(a.x, b.x, c), y: lerp(a.y, b.y, c), z: lerp(a.z, b.z, c)}
 }
+
+@ffi
+type GLSLEnv = {
+    time: float,
+    resolution: Vec2,
+    camera: Vec3,
+    mouse: Vec2,
+}
