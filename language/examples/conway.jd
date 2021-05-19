@@ -1,0 +1,66 @@
+
+const live = Vec4{x: 1.0, y: 0.6, z: 1.0, w: 1.0}
+const dead = Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+
+const isLive = (color: Vec4) => color.x > 0.5
+
+const neighbor = (offset: Vec2, coord: Vec2, res: Vec2, buffer: sampler2D) => {
+    const coord = coord + offset;
+    if isLive(texture(buffer, coord / res)) {
+        1
+    } else {
+        0
+    }
+}
+
+const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
+    neighbor(Vec2{x: -1.0, y:  0.0}, coord, res, buffer) +
+    neighbor(Vec2{x: -1.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x: -1.0, y: -1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y:  0.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y: -1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  0.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  0.0, y: -1.0}, coord, res, buffer)
+}
+
+@ffi
+@buffer0
+const drawToBuffer = (
+    env: GLSLEnv,
+    fragCoord: Vec2,
+    buffer: sampler2D,
+) => {
+    if env.time < 0.01 {
+        if random(fragCoord / env.resolution) > 0.95 {
+            live
+        } else {
+            dead
+        }
+    } else {
+        const self = isLive(texture(buffer, fragCoord / env.resolution));
+        const neighbors = countNeighbors(fragCoord, env.resolution, buffer);
+        if (self && neighbors == 2) || neighbors == 3 {
+            live
+        } else {
+            dead
+        }
+    }
+}
+
+@ffi
+@main
+const drawToScreen = (
+    env: GLSLEnv,
+    fragCoord: Vec2,
+    buffer0: sampler2D,
+) => {
+    const diff = env.mouse - fragCoord;
+    // Magnifying glass!
+    if length2(diff) < 250.0 {
+        const newCoord = env.mouse - diff / 4.0;
+        texture(buffer0, newCoord / env.resolution)
+    } else {
+        texture(buffer0, fragCoord / env.resolution)
+    }
+}
