@@ -108,6 +108,10 @@ const countAny = Counter<<T>(T) => string>{item: <T,>(input: T) => "hi", count: 
 countAny.item<string>("String") == "hi"
 countAny.item<int>(10) == "hi"
 
+// So lol typescript doesn't actually have type spread. which is funny
+// but I can just hardcode it I think.
+// also `extends` is what I'll need to use for these inline dealios
+// ooh yes ok this will work folks.
 const countNamed = Counter<<T: HasName>(T) => string>{item: <T: HasName>(input: T) => input.name, count: 10}
 
 countNamed.item<Person>(me) == "June"
@@ -125,6 +129,32 @@ const gotit = Some<int>{_: 5}
 // {5}
 
 gotit.contents == 5
+
+
+
+type Animal = {
+    ...HasName,
+    furColor: string,
+}
+
+type WereWolf = {
+    ...Animal,
+    ...Person,
+}
+
+const aDog = Animal{name: "wolrf", furColor: "red"}
+const aPerson = Person{name: "ralf", age: 23, what: 2}
+
+WereWolf{...aDog, ...aPerson}.name == "ralf"
+// Test that ordered spreads work correctly
+WereWolf{...aPerson, ...aDog}.name == "wolrf"
+
+
+
+
+
+
+
 
 // const notit = Option::None
 

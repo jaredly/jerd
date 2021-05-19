@@ -11,10 +11,13 @@ import {
     Reference,
     refsEqual,
     Case,
+    EffectRef,
+    LambdaType,
 } from '../types';
 import { showType } from '../unify';
 import typeExpr from '../typeExpr';
 import { idFromName, makeLocal } from '../env';
+import { void_ } from '../preset';
 
 export const typeHandle = (env: Env, expr: Handle): Term => {
     const target = typeExpr(env, expr.target);
@@ -32,10 +35,11 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         type: 'user',
         id: idFromName(effId),
     };
-    const effects = getEffects(target).filter(
-        (e) => e.type !== 'ref' || !refsEqual(effect, e.ref),
-    );
-    const otherEffects = effects.concat({ type: 'ref', ref: effect });
+    // const remainingEffects = getEffects(target).filter(
+    //     (e) => e.type !== 'ref' || !refsEqual(effect, e.ref),
+    // );
+    // const kEffects = getEffects(target);
+    // remainingEffects.concat({ type: 'ref', ref: effect });
 
     if (target.is.type !== 'lambda') {
         throw new Error(`Target of a handle must be a lambda`);
@@ -44,6 +48,10 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         throw new Error(`Target of a handle must take 0 args`);
     }
     const targetReturn = target.is.res;
+    const kEffects = [
+        { type: 'ref', ref: effect, location: null } as EffectRef,
+    ];
+    // target.is.effects;
 
     // but then, effects found in the bodies also get added.
     // so we'll need some deduping
@@ -60,18 +68,22 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         const constr = constrs[idx];
         const inner = subEnv(env);
         const args = (kase.args || []).map((id, i) => {
-            return makeLocal(inner, id, constr.args[i]);
+            return {
+                sym: makeLocal(inner, id, constr.args[i]),
+                type: constr.args[i],
+            };
         });
-        const k = makeLocal(inner, kase.k, {
+        const kType: LambdaType = {
             type: 'lambda',
             location: kase.location,
             typeVbls: [],
             effectVbls: [],
             args: isVoid(constr.ret) ? [] : [constr.ret],
-            effects: otherEffects,
+            effects: kEffects,
             rest: null,
             res: targetReturn,
-        });
+        };
+        const k = makeLocal(inner, kase.k, kType);
 
         const body = typeExpr(inner, kase.body);
         if (!typesEqual(body.is, pure.is)) {
@@ -86,7 +98,7 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
         cases.push({
             constr: idx,
             args,
-            k,
+            k: { sym: k, type: kType },
             body,
         });
     });
@@ -103,7 +115,5 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
 };
 
 export const isVoid = (x: Type) => {
-    return (
-        x.type === 'ref' && x.ref.type === 'builtin' && x.ref.name === 'void'
-    );
+    return typesEqual(x, void_);
 };

@@ -13,12 +13,13 @@ import {
     EnumDef,
     GlobalEnv,
     TypeVblDecl,
+    typesEqual,
 } from './types';
 import { Expression, Location } from '../parsing/parser';
 import { subEnv } from './types';
 import typeType, { walkType } from './typeType';
 import { showType } from './unify';
-import { void_, string, bool } from './preset';
+import { void_, string, bool, float } from './preset';
 import {
     hasSubType,
     idFromName,
@@ -31,12 +32,13 @@ import { typeHandle } from './terms/handle';
 import { typeRecord } from './terms/record';
 import { typeApply } from './terms/apply';
 import { typeSwitch } from './terms/switch';
-import { typeOps } from './terms/ops';
+import { findUnaryOp, typeOps } from './terms/ops';
 import { LocatedError, TypeError, UnresolvedIdentifier } from './errors';
 import { getTypeError } from './getTypeError';
 import { typeAs } from './terms/as-suffix';
 import { typeAttribute } from './terms/attribute';
 import { typeArray } from './terms/array';
+import { Loc } from '../printing/ir/types';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -132,9 +134,10 @@ export const showLocation = (loc: Location | null, startOnly?: boolean) => {
 };
 
 export const applyEffectVariables = (
-    env: Env,
+    env: Env | null,
     type: Type,
     vbls: Array<EffectRef>,
+    loc?: Loc,
 ): Type => {
     if (type.type === 'lambda') {
         const t: LambdaType = type as LambdaType;
@@ -142,11 +145,11 @@ export const applyEffectVariables = (
         const mapping: { [unique: number]: Array<EffectRef> } = {};
 
         if (type.effectVbls.length !== 1) {
-            throw new Error(
-                `Multiple effect variables not yet supported: ${showType(
-                    env,
-                    type,
-                )} : ${showLocation(type.location)}`,
+            throw new LocatedError(
+                loc || type.location,
+                `Multiple effect variables not yet supported: ${
+                    env ? showType(env, type) : 'no env for printing'
+                }`,
             );
         }
 
@@ -213,7 +216,7 @@ export const applyTypeVariablesToRecord = (
 };
 
 export const applyTypeVariables = (
-    env: Env,
+    env: Env | null,
     type: Type,
     vbls: Array<Type>,
     selfHash?: string,
@@ -233,16 +236,16 @@ export const applyTypeVariables = (
         }
         vbls.forEach((typ, i) => {
             // STOPSHIP CHECK HERE
-            const subs = t.typeVbls[i].subTypes;
-            for (let sub of subs) {
-                if (!hasSubType(env, typ, sub)) {
-                    throw new Error(`Expected a subtype of ${idName(sub)}`);
+            if (env) {
+                const subs = t.typeVbls[i].subTypes;
+                for (let sub of subs) {
+                    if (!hasSubType(env, typ, sub)) {
+                        throw new Error(`Expected a subtype of ${idName(sub)}`);
+                    }
                 }
             }
-            // if (hasSubType(typ, ))
             mapping[t.typeVbls[i].unique] = typ;
         });
-        // console.log(`Mapping`, mapping);
         return {
             ...type,
             typeVbls: [], // TODO allow partial application!
@@ -268,7 +271,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     location: expr.location,
                     ref: { type: 'builtin', name: 'float' },
                     typeVbls: [],
-                    effectVbls: [],
+                    // effectVbls: [],
                 },
             };
         case 'int':
@@ -281,7 +284,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     location: expr.location,
                     ref: { type: 'builtin', name: 'int' },
                     typeVbls: [],
-                    effectVbls: [],
+                    // effectVbls: [],
                 },
             };
         case 'boolean':
@@ -331,7 +334,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                         location: item.location,
                         binding: sym,
                         value,
-                        is: void_,
+                        is: type,
                     });
                 } else {
                     inner.push(typeExpr(innerEnv, item));
@@ -496,7 +499,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 ref: { type: 'user', id },
                 location: expr.id.location,
                 typeVbls,
-                effectVbls: [],
+                // effectVbls: [],
             };
 
             const inner = typeExpr(env, expr.expr);
@@ -536,23 +539,85 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                 type: 'Tuple',
                 location: expr.location,
                 items,
-                is: {
-                    type: 'ref',
-                    ref: { type: 'builtin', name: `Tuple${items.length}` },
-                    location: null,
-                    typeVbls: items.map((t) => t.is),
-                    effectVbls: [],
-                },
+                is: tupleType(items.map((t) => t.is)),
             };
         }
         case 'Array': {
             return typeArray(env, expr);
+        }
+        case 'Decorated': {
+            const inner = typeExpr(env, expr.wrapped);
+            if (inner.type === 'lambda') {
+                inner.tags = expr.decorators.map((d) => d.id.text);
+            } else {
+                throw new Error(`Only lambdas can be decorated right now`);
+            }
+            return inner;
+        }
+        case 'Unary': {
+            const inner = typeExpr(env, expr.inner);
+            if (!env.global.attributeNames[expr.op]) {
+                if (expr.op === '-' && typesEqual(inner.is, float)) {
+                    return {
+                        type: 'unary',
+                        op: '-',
+                        inner,
+                        location: expr.location,
+                        is: float,
+                    };
+                }
+
+                throw new LocatedError(
+                    expr.location,
+                    `Unknown unary op ${expr.op}`,
+                );
+            }
+            const { idx, id } = env.global.attributeNames[expr.op];
+            const fn = findUnaryOp(env, id, idx, inner.is, expr.location);
+            if (!fn) {
+                if (expr.op === '-' && typesEqual(inner.is, float)) {
+                    return {
+                        type: 'unary',
+                        op: '-',
+                        inner,
+                        location: expr.location,
+                        is: float,
+                    };
+                }
+                throw new LocatedError(expr.location, `No matching unary fn`);
+            }
+            return {
+                type: 'apply',
+                location: expr.location,
+                target: fn,
+                hadAllVariableEffects: false,
+                effectVbls: null,
+                typeVbls: [],
+                args: [inner],
+                is: (fn.is as LambdaType).res,
+            };
         }
         default:
             let _x: never = expr;
             throw new Error(`Unexpected parse type ${(expr as any).type}`);
     }
 };
+
+export const arrayType = (elemType: Type): TypeReference => ({
+    type: 'ref',
+    ref: { type: 'builtin', name: 'Array' },
+    location: null,
+    typeVbls: [elemType],
+    // effectVbls: [],
+});
+
+export const tupleType = (itemTypes: Array<Type>): TypeReference => ({
+    type: 'ref',
+    ref: { type: 'builtin', name: `Tuple${itemTypes.length}` },
+    location: null,
+    typeVbls: itemTypes,
+    // effectVbls: [],
+});
 
 const typeDef = (
     env: GlobalEnv,
@@ -750,7 +815,7 @@ export const findAs = (
         type: 'ref',
         ref: asRecord,
         typeVbls: [stype, ttype],
-        effectVbls: [],
+        // effectVbls: [],
         location: null,
     };
     let found = null;

@@ -23,7 +23,7 @@ import typeExpr, {
 } from '../typeExpr';
 import typeType from '../typeType';
 import { getTypeError } from '../getTypeError';
-import { TypeError } from '../errors';
+import { LocatedError, TypeError } from '../errors';
 
 // export const recordNamesAndSuch =
 
@@ -70,7 +70,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             id = env.global.typeNames[expr.id.text];
             if (!id) {
                 console.log(env.global.typeNames);
-                throw new Error(
+                throw new LocatedError(
+                    expr.location,
                     `No Record type ${expr.id.text} at ${showLocation(
                         expr.location,
                     )}`,
@@ -108,7 +109,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             ref,
             location: expr.id.location,
             typeVbls,
-            effectVbls: [], // STOPSHIP: allow effect variables to be specified for records
+            // effectVbls: [], // STOPSHIP: allow effect variables to be specified for records
         };
     }
 
@@ -137,6 +138,9 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     // be specifying each item
     // ok, I think we need to
 
+    // SubType spreads need to be ordered
+    const spreadOrder: Array<string> = [];
+
     // const names = env.global.recordGroups[idName(id)];
     expr.rows.forEach((row, idx) => {
         if (row.type === 'Spread') {
@@ -147,6 +151,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     Object.keys(subTypes).forEach(
                         (k) => (subTypes[k].covered = true),
                     );
+                    if (base.spread != null) {
+                        throw new LocatedError(
+                            expr.location,
+                            `Multiple spreads of the base type don't make any sense.`,
+                        );
+                    }
                     base.spread = v;
                     return;
                 }
@@ -157,6 +167,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 Object.keys(subTypes).forEach(
                     (k) => (subTypes[k].covered = true),
                 );
+                if (base.spread != null) {
+                    throw new LocatedError(
+                        expr.location,
+                        `Multiple spreads of the base type don't make any sense.`,
+                    );
+                }
                 base.spread = v;
                 return;
             }
@@ -166,8 +182,18 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     // ermmm we're gonna ignore type variables here
                     isRecord(v.is, { type: 'user', id })
                 ) {
-                    subTypes[idName(id)].spread = v;
-                    subTypes[idName(id)].covered = true;
+                    spreadOrder.push(idName(id));
+                    const sub = subTypes[idName(id)];
+                    if (sub.spread != null) {
+                        throw new LocatedError(
+                            expr.location,
+                            `Multiple spreads of the same subtype (${idName(
+                                id,
+                            )}) don't make any sense.`,
+                        );
+                    }
+                    sub.spread = v;
+                    sub.covered = true;
                     getAllSubTypes(
                         env.global,
                         subTypeTypes[idName(id)],
@@ -214,9 +240,9 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 : subTypeTypes[idName(id!)];
         if (rowsToMod[i].value != null) {
             throw new Error(
-                `Multiple values provided for ${names[i]} at ${showLocation(
-                    row.id.location,
-                )}`,
+                `Multiple values provided for ${i} ${
+                    names[i]
+                } at ${showLocation(row.id.location)}`,
             );
         }
         const v = typeExpr(env, row.value);
@@ -227,7 +253,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             row.value.location,
         );
         if (err != null) {
-            throw new TypeError(
+            throw new LocatedError(
+                row.value.location,
                 `Invalid type for attribute ${row.id.text} at ${showLocation(
                     row.value.location,
                 )}. Expected ${showType(
@@ -244,7 +271,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         const r = base.ref;
         base.rows.forEach((row, i) => {
             if (row.value == null) {
-                throw new Error(
+                throw new LocatedError(
+                    expr.location,
                     `Record missing attribute "${
                         env.global.recordGroups[idName(r.id)][i]
                     }" at ${showLocation(expr.location)}`,
@@ -262,6 +290,16 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             rows: Array<Term | null>;
         };
     } = {};
+
+    // This will initialized the finishedSubTypes object
+    // with the subtypes in the proper order to preserve spreads.
+    spreadOrder.forEach((id) => {
+        finishedSubTypes[id] = {
+            covered: false,
+            spread: null,
+            rows: [],
+        };
+    });
 
     Object.keys(subTypes).forEach((id) => {
         finishedSubTypes[id] = {

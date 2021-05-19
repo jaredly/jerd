@@ -1,9 +1,16 @@
 // Types for the typed tree
 
-import { Expression, Identifier, Location } from '../parsing/parser';
+import {
+    Expression,
+    Identifier,
+    Location,
+    nullLocation,
+} from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
 import seedrandom from 'seedrandom';
+import { applyEffectVariables, applyTypeVariables } from './typeExpr';
+import { getTypeError } from './getTypeError';
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
@@ -27,6 +34,11 @@ export type Symbol = { name: string; unique: number };
 export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
+export const typeVblDeclsEqual = (one: TypeVblDecl, two: TypeVblDecl) =>
+    one.unique === two.unique &&
+    one.subTypes.length === two.subTypes.length &&
+    one.subTypes.every((s, i) => idsEqual(s, two.subTypes[i]));
+
 /*********** ENV STUFF ************/
 
 export type Env = {
@@ -42,6 +54,16 @@ export type GlobalEnv = {
     names: { [key: string]: Id };
     idNames: { [idName: string]: string };
     terms: { [key: string]: Term };
+    exportedTerms: { [key: string]: Id };
+    metaData: {
+        [idName: string]: {
+            tags: Array<string>;
+            author?: string;
+            supersedes?: string;
+            supersededBy?: string;
+            createdMs: number;
+        };
+    };
     builtins: { [key: string]: Type };
 
     // number here is "number of type arguments"
@@ -80,7 +102,7 @@ export type Self =
 // TBH I should have a completely different local env for
 // type checking (getTypeError) than I do for parsing.
 export type LocalEnv = {
-    unique: number;
+    unique: { current: number };
     self: Self | null;
     locals: { [key: string]: { sym: Symbol; type: Type } };
     localNames: { [name: string]: number };
@@ -102,6 +124,8 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
         rng: defaultRng(seed),
         names: {},
         idNames: {},
+        exportedTerms: {},
+        metaData: {},
         terms: {},
         builtins: {},
         builtinTypes: {},
@@ -116,7 +140,7 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
         effects: {},
     },
     local: {
-        unique: 0,
+        unique: { current: 0 },
         self,
         symMapping: {},
         effectVbls: {},
@@ -129,7 +153,7 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
 });
 
 export const newLocal = (): LocalEnv => ({
-    unique: 0,
+    unique: { current: 0 },
     self: null,
     symMapping: {},
     effectVbls: {},
@@ -151,6 +175,8 @@ export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
         rng: env.rng,
         attributeNames: { ...env.attributeNames },
         recordGroups: { ...env.recordGroups },
+        exportedTerms: { ...env.exportedTerms },
+        metaData: { ...env.metaData },
         names: { ...env.names },
         idNames: { ...env.idNames },
         terms: { ...env.terms },
@@ -196,39 +222,46 @@ export const subEnv = (env: Env): Env => {
 
 export type Case = {
     constr: number; // the index
-    args: Array<Symbol>;
-    k: Symbol;
+    args: Array<{ sym: Symbol; type: Type }>;
+    k: { sym: Symbol; type: Type };
     body: Term;
 };
 
+export type EffectReference = {
+    type: 'ref';
+    ref: Reference;
+    location?: null | Location;
+};
 export type EffectRef =
-    | { type: 'ref'; ref: Reference; location?: null | Location }
+    | EffectReference
     | { type: 'var'; sym: Symbol; location?: null | Location }; // TODO var, also args
+export type Handle = {
+    type: 'handle';
+    location: Location | null;
+    target: Term; // this must needs be typed as a LambdaType
+    // These are the target's effects minus the one that is handled here.
+    effect: Reference;
+    cases: Array<Case>;
+    pure: {
+        arg: Symbol;
+        body: Term;
+    };
+    // this is the type of the bodies of the cases
+    // also of the pure, which is maybe simplest
+    is: Type;
+};
+export type Raise = {
+    type: 'raise';
+    location: Location | null;
+    ref: Reference;
+    idx: number;
+    args: Array<Term>;
+    is: Type;
+};
 
 export type CPSAble =
-    | {
-          type: 'raise';
-          location: Location | null;
-          ref: Reference;
-          idx: number;
-          args: Array<Term>;
-          is: Type;
-      }
-    | {
-          type: 'handle';
-          location: Location | null;
-          target: Term; // this must needs be typed as a LambdaType
-          // These are the target's effects minus the one that is handled here.
-          effect: Reference;
-          cases: Array<Case>;
-          pure: {
-              arg: Symbol;
-              body: Term;
-          };
-          // this is the type of the bodies of the cases
-          // also of the pure, which is maybe simplest
-          is: Type;
-      }
+    | Raise
+    | Handle
     | {
           type: 'if';
           location: Location | null;
@@ -237,16 +270,16 @@ export type CPSAble =
           no: Term | null;
           is: Type;
       }
-    | {
-          type: 'sequence';
-          location: Location | null;
-          sts: Array<Term | Let>;
-          is: Type;
-      }
+    | Sequence
     | Apply;
+export type Sequence = {
+    type: 'sequence';
+    location: Location | null;
+    sts: Array<Term | Let>;
+    is: Type;
+};
 export type Apply = {
     type: 'apply';
-    originalTargetType: LambdaType;
     location: Location | null;
     target: Term;
     typeVbls: Array<Type>;
@@ -263,7 +296,6 @@ export const apply = (
     location: Location | null,
 ): Term => ({
     type: 'apply',
-    originalTargetType: target.is as LambdaType,
     location,
     target,
     typeVbls: [],
@@ -413,8 +445,17 @@ export type TuplePattern = {
     location: Location | null;
 };
 
+export type Unary = {
+    type: 'unary';
+    op: '-' | '!';
+    inner: Term;
+    location: Location | null;
+    is: Type;
+};
+
 export type Term =
     | CPSAble
+    | Unary
     | { type: 'self'; is: Type; location: Location | null }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
@@ -490,6 +531,7 @@ export type Lambda = {
     args: Array<Symbol>;
     body: Term;
     is: LambdaType;
+    tags?: Array<string>;
 };
 
 // from thih
@@ -607,36 +649,37 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
     if (one == null || two == null) {
         return one == two;
     }
-    if (one.type === 'ref' || two.type === 'ref') {
-        if (one.type === 'ref' && two.type === 'ref') {
-            return refsEqual(one.ref, two.ref);
-        }
-        if (one.type === 'ref' && one.ref.type === 'builtin') {
-            return two.type === 'ref' && refsEqual(one.ref, two.ref);
-        }
-        if (two.type === 'ref' && two.ref.type === 'builtin') {
-            return one.type === 'ref' && refsEqual(two.ref, one.ref);
-        }
-        // STOPSHIP: resolve type references
-        // throw new Error(`Need to lookup types sorry`);
-        return false;
-    }
-    if (one.type === 'var') {
-        return two.type === 'var' && symbolsEqual(one.sym, two.sym);
-    }
-    if (one.type === 'lambda') {
-        return (
-            two.type === 'lambda' &&
-            deepEqual(one.typeVbls, two.typeVbls) &&
-            one.args.length === two.args.length &&
-            one.args.every((arg, i) => typesEqual(arg, two.args[i])) &&
-            one.effects.length === two.effects.length &&
-            effectsMatch(one.effects, two.effects) &&
-            typesEqual(one.res, two.res) &&
-            typesEqual(one.rest, two.rest)
-        );
-    }
-    return false;
+    return getTypeError(null, one, two, nullLocation) === null;
+    // if (one.type === 'ref' || two.type === 'ref') {
+    //     if (one.type === 'ref' && two.type === 'ref') {
+    //         return refsEqual(one.ref, two.ref);
+    //     }
+    //     if (one.type === 'ref' && one.ref.type === 'builtin') {
+    //         return two.type === 'ref' && refsEqual(one.ref, two.ref);
+    //     }
+    //     if (two.type === 'ref' && two.ref.type === 'builtin') {
+    //         return one.type === 'ref' && refsEqual(two.ref, one.ref);
+    //     }
+    //     // STOPSHIP: resolve type references
+    //     // throw new Error(`Need to lookup types sorry`);
+    //     return false;
+    // }
+    // if (one.type === 'var') {
+    //     return two.type === 'var' && symbolsEqual(one.sym, two.sym);
+    // }
+    // if (one.type === 'lambda') {
+    //     return (
+    //         two.type === 'lambda' &&
+    //         deepEqual(one.typeVbls, two.typeVbls) &&
+    //         one.args.length === two.args.length &&
+    //         one.args.every((arg, i) => typesEqual(arg, two.args[i])) &&
+    //         one.effects.length === two.effects.length &&
+    //         effectsMatch(one.effects, two.effects) &&
+    //         typesEqual(one.res, two.res) &&
+    //         typesEqual(one.rest, two.rest)
+    //     );
+    // }
+    // return false;
 };
 
 const effectKey = (e: EffectRef) =>
@@ -649,6 +692,7 @@ export const effectsMatch = (
     one: Array<EffectRef>,
     two: Array<EffectRef>,
     lessAllowed: boolean = false,
+    // mapping?: { [oneUnique: number]: number },
 ) => {
     const ones: { [k: string]: boolean } = {};
     const twos: { [k: string]: boolean } = {};
@@ -659,7 +703,7 @@ export const effectsMatch = (
         const k = effectKey(e);
         twos[k] = true;
         if (!ones[k]) {
-            // console.log(`Missing`, k, one, two);
+            // console.log(`Missing`, k, one.map(effectKey), two.map(effectKey));
             return false;
         }
     }
@@ -680,7 +724,7 @@ export type TypeReference = {
     ref: Reference;
     location: Location | null;
     typeVbls: Array<Type>;
-    effectVbls: Array<EffectRef>;
+    // effectVbls: Array<EffectRef>;
 };
 export type TypeRef = TypeReference | TypeVar; // will also support vbls at some point I guess
 
@@ -753,12 +797,15 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                     getEffects(i.type === 'ArraySpread' ? i.value : i),
                 ),
             );
-        case 'apply':
+        case 'apply': {
+            let is = t.target.is as LambdaType;
+            if (t.effectVbls) {
+                is = applyEffectVariables(null, is, t.effectVbls) as LambdaType;
+            }
             return dedupEffects(
-                (t.target.is as LambdaType).effects.concat(
-                    ...t.args.map(getEffects),
-                ),
+                (is as LambdaType).effects.concat(...t.args.map(getEffects)),
             );
+        }
         case 'sequence':
             return ([] as Array<EffectRef>).concat(...t.sts.map(getEffects));
         case 'raise':
@@ -822,6 +869,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             return effects;
         }
         case 'Enum':
+        case 'unary':
             return getEffects(t.inner);
         case 'Switch':
             return getEffects(t.term).concat(
@@ -906,6 +954,7 @@ export const walkTerm = (
             });
             return;
         case 'Enum':
+        case 'unary':
             return walkTerm(term.inner, handle);
         case 'Tuple':
             term.items.forEach((item) => {

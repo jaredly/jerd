@@ -2,7 +2,7 @@
 
 import { Expression, Toplevel } from '../parsing/parser';
 import typeExpr, { showLocation } from '../typing/typeExpr';
-import { Env, getEffects, Term, Type } from '../typing/types';
+import { Env, getEffects, newLocal, Term, Type } from '../typing/types';
 import { showType } from '../typing/unify';
 import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
@@ -11,6 +11,7 @@ import {
     typeTypeDefn,
     typeEnumDefn,
     typeEffect,
+    idName,
 } from '../typing/env';
 
 import { presetEnv } from '../typing/preset';
@@ -29,10 +30,18 @@ export function typeFile(
 
     // const out = prelude.slice();
     for (const item of parsed) {
+        // Clear out the locals. This is definitely not the
+        // right way to do this lol.
+        env = { ...env, local: newLocal() };
+
         if (item.type === 'define') {
             // console.log('>> A define', item.id.text);
-            const { term, env: nenv } = typeDefine(env, item);
+            const { term, env: nenv, id } = typeDefine(env, item);
             env = nenv;
+            env.global.metaData[idName(id)] = {
+                tags: [],
+                createdMs: Date.now(),
+            };
             // console.log('< unified type', showType(env, term.is));
         } else if (item.type === 'effect') {
             env = typeEffect(env, item);
@@ -41,23 +50,51 @@ export function typeFile(
         } else if (item.type === 'EnumDef') {
             env = typeEnumDefn(env, item).env;
         } else if (item.type === 'Decorated') {
-            if (item.decorators[0].id.text === 'ffi') {
-                if (item.wrapped.type !== 'StructDef') {
-                    throw new Error(`@ffi can only be applied to RecordDef`);
+            if (item.wrapped.type === 'define') {
+                const { term, env: nenv, id } = typeDefine(env, item.wrapped);
+                env = nenv;
+                const tags = item.decorators.map((d) => d.id.text);
+                env.global.metaData[idName(id)] = {
+                    tags,
+                    createdMs: Date.now(),
+                };
+                if (tags.includes('ffi')) {
+                    env.global.exportedTerms[item.wrapped.id.text] = id;
                 }
-                // the tag is the name by default
-                const tag =
-                    item.decorators[0].args.length === 1
-                        ? typeExpr(env, item.decorators[0].args[0])
-                        : null;
-                if (tag && tag.type !== 'string') {
-                    throw new Error(`ffi tag must be a string literal`);
-                }
-                env = typeTypeDefn(
-                    env,
-                    item.wrapped,
-                    tag ? tag.text : item.wrapped.id.text,
+                continue;
+            }
+            if (item.wrapped.type === 'StructDef') {
+                const unique = item.decorators.filter(
+                    (d) => d.id.text === 'unique',
                 );
+                const ffi = item.decorators.filter((d) => d.id.text === 'ffi');
+                let unum = undefined;
+                if (unique.length) {
+                    if (
+                        unique[0].args.length !== 1 ||
+                        unique[0].args[0].type !== 'float'
+                    ) {
+                        throw new LocatedError(
+                            item.location,
+                            `@unique must have a float argument`,
+                        );
+                    }
+                    unum = unique[0].args[0].value;
+                }
+                let tag = undefined;
+                if (ffi.length) {
+                    tag = item.wrapped.id.text;
+                    if (ffi[0].args.length === 1) {
+                        if (ffi[0].args[0].type !== 'string') {
+                            throw new LocatedError(
+                                item.location,
+                                `ffi arg must be a string`,
+                            );
+                        }
+                        tag = ffi[0].args[0].text;
+                    }
+                }
+                env = typeTypeDefn(env, item.wrapped, tag, unum);
             } else if (item.decorators[0].id.text === 'typeError') {
                 const args = item.decorators[0].args.map((expr) =>
                     typeExpr(env, expr),

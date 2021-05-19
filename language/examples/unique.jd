@@ -1,0 +1,29 @@
+
+const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
+ = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
+    switch (one, two) {
+        ([], []) => true,
+        ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
+            arrayEq<T>(rone, rtwo, eq)
+        } else {
+            false
+        },
+        _ => false
+    }
+}
+
+arrayEq
+// [1,2,3] == [2,3,4]
+
+// const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
+//  = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
+//     switch (one, two) {
+//         ([], []) => true,
+//         ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
+//             arrayEq<T>(rone, rtwo, eq)
+//         } else {
+//             false
+//         },
+//         _ => false
+//     }
+// }

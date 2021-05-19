@@ -1,0 +1,278 @@
+
+const www = Vec3{x: 3.0, y: 3.0, z: 3.0}
+const kxyz = Vec3{x: 1.0, y: 2.0 / 3.0, z: 1.0 / 3.0}
+
+const hsv2rgb = (c: Vec3) => {
+  const K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  const xxx = Vec3{x: c.x, y: c.x, z: c.x};
+  const p = abs3(fract3(xxx + kxyz) * 6.0 - 3.0);
+  const kxxx = Vec3{x: 1.0, y: 1.0, z: 1.0};
+  c.z * mix(kxxx, clamp(p - kxxx, Vec3{x: 0.0, y: 0.0, z: 0.0}, Vec3{x: 1.0, y: 1.0, z: 1.0}), c.y);
+}
+
+@ffi
+const r1 = 100.0
+@ffi
+const r2 = 100.0
+const m1 = 20.0
+const m2 = 20.0
+
+// const a1 = 7.0 * PI / 8.0
+// const a2 = 7.0 * PI / 8.0
+// const a1_v = 0.0
+// const a2_v = 0.0
+
+const g = 0.15
+const TWO_PI = PI * 2.0
+
+// a1 and a2 want to be between -PI and PI
+
+const normalizeTheta = (t: float) => if (t > PI) {
+    t - TWO_PI;
+} else if (t < -PI) {
+    t + TWO_PI;
+} else {
+    t
+}
+
+// a1_v and a2_v... I don't know
+
+const MaxVelocity = 0.1
+
+// Get this to be positive
+const pixOff = Vec4{x: PI, y: PI, z: MaxVelocity, w: MaxVelocity}
+const pixScale = Vec4{x: TWO_PI, y: TWO_PI, z: MaxVelocity * 2.0, w: MaxVelocity * 2.0}
+
+const outOfRange = (v: float) => v < 0.0 || v > 1.0
+
+// to 0...1, 0...1
+const dataToPixel = (v: Vec4) => {
+    const res = (v + pixOff) / pixScale;
+    // if outOfRange(res.x) || outOfRange(res.y) {
+    // // if outOfRange(res.z) || outOfRange(res.w) {
+    //     Vec4{x: 0.0, y: 0.0, z: res.x, w: res.y}
+    //     // res
+    // } else {
+        res
+    // }
+}
+// from 0...1, 0...1
+const pixelToData = (v: Vec4) => v * pixScale - pixOff
+
+@ffi
+const update = (a1: float, a2: float, a1_v: float, a2_v: float) => {
+    const num1 = -g * (2.0 * m1 + m2) * sin(a1);
+    const num2 = -m2 * g * sin(a1 - 2.0 * a2);
+    const num3 = -2.0 * sin(a1 - a2) * m2;
+    const num4 = a2_v * a2_v * r2 + a1_v * a1_v * r1 * cos(a1 - a2);
+    // BUG BUG BUG
+    //    den$8 = r1 * ((2 * m1 + m2 - m2) * cos(2 * a1$0 - 2 * a2$1));
+    // whyyyyy are my binops wrong???
+    // prolly because I haven't really tested them yoooo
+    const den = r1 * (2.0 * m1 + m2 - m2 * cos(2.0 * a1 - 2.0 * a2));
+    const a1_a = (num1 + num2 + num3 * num4) / den;
+
+    const num1 = 2.0 * sin(a1 - a2);
+    const num2 = a1_v * a1_v * r1 * (m1 + m2);
+    const num3 = g * (m1 + m2) * cos(a1);
+    const num4 = a2_v * a2_v * r2 * m2 * cos(a1 - a2);
+    const den = r2 * (2.0 * m1 + m2 - m2 * cos(2.0 * a1 - 2.0 * a2));
+    const a2_a = (num1 * (num2 + num3 + num4)) / den;
+
+    const a1_v = a1_v + a1_a;
+    const a2_v = a2_v + a2_a;
+    const a1 = a1 + a1_v;
+    const a2 = a2 + a2_v;
+
+    const a1 = normalizeTheta(a1);
+    const a2 = normalizeTheta(a2);
+
+    vec4(a1, a2, a1_v, a2_v)
+}
+
+// START HERE: I need more info on what kind of precision I can expect
+// from storing data in the texture. How many decimal places?
+// And so, do I need to use multiple pixels for a simple set of pendula?
+
+// @ffi
+// @buffer0
+const pendulumDebug = (
+    iTime: float,
+    fragCoord: Vec2,
+    iResolution: Vec2,
+    uCamera: Vec3,
+    // last buffer
+    buffer: sampler2D,
+) => {
+    if iTime <= 0.01 {
+        vec4(0.25, 0.4, 0.5, 0.5)
+        // if fragCoord.x == 0.0 && fragCoord.y == 0.0 {
+        //     const t = fragCoord / iResolution;
+        //     vec4(t.x, t.y, 0.0, 0.0)
+        // } else {
+
+        // }
+    } else {
+        const current = texture(buffer, Vec2{x: 0.0, y: 0.0});
+        const current = pixelToData(current);
+        if fragCoord.x <= 1.01 && fragCoord.y <= 1.01 {
+            dataToPixel(update(current.x, current.y, current.z, current.w))
+        } else {
+            // const pos = Vec2{x: cos(current.x) * r1, y: sin(current.x) * r1};
+            // if length(pos - fragCoord) < 10.0 {
+            //     Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
+            // } else {
+            //     Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+            // }
+            Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+        }
+        // const current = texture(buffer, fragCoord / iResolution);
+        // if current.x == 0.0 && current.y == 0.0 {
+        //     // this is our bail condition. Leave it alone
+        //     current
+        // } else {
+        //     const current = pixelToData(current);
+        //     dataToPixel(update(current.x, current.y, current.z, current.w))
+        // }
+    }
+}
+
+@ffi
+@buffer0
+const pendulum = (
+    env: GLSLEnv,
+    // iTime: float,
+    fragCoord: Vec2,
+    // iResolution: Vec2,
+    // uCamera: Vec3,
+    // last buffer
+    buffer: sampler2D,
+) => {
+    if env.time <= 0.01 {
+        const t = fragCoord / env.resolution;
+        // vec4(t.x, t.y, 0.5, 0.5)
+        vec4(0.0, 0.0, t.x, t.y)
+    } else {
+        const current = texture(buffer, fragCoord / env.resolution);
+        // if current.x == 0.0 && current.y == 0.0 {
+        //     // this is our bail condition. Leave it alone
+        //     current
+        // } else {
+            const current = pixelToData(current);
+            dataToPixel(update(current.x, current.y, current.z, current.w))
+        // }
+    }
+}
+
+const rect = (samplePos: Vec2, center: Vec2, w: float, h: float) => {
+    vmax2(vabs2(samplePos - center) - Vec2{x: w, y: h})
+}
+
+const circle = (samplePos: Vec2, center: Vec2, r: float) => {
+    length2(samplePos - center) - r
+}
+
+// const 
+@ffi
+@main
+@mouse
+const main = (
+    env: GLSLEnv,
+    // iTime: float,
+    fragCoord: Vec2,
+    // iResolution: Vec2,
+    // uCamera: Vec3,
+    buffer: sampler2D,
+    // uMouse: Vec2,
+) => {
+    const currentPos = env.mouse / env.resolution;
+    const currentp = texture(buffer, currentPos);
+    const current = pixelToData(currentp);
+
+    const p1 = fragCoord - env.resolution / 2.0;
+    const c1 = Vec2{x: sin(current.x) * r1, y: -cos(current.x) * r1};
+    const c2 = Vec2{x: c1.x + sin(current.y) * r2, y: c1.y - cos(current.y) * r2};
+    // const sdf = min(min(
+
+    //     max(
+    //         rect(p1, env.mouse - env.resolution / 2.0, 10.0, 10.0),
+    //         -rect(p1, env.mouse - env.resolution / 2.0, 9.0, 9.0),
+    //     )
+    // );
+        // vmax2(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
+        // vmax2(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
+        // vmax2(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax2(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax2(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax2(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
+
+    if circle(p1, c1, 10.0) < 0.0 {
+        vec4(1.0, 0.0, 0.0, 1.0)
+    } else if circle(p1, c2, 10.0) < 0.0 {
+        vec4(1.0, 1.0, 0.0, 1.0)
+    } else if max(rect(p1, env.mouse - env.resolution / 2.0, 10.0, 10.0), -rect(p1, env.mouse - env.resolution / 2.0, 9.0, 9.0)) < 0.0 {
+        vec4(0.0, 0.0, 0.0, 1.0)
+
+    // } else if rect(p1, env.mouse - env.resolution / 2.0, 50.0, 50.0) < 0.0 {
+    } else if length2(p1 - (env.mouse - env.resolution / 2.0)) < 100.0 {
+        const t = texture(buffer, fragCoord / env.resolution);
+        // const rgb = hsv2rgb(Vec3{x: t.w, y: t.w, z: 1.0});
+        const rgb = hsv2rgb(Vec3{x: t.z, y: t.w, z: 1.0});
+        Vec4{...rgb, w: 1.0}
+    } else if length2(p1 - (env.mouse - env.resolution / 2.0)) < 101.0 {
+        vec4(0.0, 0.0, 0.0, 1.0)
+    // if sdf < 0.0 {
+    //     vec4(1.0, 0.0, 0.0, 1.0)
+    } else {
+        // const currentp = texture(buffer, Vec2{x: 0.0, y: 0.0});
+        // const current = pixelToData(currentp);
+        const t = texture(buffer, fragCoord / env.resolution);
+        // const rgb = hsv2rgb(Vec3{x: t.w, y: t.w, z: 1.0});
+        const rgb = hsv2rgb(Vec3{x: t.y, y: t.x, z: 1.0});
+        Vec4{...rgb, w: 1.0}
+        // // Vec4{...rgb, w: 1.0}
+        // vec4(t.z, t.w, 0.0, 1.0)
+    }
+}
+
+// @ffi
+// @main
+const mainDebug = (
+    env: GLSLEnv,
+    fragCoord: Vec2,
+    buffer: sampler2D,
+) => {
+    const currentp = texture(buffer, Vec2{x: 0.0, y: 0.0});
+    const current = pixelToData(currentp);
+
+    // const t = texture(buffer0, fragCoord / iResolution);
+    // const rgb = hsv2rgb(Vec3{x: t.x, y: t.y, z: 1.0});
+    // // Vec4{...rgb, w: 1.0}
+    // // Vec4{...rgb, w: 1.0}
+    // vec4(t.z, t.w, 0.0, 1.0)
+    const hw = env.resolution / 2.0;
+
+    const pos = Vec2{x: hw.x + sin(current.x) * r1, y: hw.y + cos(current.x) * r1};
+    const pos2 = Vec2{x: pos.x + sin(current.y) * r1, y: pos.y + cos(current.y) * r1};
+    if length2(pos - fragCoord) < 10.0 {
+        Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
+    } else if length2(pos2 - fragCoord) < 10.0 {
+        Vec4{x: 1.0, y: 1.0, z: 0.0, w: 1.0}
+    } else {
+        const updated = dataToPixel(update(current.x, current.y, current.z, current.w));
+
+        const p1 = fragCoord - env.resolution / 2.0;
+        const sdf = min(min(min(min(min(
+            vmax2(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
+            vmax2(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
+            vmax2(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax2(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax2(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax2(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
+        if sdf < 0.0 {
+            Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0}
+        } else {
+            Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+        }
+    }
+}

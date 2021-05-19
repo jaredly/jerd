@@ -50,11 +50,13 @@ switch y2 {
     _ => 0
 } == 13
 
-switch y1 {
+const y1t = (y1: OptionOrTwice<int>) => switch y1 {
     Twice{one, two} => one + two,
     None => 2,
     _ => 0
-} == 2
+}
+
+y1t(y1) == 2
 
 const something = Some<int>{_: 10}
 // We can do enum conversion on variables too
@@ -91,17 +93,21 @@ switch None { None => true }
 
 // um what were the other errors I wanted to verify?
 
-switch 10 {
+const isTen = (n: int) => switch n {
     4 => false,
     10 => true,
     _ => false
-} == true
+}
 
-switch Option<string>:Some<string>{_: "yes"} {
+isTen(10) == true
+
+const isSomeYes = (v: Option<string>) => switch v {
     Some{_: "no"} => false,
     None => false,
     Some{_: v} => v == "yes"
-} == true
+}
+
+isSomeYes(Option<string>:Some<string>{_: "yes"}) == true
 
 @typeError("Not exhaustive")
 switch Option<string>:Some<string>{_: "yes"} {
@@ -134,23 +140,28 @@ switch true {
     false => false
 }
 
-switch true {
+const isNotFalse = (n: bool) => switch n {
     false => false,
     _ => true
-} == true
+}
+
+isNotFalse(true) == true
 
 @typeError("Not exhaustive")
 switch y {
     None => true
 }
 
+const isAs = (y: Option<int>) =>
 // Type refinement please
 switch y {
     Some as x => x.value == 2,
     None => true
 }
 
-switch y1 {
+isAs(y)
+
+const check = (y1: OptionOrTwice<int>) => switch y1 {
     Twice{two: 5} => false,
     Twice => false,
     Option as x => switch x {
@@ -158,6 +169,8 @@ switch y1 {
         None => true
     },
 }
+
+check(y1)
 
 /*
 

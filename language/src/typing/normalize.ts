@@ -1,6 +1,6 @@
 // Checking if types are equivalent
 
-import { EffectRef, Term, Type, walkTerm } from './types';
+import { EffectRef, Term, Type } from './types';
 
 // export type SingleVarLookup = {
 //     vars: VarMapping;
@@ -11,11 +11,11 @@ import { EffectRef, Term, Type, walkTerm } from './types';
 // export const typeMapping = (lookup: SingleVarLookup, type: Type) => {
 //     if (type.type === 'lambda') {
 //         type.typeVbls.forEach((vbl, i) => {
-//             const id = lookup.unique++;
+//             const id = lookup.unique.current++;
 //             lookup.vars[vbl.unique] = id;
 //         });
 //         type.effectVbls.forEach((eff, i) => {
-//             const id = lookup.unique++;
+//             const id = lookup.unique.current++;
 //             lookup.vars[eff] = id;
 //         });
 //         typeMapping(lookup, type.res);
@@ -28,23 +28,23 @@ import { EffectRef, Term, Type, walkTerm } from './types';
 //         if (term.type === 'handle') {
 //             term.cases.forEach((kase) => {
 //                 kase.args.forEach((sym) => {
-//                     const id = lookup.unique++;
+//                     const id = lookup.unique.current++;
 //                     lookup.vars[sym.unique] = id;
 //                 });
-//                 const id = lookup.unique++;
+//                 const id = lookup.unique.current++;
 //                 lookup.vars[kase.k.unique] = id;
 //             });
-//             const id = lookup.unique++;
+//             const id = lookup.unique.current++;
 //             lookup.vars[term.pure.arg.unique] = id;
 //         }
 //         if (term.type === 'lambda') {
 //             term.args.forEach((sym) => {
-//                 const id = lookup.unique++;
+//                 const id = lookup.unique.current++;
 //                 lookup.vars[sym.unique] = id;
 //             });
 //         }
 //         if (term.type === 'Let') {
-//             const id = lookup.unique++;
+//             const id = lookup.unique.current++;
 //             lookup.vars[term.binding.unique] = id;
 //         }
 //     });

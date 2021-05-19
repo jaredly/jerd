@@ -1,12 +1,13 @@
 // Ok
 
 import * as t from '@babel/types';
-import { sortTerms } from '../typing/analyze';
+import { expressionDeps, sortTerms } from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
 import { binOps, bool } from '../typing/preset';
 import {
     EffectRef,
     Env,
+    getAllSubTypes,
     Id,
     RecordDef,
     Reference,
@@ -17,25 +18,54 @@ import {
     typesEqual,
 } from '../typing/types';
 import { typeScriptPrelude } from './fileToTypeScript';
-import { wrapWithAssert } from './goPrinter';
+import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
-import { optimize, optimizeDefine } from './ir/optimize';
-import { handlerSym, Loc } from './ir/types';
+import {
+    optimize,
+    optimizeAggressive,
+    optimizeDefine,
+} from './ir/optimize/optimize';
+import {
+    Loc,
+    Type as IRType,
+    OutputOptions as IOutputOptions,
+    Expr,
+} from './ir/types';
+import { handlersType, handlerSym, typeFromTermType, void_ } from './ir/utils';
+import { liftEffects } from './pre-ir/lift-effectful';
 import { printToString } from './printer';
-import { declarationToPretty } from './printTsLike';
+import {
+    declarationToPretty,
+    enumToPretty,
+    recordToPretty,
+    termToPretty,
+} from './printTsLike';
 import { optimizeAST } from './typeScriptOptimize';
-import { printType, typeToAst } from './typeScriptPrinter';
+import {
+    printType,
+    recordMemberSignature,
+    typeIdToString,
+    typeToAst,
+    typeVblsToParameters,
+} from './typeScriptTypePrinter';
+import { effectConstructorType } from './ir/cps';
+import { getEnumReferences, showLocation } from '../typing/typeExpr';
+import { nullLocation } from '../parsing/parser';
+import { defaultVisitor, transformExpr } from './ir/transform';
+import { uniquesReallyAreUnique } from './ir/analyze';
+import { LocatedError } from '../typing/errors';
 
 const reservedSyms = ['default', 'async', 'await'];
 
-const printSym = (env: Env, sym: Symbol) =>
+const printSym = (env: Env, opts: OutputOptions, sym: Symbol) =>
+    !opts.showAllUniques &&
     env.local.localNames[sym.name] === sym.unique &&
     !reservedSyms.includes(sym.name)
         ? sym.name
         : sym.name + '$' + sym.unique;
 const printId = (id: Id) => 'hash_' + id.hash; // + '_' + id.pos; TODO recursives
 
-function withLocation<
+export function withLocation<
     T extends { start: number | null; end: number | null; loc: any }
 >(v: T, loc: Loc): T {
     if (loc == null) {
@@ -51,42 +81,60 @@ export type OutputOptions = {
     readonly scope?: string;
     readonly noTypes?: boolean;
     readonly limitExecutionTime?: boolean;
-    readonly disciminant?: string;
+    readonly discriminant?: string;
+    readonly optimize?: boolean;
+    readonly optimizeAggressive?: boolean;
+    readonly showAllUniques?: boolean;
+};
+
+export const maybeWithComment = <T>(e: T, comment?: string): T => {
+    if (comment) {
+        // @ts-ignore
+        return t.addComment(e, 'leading', comment);
+    } else {
+        return e;
+    }
 };
 
 export const withAnnotation = <T>(
     env: Env,
     opts: OutputOptions,
     e: T,
-    type: Type,
-): T => ({
-    ...e,
-    // @ts-ignore
-    typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
-});
+    type: IRType,
+): T => {
+    if (type == null) {
+        console.error(e);
+        throw new Error(`no type`);
+    }
+    return {
+        ...e,
+        typeAnnotation: t.tsTypeAnnotation(typeToAst(env, opts, type)),
+    };
+};
 
 export const declarationToTs = (
     env: Env,
     opts: OutputOptions,
     idRaw: string,
     term: ir.Expr,
-    type: Type,
     comment?: string,
 ): t.Statement => {
     const expr = termToTs(env, opts, term);
     let res =
         opts.scope == null
-            ? t.variableDeclaration('const', [
-                  t.variableDeclarator(
-                      withAnnotation(
-                          env,
-                          opts,
-                          t.identifier('hash_' + idRaw),
-                          type,
+            ? t.exportNamedDeclaration(
+                  t.variableDeclaration('const', [
+                      t.variableDeclarator(
+                          withAnnotation(
+                              env,
+                              opts,
+                              t.identifier('hash_' + idRaw),
+                              term.is,
+                          ),
+                          expr,
                       ),
-                      expr,
-                  ),
-              ])
+                  ]),
+              )
             : t.expressionStatement(
                   t.assignmentExpression(
                       '=',
@@ -111,7 +159,13 @@ export const termToTs = (
     env: Env,
     opts: OutputOptions,
     term: ir.Expr,
-): t.Expression => withLocation(_termToTs(env, opts, term), term.loc);
+): t.Expression =>
+    withAnnotation(
+        env,
+        opts,
+        withLocation(_termToTs(env, opts, term), term.loc),
+        term.is,
+    );
 
 export const _termToTs = (
     env: Env,
@@ -132,10 +186,35 @@ export const _termToTs = (
                     env.local.localNames[arg.sym.name] = arg.sym.unique;
                 }
             });
-            return t.arrowFunctionExpression(
-                term.args.map((arg) => t.identifier(printSym(env, arg.sym))),
+            let res = t.arrowFunctionExpression(
+                term.args.map((arg) =>
+                    withAnnotation(
+                        env,
+                        opts,
+                        t.identifier(printSym(env, opts, arg.sym)),
+                        arg.type,
+                    ),
+                ),
                 lambdaBodyToTs(env, opts, term.body),
             );
+            if (term.tags != null) {
+                res = t.addComment(
+                    res,
+                    'leading',
+                    ' tags: ' + term.tags.join(', ') + ' ',
+                );
+            }
+            if (term.is.typeVbls.length) {
+                return {
+                    ...res,
+                    typeParameters: typeVblsToParameters(
+                        env,
+                        opts,
+                        term.is.typeVbls,
+                    ),
+                };
+            }
+            return res;
         case 'term':
             if (opts.scope) {
                 return t.memberExpression(
@@ -150,13 +229,13 @@ export const _termToTs = (
                 return t.identifier(printId(term.id));
             }
         case 'var':
-            return t.identifier(printSym(env, term.sym));
+            return t.identifier(printSym(env, opts, term.sym));
         case 'IsRecord':
             return t.binaryExpression(
                 '===',
                 t.memberExpression(
                     termToTs(env, opts, term.value),
-                    t.identifier(opts.disciminant || 'type'),
+                    t.identifier(opts.discriminant || 'type'),
                 ),
                 t.stringLiteral(recordIdName(env, term.ref)),
             );
@@ -184,9 +263,12 @@ export const _termToTs = (
                     // term.args.map((arg) => termToTs(env, opts, arg)),
                 );
             }
-            return t.callExpression(
-                termToTs(env, opts, term.target),
-                term.args.map((arg) => termToTs(env, opts, arg)),
+            return maybeWithComment(
+                t.callExpression(
+                    termToTs(env, opts, term.target),
+                    term.args.map((arg) => termToTs(env, opts, arg)),
+                ),
+                term.note,
             );
         case 'tuple':
             return t.arrayExpression(
@@ -251,48 +333,100 @@ export const _termToTs = (
         case 'handle': {
             // term.hermmmmmm there's different behavior if it's
             // in the direct case ... hmmm ....
-            return t.callExpression(t.identifier('handleSimpleShallow2'), [
-                t.stringLiteral(term.effect.hash),
-                termToTs(env, opts, term.target),
-                t.arrayExpression(
-                    term.cases
-                        .sort((a, b) => a.constr - b.constr)
-                        .map(({ args, k, body }) => {
-                            return t.arrowFunctionExpression(
-                                [
-                                    t.identifier(printSym(env, handlerSym)),
-                                    args.length === 0
-                                        ? t.identifier('_')
-                                        : args.length === 1
-                                        ? t.identifier(printSym(env, args[0]))
-                                        : t.arrayPattern(
-                                              args.map((s) =>
+            const expr = t.callExpression(
+                t.identifier('handleSimpleShallow2'),
+                [
+                    t.stringLiteral(term.effect.hash),
+                    termToTs(env, opts, term.target),
+                    t.arrayExpression(
+                        term.cases
+                            .sort((a, b) => a.constr - b.constr)
+                            .map(({ args, k, body }) => {
+                                return t.arrowFunctionExpression(
+                                    [
+                                        t.identifier(
+                                            printSym(env, opts, handlerSym),
+                                        ),
+                                        args.length === 0
+                                            ? t.identifier('_')
+                                            : args.length === 1
+                                            ? withAnnotation(
+                                                  env,
+                                                  opts,
                                                   t.identifier(
-                                                      printSym(env, s),
+                                                      printSym(
+                                                          env,
+                                                          opts,
+                                                          args[0].sym,
+                                                      ),
+                                                  ),
+                                                  args[0].type,
+                                              )
+                                            : t.arrayPattern(
+                                                  args.map((s) =>
+                                                      t.identifier(
+                                                          printSym(
+                                                              env,
+                                                              opts,
+                                                              s.sym,
+                                                          ),
+                                                      ),
                                                   ),
                                               ),
-                                          ),
-                                    t.identifier(printSym(env, k)),
-                                ],
-                                lambdaBodyToTs(env, opts, body),
-                            );
-                        }),
-                ),
-                t.arrowFunctionExpression(
-                    [
-                        t.identifier(printSym(env, handlerSym)),
-                        t.identifier(printSym(env, term.pure.arg)),
-                    ],
-                    lambdaBodyToTs(env, opts, term.pure.body),
-                ),
-                ...(term.done ? [t.identifier(printSym(env, handlerSym))] : []),
-            ]);
+                                        withAnnotation(
+                                            env,
+                                            opts,
+                                            t.identifier(
+                                                printSym(env, opts, k.sym),
+                                            ),
+                                            k.type,
+                                        ),
+                                    ],
+                                    lambdaBodyToTs(env, opts, body),
+                                );
+                            }),
+                    ),
+                    t.arrowFunctionExpression(
+                        [
+                            withAnnotation(
+                                env,
+                                opts,
+                                t.identifier(printSym(env, opts, handlerSym)),
+                                handlersType,
+                            ),
+                            withAnnotation(
+                                env,
+                                opts,
+                                // STOPSHIP: Pure needs the type folks.
+                                t.identifier(
+                                    printSym(env, opts, term.pure.arg),
+                                ),
+                                term.pure.argType,
+                                // term.target as LambdaType
+                            ),
+                        ],
+                        lambdaBodyToTs(env, opts, term.pure.body),
+                    ),
+                    ...(term.done
+                        ? [t.identifier(printSym(env, opts, handlerSym))]
+                        : []),
+                ],
+            );
+            return {
+                ...expr,
+                typeParameters: t.tsTypeParameterInstantiation([
+                    t.tsAnyKeyword(),
+                    t.tsAnyKeyword(),
+                    t.tsAnyKeyword(),
+                    // typeToAst(env, opts, term.is),
+                ]),
+            };
         }
 
         case 'raise':
             // TODO: The IR should probably be doing more work here....
             const args: Array<t.Expression> = [
-                t.identifier(printSym(env, handlerSym)),
+                t.identifier(printSym(env, opts, handlerSym)),
                 t.stringLiteral(term.effect.hash),
                 t.numericLiteral(term.idx),
             ];
@@ -310,18 +444,18 @@ export const _termToTs = (
             args.push(
                 t.arrowFunctionExpression(
                     [
-                        t.identifier(printSym(env, handlerSym)),
+                        t.identifier(printSym(env, opts, handlerSym)),
                         t.identifier('value'),
                     ],
                     t.callExpression(termToTs(env, opts, term.done), [
-                        t.identifier(printSym(env, handlerSym)),
+                        t.identifier(printSym(env, opts, handlerSym)),
                         t.identifier('value'),
                     ]),
                 ),
             );
             return t.callExpression(scopedGlobal(opts, 'raise'), args);
         case 'record': {
-            return t.objectExpression(
+            const result = t.objectExpression(
                 ((term.base.spread != null
                     ? [t.spreadElement(termToTs(env, opts, term.base.spread))]
                     : []) as Array<t.ObjectProperty | t.SpreadElement>)
@@ -400,8 +534,29 @@ export const _termToTs = (
                             : [],
                     ) as Array<any>,
             );
+            // STOPSHIP: What the heck is going on here.
+            // When I try to use tsAsExpression
+            // Firstly: it ignores the type I try to give it,
+            // which is weird.
+            // But also, it prints them as invalid syntax.
+            // `x as : thetype`
+            // I wonder if I upgrade babel or something?
+            // Nope, still happening.
+            // Ok so its a bug, which is quite annoying.
+            // I mean I could post-process the js....
+            // ugh so weird.
+            // but ` as : ` will never be what I want, right?
+            // Ok so that's how I fixed it.
+
+            return t.tsAsExpression(result, typeToAst(env, opts, term.is));
         }
-        // return t.identifier('STOPSHIP');
+        case 'unary':
+            return t.unaryExpression(
+                // @ts-ignore
+                term.op,
+                termToTs(env, opts, term.inner),
+                // t.identifier(recordAttributeName(env, term.ref, term.idx)),
+            );
         case 'attribute':
             return t.memberExpression(
                 termToTs(env, opts, term.target),
@@ -441,7 +596,7 @@ const scopedGlobal = (opts: OutputOptions, id: string) =>
           )
         : t.identifier(id);
 
-const recordIdName = (env: Env, ref: Reference) => {
+export const recordIdName = (env: Env, ref: Reference) => {
     if (ref.type === 'builtin') {
         return ref.name;
     } else {
@@ -453,7 +608,7 @@ const recordIdName = (env: Env, ref: Reference) => {
     }
 };
 
-const recordAttributeName = (
+export const recordAttributeName = (
     env: Env,
     ref: Reference | string,
     idx: number,
@@ -502,8 +657,23 @@ export const stmtToTs = (
             return withLocation(
                 t.variableDeclaration('let', [
                     t.variableDeclarator(
-                        t.identifier(printSym(env, stmt.sym)),
-                        stmt.value ? termToTs(env, opts, stmt.value) : null,
+                        withAnnotation(
+                            env,
+                            opts,
+                            withLocation(
+                                t.identifier(printSym(env, opts, stmt.sym)),
+                                stmt.loc,
+                            ),
+                            stmt.is,
+                        ),
+                        stmt.value
+                            ? termToTs(env, opts, stmt.value)
+                            : stmt.fakeInit
+                            ? t.tsAsExpression(
+                                  t.nullLiteral(),
+                                  t.tsAnyKeyword(),
+                              )
+                            : null,
                     ),
                 ]),
                 stmt.loc,
@@ -513,7 +683,7 @@ export const stmtToTs = (
                 t.expressionStatement(
                     t.assignmentExpression(
                         '=',
-                        t.identifier(printSym(env, stmt.sym)),
+                        t.identifier(printSym(env, opts, stmt.sym)),
                         termToTs(env, opts, stmt.value),
                     ),
                 ),
@@ -565,12 +735,12 @@ export const lambdaBodyToTs = (
     }
 };
 
-const showEffectRef = (env: Env, eff: EffectRef) => {
-    if (eff.type === 'var') {
-        return printSym(env, eff.sym);
-    }
-    return printRef(eff.ref);
-};
+// const showEffectRef = (env: Env, eff: EffectRef) => {
+//     if (eff.type === 'var') {
+//         return printSym(env, opts, eff.sym);
+//     }
+//     return printRef(eff.ref);
+// };
 
 const printRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : ref.id.hash;
@@ -579,46 +749,319 @@ export const fileToTypescript = (
     expressions: Array<Term>,
     env: Env,
     opts: OutputOptions,
+    irOpts: IOutputOptions,
     assert: boolean,
     includeImport: boolean,
     builtinNames: Array<string>,
 ) => {
     const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
 
-    const orderedTerms = sortTerms(env, Object.keys(env.global.terms));
+    Object.keys(env.global.effects).forEach((r) => {
+        const id = idFromName(r);
+        const constrs = env.global.effects[r];
+        items.push(
+            t.tsTypeAliasDeclaration(
+                t.identifier('handle' + r),
+                null,
+                t.tsTupleType(
+                    constrs.map((constr) =>
+                        typeToAst(
+                            env,
+                            opts,
+                            effectConstructorType(
+                                env,
+                                opts,
+                                { type: 'ref', ref: { type: 'user', id } },
+                                constr,
+                                nullLocation,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+    });
+
+    Object.keys(env.global.types).forEach((r) => {
+        const constr = env.global.types[r];
+        const id = idFromName(r);
+        if (constr.type === 'Enum') {
+            const comment = printToString(enumToPretty(env, id, constr), 100);
+            const refs = getEnumReferences(env, {
+                type: 'ref',
+                ref: { type: 'user', id },
+                typeVbls: constr.typeVbls.map((t, i) => ({
+                    type: 'var',
+                    sym: { name: 'T', unique: t.unique },
+                    location: null,
+                })),
+                location: null,
+            });
+            items.push(
+                t.addComment(
+                    t.tsTypeAliasDeclaration(
+                        t.identifier(typeIdToString(id)),
+                        constr.typeVbls.length
+                            ? typeVblsToParameters(env, opts, constr.typeVbls)
+                            : null,
+                        t.tsUnionType(
+                            refs.map((ref) =>
+                                typeToAst(
+                                    env,
+                                    opts,
+                                    typeFromTermType(env, opts, ref),
+                                ),
+                            ),
+                        ),
+                    ),
+                    'leading',
+                    comment,
+                ),
+            );
+            return;
+        }
+        const comment = printToString(recordToPretty(env, id, constr), 100);
+        const subTypes = getAllSubTypes(env.global, constr);
+        items.push(
+            t.addComment(
+                t.tsTypeAliasDeclaration(
+                    t.identifier(typeIdToString(id)),
+                    constr.typeVbls.length
+                        ? typeVblsToParameters(env, opts, constr.typeVbls)
+                        : null,
+                    t.tsTypeLiteral([
+                        t.tsPropertySignature(
+                            t.identifier('type'),
+                            t.tsTypeAnnotation(
+                                t.tsLiteralType(
+                                    t.stringLiteral(
+                                        recordIdName(env, { type: 'user', id }),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        ...constr.items.map((item, i) =>
+                            recordMemberSignature(
+                                env,
+                                opts,
+                                id,
+                                i,
+                                typeFromTermType(env, opts, item),
+                            ),
+                        ),
+                        ...([] as Array<t.TSPropertySignature>).concat(
+                            ...subTypes.map((id) =>
+                                env.global.types[
+                                    idName(id)
+                                ].items.map((item: Type, i: number) =>
+                                    recordMemberSignature(
+                                        env,
+                                        opts,
+                                        id,
+                                        i,
+                                        typeFromTermType(env, opts, item),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ]),
+                ),
+                'leading',
+                '*\n```\n' + comment + '\n```\n',
+            ),
+        );
+    });
+
+    const orderedTerms = expressionDeps(
+        env,
+        expressions.concat(
+            Object.keys(env.global.exportedTerms).map((name) => ({
+                type: 'ref',
+                ref: {
+                    type: 'user',
+                    id: env.global.exportedTerms[name],
+                },
+                location: nullLocation,
+                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
+            })),
+        ),
+    );
+
+    // const irOpts = {
+    // limitExecutionTime: opts.limitExecutionTime,
+    // };
+
+    // let unique = { current: 1000000 };
+    const irTerms: { [idName: string]: Expr } = {};
 
     orderedTerms.forEach((idRaw) => {
-        const term = env.global.terms[idRaw];
+        let term = env.global.terms[idRaw];
+        // console.log(idRaw, env.global.idNames[idRaw]);
 
         const id = idFromName(idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
         const comment = printToString(declarationToPretty(senv, id, term), 100);
-        const irTerm = ir.printTerm(senv, {}, term);
+        senv.local.unique.current = maxUnique(term) + 1;
+        term = liftEffects(senv, term);
+        // TODO: This is too easy to miss. Bake it in somewhere.
+        // Maybe have a toplevel `ir.printTerm` that does the check?
+        let irTerm = ir.printTerm(senv, irOpts, term);
+        try {
+            uniquesReallyAreUnique(irTerm);
+        } catch (err) {
+            const outer = new LocatedError(
+                term.location,
+                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+            ).wrap(err);
+            //     .toString();
+            // // console.error( outer);
+            // // console.log(showLocation(term.location));
+            throw outer;
+        }
+        if (opts.optimizeAggressive) {
+            irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        }
+        if (opts.optimize) {
+            irTerm = optimizeDefine(senv, irTerm, id);
+        }
+        // then pop over to glslPrinter and start making things work.
+        uniquesReallyAreUnique(irTerm);
+        // console.log('otho');
+        irTerms[idRaw] = irTerm;
         items.push(
             declarationToTs(
                 senv,
                 opts,
                 idRaw,
-                optimizeDefine(env, irTerm, id),
-                term.is,
-                '\n' + comment + '\n',
+                irTerm,
+                '*\n```\n' + comment + '\n```\n',
             ),
         );
     });
 
     expressions.forEach((term) => {
+        const comment = printToString(termToPretty(env, term), 100);
         if (assert && typesEqual(term.is, bool)) {
             term = wrapWithAssert(term);
         }
-        const irTerm = ir.printTerm(env, {}, term);
+        term = liftEffects(env, term);
+        const irTerm = ir.printTerm(env, irOpts, term);
         items.push(
-            t.expressionStatement(termToTs(env, opts, optimize(env, irTerm))),
+            t.addComment(
+                t.expressionStatement(
+                    termToTs(env, opts, optimize(env, irTerm)),
+                ),
+                'leading',
+                '\n' + comment + '\n',
+            ),
+        );
+    });
+
+    Object.keys(env.global.exportedTerms).forEach((name) => {
+        items.push(
+            t.exportNamedDeclaration(
+                t.variableDeclaration('const', [
+                    t.variableDeclarator(
+                        t.identifier(name),
+                        t.identifier(
+                            'hash_' + idName(env.global.exportedTerms[name]),
+                        ),
+                    ),
+                ]),
+            ),
         );
     });
 
     const ast = t.file(t.program(items, [], 'script'));
     // TODO: port all of these to the IR optimizer, so that they work
     // across targets.
-    optimizeAST(ast);
+    // if (opts.optimize) {
+    //     optimizeAST(ast);
+    // }
     return ast;
+};
+
+export const maxUnique = (term: Term) => {
+    let max = 0;
+    walkTerm(term, (term) => {
+        // hmm this just gets usages
+        // which doesn't quite cut it
+        if (term.type === 'var') {
+            max = Math.max(max, term.sym.unique);
+        }
+        if (term.type === 'lambda') {
+            term.args.forEach((arg) => {
+                max = Math.max(max, arg.unique);
+            });
+        }
+        if (term.type === 'Switch') {
+            term.cases.forEach((kase) => {
+                walkPattern(kase.pattern, (pattern) => {
+                    if (pattern.type === 'Binding') {
+                        max = Math.max(max, pattern.sym.unique);
+                    }
+                    if (pattern.type === 'Alias') {
+                        max = Math.max(max, pattern.name.unique);
+                    }
+                });
+            });
+        }
+    });
+    return max;
+};
+
+export const reUnique = (unique: { current: number }, expr: Expr) => {
+    const mapping: { [orig: number]: number } = {};
+    const addSym = (sym: Symbol) => {
+        if (sym.unique === handlerSym.unique) {
+            mapping[sym.unique] = sym.unique;
+            return sym;
+        }
+        mapping[sym.unique] = unique.current++;
+        return { ...sym, unique: mapping[sym.unique] };
+    };
+    const getSym = (sym: Symbol): Symbol => ({
+        ...sym,
+        unique: mapping[sym.unique],
+    });
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        stmt: (value) => {
+            if (value.type === 'Define') {
+                return { ...value, sym: addSym(value.sym) };
+            }
+            if (value.type === 'Assign') {
+                return { ...value, sym: getSym(value.sym) };
+            }
+            return null;
+        },
+        expr: (value) => {
+            switch (value.type) {
+                case 'handle':
+                    return {
+                        ...value,
+                        cases: value.cases.map((kase) => ({
+                            ...kase,
+                            args: kase.args.map((arg) => ({
+                                ...arg,
+                                sym: addSym(arg.sym),
+                            })),
+                            k: { ...kase.k, sym: addSym(kase.k.sym) },
+                        })),
+                        pure: { ...value.pure, arg: addSym(value.pure.arg) },
+                    };
+                case 'lambda':
+                    return {
+                        ...value,
+                        args: value.args.map((arg) => ({
+                            ...arg,
+                            sym: addSym(arg.sym),
+                        })),
+                    };
+                case 'var':
+                    return { ...value, sym: getSym(value.sym) };
+            }
+            return null;
+        },
+    });
 };

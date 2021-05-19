@@ -1,0 +1,196 @@
+//https://www.youtube.com/watch?v=uWzPe_S-RVE
+
+//https://twitter.com/j_lanier/status/1392192353901944834
+
+float cx, cy;
+ArrayList < Pendulum > pendula;
+int numberOfPendula;
+
+
+void setup() {
+	size(500, 500);
+	colorMode(HSB, 255);
+	cx = width / 2;
+	cy = height / 2;
+	pendula = new ArrayList < Pendulum > ();
+	numberOfPendula = width * height;
+
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			float a1 = map(x, 0, width, -PI, PI);
+			float a2 = map(y, 0, height, PI, -PI);
+			Pendulum P = new Pendulum(x + y * width, a1, a2, x, y);
+			pendula.add(P);
+		}
+	}
+}
+
+void draw() {
+	background(255);
+	for (Pendulum P: pendula) {
+		P.update();
+		P.drawPoint();
+	}
+	//println(frameCount);
+	//saveFrame("./hires/c#####.png");
+	if (frameCount > 1000) {
+		//exit();
+	}
+}
+
+class Pendulum {
+	float r1 = 100;
+	float r2 = 100;
+	float m1 = 20;
+	float m2 = 20;
+	float a1 = 7 * PI / 8;
+	float a2 = 7 * PI / 8;
+	float a1_v = 0;
+	float a2_v = 0;
+	float g = 0.15;
+
+	int x = 0;
+	int y = 0;
+
+	color c;
+
+	float px2 = 0;
+	float py2 = 0;
+
+
+	ArrayList < PVector > path;
+
+	Pendulum(int i, float a1t, float a2t, int xt, int yt) {
+		path = new ArrayList < PVector > ();
+		a1 = a1t;
+		a2 = a2t;
+		c = color(map(i, 0, numberOfPendula, 100, 150), 255, 255);
+		x = xt;
+		y = yt;
+	}
+
+	Pendulum(int i, float a1t) {
+		path = new ArrayList < PVector > ();
+		a1 = a1t;
+		c = color(map(i, 0, numberOfPendula, 100, 150), 255, 255);
+	}
+
+	void update() {
+		float num1 = -g * (2 * m1 + m2) * sin(a1);
+		float num2 = -m2 * g * sin(a1 - 2 * a2);
+		float num3 = -2 * sin(a1 - a2) * m2;
+		float num4 = a2_v * a2_v * r2 + a1_v * a1_v * r1 * cos(a1 - a2);
+		float den = r1 * (2 * m1 + m2 - m2 * cos(2 * a1 - 2 * a2));
+		float a1_a = (num1 + num2 + num3 * num4) / den;
+
+		num1 = 2 * sin(a1 - a2);
+		num2 = a1_v * a1_v * r1 * (m1 + m2);
+		num3 = g * (m1 + m2) * cos(a1);
+		num4 = a2_v * a2_v * r2 * m2 * cos(a1 - a2);
+		den = r2 * (2 * m1 + m2 - m2 * cos(2 * a1 - 2 * a2));
+
+		float a2_a = (num1 * (num2 + num3 + num4)) / den;
+
+
+		a1_v += a1_a;
+		a2_v += a2_a;
+		a1 += a1_v;
+		a2 += a2_v;
+
+		if (a1 > PI) {
+			a1 -= TWO_PI;
+		} else if (a1 < -PI) {
+			a1 += TWO_PI;
+		}
+		if (a2 > PI) {
+			a2 -= TWO_PI;
+		} else if (a2 < -PI) {
+			a2 += TWO_PI;
+		}
+
+
+		//a1_v *= 0.999;
+		//a2_v *= 0.999;
+	}
+
+	void drawPoint() {
+		float h = map(a1, -PI, PI, 0, 255);
+		float s = map(a2, -PI, PI, 0, 255);
+
+		color c1 = color(h, s, 255);
+
+		stroke(c1);
+		point(x, y);
+	}
+
+	void nowDraw() {
+		this.update();
+		float num1 = -g * (2 * m1 + m2) * sin(a1);
+		float num2 = -m2 * g * sin(a1 - 2 * a2);
+		float num3 = -2 * sin(a1 - a2) * m2;
+		float num4 = a2_v * a2_v * r2 + a1_v * a1_v * r1 * cos(a1 - a2);
+		float den = r1 * (2 * m1 + m2 - m2 * cos(2 * a1 - 2 * a2));
+		float a1_a = (num1 + num2 + num3 * num4) / den;
+
+		num1 = 2 * sin(a1 - a2);
+		num2 = a1_v * a1_v * r1 * (m1 + m2);
+		num3 = g * (m1 + m2) * cos(a1);
+		num4 = a2_v * a2_v * r2 * m2 * cos(a1 - a2);
+		den = r2 * (2 * m1 + m2 - m2 * cos(2 * a1 - 2 * a2));
+
+		float a2_a = (num1 * (num2 + num3 + num4)) / den;
+
+		stroke(0);
+		strokeWeight(1);
+
+		//translate(cx, cy);
+
+		float x1 = r1 * sin(a1) + cx;
+		float y1 = r1 * cos(a1) + cy;
+
+		float x2 = x1 + r2 * sin(a2);
+		float y2 = y1 + r2 * cos(a2);
+
+		stroke(0, 10);
+		fill(0, 10);
+
+		line(cx, cy, x1, y1);
+		ellipse(x1, y1, m1, m1);
+
+		line(x1, y1, x2, y2);
+		ellipse(x2, y2, m2, m2);
+
+		a1_v += a1_a;
+		a2_v += a2_a;
+		a1 += a1_v;
+		a2 += a2_v;
+
+		a1_v *= 0.999;
+		a2_v *= 0.999;
+
+
+		//translate(cx, cy);
+		strokeWeight(1);
+		stroke(0);
+		if (frameCount > 1) {
+			line(px2, py2, x2, y2);
+		}
+
+		px2 = x2;
+		py2 = y2;
+		path.add(new PVector(x2, y2));
+
+		//translate(-cx, -cy);
+		beginShape();
+		noFill();
+		stroke(c);
+		for (PVector p: path) {
+			vertex(p.x, p.y);
+		}
+		endShape();
+
+		while (path.size() > 300) {
+			path.remove(0);
+		}
+	}
+}

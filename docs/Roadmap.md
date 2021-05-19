@@ -1,4 +1,115 @@
 
+## Ok, grand vision folks
+This will probably get people excited.
+Make an explorable explanation for the pendulum fractal.
+For the code, we could go fairly simple and have the rendered version w/ "knobs" a la worrydream's thing, and then you can "edit" to get into a full text editor scenario.
+But that will be on a per-term basis.
+But then there will probably be a full tree-notablemind-style dealio for the text, where it's rich text, and we can have nested things, and headings that expand.
+And maybe a toggle at the top that's like "I know GLSL / shader stuff" vs "I don't"? And "I know trig & pendulum physics" vs "I don't"? Although maybe we can just let people scroll?
+
+Anyway, I feel like it would be super cool.
+And then let people see the generated GLSL, for funs and such.
+
+Basic layout:
+- do one where we're just drawing the pendulum, nailing down the `update` function
+- we'll cover "storing the state in a texture"
+- but only for the top left point
+- then do the full fractal
+- then bring back the visualization for a single point
+- then bring in the mouse pointer
+- then bring in another buffer to track the last several points? or wait, there's "u_trails".... maybe I can use that instead? that sounds reasonable. that'll require some constant folding I do believe.
+
+Yeah, but allowing people to right-click on a thing and "add a trace" sounds super fun :D :D :D
+
+
+> SO
+> Things to impl to get to this glorious future:
+- all the inlining, thanks
+
+oooh so having a `min()` function that takes varargs and then does a reduce on the array
+in glsl, varargs become a FixedArray...which I still need to figure out how to represent
+OH but then, if it then just ends up being `foreach i of values { res += i }`, then I can do loop unrolling! because values has a fixed length.
+
+
+Should I turn back on call args type-checking?
+I think I'll need to get done-lambda going? In order to do that?
+
+So I also want pretty-printing I guess
+but I'll need to keep track of comments in order to do that.
+
+
+
+## Lets do fun things! Raymarching and such
+
+- [x] desperately need inlining. What will that take?
+      Should I do whole-program-opt in the IR?
+- [x] make uniques actually truly unique
+- [x] ugh I need parenthesis for overriding op precedence.
+- [ ] full and correct inlining of functions. Every function should be inlineable, unless it is recursive. We will then only use inlining for:
+  - eliminating lambdas
+
+How / what to inline and stuff?
+- Ok, so we also want to fix the "toplevel struct" issue.
+- OH yes let's have struct support too folks. So we can do tuples and whatnot, thats nice
+- ALSO: type-directed name resolution, allow multiple names for things, so that we can overload vec4 and stuff, that would be extremely nice. Also so we can have "-" as a unary op and a binary op and so we can have "+" be for strings.
+
+- [ ] now that I have uniques, I don't have to worry about declaration collisions.
+- [ ] make a transformer to sweep through blocks and move up empty defines to the first assign
+
+Whole program opt:
+- if a function is always called with one argument as the same value (either a constant, or like a global hash, or something), then delete that argument, and inline that value.
+  Ok this is whole-program, and would be moderately complex.
+- inline anything that doesn't have lets? might as well. Could have an @inline annotation if we wanted. But cooler to do it automatically.
+- yeah this is super fun. although, quite slow. will be cool to make the switch to GLSL.
+
+- [ ] it would be really nice to be able to spread a larger type into a smaller type, ya know? like `Vec3{...someVec4}`. Just sayin.
+
+
+
+
+
+
+## How to convert to the new handlers representation without it getting out of hand?
+
+### Refactors needed
+
+Ones that are non-breaking
+- [x] liftEffects is nice
+- [x] adding types to IR Exprs
+- [x] use helpers for lots of IR exprs
+- [x] helpers need less types
+- [x] type-checking the IR as I create it
+- [x] converting types to passing-handlers instead of having-effects (this can be a place where we then convert, yeah that's great.)
+- [x] fix the `unknown` type hack. sequences should be able to know that the `done` doesn't need another variable. And if the `done` does need another variable, it really shouldn't. So yeah sequences need to be smarter about that. I guess I could inspect the `done`. ... and that might be the best way to do it? Oh but first I want to abstract the "call done" thing into a central place (because that's where handlers are passed). And then I can have that be the only place where I check if the done wants a value.
+- [x] fix the backtracking handler to be compatible with the new method
+- [x] make an outputoption for the new version
+- [x] make a cps-lambda type so I'm not making up garbage everywhere, looking for effects and stuff.
+- [ ] make a done-lambda type to y'all
+- [ ] re-enable call checking, figure out why types aren't happening right for the T0 thats actually void.
+- [ ] update the new stuff to use these new types its great
+
+
+More non-breaking please:
+- [ ] make a cps-lambda type? er maybe its not 100% working
+      maybe lets just add info to the current lambda type
+      as a stopgap.
+      given that we never modify things (or well I guess we
+      kinda do? idk)
+
+
+
+orr hmmm can I jump into it right now?
+just try to do the new effects bonanza?
+oh ok what if
+I have a setting for the new version. yeah that's nice.
+and outputoption I believe?
+
+Ones that are breaking
+- [ ] switch from a single handlers variable to several, so we can handle polymorphic effects
+
+<!-- - [ ] move handler & raise generation into the IR. This'll be a little dicey(?) because some functions don't have
+- [ ] abstract out all the places where we're using `handlerVar` &c explicitly. -->
+
 ## Immediate:
 
 Type system changes:
@@ -7,22 +118,25 @@ Type system changes:
   - [x] basic self-referrential struct
   - [x] destructured items from an enum or struct should .. work correctly. Maybe modify the `apply type variables` to also substitute `self` references? tbh that sounds pretty good. I mean we could treat `self` as a variable ... hmm ... oh didn't need that. the applyTypeVariables worked for piggybacking.
 - [ ] effects need to be able to refer to themselves (recursion)
+  - effecs need a 'substituteTypeVariabels
 - [ ] mutually recursive types pleeeease
-- [ ] `enum Child<T>{A, T}` should definitely not work...
+- [x] `enum Child<T>{A, T}` should definitely not work...
 
-  or, hrmmm mmaybe I need to allow effects to be effect-polymorphic?
-  like, I'm making this `timer` effect, to allow setTimeout.
-  and I'm not sure what effects the function I'm passing in should be
-  allowed to call.
-  how do I restrict that?
-  maybe that's the reason for the blanket "IO" type. Like "this is everything you
-  can do from an IO context".
-  But I want to be able to restrict that.
-```
-effect Time {
-  setTimeout: (() ={???}> void) => void,
+or, hrmmm mmaybe I need to allow effects to be effect-polymorphic?
+like, I'm making this `timer` effect, to allow setTimeout.
+and I'm not sure what effects the function I'm passing in should be
+allowed to call.
+how do I restrict that?
+maybe that's the reason for the blanket "IO" type. Like "this is everything you
+can do from an IO context".
+But I want to be able to restrict that.
+
+```ts
+effect Time{e} {
+  setTimeout: (() ={Time, e}> void) => void,
 }
 ```
+
 certainly you should be able to produce new timers from within a timer.
 but semantically,
 Time{Time} wouldn't be able to resolve, Time{Time{Time...etc}}

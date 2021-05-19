@@ -20,10 +20,12 @@ import typeExpr, {
 } from '../typeExpr';
 import { getTypeError } from '../getTypeError';
 import { idFromName, idName, resolveIdentifier } from '../env';
-import { LocatedError, UnresolvedIdentifier } from '../errors';
+import { LocatedError, TypeMismatch, UnresolvedIdentifier } from '../errors';
 import { refName } from '../typePattern';
+import { walkType } from '../typeType';
+import { float, int, numeric, string } from '../preset';
 
-const findOp = (
+export const findUnaryOp = (
     env: Env,
     id: Id,
     idx: number,
@@ -57,11 +59,67 @@ const findOp = (
             if (tis.type !== 'lambda') {
                 continue;
             }
-            if (tis.args.length !== 2) {
+            if (tis.args.length !== 1) {
                 continue;
             }
             const e1 = getTypeError(env, type, tis.args[0], location);
-            const e2 = getTypeError(env, type, tis.args[1], location);
+            if (e1) {
+                continue;
+            }
+            return {
+                type: 'Attribute',
+                target: found,
+                idx: idx,
+                is: t.items[idx],
+                location: location,
+                ref: { type: 'user', id },
+                inferred: true,
+            };
+        }
+    }
+    return null;
+};
+
+const findOp = (
+    env: Env,
+    id: Id,
+    idx: number,
+    ltype: Type,
+    rtype: Type,
+    location: Location,
+): Term | null => {
+    for (let k of Object.keys(env.global.terms)) {
+        const is = env.global.terms[k].is;
+        if (
+            is.type === 'ref' &&
+            is.ref.type === 'user' &&
+            idsEqual(is.ref.id, id)
+        ) {
+            const found: Term = {
+                type: 'ref',
+                ref: { type: 'user', id: idFromName(k) },
+                location: location,
+                is: env.global.terms[k].is,
+            };
+            let t = env.global.types[idName(id)] as RecordDef;
+            if (found.is.type === 'ref') {
+                t = applyTypeVariablesToRecord(
+                    env,
+                    t,
+                    found.is.typeVbls,
+                    found.is.location,
+                    id.hash,
+                );
+            }
+            const tis = t.items[idx];
+            if (tis.type !== 'lambda') {
+                continue;
+            }
+            if (tis.args.length !== 2) {
+                continue;
+            }
+            const e1 = getTypeError(env, ltype, tis.args[0], location);
+            const e2 = getTypeError(env, rtype, tis.args[1], location);
             if (e1 || e2) {
                 continue;
             }
@@ -87,6 +145,9 @@ const typeNewOp = (
     right: Expression,
     location: Location,
 ): Term | null => {
+    const rarg =
+        right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
+
     let fn: Term;
     if (id != null) {
         const found = resolveIdentifier(env, id);
@@ -119,7 +180,7 @@ const typeNewOp = (
         // TODO: allow ambiguity
     } else if (env.global.attributeNames[op]) {
         const { idx, id } = env.global.attributeNames[op];
-        const found = findOp(env, id, idx, left.is, location);
+        const found = findOp(env, id, idx, left.is, rarg.is, location);
         if (found == null) {
             return null;
         }
@@ -134,9 +195,6 @@ const typeNewOp = (
     if (fn.is.args.length !== 2) {
         throw new Error(`${op} is not a binary function`);
     }
-
-    const rarg =
-        right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
 
     const firstErr = getTypeError(
         env,
@@ -159,7 +217,6 @@ const typeNewOp = (
 
     return {
         type: 'apply',
-        originalTargetType: fn.is,
         location:
             left.location && right.location
                 ? {
@@ -191,13 +248,13 @@ const typeOp = (
 
     let is = env.global.builtins[op];
     if (!is) {
-        throw new Error(`Unexpected binary op ${op}`);
+        throw new LocatedError(location, `Unexpected binary op ${op}`);
     }
     if (is.type !== 'lambda') {
-        throw new Error(`${op} is not a function`);
+        throw new LocatedError(location, `${op} is not a function`);
     }
     if (is.args.length !== 2) {
-        throw new Error(`${op} is not a binary function`);
+        throw new LocatedError(location, `${op} is not a binary function`);
     }
     // Shortcut
     const rarg =
@@ -205,8 +262,9 @@ const typeOp = (
 
     if (is.typeVbls.length === 1) {
         if (!typesEqual(left.is, rarg.is)) {
-            throw new Error(
-                `Binops must have same-typed arguments: ${showType(
+            throw new LocatedError(
+                left.location,
+                `Fallback binops ${op} must have same-typed arguments: ${showType(
                     env,
                     left.is,
                 )} vs ${showType(env, rarg.is)} at ${showLocation(
@@ -215,6 +273,34 @@ const typeOp = (
             );
         }
         is = applyTypeVariables(env, is, [left.is]) as LambdaType;
+    }
+
+    if (
+        is.args[0].type === 'ref' &&
+        is.args[0].ref.type === 'builtin' &&
+        is.args[0].ref.name === 'numeric'
+    ) {
+        if (!typesEqual(left.is, rarg.is)) {
+            throw new TypeMismatch(env, left.is, rarg.is, left.location);
+        }
+        // STOPSHIP: have an actual solution for strings
+        if (
+            typesEqual(left.is, string) ||
+            typesEqual(left.is, int) ||
+            typesEqual(left.is, float)
+        ) {
+            is = walkType(is, (t) =>
+                typesEqual(t, numeric) ? left.is : null,
+            )! as LambdaType;
+        } else {
+            throw new LocatedError(
+                location,
+                `Numeric functions only work on int and float, not ${showType(
+                    env,
+                    left.is,
+                )}`,
+            );
+        }
     }
 
     const firstErr = getTypeError(
@@ -238,7 +324,6 @@ const typeOp = (
 
     return {
         type: 'apply',
-        originalTargetType: is,
         location:
             left.location && right.location
                 ? {
@@ -274,6 +359,19 @@ type Section = {
     id: Identifier | null;
     op: string | null;
 };
+
+// Ok yeah here's the issue.
+// I need to A * (B - C * D)
+//
+
+// So, we have Item (op) Item (op) Item (op) Item
+// And within each Item, we might start over the precedence bundle
+
+// Takes a flat list of ops
+// and nests them
+// const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
+
+// }
 
 const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
     if (!groups.length) {
@@ -338,8 +436,23 @@ const _typeOps = (env: Env, expr: Ops): Term => {
     return left;
 };
 
+const organizeDeep = (ops: Ops): Ops => {
+    let first = ops.first;
+    if (first.type === 'ops') {
+        // This might only solve 1 layer deep?
+        first = organizeDeep(first);
+    }
+    const rest = ops.rest.map((item) => {
+        if (item.right.type === 'ops') {
+            return { ...item, right: organizeDeep(item.right) };
+        }
+        return item;
+    });
+    return organizeOps({ ...ops, first, rest }, precedence);
+};
+
 export const typeOps = (env: Env, expr: Ops): Term => {
-    return _typeOps(env, organizeOps(expr, precedence));
+    return _typeOps(env, organizeDeep(expr));
     // ok, left associative, right? I think so.
     // let left: Term = typeExpr(env, expr.first);
     // expr.rest.forEach(({ op, right, location }) => {

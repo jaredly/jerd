@@ -244,7 +244,7 @@ export const unifyInType = (
     });
 };
 
-export const showType = (env: Env, t: Type): string =>
+export const showType = (env: Env | null, t: Type): string =>
     printToString(typeToPretty(env, t), 100);
 
 // const unify = (

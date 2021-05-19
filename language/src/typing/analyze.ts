@@ -40,7 +40,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
                                 ref: { type: 'user', id },
                                 location: null,
                                 typeVbls: [],
-                                effectVbls: [],
+                                // effectVbls: [],
                             }),
                     )
                 ) {
@@ -68,6 +68,22 @@ export const getUserDependencies = (term: Term): Array<Id> => {
     return (getDependencies(term).filter(
         (r) => r.type === 'user',
     ) as Array<UserReference>).map((r) => r.id);
+};
+
+export const expressionDeps = (env: Env, terms: Array<Term>) => {
+    const allDeps: { [key: string]: Array<Id> } = {};
+    terms.forEach((term) =>
+        getUserDependencies(term).forEach((id) =>
+            populateDependencyMap(
+                env,
+                allDeps,
+                env.global.terms[idName(id)],
+                id,
+            ),
+        ),
+    );
+
+    return sortAllDeps(allDeps);
 };
 
 export const sortTerms = (env: Env, terms: Array<string>) => {
@@ -142,6 +158,7 @@ export const termDependencies = (term: Term): Array<Reference> => {
         case 'TupleAccess':
         case 'Tuple':
         case 'Enum':
+        case 'unary':
         case 'Array':
         case 'Attribute':
         case 'string':

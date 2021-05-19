@@ -11,27 +11,52 @@ import { getSortedTermDependencies } from '@jerd/language/src/typing/analyze';
 import generate from '@babel/generator';
 import { idFromName, idName } from '@jerd/language/src/typing/env';
 import { Env, Id, Self, selfEnv, Term } from '@jerd/language/src/typing/types';
-import { termToTs } from '@jerd/language/src/printing/typeScriptPrinterSimple';
+import {
+    maxUnique,
+    termToTs,
+} from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { EvalEnv } from './State';
 import {
     optimize,
+    optimizeAggressive,
     optimizeDefine,
-} from '@jerd/language/src/printing/ir/optimize';
+} from '@jerd/language/src/printing/ir/optimize/optimize';
+import { liftEffects } from '@jerd/language/src/printing/pre-ir/lift-effectful';
+import { uniquesReallyAreUnique } from '@jerd/language/src/printing/ir/analyze';
+import { Expr } from '@jerd/language/src/printing/ir/types';
 
 export class TimeoutError extends Error {}
 
-export const termToJS = (env: Env, term: Term, id: Id, asReturn?: boolean) => {
-    const irTerm = ir.printTerm(env, { limitExecutionTime: true }, term);
+export const termToJS = (
+    env: Env,
+    term: Term,
+    id: Id,
+    irTerms: { [key: string]: Expr },
+    asReturn?: boolean,
+    withExecutionLimit: boolean = true,
+) => {
+    term = liftEffects(env, term);
+    let irTerm = ir.printTerm(
+        env,
+        { limitExecutionTime: withExecutionLimit },
+        term,
+    );
+    irTerm = optimizeAggressive(env, irTerms, irTerm, id);
+    irTerm = optimizeDefine(env, irTerm, id);
+    // then pop over to glslPrinter and start making things work.
+    try {
+        uniquesReallyAreUnique(irTerm);
+    } catch (err) {
+        console.log(err);
+        console.log(err.toString());
+        console.log(err.loc, err.location);
+        throw err;
+    }
+    irTerms[idName(id)] = irTerm;
     let termAst: any = termToTs(
         env,
-        { scope: 'jdScope', limitExecutionTime: true },
-        optimizeDefine(
-            env,
-            irTerm,
-            id,
-
-            // optimize(irTerm),
-        ),
+        { scope: 'jdScope', limitExecutionTime: withExecutionLimit },
+        irTerm,
     );
     let ast = t.file(
         t.program(
@@ -89,12 +114,19 @@ const runWithExecutionLimit = (
     return result;
 };
 
-export const runTerm = (env: Env, term: Term, id: Id, evalEnv: EvalEnv) => {
+export const runTerm = (
+    env: Env,
+    term: Term,
+    id: Id,
+    evalEnv: EvalEnv,
+    withExecutionLimit: boolean = true,
+) => {
     const results: { [key: string]: any } = {};
 
     const deps = getSortedTermDependencies(env, term, id);
     console.log(deps);
     const idn = idName(id);
+    const irTerms = {};
     deps.forEach((dep) => {
         if (evalEnv.terms[dep] == null) {
             if (dep !== idn) {
@@ -102,16 +134,22 @@ export const runTerm = (env: Env, term: Term, id: Id, evalEnv: EvalEnv) => {
             }
             const depTerm = idn === dep ? term : env.global.terms[dep];
             const self: Self = { type: 'Term', name: dep, ann: term.is };
+            const senv = selfEnv(env, self);
+            senv.local.unique.current = maxUnique(depTerm) + 1;
             const code = termToJS(
-                selfEnv(env, self),
+                senv,
                 depTerm,
                 idFromName(dep),
+                irTerms,
                 true,
+                withExecutionLimit,
             );
             const innerEnv = {
                 ...evalEnv,
                 terms: { ...evalEnv.terms, ...results },
             };
+            evalEnv.source = evalEnv.source || {};
+            evalEnv.source[dep] = code;
             evalEnv.executionLimit.enabled = true;
             evalEnv.executionLimit.maxTime = Date.now() + 200;
             evalEnv.executionLimit.ticks = 0;

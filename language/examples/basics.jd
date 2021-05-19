@@ -10,6 +10,10 @@ const freturn = () => "yes"
 
 freturn() == "yes"
 
+const call = () => freturn() + "a"
+
+call() == "yesa"
+
 const arg = (arg: string): string => arg ++ "1"
 
 arg("2") == "21"
@@ -23,7 +27,7 @@ identity<string>("5") ++ "4" == "54"
 // pemdas folks
 2 + 3 * 4 == 16 - 2
 
-@typeError("float vs int")
+@typeError("Found float, expected int")
 2.2 * 2 == 1.1
 
 2.2 * 2.0 == 4.4

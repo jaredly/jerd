@@ -20,7 +20,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
         type: 'ref',
         ref: asRecord,
         typeVbls: [stype, ttype],
-        effectVbls: [],
+        // effectVbls: [],
         location: null,
     };
     let foundImpl: Term;
@@ -95,7 +95,6 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
     }
     return {
         type: 'apply',
-        originalTargetType: pureFunction([stype], ttype),
         args: [target],
         hadAllVariableEffects: false,
         target: {

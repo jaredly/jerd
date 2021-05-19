@@ -1,26 +1,125 @@
 // types for the IR
 
 import {
-    Type,
+    // Type,
     Symbol,
     Id,
     Reference,
-    LambdaType,
+    // LambdaType,
     UserReference,
     idsEqual,
+    Env,
+    GlobalEnv,
+    LocalEnv,
+    TypeVblDecl,
+    refsEqual,
+    symbolsEqual,
+    typeVblDeclsEqual,
+    EffectReference,
+    EffectRef,
 } from '../../typing/types';
 import { Location } from '../../parsing/parser';
-import { builtinType } from '../../typing/preset';
 
 export type Loc = Location | null;
-export const handlerSym = { name: 'handlers', unique: 0 };
-export const handlersType = builtinType('handlers');
+
+export type EffectHandlers = {
+    [key: string]: Expr;
+};
+
+export type CPS = {
+    done: Expr;
+    handlers: EffectHandlers;
+};
 
 export type OutputOptions = {
     readonly limitExecutionTime?: boolean;
+    readonly explicitHandlerFns?: boolean;
 };
 
+// export type IREnv = {
+//     global: GlobalEnv,
+//     local: LocalEnv,
+//     depth: number,
+//     effectHandlers: {[hey: string]: Expr}
+// }
+
 // hrm where do I put comments in life
+
+//             -
+//             o
+// Ok, so the ]=[
+//             o
+//             -
+
+// Ok, so the IR doesn't have effects, right?
+// That's one of the main ideas.
+// Does the IR have type variables?
+// Yes?
+// because js can, and monomoriphising is probably too large
+// And then another level, where we remove the type variables, right?
+// And then would I have these things be parameterized by the `Type`?
+// rggggggggggggg yeah I mean I guess so?
+
+export type Type =
+    | {
+          type: 'var';
+          sym: Symbol;
+          loc: Loc;
+      }
+    | {
+          type: 'ref';
+          ref: Reference;
+          loc: Loc;
+          typeVbls: Array<Type>;
+      }
+    | LambdaType
+    | CPSLambdaType
+    | DoneLambdaType
+    | EffectHandler
+    | MaybeEffLambda;
+export type EffectHandler = {
+    type: 'effect-handler';
+    ref: Reference;
+    loc: Loc;
+};
+export type MaybeEffLambda = {
+    type: 'effectful-or-direct';
+    effectful: CPSLambdaType;
+    direct: LambdaType;
+    loc: Loc;
+};
+
+export type LambdaType = {
+    type: 'lambda';
+    loc: Location | null;
+    typeVbls: Array<TypeVblDecl>; // hmm how about subtypes. Do we keep those?
+    args: Array<Type>;
+    rest: Type | null;
+    res: Type;
+    note?: string;
+};
+
+export type CPSLambdaType = {
+    type: 'cps-lambda';
+    loc: Location | null;
+    typeVbls: Array<TypeVblDecl>; // hmm how about subtypes. Do we keep those?
+    args: Array<Type>;
+    // TODO: effectVbls?
+    effectVbls: Array<number>;
+    effects: Array<EffectRef>;
+    returnValue: Type; // NOTE: This is the `done`'s returnValue type
+    note?: string;
+};
+
+export type DoneLambdaType = {
+    type: 'done-lambda';
+    loc: Location | null;
+    // Umm do we need this?
+    // typeVbls: Array<TypeVblDecl>; // hmm how about subtypes. Do we keep those?
+    // args: Array<Type>;
+    effects: Array<EffectReference>;
+    returnValue: Type;
+};
 
 export type Toplevel =
     | { type: 'Define'; id: Id; body: Expr; is: Type; loc: Loc }
@@ -39,11 +138,26 @@ export type Toplevel =
           loc: Loc;
       };
 
+export type Define = {
+    type: 'Define';
+    sym: Symbol;
+    value: Expr | null;
+    is: Type;
+    loc: Loc;
+    fakeInit?: boolean;
+};
+export type Assign = {
+    type: 'Assign';
+    sym: Symbol;
+    value: Expr;
+    is: Type;
+    loc: Loc;
+};
 export type ReturnStmt = { type: 'Return'; value: Expr; loc: Loc };
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
-    | { type: 'Define'; sym: Symbol; value: Expr | null; is: Type; loc: Loc }
-    | { type: 'Assign'; sym: Symbol; value: Expr; is: Type; loc: Loc }
+    | Define
+    | Assign
     | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
     | { type: 'MatchFail'; loc: Loc }
     | ReturnStmt
@@ -59,56 +173,94 @@ export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
 export const isTerm = (expr: Expr, id: Id) =>
     expr.type === 'term' && idsEqual(id, expr.id);
 
-export const callExpression = (
-    target: Expr,
-    targetType: LambdaType,
-    res: Type,
-    args: Array<Expr>,
-    loc: Loc,
-    concreteType?: LambdaType,
-): Expr => ({
-    type: 'apply',
-    targetType,
-    concreteType: concreteType || targetType,
-    res,
-    target,
-    args,
-    loc,
-});
-export const stringLiteral = (value: string, loc: Loc): Expr => ({
-    type: 'string',
-    value,
-    loc,
-});
+export const typeForLambdaExpression = (body: Expr | Block): Type | null => {
+    if (body.type === 'Block') {
+        return returnTypeForStmt(body);
+    } else {
+        return body.is;
+    }
+};
+
+export const returnTypeForStmt = (stmt: Stmt): Type | null => {
+    switch (stmt.type) {
+        case 'Assign':
+        case 'Continue':
+        case 'MatchFail':
+        case 'Expression':
+        case 'Define':
+            return null;
+        case 'Return':
+            return stmt.value.is;
+        case 'Block':
+            const types = stmt.items
+                .map((s) => returnTypeForStmt(s))
+                .filter((t) => t != null) as Array<Type>;
+            if (types.length > 1) {
+                for (let i = 1; i < types.length; i++) {
+                    if (!typesEqual(types[i], types[0])) {
+                        throw new Error(
+                            `Return types don't agree. This is a compiler error.`,
+                        );
+                    }
+                }
+            }
+            // TODO ensure the types line up? Do I need to do that here?
+            return types.length === 0 ? null : types[0];
+        case 'Loop':
+            return returnTypeForStmt(stmt.body);
+        case 'if':
+            return (
+                returnTypeForStmt(stmt.yes) ||
+                (stmt.no ? returnTypeForStmt(stmt.no) : null)
+            );
+        default:
+            let _x: never = stmt;
+            throw new Error(`Unexpected stmt ${(stmt as any).type}`);
+    }
+};
+
+// const _ = (e: Expr) => {
+//     // Assert that all Exprs have `is` type definitions
+//     const t: Type = e.is;
+// };
 
 // Record creation ... I'll want a second pass to bring that up to a statement level I think
 // so that I can support go or python...
 // also I don't support effects in record creation just yet.
 // oh wait, I think go and python can create records just fine
 export type Literal =
-    | { type: 'string'; value: string; loc: Loc }
-    | { type: 'int'; value: number; loc: Loc }
-    | { type: 'boolean'; value: boolean; loc: Loc }
-    | { type: 'float'; value: number; loc: Loc };
+    | { type: 'string'; value: string; loc: Loc; is: Type }
+    | { type: 'int'; value: number; loc: Loc; is: Type }
+    | { type: 'boolean'; value: boolean; loc: Loc; is: Type }
+    | { type: 'float'; value: number; loc: Loc; is: Type };
 
 export type Expr =
     | Literal
-    | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc }
-    | { type: 'term'; id: Id; loc: Loc }
-    | { type: 'var'; sym: Symbol; loc: Loc }
+    | { type: 'unary'; inner: Expr; is: Type; loc: Loc; op: string }
+    | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
+    | { type: 'term'; id: Id; loc: Loc; is: Type }
+    | { type: 'var'; sym: Symbol; loc: Loc; is: Type }
     | {
           type: 'slice';
           value: Expr;
           start: Expr;
           end: Expr | null;
           loc: Loc;
+          is: Type;
       }
-    | { type: 'arrayIndex'; value: Expr; idx: Expr; loc: Loc }
-    | { type: 'arrayLen'; value: Expr; loc: Loc } // TODO this could just be represented with a buitin, right? yeah
-    | { type: 'builtin'; name: string; loc: Loc }
+    | { type: 'arrayIndex'; value: Expr; idx: Expr; loc: Loc; is: Type }
+    | { type: 'arrayLen'; value: Expr; loc: Loc; is: Type } // TODO this could just be represented with a buitin, right? yeah
+    | { type: 'builtin'; name: string; loc: Loc; is: Type }
     // used in switches
-    | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc }
-    | { type: 'effectfulOrDirect'; effectful: boolean; target: Expr; loc: Loc }
+    | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc; is: Type }
+    | {
+          type: 'effectfulOrDirect';
+          effectful: boolean;
+          target: Expr;
+          loc: Loc;
+          is: Type;
+      }
+    // TODO: these will go away, right
     | {
           type: 'raise';
           effect: Id;
@@ -116,20 +268,22 @@ export type Expr =
           args: Array<Expr>;
           done: Expr;
           loc: Loc;
+          is: Type;
       }
     | {
           type: 'handle';
           target: Expr;
           effect: Id;
           loc: Loc;
-          pure: { arg: Symbol; body: Expr | Block };
+          pure: { arg: Symbol; body: Expr | Block; argType: Type };
           cases: Array<{
               constr: number;
-              args: Array<Symbol>;
-              k: Symbol;
+              args: Array<{ sym: Symbol; type: Type }>;
+              k: { sym: Symbol; type: Type };
               body: Expr | Block;
           }>;
           done: Expr | null;
+          is: Type;
       }
     | Tuple
     | {
@@ -137,15 +291,17 @@ export type Expr =
           items: Array<Expr | { type: 'Spread'; value: Expr }>;
           elType: Type;
           loc: Loc;
+          is: Type;
       }
     | Record
-    | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc }
+    | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc; is: Type }
     | {
           type: 'attribute';
           target: Expr;
           ref: Reference;
           idx: number;
           loc: Loc;
+          is: Type;
       }
     // effects have been taken care of at this point
     // do we need to know the types of things? perhaps for conversions?
@@ -155,23 +311,24 @@ export type Expr =
           effectful: LambdaExpr;
           direct: LambdaExpr;
           loc: Loc;
+          is: Type;
       }
     | LambdaExpr;
 
 export type Tuple = {
     type: 'tuple';
     items: Array<Expr>;
-    itemTypes: Array<Type>;
     loc: Loc;
+    is: Type;
 };
 export type Apply = {
     type: 'apply';
-    targetType: LambdaType;
-    concreteType: LambdaType;
-    res: Type;
+    typeVbls: Array<Type>;
     target: Expr;
     args: Array<Expr>;
+    note?: string;
     loc: Loc;
+    is: Type;
 };
 export type Record = {
     type: 'record';
@@ -188,13 +345,6 @@ export type Record = {
         [id: string]: RecordSubType;
     };
     loc: Loc;
-    // ok
-    // so
-    // for js, we can spread
-    // for go, we need to list things individually I do believe
-    // so
-    // lets just keep things n such
-    // also we gon want to do some heavy iffe lifting for realsies.
 };
 export type RecordSubType = {
     spread: Expr | null;
@@ -202,15 +352,69 @@ export type RecordSubType = {
 };
 export type LambdaExpr = {
     type: 'lambda';
-    // hrmmm how do I represent the "handlers" and such?
-    // do I just have a "handlers" type? Will swift require more of me? no it has an Any
-    // I could just say "builtin any"
-    // but what about the sym? Do I generate new syms? probably not.
     args: Array<Arg>;
     res: Type;
     body: Expr | Block;
     loc: Loc;
+    is: LambdaType | CPSLambdaType;
+    tags?: Array<string>;
 };
 
 export type Arg = { sym: Symbol; type: Type; loc: Loc };
 // and that's all folks
+
+export const typesEqual = (one: Type | null, two: Type | null): boolean => {
+    if (one == null || two == null) {
+        return one == two;
+    }
+    if (one.type === 'effect-handler' && two.type === 'effect-handler') {
+        return refsEqual(one.ref, two.ref);
+    }
+    if (one.type === 'ref' || two.type === 'ref') {
+        // HACK: We should be able to remove the `unknown` types
+        if (
+            one.type === 'ref' &&
+            one.ref.type === 'builtin' &&
+            one.ref.name === 'unknown'
+        ) {
+            return true;
+        }
+        if (
+            two.type === 'ref' &&
+            two.ref.type === 'builtin' &&
+            two.ref.name === 'unknown'
+        ) {
+            return true;
+        }
+
+        if (one.type === 'ref' && two.type === 'ref') {
+            return refsEqual(one.ref, two.ref);
+        }
+        if (one.type === 'ref' && one.ref.type === 'builtin') {
+            return two.type === 'ref' && refsEqual(one.ref, two.ref);
+        }
+        if (two.type === 'ref' && two.ref.type === 'builtin') {
+            return one.type === 'ref' && refsEqual(two.ref, one.ref);
+        }
+        // STOPSHIP: resolve type references
+        // throw new Error(`Need to lookup types sorry`);
+        return false;
+    }
+    if (one.type === 'var') {
+        return two.type === 'var' && symbolsEqual(one.sym, two.sym);
+    }
+    if (one.type === 'lambda') {
+        return (
+            two.type === 'lambda' &&
+            one.typeVbls.length === two.typeVbls.length &&
+            one.typeVbls.every((v, i) =>
+                typeVblDeclsEqual(v, two.typeVbls[i]),
+            ) &&
+            one.args.length === two.args.length &&
+            one.args.every((arg, i) => typesEqual(arg, two.args[i])) &&
+            typesEqual(one.res, two.res) &&
+            typesEqual(one.rest, two.rest)
+        );
+    }
+    return false;
+};

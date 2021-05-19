@@ -10,7 +10,7 @@ export const builtinType = (
     ref: { type: 'builtin', name },
     location: null,
     typeVbls,
-    effectVbls: [],
+    // effectVbls: [],
 });
 
 export const int: Type = builtinType('int');
@@ -73,6 +73,8 @@ and then .+? ./? I'd say all binops have implicit "." before them.
 And then we just do aggressive inlining.
 `;
 
+export const numeric = builtinType('numeric');
+
 export function presetEnv(builtins: { [key: string]: Type }) {
     const env = newEnv(null);
     env.global.builtins = {
@@ -100,16 +102,20 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         location: null,
     };
     env.global.builtins['++'] = pureFunction([string, string], string);
-    env.global.builtins['>='] = pureFunction([T0, T0], bool, [T]);
-    env.global.builtins['<='] = pureFunction([T0, T0], bool, [T]);
-    env.global.builtins['>'] = pureFunction([T0, T0], bool, [T]);
-    env.global.builtins['<'] = pureFunction([T0, T0], bool, [T]);
+    env.global.builtins['>='] = pureFunction([numeric, numeric], bool, []);
+    env.global.builtins['<='] = pureFunction([numeric, numeric], bool, []);
+    env.global.builtins['>'] = pureFunction([numeric, numeric], bool, []);
+    env.global.builtins['<'] = pureFunction([numeric, numeric], bool, []);
     env.global.builtins['=='] = pureFunction([T0, T0], bool, [T]);
-    env.global.builtins['+'] = pureFunction([T0, T0], T0, [T]);
-    env.global.builtins['-'] = pureFunction([T0, T0], T0, [T]);
-    env.global.builtins['/'] = pureFunction([T0, T0], T0, [T]);
-    env.global.builtins['*'] = pureFunction([T0, T0], T0, [T]);
-    env.global.builtins['^'] = pureFunction([T0, T0], T0, [T]);
+    // TODO: make builtins or something for this?
+    env.global.builtins['+'] = pureFunction([numeric, numeric], numeric, []);
+    env.global.builtins['-'] = pureFunction([numeric, numeric], numeric, []);
+    env.global.builtins['*'] = pureFunction([numeric, numeric], numeric, []);
+    env.global.builtins['/'] = pureFunction([numeric, numeric], numeric, []);
+    // env.global.builtins['-'] = pureFunction([T0, T0], T0, [T]);
+    // env.global.builtins['/'] = pureFunction([T0, T0], T0, [T]);
+    // env.global.builtins['*'] = pureFunction([T0, T0], T0, [T]);
+    env.global.builtins['^'] = pureFunction([numeric, numeric], numeric, [T]);
     env.global.builtins['&&'] = pureFunction([bool, bool], bool);
     env.global.builtins['||'] = pureFunction([bool, bool], bool);
 
@@ -124,6 +130,8 @@ export function presetEnv(builtins: { [key: string]: Type }) {
     env.global.builtinTypes['bool'] = 0;
     env.global.builtinTypes['string'] = 0;
     env.global.builtinTypes['Array'] = 1;
+    // GLSL my good folks
+    env.global.builtinTypes['sampler2D'] = 0;
 
     for (let i = 2; i < 10; i++) {
         env.global.builtinTypes['Tuple' + i] = i;

@@ -1,23 +1,33 @@
 import { Env, Type, Pattern } from '../../typing/types';
-import { bool, int, pureFunction } from '../../typing/preset';
 import { showType } from '../../typing/unify';
 import { getEnumReferences } from '../../typing/typeExpr';
 import { idName } from '../../typing/env';
 
-import { Expr, Block, Literal, Loc } from './types';
+import { Expr, Block, Literal, Loc, OutputOptions } from './types';
 
-import { blockStatement, ifStatement, or } from './utils';
+import {
+    blockStatement,
+    bool,
+    callExpression,
+    ifStatement,
+    int,
+    or,
+    pureFunction,
+    typeFromTermType,
+} from './utils';
 
 // Here's how this looks.
 // If you succeed, return the success branch. otherwise, do nothing.
 // my post-processing pass with flatten out all useless iffes.
 export const printPattern = (
     env: Env,
+    opts: OutputOptions,
     value: Expr,
     type: Type,
     pattern: Pattern,
     success: Block,
 ): Block => {
+    const mapType = (t: Type) => typeFromTermType(env, opts, t);
     // console.log('printPattern', type, pattern);
     if (pattern.type === 'Binding') {
         return blockStatement(
@@ -26,7 +36,7 @@ export const printPattern = (
                     type: 'Define',
                     sym: pattern.sym,
                     value,
-                    is: type,
+                    is: mapType(type),
                     loc: pattern.location,
                 },
                 success,
@@ -40,12 +50,13 @@ export const printPattern = (
             value,
             ref: ref.ref,
             loc: pattern.location,
+            is: bool,
         }));
         return blockStatement(
             [
                 ifStatement(
                     tests.reduce((one: Expr, two: Expr) =>
-                        or(one, two, pattern.location),
+                        or(env, one, two, pattern.location),
                     ),
                     success,
                     null,
@@ -57,6 +68,7 @@ export const printPattern = (
     } else if (pattern.type === 'Alias') {
         return printPattern(
             env,
+            opts,
             value,
             type,
             pattern.inner,
@@ -66,7 +78,7 @@ export const printPattern = (
                         type: 'Define',
                         sym: pattern.name,
                         value,
-                        is: type,
+                        is: mapType(type),
                         loc: pattern.location,
                     },
                     success,
@@ -82,11 +94,13 @@ export const printPattern = (
         pattern.items.forEach((item, i) => {
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'tupleAccess',
                     target: value,
                     idx: i,
                     loc: item.location,
+                    is: mapType(vbls[i]),
                 },
                 vbls[i],
                 item,
@@ -105,12 +119,14 @@ export const printPattern = (
             const decl = env.global.types[idName(item.ref.id)];
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'attribute',
                     target: value,
                     ref: item.ref,
                     idx: item.idx,
                     loc: item.location,
+                    is: mapType(item.is),
                 },
                 decl.items[item.idx],
                 item.pattern,
@@ -125,6 +141,7 @@ export const printPattern = (
                         value,
                         ref: pattern.ref.ref,
                         loc: pattern.location,
+                        is: bool,
                     },
                     success,
                     null,
@@ -152,8 +169,10 @@ export const printPattern = (
                                     ? pattern.text
                                     : pattern.value,
                             loc: pattern.location,
+                            is: mapType(type),
                         } as Literal,
                         loc: pattern.location,
+                        is: bool,
                     },
                     success,
                     null,
@@ -175,28 +194,28 @@ export const printPattern = (
         }
 
         // Then postitems, because it requires calculating length a bunch
-        const ln: Expr = { type: 'arrayLen', value, loc: value.loc };
+        const ln: Expr = { type: 'arrayLen', value, loc: value.loc, is: int };
 
-        const indexFromEnd = (i: number, loc: Loc): Expr => ({
-            type: 'apply',
-            targetType: pureFunction([int, int], int),
-            concreteType: pureFunction([int, int], int),
-            res: int,
-            target: {
-                type: 'builtin',
-                loc,
-                name: '-',
-            },
-            args: [
-                ln,
+        const indexFromEnd = (i: number, loc: Loc): Expr =>
+            callExpression(
+                env,
                 {
-                    type: 'int',
-                    value: i,
+                    type: 'builtin',
                     loc,
+                    name: '-',
+                    is: pureFunction([int, int], int),
                 },
-            ],
-            loc,
-        });
+                [
+                    ln,
+                    {
+                        type: 'int',
+                        value: i,
+                        loc,
+                        is: int,
+                    },
+                ],
+                loc,
+            );
 
         const elType = type.typeVbls[0];
         // ok so I don't need to check that it's an array.
@@ -206,6 +225,7 @@ export const printPattern = (
         if (pattern.spread) {
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'slice',
                     value,
@@ -213,6 +233,7 @@ export const printPattern = (
                         type: 'int',
                         value: pattern.preItems.length,
                         loc: null,
+                        is: int,
                     },
                     end: pattern.postItems.length
                         ? indexFromEnd(
@@ -221,6 +242,7 @@ export const printPattern = (
                           )
                         : null,
                     loc: pattern.location,
+                    is: mapType(type),
                 },
                 type,
                 pattern.spread,
@@ -231,6 +253,7 @@ export const printPattern = (
         pattern.postItems.forEach((item, i) => {
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'arrayIndex',
                     value,
@@ -239,6 +262,7 @@ export const printPattern = (
                         item.location,
                     ),
                     loc: item.location,
+                    is: mapType(elType),
                 },
                 elType,
                 item,
@@ -250,11 +274,18 @@ export const printPattern = (
         pattern.preItems.forEach((item, i) => {
             success = printPattern(
                 env,
+                opts,
                 {
                     type: 'arrayIndex',
                     value,
-                    idx: { type: 'int', value: i, loc: item.location },
+                    idx: {
+                        type: 'int',
+                        value: i,
+                        loc: item.location,
+                        is: int,
+                    },
                     loc: item.location,
+                    is: mapType(elType),
                 },
                 elType,
                 item,
@@ -271,17 +302,15 @@ export const printPattern = (
             success = blockStatement(
                 [
                     ifStatement(
-                        {
-                            type: 'apply',
-                            targetType: pureFunction([int, int], bool),
-                            concreteType: pureFunction([int, int], bool),
-                            res: bool,
-                            target: {
+                        callExpression(
+                            env,
+                            {
                                 type: 'builtin',
                                 loc: pattern.location,
                                 name: pattern.spread ? '>=' : '==',
+                                is: pureFunction([int, int], bool),
                             },
-                            args: [
+                            [
                                 ln,
                                 {
                                     type: 'int',
@@ -289,10 +318,11 @@ export const printPattern = (
                                         pattern.preItems.length +
                                         pattern.postItems.length,
                                     loc: pattern.location,
+                                    is: int,
                                 },
                             ],
-                            loc: pattern.location,
-                        },
+                            pattern.location,
+                        ),
                         success,
                         null,
                         pattern.location,

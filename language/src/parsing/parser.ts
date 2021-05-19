@@ -15,6 +15,13 @@ export type Decorated = {
     decorators: Array<Decorator>;
 };
 
+export type DecoratedExpression = {
+    type: 'Decorated';
+    location: Location;
+    wrapped: Expression;
+    decorators: Array<Decorator>;
+};
+
 export type Decorator = {
     type: 'Decorator';
     id: Identifier;
@@ -102,9 +109,18 @@ export type Define = {
 //     attrs: Array<{ id: Identifier; args: Array<Type> }>;
 // };
 
+export type Unary = {
+    type: 'Unary';
+    op: string;
+    inner: Expression;
+    location: Location;
+};
+
 export type Expression =
     | Literal
     | WithSuffix
+    | Unary
+    | DecoratedExpression
     | Lambda
     | Raise
     | Ops
@@ -278,7 +294,7 @@ export type TypeRef = {
     type: 'TypeRef';
     id: Identifier;
     typeVbls: Array<Type> | null;
-    effectVbls: Array<Identifier> | null;
+    // effectVbls: Array<Identifier> | null;
     location: Location;
 };
 export type LambdaType = {

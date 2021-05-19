@@ -1,0 +1,85 @@
+Fallback binops == must have same-typed arguments: int vs string at 3:1-3:2
+
+Wrong type for arg 0: 
+Found: int
+but expected string : 7:7-7:8
+
+Wrong type for arg 0: 
+Found: string
+but expected int : 11:7-11:12
+
+Wrong type for arg 0: 
+Found: string
+but expected int : 18:15-18:22
+
+Wrong type for arg 0: 
+Found: string
+but expected int : 21:7-21:15
+
+Return type of lambda doesn't fit type declaration
+
+Return type of lambda doesn't fit type declaration
+
+Function is declared as pure, but is not. 1 effects found.
+
+Wrong type for arg 0: 
+Found: T#:0
+but expected string : 36:30-36:32
+
+Type error!TypeMismatch
+
+Type error!TypeMismatch
+
+Wrong type for arg 0: 
+Found: int
+but expected string : 46:18-46:19
+
+Value of const doesn't match type annotation.
+
+Type error!TypeMismatch
+
+Condition of if must be a boolean
+
+Branches of if dont agree
+
+Trying to call int
+
+Wrong number of arguments (string) ={}> void, 1 vs 2
+
+Type error!UnresolvedIdentifier
+
+Return type of lambda doesn't fit type declaration
+
+Function declared with explicit effects, but missing at least one: 
+GetString#22024b72
+Exepcted: GetInt#b54d969c
+
+Can't handle multiple effects in one handler.
+
+No effect named Undef
+
+All case arms must have the same return type: int string
+
+Unknown effect Undef.get
+
+Invalid type for attribute age at 111:26-111:30. Expected int, got string
+
+Multiple values provided for 1 undefined at 113:39-113:42
+
+Record missing attribute "what" at 115:1-115:29
+
+Invalid spread Dog#1de5e9d2
+
+Expected a subtype of 1de5e9d2
+
+Expected a subtype of 630bfbc6
+
+Expected 1 at 147:1-147:28, found 0
+
+Wrong number of arguments (string) ={}> string, 1 vs 0
+
+Invalid type for attribute item at 152:33-152:47. Expected T#:0, got <T#:0>() ={}> string
+
+Invalid type for attribute item at 154:28-154:50. Expected T#:0, got <T#:0>(T#:0) ={}> string
+
+Expected a subtype of 06e495ea

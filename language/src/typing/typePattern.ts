@@ -49,7 +49,7 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
                 typeVbls: pattern.items.map((item, i) =>
                     patternIs(item, vbls[i]),
                 ),
-                effectVbls: [],
+                // effectVbls: [],
                 location: pattern.location,
             };
         case 'Array':
@@ -57,7 +57,7 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
                 type: 'ref',
                 ref: { type: 'builtin', name: 'Array' },
                 typeVbls: [pattern.is],
-                effectVbls: [],
+                // effectVbls: [],
                 location: pattern.location,
             };
     }

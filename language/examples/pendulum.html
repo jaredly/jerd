@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<meta charset="utf8" />
+<body>
+    <canvas id="root" width="500" height="500"></canvas>
+    <script type="module">
+        import { update } from './build/pendulum.jd.mjs';
+        console.log('yah');
+
+        const PI = Math.PI;
+        const TWO_PI = Math.PI * 2;
+        let a1 = Math.PI / 2;
+        let a2 = 0.0;
+        let a1_v = 0.0;
+        let a2_v = 0.0;
+        const sin = Math.sin;
+        const cos = Math.cos;
+        const g = 0.15;
+        const m1 = 20;
+        const m2 = 20;
+        const r1 = 100;
+        const r2 = 100;
+
+        const update2 = () => {
+            let num1 = -g * (2 * m1 + m2) * sin(a1);
+            let num2 = -m2 * g * sin(a1 - 2 * a2);
+            let num3 = -2 * sin(a1 - a2) * m2;
+            let num4 = a2_v * a2_v * r2 + a1_v * a1_v * r1 * cos(a1 - a2);
+            let den = r1 * (2 * m1 + m2 - m2 * cos(2 * a1 - 2 * a2));
+            let a1_a = (num1 + num2 + num3 * num4) / den;
+
+            num1 = 2 * sin(a1 - a2);
+            num2 = a1_v * a1_v * r1 * (m1 + m2);
+            num3 = g * (m1 + m2) * cos(a1);
+            num4 = a2_v * a2_v * r2 * m2 * cos(a1 - a2);
+            den = r2 * (2 * m1 + m2 - m2 * cos(2 * a1 - 2 * a2));
+
+            let a2_a = (num1 * (num2 + num3 + num4)) / den;
+
+            a1_v += a1_a;
+            a2_v += a2_a;
+            a1 += a1_v;
+            a2 += a2_v;
+
+            if (a1 > PI) {
+                a1 -= TWO_PI;
+            } else if (a1 < -PI) {
+                a1 += TWO_PI;
+            }
+            if (a2 > PI) {
+                a2 -= TWO_PI;
+            } else if (a2 < -PI) {
+                a2 += TWO_PI;
+            }
+        };
+
+        const ctx = root.getContext('2d');
+
+        const step = () => {
+            // update2();
+            const v = update(a1, a2, a1_v, a2_v);
+            update2();
+            if (v.x != a1 || v.y !== a2 || v.z !== a1_v || v.w !== a2_v) {
+                console.log(v.x, a1);
+                console.log(v.y, a2);
+                console.log(v.z, a1_v);
+                console.log(v.w, a2_v);
+                throw new Error(`Nope`);
+            }
+
+            // a1 = v.x;
+            // a2 = v.y;
+            // a1_v = v.z;
+            // a2_v = v.w;
+        };
+
+        const circle = (x, y, r) => {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2.0);
+            ctx.fill();
+        };
+
+        const draw = () => {
+            ctx.clearRect(0, 0, 500, 500);
+            const cx = 250;
+            const cy = 250;
+            const x = cx + Math.cos(a1) * r1;
+            const y = cy + Math.sin(a1) * r1;
+            const x2 = x + Math.cos(a2) * r2;
+            const y2 = y + Math.sin(a2) * r2;
+            ctx.fillStyle = 'red';
+            circle(x, y, 10);
+            ctx.fillStyle = 'orange';
+            circle(x2, y2, 10);
+        };
+        setInterval(() => {
+            step();
+            draw();
+        }, 10);
+    </script>
+</body>

@@ -1,4 +1,5 @@
 import { Location, nullLocation } from '../parsing/parser';
+import { idName } from './env';
 import {
     LocatedError,
     MismatchedArgument,
@@ -12,6 +13,7 @@ import {
 import {
     effectsMatch,
     Env,
+    idsEqual,
     LambdaType,
     refsEqual,
     symbolsEqual,
@@ -23,20 +25,33 @@ import {
 export const isType = (env: Env, found: Type, expected: Type) =>
     getTypeError(env, found, expected, nullLocation) == null;
 
+type Mapping = {
+    effects: { [foundUnique: number]: number };
+    types: { [foundUnique: number]: number };
+};
+const nullMapping: Mapping = { effects: {}, types: {} };
+const cloneMapping = (mapping: Mapping) => ({
+    effects: { ...mapping.effects },
+    types: { ...mapping.types },
+});
+
 export const getTypeError = (
-    env: Env,
+    env: Env | null,
     found: Type,
     expected: Type,
     location: Location,
+    mapping: Mapping = nullMapping,
 ): TypeError | null => {
     if (found.type !== expected.type) {
         return new TypeMismatch(env, found, expected, location);
     } else if (found.type === 'var') {
         const e = expected as TypeVar;
         if (!symbolsEqual(found.sym, e.sym)) {
-            console.log(env.local.tmpTypeVbls);
-            console.log(env.local.typeVbls);
-            console.log(env.local.typeVblNames);
+            if (env) {
+                console.log(env.local.tmpTypeVbls);
+                console.log(env.local.typeVbls);
+                console.log(env.local.typeVblNames);
+            }
             return new VarMismatch(env, found.sym, e.sym, location);
         }
         return null;
@@ -63,6 +78,7 @@ export const getTypeError = (
                 found.typeVbls[i],
                 e.typeVbls[i],
                 location,
+                mapping,
             );
             // TODO: do this better
             if (err !== null) {
@@ -72,14 +88,14 @@ export const getTypeError = (
             }
         }
 
-        if (!effectsMatch(found.effectVbls, e.effectVbls)) {
-            return new WrongEffects(
-                found.effectVbls,
-                e.effectVbls,
-                env,
-                location,
-            ).wrapped(new TypeMismatch(env, found, expected, location));
-        }
+        // if (!effectsMatch(found.effectVbls, e.effectVbls)) {
+        //     return new WrongEffects(
+        //         found.effectVbls,
+        //         e.effectVbls,
+        //         env,
+        //         location,
+        //     ).wrapped(new TypeMismatch(env, found, expected, location));
+        // }
         return null;
     } else if (found.type === 'lambda') {
         const e = expected as LambdaType;
@@ -89,34 +105,91 @@ export const getTypeError = (
                 `Different number of arguments: found ${found.args.length}, expected ${e.args.length}`,
             ).wrapped(new TypeMismatch(env, found, expected, location));
         }
-        for (let i = 0; i < found.args.length; i++) {
-            const err = getTypeError(env, found.args[i], e.args[i], location);
-            if (err !== null) {
-                return err.wrapped(new MismatchedArgument(i, found, e));
-            }
-        }
         if (found.typeVbls.length !== e.typeVbls.length) {
             return new LocatedError(
                 location,
                 `Different number of type variables`,
             );
         }
-        // for (let i=0; i<found.typeVbls.length; i++) {
-        //     const err = getTypeError(env, found.typeVbls[i], e.typeVbls[i], location)
-        //     // TODO: do this better
-        //     if (err !== null) {
-        //         return err.wrapped(new MismatchedTypeVbl(env, i, found, expected, location))
-        //     }
-        // }
-        if (!effectsMatch(found.effects, e.effects)) {
+
+        if (found.typeVbls.length || found.effectVbls.length) {
+            // mapping = {
+            //     found: cloneMapping(mapping.found),
+            //     expected: cloneMapping(mapping.expected)
+            // }
+            mapping = cloneMapping(mapping);
+        }
+        for (let i = 0; i < found.typeVbls.length; i++) {
+            if (
+                found.typeVbls[i].subTypes.length !==
+                e.typeVbls[i].subTypes.length
+            ) {
+                return new LocatedError(
+                    location,
+                    `Type variable has different number of subtypes`,
+                );
+            }
+            for (let j = 0; j < found.typeVbls[i].subTypes.length; j++) {
+                if (
+                    !idsEqual(
+                        found.typeVbls[i].subTypes[j],
+                        e.typeVbls[i].subTypes[j],
+                    )
+                ) {
+                    return new LocatedError(
+                        location,
+                        `Subtype ${j} of type vbl ${i} not the same ${idName(
+                            found.typeVbls[i].subTypes[j],
+                        )} vs ${idName(e.typeVbls[i].subTypes[j])}`,
+                    );
+                }
+            }
+            mapping.types[found.typeVbls[i].unique] = e.typeVbls[i].unique;
+        }
+        found.effectVbls.forEach((ev, i) => {
+            mapping.effects[ev] = e.effectVbls[i];
+        });
+
+        for (let i = 0; i < found.args.length; i++) {
+            const err = getTypeError(
+                env,
+                found.args[i],
+                e.args[i],
+                location,
+                mapping,
+            );
+            if (err !== null) {
+                return err.wrapped(new MismatchedArgument(env, i, found, e));
+            }
+        }
+
+        if (
+            !effectsMatch(
+                found.effects.map((ef) =>
+                    ef.type === 'var' && mapping.effects[ef.sym.unique] != null
+                        ? {
+                              ...ef,
+                              sym: {
+                                  ...ef.sym,
+                                  unique: mapping.effects[ef.sym.unique],
+                              },
+                          }
+                        : ef,
+                ),
+                e.effects,
+                undefined,
+            )
+        ) {
+            console.log(mapping.effects);
             return new WrongEffects(
                 found.effects,
                 e.effects,
                 env,
                 location,
+                mapping.effects,
             ).wrapped(new TypeMismatch(env, found, expected, location));
         }
-        const res = getTypeError(env, found.res, e.res, location);
+        const res = getTypeError(env, found.res, e.res, location, mapping);
         if (res != null) {
             return res.wrapped(new TypeMismatch(env, found, e, location));
         }

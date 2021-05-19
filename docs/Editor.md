@@ -1,5 +1,10 @@
 # Editor
 
+
+## Cool whizbangs
+- I've thought about registering widgets for a given /data type/, but it occurs to me that it might be nice to register widgets for /function calls/ too. E.g. a `bezier()` function that lets you play with the constants.
+
+
 So the editor will be a web page
 ideally written in jerd.
 and the backend will talk to it n stuff.

@@ -12,6 +12,7 @@ import {
     subEnv,
     effectsMatch,
     Env,
+    EffectReference,
 } from '../types';
 import typeType, { newEnvWithTypeAndEffectVbls } from '../typeType';
 import { printToString } from '../../printing/printer';
@@ -67,16 +68,11 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
         if (!effectsMatch(declaredEffects, effects, true)) {
             throw new LocatedError(
                 expr.location,
-                `Function declared with explicit effects, but missing at least one: ${declaredEffects
-                    .map((e) =>
-                        e.type === 'ref'
-                            ? printToString(
-                                  refToPretty(env, e.ref, 'effect'),
-                                  100,
-                              )
-                            : printToString(symToPretty(e.sym), 100),
-                    )
-                    .join(',')}`,
+                `Function declared with explicit effects, but missing at least one: \n${declaredEffects
+                    .map((e) => printEffectRef(env, e))
+                    .join(', ')}\nExepcted: ${effects
+                    .map((e) => printEffectRef(env, e))
+                    .join(', ')}`,
             );
         }
         effects.push(...declaredEffects);
@@ -99,3 +95,8 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
         },
     };
 };
+
+export const printEffectRef = (env: Env, e: EffectRef) =>
+    e.type === 'ref'
+        ? printToString(refToPretty(env, e.ref, 'effect'), 100)
+        : printToString(symToPretty(e.sym), 100);

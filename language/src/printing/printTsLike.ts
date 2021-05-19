@@ -38,7 +38,6 @@ import {
 } from './printer';
 
 export type ToplevelT =
-    // | Term
     | {
           type: 'Effect';
           id: Id;
@@ -48,7 +47,14 @@ export type ToplevelT =
           constrNames: Array<string>;
       }
     | { type: 'Expression'; term: Term; location: Location }
-    | { type: 'Define'; id: Id; term: Term; location: Location; name: string }
+    | {
+          type: 'Define';
+          id: Id;
+          term: Term;
+          location: Location;
+          name: string;
+          tags?: Array<string>;
+      }
     | {
           type: 'EnumDef';
           def: EnumDef;
@@ -152,20 +158,20 @@ export const effectToPretty = (env: Env, id: Id, effect: EffectDef): PP => {
     ]);
 };
 
-export const refToPretty = (env: Env, ref: Reference, kind: string) =>
-    ref.type === 'user' && ref.id.hash === '<self>' && env.local.self
+export const refToPretty = (env: Env | null, ref: Reference, kind: string) =>
+    env && ref.type === 'user' && ref.id.hash === '<self>' && env.local.self
         ? idPretty('self', 'self', kind)
         : ref.type === 'builtin'
         ? atom(ref.name)
         : idToPretty(env, ref.id, kind);
-export const idToPretty = (env: Env, id: Id, kind: string) => {
-    const name = env.global.idNames[idName(id)];
+export const idToPretty = (env: Env | null, id: Id, kind: string) => {
+    const name = env ? env.global.idNames[idName(id)] : null;
     const hash = id.hash + (id.pos !== 0 ? '_' + id.pos : '');
     return idPretty(name ? name : 'unnamed', hash, kind);
 };
 export const symToPretty = (sym: Symbol) =>
     idPretty(sym.name, ':' + sym.unique.toString(), 'sym');
-export const effToPretty = (env: Env, eff: EffectRef) =>
+export const effToPretty = (env: Env | null, eff: EffectRef) =>
     eff.type === 'ref'
         ? refToPretty(env, eff.ref, 'effect')
         : symToPretty(eff.sym);
@@ -251,7 +257,10 @@ const interleave = <T>(items: Array<T>, sep: T) => {
     return res;
 };
 
-const typeVblDeclsToPretty = (env: Env, typeVbls: Array<TypeVblDecl>): PP => {
+const typeVblDeclsToPretty = (
+    env: Env | null,
+    typeVbls: Array<TypeVblDecl>,
+): PP => {
     return args(
         typeVbls.map((v) =>
             items([
@@ -275,7 +284,7 @@ const typeVblDeclsToPretty = (env: Env, typeVbls: Array<TypeVblDecl>): PP => {
     );
 };
 
-export const typeToPretty = (env: Env, type: Type): PP => {
+export const typeToPretty = (env: Env | null, type: Type): PP => {
     switch (type.type) {
         case 'ref':
             if (type.typeVbls.length) {
@@ -296,7 +305,9 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                     : null,
                 type.effectVbls.length
                     ? args(
-                          type.effectVbls.map((n) => atom(`e_${n}`)),
+                          type.effectVbls.map((n) =>
+                              symToPretty({ name: 'e', unique: n }),
+                          ),
                           '{',
                           '}',
                       )
@@ -368,12 +379,15 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         case 'lambda':
             return items([
+                term.tags ? items(term.tags.map((t) => atom(`@${t}`))) : null,
                 term.is.typeVbls.length
                     ? typeVblDeclsToPretty(env, term.is.typeVbls)
                     : null,
                 term.is.effectVbls.length
                     ? args(
-                          term.is.effectVbls.map((n) => atom(`e_${n}`)),
+                          term.is.effectVbls.map((n) =>
+                              symToPretty({ name: 'e', unique: n }),
+                          ),
                           '{',
                           '}',
                       )
@@ -418,12 +432,15 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 ]);
             }
             if (isBinOp(term.target) && term.args.length === 2) {
+                // TODO: if term.args[0] is a binop with higher precedence, maybe wrap it?
                 return items([
+                    atom('('),
                     termToPretty(env, term.args[0]),
                     atom(' '),
                     termToPretty(env, term.target),
                     atom(' '),
                     termToPretty(env, term.args[1]),
+                    atom(')'),
                 ]);
             }
             return items([
@@ -526,6 +543,8 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 // atom(term.idx.toString()),
             ]);
         }
+        case 'unary':
+            return items([atom(term.op), termToPretty(env, term.inner)]);
         case 'Enum':
             return items([
                 typeToPretty(env, term.is),
@@ -737,9 +756,9 @@ const caseToPretty = (
         ),
         // atom(kase.constr.toString()),
         atom('('),
-        args(kase.args.map(symToPretty)),
+        args(kase.args.map((arg) => symToPretty(arg.sym))),
         atom(' => '),
-        symToPretty(kase.k),
+        symToPretty(kase.k.sym),
         atom(') => '),
         termToPretty(env, kase.body),
     ]);

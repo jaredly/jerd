@@ -1,0 +1,152 @@
+
+effect Log {
+    log: (string) => void,
+}
+
+
+// Start with the basic
+const collectNew: (() ={Log}> void) ={}> string = 
+(fn: () ={Log}> void): string => {
+    handle! fn {
+        Log.log((v) => k) => {
+            v ++ "\n" ++ collectNew(() ={Log}> k())
+        },
+        pure(a) => "end"
+    }
+}
+
+collectNew(() => {
+    raise!(Log.log("Hello"));
+    raise!(Log.log("Folks"));
+}) == "Hello\nFolks\nend"
+
+effect Read {
+    read: () => string,
+}
+
+// Now for reading
+const provide: <T>(string, () ={Read}> T) ={}> T = 
+<T,>(v: string, fn: () ={Read}> T): T => {
+    handle! fn {
+        Read.read(() => k) => {
+            provide<T>("<" + v + ">", () => k(v))
+        },
+        pure(a) => a
+    }
+}
+
+provide<string,>("Hello", () => raise!(Read.read())) == "Hello"
+// Multiple, lets do lets
+provide<string,>("Hello", () => raise!(Read.read()) + raise!(Read.read())) == "Hello<Hello>"
+
+
+// Start with the basic
+const appendLog: (() ={Log}> string) ={}> string = 
+(fn: () ={Log}> string): string => {
+    handle! fn {
+        Log.log((v) => k) => {
+            v ++ "\n" ++ appendLog(() ={Log}> k())
+        },
+        pure(a) => a
+    }
+}
+
+appendLog(() => {
+    raise!(Log.log("Hello"));
+    raise!(Log.log("Folks"));
+    "Final value"
+}) == "Hello\nFolks\nFinal value"
+
+
+// Start with the basic
+const collectPoly: {e}(() ={Log, e}> void) ={e}> string = 
+{e}(fn: () ={Log, e}> void): string => {
+    handle! fn {
+        Log.log((v) => k) => {
+            v ++ "\n" ++ collectPoly{e}(() ={Log, e}> k())
+        },
+        pure(a) => "end"
+    }
+}
+
+collectPoly{}(() => raise!(Log.log("Good news"))) == "Good news\nend"
+
+provide<string,>("Folks", () ={Read}> collectPoly{Read}(() ={Read, Log}> raise!(Log.log("Good news " + raise!(Read.read())))))
+ == "Good news Folks\nend"
+
+
+// const twoLevelsDeep = {e}(handler: (() ={e}> string) ={}> string, handled: () ={e}> string): string => {
+//     handler(handled)
+// }
+
+// twoLevelsDeep{Read}((fn: () ={Read}> string) ={}> provide<string>("Hello", fn), () ={Read}> raise!(Read.read())) == "Hello"
+
+effect Stdio {
+    read: () => string,
+    write: (string) => void,
+}
+
+effect Log {
+    log: (string) => void,
+}
+
+
+const log = (k: string) ={Log}> raise!(Log.log(k))
+
+// TODO when I've got type arguments, make this generic.
+const respondWith:
+    (string) => <T>{e}(() ={Stdio, e}> T) ={Log, e}> T
+ = (responseValue: string) => <T,>{e}(fn: () ={Stdio, e}> T) ={Log, e}> {
+    handle! fn {
+        Stdio.read(() => k) => respondWith(responseValue ++ ".")<T>{e}(() ={Stdio, e}> k(responseValue)),
+        Stdio.write((v) => k) => {
+            log(v);
+            respondWith(responseValue ++ "-")<T>{e}(() ={Stdio, e}> k())
+        },
+        pure(a) => a
+    }
+}
+
+// This is so we can test the results
+const collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
+    handle! fn {
+        Log.log((v) => k) => {
+            v ++ "\n" ++ collect{e}(() ={e, Log}> k())
+        },
+        pure(a) => "end"
+    }
+}
+
+const farther = (name: string): string => {
+    log("yes please " ++ name);
+    raise!(Stdio.read())
+}
+
+
+
+const inner = (name: string): void ={Stdio, Log}> {
+    log(farther("Folks") ++ " from farther");
+    log("getting");
+    log(name);
+    log(raise!(Stdio.read()) ++ " and " ++ raise!(Stdio.read()));
+    log("And then " ++ raise!(Stdio.read()));
+    log("Dones")
+}
+
+// respondWith
+
+const test1 = () => {
+    respondWith("<read>")<void>{Log}(() ={Stdio, Log}> inner("Yes"))
+}
+
+collect{}(test1) == "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
+
+// // This is so we can test the results
+// const collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
+//     handle! fn {
+//         Log.log((v) => k) => {
+//             v ++ "\n" ++ collect{e}(() ={e, Log}> k())
+//         },
+//         pure(a) => "end"
+//     }
+// }

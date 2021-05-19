@@ -7,6 +7,7 @@
 
 import * as t from '@babel/types';
 import traverse from '@babel/traverse';
+import { withLocation } from './typeScriptPrinterSimple';
 
 export const optimizeAST = (ast: t.File) => {
     flattenImmediateCallsToLets(ast);
@@ -82,22 +83,69 @@ const flattenDoubleLambdas = (ast: t.File) => {
 };
 
 export const removeTypescriptTypes = (ast: t.File) => {
-    traverse(ast, {
-        TSTypeAnnotation(path) {
-            path.remove();
+    traverse(
+        ast,
+        {
+            TSTypeAnnotation(path) {
+                path.remove();
+            },
+            TSTypeAliasDeclaration(path) {
+                path.remove();
+            },
+            TSTypeParameterInstantiation(path) {
+                path.remove();
+            },
+            TSAsExpression(path) {
+                path.replaceWith(path.node.expression);
+            },
+            ImportDeclaration(path) {
+                // lol hack
+                // this is so typescript is happy
+                // but it's not valid javascript
+                // and there's not really a way to tell
+                if (
+                    path.node.specifiers.length === 1 &&
+                    path.node.specifiers[0].local.name === 'Handlers'
+                ) {
+                    path.remove();
+                }
+            },
+            TSTypeParameterDeclaration(path) {
+                path.remove();
+            },
         },
-        TSTypeAliasDeclaration(path) {
-            path.remove();
+        undefined,
+        null,
+        {
+            isScope: () => false,
+            // @ts-ignore
+            hub: {
+                buildError(id, name, err) {
+                    return new err(name);
+                },
+            },
         },
-    });
+    );
 };
 
 const flattenImmediateCallsToLets = (ast: t.File) => {
     traverse(ast, {
         CallExpression(path) {
             // Toplevel iffes definitely shouldn't be messed with.
-            // STOPSHIP: This should actually crawl up the chain to verify
-            // that we're in a function of some sort.
+            // STOPSHIP: verify that this does what I think it should
+            let found = false;
+            let test: any = path;
+            while (test.parentPath) {
+                if (test.parentPath.isFunction()) {
+                    found = true;
+                    break;
+                }
+                test = test.parentPath;
+            }
+            if (!found) {
+                // Not in a function
+                return;
+            }
             if (path.parentPath.parent.type !== 'BlockStatement') {
                 return;
             }
@@ -140,7 +188,15 @@ const flattenImmediateCallsToLets = (ast: t.File) => {
                                     ? t.expressionStatement(arg)
                                     : t.variableDeclaration('const', [
                                           t.variableDeclarator(
-                                              t.identifier(name),
+                                              //   withLocation(
+                                              // param.typeAnnotation ?
+
+                                              // t.identifier(name),
+                                              param.type === 'Identifier'
+                                                  ? param
+                                                  : t.identifier(name),
+                                              //     param.loc,
+                                              //   ),
                                               arg,
                                           ),
                                       ]);

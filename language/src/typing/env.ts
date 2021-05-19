@@ -35,6 +35,7 @@ import {
     EffectDef,
     Self,
     selfEnv,
+    newLocal,
 } from './types';
 import { ToplevelT } from '../printing/printTsLike';
 import { void_ } from './preset';
@@ -46,6 +47,7 @@ export const typeToplevelT = (
     item: Toplevel,
     unique?: number | null,
 ): ToplevelT => {
+    env = { ...env, local: newLocal() };
     switch (item.type) {
         case 'define': {
             // TODO type annotation
@@ -165,6 +167,11 @@ export const typeEffect = (env: Env, item: Effect): Env => {
     ).env;
 };
 
+export const newSym = (env: Env, name: string): Symbol => ({
+    name,
+    unique: env.local.unique.current++,
+});
+
 // export const addToplevel = (
 //     env: Env,
 //     item: ToplevelT
@@ -196,7 +203,6 @@ export const addEffect = (
             idName: idName(id),
         };
     });
-    // STOPSHIP bring this in
     glob.effects[hash] = defn.constrs;
     return { env: { ...env, global: glob }, id };
 };
@@ -205,8 +211,9 @@ export const typeTypeDefn = (
     env: Env,
     defn: StructDef,
     ffiTag?: string,
+    unum?: number,
 ): Env => {
-    return typeRecord(env, defn, ffiTag).env;
+    return typeRecord(env, defn, ffiTag, unum).env;
 };
 
 export const typeEnumInner = (env: Env, defn: EnumDef) => {
@@ -340,7 +347,7 @@ export const typeRecordDefn = (
 
     return {
         type: 'Record',
-        unique: unique != null ? unique : env.global.rng(),
+        unique: ffiTag ? 0 : unique != null ? unique : env.global.rng(),
         typeVbls,
         location,
         effectVbls,
@@ -440,13 +447,14 @@ export const typeDefineInner = (env: Env, item: Define) => {
     const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
     const subEnv: Env = {
         ...env,
-        local: { ...env.local, tmpTypeVbls },
+        // local: { ...env.local, tmpTypeVbls },
+        local: { ...newLocal(), tmpTypeVbls },
     };
 
     const self: Self = {
         type: 'Term',
         name: item.id.text,
-        ann: item.ann ? typeType(env, item.ann) : void_,
+        ann: item.ann ? typeType(subEnv, item.ann) : void_,
     };
 
     subEnv.local.self = self;
@@ -480,7 +488,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
 export const typeDefine = (
     env: Env,
     item: Define,
-): { hash: string; term: Term; env: Env } => {
+): { hash: string; term: Term; env: Env; id: Id } => {
     const term = typeDefineInner(env, item);
 
     const hash: string = hashObject(term);
@@ -496,7 +504,7 @@ export const typeDefine = (
     glob.names[item.id.text] = id;
     glob.idNames[idName(id)] = item.id.text;
     glob.terms[hash] = term;
-    return { hash, term, env: { ...env, global: glob } };
+    return { hash, term, env: { ...env, global: glob }, id };
 };
 
 export const addDefine = (env: Env, name: string, term: Term) => {
@@ -588,7 +596,7 @@ export const resolveEffect = (
                 }
             });
             if (!found) {
-                throw new Error(`Could not resolve effect symbol`);
+                throw new Error(`Could not resolve effect symbol ${hash}`);
             }
             return {
                 type: 'var',
@@ -623,7 +631,7 @@ export const resolveEffect = (
         };
     }
     if (!env.global.effectNames[text]) {
-        throw new Error(`No effect named ${text}`);
+        throw new LocatedError(location, `No effect named ${text}`);
     }
     return {
         type: 'ref',
@@ -637,11 +645,12 @@ export const resolveEffect = (
 export const symPrefix = '#:';
 
 export const makeLocal = (env: Env, id: Identifier, type: Type): Symbol => {
-    let max = Object.keys(env.local.locals).reduce(
-        (max, k) => Math.max(env.local.locals[k].sym.unique, max),
-        0,
-    );
-    const unique = max + 1; // Object.keys(env.local.locals).length;
+    const unique = env.local.unique.current++;
+    // let max = Object.keys(env.local.locals).reduce(
+    //     (max, k) => Math.max(env.local.locals[k].sym.unique, max),
+    //     0,
+    // );
+    // const unique = max + 1; // Object.keys(env.local.locals).length;
 
     const found =
         id.hash && id.hash.startsWith(symPrefix)
@@ -792,7 +801,7 @@ const plainRecord = (id: Id, location: Location): Term => ({
         ref: { type: 'user', id },
         location,
         typeVbls: [],
-        effectVbls: [],
+        // effectVbls: [],
     },
     subTypes: {},
 });

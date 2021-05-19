@@ -74,7 +74,7 @@ export const typeArray = (env: Env, expr: ArrayLiteral): Term => {
             ref: { type: 'builtin', name: 'Array' },
             location: null,
             typeVbls: [itemType!],
-            effectVbls: [],
+            // effectVbls: [],
         },
     };
 };

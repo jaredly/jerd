@@ -3,7 +3,7 @@
 import {
     Term,
     Env,
-    Type,
+    Type as TermType,
     getEffects,
     Symbol,
     Reference,
@@ -20,8 +20,10 @@ import {
     binOps,
     bool,
     builtinType,
+    float,
     int,
-    pureFunction,
+    // pureFunction,
+    string,
     void_,
 } from '../../typing/preset';
 import { showType } from '../../typing/unify';
@@ -31,10 +33,12 @@ import {
     showLocation,
 } from '../../typing/typeExpr';
 import { idFromName, idName } from '../../typing/env';
+import { LambdaType as ILambdaType } from './types';
 
-import { Loc, Expr, Stmt, callExpression, OutputOptions } from './types';
+import { Loc, Expr, Stmt, OutputOptions, Type } from './types';
+import { callExpression, pureFunction, typeFromTermType } from './utils';
 
-import { maybeWrapPureFunction } from './cps';
+import { maybeWrapPureFunction } from '../../typing/transform';
 import {
     iffe,
     arrowFunctionExpression,
@@ -47,24 +51,52 @@ import {
 } from './utils';
 import { printPattern } from './pattern';
 import { printLambda, printLambdaBody } from './lambda';
+import { printHandle } from './handle';
+import { termToPretty } from '../printTsLike';
+import { printToString } from '../printer';
+import { LocatedError } from '../../typing/errors';
+
+// hrmmmmmmmm should I define new types for the IR?
+// urhghhhhghghhggh
+// like
+// probably?
+// I mean
+// the IR doesn't have effects
+// so yeah?
+// like that would be the principled way to do it
+// hrgggggghhhhh
 
 export const printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
     return _printTerm(env, opts, term);
 };
 
-const printTermRef = (opts: OutputOptions, ref: Reference, loc: Loc): Expr => {
+const printTermRef = (
+    opts: OutputOptions,
+    ref: Reference,
+    loc: Loc,
+    is: Type,
+): Expr => {
     return ref.type === 'builtin'
-        ? { type: 'builtin', name: ref.name, loc }
-        : { type: 'term', id: ref.id, loc };
+        ? { type: 'builtin', name: ref.name, loc, is }
+        : { type: 'term', id: ref.id, loc, is };
 };
 
 const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
+    const mapType = (t: TermType) => typeFromTermType(env, opts, t);
     switch (term.type) {
         // these will never need effects, immediate is fine
         case 'self':
             if (!env.local.self) {
                 throw new Error(`Self referenced without self set on env`);
             }
+            const t = mapType(term.is);
+            // console.log(
+            //     'self here',
+            //     showLocation(term.location),
+            //     showType(env, term.is),
+            //     t.type,
+            // );
+            // console.log(new Error().stack!.split('\n').slice(3, 11).join('\n'));
             return printTermRef(
                 opts,
                 {
@@ -74,22 +106,49 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     id: idFromName(env.local.self.name),
                 },
                 term.location,
+                t,
             );
         // return t.identifier(`hash_${env.local.self.name}`);
         case 'boolean':
-            return { type: 'boolean', value: term.value, loc: term.location };
+            return {
+                type: 'boolean',
+                value: term.value,
+                loc: term.location,
+                is: mapType(bool),
+            };
         case 'int':
-            return { type: 'int', value: term.value, loc: term.location };
+            return {
+                type: 'int',
+                value: term.value,
+                loc: term.location,
+                is: mapType(int),
+            };
         case 'string':
-            return { type: 'string', value: term.text, loc: term.location };
+            return {
+                type: 'string',
+                value: term.text,
+                loc: term.location,
+                is: mapType(string),
+            };
         case 'float':
-            return { type: 'float', value: term.value, loc: term.location };
+            return {
+                type: 'float',
+                value: term.value,
+                loc: term.location,
+                is: mapType(float),
+            };
         case 'ref': {
             // Hmm do I want to include type annotation here? I guess I did at one point
-            return printTermRef(opts, term.ref, term.location);
+            return printTermRef(
+                opts,
+                term.ref,
+                term.location,
+                mapType(term.is),
+            );
         }
         case 'if': {
             return iffe(
+                env,
                 blockStatement(
                     [
                         ifStatement(
@@ -101,14 +160,18 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     ],
                     term.location,
                 ),
-                term.is,
             );
         }
         // a lambda, I guess also doesn't need cps, but internally it does.
         case 'lambda':
             return printLambda(env, opts, term);
         case 'var':
-            return { type: 'var', sym: term.sym, loc: term.location };
+            return {
+                type: 'var',
+                sym: term.sym,
+                loc: term.location,
+                is: mapType(term.is),
+            };
         case 'apply': {
             // TODO we should hang onto the arg names of the function we
             // are calling so we can use them when assigning to values.
@@ -117,7 +180,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             // ughhhhhhhh I think my denormalization is biting me here.
             if (getEffects(term).length > 0) {
-                throw new Error(
+                throw new LocatedError(
+                    term.location,
                     `This apply has effects, but isn't in a CPS context. Effects: ${getEffects(
                         term,
                     )
@@ -131,22 +195,41 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             let target = printTerm(env, opts, term.target);
 
-            if (term.hadAllVariableEffects) {
+            if (target.is.type === 'effectful-or-direct') {
                 target = {
                     type: 'effectfulOrDirect',
                     target,
                     effectful: false,
                     loc: target.loc,
+                    // STOPSHIP is this right?
+                    is: target.is.direct,
                 };
+            } else if (term.hadAllVariableEffects) {
+                console.log(printToString(termToPretty(env, term), 100));
+                console.log(printToString(termToPretty(env, term.target), 100));
+                console.log(showType(env, term.target.is));
+                console.log(getEffects(term.target));
+                throw new LocatedError(
+                    term.location,
+                    `target should be effectful-or-direct folks`,
+                );
             }
 
+            const appliedTargetType =
+                term.target.is.type === 'lambda' &&
+                term.target.is.effectVbls.length > 0
+                    ? applyEffectVariables(env, term.target.is, [])
+                    : term.target.is;
+
             const argTypes =
-                term.target.is.type === 'lambda' ? term.target.is.args : [];
+                appliedTargetType.type === 'lambda'
+                    ? appliedTargetType.args
+                    : [];
             if (argTypes.length !== term.args.length) {
                 throw new Error(
                     `Need to resolve target type: ${showType(
                         env,
-                        term.target.is,
+                        appliedTargetType,
                     )} - ${showType(env, term.is)}`,
                 );
             }
@@ -155,13 +238,11 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             });
 
             return callExpression(
+                env,
                 target,
-                term.originalTargetType,
-                // term.
-                term.is,
                 args.map((arg, i) => printTerm(env, opts, arg)),
                 term.location,
-                term.target.is as LambdaType,
+                term.typeVbls.map(mapType),
             );
         }
 
@@ -171,102 +252,12 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             );
 
         case 'handle': {
-            const sym: Symbol = { name: 'result', unique: env.local.unique++ };
-            return iffe(
-                {
-                    type: 'Block',
-                    items: [
-                        {
-                            type: 'Define',
-                            sym,
-                            loc: term.location,
-                            value: null,
-                            is: term.is,
-                        },
-                        {
-                            type: 'Expression',
-                            expr: {
-                                type: 'handle',
-                                target: printTerm(env, opts, term.target),
-                                loc: term.location,
-                                effect: (term.effect as UserReference).id,
-                                pure: {
-                                    arg: term.pure.arg,
-                                    // body: printLambdaBody(
-                                    //     env,
-                                    //     opts,
-                                    //     term.pure.body,
-                                    //     null,
-                                    // ),
-                                    body: {
-                                        type: 'Block',
-                                        loc: term.pure.body.location,
-                                        items: [
-                                            {
-                                                type: 'Assign',
-                                                sym,
-                                                is: term.pure.body.is,
-                                                loc: term.pure.body.location,
-                                                value: iffe(
-                                                    asBlock(
-                                                        printLambdaBody(
-                                                            env,
-                                                            opts,
-                                                            term.pure.body,
-                                                            null,
-                                                        ),
-                                                    ),
-                                                    term.pure.body.is,
-                                                ),
-                                            },
-                                        ],
-                                    },
-                                },
-                                cases: term.cases.map((kase) => ({
-                                    ...kase,
-                                    body: {
-                                        type: 'Block',
-                                        loc: kase.body.location,
-                                        items: [
-                                            {
-                                                type: 'Assign',
-                                                sym,
-                                                is: kase.body.is,
-                                                loc: kase.body.location,
-                                                value: iffe(
-                                                    asBlock(
-                                                        printLambdaBody(
-                                                            env,
-                                                            opts,
-                                                            kase.body,
-                                                            null,
-                                                        ),
-                                                    ),
-                                                    kase.body.is,
-                                                ),
-                                            },
-                                        ],
-                                    },
-                                })),
-                                done: null,
-                            },
-                            loc: term.location,
-                        },
-                        {
-                            type: 'Return',
-                            value: { type: 'var', sym, loc: term.location },
-                            loc: term.location,
-                        },
-                    ],
-                    loc: term.location,
-                },
-                term.is,
-            );
+            return printHandle(env, opts, term);
         }
 
         case 'sequence': {
-            // IIFE
             return callExpression(
+                env,
                 arrowFunctionExpression(
                     [],
                     blockStatement(
@@ -276,7 +267,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                       type: 'Define',
                                       sym: s.binding,
                                       value: printTerm(env, opts, s.value),
-                                      is: s.is,
+                                      is: mapType(s.is),
                                       loc: s.location,
                                   }
                                 : i === term.sts.length - 1
@@ -289,24 +280,13 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         ),
                         term.location,
                     ),
-                    term.is,
                     term.location,
                 ),
-                pureFunction([], term.is),
-                term.is,
                 [],
                 term.location,
             );
         }
         case 'Record': {
-            // ok whats the story here?
-            // options include:
-            // ['h@sh', arg1, arg2]
-            // {type: 'h@sh', 0: arg1, 1: arg2, 2: arg3}
-            // {type: 'h@sh', h@sh_0: arg1, h@sh_1: arg2, h@sh_2: arg3}
-            // the last one requires the least record keeping, I think.
-            // although serializes more.
-            // yeah I think we need the last one.
             return {
                 type: 'record',
                 base:
@@ -338,18 +318,31 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                     };
                     return obj;
                 }, {}),
-                is: term.is,
+                is: mapType(term.is),
                 loc: term.location,
             };
         }
+        case 'unary':
+            return {
+                type: 'unary',
+                inner: printTerm(env, opts, term.inner),
+                is: mapType(term.is),
+                loc: term.location,
+                op: term.op,
+            };
         case 'Enum':
-            return printTerm(env, opts, term.inner);
+            // @ts-ignore
+            return {
+                ...printTerm(env, opts, term.inner),
+                is: mapType(term.is),
+            };
         case 'TupleAccess': {
             return {
                 type: 'tupleAccess',
                 target: printTerm(env, opts, term.target),
                 idx: term.idx,
                 loc: term.location,
+                is: mapType(term.is),
             };
         }
         case 'Attribute': {
@@ -359,14 +352,15 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 ref: term.ref,
                 idx: term.idx,
                 loc: term.location,
+                is: mapType(term.is),
             };
         }
         case 'Tuple': {
             return {
                 type: 'tuple',
                 items: term.items.map((item) => printTerm(env, opts, item)),
-                itemTypes: term.is.typeVbls,
                 loc: term.location,
+                is: mapType(term.is),
             };
         }
         case 'Array': {
@@ -382,18 +376,26 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         : printTerm(env, opts, item),
                 ),
                 loc: term.location,
-                elType,
+                elType: mapType(elType),
+                is: mapType(term.is),
             };
         }
         case 'Switch': {
-            // TODO: if the term is "basic", we can just pass it through
             const basic = isConstant(term.term);
 
-            const id = { name: 'discriminant', unique: env.local.unique++ };
+            const id = {
+                name: 'discriminant',
+                unique: env.local.unique.current++,
+            };
 
             const value: Expr = basic
                 ? printTerm(env, opts, term.term)
-                : { type: 'var', sym: id, loc: null };
+                : {
+                      type: 'var',
+                      sym: id,
+                      loc: null,
+                      is: mapType(term.term.is),
+                  };
 
             let cases = [];
 
@@ -401,8 +403,8 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 cases.push(
                     printPattern(
                         env,
+                        opts,
                         value,
-                        // kase.body.is,
                         term.term.is,
                         kase.pattern,
                         blockStatement(
@@ -415,19 +417,13 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
 
             cases.push(
                 blockStatement(
-                    [
-                        { type: 'MatchFail', loc: term.location },
-                        //     t.throwStatement(
-                        //         t.newExpression(t.identifier('Error'), [
-                        //             t.stringLiteral('Invalid case analysis'),
-                        //         ]),
-                        //     ),
-                    ],
+                    [{ type: 'MatchFail', loc: term.location }],
                     term.location,
                 ),
             );
 
             return iffe(
+                env,
                 blockStatement(
                     [
                         basic
@@ -437,12 +433,12 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                   sym: id,
                                   value: printTerm(env, opts, term.term),
                                   loc: term.location,
+                                  is: term.term.is,
                               },
                         ...cases,
                     ].filter(Boolean) as Array<Stmt>,
                     term.location,
                 ),
-                term.is,
             );
         }
         default:

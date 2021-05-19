@@ -1,4 +1,146 @@
 
+
+
+effect Read {
+    read: () => string,
+}
+
+effect Write {
+    write: (string) => void,
+}
+
+const getString = () ={Read}> raise!(Read.read())
+
+(a: int, b: string) ={Read, Write}> b + getString()
+
+const both = () ={Read, Write}> {
+    const value = raise!(Read.read());
+    raise!(Write.write(value))
+}
+// Checking that this type checks and looks reasonable
+both
+
+const provideIncrement: <T>(string, int, () ={Read}> T) => T = <T,>(v: string, i: int, fn: () ={Read}> T) => handle! fn {
+    Read.read(() => k) => provideIncrement<T>(v, i + 1, () ={Read}> k(v + i as string)),
+    pure(v) => v,
+}
+
+// const expectWrite: <T>(string, () ={Write}> T)
+
+// Ok now for the famous handlers!
+const provideString: (string, () ={Read}> string) => string = (v: string, fn: () ={Read}> string) => handle! fn {
+    Read.read(() => k) => provideString(v, () ={Read}> k(v + "got") + "back") + "provided",
+    pure(v) => v + "pure"
+}
+
+provideString("Yes", getString) == "Yesgotbackpureprovided"
+
+const provideStringPlain: <T>(string, () ={Read}> T) => T = <T,>(v: string, fn: () ={Read}> T) => handle! fn {
+    Read.read(() => k) => provideStringPlain<T>(v, () ={Read}> k(v)),
+    pure(v) => v,
+}
+
+const ifYes = () => {
+    if getString() == "Yes" {
+        "good"
+    } else {
+        "nope"
+    }
+}
+
+provideStringPlain<string>("Yes", ifYes) + ":" + provideStringPlain<string>("Yes?", ifYes) == "good:nope"
+
+const sideBar = (n: int) => {if n == 5 {
+    getString()
+} else {
+    "wot"
+}}
+
+provideStringPlain<string>("Yes", () => sideBar(5)) + ":" + provideStringPlain<string>("Yes?", () => sideBar(4)) == "Yes:wot"
+
+const callAgain = () ={Read}> {
+    const v = getString();
+    () => v
+}
+
+provideStringPlain<string>("what", () ={Read}> callAgain()()) == "what"
+
+type Person = {name: string, age: int}
+
+// () => Person{name: getString(), age: 5}
+
+const getPerson = () => Person{name: getString(), age: 5}
+
+const spreadPerson = () => Person{...getPerson(), age: 20}
+
+provideStringPlain<Person>("Me", getPerson).name == "Me"
+provideStringPlain<Person>("Me", spreadPerson).name == "Me"
+
+provideIncrement<Array<string>>("Hi", 0, () => [getString(), getString()]) == ["Hi0", "Hi1"]
+const getStringArr = () => [getString()]
+provideIncrement<Array<string>>("Hi", 0, () => [...getStringArr(), getString()]) == ["Hi0", "Hi1"]
+
+// Different done things
+// START HERE: This needs to take things into account
+// Somehow, we need to wrap the final done
+// also why is my IFFE getting a handler passed to it 🤔
+() => {
+    raise!(Write.write("hello"));
+    getString()
+}
+
+() => (getString(), 1.0).0
+
+const getPersonName = () => Person{name: getString(), age: 5}.name
+
+provideStringPlain<string>("ok", getPersonName) == "ok"
+
+// Now for some variables!
+
+
+const provideIncrementV: <T>{e}(string, int, () ={Read, e}> T) ={e}> T = <T,>{e}(v: string, i: int, fn: () ={Read, e}> T) ={e}> handle! fn {
+    Read.read(() => k) => provideIncrementV<T>{}(v, i + 1, () ={Read}> k(v + i as string)),
+    pure(v) => v,
+}
+
+
+
+
+
+
+
+
+/*
+const logWrite: {e}(() ={Write, e}> void) ={e}> void = {e}(fn: () ={Write, e}> void) => {
+    handle! fn {
+        Write.write((x) => k) => {
+            log(x);
+            logWrite{e}(() ={Write, e}> k())
+        },
+        pure(k) => k
+    }
+}
+
+logWrite{}(() => raise!(Write.write("Hello")))
+
+const respondWith: {e}(string, () ={Read, e}> void) ={e}> void = {e}(v: string, fn: () ={Read, e}> void) => {
+    handle! fn {
+        Read.read(() => k) => respondWith{e}(v, () ={Read, e}> k(v)),
+        pure(x) => x,
+    }
+}
+
+respondWith{}("Hello", () => logWrite{Read}(() => {
+    const v = "Yes " ++ raise!(Read.read());
+    raise!(Write.write(v))
+}))
+*/
+
+
+
+
+
+/*
 type Some<T> = {
     value: T
 }
@@ -61,3 +203,5 @@ linkedLength<int>(listToLinked<int>([3,4,5])) == 3
 //     String#54e44b4c,
 //     T#:0,
 // }
+
+*/

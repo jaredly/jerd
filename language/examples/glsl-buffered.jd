@@ -1,0 +1,263 @@
+
+const MAX_MARCHING_STEPS = 255
+const MIN_DIST = 0.0
+const MAX_DIST = 100.0
+const EPSILON = 0.00005
+
+const newColor = (iTime: float, fragPos: Vec2) => {
+    const pos = Vec2{x: random(Vec2{x: iTime, y: 0.0}), y: random(Vec2{x: 0.0, y: iTime})};
+    const dist = distance2(pos, fragPos);
+    if dist < 0.03 {
+        Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
+    } else {
+        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+    }
+}
+
+const avg = (a: Vec4, b: Vec4) => {
+    const sum = a + b;
+    sum / 2.0;
+}
+
+// @ffi
+// @buffer0
+const writeBuffer = (
+    iTime: float,
+    fragCoord: Vec2,
+    iResolution: Vec2,
+    uCamera: Vec3,
+    // last buffer
+    buffer: sampler2D,
+) => {
+    const pos = Vec2{x: random(Vec2{x: iTime, y: 0.0}), y: random(Vec2{x: 0.0, y: iTime})};
+    const dist = distance2(pos, fragCoord / iResolution);
+    if dist < 0.01 {
+        Vec4{x: 1.0, y: 1.0, z: 0.0, w: 1.0}
+    } else if dist < 0.03 {
+        avg(texture(buffer, fragCoord / iResolution),
+        Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0})
+    } else {
+        texture(buffer, fragCoord / iResolution)
+    }
+}
+
+// const neighbors: FixedArray<Vec2, 8> = [
+//     Vec2{x: -1.0, y:  0.0}
+//     Vec2{x: -1.0, y:  1.0}
+//     Vec2{x: -1.0, y: -1.0}
+//     Vec2{x:  1.0, y:  0.0}
+//     Vec2{x:  1.0, y:  1.0}
+//     Vec2{x:  1.0, y: -1.0}
+//     Vec2{x:  0.0, y:  1.0}
+//     Vec2{x:  0.0, y: -1.0}
+// ]
+
+// const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
+//     // Ok, so reduce can be inlined
+//     // the lambda cannot
+//     // I need a much more robust system of inlining
+//     // That can handle literally anythign in the IR.
+//     // So that I can be confident.
+//     // reduce(neighbors, 0, (total, offset) => total + neighbor(offset, coord, res, buffer))
+
+//     neighbor(Vec2{x: -1.0, y:  0.0}, coord, res, buffer) +
+//     neighbor(Vec2{x: -1.0, y:  1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x: -1.0, y: -1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  1.0, y:  0.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  1.0, y:  1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  1.0, y: -1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  0.0, y:  1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  0.0, y: -1.0}, coord, res, buffer)
+// }
+
+// Or maybe it's just that, at the IR level,
+// arrays might have known or unknown length.
+// And if we can infer the length, then we
+// can do stuff.
+// And if we can't, then we can't.
+
+// reduce needs to be built-in I believe.
+// And maybe it takes a fixed array?
+// How are fixed arrays typed?
+// Maybe they're mostly not?
+// const reduce = <T, R>(value: FixedArray<T>, initial: R, fn: (T, R) => R) => { }
+
+// What do we want to do here?
+// hmmm I would also like argument-level destructuring
+
+
+// type Uniforms = {
+//     time: float,
+//     resolution: Vec2,
+//     camera: Vec3,
+//     // oh this is basically a tuple!
+//     // [a, b, c]
+//     // yeah that would be rad
+//     // Should I have a syntax shortcut for it?
+//     // It wouldn't be super relevant for javascript
+//     // or go, really
+//     // Also it might be a pain to convert between the two?
+//     // I mean in javascript its fine
+//     // @[1, 2, 3]
+//     // ![1, 2, 3]
+//     // maybe the at-sign
+//     // 
+//     buffers: FixedArray<3, sampler2D>,
+//     // buffer0: sampler2D,
+//     // buffer1: sampler2D,
+// }
+
+/*
+BUT
+like
+
+how do I do it right
+yeah
+is it type-directed?
+and how many buffers are there?
+do I just have a different "if" per buffer?
+
+well
+I guess
+I could just do:
+`if it's a tuple, where the first thing is a function that returns a vec4`
+and then arguments are provided as:
+- float is the time
+- orrrr
+
+ok better:
+the function takes:
+- GLSLInput type
+`uTime, iResolution, uCamera, uMouse`
+and then any number of buffers
+and returns a Vec4
+yeah that's good.
+
+oh wait, where's fragCoord? just like there?
+oh yeah I also need struct support.
+Well I guess here we come.
+
+And then we try to compile it to GLSL?
+I guess.
+
+
+*/
+
+// renderGLSL = <T, N>(main: T<N> => Vec4, buffers: FixedArray<N, T<N> => Vec4) => {
+// }
+
+// renderGLSL<Uniforms>(
+
+// )
+
+// renderGLSL(Glsl{
+//     buffers: [
+//         // hmmmm
+//     ],
+//     main: (iTime: float, fragCoord: Vec2, resolution: Vec2, camera: Vec3, buffer: sampler2D, mouse: Vec2) => {
+
+//     }
+// })
+
+// ---- MACRO MUSINGS ----- I'd need to generate all the ffi types corresponding to the typescript types
+// Which I think should be doable?
+// This is only evaluated in the javascript macro context
+// const reduceInner = (join: Term, is: Type, base: Term, items: Array<Term>) => {
+//     switch items {
+//         [] => base,
+//         // sooooo I'm really digging go's thing where you
+//         // are allowed to only specify a subset of the values
+//         // of a record, and the others are filled in with their
+//         // "zero" value.
+//         [one, ...rest] => Term::Apply{
+//             location: join.location,
+//             target: join,
+//             typeVbls: [],
+//             effectVbls: [],
+//             args: [one, reduceInner(join, l, base, rest)],
+//             is,
+//         }
+//     }
+// }
+
+// @macro
+// const reduce = (args: Array<Term>): Result<Term, string> ={}> {
+//     // return a single Term
+//     switch args {
+//         [] => Error{_: "Reduce macro called without arguments"},
+//         [join, base, ...rest] => {
+//             // if .is is a member of a supertype of all of the entries
+//             // in the enum, then it's allowed
+//             switch join.is {
+//                 Lambda{} as l => reduceInner(join, l.res, base, rest),
+//                 _ => Error{_: "Reduce macro called with a non-function as first argument"}
+//             }
+//         }
+//     }
+// }
+
+const live = Vec4{x: 1.0, y: 0.6, z: 1.0, w: 1.0}
+const dead = Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+
+const isLive = (color: Vec4) => color.x > 0.5
+
+const neighbor = (offset: Vec2, coord: Vec2, res: Vec2, buffer: sampler2D) => {
+    const coord = coord + offset;
+    if isLive(texture(buffer, coord / res)) {
+        1
+    } else {
+        0
+    }
+}
+
+const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
+    neighbor(Vec2{x: -1.0, y:  0.0}, coord, res, buffer) +
+    neighbor(Vec2{x: -1.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x: -1.0, y: -1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y:  0.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y: -1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  0.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  0.0, y: -1.0}, coord, res, buffer)
+}
+
+@ffi
+@buffer0
+const gameOfLife = (
+    env: GLSLEnv,
+    fragCoord: Vec2,
+    buffer: sampler2D,
+) => {
+    if env.time < 0.01 {
+        if random(fragCoord / env.resolution) > 0.95 {
+            live
+        } else {
+            dead
+        }
+    } else {
+        const self = isLive(texture(buffer, fragCoord / env.resolution));
+        const neighbors = countNeighbors(fragCoord, env.resolution, buffer);
+        if (self && neighbors == 2) || neighbors == 3 {
+            live
+        } else {
+            dead
+        }
+    }
+}
+
+@ffi
+@main
+const main = (
+    env: GLSLEnv,
+    fragCoord: Vec2,
+    buffer0: sampler2D,
+) => {
+    const diff = env.mouse - fragCoord;
+    // Magnifying glass!
+    if length2(diff) < 250.0 {
+        const newCoord = env.mouse - diff / 4.0;
+        texture(buffer0, newCoord / env.resolution)
+    } else {
+        texture(buffer0, fragCoord / env.resolution)
+    }
+}

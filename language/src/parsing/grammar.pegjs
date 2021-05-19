@@ -81,19 +81,31 @@ RecordItem = id:IdTextOrString _ ":" _ type:Type {return {type: 'Row', id: id.ty
 // ===== Expressions ======
 
 // Binop
-Expression = first:WithSuffix rest:BinOpRight* {
+Expression = first:WithUnary rest:BinOpRight* {
     if (rest.length) {
         return {type: 'ops', first, rest, location: location()}
     } else {
         return first
     }
 }
-BinOpRight = __ id:(Identifier ".")? op:binop __ right:WithSuffix {
+BinOpRight = __ id:(Identifier ".")? op:binop __ right:WithUnary {
     return {op, id: id ? id[0] : null, right, location: location()}
 }
+WithUnary = op:UnaryOp? inner:WithSuffix {
+    if (op != null) {
+        return {type: 'Unary', op, inner, location: location()}
+    }
+    return inner
+}
+UnaryOp = "-" / "!"
 // Apply / Attribute access
-WithSuffix = sub:Apsub suffixes:Suffix* {
-	return suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
+WithSuffix = decorators:(Decorator _)* sub:Apsub suffixes:Suffix* {
+	const main = suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
+    if (decorators.length) {
+        return {type: 'Decorated', wrapped: main, decorators: decorators.map((d: any) => d[0])}
+    } else {
+        return main
+    }
 }
 
 Suffix = ApplySuffix / AttributeSuffix / IndexSuffix / AsSuffix
@@ -159,9 +171,12 @@ ArrayItem = ArraySpread / Expression
 ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, location: location() }}
 
 TupleLiteral = "(" _ items:TupleItems _ ")" {
+    if (items.length === 1) {
+        return items[0]
+    }
     return {type: 'Tuple', location: location(), items}
 }
-TupleItems = first:Expression rest:(_ "," _ Expression)+ {
+TupleItems = first:Expression rest:(_ "," _ Expression)* {
     return [first, ...rest.map((r: any) => r[3])]
 }
 
@@ -176,9 +191,14 @@ Block = "{" _ items:Statements? _ "}" {
     return {type: 'block', items: items || [], location: location()}
 }
 
-If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ Block)? {
+If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ (Block / IfElse))? {
     return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
 }
+
+IfElse = v:If {
+    return {type: 'block', items: [v], location: location()}
+}
+
 
 Switch = "switch" __ expr:Expression __ "{" _
     cases:SwitchCases

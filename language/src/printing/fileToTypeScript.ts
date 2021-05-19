@@ -2,21 +2,6 @@
 
 import * as t from '@babel/types';
 
-import { idFromName } from '../typing/env';
-import {
-    // declarationToAST,
-    printType,
-    // termToAST,
-    // OutputOptions,
-} from './typeScriptPrinter';
-import { optimizeAST } from './typeScriptOptimize';
-import { Env, selfEnv, Term, typesEqual } from '../typing/types';
-import { printToString } from './printer';
-import { declarationToPretty } from './printTsLike';
-
-import { bool } from '../typing/preset';
-import { wrapWithAssert } from './goPrinter';
-
 export const typeScriptPrelude = (
     // opts: OutputOptions,
     scope: string | undefined,
@@ -24,35 +9,6 @@ export const typeScriptPrelude = (
     builtinNames: Array<string>,
 ) => {
     const items: Array<t.Statement> = [];
-    // STOPSHIP: Get the builtinNames here folks
-    // const builtinNames = [
-    //     'raise',
-    //     'isSquare',
-    //     'log',
-    //     'intToString',
-    //     'handleSimpleShallow2',
-    //     'assert',
-    //     'assertEqual',
-    //     'pureCPS',
-    //     'intToFloat',
-    //     'concat',
-    //     'pow',
-    //     'ln',
-    //     'PI',
-    //     'TAU',
-    //     // TODO automatically get these from the buitins.ts file
-    //     // Probably want to group these...
-    //     'sqrt',
-    //     'max',
-    //     'min',
-    //     'sin',
-    //     'cos',
-    //     'tan',
-    //     'asin',
-    //     'acos',
-    //     'atan',
-    //     'atan2',
-    // ];
 
     if (scope) {
         items.push(
@@ -88,6 +44,17 @@ export const typeScriptPrelude = (
                             t.identifier(name),
                             t.identifier(name),
                         ),
+                    ),
+                ],
+                t.stringLiteral('./prelude.mjs'),
+            ),
+        );
+        items.push(
+            t.importDeclaration(
+                [
+                    t.importSpecifier(
+                        t.identifier('Handlers'),
+                        t.identifier('Handlers'),
                     ),
                 ],
                 t.stringLiteral('./prelude.mjs'),

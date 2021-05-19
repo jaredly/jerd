@@ -1,0 +1,338 @@
+
+const sceneSDF = (iTime: float, samplePoint: Vec3) => {
+    const double = iTime * 2.0;
+    const p2 = samplePoint - Vec3{
+        x: -sin(double) / 2.0,
+        y: sin(iTime / 4.0) / 2.0,
+        z: cos(double) / 2.0,
+    };
+    const p1 = samplePoint;
+    const p2 = opRepLim(p2, 0.1, Vec3{
+        x: 1.0,
+        y: 1.0,
+        z: 1.0,
+    });
+    sminCubic(
+        length(p1) - 0.5,
+        length(p2) - 0.03,
+        0.1,
+    // const cubePoint = samplePoint;
+    )
+    // const cubePoint = cubePoint - Vec3{x: 0.0, y: 0.0, z: -1.0};
+    // const cubePoint = xyz(rotateY(iTime / PI) * Vec4{...cubePoint, w: 1.0});
+    // const size = sin(iTime) * 0.2 + 0.4;
+    // const cosize = cos(iTime) * 0.2 + 0.4;
+    // const offset = 0.6;
+    // const cubeSize = Vec3{x: size, y: cosize, z: size};
+    // const innerCubeSize = Vec3{x: size * offset, y: cosize * offset, z: size * offset};
+    // const circles = min(
+    //         sphereSDF(samplePoint, Vec3{x: 0.25, y: 0.0, z: -1.0}, 0.5),
+    //         sphereSDF(samplePoint, Vec3{x: -0.5, y: 0.0, z: -1.0}, 0.5)
+    //     );
+    // unionSDF(
+    //     differenceSDF(
+    //         circles,
+    //     vmax(vabs(cubePoint) - cubeSize)
+    // ),
+    //     vmax(vabs(cubePoint) - innerCubeSize)
+    // )
+
+}
+
+    // reduce(
+    //     range(0, 10),
+    //     (result, i) => unionSDF(result, circle(samplePoint, pos, size)),
+    //     result
+    // )
+
+const MAX_MARCHING_STEPS = 255
+const MIN_DIST = 0.0
+const MAX_DIST = 100.0
+const EPSILON = 0.00005
+
+
+// Ok folks, here comes the hard part!!
+// We've already turned this into a while loop, which was fun
+// NOW can we turn it into a for loop with a constant condition?
+/*
+First step:
+come up with a for loop. We know that one of the arguments has to be
+either always increasing or always decreasing, and that we want
+a non-recursive option that bails.
+What's the easiest way to do this?
+have the body be:
+if stepsLeft <= 0 {
+    end
+} else {
+    ...
+}
+that way we know we have a solid way out, whatever else happens.
+BUT also we need to know what the "step" is, how quickly to decrease it.
+I think we might just say "the recursive loop has to be adding or subtracting a constant int".
+
+ok lol so the simple fix is to say "all loops max out at 1000 lol"
+we'll try that first
+
+*/
+const shortestDistanceToSurface:
+(float, Vec3, Vec3, float, float, int) => float
+    = (
+        iTime: float,
+        // marchSource
+        eye: Vec3,
+        // marchDirection
+        marchingDirection: Vec3,
+        start: float,
+        end: float,
+        stepsLeft: int,
+    ) => {
+    if stepsLeft <= 0 {
+        end
+    } else {
+        const dist = sceneSDF(iTime, eye + start * marchingDirection);
+        if dist < EPSILON {
+            start
+        } else {
+            const depth = start + dist;
+            if depth >= end {
+                end
+            } else {
+                shortestDistanceToSurface(iTime, eye, marchingDirection, depth, end, stepsLeft - 1)
+            }
+        }
+    }
+}
+
+
+
+// /**
+//  * Return the normalized direction to march in from the eye point for a single pixel.
+//  * 
+//  * fieldOfView: vertical field of view in degrees
+//  * size: resolution of the output image
+//  * fragCoord: the x,y coordinate of the pixel in the output image
+//  */
+const rayDirection = (fieldOfView: float, size: Vec2, fragCoord: Vec2) => {
+    const xy = fragCoord - size / 2.0;
+    const z = size.y / tan(radians(fieldOfView) / 2.0);
+    normalize(vec3(xy, -z))
+}
+
+// /**
+//  * Using the gradient of the SDF, estimate the normal on the surface at point p.
+//  */
+// TODO: pass in a function here! Of course will have to be constant folded.
+const estimateNormal = (iTime: float, p: Vec3) => normalize(Vec3{
+    x: sceneSDF(iTime, Vec3{...p, x: p.x + EPSILON}) - sceneSDF(iTime, Vec3{...p, x: p.x - EPSILON}),
+    y: sceneSDF(iTime, Vec3{...p, y: p.y + EPSILON}) - sceneSDF(iTime, Vec3{...p, y: p.y - EPSILON}),
+    z: sceneSDF(iTime, Vec3{...p, z: p.z + EPSILON}) - sceneSDF(iTime, Vec3{...p, z: p.z - EPSILON}),
+})
+
+// /**
+//  * Lighting contribution of a single point light source via Phong illumination.
+//  * 
+//  * The vec3 returned is the RGB color of the light's contribution.
+//  *
+//  * k_a: Ambient color
+//  * k_d: Diffuse color
+//  * k_s: Specular color
+//  * alpha: Shininess coefficient
+//  * p: position of point being lit
+//  * eye: the position of the camera
+//  * lightPos: the position of the light
+//  * lightIntensity: color/intensity of the light
+//  *
+//  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
+//  */
+
+const phongContribForLight = (
+    iTime: float,
+    k_d: Vec3,
+    k_s: Vec3,
+    alpha: float,
+    p: Vec3,
+    eye: Vec3,
+    lightPos: Vec3,
+    lightIntensity: Vec3,
+) => {
+    // TODO: Make structs please! Would be very nice to have multi-value returns.
+    const N = estimateNormal(iTime, p);
+    const L = normalize(lightPos - p);
+    const V = normalize(eye - p);
+    // oooh now we'll have to deal with multiple names for things!
+    // I do declare
+    const R = normalize(reflect(negVec3(L), N));
+
+    // Normal vs direction of the light
+    const dotLN = dot(L, N);
+    if dotLN < 0.0 {
+        Vec3{x: 0.0, y: 0.0, z: 0.0}
+    } else {
+        const dotRV = dot(R, V);
+        if dotRV < 0.0 {
+            const m = k_d * dotLN;
+            lightIntensity * m
+        } else {
+            const m = k_d * dotLN + k_s * pow(dotRV, alpha);
+            lightIntensity * m
+        }
+    }
+}
+
+// /**
+//  * Lighting via Phong illumination.
+//  * 
+//  * The vec3 returned is the RGB color of that point after lighting is applied.
+//  * k_a: Ambient color
+//  * k_d: Diffuse color
+//  * k_s: Specular color
+//  * alpha: Shininess coefficient
+//  * p: position of point being lit
+//  * eye: the position of the camera
+//  *
+//  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
+//  */
+const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha: float, p: Vec3, eye: Vec3) => {
+    const ambientLight = 0.5 * Vec3{x: 1.0, y: 1.0, z: 1.0};
+    const color = ambientLight * k_a;
+    
+    const light1Pos = Vec3{x: 4.0 * sin(iTime),
+                          y: 2.0,
+                          z: 4.0 * cos(iTime)};
+    const light1Intensity = Vec3{x: 0.4, y: 0.4, z: 0.4};
+    
+    const color = color + phongContribForLight(iTime, k_d, k_s, alpha, p, eye,
+                                  light1Pos,
+                                  light1Intensity);
+    
+    const light2Pos = Vec3{x: 2.0 * sin(0.37 * iTime),
+                          y: 2.0 * cos(0.37 * iTime),
+                          z: 2.0};
+    const light2Intensity = Vec3{x: 0.4, y: 0.4, z: 0.4};
+    
+    const color = color + phongContribForLight(iTime, k_d, k_s, alpha, p, eye,
+                                  light2Pos,
+                                  light2Intensity);    
+    color
+}
+
+const white = Vec3{x: 1.0,y: 1.0,z: 1.0}
+const red = Vec3{x: 1.0,y: 0.0,z: 0.0}
+const blue = Vec3{x: 0.0,y: 0.0,z: 1.0}
+const green = Vec3{x: 0.0,y: 1.0,z: 0.0}
+const black = Vec3{x: 0.0,y: 0.0,z: 0.0}
+
+/**
+ * What do I want this to do?
+ * - produce a parallel function called `justRedGLSL`
+ *   that accepts any initialization variables
+ *   and calls `new GlslCanvas`?
+ *   OR do I just have a separate pass, that's not the
+ *   javascript one? Lets start with that tbh.
+ */
+const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+    Vec4{...red, w: 1.0}
+}
+
+// @ffi
+// @main
+const phongLit = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+    // The direction to march in from the eye position
+    // which will then find the color of the provided pixel
+	const dir = rayDirection(45.0, iResolution, fragCoord);
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+
+    if dist > MAX_DIST - EPSILON {
+        // Didn't hit anything
+        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0};
+    } else {
+        const worldPosForPixel = eye + dist * dir;
+        
+        const K_a = Vec3{x: 0.9, y: 0.2, z: 0.3};
+        const K_d = Vec3{x: 0.0, y: 0.2, z: 0.7};
+        const K_s = Vec3{x: 1.0, y: 1.0, z: 1.0};
+        const shininess = 10.0;
+
+        const color = phongIllumination(iTime, K_a, K_d, K_s, shininess, worldPosForPixel, eye);
+
+        Vec4{...color, w: 1.0};
+    }
+}
+
+
+const isPointingTowardLight = (iTime: float, p: Vec3, lightPos: Vec3) => {
+    const N = estimateNormal(iTime, p);
+    const L = normalize(lightPos - p);
+
+    const dotLN = dot(L, N);
+    dotLN >= 0.0
+}
+
+// @ffi
+// @main
+const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+    // The direction to march in from the eye position
+    // which will then find the color of the provided pixel
+	const dir = rayDirection(45.0, iResolution, fragCoord);
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    // TODO: trace!()
+    const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+
+    const light = 0.2;
+
+    if dist > MAX_DIST - EPSILON {
+        // Nothing visible
+        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0};
+    } else {
+        const worldPosForPixel = eye + dist * dir;
+        
+        const K_a = Vec3{x: 0.9, y: 0.2, z: 0.3};
+        const K_d = Vec3{x: 0.0, y: 0.2, z: 0.7};
+        const K_s = Vec3{x: 1.0, y: 1.0, z: 1.0};
+        const shininess = 10.0;
+
+        const light1Pos = Vec3{
+            x: 10.0 * sin(iTime),
+                            y: 10.0 * cos(iTime),
+                            z: 5.0
+                        };
+
+        const toLight = light1Pos - worldPosForPixel;
+
+        if isPointingTowardLight(iTime, worldPosForPixel, light1Pos) {
+            const marchToLight = shortestDistanceToSurface(
+                iTime, light1Pos, -1.0 * normalize(toLight), MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS,
+            );
+
+            if marchToLight > MAX_DIST - EPSILON * 10.0 {
+                Vec4{...white * light, w: 1.0}
+            } else {
+                const offset = marchToLight - length(toLight);
+                const penumbra = 0.1;
+                // In shadow!
+                if offset < -EPSILON * 1000.0 {
+                    Vec4{...white * light, w: 1.0}
+                } else {
+                    Vec4{...white, w: 1.0}
+                }
+            }
+        } else {
+            Vec4{...white * light, w: 1.0}
+        }
+    }
+}
+
+@ffi
+@main
+const randFolks = (env: GLSLEnv, fragCoord: Vec2) => {
+    const scale = 14.0;
+    const small = roundv2(fragCoord / scale) * scale;
+    const small = Vec2{x: small.x, y: small.y + env.time};
+    // const v = random(small / iResolution) / 10.0 + 0.9;
+    const v = random(small / env.resolution) / 10.0 + 0.9;
+    const two = Vec4{...red * v, w: 1.0} + fishingBoueys(env.time, fragCoord, env.resolution);
+    two / 2.0
+}
+
+// const volumetric

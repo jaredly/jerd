@@ -1,0 +1,68 @@
+
+const MAX_MARCHING_STEPS = 255
+const MIN_DIST = 0.0
+const MAX_DIST = 100.0
+const EPSILON = 0.00005
+
+
+const sceneSDF = (iTime: float, samplePoint: Vec3) => {
+    const double = iTime * 2.0;
+    const p1 = samplePoint;
+    length(p1) - 0.5
+}
+
+const shortestDistanceToSurface:
+(
+    (float, Vec3) => float,
+    float, Vec3, Vec3, float, float, int) => float
+    = (
+        sceneSDF: (float, Vec3) => float,
+        iTime: float,
+        // marchSource
+        eye: Vec3,
+        // marchDirection
+        marchingDirection: Vec3,
+        start: float,
+        end: float,
+        stepsLeft: int,
+    ) => {
+    if stepsLeft <= 0 {
+        end
+    } else {
+        const dist = sceneSDF(iTime, eye + start * marchingDirection);
+        if dist < EPSILON {
+            start
+        } else {
+            const depth = start + dist;
+            if depth >= end {
+                end
+            } else {
+                shortestDistanceToSurface(sceneSDF, iTime, eye, marchingDirection, depth, end, stepsLeft - 1)
+            }
+        }
+    }
+}
+
+
+const rayDirection = (fieldOfView: float, size: Vec2, fragCoord: Vec2) => {
+    const xy = fragCoord - size / 2.0;
+    const z = size.y / tan(radians(fieldOfView) / 2.0);
+    normalize(vec3(xy, -z))
+}
+
+@ffi
+@main
+const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+    // The direction to march in from the eye position
+    // which will then find the color of the provided pixel
+	const dir = rayDirection(45.0, iResolution, fragCoord);
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    const dist = shortestDistanceToSurface(sceneSDF, iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+
+    if dist > MAX_DIST - EPSILON {
+        // Nothing visible
+        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0};
+    } else {
+        Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
+    }
+}

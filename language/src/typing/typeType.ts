@@ -10,7 +10,7 @@ import {
 // because we'll need it in a web ui.
 import { Env, Symbol, subEnv, Type, Id } from './types';
 import { showLocation } from './typeExpr';
-import { resolveEffect, symPrefix } from './env';
+import { idFromName, resolveEffect, symPrefix } from './env';
 import { LocatedError, MismatchedTypeVbl } from './errors';
 
 export const walkType = (
@@ -52,6 +52,7 @@ export const walkType = (
 };
 
 export const newTypeVbl = (env: Env): Type => {
+    // TODO: change this too
     const unique = Object.keys(env.local.tmpTypeVbls).length;
     env.local.tmpTypeVbls[unique] = [];
     return {
@@ -70,9 +71,9 @@ const typeType = (env: Env, type: ParseType | null): Type => {
             const typeVbls = type.typeVbls
                 ? type.typeVbls.map((t) => typeType(env, t))
                 : [];
-            const effectVbls = type.effectVbls
-                ? type.effectVbls.map((e) => resolveEffect(env, e))
-                : [];
+            // const effectVbls = type.effectVbls
+            //     ? type.effectVbls.map((e) => resolveEffect(env, e))
+            //     : [];
             if (type.id.hash && type.id.hash.startsWith(symPrefix)) {
                 const unique = +type.id.hash.slice(symPrefix.length);
                 return {
@@ -80,6 +81,18 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     sym: { unique, name: type.id.text },
                     location: type.location,
                     // STOPSHIP: typeVbls and effectVbls for vars
+                };
+            }
+            if (type.id.hash) {
+                return {
+                    type: 'ref',
+                    ref: {
+                        type: 'user',
+                        id: idFromName(type.id.hash.slice(1)),
+                    },
+                    typeVbls,
+                    // effectVbls,
+                    location: type.location,
                 };
             }
             // if (type.id.hash && type.id.hash === '#self') {
@@ -126,7 +139,7 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                         },
                     },
                     typeVbls,
-                    effectVbls,
+                    // effectVbls,
                     location: type.location,
                 };
             }
@@ -138,7 +151,7 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                         id: env.global.typeNames[type.id.text],
                     },
                     typeVbls,
-                    effectVbls,
+                    // effectVbls,
                     location: type.location,
                 };
             }
@@ -148,7 +161,7 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     ref: { type: 'builtin', name: type.id.text },
                     location: type.location,
                     typeVbls,
-                    effectVbls,
+                    // effectVbls,
                 };
             }
             throw new Error(`Unknown type "${type.id.text}"`);
@@ -229,6 +242,8 @@ export const newEnvWithTypeAndEffectVbls = (
         const unique = parseUnique(
             id.hash,
             Object.keys(typeInner.local.effectVbls).length,
+            // START HERE: getTypeError needs to be different
+            // env.local.unique.current++,
         );
         const sym: Symbol = { name: id.text, unique };
         typeInner.local.effectVbls[id.text] = sym;

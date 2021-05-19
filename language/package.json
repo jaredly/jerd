@@ -7,14 +7,18 @@
     "scripts": {
         "prepare": "yarn build",
         "build": "yarn peg && yarn compile",
-        "compile": "esbuild --sourcemap --bundle src/main.ts --platform=node --outfile=main.js",
+        "compile": "esbuild --sourcemap --bundle --loader:.jd=text src/main.ts --platform=node --outfile=main.js",
+        "watch": "yarn run compile --watch",
+        "cp-builtins": "cp src/printing/builtins.ts src/printing/builtins.ts.txt",
         "peg": "pegjs --plugin ts-pegjs -o src/parsing/grammar.ts src/parsing/grammar.pegjs",
-        "watch-tests": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert examples --run --cache",
+        "watch-tests": "watchexec -w src -w examples -- node --enable-source-maps bootstrap.js --assert examples --run --cache",
+        "watch-tests-old": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert examples --run --cache",
         "watch-go": "watchexec    -w main.js -w examples -- node --enable-source-maps main.js go examples --run --assert",
+        "ts-examples": "tsc --build examples/build/tsconfig.json",
         "test": "node --enable-source-maps main.js --assert examples --run",
-        "test-one": "node --enable-source-maps main.js --assert --run",
-        "watch-one": "watchexec -w main.js -w examples -- node --enable-source-maps main.js --assert --run --cache",
-        "watch": "esbuild --sourcemap --bundle --loader:.jd=text src/main.ts --platform=node --watch --outfile=main.js",
+        "test-one": "node --enable-source-maps bootstrap.js --assert --run",
+        "watch-one": "watchexec -w src -w examples -- node --enable-source-maps bootstrap.js --assert --run --cache",
+        "watch-just-one": "node --enable-source-maps bootstrap.js watch --assert --run --cache",
         "sn": "jest -u"
     },
     "bin": {
@@ -31,7 +35,7 @@
         }
     },
     "dependencies": {
-        "@babel/generator": "^7.12.15",
+        "@babel/generator": "^7.14.1",
         "@babel/traverse": "^7.12.13",
         "@babel/types": "^7.12.13",
         "assert": "^2.0.0",
