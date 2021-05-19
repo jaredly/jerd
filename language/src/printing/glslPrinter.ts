@@ -696,39 +696,6 @@ export const fileToGlsl = (
         const constr = env.global.types[r];
         const id = idFromName(r);
         if (constr.type === 'Enum') {
-            return; // no enum support I dont think
-            // const comment = printToString(enumToPretty(env, id, constr), 100);
-            // const refs = getEnumReferences(env, {
-            //     type: 'ref',
-            //     ref: { type: 'user', id },
-            //     typeVbls: constr.typeVbls.map((t, i) => ({
-            //         type: 'var',
-            //         sym: { name: 'T', unique: t.unique },
-            //         location: null,
-            //     })),
-            //     location: null,
-            // });
-            // items.push(
-            //     t.addComment(
-            //         t.tsTypeAliasDeclaration(
-            //             t.identifier(typeIdToString(id)),
-            //             constr.typeVbls.length
-            //                 ? typeVblsToParameters(env, opts, constr.typeVbls)
-            //                 : null,
-            //             t.tsUnionType(
-            //                 refs.map((ref) =>
-            //                     typeToAst(
-            //                         env,
-            //                         opts,
-            //                         typeFromTermType(env, opts, ref),
-            //                     ),
-            //                 ),
-            //             ),
-            //         ),
-            //         'leading',
-            //         comment,
-            //     ),
-            // );
             return;
         }
         if (constr.typeVbls.length) {
@@ -766,78 +733,30 @@ export const fileToGlsl = (
                     ),
                     ...([] as Array<PP>).concat(
                         ...subTypes.map((id) =>
-                            env.global.types[idName(id)].items.map(
-                                (item: Type, i: number) =>
-                                    pp.items([
-                                        typeToGlsl(
+                            env.global.types[
+                                idName(id)
+                            ].items.map((item: Type, i: number) =>
+                                pp.items([
+                                    typeToGlsl(
+                                        env,
+                                        opts,
+                                        typeFromTermType(env, irOpts, item),
+                                    ),
+                                    atom(' '),
+                                    atom(
+                                        recordAttributeName(
                                             env,
-                                            opts,
-                                            typeFromTermType(env, irOpts, item),
+                                            { type: 'user', id },
+                                            i,
                                         ),
-                                        atom(' '),
-                                        atom(
-                                            recordAttributeName(
-                                                env,
-                                                { type: 'user', id },
-                                                i,
-                                            ),
-                                        ),
-                                    ]),
-                                // recordMemberSignature(
-                                //     env,
-                                //     opts,
-                                //     id,
-                                //     i,
-                                //     typeFromTermType(env, opts, item),
-                                // ),
+                                    ),
+                                ]),
                             ),
                         ),
                     ),
                 ]),
                 atom(';'),
             ]),
-            // t.tsTypeAliasDeclaration(
-            //     t.identifier(typeIdToString(id)),
-            //     constr.typeVbls.length
-            //         ? typeVblsToParameters(env, opts, constr.typeVbls)
-            //         : null,
-            //     t.tsTypeLiteral([
-            //         t.tsPropertySignature(
-            //             t.identifier('type'),
-            //             t.tsTypeAnnotation(
-            //                 t.tsLiteralType(
-            //                     t.stringLiteral(
-            //                         recordIdName(env, { type: 'user', id }),
-            //                     ),
-            //                 ),
-            //             ),
-            //         ),
-            //         ...constr.items.map((item, i) =>
-            //             recordMemberSignature(
-            //                 env,
-            //                 opts,
-            //                 id,
-            //                 i,
-            //                 typeFromTermType(env, opts, item),
-            //             ),
-            //         ),
-            //         ...([] as Array<t.TSPropertySignature>).concat(
-            //             ...subTypes.map((id) =>
-            //                 env.global.types[
-            //                     idName(id)
-            //                 ].items.map((item: Type, i: number) =>
-            //                     recordMemberSignature(
-            //                         env,
-            //                         opts,
-            //                         id,
-            //                         i,
-            //                         typeFromTermType(env, opts, item),
-            //                     ),
-            //                 ),
-            //             ),
-            //         ),
-            //     ]),
-            // ),
         );
     });
 
@@ -882,7 +801,88 @@ export const fileToGlsl = (
         ]),
     );
 
+    // What kinds of things do we want on here?
+    // - @inline stuff, got to inline it
+    // - things that take a lambda, might have to inline it or specialize it
+    // - hmm how do I distinquish. Maybe "have a list of things to always inline,
+    //   and then some things that you might want to inline, if the lambda uses in-scope variables?"
     const irTerms: { [idName: string]: Expr } = {};
+    const irEnv: {
+        inline: {
+            [idName: string]: {
+                expr: Expr;
+                // in the one case, you always inline
+                // in the other case, you only inline
+                mode: 'always' | 'closure';
+            };
+        };
+        // These are specializations of a function
+        specialized: {};
+    } = { inline: {}, specialized: {} };
+
+    // So I'm again wondering if there's a way, at the type level,
+    // to express whether a term will be valid GLSL.
+    // And I'm thinking about Koka's effects, where one of them is
+    // "Diverges" (e.g. might not halt)
+    // BUT some of this stuff doesn't come into play until IR-generation
+    // time.
+    // Although I guess I could verify it when typing stuff
+    // I would just have to nail down IR options.
+    // Anyway
+    // Yeah, so I could have a pseudo-effect called "uses heap"
+    // for things that require a dynamic array (as opposed to a fixed one)
+    // or call a function that allocates
+    // hmm, like what would be allocated?
+    // ok, so Roc only allocates for things that don't have a fixed size
+    // e.g. Lists, Dicts, recursive data types, and Str
+    // Yeah, so I could have a `alloc` trait? Or something
+    // What was the other pseudo-effect I wanted? "ffi"? though
+    // I think I'm going to ditch that... we'll see.
+    // Ok, so `unbounded` and `allocates` are the two pseudo-traits
+    // that I would need to guard against?
+    // Oh also `recursive`? Yeah I guess so.
+    //
+    // Looking at koka's non-handlable effects
+    // - alloc (hey cool) hmmm but it's for mutable allocations, not "any" allocations.
+    // - div (unbounded)
+
+    // Ok folks, might need some more syntax. Which is annoying.
+    // Or it could be the same syntax as effects, but they're just
+    // handled different? Sounds reasonable.
+    // Ok, so {:bounded, :noalloc, :norecursion} would be what you
+    // need to ensure that it's valid for glsl.
+    // Right?
+    // And so using strings is `alloc` already, right?
+    //
+    // Hm so also, I want record types to keep track if they contain
+    // functions ... that would be have those pseudo-effects ...
+    // right? I mean it'd be inconvenient to have to drill down all the time
+    // although maybe I can just cache it? yeah maybe that's fine?
+    // because it's only terms that can be roots for a glsl gen job.
+    //
+    // - bounded
+    // - norecursion
+    // - noalloc
+    // - noclosures
+    // - nofnpointesr
+    // - noenums
+    //
+    // hrm that's a lot
+    // well let's just take it one step at a time.
+    // We can wait to statically guarentee all that stuff until later.
+    // For now, let's work on having a nice experience
+    // for generating these dealios.
+
+    // Ok, so things to do here:
+    /*
+    - [ ] only generate type definitions for things that get used
+    - [ ] go back through and prune things that didn't end up getting used
+    - [ ] break out top-level records into their individual members
+    - [ ] uhhhh is this where I do module naming?
+        oh wait, I just need to allow multiple things with the same
+        name, and also indicate when editing something that the new
+        version replaces the old one.
+    */
 
     orderedTerms.forEach((idRaw) => {
         // Don't output anything that I'm overriding with builtins
@@ -911,7 +911,14 @@ export const fileToGlsl = (
         irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         irTerm = optimizeDefine(senv, irTerm, id);
         uniquesReallyAreUnique(irTerm);
-        irTerms[idRaw] = irTerm;
+
+        if (
+            env.global.metaData[idRaw] &&
+            env.global.metaData[idRaw].tags.includes('inline')
+        ) {
+            irTerms[idRaw] = irTerm;
+        }
+
         items.push(
             declarationToGlsl(
                 senv,

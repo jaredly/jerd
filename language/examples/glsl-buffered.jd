@@ -41,20 +41,6 @@ const writeBuffer = (
     }
 }
 
-const live = Vec4{x: 1.0, y: 0.6, z: 1.0, w: 1.0}
-const dead = Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
-
-const isLive = (color: Vec4) => color.x > 0.5
-
-const neighbor = (offset: Vec2, coord: Vec2, res: Vec2, buffer: sampler2D) => {
-    const coord = coord + offset;
-    if isLive(texture(buffer, coord / res)) {
-        1
-    } else {
-        0
-    }
-}
-
 // const neighbors: FixedArray<Vec2, 8> = [
 //     Vec2{x: -1.0, y:  0.0}
 //     Vec2{x: -1.0, y:  1.0}
@@ -65,6 +51,24 @@ const neighbor = (offset: Vec2, coord: Vec2, res: Vec2, buffer: sampler2D) => {
 //     Vec2{x:  0.0, y:  1.0}
 //     Vec2{x:  0.0, y: -1.0}
 // ]
+
+// const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
+//     // Ok, so reduce can be inlined
+//     // the lambda cannot
+//     // I need a much more robust system of inlining
+//     // That can handle literally anythign in the IR.
+//     // So that I can be confident.
+//     // reduce(neighbors, 0, (total, offset) => total + neighbor(offset, coord, res, buffer))
+
+//     neighbor(Vec2{x: -1.0, y:  0.0}, coord, res, buffer) +
+//     neighbor(Vec2{x: -1.0, y:  1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x: -1.0, y: -1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  1.0, y:  0.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  1.0, y:  1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  1.0, y: -1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  0.0, y:  1.0}, coord, res, buffer) +
+//     neighbor(Vec2{x:  0.0, y: -1.0}, coord, res, buffer)
+// }
 
 // Or maybe it's just that, at the IR level,
 // arrays might have known or unknown length.
@@ -77,50 +81,6 @@ const neighbor = (offset: Vec2, coord: Vec2, res: Vec2, buffer: sampler2D) => {
 // How are fixed arrays typed?
 // Maybe they're mostly not?
 // const reduce = <T, R>(value: FixedArray<T>, initial: R, fn: (T, R) => R) => { }
-
-const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
-    // Ok, so reduce can be inlined
-    // the lambda cannot
-    // I need a much more robust system of inlining
-    // That can handle literally anythign in the IR.
-    // So that I can be confident.
-    // reduce(neighbors, 0, (total, offset) => total + neighbor(offset, coord, res, buffer))
-
-    neighbor(Vec2{x: -1.0, y:  0.0}, coord, res, buffer) +
-    neighbor(Vec2{x: -1.0, y:  1.0}, coord, res, buffer) +
-    neighbor(Vec2{x: -1.0, y: -1.0}, coord, res, buffer) +
-    neighbor(Vec2{x:  1.0, y:  0.0}, coord, res, buffer) +
-    neighbor(Vec2{x:  1.0, y:  1.0}, coord, res, buffer) +
-    neighbor(Vec2{x:  1.0, y: -1.0}, coord, res, buffer) +
-    neighbor(Vec2{x:  0.0, y:  1.0}, coord, res, buffer) +
-    neighbor(Vec2{x:  0.0, y: -1.0}, coord, res, buffer)
-}
-
-@ffi
-@buffer0
-const gameOfLife = (
-    env: GLSLEnv,
-    fragCoord: Vec2,
-    buffer: sampler2D,
-) => {
-    if env.time < 0.01 {
-        if random(fragCoord / env.resolution) > 0.95 {
-            live
-        } else {
-            dead
-        }
-    } else {
-        const self = isLive(texture(buffer, fragCoord / env.resolution));
-        const neighbors = countNeighbors(fragCoord, env.resolution, buffer);
-        if self && neighbors == 2 {
-            live
-        } else if neighbors == 3 {
-            live
-        } else {
-            dead
-        }
-    }
-}
 
 // What do we want to do here?
 // hmmm I would also like argument-level destructuring
@@ -199,6 +159,92 @@ I guess.
 //     }
 // })
 
+// ---- MACRO MUSINGS ----- I'd need to generate all the ffi types corresponding to the typescript types
+// Which I think should be doable?
+// This is only evaluated in the javascript macro context
+// const reduceInner = (join: Term, is: Type, base: Term, items: Array<Term>) => {
+//     switch items {
+//         [] => base,
+//         // sooooo I'm really digging go's thing where you
+//         // are allowed to only specify a subset of the values
+//         // of a record, and the others are filled in with their
+//         // "zero" value.
+//         [one, ...rest] => Term::Apply{
+//             location: join.location,
+//             target: join,
+//             typeVbls: [],
+//             effectVbls: [],
+//             args: [one, reduceInner(join, l, base, rest)],
+//             is,
+//         }
+//     }
+// }
+
+// @macro
+// const reduce = (args: Array<Term>): Result<Term, string> ={}> {
+//     // return a single Term
+//     switch args {
+//         [] => Error{_: "Reduce macro called without arguments"},
+//         [join, base, ...rest] => {
+//             // if .is is a member of a supertype of all of the entries
+//             // in the enum, then it's allowed
+//             switch join.is {
+//                 Lambda{} as l => reduceInner(join, l.res, base, rest),
+//                 _ => Error{_: "Reduce macro called with a non-function as first argument"}
+//             }
+//         }
+//     }
+// }
+
+const live = Vec4{x: 1.0, y: 0.6, z: 1.0, w: 1.0}
+const dead = Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+
+const isLive = (color: Vec4) => color.x > 0.5
+
+const neighbor = (offset: Vec2, coord: Vec2, res: Vec2, buffer: sampler2D) => {
+    const coord = coord + offset;
+    if isLive(texture(buffer, coord / res)) {
+        1
+    } else {
+        0
+    }
+}
+
+const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
+    neighbor(Vec2{x: -1.0, y:  0.0}, coord, res, buffer) +
+    neighbor(Vec2{x: -1.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x: -1.0, y: -1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y:  0.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  1.0, y: -1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  0.0, y:  1.0}, coord, res, buffer) +
+    neighbor(Vec2{x:  0.0, y: -1.0}, coord, res, buffer)
+}
+
+@ffi
+@buffer0
+const gameOfLife = (
+    env: GLSLEnv,
+    fragCoord: Vec2,
+    buffer: sampler2D,
+) => {
+    if env.time < 0.01 {
+        if random(fragCoord / env.resolution) > 0.95 {
+            live
+        } else {
+            dead
+        }
+    } else {
+        const self = isLive(texture(buffer, fragCoord / env.resolution));
+        const neighbors = countNeighbors(fragCoord, env.resolution, buffer);
+        if (self && neighbors == 2) || neighbors == 3 {
+            live
+        } else {
+            dead
+        }
+    }
+}
+
 @ffi
 @main
 const main = (
@@ -207,9 +253,9 @@ const main = (
     buffer0: sampler2D,
 ) => {
     const diff = env.mouse - fragCoord;
+    // Magnifying glass!
     if length2(diff) < 250.0 {
         const newCoord = env.mouse - diff / 4.0;
-        // vec4(0.0,0.0,0.0,0.0)
         texture(buffer0, newCoord / env.resolution)
     } else {
         texture(buffer0, fragCoord / env.resolution)
