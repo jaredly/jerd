@@ -1,0 +1,31 @@
+@ffi
+@buffer0
+const pendulum = (
+    iTime: float,
+    fragCoord: Vec2,
+    iResolution: Vec2,
+    uCamera: Vec3,
+    // last buffer
+    buffer: sampler2D,
+) => {
+    if iTime < 0.1 {
+        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+    } else {
+        const current = texture(buffer, fragCoord / iResolution);
+        Vec4{...current, x: current.x + 0.00001}
+    }
+    // We want a single pixel
+}
+
+@ffi
+@main
+const main = (
+    iTime: float,
+    fragCoord: Vec2,
+    iResolution: Vec2,
+    uCamera: Vec3,
+    buffer: sampler2D,
+) => {
+    texture(buffer, fragCoord / iResolution);
+    // Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
+}
