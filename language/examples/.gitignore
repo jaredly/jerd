@@ -1,4 +1,2 @@
-*.ts
-./*.js
-!*.test.ts
-build
+*.map
+*.mjs
