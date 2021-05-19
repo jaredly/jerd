@@ -93,6 +93,7 @@ export type Self =
           name: string;
           ann: Type;
       }
+      | {type: 'Effect', name: string, vbls: Array<number>}
     | {
           type: 'Type';
           name: string;
