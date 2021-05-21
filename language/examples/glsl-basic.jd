@@ -1,0 +1,38 @@
+
+type Circle = {
+    pos: Vec2,
+    r: float
+}
+
+type Min<T> = {
+    "--": (T, T) => T,
+}
+const Min: Min<float> = Min<float>{ "--": min }
+
+// const AddCircle: AddSub<Circle> = {
+//     "+": (one: Circle, Two)
+// }
+
+const circleSDF = (p: Vec2, circle: Circle) => {
+    length2(p - circle.pos) - circle.r
+}
+
+@ffi
+@main
+const hello = (env: GLSLEnv, fragCoord: Vec2) => {
+    const circle = Circle{pos: env.mouse, r: 40.0 + cos(env.time * 4.0) * 20.0};
+    if circleSDF(fragCoord, circle) -- circleSDF(
+        fragCoord, Circle{pos: env.mouse + Vec2{x: 10.0, y: 20.0}, r: 30.0}
+    ) < 0.0 {
+        Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
+    } else {
+        Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0}
+    }
+    // const scale = 14.0;
+    // const small = roundv2(fragCoord / scale) * scale;
+    // const small = Vec2{x: small.x, y: small.y + env.time};
+    // // const v = random(small / iResolution) / 10.0 + 0.9;
+    // const v = random(small / env.resolution) / 10.0 + 0.9;
+    // const two = Vec4{...red * v, w: 1.0} + fishingBoueys(env.time, fragCoord, env.resolution);
+    // two / 2.0
+}

@@ -3,87 +3,6 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-type As#As<T#:10000, T#:10001> = {
-    as: (T#:10000) ={}> Y#:10001,
-}
-```
-*/
-type t_As<T_10000, T_10001> = {
-  type: "As";
-  hAs_0: (arg_0: T_10000) => T_10001;
-};
-
-/**
-```
-type None#None = {}
-```
-*/
-type t_None = {
-  type: "None";
-};
-
-/**
-```
-type Some#Some<T#:10000> = {
-    contents: T#:10000,
-}
-```
-*/
-type t_Some<T_10000> = {
-  type: "Some";
-  hSome_0: T_10000;
-};
-
-/**
-```
-type ToStr#b416ead2<T#:0> = {
-    str: (T#:0) ={}> string,
-}
-```
-*/
-type t_b416ead2<T_0> = {
-  type: "b416ead2";
-  hb416ead2_0: (arg_0: T_0) => string;
-};
-
-/**
-```
-type ToFloat#c13d2c8a<T#:0> = {
-    float: (T#:0) ={}> float,
-}
-```
-*/
-type t_c13d2c8a<T_0> = {
-  type: "c13d2c8a";
-  hc13d2c8a_0: (arg_0: T_0) => number;
-};
-
-/**
-```
-type ToInt#c5d60378<T#:0> = {
-    int: (T#:0) ={}> int,
-}
-```
-*/
-type t_c5d60378<T_0> = {
-  type: "c5d60378";
-  hc5d60378_0: (arg_0: T_0) => number;
-};
-
-/**
-```
-type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
-}
-```
-*/
-type t_553b4b8e<T_0> = {
-  type: "553b4b8e";
-  h553b4b8e_0: (arg_0: T_0, arg_1: T_0) => boolean;
-};
-
-/**
-```
 @ffi type Vec2#43802a16 = {
     x: float,
     y: float,
@@ -129,20 +48,14 @@ type t_3b941378 = {
 
 /**
 ```
-@ffi type Mat4#d92781e8 = {
-    r1: Vec4#3b941378,
-    r2: Vec4#3b941378,
-    r3: Vec4#3b941378,
-    r4: Vec4#3b941378,
+type Mul#1de4e4c0<T#:0, T#:1, T#:2> = {
+    "*": (A#:0, B#:1) ={}> C#:2,
 }
 ```
 */
-type t_d92781e8 = {
-  type: "Mat4";
-  r1: t_3b941378;
-  r2: t_3b941378;
-  r3: t_3b941378;
-  r4: t_3b941378;
+type t_1de4e4c0<T_0, T_1, T_2> = {
+  type: "1de4e4c0";
+  h1de4e4c0_0: (arg_0: T_0, arg_1: T_1) => T_2;
 };
 
 /**
@@ -157,18 +70,6 @@ type t_b99b22d8<T_0, T_1, T_2> = {
   type: "b99b22d8";
   hb99b22d8_0: (arg_0: T_0, arg_1: T_1) => T_2;
   hb99b22d8_1: (arg_0: T_0, arg_1: T_1) => T_2;
-};
-
-/**
-```
-type Mul#1de4e4c0<T#:0, T#:1, T#:2> = {
-    "*": (A#:0, B#:1) ={}> C#:2,
-}
-```
-*/
-type t_1de4e4c0<T_0, T_1, T_2> = {
-  type: "1de4e4c0";
-  h1de4e4c0_0: (arg_0: T_0, arg_1: T_1) => T_2;
 };
 
 /**
@@ -192,7 +93,7 @@ const length#1cc335a2: (Vec3#9f1c0644) ={}> float = (v#:0: Vec3#9f1c0644) ={}> {
 }
 ```
 */
-export const hash_1cc335a2: (arg_0: t_9f1c0644) => number = (v$0: t_9f1c0644) => sqrt(v$0.x * v$0.x + v$0.y * v$0.y + v$0.z * v$0.z);
+export const hash_1cc335a2: (arg_0: t_9f1c0644) => number = (v: t_9f1c0644) => sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 
 /**
 ```
@@ -211,11 +112,11 @@ const ScaleVec3Rev#68f73ad4: Div#5ac12902<Vec3#9f1c0644, float, Vec3#9f1c0644> =
 */
 export const hash_68f73ad4: t_5ac12902<t_9f1c0644, number, t_9f1c0644> = ({
   type: "5ac12902",
-  h5ac12902_0: (v$0: t_9f1c0644, scale$1: number) => ({
+  h5ac12902_0: (v: t_9f1c0644, scale: number) => ({
     type: "Vec3",
-    x: v$0.x / scale$1,
-    y: v$0.y / scale$1,
-    z: v$0.z / scale$1
+    x: v.x / scale,
+    y: v.y / scale,
+    z: v.z / scale
   } as t_9f1c0644)
 } as t_5ac12902<t_9f1c0644, number, t_9f1c0644>);
 
@@ -227,9 +128,9 @@ const vec3#5808ec54: (Vec2#43802a16, float) ={}> Vec3#9f1c0644 = (v#:0: Vec2#438
 }
 ```
 */
-export const hash_5808ec54: (arg_0: t_43802a16, arg_1: number) => t_9f1c0644 = (v$0: t_43802a16, z$1: number) => ({ ...v$0,
+export const hash_5808ec54: (arg_0: t_43802a16, arg_1: number) => t_9f1c0644 = (v: t_43802a16, z: number) => ({ ...v,
   type: "Vec3",
-  z: z$1
+  z: z
 } as t_9f1c0644);
 
 /**
@@ -240,14 +141,14 @@ const normalize#ce463a80: (Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (v#:0: Vec3#9f1c0
 )
 ```
 */
-export const hash_ce463a80: (arg_0: t_9f1c0644) => t_9f1c0644 = (v$0: t_9f1c0644) => hash_68f73ad4.h5ac12902_0(v$0, hash_1cc335a2(v$0));
+export const hash_ce463a80: (arg_0: t_9f1c0644) => t_9f1c0644 = (v: t_9f1c0644) => hash_68f73ad4.h5ac12902_0(v, hash_1cc335a2(v));
 
 /**
 ```
 const radians#dabe7f9c: (float) ={}> float = (degrees#:0: float) ={}> ((degrees#:0 / 180.0) * PI)
 ```
 */
-export const hash_dabe7f9c: (arg_0: number) => number = (degrees$0: number) => degrees$0 / 180 * PI;
+export const hash_dabe7f9c: (arg_0: number) => number = (degrees: number) => degrees / 180 * PI;
 
 /**
 ```
@@ -265,10 +166,10 @@ const ScaleVec2Rev#afc24bbe: Div#5ac12902<Vec2#43802a16, float, Vec2#43802a16> =
 */
 export const hash_afc24bbe: t_5ac12902<t_43802a16, number, t_43802a16> = ({
   type: "5ac12902",
-  h5ac12902_0: (v$0: t_43802a16, scale$1: number) => ({
+  h5ac12902_0: (v: t_43802a16, scale: number) => ({
     type: "Vec2",
-    x: v$0.x / scale$1,
-    y: v$0.y / scale$1
+    x: v.x / scale,
+    y: v.y / scale
   } as t_43802a16)
 } as t_5ac12902<t_43802a16, number, t_43802a16>);
 
@@ -292,10 +193,10 @@ const AddSubVec2#70bb2056: AddSub#b99b22d8<Vec2#43802a16, Vec2#43802a16, Vec2#43
 */
 export const hash_70bb2056: t_b99b22d8<t_43802a16, t_43802a16, t_43802a16> = ({
   type: "b99b22d8",
-  hb99b22d8_0: (one$0: t_43802a16, two$1: t_43802a16) => ({
+  hb99b22d8_0: (one: t_43802a16, two: t_43802a16) => ({
     type: "Vec2",
-    x: one$0.x + two$1.x,
-    y: one$0.y + two$1.y
+    x: one.x + two.x,
+    y: one.y + two.y
   } as t_43802a16),
   hb99b22d8_1: (one$2: t_43802a16, two$3: t_43802a16) => ({
     type: "Vec2",
@@ -358,11 +259,11 @@ const AddSubVec3#1c6fdd91: AddSub#b99b22d8<Vec3#9f1c0644, Vec3#9f1c0644, Vec3#9f
 */
 export const hash_1c6fdd91: t_b99b22d8<t_9f1c0644, t_9f1c0644, t_9f1c0644> = ({
   type: "b99b22d8",
-  hb99b22d8_0: (one$0: t_9f1c0644, two$1: t_9f1c0644) => ({
+  hb99b22d8_0: (one: t_9f1c0644, two: t_9f1c0644) => ({
     type: "Vec3",
-    x: one$0.x + two$1.x,
-    y: one$0.y + two$1.y,
-    z: one$0.z + two$1.z
+    x: one.x + two.x,
+    y: one.y + two.y,
+    z: one.z + two.z
   } as t_9f1c0644),
   hb99b22d8_1: (one$2: t_9f1c0644, two$3: t_9f1c0644) => ({
     type: "Vec3",
@@ -398,7 +299,7 @@ const sceneSDF#6009ff98: (float, Vec3#9f1c0644) ={}> float = (
 }
 ```
 */
-export const hash_6009ff98: (arg_0: number, arg_1: t_9f1c0644) => number = (iTime$0: number, samplePoint$1: t_9f1c0644) => hash_1cc335a2(samplePoint$1) - 0.5;
+export const hash_6009ff98: (arg_0: number, arg_1: t_9f1c0644) => number = (iTime: number, samplePoint: t_9f1c0644) => hash_1cc335a2(samplePoint) - 0.5;
 
 /**
 ```
@@ -416,7 +317,7 @@ const rayDirection#fb220c84: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec3#9f1
 }
 ```
 */
-export const hash_fb220c84: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16) => t_9f1c0644 = (fieldOfView$0: number, size$1: t_43802a16, fragCoord$2: t_43802a16) => hash_ce463a80(hash_5808ec54(hash_70bb2056.hb99b22d8_1(fragCoord$2, hash_afc24bbe.h5ac12902_0(size$1, 2)), -(size$1.y / tan(hash_dabe7f9c(fieldOfView$0) / 2))));
+export const hash_fb220c84: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16) => t_9f1c0644 = (fieldOfView: number, size: t_43802a16, fragCoord: t_43802a16) => hash_ce463a80(hash_5808ec54(hash_70bb2056.hb99b22d8_1(fragCoord, hash_afc24bbe.h5ac12902_0(size, 2)), -(size.y / tan(hash_dabe7f9c(fieldOfView) / 2))));
 
 /**
 ```
@@ -476,28 +377,28 @@ const shortestDistanceToSurface#56314282: (
 }
 ```
 */
-export const hash_56314282: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number, arg_1: number, arg_2: t_9f1c0644, arg_3: t_9f1c0644, arg_4: number, arg_5: number, arg_6: number) => number = (sceneSDF$0: (arg_0: number, arg_1: t_9f1c0644) => number, iTime$1: number, eye$2: t_9f1c0644, marchingDirection$3: t_9f1c0644, start$4: number, end$5: number, stepsLeft$6: number) => {
+export const hash_56314282: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number, arg_1: number, arg_2: t_9f1c0644, arg_3: t_9f1c0644, arg_4: number, arg_5: number, arg_6: number) => number = (sceneSDF: (arg_0: number, arg_1: t_9f1c0644) => number, iTime$1: number, eye: t_9f1c0644, marchingDirection: t_9f1c0644, start: number, end: number, stepsLeft: number) => {
   while (true) {
-    if (stepsLeft$6 <= 0) {
-      return end$5;
+    if (stepsLeft <= 0) {
+      return end;
     } else {
-      let dist$7: number = sceneSDF$0(iTime$1, hash_1c6fdd91.hb99b22d8_0(eye$2, hash_c4a91006.h1de4e4c0_0(start$4, marchingDirection$3)));
+      let dist: number = sceneSDF(iTime$1, hash_1c6fdd91.hb99b22d8_0(eye, hash_c4a91006.h1de4e4c0_0(start, marchingDirection)));
 
-      if (dist$7 < hash_ec7f8d1c) {
-        return start$4;
+      if (dist < hash_ec7f8d1c) {
+        return start;
       } else {
-        let depth$8: number = start$4 + dist$7;
+        let depth: number = start + dist;
 
-        if (depth$8 >= end$5) {
-          return end$5;
+        if (depth >= end) {
+          return end;
         } else {
-          sceneSDF$0 = sceneSDF$0;
+          sceneSDF = sceneSDF;
           iTime$1 = iTime$1;
-          eye$2 = eye$2;
-          marchingDirection$3 = marchingDirection$3;
-          start$4 = depth$8;
-          end$5 = end$5;
-          stepsLeft$6 = stepsLeft$6 - 1;
+          eye = eye;
+          marchingDirection = marchingDirection;
+          start = depth;
+          end = end;
+          stepsLeft = stepsLeft - 1;
           continue;
         }
       }
@@ -531,13 +432,13 @@ const fishingBoueys#f60e38b0: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec4#3b
 }
 ```
 */
-export const hash_f60e38b0: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16) => t_3b941378 = (iTime$0: number, fragCoord$1: t_43802a16, iResolution$2: t_43802a16) => {
-  if (hash_56314282(hash_6009ff98, iTime$0, ({
+export const hash_f60e38b0: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16) => t_3b941378 = (iTime: number, fragCoord$1: t_43802a16, iResolution: t_43802a16) => {
+  if (hash_56314282(hash_6009ff98, iTime, ({
     type: "Vec3",
     x: 0,
     y: 0,
     z: 5
-  } as t_9f1c0644), hash_fb220c84(45, iResolution$2, fragCoord$1), hash_f2cd39b8, hash_0ce717e6, hash_62404440) > hash_0ce717e6 - hash_ec7f8d1c) {
+  } as t_9f1c0644), hash_fb220c84(45, iResolution, fragCoord$1), hash_f2cd39b8, hash_0ce717e6, hash_62404440) > hash_0ce717e6 - hash_ec7f8d1c) {
     return ({
       type: "Vec4",
       z: 0,

@@ -1,7 +1,11 @@
 // Ok
 
 // import * as t from '@babel/types';
-import { expressionDeps, sortTerms } from '../typing/analyze';
+import {
+    expressionDeps,
+    expressionTypeDeps,
+    sortTerms,
+} from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
 // import { bool } from '../typing/preset';
 import {
@@ -692,14 +696,78 @@ export const fileToGlsl = (
         }
     }
 
-    Object.keys(env.global.types).forEach((r) => {
+    const mains = Object.keys(env.global.metaData).filter((k) =>
+        env.global.metaData[k].tags.includes('main'),
+    );
+    if (mains.length > 1) {
+        console.warn(`Only one main allowed; ignoring the others`);
+    }
+    if (!mains.length) {
+        console.error(`No @main defined!`);
+        return '// Error: No @main defined';
+    }
+    const mainId = idFromName(mains[0]);
+    const mainTags = env.global.metaData[mains[0]].tags;
+    const mainTerm: Term = {
+        type: 'ref',
+        ref: {
+            type: 'user',
+            id: mainId,
+        },
+        location: nullLocation,
+        is: env.global.terms[idName(mainId)].is,
+    };
+
+    const orderedTerms = expressionDeps(
+        env,
+        expressions.concat([
+            mainTerm,
+            ...buffers.map(
+                (id) =>
+                    ({
+                        type: 'ref',
+                        ref: {
+                            type: 'user',
+                            id: idFromName(id),
+                        },
+                        location: nullLocation,
+                        is: env.global.terms[id].is,
+                    } as Term),
+            ),
+        ]),
+    );
+
+    const allTypes = expressionTypeDeps(
+        env,
+        orderedTerms.map((t) => env.global.terms[t]),
+    );
+
+    const usedTypes = {};
+
+    allTypes.forEach((r) => {
         const constr = env.global.types[r];
         const id = idFromName(r);
         if (constr.type === 'Enum') {
+            items.push(
+                atom(
+                    `// skipping ${printToString(
+                        idToGlsl(env, opts, id, true),
+                        100,
+                    )}, enums not supported`,
+                ),
+            );
             return;
         }
         if (constr.typeVbls.length) {
             // No type vbls allowed sorry
+            items.push(
+                atom(
+                    `// skipping ${printToString(
+                        idToGlsl(env, opts, id, true),
+                        100,
+                    )}, contains type variables`,
+                ),
+            );
             return;
         }
         if (!constr.items.length) {
@@ -760,65 +828,36 @@ export const fileToGlsl = (
         );
     });
 
-    const mains = Object.keys(env.global.metaData).filter((k) =>
-        env.global.metaData[k].tags.includes('main'),
-    );
-    if (mains.length > 1) {
-        console.warn(`Only one main allowed; ignoring the others`);
-    }
-    if (!mains.length) {
-        console.error(`No @main defined!`);
-        return '// Error: No @main defined';
-    }
-    const mainId = idFromName(mains[0]);
-    const mainTags = env.global.metaData[mains[0]].tags;
-    const mainTerm: Term = {
-        type: 'ref',
-        ref: {
-            type: 'user',
-            id: mainId,
-        },
-        location: nullLocation,
-        is: env.global.terms[idName(mainId)].is,
-    };
-
-    const orderedTerms = expressionDeps(
-        env,
-        expressions.concat([
-            mainTerm,
-            ...buffers.map(
-                (id) =>
-                    ({
-                        type: 'ref',
-                        ref: {
-                            type: 'user',
-                            id: idFromName(id),
-                        },
-                        location: nullLocation,
-                        is: env.global.terms[id].is,
-                    } as Term),
-            ),
-        ]),
-    );
-
     // What kinds of things do we want on here?
     // - @inline stuff, got to inline it
     // - things that take a lambda, might have to inline it or specialize it
     // - hmm how do I distinquish. Maybe "have a list of things to always inline,
     //   and then some things that you might want to inline, if the lambda uses in-scope variables?"
     const irTerms: { [idName: string]: Expr } = {};
-    const irEnv: {
-        inline: {
-            [idName: string]: {
-                expr: Expr;
-                // in the one case, you always inline
-                // in the other case, you only inline
-                mode: 'always' | 'closure';
-            };
+    // const irEnv: {
+    //     inline: {
+    //         [idName: string]: {
+    //             expr: Expr;
+    //             // in the one case, you always inline
+    //             // in the other case, you only inline
+    //             mode: 'always' | 'closure';
+    //         };
+    //     };
+    //     // These are specializations of a function
+    //     specialized: {};
+    // } = { inline: {}, specialized: {} };
+    let irEnv: {
+        terms: {
+            // sooo we have ""
+            [idName: string]: Expr;
         };
-        // These are specializations of a function
-        specialized: {};
-    } = { inline: {}, specialized: {} };
+        // for constant records
+        // maybe we don't need to track this separately?
+        // We just know that records can be inlined...
+        // records: {
+        //     [idName: string]: Array<Expr>,
+        // }
+    };
 
     // So I'm again wondering if there's a way, at the type level,
     // to express whether a term will be valid GLSL.
@@ -843,7 +882,7 @@ export const fileToGlsl = (
     // Oh also `recursive`? Yeah I guess so.
     //
     // Looking at koka's non-handlable effects
-    // - alloc (hey cool) hmmm but it's for mutable allocations, not "any" allocations.
+    // - alloc (hey cool) hmmm but I think it's for mutable allocations, not "any" allocations.
     // - div (unbounded)
 
     // Ok folks, might need some more syntax. Which is annoying.
@@ -872,6 +911,10 @@ export const fileToGlsl = (
     // We can wait to statically guarentee all that stuff until later.
     // For now, let's work on having a nice experience
     // for generating these dealios.
+    //
+    // I mean I guess I could just have one pseudo-thing that's like
+    // glsl-compatible? kinda like nostd or something idk
+    // Are there other targets that will have similar constraints?
 
     // Ok, so things to do here:
     /*

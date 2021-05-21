@@ -1,8 +1,10 @@
 import { idFromName, idName, refName } from './env';
 import { applyTypeVariablesToRecord, getEnumReferences } from './typeExpr';
 import {
+    EnumDef,
     Env,
     Id,
+    RecordDef,
     Reference,
     Term,
     Type,
@@ -54,6 +56,16 @@ export const allLiteral = (env: Env, type: Type): boolean => {
     }
 };
 
+export const getTypeDependencies = (term: Term): Array<Reference> => {
+    const deps: { [key: string]: Reference } = {};
+    walkTerm(term, (term) => {
+        if (term.is.type === 'ref') {
+            deps[refName(term.is.ref)] = term.is.ref;
+        }
+    });
+    return Object.keys(deps).map((k) => deps[k]);
+};
+
 export const getDependencies = (term: Term): Array<Reference> => {
     const deps: { [key: string]: Reference } = {};
     walkTerm(term, (term) => {
@@ -66,6 +78,12 @@ export const getDependencies = (term: Term): Array<Reference> => {
 
 export const getUserDependencies = (term: Term): Array<Id> => {
     return (getDependencies(term).filter(
+        (r) => r.type === 'user',
+    ) as Array<UserReference>).map((r) => r.id);
+};
+
+export const getUserTypeDependencies = (term: Term): Array<Id> => {
+    return (getTypeDependencies(term).filter(
         (r) => r.type === 'user',
     ) as Array<UserReference>).map((r) => r.id);
 };
@@ -86,6 +104,17 @@ export const expressionDeps = (env: Env, terms: Array<Term>) => {
     return sortAllDeps(allDeps);
 };
 
+export const expressionTypeDeps = (env: Env, terms: Array<Term>) => {
+    const allDeps: { [key: string]: Array<Id> } = {};
+    terms.forEach((term) =>
+        getUserTypeDependencies(term).forEach((id) =>
+            populateTypeDependencyMap(env, allDeps, id),
+        ),
+    );
+
+    return sortAllDeps(allDeps);
+};
+
 export const sortTerms = (env: Env, terms: Array<string>) => {
     const allDeps: { [key: string]: Array<Id> } = {};
     terms.forEach((id) =>
@@ -100,12 +129,58 @@ export const sortTerms = (env: Env, terms: Array<string>) => {
     return sortAllDeps(allDeps);
 };
 
-export const sortAllDeps = (allDeps: { [key: string]: Array<Id> }) => {
+export const sortAllDeps = (allDeps: {
+    [key: string]: Array<Id>;
+}): Array<string> => {
     const allIds: { [key: string]: Array<string> } = {};
     Object.keys(allDeps).forEach((k) => (allIds[k] = allDeps[k].map(idName)));
     const lastToFirst = topoSort(allIds);
     lastToFirst.reverse();
     return lastToFirst;
+};
+
+export const populateTypeDependencyMap = (
+    env: Env,
+    allDeps: { [key: string]: Array<Id> },
+    id: Id,
+) => {
+    let toCheck = [id];
+    while (toCheck.length) {
+        const next = toCheck.shift()!;
+        const k = idName(next);
+        if (allDeps[k] != null) {
+            continue;
+        }
+        const typeDef = env.global.types[k];
+        if (!typeDef) {
+            console.warn(`Type dependency not found ${k}`);
+            continue;
+        }
+        const tDeps: Array<Id> = [];
+        if (typeDef.type === 'Record') {
+            tDeps.push(...typeDef.extends);
+            typeDef.items.forEach((item) => {
+                if (item.type === 'ref' && item.ref.type === 'user') {
+                    tDeps.push(item.ref.id);
+                }
+            });
+        } else {
+            typeDef.extends.forEach((ref) => {
+                if (ref.ref.type === 'user') {
+                    tDeps.push(ref.ref.id);
+                }
+            });
+            typeDef.items.forEach((ref) => {
+                if (ref.ref.type === 'user') {
+                    tDeps.push(ref.ref.id);
+                }
+            });
+        }
+
+        allDeps[k] = tDeps;
+        toCheck.push(...allDeps[k].filter((id) => allDeps[idName(id)] == null));
+    }
+    return allDeps;
 };
 
 export const populateDependencyMap = (

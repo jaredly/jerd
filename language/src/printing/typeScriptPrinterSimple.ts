@@ -1,7 +1,11 @@
 // Ok
 
 import * as t from '@babel/types';
-import { expressionDeps, sortTerms } from '../typing/analyze';
+import {
+    expressionDeps,
+    expressionTypeDeps,
+    sortTerms,
+} from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
 import { binOps, bool } from '../typing/preset';
 import {
@@ -782,7 +786,27 @@ export const fileToTypescript = (
         );
     });
 
-    Object.keys(env.global.types).forEach((r) => {
+    const orderedTerms = expressionDeps(
+        env,
+        expressions.concat(
+            Object.keys(env.global.exportedTerms).map((name) => ({
+                type: 'ref',
+                ref: {
+                    type: 'user',
+                    id: env.global.exportedTerms[name],
+                },
+                location: nullLocation,
+                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
+            })),
+        ),
+    );
+
+    const allTypes = expressionTypeDeps(
+        env,
+        orderedTerms.map((t) => env.global.terms[t]),
+    );
+
+    allTypes.forEach((r) => {
         const constr = env.global.types[r];
         const id = idFromName(r);
         if (constr.type === 'Enum') {
@@ -871,21 +895,6 @@ export const fileToTypescript = (
             ),
         );
     });
-
-    const orderedTerms = expressionDeps(
-        env,
-        expressions.concat(
-            Object.keys(env.global.exportedTerms).map((name) => ({
-                type: 'ref',
-                ref: {
-                    type: 'user',
-                    id: env.global.exportedTerms[name],
-                },
-                location: nullLocation,
-                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
-            })),
-        ),
-    );
 
     // const irOpts = {
     // limitExecutionTime: opts.limitExecutionTime,

@@ -388,7 +388,7 @@ export const hash_347089ef: (arg_0: t_43802a16) => number = (st: t_43802a16) => 
 
 /**
 ```
-const main#099ef762: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
+const drawToScreen#099ef762: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
     buffer0#:2: sampler2D,
@@ -424,7 +424,7 @@ export const hash_099ef762: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sample
 
 /**
 ```
-const gameOfLife#5af2137f: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
+const drawToBuffer#5af2137f: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
     buffer#:2: sampler2D,
@@ -478,5 +478,5 @@ export const hash_5af2137f: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sample
     }
   }
 };
-export const gameOfLife = hash_5af2137f;
-export const main = hash_099ef762;
+export const drawToBuffer = hash_5af2137f;
+export const drawToScreen = hash_099ef762;
