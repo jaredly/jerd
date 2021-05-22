@@ -30,6 +30,8 @@ oooh so having a `min()` function that takes varargs and then does a reduce on t
 in glsl, varargs become a FixedArray...which I still need to figure out how to represent
 OH but then, if it then just ends up being `foreach i of values { res += i }`, then I can do loop unrolling! because values has a fixed length.
 
+... although the much simpler thing is to define a custom operator....
+
 
 Should I turn back on call args type-checking?
 I think I'll need to get done-lambda going? In order to do that?
@@ -45,6 +47,17 @@ but I'll need to keep track of comments in order to do that.
       Should I do whole-program-opt in the IR?
 - [x] make uniques actually truly unique
 - [x] ugh I need parenthesis for overriding op precedence.
+- [x] break out toplevel record items, so we can do resonable
+  custom operators, and have them get treated right
+- [ ] inline immediately applied functions, let's really get this done.
+- [ ] specialize functions that take a lambda, or inline them if the lambda has scope (need to be able to hash irTerms btw)
+- [ ] OK and then we also need MULTIPLE NAMES. So idNames needs to be a list. And let's extract all usages of idNames into env.ts.
+  - Then we can overload all the builtin functions to our heart's content, and maybe be ready to actually demo stuff?
+  - of course, we'll then need the ability to indicate that a given term "overrides" another term, and should take precedence in the 'idNames' list. ... although, maybe that's settled by just having newer things sorted after? ok but I do want a replaces thing. But will also need a 'createdDate' metadata, do want that.
+- [ ] AND THEN we can bring this wonderful GLSL goodness to our web editor bonanza.
+
+
+
 - [ ] full and correct inlining of functions. Every function should be inlineable, unless it is recursive. We will then only use inlining for:
   - eliminating lambdas
 
