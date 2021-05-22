@@ -25,6 +25,7 @@ import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import {
+    Exprs,
     optimize,
     optimizeAggressive,
     optimizeDefine,
@@ -68,6 +69,7 @@ import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
 import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
 import { explicitSpreads } from './ir/optimize/explicitSpreads';
+import { toplevelRecordAttribute } from './ir/optimize/inline';
 
 export type OutputOptions = {
     // readonly scope?: string;
@@ -742,8 +744,6 @@ export const fileToGlsl = (
         orderedTerms.map((t) => env.global.terms[t]),
     );
 
-    const usedTypes = {};
-
     allTypes.forEach((r) => {
         const constr = env.global.types[r];
         const id = idFromName(r);
@@ -833,7 +833,7 @@ export const fileToGlsl = (
     // - things that take a lambda, might have to inline it or specialize it
     // - hmm how do I distinquish. Maybe "have a list of things to always inline,
     //   and then some things that you might want to inline, if the lambda uses in-scope variables?"
-    const irTerms: { [idName: string]: Expr } = {};
+    const irTerms: Exprs = {};
     // const irEnv: {
     //     inline: {
     //         [idName: string]: {
@@ -846,18 +846,18 @@ export const fileToGlsl = (
     //     // These are specializations of a function
     //     specialized: {};
     // } = { inline: {}, specialized: {} };
-    let irEnv: {
-        terms: {
-            // sooo we have ""
-            [idName: string]: Expr;
-        };
-        // for constant records
-        // maybe we don't need to track this separately?
-        // We just know that records can be inlined...
-        // records: {
-        //     [idName: string]: Array<Expr>,
-        // }
-    };
+    // let irEnv: {
+    //     terms: {
+    //         // sooo we have ""
+    //         [idName: string]: Expr;
+    //     };
+    //     // for constant records
+    //     // maybe we don't need to track this separately?
+    //     // We just know that records can be inlined...
+    //     // records: {
+    //     //     [idName: string]: Array<Expr>,
+    //     // }
+    // };
 
     // So I'm again wondering if there's a way, at the type level,
     // to express whether a term will be valid GLSL.
@@ -927,16 +927,58 @@ export const fileToGlsl = (
         version replaces the old one.
     */
 
+    const printed: { [id: string]: PP } = {};
+
     orderedTerms.forEach((idRaw) => {
+        const id = idFromName(idRaw);
+        let term = env.global.terms[idRaw];
+        const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
+
+        const maybeAddRecordInlines = (irTerm: ir.Expr) => {
+            if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
+                const base = irTerm.base;
+                const rows: Array<Expr | null> = irTerm.base.rows.map(
+                    (item, i) => {
+                        if (!item) {
+                            return item;
+                        }
+                        const name = toplevelRecordAttribute(id, base.ref, i);
+                        irTerms[name] = {
+                            expr: item,
+                            inline: item.type !== 'lambda',
+                        };
+
+                        printed[name] = declarationToGlsl(
+                            senv,
+                            opts,
+                            name,
+                            item,
+                            '',
+                        );
+
+                        return {
+                            type: 'genTerm',
+                            loc: item.loc,
+                            is: item.is,
+                            id: name,
+                        };
+                    },
+                );
+                return { ...irTerm, base: { ...irTerm.base, rows } };
+            }
+            return irTerm;
+        };
+
         // Don't output anything that I'm overriding with builtins
         if (glslBuiltins[idRaw]) {
-            irTerms[idRaw] = glslBuiltins[idRaw];
+            let irTerm = glslBuiltins[idRaw];
+
+            irTerm = maybeAddRecordInlines(irTerm);
+
+            irTerms[idRaw] = { expr: irTerm, inline: true };
             return;
         }
-        let term = env.global.terms[idRaw];
 
-        const id = idFromName(idRaw);
-        const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
         const comment = printToString(declarationToPretty(senv, id, term), 100);
         senv.local.unique.current = maxUnique(term) + 1;
         term = liftEffects(senv, term);
@@ -955,22 +997,78 @@ export const fileToGlsl = (
         irTerm = optimizeDefine(senv, irTerm, id);
         uniquesReallyAreUnique(irTerm);
 
-        if (
-            env.global.metaData[idRaw] &&
-            env.global.metaData[idRaw].tags.includes('inline')
-        ) {
-            irTerms[idRaw] = irTerm;
-        }
+        irTerm = maybeAddRecordInlines(irTerm);
 
-        items.push(
-            declarationToGlsl(
-                senv,
-                opts,
-                idRaw,
-                irTerm,
-                '*\n```\n' + comment + '\n```\n',
-            ),
+        irTerms[idRaw] = { expr: irTerm, inline: false, comment };
+
+        printed[idRaw] = declarationToGlsl(
+            senv,
+            opts,
+            idRaw,
+            irTerm,
+            '*\n```\n' + comment + '\n```\n',
         );
+    });
+
+    const usedAfterOpt: { [key: string]: true } = {};
+    // const mainTerm: Term = {
+    //     type: 'ref',
+    //     ref: {
+    //         type: 'user',
+    //         id: mainId,
+    //     },
+    //     location: nullLocation,
+    //     is: env.global.terms[idName(mainId)].is,
+    // };
+
+    const toWalk = [idName(mainId)];
+    while (toWalk.length) {
+        const next = toWalk.shift();
+        if (!next) {
+            break;
+        }
+        // already processed
+        if (usedAfterOpt[next]) {
+            continue;
+        }
+        usedAfterOpt[next] = true;
+        transformExpr(irTerms[next].expr, {
+            ...defaultVisitor,
+            expr: (expr) => {
+                if (expr.type === 'term') {
+                    toWalk.push(idName(expr.id));
+                }
+                if (expr.type === 'genTerm') {
+                    toWalk.push(expr.id);
+                }
+                return null;
+            },
+        });
+    }
+
+    // const orderedTerms = expressionDeps(
+    //     env,
+    //     expressions.concat([
+    //         mainTerm,
+    //         ...buffers.map(
+    //             (id) =>
+    //                 ({
+    //                     type: 'ref',
+    //                     ref: {
+    //                         type: 'user',
+    //                         id: idFromName(id),
+    //                     },
+    //                     location: nullLocation,
+    //                     is: env.global.terms[id].is,
+    //                 } as Term),
+    //         ),
+    //     ]),
+    // );
+
+    Object.keys(irTerms).forEach((name) => {
+        if (printed[name] && usedAfterOpt[name]) {
+            items.push(printed[name]);
+        }
     });
 
     const glslEnv: Record = {

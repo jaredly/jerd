@@ -55,7 +55,9 @@ export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
     return expr;
 };
 
-export type Exprs = { [idName: string]: Expr };
+export type Exprs = {
+    [idName: string]: { expr: Expr; inline: boolean; comment?: string };
+};
 
 export const optimizeAggressive = (
     env: Env,

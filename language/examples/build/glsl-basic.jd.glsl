@@ -62,15 +62,6 @@ float circleSDF_39fb69e2(
     return (length2_2e6a5f32((p_0 - circle_1.h23c98f91_0)) - circle_1.h23c98f91_1);
 }
 
-/* *
-```
-const Min#a42728cc: Min#0c2608f2<float> = Min#0c2608f2<float>{"--"#0c2608f2#0: min}
-```
- */
-const Min_0c2608f2 Min_a42728cc = Min_0c2608f2(
-    min
-);
-
 /**
 ```
 const hello#2d353234: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
@@ -105,7 +96,7 @@ vec4 hello_2d353234(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1
 ) {
-    if ((Min_a42728cc.h0c2608f2_0(
+    if ((min(
         circleSDF_39fb69e2(
             fragCoord_1,
             Circle_23c98f91(env_0.mouse, (40.0 + (cos((env_0.time * 4.0)) * 20.0)))

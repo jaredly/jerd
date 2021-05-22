@@ -239,6 +239,7 @@ export type Expr =
     | { type: 'unary'; inner: Expr; is: Type; loc: Loc; op: string }
     | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
     | { type: 'term'; id: Id; loc: Loc; is: Type }
+    | { type: 'genTerm'; loc: Loc; is: Type; id: string }
     | { type: 'var'; sym: Symbol; loc: Loc; is: Type }
     | {
           type: 'slice';

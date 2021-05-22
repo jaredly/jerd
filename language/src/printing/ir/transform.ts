@@ -38,6 +38,7 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
         case 'builtin':
         case 'float':
         case 'term':
+        case 'genTerm':
         case 'var':
             return expr;
         case 'unary': {
