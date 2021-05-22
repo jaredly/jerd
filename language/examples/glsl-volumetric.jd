@@ -447,6 +447,11 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera
     } else {
         const worldPosForPixel = eye + dist * dir;
 
+        // IDEA: Have the light be a flashlight!
+        // So right in front of the camera, but blocked
+        // from your view by a small disk.
+        // And then we could do maze traversal or something.
+
         const light1Pos = Vec3{
             // x: 0.17,
             x: 0.15 + sin(iTime / 2.0) / 1.0,
