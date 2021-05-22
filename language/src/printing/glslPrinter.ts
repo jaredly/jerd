@@ -937,6 +937,9 @@ export const fileToGlsl = (
 
         const maybeAddRecordInlines = (irTerm: ir.Expr) => {
             if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
+                if (builtinTypes[idName(irTerm.base.ref.id)]) {
+                    return irTerm;
+                }
                 const base = irTerm.base;
                 const rows: Array<Expr | null> = irTerm.base.rows.map(
                     (item, i) => {
