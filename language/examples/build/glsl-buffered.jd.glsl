@@ -23,6 +23,12 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
+// skipping Eq_553b4b8e, contains type variables
+
+// skipping AddSub_b99b22d8, contains type variables
+
+// skipping Div_5ac12902, contains type variables
+
 /**
 ```
 const isLive#5df4f34f: (Vec4#3b941378) ={}> bool = (color#:0: Vec4#3b941378) ={}> (color#:0.x#43802a16#0 > 0.5)

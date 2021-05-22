@@ -42,7 +42,7 @@ import {
     typeFromTermType,
 } from '../utils';
 import { and, asBlock, builtin, iffe } from '../utils';
-import { Exprs } from './optimize';
+import { Exprs, isConstant } from './optimize';
 
 const isInlinable = (t: LambdaExpr, self: Id) => {
     // TODO: make this much faster folks
@@ -179,7 +179,7 @@ export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
                 if (!exprs[name]) {
                     return null;
                 }
-                if (exprs[name].inline) {
+                if (exprs[name].inline || isConstant(exprs[name].expr)) {
                     return exprs[name].expr;
                 }
                 // const t = exprs[idName(expr.ref.id)]

@@ -26,6 +26,7 @@ import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import {
     Exprs,
+    isConstant,
     optimize,
     optimizeAggressive,
     optimizeDefine,
@@ -942,6 +943,9 @@ export const fileToGlsl = (
                         if (!item) {
                             return item;
                         }
+                        if (isConstant(item) && item.type !== 'builtin') {
+                            return item;
+                        }
                         const name = toplevelRecordAttribute(id, base.ref, i);
                         irTerms[name] = {
                             expr: item,
@@ -1021,7 +1025,7 @@ export const fileToGlsl = (
     //     is: env.global.terms[idName(mainId)].is,
     // };
 
-    const toWalk = [idName(mainId)];
+    const toWalk = [idName(mainId), ...buffers];
     while (toWalk.length) {
         const next = toWalk.shift();
         if (!next) {
