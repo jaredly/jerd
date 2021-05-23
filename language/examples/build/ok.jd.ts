@@ -141,7 +141,7 @@ const ArrayEq#bef2134a: <T#:0>(Eq#553b4b8e<T#:0>) ={}> Eq#553b4b8e<Array<T#:0>> 
 */
 export const hash_bef2134a: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_0>> = <T_0>(eq$0: t_553b4b8e<T_0>) => ({
   type: "553b4b8e",
-  h553b4b8e_0: (one$1: Array<T_0>, two$2: Array<T_0>) => intEq(len(one$1), len(two$2)) && hash_7825e3a8(one$1, two$2, eq$0)
+  h553b4b8e_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_9275f914.h553b4b8e_0(len(one$1), len(two$2)) && hash_7825e3a8(one$1, two$2, eq$0)
 } as t_553b4b8e<Array<T_0>>);
 
 /**
@@ -219,7 +219,7 @@ export const hash_4ffa1f88: <T_0>(arg_0: string, arg_1: number, arg_2:
   /*from cps lambda*/
   (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T_0) => void) => void) => {
     result = hash_4ffa1f88(v, i + 1, (handlers: Handlers, done$6: (arg_0: Handlers, arg_1: T_0) => void) => {
-      k$4(v + intToString(i), handlers, (handlers: Handlers, returnValue$8: T_0) => done$6(handlers, returnValue$8));
+      k$4(v + hash_1175499e.hAs_0(i), handlers, (handlers: Handlers, returnValue$8: T_0) => done$6(handlers, returnValue$8));
     });
   }], (handlers: Handlers, v$3: T_0) => {
     result = v$3;
@@ -281,7 +281,7 @@ const sideBar#2df6410a: (int) ={Read#22024b72}> string = (n#:0: int) ={Read#2202
 export const hash_2df6410a:
 /*from cps lambda*/
 (arg_0: number, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void = (n: number, handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
-  if (intEq(n, 5)) {
+  if (hash_9275f914.h553b4b8e_0(n, 5)) {
     hash_64605d94(handlers, (handlers: Handlers, returnValue$3: string) => done(handlers, returnValue$3));
   } else {
     done(handlers, "wot");
@@ -302,13 +302,17 @@ const ifYes#5bf7f75c: () ={Read#22024b72}> string = () ={Read#22024b72}> {
 export const hash_5bf7f75c:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void) => void = (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => done$3(handlers, (() => {
-    if (stringEq(returnValue$5, "Yes")) {
-      return "good";
+  hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => ((handlers: Handlers) => {
+    let lambdaBlockResult: string;
+
+    if (hash_606c7034.h553b4b8e_0(returnValue$5, "Yes")) {
+      lambdaBlockResult = "good";
     } else {
-      return "nope";
+      lambdaBlockResult = "nope";
     }
-  })()));
+
+    done$3(handlers, lambdaBlockResult);
+  })(handlers));
 };
 
 /**

@@ -50,6 +50,13 @@ but I'll need to keep track of comments in order to do that.
 - [x] break out toplevel record items, so we can do resonable
   custom operators, and have them get treated right
 - [ ] inline immediately applied functions, let's really get this done.
+  - PLAN FOR THIS
+    - cases to consider
+      - basic final if/else
+      - if/else to variable
+      - switch statement, which will be a bunch of ifs
+      - if that doesn't end in a return. but might contain something that does.
+      - So, in the general case, I think we just do: we have a top-level "hasReturned", and put all blocks in a "hasReturned" if (merging with an if if it exists?)
 - [ ] specialize functions that take a lambda, or inline them if the lambda has scope (need to be able to hash irTerms btw)
 - [ ] OK and then we also need MULTIPLE NAMES. So idNames needs to be a list. And let's extract all usages of idNames into env.ts.
   - Then we can overload all the builtin functions to our heart's content, and maybe be ready to actually demo stuff?

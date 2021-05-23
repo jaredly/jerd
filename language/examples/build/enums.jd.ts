@@ -134,7 +134,7 @@ const isAs#7684e5e9: (Option#45258310<int>) ={}> bool = (y#:0: Option#45258310<i
 */
 export const hash_7684e5e9: (arg_0: t_45258310<number>) => boolean = (y: t_45258310<number>) => {
   if (y.type === "0043a33c") {
-    return intEq(y.h0043a33c_0, 2);
+    return hash_9275f914.h553b4b8e_0(y.h0043a33c_0, 2);
   }
 
   if (y.type === "2449af94") {
@@ -179,7 +179,7 @@ export const hash_5bb5304c: (arg_0: t_45258310<string>) => boolean = (v: t_45258
   }
 
   if (v.type === "0043a33c") {
-    return stringEq(v.h0043a33c_0, "yes");
+    return hash_606c7034.h553b4b8e_0(v.h0043a33c_0, "yes");
   }
 
   throw "Math failed";

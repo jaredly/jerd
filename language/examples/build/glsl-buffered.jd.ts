@@ -471,7 +471,7 @@ export const hash_5af2137f: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sample
   } else {
     let neighbors: number = hash_77a447bc(fragCoord, env.resolution, buffer$2);
 
-    if (hash_5df4f34f(texture(buffer$2, hash_090f77e7.h5ac12902_0(fragCoord, env.resolution))) && intEq(neighbors, 2) || intEq(neighbors, 3)) {
+    if (hash_5df4f34f(texture(buffer$2, hash_090f77e7.h5ac12902_0(fragCoord, env.resolution))) && hash_9275f914.h553b4b8e_0(neighbors, 2) || hash_9275f914.h553b4b8e_0(neighbors, 3)) {
       return hash_59488bde;
     } else {
       return hash_b12c041e;

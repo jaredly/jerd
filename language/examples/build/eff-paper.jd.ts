@@ -249,13 +249,17 @@ const choose#437fecbe: <T#:0>(T#:0, T#:0) ={Decide#086e3532}> T#:0 = <T#:0>(x#:0
 export const hash_437fecbe:
 /*from cps lambda*/
 <T_0>(arg_0: T_0, arg_1: T_0, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: T_0) => void) => void = <T_0>(x: T_0, y: T_0, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: T_0) => void) => {
-  hash_5334ea40(handlers, (handlers: Handlers, returnValue: boolean) => done$3(handlers, (() => {
+  hash_5334ea40(handlers, (handlers: Handlers, returnValue: boolean) => ((handlers: Handlers) => {
+    let lambdaBlockResult: T_0;
+
     if (returnValue) {
-      return x;
+      lambdaBlockResult = x;
     } else {
-      return y;
+      lambdaBlockResult = y;
     }
-  })()));
+
+    done$3(handlers, lambdaBlockResult);
+  })(handlers));
 };
 
 /**
@@ -389,20 +393,18 @@ export const hash_998219d8: (arg_0:
   handleSimpleShallow2<any, any, any>("086e3532", fn, [(handlers, _, k$2:
   /*from cps lambda*/
   (arg_0: boolean, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: number) => void) => void) => {
-    result$5 = (() => {
-      let xt: number = hash_998219d8((handlers: Handlers, done$6: (arg_0: Handlers, arg_1: number) => void) => {
-        k$2(true, handlers, (handlers: Handlers, returnValue$8: number) => done$6(handlers, returnValue$8));
-      });
-      let xf: number = hash_998219d8((handlers: Handlers, done$9: (arg_0: Handlers, arg_1: number) => void) => {
-        k$2(false, handlers, (handlers: Handlers, returnValue$11: number) => done$9(handlers, returnValue$11));
-      });
+    let xt: number = hash_998219d8((handlers: Handlers, done$6: (arg_0: Handlers, arg_1: number) => void) => {
+      k$2(true, handlers, (handlers: Handlers, returnValue$8: number) => done$6(handlers, returnValue$8));
+    });
+    let xf: number = hash_998219d8((handlers: Handlers, done$9: (arg_0: Handlers, arg_1: number) => void) => {
+      k$2(false, handlers, (handlers: Handlers, returnValue$11: number) => done$9(handlers, returnValue$11));
+    });
 
-      if (xt > xf) {
-        return xt;
-      } else {
-        return xf;
-      }
-    })();
+    if (xt > xf) {
+      result$5 = xt;
+    } else {
+      result$5 = xf;
+    }
   }], (handlers: Handlers, x$1: number) => {
     result$5 = x$1;
   });
@@ -604,11 +606,9 @@ export const hash_2ce3943a: any = {
     handleSimpleShallow2<any, any, any>("35f4b478", fn, [(handlers, v$2: string, k$3:
     /*from cps lambda*/
     (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void) => {
-      let lambdaBlockResult: string;
-      lambdaBlockResult = v$2 + "\n" + hash_2ce3943a.direct((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
+      result$5 = v$2 + "\n" + hash_2ce3943a.direct((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
         k$3(handlers, (handlers: Handlers) => done$6(handlers));
       });
-      result$5 = lambdaBlockResult;
     }], (handlers: Handlers, a$1: void) => {
       result$5 = "end";
     });

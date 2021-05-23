@@ -592,7 +592,14 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 atom(expr.idx.toString()),
                 atom(']'),
             ]);
-        // case 'apply':
+        case 'lambda':
+            return items([
+                atom('lambda-woops'),
+                args(expr.args.map((arg) => symToGlsl(env, opts, arg.sym))),
+                expr.body.type === 'Block'
+                    ? stmtToGlsl(env, opts, expr.body)
+                    : block([termToGlsl(env, opts, expr.body)]),
+            ]);
         default:
             return atom('nope_term_' + expr.type);
     }

@@ -148,11 +148,9 @@ export const hash_2ce3943a: any = {
     handleSimpleShallow2<any, any, any>("35f4b478", fn$0, [(handlers, v$2: string, k$3:
     /*from cps lambda*/
     (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void) => {
-      let lambdaBlockResult: string;
-      lambdaBlockResult = v$2 + "\n" + hash_2ce3943a.direct((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
+      result = v$2 + "\n" + hash_2ce3943a.direct((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
         k$3(handlers, (handlers: Handlers) => done$6(handlers));
       });
-      result = lambdaBlockResult;
     }], (handlers: Handlers, a$1: void) => {
       result = "end";
     });

@@ -1100,7 +1100,7 @@ export const hash_51a6cf2c: (arg_0: number, arg_1: t_43802a16, arg_2: t_9f1c0644
     if (left$7 <= 0) {
       return current;
     } else {
-      let recur: number = current + hash_bc6322d4(iTime, light$2, eye$3, dist$4, intToFloat(left$7) / total, dir, left$7);
+      let recur: number = current + hash_bc6322d4(iTime, light$2, eye$3, dist$4, hash_6f186ad1.hAs_0(left$7) / total, dir, left$7);
       iTime = iTime;
       seed = seed;
       light$2 = light$2;
@@ -1425,7 +1425,7 @@ export const hash_c225509c: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16
       x: 0.15 + sin(iTime / 2) / 1,
       y: 0,
       z: 0.05
-    } as t_9f1c0644), eye$5, dist$9, dir$8, 0, floatToInt(samples), samples) * 3 / samples;
+    } as t_9f1c0644), eye$5, dist$9, dir$8, 0, hash_184a69ed.hAs_0(samples), samples) * 3 / samples;
     return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_1d31aa6e.h1de4e4c0_0(hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, brightness), brightness), brightness),
       type: "Vec4",
       w: 1

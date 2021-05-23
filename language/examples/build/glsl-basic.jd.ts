@@ -169,7 +169,7 @@ export const hash_4e1890c8: t_5cfbbc08<number> = ({
 
 /**
 ```
-const hello#08755848: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
+const hello#5dc19984: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
 ) ={}> {
@@ -177,7 +177,7 @@ const hello#08755848: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
         pos#44c72b50#0: env#:0.mouse#451d5252#3,
         r#44c72b50#1: (40.0 + (cos((env#:0.time#451d5252#0 * 4.0)) * 20.0)),
     };
-    if (Min#4e1890c8."--"#5cfbbc08#0(
+    const color#:3 = if (Min#4e1890c8."--"#5cfbbc08#0(
         circleSDF#838b925a(fragCoord#:1, circle#:2),
         circleSDF#838b925a(
             fragCoord#:1,
@@ -190,15 +190,18 @@ const hello#08755848: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
             },
         ),
     ) < 0.0) {
-        Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 1.0, y#43802a16#1: 0.0, w#3b941378#0: 1.0};
+        Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0};
     } else {
-        Vec4#3b941378{z#9f1c0644#0: 1.0, x#43802a16#0: 1.0, y#43802a16#1: 1.0, w#3b941378#0: 1.0};
+        Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0};
     };
+    Vec4#3b941378{...color#:3, w#3b941378#0: 1.0};
 }
 ```
 */
-export const hash_08755848: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16) => {
-  if (min(hash_838b925a(fragCoord, ({
+export const hash_5dc19984: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16) => {
+  let lambdaBlockResult: t_9f1c0644;
+
+  if (hash_4e1890c8.h5cfbbc08_0(hash_838b925a(fragCoord, ({
     type: "44c72b50",
     h44c72b50_0: env.mouse,
     h44c72b50_1: 40 + cos(env.time * 4) * 20
@@ -211,21 +214,24 @@ export const hash_08755848: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378
     } as t_43802a16)),
     h44c72b50_1: 30
   } as t_44c72b50))) < 0) {
-    return ({
-      type: "Vec4",
-      z: 0,
+    lambdaBlockResult = ({
+      type: "Vec3",
       x: 1,
       y: 0,
-      w: 1
-    } as t_3b941378);
+      z: 0
+    } as t_9f1c0644);
   } else {
-    return ({
-      type: "Vec4",
-      z: 1,
+    lambdaBlockResult = ({
+      type: "Vec3",
       x: 1,
       y: 1,
-      w: 1
-    } as t_3b941378);
+      z: 1
+    } as t_9f1c0644);
   }
+
+  return ({ ...lambdaBlockResult,
+    type: "Vec4",
+    w: 1
+  } as t_3b941378);
 };
-export const hello = hash_08755848;
+export const hello = hash_5dc19984;

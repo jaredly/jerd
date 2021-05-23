@@ -37,7 +37,7 @@ const fib#ac346fbc: (int, int, int) ={}> int = (prev#:0: int, cur#:1: int, n#:2:
 */
 export const hash_ac346fbc: (arg_0: number, arg_1: number, arg_2: number) => number = (prev: number, cur: number, n: number) => {
   while (true) {
-    if (intEq(n, 0)) {
+    if (hash_9275f914.h553b4b8e_0(n, 0)) {
       return prev;
     } else {
       let recur: number = prev + cur;
