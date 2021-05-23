@@ -34,6 +34,7 @@ import {
     Type,
 } from '../types';
 import {
+    bool,
     callExpression,
     define,
     handlerSym,
@@ -132,7 +133,91 @@ export const flattenLambda = (
             byUnique[arg.sym.unique] = args[i];
         });
     }
-    target.body.items.forEach((item) => {
+    const done = newSym(env, 'continueBlock');
+    stmts.push({
+        type: 'Define',
+        is: bool,
+        loc: target.loc,
+        value: builtin('true', target.loc, bool),
+        sym: done,
+    });
+    // TODO: only do this if we have non-final returns
+    const touched: Array<Block> = [];
+    const body = transformStmt(target.body, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (expr.type === 'lambda') {
+                return false;
+            }
+        },
+        block: (block) => {
+            if (touched.includes(block)) {
+                return null;
+            }
+            // START HERE:
+            // I think a more precise version of this would be:
+            // A; if B {}; C; if D {}; E
+            // becomes
+            // A; if B {}; if continueBlock { if D {}; if continueBlock { E } }
+            // They need to be nested.
+            // This should be a STOPSHIP, as I'm sure some things are broken..
+            const res: Array<Stmt> = [];
+            for (let i = 0; i < block.items.length; i++) {
+                const at = i;
+                const stmt = block.items[i];
+                if (stmt.type !== 'if') {
+                    const nonifs: Array<Stmt> = [stmt];
+                    while (
+                        i < block.items.length - 1 &&
+                        block.items[i + 1].type !== 'if'
+                    ) {
+                        i++;
+                        nonifs.push(block.items[i]);
+                    }
+                    if (at === 0) {
+                        res.push(...nonifs);
+                        continue;
+                    }
+                    const yes: Block = {
+                        type: 'Block',
+                        items: nonifs,
+                        loc: target.loc,
+                    };
+                    touched.push(yes);
+
+                    res.push({
+                        type: 'if',
+                        cond: var_(done, target.loc, bool),
+                        yes,
+                        no: null,
+                        loc: target.loc,
+                    });
+                } else {
+                    if (at === 0) {
+                        res.push(stmt);
+                        continue;
+                    }
+                    res.push({
+                        ...stmt,
+                        cond: callExpression(
+                            env,
+                            builtin(
+                                '&&',
+                                target.loc,
+                                pureFunction([bool, bool], bool),
+                            ),
+                            [var_(done, target.loc, bool), stmt.cond],
+                            target.loc,
+                        ),
+                    });
+                }
+            }
+            const newBlock = { ...block, items: res };
+            touched.push(newBlock);
+            return newBlock;
+        },
+    }) as Block;
+    body.items.forEach((item) => {
         const result = transformStmt(item, {
             ...defaultVisitor,
             expr: (expr) => {
@@ -149,20 +234,33 @@ export const flattenLambda = (
                 // I might need to set a `done` flag?
                 // or something? Yeah.
                 if (stmt.type === 'Return') {
-                    return returnAs
-                        ? {
-                              type: 'Assign',
-                              sym: returnAs,
-                              value: stmt.value,
-                              loc: stmt.loc,
-                              is: stmt.value.is,
-                          }
-                        : {
-                              type: 'Expression',
-                              loc: stmt.loc,
-                              expr: stmt.value,
-                          };
+                    return [
+                        returnAs
+                            ? {
+                                  type: 'Assign',
+                                  sym: returnAs,
+                                  value: stmt.value,
+                                  loc: stmt.loc,
+                                  is: stmt.value.is,
+                              }
+                            : {
+                                  type: 'Expression',
+                                  loc: stmt.loc,
+                                  expr: stmt.value,
+                              },
+                        {
+                            type: 'Assign',
+                            sym: done,
+                            value: builtin('false', stmt.loc, bool),
+                            loc: stmt.loc,
+                            is: bool,
+                        },
+                    ];
                 }
+                // return multiple
+                // OK HERE: we could, for every thing,
+                // make it a pain in the bhind
+                // but lets not
                 return null;
             },
         });

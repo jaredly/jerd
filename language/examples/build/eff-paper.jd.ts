@@ -393,6 +393,7 @@ export const hash_998219d8: (arg_0:
   handleSimpleShallow2<any, any, any>("086e3532", fn, [(handlers, _, k$2:
   /*from cps lambda*/
   (arg_0: boolean, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: number) => void) => void) => {
+    let continueBlock: boolean = true;
     let xt: number = hash_998219d8((handlers: Handlers, done$6: (arg_0: Handlers, arg_1: number) => void) => {
       k$2(true, handlers, (handlers: Handlers, returnValue$8: number) => done$6(handlers, returnValue$8));
     });
@@ -400,10 +401,12 @@ export const hash_998219d8: (arg_0:
       k$2(false, handlers, (handlers: Handlers, returnValue$11: number) => done$9(handlers, returnValue$11));
     });
 
-    if (xt > xf) {
+    if (continueBlock && xt > xf) {
       result$5 = xt;
+      continueBlock = false;
     } else {
       result$5 = xf;
+      continueBlock = false;
     }
   }], (handlers: Handlers, x$1: number) => {
     result$5 = x$1;
