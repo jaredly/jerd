@@ -161,6 +161,11 @@ const isComplete = (
     if (groups[gid] === null) {
         return null;
     }
+    if (groups[gid] == null) {
+        throw new Error(
+            `No group defined for ${gid} -- is it a builtin? If so it needs to be added to switch.ts`,
+        );
+    }
     for (let id of groups[gid]!) {
         // At least one is missing
         if (found[id] == null) {

@@ -521,6 +521,8 @@ export const printRecord = (
 };
 
 export const binops = [
+    'mod',
+    'modInt',
     '>',
     '<',
     '>=',
@@ -537,13 +539,15 @@ export const binops = [
 ];
 export const isBinop = (op: string) => binops.includes(op);
 
+const asBinop = (op: string) => (op === 'mod' || op === 'modInt' ? '%' : op);
+
 export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {
         return items([
             atom('('),
             termToGlsl(env, opts, apply.args[0]),
             atom(' '),
-            atom(apply.target.name),
+            atom(asBinop(apply.target.name)),
             atom(' '),
             termToGlsl(env, opts, apply.args[1]),
             atom(')'),
@@ -599,6 +603,12 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 expr.body.type === 'Block'
                     ? stmtToGlsl(env, opts, expr.body)
                     : block([termToGlsl(env, opts, expr.body)]),
+            ]);
+        case 'eqLiteral':
+            return items([
+                termToGlsl(env, opts, expr.value),
+                atom(' == '),
+                termToGlsl(env, opts, expr.literal),
             ]);
         default:
             return atom('nope_term_' + expr.type);

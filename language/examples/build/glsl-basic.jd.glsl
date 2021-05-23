@@ -30,6 +30,8 @@ struct Circle_23c98f91{
     float h23c98f91_1;
 };
 
+// skipping As_As, contains type variables
+
 // skipping AddSub_b99b22d8, contains type variables
 
 /**
@@ -64,7 +66,7 @@ float circleSDF_39fb69e2(
 
 /**
 ```
-const hello#5c16a7c5: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
+const hello#7fbfbfda: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
 ) ={}> {
@@ -72,7 +74,7 @@ const hello#5c16a7c5: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
         pos#23c98f91#0: env#:0.mouse#451d5252#3,
         r#23c98f91#1: (40.0 + (cos((env#:0.time#451d5252#0 * 4.0)) * 20.0)),
     };
-    const color#:3 = if (Min#a42728cc."--"#0c2608f2#0(
+    const color#:4 = if (Min#a42728cc."--"#0c2608f2#0(
         circleSDF#39fb69e2(fragCoord#:1, circle#:2),
         circleSDF#39fb69e2(
             fragCoord#:1,
@@ -85,19 +87,22 @@ const hello#5c16a7c5: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
             },
         ),
     ) < 0.0) {
-        Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0};
+        switch modInt(fragCoord#:1.x#43802a16#0 as#184a69ed int, 2) {
+            0 => Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
+            _#:3 => Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 0.0},
+        };
     } else {
         Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0};
     };
-    Vec4#3b941378{...color#:3, w#3b941378#0: 1.0};
+    Vec4#3b941378{...color#:4, w#3b941378#0: 1.0};
 }
 ```
 */
-vec4 hello_5c16a7c5(
+vec4 hello_7fbfbfda(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1
 ) {
-    vec3 color_3;
+    vec3 color_4;
     if ((min(
         circleSDF_39fb69e2(
             fragCoord_1,
@@ -105,15 +110,18 @@ vec4 hello_5c16a7c5(
         ),
         circleSDF_39fb69e2(fragCoord_1, Circle_23c98f91((env_0.mouse + vec2(10.0, 20.0)), 30.0))
     ) < 0.0)) {
-        color_3 = vec3(1.0, 0.0, 0.0);
+        if ((int(fragCoord_1.x) % 2) == 0) {
+            color_4 = vec3(1.0, 0.0, 0.0);
+        };
+        color_4 = vec3(1.0, 1.0, 0.0);
     } else {
-        color_3 = vec3(1.0, 1.0, 1.0);
+        color_4 = vec3(1.0, 1.0, 1.0);
     };
-    return vec4(color_3.x, color_3.y, color_3.z, 1.0);
+    return vec4(color_4.x, color_4.y, color_4.z, 1.0);
 }
 
 void main() {
-    fragColor = hello_5c16a7c5(
+    fragColor = hello_7fbfbfda(
         GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
         gl_FragCoord.xy
     );

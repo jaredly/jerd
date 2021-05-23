@@ -1,4 +1,4 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 
 /**
@@ -92,6 +92,18 @@ type t_44c72b50 = {
 
 /**
 ```
+type As#As<T#:10000, T#:10001> = {
+    as: (T#:10000) ={}> Y#:10001,
+}
+```
+*/
+type t_As<T_10000, T_10001> = {
+  type: "As";
+  hAs_0: (arg_0: T_10000) => T_10001;
+};
+
+/**
+```
 type AddSub#b99b22d8<T#:0, T#:1, T#:2> = {
     "+": (A#:0, B#:1) ={}> C#:2,
     "-": (A#:0, B#:1) ={}> C#:2,
@@ -147,6 +159,16 @@ export const hash_2e6a5f32: (arg_0: t_43802a16) => number = (v: t_43802a16) => s
 
 /**
 ```
+const FloatAsInt#184a69ed: As#As<float, int> = As#As<float, int>{as#As#0: floatToInt}
+```
+*/
+export const hash_184a69ed: t_As<number, number> = ({
+  type: "As",
+  hAs_0: floatToInt
+} as t_As<number, number>);
+
+/**
+```
 const circleSDF#838b925a: (Vec2#43802a16, Circle#44c72b50) ={}> float = (
     p#:0: Vec2#43802a16,
     circle#:1: Circle#44c72b50,
@@ -169,7 +191,7 @@ export const hash_4e1890c8: t_5cfbbc08<number> = ({
 
 /**
 ```
-const hello#5dc19984: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
+const hello#66ea94db: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
 ) ={}> {
@@ -177,7 +199,7 @@ const hello#5dc19984: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
         pos#44c72b50#0: env#:0.mouse#451d5252#3,
         r#44c72b50#1: (40.0 + (cos((env#:0.time#451d5252#0 * 4.0)) * 20.0)),
     };
-    const color#:3 = if (Min#4e1890c8."--"#5cfbbc08#0(
+    const color#:4 = if (Min#4e1890c8."--"#5cfbbc08#0(
         circleSDF#838b925a(fragCoord#:1, circle#:2),
         circleSDF#838b925a(
             fragCoord#:1,
@@ -190,15 +212,18 @@ const hello#5dc19984: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
             },
         ),
     ) < 0.0) {
-        Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0};
+        switch modInt(fragCoord#:1.x#43802a16#0 as#184a69ed int, 2) {
+            0 => Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
+            _#:3 => Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 0.0},
+        };
     } else {
         Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0};
     };
-    Vec4#3b941378{...color#:3, w#3b941378#0: 1.0};
+    Vec4#3b941378{...color#:4, w#3b941378#0: 1.0};
 }
 ```
 */
-export const hash_5dc19984: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16) => {
+export const hash_66ea94db: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16) => {
   let lambdaBlockResult: t_9f1c0644;
 
   if (hash_4e1890c8.h5cfbbc08_0(hash_838b925a(fragCoord, ({
@@ -214,10 +239,19 @@ export const hash_5dc19984: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378
     } as t_43802a16)),
     h44c72b50_1: 30
   } as t_44c72b50))) < 0) {
+    if (modInt(hash_184a69ed.hAs_0(fragCoord.x), 2) === 0) {
+      lambdaBlockResult = ({
+        type: "Vec3",
+        x: 1,
+        y: 0,
+        z: 0
+      } as t_9f1c0644);
+    }
+
     lambdaBlockResult = ({
       type: "Vec3",
       x: 1,
-      y: 0,
+      y: 1,
       z: 0
     } as t_9f1c0644);
   } else {
@@ -234,4 +268,4 @@ export const hash_5dc19984: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378
     w: 1
   } as t_3b941378);
 };
-export const hello = hash_5dc19984;
+export const hello = hash_66ea94db;
