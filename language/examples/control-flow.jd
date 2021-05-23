@@ -1,0 +1,40 @@
+
+const x = {
+    const y = if 10  < 3 {
+        4 
+    } else {
+        2
+    };
+    y + 2 + y
+}
+
+x == 6
+
+const z = (n: int) => {
+    const m = {
+        const z = n + 2;
+        switch z {
+            3 => 3,
+            4 => 4,
+            5 => 10,
+            _ => 11
+        }
+    };
+    m + m * 2
+}
+
+z(2) == 12
+
+const x2 = {
+    const y = {
+        const n = 2;
+        if n + n < 3 {
+            4 
+        } else {
+            2
+        }
+    };
+    y + 2 + y
+}
+
+x2 == 6

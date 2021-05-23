@@ -107,6 +107,7 @@ export const flattenLambda = (
         )
         .filter((arg) => arg.sym.unique !== handlerSym.unique);
 
+    // If there's only one thing in town, go for it.
     if (target.body.type !== 'Block') {
         if (returnAs) {
             stmts.push({
@@ -143,15 +144,46 @@ export const flattenLambda = (
     });
     // TODO: only do this if we have non-final returns
     const touched: Array<Block> = [];
+
+    // This is a debug assert -- remove for prod please.
+    transformStmt(target.body, {
+        ...defaultVisitor,
+        block: (block) => {
+            block.items.forEach((item, i) => {
+                if (item.type === 'Return' && i !== block.items.length - 1) {
+                    throw new Error(`Non-terminal return!`);
+                }
+            });
+            return null;
+        },
+    });
+
+    const hasTrailingItems = (block: Block) => {
+        return block.items.find((item, i) => {
+            if (item.type === 'if' || item.type === 'Loop') {
+                return i < block.items.length - 1;
+            }
+            return false;
+        });
+    };
+    // const wrapItems = (items: Array<Stmt>, inLoop: boolean) => {
+    //     // What do we look for? trailing items after an "if" or a "loop"
+    // };
+
+    // Add the "if continueBlock" everywhere.
     const body = transformStmt(target.body, {
         ...defaultVisitor,
         expr: (expr) => {
             if (expr.type === 'lambda') {
                 return false;
             }
+            return null;
         },
         block: (block) => {
             if (touched.includes(block)) {
+                return null;
+            }
+            if (!hasTrailingItems(block)) {
                 return null;
             }
             // START HERE:
@@ -161,6 +193,12 @@ export const flattenLambda = (
             // A; if B {}; if continueBlock { if D {}; if continueBlock { E } }
             // They need to be nested.
             // This should be a STOPSHIP, as I'm sure some things are broken..
+
+            block.items[0].type;
+
+            // AND NEXT: These won't work for `loop`s -- I need to add a `break` as well
+            // as the assign.
+            // How do I know that I'm in a loop?
             const res: Array<Stmt> = [];
             for (let i = 0; i < block.items.length; i++) {
                 const at = i;
@@ -323,6 +361,7 @@ export const flattenDefineLambdas = (
                 sym,
                 is: expr.is,
                 value: null,
+                fakeInit: true,
                 loc: expr.loc,
             });
             stmts.push(...flattenLambda(env, expr, expr.target, sym));
@@ -362,6 +401,7 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
                         sym: stmt.sym,
                         is: stmt.is,
                         value: null,
+                        fakeInit: true,
                         loc: stmt.loc,
                     });
                 }

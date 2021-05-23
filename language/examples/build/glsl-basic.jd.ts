@@ -224,7 +224,7 @@ const hello#66ea94db: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
 ```
 */
 export const hash_66ea94db: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16) => {
-  let lambdaBlockResult: t_9f1c0644;
+  let lambdaBlockResult: t_9f1c0644 = (null as any);
   let continueBlock: boolean = true;
 
   if (hash_4e1890c8.h5cfbbc08_0(hash_838b925a(fragCoord, ({

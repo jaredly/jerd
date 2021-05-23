@@ -114,7 +114,7 @@ const m#b92dd000: int = {
 ```
 */
 export const hash_b92dd000: number = (() => {
-  let lambdaBlockResult: number;
+  let lambdaBlockResult: number = (null as any);
   let y: number = hash_3306c09c(4);
   lambdaBlockResult = y + 2 + y;
   let x: number = hash_3306c09c(lambdaBlockResult + 3);

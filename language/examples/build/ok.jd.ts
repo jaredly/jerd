@@ -303,7 +303,7 @@ export const hash_5bf7f75c:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void) => void = (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => ((handlers: Handlers) => {
-    let lambdaBlockResult: string;
+    let lambdaBlockResult: string = (null as any);
 
     if (hash_606c7034.h553b4b8e_0(returnValue$5, "Yes")) {
       lambdaBlockResult = "good";
