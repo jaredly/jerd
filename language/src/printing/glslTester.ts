@@ -141,8 +141,8 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         is: float,
         binding: rad,
         value: applyBuiltin(
-            '/',
-            [var_(sizeSym, float, loc), floatLiteral(2.0, loc)],
+            '*',
+            [var_(sizeSym, float, loc), floatLiteral(0.4, loc)],
             float,
             loc,
         ),

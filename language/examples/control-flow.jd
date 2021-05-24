@@ -1,5 +1,5 @@
 
-const x = () => {
+const x = {
     const y = if 10  < 3 {
         4 
     } else {
@@ -8,7 +8,7 @@ const x = () => {
     y + 2 + y
 }
 
-x() == 6
+x == 6
 
 const z = (n: int) => {
     const m = {

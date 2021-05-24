@@ -739,6 +739,7 @@ export const fileToGlsl = (
         // Ok what's the wait to manufactor a main for us ...
         const tests = expressions.filter((e) => typesEqual(e.is, preset.bool));
         if (tests.length) {
+            // env.local.unique.current = 1000000;
             mains = ['test_main'];
             env.global.terms['test_main'] = glslTester(env, tests);
             env.global.metaData[mains[0]] = {
@@ -1048,7 +1049,14 @@ export const fileToGlsl = (
 
         irTerm = maybeAddRecordInlines(irTerm);
 
-        irTerms[idRaw] = { expr: irTerm, inline: false, comment };
+        const shouldInline = ![
+            'bool',
+            'float',
+            'int',
+            'ref',
+            'lambda',
+        ].includes(irTerm.type);
+        irTerms[idRaw] = { expr: irTerm, inline: shouldInline, comment };
 
         printed[idRaw] = declarationToGlsl(
             senv,

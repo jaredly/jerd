@@ -150,8 +150,16 @@ export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
         expr: (expr) => {
             if (expr.type === 'term') {
                 const t = exprs[idName(expr.id)];
+                // Redo uniques for the inline that we bring in.
                 if (t && t.inline) {
-                    return t.expr;
+                    const innerMax = maxUnique(t.expr);
+                    const unique = {
+                        current: Math.max(outerMax, innerMax) + 1,
+                    };
+                    const newTerm = reUnique(unique, t.expr);
+                    env.local.unique.current = unique.current;
+                    outerMax = unique.current;
+                    return newTerm;
                 }
                 return null;
             }
