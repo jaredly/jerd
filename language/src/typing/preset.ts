@@ -1,6 +1,20 @@
 // Presets
 
-import { LambdaType, newEnv, Type, TypeVblDecl } from './types';
+import { Location } from '../parsing/parser';
+import { Loc } from '../printing/ir/types';
+import { idFromName } from './env';
+import { LocatedError } from './errors';
+import { getTypeError } from './getTypeError';
+import {
+    apply,
+    LambdaType,
+    newEnv,
+    Symbol,
+    Term,
+    Type,
+    typesEqual,
+    TypeVblDecl,
+} from './types';
 
 export const builtinType = (
     name: string,
@@ -8,6 +22,14 @@ export const builtinType = (
 ): Type => ({
     type: 'ref',
     ref: { type: 'builtin', name },
+    location: null,
+    typeVbls,
+    // effectVbls: [],
+});
+
+export const refType = (id: string, typeVbls: Array<Type> = []): Type => ({
+    type: 'ref',
+    ref: { type: 'user', id: idFromName(id) },
     location: null,
     typeVbls,
     // effectVbls: [],
@@ -187,3 +209,84 @@ export function presetEnv(builtins: { [key: string]: Type }) {
 
     return env;
 }
+export const builtin = (name: string, is: Type, loc: Loc): Term => ({
+    type: 'ref',
+    ref: { type: 'builtin', name },
+    is,
+    location: loc,
+});
+
+export const floatLiteral = (value: number, location: Location): Term => ({
+    type: 'float',
+    value,
+    location,
+    is: float,
+});
+
+export const intLiteral = (value: number, location: Location): Term => ({
+    type: 'int',
+    value,
+    location,
+    is: int,
+});
+
+export const applyBuiltin = (
+    name: string,
+    args: Array<Term>,
+    is: Type,
+    loc: Location,
+): Term =>
+    apply(
+        builtin(
+            name,
+            pureFunction(
+                args.map((arg) => arg.is),
+                is,
+            ),
+            loc,
+        ),
+        args,
+        loc,
+    );
+
+export const var_ = (sym: Symbol, is: Type, loc: Loc): Term => ({
+    type: 'var',
+    sym,
+    is,
+    location: loc,
+});
+
+export const if_ = (
+    cond: Term,
+    yes: Term,
+    no: Term | null,
+    loc: Location,
+): Term => {
+    const noType = no == null ? void_ : no.is;
+    const err = getTypeError(null, yes.is, noType, loc);
+    if (err != null) {
+        throw err;
+    }
+    return {
+        type: 'if',
+        cond,
+        yes,
+        no,
+        is: yes.is,
+        location: loc,
+    };
+};
+
+export const and = (left: Term, right: Term, loc: Loc) =>
+    apply(
+        builtin('&&', pureFunction([bool, bool], bool), loc),
+        [left, right],
+        loc,
+    );
+
+export const or = (left: Term, right: Term, loc: Loc) =>
+    apply(
+        builtin('||', pureFunction([bool, bool], bool), loc),
+        [left, right],
+        loc,
+    );

@@ -21,6 +21,7 @@ import {
     Type,
     typesEqual,
 } from '../typing/types';
+import * as preset from '../typing/preset';
 import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
@@ -71,6 +72,7 @@ import { LocatedError } from '../typing/errors';
 import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
 import { explicitSpreads } from './ir/optimize/explicitSpreads';
 import { toplevelRecordAttribute } from './ir/optimize/inline';
+import { glslTester } from './glslTester';
 
 export type OutputOptions = {
     // readonly scope?: string;
@@ -543,6 +545,12 @@ const asBinop = (op: string) => (op === 'mod' || op === 'modInt' ? '%' : op);
 
 export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {
+        if (apply.args.length !== 2) {
+            throw new LocatedError(
+                apply.loc,
+                `Call to binop ${apply.target.name} needs 2 args, not ${apply.args.length}`,
+            );
+        }
         return items([
             atom('('),
             termToGlsl(env, opts, apply.args[0]),
@@ -716,16 +724,33 @@ export const fileToGlsl = (
         }
     }
 
-    const mains = Object.keys(env.global.metaData).filter((k) =>
+    let mains = Object.keys(env.global.metaData).filter((k) =>
         env.global.metaData[k].tags.includes('main'),
     );
     if (mains.length > 1) {
         console.warn(`Only one main allowed; ignoring the others`);
     }
+
+    // If there's no main, then:
+    // We generate one that does the test cases!
+    // green and red dots to indicate pass or fail
+
     if (!mains.length) {
-        console.error(`No @main defined!`);
-        return '// Error: No @main defined';
+        // Ok what's the wait to manufactor a main for us ...
+        const tests = expressions.filter((e) => typesEqual(e.is, preset.bool));
+        if (tests.length) {
+            mains = ['test_main'];
+            env.global.terms['test_main'] = glslTester(env, tests);
+            env.global.metaData[mains[0]] = {
+                tags: ['main'],
+                createdMs: Date.now(),
+            };
+        } else {
+            console.error(`No @main or tests defined!`);
+            return '// Error: No @main or tests defined';
+        }
     }
+
     const mainId = idFromName(mains[0]);
     const mainTags = env.global.metaData[mains[0]].tags;
     const mainTerm: Term = {
@@ -1091,6 +1116,13 @@ export const fileToGlsl = (
 
     Object.keys(irTerms).forEach((name) => {
         if (printed[name] && usedAfterOpt[name]) {
+            const loc = hasInvalidGLSL(irTerms[name].expr);
+            if (loc) {
+                // throw new LocatedError(
+                //     loc,
+                //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
+                // );
+            }
             items.push(printed[name]);
         }
     });
@@ -1164,4 +1196,30 @@ export const fileToGlsl = (
     }
 
     return items.map((item) => printToString(item, 100)).join('\n\n');
+};
+
+const hasInvalidGLSL = (expr: Expr) => {
+    let found: Loc = null;
+    // Toplevel record not allowed
+    if (
+        expr.type === 'record' &&
+        expr.base.type === 'Concrete' &&
+        !builtinTypes[idName(expr.base.ref.id)]
+    ) {
+        return expr.loc;
+    }
+    const top = expr;
+    transformExpr(expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (expr === top) {
+                return null;
+            }
+            if (expr.type === 'lambda') {
+                found = expr.loc;
+            }
+            return null;
+        },
+    });
+    return found;
 };

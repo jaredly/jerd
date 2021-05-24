@@ -325,3 +325,41 @@ type GLSLEnv = {
     camera: Vec3,
     mouse: Vec2,
 }
+
+// GLSL Tests you see
+
+// type ResultsState = {
+//     passed: float,
+//     failed: float,
+//     idx: int,
+// }
+// const rows = 20
+// const showGlslTestResults = <N: int,>(env: GLSLEnv, fragCoord: Vec2, results: FixedArray<N, bool>) => {
+//     const size = env.resolution.x / (rows as float);
+//     const state = reduce(results, ResultsState{passed: 100.0, failed: 100.0, idx: 0}, (state: ResultsState, passed: bool) => {
+//         const col = modInt(state.idx, rows);
+//         const row = (state.idx / rows) as int;
+//         const pos = Vec2{x: col * size, y: row * size};
+//         const circle = length(fragCoord - pos) - size / 2.0;
+//         if passed {
+//             ResultsState{
+//                 ...state,
+//                 passed: min(state.passed, circle),
+//                 idx: state.idx + 1,
+//             }
+//         } else {
+//             ResultsState{
+//                 ...state,
+//                 failed: min(state.failed, circle),
+//                 idx: state.idx + 1,
+//             }
+//         }
+//     });
+//     if state.passed < 0.0 {
+//         Vec4{x: 0.0, y: 1.0, z: 0.0, w: 1.0}
+//     } else if state.failed < 0.0 {
+//         Vec4{x: 0.0, y: 1.0, z: 0.0, w: 1.0}
+//     } else {
+//         Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0}
+//     }
+// }
