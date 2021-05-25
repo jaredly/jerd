@@ -12,37 +12,12 @@ import {
     subtTypeVars,
 } from '../utils';
 import { maxUnique } from './inline';
+import { liftLambdas } from './liftlambdas';
 import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
-
-export const findCapturedVariables = (lambda: Expr): Array<number> => {
-    const captured: Array<number> = [];
-    const defined: { [key: number]: true } = {};
-    transformExpr(lambda, {
-        ...defaultVisitor,
-        stmt: (stmt) => {
-            if (stmt.type === 'Define') {
-                defined[stmt.sym.unique] = true;
-            }
-            return null;
-        },
-        expr: (expr) => {
-            if (expr.type === 'lambda') {
-                expr.args.forEach((arg) => (defined[arg.sym.unique] = true));
-            }
-            if (expr.type === 'var') {
-                if (!defined[expr.sym.unique]) {
-                    captured.push(expr.sym.unique);
-                }
-            }
-            return null;
-        },
-    });
-    return captured;
-};
 
 export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
     // let outerMax = maxUnique(expr);
-    return transformExpr(expr, {
+    return transformExpr(liftLambdas(env, exprs, expr), {
         ...defaultVisitor,
         expr: (expr) => {
             // Ok what's the story
@@ -53,37 +28,37 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
             }
             const largs = expr.args.filter((a) => a.is.type === 'lambda');
             // Only lambdas and terms supported at the moment
-            if (
-                largs.length === 0 ||
-                largs.some((a) => a.type !== 'lambda' && a.type !== 'term')
-            ) {
+            if (largs.length === 0 || largs.some((a) => a.type !== 'term')) {
                 return null;
             }
-            const lambdaArgs: Array<{ arg: Expr; i: number }> = expr.args
+            const lambdaArgs: Array<{
+                arg: Expr;
+                i: number;
+            }> = expr.args
                 .map((arg, i) => ({ arg, i }))
-                .filter((a) => a.arg.is.type === 'lambda')
-                .map((arg) => {
-                    if (arg.arg.type === 'lambda') {
-                        // toplevel that folks
-                        if (findCapturedVariables(arg.arg).length) {
-                            return arg;
-                        }
-                        const hash = hashObject(arg.arg);
-                        const id: Id = { hash, size: 1, pos: 0 };
-                        exprs[hash] = { expr: arg.arg, inline: false };
-                        return {
-                            ...arg,
-                            arg: {
-                                type: 'term',
-                                id,
-                                loc: arg.arg.loc,
-                                is: arg.arg.is,
-                            },
-                        };
-                    } else {
-                        return arg;
-                    }
-                });
+                .filter((a) => a.arg.is.type === 'lambda');
+            // .map((arg) => {
+            //     if (arg.arg.type === 'lambda') {
+            //         // toplevel that folks
+            //         if (findCapturedVariables(arg.arg).length) {
+            //             return arg;
+            //         }
+            //         const hash = hashObject(arg.arg);
+            //         const id: Id = { hash, size: 1, pos: 0 };
+            //         exprs[hash] = { expr: arg.arg, inline: false };
+            //         return {
+            //             ...arg,
+            //             arg: {
+            //                 type: 'term',
+            //                 id,
+            //                 loc: arg.arg.loc,
+            //                 is: arg.arg.is,
+            //             },
+            //         };
+            //     } else {
+            //         return arg;
+            //     }
+            // });
             const indices: { [key: number]: true } = {};
             lambdaArgs.forEach((arg) => (indices[arg.i] = true));
             const newHash = hashObject({
