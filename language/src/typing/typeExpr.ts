@@ -259,7 +259,7 @@ export const applyTypeVariables = (
     throw new Error(`Can't apply variables to non-lambdas just yet`);
 };
 
-const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
+const typeExpr = (env: Env, expr: Expression): Term => {
     switch (expr.type) {
         case 'float':
             return {
@@ -389,6 +389,15 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return typeOps(env, expr);
         }
         case 'WithSuffix': {
+            // if (expr.suffixes[0].type === 'Apply') {
+            //     // OK here's where we'll want to do the bidirectional goodness.
+            //     // So tbh we'll want oooooh ok folks
+            //     // if we see a number without a decimal, we'll return a
+            //     // AmbiguousNumeral(value), and when we're passing it in
+            //     // somewhere, we can lock it down.........
+            //     // START HERE yes.
+            // }
+
             let target = typeExpr(env, expr.target);
             // So, among the denormalizations that we have,
             // the fact that references copy over the type of the thing

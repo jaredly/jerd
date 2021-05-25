@@ -1,6 +1,6 @@
 // For the applys
 
-import { Env, Type, Term, LambdaType, EffectRef } from '../types';
+import { Env, Type, Term, LambdaType, EffectRef, typesEqual } from '../types';
 import { ApplySuffix } from '../../parsing/parser';
 import { showType } from '../unify';
 import { resolveEffect } from '../env';
@@ -69,6 +69,63 @@ export const typeApply = (
         // );
     }
 
+    let resArgs = args.map((arg) => typeExpr(env, arg));
+
+    if (target.type === 'Ambiguous') {
+        // OK! resolve ambiguity pleaseeee
+        // oh hrmmmmmmmmmmmmm maybe .....
+        // this is...... where we resolve vbls?????
+        // hmmmmmm like what if we assign something somewhere
+        // .....
+        // ok yeah wait I just won't deal with ambiguity
+        // in other contexts (other than an apply), and you
+        // just have to deal with it. It'll be an error.
+        // Yes thanks.
+        const matching = target.options
+            .map((option) => {
+                if (option.is.type !== 'lambda') {
+                    return null;
+                }
+                if (option.is.args.length !== resArgs.length) {
+                    return null;
+                }
+                let matches = true;
+                const args = option.is.args.map((t, i) => {
+                    const arg = resArgs[i];
+                    if (arg.type === 'Ambiguous') {
+                        for (let opt of arg.options) {
+                            if (typesEqual(opt.is, t)) {
+                                return opt;
+                            }
+                        }
+                        matches = false;
+                        return arg;
+                    }
+                    // TODO: resolve ambiguities here too!
+                    if (!typesEqual(arg.is, t)) {
+                        matches = false;
+                    }
+                    return arg;
+                });
+                if (!matches) {
+                    return null;
+                }
+                return { option, args };
+            })
+            .filter(Boolean) as Array<{ option: Term; args: Array<Term> }>;
+        if (!matching.length) {
+            throw new LocatedError(
+                target.location,
+                `Ambiguous term doesn't match arguments ${resArgs
+                    .map((arg) => showType(env, arg.is))
+                    .join(', ')}`,
+            );
+        }
+        target = matching[0].option;
+        applied = target.is;
+        resArgs = matching[0].args;
+    }
+
     let is: LambdaType;
     if (target.is.type === 'var') {
         // const argTypes: Array<Type> = [];
@@ -107,22 +164,33 @@ export const typeApply = (
         is = applied;
     }
 
-    const resArgs: Array<Term> = [];
-    args.forEach((term, i) => {
-        const t: Term = typeExpr(env, term, is.args[i]);
-        const err = getTypeError(env, t.is, is.args[i], term.location);
+    // OK OK so now we need a wee bit of inference.
+    // How will this work?
+    // A: If target is ambiguous, then look to the args
+    // if args are ambiguous, look to the target
+    // um is this constraint solving?
+    // hmmmmmmmmm
+    // so in the UI case, we'd solve the ambiguity at the root
+    // like, if the target is ultimately ambiguous, we'd ask that,
+    // and then move on to the args, right?
+    // Yeah, and we'd have a Term type for "Ambiguous term", right?
+    // could be the same one for "unresolved term" tbh
+
+    // const resArgs: Array<Term> = [];
+    resArgs.forEach((term, i) => {
+        // const t: Term = typeExpr(env, term);
+        const err = getTypeError(env, term.is, is.args[i], term.location!);
         if (err !== null) {
             throw new LocatedError(
                 term.location,
                 `Wrong type for arg ${i}: \nFound: ${showType(
                     env,
-                    t.is,
+                    term.is,
                 )}\nbut expected ${showType(env, is.args[i])} : ${showLocation(
-                    t.location,
+                    term.location,
                 )}`,
             ).wrap(err);
         }
-        resArgs.push(t);
     });
 
     return {

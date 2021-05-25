@@ -1,0 +1,5 @@
+
+const one = (a: int) => a + 2
+const one = (a: float) => a + 4.0
+
+one(2) as float + one(3.0) == 11.0

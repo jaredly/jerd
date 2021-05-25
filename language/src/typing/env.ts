@@ -797,15 +797,27 @@ export const resolveIdentifier = (
         };
     }
     if (env.global.names[text]) {
-        const id = env.global.names[text][0];
-        const term = env.global.terms[idName(id)];
-        // console.log(`${text} : its a global: ${showType(env, term.is)}`);
+        const ids = env.global.names[text];
+        if (ids.length > 1) {
+            return {
+                type: 'Ambiguous',
+                options: ids.map((id) => ({
+                    type: 'ref',
+                    location,
+                    is: env.global.terms[idName(id)].is,
+                    ref: { type: 'user', id },
+                })),
+                is: { type: 'Unknown', location },
+                location,
+            };
+        }
+        const term = env.global.terms[idName(ids[0])];
         return {
             type: 'ref',
             location,
             ref: {
                 type: 'user',
-                id,
+                id: ids[0],
             },
             is: term.is,
         };

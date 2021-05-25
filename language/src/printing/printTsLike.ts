@@ -324,6 +324,8 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
             ]);
         case 'var':
             return symToPretty(type.sym);
+        case 'Unknown':
+            return atom('[unknown]');
         default:
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);
     }

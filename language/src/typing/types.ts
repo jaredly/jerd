@@ -457,7 +457,24 @@ export type Unary = {
     is: Type;
 };
 
+export type TypeError = {
+    type: 'TypeError';
+    is: Type; // this is the type that was needed
+    inner: Term; // this has the type that was found
+    location: Location | null;
+};
+
+export type Ambiguous = {
+    type: 'Ambiguous';
+    options: Array<Term>;
+    is: UnknownType;
+    location: Location | null;
+};
+
+export type ErrorTerm = Ambiguous | TypeError;
+
 export type Term =
+    | ErrorTerm
     | CPSAble
     | Unary
     | { type: 'self'; is: Type; location: Location | null }
@@ -738,7 +755,8 @@ export type TypeVar = {
     location: Location | null;
 };
 
-export type Type = TypeRef | LambdaType;
+export type UnknownType = { type: 'Unknown'; location: Location | null };
+export type Type = TypeRef | LambdaType | UnknownType;
 
 // Here's the basics folks
 // kind lambdas can't have effects, thank goodness
@@ -800,6 +818,12 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                 ...t.items.map((i) =>
                     getEffects(i.type === 'ArraySpread' ? i.value : i),
                 ),
+            );
+        case 'TypeError':
+            return getEffects(t.inner);
+        case 'Ambiguous':
+            return ([] as Array<EffectRef>).concat(
+                ...t.options.map(getEffects),
             );
         case 'apply': {
             let is = t.target.is as LambdaType;
@@ -911,6 +935,11 @@ export const walkTerm = (
     switch (term.type) {
         case 'Let':
             return walkTerm(term.value, handle);
+        case 'Ambiguous':
+            term.options.forEach((t) => walkTerm(t, handle));
+            return;
+        case 'TypeError':
+            return walkTerm(term.inner, handle);
         case 'raise':
             return term.args.forEach((t) => walkTerm(t, handle));
         case 'if':
