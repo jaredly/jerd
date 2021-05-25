@@ -1,7 +1,7 @@
 import { hashObject } from '../../../typing/env';
 import { Env, Id } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
-import { Expr } from '../types';
+import { Expr, LambdaExpr } from '../types';
 import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
 
 export const findCapturedVariables = (lambda: Expr): Array<number> => {
@@ -32,14 +32,19 @@ export const findCapturedVariables = (lambda: Expr): Array<number> => {
 
 export const liftLambdas = (env: Env, exprs: Exprs, expr: Expr) => {
     const toplevel = expr;
+    const immediatelyCalled: Array<LambdaExpr> = [];
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr: Expr) => {
             if (expr === toplevel) {
                 return null;
             }
+            if (expr.type === 'apply' && expr.target.type === 'lambda') {
+                immediatelyCalled.push(expr.target);
+            }
             if (
                 expr.type !== 'lambda' ||
+                immediatelyCalled.includes(expr) ||
                 findCapturedVariables(expr).length > 0
             ) {
                 return null;
