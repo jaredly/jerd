@@ -807,7 +807,7 @@ export const resolveIdentifier = (
                     is: env.global.terms[idName(id)].is,
                     ref: { type: 'user', id },
                 })),
-                is: { type: 'Unknown', location },
+                is: { type: 'Ambiguous', location },
                 location,
             };
         }

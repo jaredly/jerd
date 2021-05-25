@@ -467,7 +467,7 @@ export type TypeError = {
 export type Ambiguous = {
     type: 'Ambiguous';
     options: Array<Term>;
-    is: UnknownType;
+    is: AmbiguousType;
     location: Location | null;
 };
 
@@ -755,8 +755,8 @@ export type TypeVar = {
     location: Location | null;
 };
 
-export type UnknownType = { type: 'Unknown'; location: Location | null };
-export type Type = TypeRef | LambdaType | UnknownType;
+export type AmbiguousType = { type: 'Ambiguous'; location: Location | null };
+export type Type = TypeRef | LambdaType | AmbiguousType;
 
 // Here's the basics folks
 // kind lambdas can't have effects, thank goodness

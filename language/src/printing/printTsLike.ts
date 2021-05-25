@@ -324,8 +324,8 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
             ]);
         case 'var':
             return symToPretty(type.sym);
-        case 'Unknown':
-            return atom('[unknown]');
+        case 'Ambiguous':
+            return atom('[ambiguous - error!]');
         default:
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);
     }
@@ -654,6 +654,10 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     ')',
                 ),
             ]);
+        case 'Ambiguous':
+            return atom('[ambiguous! error]');
+        case 'TypeError':
+            return atom('[type error!]');
         default:
             let _x: never = term;
             return atom(

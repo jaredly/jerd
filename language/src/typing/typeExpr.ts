@@ -450,7 +450,7 @@ const typeExpr = (env: Env, expr: Expression): Term => {
             };
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
-                const t = typeExpr(env, term, eff.args[i]);
+                const t = typeExpr(env, term); // STOPSHIP figure this out , eff.args[i]);
                 const err = getTypeError(env, t.is, eff.args[i], term.location);
                 if (err != null) {
                     throw new TypeError(

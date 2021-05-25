@@ -441,6 +441,16 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 ),
             );
         }
+        case 'Ambiguous':
+            throw new LocatedError(
+                term.location,
+                `Cannot print ambiguous term to IR. Must resolve before printing.`,
+            );
+        case 'TypeError':
+            throw new LocatedError(
+                term.location,
+                `Cannot print type error term to IR. Must resolve before printing.`,
+            );
         default:
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type} to IR`);

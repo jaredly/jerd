@@ -65,7 +65,7 @@ but I'll need to keep track of comments in order to do that.
       - ok, so if it requires in-scope variables, ignore it for now.
       - and later we'll do a fun struct thing.
     - try to inline it, and then toplevel it if necessary.
-- [ ] OK and then we also need MULTIPLE NAMES. So idNames needs to be a list. And let's extract all usages of idNames into env.ts.
+- [x] OK and then we also need MULTIPLE NAMES. So idNames needs to be a list. And let's extract all usages of idNames into env.ts.
   - Then we can overload all the builtin functions to our heart's content, and maybe be ready to actually demo stuff?
   - of course, we'll then need the ability to indicate that a given term "overrides" another term, and should take precedence in the 'idNames' list. ... although, maybe that's settled by just having newer things sorted after? ok but I do want a replaces thing. But will also need a 'createdDate' metadata, do want that.
 - [ ] AND THEN we can bring this wonderful GLSL goodness to our web editor bonanza.

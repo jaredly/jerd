@@ -245,6 +245,10 @@ export const typeFromTermType = (
                     typeFromTermType(env, opts, t),
                 ),
             };
+        case 'Ambiguous':
+            throw new Error(
+                `Cannot convert ambiguous type to IR. Must resolve before printing.`,
+            );
         case 'var':
             return {
                 type: 'var',
