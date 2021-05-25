@@ -43,6 +43,7 @@ import {
 import { and, asBlock, builtin, iffe } from '../utils';
 import { flattenImmediateCalls } from './flattenImmediateCalls';
 import { inlint } from './inline';
+import { monoconstant } from './monoconstant';
 import { monomorphize } from './monomorphize';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
@@ -68,6 +69,7 @@ export const optimizeAggressive = (
 ): Expr => {
     expr = inlint(env, exprs, expr, id);
     expr = monomorphize(env, exprs, expr);
+    expr = monoconstant(env, exprs, expr);
     // Ok, now that we've inlined /some/ things,
     // let's inline more things!
     // Like, when we find ... a lambda being passed
