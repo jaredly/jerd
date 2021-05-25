@@ -107,25 +107,25 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
             [
                 {
                     type: 'Attribute',
-                    idx: env.global.attributeNames['x'].idx,
+                    idx: env.global.attributeNames['x'][0].idx,
                     location: loc,
                     inferred: false,
                     is: float,
-                    ref: { type: 'user', id: env.global.typeNames['Vec2'] },
+                    ref: { type: 'user', id: env.global.typeNames['Vec2'][0] },
                     target: {
                         type: 'Attribute',
                         target: var_(
                             envSym,
-                            refType(idName(env.global.typeNames['GLSLEnv'])),
+                            refType(idName(env.global.typeNames['GLSLEnv'][0])),
                             loc,
                         ),
-                        idx: env.global.attributeNames['resolution'].idx,
+                        idx: env.global.attributeNames['resolution'][0].idx,
                         location: loc,
                         inferred: false,
                         is: Vec2,
                         ref: {
                             type: 'user',
-                            id: env.global.typeNames['GLSLEnv'],
+                            id: env.global.typeNames['GLSLEnv'][0],
                         },
                     },
                 },
@@ -238,7 +238,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         body: block,
         location: null,
         is: pureFunction(
-            [refType(idName(env.global.typeNames['GLSLEnv'])), Vec2],
+            [refType(idName(env.global.typeNames['GLSLEnv'][0])), Vec2],
             Vec4,
         ),
     };

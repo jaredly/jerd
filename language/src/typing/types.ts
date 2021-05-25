@@ -51,10 +51,10 @@ export type Env = {
 
 export type GlobalEnv = {
     rng: () => number;
-    names: { [key: string]: Id };
+    names: { [humanName: string]: Array<Id> };
     idNames: { [idName: string]: string };
-    terms: { [key: string]: Term };
-    exportedTerms: { [key: string]: Id };
+    terms: { [idName: string]: Term };
+    exportedTerms: { [humanName: string]: Id };
     metaData: {
         [idName: string]: {
             tags: Array<string>;
@@ -69,15 +69,18 @@ export type GlobalEnv = {
     // number here is "number of type arguments"
     builtinTypes: { [key: string]: number };
 
-    typeNames: { [key: string]: Id };
-    types: { [key: string]: TypeDef };
+    typeNames: { [humanName: string]: Array<Id> };
+    types: { [idName: string]: TypeDef };
 
     // These are two ways of saying the same thing
     recordGroups: { [key: string]: Array<string> };
-    attributeNames: { [key: string]: { id: Id; idx: number } };
+    attributeNames: { [humanName: string]: Array<{ id: Id; idx: number }> };
 
-    effectNames: { [key: string]: string };
-    effectConstructors: { [key: string]: { idName: string; idx: number } };
+    effectNames: { [humanName: string]: Array<string> };
+    effectConstructors: {
+        // TODO: multi here
+        [humanName: string]: { idName: string; idx: number };
+    };
     effectConstrNames: { [idName: string]: Array<string> };
     effects: {
         [key: string]: Array<{
@@ -93,7 +96,7 @@ export type Self =
           name: string;
           ann: Type;
       }
-      | {type: 'Effect', name: string, vbls: Array<number>}
+    | { type: 'Effect'; name: string; vbls: Array<number> }
     | {
           type: 'Type';
           name: string;

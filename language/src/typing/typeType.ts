@@ -148,7 +148,7 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     type: 'ref',
                     ref: {
                         type: 'user',
-                        id: env.global.typeNames[type.id.text],
+                        id: env.global.typeNames[type.id.text][0],
                     },
                     typeVbls,
                     // effectVbls,
@@ -227,6 +227,7 @@ export const newEnvWithTypeAndEffectVbls = (
         const sym: Symbol = { name: id.text, unique };
         const st = subTypes.map((id) => {
             const t = env.global.typeNames[id.text];
+            // TODO: check id.hash
             if (!t) {
                 throw new LocatedError(
                     id.location,
@@ -235,7 +236,7 @@ export const newEnvWithTypeAndEffectVbls = (
                     )}`,
                 );
             }
-            return t;
+            return t[0];
         });
         typeInner.local.typeVbls[sym.unique] = { subTypes: st };
         typeInner.local.typeVblNames[id.text] = sym;

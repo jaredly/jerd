@@ -63,7 +63,7 @@ export const typeAttribute = (
         if (!env.global.attributeNames[suffix.id.text]) {
             throw new Error(`Unknown attribute name ${suffix.id.text}`);
         }
-        const attr = env.global.attributeNames[suffix.id.text];
+        const attr = env.global.attributeNames[suffix.id.text][0];
         idx = attr.idx;
         const id = attr.id;
         ref = { type: 'user', id };

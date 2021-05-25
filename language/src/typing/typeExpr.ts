@@ -475,14 +475,15 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return typeRecord(env, expr);
         }
         case 'Enum': {
-            const id = env.global.typeNames[expr.id.text];
-            if (!id) {
+            const ids = env.global.typeNames[expr.id.text];
+            if (!ids) {
                 throw new Error(
                     `No Enum type ${expr.id.text} at ${showLocation(
                         expr.location,
                     )}`,
                 );
             }
+            const id = ids[0];
 
             let t = env.global.types[idName(id)] as EnumDef;
             if (t.type !== 'Enum') {
@@ -572,7 +573,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     `Unknown unary op ${expr.op}`,
                 );
             }
-            const { idx, id } = env.global.attributeNames[expr.op];
+            const { idx, id } = env.global.attributeNames[expr.op][0];
             const fn = findUnaryOp(env, id, idx, inner.is, expr.location);
             if (!fn) {
                 if (expr.op === '-' && typesEqual(inner.is, float)) {

@@ -67,8 +67,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 throw new Error(`No type with id ${hash}`);
             }
         } else {
-            id = env.global.typeNames[expr.id.text];
-            if (!id) {
+            const ids = env.global.typeNames[expr.id.text];
+            if (!ids) {
                 console.log(env.global.typeNames);
                 throw new LocatedError(
                     expr.location,
@@ -77,6 +77,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     )}`,
                 );
             }
+            id = ids[0];
         }
         const typeVbls = expr.typeVbls.map((t) => typeType(env, t));
         const t = applyTypeVariablesToRecord(

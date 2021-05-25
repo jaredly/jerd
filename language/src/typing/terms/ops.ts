@@ -179,7 +179,7 @@ const typeNewOp = (
         };
         // TODO: allow ambiguity
     } else if (env.global.attributeNames[op]) {
-        const { idx, id } = env.global.attributeNames[op];
+        const { idx, id } = env.global.attributeNames[op][0];
         const found = findOp(env, id, idx, left.is, rarg.is, location);
         if (found == null) {
             return null;

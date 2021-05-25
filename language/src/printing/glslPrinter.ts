@@ -1138,7 +1138,7 @@ export const fileToGlsl = (
         type: 'record',
         base: {
             type: 'Concrete',
-            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'] },
+            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
             spread: null,
             rows: [
                 builtin('u_time', nullLocation, float),
@@ -1149,7 +1149,7 @@ export const fileToGlsl = (
         },
         is: {
             type: 'ref',
-            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'] },
+            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
             loc: nullLocation,
             typeVbls: [],
         },

@@ -159,7 +159,7 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         env.global.builtinTypes['Tuple' + i] = i;
     }
 
-    env.global.typeNames['As'] = { hash: 'As', pos: 0, size: 1 };
+    env.global.typeNames['As'] = [{ hash: 'As', pos: 0, size: 1 }];
     env.global.types['As'] = {
         unique: 2,
         type: 'Record',
@@ -172,14 +172,16 @@ export function presetEnv(builtins: { [key: string]: Type }) {
     };
     env.global.recordGroups['As'] = ['as'];
     env.global.idNames['As'] = 'As';
-    env.global.attributeNames['as'] = {
-        idx: 0,
-        id: { hash: 'As', pos: 0, size: 1 },
-    };
+    env.global.attributeNames['as'] = [
+        {
+            idx: 0,
+            id: { hash: 'As', pos: 0, size: 1 },
+        },
+    ];
 
-    env.global.typeNames['Some'] = { hash: 'Some', pos: 0, size: 1 };
+    env.global.typeNames['Some'] = [{ hash: 'Some', pos: 0, size: 1 }];
     env.global.idNames['Some'] = 'Some';
-    env.global.typeNames['None'] = { hash: 'None', pos: 0, size: 1 };
+    env.global.typeNames['None'] = [{ hash: 'None', pos: 0, size: 1 }];
     env.global.idNames['None'] = 'None';
     env.global.types['None'] = {
         unique: 1,
@@ -202,10 +204,12 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         ffi: null,
     };
     env.global.recordGroups['Some'] = ['contents'];
-    env.global.attributeNames['contents'] = {
-        idx: 0,
-        id: { hash: 'Some', pos: 0, size: 1 },
-    };
+    env.global.attributeNames['contents'] = [
+        {
+            idx: 0,
+            id: { hash: 'Some', pos: 0, size: 1 },
+        },
+    ];
 
     return env;
 }

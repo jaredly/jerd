@@ -155,7 +155,7 @@ const testInference = (
             // }
             const hash: string = hashObject(term);
             const id: Id = { hash: hash, size: 1, pos: 0 };
-            env.global.names[item.id.text] = id;
+            env.global.names[item.id.text] = [id];
             env.global.idNames[idName(id)] = item.id.text;
             env.global.terms[hash] = term;
 
