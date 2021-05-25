@@ -24,7 +24,9 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
             // is of type `lambda`
             if (
                 expr.type !== 'apply' ||
-                expr.args.filter((a) => a.is.type === 'lambda').length === 0 ||
+                expr.args.filter(
+                    (a) => a.is.type === 'lambda' && a.type === 'term',
+                ).length === 0 ||
                 expr.target.type !== 'term'
             ) {
                 return null;
@@ -74,6 +76,7 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
 
             let newTerm: Expr = { ...l, is, args, body };
             const id = { hash: newHash, size: 1, pos: 0 };
+            newTerm = optimizeDefine(env, newTerm, id);
             newTerm = optimizeAggressive(env, exprs, newTerm, id);
             newTerm = optimizeDefine(env, newTerm, id);
 

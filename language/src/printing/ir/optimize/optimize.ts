@@ -425,9 +425,9 @@ export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
     let tupleConstants: { [v: string]: Tuple } = {};
     return transformExpr(expr, {
         ...defaultVisitor,
-        // Don't go into lambdas
+        // Don't go into lambdas that aren't the toplevel one
         expr: (value) => {
-            if (value.type === 'lambda') {
+            if (value.type === 'lambda' && value !== expr) {
                 return false;
             }
             if (value.type === 'handle') {

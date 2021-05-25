@@ -164,7 +164,10 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     // effectVbls,
                 };
             }
-            throw new Error(`Unknown type "${type.id.text}"`);
+            throw new LocatedError(
+                type.location,
+                `Unknown type "${type.id.text}"`,
+            );
         }
 
         case 'lambda': {
@@ -225,7 +228,8 @@ export const newEnvWithTypeAndEffectVbls = (
         const st = subTypes.map((id) => {
             const t = env.global.typeNames[id.text];
             if (!t) {
-                throw new Error(
+                throw new LocatedError(
+                    id.location,
                     `Unknown subtype ${id.text} at ${showLocation(
                         id.location,
                     )}`,
