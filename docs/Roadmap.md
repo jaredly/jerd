@@ -57,8 +57,16 @@ but I'll need to keep track of comments in order to do that.
       - switch statement, which will be a bunch of ifs
       - if that doesn't end in a return. but might contain something that does.
       - So, in the general case, I think we just do: we have a top-level "hasReturned", and put all blocks in a "hasReturned" if (merging with an if if it exists?)
+- [x] specialize functions that take a function argument
+- [ ] handle passing a lambda
+  - options:
+    - immediately toplevel-it
+      - this seems better
+      - ok, so if it requires in-scope variables, ignore it for now.
+      - and later we'll do a fun struct thing.
+    - try to inline it, and then toplevel it if necessary.
+- [ ] forbid the use of lambdas that close over things? or just convert the closed stuff to a record?
 - [ ] fix inlining of recursive functions? well to do that I need to do inlining of lambdas that capture scope variables.
-- [ ] specialize functions that take a lambda, or inline them if the lambda has scope (need to be able to hash irTerms btw)
 - [ ] OK and then we also need MULTIPLE NAMES. So idNames needs to be a list. And let's extract all usages of idNames into env.ts.
   - Then we can overload all the builtin functions to our heart's content, and maybe be ready to actually demo stuff?
   - of course, we'll then need the ability to indicate that a given term "overrides" another term, and should take precedence in the 'idNames' list. ... although, maybe that's settled by just having newer things sorted after? ok but I do want a replaces thing. But will also need a 'createdDate' metadata, do want that.

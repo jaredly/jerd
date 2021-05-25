@@ -50,22 +50,22 @@ const rayDirection = (fieldOfView: float, size: Vec2, fragCoord: Vec2) => {
     normalize(vec3(xy, -z))
 }
 
-@ffi
-@main
-const fishingBoueys = (env: GLSLEnv, fragCoord: Vec2) => {
-    // The direction to march in from the eye position
-    // which will then find the color of the provided pixel
-	const dir = rayDirection(45.0, env.resolution, fragCoord);
-    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
-    const dist = shortestDistanceToSurface(sceneSDF, env.time, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+// @ffi
+// @main
+// const fishingBoueys = (env: GLSLEnv, fragCoord: Vec2) => {
+//     // The direction to march in from the eye position
+//     // which will then find the color of the provided pixel
+// 	const dir = rayDirection(45.0, env.resolution, fragCoord);
+//     const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+//     const dist = shortestDistanceToSurface(sceneSDF, env.time, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
 
-    if dist > MAX_DIST - EPSILON {
-        // Nothing visible
-        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0};
-    } else {
-        Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
-    }
-}
+//     if dist > MAX_DIST - EPSILON {
+//         // Nothing visible
+//         Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0};
+//     } else {
+//         Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
+//     }
+// }
 
 // const x = (y: int) => y * 20
 
@@ -81,3 +81,4 @@ const h = (m: int) => m - 2
 y(z, 30) == 60 + 2 + 5 + 2
 y(h, 30) == 60 - 2 + 5 - 2
 
+y((n: int) => n + 3, 30) == 60 + 5 + 6
