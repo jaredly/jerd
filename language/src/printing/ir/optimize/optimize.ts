@@ -43,6 +43,7 @@ import {
 import { and, asBlock, builtin, iffe } from '../utils';
 import { flattenImmediateCalls } from './flattenImmediateCalls';
 import { inlint } from './inline';
+import { monomorphize } from './monomorphize';
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
@@ -66,6 +67,27 @@ export const optimizeAggressive = (
     id: Id,
 ): Expr => {
     expr = inlint(env, exprs, expr, id);
+    expr = monomorphize(env, exprs, expr);
+    // Ok, now that we've inlined /some/ things,
+    // let's inline more things!
+    // Like, when we find ... a lambda being passed
+    // well first
+    // when we find a lambda as a variable
+    // we go ahead and inline it everywhere
+    // unless it takes scope variables
+    // in which case we just die a little
+    // maybe?
+    // Although: We could turn it into:
+    // lambda_scope: {a: a, b: b, c: c} (we'd have to gen a type for it)
+    // and then when "passing" the lambda in, we instead pass the struct.
+    // How would that jive with the notion of passing in various functions,
+    // and doing a bunch of IFs?
+    // Ok so first we inline constants, right?
+    // to see if we can remove the scope variable
+    // hmm ok yeah.
+
+    // ok well first step is not to do lambdas, but rather
+    // just top-level functions.
     return expr;
 };
 

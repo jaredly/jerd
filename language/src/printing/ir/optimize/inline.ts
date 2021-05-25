@@ -121,7 +121,7 @@ const getInlineableFunction = (
     return null;
 };
 
-const maxUnique = (expr: Expr) => {
+export const maxUnique = (expr: Expr) => {
     let max = 0;
     transformExpr(expr, {
         ...defaultVisitor,

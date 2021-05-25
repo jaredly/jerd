@@ -713,6 +713,25 @@ function typeVblDeclsToPretty(env: Env, typeVbls: TypeVblDecl[]): PP | null {
 export const showType = (env: Env, t: Type): string =>
     printToString(typeToPretty(env, t), 100);
 
+export const makeTypeVblMapping = (
+    declared: Array<TypeVblDecl>,
+    vbls: Array<Type>,
+) => {
+    const mapping: { [unique: number]: Type } = {};
+    vbls.forEach((typ, i) => {
+        // Umm should I still be doing the subtype checks?
+        // const subs = t.typeVbls[i].subTypes;
+        // for (let sub of subs) {
+        //     if (!hasSubType(env, typ, sub)) {
+        //         throw new Error(`Expected a subtype of ${idName(sub)}`);
+        //     }
+        // }
+        mapping[declared[i].unique] = typ;
+    });
+
+    return mapping;
+};
+
 export const applyTypeVariables = (
     env: Env,
     type: Type,
@@ -723,7 +742,6 @@ export const applyTypeVariables = (
     if (type.type === 'lambda') {
         const t: LambdaType = type as LambdaType;
 
-        const mapping: { [unique: number]: Type } = {};
         if (vbls.length !== t.typeVbls.length) {
             console.log('the variables', t.typeVbls);
             console.log(showType(env, type));
@@ -732,16 +750,7 @@ export const applyTypeVariables = (
                 `Wrong number of type variables: found ${vbls.length}, expected ${t.typeVbls.length}`,
             );
         }
-        vbls.forEach((typ, i) => {
-            // Umm should I still be doing the subtype checks?
-            // const subs = t.typeVbls[i].subTypes;
-            // for (let sub of subs) {
-            //     if (!hasSubType(env, typ, sub)) {
-            //         throw new Error(`Expected a subtype of ${idName(sub)}`);
-            //     }
-            // }
-            mapping[t.typeVbls[i].unique] = typ;
-        });
+        const mapping = makeTypeVblMapping(t.typeVbls, vbls);
         return {
             ...type,
             typeVbls: [], // TODO allow partial application!

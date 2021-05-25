@@ -23,6 +23,19 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
+// skipping AddSub_b99b22d8, contains type variables
+
+// skipping Mul_1de4e4c0, contains type variables
+
+// skipping Div_5ac12902, contains type variables
+
+/* *
+```
+const MAX_MARCHING_STEPS#62404440: int = 255
+```
+ */
+const int MAX_MARCHING_STEPS_62404440 = 255;
+
 /**
 ```
 const negVec3#4129390c: (Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (v#:0: Vec3#9f1c0644) ={}> {
@@ -221,21 +234,6 @@ float radians_dabe7f9c(
     return ((degrees_0 / 180.0) * PI);
 }
 
-/* *
-```
-const white#0678f03c: Vec3#9f1c0644 = Vec3#9f1c0644{
-    x#43802a16#0: 1.0,
-    y#43802a16#1: 1.0,
-    z#9f1c0644#0: 1.0,
-}
-```
- */
-const vec3 white_0678f03c = vec3(
-    1.0,
-    1.0,
-    1.0
-);
-
 /**
 ```
 const isPointingTowardLight#bbae554c: (float, Vec3#9f1c0644, Vec3#9f1c0644) ={}> bool = (
@@ -375,13 +373,6 @@ vec3 rayDirection_fb220c84(
     );
 }
 
-/* *
-```
-const MAX_MARCHING_STEPS#62404440: int = 255
-```
- */
-const int MAX_MARCHING_STEPS_62404440 = 255;
-
 /**
 ```
 const dot2#369652bb: (Vec2#43802a16, Vec2#43802a16) ={}> float = (
@@ -513,37 +504,27 @@ vec4 fishingBoueys_3cabd8b2(
                 MAX_MARCHING_STEPS_62404440
             );
             if ((marchToLight_14 > (MAX_DIST_0ce717e6 - (EPSILON_ec7f8d1c * 10.0)))) {
-                vec3 spread_16 = (white_0678f03c * light_6);
+                vec3 spread_16 = (vec3(1.0, 1.0, 1.0) * light_6);
                 return vec4(spread_16.x, spread_16.y, spread_16.z, 1.0);
             } else {
                 if (((marchToLight_14 - length(toLight_13)) < (-EPSILON_ec7f8d1c * 1000.0))) {
-                    vec3 spread_17 = (white_0678f03c * light_6);
+                    vec3 spread_17 = (vec3(1.0, 1.0, 1.0) * light_6);
                     return vec4(spread_17.x, spread_17.y, spread_17.z, 1.0);
                 } else {
-                    return vec4(white_0678f03c.x, white_0678f03c.y, white_0678f03c.z, 1.0);
+                    return vec4(
+                        vec3(1.0, 1.0, 1.0).x,
+                        vec3(1.0, 1.0, 1.0).y,
+                        vec3(1.0, 1.0, 1.0).z,
+                        1.0
+                    );
                 };
             };
         } else {
-            vec3 spread_18 = (white_0678f03c * light_6);
+            vec3 spread_18 = (vec3(1.0, 1.0, 1.0) * light_6);
             return vec4(spread_18.x, spread_18.y, spread_18.z, 1.0);
         };
     };
 }
-
-/* *
-```
-const red#7d188c3c: Vec3#9f1c0644 = Vec3#9f1c0644{
-    x#43802a16#0: 1.0,
-    y#43802a16#1: 0.0,
-    z#9f1c0644#0: 0.0,
-}
-```
- */
-const vec3 red_7d188c3c = vec3(
-    1.0,
-    0.0,
-    0.0
-);
 
 /**
 ```
@@ -606,16 +587,12 @@ vec4 randFolks_32a9474b(
 ) {
     float scale_2 = 14.0;
     vec2 small_3 = (roundv2_b9171b62((fragCoord_1 / scale_2)) * scale_2);
-    vec4 lambdaBlockResult_13;
-    vec3 spread_7 = (red_7d188c3c * ((random_347089ef(
+    vec4 lambdaBlockResult_8;
+    vec3 spread_7 = (vec3(1.0, 0.0, 0.0) * ((random_347089ef(
         (vec2(small_3.x, (small_3.y + env_0.time)) / env_0.resolution)
     ) / 10.0) + 0.90));
-    lambdaBlockResult_13 = vec4(spread_7.x, spread_7.y, spread_7.z, 1.0);
-    return ((lambdaBlockResult_13 + fishingBoueys_3cabd8b2(
-        env_0.time,
-        fragCoord_1,
-        env_0.resolution
-    )) / 2.0);
+    lambdaBlockResult_8 = vec4(spread_7.x, spread_7.y, spread_7.z, 1.0);
+    return ((lambdaBlockResult_8 + fishingBoueys_3cabd8b2(env_0.time, fragCoord_1, env_0.resolution)) / 2.0);
 }
 
 void main() {

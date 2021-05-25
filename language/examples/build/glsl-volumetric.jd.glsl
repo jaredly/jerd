@@ -335,21 +335,6 @@ float volumetricSample_bc6322d4(
 
 /* *
 ```
-const white#0678f03c: Vec3#9f1c0644 = Vec3#9f1c0644{
-    x#43802a16#0: 1.0,
-    y#43802a16#1: 1.0,
-    z#9f1c0644#0: 1.0,
-}
-```
- */
-const vec3 white_0678f03c = vec3(
-    1.0,
-    1.0,
-    1.0
-);
-
-/* *
-```
 const MAX_DIST#0ce717e6: float = 100.0
 ```
  */
@@ -561,13 +546,13 @@ mat4 viewMatrix_c4780f44(
     vec3 f_3 = normalize((center_1 - eye_0));
     vec3 s_4 = normalize(cross_54f2119c(f_3, up_2));
     vec3 u_5 = cross_54f2119c(s_4, f_3);
-    vec4 lambdaBlockResult_7;
+    vec4 lambdaBlockResult_8;
     vec3 spread_6 = negVec3_4129390c(f_3);
-    lambdaBlockResult_7 = vec4(spread_6.x, spread_6.y, spread_6.z, 0.0);
+    lambdaBlockResult_8 = vec4(spread_6.x, spread_6.y, spread_6.z, 0.0);
     return mat4(
         vec4(s_4.x, s_4.y, s_4.z, 0.0),
         vec4(u_5.x, u_5.y, u_5.z, 0.0),
-        lambdaBlockResult_7,
+        lambdaBlockResult_8,
         vec4_4d4983bb(0.0, 0.0, 0.0, 1.0)
     );
 }
@@ -718,7 +703,7 @@ vec4 fishingBoueys_c225509c(
             int(samples_13),
             samples_13
         ) * 3.0) / samples_13);
-        vec3 spread_15 = (((white_0678f03c * brightness_14) * brightness_14) * brightness_14);
+        vec3 spread_15 = (((vec3(1.0, 1.0, 1.0) * brightness_14) * brightness_14) * brightness_14);
         return vec4(spread_15.x, spread_15.y, spread_15.z, 1.0);
     };
 }

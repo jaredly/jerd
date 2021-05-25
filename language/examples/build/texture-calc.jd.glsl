@@ -10,9 +10,13 @@ uniform sampler2D u_buffer0;
 
 uniform float u_time;
 
+uniform vec2 u_mouse;
+
 uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
+
+// skipping Div_5ac12902, contains type variables
 
 /**
 ```
@@ -35,15 +39,15 @@ const pendulum#2d222162: (float, Vec2#43802a16, Vec2#43802a16, Vec3#9f1c0644, sa
 }
 ```
 */
-vec4 V2d222162(
+vec4 pendulum_2d222162(
     float iTime_0,
     vec2 fragCoord_1,
     vec2 iResolution_2,
     vec3 uCamera_3,
     sampler2D buffer_4
 ) {
-    if ((iTime_0 < 0.10000)) {
-        return vec4(0.00000, 0.00000, 0.00000, 1.00000);
+    if ((iTime_0 < 0.10)) {
+        return vec4(0.0, 0.0, 0.0, 1.0);
     } else {
         vec4 current_5 = texture(buffer_4, (fragCoord_1 / iResolution_2));
         return vec4((current_5.x + 0.00001), current_5.y, current_5.z, current_5.w);
@@ -63,7 +67,7 @@ const main#3a366a4a: (float, Vec2#43802a16, Vec2#43802a16, Vec3#9f1c0644, sample
 }
 ```
 */
-vec4 V3a366a4a(
+vec4 main_3a366a4a(
     float iTime_0,
     vec2 fragCoord_1,
     vec2 iResolution_2,
@@ -76,13 +80,21 @@ vec4 V3a366a4a(
 #if defined(BUFFER_0)
 
 void main() {
-    fragColor = V2d222162(u_time, gl_FragCoord.xy, u_resolution, u_camera, u_buffer0);
+    fragColor = pendulum_2d222162(
+        GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
+        gl_FragCoord.xy,
+        u_buffer0
+    );
 }
 
 #else
 
 void main() {
-    fragColor = V3a366a4a(u_time, gl_FragCoord.xy, u_resolution, u_camera, u_buffer0);
+    fragColor = main_3a366a4a(
+        GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
+        gl_FragCoord.xy,
+        u_buffer0
+    );
 }
 
 #endif

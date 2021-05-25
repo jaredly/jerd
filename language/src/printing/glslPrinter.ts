@@ -1123,15 +1123,34 @@ export const fileToGlsl = (
     // );
 
     Object.keys(irTerms).forEach((name) => {
-        if (printed[name] && usedAfterOpt[name]) {
-            const loc = hasInvalidGLSL(irTerms[name].expr);
-            if (loc) {
-                // throw new LocatedError(
-                //     loc,
-                //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
-                // );
+        if (usedAfterOpt[name]) {
+            if (printed[name]) {
+                const loc = hasInvalidGLSL(irTerms[name].expr);
+                if (loc) {
+                    // throw new LocatedError(
+                    //     loc,
+                    //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
+                    // );
+                }
+                items.push(printed[name]);
+            } else {
+                // let term = env.global.terms[idRaw];
+                const senv = selfEnv(env, {
+                    type: 'Term',
+                    name,
+                    ann: preset.void_,
+                    // ann: irTerms[name].expr.is,
+                });
+                printed[name] = declarationToGlsl(
+                    senv,
+                    opts,
+                    name,
+                    irTerms[name].expr,
+                    ' -- generated -- ',
+                );
+
+                items.push(printed[name]);
             }
-            items.push(printed[name]);
         }
     });
 
