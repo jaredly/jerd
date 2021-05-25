@@ -134,7 +134,16 @@ export const sortAllDeps = (allDeps: {
 }): Array<string> => {
     const allIds: { [key: string]: Array<string> } = {};
     Object.keys(allDeps).forEach((k) => (allIds[k] = allDeps[k].map(idName)));
-    const lastToFirst = topoSort(allIds);
+    return sortAllDepsPlain(allIds);
+    // const lastToFirst = topoSort(allIds);
+    // lastToFirst.reverse();
+    // return lastToFirst;
+};
+
+export const sortAllDepsPlain = (allDeps: {
+    [key: string]: Array<string>;
+}): Array<string> => {
+    const lastToFirst = topoSort(allDeps);
     lastToFirst.reverse();
     return lastToFirst;
 };

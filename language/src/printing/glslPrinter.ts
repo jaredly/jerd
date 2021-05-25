@@ -4,6 +4,8 @@
 import {
     expressionDeps,
     expressionTypeDeps,
+    sortAllDeps,
+    sortAllDepsPlain,
     sortTerms,
 } from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
@@ -1068,17 +1070,8 @@ export const fileToGlsl = (
     });
 
     const usedAfterOpt: { [key: string]: true } = {};
-    // const mainTerm: Term = {
-    //     type: 'ref',
-    //     ref: {
-    //         type: 'user',
-    //         id: mainId,
-    //     },
-    //     location: nullLocation,
-    //     is: env.global.terms[idName(mainId)].is,
-    // };
-
     const toWalk = [idName(mainId), ...buffers];
+    const irDeps: { [key: string]: Array<string> } = {};
     while (toWalk.length) {
         const next = toWalk.shift();
         if (!next) {
@@ -1089,40 +1082,27 @@ export const fileToGlsl = (
             continue;
         }
         usedAfterOpt[next] = true;
+        const deps: { [key: string]: true } = {};
         transformExpr(irTerms[next].expr, {
             ...defaultVisitor,
             expr: (expr) => {
                 if (expr.type === 'term') {
+                    deps[idName(expr.id)] = true;
                     toWalk.push(idName(expr.id));
                 }
                 if (expr.type === 'genTerm') {
+                    deps[expr.id] = true;
                     toWalk.push(expr.id);
                 }
                 return null;
             },
         });
+        irDeps[next] = Object.keys(deps);
     }
 
-    // const orderedTerms = expressionDeps(
-    //     env,
-    //     expressions.concat([
-    //         mainTerm,
-    //         ...buffers.map(
-    //             (id) =>
-    //                 ({
-    //                     type: 'ref',
-    //                     ref: {
-    //                         type: 'user',
-    //                         id: idFromName(id),
-    //                     },
-    //                     location: nullLocation,
-    //                     is: env.global.terms[id].is,
-    //                 } as Term),
-    //         ),
-    //     ]),
-    // );
+    const inOrder = sortAllDepsPlain(irDeps);
 
-    Object.keys(irTerms).forEach((name) => {
+    inOrder.forEach((name) => {
         if (usedAfterOpt[name]) {
             if (printed[name]) {
                 const loc = hasInvalidGLSL(irTerms[name].expr);

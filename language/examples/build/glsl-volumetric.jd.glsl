@@ -29,50 +29,6 @@ struct GLSLEnv_451d5252{
 
 // skipping Div_5ac12902, contains type variables
 
-/* *
-```
-const MAX_MARCHING_STEPS#62404440: int = 255
-```
- */
-const int MAX_MARCHING_STEPS_62404440 = 255;
-
-/* -- generated -- */
-float shortestDistanceToSurface_76155748(
-    float iTime_1,
-    vec3 eye_2,
-    vec3 marchingDirection_3,
-    float start_4,
-    float end_5,
-    int stepsLeft_6
-) {
-    for (int i=0; i<10000; i++) {
-        if ((stepsLeft_6 <= 0)) {
-            return end_5;
-        } else {
-            float dist_7 = sceneSDF_2a446490(iTime_1, (eye_2 + (start_4 * marchingDirection_3)));
-            if ((dist_7 < EPSILON_ec7f8d1c)) {
-                return start_4;
-            } else {
-                float depth_8 = (start_4 + dist_7);
-                if ((depth_8 >= end_5)) {
-                    return end_5;
-                } else {
-                    start_4 = depth_8;
-                    stepsLeft_6 = (stepsLeft_6 - 1);
-                    continue;
-                };
-            };
-        };
-    };
-}
-
-/* *
-```
-const EPSILON#ec7f8d1c: float = 0.00005
-```
- */
-const float EPSILON_ec7f8d1c = 0.00005;
-
 /**
 ```
 const negVec3#4129390c: (Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (v#:0: Vec3#9f1c0644) ={}> {
@@ -88,52 +44,6 @@ vec3 negVec3_4129390c(
     vec3 v_0
 ) {
     return vec3(-v_0.x, -v_0.y, -v_0.z);
-}
-
-/**
-```
-const reflect#a6961410: (Vec3#9f1c0644, Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (
-    I#:0: Vec3#9f1c0644,
-    N#:1: Vec3#9f1c0644,
-) ={}> {
-    AddSubVec3#1c6fdd91."-"#b99b22d8#1(
-        I#:0,
-        ScaleVec3#c4a91006."*"#1de4e4c0#0((2.0 * dot#255c39c3(N#:1, I#:0)), N#:1),
-    );
-}
-```
-*/
-vec3 reflect_a6961410(
-    vec3 I_0,
-    vec3 N_1
-) {
-    return (I_0 - ((2.0 * dot(N_1, I_0)) * N_1));
-}
-
-/**
-```
-const vec3#5808ec54: (Vec2#43802a16, float) ={}> Vec3#9f1c0644 = (v#:0: Vec2#43802a16, z#:1: float) ={}> Vec3#9f1c0644{
-    ...v#:0,
-    z#9f1c0644#0: z#:1,
-}
-```
-*/
-vec3 vec3_5808ec54(
-    vec2 v_0,
-    float z_1
-) {
-    return vec3(v_0.x, v_0.y, z_1);
-}
-
-/**
-```
-const radians#dabe7f9c: (float) ={}> float = (degrees#:0: float) ={}> ((degrees#:0 / 180.0) * PI)
-```
-*/
-float radians_dabe7f9c(
-    float degrees_0
-) {
-    return ((degrees_0 / 180.0) * PI);
 }
 
 /**
@@ -195,46 +105,10 @@ vec3 opRepLim_47cca838(
 
 /* *
 ```
-const MAX_DIST#0ce717e6: float = 100.0
+const EPSILON#ec7f8d1c: float = 0.00005
 ```
  */
-const float MAX_DIST_0ce717e6 = 100.0;
-
-/* *
-```
-const MIN_DIST#f2cd39b8: float = 0.0
-```
- */
-const float MIN_DIST_f2cd39b8 = 0.0;
-
-/**
-```
-const rayDirection#fb220c84: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec3#9f1c0644 = (
-    fieldOfView#:0: float,
-    size#:1: Vec2#43802a16,
-    fragCoord#:2: Vec2#43802a16,
-) ={}> {
-    const xy#:3 = AddSubVec2#70bb2056."-"#b99b22d8#1(
-        fragCoord#:2,
-        ScaleVec2Rev#afc24bbe."/"#5ac12902#0(size#:1, 2.0),
-    );
-    const z#:4 = (size#:1.y#43802a16#1 / tan((radians#dabe7f9c(fieldOfView#:0) / 2.0)));
-    normalize#ce463a80(vec3#5808ec54(xy#:3, -z#:4));
-}
-```
-*/
-vec3 rayDirection_fb220c84(
-    float fieldOfView_0,
-    vec2 size_1,
-    vec2 fragCoord_2
-) {
-    return normalize(
-        vec3_5808ec54(
-            (fragCoord_2 - (size_1 / 2.0)),
-            -(size_1.y / tan((radians_dabe7f9c(fieldOfView_0) / 2.0)))
-        )
-    );
-}
+const float EPSILON_ec7f8d1c = 0.00005;
 
 /**
 ```
@@ -294,6 +168,26 @@ float sceneSDF_2a446490(
     );
 }
 
+/**
+```
+const reflect#a6961410: (Vec3#9f1c0644, Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (
+    I#:0: Vec3#9f1c0644,
+    N#:1: Vec3#9f1c0644,
+) ={}> {
+    AddSubVec3#1c6fdd91."-"#b99b22d8#1(
+        I#:0,
+        ScaleVec3#c4a91006."*"#1de4e4c0#0((2.0 * dot#255c39c3(N#:1, I#:0)), N#:1),
+    );
+}
+```
+*/
+vec3 reflect_a6961410(
+    vec3 I_0,
+    vec3 N_1
+) {
+    return (I_0 - ((2.0 * dot(N_1, I_0)) * N_1));
+}
+
 /* -- generated -- */
 vec3 estimateNormal_c8d03178(float iTime_1, vec3 p_2) {
     return normalize(
@@ -343,6 +237,32 @@ vec3 phongContribForLight_5af50544(
     };
 }
 
+/**
+```
+const radians#dabe7f9c: (float) ={}> float = (degrees#:0: float) ={}> ((degrees#:0 / 180.0) * PI)
+```
+*/
+float radians_dabe7f9c(
+    float degrees_0
+) {
+    return ((degrees_0 / 180.0) * PI);
+}
+
+/**
+```
+const vec3#5808ec54: (Vec2#43802a16, float) ={}> Vec3#9f1c0644 = (v#:0: Vec2#43802a16, z#:1: float) ={}> Vec3#9f1c0644{
+    ...v#:0,
+    z#9f1c0644#0: z#:1,
+}
+```
+*/
+vec3 vec3_5808ec54(
+    vec2 v_0,
+    float z_1
+) {
+    return vec3(v_0.x, v_0.y, z_1);
+}
+
 /* -- generated -- */
 vec3 phongIllumination_0d68cffa(
     float iTime_1,
@@ -373,6 +293,86 @@ vec3 phongIllumination_0d68cffa(
         vec3(0.40, 0.40, 0.40)
     ));
 }
+
+/* *
+```
+const MAX_DIST#0ce717e6: float = 100.0
+```
+ */
+const float MAX_DIST_0ce717e6 = 100.0;
+
+/* *
+```
+const MIN_DIST#f2cd39b8: float = 0.0
+```
+ */
+const float MIN_DIST_f2cd39b8 = 0.0;
+
+/**
+```
+const rayDirection#fb220c84: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec3#9f1c0644 = (
+    fieldOfView#:0: float,
+    size#:1: Vec2#43802a16,
+    fragCoord#:2: Vec2#43802a16,
+) ={}> {
+    const xy#:3 = AddSubVec2#70bb2056."-"#b99b22d8#1(
+        fragCoord#:2,
+        ScaleVec2Rev#afc24bbe."/"#5ac12902#0(size#:1, 2.0),
+    );
+    const z#:4 = (size#:1.y#43802a16#1 / tan((radians#dabe7f9c(fieldOfView#:0) / 2.0)));
+    normalize#ce463a80(vec3#5808ec54(xy#:3, -z#:4));
+}
+```
+*/
+vec3 rayDirection_fb220c84(
+    float fieldOfView_0,
+    vec2 size_1,
+    vec2 fragCoord_2
+) {
+    return normalize(
+        vec3_5808ec54(
+            (fragCoord_2 - (size_1 / 2.0)),
+            -(size_1.y / tan((radians_dabe7f9c(fieldOfView_0) / 2.0)))
+        )
+    );
+}
+
+/* -- generated -- */
+float shortestDistanceToSurface_76155748(
+    float iTime_1,
+    vec3 eye_2,
+    vec3 marchingDirection_3,
+    float start_4,
+    float end_5,
+    int stepsLeft_6
+) {
+    for (int i=0; i<10000; i++) {
+        if ((stepsLeft_6 <= 0)) {
+            return end_5;
+        } else {
+            float dist_7 = sceneSDF_2a446490(iTime_1, (eye_2 + (start_4 * marchingDirection_3)));
+            if ((dist_7 < EPSILON_ec7f8d1c)) {
+                return start_4;
+            } else {
+                float depth_8 = (start_4 + dist_7);
+                if ((depth_8 >= end_5)) {
+                    return end_5;
+                } else {
+                    start_4 = depth_8;
+                    stepsLeft_6 = (stepsLeft_6 - 1);
+                    continue;
+                };
+            };
+        };
+    };
+}
+
+/* *
+```
+const MAX_MARCHING_STEPS#62404440: int = 255
+```
+ */
+const int MAX_MARCHING_STEPS_62404440 = 255;
 
 /* -- generated -- */
 vec4 phongLit_4495ec10(GLSLEnv_451d5252 env_1, vec2 fragCoord_2) {
