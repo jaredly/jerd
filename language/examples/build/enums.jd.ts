@@ -108,13 +108,11 @@ export const hash_752b5f22: (arg_0: t_d0eff35c<number>) => boolean = (y1: t_d0ef
   }
 
   if (y1.type === "0043a33c" || y1.type === "2449af94") {
-    let x: t_d0eff35c<number> = y1;
-
-    if (x.type === "0043a33c") {
+    if (y1.type === "0043a33c") {
       return false;
     }
 
-    if (x.type === "2449af94") {
+    if (y1.type === "2449af94") {
       return true;
     }
 
@@ -216,12 +214,12 @@ const getWithDefault#16e40f74: <T#:0>(Option#45258310<T#:0>, T#:0) ={}> T#:0 = <
 }
 ```
 */
-export const hash_16e40f74: <T_0>(arg_0: t_45258310<T_0>, arg_1: T_0) => T_0 = <T_0>(x$0: t_45258310<T_0>, default$1: T_0) => {
-  if (x$0.type === "0043a33c") {
-    return x$0.h0043a33c_0;
+export const hash_16e40f74: <T_0>(arg_0: t_45258310<T_0>, arg_1: T_0) => T_0 = <T_0>(x: t_45258310<T_0>, default$1: T_0) => {
+  if (x.type === "0043a33c") {
+    return x.h0043a33c_0;
   }
 
-  if (x$0.type === "2449af94") {
+  if (x.type === "2449af94") {
     return default$1;
   }
 
@@ -237,12 +235,12 @@ const isPresent#0c1d2cb0: <T#:0>(Option#45258310<T#:0>) ={}> bool = <T#:0>(
 }
 ```
 */
-export const hash_0c1d2cb0: <T_0>(arg_0: t_45258310<T_0>) => boolean = <T_0>(x$0: t_45258310<T_0>) => {
-  if (x$0.type === "0043a33c") {
+export const hash_0c1d2cb0: <T_0>(arg_0: t_45258310<T_0>) => boolean = <T_0>(x: t_45258310<T_0>) => {
+  if (x.type === "0043a33c") {
     return true;
   }
 
-  if (x$0.type === "2449af94") {
+  if (x.type === "2449af94") {
     return false;
   }
 

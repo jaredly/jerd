@@ -305,6 +305,8 @@ const random2 = (co: Vec2) => {
     fract(sin(sn) * c);
 }
 
+// START HERE: need to resolve ambiguity between
+// [self] and a [term]
 const vabs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 const vabs2 = (v: Vec2) => Vec2{x: abs(v.x), y: abs(v.y)}
 
@@ -363,3 +365,4 @@ type GLSLEnv = {
 //         Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0}
 //     }
 // }
+// const testCircle = (passed: bool,)
