@@ -179,12 +179,10 @@ export const newSym = (env: Env, name: string): Symbol => ({
     unique: env.local.unique.current++,
 });
 
-// export const addToplevel = (
-//     env: Env,
-//     item: ToplevelT
-// ): {env: Env, id: Id} => {
-
-// }
+// HMMMM WHY do things not work when I run several at once,
+// but they do work individually?
+// I'm guessing it's the shared prelude.
+// Let's try that.
 
 export const addToMap = (
     map: { [key: string]: Array<Id> },
@@ -194,7 +192,8 @@ export const addToMap = (
     if (!map[name]) {
         map[name] = [id];
     } else if (!map[name].find((f) => idsEqual(f, id))) {
-        map[name].unshift(id);
+        map[name] = [id].concat(map[name]);
+        // map[name].unshift(id);
     }
 };
 
@@ -216,6 +215,7 @@ export const addEffect = (
     // addToMap(glob.effectNames, name, id);
     if (glob.effectNames[name]) {
         glob.effectNames[name].unshift(idName(id));
+        glob.effectNames[name] = [idName(id)].concat(glob.effectNames[name]);
     } else {
         glob.effectNames[name] = [idName(id)];
     }
@@ -417,7 +417,9 @@ export const addRecord = (
     attrNames.forEach((r, i) => {
         // addToMap(glob.attributeNames, r, idid)
         if (glob.attributeNames[r]) {
-            glob.attributeNames[r].unshift({ id: idid, idx: i });
+            glob.attributeNames[r] = [{ id: idid, idx: i }].concat(
+                glob.attributeNames[r],
+            );
         } else {
             glob.attributeNames[r] = [{ id: idid, idx: i }];
         }
@@ -555,7 +557,7 @@ export const addDefine = (env: Env, name: string, term: Term) => {
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
     const glob = cloneGlobalEnv(env.global);
-    addToMap(glob.names, item.id.text, id);
+    addToMap(glob.names, name, id);
     // if (!glob.names[name]) {
     //     glob.names[name] = [id];
     // } else {
