@@ -282,7 +282,7 @@ const phongLit = (sceneSDF: (float, Vec3) => float, env: GLSLEnv, fragCoord: Vec
 
     if dist > MAX_DIST - EPSILON {
         // Didn't hit anything
-        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0};
+        vec4(vec3(0.0), 1.0)
     } else {
         const worldPosForPixel = eye + dist * dir;
         
@@ -306,10 +306,7 @@ const isPointingTowardLight = (sceneSDF: (float, Vec3) => float, iTime: float, p
     dotLN >= 0.0
 }
 
-const avg = (one: Vec4, two: Vec4): Vec4 => {
-    const both = one + two;
-    both / 2.0
-}
+const avg = (one: Vec4, two: Vec4): Vec4 => (one + two) / 2.0
 
 // const clearPath = (sample: Vec3, light: Vec3) => {
 //     const dist = 

@@ -194,11 +194,17 @@ const radians = (degrees: float) => degrees / 180.0 * PI
 const normalize = (v: Vec3) => v / length(v)
 
 @glsl_builtin
+const vec2 = (x: float) => Vec2{x: x, y: x}
+@glsl_builtin
 const vec2 = (x: float, y: float) => Vec2{x: x, y: y}
+@glsl_builtin
+const vec3 = (x: float) => Vec3{x: x, y: x, z: x}
 @glsl_builtin
 const vec3 = (x: float, y: float, z: float) => Vec3{x: x, y: y, z: z}
 @glsl_builtin
 const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
+@glsl_builtin
+const vec4 = (x: float) => Vec4{x: x, y: x, z: x, w: x}
 @glsl_builtin
 const vec4 = (x: float, y: float, z: float, w: float) => Vec4{x: x, y: y, z: z, w: w}
 @glsl_builtin
