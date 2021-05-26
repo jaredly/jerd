@@ -69,15 +69,10 @@ int z_ce5d9b4c(
     return ((n_0 + 2) - 1);
 }
 
-/* *
-```
-const x#0c634e04: int = {
-    const y#:0 = 10;
-    y#:0;
+/* -- generated -- */
+int V4f4fbbd4() {
+    return 10;
 }
-```
- */
-const int x_0c634e04 = 10;
 
 /**
 ```
@@ -109,7 +104,7 @@ vec4 Vtest_main(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1
 ) {
-    bool t0_4 = (x_0c634e04 == 10);
+    bool t0_4 = (V4f4fbbd4() == 10);
     bool t1_5 = (z_ce5d9b4c(10) == 11);
     bool t2_6 = (fib_ac346fbc(0, 1, 10) == 55);
     float size_2 = (env_0.resolution.x / 20.0);

@@ -16,6 +16,8 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
+// skipping Eq_553b4b8e, contains type variables
+
 struct GLSLEnv_451d5252{
     float time;
     vec2 resolution;
@@ -23,11 +25,9 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
-// skipping Eq_553b4b8e, contains type variables
+// skipping Div_5ac12902, contains type variables
 
 // skipping AddSub_b99b22d8, contains type variables
-
-// skipping Div_5ac12902, contains type variables
 
 /**
 ```

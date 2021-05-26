@@ -16,6 +16,10 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
+// skipping As_As, contains type variables
+
+// skipping Min_5cfbbc08, contains type variables
+
 struct GLSLEnv_451d5252{
     float time;
     vec2 resolution;
@@ -23,14 +27,10 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
-// skipping Min_5cfbbc08, contains type variables
-
 struct Circle_44c72b50{
     vec2 h44c72b50_0;
     float h44c72b50_1;
 };
-
-// skipping As_As, contains type variables
 
 // skipping AddSub_b99b22d8, contains type variables
 

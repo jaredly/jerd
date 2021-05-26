@@ -23,39 +23,43 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
+// skipping Eq_553b4b8e, contains type variables
+
 struct Person_ba1e5642{
     string hba1e5642_0;
     int hba1e5642_1;
 };
 
-// skipping As_As, contains type variables
-
-// skipping Eq_553b4b8e, contains type variables
+/**
+```
+const getString#64605d94: () ={Read#22024b72}> string = () ={Read#22024b72}> raise!(
+    Read#22024b72.read(),
+)
+```
+*/
+void getString_64605d94(
+    invalid_effect_handler handlers_15000,
+    invalid_lambda done_1
+) {
+    nope_stmt_Expression;
+}
 
 /**
 ```
-const arrayEq#7825e3a8: <T#:0>(Array<T#:0>, Array<T#:0>, Eq#553b4b8e<T#:0>) ={}> bool = <T#:0>(
-    one#:0: Array<T#:0>,
-    two#:1: Array<T#:0>,
-    eq#:2: Eq#553b4b8e<T#:0>,
-) ={}> {
-    switch (one#:0, two#:1) {
-        ([], []) => true,
-        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#553b4b8e#0(one#:3, two#:5) {
-            7825e3a8<T#:0>(rone#:4, rtwo#:6, eq#:2);
-        } else {
-            false;
-        },
-        _#:7 => false,
-    };
-}
+const getStringArr#3bfdbd8c: () ={Read#22024b72}> Array<string> = () ={Read#22024b72}> <string>[
+    getString#64605d94(),
+]
 ```
 */
-bool arrayEq_7825e3a8(
-    Array one_0,
-    Array two_1,
-    Eq_553b4b8e eq_2
+void getStringArr_3bfdbd8c(
+    invalid_effect_handler handlers_15000,
+    invalid_lambda done_2
 ) {
+    nope_stmt_Expression;
+}
+
+/* -- generated -- */
+bool arrayEq_0a8a7138(Array one_0, Array two_1, Eq_553b4b8e eq_2) {
     int one_i_12 = 0;
     int two_i_13 = 0;
     for (int i=0; i<10000; i++) {
@@ -78,42 +82,6 @@ bool arrayEq_7825e3a8(
 
 /**
 ```
-const getString#64605d94: () ={Read#22024b72}> string = () ={Read#22024b72}> raise!(
-    Read#22024b72.read(),
-)
-```
-*/
-void getString_64605d94(
-    invalid_effect_handler handlers_15000,
-    invalid_lambda done_1
-) {
-    nope_stmt_Expression;
-}
-
-/**
-```
-const ArrayEq#bef2134a: <T#:0>(Eq#553b4b8e<T#:0>) ={}> Eq#553b4b8e<Array<T#:0>> = <T#:0>(
-    eq#:0: Eq#553b4b8e<T#:0>,
-) ={}> Eq#553b4b8e<Array<T#:0>>{
-    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>) ={}> (IntEq#9275f914."=="#553b4b8e#0(
-        len<T#:0>(one#:1),
-        len<T#:0>(two#:2),
-    ) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0)),
-}
-```
-*/
-Eq_553b4b8e ArrayEq_bef2134a(
-    Eq_553b4b8e eq_0
-) {
-    return Eq_553b4b8e(
-        lambda-woops(one_1, two_2){
-            ((len(one_1) == len(two_2)) && arrayEq_7825e3a8(one_1, two_2, eq_0));
-        }
-    );
-}
-
-/**
-```
 const getPerson#5d7fc4f0: () ={Read#22024b72}> Person#ba1e5642 = () ={Read#22024b72}> Person#ba1e5642{
     name#ba1e5642#0: getString#64605d94(),
     age#ba1e5642#1: 5,
@@ -121,76 +89,6 @@ const getPerson#5d7fc4f0: () ={Read#22024b72}> Person#ba1e5642 = () ={Read#22024
 ```
 */
 void getPerson_5d7fc4f0(
-    invalid_effect_handler handlers_15000,
-    invalid_lambda done_2
-) {
-    nope_stmt_Expression;
-}
-
-/**
-```
-const getPersonName#5499a084: () ={Read#22024b72}> string = () ={Read#22024b72}> Person#ba1e5642{
-    name#ba1e5642#0: getString#64605d94(),
-    age#ba1e5642#1: 5,
-}.name#ba1e5642#0
-```
-*/
-void getPersonName_5499a084(
-    invalid_effect_handler handlers_15000,
-    invalid_lambda done_3
-) {
-    nope_stmt_Expression;
-}
-
-/**
-```
-const getStringArr#3bfdbd8c: () ={Read#22024b72}> Array<string> = () ={Read#22024b72}> <string>[
-    getString#64605d94(),
-]
-```
-*/
-void getStringArr_3bfdbd8c(
-    invalid_effect_handler handlers_15000,
-    invalid_lambda done_2
-) {
-    nope_stmt_Expression;
-}
-
-/**
-```
-const provideIncrement#4ffa1f88: <T#:0>(string, int, () ={Read#22024b72}> T#:0) ={}> T#:0 = <T#:0>(
-    v#:0: string,
-    i#:1: int,
-    fn#:2: () ={Read#22024b72}> T#:0,
-) ={}> handle! fn#:2 {
-    Read.read#0(() => k#:4) => 4ffa1f88<T#:0>(
-        v#:0,
-        (i#:1 + 1),
-        () ={Read#22024b72}> k#:4((v#:0 + i#:1 as#1175499e string)),
-    ),
-    pure(v#:3) => v#:3,
-}
-```
-*/
-invalid_var provideIncrement_4ffa1f88(
-    string v_0,
-    int i_1,
-    invalid_cps_lambda fn_2
-) {
-    invalid_var result_5;
-    nope_stmt_Expression;
-    return result_5;
-}
-
-/**
-```
-const spreadPerson#279e45cf: () ={Read#22024b72}> Person#ba1e5642 = () ={Read#22024b72}> Person#ba1e5642{
-    ...getPerson#5d7fc4f0(),
-    age#ba1e5642#1: 20,
-}
-```
-*/
-void spreadPerson_279e45cf(
     invalid_effect_handler handlers_15000,
     invalid_lambda done_2
 ) {
@@ -237,6 +135,139 @@ void sideBar_2df6410a(
 
 /**
 ```
+const getPersonName#5499a084: () ={Read#22024b72}> string = () ={Read#22024b72}> Person#ba1e5642{
+    name#ba1e5642#0: getString#64605d94(),
+    age#ba1e5642#1: 5,
+}.name#ba1e5642#0
+```
+*/
+void getPersonName_5499a084(
+    invalid_effect_handler handlers_15000,
+    invalid_lambda done_3
+) {
+    nope_stmt_Expression;
+}
+
+/* -- generated -- */
+string provideStringPlain_54b0a916(string v_0, invalid_cps_lambda fn_1) {
+    invalid_var result_4;
+    nope_stmt_Expression;
+    return result_4;
+}
+
+/* -- generated -- */
+void Vb1bc380a(invalid_effect_handler handlers_15000, invalid_lambda done_32) {
+    nope_stmt_Expression;
+}
+
+/* -- generated -- */
+Array provideIncrement_74441efc(string v_0, int i_1, invalid_cps_lambda fn_2) {
+    invalid_var result_5;
+    nope_stmt_Expression;
+    return result_5;
+}
+
+/* -- generated -- */
+void V1cbaca12(invalid_effect_handler handlers_15000, invalid_lambda done_27) {
+    nope_stmt_Expression;
+}
+
+/* -- generated -- */
+Array provideIncrement_a67a6570(string v_0, int i_1, invalid_cps_lambda fn_2) {
+    invalid_var result_5;
+    nope_stmt_Expression;
+    return result_5;
+}
+
+/* -- generated -- */
+Eq_553b4b8e ArrayEq_39fa067c(Eq_553b4b8e eq_0) {
+    return Eq_553b4b8e(
+        lambda-woops(one_1, two_2){
+            ((len(one_1) == len(two_2)) && arrayEq_0a8a7138(one_1, two_2, eq_0));
+        }
+    );
+}
+
+/**
+```
+const spreadPerson#279e45cf: () ={Read#22024b72}> Person#ba1e5642 = () ={Read#22024b72}> Person#ba1e5642{
+    ...getPerson#5d7fc4f0(),
+    age#ba1e5642#1: 20,
+}
+```
+*/
+void spreadPerson_279e45cf(
+    invalid_effect_handler handlers_15000,
+    invalid_lambda done_2
+) {
+    nope_stmt_Expression;
+}
+
+/* -- generated -- */
+Person_ba1e5642 provideStringPlain_3fb87034(
+    string v_0,
+    invalid_cps_lambda fn_1
+) {
+    invalid_var result_4;
+    nope_stmt_Expression;
+    return result_4;
+}
+
+/* -- generated -- */
+Person_ba1e5642 provideStringPlain_4877ecd4(
+    string v_0,
+    invalid_cps_lambda fn_1
+) {
+    invalid_var result_4;
+    nope_stmt_Expression;
+    return result_4;
+}
+
+/* -- generated -- */
+void V37ec731f(invalid_effect_handler handlers_15000, invalid_lambda done_24) {
+    nope_stmt_Expression;
+}
+
+/* -- generated -- */
+string provideStringPlain_22e61f16(string v_0, invalid_cps_lambda fn_1) {
+    invalid_var result_4;
+    nope_stmt_Expression;
+    return result_4;
+}
+
+/* -- generated -- */
+void V7bc38fbb(invalid_effect_handler handlers_15000, invalid_lambda done_21) {
+    nope_stmt_Expression;
+}
+
+/* -- generated -- */
+string provideStringPlain_6dfe460e(string v_0, invalid_cps_lambda fn_1) {
+    invalid_var result_4;
+    nope_stmt_Expression;
+    return result_4;
+}
+
+/* -- generated -- */
+void V207a261b(invalid_effect_handler handlers_15000, invalid_lambda done_18) {
+    nope_stmt_Expression;
+}
+
+/* -- generated -- */
+string provideStringPlain_346ff3d4(string v_0, invalid_cps_lambda fn_1) {
+    invalid_var result_4;
+    nope_stmt_Expression;
+    return result_4;
+}
+
+/* -- generated -- */
+string provideStringPlain_8cac6864(string v_0, invalid_cps_lambda fn_1) {
+    invalid_var result_4;
+    nope_stmt_Expression;
+    return result_4;
+}
+
+/**
+```
 const ifYes#5bf7f75c: () ={Read#22024b72}> string = () ={Read#22024b72}> {
     if StringEq#606c7034."=="#553b4b8e#0(getString#64605d94(), "Yes") {
         "good";
@@ -253,44 +284,11 @@ void ifYes_5bf7f75c(
     nope_stmt_Expression;
 }
 
-/**
-```
-const provideStringPlain#2dbf3eae: <T#:0>(string, () ={Read#22024b72}> T#:0) ={}> T#:0 = <T#:0>(
-    v#:0: string,
-    fn#:1: () ={Read#22024b72}> T#:0,
-) ={}> handle! fn#:1 {
-    Read.read#0(() => k#:3) => 2dbf3eae<T#:0>(v#:0, () ={Read#22024b72}> k#:3(v#:0)),
-    pure(v#:2) => v#:2,
-}
-```
-*/
-invalid_var provideStringPlain_2dbf3eae(
-    string v_0,
-    invalid_cps_lambda fn_1
-) {
+/* -- generated -- */
+string provideStringPlain_4dacc6c8(string v_0, invalid_cps_lambda fn_1) {
     invalid_var result_4;
     nope_stmt_Expression;
     return result_4;
-}
-
-/**
-```
-const provideString#0247dd82: (string, () ={Read#22024b72}> string) ={}> string = (
-    v#:0: string,
-    fn#:1: () ={Read#22024b72}> string,
-) ={}> handle! fn#:1 {
-    Read.read#0(() => k#:3) => (0247dd82(v#:0, () ={Read#22024b72}> (k#:3((v#:0 + "got")) + "back")) + "provided"),
-    pure(v#:2) => (v#:2 + "pure"),
-}
-```
-*/
-string provideString_0247dd82(
-    string v_0,
-    invalid_cps_lambda fn_1
-) {
-    string result_5;
-    nope_stmt_Expression;
-    return result_5;
 }
 
 /**
@@ -384,58 +382,31 @@ vec4 Vtest_main(
 ) {
     bool t0_4 = stringEq(provideString_0247dd82(Yes, getString_64605d94), Yesgotbackpureprovided);
     bool t1_5 = stringEq(
-        ((provideStringPlain_2dbf3eae(Yes, ifYes_5bf7f75c) + :) + provideStringPlain_2dbf3eae(
+        ((provideStringPlain_4dacc6c8(Yes, ifYes_5bf7f75c) + :) + provideStringPlain_8cac6864(
             Yes?,
             ifYes_5bf7f75c
         )),
         good:nope
     );
     bool t2_6 = stringEq(
-        ((provideStringPlain_2dbf3eae(
-            Yes,
-            lambda-woops(handlers_15000, done_18){
-                nope_stmt_Expression;
-            }
-        ) + :) + provideStringPlain_2dbf3eae(
+        ((provideStringPlain_346ff3d4(Yes, V207a261b) + :) + provideStringPlain_6dfe460e(
             Yes?,
-            lambda-woops(handlers_15000, done_21){
-                nope_stmt_Expression;
-            }
+            V7bc38fbb
         )),
         Yes:wot
     );
-    bool t3_7 = stringEq(
-        provideStringPlain_2dbf3eae(
-            what,
-            lambda-woops(handlers_15000, done_24){
-                nope_stmt_Expression;
-            }
-        ),
-        what
-    );
-    bool t4_8 = stringEq(provideStringPlain_2dbf3eae(Me, getPerson_5d7fc4f0).hba1e5642_0, Me);
-    bool t5_9 = stringEq(provideStringPlain_2dbf3eae(Me, spreadPerson_279e45cf).hba1e5642_0, Me);
-    bool t6_10 = ArrayEq_bef2134a(Eq_553b4b8e(stringEq)).h553b4b8e_0(
-        provideIncrement_4ffa1f88(
-            Hi,
-            0,
-            lambda-woops(handlers_15000, done_27){
-                nope_stmt_Expression;
-            }
-        ),
+    bool t3_7 = stringEq(provideStringPlain_22e61f16(what, V37ec731f), what);
+    bool t4_8 = stringEq(provideStringPlain_4877ecd4(Me, getPerson_5d7fc4f0).hba1e5642_0, Me);
+    bool t5_9 = stringEq(provideStringPlain_3fb87034(Me, spreadPerson_279e45cf).hba1e5642_0, Me);
+    bool t6_10 = ArrayEq_39fa067c(Eq_553b4b8e(stringEq)).h553b4b8e_0(
+        provideIncrement_a67a6570(Hi, 0, V1cbaca12),
         nope_term_array
     );
-    bool t7_11 = ArrayEq_bef2134a(Eq_553b4b8e(stringEq)).h553b4b8e_0(
-        provideIncrement_4ffa1f88(
-            Hi,
-            0,
-            lambda-woops(handlers_15000, done_32){
-                nope_stmt_Expression;
-            }
-        ),
+    bool t7_11 = ArrayEq_39fa067c(Eq_553b4b8e(stringEq)).h553b4b8e_0(
+        provideIncrement_74441efc(Hi, 0, Vb1bc380a),
         nope_term_array
     );
-    bool t8_12 = stringEq(provideStringPlain_2dbf3eae(ok, getPersonName_5499a084), ok);
+    bool t8_12 = stringEq(provideStringPlain_54b0a916(ok, getPersonName_5499a084), ok);
     float size_2 = (env_0.resolution.x / 20.0);
     float size_3 = (size_2 * 0.40);
     if ((((((((((t0_4 && (length((fragCoord_1 - (vec2(1.0, 1.0) * size_2))) < size_3)) || (t1_5 && (length(

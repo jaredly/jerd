@@ -25,29 +25,9 @@ struct GLSLEnv_451d5252{
 
 // skipping Mul_1de4e4c0, contains type variables
 
-// skipping Div_5ac12902, contains type variables
-
 // skipping AddSub_b99b22d8, contains type variables
 
-/* *
-```
-const MaxVelocity#158e986a: float = 0.1
-```
- */
-const float MaxVelocity_158e986a = 0.10;
-
-/**
-```
-const lerp#0c604a2c: (float, float, float) ={}> float = (a#:0: float, b#:1: float, c#:2: float) ={}> ((c#:2 * (b#:1 - a#:0)) + a#:0)
-```
-*/
-float lerp_0c604a2c(
-    float a_0,
-    float b_1,
-    float c_2
-) {
-    return ((c_2 * (b_1 - a_0)) + a_0);
-}
+// skipping Div_5ac12902, contains type variables
 
 /**
 ```
@@ -62,21 +42,15 @@ float fract_495c4d22(
 
 /**
 ```
-const vec4#4d4983bb: (float, float, float, float) ={}> Vec4#3b941378 = (
-    x#:0: float,
-    y#:1: float,
-    z#:2: float,
-    w#:3: float,
-) ={}> Vec4#3b941378{z#9f1c0644#0: z#:2, x#43802a16#0: x#:0, y#43802a16#1: y#:1, w#3b941378#0: w#:3}
+const lerp#0c604a2c: (float, float, float) ={}> float = (a#:0: float, b#:1: float, c#:2: float) ={}> ((c#:2 * (b#:1 - a#:0)) + a#:0)
 ```
 */
-vec4 vec4_4d4983bb(
-    float x_0,
-    float y_1,
-    float z_2,
-    float w_3
+float lerp_0c604a2c(
+    float a_0,
+    float b_1,
+    float c_2
 ) {
-    return vec4(x_0, y_1, z_2, w_3);
+    return ((c_2 * (b_1 - a_0)) + a_0);
 }
 
 /**
@@ -106,6 +80,25 @@ float normalizeTheta_c3a71e42(
     };
 }
 
+/**
+```
+const vec4#4d4983bb: (float, float, float, float) ={}> Vec4#3b941378 = (
+    x#:0: float,
+    y#:1: float,
+    z#:2: float,
+    w#:3: float,
+) ={}> Vec4#3b941378{z#9f1c0644#0: z#:2, x#43802a16#0: x#:0, y#43802a16#1: y#:1, w#3b941378#0: w#:3}
+```
+*/
+vec4 vec4_4d4983bb(
+    float x_0,
+    float y_1,
+    float z_2,
+    float w_3
+) {
+    return vec4(x_0, y_1, z_2, w_3);
+}
+
 /* *
 ```
 const r2#0ce717e6: float = 100.0
@@ -127,32 +120,12 @@ const g#4466af4c: float = 0.15
  */
 const float g_4466af4c = 0.150;
 
-/**
+/* *
 ```
-const mix#1d944e78: (Vec3#9f1c0644, Vec3#9f1c0644, float) ={}> Vec3#9f1c0644 = (
-    a#:0: Vec3#9f1c0644,
-    b#:1: Vec3#9f1c0644,
-    c#:2: float,
-) ={}> {
-    Vec3#9f1c0644{
-        x#43802a16#0: lerp#0c604a2c(a#:0.x#43802a16#0, b#:1.x#43802a16#0, c#:2),
-        y#43802a16#1: lerp#0c604a2c(a#:0.y#43802a16#1, b#:1.y#43802a16#1, c#:2),
-        z#9f1c0644#0: lerp#0c604a2c(a#:0.z#9f1c0644#0, b#:1.z#9f1c0644#0, c#:2),
-    };
-}
+const MaxVelocity#158e986a: float = 0.1
 ```
-*/
-vec3 mix_1d944e78(
-    vec3 a_0,
-    vec3 b_1,
-    float c_2
-) {
-    return vec3(
-        lerp_0c604a2c(a_0.x, b_1.x, c_2),
-        lerp_0c604a2c(a_0.y, b_1.y, c_2),
-        lerp_0c604a2c(a_0.z, b_1.z, c_2)
-    );
-}
+ */
+const float MaxVelocity_158e986a = 0.10;
 
 /**
 ```
@@ -182,6 +155,33 @@ vec3 vabs_1a074578(
     vec3 v_0
 ) {
     return vec3(abs(v_0.x), abs(v_0.y), abs(v_0.z));
+}
+
+/**
+```
+const mix#1d944e78: (Vec3#9f1c0644, Vec3#9f1c0644, float) ={}> Vec3#9f1c0644 = (
+    a#:0: Vec3#9f1c0644,
+    b#:1: Vec3#9f1c0644,
+    c#:2: float,
+) ={}> {
+    Vec3#9f1c0644{
+        x#43802a16#0: lerp#0c604a2c(a#:0.x#43802a16#0, b#:1.x#43802a16#0, c#:2),
+        y#43802a16#1: lerp#0c604a2c(a#:0.y#43802a16#1, b#:1.y#43802a16#1, c#:2),
+        z#9f1c0644#0: lerp#0c604a2c(a#:0.z#9f1c0644#0, b#:1.z#9f1c0644#0, c#:2),
+    };
+}
+```
+*/
+vec3 mix_1d944e78(
+    vec3 a_0,
+    vec3 b_1,
+    float c_2
+) {
+    return vec3(
+        lerp_0c604a2c(a_0.x, b_1.x, c_2),
+        lerp_0c604a2c(a_0.y, b_1.y, c_2),
+        lerp_0c604a2c(a_0.z, b_1.z, c_2)
+    );
 }
 
 /**

@@ -87,6 +87,17 @@ int z_526b8b52(
     return (m_3 + (m_3 * 2));
 }
 
+/* -- generated -- */
+int V70c0102a() {
+    int y_0;
+    if ((10 < 3)) {
+        y_0 = 4;
+    } else {
+        y_0 = 2;
+    };
+    return ((y_0 + 2) + y_0);
+}
+
 /**
 ```
 const unnamed#test_main: (GLSLEnv#451d5252, vec2) ={}> vec4 = (
@@ -117,19 +128,7 @@ vec4 Vtest_main(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1
 ) {
-    int lambdaBlockResult_8;
-    bool continueBlock_9 = true;
-    int y_7;
-    if ((continueBlock_9 && (10 < 3))) {
-        y_7 = 4;
-    } else {
-        y_7 = 2;
-    };
-    if (continueBlock_9) {
-        lambdaBlockResult_8 = ((y_7 + 2) + y_7);
-        continueBlock_9 = false;
-    };
-    bool t0_4 = (lambdaBlockResult_8 == 6);
+    bool t0_4 = (V70c0102a() == 6);
     bool t1_5 = (z_526b8b52(2) == 12);
     bool t2_6 = (x2_b022715c() == 6);
     float size_2 = (env_0.resolution.x / 20.0);

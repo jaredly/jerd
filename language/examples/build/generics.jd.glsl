@@ -36,19 +36,9 @@ int addTwo_f4c397d2(
     return (one_0 + 2);
 }
 
-/**
-```
-const callme#777bf1fc: <T#:0>((T#:0) ={}> T#:0, T#:0) ={}> T#:0 = <T#:0>(
-    x#:0: (T#:0) ={}> T#:0,
-    arg#:1: T#:0,
-) ={}> x#:0(arg#:1)
-```
-*/
-invalid_var callme_777bf1fc(
-    invalid_lambda x_0,
-    invalid_var arg_1
-) {
-    return x_0(arg_1);
+/* -- generated -- */
+int callme_c17766ce(int arg_1) {
+    return addTwo_f4c397d2(arg_1);
 }
 
 /**
@@ -92,7 +82,7 @@ vec4 Vtest_main(
     vec2 fragCoord_1
 ) {
     bool t0_4 = (scopeIt_36626a20(4)(6) == 10);
-    bool t1_5 = (callme_777bf1fc(addTwo_f4c397d2, 5) == 7);
+    bool t1_5 = (callme_c17766ce(5) == 7);
     float size_2 = (env_0.resolution.x / 20.0);
     float size_3 = (size_2 * 0.40);
     if (((t0_4 && (length((fragCoord_1 - (vec2(1.0, 1.0) * size_2))) < size_3)) || (t1_5 && (length(

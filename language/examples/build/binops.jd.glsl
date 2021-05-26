@@ -16,8 +16,6 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
-// skipping Addable_0cd54a60, contains type variables
-
 struct GLSLEnv_451d5252{
     float time;
     vec2 resolution;
@@ -27,30 +25,8 @@ struct GLSLEnv_451d5252{
 
 // skipping Eq_553b4b8e, contains type variables
 
-/**
-```
-const arrayEq#7825e3a8: <T#:0>(Array<T#:0>, Array<T#:0>, Eq#553b4b8e<T#:0>) ={}> bool = <T#:0>(
-    one#:0: Array<T#:0>,
-    two#:1: Array<T#:0>,
-    eq#:2: Eq#553b4b8e<T#:0>,
-) ={}> {
-    switch (one#:0, two#:1) {
-        ([], []) => true,
-        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#553b4b8e#0(one#:3, two#:5) {
-            7825e3a8<T#:0>(rone#:4, rtwo#:6, eq#:2);
-        } else {
-            false;
-        },
-        _#:7 => false,
-    };
-}
-```
-*/
-bool arrayEq_7825e3a8(
-    Array one_0,
-    Array two_1,
-    Eq_553b4b8e eq_2
-) {
+/* -- generated -- */
+bool arrayEq_0a8a7138(Array one_0, Array two_1, Eq_553b4b8e eq_2) {
     int one_i_12 = 0;
     int two_i_13 = 0;
     for (int i=0; i<10000; i++) {
@@ -71,24 +47,29 @@ bool arrayEq_7825e3a8(
     };
 }
 
-/**
-```
-const ArrayEq#bef2134a: <T#:0>(Eq#553b4b8e<T#:0>) ={}> Eq#553b4b8e<Array<T#:0>> = <T#:0>(
-    eq#:0: Eq#553b4b8e<T#:0>,
-) ={}> Eq#553b4b8e<Array<T#:0>>{
-    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>) ={}> (IntEq#9275f914."=="#553b4b8e#0(
-        len<T#:0>(one#:1),
-        len<T#:0>(two#:2),
-    ) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0)),
-}
-```
-*/
-Eq_553b4b8e ArrayEq_bef2134a(
-    Eq_553b4b8e eq_0
-) {
+/* -- generated -- */
+Eq_553b4b8e ArrayEq_05721950(Eq_553b4b8e eq_0) {
     return Eq_553b4b8e(
         lambda-woops(one_1, two_2){
-            ((len(one_1) == len(two_2)) && arrayEq_7825e3a8(one_1, two_2, eq_0));
+            ((len(one_1) == len(two_2)) && arrayEq_0a8a7138(one_1, two_2, eq_0));
+        }
+    );
+}
+
+/* -- generated -- */
+Eq_553b4b8e ArrayEq_764e1d18(Eq_553b4b8e eq_0) {
+    return Eq_553b4b8e(
+        lambda-woops(one_1, two_2){
+            ((len(one_1) == len(two_2)) && arrayEq_0a8a7138(one_1, two_2, eq_0));
+        }
+    );
+}
+
+/* -- generated -- */
+Eq_553b4b8e ArrayEq_70e76540(Eq_553b4b8e eq_0) {
+    return Eq_553b4b8e(
+        lambda-woops(one_1, two_2){
+            ((len(one_1) == len(two_2)) && arrayEq_0a8a7138(one_1, two_2, eq_0));
         }
     );
 }
@@ -155,9 +136,9 @@ vec4 Vtest_main(
     vec2 fragCoord_1
 ) {
     bool t0_4 = (goToTown_a4c2a3f0(nope_term_tuple) == 2);
-    bool t1_5 = ArrayEq_bef2134a(Eq_553b4b8e(==)).h553b4b8e_0(nope_term_array, nope_term_array);
-    bool t2_6 = ArrayEq_bef2134a(Eq_553b4b8e(==)).h553b4b8e_0(nope_term_array, nope_term_array);
-    bool t3_7 = ArrayEq_bef2134a(Eq_553b4b8e(==)).h553b4b8e_0(nope_term_array, nope_term_array);
+    bool t1_5 = ArrayEq_70e76540(Eq_553b4b8e(==)).h553b4b8e_0(nope_term_array, nope_term_array);
+    bool t2_6 = ArrayEq_764e1d18(Eq_553b4b8e(==)).h553b4b8e_0(nope_term_array, nope_term_array);
+    bool t3_7 = ArrayEq_05721950(Eq_553b4b8e(==)).h553b4b8e_0(nope_term_array, nope_term_array);
     bool t4_8 = ((1 + (2 * 3)) == 7);
     bool t5_9 = ((1.0 * (2.0 - (3.0 * 5.0))) == -13.0);
     bool t6_10 = ((1.0 * (2.0 - (3.0 * (4.0 + (2.0 * 10.0))))) == -70.0);
