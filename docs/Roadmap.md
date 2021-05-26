@@ -71,6 +71,11 @@ but I'll need to keep track of comments in order to do that.
 
 START HERE PLEASE
 
+## WEB INTERFACE - get ready for GLSL
+
+- [ ] add support for multiple "tabs" for different groups of cells.
+
+
 - [ ] AND THEN we can bring this wonderful GLSL goodness to our web editor bonanza.
 - [ ] fix inlining of recursive functions? well to do that I need to do inlining of lambdas that capture scope variables.
 - [ ] properly handle lambdas that close over things, probably by making a new Expr type that groups a record of scope variables with the hash of the lifted lambda.

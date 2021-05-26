@@ -73,7 +73,6 @@ const Library = ({
                     .sort()
                     .map((name) => {
                         const ids = env.global.typeNames[name];
-                        console.log(ids);
                         const hash = idName(ids[0]);
                         return (
                             <div

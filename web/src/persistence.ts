@@ -40,8 +40,21 @@ export const initialState = (): State => {
     const env = loadPrelude(typedBuiltins);
     if (saved) {
         try {
-            const data = JSON.parse(saved);
+            const data: State = JSON.parse(saved);
             const glob: GlobalEnv = data.env.global;
+            if (!data.workspaces) {
+                data.workspaces = {
+                    default: {
+                        name: 'Default',
+                        // @ts-ignore
+                        cells: data.cells,
+                        order: 0,
+                    },
+                };
+                data.activeWorkspace = 'default';
+                // @ts-ignore
+                delete data.cells;
+            }
             // Fix env format change
             Object.keys(glob.typeNames).forEach((name) => {
                 if (!Array.isArray(glob.typeNames[name])) {
@@ -120,7 +133,14 @@ export const initialState = (): State => {
     }
     return {
         env: newWithGlobal(env),
-        cells: {},
+        activeWorkspace: 'default',
+        workspaces: {
+            default: {
+                name: 'Default',
+                cells: {},
+                order: 0,
+            },
+        },
         pins: [],
         evalEnv: {
             builtins,

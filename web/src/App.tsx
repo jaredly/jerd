@@ -26,9 +26,16 @@ const defaultPlugins: Plugins = {
 
 // Yea
 
+export type Workspace = {
+    name: string;
+    cells: { [key: string]: Cell };
+    order: number;
+};
+
 export type State = {
     env: Env;
-    cells: { [key: string]: Cell };
+    activeWorkspace: string;
+    workspaces: { [key: string]: Workspace };
     pins: Array<{ display: Display; id: Id }>;
     evalEnv: EvalEnv;
 };
@@ -44,9 +51,10 @@ export default () => {
     window.state = state;
     // @ts-ignore
     window.renderFile = () => {
-        return Object.keys(state.cells)
+        return Object.keys(state.workspaces[state.activeWorkspace].cells)
             .map((k) => {
-                const c = state.cells[k].content;
+                const c =
+                    state.workspaces[state.activeWorkspace].cells[k].content;
                 if (c.type !== 'raw' && c.type !== 'expr') {
                     const top = getToplevel(state.env, c);
                     return printToString(
@@ -76,23 +84,35 @@ export default () => {
                     env={state.env}
                     onOpen={(content) => {
                         if (
-                            Object.keys(state.cells).some((id) =>
+                            Object.keys(
+                                state.workspaces[state.activeWorkspace].cells,
+                            ).some((id) =>
                                 contentMatches(
                                     content,
-                                    state.cells[id].content,
+                                    state.workspaces[state.activeWorkspace]
+                                        .cells[id].content,
                                 ),
                             )
                         ) {
                             return;
                         }
                         const id = genId();
-                        setState((state) => ({
-                            ...state,
-                            cells: {
-                                [id]: { ...blankCell, id, content },
-                                ...state.cells,
-                            },
-                        }));
+                        setState((state) => {
+                            const w = state.workspaces[state.activeWorkspace];
+                            return {
+                                ...state,
+                                workspaces: {
+                                    ...state.workspaces,
+                                    [state.activeWorkspace]: {
+                                        ...w,
+                                        cells: {
+                                            [id]: { ...blankCell, id, content },
+                                            ...w.cells,
+                                        },
+                                    },
+                                },
+                            };
+                        });
                     }}
                 />
             </div>

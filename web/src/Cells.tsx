@@ -7,7 +7,7 @@ import { idFromName, idName } from '@jerd/language/src/typing/env';
 import { CellView } from './Cell';
 import { Cell, Content, Plugins } from './State';
 import { runTerm } from './eval';
-import { State } from './App';
+import { State, Workspace } from './App';
 
 export const genId = () => Math.random().toString(36).slice(2);
 export const blankCell: Cell = {
@@ -31,6 +31,7 @@ const Cells = ({
     plugins: Plugins;
     setState: (fn: (s: State) => State) => void;
 }) => {
+    const work = activeWorkspace(state);
     return (
         <div
             style={{
@@ -43,11 +44,54 @@ const Cells = ({
                 alignItems: 'center',
             }}
         >
-            {Object.keys(state.cells).map((id) => (
+            <div
+                css={{
+                    padding: '0 16px',
+                    fontSize: 16,
+                }}
+            >
+                Workspace:{' '}
+                <select
+                    value={state.activeWorkspace}
+                    onChange={(evt) => {
+                        const activeWorkspace = evt.target.value;
+                        console.log(evt.target.value);
+                        if (evt.target.value === '<new>') {
+                            const id = genId();
+                            setState((state) => ({
+                                ...state,
+                                activeWorkspace: id,
+                                workspaces: {
+                                    ...state.workspaces,
+                                    [id]: {
+                                        name: 'New Workspace',
+                                        cells: {},
+                                        order: Object.keys(state.workspaces)
+                                            .length,
+                                    },
+                                },
+                            }));
+                        } else {
+                            setState((state) => ({
+                                ...state,
+                                activeWorkspace,
+                            }));
+                        }
+                    }}
+                >
+                    {Object.keys(state.workspaces).map((id) => (
+                        <option value={id} key={id}>
+                            {state.workspaces[id].name}
+                        </option>
+                    ))}
+                    <option value="<new>">Create new workspace</option>
+                </select>
+            </div>
+            {Object.keys(work.cells).map((id) => (
                 <CellView
                     key={id}
                     env={state.env}
-                    cell={state.cells[id]}
+                    cell={work.cells[id]}
                     evalEnv={state.evalEnv}
                     plugins={plugins}
                     onPin={(display, id) => {
@@ -62,11 +106,13 @@ const Cells = ({
                         }));
                     }}
                     onRemove={() => {
-                        setState((state) => {
-                            const cells = { ...state.cells };
-                            delete cells[id];
-                            return { ...state, cells };
-                        });
+                        setState(
+                            modActiveWorkspace((work) => {
+                                const cells = { ...work.cells };
+                                delete cells[id];
+                                return { ...work, cells };
+                            }),
+                        );
                     }}
                     onRun={(id) => {
                         console.log('Running', id, state.env, state.evalEnv);
@@ -100,32 +146,36 @@ const Cells = ({
                         }));
                     }}
                     addCell={(content) => {
+                        const work = activeWorkspace(state);
                         if (
-                            Object.keys(state.cells).some((id) =>
-                                contentMatches(
-                                    content,
-                                    state.cells[id].content,
-                                ),
+                            Object.keys(work.cells).some((id) =>
+                                contentMatches(content, work.cells[id].content),
                             )
                         ) {
                             return;
                         }
                         const id = genId();
-                        setState((state) => ({
-                            ...state,
-                            cells: {
-                                ...state.cells,
-                                [id]: { ...blankCell, id, content },
-                            },
-                        }));
+                        setState(
+                            modActiveWorkspace((workspace) => ({
+                                ...workspace,
+                                cells: {
+                                    ...workspace.cells,
+                                    [id]: { ...blankCell, id, content },
+                                },
+                            })),
+                        );
                     }}
                     onChange={(env, cell) => {
                         setState((state) => {
-                            if (cell.content === state.cells[cell.id].content) {
-                                return {
-                                    ...state,
-                                    cells: { ...state.cells, [cell.id]: cell },
-                                };
+                            const w = state.workspaces[state.activeWorkspace];
+                            if (cell.content === w.cells[cell.id].content) {
+                                return modActiveWorkspace((workspace) => ({
+                                    ...workspace,
+                                    cells: {
+                                        ...workspace.cells,
+                                        [cell.id]: cell,
+                                    },
+                                }))(state);
                             }
                             if (
                                 cell.content.type === 'expr' ||
@@ -152,7 +202,13 @@ const Cells = ({
                                     console.log(err);
                                     return state;
                                 }
-                                return {
+                                return modActiveWorkspace((workspace) => ({
+                                    ...workspace,
+                                    cells: {
+                                        ...workspace.cells,
+                                        [cell.id]: cell,
+                                    },
+                                }))({
                                     ...state,
                                     env,
                                     evalEnv: {
@@ -162,14 +218,12 @@ const Cells = ({
                                             ...results,
                                         },
                                     },
-                                    cells: { ...state.cells, [cell.id]: cell },
-                                };
+                                });
                             }
-                            return {
-                                ...state,
-                                env,
-                                cells: { ...state.cells, [cell.id]: cell },
-                            };
+                            return modActiveWorkspace((workspace) => ({
+                                ...workspace,
+                                cells: { ...workspace.cells, [cell.id]: cell },
+                            }))(state);
                         });
                     }}
                 />
@@ -192,13 +246,15 @@ const Cells = ({
                 }}
                 onClick={() => {
                     const id = genId();
-                    setState((state) => ({
-                        ...state,
-                        cells: {
-                            ...state.cells,
-                            [id]: { ...blankCell, id },
-                        },
-                    }));
+                    setState(
+                        modActiveWorkspace((workspace) => ({
+                            ...workspace,
+                            cells: {
+                                ...workspace.cells,
+                                [id]: { ...blankCell, id },
+                            },
+                        })),
+                    );
                 }}
             >
                 New Cell
@@ -206,5 +262,18 @@ const Cells = ({
         </div>
     );
 };
+
+export const activeWorkspace = (state: State) =>
+    state.workspaces[state.activeWorkspace];
+
+export const modActiveWorkspace = (fn: (w: Workspace) => Workspace) => (
+    state: State,
+) => ({
+    ...state,
+    workspaces: {
+        ...state.workspaces,
+        [state.activeWorkspace]: fn(state.workspaces[state.activeWorkspace]),
+    },
+});
 
 export default Cells;

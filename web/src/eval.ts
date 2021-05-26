@@ -148,7 +148,9 @@ export const runTerm = (
                 ...evalEnv,
                 terms: { ...evalEnv.terms, ...results },
             };
+            // @ts-ignore
             evalEnv.source = evalEnv.source || {};
+            // @ts-ignore
             evalEnv.source[dep] = code;
             evalEnv.executionLimit.enabled = true;
             evalEnv.executionLimit.maxTime = Date.now() + 200;
