@@ -103,6 +103,11 @@ type Div<A, B, C> = {
     "/": (A, B) => C
 }
 
+@unique(3.0)
+type Neg<A, B> = {
+    "-": (A) => B
+}
+
 const AddSubVec4 = AddSub<Vec4, Vec4, Vec4>{
     "+": (one: Vec4, two: Vec4) => Vec4{x: one.x + two.x, y: one.y + two.y, z: one.z + two.z, w: one.w + two.w},
     "-": (one: Vec4, two: Vec4) => Vec4{x: one.x - two.x, y: one.y - two.y, z: one.z - two.z, w: one.w - two.w},
@@ -180,6 +185,9 @@ const ScaleVec2Rev = Div<Vec2, float, Vec2>{
 
 const negVec3 = (v: Vec3) => {
     Vec3{x: -v.x, y: -v.y, z: -v.z}
+}
+const NegVec3 = Neg<Vec3, Vec3>{
+    "-": (v: Vec3) => Vec3{x: -v.x, y: -v.y, z: -v.z},
 }
 
 @glsl_builtin

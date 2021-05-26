@@ -137,6 +137,24 @@ const findOp = (
     return null;
 };
 
+const findMatchingOp = (
+    env: Env,
+    op: string,
+    left: Term,
+    rarg: Term,
+    location: Location,
+) => {
+    for (let { idx, id } of env.global.attributeNames[op]) {
+        // const { idx, id } = env.global.attributeNames[op][0];
+        // console.log(op, idx, id, 'OP');
+        const found = findOp(env, id, idx, left.is, rarg.is, location);
+        if (found != null) {
+            return found;
+        }
+    }
+    return null;
+};
+
 const typeNewOp = (
     env: Env,
     left: Term,
@@ -179,9 +197,7 @@ const typeNewOp = (
         };
         // TODO: allow ambiguity
     } else if (env.global.attributeNames[op]) {
-        const { idx, id } = env.global.attributeNames[op][0];
-        // console.log(op, idx, id, 'OP');
-        const found = findOp(env, id, idx, left.is, rarg.is, location);
+        const found = findMatchingOp(env, op, left, rarg, location);
         if (found == null) {
             return null;
         }
