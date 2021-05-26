@@ -148,7 +148,7 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     type: 'ref',
                     ref: {
                         type: 'user',
-                        id: env.global.typeNames[type.id.text],
+                        id: env.global.typeNames[type.id.text][0],
                     },
                     typeVbls,
                     // effectVbls,
@@ -164,7 +164,10 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                     // effectVbls,
                 };
             }
-            throw new Error(`Unknown type "${type.id.text}"`);
+            throw new LocatedError(
+                type.location,
+                `Unknown type "${type.id.text}"`,
+            );
         }
 
         case 'lambda': {
@@ -224,14 +227,16 @@ export const newEnvWithTypeAndEffectVbls = (
         const sym: Symbol = { name: id.text, unique };
         const st = subTypes.map((id) => {
             const t = env.global.typeNames[id.text];
+            // TODO: check id.hash
             if (!t) {
-                throw new Error(
+                throw new LocatedError(
+                    id.location,
                     `Unknown subtype ${id.text} at ${showLocation(
                         id.location,
                     )}`,
                 );
             }
-            return t;
+            return t[0];
         });
         typeInner.local.typeVbls[sym.unique] = { subTypes: st };
         typeInner.local.typeVblNames[id.text] = sym;

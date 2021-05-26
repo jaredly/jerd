@@ -16,6 +16,8 @@ export const allLiteral = (env: Env, type: Type): boolean => {
     switch (type.type) {
         case 'var':
             return false;
+        case 'Ambiguous':
+            return false;
         case 'ref': {
             if (type.ref.type === 'builtin') {
                 return !type.typeVbls.some((v) => !allLiteral(env, v));
@@ -134,7 +136,16 @@ export const sortAllDeps = (allDeps: {
 }): Array<string> => {
     const allIds: { [key: string]: Array<string> } = {};
     Object.keys(allDeps).forEach((k) => (allIds[k] = allDeps[k].map(idName)));
-    const lastToFirst = topoSort(allIds);
+    return sortAllDepsPlain(allIds);
+    // const lastToFirst = topoSort(allIds);
+    // lastToFirst.reverse();
+    // return lastToFirst;
+};
+
+export const sortAllDepsPlain = (allDeps: {
+    [key: string]: Array<string>;
+}): Array<string> => {
+    const lastToFirst = topoSort(allDeps);
     lastToFirst.reverse();
     return lastToFirst;
 };
@@ -221,6 +232,8 @@ export const termDependencies = (term: Term): Array<Reference> => {
     switch (term.type) {
         case 'ref':
             return [term.ref];
+        case 'Ambiguous':
+        case 'TypeError':
         case 'var':
         case 'raise':
         case 'if':

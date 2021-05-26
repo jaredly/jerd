@@ -98,8 +98,6 @@ export const processFile = (
     const oopts: OutputOptions = {
         optimize: true,
         optimizeAggressive: true,
-        // showAllUniques: true,
-        includeCanonicalNames: true,
     };
 
     const buildDir = path.join(path.dirname(fname), 'build');
@@ -108,7 +106,7 @@ export const processFile = (
         const pp = fileToGlsl(
             expressions,
             env,
-            oopts,
+            { includeCanonicalNames: true },
             irOpts,
             assert,
             true,

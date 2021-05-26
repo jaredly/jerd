@@ -179,7 +179,8 @@ const typeNewOp = (
         };
         // TODO: allow ambiguity
     } else if (env.global.attributeNames[op]) {
-        const { idx, id } = env.global.attributeNames[op];
+        const { idx, id } = env.global.attributeNames[op][0];
+        // console.log(op, idx, id, 'OP');
         const found = findOp(env, id, idx, left.is, rarg.is, location);
         if (found == null) {
             return null;
@@ -281,7 +282,12 @@ const typeOp = (
         is.args[0].ref.name === 'numeric'
     ) {
         if (!typesEqual(left.is, rarg.is)) {
-            throw new TypeMismatch(env, left.is, rarg.is, left.location);
+            throw new TypeMismatch(
+                env,
+                left.is,
+                rarg.is,
+                left.location || nullLocation,
+            );
         }
         // STOPSHIP: have an actual solution for strings
         if (

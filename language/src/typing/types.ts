@@ -51,10 +51,10 @@ export type Env = {
 
 export type GlobalEnv = {
     rng: () => number;
-    names: { [key: string]: Id };
+    names: { [humanName: string]: Array<Id> };
     idNames: { [idName: string]: string };
-    terms: { [key: string]: Term };
-    exportedTerms: { [key: string]: Id };
+    terms: { [idName: string]: Term };
+    exportedTerms: { [humanName: string]: Id };
     metaData: {
         [idName: string]: {
             tags: Array<string>;
@@ -69,15 +69,18 @@ export type GlobalEnv = {
     // number here is "number of type arguments"
     builtinTypes: { [key: string]: number };
 
-    typeNames: { [key: string]: Id };
-    types: { [key: string]: TypeDef };
+    typeNames: { [humanName: string]: Array<Id> };
+    types: { [idName: string]: TypeDef };
 
     // These are two ways of saying the same thing
     recordGroups: { [key: string]: Array<string> };
-    attributeNames: { [key: string]: { id: Id; idx: number } };
+    attributeNames: { [humanName: string]: Array<{ id: Id; idx: number }> };
 
-    effectNames: { [key: string]: string };
-    effectConstructors: { [key: string]: { idName: string; idx: number } };
+    effectNames: { [humanName: string]: Array<string> };
+    effectConstructors: {
+        // TODO: multi here
+        [humanName: string]: { idName: string; idx: number };
+    };
     effectConstrNames: { [idName: string]: Array<string> };
     effects: {
         [key: string]: Array<{
@@ -93,7 +96,7 @@ export type Self =
           name: string;
           ann: Type;
       }
-      | {type: 'Effect', name: string, vbls: Array<number>}
+    | { type: 'Effect'; name: string; vbls: Array<number> }
     | {
           type: 'Type';
           name: string;
@@ -454,7 +457,24 @@ export type Unary = {
     is: Type;
 };
 
+export type TypeError = {
+    type: 'TypeError';
+    is: Type; // this is the type that was needed
+    inner: Term; // this has the type that was found
+    location: Location | null;
+};
+
+export type Ambiguous = {
+    type: 'Ambiguous';
+    options: Array<Term>;
+    is: AmbiguousType;
+    location: Location | null;
+};
+
+export type ErrorTerm = Ambiguous | TypeError;
+
 export type Term =
+    | ErrorTerm
     | CPSAble
     | Unary
     | { type: 'self'; is: Type; location: Location | null }
@@ -735,7 +755,8 @@ export type TypeVar = {
     location: Location | null;
 };
 
-export type Type = TypeRef | LambdaType;
+export type AmbiguousType = { type: 'Ambiguous'; location: Location | null };
+export type Type = TypeRef | LambdaType | AmbiguousType;
 
 // Here's the basics folks
 // kind lambdas can't have effects, thank goodness
@@ -797,6 +818,12 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                 ...t.items.map((i) =>
                     getEffects(i.type === 'ArraySpread' ? i.value : i),
                 ),
+            );
+        case 'TypeError':
+            return getEffects(t.inner);
+        case 'Ambiguous':
+            return ([] as Array<EffectRef>).concat(
+                ...t.options.map(getEffects),
             );
         case 'apply': {
             let is = t.target.is as LambdaType;
@@ -908,6 +935,11 @@ export const walkTerm = (
     switch (term.type) {
         case 'Let':
             return walkTerm(term.value, handle);
+        case 'Ambiguous':
+            term.options.forEach((t) => walkTerm(t, handle));
+            return;
+        case 'TypeError':
+            return walkTerm(term.inner, handle);
         case 'raise':
             return term.args.forEach((t) => walkTerm(t, handle));
         case 'if':

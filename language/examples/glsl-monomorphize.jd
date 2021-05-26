@@ -1,0 +1,7 @@
+
+// tbh this should just be inlined yknow
+const identity = <T,>(x: T) => x
+
+identity<float>(1.0) == 1.0
+identity<int>(2) == 2
+

@@ -4,6 +4,8 @@
 import {
     expressionDeps,
     expressionTypeDeps,
+    sortAllDeps,
+    sortAllDepsPlain,
     sortTerms,
 } from '../typing/analyze';
 import { idFromName, idName, refName } from '../typing/env';
@@ -21,10 +23,13 @@ import {
     Type,
     typesEqual,
 } from '../typing/types';
+import * as preset from '../typing/preset';
 import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import {
+    Exprs,
+    isConstant,
     optimize,
     optimizeAggressive,
     optimizeDefine,
@@ -68,6 +73,8 @@ import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
 import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
 import { explicitSpreads } from './ir/optimize/explicitSpreads';
+import { toplevelRecordAttribute } from './ir/optimize/inline';
+import { glslTester } from './glslTester';
 
 export type OutputOptions = {
     // readonly scope?: string;
@@ -518,6 +525,8 @@ export const printRecord = (
 };
 
 export const binops = [
+    'mod',
+    'modInt',
     '>',
     '<',
     '>=',
@@ -534,13 +543,21 @@ export const binops = [
 ];
 export const isBinop = (op: string) => binops.includes(op);
 
+const asBinop = (op: string) => (op === 'mod' || op === 'modInt' ? '%' : op);
+
 export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {
+        if (apply.args.length !== 2) {
+            throw new LocatedError(
+                apply.loc,
+                `Call to binop ${apply.target.name} needs 2 args, not ${apply.args.length}`,
+            );
+        }
         return items([
             atom('('),
             termToGlsl(env, opts, apply.args[0]),
             atom(' '),
-            atom(apply.target.name),
+            atom(asBinop(apply.target.name)),
             atom(' '),
             termToGlsl(env, opts, apply.args[1]),
             atom(')'),
@@ -589,7 +606,20 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 atom(expr.idx.toString()),
                 atom(']'),
             ]);
-        // case 'apply':
+        case 'lambda':
+            return items([
+                atom('lambda-woops'),
+                args(expr.args.map((arg) => symToGlsl(env, opts, arg.sym))),
+                expr.body.type === 'Block'
+                    ? stmtToGlsl(env, opts, expr.body)
+                    : block([termToGlsl(env, opts, expr.body)]),
+            ]);
+        case 'eqLiteral':
+            return items([
+                termToGlsl(env, opts, expr.value),
+                atom(' == '),
+                termToGlsl(env, opts, expr.literal),
+            ]);
         default:
             return atom('nope_term_' + expr.type);
     }
@@ -625,6 +655,138 @@ export const addComment = (value: PP, comment: string) =>
 //         ),
 //     );
 // });
+
+export const assembleItemsForFile = (
+    env: Env,
+    required: Array<Term>,
+    requiredIds: Array<string>,
+    // opts: OutputOptions,
+    irOpts: IOutputOptions,
+) => {
+    const orderedTerms = expressionDeps(env, required);
+
+    // TODO: do this for the post-processed IRTerms
+    const allTypes = expressionTypeDeps(
+        env,
+        orderedTerms.map((t) => env.global.terms[t]),
+    );
+
+    const irTerms: Exprs = {};
+    // const printed: { [id: string]: PP } = {};
+
+    orderedTerms.forEach((idRaw) => {
+        const id = idFromName(idRaw);
+        let term = env.global.terms[idRaw];
+        const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
+
+        const maybeAddRecordInlines = (irTerm: ir.Expr) => {
+            if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
+                if (builtinTypes[idName(irTerm.base.ref.id)]) {
+                    return irTerm;
+                }
+                const base = irTerm.base;
+                const rows: Array<Expr | null> = irTerm.base.rows.map(
+                    (item, i) => {
+                        if (!item) {
+                            return item;
+                        }
+                        if (isConstant(item) && item.type !== 'builtin') {
+                            return item;
+                        }
+                        const name = toplevelRecordAttribute(id, base.ref, i);
+                        irTerms[name] = {
+                            expr: item,
+                            inline: item.type !== 'lambda',
+                        };
+
+                        return {
+                            type: 'genTerm',
+                            loc: item.loc,
+                            is: item.is,
+                            id: name,
+                        };
+                    },
+                );
+                return { ...irTerm, base: { ...irTerm.base, rows } };
+            }
+            return irTerm;
+        };
+
+        // Don't output anything that I'm overriding with builtins
+        if (glslBuiltins[idRaw]) {
+            let irTerm = glslBuiltins[idRaw];
+
+            irTerm = maybeAddRecordInlines(irTerm);
+
+            irTerms[idRaw] = { expr: irTerm, inline: true };
+            return;
+        }
+
+        const comment = printToString(declarationToPretty(senv, id, term), 100);
+        senv.local.unique.current = maxUnique(term) + 1;
+        term = liftEffects(senv, term);
+        let irTerm = ir.printTerm(senv, irOpts, term);
+        try {
+            uniquesReallyAreUnique(irTerm);
+        } catch (err) {
+            const outer = new LocatedError(
+                term.location,
+                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+            ).wrap(err);
+            throw outer;
+        }
+        irTerm = explicitSpreads(senv, irOpts, irTerm);
+        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        irTerm = optimizeDefine(senv, irTerm, id);
+        uniquesReallyAreUnique(irTerm);
+
+        irTerm = maybeAddRecordInlines(irTerm);
+
+        const shouldInline = ![
+            'bool',
+            'float',
+            'int',
+            'ref',
+            'lambda',
+        ].includes(irTerm.type);
+        irTerms[idRaw] = { expr: irTerm, inline: shouldInline, comment };
+    });
+
+    const usedAfterOpt: { [key: string]: true } = {};
+    const toWalk = requiredIds.slice();
+    const irDeps: { [key: string]: Array<string> } = {};
+    while (toWalk.length) {
+        const next = toWalk.shift();
+        if (!next) {
+            break;
+        }
+        // already processed
+        if (usedAfterOpt[next]) {
+            continue;
+        }
+        usedAfterOpt[next] = true;
+        const deps: { [key: string]: true } = {};
+        transformExpr(irTerms[next].expr, {
+            ...defaultVisitor,
+            expr: (expr) => {
+                if (expr.type === 'term') {
+                    deps[idName(expr.id)] = true;
+                    toWalk.push(idName(expr.id));
+                }
+                if (expr.type === 'genTerm') {
+                    deps[expr.id] = true;
+                    toWalk.push(expr.id);
+                }
+                return null;
+            },
+        });
+        irDeps[next] = Object.keys(deps);
+    }
+
+    const inOrder = sortAllDepsPlain(irDeps).filter((id) => usedAfterOpt[id]);
+
+    return { inOrder, irTerms };
+};
 
 export const fileToGlsl = (
     expressions: Array<Term>,
@@ -696,16 +858,34 @@ export const fileToGlsl = (
         }
     }
 
-    const mains = Object.keys(env.global.metaData).filter((k) =>
+    let mains = Object.keys(env.global.metaData).filter((k) =>
         env.global.metaData[k].tags.includes('main'),
     );
     if (mains.length > 1) {
         console.warn(`Only one main allowed; ignoring the others`);
     }
+
+    // If there's no main, then:
+    // We generate one that does the test cases!
+    // green and red dots to indicate pass or fail
+
     if (!mains.length) {
-        console.error(`No @main defined!`);
-        return '// Error: No @main defined';
+        // Ok what's the wait to manufactor a main for us ...
+        const tests = expressions.filter((e) => typesEqual(e.is, preset.bool));
+        if (tests.length) {
+            // env.local.unique.current = 1000000;
+            mains = ['test_main'];
+            env.global.terms['test_main'] = glslTester(env, tests);
+            env.global.metaData[mains[0]] = {
+                tags: ['main'],
+                createdMs: Date.now(),
+            };
+        } else {
+            console.error(`No @main or tests defined!`);
+            return '// Error: No @main or tests defined';
+        }
     }
+
     const mainId = idFromName(mains[0]);
     const mainTags = env.global.metaData[mains[0]].tags;
     const mainTerm: Term = {
@@ -718,31 +898,36 @@ export const fileToGlsl = (
         is: env.global.terms[idName(mainId)].is,
     };
 
-    const orderedTerms = expressionDeps(
+    const required = expressions.concat([
+        mainTerm,
+        ...buffers.map(
+            (id) =>
+                ({
+                    type: 'ref',
+                    ref: {
+                        type: 'user',
+                        id: idFromName(id),
+                    },
+                    location: nullLocation,
+                    is: env.global.terms[id].is,
+                } as Term),
+        ),
+    ]);
+
+    const { inOrder, irTerms } = assembleItemsForFile(
         env,
-        expressions.concat([
-            mainTerm,
-            ...buffers.map(
-                (id) =>
-                    ({
-                        type: 'ref',
-                        ref: {
-                            type: 'user',
-                            id: idFromName(id),
-                        },
-                        location: nullLocation,
-                        is: env.global.terms[id].is,
-                    } as Term),
-            ),
-        ]),
+        required,
+        [idName(mainId)].concat(buffers),
+        irOpts,
     );
+
+    // const orderedTerms = expressionDeps(env, required);
 
     const allTypes = expressionTypeDeps(
         env,
-        orderedTerms.map((t) => env.global.terms[t]),
+        inOrder.map((t) => env.global.terms[t]).filter(Boolean),
+        // orderedTerms.map((t) => env.global.terms[t]),
     );
-
-    const usedTypes = {};
 
     allTypes.forEach((r) => {
         const constr = env.global.types[r];
@@ -833,7 +1018,9 @@ export const fileToGlsl = (
     // - things that take a lambda, might have to inline it or specialize it
     // - hmm how do I distinquish. Maybe "have a list of things to always inline,
     //   and then some things that you might want to inline, if the lambda uses in-scope variables?"
-    const irTerms: { [idName: string]: Expr } = {};
+
+    // const irTerms: Exprs = {};
+
     // const irEnv: {
     //     inline: {
     //         [idName: string]: {
@@ -846,18 +1033,18 @@ export const fileToGlsl = (
     //     // These are specializations of a function
     //     specialized: {};
     // } = { inline: {}, specialized: {} };
-    let irEnv: {
-        terms: {
-            // sooo we have ""
-            [idName: string]: Expr;
-        };
-        // for constant records
-        // maybe we don't need to track this separately?
-        // We just know that records can be inlined...
-        // records: {
-        //     [idName: string]: Array<Expr>,
-        // }
-    };
+    // let irEnv: {
+    //     terms: {
+    //         // sooo we have ""
+    //         [idName: string]: Expr;
+    //     };
+    //     // for constant records
+    //     // maybe we don't need to track this separately?
+    //     // We just know that records can be inlined...
+    //     // records: {
+    //     //     [idName: string]: Array<Expr>,
+    //     // }
+    // };
 
     // So I'm again wondering if there's a way, at the type level,
     // to express whether a term will be valid GLSL.
@@ -927,57 +1114,200 @@ export const fileToGlsl = (
         version replaces the old one.
     */
 
-    orderedTerms.forEach((idRaw) => {
-        // Don't output anything that I'm overriding with builtins
-        if (glslBuiltins[idRaw]) {
-            irTerms[idRaw] = glslBuiltins[idRaw];
-            return;
-        }
-        let term = env.global.terms[idRaw];
+    // const printed: { [id: string]: PP } = {};
 
-        const id = idFromName(idRaw);
-        const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
-        const comment = printToString(declarationToPretty(senv, id, term), 100);
-        senv.local.unique.current = maxUnique(term) + 1;
-        term = liftEffects(senv, term);
-        let irTerm = ir.printTerm(senv, irOpts, term);
-        try {
-            uniquesReallyAreUnique(irTerm);
-        } catch (err) {
-            const outer = new LocatedError(
-                term.location,
-                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
-            ).wrap(err);
-            throw outer;
-        }
-        irTerm = explicitSpreads(senv, irOpts, irTerm);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        irTerm = optimizeDefine(senv, irTerm, id);
-        uniquesReallyAreUnique(irTerm);
+    // orderedTerms.forEach((idRaw) => {
+    //     const id = idFromName(idRaw);
+    //     let term = env.global.terms[idRaw];
+    //     const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
 
-        if (
-            env.global.metaData[idRaw] &&
-            env.global.metaData[idRaw].tags.includes('inline')
-        ) {
-            irTerms[idRaw] = irTerm;
+    //     const maybeAddRecordInlines = (irTerm: ir.Expr) => {
+    //         if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
+    //             if (builtinTypes[idName(irTerm.base.ref.id)]) {
+    //                 return irTerm;
+    //             }
+    //             const base = irTerm.base;
+    //             const rows: Array<Expr | null> = irTerm.base.rows.map(
+    //                 (item, i) => {
+    //                     if (!item) {
+    //                         return item;
+    //                     }
+    //                     if (isConstant(item) && item.type !== 'builtin') {
+    //                         return item;
+    //                     }
+    //                     const name = toplevelRecordAttribute(id, base.ref, i);
+    //                     irTerms[name] = {
+    //                         expr: item,
+    //                         inline: item.type !== 'lambda',
+    //                     };
+
+    //                     printed[name] = declarationToGlsl(
+    //                         senv,
+    //                         opts,
+    //                         name,
+    //                         item,
+    //                         '',
+    //                     );
+
+    //                     return {
+    //                         type: 'genTerm',
+    //                         loc: item.loc,
+    //                         is: item.is,
+    //                         id: name,
+    //                     };
+    //                 },
+    //             );
+    //             return { ...irTerm, base: { ...irTerm.base, rows } };
+    //         }
+    //         return irTerm;
+    //     };
+
+    //     // Don't output anything that I'm overriding with builtins
+    //     if (glslBuiltins[idRaw]) {
+    //         let irTerm = glslBuiltins[idRaw];
+
+    //         irTerm = maybeAddRecordInlines(irTerm);
+
+    //         irTerms[idRaw] = { expr: irTerm, inline: true };
+    //         return;
+    //     }
+
+    //     const comment = printToString(declarationToPretty(senv, id, term), 100);
+    //     senv.local.unique.current = maxUnique(term) + 1;
+    //     term = liftEffects(senv, term);
+    //     let irTerm = ir.printTerm(senv, irOpts, term);
+    //     try {
+    //         uniquesReallyAreUnique(irTerm);
+    //     } catch (err) {
+    //         const outer = new LocatedError(
+    //             term.location,
+    //             `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+    //         ).wrap(err);
+    //         throw outer;
+    //     }
+    //     irTerm = explicitSpreads(senv, irOpts, irTerm);
+    //     irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+    //     irTerm = optimizeDefine(senv, irTerm, id);
+    //     uniquesReallyAreUnique(irTerm);
+
+    //     irTerm = maybeAddRecordInlines(irTerm);
+
+    //     const shouldInline = ![
+    //         'bool',
+    //         'float',
+    //         'int',
+    //         'ref',
+    //         'lambda',
+    //     ].includes(irTerm.type);
+    //     irTerms[idRaw] = { expr: irTerm, inline: shouldInline, comment };
+
+    //     printed[idRaw] = declarationToGlsl(
+    //         senv,
+    //         opts,
+    //         idRaw,
+    //         irTerm,
+    //         '*\n```\n' + comment + '\n```\n',
+    //     );
+    // });
+
+    // const usedAfterOpt: { [key: string]: true } = {};
+    // const toWalk = [idName(mainId), ...buffers];
+    // const irDeps: { [key: string]: Array<string> } = {};
+    // while (toWalk.length) {
+    //     const next = toWalk.shift();
+    //     if (!next) {
+    //         break;
+    //     }
+    //     // already processed
+    //     if (usedAfterOpt[next]) {
+    //         continue;
+    //     }
+    //     usedAfterOpt[next] = true;
+    //     const deps: { [key: string]: true } = {};
+    //     transformExpr(irTerms[next].expr, {
+    //         ...defaultVisitor,
+    //         expr: (expr) => {
+    //             if (expr.type === 'term') {
+    //                 deps[idName(expr.id)] = true;
+    //                 toWalk.push(idName(expr.id));
+    //             }
+    //             if (expr.type === 'genTerm') {
+    //                 deps[expr.id] = true;
+    //                 toWalk.push(expr.id);
+    //             }
+    //             return null;
+    //         },
+    //     });
+    //     irDeps[next] = Object.keys(deps);
+    // }
+
+    // const inOrder = sortAllDepsPlain(irDeps);
+
+    inOrder.forEach((name) => {
+        const loc = hasInvalidGLSL(irTerms[name].expr);
+        if (loc) {
+            // throw new LocatedError(
+            //     loc,
+            //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
+            // );
         }
 
+        const senv = selfEnv(env, {
+            type: 'Term',
+            name,
+            ann: env.global.terms[name]
+                ? env.global.terms[name].is
+                : preset.void_,
+            // ann: irTerms[name].expr.is,
+        });
         items.push(
             declarationToGlsl(
                 senv,
                 opts,
-                idRaw,
-                irTerm,
-                '*\n```\n' + comment + '\n```\n',
+                name,
+                irTerms[name].expr,
+                irTerms[name].comment
+                    ? '*\n```\n' + irTerms[name].comment + '\n```\n'
+                    : ' -- generated -- ',
             ),
         );
+
+        // if (usedAfterOpt[name]) {
+        //     if (printed[name]) {
+        //         const loc = hasInvalidGLSL(irTerms[name].expr);
+        //         if (loc) {
+        //             // throw new LocatedError(
+        //             //     loc,
+        //             //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
+        //             // );
+        //         }
+        //         items.push(printed[name]);
+        //     } else {
+        //         // let term = env.global.terms[idRaw];
+        //         const senv = selfEnv(env, {
+        //             type: 'Term',
+        //             name,
+        //             ann: preset.void_,
+        //             // ann: irTerms[name].expr.is,
+        //         });
+        //         printed[name] = declarationToGlsl(
+        //             senv,
+        //             opts,
+        //             name,
+        //             irTerms[name].expr,
+        //             ' -- generated -- ',
+        //         );
+
+        //         items.push(printed[name]);
+        //     }
+        // }
     });
 
     const glslEnv: Record = {
         type: 'record',
         base: {
             type: 'Concrete',
-            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'] },
+            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
             spread: null,
             rows: [
                 builtin('u_time', nullLocation, float),
@@ -988,7 +1318,7 @@ export const fileToGlsl = (
         },
         is: {
             type: 'ref',
-            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'] },
+            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
             loc: nullLocation,
             typeVbls: [],
         },
@@ -1042,4 +1372,30 @@ export const fileToGlsl = (
     }
 
     return items.map((item) => printToString(item, 100)).join('\n\n');
+};
+
+const hasInvalidGLSL = (expr: Expr) => {
+    let found: Loc = null;
+    // Toplevel record not allowed
+    if (
+        expr.type === 'record' &&
+        expr.base.type === 'Concrete' &&
+        !builtinTypes[idName(expr.base.ref.id)]
+    ) {
+        return expr.loc;
+    }
+    const top = expr;
+    transformExpr(expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (expr === top) {
+                return null;
+            }
+            if (expr.type === 'lambda') {
+                found = expr.loc;
+            }
+            return null;
+        },
+    });
+    return found;
 };

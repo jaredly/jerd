@@ -13,6 +13,10 @@ const scopeIt = (x: int) => (y: int) => x + y
 
 const ten = scopeIt(4)(6)
 
+ten == 10
+
+callIt == 7
+
 // Ok how's this for a unification algorithm:
 // Construct a directed graph of type variables and constraints
 // collapse / traverse the graph?

@@ -1,4 +1,4 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 
 /**
@@ -37,7 +37,7 @@ const fib#ac346fbc: (int, int, int) ={}> int = (prev#:0: int, cur#:1: int, n#:2:
 */
 export const hash_ac346fbc: (arg_0: number, arg_1: number, arg_2: number) => number = (prev: number, cur: number, n: number) => {
   while (true) {
-    if (intEq(n, 0)) {
+    if (hash_9275f914.h553b4b8e_0(n, 0)) {
       return prev;
     } else {
       let recur: number = prev + cur;

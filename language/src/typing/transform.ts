@@ -194,6 +194,19 @@ export const transform = (term: Term, visitor: Visitor): Term => {
             const target = transform(term.target, visitor);
             return target !== term.target ? { ...term, target } : term;
         }
+        case 'TypeError': {
+            const inner = transform(term.inner, visitor);
+            return inner !== term.inner ? { ...term, inner } : term;
+        }
+        case 'Ambiguous': {
+            let changed = false;
+            const options = term.options.map((term) => {
+                const n = transform(term, visitor);
+                changed = changed || n !== term;
+                return n;
+            });
+            return changed ? { ...term, options } : term;
+        }
         case 'string':
         case 'int':
         case 'float':
@@ -317,6 +330,12 @@ export const walkTerm = (
                     walkTerm(item, handle);
                 }
             });
+            return;
+        case 'Ambiguous':
+            term.options.forEach((opt) => walkTerm(opt, handle));
+            return;
+        case 'TypeError':
+            walkTerm(term.inner, handle);
             return;
         case 'TupleAccess':
         case 'Attribute':

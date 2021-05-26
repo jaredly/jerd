@@ -387,7 +387,7 @@ export const isSquare = (x: number) => {
 
 //: (sampler2D, Vec2#43802a16) => Vec4#3b941378
 export const texture = (sampler: any, coord: { x: number; y: number }) =>
-    sampler[y][x];
+    sampler[coord.y][coord.x];
 
 //: (int) => string
 export const intToString = (x: number) => x.toString();
@@ -425,6 +425,8 @@ export const ceil = Math.ceil;
 
 //: (float, float) => float
 export const mod = (a: number, b: number) => a % b;
+//: (int, int) => int
+export const modInt = (a: number, b: number) => a % b;
 //: (float) => float
 export const sin = Math.sin;
 //: (float) => float

@@ -142,12 +142,18 @@ export const typeToplevelT = (
 };
 
 export const typeEffectInner = (env: Env, item: Effect): EffectDef => {
-    const innerEnv = selfEnv(env, {type: 'Effect', name: item.id.text, vbls: []})
+    const innerEnv = selfEnv(env, {
+        type: 'Effect',
+        name: item.id.text,
+        vbls: [],
+    });
     const defn: EffectDef = {
         type: 'EffectDef',
         constrs: item.constrs.map(({ type }) => {
             return {
-                args: type.args ? type.args.map((a) => typeType(innerEnv, a)) : [],
+                args: type.args
+                    ? type.args.map((a) => typeType(innerEnv, a))
+                    : [],
                 ret: typeType(innerEnv, type.res),
             };
         }),
@@ -173,12 +179,23 @@ export const newSym = (env: Env, name: string): Symbol => ({
     unique: env.local.unique.current++,
 });
 
-// export const addToplevel = (
-//     env: Env,
-//     item: ToplevelT
-// ): {env: Env, id: Id} => {
+// HMMMM WHY do things not work when I run several at once,
+// but they do work individually?
+// I'm guessing it's the shared prelude.
+// Let's try that.
 
-// }
+export const addToMap = (
+    map: { [key: string]: Array<Id> },
+    name: string,
+    id: Id,
+) => {
+    if (!map[name]) {
+        map[name] = [id];
+    } else if (!map[name].find((f) => idsEqual(f, id))) {
+        map[name] = [id].concat(map[name]);
+        // map[name].unshift(id);
+    }
+};
 
 export const addEffect = (
     env: Env,
@@ -195,7 +212,13 @@ export const addEffect = (
     }
 
     const glob = cloneGlobalEnv(env.global);
-    glob.effectNames[name] = idName(id);
+    // addToMap(glob.effectNames, name, id);
+    if (glob.effectNames[name]) {
+        glob.effectNames[name].unshift(idName(id));
+        glob.effectNames[name] = [idName(id)].concat(glob.effectNames[name]);
+    } else {
+        glob.effectNames[name] = [idName(id)];
+    }
     glob.idNames[idName(id)] = name;
     glob.effectConstrNames[idName(id)] = constrNames;
     constrNames.forEach((c, i) => {
@@ -286,7 +309,12 @@ export const addEnum = (
     }
     const glob = cloneGlobalEnv(env.global);
     glob.types[idName(idid)] = d;
-    glob.typeNames[name] = idid;
+    addToMap(glob.typeNames, name, idid);
+    // if (glob.typeNames[name]) {
+    //     glob.typeNames[name].unshift(idid);
+    // } else {
+    //     glob.typeNames[name] = [idid];
+    // }
     glob.idNames[idName(idid)] = name;
     return { id: idid, env: { ...env, global: glob } };
 };
@@ -316,7 +344,7 @@ export const resolveType = (env: Env, id: Identifier): Id => {
     if (!env.global.typeNames[id.text]) {
         throw new Error(`Unable to resolve type ${id.text}`);
     }
-    return env.global.typeNames[id.text];
+    return env.global.typeNames[id.text][0];
 };
 
 export const typeRecordDefn = (
@@ -378,11 +406,23 @@ export const addRecord = (
     }
     const glob = cloneGlobalEnv(env.global);
     glob.types[idName(idid)] = defn;
-    glob.typeNames[name] = idid;
+    addToMap(glob.typeNames, name, idid);
+    // if (!glob.typeNames[name]) {
+    //     glob.typeNames[name] = [idid];
+    // } else {
+    //     glob.typeNames[name].unshift(idid);
+    // }
     glob.idNames[idName(idid)] = name;
     glob.recordGroups[idName(idid)] = attrNames;
     attrNames.forEach((r, i) => {
-        glob.attributeNames[r] = { id: idid, idx: i };
+        // addToMap(glob.attributeNames, r, idid)
+        if (glob.attributeNames[r]) {
+            glob.attributeNames[r] = [{ id: idid, idx: i }].concat(
+                glob.attributeNames[r],
+            );
+        } else {
+            glob.attributeNames[r] = [{ id: idid, idx: i }];
+        }
     });
     return { id: idid, env: { ...env, global: glob } };
 };
@@ -502,7 +542,12 @@ export const typeDefine = (
         );
     }
     const glob = cloneGlobalEnv(env.global);
-    glob.names[item.id.text] = id;
+    addToMap(glob.names, item.id.text, id);
+    // if (!glob.names[item.id.text]) {
+    //     glob.names[item.id.text] = [id];
+    // } else {
+    //     glob.names[item.id.text].unshift(id);
+    // }
     glob.idNames[idName(id)] = item.id.text;
     glob.terms[hash] = term;
     return { hash, term, env: { ...env, global: glob }, id };
@@ -512,7 +557,12 @@ export const addDefine = (env: Env, name: string, term: Term) => {
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
     const glob = cloneGlobalEnv(env.global);
-    glob.names[name] = id;
+    addToMap(glob.names, name, id);
+    // if (!glob.names[name]) {
+    //     glob.names[name] = [id];
+    // } else {
+    //     glob.names[name].unshift(id);
+    // }
     glob.idNames[idName(id)] = name;
     glob.terms[hash] = term;
     return { id, env: { ...env, global: glob } };
@@ -624,15 +674,19 @@ export const resolveEffect = (
         };
     }
 
-    if (env.local.self && env.local.self.type === 'Effect' && env.local.self.name === text) {
+    if (
+        env.local.self &&
+        env.local.self.type === 'Effect' &&
+        env.local.self.name === text
+    ) {
         return {
             type: 'ref',
             location,
             ref: {
                 type: 'user',
-                id: {hash: '<self>', pos: 0, size: 1},
-            }
-        }
+                id: { hash: '<self>', pos: 0, size: 1 },
+            },
+        };
     }
 
     // TODO abstract this into "resolveEffect" probably
@@ -649,7 +703,7 @@ export const resolveEffect = (
         type: 'ref',
         ref: {
             type: 'user',
-            id: idFromName(env.global.effectNames[text]),
+            id: idFromName(env.global.effectNames[text][0]),
         },
     };
 };
@@ -763,15 +817,29 @@ export const resolveIdentifier = (
         };
     }
     if (env.global.names[text]) {
-        const id = env.global.names[text];
-        const term = env.global.terms[idName(id)];
-        // console.log(`${text} : its a global: ${showType(env, term.is)}`);
+        const ids = env.global.names[text];
+        if (ids.length > 1) {
+            return {
+                type: 'Ambiguous',
+                options: ids
+                    .filter((id) => env.global.terms[idName(id)] != null)
+                    .map((id) => ({
+                        type: 'ref',
+                        location,
+                        is: env.global.terms[idName(id)].is,
+                        ref: { type: 'user', id },
+                    })),
+                is: { type: 'Ambiguous', location },
+                location,
+            };
+        }
+        const term = env.global.terms[idName(ids[0])];
         return {
             type: 'ref',
             location,
             ref: {
                 type: 'user',
-                id,
+                id: ids[0],
             },
             is: term.is,
         };
@@ -786,7 +854,7 @@ export const resolveIdentifier = (
         };
     }
     if (env.global.typeNames[text]) {
-        const id = env.global.typeNames[text];
+        const id = env.global.typeNames[text][0];
         const t = env.global.types[idName(id)];
         if (
             t.type === 'Record' &&

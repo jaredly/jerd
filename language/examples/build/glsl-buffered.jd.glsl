@@ -16,12 +16,18 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
+// skipping Eq_553b4b8e, contains type variables
+
 struct GLSLEnv_451d5252{
     float time;
     vec2 resolution;
     vec3 camera;
     vec2 mouse;
 };
+
+// skipping Div_5ac12902, contains type variables
+
+// skipping AddSub_b99b22d8, contains type variables
 
 /**
 ```
@@ -171,40 +177,6 @@ int countNeighbors_77a447bc(
     ));
 }
 
-/* *
-```
-const dead#b12c041e: Vec4#3b941378 = Vec4#3b941378{
-    z#9f1c0644#0: 0.0,
-    x#43802a16#0: 0.0,
-    y#43802a16#1: 0.0,
-    w#3b941378#0: 1.0,
-}
-```
- */
-const vec4 dead_b12c041e = vec4(
-    0.0,
-    0.0,
-    0.0,
-    1.0
-);
-
-/* *
-```
-const live#59488bde: Vec4#3b941378 = Vec4#3b941378{
-    z#9f1c0644#0: 1.0,
-    x#43802a16#0: 1.0,
-    y#43802a16#1: 0.6,
-    w#3b941378#0: 1.0,
-}
-```
- */
-const vec4 live_59488bde = vec4(
-    1.0,
-    0.60,
-    1.0,
-    1.0
-);
-
 /**
 ```
 const random#347089ef: (Vec2#43802a16) ={}> float = (st#:0: Vec2#43802a16) ={}> {
@@ -279,16 +251,16 @@ vec4 gameOfLife_5af2137f(
 ) {
     if ((env_0.time < 0.010)) {
         if ((random_347089ef((fragCoord_1 / env_0.resolution)) > 0.950)) {
-            return live_59488bde;
+            return vec4(1.0, 0.60, 1.0, 1.0);
         } else {
-            return dead_b12c041e;
+            return vec4(0.0, 0.0, 0.0, 1.0);
         };
     } else {
         int neighbors_4 = countNeighbors_77a447bc(fragCoord_1, env_0.resolution, buffer_2);
         if (((isLive_5df4f34f(texture(buffer_2, (fragCoord_1 / env_0.resolution))) && (neighbors_4 == 2)) || (neighbors_4 == 3))) {
-            return live_59488bde;
+            return vec4(1.0, 0.60, 1.0, 1.0);
         } else {
-            return dead_b12c041e;
+            return vec4(0.0, 0.0, 0.0, 1.0);
         };
     };
 }

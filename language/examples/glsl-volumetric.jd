@@ -5,37 +5,18 @@
 //     }
 // }
 
-const sceneSDF = (iTime: float, samplePoint: Vec3) => {
-    const double = iTime * 2.0;
-    // const p2 = samplePoint - Vec3{
-    //     x: -sin(double) / 2.0,
-    //     y: sin(iTime / 4.0) / 2.0,
-    //     z: cos(double) / 2.0,
-    // };
-    // const p1 = samplePoint;
-
-    const p1 = opRepLim(samplePoint, 0.25, Vec3{
-        x: 2.0,
-        y: 0.0,
-        z: 0.0,
-    });
-    // const p2 = opRepLim(p2, 0.1, Vec3{
-    //     x: 1.0,
-    //     y: 1.0,
-    //     z: 1.0,
-    // });
-
-    min(
-        max(
-            vmax(vabs(p1) - Vec3{x: 0.1, y: 0.3, z: 0.6}),
-            -vmax(vabs(p1) - Vec3{x: 0.11, y: 0.2, z: 0.55})
-        ),
-        vmax(vabs(samplePoint - Vec3{
-            x: 0.0,
-            y: 0.0,
-            z: -0.1,
-        }) - Vec3{x: 10.2, y: 10.0, z: 0.1})
-    )
+// START HERE
+// STOPSHIP
+// THIS IS BREAKING
+// I need to do another ordering of things I think
+// once we've gone and generated stuff.
+// I need to reorder everything
+// so that things get output in dependency order.
+// because right now they're getting messed up if this function
+// is defined.
+// Which is very perplexing.
+const sceneBall = (iTime: float, samplePoint: Vec3) => {
+    length(samplePoint) - 1.0
 }
 
 
@@ -128,8 +109,9 @@ const MAX_DIST = 100.0
 const EPSILON = 0.00005
 
 const shortestDistanceToSurface:
-(float, Vec3, Vec3, float, float, int) => float
+((float, Vec3) => float, float, Vec3, Vec3, float, float, int) => float
     = (
+        sceneSDF: (float, Vec3) => float,
         iTime: float,
         // marchSource
         eye: Vec3,
@@ -150,7 +132,7 @@ const shortestDistanceToSurface:
             if depth >= end {
                 end
             } else {
-                shortestDistanceToSurface(iTime, eye, marchingDirection, depth, end, stepsLeft - 1)
+                shortestDistanceToSurface(sceneSDF, iTime, eye, marchingDirection, depth, end, stepsLeft - 1)
             }
         }
     }
@@ -175,7 +157,7 @@ const rayDirection = (fieldOfView: float, size: Vec2, fragCoord: Vec2) => {
 //  * Using the gradient of the SDF, estimate the normal on the surface at point p.
 //  */
 // TODO: pass in a function here! Of course will have to be constant folded.
-const estimateNormal = (iTime: float, p: Vec3) => normalize(Vec3{
+const estimateNormal = (sceneSDF: (float, Vec3) => float, iTime: float, p: Vec3) => normalize(Vec3{
     x: sceneSDF(iTime, Vec3{...p, x: p.x + EPSILON}) - sceneSDF(iTime, Vec3{...p, x: p.x - EPSILON}),
     y: sceneSDF(iTime, Vec3{...p, y: p.y + EPSILON}) - sceneSDF(iTime, Vec3{...p, y: p.y - EPSILON}),
     z: sceneSDF(iTime, Vec3{...p, z: p.z + EPSILON}) - sceneSDF(iTime, Vec3{...p, z: p.z - EPSILON}),
@@ -199,6 +181,7 @@ const estimateNormal = (iTime: float, p: Vec3) => normalize(Vec3{
 //  */
 
 const phongContribForLight = (
+    sceneSDF: (float, Vec3) => float,
     iTime: float,
     k_d: Vec3,
     k_s: Vec3,
@@ -209,7 +192,7 @@ const phongContribForLight = (
     lightIntensity: Vec3,
 ) => {
     // TODO: Make structs please! Would be very nice to have multi-value returns.
-    const N = estimateNormal(iTime, p);
+    const N = estimateNormal(sceneSDF, iTime, p);
     const L = normalize(lightPos - p);
     const V = normalize(eye - p);
     // oooh now we'll have to deal with multiple names for things!
@@ -245,7 +228,7 @@ const phongContribForLight = (
 //  *
 //  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
 //  */
-const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha: float, p: Vec3, eye: Vec3) => {
+const phongIllumination = (sceneSDF: (float, Vec3) => float, iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha: float, p: Vec3, eye: Vec3) => {
     const ambientLight = 0.5 * Vec3{x: 1.0, y: 1.0, z: 1.0};
     const color = ambientLight * k_a;
     
@@ -254,7 +237,7 @@ const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha:
                           z: 4.0 * cos(iTime)};
     const light1Intensity = Vec3{x: 0.4, y: 0.4, z: 0.4};
     
-    const color = color + phongContribForLight(iTime, k_d, k_s, alpha, p, eye,
+    const color = color + phongContribForLight(sceneSDF, iTime, k_d, k_s, alpha, p, eye,
                                   light1Pos,
                                   light1Intensity);
     
@@ -263,7 +246,7 @@ const phongIllumination = (iTime: float, k_a: Vec3, k_d: Vec3, k_s: Vec3, alpha:
                           z: 2.0};
     const light2Intensity = Vec3{x: 0.4, y: 0.4, z: 0.4};
     
-    const color = color + phongContribForLight(iTime, k_d, k_s, alpha, p, eye,
+    const color = color + phongContribForLight(sceneSDF, iTime, k_d, k_s, alpha, p, eye,
                                   light2Pos,
                                   light2Intensity);    
     color
@@ -289,12 +272,13 @@ const justRed = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 
 // @ffi
 // @main
-const phongLit = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
+const phongLit = (sceneSDF: (float, Vec3) => float, env: GLSLEnv, fragCoord: Vec2) => {
     // The direction to march in from the eye position
     // which will then find the color of the provided pixel
-	const dir = rayDirection(45.0, iResolution, fragCoord);
+	const dir = rayDirection(45.0, env.resolution, fragCoord);
+    // const eye = env.camera * -5.0;
     const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
-    const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+    const dist = shortestDistanceToSurface(sceneSDF, env.time, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
 
     if dist > MAX_DIST - EPSILON {
         // Didn't hit anything
@@ -307,15 +291,15 @@ const phongLit = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
         const K_s = Vec3{x: 1.0, y: 1.0, z: 1.0};
         const shininess = 10.0;
 
-        const color = phongIllumination(iTime, K_a, K_d, K_s, shininess, worldPosForPixel, eye);
+        const color = phongIllumination(sceneSDF, env.time, K_a, K_d, K_s, shininess, worldPosForPixel, eye);
 
         Vec4{...color, w: 1.0};
     }
 }
 
 
-const isPointingTowardLight = (iTime: float, p: Vec3, lightPos: Vec3) => {
-    const N = estimateNormal(iTime, p);
+const isPointingTowardLight = (sceneSDF: (float, Vec3) => float, iTime: float, p: Vec3, lightPos: Vec3) => {
+    const N = estimateNormal(sceneSDF, iTime, p);
     const L = normalize(lightPos - p);
 
     const dotLN = dot(L, N);
@@ -331,14 +315,14 @@ const avg = (one: Vec4, two: Vec4): Vec4 => {
 //     const dist = 
 // }
 
-const volumetricSample = (iTime: float, light: Vec3, eye: Vec3, dist: float, percent: float, dir: Vec3, left: int) => {
+const volumetricSample = (sceneSDF: (float, Vec3) => float, iTime: float, light: Vec3, eye: Vec3, dist: float, percent: float, dir: Vec3, left: int) => {
     const rdist = percent * dist;
     const sample = eye + rdist * dir;
     const lightDist = distance(sample, light);
 
     const toLight = sample - light;
     const marchToLight = shortestDistanceToSurface(
-        iTime, sample, -1.0 * normalize(toLight), 0.0, lightDist, MAX_MARCHING_STEPS,
+        sceneSDF, iTime, sample, -1.0 * normalize(toLight), 0.0, lightDist, MAX_MARCHING_STEPS,
     );
 
     if marchToLight >= lightDist - 0.1 {
@@ -348,15 +332,16 @@ const volumetricSample = (iTime: float, light: Vec3, eye: Vec3, dist: float, per
     }
 }
 
-const volumetric : (float, Vec2, Vec3, Vec3, float, Vec3, float, int, float) => float
- = (iTime: float, seed: Vec2, light: Vec3, eye: Vec3, dist: float, dir: Vec3, current: float, left: int, total: float) => {
+const volumetric : ((float, Vec3) => float, float, Vec2, Vec3, Vec3, float, Vec3, float, int, float) => float
+ = (sceneSDF: (float, Vec3) => float, iTime: float, seed: Vec2, light: Vec3, eye: Vec3, dist: float, dir: Vec3, current: float, left: int, total: float) => {
     if left <= 0 {
         current
     } else {
         const percent = left as float / total;
         // const percent = random(Vec2{x: seed.x, y: seed.y + left as float});
-        const sample = volumetricSample(iTime, light, eye, dist, percent, dir, left);
+        const sample = volumetricSample(sceneSDF, iTime, light, eye, dist, percent, dir, left);
         volumetric(
+            sceneSDF,
             iTime,
             seed,
             light,
@@ -372,16 +357,17 @@ const volumetric : (float, Vec2, Vec3, Vec3, float, Vec3, float, int, float) => 
 }
 
 const lightSurface = (
+    sceneSDF: (float, Vec3) => float,
     iTime: float,
     worldPosForPixel: Vec3,
     light1Pos: Vec3,
     light: float,
     hit: float,
 ) => {
-        if isPointingTowardLight(iTime, worldPosForPixel, light1Pos) {
+        if isPointingTowardLight(sceneSDF, iTime, worldPosForPixel, light1Pos) {
             const toLight = light1Pos - worldPosForPixel;
             const marchToLight = shortestDistanceToSurface(
-                iTime, light1Pos, -1.0 * normalize(toLight), MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS,
+                sceneSDF, iTime, light1Pos, -1.0 * normalize(toLight), MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS,
             );
 
             if marchToLight > MAX_DIST - EPSILON * 10.0 {
@@ -422,7 +408,7 @@ const viewMatrix = (eye: Vec3, center: Vec3, up: Vec3) => {
 
 // @ffi
 // @main
-const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera: Vec3) => {
+const fishingBoueys = (sceneSDF: (float, Vec3) => float, iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera: Vec3) => {
 	const viewDir = rayDirection(45.0, iResolution, fragCoord);
     const eye = uCamera;
     // const eye = Vec3{...uCamera, z: 6.0};
@@ -438,14 +424,19 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera
     const dir = worldDir;
 
     // TODO: trace!()
-    const dist = shortestDistanceToSurface(iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
+    const dist = shortestDistanceToSurface(sceneSDF, iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
 
 
     if dist > MAX_DIST - EPSILON {
         // Nothing visible
-        Vec4{x: 0.0, y: 0.0, z: 0.0, w: 1.0};
+        Vec4{x: 1.0, y: 1.0, z: 0.0, w: 1.0};
     } else {
         const worldPosForPixel = eye + dist * dir;
+
+        // IDEA: Have the light be a flashlight!
+        // So right in front of the camera, but blocked
+        // from your view by a small disk.
+        // And then we could do maze traversal or something.
 
         const light1Pos = Vec3{
             // x: 0.17,
@@ -461,12 +452,13 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera
 
 
         const surfaces = lightSurface(
-            iTime, worldPosForPixel, light1Pos, 0.0, 0.01);
+            sceneSDF, iTime, worldPosForPixel, light1Pos, 0.0, 0.01);
         // const samples = sin(iTime * 0.5) * 10.0 + 20.0;
         const samples = 10.0;
         // const samples = samples as int;
         
         const brightness = volumetric(
+            sceneSDF,
             iTime,
             // random() + iTime, // random(Vec2{x: iTime / 100.0, y: 0.0}),
             fragCoord / iResolution + iTime / 1000.0, //iTime,
@@ -478,7 +470,7 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera
             0.0,
         samples as int, samples) * 3.0 / samples;
 
-        // avg(surfaces, Vec4{...white * brightness, w: 1.0})
+        // avg(surfaces, Vec4{...white * brightness * brightness * brightness, w: 1.0})
         Vec4{...white * brightness * brightness * brightness, w: 1.0}
         // surfaces
     }
@@ -507,6 +499,39 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2, uCamera
 //     between 0 and 1, adjust light_strength accordingly
 //     pix_value *=  light_strength/n 
 
+const sceneSDF = (iTime: float, samplePoint: Vec3) => {
+    const double = iTime * 2.0;
+    // const p2 = samplePoint - Vec3{
+    //     x: -sin(double) / 2.0,
+    //     y: sin(iTime / 4.0) / 2.0,
+    //     z: cos(double) / 2.0,
+    // };
+    // const p1 = samplePoint;
+
+    const p1 = opRepLim(samplePoint, 0.25, Vec3{
+        x: 2.0,
+        y: 0.0,
+        z: 0.0,
+    });
+    // const p2 = opRepLim(p2, 0.1, Vec3{
+    //     x: 1.0,
+    //     y: 1.0,
+    //     z: 1.0,
+    // });
+
+    min(
+        max(
+            vmax(vabs(p1) - Vec3{x: 0.1, y: 0.3, z: 0.6}),
+            -vmax(vabs(p1) - Vec3{x: 0.11, y: 0.2, z: 0.55})
+        ),
+        vmax(vabs(samplePoint - Vec3{
+            x: 0.0,
+            y: 1.0,
+            z: -0.1,
+        }) - Vec3{x: 2.1, y: 0.1, z: 2.1})
+    )
+}
+
 @ffi
 @main
 const randFolks = (env: GLSLEnv, fragCoord: Vec2) => {
@@ -516,10 +541,11 @@ const randFolks = (env: GLSLEnv, fragCoord: Vec2) => {
     // const v = random(small / iResolution) / 10.0 + 0.9;
     const v = random(small / env.resolution) / 10.0 + 0.9;
     // const uCamera = Vec3{x: 0.0, y: -5.0, z: 2.0};
-    const bouey = fishingBoueys(env.time, fragCoord, env.resolution, env.camera * -1.0);
+    phongLit(sceneSDF, env, fragCoord);
+    // const bouey = fishingBoueys(sceneSDF, env.time, fragCoord, env.resolution, env.camera * -1.0);
+    // bouey
     // const two = Vec4{...blue * v, w: 1.0} + bouey;
     // two / 2.0
-    bouey
 }
 
 // const volumetric

@@ -25,6 +25,7 @@ import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
 import {
+    Exprs,
     optimize,
     optimizeAggressive,
     optimizeDefine,
@@ -583,6 +584,8 @@ export const _termToTs = (
                 [start].concat(end ? [end] : []),
             );
         }
+        case 'genTerm':
+            throw new Error(`No genTerms in typescript yet`);
         default:
             let _v: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
@@ -901,7 +904,7 @@ export const fileToTypescript = (
     // };
 
     // let unique = { current: 1000000 };
-    const irTerms: { [idName: string]: Expr } = {};
+    const irTerms: Exprs = {};
 
     orderedTerms.forEach((idRaw) => {
         let term = env.global.terms[idRaw];
@@ -927,16 +930,17 @@ export const fileToTypescript = (
             // // console.log(showLocation(term.location));
             throw outer;
         }
-        if (opts.optimizeAggressive) {
-            irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        }
+        // STOPSHIP: Turn this back on
+        // if (opts.optimizeAggressive) {
+        //     irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        // }
         if (opts.optimize) {
             irTerm = optimizeDefine(senv, irTerm, id);
         }
         // then pop over to glslPrinter and start making things work.
         uniquesReallyAreUnique(irTerm);
         // console.log('otho');
-        irTerms[idRaw] = irTerm;
+        irTerms[idRaw] = { expr: irTerm, inline: false };
         items.push(
             declarationToTs(
                 senv,

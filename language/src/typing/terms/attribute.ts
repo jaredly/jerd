@@ -1,5 +1,6 @@
 import { AttributeSuffix } from '../../parsing/parser';
 import { hasSubType, idFromName, idName } from '../env';
+import { LocatedError } from '../errors';
 import { applyTypeVariablesToRecord, showLocation } from '../typeExpr';
 import { Env, isRecord, Term, UserReference } from '../types';
 import { showType } from '../unify';
@@ -63,15 +64,16 @@ export const typeAttribute = (
         if (!env.global.attributeNames[suffix.id.text]) {
             throw new Error(`Unknown attribute name ${suffix.id.text}`);
         }
-        const attr = env.global.attributeNames[suffix.id.text];
+        const attr = env.global.attributeNames[suffix.id.text][0];
         idx = attr.idx;
         const id = attr.id;
         ref = { type: 'user', id };
         if (!isRecord(target.is, ref) && !hasSubType(env, target.is, id)) {
-            throw new Error(
-                `Expression at ${showLocation(
-                    suffix.location,
-                )} is not a ${idName(id)} or its supertype. It is a ${showType(
+            throw new LocatedError(
+                suffix.location,
+                `Expression at ${showLocation(suffix.location)} is not a ${
+                    env.global.idNames[idName(id)]
+                }#${idName(id)} or its supertype. It is a ${showType(
                     env,
                     target.is,
                 )}`,

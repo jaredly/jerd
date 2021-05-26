@@ -1,4 +1,4 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 type handle1da337a2 = [(arg_0: (arg_0: handle1da337a2, arg_1: string) => void) => void, (arg_0: string, arg_1: (arg_0: handle1da337a2) => void) => void];
 type handle35f4b478 = [(arg_0: string, arg_1: (arg_0: handle35f4b478) => void) => void];
@@ -166,7 +166,7 @@ export const hash_fce40b70:
 /*from cps lambda*/
 (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void = (check: string, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0: string) => ((handlers: Handlers) => {
-    if (stringEq(arg_lift_0, check)) {
+    if (hash_606c7034.h553b4b8e_0(arg_lift_0, check)) {
       raise(handlers, "1da337a2", 0, null, (handlers, value) => done$3(handlers, value));
     } else {
       done$3(handlers, "didn't raise");
@@ -315,11 +315,9 @@ export const hash_2ce3943a: any = {
     handleSimpleShallow2<any, any, any>("35f4b478", fn$0, [(handlers, v$2: string, k$3:
     /*from cps lambda*/
     (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void) => {
-      let lambdaBlockResult: string;
-      lambdaBlockResult = v$2 + "\n" + hash_2ce3943a.direct((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
+      result = v$2 + "\n" + hash_2ce3943a.direct((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
         k$3(handlers, (handlers: Handlers) => done$6(handlers));
       });
-      result = lambdaBlockResult;
     }], (handlers: Handlers, a$1: void) => {
       result = "end";
     });

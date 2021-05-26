@@ -1,6 +1,23 @@
 
 ## GLSL? also Wasm?
 
+How does this work?
+- toplevel records are decomposed into their component parts, and then referenced as such
+- toplevel records that are used altogether get inlined at point of use
+- iffes get inlined
+
+TODO:
+- monomorphize polymorphic stuff my good folks
+- ENUMs get decomposed into the full combined data structure
+
+
+
+
+
+
+
+
+
 How to do constant inlining?
 
 

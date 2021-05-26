@@ -259,7 +259,7 @@ export const applyTypeVariables = (
     throw new Error(`Can't apply variables to non-lambdas just yet`);
 };
 
-const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
+const typeExpr = (env: Env, expr: Expression): Term => {
     switch (expr.type) {
         case 'float':
             return {
@@ -389,6 +389,15 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return typeOps(env, expr);
         }
         case 'WithSuffix': {
+            // if (expr.suffixes[0].type === 'Apply') {
+            //     // OK here's where we'll want to do the bidirectional goodness.
+            //     // So tbh we'll want oooooh ok folks
+            //     // if we see a number without a decimal, we'll return a
+            //     // AmbiguousNumeral(value), and when we're passing it in
+            //     // somewhere, we can lock it down.........
+            //     // START HERE yes.
+            // }
+
             let target = typeExpr(env, expr.target);
             // So, among the denormalizations that we have,
             // the fact that references copy over the type of the thing
@@ -441,7 +450,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             };
             const args: Array<Term> = [];
             expr.args.forEach((term, i) => {
-                const t = typeExpr(env, term, eff.args[i]);
+                const t = typeExpr(env, term); // STOPSHIP figure this out , eff.args[i]);
                 const err = getTypeError(env, t.is, eff.args[i], term.location);
                 if (err != null) {
                     throw new TypeError(
@@ -475,14 +484,15 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
             return typeRecord(env, expr);
         }
         case 'Enum': {
-            const id = env.global.typeNames[expr.id.text];
-            if (!id) {
+            const ids = env.global.typeNames[expr.id.text];
+            if (!ids) {
                 throw new Error(
                     `No Enum type ${expr.id.text} at ${showLocation(
                         expr.location,
                     )}`,
                 );
             }
+            const id = ids[0];
 
             let t = env.global.types[idName(id)] as EnumDef;
             if (t.type !== 'Enum') {
@@ -572,7 +582,7 @@ const typeExpr = (env: Env, expr: Expression, hint?: Type | null): Term => {
                     `Unknown unary op ${expr.op}`,
                 );
             }
-            const { idx, id } = env.global.attributeNames[expr.op];
+            const { idx, id } = env.global.attributeNames[expr.op][0];
             const fn = findUnaryOp(env, id, idx, inner.is, expr.location);
             if (!fn) {
                 if (expr.op === '-' && typesEqual(inner.is, float)) {

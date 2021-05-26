@@ -121,6 +121,7 @@ export const exhaustivenessCheck = (
     const groups = {
         int: null,
         string: null,
+        float: null,
         boolean: ['true', 'false'],
     };
     const matrix: Matrix = [];

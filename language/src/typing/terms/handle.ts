@@ -26,10 +26,11 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
     if (expr.cases.some((c) => c.name.text !== effName.text)) {
         throw new Error(`Can't handle multiple effects in one handler.`);
     }
-    const effId = env.global.effectNames[effName.text];
-    if (!effId) {
+    const effIds = env.global.effectNames[effName.text];
+    if (!effIds) {
         throw new Error(`No effect named ${effName.text}`);
     }
+    const effId = effIds[0];
     const constrs = env.global.effects[effId];
     const effect: Reference = {
         type: 'user',

@@ -114,10 +114,11 @@ const typePattern = (
                         `Not a type ${showType(env, expectedType)}`,
                     );
                 }
-                const id = env.global.typeNames[pattern.text];
-                if (!id) {
+                const ids = env.global.typeNames[pattern.text];
+                if (!ids) {
                     throw new Error(`Unknown type ${pattern.text}`);
                 }
+                const id = ids[0];
 
                 const decl = env.global.types[idName(id)];
                 if (!decl) {
@@ -207,10 +208,11 @@ const typePattern = (
             //         spread: null as any,
             //     };
             // } else {
-            const id = env.global.typeNames[pattern.id.text];
-            if (!id) {
+            const ids = env.global.typeNames[pattern.id.text];
+            if (!ids) {
                 throw new Error(`Unknown type ${pattern.id.text}`);
             }
+            const id = ids[0];
 
             // Validate record in enum
             if (expectedType.type !== 'ref') {
