@@ -31,7 +31,7 @@ const hello = (env: GLSLEnv, fragCoord: Vec2) => {
         }
         // Vec3{x: 1.0, y: 0.0, z: 0.0}
     } else {
-        Vec3{x: 1.0, y: 1.0, z: 1.0}
+        abs(Vec3{x: 1.0, y: 1.0, z: -1.0})
     };
     Vec4{...color, w: 1.0}
     // const scale = 14.0;

@@ -656,12 +656,43 @@ export const addComment = (value: PP, comment: string) =>
 //     );
 // });
 
+const maybeAddRecordInlines = (irTerms: Exprs, id: Id, irTerm: ir.Expr) => {
+    if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
+        if (builtinTypes[idName(irTerm.base.ref.id)]) {
+            return irTerm;
+        }
+        const base = irTerm.base;
+        const rows: Array<Expr | null> = irTerm.base.rows.map((item, i) => {
+            if (!item) {
+                return item;
+            }
+            if (isConstant(item) && item.type !== 'builtin') {
+                return item;
+            }
+            const name = toplevelRecordAttribute(id, base.ref, i);
+            irTerms[name] = {
+                expr: item,
+                inline: item.type !== 'lambda',
+            };
+
+            return {
+                type: 'genTerm',
+                loc: item.loc,
+                is: item.is,
+                id: name,
+            };
+        });
+        return { ...irTerm, base: { ...irTerm.base, rows } };
+    }
+    return irTerm;
+};
+
 export const assembleItemsForFile = (
     env: Env,
     required: Array<Term>,
     requiredIds: Array<string>,
-    // opts: OutputOptions,
     irOpts: IOutputOptions,
+    builtins: { [key: string]: ir.Expr },
 ) => {
     const orderedTerms = expressionDeps(env, required);
 
@@ -679,44 +710,11 @@ export const assembleItemsForFile = (
         let term = env.global.terms[idRaw];
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
 
-        const maybeAddRecordInlines = (irTerm: ir.Expr) => {
-            if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
-                if (builtinTypes[idName(irTerm.base.ref.id)]) {
-                    return irTerm;
-                }
-                const base = irTerm.base;
-                const rows: Array<Expr | null> = irTerm.base.rows.map(
-                    (item, i) => {
-                        if (!item) {
-                            return item;
-                        }
-                        if (isConstant(item) && item.type !== 'builtin') {
-                            return item;
-                        }
-                        const name = toplevelRecordAttribute(id, base.ref, i);
-                        irTerms[name] = {
-                            expr: item,
-                            inline: item.type !== 'lambda',
-                        };
+        // // Don't output anything that I'm overriding with builtins
+        if (builtins[idRaw]) {
+            let irTerm = builtins[idRaw];
 
-                        return {
-                            type: 'genTerm',
-                            loc: item.loc,
-                            is: item.is,
-                            id: name,
-                        };
-                    },
-                );
-                return { ...irTerm, base: { ...irTerm.base, rows } };
-            }
-            return irTerm;
-        };
-
-        // Don't output anything that I'm overriding with builtins
-        if (glslBuiltins[idRaw]) {
-            let irTerm = glslBuiltins[idRaw];
-
-            irTerm = maybeAddRecordInlines(irTerm);
+            irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 
             irTerms[idRaw] = { expr: irTerm, inline: true };
             return;
@@ -740,7 +738,7 @@ export const assembleItemsForFile = (
         irTerm = optimizeDefine(senv, irTerm, id);
         uniquesReallyAreUnique(irTerm);
 
-        irTerm = maybeAddRecordInlines(irTerm);
+        irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 
         const shouldInline = ![
             'bool',
@@ -914,19 +912,33 @@ export const fileToGlsl = (
         ),
     ]);
 
+    const builtins = { ...glslBuiltins };
+    Object.keys(env.global.metaData).forEach((idRaw) => {
+        const tags = env.global.metaData[idRaw].tags;
+        if (tags.includes('glsl_builtin')) {
+            const term = env.global.terms[idRaw];
+            if (term.is.type === 'lambda') {
+                const name = env.global.idNames[idRaw];
+                builtins[idRaw] = builtin(
+                    name,
+                    term.location,
+                    typeFromTermType(env, {}, term.is),
+                );
+            }
+        }
+    });
+
     const { inOrder, irTerms } = assembleItemsForFile(
         env,
         required,
         [idName(mainId)].concat(buffers),
         irOpts,
+        builtins,
     );
-
-    // const orderedTerms = expressionDeps(env, required);
 
     const allTypes = expressionTypeDeps(
         env,
         inOrder.map((t) => env.global.terms[t]).filter(Boolean),
-        // orderedTerms.map((t) => env.global.terms[t]),
     );
 
     allTypes.forEach((r) => {

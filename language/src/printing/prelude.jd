@@ -182,38 +182,52 @@ const negVec3 = (v: Vec3) => {
     Vec3{x: -v.x, y: -v.y, z: -v.z}
 }
 
+@glsl_builtin
 const length = (v: Vec2) => sqrt(v.x * v.x + v.y * v.y)
+@glsl_builtin
 const length = (v: Vec3) => sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
 
+@glsl_builtin
 const radians = (degrees: float) => degrees / 180.0 * PI
 
+@glsl_builtin
 const normalize = (v: Vec3) => v / length(v)
 
+@glsl_builtin
 const vec2 = (x: float, y: float) => Vec2{x: x, y: y}
+@glsl_builtin
 const vec3 = (x: float, y: float, z: float) => Vec3{x: x, y: y, z: z}
+@glsl_builtin
 const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
+@glsl_builtin
 const vec4 = (x: float, y: float, z: float, w: float) => Vec4{x: x, y: y, z: z, w: w}
+@glsl_builtin
 const vec4 = (v: Vec2, z: float, w: float) => Vec4{...v, z: z, w: w}
+@glsl_builtin
 const vec4 = (v: Vec3, w: float) => Vec4{...v, w: w}
 
+@glsl_builtin
 const dot = (a: Vec3, b: Vec3) => {
     a.x * b.x + a.y * b.y + a.z * b.z
 }
+@glsl_builtin
 const dot = (a: Vec2, b: Vec2) => {
     a.x * b.x + a.y * b.y
 }
+@glsl_builtin
 const dot = (a: Vec4, b: Vec4) => {
     a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
 }
 
+@glsl_builtin
 const reflect = (I: Vec3, N: Vec3) => {
     I - 2.0 * dot(N, I) * N
 }
 
+@glsl_builtin
 const distance = (one: Vec3, two: Vec3) => length(two - one)
+@glsl_builtin
 const distance = (one: Vec2, two: Vec2) => length(two - one)
-
-const vec4 = (x: float, y: float ,z: float, w: float) => Vec4{x:x, y:y, z:z, w:w}
 
 const MatByVector = Mul<Mat4, Vec4, Vec4>{
     "*": (mat: Mat4, vec: Vec4) => Vec4{
@@ -226,19 +240,23 @@ const MatByVector = Mul<Mat4, Vec4, Vec4>{
 
 const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 
+@glsl_builtin
 const clamp = (v: float, minv: float, maxv: float) => max(min(v, maxv), minv)
 
+@glsl_builtin
 const clamp = (v: Vec3, min: Vec3, max: Vec3) => Vec3{
     x: clamp(v.x, min.x, max.x),
     y: clamp(v.y, min.y, max.y),
     z: clamp(v.z, min.z, max.z),
 }
 
+@glsl_builtin
 const round = (v: Vec2) => Vec2{
     x: round(v.x),
     y: round(v.y),
 }
 
+@glsl_builtin
 const round = (v: Vec3) => Vec3{
     x: round(v.x),
     y: round(v.y),
@@ -269,7 +287,9 @@ const opRepLim = ( p: Vec3, c: float, l: Vec3) => {
     p - c * clamp(round(p / c), negVec3(l), l);
 }
 
+@glsl_builtin
 const fract = (v: float) => v - floor(v)
+@glsl_builtin
 const fract = (v: Vec3) => Vec3{x: fract(v.x), y: fract(v.y), z: fract(v.z)}
 const abs3 = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 
@@ -306,7 +326,9 @@ const random2 = (co: Vec2) => {
 
 // START HERE: need to resolve ambiguity between
 // [self] and a [term]
+@glsl_builtin
 const abs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
+@glsl_builtin
 const abs = (v: Vec2) => Vec2{x: abs(v.x), y: abs(v.y)}
 
 const box = (samplePoint: Vec3, pos: Vec3, dims: Vec3) => {

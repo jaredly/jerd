@@ -48,21 +48,6 @@ vec3 negVec3_4129390c(
 
 /**
 ```
-const abs#1a074578: (Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (v#:0: Vec3#9f1c0644) ={}> Vec3#9f1c0644{
-    x#43802a16#0: abs(v#:0.x#43802a16#0),
-    y#43802a16#1: abs(v#:0.y#43802a16#1),
-    z#9f1c0644#0: abs(v#:0.z#9f1c0644#0),
-}
-```
-*/
-vec3 abs_1a074578(
-    vec3 v_0
-) {
-    return vec3(abs(v_0.x), abs(v_0.y), abs(v_0.z));
-}
-
-/**
-```
 const max#3af3fc3c: (Vec3#9f1c0644) ={}> float = (v#:0: Vec3#9f1c0644) ={}> {
     max(max(v#:0.x#43802a16#0, v#:0.y#43802a16#1), v#:0.z#9f1c0644#0);
 }
@@ -101,19 +86,6 @@ vec3 opRepLim_47cca838(
     vec3 l_2
 ) {
     return (p_0 - (c_1 * clamp(round((p_0 / c_1)), negVec3_4129390c(l_2), l_2)));
-}
-
-/**
-```
-const length#63e16b7a: (Vec3#9f1c0644) ={}> float = (v#:0: Vec3#9f1c0644) ={}> sqrt(
-    (((v#:0.x#43802a16#0 * v#:0.x#43802a16#0) + (v#:0.y#43802a16#1 * v#:0.y#43802a16#1)) + (v#:0.z#9f1c0644#0 * v#:0.z#9f1c0644#0)),
-)
-```
-*/
-float length_63e16b7a(
-    vec3 v_0
-) {
-    return sqrt((((v_0.x * v_0.x) + (v_0.y * v_0.y)) + (v_0.z * v_0.z)));
 }
 
 /* *
@@ -172,52 +144,16 @@ float sceneSDF_2a446490(
     vec3 p1_3 = opRepLim_47cca838(samplePoint_1, 0.250, vec3(2.0, 0.0, 0.0));
     return min(
         max(
-            max_3af3fc3c((abs_1a074578(p1_3) - vec3(0.10, 0.30, 0.60))),
-            -max_3af3fc3c((abs_1a074578(p1_3) - vec3(0.110, 0.20, 0.550)))
+            max_3af3fc3c((abs(p1_3) - vec3(0.10, 0.30, 0.60))),
+            -max_3af3fc3c((abs(p1_3) - vec3(0.110, 0.20, 0.550)))
         ),
-        max_3af3fc3c(
-            (abs_1a074578((samplePoint_1 - vec3(0.0, 1.0, -0.10))) - vec3(2.10, 0.10, 2.10))
-        )
+        max_3af3fc3c((abs((samplePoint_1 - vec3(0.0, 1.0, -0.10))) - vec3(2.10, 0.10, 2.10)))
     );
-}
-
-/**
-```
-const normalize#48e6ea27: (Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (v#:0: Vec3#9f1c0644) ={}> ScaleVec3Rev#68f73ad4."/"#5ac12902#0(
-    v#:0,
-    length#63e16b7a(v#:0),
-)
-```
-*/
-vec3 normalize_48e6ea27(
-    vec3 v_0
-) {
-    return (v_0 / length_63e16b7a(v_0));
-}
-
-/**
-```
-const reflect#a6961410: (Vec3#9f1c0644, Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (
-    I#:0: Vec3#9f1c0644,
-    N#:1: Vec3#9f1c0644,
-) ={}> {
-    AddSubVec3#1c6fdd91."-"#b99b22d8#1(
-        I#:0,
-        ScaleVec3#c4a91006."*"#1de4e4c0#0((2.0 * dot#255c39c3(N#:1, I#:0)), N#:1),
-    );
-}
-```
-*/
-vec3 reflect_a6961410(
-    vec3 I_0,
-    vec3 N_1
-) {
-    return (I_0 - ((2.0 * dot(N_1, I_0)) * N_1));
 }
 
 /* -- generated -- */
 vec3 estimateNormal_4336190c(float iTime_1, vec3 p_2) {
-    return normalize_48e6ea27(
+    return normalize(
         vec3(
             (sceneSDF_2a446490(iTime_1, vec3((p_2.x + EPSILON_ec7f8d1c), p_2.y, p_2.z)) - sceneSDF_2a446490(
                 iTime_1,
@@ -247,14 +183,14 @@ vec3 phongContribForLight_6d77a148(
     vec3 lightIntensity_8
 ) {
     vec3 N_9 = estimateNormal_4336190c(iTime_1, p_5);
-    vec3 L_10 = normalize_48e6ea27((lightPos_7 - p_5));
+    vec3 L_10 = normalize((lightPos_7 - p_5));
     float dotLN_13 = dot(L_10, N_9);
     if ((dotLN_13 < 0.0)) {
         return vec3(0.0, 0.0, 0.0);
     } else {
         float dotRV_14 = dot(
-            normalize_48e6ea27(reflect_a6961410(negVec3_4129390c(L_10), N_9)),
-            normalize_48e6ea27((eye_6 - p_5))
+            normalize(reflect(negVec3_4129390c(L_10), N_9)),
+            normalize((eye_6 - p_5))
         );
         if ((dotRV_14 < 0.0)) {
             return (lightIntensity_8 * (k_d_2 * dotLN_13));
@@ -262,32 +198,6 @@ vec3 phongContribForLight_6d77a148(
             return (lightIntensity_8 * ((k_d_2 * dotLN_13) + (k_s_3 * pow(dotRV_14, alpha_4))));
         };
     };
-}
-
-/**
-```
-const radians#dabe7f9c: (float) ={}> float = (degrees#:0: float) ={}> ((degrees#:0 / 180.0) * PI)
-```
-*/
-float radians_dabe7f9c(
-    float degrees_0
-) {
-    return ((degrees_0 / 180.0) * PI);
-}
-
-/**
-```
-const vec3#5808ec54: (Vec2#43802a16, float) ={}> Vec3#9f1c0644 = (v#:0: Vec2#43802a16, z#:1: float) ={}> Vec3#9f1c0644{
-    ...v#:0,
-    z#9f1c0644#0: z#:1,
-}
-```
-*/
-vec3 vec3_5808ec54(
-    vec2 v_0,
-    float z_1
-) {
-    return vec3(v_0.x, v_0.y, z_1);
 }
 
 /* -- generated -- */
@@ -386,11 +296,8 @@ vec3 rayDirection_6258178a(
     vec2 size_1,
     vec2 fragCoord_2
 ) {
-    return normalize_48e6ea27(
-        vec3_5808ec54(
-            (fragCoord_2 - (size_1 / 2.0)),
-            -(size_1.y / tan((radians_dabe7f9c(fieldOfView_0) / 2.0)))
-        )
+    return normalize(
+        vec3((fragCoord_2 - (size_1 / 2.0)), -(size_1.y / tan((radians(fieldOfView_0) / 2.0))))
     );
 }
 

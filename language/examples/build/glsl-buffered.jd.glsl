@@ -72,34 +72,6 @@ int neighbor_821c67e8(
 
 /**
 ```
-const dot#369652bb: (Vec2#43802a16, Vec2#43802a16) ={}> float = (
-    a#:0: Vec2#43802a16,
-    b#:1: Vec2#43802a16,
-) ={}> {
-    ((a#:0.x#43802a16#0 * b#:1.x#43802a16#0) + (a#:0.y#43802a16#1 * b#:1.y#43802a16#1));
-}
-```
-*/
-float dot_369652bb(
-    vec2 a_0,
-    vec2 b_1
-) {
-    return ((a_0.x * b_1.x) + (a_0.y * b_1.y));
-}
-
-/**
-```
-const fract#495c4d22: (float) ={}> float = (v#:0: float) ={}> (v#:0 - floor(v#:0))
-```
-*/
-float fract_495c4d22(
-    float v_0
-) {
-    return (v_0 - floor(v_0));
-}
-
-/**
-```
 const countNeighbors#77a447bc: (Vec2#43802a16, Vec2#43802a16, sampler2D) ={}> int = (
     coord#:0: Vec2#43802a16,
     res#:1: Vec2#43802a16,
@@ -189,20 +161,7 @@ const random#347089ef: (Vec2#43802a16) ={}> float = (st#:0: Vec2#43802a16) ={}> 
 float random_347089ef(
     vec2 st_0
 ) {
-    return fract_495c4d22((sin(dot_369652bb(st_0, vec2(12.98980, 78.2330))) * 43758.54531));
-}
-
-/**
-```
-const length#c2805852: (Vec2#43802a16) ={}> float = (v#:0: Vec2#43802a16) ={}> sqrt(
-    ((v#:0.x#43802a16#0 * v#:0.x#43802a16#0) + (v#:0.y#43802a16#1 * v#:0.y#43802a16#1)),
-)
-```
-*/
-float length_c2805852(
-    vec2 v_0
-) {
-    return sqrt(((v_0.x * v_0.x) + (v_0.y * v_0.y)));
+    return fract((sin(dot(st_0, vec2(12.98980, 78.2330))) * 43758.54531));
 }
 
 /**
@@ -297,7 +256,7 @@ vec4 drawToScreen_5349442c(
     sampler2D buffer0_2
 ) {
     vec2 diff_3 = (env_0.mouse - fragCoord_1);
-    if ((length_c2805852(diff_3) < 250.0)) {
+    if ((length(diff_3) < 250.0)) {
         return texture(buffer0_2, ((env_0.mouse - (diff_3 / 4.0)) / env_0.resolution));
     } else {
         return texture(buffer0_2, (fragCoord_1 / env_0.resolution));
