@@ -769,6 +769,18 @@ export const resolveIdentifier = (
     } else if (hash != null) {
         const [first, second] = hash.slice(1).split('#');
 
+        if (
+            env.local.self &&
+            env.local.self.type === 'Term' &&
+            first === 'self'
+        ) {
+            return {
+                location,
+                type: 'self',
+                is: env.local.self.ann,
+            };
+        }
+
         if (!env.global.terms[first]) {
             if (env.global.types[first]) {
                 const id = idFromName(first);

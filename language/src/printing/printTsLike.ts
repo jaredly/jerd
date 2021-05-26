@@ -414,7 +414,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         case 'self':
             if (env.local.self && env.local.self.type === 'Term') {
-                return atom(env.local.self.name);
+                return atom(env.local.self.name + '#self');
             } else {
                 throw new Error(
                     `Self reference, without a self defined on env`,

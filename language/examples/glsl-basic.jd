@@ -13,6 +13,11 @@ const Min: Min<float> = Min<float>{ "--": min }
 //     "+": (one: Circle, Two)
 // }
 
+const round = (v: Vec2) => Vec2{
+    x: round(v.x),
+    y: round(v.y)
+}
+
 const circleSDF = (p: Vec2, circle: Circle) => {
     length(p - circle.pos) - circle.r
 }
