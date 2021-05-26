@@ -121,11 +121,11 @@ const EPSILON = 0.0001
  */
 const sphereSDF = (samplePoint: Vec3, center: Vec3, radius: float) => distance(samplePoint, center) - radius
 
-const vmax = (v: Vec3) => {
+const max = (v: Vec3) => {
     max(max(v.x, v.y), v.z);
 }
 
-const vabs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
+const abs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 
 const rotateY = (theta: float) => {
     const c = cos(theta);
@@ -142,7 +142,7 @@ const rotateY = (theta: float) => {
 // const xyz = (v: Vec4) => Vec3{...v}
 
 const sdf_boxcheap =  (p: Vec3, c: Vec3, s: Vec3) => {
-    vmax(vabs(p - c) - s)
+    max(abs(p - c) - s)
 }
 
 const intersectSDF = (distA: float, distB: float) =>{
@@ -180,9 +180,9 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     unionSDF(
         differenceSDF(
             circles,
-        vmax(vabs(cubePoint) - cubeSize)
+        max(abs(cubePoint) - cubeSize)
     ),
-        vmax(vabs(cubePoint) - innerCubeSize)
+        max(abs(cubePoint) - innerCubeSize)
     );
     // reduce(
     //     range(0, 10),

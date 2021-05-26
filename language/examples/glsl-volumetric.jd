@@ -1,7 +1,7 @@
 
 // const boxes = (samplePoint: Vec3, center: Vec3, count: int, dims: Vec3, spacing: float) => {
 //     if count <= 1 {
-//         vmax(vabs(p1)) - dims
+//         max(abs(p1)) - dims
 //     }
 // }
 
@@ -92,12 +92,12 @@ const sceneSDFsingle = (iTime: float, samplePoint: Vec3) => {
     min(
         min(
             max(
-                vmax(vabs(samplePoint) - 0.2),
-                -vmax(vabs(samplePoint) - Vec3{x: 0.15, y: 0.15, z: 0.3})
+                max(abs(samplePoint) - 0.2),
+                -max(abs(samplePoint) - Vec3{x: 0.15, y: 0.15, z: 0.3})
             ),
-            vmax(vabs(pBack) - Vec3{x: 1.4, y: 1.4, z: 0.3})
+            max(abs(pBack) - Vec3{x: 1.4, y: 1.4, z: 0.3})
         ),
-        vmax(vabs(p1) - Vec3{
+        max(abs(p1) - Vec3{
             x: 0.10, y: 0.10, z: 0.02
         }),
     )
@@ -521,10 +521,10 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
 
     min(
         max(
-            vmax(vabs(p1) - Vec3{x: 0.1, y: 0.3, z: 0.6}),
-            -vmax(vabs(p1) - Vec3{x: 0.11, y: 0.2, z: 0.55})
+            max(abs(p1) - Vec3{x: 0.1, y: 0.3, z: 0.6}),
+            -max(abs(p1) - Vec3{x: 0.11, y: 0.2, z: 0.55})
         ),
-        vmax(vabs(samplePoint - Vec3{
+        max(abs(samplePoint - Vec3{
             x: 0.0,
             y: 1.0,
             z: -0.1,
@@ -536,7 +536,7 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
 @main
 const randFolks = (env: GLSLEnv, fragCoord: Vec2) => {
     const scale = 40.0;
-    const small = roundv(fragCoord / scale) * scale;
+    const small = round(fragCoord / scale) * scale;
     const small = Vec2{x: small.x, y: small.y + env.time};
     // const v = random(small / iResolution) / 10.0 + 0.9;
     const v = random(small / env.resolution) / 10.0 + 0.9;

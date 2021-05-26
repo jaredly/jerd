@@ -234,12 +234,12 @@ const clamp = (v: Vec3, min: Vec3, max: Vec3) => Vec3{
     z: clamp(v.z, min.z, max.z),
 }
 
-const roundv = (v: Vec2) => Vec2{
+const round = (v: Vec2) => Vec2{
     x: round(v.x),
     y: round(v.y),
 }
 
-const roundv = (v: Vec3) => Vec3{
+const round = (v: Vec3) => Vec3{
     x: round(v.x),
     y: round(v.y),
     z: round(v.z),
@@ -266,11 +266,11 @@ const sminCubic = ( a: float, b: float, k: float ) =>
 }
 
 const opRepLim = ( p: Vec3, c: float, l: Vec3) => {
-    p - c * clamp(roundv(p / c), negVec3(l), l);
+    p - c * clamp(round(p / c), negVec3(l), l);
 }
 
 const fract = (v: float) => v - floor(v)
-const fract3 = (v: Vec3) => Vec3{x: fract(v.x), y: fract(v.y), z: fract(v.z)}
+const fract = (v: Vec3) => Vec3{x: fract(v.x), y: fract(v.y), z: fract(v.z)}
 const abs3 = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 
 const random = (st: Vec2) => {
@@ -287,11 +287,11 @@ const random3 = (xy: Vec2, seed: float) => {
 //     fract(tan(distance(xy * PHI, xy) * 200.0) * xy.x);
 // }
 
-const vmax = (v: Vec2) => {
+const max = (v: Vec2) => {
     max(v.x, v.y)
 }
 
-const vmax = (v: Vec3) => {
+const max = (v: Vec3) => {
     max(max(v.x, v.y), v.z);
 }
 
@@ -306,11 +306,11 @@ const random2 = (co: Vec2) => {
 
 // START HERE: need to resolve ambiguity between
 // [self] and a [term]
-const rec vabs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
-const rec vabs = (v: Vec2) => Vec2{x: abs(v.x), y: abs(v.y)}
+const abs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
+const abs = (v: Vec2) => Vec2{x: abs(v.x), y: abs(v.y)}
 
 const box = (samplePoint: Vec3, pos: Vec3, dims: Vec3) => {
-    vmax(vabs(samplePoint - pos) - dims)
+    max(abs(samplePoint - pos) - dims)
 }
 
 const lerp = (a: float, b: float, c: float) => c * (b - a) + a

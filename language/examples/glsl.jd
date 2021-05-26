@@ -32,9 +32,9 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     // unionSDF(
     //     differenceSDF(
     //         circles,
-    //     vmax(vabs(cubePoint) - cubeSize)
+    //     max(abs(cubePoint) - cubeSize)
     // ),
-    //     vmax(vabs(cubePoint) - innerCubeSize)
+    //     max(abs(cubePoint) - innerCubeSize)
     // )
 
 }
@@ -327,7 +327,7 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 @main
 const randFolks = (env: GLSLEnv, fragCoord: Vec2) => {
     const scale = 14.0;
-    const small = roundv(fragCoord / scale) * scale;
+    const small = round(fragCoord / scale) * scale;
     const small = Vec2{x: small.x, y: small.y + env.time};
     // const v = random(small / iResolution) / 10.0 + 0.9;
     const v = random(small / env.resolution) / 10.0 + 0.9;
