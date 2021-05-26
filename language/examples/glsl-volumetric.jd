@@ -108,7 +108,7 @@ const MIN_DIST = 0.0
 const MAX_DIST = 100.0
 const EPSILON = 0.00005
 
-const shortestDistanceToSurface:
+const rec shortestDistanceToSurface:
 ((float, Vec3) => float, float, Vec3, Vec3, float, float, int) => float
     = (
         sceneSDF: (float, Vec3) => float,
@@ -332,7 +332,7 @@ const volumetricSample = (sceneSDF: (float, Vec3) => float, iTime: float, light:
     }
 }
 
-const volumetric : ((float, Vec3) => float, float, Vec2, Vec3, Vec3, float, Vec3, float, int, float) => float
+const rec volumetric : ((float, Vec3) => float, float, Vec2, Vec3, Vec3, float, Vec3, float, int, float) => float
  = (sceneSDF: (float, Vec3) => float, iTime: float, seed: Vec2, light: Vec3, eye: Vec3, dist: float, dir: Vec3, current: float, left: int, total: float) => {
     if left <= 0 {
         current

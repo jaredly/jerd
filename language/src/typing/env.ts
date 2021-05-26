@@ -492,11 +492,13 @@ export const typeDefineInner = (env: Env, item: Define) => {
         local: { ...newLocal(), tmpTypeVbls },
     };
 
-    const self: Self = {
-        type: 'Term',
-        name: item.id.text,
-        ann: item.ann ? typeType(subEnv, item.ann) : void_,
-    };
+    const self: Self | null = item.rec
+        ? {
+              type: 'Term',
+              name: item.id.text,
+              ann: item.ann ? typeType(subEnv, item.ann) : void_,
+          }
+        : null;
 
     subEnv.local.self = self;
     let term;
@@ -506,7 +508,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
         console.log(showLocation(item.location));
         throw err;
     }
-    if (item.ann) {
+    if (item.ann && item.rec) {
         const err = getTypeError(subEnv, term.is, self.ann, item.location);
         if (err != null) {
             throw new TypeError(`Term's type doesn't match annotation`).wrap(

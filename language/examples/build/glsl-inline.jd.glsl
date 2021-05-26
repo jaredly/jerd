@@ -26,7 +26,7 @@ struct GLSLEnv_451d5252{
 // skipping Eq_553b4b8e, contains type variables
 
 /* -- generated -- */
-int V7ff373d8(int n_0) {
+int V08045a1a(int n_0) {
     return (n_0 + 3);
 }
 
@@ -53,33 +53,33 @@ int z_f4c397d2(
 }
 
 /* -- generated -- */
-int yy_14f3fa5c(int z_1, int b_2) {
-    return V7ff373d8((z_1 + b_2));
+int yy_23283828(int z_1, int b_2) {
+    return V08045a1a((z_1 + b_2));
 }
 
 /* -- generated -- */
-int yy_656979cc(int z_1, int b_2) {
+int yy_202b9fb0(int z_1, int b_2) {
     return h_15ece66a((z_1 + b_2));
 }
 
 /* -- generated -- */
-int yy_26f2ed3c(int z_1, int b_2) {
+int yy_99328d90(int z_1, int b_2) {
     return z_f4c397d2((z_1 + b_2));
 }
 
 /* -- generated -- */
-int y_a053e7fe(int v_1) {
-    return yy_14f3fa5c(V7ff373d8((v_1 * 2)), 5);
+int y_8228f9e8(int v_1) {
+    return yy_23283828(V08045a1a((v_1 * 2)), 5);
 }
 
 /* -- generated -- */
-int y_210b82d0(int v_1) {
-    return yy_656979cc(h_15ece66a((v_1 * 2)), 5);
+int y_270df8de(int v_1) {
+    return yy_202b9fb0(h_15ece66a((v_1 * 2)), 5);
 }
 
 /* -- generated -- */
-int y_22df04e0(int v_1) {
-    return yy_26f2ed3c(z_f4c397d2((v_1 * 2)), 5);
+int y_7f8ca5c4(int v_1) {
+    return yy_99328d90(z_f4c397d2((v_1 * 2)), 5);
 }
 
 /**
@@ -115,9 +115,9 @@ vec4 Vtest_main(
     GLSLEnv_451d5252 env_1,
     vec2 fragCoord_2
 ) {
-    bool t0_5 = (y_22df04e0(30) == (((60 + 2) + 5) + 2));
-    bool t1_6 = (y_210b82d0(30) == (((60 - 2) + 5) - 2));
-    bool t2_7 = (y_a053e7fe(30) == ((60 + 5) + 6));
+    bool t0_5 = (y_7f8ca5c4(30) == (((60 + 2) + 5) + 2));
+    bool t1_6 = (y_270df8de(30) == (((60 - 2) + 5) - 2));
+    bool t2_7 = (y_8228f9e8(30) == ((60 + 5) + 6));
     float size_3 = (env_1.resolution.x / 20.0);
     float size_4 = (size_3 * 0.40);
     if ((((t0_5 && (length((fragCoord_2 - (vec2(1.0, 1.0) * size_3))) < size_4)) || (t1_6 && (length(

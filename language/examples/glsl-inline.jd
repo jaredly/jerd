@@ -11,7 +11,7 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     length(p1) - 0.5
 }
 
-const shortestDistanceToSurface:
+const rec shortestDistanceToSurface:
 (
     (float, Vec3) => float,
     float, Vec3, Vec3, float, float, int) => float

@@ -216,7 +216,7 @@ vec3 reflect_a6961410(
 }
 
 /* -- generated -- */
-vec3 estimateNormal_9005e9d0(float iTime_1, vec3 p_2) {
+vec3 estimateNormal_7a4fd114(float iTime_1, vec3 p_2) {
     return normalize_48e6ea27(
         vec3(
             (sceneSDF_2a446490(iTime_1, vec3((p_2.x + EPSILON_ec7f8d1c), p_2.y, p_2.z)) - sceneSDF_2a446490(
@@ -233,6 +233,35 @@ vec3 estimateNormal_9005e9d0(float iTime_1, vec3 p_2) {
             ))
         )
     );
+}
+
+/* -- generated -- */
+vec3 phongContribForLight_f8633f90(
+    float iTime_1,
+    vec3 k_d_2,
+    vec3 k_s_3,
+    float alpha_4,
+    vec3 p_5,
+    vec3 eye_6,
+    vec3 lightPos_7,
+    vec3 lightIntensity_8
+) {
+    vec3 N_9 = estimateNormal_7a4fd114(iTime_1, p_5);
+    vec3 L_10 = normalize_48e6ea27((lightPos_7 - p_5));
+    float dotLN_13 = dot(L_10, N_9);
+    if ((dotLN_13 < 0.0)) {
+        return vec3(0.0, 0.0, 0.0);
+    } else {
+        float dotRV_14 = dot(
+            normalize_48e6ea27(reflect_a6961410(negVec3_4129390c(L_10), N_9)),
+            normalize_48e6ea27((eye_6 - p_5))
+        );
+        if ((dotRV_14 < 0.0)) {
+            return (lightIntensity_8 * (k_d_2 * dotLN_13));
+        } else {
+            return (lightIntensity_8 * ((k_d_2 * dotLN_13) + (k_s_3 * pow(dotRV_14, alpha_4))));
+        };
+    };
 }
 
 /**
@@ -262,32 +291,34 @@ vec3 vec3_5808ec54(
 }
 
 /* -- generated -- */
-vec3 phongContribForLight_57a9d5b5(
+vec3 phongIllumination_6d24aae0(
     float iTime_1,
-    vec3 k_d_2,
-    vec3 k_s_3,
-    float alpha_4,
-    vec3 p_5,
-    vec3 eye_6,
-    vec3 lightPos_7,
-    vec3 lightIntensity_8
+    vec3 k_a_2,
+    vec3 k_d_3,
+    vec3 k_s_4,
+    float alpha_5,
+    vec3 p_6,
+    vec3 eye_7
 ) {
-    vec3 N_9 = estimateNormal_9005e9d0(iTime_1, p_5);
-    vec3 L_10 = normalize_48e6ea27((lightPos_7 - p_5));
-    float dotLN_13 = dot(L_10, N_9);
-    if ((dotLN_13 < 0.0)) {
-        return vec3(0.0, 0.0, 0.0);
-    } else {
-        float dotRV_14 = dot(
-            normalize_48e6ea27(reflect_a6961410(negVec3_4129390c(L_10), N_9)),
-            normalize_48e6ea27((eye_6 - p_5))
-        );
-        if ((dotRV_14 < 0.0)) {
-            return (lightIntensity_8 * (k_d_2 * dotLN_13));
-        } else {
-            return (lightIntensity_8 * ((k_d_2 * dotLN_13) + (k_s_3 * pow(dotRV_14, alpha_4))));
-        };
-    };
+    return ((((0.50 * vec3(1.0, 1.0, 1.0)) * k_a_2) + phongContribForLight_f8633f90(
+        iTime_1,
+        k_d_3,
+        k_s_4,
+        alpha_5,
+        p_6,
+        eye_7,
+        vec3((4.0 * sin(iTime_1)), 2.0, (4.0 * cos(iTime_1))),
+        vec3(0.40, 0.40, 0.40)
+    )) + phongContribForLight_f8633f90(
+        iTime_1,
+        k_d_3,
+        k_s_4,
+        alpha_5,
+        p_6,
+        eye_7,
+        vec3((2.0 * sin((0.370 * iTime_1))), (2.0 * cos((0.370 * iTime_1))), 2.0),
+        vec3(0.40, 0.40, 0.40)
+    ));
 }
 
 /* *
@@ -305,7 +336,7 @@ const MIN_DIST#f2cd39b8: float = 0.0
 const float MIN_DIST_f2cd39b8 = 0.0;
 
 /* -- generated -- */
-float shortestDistanceToSurface_51e8d320(
+float shortestDistanceToSurface_4b83ecf8(
     float iTime_1,
     vec3 eye_2,
     vec3 marchingDirection_3,
@@ -371,41 +402,10 @@ const MAX_MARCHING_STEPS#62404440: int = 255
 const int MAX_MARCHING_STEPS_62404440 = 255;
 
 /* -- generated -- */
-vec3 phongIllumination_58307234(
-    float iTime_1,
-    vec3 k_a_2,
-    vec3 k_d_3,
-    vec3 k_s_4,
-    float alpha_5,
-    vec3 p_6,
-    vec3 eye_7
-) {
-    return ((((0.50 * vec3(1.0, 1.0, 1.0)) * k_a_2) + phongContribForLight_57a9d5b5(
-        iTime_1,
-        k_d_3,
-        k_s_4,
-        alpha_5,
-        p_6,
-        eye_7,
-        vec3((4.0 * sin(iTime_1)), 2.0, (4.0 * cos(iTime_1))),
-        vec3(0.40, 0.40, 0.40)
-    )) + phongContribForLight_57a9d5b5(
-        iTime_1,
-        k_d_3,
-        k_s_4,
-        alpha_5,
-        p_6,
-        eye_7,
-        vec3((2.0 * sin((0.370 * iTime_1))), (2.0 * cos((0.370 * iTime_1))), 2.0),
-        vec3(0.40, 0.40, 0.40)
-    ));
-}
-
-/* -- generated -- */
-vec4 phongLit_2eb20bca(GLSLEnv_451d5252 env_1, vec2 fragCoord_2) {
+vec4 phongLit_0c20368c(GLSLEnv_451d5252 env_1, vec2 fragCoord_2) {
     vec3 dir_3 = rayDirection_6258178a(45.0, env_1.resolution, fragCoord_2);
     vec3 eye_4 = vec3(0.0, 0.0, 5.0);
-    float dist_5 = shortestDistanceToSurface_51e8d320(
+    float dist_5 = shortestDistanceToSurface_4b83ecf8(
         env_1.time,
         eye_4,
         dir_3,
@@ -416,7 +416,7 @@ vec4 phongLit_2eb20bca(GLSLEnv_451d5252 env_1, vec2 fragCoord_2) {
     if ((dist_5 > (MAX_DIST_0ce717e6 - EPSILON_ec7f8d1c))) {
         return vec4(0.0, 0.0, 0.0, 1.0);
     } else {
-        vec3 color_11 = phongIllumination_58307234(
+        vec3 color_11 = phongIllumination_6d24aae0(
             env_1.time,
             vec3(0.90, 0.20, 0.30),
             vec3(0.0, 0.20, 0.70),
@@ -455,7 +455,7 @@ vec4 randFolks_4ae1bdd9(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1
 ) {
-    return phongLit_2eb20bca(env_0, fragCoord_1);
+    return phongLit_0c20368c(env_0, fragCoord_1);
 }
 
 void main() {

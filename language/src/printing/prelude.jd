@@ -37,7 +37,7 @@ const StringEq = Eq<string>{"==": stringEq}
 
 // For checking equality
 
-const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
+const rec arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
  = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
     switch (one, two) {
         ([], []) => true,
@@ -306,8 +306,8 @@ const random2 = (co: Vec2) => {
 
 // START HERE: need to resolve ambiguity between
 // [self] and a [term]
-const vabs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
-const vabs = (v: Vec2) => Vec2{x: abs(v.x), y: abs(v.y)}
+const rec vabs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
+const rec vabs = (v: Vec2) => Vec2{x: abs(v.x), y: abs(v.y)}
 
 const box = (samplePoint: Vec3, pos: Vec3, dims: Vec3) => {
     vmax(vabs(samplePoint - pos) - dims)
