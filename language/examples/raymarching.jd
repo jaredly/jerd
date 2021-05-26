@@ -217,7 +217,7 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
 //  * end: the max distance away from the ey to march before giving up
 //  */
 
-const shortestDistanceToSurface:
+const rec shortestDistanceToSurface:
 (float, Vec3, Vec3, float, float, int) => float
  = (iTime: float, eye: Vec3, marchingDirection: Vec3, start: float, end: float, stepsLeft: int) => {
      const dist = sceneSDF(iTime, eye + start * marchingDirection);

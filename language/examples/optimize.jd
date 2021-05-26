@@ -2,7 +2,7 @@
 //     "==": (T, T) => bool
 // }
 
-const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
+const rec arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
  = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
     switch (one, two) {
         ([], []) => true,
@@ -15,7 +15,7 @@ const arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
     }
 }
 
-const palendrome: <T,>(Array<T>, Eq<T>) => bool = <T,>(one: Array<T>, eq: Eq<T>): bool => {
+const rec palendrome: <T,>(Array<T>, Eq<T>) => bool = <T,>(one: Array<T>, eq: Eq<T>): bool => {
     switch one {
         [] => true,
         [_] => true,
@@ -71,7 +71,7 @@ const palendrome: <T,>(Array<T>, Eq<T>) => bool = <T,>(one: Array<T>, eq: Eq<T>)
     }
 }
 
-const recurse: (int) => int = (n: int) => {
+const rec recurse: (int) => int = (n: int) => {
     if n > 5 {
         recurse(n - 1) + 1
     } else {

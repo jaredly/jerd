@@ -5,7 +5,7 @@ effect Log {
 
 
 // Start with the basic
-const collectNew: (() ={Log}> void) ={}> string = 
+const rec collectNew: (() ={Log}> void) ={}> string = 
 (fn: () ={Log}> void): string => {
     handle! fn {
         Log.log((v) => k) => {
@@ -25,7 +25,7 @@ effect Read {
 }
 
 // Now for reading
-const provide: <T>(string, () ={Read}> T) ={}> T = 
+const rec provide: <T>(string, () ={Read}> T) ={}> T = 
 <T,>(v: string, fn: () ={Read}> T): T => {
     handle! fn {
         Read.read(() => k) => {
@@ -41,7 +41,7 @@ provide<string,>("Hello", () => raise!(Read.read()) + raise!(Read.read())) == "H
 
 
 // Start with the basic
-const appendLog: (() ={Log}> string) ={}> string = 
+const rec appendLog: (() ={Log}> string) ={}> string = 
 (fn: () ={Log}> string): string => {
     handle! fn {
         Log.log((v) => k) => {
@@ -59,7 +59,7 @@ appendLog(() => {
 
 
 // Start with the basic
-const collectPoly: {e}(() ={Log, e}> void) ={e}> string = 
+const rec collectPoly: {e}(() ={Log, e}> void) ={e}> string = 
 {e}(fn: () ={Log, e}> void): string => {
     handle! fn {
         Log.log((v) => k) => {
@@ -94,7 +94,7 @@ effect Log {
 const log = (k: string) ={Log}> raise!(Log.log(k))
 
 // TODO when I've got type arguments, make this generic.
-const respondWith:
+const rec respondWith:
     (string) => <T>{e}(() ={Stdio, e}> T) ={Log, e}> T
  = (responseValue: string) => <T,>{e}(fn: () ={Stdio, e}> T) ={Log, e}> {
     handle! fn {
@@ -108,7 +108,7 @@ const respondWith:
 }
 
 // This is so we can test the results
-const collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
+const rec collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
     handle! fn {
         Log.log((v) => k) => {
             v ++ "\n" ++ collect{e}(() ={e, Log}> k())

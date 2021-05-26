@@ -42,7 +42,7 @@ effect GetString {
     get: () => string,
 }
 
-const provideString:
+const rec provideString:
     (string) => (() ={GetString}> string) => string
  = (responseValue: string) => (fn: () ={GetString}> string) => {
     handle! fn {

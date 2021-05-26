@@ -74,7 +74,7 @@ ok lol so the simple fix is to say "all loops max out at 1000 lol"
 we'll try that first
 
 */
-const shortestDistanceToSurface:
+const rec shortestDistanceToSurface:
 (float, Vec3, Vec3, float, float, int) => float
     = (
         iTime: float,
