@@ -508,7 +508,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
         console.log(showLocation(item.location));
         throw err;
     }
-    if (item.ann && item.rec) {
+    if (item.ann && self) {
         const err = getTypeError(subEnv, term.is, self.ann, item.location);
         if (err != null) {
             throw new TypeError(`Term's type doesn't match annotation`).wrap(
@@ -817,43 +817,69 @@ export const resolveIdentifier = (
             is: env.local.self.ann,
         };
     }
+
+    const candidates: Array<Term> = [];
+
     if (env.global.names[text]) {
-        const ids = env.global.names[text];
-        if (ids.length > 1) {
-            return {
-                type: 'Ambiguous',
-                options: ids
-                    .filter((id) => env.global.terms[idName(id)] != null)
-                    .map((id) => ({
-                        type: 'ref',
-                        location,
-                        is: env.global.terms[idName(id)].is,
-                        ref: { type: 'user', id },
-                    })),
-                is: { type: 'Ambiguous', location },
+        env.global.names[text].forEach((id) => {
+            candidates.push({
+                type: 'ref',
                 location,
-            };
-        }
-        const term = env.global.terms[idName(ids[0])];
-        return {
-            type: 'ref',
-            location,
-            ref: {
-                type: 'user',
-                id: ids[0],
-            },
-            is: term.is,
-        };
+                is: env.global.terms[idName(id)].is,
+                ref: { type: 'user', id },
+            });
+        });
+
+        // const ids = env.global.names[text];
+        // if (ids.length > 1) {
+        //     return {
+        //         type: 'Ambiguous',
+        //         options: ids
+        //             .filter((id) => env.global.terms[idName(id)] != null)
+        //             .map((id) => ({
+        //                 type: 'ref',
+        //                 location,
+        //                 is: env.global.terms[idName(id)].is,
+        //                 ref: { type: 'user', id },
+        //             })),
+        //         is: { type: 'Ambiguous', location },
+        //         location,
+        //     };
+        // }
+        // const term = env.global.terms[idName(ids[0])];
+        // return {
+        //     type: 'ref',
+        //     location,
+        //     ref: {
+        //         type: 'user',
+        //         id: ids[0],
+        //     },
+        //     is: term.is,
+        // };
     }
+
     if (env.global.builtins[text]) {
         const type = env.global.builtins[text];
-        return {
+        candidates.push({
             type: 'ref',
             location,
             is: type,
             ref: { type: 'builtin', name: text },
-        };
+        });
     }
+
+    if (candidates.length) {
+        if (candidates.length > 1) {
+            return {
+                type: 'Ambiguous',
+                options: candidates,
+                is: { type: 'Ambiguous', location },
+                location,
+            };
+        }
+        return candidates[0];
+    }
+
     if (env.global.typeNames[text]) {
         const id = env.global.typeNames[text][0];
         const t = env.global.types[idName(id)];

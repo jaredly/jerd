@@ -226,12 +226,12 @@ const MatByVector = Mul<Mat4, Vec4, Vec4>{
 
 const xyz = (v: Vec4) => Vec3{x: v.x, y: v.y, z: v.z}
 
-const clampF = (v: float, minv: float, maxv: float) => max(min(v, maxv), minv)
+const clamp = (v: float, minv: float, maxv: float) => max(min(v, maxv), minv)
 
 const clamp = (v: Vec3, min: Vec3, max: Vec3) => Vec3{
-    x: clampF(v.x, min.x, max.x),
-    y: clampF(v.y, min.y, max.y),
-    z: clampF(v.z, min.z, max.z),
+    x: clamp(v.x, min.x, max.x),
+    y: clamp(v.y, min.y, max.y),
+    z: clamp(v.z, min.z, max.z),
 }
 
 const roundv = (v: Vec2) => Vec2{
