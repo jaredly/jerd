@@ -108,67 +108,82 @@ type Neg<A, B> = {
     "-": (A) => B
 }
 
+@glsl_builtin
 const AddSubVec4 = AddSub<Vec4, Vec4, Vec4>{
     "+": (one: Vec4, two: Vec4) => Vec4{x: one.x + two.x, y: one.y + two.y, z: one.z + two.z, w: one.w + two.w},
     "-": (one: Vec4, two: Vec4) => Vec4{x: one.x - two.x, y: one.y - two.y, z: one.z - two.z, w: one.w - two.w},
 }
 
+@glsl_builtin
 const AddSubVec3 = AddSub<Vec3, Vec3, Vec3>{
     "+": (one: Vec3, two: Vec3) => Vec3{x: one.x + two.x, y: one.y + two.y, z: one.z + two.z},
     "-": (one: Vec3, two: Vec3) => Vec3{x: one.x - two.x, y: one.y - two.y, z: one.z - two.z},
 }
 
+@glsl_builtin
 const AddSubVec2 = AddSub<Vec2, Vec2, Vec2>{
     "+": (one: Vec2, two: Vec2) => Vec2{x: one.x + two.x, y: one.y + two.y},
     "-": (one: Vec2, two: Vec2) => Vec2{x: one.x - two.x, y: one.y - two.y},
 }
 
+@glsl_builtin
 const AddSubVec2_ = AddSub<Vec2, float, Vec2>{
     "+": (one: Vec2, two: float) => Vec2{x: one.x + two, y: one.y + two},
     "-": (one: Vec2, two: float) => Vec2{x: one.x - two, y: one.y - two},
 }
 
+@glsl_builtin
 const AddSubVec3_ = AddSub<Vec3, float, Vec3>{
     "+": (one: Vec3, two: float) => Vec3{x: one.x + two, y: one.y + two, z: one.z + two},
     "-": (one: Vec3, two: float) => Vec3{x: one.x - two, y: one.y - two, z: one.z - two},
 }
 
+@glsl_builtin
 const MulVec3 = Mul<Vec3, Vec3, Vec3>{
     "*": (one: Vec3, two: Vec3) => Vec3{x: one.x * two.x, y: one.y * two.y, z: one.z * two.z},
 }
 
+@glsl_builtin
 const ScaleVec3_ = Mul<Vec3, float, Vec3>{
     "*": (v: Vec3, scale: float) => Vec3{x: v.x * scale, y: v.y * scale, z: v.z * scale}
 }
 
+@glsl_builtin
 const ScaleVec3 = Mul<float, Vec3, Vec3>{
     "*": (scale: float, v: Vec3) => Vec3{x: v.x * scale, y: v.y * scale, z: v.z * scale}
 }
 
+@glsl_builtin
 const Scale4 = Div<Vec4, float, Vec4>{
     "/": (v: Vec4, scale: float) => Vec4{x: v.x / scale, y: v.y / scale, z: v.z / scale, w: v.w / scale}
 }
 
+@glsl_builtin
 const Scale42 = Div<Vec4, Vec4, Vec4>{
     "/": (v: Vec4, scale: Vec4) => Vec4{x: v.x / scale.x, y: v.y / scale.y, z: v.z / scale.z, w: v.w / scale.w}
 }
 
+@glsl_builtin
 const Mul42 = Mul<Vec4, Vec4, Vec4>{
     "*": (v: Vec4, scale: Vec4) => Vec4{x: v.x * scale.x, y: v.y * scale.y, z: v.z * scale.z, w: v.w * scale.w}
 }
 
+@glsl_builtin
 const MulVec2 = Div<Vec2, Vec2, Vec2>{
     "/": (v: Vec2, scale: Vec2) => Vec2{x: v.x / scale.x, y: v.y / scale.y}
 }
 
+@glsl_builtin
 const ScaleVec3Rev = Div<Vec3, float, Vec3>{
     "/": (v: Vec3, scale: float) => Vec3{x: v.x / scale, y: v.y / scale, z: v.z / scale}
 }
 
+@glsl_builtin
 const Vec2float = Mul<Vec2, float, Vec2>{
     "*": (v: Vec2, scale: float) => Vec2{x: v.x * scale, y: v.y * scale}
 }
 
+@glsl_builtin
 const ScaleVec2Rev = Div<Vec2, float, Vec2>{
     "/": (v: Vec2, scale: float) => Vec2{x: v.x / scale, y: v.y / scale}
 }
