@@ -609,7 +609,7 @@ const ViewSource = ({
             }),
             term,
             idFromName(hash),
-            false,
+            {},
         );
     }, [env, term]);
     return (

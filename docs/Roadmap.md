@@ -68,6 +68,9 @@ but I'll need to keep track of comments in order to do that.
 - [x] OK and then we also need MULTIPLE NAMES. So idNames needs to be a list. And let's extract all usages of idNames into env.ts.
   - Then we can overload all the builtin functions to our heart's content, and maybe be ready to actually demo stuff?
   - of course, we'll then need the ability to indicate that a given term "overrides" another term, and should take precedence in the 'idNames' list. ... although, maybe that's settled by just having newer things sorted after? ok but I do want a replaces thing. But will also need a 'createdDate' metadata, do want that.
+
+START HERE PLEASE
+
 - [ ] AND THEN we can bring this wonderful GLSL goodness to our web editor bonanza.
 - [ ] fix inlining of recursive functions? well to do that I need to do inlining of lambdas that capture scope variables.
 - [ ] properly handle lambdas that close over things, probably by making a new Expr type that groups a record of scope variables with the hash of the lifted lambda.

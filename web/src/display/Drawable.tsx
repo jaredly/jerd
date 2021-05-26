@@ -50,7 +50,7 @@ type Drawable = {
 const refType = (hash: string, typeVbls: Array<Type> = []): TypeReference => ({
     type: 'ref',
     location: null,
-    effectVbls: [],
+    // effectVbls: [],
     typeVbls,
     ref: {
         type: 'user',

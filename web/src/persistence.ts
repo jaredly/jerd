@@ -4,7 +4,12 @@ import { allLiteral } from '@jerd/language/src/typing/analyze';
 import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
 import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import * as builtins from '@jerd/language/src/printing/builtins';
-import { newLocal, newWithGlobal, Type } from '@jerd/language/src/typing/types';
+import {
+    GlobalEnv,
+    newLocal,
+    newWithGlobal,
+    Type,
+} from '@jerd/language/src/typing/types';
 
 const saveKey = 'jd-repl-cache';
 
@@ -36,6 +41,41 @@ export const initialState = (): State => {
     if (saved) {
         try {
             const data = JSON.parse(saved);
+            const glob: GlobalEnv = data.env.global;
+            // Fix env format change
+            Object.keys(glob.typeNames).forEach((name) => {
+                if (!Array.isArray(glob.typeNames[name])) {
+                    // @ts-ignore
+                    glob.typeNames[name] = [glob.typeNames[name]];
+                }
+            });
+            Object.keys(glob.names).forEach((name) => {
+                if (!Array.isArray(glob.names[name])) {
+                    // @ts-ignore
+                    glob.names[name] = [glob.names[name]];
+                }
+            });
+            Object.keys(glob.attributeNames).forEach((name) => {
+                if (!Array.isArray(glob.attributeNames[name])) {
+                    // @ts-ignore
+                    glob.attributeNames[name] = [glob.attributeNames[name]];
+                }
+            });
+            Object.keys(glob.effectNames).forEach((name) => {
+                if (!Array.isArray(glob.effectNames[name])) {
+                    // @ts-ignore
+                    glob.effectNames[name] = [glob.effectNames[name]];
+                }
+            });
+            const metaData = { ...data.env.global.metaData };
+            Object.keys(glob.terms).forEach((id) => {
+                if (!metaData[id]) {
+                    metaData[id] = {
+                        tags: [],
+                        createdMs: Date.now(),
+                    };
+                }
+            });
             return {
                 ...data,
                 env: {
@@ -44,6 +84,7 @@ export const initialState = (): State => {
                         ...data.env.global,
                         builtins: env.builtins,
                         builtinTypes: env.builtinTypes,
+                        metaData,
                         rng: env.rng,
                         recordGroups: {
                             ...env.recordGroups,

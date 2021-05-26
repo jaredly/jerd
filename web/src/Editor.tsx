@@ -50,7 +50,7 @@ const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
             type: 'global',
             name,
             id: env.global.names[name],
-            term: env.global.terms[idName(env.global.names[name])],
+            term: env.global.terms[idName(env.global.names[name][0])],
         }));
     if (!matchingNames.length) {
         return <div>No defined names matching {name}</div>;

@@ -195,7 +195,6 @@ const typeNewOp = (
             ref: found.is.ref,
             inferred: true,
         };
-        // TODO: allow ambiguity
     } else if (env.global.attributeNames[op]) {
         const found = findMatchingOp(env, op, left, rarg, location);
         if (found == null) {
