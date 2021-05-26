@@ -165,7 +165,7 @@ const pendulum = (
 }
 
 const rect = (samplePos: Vec2, center: Vec2, w: float, h: float) => {
-    vmax(vabs2(samplePos - center) - Vec2{x: w, y: h})
+    vmax(vabs(samplePos - center) - Vec2{x: w, y: h})
 }
 
 const circle = (samplePos: Vec2, center: Vec2, r: float) => {
@@ -199,12 +199,12 @@ const main = (
     //         -rect(p1, env.mouse - env.resolution / 2.0, 9.0, 9.0),
     //     )
     // );
-        // vmax(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
-        // vmax(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
-        // vmax(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-        // vmax(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-        // vmax(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-        // vmax(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
+        // vmax(vabs(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
+        // vmax(vabs(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
+        // vmax(vabs(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax(vabs(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax(vabs(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax(vabs(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
 
     if circle(p1, c1, 10.0) < 0.0 {
         vec4(1.0, 0.0, 0.0, 1.0)
@@ -263,12 +263,12 @@ const mainDebug = (
 
         const p1 = fragCoord - env.resolution / 2.0;
         const sdf = min(min(min(min(min(
-            vmax(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
-            vmax(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
-            vmax(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-            vmax(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-            vmax(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-            vmax(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
+            vmax(vabs(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
+            vmax(vabs(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
+            vmax(vabs(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax(vabs(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax(vabs(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax(vabs(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
         if sdf < 0.0 {
             Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0}
         } else {

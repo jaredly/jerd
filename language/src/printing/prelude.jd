@@ -189,7 +189,12 @@ const radians = (degrees: float) => degrees / 180.0 * PI
 
 const normalize = (v: Vec3) => v / length(v)
 
+const vec2 = (x: float, y: float) => Vec2{x: x, y: y}
+const vec3 = (x: float, y: float, z: float) => Vec3{x: x, y: y, z: z}
 const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
+const vec4 = (x: float, y: float, z: float, w: float) => Vec4{x: x, y: y, z: z, w: w}
+const vec4 = (v: Vec2, z: float, w: float) => Vec4{...v, z: z, w: w}
+const vec4 = (v: Vec3, w: float) => Vec4{...v, w: w}
 
 const dot = (a: Vec3, b: Vec3) => {
     a.x * b.x + a.y * b.y + a.z * b.z
@@ -302,7 +307,7 @@ const random2 = (co: Vec2) => {
 // START HERE: need to resolve ambiguity between
 // [self] and a [term]
 const vabs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
-const vabs2 = (v: Vec2) => Vec2{x: abs(v.x), y: abs(v.y)}
+const vabs = (v: Vec2) => Vec2{x: abs(v.x), y: abs(v.y)}
 
 const box = (samplePoint: Vec3, pos: Vec3, dims: Vec3) => {
     vmax(vabs(samplePoint - pos) - dims)
