@@ -277,7 +277,9 @@ const test1#22486482: () ={Log#35f4b478}> void = () ={Log#35f4b478}> {
 export const hash_22486482:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done: (arg_0: Handlers) => void) => {
-  hash_59070068("<read>")(hash_32b8282e, handlers, (handlers: Handlers, returnValue$5: T_0) => done(handlers));
+  hash_59070068("<read>")((handlers: Handlers, done$3: (arg_0: Handlers) => void) => {
+    hash_19effbea("Yes", handlers, (handlers: Handlers) => done$3(handlers));
+  }, handlers, (handlers: Handlers, returnValue$5: T_0) => done(handlers));
 };
 
 /*

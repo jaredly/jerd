@@ -5,16 +5,16 @@ type handle35f4b478 = [(arg_0: string, arg_1: (arg_0: handle35f4b478) => void) =
 
 /**
 ```
-type Person#6943a48c = {
+type Person#ba1e5642 = {
     name: string,
     age: int,
 }
 ```
 */
-type t_6943a48c = {
-  type: "6943a48c";
-  h6943a48c_0: string;
-  h6943a48c_1: number;
+type t_ba1e5642 = {
+  type: "ba1e5642";
+  hba1e5642_0: string;
+  hba1e5642_1: number;
 };
 
 /**
@@ -73,6 +73,7 @@ export const hash_7825e3a8: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t
       if (eq.h553b4b8e_0(one[0 + one_i], two[0 + two_i])) {
         one_i = one_i + 1;
         two_i = two_i + 1;
+        eq = eq;
         continue;
       } else {
         return false;
@@ -140,43 +141,43 @@ const ArrayEq#bef2134a: <T#:0>(Eq#553b4b8e<T#:0>) ={}> Eq#553b4b8e<Array<T#:0>> 
 */
 export const hash_bef2134a: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_0>> = <T_0>(eq$0: t_553b4b8e<T_0>) => ({
   type: "553b4b8e",
-  h553b4b8e_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_9275f914.h553b4b8e_0(len(one$1), len(two$2)) && hash_0a8a7138(one$1, two$2, eq$0)
+  h553b4b8e_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_9275f914.h553b4b8e_0(len(one$1), len(two$2)) && hash_7825e3a8(one$1, two$2, eq$0)
 } as t_553b4b8e<Array<T_0>>);
 
 /**
 ```
-const getPerson#fd80e7a4: () ={Read#22024b72}> Person#6943a48c = () ={Read#22024b72}> Person#6943a48c{
-    name#6943a48c#0: getString#64605d94(),
-    age#6943a48c#1: 5,
+const getPerson#5d7fc4f0: () ={Read#22024b72}> Person#ba1e5642 = () ={Read#22024b72}> Person#ba1e5642{
+    name#ba1e5642#0: getString#64605d94(),
+    age#ba1e5642#1: 5,
 }
 ```
 */
-export const hash_fd80e7a4:
+export const hash_5d7fc4f0:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_6943a48c) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_6943a48c) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_ba1e5642) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_ba1e5642) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue: string) => done$2(handlers, ({
-    type: "6943a48c",
-    h6943a48c_0: returnValue,
-    h6943a48c_1: 5
-  } as t_6943a48c)));
+    type: "ba1e5642",
+    hba1e5642_0: returnValue,
+    hba1e5642_1: 5
+  } as t_ba1e5642)));
 };
 
 /**
 ```
-const getPersonName#c59246e0: () ={Read#22024b72}> string = () ={Read#22024b72}> Person#6943a48c{
-    name#6943a48c#0: getString#64605d94(),
-    age#6943a48c#1: 5,
-}.name#6943a48c#0
+const getPersonName#5499a084: () ={Read#22024b72}> string = () ={Read#22024b72}> Person#ba1e5642{
+    name#ba1e5642#0: getString#64605d94(),
+    age#ba1e5642#1: 5,
+}.name#ba1e5642#0
 ```
 */
-export const hash_c59246e0:
+export const hash_5499a084:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void) => void = (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => done$3(handlers, ({
-    type: "6943a48c",
-    h6943a48c_0: returnValue$5,
-    h6943a48c_1: 5
-  } as t_6943a48c).h6943a48c_0));
+    type: "ba1e5642",
+    hba1e5642_0: returnValue$5,
+    hba1e5642_1: 5
+  } as t_ba1e5642).hba1e5642_0));
 };
 
 /**
@@ -233,23 +234,23 @@ const ArrayStringEq#0d35c408: Eq#553b4b8e<Array<string>> = ArrayEq#bef2134a<stri
 )
 ```
 */
-export const hash_0d35c408: t_553b4b8e<Array<T_0>> = hash_6e5705a8(hash_606c7034);
+export const hash_0d35c408: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_606c7034);
 
 /**
 ```
-const spreadPerson#1e06f198: () ={Read#22024b72}> Person#6943a48c = () ={Read#22024b72}> Person#6943a48c{
-    ...getPerson#fd80e7a4(),
-    age#6943a48c#1: 20,
+const spreadPerson#279e45cf: () ={Read#22024b72}> Person#ba1e5642 = () ={Read#22024b72}> Person#ba1e5642{
+    ...getPerson#5d7fc4f0(),
+    age#ba1e5642#1: 20,
 }
 ```
 */
-export const hash_1e06f198:
+export const hash_279e45cf:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_6943a48c) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_6943a48c) => void) => {
-  hash_fd80e7a4(handlers, (handlers: Handlers, returnValue: t_6943a48c) => done$2(handlers, ({ ...returnValue,
-    type: "6943a48c",
-    h6943a48c_1: 20
-  } as t_6943a48c)));
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_ba1e5642) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_ba1e5642) => void) => {
+  hash_5d7fc4f0(handlers, (handlers: Handlers, returnValue: t_ba1e5642) => done$2(handlers, ({ ...returnValue,
+    type: "ba1e5642",
+    hba1e5642_1: 20
+  } as t_ba1e5642)));
 };
 
 /**
@@ -442,19 +443,19 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("what", (handlers: Handlers,
 
 /*
 StringEq#606c7034."=="#553b4b8e#0(
-    provideStringPlain#2dbf3eae<Person#6943a48c>("Me", getPerson#fd80e7a4).name#6943a48c#0,
+    provideStringPlain#2dbf3eae<Person#ba1e5642>("Me", getPerson#5d7fc4f0).name#ba1e5642#0,
     "Me",
 )
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_fd80e7a4).h6943a48c_0, "Me");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_5d7fc4f0).hba1e5642_0, "Me");
 
 /*
 StringEq#606c7034."=="#553b4b8e#0(
-    provideStringPlain#2dbf3eae<Person#6943a48c>("Me", spreadPerson#1e06f198).name#6943a48c#0,
+    provideStringPlain#2dbf3eae<Person#ba1e5642>("Me", spreadPerson#279e45cf).name#ba1e5642#0,
     "Me",
 )
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_1e06f198).h6943a48c_0, "Me");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_279e45cf).hba1e5642_0, "Me");
 
 /*
 ArrayStringEq#0d35c408."=="#553b4b8e#0(
@@ -505,8 +506,8 @@ assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers
 
 /*
 StringEq#606c7034."=="#553b4b8e#0(
-    provideStringPlain#2dbf3eae<string>("ok", getPersonName#c59246e0),
+    provideStringPlain#2dbf3eae<string>("ok", getPersonName#5499a084),
     "ok",
 )
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("ok", hash_c59246e0), "ok");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("ok", hash_5499a084), "ok");

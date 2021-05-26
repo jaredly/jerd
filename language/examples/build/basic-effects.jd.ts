@@ -225,7 +225,9 @@ const full#d649a85c: () ={}> string = () ={}> {
 }
 ```
 */
-export const hash_d649a85c: () => string = () => hash_fadf30b0(hash_359c1aac);
+export const hash_d649a85c: () => string = () => hash_fadf30b0((handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
+  raise(handlers, "6ddb76fe", 0, [4, "five"], (handlers, value) => done(handlers, value));
+});
 
 /**
 ```
@@ -254,7 +256,9 @@ const test3#1e213df0: () ={Log#35f4b478}> void = () ={Log#35f4b478}> {
 export const hash_1e213df0:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
-  hash_59070068("<read>")(hash_593eceb0, handlers, (handlers: Handlers, returnValue: T_0) => hash_eccbfbca(returnValue, handlers, (handlers: Handlers) => done$2(handlers)));
+  hash_59070068("<read>")((handlers: Handlers, done$5: (arg_0: Handlers, arg_1: string) => void) => {
+    hash_fce40b70("<read>", handlers, (handlers: Handlers, returnValue$7: string) => done$5(handlers, returnValue$7));
+  }, handlers, (handlers: Handlers, returnValue: T_0) => hash_eccbfbca(returnValue, handlers, (handlers: Handlers) => done$2(handlers)));
 };
 
 /**
@@ -271,7 +275,9 @@ const test2#a145008c: () ={Log#35f4b478}> void = () ={Log#35f4b478}> {
 export const hash_a145008c:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
-  hash_59070068("<read>")(hash_18391eb0, handlers, (handlers: Handlers, returnValue$12: T_0) => done$4(handlers));
+  hash_59070068("<read>")((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
+    hash_42c8a590(true, handlers, (handlers: Handlers, returnValue$11: string) => hash_42c8a590(false, handlers, (handlers: Handlers, returnValue$9: string) => hash_eccbfbca(returnValue$11 + returnValue$9, handlers, (handlers: Handlers) => done$6(handlers))));
+  }, handlers, (handlers: Handlers, returnValue$12: T_0) => done$4(handlers));
 };
 
 /**
@@ -363,7 +369,9 @@ const test1#22486482: () ={Log#35f4b478}> void = () ={Log#35f4b478}> {
 export const hash_22486482:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done: (arg_0: Handlers) => void) => {
-  hash_59070068("<read>")(hash_40c46640, handlers, (handlers: Handlers, returnValue$5: T_0) => done(handlers));
+  hash_59070068("<read>")((handlers: Handlers, done$3: (arg_0: Handlers) => void) => {
+    hash_19effbea("Yes", handlers, (handlers: Handlers) => done$3(handlers));
+  }, handlers, (handlers: Handlers, returnValue$5: T_0) => done(handlers));
 };
 
 /*

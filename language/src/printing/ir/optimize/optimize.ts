@@ -98,6 +98,7 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         // OK so this iffe thing is still the only thing
         // helping us with the `if` at the end of
         // shortestDistanceToSurface
+
         flattenIffe,
 
         removeUnusedVariables,
@@ -422,7 +423,7 @@ export const foldSingleUseAssignments = (env: Env, expr: Expr): Expr => {
 
 export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
     let constants: { [v: string]: Expr | null } = {};
-    let tupleConstants: { [v: string]: Tuple } = {};
+    // let tupleConstants: { [v: string]: Tuple } = {};
     return transformExpr(expr, {
         ...defaultVisitor,
         // Don't go into lambdas that aren't the toplevel one
@@ -442,6 +443,28 @@ export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
             return null;
         },
         stmt: (value) => {
+            if (value.type === 'if') {
+                const checkAssigns: Visitor = {
+                    ...defaultVisitor,
+                    expr: (expr) => {
+                        if (expr.type === 'lambda') {
+                            return false;
+                        }
+                        return null;
+                    },
+                    stmt: (stmt) => {
+                        if (stmt.type === 'Assign') {
+                            constants[stmt.sym.unique] = null;
+                        }
+                        return null;
+                    },
+                };
+                transformStmt(value.yes, checkAssigns);
+                if (value.no) {
+                    transformStmt(value.no, checkAssigns);
+                }
+                return false;
+            }
             // Remove x = x
             if (
                 value.type === 'Assign' &&

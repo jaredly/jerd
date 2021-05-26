@@ -930,9 +930,10 @@ export const fileToTypescript = (
             // // console.log(showLocation(term.location));
             throw outer;
         }
-        if (opts.optimizeAggressive) {
-            irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        }
+        // STOPSHIP: Turn this back on
+        // if (opts.optimizeAggressive) {
+        //     irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        // }
         if (opts.optimize) {
             irTerm = optimizeDefine(senv, irTerm, id);
         }

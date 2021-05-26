@@ -67,7 +67,7 @@ const x#0c634e04: int = {
 }
 ```
 */
-export const hash_0c634e04: number = hash_4f4fbbd4();
+export const hash_0c634e04: number = 10;
 
 /*
 IntEq#9275f914."=="#553b4b8e#0(x#0c634e04, 10)

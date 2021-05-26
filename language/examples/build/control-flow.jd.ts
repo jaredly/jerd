@@ -29,9 +29,16 @@ const x2#b022715c: () ={}> int = () ={}> {
 ```
 */
 export const hash_b022715c: () => number = () => {
-  if (2 + 2 < 3) {} else {}
+  let y: number = (null as any);
+  let n: number = 2;
 
-  return 2 + 2 + 2;
+  if (n + n < 3) {
+    y = 4;
+  } else {
+    y = 2;
+  }
+
+  return y + 2 + y;
 };
 
 /**
@@ -46,17 +53,31 @@ const z#526b8b52: (int) ={}> int = (n#:0: int) ={}> {
 ```
 */
 export const hash_526b8b52: (arg_0: number) => number = (n: number) => {
+  let m: number = (null as any);
+  let continueBlock: boolean = true;
   let z: number = n + 2;
 
-  if (true && z === 3) {}
+  if (continueBlock && z === 3) {
+    m = 3;
+    continueBlock = false;
+  }
 
-  if (false && z === 4) {}
+  if (continueBlock && z === 4) {
+    m = 4;
+    continueBlock = false;
+  }
 
-  if (false && z === 5) {}
+  if (continueBlock && z === 5) {
+    m = 10;
+    continueBlock = false;
+  }
 
-  if (false) {}
+  if (continueBlock) {
+    m = 11;
+    continueBlock = false;
+  }
 
-  return 11 + 11 * 2;
+  return m + m * 2;
 };
 
 /**
@@ -71,7 +92,17 @@ const x#0992c290: int = {
 }
 ```
 */
-export const hash_0992c290: number = hash_70c0102a();
+export const hash_0992c290: number = (() => {
+  let y$0: number = (null as any);
+
+  if (10 < 3) {
+    y$0 = 4;
+  } else {
+    y$0 = 2;
+  }
+
+  return y$0 + 2 + y$0;
+})();
 
 /**
 ```
