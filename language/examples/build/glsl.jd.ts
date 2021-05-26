@@ -1001,8 +1001,7 @@ const randFolks#32a9474b: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 =
 ```
 */
 export const hash_32a9474b: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (env: t_451d5252, fragCoord$1: t_43802a16) => {
-  let scale$2: number = 14;
-  let small: t_43802a16 = hash_28569bc0.h1de4e4c0_0(hash_b9171b62(hash_afc24bbe.h5ac12902_0(fragCoord$1, scale$2)), scale$2);
+  let small: t_43802a16 = hash_28569bc0.h1de4e4c0_0(hash_b9171b62(hash_afc24bbe.h5ac12902_0(fragCoord$1, 14)), 14);
   return hash_56d43c0e.h5ac12902_0(hash_0555d260.hb99b22d8_0(({ ...hash_1d31aa6e.h1de4e4c0_0(hash_7d188c3c, hash_347089ef(hash_090f77e7.h5ac12902_0(({
       type: "Vec2",
       x: small.x,

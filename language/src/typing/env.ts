@@ -186,6 +186,18 @@ export const newSym = (env: Env, name: string): Symbol => ({
 
 // }
 
+export const addToMap = (
+    map: { [key: string]: Array<Id> },
+    name: string,
+    id: Id,
+) => {
+    if (!map[name]) {
+        map[name] = [id];
+    } else if (!map[name].find((f) => idsEqual(f, id))) {
+        map[name].unshift(id);
+    }
+};
+
 export const addEffect = (
     env: Env,
     name: string,
@@ -201,6 +213,7 @@ export const addEffect = (
     }
 
     const glob = cloneGlobalEnv(env.global);
+    // addToMap(glob.effectNames, name, id);
     if (glob.effectNames[name]) {
         glob.effectNames[name].unshift(idName(id));
     } else {
@@ -296,11 +309,12 @@ export const addEnum = (
     }
     const glob = cloneGlobalEnv(env.global);
     glob.types[idName(idid)] = d;
-    if (glob.typeNames[name]) {
-        glob.typeNames[name].unshift(idid);
-    } else {
-        glob.typeNames[name] = [idid];
-    }
+    addToMap(glob.typeNames, name, idid);
+    // if (glob.typeNames[name]) {
+    //     glob.typeNames[name].unshift(idid);
+    // } else {
+    //     glob.typeNames[name] = [idid];
+    // }
     glob.idNames[idName(idid)] = name;
     return { id: idid, env: { ...env, global: glob } };
 };
@@ -392,14 +406,16 @@ export const addRecord = (
     }
     const glob = cloneGlobalEnv(env.global);
     glob.types[idName(idid)] = defn;
-    if (!glob.typeNames[name]) {
-        glob.typeNames[name] = [idid];
-    } else {
-        glob.typeNames[name].unshift(idid);
-    }
+    addToMap(glob.typeNames, name, idid);
+    // if (!glob.typeNames[name]) {
+    //     glob.typeNames[name] = [idid];
+    // } else {
+    //     glob.typeNames[name].unshift(idid);
+    // }
     glob.idNames[idName(idid)] = name;
     glob.recordGroups[idName(idid)] = attrNames;
     attrNames.forEach((r, i) => {
+        // addToMap(glob.attributeNames, r, idid)
         if (glob.attributeNames[r]) {
             glob.attributeNames[r].unshift({ id: idid, idx: i });
         } else {
@@ -524,11 +540,12 @@ export const typeDefine = (
         );
     }
     const glob = cloneGlobalEnv(env.global);
-    if (!glob.names[item.id.text]) {
-        glob.names[item.id.text] = [id];
-    } else {
-        glob.names[item.id.text].unshift(id);
-    }
+    addToMap(glob.names, item.id.text, id);
+    // if (!glob.names[item.id.text]) {
+    //     glob.names[item.id.text] = [id];
+    // } else {
+    //     glob.names[item.id.text].unshift(id);
+    // }
     glob.idNames[idName(id)] = item.id.text;
     glob.terms[hash] = term;
     return { hash, term, env: { ...env, global: glob }, id };
@@ -538,11 +555,12 @@ export const addDefine = (env: Env, name: string, term: Term) => {
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
     const glob = cloneGlobalEnv(env.global);
-    if (!glob.names[name]) {
-        glob.names[name] = [id];
-    } else {
-        glob.names[name].unshift(id);
-    }
+    addToMap(glob.names, item.id.text, id);
+    // if (!glob.names[name]) {
+    //     glob.names[name] = [id];
+    // } else {
+    //     glob.names[name].unshift(id);
+    // }
     glob.idNames[idName(id)] = name;
     glob.terms[hash] = term;
     return { id, env: { ...env, global: glob } };
@@ -801,12 +819,14 @@ export const resolveIdentifier = (
         if (ids.length > 1) {
             return {
                 type: 'Ambiguous',
-                options: ids.map((id) => ({
-                    type: 'ref',
-                    location,
-                    is: env.global.terms[idName(id)].is,
-                    ref: { type: 'user', id },
-                })),
+                options: ids
+                    .filter((id) => env.global.terms[idName(id)] != null)
+                    .map((id) => ({
+                        type: 'ref',
+                        location,
+                        is: env.global.terms[idName(id)].is,
+                        ref: { type: 'user', id },
+                    })),
                 is: { type: 'Ambiguous', location },
                 location,
             };
