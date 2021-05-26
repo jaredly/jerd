@@ -71,6 +71,12 @@ but I'll need to keep track of comments in order to do that.
 - [ ] AND THEN we can bring this wonderful GLSL goodness to our web editor bonanza.
 - [ ] fix inlining of recursive functions? well to do that I need to do inlining of lambdas that capture scope variables.
 - [ ] properly handle lambdas that close over things, probably by making a new Expr type that groups a record of scope variables with the hash of the lifted lambda.
+- [ ] make ambiguous numbers work? Not sure the extent to which we should go. Like, if you have 1 + 2 + 3 + 4.5, do we maintain the ambiguity?
+    and then, do we expect that to happen to other functions too? What about if you assign it to a variable, and then use it? Does it carry over?
+  Ok, I think if you assign it to a variable it gets collapsed down.
+  If you use it in a function then it gets collapsed, unless it's a special numeric binop, in which case we suspend judgement.
+  ??? maybe?
+  yeah I guess that's fine. idk.
 
 
 

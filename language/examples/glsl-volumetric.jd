@@ -537,7 +537,7 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
 const randFolks = (env: GLSLEnv, fragCoord: Vec2) => {
     const scale = 40.0;
     const small = round(fragCoord / scale) * scale;
-    const small = Vec2{x: small.x, y: small.y + env.time};
+    const small = vec2(small.x, small.y + env.time);
     // const v = random(small / iResolution) / 10.0 + 0.9;
     const v = random(small / env.resolution) / 10.0 + 0.9;
     // const uCamera = Vec3{x: 0.0, y: -5.0, z: 2.0};
