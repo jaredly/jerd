@@ -104,6 +104,7 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         removeUnusedVariables,
         removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
         foldConstantTuples,
+        removeSelfAssignments,
         foldConstantAssignments,
         foldSingleUseAssignments,
         flattenNestedIfs,
@@ -420,6 +421,21 @@ export const foldSingleUseAssignments = (env: Env, expr: Expr): Expr => {
         // },
     });
 };
+
+export const removeSelfAssignments = (_: Env, expr: Expr) =>
+    transformExpr(expr, {
+        ...defaultVisitor,
+        stmt: (stmt) => {
+            if (
+                stmt.type === 'Assign' &&
+                stmt.value.type === 'var' &&
+                stmt.sym.unique === stmt.value.sym.unique
+            ) {
+                return [];
+            }
+            return null;
+        },
+    });
 
 export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
     let constants: { [v: string]: Expr | null } = {};

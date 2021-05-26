@@ -656,6 +656,138 @@ export const addComment = (value: PP, comment: string) =>
 //     );
 // });
 
+export const assembleItemsForFile = (
+    env: Env,
+    required: Array<Term>,
+    requiredIds: Array<string>,
+    // opts: OutputOptions,
+    irOpts: IOutputOptions,
+) => {
+    const orderedTerms = expressionDeps(env, required);
+
+    // TODO: do this for the post-processed IRTerms
+    const allTypes = expressionTypeDeps(
+        env,
+        orderedTerms.map((t) => env.global.terms[t]),
+    );
+
+    const irTerms: Exprs = {};
+    // const printed: { [id: string]: PP } = {};
+
+    orderedTerms.forEach((idRaw) => {
+        const id = idFromName(idRaw);
+        let term = env.global.terms[idRaw];
+        const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
+
+        const maybeAddRecordInlines = (irTerm: ir.Expr) => {
+            if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
+                if (builtinTypes[idName(irTerm.base.ref.id)]) {
+                    return irTerm;
+                }
+                const base = irTerm.base;
+                const rows: Array<Expr | null> = irTerm.base.rows.map(
+                    (item, i) => {
+                        if (!item) {
+                            return item;
+                        }
+                        if (isConstant(item) && item.type !== 'builtin') {
+                            return item;
+                        }
+                        const name = toplevelRecordAttribute(id, base.ref, i);
+                        irTerms[name] = {
+                            expr: item,
+                            inline: item.type !== 'lambda',
+                        };
+
+                        return {
+                            type: 'genTerm',
+                            loc: item.loc,
+                            is: item.is,
+                            id: name,
+                        };
+                    },
+                );
+                return { ...irTerm, base: { ...irTerm.base, rows } };
+            }
+            return irTerm;
+        };
+
+        // Don't output anything that I'm overriding with builtins
+        if (glslBuiltins[idRaw]) {
+            let irTerm = glslBuiltins[idRaw];
+
+            irTerm = maybeAddRecordInlines(irTerm);
+
+            irTerms[idRaw] = { expr: irTerm, inline: true };
+            return;
+        }
+
+        const comment = printToString(declarationToPretty(senv, id, term), 100);
+        senv.local.unique.current = maxUnique(term) + 1;
+        term = liftEffects(senv, term);
+        let irTerm = ir.printTerm(senv, irOpts, term);
+        try {
+            uniquesReallyAreUnique(irTerm);
+        } catch (err) {
+            const outer = new LocatedError(
+                term.location,
+                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+            ).wrap(err);
+            throw outer;
+        }
+        irTerm = explicitSpreads(senv, irOpts, irTerm);
+        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        irTerm = optimizeDefine(senv, irTerm, id);
+        uniquesReallyAreUnique(irTerm);
+
+        irTerm = maybeAddRecordInlines(irTerm);
+
+        const shouldInline = ![
+            'bool',
+            'float',
+            'int',
+            'ref',
+            'lambda',
+        ].includes(irTerm.type);
+        irTerms[idRaw] = { expr: irTerm, inline: shouldInline, comment };
+    });
+
+    const usedAfterOpt: { [key: string]: true } = {};
+    const toWalk = requiredIds.slice();
+    const irDeps: { [key: string]: Array<string> } = {};
+    while (toWalk.length) {
+        const next = toWalk.shift();
+        if (!next) {
+            break;
+        }
+        // already processed
+        if (usedAfterOpt[next]) {
+            continue;
+        }
+        usedAfterOpt[next] = true;
+        const deps: { [key: string]: true } = {};
+        transformExpr(irTerms[next].expr, {
+            ...defaultVisitor,
+            expr: (expr) => {
+                if (expr.type === 'term') {
+                    deps[idName(expr.id)] = true;
+                    toWalk.push(idName(expr.id));
+                }
+                if (expr.type === 'genTerm') {
+                    deps[expr.id] = true;
+                    toWalk.push(expr.id);
+                }
+                return null;
+            },
+        });
+        irDeps[next] = Object.keys(deps);
+    }
+
+    const inOrder = sortAllDepsPlain(irDeps).filter((id) => usedAfterOpt[id]);
+
+    return { inOrder, irTerms };
+};
+
 export const fileToGlsl = (
     expressions: Array<Term>,
     env: Env,
@@ -766,28 +898,35 @@ export const fileToGlsl = (
         is: env.global.terms[idName(mainId)].is,
     };
 
-    const orderedTerms = expressionDeps(
+    const required = expressions.concat([
+        mainTerm,
+        ...buffers.map(
+            (id) =>
+                ({
+                    type: 'ref',
+                    ref: {
+                        type: 'user',
+                        id: idFromName(id),
+                    },
+                    location: nullLocation,
+                    is: env.global.terms[id].is,
+                } as Term),
+        ),
+    ]);
+
+    const { inOrder, irTerms } = assembleItemsForFile(
         env,
-        expressions.concat([
-            mainTerm,
-            ...buffers.map(
-                (id) =>
-                    ({
-                        type: 'ref',
-                        ref: {
-                            type: 'user',
-                            id: idFromName(id),
-                        },
-                        location: nullLocation,
-                        is: env.global.terms[id].is,
-                    } as Term),
-            ),
-        ]),
+        required,
+        [idName(mainId)].concat(buffers),
+        irOpts,
     );
+
+    // const orderedTerms = expressionDeps(env, required);
 
     const allTypes = expressionTypeDeps(
         env,
-        orderedTerms.map((t) => env.global.terms[t]),
+        inOrder.map((t) => env.global.terms[t]).filter(Boolean),
+        // orderedTerms.map((t) => env.global.terms[t]),
     );
 
     allTypes.forEach((r) => {
@@ -879,7 +1018,9 @@ export const fileToGlsl = (
     // - things that take a lambda, might have to inline it or specialize it
     // - hmm how do I distinquish. Maybe "have a list of things to always inline,
     //   and then some things that you might want to inline, if the lambda uses in-scope variables?"
-    const irTerms: Exprs = {};
+
+    // const irTerms: Exprs = {};
+
     // const irEnv: {
     //     inline: {
     //         [idName: string]: {
@@ -973,165 +1114,193 @@ export const fileToGlsl = (
         version replaces the old one.
     */
 
-    const printed: { [id: string]: PP } = {};
+    // const printed: { [id: string]: PP } = {};
 
-    orderedTerms.forEach((idRaw) => {
-        const id = idFromName(idRaw);
-        let term = env.global.terms[idRaw];
-        const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
+    // orderedTerms.forEach((idRaw) => {
+    //     const id = idFromName(idRaw);
+    //     let term = env.global.terms[idRaw];
+    //     const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
 
-        const maybeAddRecordInlines = (irTerm: ir.Expr) => {
-            if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
-                if (builtinTypes[idName(irTerm.base.ref.id)]) {
-                    return irTerm;
-                }
-                const base = irTerm.base;
-                const rows: Array<Expr | null> = irTerm.base.rows.map(
-                    (item, i) => {
-                        if (!item) {
-                            return item;
-                        }
-                        if (isConstant(item) && item.type !== 'builtin') {
-                            return item;
-                        }
-                        const name = toplevelRecordAttribute(id, base.ref, i);
-                        irTerms[name] = {
-                            expr: item,
-                            inline: item.type !== 'lambda',
-                        };
+    //     const maybeAddRecordInlines = (irTerm: ir.Expr) => {
+    //         if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
+    //             if (builtinTypes[idName(irTerm.base.ref.id)]) {
+    //                 return irTerm;
+    //             }
+    //             const base = irTerm.base;
+    //             const rows: Array<Expr | null> = irTerm.base.rows.map(
+    //                 (item, i) => {
+    //                     if (!item) {
+    //                         return item;
+    //                     }
+    //                     if (isConstant(item) && item.type !== 'builtin') {
+    //                         return item;
+    //                     }
+    //                     const name = toplevelRecordAttribute(id, base.ref, i);
+    //                     irTerms[name] = {
+    //                         expr: item,
+    //                         inline: item.type !== 'lambda',
+    //                     };
 
-                        printed[name] = declarationToGlsl(
-                            senv,
-                            opts,
-                            name,
-                            item,
-                            '',
-                        );
+    //                     printed[name] = declarationToGlsl(
+    //                         senv,
+    //                         opts,
+    //                         name,
+    //                         item,
+    //                         '',
+    //                     );
 
-                        return {
-                            type: 'genTerm',
-                            loc: item.loc,
-                            is: item.is,
-                            id: name,
-                        };
-                    },
-                );
-                return { ...irTerm, base: { ...irTerm.base, rows } };
-            }
-            return irTerm;
-        };
+    //                     return {
+    //                         type: 'genTerm',
+    //                         loc: item.loc,
+    //                         is: item.is,
+    //                         id: name,
+    //                     };
+    //                 },
+    //             );
+    //             return { ...irTerm, base: { ...irTerm.base, rows } };
+    //         }
+    //         return irTerm;
+    //     };
 
-        // Don't output anything that I'm overriding with builtins
-        if (glslBuiltins[idRaw]) {
-            let irTerm = glslBuiltins[idRaw];
+    //     // Don't output anything that I'm overriding with builtins
+    //     if (glslBuiltins[idRaw]) {
+    //         let irTerm = glslBuiltins[idRaw];
 
-            irTerm = maybeAddRecordInlines(irTerm);
+    //         irTerm = maybeAddRecordInlines(irTerm);
 
-            irTerms[idRaw] = { expr: irTerm, inline: true };
-            return;
-        }
+    //         irTerms[idRaw] = { expr: irTerm, inline: true };
+    //         return;
+    //     }
 
-        const comment = printToString(declarationToPretty(senv, id, term), 100);
-        senv.local.unique.current = maxUnique(term) + 1;
-        term = liftEffects(senv, term);
-        let irTerm = ir.printTerm(senv, irOpts, term);
-        try {
-            uniquesReallyAreUnique(irTerm);
-        } catch (err) {
-            const outer = new LocatedError(
-                term.location,
-                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
-            ).wrap(err);
-            throw outer;
-        }
-        irTerm = explicitSpreads(senv, irOpts, irTerm);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        irTerm = optimizeDefine(senv, irTerm, id);
-        uniquesReallyAreUnique(irTerm);
+    //     const comment = printToString(declarationToPretty(senv, id, term), 100);
+    //     senv.local.unique.current = maxUnique(term) + 1;
+    //     term = liftEffects(senv, term);
+    //     let irTerm = ir.printTerm(senv, irOpts, term);
+    //     try {
+    //         uniquesReallyAreUnique(irTerm);
+    //     } catch (err) {
+    //         const outer = new LocatedError(
+    //             term.location,
+    //             `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+    //         ).wrap(err);
+    //         throw outer;
+    //     }
+    //     irTerm = explicitSpreads(senv, irOpts, irTerm);
+    //     irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+    //     irTerm = optimizeDefine(senv, irTerm, id);
+    //     uniquesReallyAreUnique(irTerm);
 
-        irTerm = maybeAddRecordInlines(irTerm);
+    //     irTerm = maybeAddRecordInlines(irTerm);
 
-        const shouldInline = ![
-            'bool',
-            'float',
-            'int',
-            'ref',
-            'lambda',
-        ].includes(irTerm.type);
-        irTerms[idRaw] = { expr: irTerm, inline: shouldInline, comment };
+    //     const shouldInline = ![
+    //         'bool',
+    //         'float',
+    //         'int',
+    //         'ref',
+    //         'lambda',
+    //     ].includes(irTerm.type);
+    //     irTerms[idRaw] = { expr: irTerm, inline: shouldInline, comment };
 
-        printed[idRaw] = declarationToGlsl(
-            senv,
-            opts,
-            idRaw,
-            irTerm,
-            '*\n```\n' + comment + '\n```\n',
-        );
-    });
+    //     printed[idRaw] = declarationToGlsl(
+    //         senv,
+    //         opts,
+    //         idRaw,
+    //         irTerm,
+    //         '*\n```\n' + comment + '\n```\n',
+    //     );
+    // });
 
-    const usedAfterOpt: { [key: string]: true } = {};
-    const toWalk = [idName(mainId), ...buffers];
-    const irDeps: { [key: string]: Array<string> } = {};
-    while (toWalk.length) {
-        const next = toWalk.shift();
-        if (!next) {
-            break;
-        }
-        // already processed
-        if (usedAfterOpt[next]) {
-            continue;
-        }
-        usedAfterOpt[next] = true;
-        const deps: { [key: string]: true } = {};
-        transformExpr(irTerms[next].expr, {
-            ...defaultVisitor,
-            expr: (expr) => {
-                if (expr.type === 'term') {
-                    deps[idName(expr.id)] = true;
-                    toWalk.push(idName(expr.id));
-                }
-                if (expr.type === 'genTerm') {
-                    deps[expr.id] = true;
-                    toWalk.push(expr.id);
-                }
-                return null;
-            },
-        });
-        irDeps[next] = Object.keys(deps);
-    }
+    // const usedAfterOpt: { [key: string]: true } = {};
+    // const toWalk = [idName(mainId), ...buffers];
+    // const irDeps: { [key: string]: Array<string> } = {};
+    // while (toWalk.length) {
+    //     const next = toWalk.shift();
+    //     if (!next) {
+    //         break;
+    //     }
+    //     // already processed
+    //     if (usedAfterOpt[next]) {
+    //         continue;
+    //     }
+    //     usedAfterOpt[next] = true;
+    //     const deps: { [key: string]: true } = {};
+    //     transformExpr(irTerms[next].expr, {
+    //         ...defaultVisitor,
+    //         expr: (expr) => {
+    //             if (expr.type === 'term') {
+    //                 deps[idName(expr.id)] = true;
+    //                 toWalk.push(idName(expr.id));
+    //             }
+    //             if (expr.type === 'genTerm') {
+    //                 deps[expr.id] = true;
+    //                 toWalk.push(expr.id);
+    //             }
+    //             return null;
+    //         },
+    //     });
+    //     irDeps[next] = Object.keys(deps);
+    // }
 
-    const inOrder = sortAllDepsPlain(irDeps);
+    // const inOrder = sortAllDepsPlain(irDeps);
 
     inOrder.forEach((name) => {
-        if (usedAfterOpt[name]) {
-            if (printed[name]) {
-                const loc = hasInvalidGLSL(irTerms[name].expr);
-                if (loc) {
-                    // throw new LocatedError(
-                    //     loc,
-                    //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
-                    // );
-                }
-                items.push(printed[name]);
-            } else {
-                // let term = env.global.terms[idRaw];
-                const senv = selfEnv(env, {
-                    type: 'Term',
-                    name,
-                    ann: preset.void_,
-                    // ann: irTerms[name].expr.is,
-                });
-                printed[name] = declarationToGlsl(
-                    senv,
-                    opts,
-                    name,
-                    irTerms[name].expr,
-                    ' -- generated -- ',
-                );
-
-                items.push(printed[name]);
-            }
+        const loc = hasInvalidGLSL(irTerms[name].expr);
+        if (loc) {
+            // throw new LocatedError(
+            //     loc,
+            //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
+            // );
         }
+
+        const senv = selfEnv(env, {
+            type: 'Term',
+            name,
+            ann: env.global.terms[name]
+                ? env.global.terms[name].is
+                : preset.void_,
+            // ann: irTerms[name].expr.is,
+        });
+        items.push(
+            declarationToGlsl(
+                senv,
+                opts,
+                name,
+                irTerms[name].expr,
+                irTerms[name].comment
+                    ? '*\n```\n' + irTerms[name].comment + '\n```\n'
+                    : ' -- generated -- ',
+            ),
+        );
+
+        // if (usedAfterOpt[name]) {
+        //     if (printed[name]) {
+        //         const loc = hasInvalidGLSL(irTerms[name].expr);
+        //         if (loc) {
+        //             // throw new LocatedError(
+        //             //     loc,
+        //             //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
+        //             // );
+        //         }
+        //         items.push(printed[name]);
+        //     } else {
+        //         // let term = env.global.terms[idRaw];
+        //         const senv = selfEnv(env, {
+        //             type: 'Term',
+        //             name,
+        //             ann: preset.void_,
+        //             // ann: irTerms[name].expr.is,
+        //         });
+        //         printed[name] = declarationToGlsl(
+        //             senv,
+        //             opts,
+        //             name,
+        //             irTerms[name].expr,
+        //             ' -- generated -- ',
+        //         );
+
+        //         items.push(printed[name]);
+        //     }
+        // }
     });
 
     const glslEnv: Record = {
