@@ -547,6 +547,12 @@ const asBinop = (op: string) => (op === 'mod' || op === 'modInt' ? '%' : op);
 
 export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {
+        if (apply.args.length === 1) {
+            return items([
+                atom(apply.target.name),
+                termToGlsl(env, opts, apply.args[0]),
+            ]);
+        }
         if (apply.args.length !== 2) {
             throw new LocatedError(
                 apply.loc,
@@ -924,6 +930,30 @@ export const fileToGlsl = (
                     term.location,
                     typeFromTermType(env, {}, term.is),
                 );
+            } else if (
+                term.type === 'Record' &&
+                term.base.type === 'Concrete'
+            ) {
+                // throw new Error('aa');
+                const refId = idName(term.base.ref.id);
+                const decl = env.global.types[refId] as RecordDef;
+                const names = env.global.recordGroups[refId];
+                builtins[idRaw] = record(
+                    refId,
+                    decl.items.map((type, i) =>
+                        builtin(
+                            names[i],
+                            term.location,
+                            typeFromTermType(env, {}, type),
+                        ),
+                    ),
+                );
+                // console.log(idRaw, )
+
+                // '0555d260': record('b99b22d8', [
+                //     builtinVal('+', pureFunction([Vec4, Vec4], Vec4)),
+                //     builtinVal('-', pureFunction([Vec4, Vec4], Vec4)),
+                // ]),
             }
         }
     });

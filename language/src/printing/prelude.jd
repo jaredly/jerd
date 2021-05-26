@@ -183,9 +183,7 @@ const ScaleVec2Rev = Div<Vec2, float, Vec2>{
 // So yeah, names added in order of creation, so most recently added one
 // will be the "first choice", but if it misses, then go on to other ones.
 
-const negVec3 = (v: Vec3) => {
-    Vec3{x: -v.x, y: -v.y, z: -v.z}
-}
+@glsl_builtin
 const NegVec3 = Neg<Vec3, Vec3>{
     "-": (v: Vec3) => Vec3{x: -v.x, y: -v.y, z: -v.z},
 }
@@ -298,7 +296,7 @@ const sminCubic = ( a: float, b: float, k: float ) =>
 }
 
 const opRepLim = ( p: Vec3, c: float, l: Vec3) => {
-    p - c * clamp(round(p / c), negVec3(l), l);
+    p - c * clamp(round(p / c), -l, l);
 }
 
 @glsl_builtin

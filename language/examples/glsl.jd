@@ -161,7 +161,7 @@ const phongContribForLight = (
     const V = normalize(eye - p);
     // oooh now we'll have to deal with multiple names for things!
     // I do declare
-    const R = normalize(reflect(negVec3(L), N));
+    const R = normalize(reflect(-L, N));
 
     // Normal vs direction of the light
     const dotLN = dot(L, N);
