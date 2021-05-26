@@ -740,7 +740,6 @@ export const makeLocal = (env: Env, id: Identifier, type: Type): Symbol => {
 
 // };
 
-// TODO type-directed resolution pleaseeeee
 export const resolveIdentifier = (
     env: Env,
     { text, location, hash }: Identifier,

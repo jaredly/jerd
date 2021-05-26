@@ -86,7 +86,7 @@ const dot = (a: Vec3, b: Vec3) => {
     a.x * b.x + a.y * b.y + a.z * b.z
 }
 
-const dot4 = (a: Vec4, b: Vec4) => {
+const dot = (a: Vec4, b: Vec4) => {
     a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
 }
 
@@ -100,10 +100,10 @@ const vec4 = (x: float, y: float ,z: float, w: float) => Vec4{x:x, y:y, z:z, w:w
 
 const MatByVector = Mul<Mat4, Vec4, Vec4>{
     "*": (mat: Mat4, vec: Vec4) => Vec4{
-        x: dot4(mat.r1, vec),
-        y: dot4(mat.r2, vec),
-        z: dot4(mat.r3, vec),
-        w: dot4(mat.r4, vec)
+        x: dot(mat.r1, vec),
+        y: dot(mat.r2, vec),
+        z: dot(mat.r3, vec),
+        w: dot(mat.r4, vec)
     }
 }
 

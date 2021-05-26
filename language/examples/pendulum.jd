@@ -165,11 +165,11 @@ const pendulum = (
 }
 
 const rect = (samplePos: Vec2, center: Vec2, w: float, h: float) => {
-    vmax2(vabs2(samplePos - center) - Vec2{x: w, y: h})
+    vmax(vabs2(samplePos - center) - Vec2{x: w, y: h})
 }
 
 const circle = (samplePos: Vec2, center: Vec2, r: float) => {
-    length2(samplePos - center) - r
+    length(samplePos - center) - r
 }
 
 // const 
@@ -199,12 +199,12 @@ const main = (
     //         -rect(p1, env.mouse - env.resolution / 2.0, 9.0, 9.0),
     //     )
     // );
-        // vmax2(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
-        // vmax2(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
-        // vmax2(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-        // vmax2(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-        // vmax2(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-        // vmax2(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
+        // vmax(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
+        // vmax(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
+        // vmax(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+        // vmax(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
 
     if circle(p1, c1, 10.0) < 0.0 {
         vec4(1.0, 0.0, 0.0, 1.0)
@@ -214,12 +214,12 @@ const main = (
         vec4(0.0, 0.0, 0.0, 1.0)
 
     // } else if rect(p1, env.mouse - env.resolution / 2.0, 50.0, 50.0) < 0.0 {
-    } else if length2(p1 - (env.mouse - env.resolution / 2.0)) < 100.0 {
+    } else if length(p1 - (env.mouse - env.resolution / 2.0)) < 100.0 {
         const t = texture(buffer, fragCoord / env.resolution);
         // const rgb = hsv2rgb(Vec3{x: t.w, y: t.w, z: 1.0});
         const rgb = hsv2rgb(Vec3{x: t.z, y: t.w, z: 1.0});
         Vec4{...rgb, w: 1.0}
-    } else if length2(p1 - (env.mouse - env.resolution / 2.0)) < 101.0 {
+    } else if length(p1 - (env.mouse - env.resolution / 2.0)) < 101.0 {
         vec4(0.0, 0.0, 0.0, 1.0)
     // if sdf < 0.0 {
     //     vec4(1.0, 0.0, 0.0, 1.0)
@@ -254,21 +254,21 @@ const mainDebug = (
 
     const pos = Vec2{x: hw.x + sin(current.x) * r1, y: hw.y + cos(current.x) * r1};
     const pos2 = Vec2{x: pos.x + sin(current.y) * r1, y: pos.y + cos(current.y) * r1};
-    if length2(pos - fragCoord) < 10.0 {
+    if length(pos - fragCoord) < 10.0 {
         Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
-    } else if length2(pos2 - fragCoord) < 10.0 {
+    } else if length(pos2 - fragCoord) < 10.0 {
         Vec4{x: 1.0, y: 1.0, z: 0.0, w: 1.0}
     } else {
         const updated = dataToPixel(update(current.x, current.y, current.z, current.w));
 
         const p1 = fragCoord - env.resolution / 2.0;
         const sdf = min(min(min(min(min(
-            vmax2(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
-            vmax2(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
-            vmax2(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-            vmax2(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-            vmax2(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
-            vmax2(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
+            vmax(vabs2(p1 - Vec2{x: 0.0, y: 0.0}) - Vec2{x: 5.0, y: max(2.0, (current.x + PI) * 20.0)}),
+            vmax(vabs2(p1 - Vec2{x: -10.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.y + PI) * 20.0)})),
+            vmax(vabs2(p1 - Vec2{x: -20.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax(vabs2(p1 - Vec2{x: -30.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (current.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax(vabs2(p1 - Vec2{x: -40.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.z + MaxVelocity) / MaxVelocity / 2.0 * 10.0)})),
+            vmax(vabs2(p1 - Vec2{x: -50.0, y: 0.0}) - Vec2{x: 3.0, y: max(2.0, (updated.w + MaxVelocity) / MaxVelocity / 2.0 * 10.0)}));
         if sdf < 0.0 {
             Vec4{x: 1.0, y: 1.0, z: 1.0, w: 1.0}
         } else {

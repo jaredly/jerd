@@ -140,7 +140,7 @@ export function typeFile(
                     )}`,
                 );
             } else {
-                throw new Error(`Unhandled decorator`);
+                throw new LocatedError(item.location, `Unhandled decorator`);
             }
         } else {
             // A standalone expression

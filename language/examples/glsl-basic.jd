@@ -14,7 +14,7 @@ const Min: Min<float> = Min<float>{ "--": min }
 // }
 
 const circleSDF = (p: Vec2, circle: Circle) => {
-    length2(p - circle.pos) - circle.r
+    length(p - circle.pos) - circle.r
 }
 
 @ffi
@@ -35,7 +35,7 @@ const hello = (env: GLSLEnv, fragCoord: Vec2) => {
     };
     Vec4{...color, w: 1.0}
     // const scale = 14.0;
-    // const small = roundv2(fragCoord / scale) * scale;
+    // const small = roundv(fragCoord / scale) * scale;
     // const small = Vec2{x: small.x, y: small.y + env.time};
     // // const v = random(small / iResolution) / 10.0 + 0.9;
     // const v = random(small / env.resolution) / 10.0 + 0.9;

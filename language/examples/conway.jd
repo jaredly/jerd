@@ -57,7 +57,7 @@ const drawToScreen = (
 ) => {
     const diff = env.mouse - fragCoord;
     // Magnifying glass!
-    if length2(diff) < 250.0 {
+    if length(diff) < 250.0 {
         const newCoord = env.mouse - diff / 4.0;
         texture(buffer0, newCoord / env.resolution)
     } else {

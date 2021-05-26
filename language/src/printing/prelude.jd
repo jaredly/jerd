@@ -182,12 +182,8 @@ const negVec3 = (v: Vec3) => {
     Vec3{x: -v.x, y: -v.y, z: -v.z}
 }
 
-const length2 = (v: Vec2) => {
-    sqrt(v.x * v.x + v.y * v.y)
-}
-const length = (v: Vec3) => {
-    sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
-}
+const length = (v: Vec2) => sqrt(v.x * v.x + v.y * v.y)
+const length = (v: Vec3) => sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
 
 const radians = (degrees: float) => degrees / 180.0 * PI
 
@@ -198,12 +194,10 @@ const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
 const dot = (a: Vec3, b: Vec3) => {
     a.x * b.x + a.y * b.y + a.z * b.z
 }
-
-const dot2 = (a: Vec2, b: Vec2) => {
+const dot = (a: Vec2, b: Vec2) => {
     a.x * b.x + a.y * b.y
 }
-
-const dot4 = (a: Vec4, b: Vec4) => {
+const dot = (a: Vec4, b: Vec4) => {
     a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
 }
 
@@ -212,16 +206,16 @@ const reflect = (I: Vec3, N: Vec3) => {
 }
 
 const distance = (one: Vec3, two: Vec3) => length(two - one)
-const distance2 = (one: Vec2, two: Vec2) => length2(two - one)
+const distance = (one: Vec2, two: Vec2) => length(two - one)
 
 const vec4 = (x: float, y: float ,z: float, w: float) => Vec4{x:x, y:y, z:z, w:w}
 
 const MatByVector = Mul<Mat4, Vec4, Vec4>{
     "*": (mat: Mat4, vec: Vec4) => Vec4{
-        x: dot4(mat.r1, vec),
-        y: dot4(mat.r2, vec),
-        z: dot4(mat.r3, vec),
-        w: dot4(mat.r4, vec)
+        x: dot(mat.r1, vec),
+        y: dot(mat.r2, vec),
+        z: dot(mat.r3, vec),
+        w: dot(mat.r4, vec)
     }
 }
 
@@ -235,7 +229,7 @@ const clamp = (v: Vec3, min: Vec3, max: Vec3) => Vec3{
     z: clampF(v.z, min.z, max.z),
 }
 
-const roundv2 = (v: Vec2) => Vec2{
+const roundv = (v: Vec2) => Vec2{
     x: round(v.x),
     y: round(v.y),
 }
@@ -275,20 +269,20 @@ const fract3 = (v: Vec3) => Vec3{x: fract(v.x), y: fract(v.y), z: fract(v.z)}
 const abs3 = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 
 const random = (st: Vec2) => {
-    fract(sin(dot2(st, Vec2{x: 12.9898, y: 78.233})) * 43758.5453123);
+    fract(sin(dot(st, Vec2{x: 12.9898, y: 78.233})) * 43758.5453123);
 }
 
 const PHI = 1.61803398874989484820459  // Φ = Golden Ratio   
 
 const random3 = (xy: Vec2, seed: float) => {
-    fract(tan(distance2(xy * PHI, xy) * seed) * xy.x);
+    fract(tan(distance(xy * PHI, xy) * seed) * xy.x);
 }
 
 // const random = (xy: Vec2) => {
-//     fract(tan(distance2(xy * PHI, xy) * 200.0) * xy.x);
+//     fract(tan(distance(xy * PHI, xy) * 200.0) * xy.x);
 // }
 
-const vmax2 = (v: Vec2) => {
+const vmax = (v: Vec2) => {
     max(v.x, v.y)
 }
 
@@ -300,7 +294,7 @@ const random2 = (co: Vec2) => {
     const a = 12.9898;
     const b = 78.233;
     const c = 43758.5453;
-    const dt = dot2(co, Vec2{x: a,y: b});
+    const dt = dot(co, Vec2{x: a,y: b});
     const sn = mod(dt, 3.14);
     fract(sin(sn) * c);
 }

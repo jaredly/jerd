@@ -6,7 +6,7 @@ const EPSILON = 0.00005
 
 const newColor = (iTime: float, fragPos: Vec2) => {
     const pos = Vec2{x: random(Vec2{x: iTime, y: 0.0}), y: random(Vec2{x: 0.0, y: iTime})};
-    const dist = distance2(pos, fragPos);
+    const dist = distance(pos, fragPos);
     if dist < 0.03 {
         Vec4{x: 1.0, y: 0.0, z: 0.0, w: 1.0}
     } else {
@@ -30,7 +30,7 @@ const writeBuffer = (
     buffer: sampler2D,
 ) => {
     const pos = Vec2{x: random(Vec2{x: iTime, y: 0.0}), y: random(Vec2{x: 0.0, y: iTime})};
-    const dist = distance2(pos, fragCoord / iResolution);
+    const dist = distance(pos, fragCoord / iResolution);
     if dist < 0.01 {
         Vec4{x: 1.0, y: 1.0, z: 0.0, w: 1.0}
     } else if dist < 0.03 {
@@ -223,7 +223,7 @@ const countNeighbors = (coord: Vec2, res: Vec2, buffer: sampler2D) => {
 
 @ffi
 @buffer0
-const gameOfLife = (
+const drawToBuffer = (
     env: GLSLEnv,
     fragCoord: Vec2,
     buffer: sampler2D,
@@ -245,16 +245,21 @@ const gameOfLife = (
     }
 }
 
+// ok so this can be varargs I guess?
+// Although yeah we can't ~really make it work, type-wise
+// @main
+// (drawToScreen, drawToBuffer)
+
 @ffi
 @main
-const main = (
+const drawToScreen = (
     env: GLSLEnv,
     fragCoord: Vec2,
     buffer0: sampler2D,
 ) => {
     const diff = env.mouse - fragCoord;
     // Magnifying glass!
-    if length2(diff) < 250.0 {
+    if length(diff) < 250.0 {
         const newCoord = env.mouse - diff / 4.0;
         texture(buffer0, newCoord / env.resolution)
     } else {

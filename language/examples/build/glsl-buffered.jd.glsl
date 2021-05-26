@@ -72,7 +72,7 @@ int neighbor_821c67e8(
 
 /**
 ```
-const dot2#369652bb: (Vec2#43802a16, Vec2#43802a16) ={}> float = (
+const dot#369652bb: (Vec2#43802a16, Vec2#43802a16) ={}> float = (
     a#:0: Vec2#43802a16,
     b#:1: Vec2#43802a16,
 ) ={}> {
@@ -80,7 +80,7 @@ const dot2#369652bb: (Vec2#43802a16, Vec2#43802a16) ={}> float = (
 }
 ```
 */
-float dot2_369652bb(
+float dot_369652bb(
     vec2 a_0,
     vec2 b_1
 ) {
@@ -181,7 +181,7 @@ int countNeighbors_77a447bc(
 ```
 const random#347089ef: (Vec2#43802a16) ={}> float = (st#:0: Vec2#43802a16) ={}> {
     fract#495c4d22(
-        (sin(dot2#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) * 43758.5453123),
+        (sin(dot#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) * 43758.5453123),
     );
 }
 ```
@@ -189,17 +189,17 @@ const random#347089ef: (Vec2#43802a16) ={}> float = (st#:0: Vec2#43802a16) ={}> 
 float random_347089ef(
     vec2 st_0
 ) {
-    return fract_495c4d22((sin(dot2_369652bb(st_0, vec2(12.98980, 78.2330))) * 43758.54531));
+    return fract_495c4d22((sin(dot_369652bb(st_0, vec2(12.98980, 78.2330))) * 43758.54531));
 }
 
 /**
 ```
-const length2#2e6a5f32: (Vec2#43802a16) ={}> float = (v#:0: Vec2#43802a16) ={}> {
-    sqrt(((v#:0.x#43802a16#0 * v#:0.x#43802a16#0) + (v#:0.y#43802a16#1 * v#:0.y#43802a16#1)));
-}
+const length#c2805852: (Vec2#43802a16) ={}> float = (v#:0: Vec2#43802a16) ={}> sqrt(
+    ((v#:0.x#43802a16#0 * v#:0.x#43802a16#0) + (v#:0.y#43802a16#1 * v#:0.y#43802a16#1)),
+)
 ```
 */
-float length2_2e6a5f32(
+float length_c2805852(
     vec2 v_0
 ) {
     return sqrt(((v_0.x * v_0.x) + (v_0.y * v_0.y)));
@@ -207,7 +207,7 @@ float length2_2e6a5f32(
 
 /**
 ```
-const gameOfLife#5af2137f: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
+const drawToBuffer#5af2137f: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
     buffer#:2: sampler2D,
@@ -244,7 +244,7 @@ const gameOfLife#5af2137f: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec
 }
 ```
 */
-vec4 gameOfLife_5af2137f(
+vec4 drawToBuffer_5af2137f(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1,
     sampler2D buffer_2
@@ -267,13 +267,13 @@ vec4 gameOfLife_5af2137f(
 
 /**
 ```
-const main#099ef762: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
+const drawToScreen#5349442c: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
     buffer0#:2: sampler2D,
 ) ={}> {
     const diff#:3 = AddSubVec2#70bb2056."-"#b99b22d8#1(env#:0.mouse#451d5252#3, fragCoord#:1);
-    if (length2#2e6a5f32(diff#:3) < 250.0) {
+    if (length#c2805852(diff#:3) < 250.0) {
         const newCoord#:4 = AddSubVec2#70bb2056."-"#b99b22d8#1(
             env#:0.mouse#451d5252#3,
             ScaleVec2Rev#afc24bbe."/"#5ac12902#0(diff#:3, 4.0),
@@ -291,13 +291,13 @@ const main#099ef762: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b94
 }
 ```
 */
-vec4 main_099ef762(
+vec4 drawToScreen_5349442c(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1,
     sampler2D buffer0_2
 ) {
     vec2 diff_3 = (env_0.mouse - fragCoord_1);
-    if ((length2_2e6a5f32(diff_3) < 250.0)) {
+    if ((length_c2805852(diff_3) < 250.0)) {
         return texture(buffer0_2, ((env_0.mouse - (diff_3 / 4.0)) / env_0.resolution));
     } else {
         return texture(buffer0_2, (fragCoord_1 / env_0.resolution));
@@ -307,7 +307,7 @@ vec4 main_099ef762(
 #if defined(BUFFER_0)
 
 void main() {
-    fragColor = gameOfLife_5af2137f(
+    fragColor = drawToBuffer_5af2137f(
         GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
         gl_FragCoord.xy,
         u_buffer0
@@ -317,7 +317,7 @@ void main() {
 #else
 
 void main() {
-    fragColor = main_099ef762(
+    fragColor = drawToScreen_5349442c(
         GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
         gl_FragCoord.xy,
         u_buffer0
