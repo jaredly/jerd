@@ -22,6 +22,59 @@ export const contentMatches = (one: Content, two: Content) => {
     return one.type === two.type && idName(one.id) === idName(two.id);
 };
 
+const WorkspacePicker = ({
+    state,
+    setState,
+}: {
+    state: State;
+    setState: (fn: (current: State) => State) => void;
+}) => {
+    return (
+        <div
+            css={{
+                padding: '0 16px',
+                fontSize: 16,
+            }}
+        >
+            Workspace:{' '}
+            <select
+                value={state.activeWorkspace}
+                onChange={(evt) => {
+                    const activeWorkspace = evt.target.value;
+                    console.log(evt.target.value);
+                    if (evt.target.value === '<new>') {
+                        const id = genId();
+                        setState((state) => ({
+                            ...state,
+                            activeWorkspace: id,
+                            workspaces: {
+                                ...state.workspaces,
+                                [id]: {
+                                    name: 'New Workspace',
+                                    cells: {},
+                                    order: Object.keys(state.workspaces).length,
+                                },
+                            },
+                        }));
+                    } else {
+                        setState((state) => ({
+                            ...state,
+                            activeWorkspace,
+                        }));
+                    }
+                }}
+            >
+                {Object.keys(state.workspaces).map((id) => (
+                    <option value={id} key={id}>
+                        {state.workspaces[id].name}
+                    </option>
+                ))}
+                <option value="<new>">Create new workspace</option>
+            </select>
+        </div>
+    );
+};
+
 const Cells = ({
     state,
     plugins,
@@ -44,49 +97,7 @@ const Cells = ({
                 alignItems: 'center',
             }}
         >
-            <div
-                css={{
-                    padding: '0 16px',
-                    fontSize: 16,
-                }}
-            >
-                Workspace:{' '}
-                <select
-                    value={state.activeWorkspace}
-                    onChange={(evt) => {
-                        const activeWorkspace = evt.target.value;
-                        console.log(evt.target.value);
-                        if (evt.target.value === '<new>') {
-                            const id = genId();
-                            setState((state) => ({
-                                ...state,
-                                activeWorkspace: id,
-                                workspaces: {
-                                    ...state.workspaces,
-                                    [id]: {
-                                        name: 'New Workspace',
-                                        cells: {},
-                                        order: Object.keys(state.workspaces)
-                                            .length,
-                                    },
-                                },
-                            }));
-                        } else {
-                            setState((state) => ({
-                                ...state,
-                                activeWorkspace,
-                            }));
-                        }
-                    }}
-                >
-                    {Object.keys(state.workspaces).map((id) => (
-                        <option value={id} key={id}>
-                            {state.workspaces[id].name}
-                        </option>
-                    ))}
-                    <option value="<new>">Create new workspace</option>
-                </select>
-            </div>
+            <WorkspacePicker state={state} setState={setState} />
             {Object.keys(work.cells).map((id) => (
                 <CellView
                     key={id}
