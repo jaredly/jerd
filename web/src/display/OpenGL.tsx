@@ -15,8 +15,10 @@ import {
     refType,
 } from '@jerd/language/src/typing/preset';
 import { EvalEnv, Plugins, PluginT } from '../State';
-import { idFromName } from '@jerd/language/src/typing/env';
+import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
 import { wrapWithExecutaionLimit } from './Drawable';
+import { generateShader } from '@jerd/language/src/printing/glslPrinter';
+import { setup } from '../setupGLSL';
 
 type GLSLEnv = {
     type: 'GLSLEnv';
@@ -118,54 +120,140 @@ const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
     return <canvas ref={canvasRef} width="200" height="200" />;
 };
 
-const ShaderGLSL = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
-    const canvasRef = React.useRef(null as null | HTMLCanvasElement);
+const compileGLSL = (term: Term, env: Env) => {
+    const termId = { hash: hashObject(term), size: 1, pos: 0 };
+    return generateShader(
+        env,
+        { includeCanonicalNames: true, showAllUniques: true },
+        {},
+        termId,
+        [],
+    );
+};
+
+const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
+    // const canvasRef = React.useRef(null as null | HTMLCanvasElement);
+    const [canvas, setCanvas] = React.useState(
+        null as null | HTMLCanvasElement,
+    );
     const [paused, setPaused] = React.useState(false);
     // const [data, setData] = React.useState([]);
     const [error, setError] = React.useState(null as any | null);
 
-    const wrapped = React.useMemo(() => wrapWithExecutaionLimit(evalEnv, fn), [
-        fn,
-    ]);
-    const fc = React.useRef(wrapped);
-    fc.current = wrapped;
+    const shader = React.useMemo(() => {
+        const id = { hash: hashObject(term), size: 1, pos: 0 };
+        return compileGLSL(term, {
+            ...env,
+            global: {
+                ...env.global,
+                terms: {
+                    ...env.global.terms,
+                    [idName(id)]: term,
+                },
+            },
+        });
+    }, [term]);
+    const fc = React.useRef(shader);
+    fc.current = shader;
+
+    const start = React.useMemo(() => Date.now(), []);
+
+    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+    const currentMousePos = React.useRef(mousePos);
+    currentMousePos.current = mousePos;
 
     React.useEffect(() => {
-        if (paused) {
+        if (!canvas) {
             return;
         }
-        let env: GLSLEnv;
+        const ctx = canvas.getContext('webgl2');
+        if (!ctx) {
+            return;
+        }
+        try {
+            const update = setup(
+                ctx,
+                shader,
+                (Date.now() - start) / 1000,
+                currentMousePos.current,
+            );
+            let tid: any;
+            const fn = () => {
+                update((Date.now() - start) / 1000, currentMousePos.current);
+                tid = requestAnimationFrame(fn);
+            };
+            tid = requestAnimationFrame(fn);
+            return () => cancelAnimationFrame(tid);
+        } catch (err) {
+            console.error(err);
+        }
+    }, [canvas, shader]);
 
-        let start = Date.now();
-        const tid = setInterval(() => {
-            if (!canvasRef.current) {
-                return;
-            }
-            const ctx = canvasRef.current.getContext('2d')!;
-            if (!env) {
-                env = newGLSLEnv(ctx);
-                canvasRef.current.addEventListener('mousemove', (evt) => {
-                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
-                    env.mouse.x = evt.clientX - box.left;
-                    env.mouse.y = evt.clientY - box.top;
-                });
-            }
-            env.time = (Date.now() - start) / 1000;
-            try {
-                drawToCanvas(ctx, fc.current, env);
-            } catch (err) {
-                clearInterval(tid);
-                setError(err);
-            }
-        }, 40);
-        return () => clearInterval(tid);
-    }, [paused]);
+    // React.useEffect(() => {
+    //     if (paused) {
+    //         return;
+    //     }
+    //     let env: GLSLEnv;
+
+    //     let start = Date.now();
+    //     const tid = setInterval(() => {
+    //         if (!canvasRef.current) {
+    //             return;
+    //         }
+    //         const ctx = canvasRef.current.getContext('webgl')!;
+    //         if (!env) {
+    //             env = newGLSLEnv(ctx);
+    //             canvasRef.current.addEventListener('mousemove', (evt) => {
+    //                 const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
+    //                 env.mouse.x = evt.clientX - box.left;
+    //                 env.mouse.y = evt.clientY - box.top;
+    //             });
+    //         }
+    //         env.time = (Date.now() - start) / 1000;
+    //         try {
+    //             drawToCanvas(ctx, fc.current, env);
+    //         } catch (err) {
+    //             clearInterval(tid);
+    //             setError(err);
+    //         }
+    //     }, 40);
+    //     return () => clearInterval(tid);
+    // }, [paused]);
 
     if (error != null) {
         return <div>{error.message}</div>;
     }
 
-    return <canvas ref={canvasRef} width="200" height="200" />;
+    return (
+        <div>
+            <canvas
+                onMouseMove={(evt) => {
+                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
+                    setMousePos({
+                        x: evt.clientX - box.left,
+                        y: box.height - (evt.clientY - box.top),
+                    });
+                }}
+                ref={(node) => {
+                    if (node && !canvas) {
+                        setCanvas(node);
+                    }
+                }}
+                width="200"
+                height="200"
+            />
+            {/* <pre
+                style={{
+                    whiteSpace: 'pre',
+                    fontFamily: 'monospace',
+                    color: 'white',
+                    padding: 16,
+                }}
+            >
+                {shader}
+            </pre> */}
+        </div>
+    );
 };
 
 const plugins: Plugins = {
@@ -181,7 +269,8 @@ const plugins: Plugins = {
             refType('3b941378'),
         ),
         render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
-            return <div>Ok folks</div>;
+            // return <div>Ok folks</div>;
+            return <ShaderGLSL env={env} term={term} />;
         },
     },
     'opengl-fake': {

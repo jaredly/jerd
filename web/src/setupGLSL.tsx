@@ -33,6 +33,7 @@ export const setup = (
     gl: WebGL2RenderingContext,
     fragmentShader: string,
     currentTime: number,
+    mousePos?: { x: number; y: number },
 ) => {
     const fragment = createShader(gl, gl.FRAGMENT_SHADER, fragmentShader);
     const vertex = createShader(gl, gl.VERTEX_SHADER, defaultVertextShader);
@@ -60,6 +61,11 @@ export const setup = (
     const uresolution = gl.getUniformLocation(program, 'u_resolution');
     gl.uniform2f(uresolution, gl.canvas.width, gl.canvas.height);
 
+    const umouse = gl.getUniformLocation(program, 'u_mouse');
+    if (mousePos) {
+        gl.uniform2f(umouse, mousePos.x, mousePos.y);
+    }
+
     var triangleArray = gl.createVertexArray();
     gl.bindVertexArray(triangleArray);
 
@@ -72,8 +78,12 @@ export const setup = (
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    return (uTime: number) => {
+    return (uTime: number, mousePos?: { x: number; y: number }) => {
         gl.uniform1f(utime, uTime);
+
+        if (mousePos) {
+            gl.uniform2f(umouse, mousePos.x, mousePos.y);
+        }
 
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 6);

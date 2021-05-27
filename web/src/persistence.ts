@@ -99,7 +99,7 @@ export const initialState = (): State => {
                     glob.effectNames[name] = [glob.effectNames[name]];
                 }
             });
-            const metaData = { ...data.env.global.metaData };
+            const metaData = { ...data.env.global.metaData, ...env.metaData };
             Object.keys(glob.terms).forEach((id) => {
                 if (!metaData[id]) {
                     metaData[id] = {
