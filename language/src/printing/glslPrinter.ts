@@ -525,7 +525,6 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             return idToGlsl(env, opts, expr.id, false);
         case 'genTerm':
             return idNameToGlsl(expr.id, false);
-        // return idToGlsl(env, opts, expr.id, false);
         case 'unary':
             return items([atom(expr.op), termToGlsl(env, opts, expr.inner)]);
         case 'float':

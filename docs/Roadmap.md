@@ -83,6 +83,9 @@ HMMmmmmm I want ... and optimization debugger
 ... and then lets me flip through them
 ... and optionally disable them? idk. or something.
 
+- [ ] BETTER IDS!
+  - Here's the plan: instead of printing out the full ID for any of this, just output a single char, `#`, and give it a span-attribute of the ID or sym or whatever hash. If the user deletes the hash, then it frees it.
+  - at a later date, when we have full structured editing, we don't need that hack.
 
 ## Papercuts in the editor
 

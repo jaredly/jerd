@@ -33,6 +33,25 @@ const maybeParse = (
     }
 };
 
+const getCode = (root: ChildNode) => {
+    if (root.textContent === '#') {
+        // @ts-ignore
+        const hash = root.getAttribute('data-hash');
+        if (hash != null) {
+            return '#' + hash;
+        }
+    }
+    let res = '';
+    root.childNodes.forEach((node) => {
+        if (node.nodeName === '#text') {
+            res += node.textContent;
+        } else {
+            res += getCode(node);
+        }
+    });
+    return res;
+};
+
 export default ({ env, contents, value, onChange, onKeyDown }: any) => {
     const ref = React.useRef(null as HTMLDivElement | null);
     const set = React.useRef(false);
@@ -83,7 +102,7 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
                     minHeight: '1em',
                 }}
                 onInput={(evt) => {
-                    onChange(evt.currentTarget.innerText);
+                    onChange(getCode(evt.currentTarget));
                 }}
                 onKeyDown={(evt) => {
                     if (evt.key === 'Tab') {
@@ -124,92 +143,6 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
         </div>
     );
 };
-
-// export default ({
-//     env,
-//     contents,
-// }: {
-//     env: Env;
-//     contents: ToplevelT | string;
-// }) => {
-//     const [text, setText] = React.useState(() => {
-//         return typeof contents === 'string'
-//             ? contents
-//             : printToString(toplevelToPretty(env, contents), 50);
-//     });
-
-//     const ref = React.useRef(null);
-
-//     const prevHash = React.useRef(null);
-
-//     const [typed, err] = React.useMemo(() => {
-//         if (text.trim().length === 0) {
-//             return [null, null];
-//         }
-//         try {
-//             const parsed: Array<Toplevel> = parse(text);
-//             if (parsed.length > 1) {
-//                 return [
-//                     null,
-//                     { type: 'error', message: 'multiple toplevel items' },
-//                 ];
-//             }
-//             const t = typeToplevelT(
-//                 env,
-//                 parsed[0],
-//                 typeof contents !== 'string' && contents.type === 'RecordDef'
-//                     ? contents.def.unique
-//                     : null,
-//             );
-//             if (topHash(t) !== prevHash.current && ref.current != null) {
-//                 ref.current.innerHTML = renderAttributedTextToHTML(
-//                     env.global,
-//                     printToAttributedText(toplevelToPretty(env, t), 50),
-//                     true,
-//                 );
-//             }
-
-//             return [t, null];
-//         } catch (err) {
-//             return [null, err];
-//         }
-//     }, [text]);
-
-//     // prevHash.current = typed != null ? topHash(typed) : null;
-
-//     React.useEffect(() => {
-//         if (typed != null) {
-//             ref.current.innerHTML = renderAttributedTextToHTML(
-//                 env.global,
-//                 printToAttributedText(toplevelToPretty(env, typed), 50),
-//                 true,
-//             );
-//         } else if (typeof contents === 'string') {
-//             ref.current.innerHTML = contents;
-//         }
-//     }, [ref.current]);
-
-//     return (
-//         <div>
-//             <div
-//                 ref={ref}
-//                 spellCheck="false"
-//                 autoCorrect="false"
-//                 autoCapitalize="false"
-//                 onInput={(evt) => {
-//                     console.log(evt.currentTarget.innerHTML);
-//                     setText(evt.currentTarget.innerText);
-//                 }}
-//                 style={{
-//                     whiteSpace: 'pre-wrap',
-//                     fontFamily: '"Source Code Pro", monospace',
-//                     minHeight: '1em',
-//                 }}
-//                 contentEditable
-//             />
-//         </div>
-//     );
-// };
 
 const styles = {
     hash: {
