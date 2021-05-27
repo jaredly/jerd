@@ -2,18 +2,33 @@
 type Pos = {x: int, y: int}
 
 @main
-const goToTown = (
+const simple = (
     env: GLSLEnv,
     pos: Vec2,
 ) ={}> {
     vec4(
-        if (pos < vec2(10.0, 50.0)) {
-            vec3(1.0, 0.0, 0.0);
-        } else if pos.x < 20.0 {
-            vec3(1.0, 1.0, 0.0);
+        if true {
+            1.0
         } else {
-            vec3(0.0, 0.0, 0.0);
+            2.0
         },
-        1.0,
     );
 }
+
+// @main
+// const goToTown = (
+//     env: GLSLEnv,
+//     pos: Vec2,
+// ) ={}> {
+//     vec4(
+//         if (pos < vec2(10.0, 50.0)) {
+//             vec3(1.0, 0.0, 0.0);
+//         } else if pos.x < 20.0 {
+//             vec3(1.0, 1.0, 0.0);
+//         } else {
+//             vec3(0.0, 0.0, 0.0);
+//         },
+//         1.0,
+//     );
+// }
+

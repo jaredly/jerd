@@ -144,7 +144,7 @@ export const toplevelRecordAttribute = (
 };
 
 export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
-    let outerMax = maxUnique(expr);
+    let outerMax = Math.max(maxUnique(expr), env.local.unique.current);
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {

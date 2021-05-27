@@ -1,4 +1,5 @@
 import { idFromName, idName, newSym } from '../../../typing/env';
+import { showLocation } from '../../../typing/typeExpr';
 import {
     Env,
     Id,
@@ -8,6 +9,8 @@ import {
     Symbol,
     symbolsEqual,
 } from '../../../typing/types';
+import { termToGlsl } from '../../glslPrinter';
+import { printToString } from '../../printer';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import {
     defaultVisitor,
@@ -34,6 +37,7 @@ import {
     Type,
 } from '../types';
 import {
+    asBlock,
     bool,
     callExpression,
     define,
@@ -378,7 +382,6 @@ export const flattenDefineLambdas = (
 };
 
 export const flattenImmediateCalls = (env: Env, expr: Expr) => {
-    // console.log('flatten');
     return transformRepeatedly(expr, {
         ...defaultVisitor,
         stmt: (stmt) => {
@@ -448,6 +451,34 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
         },
 
         expr: (expr) => {
+            // TODO: huh should I just remove the "lambda body is expr" case
+            // from the IR? that would simplify some things.
+            if (expr.type === 'lambda' && expr.body.type !== 'Block') {
+                // handle the toplevel case folks
+                const ret: Stmt = {
+                    type: 'Return',
+                    value: expr.body,
+                    loc: expr.body.loc,
+                };
+                // const block = asBlock(expr.body)
+                let flattened = flattenDefineLambdas(env, ret);
+                if (flattened === ret) {
+                    return null;
+                }
+                if (!Array.isArray(flattened)) {
+                    flattened = [flattened];
+                }
+
+                return {
+                    ...expr,
+                    body: {
+                        type: 'Block',
+                        loc: expr.body.loc,
+                        items: flattened,
+                    },
+                };
+            }
+
             if (expr.type !== 'apply' || expr.target.type !== 'lambda') {
                 return null;
             }
