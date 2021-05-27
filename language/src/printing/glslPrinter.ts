@@ -184,6 +184,11 @@ const glslBuiltins: { [key: string]: Expr } = {
 //   so I can catch errors, that would be awesome
 // - https://github.com/evanw/glslx might also be interesting
 
+export const idNameToGlsl = (name: string, isType: boolean) => {
+    const prefix = isType ? 'T' : 'V';
+    return atom(prefix + name);
+};
+
 export const idToGlsl = (
     env: Env,
     opts: OutputOptions,
@@ -198,8 +203,7 @@ export const idToGlsl = (
     if (opts.includeCanonicalNames && readableName) {
         return atom(readableName + '_' + idRaw);
     }
-    const prefix = isType ? 'T' : 'V';
-    return atom(prefix + idRaw);
+    return idNameToGlsl(idRaw, isType);
 };
 
 export const refToGlsl = (
@@ -519,6 +523,9 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             return printRecord(env, opts, expr);
         case 'term':
             return idToGlsl(env, opts, expr.id, false);
+        case 'genTerm':
+            return idNameToGlsl(expr.id, false);
+        // return idToGlsl(env, opts, expr.id, false);
         case 'unary':
             return items([atom(expr.op), termToGlsl(env, opts, expr.inner)]);
         case 'float':
@@ -636,10 +643,10 @@ export const assembleItemsForFile = (
     const orderedTerms = expressionDeps(env, required);
 
     // TODO: do this for the post-processed IRTerms
-    const allTypes = expressionTypeDeps(
-        env,
-        orderedTerms.map((t) => env.global.terms[t]),
-    );
+    // const allTypes = expressionTypeDeps(
+    //     env,
+    //     orderedTerms.map((t) => env.global.terms[t]),
+    // );
 
     const irTerms: Exprs = {};
     // const printed: { [id: string]: PP } = {};

@@ -80,62 +80,74 @@ export default () => {
     const workspace = activeWorkspace(state);
 
     return (
-        <div>
-            <div
+        <div
+            style={{
+                height: '100vh',
+                width: '100vw',
+                display: 'flex',
+                flexDirection: 'row',
+                color: '#D4D4D4',
+            }}
+        >
+            {/* <div
                 style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    overflow: 'auto',
+                    // position: 'absolute',
+                    // top: 0,
+                    // left: 0,
+                    // bottom: 0,
+                    // overflow: 'auto',
+                    maxWidth: 200,
                 }}
-            >
-                <Library
-                    env={state.env}
-                    onOpen={(content) => {
-                        if (
-                            Object.keys(
-                                state.workspaces[state.activeWorkspace].cells,
-                            ).some((id) =>
-                                contentMatches(
-                                    content,
-                                    state.workspaces[state.activeWorkspace]
-                                        .cells[id].content,
-                                ),
-                            )
-                        ) {
-                            return;
-                        }
-                        const id = genId();
-                        setState((state) => {
-                            const w = state.workspaces[state.activeWorkspace];
-                            return {
-                                ...state,
-                                workspaces: {
-                                    ...state.workspaces,
-                                    [state.activeWorkspace]: {
-                                        ...w,
-                                        cells: {
-                                            [id]: { ...blankCell, id, content },
-                                            ...w.cells,
-                                        },
+            > */}
+            <Library
+                env={state.env}
+                onOpen={(content) => {
+                    if (
+                        Object.keys(
+                            state.workspaces[state.activeWorkspace].cells,
+                        ).some((id) =>
+                            contentMatches(
+                                content,
+                                state.workspaces[state.activeWorkspace].cells[
+                                    id
+                                ].content,
+                            ),
+                        )
+                    ) {
+                        return;
+                    }
+                    const id = genId();
+                    setState((state) => {
+                        const w = state.workspaces[state.activeWorkspace];
+                        return {
+                            ...state,
+                            workspaces: {
+                                ...state.workspaces,
+                                [state.activeWorkspace]: {
+                                    ...w,
+                                    cells: {
+                                        [id]: { ...blankCell, id, content },
+                                        ...w.cells,
                                     },
                                 },
-                            };
-                        });
-                    }}
-                />
-            </div>
+                            },
+                        };
+                    });
+                }}
+            />
+            {/* </div> */}
             <Cells state={state} plugins={defaultPlugins} setState={setState} />
             <div
                 style={{
-                    position: 'absolute',
-                    width: 200,
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
+                    // position: 'absolute',
+                    // width: 200,
+                    // top: 0,
+                    // right: 0,
+                    // bottom: 0,
                     overflow: 'auto',
-                    color: 'white',
+                    // color: 'white',
+                    width: 200,
+                    flexShrink: 0,
                 }}
             >
                 Pins
@@ -211,7 +223,7 @@ export default () => {
                     </div>
                 ))}
             </div>
-            <ImportExport state={state} setState={setState} />
+            {/* <ImportExport state={state} setState={setState} /> */}
         </div>
     );
 };

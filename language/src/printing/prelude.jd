@@ -119,7 +119,6 @@ type Ord<A, B> = {
     ">=": (A, B) => bool,
 }
 
-@glsl_builtin
 const Vec2Ord = Ord<Vec2, Vec2>{
     "<": (a: Vec2, b: Vec2) => a.x < b.x && a.y < b.y,
     ">": (a: Vec2, b: Vec2) => a.x > b.x && a.y > b.y,

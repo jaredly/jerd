@@ -7,7 +7,7 @@ const simple = (
     pos: Vec2,
 ) ={}> {
     vec4(
-        if true {
+        if pos > vec2(10.0, 20.0) {
             1.0
         } else {
             2.0

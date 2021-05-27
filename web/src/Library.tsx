@@ -12,7 +12,14 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'stretch',
-        marginBottom: 24,
+        // flexShrink: 1,
+        minHeight: 100,
+    }),
+    groupItems: css({
+        flex: 1,
+        overflow: 'auto',
+        paddingBottom: 24,
+        minHeight: 50,
     }),
     item: css({
         display: 'flex',
@@ -65,87 +72,104 @@ const Library = ({
                 backgroundColor: 'rgba(100,100,100,0.1)',
                 color: 'white',
                 fontFamily: 'monospace',
+                overflow: 'auto',
+                width: 200,
+                display: 'flex',
+                flexDirection: 'column',
+                flexShrink: 0,
             }}
         >
             <div css={styles.group}>
                 <div css={styles.header}>Types</div>
-                {Object.keys(env.global.typeNames)
-                    .sort()
-                    .map((name) => {
-                        const ids = env.global.typeNames[name];
-                        const hash = idName(ids[0]);
-                        return (
-                            <div
-                                css={styles.item}
-                                style={{
-                                    color:
-                                        env.global.types[hash].type === 'Enum'
-                                            ? '#afa'
-                                            : 'white',
-                                }}
-                                key={name}
-                                onClick={() => onOpen(typeContent(env, hash))}
-                            >
-                                {name}
-                                <div style={{ flex: 1 }} />
-                                <div css={styles.hash}>#{hash}</div>
-                            </div>
-                        );
-                    })}
+                <div css={styles.groupItems}>
+                    {Object.keys(env.global.typeNames)
+                        .sort()
+                        .map((name) => {
+                            const ids = env.global.typeNames[name];
+                            const hash = idName(ids[0]);
+                            return (
+                                <div
+                                    css={styles.item}
+                                    style={{
+                                        color:
+                                            env.global.types[hash].type ===
+                                            'Enum'
+                                                ? '#afa'
+                                                : 'white',
+                                    }}
+                                    key={name}
+                                    onClick={() =>
+                                        onOpen(typeContent(env, hash))
+                                    }
+                                >
+                                    {name}
+                                    <div style={{ flex: 1 }} />
+                                    <div css={styles.hash}>#{hash}</div>
+                                </div>
+                            );
+                        })}
+                </div>
             </div>
             <div css={styles.group}>
                 <div css={styles.header}>Effects</div>
-                {Object.keys(env.global.effectNames)
-                    .sort()
-                    .map((name) => {
-                        const idRaw = env.global.effectNames[name][0];
-                        return (
-                            <div
-                                css={styles.item}
-                                key={name}
-                                onClick={() =>
-                                    onOpen({
-                                        type: 'effect',
-                                        name,
-                                        id: idFromName(idRaw),
-                                        constrNames:
-                                            env.global.effectConstrNames[idRaw],
-                                    })
-                                }
-                            >
-                                {name}
-                                <div style={{ flex: 1 }} />
-                                <div css={styles.hash}>#{idRaw}</div>
-                            </div>
-                        );
-                    })}
+
+                <div css={styles.groupItems}>
+                    {Object.keys(env.global.effectNames)
+                        .sort()
+                        .map((name) => {
+                            const idRaw = env.global.effectNames[name][0];
+                            return (
+                                <div
+                                    css={styles.item}
+                                    key={name}
+                                    onClick={() =>
+                                        onOpen({
+                                            type: 'effect',
+                                            name,
+                                            id: idFromName(idRaw),
+                                            constrNames:
+                                                env.global.effectConstrNames[
+                                                    idRaw
+                                                ],
+                                        })
+                                    }
+                                >
+                                    {name}
+                                    <div style={{ flex: 1 }} />
+                                    <div css={styles.hash}>#{idRaw}</div>
+                                </div>
+                            );
+                        })}
+                </div>
             </div>
             <div css={styles.group}>
                 <div css={styles.header}>Terms</div>
-                {Object.keys(env.global.names)
-                    .sort()
-                    .map((name) => {
-                        const idRaw = idName(env.global.names[name][0]);
-                        return (
-                            <div
-                                css={styles.item}
-                                onClick={() => {
-                                    onOpen({
-                                        type: 'term',
-                                        id: idFromName(idRaw),
-                                        name:
-                                            env.global.idNames[idRaw] ||
-                                            'unnamed',
-                                    });
-                                }}
-                                key={name}
-                            >
-                                {name}
-                                <div style={{ flex: 1 }} />
-                                <div css={styles.hash}>#{idRaw}</div>
-                            </div>
-                        );
-                    })}
+                <div css={styles.groupItems}>
+                    {Object.keys(env.global.names)
+                        .sort()
+                        .map((name) => {
+                            const idRaw = idName(env.global.names[name][0]);
+                            return (
+                                <div
+                                    css={styles.item}
+                                    onClick={() => {
+                                        onOpen({
+                                            type: 'term',
+                                            id: idFromName(idRaw),
+                                            name:
+                                                env.global.idNames[idRaw] ||
+                                                'unnamed',
+                                        });
+                                    }}
+                                    key={name}
+                                >
+                                    {name}
+                                    <div style={{ flex: 1 }} />
+                                    <div css={styles.hash}>#{idRaw}</div>
+                                </div>
+                            );
+                        })}
+                </div>
             </div>
         </div>
     );

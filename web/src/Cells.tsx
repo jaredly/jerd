@@ -117,7 +117,7 @@ const WorkspacePicker = ({
     return (
         <div
             css={{
-                padding: '0 16px',
+                padding: '8px 16px',
                 fontSize: 16,
             }}
         >
@@ -139,9 +139,8 @@ const Cells = ({
     return (
         <div
             style={{
+                flex: 1,
                 backgroundColor: '#1E1E1E',
-                padding: 20,
-                paddingBottom: '75vh',
                 color: '#D4D4D4',
                 display: 'flex',
                 flexDirection: 'column',
@@ -149,118 +148,157 @@ const Cells = ({
             }}
         >
             <WorkspacePicker state={state} setState={setState} />
-            {Object.keys(work.cells).map((id) => (
-                <CellView
-                    key={id}
-                    env={state.env}
-                    cell={work.cells[id]}
-                    evalEnv={state.evalEnv}
-                    plugins={plugins}
-                    onPin={(display, id) => {
-                        setState(
-                            modActiveWorkspace((workspace) => ({
-                                ...workspace,
-                                pins: workspace.pins.concat([{ display, id }]),
-                            })),
-                        );
-                    }}
-                    onRemove={() => {
-                        setState(
-                            modActiveWorkspace((work) => {
-                                const cells = { ...work.cells };
-                                delete cells[id];
-                                return { ...work, cells };
-                            }),
-                        );
-                    }}
-                    onRun={(id) => {
-                        console.log('Running', id, state.env, state.evalEnv);
-                        let results: { [key: string]: any };
-                        try {
-                            const term = state.env.global.terms[idName(id)];
-                            if (!term) {
-                                throw new Error(`No term ${idName(id)}`);
-                            }
-
-                            results = runTerm(
-                                state.env,
-                                term,
+            <div
+                style={{
+                    flex: 1,
+                    alignSelf: 'stretch',
+                    overflow: 'auto',
+                    padding: 20,
+                    paddingBottom: '75vh',
+                }}
+            >
+                {Object.keys(work.cells).map((id) => (
+                    <CellView
+                        key={id}
+                        env={state.env}
+                        cell={work.cells[id]}
+                        evalEnv={state.evalEnv}
+                        plugins={plugins}
+                        onPin={(display, id) => {
+                            setState(
+                                modActiveWorkspace((workspace) => ({
+                                    ...workspace,
+                                    pins: workspace.pins.concat([
+                                        { display, id },
+                                    ]),
+                                })),
+                            );
+                        }}
+                        onRemove={() => {
+                            setState(
+                                modActiveWorkspace((work) => {
+                                    const cells = { ...work.cells };
+                                    delete cells[id];
+                                    return { ...work, cells };
+                                }),
+                            );
+                        }}
+                        onRun={(id) => {
+                            console.log(
+                                'Running',
                                 id,
+                                state.env,
                                 state.evalEnv,
                             );
-                        } catch (err) {
-                            console.log(`Failed to run!`);
-                            console.log(err);
-                            return;
-                        }
-                        setState((state) => ({
-                            ...state,
-                            evalEnv: {
-                                ...state.evalEnv,
-                                terms: {
-                                    ...state.evalEnv.terms,
-                                    ...results,
+                            let results: { [key: string]: any };
+                            try {
+                                const term = state.env.global.terms[idName(id)];
+                                if (!term) {
+                                    throw new Error(`No term ${idName(id)}`);
+                                }
+
+                                results = runTerm(
+                                    state.env,
+                                    term,
+                                    id,
+                                    state.evalEnv,
+                                );
+                            } catch (err) {
+                                console.log(`Failed to run!`);
+                                console.log(err);
+                                return;
+                            }
+                            setState((state) => ({
+                                ...state,
+                                evalEnv: {
+                                    ...state.evalEnv,
+                                    terms: {
+                                        ...state.evalEnv.terms,
+                                        ...results,
+                                    },
                                 },
-                            },
-                        }));
-                    }}
-                    addCell={(content) => {
-                        const work = activeWorkspace(state);
-                        if (
-                            Object.keys(work.cells).some((id) =>
-                                contentMatches(content, work.cells[id].content),
-                            )
-                        ) {
-                            return;
-                        }
-                        const id = genId();
-                        setState(
-                            modActiveWorkspace((workspace) => ({
-                                ...workspace,
-                                cells: {
-                                    ...workspace.cells,
-                                    [id]: { ...blankCell, id, content },
-                                },
-                            })),
-                        );
-                    }}
-                    onChange={(env, cell) => {
-                        console.log('Change', cell);
-                        setState((state) => {
-                            const w = state.workspaces[state.activeWorkspace];
-                            if (cell.content === w.cells[cell.id].content) {
-                                return modActiveWorkspace((workspace) => ({
+                            }));
+                        }}
+                        addCell={(content) => {
+                            const work = activeWorkspace(state);
+                            if (
+                                Object.keys(work.cells).some((id) =>
+                                    contentMatches(
+                                        content,
+                                        work.cells[id].content,
+                                    ),
+                                )
+                            ) {
+                                return;
+                            }
+                            const id = genId();
+                            setState(
+                                modActiveWorkspace((workspace) => ({
                                     ...workspace,
                                     cells: {
                                         ...workspace.cells,
-                                        [cell.id]: cell,
+                                        [id]: { ...blankCell, id, content },
                                     },
-                                }))({ ...state, env });
-                            }
-                            if (
-                                cell.content.type === 'expr' ||
-                                cell.content.type === 'term'
-                            ) {
-                                const id = cell.content.id;
-                                let results: any;
-                                try {
-                                    const term = env.global.terms[idName(id)];
-                                    if (!term) {
-                                        throw new Error(
-                                            `No term ${idName(id)}`,
-                                        );
-                                    }
+                                })),
+                            );
+                        }}
+                        onChange={(env, cell) => {
+                            console.log('Change', cell);
+                            setState((state) => {
+                                const w =
+                                    state.workspaces[state.activeWorkspace];
+                                if (cell.content === w.cells[cell.id].content) {
+                                    return modActiveWorkspace((workspace) => ({
+                                        ...workspace,
+                                        cells: {
+                                            ...workspace.cells,
+                                            [cell.id]: cell,
+                                        },
+                                    }))({ ...state, env });
+                                }
+                                if (
+                                    cell.content.type === 'expr' ||
+                                    cell.content.type === 'term'
+                                ) {
+                                    const id = cell.content.id;
+                                    let results: any;
+                                    try {
+                                        const term =
+                                            env.global.terms[idName(id)];
+                                        if (!term) {
+                                            throw new Error(
+                                                `No term ${idName(id)}`,
+                                            );
+                                        }
 
-                                    results = runTerm(
+                                        results = runTerm(
+                                            env,
+                                            term,
+                                            id,
+                                            state.evalEnv,
+                                        );
+                                    } catch (err) {
+                                        console.log(`Failed to run!`);
+                                        console.log(err);
+                                        return state;
+                                    }
+                                    return modActiveWorkspace((workspace) => ({
+                                        ...workspace,
+                                        cells: {
+                                            ...workspace.cells,
+                                            [cell.id]: cell,
+                                        },
+                                    }))({
+                                        ...state,
                                         env,
-                                        term,
-                                        id,
-                                        state.evalEnv,
-                                    );
-                                } catch (err) {
-                                    console.log(`Failed to run!`);
-                                    console.log(err);
-                                    return state;
+                                        evalEnv: {
+                                            ...state.evalEnv,
+                                            terms: {
+                                                ...state.evalEnv.terms,
+                                                ...results,
+                                            },
+                                        },
+                                    });
                                 }
                                 return modActiveWorkspace((workspace) => ({
                                     ...workspace,
@@ -268,57 +306,43 @@ const Cells = ({
                                         ...workspace.cells,
                                         [cell.id]: cell,
                                     },
-                                }))({
-                                    ...state,
-                                    env,
-                                    evalEnv: {
-                                        ...state.evalEnv,
-                                        terms: {
-                                            ...state.evalEnv.terms,
-                                            ...results,
-                                        },
-                                    },
-                                });
-                            }
-                            return modActiveWorkspace((workspace) => ({
-                                ...workspace,
-                                cells: { ...workspace.cells, [cell.id]: cell },
-                            }))({ ...state, env });
-                        });
+                                }))({ ...state, env });
+                            });
+                        }}
+                    />
+                ))}
+                <button
+                    css={{
+                        width: '200px',
+                        color: 'inherit',
+                        fontFamily: 'inherit',
+                        border: 'none',
+                        display: 'block',
+                        cursor: 'pointer',
+                        padding: '4px 8px',
+                        marginTop: 24,
+                        borderRadius: 4,
+                        backgroundColor: 'rgba(100,100,100,0.1)',
+                        ':hover': {
+                            backgroundColor: 'rgba(100,100,100,0.3)',
+                        },
                     }}
-                />
-            ))}
-            <button
-                css={{
-                    width: '200px',
-                    color: 'inherit',
-                    fontFamily: 'inherit',
-                    border: 'none',
-                    display: 'block',
-                    cursor: 'pointer',
-                    padding: '4px 8px',
-                    marginTop: 24,
-                    borderRadius: 4,
-                    backgroundColor: 'rgba(100,100,100,0.1)',
-                    ':hover': {
-                        backgroundColor: 'rgba(100,100,100,0.3)',
-                    },
-                }}
-                onClick={() => {
-                    const id = genId();
-                    setState(
-                        modActiveWorkspace((workspace) => ({
-                            ...workspace,
-                            cells: {
-                                ...workspace.cells,
-                                [id]: { ...blankCell, id },
-                            },
-                        })),
-                    );
-                }}
-            >
-                New Cell
-            </button>
+                    onClick={() => {
+                        const id = genId();
+                        setState(
+                            modActiveWorkspace((workspace) => ({
+                                ...workspace,
+                                cells: {
+                                    ...workspace.cells,
+                                    [id]: { ...blankCell, id },
+                                },
+                            })),
+                        );
+                    }}
+                >
+                    New Cell
+                </button>
+            </div>
         </div>
     );
 };

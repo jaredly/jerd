@@ -60,7 +60,7 @@ const CellWrapper = ({
     onToggleSource: (() => void) | null | undefined;
 }) => {
     return (
-        <div style={{ width: 800, padding: 4, position: 'relative' }}>
+        <div style={{ padding: 4, position: 'relative' }}>
             {children}
             <div
                 css={{
