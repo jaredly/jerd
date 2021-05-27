@@ -176,7 +176,7 @@ const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
         try {
             const update = setup(
                 ctx,
-                shader,
+                shader.text,
                 timer.current,
                 currentMousePos.current,
             );
@@ -207,7 +207,7 @@ const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
                             whiteSpace: 'pre-wrap',
                         }}
                     >
-                        {shader}
+                        {shader.text}
                     </pre>
                 ) : null}
             </div>
