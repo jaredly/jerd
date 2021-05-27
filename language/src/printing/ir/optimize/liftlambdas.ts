@@ -49,8 +49,6 @@ export const liftLambdas = (env: Env, exprs: Exprs, expr: Expr) => {
             ) {
                 return null;
             }
-            // TODO: TODO: got to optimize this I think
-            // In case it has stuff that needs to be optimized.
             const hash = hashObject(expr);
             const id: Id = { hash, size: 1, pos: 0 };
             expr = optimizeDefine(env, expr, id);

@@ -111,6 +111,22 @@ type Neg<A, B> = {
     "-": (A) => B
 }
 
+@unique(3.0)
+type Ord<A, B> = {
+    "<": (A, B) => bool,
+    ">": (A, B) => bool,
+    "<=": (A, B) => bool,
+    ">=": (A, B) => bool,
+}
+
+@glsl_builtin
+const Vec2Ord = Ord<Vec2, Vec2>{
+    "<": (a: Vec2, b: Vec2) => a.x < b.x && a.y < b.y,
+    ">": (a: Vec2, b: Vec2) => a.x > b.x && a.y > b.y,
+    "<=": (a: Vec2, b: Vec2) => a.x <= b.x && a.y <= b.y,
+    ">=": (a: Vec2, b: Vec2) => a.x >= b.x && a.y >= b.y,
+}
+
 @glsl_builtin
 const AddSubVec4 = AddSub<Vec4, Vec4, Vec4>{
     "+": (one: Vec4, two: Vec4) => Vec4{x: one.x + two.x, y: one.y + two.y, z: one.z + two.z, w: one.w + two.w},

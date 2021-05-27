@@ -13,9 +13,10 @@ const createShader = (
     gl.compileShader(shader);
     const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (!compiled) {
-        console.error(gl.getShaderInfoLog(shader));
+        const error = gl.getShaderInfoLog(shader);
+        // console.error(error);
         gl.deleteShader(shader);
-        throw new Error(`Not compiled`);
+        throw new Error(`Not compiled: ` + error);
     }
 
     return shader;

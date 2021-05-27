@@ -679,13 +679,10 @@ export const assembleItemsForFile = (
 
         irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 
-        const shouldInline = ![
-            'bool',
-            'float',
-            'int',
-            'ref',
-            'lambda',
-        ].includes(irTerm.type);
+        const shouldInline =
+            !['bool', 'float', 'int', 'ref', 'lambda'].includes(irTerm.type) ||
+            // If it's a function that returns a function, we must inline
+            (irTerm.is.type === 'lambda' && irTerm.is.res.type === 'lambda');
         irTerms[idRaw] = { expr: irTerm, inline: shouldInline, comment };
     });
 

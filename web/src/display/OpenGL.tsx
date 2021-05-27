@@ -132,38 +132,41 @@ const compileGLSL = (term: Term, env: Env) => {
 };
 
 const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
-    // const canvasRef = React.useRef(null as null | HTMLCanvasElement);
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
     );
     const [paused, setPaused] = React.useState(false);
-    // const [data, setData] = React.useState([]);
     const [error, setError] = React.useState(null as any | null);
 
     const shader = React.useMemo(() => {
         const id = { hash: hashObject(term), size: 1, pos: 0 };
-        return compileGLSL(term, {
-            ...env,
-            global: {
-                ...env.global,
-                terms: {
-                    ...env.global.terms,
-                    [idName(id)]: term,
+        try {
+            return compileGLSL(term, {
+                ...env,
+                global: {
+                    ...env.global,
+                    terms: {
+                        ...env.global.terms,
+                        [idName(id)]: term,
+                    },
                 },
-            },
-        });
+            });
+        } catch (err) {
+            setError(err.message);
+            return null;
+        }
     }, [term]);
     const fc = React.useRef(shader);
     fc.current = shader;
 
-    const start = React.useMemo(() => Date.now(), []);
+    const timer = React.useRef(0);
 
     const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
     const currentMousePos = React.useRef(mousePos);
     currentMousePos.current = mousePos;
 
     React.useEffect(() => {
-        if (!canvas) {
+        if (!canvas || paused || !shader) {
             return;
         }
         const ctx = canvas.getContext('webgl2');
@@ -174,64 +177,52 @@ const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
             const update = setup(
                 ctx,
                 shader,
-                (Date.now() - start) / 1000,
+                timer.current,
                 currentMousePos.current,
             );
             let tid: any;
+            let last = Date.now();
             const fn = () => {
-                update((Date.now() - start) / 1000, currentMousePos.current);
+                const now = Date.now();
+                timer.current += (now - last) / 1000;
+                last = now;
+                update(timer.current, currentMousePos.current);
                 tid = requestAnimationFrame(fn);
             };
             tid = requestAnimationFrame(fn);
             return () => cancelAnimationFrame(tid);
         } catch (err) {
-            console.error(err);
+            setError(err);
         }
-    }, [canvas, shader]);
-
-    // React.useEffect(() => {
-    //     if (paused) {
-    //         return;
-    //     }
-    //     let env: GLSLEnv;
-
-    //     let start = Date.now();
-    //     const tid = setInterval(() => {
-    //         if (!canvasRef.current) {
-    //             return;
-    //         }
-    //         const ctx = canvasRef.current.getContext('webgl')!;
-    //         if (!env) {
-    //             env = newGLSLEnv(ctx);
-    //             canvasRef.current.addEventListener('mousemove', (evt) => {
-    //                 const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
-    //                 env.mouse.x = evt.clientX - box.left;
-    //                 env.mouse.y = evt.clientY - box.top;
-    //             });
-    //         }
-    //         env.time = (Date.now() - start) / 1000;
-    //         try {
-    //             drawToCanvas(ctx, fc.current, env);
-    //         } catch (err) {
-    //             clearInterval(tid);
-    //             setError(err);
-    //         }
-    //     }, 40);
-    //     return () => clearInterval(tid);
-    // }, [paused]);
+    }, [canvas, shader, paused]);
 
     if (error != null) {
-        return <div>{error.message}</div>;
+        return (
+            <div>
+                {error.message}
+                {shader != null ? (
+                    <pre
+                        style={{
+                            fontFamily: 'monospace',
+                            whiteSpace: 'pre-wrap',
+                        }}
+                    >
+                        {shader}
+                    </pre>
+                ) : null}
+            </div>
+        );
     }
 
     return (
         <div>
             <canvas
+                onClick={() => setPaused(!paused)}
                 onMouseMove={(evt) => {
                     const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
                     setMousePos({
-                        x: evt.clientX - box.left,
-                        y: box.height - (evt.clientY - box.top),
+                        x: (evt.clientX - box.left) * 2,
+                        y: (box.height - (evt.clientY - box.top)) * 2,
                     });
                 }}
                 ref={(node) => {
@@ -239,19 +230,14 @@ const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
                         setCanvas(node);
                     }
                 }}
-                width="200"
-                height="200"
-            />
-            {/* <pre
                 style={{
-                    whiteSpace: 'pre',
-                    fontFamily: 'monospace',
-                    color: 'white',
-                    padding: 16,
+                    width: 200,
+                    height: 200,
                 }}
-            >
-                {shader}
-            </pre> */}
+                // Double size for retina
+                width="400"
+                height="400"
+            />
         </div>
     );
 };

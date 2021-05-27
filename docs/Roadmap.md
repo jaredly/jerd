@@ -73,10 +73,27 @@ START HERE PLEASE
 
 ## WEB INTERFACE - get ready for GLSL
 
-- [ ] add support for multiple "tabs" for different groups of cells.
+- [x] add support for multiple "tabs" for different groups of cells.
+- [x] AND THEN we can bring this wonderful GLSL goodness to our web editor bonanza.
 
 
-- [ ] AND THEN we can bring this wonderful GLSL goodness to our web editor bonanza.
+HMMmmmmm I want ... and optimization debugger
+... that keeps track of all of the intermediate states
+... of optimization
+... and then lets me flip through them
+... and optionally disable them? idk. or something.
+
+
+## Papercuts in the editor
+
+- [ ] fix printing of custom binops
+- [ ] do something about the proliferation of all those IDs. Do I have to make a more complicated editor? Or just elide the ones that can be unambiguously inferred? Yeah maybe that's the ticket.
+- [ ] add grabbable sliders for twiddling constants!
+
+## Fancier type error goodness!
+
+- [ ] start using the TypeError thing, and the Ambiguous thing, and have them show up in cool ways in the editor! not 100% sure how this will happen...
+
 - [ ] fix inlining of recursive functions? well to do that I need to do inlining of lambdas that capture scope variables.
 - [ ] properly handle lambdas that close over things, probably by making a new Expr type that groups a record of scope variables with the hash of the lifted lambda.
 - [ ] make ambiguous numbers work? Not sure the extent to which we should go. Like, if you have 1 + 2 + 3 + 4.5, do we maintain the ambiguity?

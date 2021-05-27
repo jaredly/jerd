@@ -2,7 +2,7 @@ import { AttributeSuffix } from '../../parsing/parser';
 import { hasSubType, idFromName, idName } from '../env';
 import { LocatedError } from '../errors';
 import { applyTypeVariablesToRecord, showLocation } from '../typeExpr';
-import { Env, isRecord, Term, UserReference } from '../types';
+import { Env, getAllSubTypes, isRecord, Term, UserReference } from '../types';
 import { showType } from '../unify';
 
 export const typeAttribute = (
@@ -21,7 +21,7 @@ export const typeAttribute = (
     // like `.<Person>name`? or `.Person::name`?
     // yeah that could be cool.
     let idx: number;
-    let ref: UserReference;
+    let ref: UserReference | null = null;
     if (suffix.id.hash != null) {
         const [id, num] = suffix.id.hash.slice(1).split('#');
         ref = { type: 'user', id: idFromName(id) };
@@ -60,6 +60,28 @@ export const typeAttribute = (
             );
         }
         ref = target.is.ref;
+    } else if (target.is.type === 'ref' && target.is.ref.type === 'user') {
+        const typeName = idName(target.is.ref.id);
+        const defn = env.global.types[typeName];
+        // TODO TODO: allow attribute access on Enums, if all subtypes allow it
+        if (defn.type !== 'Record') {
+            throw new LocatedError(suffix.location, `Target is not a Record`);
+        }
+        idx = env.global.recordGroups[typeName].indexOf(suffix.id.text);
+        if (idx !== -1) {
+            ref = target.is.ref;
+        } else {
+            const subTypes = getAllSubTypes(env.global, defn);
+            for (let id of subTypes) {
+                idx = env.global.recordGroups[idName(id)].indexOf(
+                    suffix.id.text,
+                );
+                if (idx !== -1) {
+                    ref = { type: 'user', id };
+                    break;
+                }
+            }
+        }
     } else {
         if (!env.global.attributeNames[suffix.id.text]) {
             throw new Error(`Unknown attribute name ${suffix.id.text}`);
@@ -79,6 +101,16 @@ export const typeAttribute = (
                 )}`,
             );
         }
+    }
+
+    if (ref === null) {
+        throw new LocatedError(
+            suffix.location,
+            `Unknown attribute ${suffix.id.text} for type ${showType(
+                env,
+                target.is,
+            )}`,
+        );
     }
 
     let t = env.global.types[idName(ref.id)];
