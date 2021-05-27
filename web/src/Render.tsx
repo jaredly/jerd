@@ -71,7 +71,7 @@ export const renderAttributedTextToHTML = (
                     item.text,
                 )}${
                     showHash
-                        ? `<span style="color: #777" data-hash="${item.id}">#</span>`
+                        ? `<span style="color: #777; cursor: ew-resize" data-hash="${item.id}">#</span>`
                         : ''
                 }</span>`;
             }

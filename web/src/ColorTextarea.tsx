@@ -55,6 +55,11 @@ const getCode = (root: ChildNode) => {
 export default ({ env, contents, value, onChange, onKeyDown }: any) => {
     const ref = React.useRef(null as HTMLDivElement | null);
     const set = React.useRef(false);
+
+    const [hover, setHover] = React.useState(
+        null as null | { top: number; left: number; text: string; target: any },
+    );
+
     React.useEffect(() => {
         if (!ref.current || set.current) {
             return;
@@ -85,6 +90,7 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
         <div
             style={{
                 padding: 8,
+                position: 'relative',
                 backgroundColor: '#2b2b2b',
                 borderRadius: 4,
             }}
@@ -95,6 +101,37 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
                 autoCorrect="false"
                 autoCapitalize="false"
                 contentEditable
+                onClick={(evt) => {
+                    const hash = evt.target.getAttribute('data-hash');
+                    if (hash) {
+                        if (evt.target.textContent === '#') {
+                            evt.target.textContent = '#' + hash;
+                        } else {
+                            evt.target.textContent = '#';
+                        }
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                    }
+                }}
+                onMouseOver={(evt) => {
+                    const box = evt.currentTarget.getBoundingClientRect();
+                    const nodePos = evt.target.getBoundingClientRect();
+                    // @ts-ignore
+                    const hash = evt.target.getAttribute('data-hash');
+                    if (hash) {
+                        setHover({
+                            top: nodePos.bottom - box.top + 5,
+                            left: nodePos.left - box.left + 20,
+                            text: '#' + hash,
+                            target: evt.target,
+                        });
+                    }
+                }}
+                onMouseOut={(evt) => {
+                    if (hover && evt.target === hover.target) {
+                        setHover(null);
+                    }
+                }}
                 style={{
                     outline: 'none',
                     whiteSpace: 'pre-wrap',
@@ -140,6 +177,22 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
                     onKeyDown(evt);
                 }}
             />
+            {hover ? (
+                <div
+                    style={{
+                        pointerEvents: 'none',
+                        top: hover.top,
+                        left: hover.left,
+                        position: 'absolute',
+                        fontSize: '80%',
+                        backgroundColor: '#111',
+                        color: 'white',
+                        padding: 4,
+                    }}
+                >
+                    {hover.text}
+                </div>
+            ) : null}
         </div>
     );
 };
