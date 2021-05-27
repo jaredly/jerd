@@ -23,9 +23,15 @@ export const stateToString = (state: State) => {
     return JSON.stringify({ ...state, evalEnv: { ...state.evalEnv, terms } });
 };
 
+// @ts-ignore
+window.stateToString = stateToString;
+
 export const saveState = (state: State) => {
     window.localStorage.setItem(saveKey, stateToString(state));
 };
+
+// @ts-ignore
+window.importState = saveState;
 
 export const initialState = (): State => {
     const saved = window.localStorage.getItem(saveKey);
