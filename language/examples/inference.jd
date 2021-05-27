@@ -13,4 +13,4 @@
 // with different instantiations of the types.
 const callOne = <T,>(f: (int, string) => T) => f(2, "hi")
 // const test2 = () => callOne((a, b) => log(b))
-const inferrRecur: (int) => int = (count: int): int => inferrRecur(count + 4)
+const rec inferrRecur: (int) => int = (count: int): int => inferrRecur(count + 4)

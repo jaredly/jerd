@@ -96,6 +96,9 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
             const glob = cloneGlobalEnv(env.global);
             glob.idNames[idName(toplevel.id)] = toplevel.name;
             glob.recordGroups[idName(toplevel.id)] = toplevel.attrNames;
+            if (!toplevel.def) {
+                console.log(toplevel);
+            }
             return recordToPretty(
                 {
                     ...selfEnv(env, {
@@ -414,7 +417,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         case 'self':
             if (env.local.self && env.local.self.type === 'Term') {
-                return atom(env.local.self.name);
+                return atom(env.local.self.name + '#self');
             } else {
                 throw new Error(
                     `Self reference, without a self defined on env`,

@@ -87,6 +87,7 @@ export const nullLocation = {
 export type Statement = Define | Expression;
 export type Define = {
     type: 'define';
+    rec: boolean;
     id: Identifier;
     location: Location;
     expr: Expression;

@@ -9,10 +9,16 @@ import { Cell, Display, EvalEnv, Plugins, PluginT } from './State';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { printToString } from '@jerd/language/src/printing/printer';
 
-import Cells, { contentMatches, genId, blankCell } from './Cells';
+import Cells, {
+    contentMatches,
+    genId,
+    blankCell,
+    activeWorkspace,
+    modActiveWorkspace,
+} from './Cells';
 import DrawablePlugins from './display/Drawable';
 import StdioPlugins from './display/Stdio';
-import { initialState, saveState } from './persistence';
+import { initialState, saveState, stateToString } from './persistence';
 import Library from './Library';
 import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
@@ -26,10 +32,17 @@ const defaultPlugins: Plugins = {
 
 // Yea
 
-export type State = {
-    env: Env;
+export type Workspace = {
+    name: string;
     cells: { [key: string]: Cell };
     pins: Array<{ display: Display; id: Id }>;
+    order: number;
+};
+
+export type State = {
+    env: Env;
+    activeWorkspace: string;
+    workspaces: { [key: string]: Workspace };
     evalEnv: EvalEnv;
 };
 
@@ -44,9 +57,10 @@ export default () => {
     window.state = state;
     // @ts-ignore
     window.renderFile = () => {
-        return Object.keys(state.cells)
+        return Object.keys(state.workspaces[state.activeWorkspace].cells)
             .map((k) => {
-                const c = state.cells[k].content;
+                const c =
+                    state.workspaces[state.activeWorkspace].cells[k].content;
                 if (c.type !== 'raw' && c.type !== 'expr') {
                     const top = getToplevel(state.env, c);
                     return printToString(
@@ -60,6 +74,8 @@ export default () => {
             .filter(Boolean)
             .join('\n\n');
     };
+
+    const workspace = activeWorkspace(state);
 
     return (
         <div>
@@ -76,23 +92,35 @@ export default () => {
                     env={state.env}
                     onOpen={(content) => {
                         if (
-                            Object.keys(state.cells).some((id) =>
+                            Object.keys(
+                                state.workspaces[state.activeWorkspace].cells,
+                            ).some((id) =>
                                 contentMatches(
                                     content,
-                                    state.cells[id].content,
+                                    state.workspaces[state.activeWorkspace]
+                                        .cells[id].content,
                                 ),
                             )
                         ) {
                             return;
                         }
                         const id = genId();
-                        setState((state) => ({
-                            ...state,
-                            cells: {
-                                [id]: { ...blankCell, id, content },
-                                ...state.cells,
-                            },
-                        }));
+                        setState((state) => {
+                            const w = state.workspaces[state.activeWorkspace];
+                            return {
+                                ...state,
+                                workspaces: {
+                                    ...state.workspaces,
+                                    [state.activeWorkspace]: {
+                                        ...w,
+                                        cells: {
+                                            [id]: { ...blankCell, id, content },
+                                            ...w.cells,
+                                        },
+                                    },
+                                },
+                            };
+                        });
                     }}
                 />
             </div>
@@ -109,7 +137,7 @@ export default () => {
                 }}
             >
                 Pins
-                {state.pins.map((pin, i) => (
+                {workspace.pins.map((pin, i) => (
                     <div
                         key={i}
                         css={{
@@ -166,16 +194,83 @@ export default () => {
                                 marginLeft: 8,
                             }}
                             onClick={() =>
-                                setState((state) => ({
-                                    ...state,
-                                    pins: state.pins.filter((p) => p !== pin),
-                                }))
+                                setState(
+                                    modActiveWorkspace((workspace) => ({
+                                        ...workspace,
+                                        pins: workspace.pins.filter(
+                                            (p) => p !== pin,
+                                        ),
+                                    })),
+                                )
                             }
                         >
                             ╳
                         </button>
                     </div>
                 ))}
+            </div>
+            <ImportExport state={state} setState={setState} />
+        </div>
+    );
+};
+
+const ImportExport = ({
+    state,
+    setState,
+}: {
+    state: State;
+    setState: (s: State) => void;
+}) => {
+    const [url, setUrl] = React.useState(null as string | null);
+    return (
+        <div
+            css={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                color: 'white',
+            }}
+        >
+            <div>
+                <button
+                    onClick={() => {
+                        const blob = new Blob([stateToString(state)]);
+                        const url = URL.createObjectURL(blob);
+                        setUrl(url);
+                    }}
+                >
+                    Export
+                </button>
+                {url ? (
+                    <a
+                        href={url}
+                        download={`jerd-ide-dump-${new Date().toISOString()}.json`}
+                    >
+                        Download dump
+                    </a>
+                ) : null}
+            </div>
+            <div>
+                Import:{' '}
+                <input
+                    type="file"
+                    onChange={(evt) => {
+                        if (
+                            !evt.target.files ||
+                            evt.target.files.length !== 1
+                        ) {
+                            console.log('no files! or wrong', evt.target.files);
+                            return;
+                        }
+                        const file = evt.target.files[0];
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            const data = JSON.parse(reader.result as string);
+                            setState(data);
+                        };
+                        reader.readAsText(file, 'utf8');
+                    }}
+                />
             </div>
         </div>
     );

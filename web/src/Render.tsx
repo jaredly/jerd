@@ -29,9 +29,9 @@ const shouldShowHash = (
     name: string,
 ) => {
     if (kind === 'term') {
-        return !env.names[name] || idName(env.names[name]) !== id;
+        return !env.names[name] || idName(env.names[name][0]) !== id;
     } else if (kind === 'type' || kind === 'record' || kind === 'enum') {
-        return !env.typeNames[name] || idName(env.typeNames[name]) !== id;
+        return !env.typeNames[name] || idName(env.typeNames[name][0]) !== id;
     }
     return false;
 };

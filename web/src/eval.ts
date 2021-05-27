@@ -31,7 +31,7 @@ export const termToJS = (
     env: Env,
     term: Term,
     id: Id,
-    irTerms: { [key: string]: Expr },
+    irTerms: { [key: string]: { expr: Expr; inline: boolean } },
     asReturn?: boolean,
     withExecutionLimit: boolean = true,
 ) => {
@@ -41,18 +41,18 @@ export const termToJS = (
         { limitExecutionTime: withExecutionLimit },
         term,
     );
-    irTerm = optimizeAggressive(env, irTerms, irTerm, id);
+    // irTerm = optimizeAggressive(env, irTerms, irTerm, id);
     irTerm = optimizeDefine(env, irTerm, id);
     // then pop over to glslPrinter and start making things work.
-    try {
-        uniquesReallyAreUnique(irTerm);
-    } catch (err) {
-        console.log(err);
-        console.log(err.toString());
-        console.log(err.loc, err.location);
-        throw err;
-    }
-    irTerms[idName(id)] = irTerm;
+    // try {
+    //     uniquesReallyAreUnique(irTerm);
+    // } catch (err) {
+    //     console.log(err);
+    //     console.log(err.toString());
+    //     console.log(err.loc, err.location);
+    //     throw err;
+    // }
+    irTerms[idName(id)] = { expr: irTerm, inline: false };
     let termAst: any = termToTs(
         env,
         { scope: 'jdScope', limitExecutionTime: withExecutionLimit },
@@ -148,7 +148,9 @@ export const runTerm = (
                 ...evalEnv,
                 terms: { ...evalEnv.terms, ...results },
             };
+            // @ts-ignore
             evalEnv.source = evalEnv.source || {};
+            // @ts-ignore
             evalEnv.source[dep] = code;
             evalEnv.executionLimit.enabled = true;
             evalEnv.executionLimit.maxTime = Date.now() + 200;

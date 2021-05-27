@@ -14,7 +14,7 @@ effect Log {
 
 
 // Start iwth the basic
-const collectNew: (() ={Log}> void) ={}> string = 
+const rec collectNew: (() ={Log}> void) ={}> string = 
 // Ok we'll have to deal with newHandlers later
 // @newHandlers
 (fn: () ={Log}> void): string => {
@@ -42,7 +42,7 @@ collectNew
 // collectNew
 
 // This is so we can test the results
-const collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
+const rec collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void): string => {
     handle! fn {
         Log.log((v) => k) => {
             v ++ "\n" ++ collect{e}(() ={e, Log}> k())
@@ -54,7 +54,7 @@ const collect: {e}(() ={Log, e}> void) ={e}> string = {e}(fn: () ={Log, e}> void
 const log = (k: string) ={Log}> raise!(Log.log(k))
 
 // TODO when I've got type arguments, make this generic.
-const respondWith:
+const rec respondWith:
     (string) => <T,>{e}(() ={Stdio, e}> T) ={Log, e}> T
  = (responseValue: string) => <T,>{e}(fn: () ={Stdio, e}> T) ={Log, e}> {
     handle! fn {
@@ -211,7 +211,7 @@ effect MultiArg {
     putTwo: (int, string) => string,
 }
 
-const handleMulti: (() ={MultiArg}> string) => string = (f: () ={MultiArg}> string): string => {
+const rec handleMulti: (() ={MultiArg}> string) => string = (f: () ={MultiArg}> string): string => {
     handle! f {
         MultiArg.putTwo((num, text) => k) => handleMulti(() => k(intToString(num) ++ ":" ++ text)),
         pure(v) => v ++ ":ok"

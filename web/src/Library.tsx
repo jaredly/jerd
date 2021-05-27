@@ -72,7 +72,8 @@ const Library = ({
                 {Object.keys(env.global.typeNames)
                     .sort()
                     .map((name) => {
-                        const hash = idName(env.global.typeNames[name]);
+                        const ids = env.global.typeNames[name];
+                        const hash = idName(ids[0]);
                         return (
                             <div
                                 css={styles.item}
@@ -97,7 +98,7 @@ const Library = ({
                 {Object.keys(env.global.effectNames)
                     .sort()
                     .map((name) => {
-                        const idRaw = env.global.effectNames[name];
+                        const idRaw = env.global.effectNames[name][0];
                         return (
                             <div
                                 css={styles.item}
@@ -124,7 +125,7 @@ const Library = ({
                 {Object.keys(env.global.names)
                     .sort()
                     .map((name) => {
-                        const idRaw = idName(env.global.names[name]);
+                        const idRaw = idName(env.global.names[name][0]);
                         return (
                             <div
                                 css={styles.item}

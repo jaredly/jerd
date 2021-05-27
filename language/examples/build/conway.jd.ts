@@ -191,7 +191,7 @@ export const hash_821c67e8: (arg_0: t_43802a16, arg_1: t_43802a16, arg_2: t_4380
 
 /**
 ```
-const dot2#369652bb: (Vec2#43802a16, Vec2#43802a16) ={}> float = (
+const dot#369652bb: (Vec2#43802a16, Vec2#43802a16) ={}> float = (
     a#:0: Vec2#43802a16,
     b#:1: Vec2#43802a16,
 ) ={}> {
@@ -233,12 +233,12 @@ export const hash_afc24bbe: t_5ac12902<t_43802a16, number, t_43802a16> = ({
 
 /**
 ```
-const length2#2e6a5f32: (Vec2#43802a16) ={}> float = (v#:0: Vec2#43802a16) ={}> {
-    sqrt(((v#:0.x#43802a16#0 * v#:0.x#43802a16#0) + (v#:0.y#43802a16#1 * v#:0.y#43802a16#1)));
-}
+const length#c2805852: (Vec2#43802a16) ={}> float = (v#:0: Vec2#43802a16) ={}> sqrt(
+    ((v#:0.x#43802a16#0 * v#:0.x#43802a16#0) + (v#:0.y#43802a16#1 * v#:0.y#43802a16#1)),
+)
 ```
 */
-export const hash_2e6a5f32: (arg_0: t_43802a16) => number = (v: t_43802a16) => sqrt(v.x * v.x + v.y * v.y);
+export const hash_c2805852: (arg_0: t_43802a16) => number = (v: t_43802a16) => sqrt(v.x * v.x + v.y * v.y);
 
 /**
 ```
@@ -375,7 +375,7 @@ export const hash_59488bde: t_3b941378 = ({
 ```
 const random#347089ef: (Vec2#43802a16) ={}> float = (st#:0: Vec2#43802a16) ={}> {
     fract#495c4d22(
-        (sin(dot2#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) * 43758.5453123),
+        (sin(dot#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) * 43758.5453123),
     );
 }
 ```
@@ -388,13 +388,13 @@ export const hash_347089ef: (arg_0: t_43802a16) => number = (st: t_43802a16) => 
 
 /**
 ```
-const drawToScreen#099ef762: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
+const drawToScreen#5349442c: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> Vec4#3b941378 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
     buffer0#:2: sampler2D,
 ) ={}> {
     const diff#:3 = AddSubVec2#70bb2056."-"#b99b22d8#1(env#:0.mouse#451d5252#3, fragCoord#:1);
-    if (length2#2e6a5f32(diff#:3) < 250.0) {
+    if (length#c2805852(diff#:3) < 250.0) {
         const newCoord#:4 = AddSubVec2#70bb2056."-"#b99b22d8#1(
             env#:0.mouse#451d5252#3,
             ScaleVec2Rev#afc24bbe."/"#5ac12902#0(diff#:3, 4.0),
@@ -412,10 +412,10 @@ const drawToScreen#099ef762: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> V
 }
 ```
 */
-export const hash_099ef762: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sampler2D) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16, buffer0: sampler2D) => {
+export const hash_5349442c: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sampler2D) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16, buffer0: sampler2D) => {
   let diff: t_43802a16 = hash_70bb2056.hb99b22d8_1(env.mouse, fragCoord);
 
-  if (hash_2e6a5f32(diff) < 250) {
+  if (hash_c2805852(diff) < 250) {
     return texture(buffer0, hash_090f77e7.h5ac12902_0(hash_70bb2056.hb99b22d8_1(env.mouse, hash_afc24bbe.h5ac12902_0(diff, 4)), env.resolution));
   } else {
     return texture(buffer0, hash_090f77e7.h5ac12902_0(fragCoord, env.resolution));
@@ -479,4 +479,4 @@ export const hash_5af2137f: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sample
   }
 };
 export const drawToBuffer = hash_5af2137f;
-export const drawToScreen = hash_099ef762;
+export const drawToScreen = hash_5349442c;

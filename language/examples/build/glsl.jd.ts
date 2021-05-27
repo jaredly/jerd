@@ -255,14 +255,12 @@ export const hash_1c6fdd91: t_b99b22d8<t_9f1c0644, t_9f1c0644, t_9f1c0644> = ({
 
 /**
 ```
-const length#1cc335a2: (Vec3#9f1c0644) ={}> float = (v#:0: Vec3#9f1c0644) ={}> {
-    sqrt(
-        (((v#:0.x#43802a16#0 * v#:0.x#43802a16#0) + (v#:0.y#43802a16#1 * v#:0.y#43802a16#1)) + (v#:0.z#9f1c0644#0 * v#:0.z#9f1c0644#0)),
-    );
-}
+const length#63e16b7a: (Vec3#9f1c0644) ={}> float = (v#:0: Vec3#9f1c0644) ={}> sqrt(
+    (((v#:0.x#43802a16#0 * v#:0.x#43802a16#0) + (v#:0.y#43802a16#1 * v#:0.y#43802a16#1)) + (v#:0.z#9f1c0644#0 * v#:0.z#9f1c0644#0)),
+)
 ```
 */
-export const hash_1cc335a2: (arg_0: t_9f1c0644) => number = (v: t_9f1c0644) => sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+export const hash_63e16b7a: (arg_0: t_9f1c0644) => number = (v: t_9f1c0644) => sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 
 /**
 ```
@@ -310,7 +308,7 @@ export const hash_ec7f8d1c: number = 0.00005;
 
 /**
 ```
-const sceneSDF#737360a9: (float, Vec3#9f1c0644) ={}> float = (
+const sceneSDF#7c9699f4: (float, Vec3#9f1c0644) ={}> float = (
     iTime#:0: float,
     samplePoint#:1: Vec3#9f1c0644,
 ) ={}> {
@@ -329,13 +327,13 @@ const sceneSDF#737360a9: (float, Vec3#9f1c0644) ={}> float = (
         0.1,
         Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0},
     );
-    sminCubic#e7c85424((length#1cc335a2(p1#:4) - 0.5), (length#1cc335a2(p2#:5) - 0.03), 0.1);
+    sminCubic#e7c85424((length#63e16b7a(p1#:4) - 0.5), (length#63e16b7a(p2#:5) - 0.03), 0.1);
 }
 ```
 */
-export const hash_737360a9: (arg_0: number, arg_1: t_9f1c0644) => number = (iTime: number, samplePoint: t_9f1c0644) => {
+export const hash_7c9699f4: (arg_0: number, arg_1: t_9f1c0644) => number = (iTime: number, samplePoint: t_9f1c0644) => {
   let double: number = iTime * 2;
-  return hash_e7c85424(hash_1cc335a2(samplePoint) - 0.5, hash_1cc335a2(hash_47cca838(hash_1c6fdd91.hb99b22d8_1(samplePoint, ({
+  return hash_e7c85424(hash_63e16b7a(samplePoint) - 0.5, hash_63e16b7a(hash_47cca838(hash_1c6fdd91.hb99b22d8_1(samplePoint, ({
     type: "Vec3",
     x: -sin(double) / 2,
     y: sin(iTime / 4) / 2,
@@ -350,13 +348,13 @@ export const hash_737360a9: (arg_0: number, arg_1: t_9f1c0644) => number = (iTim
 
 /**
 ```
-const normalize#ce463a80: (Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (v#:0: Vec3#9f1c0644) ={}> ScaleVec3Rev#68f73ad4."/"#5ac12902#0(
+const normalize#48e6ea27: (Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (v#:0: Vec3#9f1c0644) ={}> ScaleVec3Rev#68f73ad4."/"#5ac12902#0(
     v#:0,
-    length#1cc335a2(v#:0),
+    length#63e16b7a(v#:0),
 )
 ```
 */
-export const hash_ce463a80: (arg_0: t_9f1c0644) => t_9f1c0644 = (v: t_9f1c0644) => hash_68f73ad4.h5ac12902_0(v, hash_1cc335a2(v));
+export const hash_48e6ea27: (arg_0: t_9f1c0644) => t_9f1c0644 = (v: t_9f1c0644) => hash_68f73ad4.h5ac12902_0(v, hash_63e16b7a(v));
 
 /**
 ```
@@ -372,29 +370,29 @@ export const hash_255c39c3: (arg_0: t_9f1c0644, arg_1: t_9f1c0644) => number = (
 
 /**
 ```
-const estimateNormal#fcd3504c: (float, Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (
+const estimateNormal#98009198: (float, Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (
     iTime#:0: float,
     p#:1: Vec3#9f1c0644,
-) ={}> normalize#ce463a80(
+) ={}> normalize#48e6ea27(
     Vec3#9f1c0644{
-        x#43802a16#0: (sceneSDF#737360a9(
+        x#43802a16#0: (sceneSDF#7c9699f4(
             iTime#:0,
             Vec3#9f1c0644{...p#:1, x#43802a16#0: (p#:1.x#43802a16#0 + EPSILON#ec7f8d1c)},
-        ) - sceneSDF#737360a9(
+        ) - sceneSDF#7c9699f4(
             iTime#:0,
             Vec3#9f1c0644{...p#:1, x#43802a16#0: (p#:1.x#43802a16#0 - EPSILON#ec7f8d1c)},
         )),
-        y#43802a16#1: (sceneSDF#737360a9(
+        y#43802a16#1: (sceneSDF#7c9699f4(
             iTime#:0,
             Vec3#9f1c0644{...p#:1, y#43802a16#1: (p#:1.y#43802a16#1 + EPSILON#ec7f8d1c)},
-        ) - sceneSDF#737360a9(
+        ) - sceneSDF#7c9699f4(
             iTime#:0,
             Vec3#9f1c0644{...p#:1, y#43802a16#1: (p#:1.y#43802a16#1 - EPSILON#ec7f8d1c)},
         )),
-        z#9f1c0644#0: (sceneSDF#737360a9(
+        z#9f1c0644#0: (sceneSDF#7c9699f4(
             iTime#:0,
             Vec3#9f1c0644{...p#:1, z#9f1c0644#0: (p#:1.z#9f1c0644#0 + EPSILON#ec7f8d1c)},
-        ) - sceneSDF#737360a9(
+        ) - sceneSDF#7c9699f4(
             iTime#:0,
             Vec3#9f1c0644{...p#:1, z#9f1c0644#0: (p#:1.z#9f1c0644#0 - EPSILON#ec7f8d1c)},
         )),
@@ -402,26 +400,26 @@ const estimateNormal#fcd3504c: (float, Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (
 )
 ```
 */
-export const hash_fcd3504c: (arg_0: number, arg_1: t_9f1c0644) => t_9f1c0644 = (iTime: number, p$1: t_9f1c0644) => hash_ce463a80(({
+export const hash_98009198: (arg_0: number, arg_1: t_9f1c0644) => t_9f1c0644 = (iTime: number, p$1: t_9f1c0644) => hash_48e6ea27(({
   type: "Vec3",
-  x: hash_737360a9(iTime, ({ ...p$1,
+  x: hash_7c9699f4(iTime, ({ ...p$1,
     type: "Vec3",
     x: p$1.x + hash_ec7f8d1c
-  } as t_9f1c0644)) - hash_737360a9(iTime, ({ ...p$1,
+  } as t_9f1c0644)) - hash_7c9699f4(iTime, ({ ...p$1,
     type: "Vec3",
     x: p$1.x - hash_ec7f8d1c
   } as t_9f1c0644)),
-  y: hash_737360a9(iTime, ({ ...p$1,
+  y: hash_7c9699f4(iTime, ({ ...p$1,
     type: "Vec3",
     y: p$1.y + hash_ec7f8d1c
-  } as t_9f1c0644)) - hash_737360a9(iTime, ({ ...p$1,
+  } as t_9f1c0644)) - hash_7c9699f4(iTime, ({ ...p$1,
     type: "Vec3",
     y: p$1.y - hash_ec7f8d1c
   } as t_9f1c0644)),
-  z: hash_737360a9(iTime, ({ ...p$1,
+  z: hash_7c9699f4(iTime, ({ ...p$1,
     type: "Vec3",
     z: p$1.z + hash_ec7f8d1c
-  } as t_9f1c0644)) - hash_737360a9(iTime, ({ ...p$1,
+  } as t_9f1c0644)) - hash_7c9699f4(iTime, ({ ...p$1,
     type: "Vec3",
     z: p$1.z - hash_ec7f8d1c
   } as t_9f1c0644))
@@ -545,19 +543,19 @@ export const hash_1d31aa6e: t_1de4e4c0<t_9f1c0644, number, t_9f1c0644> = ({
 
 /**
 ```
-const isPointingTowardLight#bbae554c: (float, Vec3#9f1c0644, Vec3#9f1c0644) ={}> bool = (
+const isPointingTowardLight#67c20be0: (float, Vec3#9f1c0644, Vec3#9f1c0644) ={}> bool = (
     iTime#:0: float,
     p#:1: Vec3#9f1c0644,
     lightPos#:2: Vec3#9f1c0644,
 ) ={}> {
-    const N#:3 = estimateNormal#fcd3504c(iTime#:0, p#:1);
-    const L#:4 = normalize#ce463a80(AddSubVec3#1c6fdd91."-"#b99b22d8#1(lightPos#:2, p#:1));
+    const N#:3 = estimateNormal#98009198(iTime#:0, p#:1);
+    const L#:4 = normalize#48e6ea27(AddSubVec3#1c6fdd91."-"#b99b22d8#1(lightPos#:2, p#:1));
     const dotLN#:5 = dot#255c39c3(L#:4, N#:3);
     (dotLN#:5 >= 0.0);
 }
 ```
 */
-export const hash_bbae554c: (arg_0: number, arg_1: t_9f1c0644, arg_2: t_9f1c0644) => boolean = (iTime: number, p$1: t_9f1c0644, lightPos: t_9f1c0644) => hash_255c39c3(hash_ce463a80(hash_1c6fdd91.hb99b22d8_1(lightPos, p$1)), hash_fcd3504c(iTime, p$1)) >= 0;
+export const hash_67c20be0: (arg_0: number, arg_1: t_9f1c0644, arg_2: t_9f1c0644) => boolean = (iTime: number, p$1: t_9f1c0644, lightPos: t_9f1c0644) => hash_255c39c3(hash_48e6ea27(hash_1c6fdd91.hb99b22d8_1(lightPos, p$1)), hash_98009198(iTime, p$1)) >= 0;
 
 /**
 ```
@@ -575,7 +573,7 @@ export const hash_f2cd39b8: number = 0;
 
 /**
 ```
-const shortestDistanceToSurface#7b1e309a: (float, Vec3#9f1c0644, Vec3#9f1c0644, float, float, int) ={}> float = (
+const shortestDistanceToSurface#83757b4c: (float, Vec3#9f1c0644, Vec3#9f1c0644, float, float, int) ={}> float = (
     iTime#:0: float,
     eye#:1: Vec3#9f1c0644,
     marchingDirection#:2: Vec3#9f1c0644,
@@ -586,7 +584,7 @@ const shortestDistanceToSurface#7b1e309a: (float, Vec3#9f1c0644, Vec3#9f1c0644, 
     if (stepsLeft#:5 <= 0) {
         end#:4;
     } else {
-        const dist#:6 = sceneSDF#737360a9(
+        const dist#:6 = sceneSDF#7c9699f4(
             iTime#:0,
             AddSubVec3#1c6fdd91."+"#b99b22d8#0(
                 eye#:1,
@@ -600,7 +598,7 @@ const shortestDistanceToSurface#7b1e309a: (float, Vec3#9f1c0644, Vec3#9f1c0644, 
             if (depth#:7 >= end#:4) {
                 end#:4;
             } else {
-                7b1e309a(
+                83757b4c(
                     iTime#:0,
                     eye#:1,
                     marchingDirection#:2,
@@ -614,12 +612,12 @@ const shortestDistanceToSurface#7b1e309a: (float, Vec3#9f1c0644, Vec3#9f1c0644, 
 }
 ```
 */
-export const hash_7b1e309a: (arg_0: number, arg_1: t_9f1c0644, arg_2: t_9f1c0644, arg_3: number, arg_4: number, arg_5: number) => number = (iTime: number, eye: t_9f1c0644, marchingDirection: t_9f1c0644, start: number, end: number, stepsLeft: number) => {
+export const hash_83757b4c: (arg_0: number, arg_1: t_9f1c0644, arg_2: t_9f1c0644, arg_3: number, arg_4: number, arg_5: number) => number = (iTime: number, eye: t_9f1c0644, marchingDirection: t_9f1c0644, start: number, end: number, stepsLeft: number) => {
   while (true) {
     if (stepsLeft <= 0) {
       return end;
     } else {
-      let dist: number = hash_737360a9(iTime, hash_1c6fdd91.hb99b22d8_0(eye, hash_c4a91006.h1de4e4c0_0(start, marchingDirection)));
+      let dist: number = hash_7c9699f4(iTime, hash_1c6fdd91.hb99b22d8_0(eye, hash_c4a91006.h1de4e4c0_0(start, marchingDirection)));
 
       if (dist < hash_ec7f8d1c) {
         return start;
@@ -644,7 +642,7 @@ export const hash_7b1e309a: (arg_0: number, arg_1: t_9f1c0644, arg_2: t_9f1c0644
 
 /**
 ```
-const rayDirection#fb220c84: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec3#9f1c0644 = (
+const rayDirection#6258178a: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec3#9f1c0644 = (
     fieldOfView#:0: float,
     size#:1: Vec2#43802a16,
     fragCoord#:2: Vec2#43802a16,
@@ -654,11 +652,11 @@ const rayDirection#fb220c84: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec3#9f1
         ScaleVec2Rev#afc24bbe."/"#5ac12902#0(size#:1, 2.0),
     );
     const z#:4 = (size#:1.y#43802a16#1 / tan((radians#dabe7f9c(fieldOfView#:0) / 2.0)));
-    normalize#ce463a80(vec3#5808ec54(xy#:3, -z#:4));
+    normalize#48e6ea27(vec3#5808ec54(xy#:3, -z#:4));
 }
 ```
 */
-export const hash_fb220c84: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16) => t_9f1c0644 = (fieldOfView: number, size: t_43802a16, fragCoord: t_43802a16) => hash_ce463a80(hash_5808ec54(hash_70bb2056.hb99b22d8_1(fragCoord, hash_afc24bbe.h5ac12902_0(size, 2)), -(size.y / tan(hash_dabe7f9c(fieldOfView) / 2))));
+export const hash_6258178a: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16) => t_9f1c0644 = (fieldOfView: number, size: t_43802a16, fragCoord: t_43802a16) => hash_48e6ea27(hash_5808ec54(hash_70bb2056.hb99b22d8_1(fragCoord, hash_afc24bbe.h5ac12902_0(size, 2)), -(size.y / tan(hash_dabe7f9c(fieldOfView) / 2))));
 
 /**
 ```
@@ -669,7 +667,7 @@ export const hash_62404440: number = 255;
 
 /**
 ```
-const dot2#369652bb: (Vec2#43802a16, Vec2#43802a16) ={}> float = (
+const dot#369652bb: (Vec2#43802a16, Vec2#43802a16) ={}> float = (
     a#:0: Vec2#43802a16,
     b#:1: Vec2#43802a16,
 ) ={}> {
@@ -715,14 +713,14 @@ export const hash_56d43c0e: t_5ac12902<t_3b941378, number, t_3b941378> = ({
 
 /**
 ```
-const fishingBoueys#3cabd8b2: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec4#3b941378 = (
+const fishingBoueys#1d3efec2: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec4#3b941378 = (
     iTime#:0: float,
     fragCoord#:1: Vec2#43802a16,
     iResolution#:2: Vec2#43802a16,
 ) ={}> {
-    const dir#:3 = rayDirection#fb220c84(45.0, iResolution#:2, fragCoord#:1);
+    const dir#:3 = rayDirection#6258178a(45.0, iResolution#:2, fragCoord#:1);
     const eye#:4 = Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.0, z#9f1c0644#0: 5.0};
-    const dist#:5 = shortestDistanceToSurface#7b1e309a(
+    const dist#:5 = shortestDistanceToSurface#83757b4c(
         iTime#:0,
         eye#:4,
         dir#:3,
@@ -748,11 +746,11 @@ const fishingBoueys#3cabd8b2: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec4#3b
             z#9f1c0644#0: 5.0,
         };
         const toLight#:13 = AddSubVec3#1c6fdd91."-"#b99b22d8#1(light1Pos#:12, worldPosForPixel#:7);
-        if isPointingTowardLight#bbae554c(iTime#:0, worldPosForPixel#:7, light1Pos#:12) {
-            const marchToLight#:14 = shortestDistanceToSurface#7b1e309a(
+        if isPointingTowardLight#67c20be0(iTime#:0, worldPosForPixel#:7, light1Pos#:12) {
+            const marchToLight#:14 = shortestDistanceToSurface#83757b4c(
                 iTime#:0,
                 light1Pos#:12,
-                ScaleVec3#c4a91006."*"#1de4e4c0#0(-1.0, normalize#ce463a80(toLight#:13)),
+                ScaleVec3#c4a91006."*"#1de4e4c0#0(-1.0, normalize#48e6ea27(toLight#:13)),
                 MIN_DIST#f2cd39b8,
                 MAX_DIST#0ce717e6,
                 MAX_MARCHING_STEPS#62404440,
@@ -763,7 +761,7 @@ const fishingBoueys#3cabd8b2: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec4#3b
                     w#3b941378#0: 1.0,
                 };
             } else {
-                const offset#:15 = (marchToLight#:14 - length#1cc335a2(toLight#:13));
+                const offset#:15 = (marchToLight#:14 - length#63e16b7a(toLight#:13));
                 const penumbra#:16 = 0.1;
                 if (offset#:15 < (-EPSILON#ec7f8d1c * 1000.0)) {
                     Vec4#3b941378{
@@ -784,15 +782,15 @@ const fishingBoueys#3cabd8b2: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec4#3b
 }
 ```
 */
-export const hash_3cabd8b2: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16) => t_3b941378 = (iTime: number, fragCoord$1: t_43802a16, iResolution: t_43802a16) => {
-  let dir: t_9f1c0644 = hash_fb220c84(45, iResolution, fragCoord$1);
+export const hash_1d3efec2: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16) => t_3b941378 = (iTime: number, fragCoord$1: t_43802a16, iResolution: t_43802a16) => {
+  let dir: t_9f1c0644 = hash_6258178a(45, iResolution, fragCoord$1);
   let eye$4: t_9f1c0644 = ({
     type: "Vec3",
     x: 0,
     y: 0,
     z: 5
   } as t_9f1c0644);
-  let dist$5: number = hash_7b1e309a(iTime, eye$4, dir, hash_f2cd39b8, hash_0ce717e6, hash_62404440);
+  let dist$5: number = hash_83757b4c(iTime, eye$4, dir, hash_f2cd39b8, hash_0ce717e6, hash_62404440);
   let light: number = 0.2;
 
   if (dist$5 > hash_0ce717e6 - hash_ec7f8d1c) {
@@ -813,8 +811,8 @@ export const hash_3cabd8b2: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16
     } as t_9f1c0644);
     let toLight: t_9f1c0644 = hash_1c6fdd91.hb99b22d8_1(light1Pos, worldPosForPixel);
 
-    if (hash_bbae554c(iTime, worldPosForPixel, light1Pos)) {
-      let marchToLight: number = hash_7b1e309a(iTime, light1Pos, hash_c4a91006.h1de4e4c0_0(-1, hash_ce463a80(toLight)), hash_f2cd39b8, hash_0ce717e6, hash_62404440);
+    if (hash_67c20be0(iTime, worldPosForPixel, light1Pos)) {
+      let marchToLight: number = hash_83757b4c(iTime, light1Pos, hash_c4a91006.h1de4e4c0_0(-1, hash_48e6ea27(toLight)), hash_f2cd39b8, hash_0ce717e6, hash_62404440);
 
       if (marchToLight > hash_0ce717e6 - hash_ec7f8d1c * 10) {
         return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, light),
@@ -822,7 +820,7 @@ export const hash_3cabd8b2: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16
           w: 1
         } as t_3b941378);
       } else {
-        if (marchToLight - hash_1cc335a2(toLight) < -hash_ec7f8d1c * 1000) {
+        if (marchToLight - hash_63e16b7a(toLight) < -hash_ec7f8d1c * 1000) {
           return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, light),
             type: "Vec4",
             w: 1
@@ -926,7 +924,7 @@ export const hash_090f77e7: t_5ac12902<t_43802a16, t_43802a16, t_43802a16> = ({
 ```
 const random#347089ef: (Vec2#43802a16) ={}> float = (st#:0: Vec2#43802a16) ={}> {
     fract#495c4d22(
-        (sin(dot2#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) * 43758.5453123),
+        (sin(dot#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) * 43758.5453123),
     );
 }
 ```
@@ -939,7 +937,7 @@ export const hash_347089ef: (arg_0: t_43802a16) => number = (st: t_43802a16) => 
 
 /**
 ```
-const roundv2#b9171b62: (Vec2#43802a16) ={}> Vec2#43802a16 = (v#:0: Vec2#43802a16) ={}> Vec2#43802a16{
+const roundv#b9171b62: (Vec2#43802a16) ={}> Vec2#43802a16 = (v#:0: Vec2#43802a16) ={}> Vec2#43802a16{
     x#43802a16#0: round(v#:0.x#43802a16#0),
     y#43802a16#1: round(v#:0.y#43802a16#1),
 }
@@ -976,13 +974,13 @@ export const hash_28569bc0: t_1de4e4c0<t_43802a16, number, t_43802a16> = ({
 
 /**
 ```
-const randFolks#32a9474b: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
+const randFolks#3cc4f29c: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
 ) ={}> {
     const scale#:2 = 14.0;
     const small#:3 = Vec2float#28569bc0."*"#1de4e4c0#0(
-        roundv2#b9171b62(ScaleVec2Rev#afc24bbe."/"#5ac12902#0(fragCoord#:1, scale#:2)),
+        roundv#b9171b62(ScaleVec2Rev#afc24bbe."/"#5ac12902#0(fragCoord#:1, scale#:2)),
         scale#:2,
     );
     const small#:4 = Vec2#43802a16{
@@ -994,13 +992,13 @@ const randFolks#32a9474b: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 =
     ) / 10.0) + 0.9);
     const two#:6 = AddSubVec4#0555d260."+"#b99b22d8#0(
         Vec4#3b941378{...ScaleVec3_#1d31aa6e."*"#1de4e4c0#0(red#7d188c3c, v#:5), w#3b941378#0: 1.0},
-        fishingBoueys#3cabd8b2(env#:0.time#451d5252#0, fragCoord#:1, env#:0.resolution#451d5252#1),
+        fishingBoueys#1d3efec2(env#:0.time#451d5252#0, fragCoord#:1, env#:0.resolution#451d5252#1),
     );
     Scale4#56d43c0e."/"#5ac12902#0(two#:6, 2.0);
 }
 ```
 */
-export const hash_32a9474b: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (env: t_451d5252, fragCoord$1: t_43802a16) => {
+export const hash_3cc4f29c: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (env: t_451d5252, fragCoord$1: t_43802a16) => {
   let small: t_43802a16 = hash_28569bc0.h1de4e4c0_0(hash_b9171b62(hash_afc24bbe.h5ac12902_0(fragCoord$1, 14)), 14);
   return hash_56d43c0e.h5ac12902_0(hash_0555d260.hb99b22d8_0(({ ...hash_1d31aa6e.h1de4e4c0_0(hash_7d188c3c, hash_347089ef(hash_090f77e7.h5ac12902_0(({
       type: "Vec2",
@@ -1009,6 +1007,6 @@ export const hash_32a9474b: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378
     } as t_43802a16), env.resolution)) / 10 + 0.9),
     type: "Vec4",
     w: 1
-  } as t_3b941378), hash_3cabd8b2(env.time, fragCoord$1, env.resolution)), 2);
+  } as t_3b941378), hash_1d3efec2(env.time, fragCoord$1, env.resolution)), 2);
 };
-export const randFolks = hash_32a9474b;
+export const randFolks = hash_3cc4f29c;

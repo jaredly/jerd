@@ -173,73 +173,6 @@ One way is: replace the hash (e.g. )
 const glslBuiltins: { [key: string]: Expr } = {
     '6f186ad1': record('As', [builtinVal('float', pureFunction([int], float))]),
     '184a69ed': record('As', [builtinVal('int', pureFunction([float], int))]),
-    '4478b64a': builtinVal('cross', pureFunction([Vec3, Vec3], Vec3)),
-
-    '090f77e7': record('5ac12902', [
-        builtinVal('/', pureFunction([Vec2, Vec2], Vec2)),
-    ]),
-    '68f73ad4': record('5ac12902', [
-        builtinVal('/', pureFunction([Vec3, float], Vec3)),
-    ]),
-    c4a91006: record('1de4e4c0', [
-        builtinVal('*', pureFunction([float, Vec3], Vec3)),
-    ]),
-    afc24bbe: record('5ac12902', [
-        builtinVal('/', pureFunction([Vec2, float], Vec2)),
-    ]),
-    '0555d260': record('b99b22d8', [
-        builtinVal('+', pureFunction([Vec4, Vec4], Vec4)),
-        builtinVal('-', pureFunction([Vec4, Vec4], Vec4)),
-    ]),
-    '3b80b971': record('b99b22d8', [
-        builtinVal('+', pureFunction([Vec3, float], Vec3)),
-        builtinVal('-', pureFunction([Vec3, float], Vec3)),
-    ]),
-    '6d631644': record('b99b22d8', [
-        builtinVal('+', pureFunction([Vec2, float], Vec2)),
-        builtinVal('-', pureFunction([Vec2, float], Vec2)),
-    ]),
-    '56d43c0e': record('5ac12902', [
-        builtinVal('/', pureFunction([Vec4, float], Vec4)),
-    ]),
-    '5776a60e': record('5ac12902', [
-        builtinVal('/', pureFunction([Vec4, Vec4], Vec4)),
-    ]),
-    '28569bc0': record('1de4e4c0', [
-        builtinVal('*', pureFunction([Vec2, float], Vec2)),
-    ]),
-    '1b694fee': record('1de4e4c0', [
-        builtinVal('*', pureFunction([Vec4, Vec4], Vec4)),
-    ]),
-    '16557d10': record('1de4e4c0', [
-        builtinVal('*', pureFunction([Mat4, Vec4], Vec4)),
-    ]),
-    '1c6fdd91': record('b99b22d8', [
-        builtinVal('+', pureFunction([Vec3, Vec3], Vec3)),
-        builtinVal('-', pureFunction([Vec3, Vec3], Vec3)),
-    ]),
-    '70bb2056': record('b99b22d8', [
-        builtinVal('+', pureFunction([Vec2, Vec2], Vec2)),
-        builtinVal('-', pureFunction([Vec2, Vec2], Vec2)),
-    ]),
-    '73d73040': record('1de4e4c0', [
-        builtinVal('*', pureFunction([Vec3, Vec3], Vec3)),
-    ]),
-    '1d31aa6e': record('1de4e4c0', [
-        builtinVal('*', pureFunction([Vec3, float], Vec3)),
-    ]),
-    '255c39c3': builtinVal('dot', pureFunction([Vec3, Vec3], float)),
-    ce463a80: builtinVal('normalize', pureFunction([Vec3], Vec3)),
-    '1cc335a2': builtinVal('length', pureFunction([Vec3], Vec3)),
-    '5483fdc2': builtinVal('clamp', pureFunction([Vec3, Vec3, Vec3], Vec3)),
-    f2f2e188: builtinVal('clamp', pureFunction([float, float, float], float)),
-    '65acfcda': builtinVal('round', pureFunction([Vec3], Vec3)),
-    '9275f914': record('553b4b8e', [
-        builtinVal('==', pureFunction([int, int], bool)),
-    ]),
-    c41f7386: record('553b4b8e', [
-        builtinVal('==', pureFunction([float, float], bool)),
-    ]),
 };
 
 // Ok plan is:
@@ -547,6 +480,12 @@ const asBinop = (op: string) => (op === 'mod' || op === 'modInt' ? '%' : op);
 
 export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {
+        if (apply.args.length === 1) {
+            return items([
+                atom(apply.target.name),
+                termToGlsl(env, opts, apply.args[0]),
+            ]);
+        }
         if (apply.args.length !== 2) {
             throw new LocatedError(
                 apply.loc,
@@ -656,12 +595,43 @@ export const addComment = (value: PP, comment: string) =>
 //     );
 // });
 
+const maybeAddRecordInlines = (irTerms: Exprs, id: Id, irTerm: ir.Expr) => {
+    if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
+        if (builtinTypes[idName(irTerm.base.ref.id)]) {
+            return irTerm;
+        }
+        const base = irTerm.base;
+        const rows: Array<Expr | null> = irTerm.base.rows.map((item, i) => {
+            if (!item) {
+                return item;
+            }
+            if (isConstant(item) && item.type !== 'builtin') {
+                return item;
+            }
+            const name = toplevelRecordAttribute(id, base.ref, i);
+            irTerms[name] = {
+                expr: item,
+                inline: item.type !== 'lambda',
+            };
+
+            return {
+                type: 'genTerm',
+                loc: item.loc,
+                is: item.is,
+                id: name,
+            };
+        });
+        return { ...irTerm, base: { ...irTerm.base, rows } };
+    }
+    return irTerm;
+};
+
 export const assembleItemsForFile = (
     env: Env,
     required: Array<Term>,
     requiredIds: Array<string>,
-    // opts: OutputOptions,
     irOpts: IOutputOptions,
+    builtins: { [key: string]: ir.Expr },
 ) => {
     const orderedTerms = expressionDeps(env, required);
 
@@ -679,44 +649,11 @@ export const assembleItemsForFile = (
         let term = env.global.terms[idRaw];
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
 
-        const maybeAddRecordInlines = (irTerm: ir.Expr) => {
-            if (irTerm.type === 'record' && irTerm.base.type === 'Concrete') {
-                if (builtinTypes[idName(irTerm.base.ref.id)]) {
-                    return irTerm;
-                }
-                const base = irTerm.base;
-                const rows: Array<Expr | null> = irTerm.base.rows.map(
-                    (item, i) => {
-                        if (!item) {
-                            return item;
-                        }
-                        if (isConstant(item) && item.type !== 'builtin') {
-                            return item;
-                        }
-                        const name = toplevelRecordAttribute(id, base.ref, i);
-                        irTerms[name] = {
-                            expr: item,
-                            inline: item.type !== 'lambda',
-                        };
+        // // Don't output anything that I'm overriding with builtins
+        if (builtins[idRaw]) {
+            let irTerm = builtins[idRaw];
 
-                        return {
-                            type: 'genTerm',
-                            loc: item.loc,
-                            is: item.is,
-                            id: name,
-                        };
-                    },
-                );
-                return { ...irTerm, base: { ...irTerm.base, rows } };
-            }
-            return irTerm;
-        };
-
-        // Don't output anything that I'm overriding with builtins
-        if (glslBuiltins[idRaw]) {
-            let irTerm = glslBuiltins[idRaw];
-
-            irTerm = maybeAddRecordInlines(irTerm);
+            irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 
             irTerms[idRaw] = { expr: irTerm, inline: true };
             return;
@@ -740,7 +677,7 @@ export const assembleItemsForFile = (
         irTerm = optimizeDefine(senv, irTerm, id);
         uniquesReallyAreUnique(irTerm);
 
-        irTerm = maybeAddRecordInlines(irTerm);
+        irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 
         const shouldInline = ![
             'bool',
@@ -914,19 +851,57 @@ export const fileToGlsl = (
         ),
     ]);
 
+    const builtins = { ...glslBuiltins };
+    Object.keys(env.global.metaData).forEach((idRaw) => {
+        const tags = env.global.metaData[idRaw].tags;
+        if (tags.includes('glsl_builtin')) {
+            const term = env.global.terms[idRaw];
+            if (term.is.type === 'lambda') {
+                const name = env.global.idNames[idRaw];
+                builtins[idRaw] = builtin(
+                    name,
+                    term.location,
+                    typeFromTermType(env, {}, term.is),
+                );
+            } else if (
+                term.type === 'Record' &&
+                term.base.type === 'Concrete'
+            ) {
+                // throw new Error('aa');
+                const refId = idName(term.base.ref.id);
+                const decl = env.global.types[refId] as RecordDef;
+                const names = env.global.recordGroups[refId];
+                builtins[idRaw] = record(
+                    refId,
+                    decl.items.map((type, i) =>
+                        builtin(
+                            names[i],
+                            term.location,
+                            typeFromTermType(env, {}, type),
+                        ),
+                    ),
+                );
+                // console.log(idRaw, )
+
+                // '0555d260': record('b99b22d8', [
+                //     builtinVal('+', pureFunction([Vec4, Vec4], Vec4)),
+                //     builtinVal('-', pureFunction([Vec4, Vec4], Vec4)),
+                // ]),
+            }
+        }
+    });
+
     const { inOrder, irTerms } = assembleItemsForFile(
         env,
         required,
         [idName(mainId)].concat(buffers),
         irOpts,
+        builtins,
     );
-
-    // const orderedTerms = expressionDeps(env, required);
 
     const allTypes = expressionTypeDeps(
         env,
         inOrder.map((t) => env.global.terms[t]).filter(Boolean),
-        // orderedTerms.map((t) => env.global.terms[t]),
     );
 
     allTypes.forEach((r) => {

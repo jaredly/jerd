@@ -32,9 +32,9 @@ const sceneSDF = (iTime: float, samplePoint: Vec3) => {
     // unionSDF(
     //     differenceSDF(
     //         circles,
-    //     vmax(vabs(cubePoint) - cubeSize)
+    //     max(abs(cubePoint) - cubeSize)
     // ),
-    //     vmax(vabs(cubePoint) - innerCubeSize)
+    //     max(abs(cubePoint) - innerCubeSize)
     // )
 
 }
@@ -74,7 +74,7 @@ ok lol so the simple fix is to say "all loops max out at 1000 lol"
 we'll try that first
 
 */
-const shortestDistanceToSurface:
+const rec shortestDistanceToSurface:
 (float, Vec3, Vec3, float, float, int) => float
     = (
         iTime: float,
@@ -161,7 +161,7 @@ const phongContribForLight = (
     const V = normalize(eye - p);
     // oooh now we'll have to deal with multiple names for things!
     // I do declare
-    const R = normalize(reflect(negVec3(L), N));
+    const R = normalize(reflect(-L, N));
 
     // Normal vs direction of the light
     const dotLN = dot(L, N);
@@ -327,7 +327,7 @@ const fishingBoueys = (iTime: float, fragCoord: Vec2, iResolution: Vec2) => {
 @main
 const randFolks = (env: GLSLEnv, fragCoord: Vec2) => {
     const scale = 14.0;
-    const small = roundv(fragCoord / scale) * scale;
+    const small = round(fragCoord / scale) * scale;
     const small = Vec2{x: small.x, y: small.y + env.time};
     // const v = random(small / iResolution) / 10.0 + 0.9;
     const v = random(small / env.resolution) / 10.0 + 0.9;

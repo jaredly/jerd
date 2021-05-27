@@ -12,9 +12,10 @@ import parse, {
     Toplevel,
 } from './parsing/parser';
 import typeExpr, { showLocation } from './typing/typeExpr';
-import { Env, newLocal } from './typing/types';
+import { Env, newLocal, Term } from './typing/types';
 import { printToString } from './printing/printer';
 import { toplevelToPretty, ToplevelT } from './printing/printTsLike';
+import { walkTerm } from './typing/transform';
 
 export const withParseError = (text: string, location: Location) => {
     const lines = text.split('\n');
@@ -26,6 +27,16 @@ export const withParseError = (text: string, location: Location) => {
         chalk.red(indent.join('-') + '^' + '--'),
     );
     return lines.join('\n');
+};
+
+export const findSelfReference = (term: Term) => {
+    let hasSelf = false;
+    walkTerm(term, (term) => {
+        if (term.type === 'self') {
+            hasSelf = true;
+        }
+    });
+    return hasSelf;
 };
 
 export const reprintToplevel = (
@@ -89,6 +100,9 @@ export const reprintToplevel = (
                 toplevel.def.unique,
                 tag ? tag.text : printed[0].wrapped.id.text,
             );
+            if (!defn) {
+                throw new Error(`No record defn`);
+            }
             nhash = hashObject(defn);
             retyped = {
                 ...toplevel,
@@ -101,6 +115,9 @@ export const reprintToplevel = (
             printed[0].type === 'EnumDef'
         ) {
             const defn = typeEnumInner(env, printed[0]);
+            if (!defn) {
+                throw new Error(`No enum defn`);
+            }
             nhash = hashObject(defn);
             retyped = {
                 ...toplevel,
@@ -109,6 +126,7 @@ export const reprintToplevel = (
                 id: { hash: nhash, size: 1, pos: 0 },
             };
         } else if (toplevel.type === 'Define' && printed[0].type === 'define') {
+            const hasSelf = findSelfReference(toplevel.term);
             retyped = {
                 ...toplevel,
                 type: 'Define',
@@ -118,7 +136,7 @@ export const reprintToplevel = (
                         ...env,
                         local: {
                             ...newLocal(),
-                            self: env.local.self,
+                            self: hasSelf ? env.local.self : null,
                         },
                     },
                     (printed[0] as Define).expr,

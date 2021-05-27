@@ -25,7 +25,7 @@ const tee = (x: string): string => {
 const print = (x: string) ={Write}> raise!(Write.write(x))
 const read = () ={Read}> raise!(Read.read())
 
-const alwaysRead: <T,>{e}(string, () ={Read, e}> T) ={e}> T = <T,>{e}(value: string, fn: () ={Read, e}> T): T ={e}> {
+const rec alwaysRead: <T,>{e}(string, () ={Read, e}> T) ={e}> T = <T,>{e}(value: string, fn: () ={Read, e}> T): T ={e}> {
     handle! fn {
         Read.read(() => k) => {
             // OOF ok this bit doesn't have the `directOrEffectful` set...
@@ -38,7 +38,7 @@ const alwaysRead: <T,>{e}(string, () ={Read, e}> T) ={e}> T = <T,>{e}(value: str
 }
 
 // This is so we can test the results
-const collect: {e}(() ={Write, e}> void) ={e}> string = {e}(fn: () ={Write, e}> void): string => {
+const rec collect: {e}(() ={Write, e}> void) ={e}> string = {e}(fn: () ={Write, e}> void): string => {
     handle! fn {
         Write.write((v) => k) => {
             v ++ "\n" ++ collect{e}(() ={Write, e}> k())
@@ -112,7 +112,7 @@ collect{}((): void => {
 }) == "What is your forename?\nWhat is your surname?\nMe Me\nend"
 
 // This is so we can test the results
-const reverse: (() ={Write}> void) ={Write}> void = (fn: () ={Write}> void): void ={Write}> {
+const rec reverse: (() ={Write}> void) ={Write}> void = (fn: () ={Write}> void): void ={Write}> {
     handle! fn {
         Write.write((v) => k) => {
             reverse(k);
@@ -141,7 +141,7 @@ const decide = () ={Decide}> raise!(Decide.decide())
 const choose: <T,>(T, T) ={Decide}> T = <T,>(x: T, y: T): T ={Decide}> {
     if decide() { x } else { y }
 }
-const pickTrue: <T,>(() ={Decide}> T) => T = <T,>(fn: () ={Decide}> T): T => handle! fn {
+const rec pickTrue: <T,>(() ={Decide}> T) => T = <T,>(fn: () ={Decide}> T): T => handle! fn {
     Decide.decide(() => k) => pickTrue<T>(() => k(true)),
     pure(x) => x
 }
@@ -153,7 +153,7 @@ const chooseDiff = () ={Decide}> {
 pickTrue<int>(chooseDiff) == 10
 
 // #2.3.1
-const pickMax: (() ={Decide}> int) => int = (fn: () ={Decide}> int): int => handle! fn {
+const rec pickMax: (() ={Decide}> int) => int = (fn: () ={Decide}> int): int => handle! fn {
     Decide.decide(() => k) => {
         const xt = pickMax(() => k(true));
         const xf = pickMax(() => k(false));
@@ -174,7 +174,7 @@ effect DecideOrFail {
 const fail = () ={DecideOrFail}> raise!(DecideOrFail.fail())
 const decide = () ={DecideOrFail}> raise!(DecideOrFail.decide())
 
-const chooseInt: (int, int) ={DecideOrFail}> int = (m: int, n: int): int ={DecideOrFail}> {
+const rec chooseInt: (int, int) ={DecideOrFail}> int = (m: int, n: int): int ={DecideOrFail}> {
     if m > n {
         fail();
         10
@@ -201,7 +201,7 @@ const pythagorean = (m: int, n: int) ={DecideOrFail}> {
     }
 }
 
-const backtrack: <T,>(() ={DecideOrFail}> T, () ={}> T) ={}> T = <T,>(
+const rec backtrack: <T,>(() ={DecideOrFail}> T, () ={}> T) ={}> T = <T,>(
     fn: () ={DecideOrFail}> T,
     orElse: () ={}> T,
 ): T ={}> {
@@ -216,7 +216,7 @@ const backtrack: <T,>(() ={DecideOrFail}> T, () ={}> T) ={}> T = <T,>(
     }
 }
 
-const backtrackReverse: <T,>(() ={DecideOrFail}> T, () ={}> T) ={}> T = <T,>(
+const rec backtrackReverse: <T,>(() ={DecideOrFail}> T, () ={}> T) ={}> T = <T,>(
     fn: () ={DecideOrFail}> T,
     orElse: () ={}> T,
 ): T ={}> {
@@ -254,7 +254,7 @@ effect Store {
     set: (int) => void,
 }
 
-const withInitialValue: <T,>(int, () ={Store}> T) => T = <T,>(value: int, fn: () ={Store}> T): T ={}> {
+const rec withInitialValue: <T,>(int, () ={Store}> T) => T = <T,>(value: int, fn: () ={Store}> T): T ={}> {
     handle! fn {
         Store.get(() => k) => withInitialValue<T>(value, () => k(value)),
         Store.set((newValue) => k) => withInitialValue<T>(newValue, k),
