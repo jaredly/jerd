@@ -67,9 +67,7 @@ export const renderAttributedTextToHTML = (
                     item.kind === 'sym'
                         ? colorMap[item.id] || '#9CDCFE'
                         : '#4EC9B0'
-                }" title="${item.id + ' ' + item.kind}">${escapeHTML(
-                    item.text,
-                )}${
+                }">${escapeHTML(item.text)}${
                     showHash
                         ? `<span style="color: #777; cursor: ew-resize" data-hash="${item.id}">#</span>`
                         : ''

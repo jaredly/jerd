@@ -53,7 +53,10 @@ const farther#dd523212: (string) ={Stdio#1da337a2, Log#35f4b478}> string = (name
 export const hash_dd523212:
 /*from cps lambda*/
 (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void = (name: string, handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_eccbfbca("yes please " + name, handlers, (handlers: Handlers) => raise(handlers, "1da337a2", 0, null, (handlers, value) => done(handlers, value)));
+  hash_eccbfbca("yes please " + name, handlers, (handlers: Handlers) => {
+    raise(handlers, "1da337a2", 0, null, (handlers, value) => done(handlers, value));
+    return lambdaBlockResult$3;
+  });
 };
 
 /**
@@ -62,7 +65,7 @@ const handleMulti#fadf30b0: (() ={MultiArg#6ddb76fe}> string) ={}> string = (
     f#:0: () ={MultiArg#6ddb76fe}> string,
 ) ={}> {
     handle! f#:0 {
-        MultiArg.putTwo#0((num#:2, text#:3) => k#:4) => fadf30b0(
+        MultiArg.putTwo#0((num#:2, text#:3) => k#:4) => fadf30b0#self(
             () ={MultiArg#6ddb76fe}> k#:4(((intToString(num#:2) ++ ":") ++ text#:3)),
         ),
         pure(v#:1) => (v#:1 ++ ":ok"),
@@ -102,7 +105,10 @@ const letBind#12c25e9b: () ={Stdio#1da337a2, Log#35f4b478}> void = () ={
 export const hash_12c25e9b:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done: (arg_0: Handlers) => void) => {
-  raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, x: string) => hash_eccbfbca(x + "Hello", handlers, (handlers: Handlers) => done(handlers)))(handlers, value));
+  raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, x: string) => {
+    hash_eccbfbca(x + "Hello", handlers, (handlers: Handlers) => done(handlers));
+    return lambdaBlockResult$3;
+  })(handlers, value));
 };
 
 /**
@@ -115,12 +121,12 @@ const respondWith#59070068: (string) ={}> <T#:0>{e#:0}(() ={Stdio#1da337a2, e#:0
     e#:0,
 }> {
     handle! fn#:1 {
-        Stdio.read#0(() => k#:3) => 59070068((responseValue#:0 ++ "."))<T#:0>{e#:0}(
+        Stdio.read#0(() => k#:3) => 59070068#self((responseValue#:0 ++ "."))<T#:0>{e#:0}(
             () ={Stdio#1da337a2, e#:0}> k#:3(responseValue#:0),
         ),
         Stdio.write#1((v#:4) => k#:5) => {
             log#eccbfbca(v#:4);
-            59070068((responseValue#:0 ++ "-"))<T#:0>{e#:0}(() ={Stdio#1da337a2, e#:0}> k#:5());
+            59070068#self((responseValue#:0 ++ "-"))<T#:0>{e#:0}(() ={Stdio#1da337a2, e#:0}> k#:5());
         },
         pure(a#:2) => a#:2,
     };
@@ -143,9 +149,12 @@ export const hash_59070068: (arg_0: string) =>
   }, (handlers, v$4: string, k$5:
   /*from cps lambda*/
   (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T_0) => void) => void) => {
-    hash_eccbfbca(v$4, handlers, (handlers: Handlers) => hash_59070068(responseValue + "-")((handlers: Handlers, done$13: (arg_0: Handlers, arg_1: T_0) => void) => {
-      k$5(handlers, (handlers: Handlers, returnValue$15: T_0) => done$13(handlers, returnValue$15));
-    }, handlers, (handlers: Handlers, returnValue$16: T_0) => done$6(handlers, returnValue$16)));
+    hash_eccbfbca(v$4, handlers, (handlers: Handlers) => {
+      hash_59070068(responseValue + "-")((handlers: Handlers, done$13: (arg_0: Handlers, arg_1: T_0) => void) => {
+        k$5(handlers, (handlers: Handlers, returnValue$15: T_0) => done$13(handlers, returnValue$15));
+      }, handlers, (handlers: Handlers, returnValue$16: T_0) => done$6(handlers, returnValue$16));
+      return lambdaBlockResult$18;
+    });
   }], (handlers: Handlers, a$2: T_0) => {
     done$6(handlers, a$2);
   }, handlers);
@@ -154,7 +163,7 @@ export const hash_59070068: (arg_0: string) =>
 /**
 ```
 const raiseIf#fce40b70: (string) ={Stdio#1da337a2}> string = (check#:0: string) ={Stdio#1da337a2}> {
-    if StringEq#606c7034."=="#553b4b8e#0(raise!(Stdio#1da337a2.read()), check#:0) {
+    if (raise!(Stdio#1da337a2.read()) ==#606c7034#553b4b8e#0 check#:0) {
         raise!(Stdio#1da337a2.read());
     } else {
         "didn't raise";
@@ -165,13 +174,15 @@ const raiseIf#fce40b70: (string) ={Stdio#1da337a2}> string = (check#:0: string) 
 export const hash_fce40b70:
 /*from cps lambda*/
 (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void = (check: string, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
-  raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0: string) => ((handlers: Handlers) => {
+  raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0: string) => {
     if (hash_606c7034.h553b4b8e_0(arg_lift_0, check)) {
       raise(handlers, "1da337a2", 0, null, (handlers, value) => done$3(handlers, value));
     } else {
       done$3(handlers, "didn't raise");
     }
-  })(handlers))(handlers, value));
+
+    return lambdaBlockResult$4;
+  })(handlers, value));
 };
 
 /**
@@ -215,7 +226,34 @@ const inner#19effbea: (string) ={Stdio#1da337a2, Log#35f4b478}> void = (name#:0:
 export const hash_19effbea:
 /*from cps lambda*/
 (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers) => void) => void = (name: string, handlers: Handlers, done$9: (arg_0: Handlers) => void) => {
-  hash_dd523212("Folks", handlers, (handlers: Handlers, returnValue$17: string) => hash_eccbfbca(returnValue$17 + " from farther", handlers, (handlers: Handlers) => hash_eccbfbca("getting", handlers, (handlers: Handlers) => hash_eccbfbca(name, handlers, (handlers: Handlers) => raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$6: string) => raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1: string) => hash_eccbfbca(arg_lift_0$6 + " and " + arg_lift_1, handlers, (handlers: Handlers) => raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$8: string) => hash_eccbfbca("And then " + arg_lift_1$8, handlers, (handlers: Handlers) => hash_eccbfbca("Dones", handlers, (handlers: Handlers) => done$9(handlers))))(handlers, value))))(handlers, value)))(handlers, value))))));
+  hash_dd523212("Folks", handlers, (handlers: Handlers, returnValue$17: string) => {
+    hash_eccbfbca(returnValue$17 + " from farther", handlers, (handlers: Handlers) => {
+      hash_eccbfbca("getting", handlers, (handlers: Handlers) => {
+        hash_eccbfbca(name, handlers, (handlers: Handlers) => {
+          raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$6: string) => {
+            raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1: string) => {
+              hash_eccbfbca(arg_lift_0$6 + " and " + arg_lift_1, handlers, (handlers: Handlers) => {
+                raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$8: string) => {
+                  hash_eccbfbca("And then " + arg_lift_1$8, handlers, (handlers: Handlers) => {
+                    hash_eccbfbca("Dones", handlers, (handlers: Handlers) => done$9(handlers));
+                    return lambdaBlockResult$32;
+                  });
+                  return lambdaBlockResult$30;
+                })(handlers, value));
+                return lambdaBlockResult$28;
+              });
+              return lambdaBlockResult$26;
+            })(handlers, value));
+            return lambdaBlockResult$24;
+          })(handlers, value));
+          return lambdaBlockResult$22;
+        });
+        return lambdaBlockResult$20;
+      });
+      return lambdaBlockResult$18;
+    });
+    return lambdaBlockResult$34;
+  });
 };
 
 /**
@@ -258,7 +296,10 @@ export const hash_1e213df0:
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
   hash_59070068("<read>")((handlers: Handlers, done$5: (arg_0: Handlers, arg_1: string) => void) => {
     hash_fce40b70("<read>", handlers, (handlers: Handlers, returnValue$7: string) => done$5(handlers, returnValue$7));
-  }, handlers, (handlers: Handlers, returnValue: T_0) => hash_eccbfbca(returnValue, handlers, (handlers: Handlers) => done$2(handlers)));
+  }, handlers, (handlers: Handlers, returnValue: T_0) => {
+    hash_eccbfbca(returnValue, handlers, (handlers: Handlers) => done$2(handlers));
+    return lambdaBlockResult$9;
+  });
 };
 
 /**
@@ -276,7 +317,13 @@ export const hash_a145008c:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
   hash_59070068("<read>")((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
-    hash_42c8a590(true, handlers, (handlers: Handlers, returnValue$11: string) => hash_42c8a590(false, handlers, (handlers: Handlers, returnValue$9: string) => hash_eccbfbca(returnValue$11 + returnValue$9, handlers, (handlers: Handlers) => done$6(handlers))));
+    hash_42c8a590(true, handlers, (handlers: Handlers, returnValue$11: string) => {
+      hash_42c8a590(false, handlers, (handlers: Handlers, returnValue$9: string) => {
+        hash_eccbfbca(returnValue$11 + returnValue$9, handlers, (handlers: Handlers) => done$6(handlers));
+        return lambdaBlockResult$15;
+      });
+      return lambdaBlockResult$13;
+    });
   }, handlers, (handlers: Handlers, returnValue$12: T_0) => done$4(handlers));
 };
 
@@ -287,7 +334,7 @@ const collect#2ce3943a: {e#:0}(() ={Log#35f4b478, e#:0}> void) ={e#:0}> string =
 ) ={e#:0}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
-            ((v#:2 ++ "\n") ++ 2ce3943a{e#:0}(() ={Log#35f4b478, e#:0}> k#:3()));
+            ((v#:2 ++ "\n") ++ 2ce3943a#self{e#:0}(() ={Log#35f4b478, e#:0}> k#:3()));
         },
         pure(a#:1) => "end",
     };
@@ -303,7 +350,10 @@ export const hash_2ce3943a: any = {
     (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void) => {
       hash_2ce3943a.effectful((handlers: Handlers, done$18: (arg_0: Handlers) => void) => {
         k$16(handlers, (handlers: Handlers) => done$18(handlers));
-      }, handlers, (handlers: Handlers, returnValue$19: string) => done$14(handlers, v$15 + "\n" + returnValue$19));
+      }, handlers, (handlers: Handlers, returnValue$19: string) => {
+        done$14(handlers, v$15 + "\n" + returnValue$19);
+        return lambdaBlockResult$22;
+      });
     }], (handlers: Handlers, a$17: void) => {
       done$14(handlers, "end");
     }, handlers);
@@ -332,7 +382,7 @@ const collectNew#4465c66a: (() ={Log#35f4b478}> void) ={}> string = (
 ) ={}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
-            ((v#:2 ++ "\n") ++ 4465c66a(() ={Log#35f4b478}> k#:3()));
+            ((v#:2 ++ "\n") ++ 4465c66a#self(() ={Log#35f4b478}> k#:3()));
         },
         pure(a#:1) => "end",
     };
@@ -380,29 +430,26 @@ collectNew#4465c66a
 hash_4465c66a;
 
 /*
-StringEq#606c7034."=="#553b4b8e#0(
-    collect#2ce3943a{}(test1#22486482),
-    "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend",
-)
+(collect#2ce3943a{}(test1#22486482) ==#606c7034#553b4b8e#0 "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend")
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_22486482), "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend");
 
 /*
-StringEq#606c7034."=="#553b4b8e#0(collect#2ce3943a{}(test2#a145008c), "<read>didn't raise\nend")
+(collect#2ce3943a{}(test2#a145008c) ==#606c7034#553b4b8e#0 "<read>didn't raise\nend")
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_a145008c), "<read>didn't raise\nend");
 
 /*
-StringEq#606c7034."=="#553b4b8e#0(collect#2ce3943a{}(test3#1e213df0), "<read>.\nend")
+(collect#2ce3943a{}(test3#1e213df0) ==#606c7034#553b4b8e#0 "<read>.\nend")
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_1e213df0), "<read>.\nend");
 
 /*
-StringEq#606c7034."=="#553b4b8e#0(collect#2ce3943a{}(test4#60ecb87c), "<read>Hello\nend")
+(collect#2ce3943a{}(test4#60ecb87c) ==#606c7034#553b4b8e#0 "<read>Hello\nend")
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_60ecb87c), "<read>Hello\nend");
 
 /*
-StringEq#606c7034."=="#553b4b8e#0(full#d649a85c(), "4:five:ok")
+(full#d649a85c() ==#606c7034#553b4b8e#0 "4:five:ok")
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_d649a85c(), "4:five:ok");

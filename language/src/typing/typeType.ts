@@ -220,6 +220,7 @@ export const newEnvWithTypeAndEffectVbls = (
     const typeInner = subEnv(env);
     const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
     typevbls.forEach(({ id, subTypes }) => {
+        // console.log(id.hash);
         const unique = parseUnique(
             id.hash,
             Object.keys(typeInner.local.typeVbls).length,

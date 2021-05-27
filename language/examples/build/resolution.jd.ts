@@ -60,6 +60,6 @@ export const hash_c41f7386: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-FloatEq#c41f7386."=="#553b4b8e#0((one#f4c397d2(2) as#6f186ad1 float + one#5678a3a0(3.0)), 11.0)
+((one#f4c397d2(2) as#6f186ad1 float + one#5678a3a0(3.0)) ==#c41f7386#553b4b8e#0 11.0)
 */
 assertCall(hash_c41f7386.h553b4b8e_0, hash_6f186ad1.hAs_0(hash_f4c397d2(2)) + hash_5678a3a0(3), 11);

@@ -90,7 +90,7 @@ const main#3a366a4a: (float, Vec2#43802a16, Vec2#43802a16, Vec3#9f1c0644, sample
     uCamera#:3: Vec3#9f1c0644,
     buffer#:4: sampler2D,
 ) ={}> {
-    texture(buffer#:4, MulVec2#090f77e7."/"#5ac12902#0(fragCoord#:1, iResolution#:2));
+    texture(buffer#:4, (fragCoord#:1 /#090f77e7#5ac12902#0 iResolution#:2));
 }
 ```
 */
@@ -108,10 +108,7 @@ const pendulum#2d222162: (float, Vec2#43802a16, Vec2#43802a16, Vec3#9f1c0644, sa
     if (iTime#:0 < 0.1) {
         Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 0.0, y#43802a16#1: 0.0, w#3b941378#0: 1.0};
     } else {
-        const current#:5 = texture(
-            buffer#:4,
-            MulVec2#090f77e7."/"#5ac12902#0(fragCoord#:1, iResolution#:2),
-        );
+        const current#:5 = texture(buffer#:4, (fragCoord#:1 /#090f77e7#5ac12902#0 iResolution#:2));
         Vec4#3b941378{...current#:5, x#43802a16#0: (current#:5.x#43802a16#0 + 0.00001)};
     };
 }

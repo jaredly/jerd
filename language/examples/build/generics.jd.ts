@@ -62,11 +62,11 @@ const ten#48447074: int = scopeIt#36626a20(4)(6)
 export const hash_48447074: number = hash_36626a20(4)(6);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(ten#48447074, 10)
+(ten#48447074 ==#9275f914#553b4b8e#0 10)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_48447074, 10);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(callIt#2d15e126, 7)
+(callIt#2d15e126 ==#9275f914#553b4b8e#0 7)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_2d15e126, 7);

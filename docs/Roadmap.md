@@ -83,17 +83,19 @@ HMMmmmmm I want ... and optimization debugger
 ... and then lets me flip through them
 ... and optionally disable them? idk. or something.
 
-- [ ] BETTER IDS!
+- [x] BETTER IDS!
   - Here's the plan: instead of printing out the full ID for any of this, just output a single char, `#`, and give it a span-attribute of the ID or sym or whatever hash. If the user deletes the hash, then it frees it.
   - at a later date, when we have full structured editing, we don't need that hack.
 
 ## Papercuts in the editor
 
 - [ ] fix printing of custom binops
-- [ ] do something about the proliferation of all those IDs. Do I have to make a more complicated editor? Or just elide the ones that can be unambiguously inferred? Yeah maybe that's the ticket.
+- [x] do something about the proliferation of all those IDs. Do I have to make a more complicated editor? Or just elide the ones that can be unambiguously inferred? Yeah maybe that's the ticket.
 - [ ] add grabbable sliders for twiddling constants!
 
 ## Fancier type error goodness!
+
+- [ ] it would be super cool to detect whether `env.time` was ever accessed, and if not, just not re-render with requestanimationframe. If it doesn't change with time, no need. Right?
 
 - [ ] start using the TypeError thing, and the Ambiguous thing, and have them show up in cool ways in the editor! not 100% sure how this will happen...
 
@@ -116,7 +118,7 @@ How / what to inline and stuff?
 - OH yes let's have struct support too folks. So we can do tuples and whatnot, thats nice
 - ALSO: type-directed name resolution, allow multiple names for things, so that we can overload vec4 and stuff, that would be extremely nice. Also so we can have "-" as a unary op and a binary op and so we can have "+" be for strings.
 
-- [ ] now that I have uniques, I don't have to worry about declaration collisions.
+- [x] now that I have uniques, I don't have to worry about declaration collisions.
 - [ ] make a transformer to sweep through blocks and move up empty defines to the first assign
 
 Whole program opt:

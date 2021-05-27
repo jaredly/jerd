@@ -51,17 +51,11 @@ const opRepLim#cffec7f4: (Vec3#9f1c0644, float, Vec3#9f1c0644) ={}> Vec3#9f1c064
     c#:1: float,
     l#:2: Vec3#9f1c0644,
 ) ={}> {
-    AddSubVec3#1c6fdd91."-"#b99b22d8#1(
-        p#:0,
-        ScaleVec3#c4a91006."*"#1de4e4c0#0(
-            c#:1,
-            clamp#5483fdc2(
-                round#65acfcda(ScaleVec3Rev#68f73ad4."/"#5ac12902#0(p#:0, c#:1)),
-                NegVec3#a5cd53ce."-"#3c2a4898#0(l#:2),
-                l#:2,
-            ),
-        ),
-    );
+    (p#:0 -#1c6fdd91#b99b22d8#1 (c#:1 *#c4a91006#1de4e4c0#0 clamp#5483fdc2(
+        round#65acfcda((p#:0 /#68f73ad4#5ac12902#0 c#:1)),
+        NegVec3#a5cd53ce."-"#3c2a4898#0(l#:2),
+        l#:2,
+    )));
 }
 ```
 */
@@ -95,28 +89,32 @@ const sceneSDF#c6d72c68: (float, Vec3#9f1c0644) ={}> float = (
     min(
         max(
             max#3af3fc3c(
-                AddSubVec3#1c6fdd91."-"#b99b22d8#1(
-                    abs#1a074578(p1#:3),
-                    Vec3#9f1c0644{x#43802a16#0: 0.1, y#43802a16#1: 0.3, z#9f1c0644#0: 0.6},
-                ),
+                (abs#1a074578(p1#:3) -#1c6fdd91#b99b22d8#1 Vec3#9f1c0644{
+                    x#43802a16#0: 0.1,
+                    y#43802a16#1: 0.3,
+                    z#9f1c0644#0: 0.6,
+                }),
             ),
             -max#3af3fc3c(
-                AddSubVec3#1c6fdd91."-"#b99b22d8#1(
-                    abs#1a074578(p1#:3),
-                    Vec3#9f1c0644{x#43802a16#0: 0.11, y#43802a16#1: 0.2, z#9f1c0644#0: 0.55},
-                ),
+                (abs#1a074578(p1#:3) -#1c6fdd91#b99b22d8#1 Vec3#9f1c0644{
+                    x#43802a16#0: 0.11,
+                    y#43802a16#1: 0.2,
+                    z#9f1c0644#0: 0.55,
+                }),
             ),
         ),
         max#3af3fc3c(
-            AddSubVec3#1c6fdd91."-"#b99b22d8#1(
-                abs#1a074578(
-                    AddSubVec3#1c6fdd91."-"#b99b22d8#1(
-                        samplePoint#:1,
-                        Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 1.0, z#9f1c0644#0: -0.1},
-                    ),
-                ),
-                Vec3#9f1c0644{x#43802a16#0: 2.1, y#43802a16#1: 0.1, z#9f1c0644#0: 2.1},
-            ),
+            (abs#1a074578(
+                (samplePoint#:1 -#1c6fdd91#b99b22d8#1 Vec3#9f1c0644{
+                    x#43802a16#0: 0.0,
+                    y#43802a16#1: 1.0,
+                    z#9f1c0644#0: -0.1,
+                }),
+            ) -#1c6fdd91#b99b22d8#1 Vec3#9f1c0644{
+                x#43802a16#0: 2.1,
+                y#43802a16#1: 0.1,
+                z#9f1c0644#0: 2.1,
+            }),
         ),
     );
 }
@@ -264,10 +262,7 @@ const rayDirection#6258178a: (float, Vec2#43802a16, Vec2#43802a16) ={}> Vec3#9f1
     size#:1: Vec2#43802a16,
     fragCoord#:2: Vec2#43802a16,
 ) ={}> {
-    const xy#:3 = AddSubVec2#70bb2056."-"#b99b22d8#1(
-        fragCoord#:2,
-        ScaleVec2Rev#afc24bbe."/"#5ac12902#0(size#:1, 2.0),
-    );
+    const xy#:3 = (fragCoord#:2 -#70bb2056#b99b22d8#1 (size#:1 /#afc24bbe#5ac12902#0 2.0));
     const z#:4 = (size#:1.y#43802a16#1 / tan((radians#dabe7f9c(fieldOfView#:0) / 2.0)));
     normalize#48e6ea27(vec3#5808ec54(xy#:3, -z#:4));
 }
@@ -325,17 +320,12 @@ const randFolks#220f14aa: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 =
     fragCoord#:1: Vec2#43802a16,
 ) ={}> {
     const scale#:2 = 40.0;
-    const small#:3 = Vec2float#28569bc0."*"#1de4e4c0#0(
-        round#b9171b62(ScaleVec2Rev#afc24bbe."/"#5ac12902#0(fragCoord#:1, scale#:2)),
-        scale#:2,
-    );
+    const small#:3 = (round#b9171b62((fragCoord#:1 /#afc24bbe#5ac12902#0 scale#:2)) *#28569bc0#1de4e4c0#0 scale#:2);
     const small#:4 = vec2#54a9f2ef(
         small#:3.x#43802a16#0,
         (small#:3.y#43802a16#1 + env#:0.time#451d5252#0),
     );
-    const v#:5 = ((random#347089ef(
-        MulVec2#090f77e7."/"#5ac12902#0(small#:4, env#:0.resolution#451d5252#1),
-    ) / 10.0) + 0.9);
+    const v#:5 = ((random#347089ef((small#:4 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1)) / 10.0) + 0.9);
     phongLit#528645fb(sceneSDF#c6d72c68, env#:0, fragCoord#:1);
 }
 ```

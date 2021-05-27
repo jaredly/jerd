@@ -1,6 +1,6 @@
 // Binary operations
 
-import { Identifier, nullLocation, Ops } from '../../parsing/parser';
+import { Identifier, nullLocation, Op, Ops } from '../../parsing/parser';
 import {
     Env,
     Term,
@@ -24,6 +24,8 @@ import { LocatedError, TypeMismatch, UnresolvedIdentifier } from '../errors';
 import { refName } from '../typePattern';
 import { walkType } from '../typeType';
 import { float, int, numeric, string } from '../preset';
+import { termToPretty } from '../../printing/printTsLike';
+import { printToString } from '../../printing/printer';
 
 export const findUnaryOp = (
     env: Env,
@@ -158,8 +160,7 @@ const findMatchingOp = (
 const typeNewOp = (
     env: Env,
     left: Term,
-    op: string,
-    id: Identifier | null,
+    op: Op,
     right: Expression,
     location: Location,
 ): Term | null => {
@@ -167,36 +168,85 @@ const typeNewOp = (
         right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
 
     let fn: Term;
-    if (id != null) {
-        const found = resolveIdentifier(env, id);
-        if (!found) {
-            throw new UnresolvedIdentifier(id, env);
-        }
-        if (found.is.type !== 'ref') {
+    if (op.hash != null) {
+        const [baseHash, attrHash, idxRaw] = op.hash.slice(1).split('#');
+        const idx = +idxRaw;
+        if (isNaN(idx)) {
             throw new LocatedError(
-                id.location,
-                `Identifier isn't a ref ${showType(env, found.is)}`,
+                op.location,
+                `Invalid binop hash ${op.hash.split('#').join(', ')}`,
             );
         }
-        const idx = env.global.recordGroups[refName(found.is.ref)].indexOf(op);
-        if (idx === -1) {
+        const target = resolveIdentifier(env, {
+            type: 'id',
+            text: '',
+            hash: '#' + baseHash,
+            location: op.location,
+        });
+        if (!target) {
             throw new LocatedError(
-                id.location,
-                `Record ${refName(found.is.ref)} has no member ${op}`,
+                op.location,
+                `Unable to find binop base ${baseHash}`,
             );
         }
-        const t = env.global.types[refName(found.is.ref)] as RecordDef;
+        if (target.is.type !== 'ref') {
+            throw new LocatedError(op.location, `binop target is not a ref`);
+        }
+        const id = idFromName(attrHash);
+        let t = env.global.types[idName(id)] as RecordDef;
+        if (target.is.typeVbls.length) {
+            t = applyTypeVariablesToRecord(
+                env,
+                t,
+                target.is.typeVbls,
+                op.location,
+                attrHash,
+            );
+        }
+        if (t.type !== 'Record') {
+            throw new LocatedError(op.location, `Not a record ${attrHash}`);
+        }
         fn = {
             type: 'Attribute',
-            target: found,
+            target,
             idx: idx,
             is: t.items[idx],
-            location: id.location,
-            ref: found.is.ref,
+            location: op.location,
+            ref: { type: 'user', id },
             inferred: true,
         };
-    } else if (env.global.attributeNames[op]) {
-        const found = findMatchingOp(env, op, left, rarg, location);
+        // } else if (id != null) {
+        //     const found = resolveIdentifier(env, id);
+        //     if (!found) {
+        //         throw new UnresolvedIdentifier(id, env);
+        //     }
+        //     if (found.is.type !== 'ref') {
+        //         throw new LocatedError(
+        //             id.location,
+        //             `Identifier isn't a ref ${showType(env, found.is)}`,
+        //         );
+        //     }
+        //     const idx = env.global.recordGroups[refName(found.is.ref)].indexOf(
+        //         op.text,
+        //     );
+        //     if (idx === -1) {
+        //         throw new LocatedError(
+        //             id.location,
+        //             `Record ${refName(found.is.ref)} has no member ${op}`,
+        //         );
+        //     }
+        //     const t = env.global.types[refName(found.is.ref)] as RecordDef;
+        //     fn = {
+        //         type: 'Attribute',
+        //         target: found,
+        //         idx: idx,
+        //         is: t.items[idx],
+        //         location: id.location,
+        //         ref: found.is.ref,
+        //         inferred: true,
+        //     };
+    } else if (env.global.attributeNames[op.text]) {
+        const found = findMatchingOp(env, op.text, left, rarg, location);
         if (found == null) {
             return null;
         }
@@ -252,17 +302,16 @@ const typeNewOp = (
 const typeOp = (
     env: Env,
     left: Term,
-    op: string,
-    id: Identifier | null,
+    op: Op,
     right: Expression,
     location: Location,
 ): Term => {
-    const result = typeNewOp(env, left, op, id, right, location);
+    const result = typeNewOp(env, left, op, right, location);
     if (result != null) {
         return result;
     }
 
-    let is = env.global.builtins[op];
+    let is = env.global.builtins[op.text];
     if (!is) {
         throw new LocatedError(location, `Unexpected binary op ${op}`);
     }
@@ -355,7 +404,7 @@ const typeOp = (
         target: {
             location,
             type: 'ref',
-            ref: { type: 'builtin', name: op },
+            ref: { type: 'builtin', name: op.text },
             is,
         },
         hadAllVariableEffects: false,
@@ -377,8 +426,8 @@ const precedence = [
 
 type Section = {
     ops: Ops;
-    id: Identifier | null;
-    op: string | null;
+    // id: Identifier | null;
+    op: { text: string; hash: string | null; location: Location } | null;
 };
 
 // Ok yeah here's the issue.
@@ -402,7 +451,7 @@ const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
     // for (let group of precedence) {
     const group = groups[0];
     const otherGroups = groups.slice(1);
-    if (!expr.rest.some((ex) => group.includes(ex.op[0]))) {
+    if (!expr.rest.some((ex) => group.includes(ex.op.text[0]))) {
         return organizeOps(expr, otherGroups);
     }
 
@@ -414,19 +463,17 @@ const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
             rest: [],
             location: expr.location,
         },
-        id: null,
         op: null,
     };
-    expr.rest.forEach(({ op, id, right, location }) => {
-        if (group.includes(op[0])) {
+    expr.rest.forEach(({ op, right, location }) => {
+        if (group.includes(op.text[0])) {
             sections.push(section);
             section = {
                 ops: { type: 'ops', first: right, rest: [], location },
-                id,
                 op,
             };
         } else {
-            section.ops.rest.push({ op, id, right, location });
+            section.ops.rest.push({ op, right, location });
         }
     });
     sections.push(section);
@@ -436,9 +483,9 @@ const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
     return {
         type: 'ops',
         first: organizeOps(sections[0].ops, otherGroups),
-        rest: sections.slice(1).map(({ op, id, ops }) => ({
+        rest: sections.slice(1).map(({ op, ops }) => ({
             op: op!,
-            id,
+            // id,
             right: organizeOps(ops, otherGroups),
             location: ops.location,
         })),
@@ -451,8 +498,8 @@ const _typeOps = (env: Env, expr: Ops): Term => {
         expr.first.type === 'ops'
             ? _typeOps(env, expr.first)
             : typeExpr(env, expr.first);
-    expr.rest.forEach(({ op, id, right, location }) => {
-        left = typeOp(env, left, op, id, right, location);
+    expr.rest.forEach(({ op, right, location }) => {
+        left = typeOp(env, left, op, right, location);
     });
     return left;
 };
