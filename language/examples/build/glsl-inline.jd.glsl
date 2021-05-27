@@ -16,14 +16,14 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
+// skipping Eq_553b4b8e, contains type variables
+
 struct GLSLEnv_451d5252{
     float time;
     vec2 resolution;
     vec3 camera;
     vec2 mouse;
 };
-
-// skipping Eq_553b4b8e, contains type variables
 
 /* -- generated -- */
 int V08045a1a(int n_0) {

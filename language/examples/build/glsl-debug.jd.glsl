@@ -16,6 +16,13 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
+struct GLSLEnv_451d5252{
+    float time;
+    vec2 resolution;
+    vec3 camera;
+    vec2 mouse;
+};
+
 /**
 ```
 const simple#cf5c743c: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (

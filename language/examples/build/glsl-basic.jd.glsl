@@ -27,12 +27,12 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
+// skipping AddSub_b99b22d8, contains type variables
+
 struct Circle_23c98f91{
     vec2 h23c98f91_0;
     float h23c98f91_1;
 };
-
-// skipping AddSub_b99b22d8, contains type variables
 
 /**
 ```
