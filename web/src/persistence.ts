@@ -38,6 +38,7 @@ export const initialState = (): State => {
         }
     });
     const env = loadPrelude(typedBuiltins);
+    console.log('initial env', env);
     if (saved) {
         try {
             const data: State = JSON.parse(saved);
@@ -106,6 +107,14 @@ export const initialState = (): State => {
                         attributeNames: {
                             ...env.attributeNames,
                             ...data.env.global.attributeNames,
+                        },
+                        typeNames: {
+                            ...env.typeNames,
+                            ...data.env.global.typeNames,
+                        },
+                        idNames: {
+                            ...env.idNames,
+                            ...data.env.global.idNames,
                         },
                         types: {
                             ...env.types,
