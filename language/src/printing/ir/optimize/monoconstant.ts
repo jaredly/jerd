@@ -12,12 +12,16 @@ import {
     subtTypeVars,
 } from '../utils';
 import { maxUnique } from './inline';
-import { liftLambdas } from './liftlambdas';
+import {
+    findCapturedVariables,
+    liftLambdas,
+    liftToTopLevel,
+} from './liftlambdas';
 import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
 
 export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
     // let outerMax = maxUnique(expr);
-    expr = liftLambdas(env, exprs, expr);
+    // expr = liftLambdas(env, exprs, expr)
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
@@ -27,17 +31,33 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
             if (expr.type !== 'apply' || expr.target.type !== 'term') {
                 return null;
             }
-            const largs = expr.args.filter((a) => a.is.type === 'lambda');
+            const largs = expr.args
+                .map((arg, i) => ({ arg, i }))
+                .filter((a) => a.arg.is.type === 'lambda')
+                .map(({ arg, i }) => {
+                    // Lift any lambdas that we can
+                    if (
+                        arg.type === 'lambda' &&
+                        findCapturedVariables(arg).length === 0
+                    ) {
+                        return { arg: liftToTopLevel(env, exprs, arg), i };
+                    }
+                    return { arg, i };
+                });
             // Only lambdas and terms supported at the moment
-            if (largs.length === 0 || largs.some((a) => a.type !== 'term')) {
+            if (
+                largs.length === 0 ||
+                largs.some((a) => a.arg.type !== 'term')
+            ) {
                 return null;
             }
-            const lambdaArgs: Array<{
-                arg: Expr;
-                i: number;
-            }> = expr.args
-                .map((arg, i) => ({ arg, i }))
-                .filter((a) => a.arg.is.type === 'lambda');
+            const lambdaArgs: Array<{ arg: Expr; i: number }> = largs;
+            // const lambdaArgs: Array<{
+            //     arg: Expr;
+            //     i: number;
+            // }> = expr.args
+            //     .map((arg, i) => ({ arg, i }))
+            //     .filter((a) => a.arg.is.type === 'lambda');
             // .map((arg) => {
             //     if (arg.arg.type === 'lambda') {
             //         // toplevel that folks

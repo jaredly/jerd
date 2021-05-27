@@ -1370,6 +1370,16 @@ const hasInvalidGLSL = (expr: Expr) => {
     ) {
         return expr.loc;
     }
+    if (
+        expr.type === 'lambda' &&
+        expr.is.type === 'lambda' &&
+        expr.is.res.type === 'lambda'
+    ) {
+        return expr.loc;
+    }
+    if (expr.is.type === 'lambda' && expr.type !== 'lambda') {
+        return expr.loc;
+    }
     const top = expr;
     transformExpr(expr, {
         ...defaultVisitor,

@@ -30,6 +30,25 @@ export const findCapturedVariables = (lambda: Expr): Array<number> => {
     return captured;
 };
 
+// The caller needs to ensure that no variables are being captured.
+export const liftToTopLevel = (
+    env: Env,
+    exprs: Exprs,
+    lambda: LambdaExpr,
+): Expr => {
+    const hash = hashObject(lambda);
+    const id: Id = { hash, size: 1, pos: 0 };
+    let expr: Expr = optimizeDefine(env, lambda, id);
+    expr = optimizeAggressive(env, exprs, expr, id);
+    exprs[hash] = { expr: expr, inline: false };
+    return {
+        type: 'term',
+        id,
+        loc: expr.loc,
+        is: expr.is,
+    };
+};
+
 export const liftLambdas = (env: Env, exprs: Exprs, expr: Expr) => {
     const toplevel = expr;
     const immediatelyCalled: Array<LambdaExpr> = [];
@@ -49,17 +68,7 @@ export const liftLambdas = (env: Env, exprs: Exprs, expr: Expr) => {
             ) {
                 return null;
             }
-            const hash = hashObject(expr);
-            const id: Id = { hash, size: 1, pos: 0 };
-            expr = optimizeDefine(env, expr, id);
-            expr = optimizeAggressive(env, exprs, expr, id);
-            exprs[hash] = { expr: expr, inline: false };
-            return {
-                type: 'term',
-                id,
-                loc: expr.loc,
-                is: expr.is,
-            };
+            return liftToTopLevel(env, exprs, expr);
         },
     });
 };
