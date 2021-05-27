@@ -1,6 +1,6 @@
 // Type definitions for state
 
-import { Id, Type } from '@jerd/language/src/typing/types';
+import { Env, Id, Term, Type } from '@jerd/language/src/typing/types';
 
 export type Content =
     | { type: 'term'; id: Id; name: string }
@@ -20,7 +20,7 @@ export type PluginT = {
     id: string;
     name: string;
     type: Type;
-    render: (value: any, evalEnv: EvalEnv) => JSX.Element;
+    render: (value: any, evalEnv: EvalEnv, env: Env, term: Term) => JSX.Element;
 };
 export type Plugins = { [id: string]: PluginT };
 export type Display = { type: string; opts: { [key: string]: any } };

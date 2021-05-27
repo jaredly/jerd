@@ -303,7 +303,7 @@ const Pin = ({
     const plugin: PluginT = plugins[pin.display.type];
     const err = getTypeError(env, t.is, plugin.type, nullLocation);
     if (err == null) {
-        return plugin.render(evalEnv.terms[idName(pin.id)], evalEnv);
+        return plugin.render(evalEnv.terms[idName(pin.id)], evalEnv, env, t);
     }
     return <div>Error folks</div>;
 };

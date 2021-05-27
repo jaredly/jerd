@@ -725,14 +725,12 @@ export const assembleItemsForFile = (
     return { inOrder, irTerms };
 };
 
-export const fileToGlsl = (
-    expressions: Array<Term>,
+export const generateShader = (
     env: Env,
     opts: OutputOptions,
     irOpts: IOutputOptions,
-    assert: boolean,
-    includeImport: boolean,
-    builtinNames: Array<string>,
+    mainTerm: Id,
+    buffers: Array<Id>,
 ): string => {
     const items: Array<PP> = [
         pp.items([atom('#version 300 es')]),
@@ -770,86 +768,18 @@ export const fileToGlsl = (
         ]),
     ];
 
-    const buffers: Array<string> = [];
-    Object.keys(env.global.metaData).forEach((k) => {
-        const b = env.global.metaData[k].tags.filter((t) =>
-            t.startsWith('buffer'),
-        );
-        if (!b.length) {
-            return;
-        }
-        if (b.length > 1) {
-            throw new Error(`multiple buffer tags`);
-        }
-        const num = parseInt(b[0].slice('buffer'.length));
-        if (isNaN(num)) {
-            throw new Error(`Invalid buffer tag ${b[0]}`);
-        }
-        buffers[num] = k;
-    });
-    for (let i = 0; i < buffers.length; i++) {
-        if (!buffers[i]) {
-            throw new Error(
-                `No buffer ${i} defined. Must have all buffers in a row.`,
-            );
-        }
-    }
-
-    let mains = Object.keys(env.global.metaData).filter((k) =>
-        env.global.metaData[k].tags.includes('main'),
+    const required = [mainTerm].concat(buffers).map(
+        (id) =>
+            ({
+                type: 'ref',
+                ref: {
+                    type: 'user',
+                    id,
+                },
+                location: nullLocation,
+                is: env.global.terms[idName(id)].is,
+            } as Term),
     );
-    if (mains.length > 1) {
-        console.warn(`Only one main allowed; ignoring the others`);
-    }
-
-    // If there's no main, then:
-    // We generate one that does the test cases!
-    // green and red dots to indicate pass or fail
-
-    if (!mains.length) {
-        // Ok what's the wait to manufactor a main for us ...
-        const tests = expressions.filter((e) => typesEqual(e.is, preset.bool));
-        if (tests.length) {
-            // env.local.unique.current = 1000000;
-            mains = ['test_main'];
-            env.global.terms['test_main'] = glslTester(env, tests);
-            env.global.metaData[mains[0]] = {
-                tags: ['main'],
-                createdMs: Date.now(),
-            };
-        } else {
-            console.error(`No @main or tests defined!`);
-            return '// Error: No @main or tests defined';
-        }
-    }
-
-    const mainId = idFromName(mains[0]);
-    const mainTags = env.global.metaData[mains[0]].tags;
-    const mainTerm: Term = {
-        type: 'ref',
-        ref: {
-            type: 'user',
-            id: mainId,
-        },
-        location: nullLocation,
-        is: env.global.terms[idName(mainId)].is,
-    };
-
-    const required = expressions.concat([
-        mainTerm,
-        ...buffers.map(
-            (id) =>
-                ({
-                    type: 'ref',
-                    ref: {
-                        type: 'user',
-                        id: idFromName(id),
-                    },
-                    location: nullLocation,
-                    is: env.global.terms[id].is,
-                } as Term),
-        ),
-    ]);
 
     const builtins = { ...glslBuiltins };
     Object.keys(env.global.metaData).forEach((idRaw) => {
@@ -894,7 +824,7 @@ export const fileToGlsl = (
     const { inOrder, irTerms } = assembleItemsForFile(
         env,
         required,
-        [idName(mainId)].concat(buffers),
+        [mainTerm].concat(buffers).map(idName),
         irOpts,
         builtins,
     );
@@ -987,6 +917,210 @@ export const fileToGlsl = (
             ]),
         );
     });
+
+    inOrder.forEach((name) => {
+        const loc = hasInvalidGLSL(irTerms[name].expr);
+        if (loc) {
+            // throw new LocatedError(
+            //     loc,
+            //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
+            // );
+        }
+
+        const senv = selfEnv(env, {
+            type: 'Term',
+            name,
+            ann: env.global.terms[name]
+                ? env.global.terms[name].is
+                : preset.void_,
+            // ann: irTerms[name].expr.is,
+        });
+        items.push(
+            declarationToGlsl(
+                senv,
+                opts,
+                name,
+                irTerms[name].expr,
+                irTerms[name].comment
+                    ? '*\n```\n' + irTerms[name].comment + '\n```\n'
+                    : ' -- generated -- ',
+            ),
+        );
+
+        // if (usedAfterOpt[name]) {
+        //     if (printed[name]) {
+        //         const loc = hasInvalidGLSL(irTerms[name].expr);
+        //         if (loc) {
+        //             // throw new LocatedError(
+        //             //     loc,
+        //             //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
+        //             // );
+        //         }
+        //         items.push(printed[name]);
+        //     } else {
+        //         // let term = env.global.terms[idRaw];
+        //         const senv = selfEnv(env, {
+        //             type: 'Term',
+        //             name,
+        //             ann: preset.void_,
+        //             // ann: irTerms[name].expr.is,
+        //         });
+        //         printed[name] = declarationToGlsl(
+        //             senv,
+        //             opts,
+        //             name,
+        //             irTerms[name].expr,
+        //             ' -- generated -- ',
+        //         );
+
+        //         items.push(printed[name]);
+        //     }
+        // }
+    });
+
+    const glslEnv: Record = {
+        type: 'record',
+        base: {
+            type: 'Concrete',
+            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
+            spread: null,
+            rows: [
+                builtin('u_time', nullLocation, float),
+                builtin('u_resolution', nullLocation, Vec2),
+                builtin('u_camera', nullLocation, Vec3),
+                builtin('u_mouse', nullLocation, Vec2),
+            ],
+        },
+        is: {
+            type: 'ref',
+            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
+            loc: nullLocation,
+            typeVbls: [],
+        },
+        subTypes: {},
+        loc: nullLocation,
+    };
+
+    let mainArgs = [termToGlsl(env, opts, glslEnv), atom('gl_FragCoord.xy')];
+
+    if (buffers.length > 1) {
+        throw new Error('multi buffer not impl');
+    }
+    if (buffers.length) {
+        mainArgs.push(atom('u_buffer0'));
+        items.push(atom('#if defined(BUFFER_0)'));
+
+        items.push(
+            pp.items([
+                atom('void main() '),
+                block([
+                    pp.items([
+                        atom('fragColor'),
+                        atom(' = '),
+                        idToGlsl(env, opts, buffers[0], false),
+                        args(mainArgs, '(', ')', false),
+                    ]),
+                ]),
+            ]),
+        );
+
+        items.push(atom('#else'));
+    }
+
+    items.push(
+        pp.items([
+            atom('void main() '),
+            block([
+                pp.items([
+                    atom('fragColor'),
+                    atom(' = '),
+                    idToGlsl(env, opts, mainTerm, false),
+                    args(mainArgs, '(', ')', false),
+                    // args(mainArgs, '(', ')', false),
+                ]),
+            ]),
+        ]),
+    );
+
+    if (buffers.length) {
+        items.push(atom('#endif\n'));
+    }
+
+    return items.map((item) => printToString(item, 100)).join('\n\n');
+};
+
+export const fileToGlsl = (
+    expressions: Array<Term>,
+    env: Env,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    assert: boolean,
+    includeImport: boolean,
+    builtinNames: Array<string>,
+): string => {
+    const buffers: Array<string> = [];
+    Object.keys(env.global.metaData).forEach((k) => {
+        const b = env.global.metaData[k].tags.filter((t) =>
+            t.startsWith('buffer'),
+        );
+        if (!b.length) {
+            return;
+        }
+        if (b.length > 1) {
+            throw new Error(`multiple buffer tags`);
+        }
+        const num = parseInt(b[0].slice('buffer'.length));
+        if (isNaN(num)) {
+            throw new Error(`Invalid buffer tag ${b[0]}`);
+        }
+        buffers[num] = k;
+    });
+    for (let i = 0; i < buffers.length; i++) {
+        if (!buffers[i]) {
+            throw new Error(
+                `No buffer ${i} defined. Must have all buffers in a row.`,
+            );
+        }
+    }
+
+    let mains = Object.keys(env.global.metaData).filter((k) =>
+        env.global.metaData[k].tags.includes('main'),
+    );
+    if (mains.length > 1) {
+        console.warn(`Only one main allowed; ignoring the others`);
+    }
+
+    // If there's no main, then:
+    // We generate one that does the test cases!
+    // green and red dots to indicate pass or fail
+
+    if (!mains.length) {
+        // Ok what's the wait to manufactor a main for us ...
+        const tests = expressions.filter((e) => typesEqual(e.is, preset.bool));
+        if (tests.length) {
+            // env.local.unique.current = 1000000;
+            mains = ['test_main'];
+            env.global.terms['test_main'] = glslTester(env, tests);
+            env.global.metaData[mains[0]] = {
+                tags: ['main'],
+                createdMs: Date.now(),
+            };
+        } else {
+            console.error(`No @main or tests defined!`);
+            return '// Error: No @main or tests defined';
+        }
+    }
+
+    const mainId = idFromName(mains[0]);
+    const mainTerm: Term = {
+        type: 'ref',
+        ref: {
+            type: 'user',
+            id: mainId,
+        },
+        location: nullLocation,
+        is: env.global.terms[idName(mainId)].is,
+    };
 
     // What kinds of things do we want on here?
     // - @inline stuff, got to inline it
@@ -1217,136 +1351,7 @@ export const fileToGlsl = (
     // }
 
     // const inOrder = sortAllDepsPlain(irDeps);
-
-    inOrder.forEach((name) => {
-        const loc = hasInvalidGLSL(irTerms[name].expr);
-        if (loc) {
-            // throw new LocatedError(
-            //     loc,
-            //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
-            // );
-        }
-
-        const senv = selfEnv(env, {
-            type: 'Term',
-            name,
-            ann: env.global.terms[name]
-                ? env.global.terms[name].is
-                : preset.void_,
-            // ann: irTerms[name].expr.is,
-        });
-        items.push(
-            declarationToGlsl(
-                senv,
-                opts,
-                name,
-                irTerms[name].expr,
-                irTerms[name].comment
-                    ? '*\n```\n' + irTerms[name].comment + '\n```\n'
-                    : ' -- generated -- ',
-            ),
-        );
-
-        // if (usedAfterOpt[name]) {
-        //     if (printed[name]) {
-        //         const loc = hasInvalidGLSL(irTerms[name].expr);
-        //         if (loc) {
-        //             // throw new LocatedError(
-        //             //     loc,
-        //             //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
-        //             // );
-        //         }
-        //         items.push(printed[name]);
-        //     } else {
-        //         // let term = env.global.terms[idRaw];
-        //         const senv = selfEnv(env, {
-        //             type: 'Term',
-        //             name,
-        //             ann: preset.void_,
-        //             // ann: irTerms[name].expr.is,
-        //         });
-        //         printed[name] = declarationToGlsl(
-        //             senv,
-        //             opts,
-        //             name,
-        //             irTerms[name].expr,
-        //             ' -- generated -- ',
-        //         );
-
-        //         items.push(printed[name]);
-        //     }
-        // }
-    });
-
-    const glslEnv: Record = {
-        type: 'record',
-        base: {
-            type: 'Concrete',
-            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
-            spread: null,
-            rows: [
-                builtin('u_time', nullLocation, float),
-                builtin('u_resolution', nullLocation, Vec2),
-                builtin('u_camera', nullLocation, Vec3),
-                builtin('u_mouse', nullLocation, Vec2),
-            ],
-        },
-        is: {
-            type: 'ref',
-            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
-            loc: nullLocation,
-            typeVbls: [],
-        },
-        subTypes: {},
-        loc: nullLocation,
-    };
-
-    let mainArgs = [termToGlsl(env, opts, glslEnv), atom('gl_FragCoord.xy')];
-
-    if (buffers.length > 1) {
-        throw new Error('multi buffer not impl');
-    }
-    if (buffers.length) {
-        mainArgs.push(atom('u_buffer0'));
-        items.push(atom('#if defined(BUFFER_0)'));
-
-        items.push(
-            pp.items([
-                atom('void main() '),
-                block([
-                    pp.items([
-                        atom('fragColor'),
-                        atom(' = '),
-                        idToGlsl(env, opts, idFromName(buffers[0]), false),
-                        args(mainArgs, '(', ')', false),
-                    ]),
-                ]),
-            ]),
-        );
-
-        items.push(atom('#else'));
-    }
-
-    items.push(
-        pp.items([
-            atom('void main() '),
-            block([
-                pp.items([
-                    atom('fragColor'),
-                    atom(' = '),
-                    idToGlsl(env, opts, mainId, false),
-                    args(mainArgs, '(', ')', false),
-                    // args(mainArgs, '(', ')', false),
-                ]),
-            ]),
-        ]),
-    );
-
-    if (buffers.length) {
-        items.push(atom('#endif\n'));
-    }
-
-    return items.map((item) => printToString(item, 100)).join('\n\n');
+    return generateShader(env, opts, irOpts, mainId, buffers.map(idFromName));
 };
 
 const hasInvalidGLSL = (expr: Expr) => {

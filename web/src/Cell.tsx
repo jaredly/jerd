@@ -238,7 +238,7 @@ export const getPlugin = (
             const plugin: PluginT = plugins[display.type];
             const err = getTypeError(env, t.is, plugin.type, nullLocation);
             if (err == null) {
-                return () => plugin.render(value, evalEnv);
+                return () => plugin.render(value, evalEnv, env, t);
             }
     }
     return null;

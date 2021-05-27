@@ -216,10 +216,7 @@ vec4 drawToBuffer_5af2137f(
         };
     } else {
         int neighbors_4 = countNeighbors_77a447bc(fragCoord_1, env_0.resolution, buffer_2);
-        if (((isLive_5df4f34f(texture(buffer_2, (fragCoord_1 / env_0.resolution))) && intEq(
-            neighbors_4,
-            2
-        )) || intEq(neighbors_4, 3))) {
+        if (((isLive_5df4f34f(texture(buffer_2, (fragCoord_1 / env_0.resolution))) && (neighbors_4 == 2)) || (neighbors_4 == 3))) {
             return vec4(1.0, 0.60, 1.0, 1.0);
         } else {
             return vec4(0.0, 0.0, 0.0, 1.0);

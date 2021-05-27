@@ -31,8 +31,11 @@ type Eq<T> = {
     "==": (T, T) => bool,
 }
 
+@glsl_builtin
 const IntEq = Eq<int>{"==": intEq}
+@glsl_builtin
 const FloatEq = Eq<float>{"==": floatEq}
+@glsl_builtin
 const StringEq = Eq<string>{"==": stringEq}
 
 // For checking equality

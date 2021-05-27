@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import {
+    Env,
+    Term,
     Type,
     TypeReference,
     UserReference,
@@ -50,6 +52,22 @@ const drawToCanvas = (
     }
 };
 
+const newGLSLEnv = (ctx: CanvasRenderingContext2D): GLSLEnv => ({
+    type: 'GLSLEnv',
+    time: 0,
+    resolution: {
+        type: 'Vec2',
+        x: ctx.canvas.width,
+        y: ctx.canvas.height,
+    },
+    camera: { type: 'Vec3', x: 1.0, y: 0.0, z: 0.0 },
+    mouse: {
+        type: 'Vec2',
+        x: ctx.canvas.width / 2,
+        y: ctx.canvas.height / 2,
+    },
+});
+
 const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
     const canvasRef = React.useRef(null as null | HTMLCanvasElement);
     const [paused, setPaused] = React.useState(false);
@@ -75,23 +93,59 @@ const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
             }
             const ctx = canvasRef.current.getContext('2d')!;
             if (!env) {
-                env = {
-                    type: 'GLSLEnv',
-                    time: 0,
-                    resolution: {
-                        type: 'Vec2',
-                        x: ctx.canvas.width,
-                        y: ctx.canvas.height,
-                    },
-                    camera: { type: 'Vec3', x: 1.0, y: 0.0, z: 0.0 },
-                    mouse: {
-                        type: 'Vec2',
-                        x: ctx.canvas.width / 2,
-                        y: ctx.canvas.height / 2,
-                    },
-                };
+                env = newGLSLEnv(ctx);
                 canvasRef.current.addEventListener('mousemove', (evt) => {
-                    const box = evt.target.getBoundingClientRect();
+                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
+                    env.mouse.x = evt.clientX - box.left;
+                    env.mouse.y = evt.clientY - box.top;
+                });
+            }
+            env.time = (Date.now() - start) / 1000;
+            try {
+                drawToCanvas(ctx, fc.current, env);
+            } catch (err) {
+                clearInterval(tid);
+                setError(err);
+            }
+        }, 40);
+        return () => clearInterval(tid);
+    }, [paused]);
+
+    if (error != null) {
+        return <div>{error.message}</div>;
+    }
+
+    return <canvas ref={canvasRef} width="200" height="200" />;
+};
+
+const ShaderGLSL = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
+    const canvasRef = React.useRef(null as null | HTMLCanvasElement);
+    const [paused, setPaused] = React.useState(false);
+    // const [data, setData] = React.useState([]);
+    const [error, setError] = React.useState(null as any | null);
+
+    const wrapped = React.useMemo(() => wrapWithExecutaionLimit(evalEnv, fn), [
+        fn,
+    ]);
+    const fc = React.useRef(wrapped);
+    fc.current = wrapped;
+
+    React.useEffect(() => {
+        if (paused) {
+            return;
+        }
+        let env: GLSLEnv;
+
+        let start = Date.now();
+        const tid = setInterval(() => {
+            if (!canvasRef.current) {
+                return;
+            }
+            const ctx = canvasRef.current.getContext('2d')!;
+            if (!env) {
+                env = newGLSLEnv(ctx);
+                canvasRef.current.addEventListener('mousemove', (evt) => {
+                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
                     env.mouse.x = evt.clientX - box.left;
                     env.mouse.y = evt.clientY - box.top;
                 });
@@ -119,6 +173,17 @@ const plugins: Plugins = {
     //     id: 'opengl-fake',
     //     name: 'Shader CPU',
     // },
+    opengl: {
+        id: 'opengl',
+        name: 'Shader GLSL',
+        type: pureFunction(
+            [refType('451d5252'), refType('43802a16')],
+            refType('3b941378'),
+        ),
+        render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
+            return <div>Ok folks</div>;
+        },
+    },
     'opengl-fake': {
         id: 'opengl-fake',
         name: 'Shader CPU',

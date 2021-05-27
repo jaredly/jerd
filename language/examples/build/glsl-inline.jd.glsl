@@ -115,9 +115,9 @@ vec4 Vtest_main(
     GLSLEnv_451d5252 env_1,
     vec2 fragCoord_2
 ) {
-    bool t0_5 = intEq(y_7f8ca5c4(30), (((60 + 2) + 5) + 2));
-    bool t1_6 = intEq(y_270df8de(30), (((60 - 2) + 5) - 2));
-    bool t2_7 = intEq(y_8228f9e8(30), ((60 + 5) + 6));
+    bool t0_5 = (y_7f8ca5c4(30) == (((60 + 2) + 5) + 2));
+    bool t1_6 = (y_270df8de(30) == (((60 - 2) + 5) - 2));
+    bool t2_7 = (y_8228f9e8(30) == ((60 + 5) + 6));
     float size_3 = (env_1.resolution.x / 20.0);
     float size_4 = (size_3 * 0.40);
     if ((((t0_5 && (length((fragCoord_2 - (vec2(1.0, 1.0) * size_3))) < size_4)) || (t1_6 && (length(

@@ -297,7 +297,7 @@ const getRenderPlugin = (
         console.log('Unknown type?', display);
         return;
     }
-    let term;
+    let term: Term;
     let id;
     if (typed.type === 'Expression') {
         term = typed.term;
@@ -310,7 +310,7 @@ const getRenderPlugin = (
     }
     const err = getTypeError(env, term.is, plugin.type, nullLocation);
     if (err == null) {
-        return () => plugin.render(evaled, evalEnv);
+        return () => plugin.render(evaled, evalEnv, env, term);
     }
 
     return null;
