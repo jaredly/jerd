@@ -17,7 +17,7 @@ import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
 
 export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
     // let outerMax = maxUnique(expr);
-    // expr = liftLambdas(env, exprs, expr);
+    expr = liftLambdas(env, exprs, expr);
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {

@@ -25,6 +25,11 @@ struct GLSLEnv_451d5252{
 
 // skipping Eq_553b4b8e, contains type variables
 
+/* -- generated -- */
+int V08045a1a(int n_0) {
+    return (n_0 + 3);
+}
+
 /**
 ```
 const h#15ece66a: (int) ={}> int = (m#:0: int) ={}> (m#:0 - 2)
@@ -47,21 +52,9 @@ int z_f4c397d2(
     return (m_0 + 2);
 }
 
-/**
-```
-const yy#5c747e1a: ((int) ={}> int, int, int) ={}> int = (
-    one#:0: (int) ={}> int,
-    z#:1: int,
-    b#:2: int,
-) ={}> one#:0((z#:1 + b#:2))
-```
-*/
-int yy_5c747e1a(
-    invalid_lambda one_0,
-    int z_1,
-    int b_2
-) {
-    return one_0((z_1 + b_2));
+/* -- generated -- */
+int yy_23283828(int z_1, int b_2) {
+    return V08045a1a((z_1 + b_2));
 }
 
 /* -- generated -- */
@@ -74,20 +67,9 @@ int yy_99328d90(int z_1, int b_2) {
     return z_f4c397d2((z_1 + b_2));
 }
 
-/**
-```
-const y#7df35068: ((int) ={}> int, int) ={}> int = (doit#:0: (int) ={}> int, v#:1: int) ={}> yy#5c747e1a(
-    doit#:0,
-    doit#:0((v#:1 * 2)),
-    5,
-)
-```
-*/
-int y_7df35068(
-    invalid_lambda doit_0,
-    int v_1
-) {
-    return yy_5c747e1a(doit_0, doit_0((v_1 * 2)), 5);
+/* -- generated -- */
+int y_8228f9e8(int v_1) {
+    return yy_23283828(V08045a1a((v_1 * 2)), 5);
 }
 
 /* -- generated -- */
@@ -135,9 +117,7 @@ vec4 Vtest_main(
 ) {
     bool t0_5 = (y_7f8ca5c4(30) == (((60 + 2) + 5) + 2));
     bool t1_6 = (y_270df8de(30) == (((60 - 2) + 5) - 2));
-    bool t2_7 = (y_7df35068(lambda-woops(n_0){
-        (n_0 + 3);
-    }, 30) == ((60 + 5) + 6));
+    bool t2_7 = (y_8228f9e8(30) == ((60 + 5) + 6));
     float size_3 = (env_1.resolution.x / 20.0);
     float size_4 = (size_3 * 0.40);
     if ((((t0_5 && (length((fragCoord_2 - (vec2(1.0, 1.0) * size_3))) < size_4)) || (t1_6 && (length(
