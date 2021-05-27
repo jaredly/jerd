@@ -18,6 +18,7 @@ import Cells, {
 } from './Cells';
 import DrawablePlugins from './display/Drawable';
 import StdioPlugins from './display/Stdio';
+import OpenGLPlugins from './display/OpenGL';
 import { initialState, saveState, stateToString } from './persistence';
 import Library from './Library';
 import { idName } from '@jerd/language/src/typing/env';
@@ -28,6 +29,7 @@ import { nullLocation } from '@jerd/language/src/parsing/parser';
 const defaultPlugins: Plugins = {
     ...DrawablePlugins,
     ...StdioPlugins,
+    ...OpenGLPlugins,
 };
 
 // Yea

@@ -96,7 +96,7 @@ export const drawableToSvg = (d: Drawable, i?: number) => {
     }
 };
 
-const wrapWithExecutaionLimit = (evalEnv: EvalEnv, fn: any) => {
+export const wrapWithExecutaionLimit = (evalEnv: EvalEnv, fn: any) => {
     return (...args: any) => {
         const need = evalEnv.executionLimit.enabled === false;
         // STOPSHIP: Because we're doing this synchronously,
