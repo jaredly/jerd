@@ -67,7 +67,7 @@ import {
 } from './typeScriptTypePrinter';
 import { effectConstructorType } from './ir/cps';
 import { getEnumReferences, showLocation } from '../typing/typeExpr';
-import { nullLocation } from '../parsing/parser';
+import { Location, nullLocation } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
@@ -728,7 +728,7 @@ export const generateShader = (
     irOpts: IOutputOptions,
     mainTerm: Id,
     buffers: Array<Id>,
-): string => {
+): { text: string; invalidLocs: Array<Location> } => {
     const items: Array<PP> = [
         pp.items([atom('#version 300 es')]),
         pp.items([atom('precision mediump float;')]),
@@ -915,9 +915,12 @@ export const generateShader = (
         );
     });
 
+    const invalidLocs: Array<Location> = [];
+
     inOrder.forEach((name) => {
         const loc = hasInvalidGLSL(irTerms[name].expr);
         if (loc) {
+            invalidLocs.push(loc);
             // throw new LocatedError(
             //     loc,
             //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
@@ -1043,7 +1046,10 @@ export const generateShader = (
         items.push(atom('#endif\n'));
     }
 
-    return items.map((item) => printToString(item, 100)).join('\n\n');
+    return {
+        invalidLocs,
+        text: items.map((item) => printToString(item, 100)).join('\n\n'),
+    };
 };
 
 export const fileToGlsl = (
@@ -1054,7 +1060,7 @@ export const fileToGlsl = (
     assert: boolean,
     includeImport: boolean,
     builtinNames: Array<string>,
-): string => {
+): { text: string; invalidLocs: Array<Location> } => {
     const buffers: Array<string> = [];
     Object.keys(env.global.metaData).forEach((k) => {
         const b = env.global.metaData[k].tags.filter((t) =>
@@ -1104,7 +1110,10 @@ export const fileToGlsl = (
             };
         } else {
             console.error(`No @main or tests defined!`);
-            return '// Error: No @main or tests defined';
+            return {
+                text: '// Error: No @main or tests defined',
+                invalidLocs: [],
+            };
         }
     }
 

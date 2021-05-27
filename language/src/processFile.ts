@@ -114,8 +114,18 @@ export const processFile = (
         );
 
         const glslDest = path.join(buildDir, path.basename(fname) + '.glsl');
-        writeFile(glslDest, pp);
+        writeFile(glslDest, pp.text);
         console.log('Wrote glsl to', chalk.green.bold(glslDest));
+        if (pp.invalidLocs.length) {
+            pp.invalidLocs.forEach((loc) => {
+                console.error(
+                    `Invalid GLSL (compiler bug) at: ${chalk.blue(
+                        `${fname}:${showLocation(loc, true)}`,
+                    )}`,
+                );
+            });
+            return false;
+        }
         return true;
     }
 

@@ -349,6 +349,7 @@ const main = (
                     ) === false
                 ) {
                     numFailures += 1;
+                    console.error(`❌ Failed to process ${chalk.blue(fname)}`);
                     return false;
                 }
             }
