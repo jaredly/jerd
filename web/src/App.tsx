@@ -9,7 +9,13 @@ import { Cell, Display, EvalEnv, Plugins, PluginT } from './State';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { printToString } from '@jerd/language/src/printing/printer';
 
-import Cells, { contentMatches, genId, blankCell } from './Cells';
+import Cells, {
+    contentMatches,
+    genId,
+    blankCell,
+    activeWorkspace,
+    modActiveWorkspace,
+} from './Cells';
 import DrawablePlugins from './display/Drawable';
 import StdioPlugins from './display/Stdio';
 import { initialState, saveState } from './persistence';
@@ -29,6 +35,7 @@ const defaultPlugins: Plugins = {
 export type Workspace = {
     name: string;
     cells: { [key: string]: Cell };
+    pins: Array<{ display: Display; id: Id }>;
     order: number;
 };
 
@@ -36,7 +43,6 @@ export type State = {
     env: Env;
     activeWorkspace: string;
     workspaces: { [key: string]: Workspace };
-    pins: Array<{ display: Display; id: Id }>;
     evalEnv: EvalEnv;
 };
 
@@ -68,6 +74,8 @@ export default () => {
             .filter(Boolean)
             .join('\n\n');
     };
+
+    const workspace = activeWorkspace(state);
 
     return (
         <div>
@@ -129,7 +137,7 @@ export default () => {
                 }}
             >
                 Pins
-                {state.pins.map((pin, i) => (
+                {workspace.pins.map((pin, i) => (
                     <div
                         key={i}
                         css={{
@@ -186,10 +194,14 @@ export default () => {
                                 marginLeft: 8,
                             }}
                             onClick={() =>
-                                setState((state) => ({
-                                    ...state,
-                                    pins: state.pins.filter((p) => p !== pin),
-                                }))
+                                setState(
+                                    modActiveWorkspace((workspace) => ({
+                                        ...workspace,
+                                        pins: workspace.pins.filter(
+                                            (p) => p !== pin,
+                                        ),
+                                    })),
+                                )
                             }
                         >
                             ╳

@@ -100,6 +100,9 @@ export const reprintToplevel = (
                 toplevel.def.unique,
                 tag ? tag.text : printed[0].wrapped.id.text,
             );
+            if (!defn) {
+                throw new Error(`No record defn`);
+            }
             nhash = hashObject(defn);
             retyped = {
                 ...toplevel,
@@ -112,6 +115,9 @@ export const reprintToplevel = (
             printed[0].type === 'EnumDef'
         ) {
             const defn = typeEnumInner(env, printed[0]);
+            if (!defn) {
+                throw new Error(`No enum defn`);
+            }
             nhash = hashObject(defn);
             retyped = {
                 ...toplevel,

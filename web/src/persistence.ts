@@ -48,6 +48,8 @@ export const initialState = (): State => {
                     default: {
                         name: 'Default',
                         // @ts-ignore
+                        pins: data.pins,
+                        // @ts-ignore
                         cells: data.cells,
                         order: 0,
                     },
@@ -55,6 +57,16 @@ export const initialState = (): State => {
                 data.activeWorkspace = 'default';
                 // @ts-ignore
                 delete data.cells;
+            }
+            // @ts-ignore
+            if (data.pins) {
+                Object.keys(data.workspaces).forEach((k) => {
+                    data.workspaces[k].pins = [];
+                });
+                // @ts-ignore
+                data.workspaces.default.pins = data.pins;
+                // @ts-ignore
+                delete data.pins;
             }
             // Fix env format change
             Object.keys(glob.typeNames).forEach((name) => {
@@ -129,7 +141,6 @@ export const initialState = (): State => {
                     // Reset the local env
                     local: newLocal(),
                 },
-                pins: data.pins || [],
                 evalEnv: {
                     builtins,
                     terms: data.evalEnv.terms,
@@ -147,10 +158,10 @@ export const initialState = (): State => {
             default: {
                 name: 'Default',
                 cells: {},
+                pins: [],
                 order: 0,
             },
         },
-        pins: [],
         evalEnv: {
             builtins,
             terms: {},

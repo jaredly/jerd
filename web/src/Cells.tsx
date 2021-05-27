@@ -80,6 +80,7 @@ const WorkspacePicker = ({
                                     ...state.workspaces,
                                     [id]: {
                                         name: 'New Workspace',
+                                        pins: [],
                                         cells: {},
                                         order: Object.keys(state.workspaces)
                                             .length,
@@ -156,15 +157,12 @@ const Cells = ({
                     evalEnv={state.evalEnv}
                     plugins={plugins}
                     onPin={(display, id) => {
-                        setState((state) => ({
-                            ...state,
-                            pins: state.pins.concat([
-                                {
-                                    display,
-                                    id,
-                                },
-                            ]),
-                        }));
+                        setState(
+                            modActiveWorkspace((workspace) => ({
+                                ...workspace,
+                                pins: workspace.pins.concat([{ display, id }]),
+                            })),
+                        );
                     }}
                     onRemove={() => {
                         setState(
@@ -227,6 +225,7 @@ const Cells = ({
                         );
                     }}
                     onChange={(env, cell) => {
+                        console.log('Change', cell);
                         setState((state) => {
                             const w = state.workspaces[state.activeWorkspace];
                             if (cell.content === w.cells[cell.id].content) {
@@ -236,7 +235,7 @@ const Cells = ({
                                         ...workspace.cells,
                                         [cell.id]: cell,
                                     },
-                                }))(state);
+                                }))({ ...state, env });
                             }
                             if (
                                 cell.content.type === 'expr' ||
@@ -284,7 +283,7 @@ const Cells = ({
                             return modActiveWorkspace((workspace) => ({
                                 ...workspace,
                                 cells: { ...workspace.cells, [cell.id]: cell },
-                            }))(state);
+                            }))({ ...state, env });
                         });
                     }}
                 />

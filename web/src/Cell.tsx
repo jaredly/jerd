@@ -660,9 +660,16 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
         };
     }
     if (content.type === 'record') {
+        const defn = env.global.types[idName(content.id)];
+        if (!defn) {
+            throw new Error(`No type info!`);
+        }
+        if (defn.type !== 'Record') {
+            throw new Error(`Type is not a record`);
+        }
         return {
             type: 'RecordDef',
-            def: env.global.types[idName(content.id)] as RecordDef,
+            def: defn,
             name: content.name,
             attrNames: content.attrs,
             location: nullLocation,
