@@ -176,7 +176,7 @@ TupleLiteral = "(" _ items:TupleItems _ ")" {
     }
     return {type: 'Tuple', location: location(), items}
 }
-TupleItems = first:Expression rest:(_ "," _ Expression)* {
+TupleItems = first:Expression rest:(_ "," _ Expression)* _ ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 

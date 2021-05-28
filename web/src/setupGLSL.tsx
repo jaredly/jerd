@@ -227,6 +227,13 @@ export const setup = (
                 });
 
                 gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers[i].fb);
+                gl.framebufferTexture2D(
+                    gl.FRAMEBUFFER,
+                    gl.COLOR_ATTACHMENT0,
+                    gl.TEXTURE_2D,
+                    frameBuffers[i].texture,
+                    0,
+                );
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
                 // const bound = bindUniforms(program);
