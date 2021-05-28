@@ -97,8 +97,10 @@ export default ({
     display,
     plugins,
     onSetPlugin,
+    maxWidth,
 }: {
     env: Env;
+    maxWidth: number;
     onSetPlugin: (plugin: Display | null) => void;
     contents: ToplevelT | string;
     onClose: () => void;
@@ -186,6 +188,7 @@ export default ({
                     // NOTE: this is ~uncontrolled at the moment.
                     value={text}
                     env={env}
+                    maxWidth={maxWidth}
                     contents={contents}
                     onChange={(text: string) => setText(text)}
                     onKeyDown={(evt: any) => {
@@ -267,7 +270,10 @@ export default ({
                 ) : typed == null ? null : (
                     renderAttributedText(
                         env.global,
-                        printToAttributedText(toplevelToPretty(env, typed), 50),
+                        printToAttributedText(
+                            toplevelToPretty(env, typed),
+                            maxWidth,
+                        ),
                     )
                 )}
                 {typed != null && (typed as any).id != null ? (

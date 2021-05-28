@@ -52,16 +52,29 @@ export type CellProps = {
 };
 
 const CellWrapper = ({
+    title,
     onRemove,
     onToggleSource,
     children,
 }: {
+    title: React.ReactNode;
     children: React.ReactNode;
     onRemove: () => void;
     onToggleSource: (() => void) | null | undefined;
 }) => {
     return (
         <div style={{ padding: 4, position: 'relative' }}>
+            <div
+                css={{
+                    backgroundColor: '#151515',
+                    padding: '8px 12px',
+                    marginBottom: 0,
+                    borderTopLeftRadius: 4,
+                    borderTopRightRadius: 4,
+                }}
+            >
+                {title}
+            </div>
             {children}
             <div
                 css={{
@@ -128,8 +141,13 @@ export const CellView = ({
     const [showSource, setShowSource] = React.useState(false);
     if (editing) {
         return (
-            <CellWrapper onRemove={onRemove} onToggleSource={null}>
+            <CellWrapper
+                onRemove={onRemove}
+                onToggleSource={null}
+                title={cellTitle(env, cell)}
+            >
                 <Editor
+                    maxWidth={maxWidth}
                     env={env}
                     plugins={plugins}
                     evalEnv={evalEnv}
@@ -168,6 +186,7 @@ export const CellView = ({
 
     return (
         <CellWrapper
+            title={cellTitle(env, cell)}
             onRemove={onRemove}
             onToggleSource={() => setShowSource(!showSource)}
         >
@@ -193,6 +212,19 @@ export const CellView = ({
             />
         </CellWrapper>
     );
+};
+
+const cellTitle = (env: Env, cell: Cell) => {
+    switch (cell.content.type) {
+        case 'raw':
+            return `[raw text, invalid syntax]`;
+        case 'effect':
+            return `effect ${cell.content.name}`;
+        case 'term':
+            return `term ${cell.content.name}`;
+        default:
+            return cell.content.type;
+    }
 };
 
 const getMatchingPlugins = (

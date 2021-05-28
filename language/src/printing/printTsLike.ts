@@ -183,8 +183,8 @@ export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
     return items([
         atom('const ', ['keyword']),
         idToPretty(env, id, 'term'),
-        atom(': '),
-        typeToPretty(env, term.is),
+        // atom(': '),
+        // typeToPretty(env, term.is),
         atom(' = '),
         termToPretty(env, term),
     ]);
@@ -406,6 +406,8 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         ]),
                     ),
                 ),
+                atom(': '),
+                typeToPretty(env, term.is.res),
                 atom(' ='),
                 args(
                     term.is.effects.map((e) => effToPretty(env, e)),

@@ -208,9 +208,14 @@ const handleTab = (shiftTab: boolean, root: HTMLElement) => {
     return false;
 };
 
-const determineHorizontalSize = () => {};
-
-export default ({ env, contents, value, onChange, onKeyDown }: any) => {
+export default ({
+    env,
+    contents,
+    value,
+    onChange,
+    onKeyDown,
+    maxWidth,
+}: any) => {
     const ref = React.useRef(null as HTMLDivElement | null);
     const set = React.useRef(false);
 
@@ -222,20 +227,20 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
         if (!ref.current || set.current) {
             return;
         }
-        const c = ref.current;
+        // const c = ref.current;
         set.current = true;
-        ref.current.innerHTML = '';
-        const s = document.createElement('span');
-        s.textContent = 'M';
-        ref.current.appendChild(s);
-        const w = s.getBoundingClientRect();
-        const full = ref.current.getBoundingClientRect();
-        const chars = Math.floor(full.width / w.width);
+        // ref.current.innerHTML = '';
+        // const s = document.createElement('span');
+        // s.textContent = 'M';
+        // ref.current.appendChild(s);
+        // const w = s.getBoundingClientRect();
+        // const full = ref.current.getBoundingClientRect();
+        // const chars = Math.floor(full.width / w.width);
         const parsed = maybeParse(env, value, contents);
         if (parsed) {
             ref.current.innerHTML = renderAttributedTextToHTML(
                 env.global,
-                printToAttributedText(toplevelToPretty(env, parsed), chars),
+                printToAttributedText(toplevelToPretty(env, parsed), maxWidth),
                 true,
             );
         } else {
@@ -253,7 +258,26 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
             }}
         >
             <div
-                ref={ref}
+                ref={(node) => {
+                    if (set.current || !node) {
+                        return;
+                    }
+                    set.current = true;
+                    const parsed = maybeParse(env, value, contents);
+                    if (parsed) {
+                        node.innerHTML = renderAttributedTextToHTML(
+                            env.global,
+                            printToAttributedText(
+                                toplevelToPretty(env, parsed),
+                                maxWidth,
+                            ),
+                            true,
+                        );
+                    } else {
+                        node.innerText = value;
+                    }
+                    node.focus();
+                }}
                 spellCheck="false"
                 autoCorrect="false"
                 autoCapitalize="false"
