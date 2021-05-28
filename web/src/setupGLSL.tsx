@@ -187,8 +187,12 @@ export const setup = (
     gl.enableVertexAttribArray(0);
 
     bufferPrograms.forEach(({ program, bound }, i) => {
-        console.log('render buffer', i);
         gl.useProgram(program);
+
+        bound.textureLocs.forEach((loc, i) => {
+            gl.uniform1i(loc, backBuffers[i].i);
+        });
+
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers[i].fb);
         gl.framebufferTexture2D(
             gl.FRAMEBUFFER,
@@ -202,8 +206,12 @@ export const setup = (
         // const bound = bindUniforms(program);
     });
 
-    console.log('render main');
     gl.useProgram(program);
+
+    bound.textureLocs.forEach((loc, i) => {
+        gl.uniform1i(loc, frameBuffers[i].i);
+    });
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     // clear & draw
     gl.clear(gl.COLOR_BUFFER_BIT);
