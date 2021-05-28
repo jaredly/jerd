@@ -46,6 +46,14 @@ import { inlint } from './inline';
 import { monoconstant } from './monoconstant';
 import { monomorphize } from './monomorphize';
 
+export type Optimizer = (
+    senv: Env,
+    irOpts: OutputOptions,
+    irTerms: Exprs,
+    irTerm: Expr,
+    id: Id,
+) => Expr;
+
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
 export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
@@ -101,18 +109,18 @@ export const optimize = (env: Env, expr: Expr): Expr => {
 
         flattenIffe,
 
-        removeUnusedVariables,
-        removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
-        foldConstantTuples,
-        removeSelfAssignments,
-        foldConstantAssignments,
-        foldSingleUseAssignments,
+        // removeUnusedVariables,
+        // removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
+        // foldConstantTuples,
+        // removeSelfAssignments,
+        // foldConstantAssignments,
+        // foldSingleUseAssignments,
         flattenNestedIfs,
         arraySlices,
         foldConstantAssignments,
         removeUnusedVariables,
         flattenNestedIfs,
-        flattenImmediateCalls,
+        // flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;

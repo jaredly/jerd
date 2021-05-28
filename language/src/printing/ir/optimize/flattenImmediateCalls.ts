@@ -35,6 +35,7 @@ import {
     Stmt,
     Tuple,
     Type,
+    typesEqual,
 } from '../types';
 import {
     bool,
@@ -45,6 +46,7 @@ import {
     pureFunction,
     typeFromTermType,
     var_,
+    void_,
 } from '../utils';
 import { and, asBlock, builtin, iffe } from '../utils';
 import { inlint } from './inline';
@@ -324,6 +326,45 @@ export const flattenLambda = (
     return stmts;
 };
 
+const flattenSingleLambda = (
+    env: Env,
+    expr: Expr,
+    prefixes: Array<Stmt>,
+): null | Expr => {
+    if (
+        expr.type !== 'apply' ||
+        expr.target.type !== 'lambda' ||
+        expr.target.body.type !== 'Block'
+    ) {
+        return null;
+    }
+    const stmts: Array<Stmt> = [];
+
+    const sym = typesEqual(expr.is, void_)
+        ? null
+        : newSym(env, `lambdaBlockResult`);
+
+    if (sym) {
+        stmts.push({
+            type: 'Define',
+            sym,
+            is: expr.is,
+            value: null,
+            fakeInit: true,
+            loc: expr.loc,
+        });
+        stmts.push(...flattenLambda(env, expr, expr.target, sym));
+    } else {
+        stmts.push(...flattenLambda(env, expr, expr.target, null));
+    }
+
+    prefixes = stmts.concat(prefixes);
+    // return stmts;
+    return sym
+        ? var_(sym, expr.loc, expr.is)
+        : { type: 'builtin', name: 'void', loc: expr.loc, is: void_ };
+};
+
 // STOPSHIP: Bail if there's a `return` that's not the last item of the lambda
 export const flattenDefineLambdas = (
     env: Env,
@@ -333,45 +374,39 @@ export const flattenDefineLambdas = (
     const result = transformStmt(stmt, {
         ...defaultVisitor,
         // Don't go into sub-blocks
-        block: (block) => {
+        block: (_) => {
             return false;
         },
-        // stmt: stmt => {
-        //     // don't recurse into stmts? I mean....
-        //     return false
-        // },
+        stmt: (stmt) => {
+            if (stmt.type === 'Return') {
+                const res = flattenSingleLambda(env, stmt.value, prefixes);
+                if (res != null) {
+                    if (typesEqual(stmt.value.is, void_)) {
+                        return [];
+                    }
+                    return { ...stmt, value: res };
+                }
+            } else if (stmt.type === 'Expression') {
+                const res = flattenSingleLambda(env, stmt.expr, prefixes);
+                if (res != null) {
+                    if (typesEqual(stmt.expr.is, void_)) {
+                        return [];
+                    }
+                    return { ...stmt, expr: res };
+                }
+            }
+            return null;
+        },
         expr: (expr) => {
             // Don't go into lambdas
             if (expr.type === 'lambda' || expr.type === 'handle') {
                 return false;
             }
-            if (
-                expr.type !== 'apply' ||
-                expr.target.type !== 'lambda' ||
-                expr.target.body.type !== 'Block'
-            ) {
-                return null;
+            const res = flattenSingleLambda(env, expr, prefixes);
+            if (res != null) {
+                return res;
             }
-
-            // if (hasNonFinalReturn(expr.target.body)) {
-            //     return null;
-            // }
-
-            const sym = newSym(env, `lambdaBlockResult`);
-            const stmts: Array<Stmt> = [];
-            stmts.push({
-                type: 'Define',
-                sym,
-                is: expr.is,
-                value: null,
-                fakeInit: true,
-                loc: expr.loc,
-            });
-            stmts.push(...flattenLambda(env, expr, expr.target, sym));
-
-            prefixes = stmts.concat(prefixes);
-            // return stmts;
-            return var_(sym, expr.loc, expr.is);
+            return null;
         },
     });
     if (!prefixes.length) {

@@ -5,34 +5,15 @@ import { presetEnv } from '../../../typing/preset';
 import { typeFile } from '../../../typing/typeFile';
 import { Env, Id, Term } from '../../../typing/types';
 import { assembleItemsForFile } from '../../glslPrinter';
+import { reUnique } from '../../typeScriptPrinterSimple';
 import { Expr, OutputOptions } from '../types';
-import { Exprs, removeUnusedVariables } from './optimize';
-
-const fixtures: { [key: string]: [string, string] } = {
-    basic: [
-        `{
-        const x = 10;
-        const y = 5;
-        y + 2
-    }`,
-        `{
-        const y = 5;
-        y + 2
-    }`,
-    ],
-};
+import { Exprs, Optimizer, removeUnusedVariables } from './optimize';
 
 const processTerm = (
     name: string,
     raw: string,
     initialEnv: Env,
-    optimization: (
-        senv: Env,
-        irOpts: OutputOptions,
-        irTerms: Exprs,
-        irTerm: Expr,
-        id: Id,
-    ) => Expr = (_1, _2, _3, expr, _5) => expr,
+    optimization: Optimizer = (_1, _2, _3, expr, _5) => expr,
 ): {
     inOrder: Array<string>;
     irTerms: Exprs;
@@ -69,23 +50,71 @@ const processTerm = (
 
 let initialEnv = presetEnv({});
 
-describe('removeUnusedVariable', () => {
-    Object.keys(fixtures).forEach((key) => {
-        it(key, () => {
-            const first = processTerm(
-                key,
-                fixtures[key][0],
-                initialEnv,
-                (env, opts, exprs, expr, id) =>
-                    removeUnusedVariables(env, expr),
-            );
-            const expected = processTerm(key, fixtures[key][1], initialEnv);
-            first.inOrder.forEach((id, i) => {
-                expect(withoutLocs(first.irTerms[id].expr)).toEqual(
-                    withoutLocs(expected.irTerms[expected.inOrder[i]].expr),
-                );
+const runFixture = (
+    key: string,
+    fixture: [string, string],
+    optimize: Optimizer,
+) => {
+    const first = processTerm(key, fixture[0], initialEnv, optimize);
+    const expected = processTerm(key, fixture[1], initialEnv);
+    first.inOrder.forEach((id, i) => {
+        expect(
+            withoutLocs(reUnique({ current: 0 }, first.irTerms[id].expr)),
+        ).toEqual(
+            withoutLocs(
+                reUnique(
+                    { current: 0 },
+                    expected.irTerms[expected.inOrder[i]].expr,
+                ),
+            ),
+        );
+    });
+};
+
+const testFixtures = (
+    name: string,
+    fixtures: { [key: string]: [string, string] },
+    optimize: Optimizer,
+) => {
+    describe(name, () => {
+        Object.keys(fixtures).forEach((key) => {
+            it(key, () => {
+                runFixture(key, fixtures[key], optimize);
             });
-            // expect(withoutLocations(first)).toEqual(withoutLocations(expected));
         });
     });
-});
+};
+
+testFixtures(
+    'removeUnusedVariable',
+    {
+        basic: [
+            `{
+        const x = 10;
+        const y = 5;
+        y + 2
+    }`,
+            `{
+        const y = 5;
+        y + 2
+    }`,
+        ],
+        acrossLambda: [
+            `{
+            const x = 10;
+            const y = 11;
+            (y: int) => {
+                const z = x;
+                x + 2 + y
+            }
+        }`,
+            `{
+            const x = 10;
+            (y: int) => {
+                x + 2 + y
+            }
+        }`,
+        ],
+    },
+    (env, opts, exprs, expr, id) => removeUnusedVariables(env, expr),
+);
