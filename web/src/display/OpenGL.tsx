@@ -186,13 +186,13 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
 
     const timer = React.useRef(0);
 
-    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
     const currentMousePos = React.useRef(mousePos);
     currentMousePos.current = mousePos;
 
-    React.useEffect(() => {
-        if (!canvas || paused || !shaders) {
-            return;
+    const updateFn = React.useMemo(() => {
+        if (!canvas || !shaders) {
+            return null;
         }
         const ctx = canvas.getContext('webgl2');
         if (!ctx) {
@@ -206,22 +206,40 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
                 currentMousePos.current,
                 shaders.slice(1).map((shader) => shader.text),
             );
-            let tid: any;
-            let last = Date.now();
-            const fn = () => {
-                const now = Date.now();
-                timer.current += (now - last) / 1000;
-                last = now;
-                update(timer.current, currentMousePos.current);
-                tid = requestAnimationFrame(fn);
-            };
-            tid = requestAnimationFrame(fn);
-            return () => cancelAnimationFrame(tid);
+            // let tid: any;
+            // let last = Date.now();
+            // const fn = () => {
+            //     const now = Date.now();
+            //     timer.current += (now - last) / 1000;
+            //     last = now;
+            //     update(timer.current, currentMousePos.current);
+            //     tid = requestAnimationFrame(fn);
+            // };
+            // tid = requestAnimationFrame(fn);
+            // return () => cancelAnimationFrame(tid);
+            return update;
         } catch (err) {
             console.log(err);
             setError(err);
         }
-    }, [canvas, shaders, paused]);
+    }, [canvas, shaders]);
+
+    React.useEffect(() => {
+        if (!updateFn || paused) {
+            return;
+        }
+        let tid: any;
+        let last = Date.now();
+        const fn = () => {
+            const now = Date.now();
+            timer.current += (now - last) / 1000;
+            last = now;
+            updateFn(timer.current, currentMousePos.current);
+            tid = requestAnimationFrame(fn);
+        };
+        tid = requestAnimationFrame(fn);
+        return () => cancelAnimationFrame(tid);
+    }, [updateFn, paused]);
 
     if (error != null) {
         return (
@@ -259,6 +277,7 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
                     setMousePos({
                         x: (evt.clientX - box.left) * 2,
                         y: (box.height - (evt.clientY - box.top)) * 2,
+                        button: evt.button != null ? evt.button : -1,
                     });
                 }}
                 ref={(node) => {
@@ -295,7 +314,7 @@ const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
 
     const timer = React.useRef(0);
 
-    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
     const currentMousePos = React.useRef(mousePos);
     currentMousePos.current = mousePos;
 
@@ -366,6 +385,7 @@ const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
                     setMousePos({
                         x: (evt.clientX - box.left) * 2,
                         y: (box.height - (evt.clientY - box.top)) * 2,
+                        button: evt.button,
                     });
                 }}
                 ref={(node) => {
