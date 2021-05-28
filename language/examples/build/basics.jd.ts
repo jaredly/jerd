@@ -37,11 +37,11 @@ export const hash_1d302ade: (arg_0: string) => (arg_0:
   handleSimpleShallow2<any, any, any>("22024b72", fn, [(handlers$15000, _, k$3:
   /*from cps lambda*/
   (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void) => {
-    result = hash_1d302ade(responseValue + ".")((handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
+    result = (() => hash_1d302ade(responseValue + ".")((handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
       k$3(responseValue, handlers, (handlers: Handlers, returnValue: string) => done(handlers, returnValue));
-    });
+    }))();
   }], (handlers: Handlers, a$2: string) => {
-    result = a$2;
+    result = (() => a$2)();
   });
   return result;
 };
@@ -78,11 +78,11 @@ export const hash_8366c3ec: (arg_0: string) => (arg_0: string, arg_1:
   }, [(handlers, _, k$4:
   /*from cps lambda*/
   (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void) => {
-    result$5 = hash_1d302ade(responseValue + ".")((handlers: Handlers, done$9: (arg_0: Handlers, arg_1: string) => void) => {
+    result$5 = (() => hash_1d302ade(responseValue + ".")((handlers: Handlers, done$9: (arg_0: Handlers, arg_1: string) => void) => {
       k$4(responseValue, handlers, (handlers: Handlers, returnValue$11: string) => done$9(handlers, returnValue$11));
-    });
+    }))();
   }], (handlers: Handlers, a$3: string) => {
-    result$5 = a$3;
+    result$5 = (() => a$3)();
   });
   return result$5;
 };

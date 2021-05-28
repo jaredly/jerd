@@ -9,7 +9,7 @@ import { loadBuiltins } from './loadBuiltins';
 import preludeRaw from './prelude.jd';
 
 export const loadPrelude = (builtins: { [key: string]: Type }): GlobalEnv => {
-    console.log('preludeRaw', preludeRaw.slice(0, 100));
+    // console.log('preludeRaw', preludeRaw.slice(0, 100));
     const parsed = parse(preludeRaw);
     // const typedBuiltins: { [key: string]: Type } = {};
     // const builtins = loadBuiltins();

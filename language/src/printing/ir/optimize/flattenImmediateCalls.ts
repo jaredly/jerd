@@ -1,4 +1,5 @@
 import { idFromName, idName, newSym } from '../../../typing/env';
+import { LocatedError } from '../../../typing/errors';
 import { showLocation } from '../../../typing/typeExpr';
 import {
     Env,
@@ -28,6 +29,7 @@ import {
     Expr,
     isTerm,
     LambdaExpr,
+    Loc,
     OutputOptions,
     Record,
     RecordSubType,
@@ -90,6 +92,108 @@ export const hasNonFinalReturn = (block: Block) => {
         },
     });
     return hasNonFinalReturn;
+};
+
+export const addContinueChecks = (
+    env: Env,
+    done: Symbol,
+    body: Stmt,
+    loc: Loc,
+    touched: Array<Stmt>,
+): Block => {
+    return transformStmt(body, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (expr.type === 'lambda' || expr.type === 'handle') {
+                return false;
+            }
+            return null;
+        },
+        block: (block) => {
+            if (touched.includes(block)) {
+                return null;
+            }
+            if (!hasTrailingItems(block)) {
+                return null;
+            }
+            // START HERE:
+            // I think a more precise version of this would be:
+            // A; if B {}; C; if D {}; E
+            // becomes
+            // A; if B {}; if continueBlock { if D {}; if continueBlock { E } }
+            // They need to be nested.
+            // This should be a STOPSHIP, as I'm sure some things are broken..
+
+            block.items[0].type;
+
+            // AND NEXT: These won't work for `loop`s -- I need to add a `break` as well
+            // as the assign.
+            // How do I know that I'm in a loop?
+            const res: Array<Stmt> = [];
+            for (let i = 0; i < block.items.length; i++) {
+                const at = i;
+                const stmt = block.items[i];
+                if (stmt.type !== 'if') {
+                    const nonifs: Array<Stmt> = [stmt];
+                    while (
+                        i < block.items.length - 1 &&
+                        block.items[i + 1].type !== 'if'
+                    ) {
+                        i++;
+                        nonifs.push(block.items[i]);
+                    }
+                    if (at === 0) {
+                        res.push(...nonifs);
+                        continue;
+                    }
+                    const yes: Block = {
+                        type: 'Block',
+                        items: nonifs,
+                        loc: loc,
+                    };
+                    touched.push(yes);
+
+                    res.push({
+                        type: 'if',
+                        cond: var_(done, loc, bool),
+                        yes,
+                        no: null,
+                        loc: loc,
+                    });
+                } else {
+                    if (at === 0) {
+                        res.push(stmt);
+                        continue;
+                    }
+                    res.push({
+                        ...stmt,
+                        cond: callExpression(
+                            env,
+                            builtin(
+                                '&&',
+                                loc,
+                                pureFunction([bool, bool], bool),
+                            ),
+                            [var_(done, loc, bool), stmt.cond],
+                            loc,
+                        ),
+                    });
+                }
+            }
+            const newBlock = { ...block, items: res };
+            touched.push(newBlock);
+            return newBlock;
+        },
+    }) as Block;
+};
+
+const hasTrailingItems = (block: Block) => {
+    return block.items.find((item, i) => {
+        if (item.type === 'if' || item.type === 'Loop') {
+            return i < block.items.length - 1;
+        }
+        return false;
+    });
 };
 
 export const flattenLambda = (
@@ -163,103 +267,19 @@ export const flattenLambda = (
         },
     });
 
-    const hasTrailingItems = (block: Block) => {
-        return block.items.find((item, i) => {
-            if (item.type === 'if' || item.type === 'Loop') {
-                return i < block.items.length - 1;
-            }
-            return false;
-        });
-    };
     // const wrapItems = (items: Array<Stmt>, inLoop: boolean) => {
     //     // What do we look for? trailing items after an "if" or a "loop"
     // };
 
     // Add the "if continueBlock" everywhere.
-    const body = transformStmt(target.body, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            if (expr.type === 'lambda') {
-                return false;
-            }
-            return null;
-        },
-        block: (block) => {
-            if (touched.includes(block)) {
-                return null;
-            }
-            if (!hasTrailingItems(block)) {
-                return null;
-            }
-            // START HERE:
-            // I think a more precise version of this would be:
-            // A; if B {}; C; if D {}; E
-            // becomes
-            // A; if B {}; if continueBlock { if D {}; if continueBlock { E } }
-            // They need to be nested.
-            // This should be a STOPSHIP, as I'm sure some things are broken..
+    const body = addContinueChecks(
+        env,
+        done,
+        target.body,
+        target.loc,
+        touched,
+    ) as Block;
 
-            block.items[0].type;
-
-            // AND NEXT: These won't work for `loop`s -- I need to add a `break` as well
-            // as the assign.
-            // How do I know that I'm in a loop?
-            const res: Array<Stmt> = [];
-            for (let i = 0; i < block.items.length; i++) {
-                const at = i;
-                const stmt = block.items[i];
-                if (stmt.type !== 'if') {
-                    const nonifs: Array<Stmt> = [stmt];
-                    while (
-                        i < block.items.length - 1 &&
-                        block.items[i + 1].type !== 'if'
-                    ) {
-                        i++;
-                        nonifs.push(block.items[i]);
-                    }
-                    if (at === 0) {
-                        res.push(...nonifs);
-                        continue;
-                    }
-                    const yes: Block = {
-                        type: 'Block',
-                        items: nonifs,
-                        loc: target.loc,
-                    };
-                    touched.push(yes);
-
-                    res.push({
-                        type: 'if',
-                        cond: var_(done, target.loc, bool),
-                        yes,
-                        no: null,
-                        loc: target.loc,
-                    });
-                } else {
-                    if (at === 0) {
-                        res.push(stmt);
-                        continue;
-                    }
-                    res.push({
-                        ...stmt,
-                        cond: callExpression(
-                            env,
-                            builtin(
-                                '&&',
-                                target.loc,
-                                pureFunction([bool, bool], bool),
-                            ),
-                            [var_(done, target.loc, bool), stmt.cond],
-                            target.loc,
-                        ),
-                    });
-                }
-            }
-            const newBlock = { ...block, items: res };
-            touched.push(newBlock);
-            return newBlock;
-        },
-    }) as Block;
     body.items.forEach((item) => {
         const result = transformStmt(item, {
             ...defaultVisitor,
@@ -324,13 +344,14 @@ export const flattenLambda = (
         stmts.push(...results);
     });
     return stmts;
+    // return [target.body];
 };
 
 const flattenSingleLambda = (
     env: Env,
     expr: Expr,
     prefixes: Array<Stmt>,
-): null | Expr => {
+): null | { prefixes: Array<Stmt>; res: Expr | null } => {
     if (
         expr.type !== 'apply' ||
         expr.target.type !== 'lambda' ||
@@ -339,6 +360,10 @@ const flattenSingleLambda = (
         return null;
     }
     const stmts: Array<Stmt> = [];
+
+    // if (true) {
+    //     return null;
+    // }
 
     const sym = typesEqual(expr.is, void_)
         ? null
@@ -353,16 +378,12 @@ const flattenSingleLambda = (
             fakeInit: true,
             loc: expr.loc,
         });
-        stmts.push(...flattenLambda(env, expr, expr.target, sym));
-    } else {
-        stmts.push(...flattenLambda(env, expr, expr.target, null));
     }
+    stmts.push(...flattenLambda(env, expr, expr.target, sym));
 
     prefixes = stmts.concat(prefixes);
     // return stmts;
-    return sym
-        ? var_(sym, expr.loc, expr.is)
-        : { type: 'builtin', name: 'void', loc: expr.loc, is: void_ };
+    return { prefixes, res: sym ? var_(sym, expr.loc, expr.is) : null };
 };
 
 // STOPSHIP: Bail if there's a `return` that's not the last item of the lambda
@@ -371,6 +392,7 @@ export const flattenDefineLambdas = (
     stmt: Stmt,
 ): Array<Stmt> | Stmt => {
     let prefixes: Array<Stmt> = [];
+
     const result = transformStmt(stmt, {
         ...defaultVisitor,
         // Don't go into sub-blocks
@@ -381,30 +403,42 @@ export const flattenDefineLambdas = (
             if (stmt.type === 'Return') {
                 const res = flattenSingleLambda(env, stmt.value, prefixes);
                 if (res != null) {
-                    if (typesEqual(stmt.value.is, void_)) {
+                    prefixes = res.prefixes;
+                    if (res.res) {
+                        return { ...stmt, value: res.res };
+                    } else {
                         return [];
                     }
-                    return { ...stmt, value: res };
                 }
             } else if (stmt.type === 'Expression') {
                 const res = flattenSingleLambda(env, stmt.expr, prefixes);
                 if (res != null) {
-                    if (typesEqual(stmt.expr.is, void_)) {
+                    prefixes = res.prefixes;
+                    if (res.res) {
+                        return { ...stmt, value: res.res };
+                    } else {
                         return [];
                     }
-                    return { ...stmt, expr: res };
                 }
             }
             return null;
         },
         expr: (expr) => {
-            // Don't go into lambdas
+            // Don't go into lambdas or handles
             if (expr.type === 'lambda' || expr.type === 'handle') {
                 return false;
             }
             const res = flattenSingleLambda(env, expr, prefixes);
             if (res != null) {
-                return res;
+                prefixes = res.prefixes;
+                if (res.res) {
+                    return res.res;
+                } else {
+                    throw new LocatedError(
+                        expr.loc,
+                        `Got to an expr, and the value is void....`,
+                    );
+                }
             }
             return null;
         },
@@ -485,6 +519,9 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
         },
 
         expr: (expr) => {
+            if (expr.type === 'handle') {
+                return false;
+            }
             // TODO: huh should I just remove the "lambda body is expr" case
             // from the IR? that would simplify some things.
             if (expr.type === 'lambda' && expr.body.type !== 'Block') {

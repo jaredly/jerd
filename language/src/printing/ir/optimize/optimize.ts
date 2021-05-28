@@ -106,21 +106,19 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         // OK so this iffe thing is still the only thing
         // helping us with the `if` at the end of
         // shortestDistanceToSurface
-
         flattenIffe,
-
-        // removeUnusedVariables,
-        // removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
-        // foldConstantTuples,
-        // removeSelfAssignments,
-        // foldConstantAssignments,
-        // foldSingleUseAssignments,
+        removeUnusedVariables,
+        removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
+        foldConstantTuples,
+        removeSelfAssignments,
+        foldConstantAssignments,
+        foldSingleUseAssignments,
         flattenNestedIfs,
         arraySlices,
         foldConstantAssignments,
         removeUnusedVariables,
         flattenNestedIfs,
-        // flattenImmediateCalls,
+        flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(env, expr)));
     return expr;
