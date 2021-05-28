@@ -638,6 +638,18 @@ export const assembleItemsForFile = (
     requiredIds: Array<string>,
     irOpts: IOutputOptions,
     builtins: { [key: string]: ir.Expr },
+    optimization = (
+        senv: Env,
+        irOpts: IOutputOptions,
+        irTerms: Exprs,
+        irTerm: Expr,
+        id: Id,
+    ) => {
+        irTerm = explicitSpreads(senv, irOpts, irTerm);
+        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        irTerm = optimizeDefine(senv, irTerm, id);
+        return irTerm;
+    },
 ) => {
     const orderedTerms = expressionDeps(env, required);
 
@@ -678,6 +690,7 @@ export const assembleItemsForFile = (
             ).wrap(err);
             throw outer;
         }
+        // irTerm = runOptimizations(senv, irTerms, irOpts, irTerm, id)
         irTerm = explicitSpreads(senv, irOpts, irTerm);
         irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         irTerm = optimizeDefine(senv, irTerm, id);
@@ -706,6 +719,9 @@ export const assembleItemsForFile = (
         }
         usedAfterOpt[next] = true;
         const deps: { [key: string]: true } = {};
+        if (!irTerms[next]) {
+            throw new Error(`Not found in irTerms: ${next}`);
+        }
         transformExpr(irTerms[next].expr, {
             ...defaultVisitor,
             expr: (expr) => {

@@ -64,6 +64,9 @@ export const typeToplevelT = (
         }
         case 'StructDef': {
             const defn = typeRecordDefn(env, item, unique);
+            if (!defn) {
+                throw new Error(`No record defn`);
+            }
             const hash = hashObject(defn);
             return {
                 type: 'RecordDef',
@@ -451,6 +454,38 @@ export const typeRecord = (
 
 export const hashObject = (obj: any): string =>
     hashObjectSum(withoutLocations(obj));
+
+export const withoutLocs = <T>(obj: T): T => {
+    if (!obj) {
+        return obj;
+    }
+    if (Array.isArray(obj)) {
+        return (obj as any).map(withoutLocs);
+    }
+    if (typeof obj === 'object') {
+        const res: any = {};
+        Object.keys(obj).forEach((key) => {
+            if (key === 'loc') {
+                return;
+            }
+            // It's a symbol, ditch it for the purposes of hashing
+            // @ts-ignore
+            if (key === 'name' && obj.unique != null) {
+                return;
+            }
+            // Whether an attribute target was inferred or not
+            // shouldn't impact the hash.
+            // @ts-ignore
+            if (key === 'inferred' && obj.type === 'Attribute') {
+                return;
+            }
+            // @ts-ignore
+            res[key] = withoutLocs(obj[key]);
+        });
+        return res;
+    }
+    return obj;
+};
 
 export const withoutLocations = <T>(obj: T): T => {
     if (!obj) {

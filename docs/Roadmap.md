@@ -89,8 +89,28 @@ HMMmmmmm I want ... and optimization debugger
 
 ## Papercuts in the editor
 
-- [ ] fix printing of custom binops
+- [x] fix printing of custom binops
 - [x] do something about the proliferation of all those IDs. Do I have to make a more complicated editor? Or just elide the ones that can be unambiguously inferred? Yeah maybe that's the ticket.
+
+## Let's try some SDF raymarching in the editor!
+
+- [ ] FIX optimization that's making this basic raymarch not work...
+- [ ] FIX optimization that's breaking normal js examples
+  - [ ] let's have a `test-optimizer` that tries running each optimizer pass individually (?) to verify that they're making changes that are sane? idk. I'd also really like to have some fixture tests or something. But maybe that would mean ... making a pretty-printer for the ir.Expr?
+
+- [ ] ohmygosh allow me to type attr names for my function type, it's fine.
+- [ ] parsing of #self in the editor seems not to be working? Oh it's that we're not printing `rec` correctly. Got to do that.
+- [ ] infer lambda arguments from point of use pleeeease
+
+- [ ] hover of things should pull up a floater that you can click to open a thing
+- [ ] opening a cell *should focus it & scroll into view, gosh* (it should also be opened right below the current thing)
+- [ ] drag & drop to reorder cells probably?
+
+- [ ] might be nice to have "templates"? idk, like prefill for me the GLSLEnv, coord dealio.
+- [ ] fix tab to actually work
+
+
+
 - [ ] add grabbable sliders for twiddling constants!
 
 ## Fancier type error goodness!

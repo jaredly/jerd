@@ -135,7 +135,7 @@ float sceneSDF_c6d72c68(
 }
 
 /* -- generated -- */
-vec3 estimateNormal_3f2ebd4c(float iTime_1, vec3 p_2) {
+vec3 estimateNormal_40a3a8ce(float iTime_1, vec3 p_2) {
     return normalize(
         vec3(
             (sceneSDF_c6d72c68(iTime_1, vec3((p_2.x + EPSILON_ec7f8d1c), p_2.y, p_2.z)) - sceneSDF_c6d72c68(
@@ -155,7 +155,7 @@ vec3 estimateNormal_3f2ebd4c(float iTime_1, vec3 p_2) {
 }
 
 /* -- generated -- */
-vec3 phongContribForLight_4e6960d8(
+vec3 phongContribForLight_21423d9e(
     float iTime_1,
     vec3 k_d_2,
     vec3 k_s_3,
@@ -165,7 +165,7 @@ vec3 phongContribForLight_4e6960d8(
     vec3 lightPos_7,
     vec3 lightIntensity_8
 ) {
-    vec3 N_9 = estimateNormal_3f2ebd4c(iTime_1, p_5);
+    vec3 N_9 = estimateNormal_40a3a8ce(iTime_1, p_5);
     vec3 L_10 = normalize((lightPos_7 - p_5));
     float dotLN_13 = dot(L_10, N_9);
     if ((dotLN_13 < 0.0)) {
@@ -181,7 +181,7 @@ vec3 phongContribForLight_4e6960d8(
 }
 
 /* -- generated -- */
-vec3 phongIllumination_29df14b8(
+vec3 phongIllumination_62174ae2(
     float iTime_1,
     vec3 k_a_2,
     vec3 k_d_3,
@@ -190,7 +190,7 @@ vec3 phongIllumination_29df14b8(
     vec3 p_6,
     vec3 eye_7
 ) {
-    return ((((0.50 * vec3(1.0, 1.0, 1.0)) * k_a_2) + phongContribForLight_4e6960d8(
+    return ((((0.50 * vec3(1.0, 1.0, 1.0)) * k_a_2) + phongContribForLight_21423d9e(
         iTime_1,
         k_d_3,
         k_s_4,
@@ -199,7 +199,7 @@ vec3 phongIllumination_29df14b8(
         eye_7,
         vec3((4.0 * sin(iTime_1)), 2.0, (4.0 * cos(iTime_1))),
         vec3(0.40, 0.40, 0.40)
-    )) + phongContribForLight_4e6960d8(
+    )) + phongContribForLight_21423d9e(
         iTime_1,
         k_d_3,
         k_s_4,
@@ -226,7 +226,7 @@ const MIN_DIST#f2cd39b8: float = 0.0
 const float MIN_DIST_f2cd39b8 = 0.0;
 
 /* -- generated -- */
-float shortestDistanceToSurface_2fe5d070(
+float shortestDistanceToSurface_0ca24bb0(
     float iTime_1,
     vec3 eye_2,
     vec3 marchingDirection_3,
@@ -286,10 +286,10 @@ const MAX_MARCHING_STEPS#62404440: int = 255
 const int MAX_MARCHING_STEPS_62404440 = 255;
 
 /* -- generated -- */
-vec4 phongLit_1302c65c(GLSLEnv_451d5252 env_1, vec2 fragCoord_2) {
+vec4 phongLit_7dbfe64a(GLSLEnv_451d5252 env_1, vec2 fragCoord_2) {
     vec3 dir_3 = rayDirection_6258178a(45.0, env_1.resolution, fragCoord_2);
     vec3 eye_4 = vec3(0.0, 0.0, 5.0);
-    float dist_5 = shortestDistanceToSurface_2fe5d070(
+    float dist_5 = shortestDistanceToSurface_0ca24bb0(
         env_1.time,
         eye_4,
         dir_3,
@@ -300,7 +300,7 @@ vec4 phongLit_1302c65c(GLSLEnv_451d5252 env_1, vec2 fragCoord_2) {
     if ((dist_5 > (MAX_DIST_0ce717e6 - EPSILON_ec7f8d1c))) {
         return vec4(vec3(0.0), 1.0);
     } else {
-        vec3 color_11 = phongIllumination_29df14b8(
+        vec3 color_11 = phongIllumination_62174ae2(
             env_1.time,
             vec3(0.90, 0.20, 0.30),
             vec3(0.0, 0.20, 0.70),
@@ -334,7 +334,7 @@ vec4 randFolks_220f14aa(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1
 ) {
-    return phongLit_1302c65c(env_0, fragCoord_1);
+    return phongLit_7dbfe64a(env_0, fragCoord_1);
 }
 
 void main() {
