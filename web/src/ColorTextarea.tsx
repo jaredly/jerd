@@ -116,6 +116,100 @@ const getCode = (root: ChildNode) => {
     return res;
 };
 
+const handleTab = (shiftTab: boolean, root: HTMLElement) => {
+    const sel = window.getSelection();
+    if (!sel || !sel.anchorNode) {
+        return;
+    }
+    if (shiftTab) {
+        const pos = getPosition(
+            root,
+            sel.anchorNode as HTMLElement,
+            getOffset(sel.anchorNode as HTMLElement, sel.anchorOffset),
+        );
+        const start = selectPosition(root, pos - 4);
+        if (typeof start === 'number') {
+            return console.error(`Could not find selection pos`, pos - 4);
+        }
+
+        const range = new Range();
+        range.setStart(start.node, start.at);
+        range.setEnd(sel.anchorNode, sel.anchorOffset);
+        if (range.toString() === '    ') {
+            range.deleteContents();
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        } else {
+            console.log('nope', start, JSON.stringify(range.toString()));
+        }
+        return;
+    }
+    if (sel.isCollapsed) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode('    '));
+        range.collapse(false);
+    } else {
+        const pos = getPosition(
+            root,
+            sel.anchorNode as HTMLElement,
+            sel.anchorOffset,
+        );
+        console.log(`position!`, pos);
+        const lines = root.textContent!.split('\n');
+        let last = 0;
+        for (
+            let i = 0;
+            i < lines.length && last + lines[i].length <= pos;
+            i++
+        ) {
+            last += lines[i].length + 1;
+        }
+        console.log('newline at', last);
+        const res = selectPosition(root, last);
+        if (typeof res === 'number') {
+            return console.error(`Could not find selection pos`, last);
+        }
+        sel.removeAllRanges();
+        const range = new Range();
+        range.setStart(res.node, res.at);
+        range.setEnd(res.node, res.at);
+        sel.addRange(range);
+    }
+
+    // console.log(evt.currentTarget, evt.target);
+    // const sel = document.getSelection();
+    // if (!sel || !sel.anchorNode) {
+    //     return;
+    // }
+    // console.log(sel);
+    // const node = document.createElement('span');
+    // node.textContent = '    ';
+    // if (sel.anchorNode.nodeName === '#text') {
+    //     const parent = sel.anchorNode.parentElement;
+    //     if (parent) {
+    //         parent.insertBefore(
+    //             node,
+    //             sel.anchorNode.nextSibling,
+    //         );
+    //     }
+    // } else {
+    //     sel.anchorNode.insertBefore(
+    //         node,
+    //         sel.anchorNode.childNodes[sel.anchorOffset],
+    //     );
+    // }
+    // const range = document.createRange();
+    // range.setStart(node.childNodes[0], 4);
+    // range.collapse();
+    // sel.removeAllRanges();
+    // sel.addRange(range);
+    return false;
+};
+
+const determineHorizontalSize = () => {};
+
 export default ({ env, contents, value, onChange, onKeyDown }: any) => {
     const ref = React.useRef(null as HTMLDivElement | null);
     const set = React.useRef(false);
@@ -138,7 +232,6 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
         const full = ref.current.getBoundingClientRect();
         const chars = Math.floor(full.width / w.width);
         const parsed = maybeParse(env, value, contents);
-        console.log('horizontal chars', chars);
         if (parsed) {
             ref.current.innerHTML = renderAttributedTextToHTML(
                 env.global,
@@ -155,7 +248,7 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
             style={{
                 padding: 8,
                 position: 'relative',
-                backgroundColor: '#2b2b2b',
+                backgroundColor: '#151515',
                 borderRadius: 4,
             }}
         >
@@ -210,111 +303,8 @@ export default ({ env, contents, value, onChange, onKeyDown }: any) => {
                     if (evt.key === 'Tab') {
                         evt.preventDefault();
                         evt.stopPropagation();
-
-                        const sel = window.getSelection();
-                        if (!sel || !sel.anchorNode) {
-                            return;
-                        }
                         const root = evt.currentTarget;
-                        if (evt.shiftKey) {
-                            const pos = getPosition(
-                                root,
-                                sel.anchorNode as HTMLElement,
-                                getOffset(
-                                    sel.anchorNode as HTMLElement,
-                                    sel.anchorOffset,
-                                ),
-                            );
-                            const start = selectPosition(root, pos - 4);
-                            if (typeof start === 'number') {
-                                return console.error(
-                                    `Could not find selection pos`,
-                                    pos - 4,
-                                );
-                            }
-
-                            const range = new Range();
-                            range.setStart(start.node, start.at);
-                            range.setEnd(sel.anchorNode, sel.anchorOffset);
-                            if (range.toString() === '    ') {
-                                range.deleteContents();
-                                range.collapse(true);
-                                sel.removeAllRanges();
-                                sel.addRange(range);
-                            } else {
-                                console.log(
-                                    'nope',
-                                    start,
-                                    JSON.stringify(range.toString()),
-                                );
-                            }
-                            return;
-                        }
-                        if (sel.isCollapsed) {
-                            const range = sel.getRangeAt(0);
-                            range.deleteContents();
-                            range.insertNode(document.createTextNode('    '));
-                            range.collapse(false);
-                        } else {
-                            const pos = getPosition(
-                                root,
-                                sel.anchorNode as HTMLElement,
-                                sel.anchorOffset,
-                            );
-                            console.log(`position!`, pos);
-                            const lines = root.textContent!.split('\n');
-                            let last = 0;
-                            for (
-                                let i = 0;
-                                i < lines.length &&
-                                last + lines[i].length <= pos;
-                                i++
-                            ) {
-                                last += lines[i].length + 1;
-                            }
-                            console.log('newline at', last);
-                            const res = selectPosition(root, last);
-                            if (typeof res === 'number') {
-                                return console.error(
-                                    `Could not find selection pos`,
-                                    last,
-                                );
-                            }
-                            sel.removeAllRanges();
-                            const range = new Range();
-                            range.setStart(res.node, res.at);
-                            range.setEnd(res.node, res.at);
-                            sel.addRange(range);
-                        }
-
-                        // console.log(evt.currentTarget, evt.target);
-                        // const sel = document.getSelection();
-                        // if (!sel || !sel.anchorNode) {
-                        //     return;
-                        // }
-                        // console.log(sel);
-                        // const node = document.createElement('span');
-                        // node.textContent = '    ';
-                        // if (sel.anchorNode.nodeName === '#text') {
-                        //     const parent = sel.anchorNode.parentElement;
-                        //     if (parent) {
-                        //         parent.insertBefore(
-                        //             node,
-                        //             sel.anchorNode.nextSibling,
-                        //         );
-                        //     }
-                        // } else {
-                        //     sel.anchorNode.insertBefore(
-                        //         node,
-                        //         sel.anchorNode.childNodes[sel.anchorOffset],
-                        //     );
-                        // }
-                        // const range = document.createRange();
-                        // range.setStart(node.childNodes[0], 4);
-                        // range.collapse();
-                        // sel.removeAllRanges();
-                        // sel.addRange(range);
-                        return false;
+                        handleTab(evt.shiftKey, root);
                     }
                     onKeyDown(evt);
                 }}

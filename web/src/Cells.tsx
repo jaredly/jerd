@@ -136,6 +136,36 @@ const Cells = ({
     setState: (fn: (s: State) => State) => void;
 }) => {
     const work = activeWorkspace(state);
+
+    const tester = React.useRef(null as null | HTMLDivElement);
+    const container = React.useRef(null as null | HTMLDivElement);
+
+    const [maxWidth, setMaxWidth] = React.useState(80);
+
+    React.useEffect(() => {
+        const fn = () => {
+            console.log('fn here');
+            if (!tester.current || !container.current) {
+                console.log('inner nope');
+                return;
+            }
+            const div = tester.current;
+            const root = container.current;
+            const size = div.getBoundingClientRect().width;
+            const full = root.getBoundingClientRect().width;
+            const chars = Math.floor(full / size);
+            console.log('hello', chars, full, size);
+            setMaxWidth(chars);
+        };
+        if (!tester.current || !container.current) {
+            setTimeout(fn, 200);
+        } else {
+            fn();
+        }
+        window.addEventListener('resize', fn);
+        return window.removeEventListener('resize', fn);
+    }, [tester.current, container.current]);
+
     return (
         <div
             style={{
@@ -157,10 +187,26 @@ const Cells = ({
                     paddingRight: 40,
                     paddingBottom: '75vh',
                 }}
+                ref={container}
             >
+                <span
+                    ref={tester}
+                    style={{
+                        visibility: 'hidden',
+                        pointerEvents: 'none',
+                        fontFamily: '"Source Code Pro", monospace',
+                        whiteSpace: 'pre-wrap',
+                        position: 'relative',
+                        padding: 0,
+                        margin: 0,
+                    }}
+                >
+                    M
+                </span>
                 {Object.keys(work.cells).map((id) => (
                     <CellView
                         key={id}
+                        maxWidth={maxWidth}
                         env={state.env}
                         cell={work.cells[id]}
                         evalEnv={state.evalEnv}

@@ -36,9 +36,10 @@ import { void_ } from '@jerd/language/src/typing/preset';
 import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
 import { nullLocation } from '@jerd/language/src/parsing/parser';
 
-const maxWidth = 80;
+// const maxWidth = 80;
 
 export type CellProps = {
+    maxWidth: number;
     cell: Cell;
     env: Env;
     onChange: (env: Env, cell: Cell) => void;
@@ -114,6 +115,7 @@ const CellWrapper = ({
 export const CellView = ({
     cell,
     env,
+    maxWidth,
     onChange,
     onRemove,
     onRun,
@@ -170,6 +172,7 @@ export const CellView = ({
             onToggleSource={() => setShowSource(!showSource)}
         >
             <RenderItem
+                maxWidth={maxWidth}
                 onSetPlugin={(display) => {
                     onChange(env, { ...cell, display });
                 }}
@@ -391,6 +394,7 @@ const RenderItem = ({
     addCell,
     plugins,
     showSource,
+    maxWidth,
 
     collapsed,
     setCollapsed,
@@ -399,6 +403,7 @@ const RenderItem = ({
 }: {
     env: Env;
     cell: Cell;
+    maxWidth: number;
     plugins: Plugins;
     content: Content;
     evalEnv: EvalEnv;
