@@ -950,13 +950,13 @@ const makeTermExpr = (id: Id, env: Env): Term => ({
     is: env.global.terms[idName(id)].is,
 });
 
-export const generateShader = (
+export const shaderAllButMains = (
     env: Env,
     opts: OutputOptions,
     irOpts: IOutputOptions,
     mainTerm: Id,
     buffers: Array<Id>,
-): { text: string; invalidLocs: Array<Location> } => {
+): { items: Array<PP>; invalidLocs: Array<Location> } => {
     const items: Array<PP> = shaderTop();
 
     const required = [mainTerm]
@@ -997,9 +997,7 @@ export const generateShader = (
             ? selfEnv(env, {
                   type: 'Term',
                   name,
-                  ann: env.global.terms[name]
-                      ? env.global.terms[name].is
-                      : preset.void_,
+                  ann: env.global.terms[name].is,
               })
             : env;
         items.push(
@@ -1014,48 +1012,62 @@ export const generateShader = (
             ),
         );
     });
+    return { items, invalidLocs };
+};
 
-    const glslEnv = makeEnvRecord(env);
+// This will generate a single shader, which might be used
+// for writing to a texture buffer, or writing to the screen.
+export const generateSingleShader = (
+    env: Env,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    mainTerm: Id,
+    buffers: number,
+): { text: string; invalidLocs: Array<Location> } => {
+    const { items, invalidLocs } = shaderAllButMains(
+        env,
+        opts,
+        irOpts,
+        mainTerm,
+        [],
+    );
 
-    let mainArgs = [termToGlsl(env, opts, glslEnv), atom('gl_FragCoord.xy')];
+    items.push(glslMain(env, opts, mainTerm, buffers));
+
+    return {
+        invalidLocs,
+        text: items.map((item) => printToString(item, 100)).join('\n\n'),
+    };
+};
+
+// This is for generating a shader with #if defined(BUFFER0)
+// preprocessor lines, which the vscode glslCanvas extension
+// expects.
+export const generateShader = (
+    env: Env,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    mainTerm: Id,
+    buffers: Array<Id>,
+): { text: string; invalidLocs: Array<Location> } => {
+    const { items, invalidLocs } = shaderAllButMains(
+        env,
+        opts,
+        irOpts,
+        mainTerm,
+        buffers,
+    );
 
     if (buffers.length > 1) {
         throw new Error('multi buffer not impl');
     }
     if (buffers.length) {
-        mainArgs.push(atom('u_buffer0'));
         items.push(atom('#if defined(BUFFER_0)'));
-
-        items.push(
-            pp.items([
-                atom('void main() '),
-                block([
-                    pp.items([
-                        atom('fragColor'),
-                        atom(' = '),
-                        idToGlsl(env, opts, buffers[0], false),
-                        args(mainArgs, '(', ')', false),
-                    ]),
-                ]),
-            ]),
-        );
-
+        items.push(glslMain(env, opts, buffers[0], buffers.length));
         items.push(atom('#else'));
     }
 
-    items.push(
-        pp.items([
-            atom('void main() '),
-            block([
-                pp.items([
-                    atom('fragColor'),
-                    atom(' = '),
-                    idToGlsl(env, opts, mainTerm, false),
-                    args(mainArgs, '(', ')', false),
-                ]),
-            ]),
-        ]),
-    );
+    items.push(glslMain(env, opts, mainTerm, buffers.length));
 
     if (buffers.length) {
         items.push(atom('#endif\n'));
@@ -1065,6 +1077,30 @@ export const generateShader = (
         invalidLocs,
         text: items.map((item) => printToString(item, 100)).join('\n\n'),
     };
+};
+
+const glslMain = (
+    env: Env,
+    opts: OutputOptions,
+    id: Id,
+    numBuffers: number,
+) => {
+    const glslEnv = makeEnvRecord(env);
+    let mainArgs = [termToGlsl(env, opts, glslEnv), atom('gl_FragCoord.xy')];
+    for (let i = 0; i < numBuffers; i++) {
+        mainArgs.push(atom(`u_buffer${i}`));
+    }
+    return pp.items([
+        atom('void main() '),
+        block([
+            pp.items([
+                atom('fragColor'),
+                atom(' = '),
+                idToGlsl(env, opts, id, false),
+                args(mainArgs, '(', ')', false),
+            ]),
+        ]),
+    ]);
 };
 
 export const fileToGlsl = (

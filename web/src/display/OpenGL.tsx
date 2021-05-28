@@ -17,7 +17,10 @@ import {
 import { EvalEnv, Plugins, PluginT } from '../State';
 import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
 import { wrapWithExecutaionLimit } from './Drawable';
-import { generateShader } from '@jerd/language/src/printing/glslPrinter';
+import {
+    generateShader,
+    generateSingleShader,
+} from '@jerd/language/src/printing/glslPrinter';
 import { setup } from '../setupGLSL';
 
 type GLSLEnv = {
@@ -128,17 +131,152 @@ const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
     return <canvas ref={canvasRef} width="200" height="200" />;
 };
 
-const compileGLSL = (term: Term, env: Env) => {
-    const termId = { hash: hashObject(term), size: 1, pos: 0 };
-    return generateShader(
+const compileGLSL = (term: Term, env: Env, buffers: number = 0) => {
+    const termId =
+        term.type === 'ref' && term.ref.type === 'user'
+            ? term.ref.id
+            : { hash: hashObject(term), size: 1, pos: 0 };
+    return generateSingleShader(
         env,
         { includeCanonicalNames: true, showAllUniques: true },
         {},
         termId,
-        [],
+        buffers,
     );
 };
 
+const envWithTerm = (env: Env, term: Term) => {
+    const id = { hash: hashObject(term), size: 1, pos: 0 };
+    return {
+        ...env,
+        global: {
+            ...env.global,
+            terms: {
+                ...env.global.terms,
+                [idName(id)]: term,
+            },
+        },
+    };
+};
+
+const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
+    const [canvas, setCanvas] = React.useState(
+        null as null | HTMLCanvasElement,
+    );
+    const [paused, setPaused] = React.useState(false);
+    const [error, setError] = React.useState(null as any | null);
+
+    const shaders = React.useMemo(() => {
+        if (term.type !== 'Tuple') {
+            throw new Error(`Expression must be a tuple literal`);
+        }
+        try {
+            return term.items.map((item) =>
+                compileGLSL(
+                    item,
+                    envWithTerm(env, item),
+                    term.items.length - 1,
+                ),
+            );
+        } catch (err) {
+            setError(err);
+            return null;
+        }
+    }, [term]);
+
+    const timer = React.useRef(0);
+
+    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+    const currentMousePos = React.useRef(mousePos);
+    currentMousePos.current = mousePos;
+
+    React.useEffect(() => {
+        if (!canvas || paused || !shaders) {
+            return;
+        }
+        const ctx = canvas.getContext('webgl2');
+        if (!ctx) {
+            return;
+        }
+        try {
+            const update = setup(
+                ctx,
+                shaders[0].text,
+                timer.current,
+                currentMousePos.current,
+                shaders.slice(1).map((shader) => shader.text),
+            );
+            let tid: any;
+            let last = Date.now();
+            const fn = () => {
+                const now = Date.now();
+                timer.current += (now - last) / 1000;
+                last = now;
+                update(timer.current, currentMousePos.current);
+                tid = requestAnimationFrame(fn);
+            };
+            tid = requestAnimationFrame(fn);
+            return () => cancelAnimationFrame(tid);
+        } catch (err) {
+            console.log(err);
+            setError(err);
+        }
+    }, [canvas, shaders, paused]);
+
+    if (error != null) {
+        return (
+            <div>
+                <div
+                    style={{
+                        padding: 4,
+                        fontFamily: 'monospace',
+                        whiteSpace: 'pre-wrap',
+                        backgroundColor: '#300',
+                    }}
+                >
+                    {error.message + '\n' + error.stack}
+                </div>
+                {shaders != null ? (
+                    <pre
+                        style={{
+                            fontFamily: 'monospace',
+                            whiteSpace: 'pre-wrap',
+                        }}
+                    >
+                        {error.shader ? error.shader : shaders[0].text}
+                    </pre>
+                ) : null}
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <canvas
+                onClick={() => setPaused(!paused)}
+                onMouseMove={(evt) => {
+                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
+                    setMousePos({
+                        x: (evt.clientX - box.left) * 2,
+                        y: (box.height - (evt.clientY - box.top)) * 2,
+                    });
+                }}
+                ref={(node) => {
+                    if (node && !canvas) {
+                        setCanvas(node);
+                    }
+                }}
+                style={{
+                    width: 200,
+                    height: 200,
+                }}
+                // Double size for retina
+                width="400"
+                height="400"
+            />
+        </div>
+    );
+};
 const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
@@ -147,25 +285,13 @@ const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
     const [error, setError] = React.useState(null as any | null);
 
     const shader = React.useMemo(() => {
-        const id = { hash: hashObject(term), size: 1, pos: 0 };
         try {
-            return compileGLSL(term, {
-                ...env,
-                global: {
-                    ...env.global,
-                    terms: {
-                        ...env.global.terms,
-                        [idName(id)]: term,
-                    },
-                },
-            });
+            return compileGLSL(term, envWithTerm(env, term));
         } catch (err) {
             setError(err.message);
             return null;
         }
     }, [term]);
-    const fc = React.useRef(shader);
-    fc.current = shader;
 
     const timer = React.useRef(0);
 
@@ -286,8 +412,7 @@ const plugins: Plugins = {
             ),
         ]),
         render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
-            // return <div>Ok folks</div>;
-            return <ShaderGLSL env={env} term={term} />;
+            return <ShaderGLSLBuffers env={env} term={term} />;
         },
     },
     opengl: {
