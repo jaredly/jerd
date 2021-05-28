@@ -48,8 +48,8 @@ const neighbor#821c67e8: (Vec2#43802a16, Vec2#43802a16, Vec2#43802a16, sampler2D
     res#:2: Vec2#43802a16,
     buffer#:3: sampler2D,
 ) ={}> {
-    const coord#:4 = AddSubVec2#70bb2056."+"#b99b22d8#0(coord#:1, offset#:0);
-    if isLive#5df4f34f(texture(buffer#:3, MulVec2#090f77e7."/"#5ac12902#0(coord#:4, res#:2))) {
+    const coord#:4 = (coord#:1 +#70bb2056#b99b22d8#0 offset#:0);
+    if isLive#5df4f34f(texture(buffer#:3, (coord#:4 /#090f77e7#5ac12902#0 res#:2))) {
         1;
     } else {
         0;
@@ -172,29 +172,21 @@ const drawToBuffer#5af2137f: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> V
     buffer#:2: sampler2D,
 ) ={}> {
     if (env#:0.time#451d5252#0 < 0.01) {
-        if (random#347089ef(
-            MulVec2#090f77e7."/"#5ac12902#0(fragCoord#:1, env#:0.resolution#451d5252#1),
-        ) > 0.95) {
+        if (random#347089ef((fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1)) > 0.95) {
             live#59488bde;
         } else {
             dead#b12c041e;
         };
     } else {
         const self#:3 = isLive#5df4f34f(
-            texture(
-                buffer#:2,
-                MulVec2#090f77e7."/"#5ac12902#0(fragCoord#:1, env#:0.resolution#451d5252#1),
-            ),
+            texture(buffer#:2, (fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1)),
         );
         const neighbors#:4 = countNeighbors#77a447bc(
             fragCoord#:1,
             env#:0.resolution#451d5252#1,
             buffer#:2,
         );
-        if ((self#:3 && IntEq#9275f914."=="#553b4b8e#0(neighbors#:4, 2)) || IntEq#9275f914."=="#553b4b8e#0(
-            neighbors#:4,
-            3,
-        )) {
+        if ((self#:3 && (neighbors#:4 ==#9275f914#553b4b8e#0 2)) || (neighbors#:4 ==#9275f914#553b4b8e#0 3)) {
             live#59488bde;
         } else {
             dead#b12c041e;
@@ -231,21 +223,12 @@ const drawToScreen#5349442c: (GLSLEnv#451d5252, Vec2#43802a16, sampler2D) ={}> V
     fragCoord#:1: Vec2#43802a16,
     buffer0#:2: sampler2D,
 ) ={}> {
-    const diff#:3 = AddSubVec2#70bb2056."-"#b99b22d8#1(env#:0.mouse#451d5252#3, fragCoord#:1);
+    const diff#:3 = (env#:0.mouse#451d5252#3 -#70bb2056#b99b22d8#1 fragCoord#:1);
     if (length#c2805852(diff#:3) < 250.0) {
-        const newCoord#:4 = AddSubVec2#70bb2056."-"#b99b22d8#1(
-            env#:0.mouse#451d5252#3,
-            ScaleVec2Rev#afc24bbe."/"#5ac12902#0(diff#:3, 4.0),
-        );
-        texture(
-            buffer0#:2,
-            MulVec2#090f77e7."/"#5ac12902#0(newCoord#:4, env#:0.resolution#451d5252#1),
-        );
+        const newCoord#:4 = (env#:0.mouse#451d5252#3 -#70bb2056#b99b22d8#1 (diff#:3 /#afc24bbe#5ac12902#0 4.0));
+        texture(buffer0#:2, (newCoord#:4 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1));
     } else {
-        texture(
-            buffer0#:2,
-            MulVec2#090f77e7."/"#5ac12902#0(fragCoord#:1, env#:0.resolution#451d5252#1),
-        );
+        texture(buffer0#:2, (fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1));
     };
 }
 ```

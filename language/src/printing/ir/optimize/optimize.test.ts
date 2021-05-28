@@ -116,5 +116,5 @@ testFixtures(
         }`,
         ],
     },
-    (env, opts, exprs, expr, id) => removeUnusedVariables(env, expr),
+    (env, _opts, _exprs, expr, _id) => removeUnusedVariables(env, expr),
 );

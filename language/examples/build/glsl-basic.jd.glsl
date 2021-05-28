@@ -40,7 +40,7 @@ const circleSDF#596bb3b4: (Vec2#43802a16, Circle#23c98f91) ={}> float = (
     p#:0: Vec2#43802a16,
     circle#:1: Circle#23c98f91,
 ) ={}> {
-    (length#c2805852(AddSubVec2#70bb2056."-"#b99b22d8#1(p#:0, circle#:1.pos#23c98f91#0)) - circle#:1.r#23c98f91#1);
+    (length#c2805852((p#:0 -#70bb2056#b99b22d8#1 circle#:1.pos#23c98f91#0)) - circle#:1.r#23c98f91#1);
 }
 ```
 */
@@ -61,19 +61,16 @@ const hello#ac281138: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
         pos#23c98f91#0: env#:0.mouse#451d5252#3,
         r#23c98f91#1: (40.0 + (cos((env#:0.time#451d5252#0 * 4.0)) * 20.0)),
     };
-    const color#:4 = if (Min#a42728cc."--"#0c2608f2#0(
-        circleSDF#596bb3b4(fragCoord#:1, circle#:2),
-        circleSDF#596bb3b4(
-            fragCoord#:1,
-            Circle#23c98f91{
-                pos#23c98f91#0: AddSubVec2#70bb2056."+"#b99b22d8#0(
-                    env#:0.mouse#451d5252#3,
-                    Vec2#43802a16{x#43802a16#0: 10.0, y#43802a16#1: 20.0},
-                ),
-                r#23c98f91#1: 30.0,
-            },
-        ),
-    ) < 0.0) {
+    const color#:4 = if ((circleSDF#596bb3b4(fragCoord#:1, circle#:2) --#a42728cc#0c2608f2#0 circleSDF#596bb3b4(
+        fragCoord#:1,
+        Circle#23c98f91{
+            pos#23c98f91#0: (env#:0.mouse#451d5252#3 +#70bb2056#b99b22d8#0 Vec2#43802a16{
+                x#43802a16#0: 10.0,
+                y#43802a16#1: 20.0,
+            }),
+            r#23c98f91#1: 30.0,
+        },
+    )) < 0.0) {
         switch modInt(fragCoord#:1.x#43802a16#0 as#184a69ed int, 2) {
             0 => Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
             _#:3 => Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 0.0},

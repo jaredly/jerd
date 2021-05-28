@@ -88,12 +88,9 @@ const unnamed#test_main: (GLSLEnv#451d5252, vec2) ={}> vec4 = (
     env#:1: GLSLEnv#451d5252,
     fragCoord#:2: vec2,
 ) ={}> {
-    const t0#:5 = IntEq#9275f914."=="#553b4b8e#0(y#7df35068(z#f4c397d2, 30), (((60 + 2) + 5) + 2));
-    const t1#:6 = IntEq#9275f914."=="#553b4b8e#0(y#7df35068(h#15ece66a, 30), (((60 - 2) + 5) - 2));
-    const t2#:7 = IntEq#9275f914."=="#553b4b8e#0(
-        y#7df35068((n#:0: int) ={}> (n#:0 + 3), 30),
-        ((60 + 5) + 6),
-    );
+    const t0#:5 = (y#7df35068(z#f4c397d2, 30) ==#9275f914#553b4b8e#0 (((60 + 2) + 5) + 2));
+    const t1#:6 = (y#7df35068(h#15ece66a, 30) ==#9275f914#553b4b8e#0 (((60 - 2) + 5) - 2));
+    const t2#:7 = (y#7df35068((n#:0: int) ={}> (n#:0 + 3), 30) ==#9275f914#553b4b8e#0 ((60 + 5) + 6));
     const size#:3 = (env#:1.resolution#451d5252#1.x#43802a16#0 / 20.0);
     const size#:4 = (size#:3 * 0.4);
     if (((t0#:5 && (length((fragCoord#:2 - (vec2(1.0, 1.0) * size#:3))) < size#:4)) || (t1#:6 && (length(

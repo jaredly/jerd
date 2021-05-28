@@ -94,9 +94,14 @@ HMMmmmmm I want ... and optimization debugger
 
 ## Let's try some SDF raymarching in the editor!
 
-- [ ] FIX optimization that's making this basic raymarch not work...
-- [ ] FIX optimization that's breaking normal js examples
-  - [ ] let's have a `test-optimizer` that tries running each optimizer pass individually (?) to verify that they're making changes that are sane? idk. I'd also really like to have some fixture tests or something. But maybe that would mean ... making a pretty-printer for the ir.Expr?
+- [x] FIX optimization that's making this basic raymarch not work...
+
+- [ ] more complex raymarch! with normals this time
+  BORKEN! I'm thinking it's because ... the sceneSDF function
+  is being used twice.
+
+- [x] FIX optimization that's breaking normal js examples
+- [ ] let's have a `test-optimizer` that tries running each optimizer pass individually (?) to verify that they're making changes that are sane? idk. I'd also really like to have some fixture tests or something. But maybe that would mean ... making a pretty-printer for the ir.Expr?
 
 - [ ] ohmygosh allow me to type attr names for my function type, it's fine.
 - [ ] parsing of #self in the editor seems not to be working? Oh it's that we're not printing `rec` correctly. Got to do that.

@@ -1,7 +1,7 @@
 
 type Pos = {x: int, y: int}
 
-@main
+// @main
 const simple = (
     env: GLSLEnv,
     pos: Vec2,
@@ -15,20 +15,37 @@ const simple = (
     );
 }
 
+const inner: ((float) ={}> float) ={}> float = (v: (float) ={}> float) ={}> {
+    const m = (2.0 + 3.0);
+    v((10.0 + (m * m)));
+}
+
+const outer: ((float) ={}> float, bool) ={}> (GLSLEnv, Vec2) ={}> Vec4 = (
+    v: (float) ={}> float,
+    m: bool,
+) ={}> (env: GLSLEnv, p: Vec2) ={}> {
+    const z = (p.x + p.y);
+    const m = z;
+    vec4(inner(v), p.y, m, m);
+}
+
+@main
+const z = outer((m: float) ={}> (m / 2.0), true)
+
 // @main
-// const goToTown = (
-//     env: GLSLEnv,
-//     pos: Vec2,
-// ) ={}> {
-//     vec4(
-//         if (pos < vec2(10.0, 50.0)) {
-//             vec3(1.0, 0.0, 0.0);
-//         } else if pos.x < 20.0 {
-//             vec3(1.0, 1.0, 0.0);
-//         } else {
-//             vec3(0.0, 0.0, 0.0);
-//         },
-//         1.0,
-//     );
-// }
+const goToTown = (
+    env: GLSLEnv,
+    pos: Vec2,
+) ={}> {
+    vec4(
+        if (pos < vec2(10.0, 50.0)) {
+            vec3(1.0, 0.0, 0.0);
+        } else if pos.x < 20.0 {
+            vec3(1.0, 1.0, 0.0);
+        } else {
+            vec3(0.0, 0.0, 0.0);
+        },
+        1.0,
+    );
+}
 

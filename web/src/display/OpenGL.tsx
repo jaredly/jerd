@@ -114,7 +114,15 @@ const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
     }, [paused]);
 
     if (error != null) {
-        return <div>{error.message}</div>;
+        return (
+            <div
+                style={{
+                    whiteSpace: 'pre-wrap',
+                }}
+            >
+                {error.message}
+            </div>
+        );
     }
 
     return <canvas ref={canvasRef} width="200" height="200" />;
@@ -199,7 +207,16 @@ const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
     if (error != null) {
         return (
             <div>
-                {error.message}
+                <div
+                    style={{
+                        padding: 4,
+                        fontFamily: 'monospace',
+                        whiteSpace: 'pre-wrap',
+                        backgroundColor: '#300',
+                    }}
+                >
+                    {error.message}
+                </div>
                 {shader != null ? (
                     <pre
                         style={{
@@ -247,6 +264,32 @@ const plugins: Plugins = {
     //     id: 'opengl-fake',
     //     name: 'Shader CPU',
     // },
+    openglBuffer1: {
+        id: 'opengl',
+        name: 'Shader GLSL',
+        type: builtinType('Tuple2', [
+            pureFunction(
+                [
+                    refType('451d5252'),
+                    refType('43802a16'),
+                    builtinType('sampler2D'),
+                ],
+                refType('3b941378'),
+            ),
+            pureFunction(
+                [
+                    refType('451d5252'),
+                    refType('43802a16'),
+                    builtinType('sampler2D'),
+                ],
+                refType('3b941378'),
+            ),
+        ]),
+        render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
+            // return <div>Ok folks</div>;
+            return <ShaderGLSL env={env} term={term} />;
+        },
+    },
     opengl: {
         id: 'opengl',
         name: 'Shader GLSL',

@@ -539,6 +539,18 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
         case 'builtin':
             return atom(expr.name);
         case 'attribute':
+            // hrm special-case matrices I guess
+            // unless ... I pretend that `mat4` is just `Tuple<Vec4, Vec4, Vec4, Vec4>`?
+            // That would be ideal actually....
+            // TODO: Please refactor this!
+            if (ir.typesEqual(expr.target.is, Mat4)) {
+                return items([
+                    termToGlsl(env, opts, expr.target),
+                    atom('['),
+                    atom(expr.idx.toString()),
+                    atom(']'),
+                ]);
+            }
             return items([
                 termToGlsl(env, opts, expr.target),
                 atom('.'),
@@ -648,6 +660,7 @@ export const assembleItemsForFile = (
         irTerm = explicitSpreads(senv, irOpts, irTerm);
         irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         irTerm = optimizeDefine(senv, irTerm, id);
+        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         return irTerm;
     },
 ) => {
@@ -694,6 +707,7 @@ export const assembleItemsForFile = (
         irTerm = explicitSpreads(senv, irOpts, irTerm);
         irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         irTerm = optimizeDefine(senv, irTerm, id);
+        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         uniquesReallyAreUnique(irTerm);
 
         irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
@@ -744,14 +758,31 @@ export const assembleItemsForFile = (
     return { inOrder, irTerms };
 };
 
-export const generateShader = (
-    env: Env,
-    opts: OutputOptions,
-    irOpts: IOutputOptions,
-    mainTerm: Id,
-    buffers: Array<Id>,
-): { text: string; invalidLocs: Array<Location> } => {
-    const items: Array<PP> = [
+const makeEnvRecord = (env: Env): Record => ({
+    type: 'record',
+    base: {
+        type: 'Concrete',
+        ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
+        spread: null,
+        rows: [
+            builtin('u_time', nullLocation, float),
+            builtin('u_resolution', nullLocation, Vec2),
+            builtin('u_camera', nullLocation, Vec3),
+            builtin('u_mouse', nullLocation, Vec2),
+        ],
+    },
+    is: {
+        type: 'ref',
+        ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
+        loc: nullLocation,
+        typeVbls: [],
+    },
+    subTypes: {},
+    loc: nullLocation,
+});
+
+const shaderTop = () => {
+    return [
         pp.items([atom('#version 300 es')]),
         pp.items([atom('precision mediump float;')]),
         pp.items([atom('out vec4 fragColor;')]),
@@ -786,20 +817,92 @@ export const generateShader = (
             atom(';'),
         ]),
     ];
+};
 
-    const required = [mainTerm].concat(buffers).map(
-        (id) =>
-            ({
-                type: 'ref',
-                ref: {
-                    type: 'user',
-                    id,
-                },
-                location: nullLocation,
-                is: env.global.terms[idName(id)].is,
-            } as Term),
-    );
+export const typeDefToGLSL = (
+    env: Env,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    key: string,
+): PP | null => {
+    const constr = env.global.types[key];
+    const id = idFromName(key);
+    if (constr.type === 'Enum') {
+        return atom(
+            `// skipping ${printToString(
+                idToGlsl(env, opts, id, true),
+                100,
+            )}, enums not supported`,
+        );
+    }
+    if (constr.typeVbls.length) {
+        // No type vbls allowed sorry
+        return atom(
+            `// skipping ${printToString(
+                idToGlsl(env, opts, id, true),
+                100,
+            )}, contains type variables`,
+        );
+        return null;
+    }
+    if (!constr.items.length) {
+        return null;
+    }
+    if (builtinTypes[key]) {
+        return null;
+    }
+    return recordToGLSL(env, constr, opts, irOpts, id);
+};
 
+export const recordToGLSL = (
+    env: Env,
+    constr: RecordDef,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    id: Id,
+) => {
+    const subTypes = getAllSubTypes(env.global, constr);
+
+    return pp.items([
+        atom('struct '),
+        idToGlsl(env, opts, id, true),
+        block([
+            ...constr.items.map((item, i) =>
+                pp.items([
+                    typeToGlsl(env, opts, typeFromTermType(env, irOpts, item)),
+                    atom(' '),
+                    atom(recordAttributeName(env, { type: 'user', id }, i)),
+                ]),
+            ),
+            ...([] as Array<PP>).concat(
+                ...subTypes.map((id) =>
+                    env.global.types[
+                        idName(id)
+                    ].items.map((item: Type, i: number) =>
+                        pp.items([
+                            typeToGlsl(
+                                env,
+                                opts,
+                                typeFromTermType(env, irOpts, item),
+                            ),
+                            atom(' '),
+                            atom(
+                                recordAttributeName(
+                                    env,
+                                    { type: 'user', id },
+                                    i,
+                                ),
+                            ),
+                        ]),
+                    ),
+                ),
+            ),
+        ]),
+        atom(';'),
+    ]);
+};
+
+export const populateBuiltins = (env: Env) => {
     const builtins = { ...glslBuiltins };
     Object.keys(env.global.metaData).forEach((idRaw) => {
         const tags = env.global.metaData[idRaw].tags;
@@ -830,15 +933,37 @@ export const generateShader = (
                         ),
                     ),
                 );
-                // console.log(idRaw, )
-
-                // '0555d260': record('b99b22d8', [
-                //     builtinVal('+', pureFunction([Vec4, Vec4], Vec4)),
-                //     builtinVal('-', pureFunction([Vec4, Vec4], Vec4)),
-                // ]),
             }
         }
     });
+
+    return builtins;
+};
+
+const makeTermExpr = (id: Id, env: Env): Term => ({
+    type: 'ref',
+    ref: {
+        type: 'user',
+        id,
+    },
+    location: nullLocation,
+    is: env.global.terms[idName(id)].is,
+});
+
+export const generateShader = (
+    env: Env,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    mainTerm: Id,
+    buffers: Array<Id>,
+): { text: string; invalidLocs: Array<Location> } => {
+    const items: Array<PP> = shaderTop();
+
+    const required = [mainTerm]
+        .concat(buffers)
+        .map((id) => makeTermExpr(id, env));
+
+    const builtins = populateBuiltins(env);
 
     const { inOrder, irTerms } = assembleItemsForFile(
         env,
@@ -854,87 +979,10 @@ export const generateShader = (
     );
 
     allTypes.forEach((r) => {
-        const constr = env.global.types[r];
-        const id = idFromName(r);
-        if (constr.type === 'Enum') {
-            items.push(
-                atom(
-                    `// skipping ${printToString(
-                        idToGlsl(env, opts, id, true),
-                        100,
-                    )}, enums not supported`,
-                ),
-            );
-            return;
+        const printed = typeDefToGLSL(env, opts, irOpts, r);
+        if (printed) {
+            items.push(printed);
         }
-        if (constr.typeVbls.length) {
-            // No type vbls allowed sorry
-            items.push(
-                atom(
-                    `// skipping ${printToString(
-                        idToGlsl(env, opts, id, true),
-                        100,
-                    )}, contains type variables`,
-                ),
-            );
-            return;
-        }
-        if (!constr.items.length) {
-            return;
-        }
-        if (builtinTypes[r]) {
-            return;
-        }
-        const subTypes = getAllSubTypes(env.global, constr);
-        items.push(
-            pp.items([
-                atom('struct '),
-                idToGlsl(env, opts, id, true),
-                block([
-                    ...constr.items.map((item, i) =>
-                        pp.items([
-                            typeToGlsl(
-                                env,
-                                opts,
-                                typeFromTermType(env, irOpts, item),
-                            ),
-                            atom(' '),
-                            atom(
-                                recordAttributeName(
-                                    env,
-                                    { type: 'user', id },
-                                    i,
-                                ),
-                            ),
-                        ]),
-                    ),
-                    ...([] as Array<PP>).concat(
-                        ...subTypes.map((id) =>
-                            env.global.types[
-                                idName(id)
-                            ].items.map((item: Type, i: number) =>
-                                pp.items([
-                                    typeToGlsl(
-                                        env,
-                                        opts,
-                                        typeFromTermType(env, irOpts, item),
-                                    ),
-                                    atom(' '),
-                                    atom(
-                                        recordAttributeName(
-                                            env,
-                                            { type: 'user', id },
-                                            i,
-                                        ),
-                                    ),
-                                ]),
-                            ),
-                        ),
-                    ),
-                ]),
-                atom(';'),
-            ]),
-        );
     });
 
     const invalidLocs: Array<Location> = [];
@@ -943,20 +991,17 @@ export const generateShader = (
         const loc = hasInvalidGLSL(irTerms[name].expr);
         if (loc) {
             invalidLocs.push(loc);
-            // throw new LocatedError(
-            //     loc,
-            //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
-            // );
         }
 
-        const senv = selfEnv(env, {
-            type: 'Term',
-            name,
-            ann: env.global.terms[name]
-                ? env.global.terms[name].is
-                : preset.void_,
-            // ann: irTerms[name].expr.is,
-        });
+        const senv = env.global.terms[name]
+            ? selfEnv(env, {
+                  type: 'Term',
+                  name,
+                  ann: env.global.terms[name]
+                      ? env.global.terms[name].is
+                      : preset.void_,
+              })
+            : env;
         items.push(
             declarationToGlsl(
                 senv,
@@ -968,60 +1013,9 @@ export const generateShader = (
                     : ' -- generated -- ',
             ),
         );
-
-        // if (usedAfterOpt[name]) {
-        //     if (printed[name]) {
-        //         const loc = hasInvalidGLSL(irTerms[name].expr);
-        //         if (loc) {
-        //             // throw new LocatedError(
-        //             //     loc,
-        //             //     `Invalid GLSL detected in ${name} -- might need to tweak the IR transforms to support this construct.`,
-        //             // );
-        //         }
-        //         items.push(printed[name]);
-        //     } else {
-        //         // let term = env.global.terms[idRaw];
-        //         const senv = selfEnv(env, {
-        //             type: 'Term',
-        //             name,
-        //             ann: preset.void_,
-        //             // ann: irTerms[name].expr.is,
-        //         });
-        //         printed[name] = declarationToGlsl(
-        //             senv,
-        //             opts,
-        //             name,
-        //             irTerms[name].expr,
-        //             ' -- generated -- ',
-        //         );
-
-        //         items.push(printed[name]);
-        //     }
-        // }
     });
 
-    const glslEnv: Record = {
-        type: 'record',
-        base: {
-            type: 'Concrete',
-            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
-            spread: null,
-            rows: [
-                builtin('u_time', nullLocation, float),
-                builtin('u_resolution', nullLocation, Vec2),
-                builtin('u_camera', nullLocation, Vec3),
-                builtin('u_mouse', nullLocation, Vec2),
-            ],
-        },
-        is: {
-            type: 'ref',
-            ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
-            loc: nullLocation,
-            typeVbls: [],
-        },
-        subTypes: {},
-        loc: nullLocation,
-    };
+    const glslEnv = makeEnvRecord(env);
 
     let mainArgs = [termToGlsl(env, opts, glslEnv), atom('gl_FragCoord.xy')];
 
@@ -1058,7 +1052,6 @@ export const generateShader = (
                     atom(' = '),
                     idToGlsl(env, opts, mainTerm, false),
                     args(mainArgs, '(', ')', false),
-                    // args(mainArgs, '(', ')', false),
                 ]),
             ]),
         ]),

@@ -8,6 +8,8 @@ import {
     Symbol,
     symbolsEqual,
 } from '../../../typing/types';
+import { termToGlsl } from '../../glslPrinter';
+import { printToString } from '../../printer';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import {
     defaultVisitor,
@@ -76,8 +78,12 @@ export const optimizeAggressive = (
     id: Id,
 ): Expr => {
     expr = inlint(env, exprs, expr, id);
+    // console.log('[after inline]', printToString(termToGlsl(env, {}, expr), 50));
     expr = monomorphize(env, exprs, expr);
+    // console.log('[after mono]', printToString(termToGlsl(env, {}, expr), 50));
     expr = monoconstant(env, exprs, expr);
+    // console.log('[after const]', printToString(termToGlsl(env, {}, expr), 50));
+
     // Ok, now that we've inlined /some/ things,
     // let's inline more things!
     // Like, when we find ... a lambda being passed
@@ -444,6 +450,7 @@ export const removeSelfAssignments = (_: Env, expr: Expr) =>
     });
 
 export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
+    // hrmmmmmmmmm soooooo hmmmm
     let constants: { [v: string]: Expr | null } = {};
     // let tupleConstants: { [v: string]: Tuple } = {};
     return transformExpr(expr, {
@@ -451,6 +458,27 @@ export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
         // Don't go into lambdas that aren't the toplevel one
         expr: (value) => {
             if (value.type === 'lambda' && value !== expr) {
+                const checkAssigns: Visitor = {
+                    ...defaultVisitor,
+                    expr: (expr) => {
+                        if (
+                            expr.type === 'var' &&
+                            constants[symName(expr.sym)]
+                        ) {
+                            return constants[symName(expr.sym)];
+                        }
+                        return null;
+                    },
+                    stmt: (stmt) => {
+                        if (stmt.type === 'Assign') {
+                            constants[symName(stmt.sym)] = null;
+                        }
+                        return null;
+                    },
+                };
+                value.body.type === 'Block'
+                    ? transformStmt(value.body, checkAssigns)
+                    : transformExpr(value.body, checkAssigns);
                 return false;
             }
             if (value.type === 'handle') {
@@ -476,7 +504,7 @@ export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
                     },
                     stmt: (stmt) => {
                         if (stmt.type === 'Assign') {
-                            constants[stmt.sym.unique] = null;
+                            constants[symName(stmt.sym)] = null;
                         }
                         return null;
                     },
@@ -583,6 +611,7 @@ export const isConstant = (arg: Expr): boolean => {
         case 'float':
         case 'string':
         case 'term':
+        case 'genTerm':
         case 'builtin':
         case 'var':
             return true;
