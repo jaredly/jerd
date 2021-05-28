@@ -217,11 +217,13 @@ export const setup = (
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    return (uTime: number, mousePos?: { x: number; y: number }) => {
+    return (
+        uTime: number,
+        mousePos?: { x: number; y: number; button: number },
+    ) => {
         swap();
         if (bufferPrograms.length) {
             bufferPrograms.forEach(({ program, bound }, i) => {
-                // console.log('render buffer', i);
                 gl.useProgram(program);
 
                 gl.uniform1f(bound.utime, uTime);
@@ -244,10 +246,8 @@ export const setup = (
                 );
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
-                // const bound = bindUniforms(program);
             });
 
-            // console.log('render main');
             gl.useProgram(program);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }

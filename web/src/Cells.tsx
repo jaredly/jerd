@@ -154,6 +154,7 @@ const Cells = ({
                     alignSelf: 'stretch',
                     overflow: 'auto',
                     padding: 20,
+                    paddingRight: 40,
                     paddingBottom: '75vh',
                 }}
             >
