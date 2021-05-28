@@ -144,9 +144,7 @@ const Cells = ({
 
     React.useEffect(() => {
         const fn = () => {
-            console.log('fn here');
             if (!tester.current || !container.current) {
-                console.log('inner nope');
                 return;
             }
             const div = tester.current;
@@ -154,16 +152,15 @@ const Cells = ({
             const size = div.getBoundingClientRect().width;
             const full = root.getBoundingClientRect().width;
             const chars = Math.floor(full / size);
-            console.log('hello', chars, full, size);
             setMaxWidth(chars);
         };
         if (!tester.current || !container.current) {
-            setTimeout(fn, 200);
+            setTimeout(fn, 20);
         } else {
             fn();
         }
         window.addEventListener('resize', fn);
-        return window.removeEventListener('resize', fn);
+        return () => window.removeEventListener('resize', fn);
     }, [tester.current, container.current]);
 
     return (
