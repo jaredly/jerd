@@ -85,6 +85,8 @@ const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
     const fc = React.useRef(wrapped);
     fc.current = wrapped;
 
+    const timer = React.useRef(0);
+
     React.useEffect(() => {
         if (paused) {
             return;
@@ -105,7 +107,9 @@ const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
                     env.mouse.y = evt.clientY - box.top;
                 });
             }
-            env.time = (Date.now() - start) / 1000;
+            timer.current += (Date.now() - start) / 1000;
+            start = Date.now();
+            env.time = timer.current;
             try {
                 drawToCanvas(ctx, fc.current, env);
             } catch (err) {
@@ -128,7 +132,14 @@ const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
         );
     }
 
-    return <canvas ref={canvasRef} width="200" height="200" />;
+    return (
+        <canvas
+            onClick={() => setPaused(!paused)}
+            ref={canvasRef}
+            width="200"
+            height="200"
+        />
+    );
 };
 
 const compileGLSL = (term: Term, env: Env, buffers: number = 0) => {

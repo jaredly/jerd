@@ -139,50 +139,58 @@ export const CellView = ({
 }: CellProps) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     const [showSource, setShowSource] = React.useState(false);
-    if (editing) {
-        return (
-            <CellWrapper
-                onRemove={onRemove}
-                onToggleSource={null}
-                title={cellTitle(env, cell)}
-            >
-                <Editor
-                    maxWidth={maxWidth}
-                    env={env}
-                    plugins={plugins}
-                    evalEnv={evalEnv}
-                    display={cell.display}
-                    onSetPlugin={(display) => {
-                        onChange(env, { ...cell, display });
-                    }}
-                    contents={
-                        cell.content.type == 'raw'
-                            ? cell.content.text
-                            : getToplevel(env, cell.content)
-                    }
-                    onClose={() => setEditing(false)}
-                    onChange={(term) => {
-                        if (typeof term === 'string') {
-                            onChange(env, {
-                                ...cell,
-                                content: { type: 'raw', text: term },
-                            });
-                        } else {
-                            const { env: nenv, content } = updateToplevel(
-                                env,
-                                term,
-                            );
-                            onChange(nenv, {
-                                ...cell,
-                                content,
-                            });
-                        }
-                        setEditing(false);
-                    }}
-                />
-            </CellWrapper>
-        );
-    }
+    const body = editing ? (
+        <Editor
+            maxWidth={maxWidth}
+            env={env}
+            plugins={plugins}
+            evalEnv={evalEnv}
+            display={cell.display}
+            onSetPlugin={(display) => {
+                onChange(env, { ...cell, display });
+            }}
+            contents={
+                cell.content.type == 'raw'
+                    ? cell.content.text
+                    : getToplevel(env, cell.content)
+            }
+            onClose={() => setEditing(false)}
+            onChange={(term) => {
+                if (typeof term === 'string') {
+                    onChange(env, {
+                        ...cell,
+                        content: { type: 'raw', text: term },
+                    });
+                } else {
+                    const { env: nenv, content } = updateToplevel(env, term);
+                    onChange(nenv, {
+                        ...cell,
+                        content,
+                    });
+                }
+                setEditing(false);
+            }}
+        />
+    ) : (
+        <RenderItem
+            maxWidth={maxWidth}
+            onSetPlugin={(display) => {
+                onChange(env, { ...cell, display });
+            }}
+            onPin={onPin}
+            cell={cell}
+            plugins={plugins}
+            content={cell.content}
+            onEdit={() => setEditing(true)}
+            addCell={addCell}
+            showSource={showSource}
+            collapsed={cell.collapsed}
+            setCollapsed={(collapsed) => onChange(env, { ...cell, collapsed })}
+            env={env}
+            evalEnv={evalEnv}
+            onRun={onRun}
+        />
+    );
 
     return (
         <CellWrapper
@@ -190,26 +198,7 @@ export const CellView = ({
             onRemove={onRemove}
             onToggleSource={() => setShowSource(!showSource)}
         >
-            <RenderItem
-                maxWidth={maxWidth}
-                onSetPlugin={(display) => {
-                    onChange(env, { ...cell, display });
-                }}
-                onPin={onPin}
-                cell={cell}
-                plugins={plugins}
-                content={cell.content}
-                onEdit={() => setEditing(true)}
-                addCell={addCell}
-                showSource={showSource}
-                collapsed={cell.collapsed}
-                setCollapsed={(collapsed) =>
-                    onChange(env, { ...cell, collapsed })
-                }
-                env={env}
-                evalEnv={evalEnv}
-                onRun={onRun}
-            />
+            {body}
         </CellWrapper>
     );
 };
