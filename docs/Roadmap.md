@@ -15,6 +15,7 @@
 - [ ] type error should be underlined, thanks
 
 ### GLSL Plugins
+- [ ] preserve textures when updating shaders if possible....
 - [ ] make a button to restart the timer
 - [ ] make a way to specify the size!
 - [ ] let's add "mouse button down" uniform! Probably a boolean I guess? or it could be an int, following https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button. And then ... have like 6 or something be "nothing pressed"? or -1?
@@ -26,6 +27,7 @@
 ### Tutorial
 - [ ] make one!
 - [ ] could be cool to have a way to e.g. load an editor environment from a github gist or somewheres...
+- [ ] when printing a lambda, if the body is another lambda, we don't really need to print the return type. We can just infer it, right?
 
 
 
