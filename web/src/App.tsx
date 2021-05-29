@@ -4,7 +4,6 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { Env, Id } from '@jerd/language/src/typing/types';
-import { getToplevel } from './Cell';
 import { Cell, Display, EvalEnv, Plugins, PluginT } from './State';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { printToString } from '@jerd/language/src/printing/printer';
@@ -25,6 +24,7 @@ import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { runTerm } from './eval';
 import { nullLocation } from '@jerd/language/src/parsing/parser';
+import { getToplevel } from './toplevels';
 
 const defaultPlugins: Plugins = {
     ...DrawablePlugins,

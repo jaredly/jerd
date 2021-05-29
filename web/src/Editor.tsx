@@ -27,10 +27,10 @@ import {
     UnresolvedIdentifier,
 } from '@jerd/language/src/typing/errors';
 import { Display, EvalEnv, Plugins } from './State';
-import { RenderPlugin } from './Cell';
 import { runTerm } from './eval';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import ColorTextarea from './ColorTextarea';
+import { RenderPlugin } from './RenderResult';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }

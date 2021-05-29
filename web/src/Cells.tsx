@@ -152,7 +152,7 @@ const Cells = ({
             const size = div.getBoundingClientRect().width;
             const full = root.getBoundingClientRect().width;
             const chars = Math.floor(full / size);
-            setMaxWidth(chars);
+            setMaxWidth(chars - 10);
         };
         if (!tester.current || !container.current) {
             setTimeout(fn, 20);

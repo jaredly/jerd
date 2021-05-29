@@ -190,7 +190,7 @@ export default () => {
                 true,
                 builtinNames,
             );
-            setOutput(pp);
+            setOutput(pp.text);
             // @ts-ignore
             const update = setup(sandboxRef.current, pp, currentTime.current);
             // @ts-ignore

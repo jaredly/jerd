@@ -5,7 +5,6 @@ import parse, { Toplevel } from '@jerd/language/src/parsing/parser';
 
 import { presetEnv } from '@jerd/language/src/typing/preset';
 import { Env, newWithGlobal, Type } from '@jerd/language/src/typing/types';
-import { updateToplevel } from './Cell';
 import { Content } from './State';
 
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
@@ -18,6 +17,7 @@ import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
+import { updateToplevel } from './toplevels';
 
 const key = 'jd-ast-debug';
 
