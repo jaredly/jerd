@@ -4,7 +4,7 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "build": "esbuild src/run.tsx --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --outdir=.",
+        "build": "esbuild src/run.tsx --loader:.jd=text --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --outdir=../docs",
         "start": "esbuild src/run.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --servedir=. --outdir=. --serve=:4343 --external:fs"
     },
     "dependencies": {
