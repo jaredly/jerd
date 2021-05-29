@@ -25,6 +25,7 @@ import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { runTerm } from './eval';
 import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { getToplevel } from './toplevels';
+import { Pin } from './Pin';
 
 const defaultPlugins: Plugins = {
     ...DrawablePlugins,
@@ -288,49 +289,4 @@ const ImportExport = ({
             </div>
         </div>
     );
-};
-
-const Pin = ({
-    pin,
-    env,
-    evalEnv,
-    plugins,
-    onRun,
-}: {
-    pin: { id: Id; display: Display };
-    env: Env;
-    evalEnv: EvalEnv;
-    plugins: Plugins;
-    onRun: (id: Id) => void;
-}) => {
-    if (!evalEnv.terms[idName(pin.id)]) {
-        return (
-            <div
-                style={{
-                    padding: 16,
-                    // width: 200,
-                    height: 200,
-                    boxSizing: 'border-box',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                {/* {idName(pin.id)} has not yet been evaluated. */}
-                <button
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => onRun(pin.id)}
-                >
-                    Evaluate {idName(pin.id)}
-                </button>
-            </div>
-        );
-    }
-    const t = env.global.terms[idName(pin.id)];
-    const plugin: PluginT = plugins[pin.display.type];
-    const err = getTypeError(env, t.is, plugin.type, nullLocation);
-    if (err == null) {
-        return plugin.render(evalEnv.terms[idName(pin.id)], evalEnv, env, t);
-    }
-    return <div>Error folks</div>;
 };

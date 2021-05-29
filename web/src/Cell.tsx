@@ -219,6 +219,15 @@ export const CellView = ({
     );
 };
 
+const hashStyle = {
+    color: 'white',
+    marginRight: 8,
+    fontSize: '80%',
+    background: '#2b2b2b',
+    padding: '2px 8px',
+    borderRadius: 4,
+};
+
 const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
     switch (cell.content.type) {
         case 'raw':
@@ -234,6 +243,7 @@ const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
                         whiteSpace: 'pre-wrap',
                     }}
                 >
+                    <span css={hashStyle}>#{idName(cell.content.id)}</span>
                     {renderAttributedText(
                         env.global,
                         printToAttributedText(
@@ -262,6 +272,7 @@ const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
                         whiteSpace: 'pre-wrap',
                     }}
                 >
+                    <span css={hashStyle}>#{idName(cell.content.id)}</span>
                     {renderAttributedText(
                         env.global,
                         printToAttributedText(

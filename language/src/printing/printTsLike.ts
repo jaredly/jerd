@@ -144,8 +144,9 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
 
 export const effectToPretty = (env: Env, id: Id, effect: EffectDef): PP => {
     return items([
-        atom('effect '),
+        atom('effect ', ['keyword']),
         idToPretty(env, id, 'effect'),
+        atom(' '),
         block(
             effect.constrs.map((constr, i) =>
                 items([

@@ -31,10 +31,7 @@ import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import Editor from './Editor';
 import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
-import { getTypeError } from '@jerd/language/src/typing/getTypeError';
-import { void_ } from '@jerd/language/src/typing/preset';
 import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
-import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { RenderResult } from './RenderResult';
 import { getToplevel, updateToplevel } from './toplevels';
 
@@ -137,8 +134,6 @@ export const RenderItem = ({
                         ),
                         onClick,
                     )}
-                    {/* @ts-ignore */}
-                    <div style={styles.hash}>#{idName(content.id)}</div>
                 </div>
                 {term ? (
                     <RenderResult
