@@ -4,11 +4,12 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { Env, Id } from '@jerd/language/src/typing/types';
-import { Display, EvalEnv, Plugins, PluginT } from './State';
+import { Content, Display, EvalEnv, Plugins, PluginT } from './State';
 
 import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { nullLocation } from '@jerd/language/src/parsing/parser';
+import { hashStyle } from './Cell';
 
 export const Pin = ({
     pin,
@@ -16,12 +17,16 @@ export const Pin = ({
     evalEnv,
     plugins,
     onRun,
+    onRemove,
+    onOpen,
 }: {
     pin: { id: Id; display: Display };
     env: Env;
     evalEnv: EvalEnv;
     plugins: Plugins;
     onRun: (id: Id) => void;
+    onRemove: () => void;
+    onOpen: (content: Content) => void;
 }) => {
     const hash = idName(pin.id);
 
@@ -31,31 +36,73 @@ export const Pin = ({
         }
     }, [evalEnv.terms[hash] == null]);
 
+    let body = null;
+
     if (evalEnv.terms[hash] == null) {
-        return (
+        body =
+            // <div
+            //     style={{
+            //         padding: 16,
+            //         // width: 200,
+            //         height: 200,
+            //         boxSizing: 'border-box',
+            //         display: 'flex',
+            //         alignItems: 'center',
+            //         justifyContent: 'center',
+            //         opacity: 0.5,
+            //     }}
+            // >
+            'Loading...';
+        // </div>
+    } else {
+        const t = env.global.terms[hash];
+        const plugin: PluginT = plugins[pin.display.type];
+        const err = getTypeError(env, t.is, plugin.type, nullLocation);
+        if (err == null) {
+            body = plugin.render(
+                evalEnv.terms[idName(pin.id)],
+                evalEnv,
+                env,
+                t,
+            );
+        } else {
+            body = <div>Invalid term for plugin. Type mismatch.</div>;
+        }
+    }
+    return (
+        <div
+            css={{
+                borderBottom: '1px dashed #ababab',
+                marginBottom: 8,
+                paddingBottom: 8,
+            }}
+        >
             <div
-                style={{
-                    padding: 16,
-                    // width: 200,
-                    height: 200,
-                    boxSizing: 'border-box',
+                css={{
+                    backgroundColor: '#151515',
+                    padding: 4,
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: 0.5,
                 }}
             >
-                {/* {idName(pin.id)} has not yet been evaluated. */}
-                Loading...
+                <span css={hashStyle}>#{hash}</span>
+                <div css={{ flex: 1 }} />
+                <button
+                    css={{
+                        cursor: 'pointer',
+                        fontSize: '50%',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: 'inherit',
+                        padding: 0,
+                        marginLeft: 8,
+                        marginRight: 4,
+                    }}
+                    onClick={onRemove}
+                >
+                    ╳
+                </button>
             </div>
-        );
-    }
-
-    const t = env.global.terms[idName(pin.id)];
-    const plugin: PluginT = plugins[pin.display.type];
-    const err = getTypeError(env, t.is, plugin.type, nullLocation);
-    if (err == null) {
-        return plugin.render(evalEnv.terms[idName(pin.id)], evalEnv, env, t);
-    }
-    return <div>Error folks</div>;
+            {body}
+        </div>
+    );
 };

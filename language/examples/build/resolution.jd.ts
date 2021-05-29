@@ -27,21 +27,21 @@ type t_As<T_10000, T_10001> = {
 
 /**
 ```
-const one#5678a3a0: (float) ={}> float = (a#:0: float) ={}> (a#:0 + 4.0)
+const one#5678a3a0 = (a#:0: float): float ={}> (a#:0 + 4.0)
 ```
 */
 export const hash_5678a3a0: (arg_0: number) => number = (a: number) => a + 4;
 
 /**
 ```
-const one#f4c397d2: (int) ={}> int = (a#:0: int) ={}> (a#:0 + 2)
+const one#f4c397d2 = (a#:0: int): int ={}> (a#:0 + 2)
 ```
 */
 export const hash_f4c397d2: (arg_0: number) => number = (a: number) => a + 2;
 
 /**
 ```
-const IntAsFloat#6f186ad1: As#As<int, float> = As#As<int, float>{as#As#0: intToFloat}
+const IntAsFloat#6f186ad1 = As#As<int, float>{as#As#0: intToFloat}
 ```
 */
 export const hash_6f186ad1: t_As<number, number> = ({
@@ -51,7 +51,7 @@ export const hash_6f186ad1: t_As<number, number> = ({
 
 /**
 ```
-const FloatEq#c41f7386: Eq#553b4b8e<float> = Eq#553b4b8e<float>{"=="#553b4b8e#0: floatEq}
+const FloatEq#c41f7386 = Eq#553b4b8e<float>{"=="#553b4b8e#0: floatEq}
 ```
 */
 export const hash_c41f7386: t_553b4b8e<number> = ({

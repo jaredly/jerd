@@ -15,7 +15,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const IntEq#9275f914: Eq#553b4b8e<int> = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -25,11 +25,7 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const within#004be9c0: (float, float, float) ={}> bool = (
-    found#:0: float,
-    expected#:1: float,
-    margin#:2: float,
-) ={}> {
+const within#004be9c0 = (found#:0: float, expected#:1: float, margin#:2: float): bool ={}> {
     if ((found#:0 - margin#:2) < expected#:1) {
         ((found#:0 + margin#:2) > expected#:1);
     } else {
@@ -48,7 +44,7 @@ export const hash_004be9c0: (arg_0: number, arg_1: number, arg_2: number) => boo
 
 /**
 ```
-const FloatEq#c41f7386: Eq#553b4b8e<float> = Eq#553b4b8e<float>{"=="#553b4b8e#0: floatEq}
+const FloatEq#c41f7386 = Eq#553b4b8e<float>{"=="#553b4b8e#0: floatEq}
 ```
 */
 export const hash_c41f7386: t_553b4b8e<number> = ({

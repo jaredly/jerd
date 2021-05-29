@@ -118,16 +118,12 @@ type t_b99b22d8<T_0, T_1, T_2> = {
 
 /**
 ```
-const AddSubVec2#70bb2056: AddSub#b99b22d8<Vec2#43802a16, Vec2#43802a16, Vec2#43802a16> = AddSub#b99b22d8<
-    Vec2#43802a16,
-    Vec2#43802a16,
-    Vec2#43802a16,
->{
-    "+"#b99b22d8#0: (one#:0: Vec2#43802a16, two#:1: Vec2#43802a16) ={}> Vec2#43802a16{
+const AddSubVec2#70bb2056 = AddSub#b99b22d8<Vec2#43802a16, Vec2#43802a16, Vec2#43802a16>{
+    "+"#b99b22d8#0: (one#:0: Vec2#43802a16, two#:1: Vec2#43802a16): Vec2#43802a16 ={}> Vec2#43802a16{
         x#43802a16#0: (one#:0.x#43802a16#0 + two#:1.x#43802a16#0),
         y#43802a16#1: (one#:0.y#43802a16#1 + two#:1.y#43802a16#1),
     },
-    "-"#b99b22d8#1: (one#:2: Vec2#43802a16, two#:3: Vec2#43802a16) ={}> Vec2#43802a16{
+    "-"#b99b22d8#1: (one#:2: Vec2#43802a16, two#:3: Vec2#43802a16): Vec2#43802a16 ={}> Vec2#43802a16{
         x#43802a16#0: (one#:2.x#43802a16#0 - two#:3.x#43802a16#0),
         y#43802a16#1: (one#:2.y#43802a16#1 - two#:3.y#43802a16#1),
     },
@@ -150,7 +146,7 @@ export const hash_70bb2056: t_b99b22d8<t_43802a16, t_43802a16, t_43802a16> = ({
 
 /**
 ```
-const length#c2805852: (Vec2#43802a16) ={}> float = (v#:0: Vec2#43802a16) ={}> sqrt(
+const length#c2805852 = (v#:0: Vec2#43802a16): float ={}> sqrt(
     ((v#:0.x#43802a16#0 * v#:0.x#43802a16#0) + (v#:0.y#43802a16#1 * v#:0.y#43802a16#1)),
 )
 ```
@@ -159,7 +155,7 @@ export const hash_c2805852: (arg_0: t_43802a16) => number = (v: t_43802a16) => s
 
 /**
 ```
-const abs#1a074578: (Vec3#9f1c0644) ={}> Vec3#9f1c0644 = (v#:0: Vec3#9f1c0644) ={}> Vec3#9f1c0644{
+const abs#1a074578 = (v#:0: Vec3#9f1c0644): Vec3#9f1c0644 ={}> Vec3#9f1c0644{
     x#43802a16#0: abs(v#:0.x#43802a16#0),
     y#43802a16#1: abs(v#:0.y#43802a16#1),
     z#9f1c0644#0: abs(v#:0.z#9f1c0644#0),
@@ -175,7 +171,7 @@ export const hash_1a074578: (arg_0: t_9f1c0644) => t_9f1c0644 = (v: t_9f1c0644) 
 
 /**
 ```
-const FloatAsInt#184a69ed: As#As<float, int> = As#As<float, int>{as#As#0: floatToInt}
+const FloatAsInt#184a69ed = As#As<float, int>{as#As#0: floatToInt}
 ```
 */
 export const hash_184a69ed: t_As<number, number> = ({
@@ -185,10 +181,7 @@ export const hash_184a69ed: t_As<number, number> = ({
 
 /**
 ```
-const circleSDF#632537ec: (Vec2#43802a16, Circle#44c72b50) ={}> float = (
-    p#:0: Vec2#43802a16,
-    circle#:1: Circle#44c72b50,
-) ={}> {
+const circleSDF#632537ec = (p#:0: Vec2#43802a16, circle#:1: Circle#44c72b50): float ={}> {
     (length#c2805852((p#:0 -#70bb2056#b99b22d8#1 circle#:1.pos#44c72b50#0)) - circle#:1.r#44c72b50#1);
 }
 ```
@@ -197,7 +190,7 @@ export const hash_632537ec: (arg_0: t_43802a16, arg_1: t_44c72b50) => number = (
 
 /**
 ```
-const Min#4e1890c8: Min#5cfbbc08<float> = Min#5cfbbc08<float>{"--"#5cfbbc08#0: min}
+const Min#4e1890c8 = Min#5cfbbc08<float>{"--"#5cfbbc08#0: min}
 ```
 */
 export const hash_4e1890c8: t_5cfbbc08<number> = ({
@@ -207,10 +200,7 @@ export const hash_4e1890c8: t_5cfbbc08<number> = ({
 
 /**
 ```
-const hello#6e44375b: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = (
-    env#:0: GLSLEnv#451d5252,
-    fragCoord#:1: Vec2#43802a16,
-) ={}> {
+const hello#6e44375b = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): Vec4#3b941378 ={}> {
     const circle#:2 = Circle#44c72b50{
         pos#44c72b50#0: env#:0.mouse#451d5252#3,
         r#44c72b50#1: (40.0 + (cos((env#:0.time#451d5252#0 * 4.0)) * 20.0)),

@@ -60,12 +60,8 @@ type t_5ac12902<T_0, T_1, T_2> = {
 
 /**
 ```
-const MulVec2#090f77e7: Div#5ac12902<Vec2#43802a16, Vec2#43802a16, Vec2#43802a16> = Div#5ac12902<
-    Vec2#43802a16,
-    Vec2#43802a16,
-    Vec2#43802a16,
->{
-    "/"#5ac12902#0: (v#:0: Vec2#43802a16, scale#:1: Vec2#43802a16) ={}> Vec2#43802a16{
+const MulVec2#090f77e7 = Div#5ac12902<Vec2#43802a16, Vec2#43802a16, Vec2#43802a16>{
+    "/"#5ac12902#0: (v#:0: Vec2#43802a16, scale#:1: Vec2#43802a16): Vec2#43802a16 ={}> Vec2#43802a16{
         x#43802a16#0: (v#:0.x#43802a16#0 / scale#:1.x#43802a16#0),
         y#43802a16#1: (v#:0.y#43802a16#1 / scale#:1.y#43802a16#1),
     },
@@ -83,13 +79,13 @@ export const hash_090f77e7: t_5ac12902<t_43802a16, t_43802a16, t_43802a16> = ({
 
 /**
 ```
-const main#3a366a4a: (float, Vec2#43802a16, Vec2#43802a16, Vec3#9f1c0644, sampler2D) ={}> Vec4#3b941378 = (
+const main#3a366a4a = (
     iTime#:0: float,
     fragCoord#:1: Vec2#43802a16,
     iResolution#:2: Vec2#43802a16,
     uCamera#:3: Vec3#9f1c0644,
     buffer#:4: sampler2D,
-) ={}> {
+): Vec4#3b941378 ={}> {
     texture(buffer#:4, (fragCoord#:1 /#090f77e7#5ac12902#0 iResolution#:2));
 }
 ```
@@ -98,13 +94,13 @@ export const hash_3a366a4a: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16
 
 /**
 ```
-const pendulum#2d222162: (float, Vec2#43802a16, Vec2#43802a16, Vec3#9f1c0644, sampler2D) ={}> Vec4#3b941378 = (
+const pendulum#2d222162 = (
     iTime#:0: float,
     fragCoord#:1: Vec2#43802a16,
     iResolution#:2: Vec2#43802a16,
     uCamera#:3: Vec3#9f1c0644,
     buffer#:4: sampler2D,
-) ={}> {
+): Vec4#3b941378 ={}> {
     if (iTime#:0 < 0.1) {
         Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 0.0, y#43802a16#1: 0.0, w#3b941378#0: 1.0};
     } else {

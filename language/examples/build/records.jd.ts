@@ -123,11 +123,7 @@ type t_225ab688 = {
 
 /**
 ```
-const me#5af8296e: Person#58c1982c = Person#58c1982c{
-    name#ad561a20#0: "June",
-    age#4082e170#0: 10,
-    what#58c1982c#0: 3,
-}
+const me#5af8296e = Person#58c1982c{name#ad561a20#0: "June", age#4082e170#0: 10, what#58c1982c#0: 3}
 ```
 */
 export const hash_5af8296e: t_58c1982c = ({
@@ -139,7 +135,7 @@ export const hash_5af8296e: t_58c1982c = ({
 
 /**
 ```
-const aPerson#37c99a88: Person#58c1982c = Person#58c1982c{
+const aPerson#37c99a88 = Person#58c1982c{
     name#ad561a20#0: "ralf",
     age#4082e170#0: 23,
     what#58c1982c#0: 2,
@@ -155,10 +151,7 @@ export const hash_37c99a88: t_58c1982c = ({
 
 /**
 ```
-const aDog#5cd59c5d: Animal#225ab688 = Animal#225ab688{
-    name#ad561a20#0: "wolrf",
-    furColor#225ab688#0: "red",
-}
+const aDog#5cd59c5d = Animal#225ab688{name#ad561a20#0: "wolrf", furColor#225ab688#0: "red"}
 ```
 */
 export const hash_5cd59c5d: t_225ab688 = ({
@@ -169,7 +162,7 @@ export const hash_5cd59c5d: t_225ab688 = ({
 
 /**
 ```
-const gotit#9781cfa0: Some#Some<int> = Some#Some<int>{contents#Some#0: 5}
+const gotit#9781cfa0 = Some#Some<int>{contents#Some#0: 5}
 ```
 */
 export const hash_9781cfa0: t_Some<number> = ({
@@ -179,10 +172,8 @@ export const hash_9781cfa0: t_Some<number> = ({
 
 /**
 ```
-const countNamed#8aced828: Counter#a4491948<<T#:0: HasName#ad561a20>(T#:0) ={}> string> = Counter#a4491948<
-    <T#:0: HasName#ad561a20>(T#:0) ={}> string,
->{
-    item#a4491948#0: <T#:0: HasName#ad561a20>(input#:0: T#:0) ={}> input#:0.name#ad561a20#0,
+const countNamed#8aced828 = Counter#a4491948<<T#:0: HasName#ad561a20>(T#:0) ={}> string>{
+    item#a4491948#0: <T#:0: HasName#ad561a20>(input#:0: T#:0): string ={}> input#:0.name#ad561a20#0,
     count#a4491948#1: 10,
 }
 ```
@@ -201,9 +192,10 @@ export const hash_8aced828: t_a4491948<<T_0 extends {
 
 /**
 ```
-const countAny#5a5f83a0: Counter#a4491948<<T#:0>(T#:0) ={}> string> = Counter#a4491948<
-    <T#:0>(T#:0) ={}> string,
->{item#a4491948#0: <T#:0>(input#:0: T#:0) ={}> "hi", count#a4491948#1: 10}
+const countAny#5a5f83a0 = Counter#a4491948<<T#:0>(T#:0) ={}> string>{
+    item#a4491948#0: <T#:0>(input#:0: T#:0): string ={}> "hi",
+    count#a4491948#1: 10,
+}
 ```
 */
 export const hash_5a5f83a0: t_a4491948<<T_0>(arg_0: T_0) => string> = ({
@@ -214,10 +206,7 @@ export const hash_5a5f83a0: t_a4491948<<T_0>(arg_0: T_0) => string> = ({
 
 /**
 ```
-const countMe#3fcbf771: Counter#a4491948<int> = Counter#a4491948<int>{
-    item#a4491948#0: 10,
-    count#a4491948#1: 4000,
-}
+const countMe#3fcbf771 = Counter#a4491948<int>{item#a4491948#0: 10, count#a4491948#1: 4000}
 ```
 */
 export const hash_3fcbf771: t_a4491948<number> = ({
@@ -228,7 +217,7 @@ export const hash_3fcbf771: t_a4491948<number> = ({
 
 /**
 ```
-const here#7bf95f66: House#164905e5 = House#164905e5{occupant#164905e5#0: me#5af8296e}
+const here#7bf95f66 = House#164905e5{occupant#164905e5#0: me#5af8296e}
 ```
 */
 export const hash_7bf95f66: t_164905e5 = ({
@@ -238,9 +227,7 @@ export const hash_7bf95f66: t_164905e5 = ({
 
 /**
 ```
-const getName#1ef63c92: <T#:0: Person#58c1982c>(T#:0) ={}> string = <T#:0: Person#58c1982c>(
-    m#:0: T#:0,
-) ={}> m#:0.name#ad561a20#0
+const getName#1ef63c92 = <T#:0: Person#58c1982c>(m#:0: T#:0): string ={}> m#:0.name#ad561a20#0
 ```
 */
 export const hash_1ef63c92: <T_0 extends {
@@ -255,7 +242,7 @@ export const hash_1ef63c92: <T_0 extends {
 
 /**
 ```
-const them#3a789ae6: Employee#2736d9d6 = Employee#2736d9d6{
+const them#3a789ae6 = Employee#2736d9d6{
     what#58c1982c#0: 3,
     name#ad561a20#0: "You",
     age#4082e170#0: 100,
@@ -273,7 +260,7 @@ export const hash_3a789ae6: t_2736d9d6 = ({
 
 /**
 ```
-const you#3baa0bc6: Employee#2736d9d6 = Employee#2736d9d6{...me#5af8296e, address#2736d9d6#0: "Yes"}
+const you#3baa0bc6 = Employee#2736d9d6{...me#5af8296e, address#2736d9d6#0: "Yes"}
 ```
 */
 export const hash_3baa0bc6: t_2736d9d6 = ({ ...hash_5af8296e,
@@ -283,7 +270,7 @@ export const hash_3baa0bc6: t_2736d9d6 = ({ ...hash_5af8296e,
 
 /**
 ```
-const alsoMe#88bf856c: Person#58c1982c = Person#58c1982c{...me#5af8296e, what#58c1982c#0: 11}
+const alsoMe#88bf856c = Person#58c1982c{...me#5af8296e, what#58c1982c#0: 11}
 ```
 */
 export const hash_88bf856c: t_58c1982c = ({ ...hash_5af8296e,
@@ -293,7 +280,7 @@ export const hash_88bf856c: t_58c1982c = ({ ...hash_5af8296e,
 
 /**
 ```
-const IntEq#9275f914: Eq#553b4b8e<int> = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -303,7 +290,7 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const StringEq#606c7034: Eq#553b4b8e<string> = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({
@@ -367,7 +354,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_7bf95f66.h164905e5_0.had561a20_0, "Ju
 assertCall(hash_9275f914.h553b4b8e_0, hash_3fcbf771.ha4491948_0, 10);
 
 /*
-(Counter#a4491948<() ={}> string>{item#a4491948#0: () ={}> "hi", count#a4491948#1: 10}.item#a4491948#0() ==#606c7034#553b4b8e#0 "hi")
+(Counter#a4491948<() ={}> string>{item#a4491948#0: (): string ={}> "hi", count#a4491948#1: 10}.item#a4491948#0() ==#606c7034#553b4b8e#0 "hi")
 */
 assertCall(hash_606c7034.h553b4b8e_0, ({
   type: "a4491948",

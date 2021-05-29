@@ -219,7 +219,7 @@ export const CellView = ({
     );
 };
 
-const hashStyle = {
+export const hashStyle = {
     color: 'white',
     marginRight: 8,
     fontSize: '80%',

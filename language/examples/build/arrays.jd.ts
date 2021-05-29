@@ -3,21 +3,21 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-const z#6b583f49: Array<string> = <string>["hi", "ho"]
+const z#6b583f49 = <string>["hi", "ho"]
 ```
 */
 export const hash_6b583f49: Array<string> = ["hi", "ho"];
 
 /**
 ```
-const b#05ebca85: Array<string> = <string>["Good", ...z#6b583f49, "uhuh"]
+const b#05ebca85 = <string>["Good", ...z#6b583f49, "uhuh"]
 ```
 */
 export const hash_05ebca85: Array<string> = ["Good", ...hash_6b583f49, "uhuh"];
 
 /**
 ```
-const a#707b8ca0: Array<string> = <string>[...z#6b583f49, "Yes"]
+const a#707b8ca0 = <string>[...z#6b583f49, "Yes"]
 ```
 */
 export const hash_707b8ca0: Array<string> = [...hash_6b583f49, "Yes"];

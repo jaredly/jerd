@@ -32,9 +32,7 @@ type t_As<T_10000, T_10001> = {
 
 /**
 ```
-const decide#6ab06b22: () ={DecideOrFail#7214565c}> bool = () ={DecideOrFail#7214565c}> raise!(
-    DecideOrFail#7214565c.decide(),
-)
+const decide#6ab06b22 = (): bool ={DecideOrFail#7214565c}> raise!(DecideOrFail#7214565c.decide())
 ```
 */
 export const hash_6ab06b22:
@@ -45,9 +43,7 @@ export const hash_6ab06b22:
 
 /**
 ```
-const fail#0620e972: () ={DecideOrFail#7214565c}> int = () ={DecideOrFail#7214565c}> raise!(
-    DecideOrFail#7214565c.fail(),
-)
+const fail#0620e972 = (): int ={DecideOrFail#7214565c}> raise!(DecideOrFail#7214565c.fail())
 ```
 */
 export const hash_0620e972:
@@ -58,7 +54,7 @@ export const hash_0620e972:
 
 /**
 ```
-const IntAsString#1175499e: As#As<int, string> = As#As<int, string>{as#As#0: intToString}
+const IntAsString#1175499e = As#As<int, string>{as#As#0: intToString}
 ```
 */
 export const hash_1175499e: t_As<number, string> = ({
@@ -68,9 +64,7 @@ export const hash_1175499e: t_As<number, string> = ({
 
 /**
 ```
-const chooseInt#54cbbab4: (int, int) ={DecideOrFail#7214565c}> int = (m#:0: int, n#:1: int) ={
-    DecideOrFail#7214565c,
-}> {
+const chooseInt#54cbbab4 = (m#:0: int, n#:1: int): int ={DecideOrFail#7214565c}> {
     if (m#:0 > n#:1) {
         fail#0620e972();
         10;
@@ -104,9 +98,7 @@ export const hash_54cbbab4:
 
 /**
 ```
-const decide#5334ea40: () ={Decide#086e3532}> bool = () ={Decide#086e3532}> raise!(
-    Decide#086e3532.decide(),
-)
+const decide#5334ea40 = (): bool ={Decide#086e3532}> raise!(Decide#086e3532.decide())
 ```
 */
 export const hash_5334ea40:
@@ -117,9 +109,7 @@ export const hash_5334ea40:
 
 /**
 ```
-const pythagorean#0cdd5ff0: (int, int) ={DecideOrFail#7214565c}> string = (m#:0: int, n#:1: int) ={
-    DecideOrFail#7214565c,
-}> {
+const pythagorean#0cdd5ff0 = (m#:0: int, n#:1: int): string ={DecideOrFail#7214565c}> {
     const a#:2 = chooseInt#54cbbab4(m#:0, (n#:1 - 1));
     const b#:3 = chooseInt#54cbbab4((a#:2 + 1), n#:1);
     const a2#:4 = (a#:2 * a#:2);
@@ -152,14 +142,18 @@ export const hash_0cdd5ff0:
 
 /**
 ```
-const backtrackReverse#70ad2630: <T#:0>(() ={DecideOrFail#7214565c}> T#:0, () ={}> T#:0) ={}> T#:0 = <
-    T#:0,
->(fn#:0: () ={DecideOrFail#7214565c}> T#:0, orElse#:1: () ={}> T#:0) ={}> {
+const backtrackReverse#70ad2630 = <T#:0>(
+    fn#:0: () ={DecideOrFail#7214565c}> T#:0,
+    orElse#:1: () ={}> T#:0,
+): T#:0 ={}> {
     handle! fn#:0 {
         DecideOrFail.decide#0(() => k#:3) => {
             70ad2630#self<T#:0>(
-                () ={DecideOrFail#7214565c}> k#:3(false),
-                () ={}> 70ad2630#self<T#:0>(() ={DecideOrFail#7214565c}> k#:3(true), orElse#:1),
+                (): T#:0 ={DecideOrFail#7214565c}> k#:3(false),
+                (): T#:0 ={}> 70ad2630#self<T#:0>(
+                    (): T#:0 ={DecideOrFail#7214565c}> k#:3(true),
+                    orElse#:1,
+                ),
             );
         },
         DecideOrFail.fail#1(() => _#:4) => {
@@ -196,15 +190,15 @@ export const hash_70ad2630: <T_0>(arg_0:
 
 /**
 ```
-const backtrack#1603c390: <T#:0>(() ={DecideOrFail#7214565c}> T#:0, () ={}> T#:0) ={}> T#:0 = <T#:0>(
-    fn#:0: () ={DecideOrFail#7214565c}> T#:0,
-    orElse#:1: () ={}> T#:0,
-) ={}> {
+const backtrack#1603c390 = <T#:0>(fn#:0: () ={DecideOrFail#7214565c}> T#:0, orElse#:1: () ={}> T#:0): T#:0 ={}> {
     handle! fn#:0 {
         DecideOrFail.decide#0(() => k#:3) => {
             1603c390#self<T#:0>(
-                () ={DecideOrFail#7214565c}> k#:3(true),
-                () ={}> 1603c390#self<T#:0>(() ={DecideOrFail#7214565c}> k#:3(false), orElse#:1),
+                (): T#:0 ={DecideOrFail#7214565c}> k#:3(true),
+                (): T#:0 ={}> 1603c390#self<T#:0>(
+                    (): T#:0 ={DecideOrFail#7214565c}> k#:3(false),
+                    orElse#:1,
+                ),
             );
         },
         DecideOrFail.fail#1(() => _#:4) => {
@@ -241,9 +235,7 @@ export const hash_1603c390: <T_0>(arg_0:
 
 /**
 ```
-const choose#437fecbe: <T#:0>(T#:0, T#:0) ={Decide#086e3532}> T#:0 = <T#:0>(x#:0: T#:0, y#:1: T#:0) ={
-    Decide#086e3532,
-}> {
+const choose#437fecbe = <T#:0>(x#:0: T#:0, y#:1: T#:0): T#:0 ={Decide#086e3532}> {
     if decide#5334ea40() {
         x#:0;
     } else {
@@ -273,9 +265,7 @@ export const hash_437fecbe:
 
 /**
 ```
-const print#eccbfbca: (string) ={Write#35f4b478}> void = (x#:0: string) ={Write#35f4b478}> raise!(
-    Write#35f4b478.write(x#:0),
-)
+const print#eccbfbca = (x#:0: string): void ={Write#35f4b478}> raise!(Write#35f4b478.write(x#:0))
 ```
 */
 export const hash_eccbfbca:
@@ -286,9 +276,7 @@ export const hash_eccbfbca:
 
 /**
 ```
-const callPlus5#1d5e1778: {e#:0}(() ={e#:0}> int) ={e#:0}> int = {e#:0}(x#:0: () ={e#:0}> int) ={
-    e#:0,
-}> (x#:0() + 5)
+const callPlus5#1d5e1778 = {e#:0}(x#:0: () ={e#:0}> int): int ={e#:0}> (x#:0() + 5)
 ```
 */
 export const hash_1d5e1778: any = {
@@ -306,7 +294,7 @@ export const hash_1d5e1778: any = {
 
 /**
 ```
-const getAndSet#463fdaf6: () ={Store#7b45d75e}> string = () ={Store#7b45d75e}> {
+const getAndSet#463fdaf6 = (): string ={Store#7b45d75e}> {
     const x#:0 = raise!(Store#7b45d75e.get());
     raise!(Store#7b45d75e.set((x#:0 + 4)));
     ((intToString(x#:0) ++ ":") ++ intToString(raise!(Store#7b45d75e.get())));
@@ -327,14 +315,11 @@ export const hash_463fdaf6:
 
 /**
 ```
-const withInitialValue#478ee9c0: <T#:0>(int, () ={Store#7b45d75e}> T#:0) ={}> T#:0 = <T#:0>(
-    value#:0: int,
-    fn#:1: () ={Store#7b45d75e}> T#:0,
-) ={}> {
+const withInitialValue#478ee9c0 = <T#:0>(value#:0: int, fn#:1: () ={Store#7b45d75e}> T#:0): T#:0 ={}> {
     handle! fn#:1 {
         Store.get#0(() => k#:3) => 478ee9c0#self<T#:0>(
             value#:0,
-            () ={Store#7b45d75e}> k#:3(value#:0),
+            (): T#:0 ={Store#7b45d75e}> k#:3(value#:0),
         ),
         Store.set#1((newValue#:4) => k#:5) => 478ee9c0#self<T#:0>(newValue#:4, k#:5),
         pure(x#:2) => x#:2,
@@ -366,9 +351,12 @@ export const hash_478ee9c0: <T_0>(arg_0: number, arg_1:
 
 /**
 ```
-const backtrackPythagReverse#5f048050: (int, int) ={}> string = (m#:0: int, n#:1: int) ={}> backtrackReverse#70ad2630<
+const backtrackPythagReverse#5f048050 = (m#:0: int, n#:1: int): string ={}> backtrackReverse#70ad2630<
     string,
->(() ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1), () ={}> "No solution found")
+>(
+    (): string ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1),
+    (): string ={}> "No solution found",
+)
 ```
 */
 export const hash_5f048050: (arg_0: number, arg_1: number) => T_0 = (m: number, n: number) => hash_70ad2630((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
@@ -377,9 +365,10 @@ export const hash_5f048050: (arg_0: number, arg_1: number) => T_0 = (m: number, 
 
 /**
 ```
-const backtrackPythag#db67c018: (int, int) ={}> string = (m#:0: int, n#:1: int) ={}> backtrack#1603c390<
-    string,
->(() ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1), () ={}> "No solution found")
+const backtrackPythag#db67c018 = (m#:0: int, n#:1: int): string ={}> backtrack#1603c390<string>(
+    (): string ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1),
+    (): string ={}> "No solution found",
+)
 ```
 */
 export const hash_db67c018: (arg_0: number, arg_1: number) => T_0 = (m: number, n: number) => hash_1603c390((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
@@ -388,10 +377,10 @@ export const hash_db67c018: (arg_0: number, arg_1: number) => T_0 = (m: number, 
 
 /**
 ```
-const pickMax#998219d8: (() ={Decide#086e3532}> int) ={}> int = (fn#:0: () ={Decide#086e3532}> int) ={}> handle! fn#:0 {
+const pickMax#998219d8 = (fn#:0: () ={Decide#086e3532}> int): int ={}> handle! fn#:0 {
     Decide.decide#0(() => k#:2) => {
-        const xt#:3 = 998219d8#self(() ={Decide#086e3532}> k#:2(true));
-        const xf#:4 = 998219d8#self(() ={Decide#086e3532}> k#:2(false));
+        const xt#:3 = 998219d8#self((): int ={Decide#086e3532}> k#:2(true));
+        const xf#:4 = 998219d8#self((): int ={Decide#086e3532}> k#:2(false));
         if (xt#:3 > xf#:4) {
             xt#:3;
         } else {
@@ -433,7 +422,7 @@ export const hash_998219d8: (arg_0:
 
 /**
 ```
-const chooseDiff#61f16268: () ={Decide#086e3532}> int = () ={Decide#086e3532}> {
+const chooseDiff#61f16268 = (): int ={Decide#086e3532}> {
     const x1#:0 = choose#437fecbe<int>(15, 30);
     const x2#:1 = choose#437fecbe<int>(5, 10);
     (x1#:0 - x2#:1);
@@ -452,10 +441,8 @@ export const hash_61f16268:
 
 /**
 ```
-const pickTrue#268d3ca7: <T#:0>(() ={Decide#086e3532}> T#:0) ={}> T#:0 = <T#:0>(
-    fn#:0: () ={Decide#086e3532}> T#:0,
-) ={}> handle! fn#:0 {
-    Decide.decide#0(() => k#:2) => 268d3ca7#self<T#:0>(() ={Decide#086e3532}> k#:2(true)),
+const pickTrue#268d3ca7 = <T#:0>(fn#:0: () ={Decide#086e3532}> T#:0): T#:0 ={}> handle! fn#:0 {
+    Decide.decide#0(() => k#:2) => 268d3ca7#self<T#:0>((): T#:0 ={Decide#086e3532}> k#:2(true)),
     pure(x#:1) => x#:1,
 }
 ```
@@ -480,7 +467,7 @@ export const hash_268d3ca7: <T_0>(arg_0:
 
 /**
 ```
-const IntEq#9275f914: Eq#553b4b8e<int> = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -490,9 +477,7 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const reverse#f201f930: (() ={Write#35f4b478}> void) ={Write#35f4b478}> void = (
-    fn#:0: () ={Write#35f4b478}> void,
-) ={Write#35f4b478}> {
+const reverse#f201f930 = (fn#:0: () ={Write#35f4b478}> void): void ={Write#35f4b478}> {
     handle! fn#:0 {
         Write.write#0((v#:2) => k#:3) => {
             f201f930#self(k#:3);
@@ -523,10 +508,7 @@ export const hash_f201f930:
 
 /**
 ```
-const printFullName#ea51ddfc: () ={Read#22024b72, Write#35f4b478}> void = () ={
-    Read#22024b72,
-    Write#35f4b478,
-}> {
+const printFullName#ea51ddfc = (): void ={Read#22024b72, Write#35f4b478}> {
     print#eccbfbca("What is your forename?");
     const foreName#:0 = raise!(Read#22024b72.read());
     print#eccbfbca("What is your surname?");
@@ -551,7 +533,7 @@ export const hash_ea51ddfc:
 
 /**
 ```
-const read#64605d94: () ={Read#22024b72}> string = () ={Read#22024b72}> raise!(Read#22024b72.read())
+const read#64605d94 = (): string ={Read#22024b72}> raise!(Read#22024b72.read())
 ```
 */
 export const hash_64605d94:
@@ -562,12 +544,12 @@ export const hash_64605d94:
 
 /**
 ```
-const alwaysRead#1762d528: <T#:0>{e#:0}(string, () ={Read#22024b72, e#:0}> T#:0) ={e#:0}> T#:0 = <
-    T#:0,
->{e#:0}(value#:0: string, fn#:1: () ={Read#22024b72, e#:0}> T#:0) ={e#:0}> {
+const alwaysRead#1762d528 = <T#:0>{e#:0}(value#:0: string, fn#:1: () ={Read#22024b72, e#:0}> T#:0): T#:0 ={
+    e#:0,
+}> {
     handle! fn#:1 {
         Read.read#0(() => k#:3) => {
-            1762d528#self<T#:0>{e#:0}(value#:0, () ={Read#22024b72, e#:0}> k#:3(value#:0));
+            1762d528#self<T#:0>{e#:0}(value#:0, (): T#:0 ={Read#22024b72, e#:0}> k#:3(value#:0));
         },
         pure(a#:2) => a#:2,
     };
@@ -607,12 +589,10 @@ export const hash_1762d528: any = {
 
 /**
 ```
-const collect#2ce3943a: {e#:0}(() ={Write#35f4b478, e#:0}> void) ={e#:0}> string = {e#:0}(
-    fn#:0: () ={Write#35f4b478, e#:0}> void,
-) ={e#:0}> {
+const collect#2ce3943a = {e#:0}(fn#:0: () ={Write#35f4b478, e#:0}> void): string ={e#:0}> {
     handle! fn#:0 {
         Write.write#0((v#:2) => k#:3) => {
-            ((v#:2 ++ "\n") ++ 2ce3943a#self{e#:0}(() ={Write#35f4b478, e#:0}> k#:3()));
+            ((v#:2 ++ "\n") ++ 2ce3943a#self{e#:0}((): void ={Write#35f4b478, e#:0}> k#:3()));
         },
         pure(a#:1) => "end",
     };
@@ -656,7 +636,7 @@ export const hash_2ce3943a: any = {
 
 /**
 ```
-const StringEq#606c7034: Eq#553b4b8e<string> = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({
@@ -666,7 +646,7 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 
 /*
 (collect#2ce3943a{}(
-    () ={Write#35f4b478}> {
+    (): void ={Write#35f4b478}> {
         raise!(Write#35f4b478.write("one"));
         raise!(Write#35f4b478.write("two"));
         raise!(Write#35f4b478.write("three"));
@@ -682,7 +662,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "one\ntwo\nthree\nend");
 
 /*
-(collect#2ce3943a{}(() ={Write#35f4b478}> {
+(collect#2ce3943a{}((): void ={Write#35f4b478}> {
     print#eccbfbca("HI");
 }) ==#606c7034#553b4b8e#0 "HI\nend")
 */
@@ -691,7 +671,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "HI\nend");
 
 /*
-(collect#2ce3943a{}(() ={Write#35f4b478}> {
+(collect#2ce3943a{}((): void ={Write#35f4b478}> {
     print#eccbfbca("HI");
     print#eccbfbca("HO");
 }) ==#606c7034#553b4b8e#0 "HI\nHO\nend")
@@ -705,7 +685,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 (collect#2ce3943a{}(
-    () ={Write#35f4b478}> {
+    (): void ={Write#35f4b478}> {
         raise!(Write#35f4b478.write("HI"));
         raise!(Write#35f4b478.write("HO"));
     },
@@ -719,9 +699,9 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 (collect#2ce3943a{}(
-    () ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
+    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
         "hi",
-        () ={Read#22024b72, Write#35f4b478}> print#eccbfbca(
+        (): void ={Read#22024b72, Write#35f4b478}> print#eccbfbca(
             ((raise!(Read#22024b72.read()) ++ " and ") ++ raise!(Read#22024b72.read())),
         ),
     ),
@@ -740,7 +720,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "hi and hi\nend");
 
 /*
-(collect#2ce3943a{}(() ={Write#35f4b478}> {
+(collect#2ce3943a{}((): void ={Write#35f4b478}> {
     print#eccbfbca("A");
     print#eccbfbca("B");
 }) ==#606c7034#553b4b8e#0 "A\nB\nend")
@@ -754,9 +734,9 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 (collect#2ce3943a{}(
-    () ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
+    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
         "hi",
-        () ={Read#22024b72, Write#35f4b478}> {
+        (): void ={Read#22024b72, Write#35f4b478}> {
             print#eccbfbca(read#64605d94());
             print#eccbfbca("YA");
             print#eccbfbca(read#64605d94());
@@ -788,9 +768,9 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 (collect#2ce3943a{}(
-    () ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
+    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
         "hi",
-        () ={Read#22024b72, Write#35f4b478}> {
+        (): void ={Read#22024b72, Write#35f4b478}> {
             raise!(Write#35f4b478.write("A"));
             const x#:0 = raise!(Read#22024b72.read());
             raise!(Write#35f4b478.write("B"));
@@ -811,9 +791,9 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 (collect#2ce3943a{}(
-    () ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
+    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
         "hi",
-        () ={Read#22024b72, Write#35f4b478}> {
+        (): void ={Read#22024b72, Write#35f4b478}> {
             const x#:0 = raise!(Read#22024b72.read());
             raise!(Write#35f4b478.write("B"));
         },
@@ -831,7 +811,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 (collect#2ce3943a{}(
-    () ={Write#35f4b478}> {
+    (): void ={Write#35f4b478}> {
         alwaysRead#1762d528<void>{Write#35f4b478}("Me", printFullName#ea51ddfc);
     },
 ) ==#606c7034#553b4b8e#0 "What is your forename?\nWhat is your surname?\nMe Me\nend")
@@ -842,8 +822,8 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 (collect#2ce3943a{}(
-    () ={Write#35f4b478}> reverse#f201f930(
-        () ={Write#35f4b478}> {
+    (): void ={Write#35f4b478}> reverse#f201f930(
+        (): void ={Write#35f4b478}> {
             print#eccbfbca("A");
             print#eccbfbca("B");
         },
@@ -861,9 +841,9 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 (collect#2ce3943a{}(
-    () ={Write#35f4b478}> {
+    (): void ={Write#35f4b478}> {
         reverse#f201f930(
-            () ={Write#35f4b478}> {
+            (): void ={Write#35f4b478}> {
                 alwaysRead#1762d528<void>{Write#35f4b478}("Me", printFullName#ea51ddfc);
             },
         );
@@ -914,8 +894,8 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_478ee9c0(10, hash_463fdaf6), "10:14")
 /*
 (withInitialValue#478ee9c0<int>(
     4,
-    () ={Store#7b45d75e}> callPlus5#1d5e1778{Store#7b45d75e}(
-        () ={Store#7b45d75e}> raise!(Store#7b45d75e.get()),
+    (): int ={Store#7b45d75e}> callPlus5#1d5e1778{Store#7b45d75e}(
+        (): int ={Store#7b45d75e}> raise!(Store#7b45d75e.get()),
     ),
 ) ==#9275f914#553b4b8e#0 9)
 */
@@ -926,6 +906,6 @@ assertCall(hash_9275f914.h553b4b8e_0, hash_478ee9c0(4, (handlers: Handlers, done
 }), 9);
 
 /*
-(callPlus5#1d5e1778{}(() ={}> 4) ==#9275f914#553b4b8e#0 9)
+(callPlus5#1d5e1778{}((): int ={}> 4) ==#9275f914#553b4b8e#0 9)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_1d5e1778.direct(() => 4), 9);

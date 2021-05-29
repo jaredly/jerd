@@ -15,7 +15,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const IntEq#9275f914: Eq#553b4b8e<int> = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -25,7 +25,7 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const fib#ac346fbc: (int, int, int) ={}> int = (prev#:0: int, cur#:1: int, n#:2: int) ={}> if (n#:2 ==#9275f914#553b4b8e#0 0) {
+const fib#ac346fbc = (prev#:0: int, cur#:1: int, n#:2: int): int ={}> if (n#:2 ==#9275f914#553b4b8e#0 0) {
     prev#:0;
 } else {
     ac346fbc#self(cur#:1, (prev#:0 + cur#:1), (n#:2 - 1));
@@ -48,7 +48,7 @@ export const hash_ac346fbc: (arg_0: number, arg_1: number, arg_2: number) => num
 
 /**
 ```
-const z#ce5d9b4c: (int) ={}> int = (n#:0: int) ={}> {
+const z#ce5d9b4c = (n#:0: int): int ={}> {
     const m#:1 = (n#:0 + 2);
     (m#:1 - 1);
 }
@@ -58,7 +58,7 @@ export const hash_ce5d9b4c: (arg_0: number) => number = (n$0: number) => n$0 + 2
 
 /**
 ```
-const x#0c634e04: int = {
+const x#0c634e04 = {
     const y#:0 = 10;
     y#:0;
 }

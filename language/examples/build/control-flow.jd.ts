@@ -15,7 +15,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const x2#b022715c: () ={}> int = () ={}> {
+const x2#b022715c = (): int ={}> {
     const y#:1 = {
         const n#:0 = 2;
         if ((n#:0 + n#:0) < 3) {
@@ -43,7 +43,7 @@ export const hash_b022715c: () => number = () => {
 
 /**
 ```
-const z#526b8b52: (int) ={}> int = (n#:0: int) ={}> {
+const z#526b8b52 = (n#:0: int): int ={}> {
     const m#:3 = {
         const z#:1 = (n#:0 + 2);
         switch z#:1 {3 => 3, 4 => 4, 5 => 10, _#:2 => 11};
@@ -82,7 +82,7 @@ export const hash_526b8b52: (arg_0: number) => number = (n: number) => {
 
 /**
 ```
-const x#0992c290: int = {
+const x#0992c290 = {
     const y#:0 = if (10 < 3) {
         4;
     } else {
@@ -106,7 +106,7 @@ export const hash_0992c290: number = (() => {
 
 /**
 ```
-const IntEq#9275f914: Eq#553b4b8e<int> = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({

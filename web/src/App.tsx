@@ -4,7 +4,7 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { Env, Id } from '@jerd/language/src/typing/types';
-import { Cell, Display, EvalEnv, Plugins, PluginT } from './State';
+import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { printToString } from '@jerd/language/src/printing/printer';
 
@@ -80,6 +80,38 @@ export default () => {
 
     const workspace = activeWorkspace(state);
 
+    const onOpen = (content: Content) => {
+        if (
+            Object.keys(
+                state.workspaces[state.activeWorkspace].cells,
+            ).some((id) =>
+                contentMatches(
+                    content,
+                    state.workspaces[state.activeWorkspace].cells[id].content,
+                ),
+            )
+        ) {
+            return;
+        }
+        const id = genId();
+        setState((state) => {
+            const w = state.workspaces[state.activeWorkspace];
+            return {
+                ...state,
+                workspaces: {
+                    ...state.workspaces,
+                    [state.activeWorkspace]: {
+                        ...w,
+                        cells: {
+                            [id]: { ...blankCell, id, content },
+                            ...w.cells,
+                        },
+                    },
+                },
+            };
+        });
+    };
+
     return (
         <div
             style={{
@@ -100,42 +132,7 @@ export default () => {
                     maxWidth: 200,
                 }}
             > */}
-            <Library
-                env={state.env}
-                onOpen={(content) => {
-                    if (
-                        Object.keys(
-                            state.workspaces[state.activeWorkspace].cells,
-                        ).some((id) =>
-                            contentMatches(
-                                content,
-                                state.workspaces[state.activeWorkspace].cells[
-                                    id
-                                ].content,
-                            ),
-                        )
-                    ) {
-                        return;
-                    }
-                    const id = genId();
-                    setState((state) => {
-                        const w = state.workspaces[state.activeWorkspace];
-                        return {
-                            ...state,
-                            workspaces: {
-                                ...state.workspaces,
-                                [state.activeWorkspace]: {
-                                    ...w,
-                                    cells: {
-                                        [id]: { ...blankCell, id, content },
-                                        ...w.cells,
-                                    },
-                                },
-                            },
-                        };
-                    });
-                }}
-            />
+            <Library env={state.env} onOpen={onOpen} />
             {/* </div> */}
             <Cells state={state} plugins={defaultPlugins} setState={setState} />
             <div
@@ -164,6 +161,17 @@ export default () => {
                             env={state.env}
                             evalEnv={state.evalEnv}
                             plugins={defaultPlugins}
+                            onOpen={onOpen}
+                            onRemove={() =>
+                                setState(
+                                    modActiveWorkspace((workspace) => ({
+                                        ...workspace,
+                                        pins: workspace.pins.filter(
+                                            (p) => p !== pin,
+                                        ),
+                                    })),
+                                )
+                            }
                             onRun={(id: Id) => {
                                 let results: { [key: string]: any };
                                 try {
@@ -198,29 +206,6 @@ export default () => {
                                 }));
                             }}
                         />
-                        <button
-                            css={{
-                                cursor: 'pointer',
-                                fontSize: '50%',
-                                backgroundColor: 'transparent',
-                                border: 'none',
-                                color: 'inherit',
-                                padding: 0,
-                                marginLeft: 8,
-                            }}
-                            onClick={() =>
-                                setState(
-                                    modActiveWorkspace((workspace) => ({
-                                        ...workspace,
-                                        pins: workspace.pins.filter(
-                                            (p) => p !== pin,
-                                        ),
-                                    })),
-                                )
-                            }
-                        >
-                            ╳
-                        </button>
                     </div>
                 ))}
             </div>

@@ -15,32 +15,28 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const yy#5c747e1a: ((int) ={}> int, int, int) ={}> int = (
-    one#:0: (int) ={}> int,
-    z#:1: int,
-    b#:2: int,
-) ={}> one#:0((z#:1 + b#:2))
+const yy#5c747e1a = (one#:0: (int) ={}> int, z#:1: int, b#:2: int): int ={}> one#:0((z#:1 + b#:2))
 ```
 */
 export const hash_5c747e1a: (arg_0: (arg_0: number) => number, arg_1: number, arg_2: number) => number = (one: (arg_0: number) => number, z: number, b: number) => one(z + b);
 
 /**
 ```
-const h#15ece66a: (int) ={}> int = (m#:0: int) ={}> (m#:0 - 2)
+const h#15ece66a = (m#:0: int): int ={}> (m#:0 - 2)
 ```
 */
 export const hash_15ece66a: (arg_0: number) => number = (m: number) => m - 2;
 
 /**
 ```
-const z#f4c397d2: (int) ={}> int = (m#:0: int) ={}> (m#:0 + 2)
+const z#f4c397d2 = (m#:0: int): int ={}> (m#:0 + 2)
 ```
 */
 export const hash_f4c397d2: (arg_0: number) => number = (m: number) => m + 2;
 
 /**
 ```
-const y#7df35068: ((int) ={}> int, int) ={}> int = (doit#:0: (int) ={}> int, v#:1: int) ={}> yy#5c747e1a(
+const y#7df35068 = (doit#:0: (int) ={}> int, v#:1: int): int ={}> yy#5c747e1a(
     doit#:0,
     doit#:0((v#:1 * 2)),
     5,
@@ -51,7 +47,7 @@ export const hash_7df35068: (arg_0: (arg_0: number) => number, arg_1: number) =>
 
 /**
 ```
-const IntEq#9275f914: Eq#553b4b8e<int> = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -70,6 +66,6 @@ assertCall(hash_9275f914.h553b4b8e_0, hash_7df35068(hash_f4c397d2, 30), 60 + 2 +
 assertCall(hash_9275f914.h553b4b8e_0, hash_7df35068(hash_15ece66a, 30), 60 - 2 + 5 - 2);
 
 /*
-(y#7df35068((n#:0: int) ={}> (n#:0 + 3), 30) ==#9275f914#553b4b8e#0 ((60 + 5) + 6))
+(y#7df35068((n#:0: int): int ={}> (n#:0 + 3), 30) ==#9275f914#553b4b8e#0 ((60 + 5) + 6))
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_7df35068((n: number) => n + 3, 30), 60 + 5 + 6);

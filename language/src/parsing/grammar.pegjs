@@ -334,7 +334,8 @@ CommaType = first:Type rest:(_ "," _ Type)* ","? {return [first, ...rest.map((r:
 TypeVblsApply = "<" _ inner:CommaType _ ">" {return inner}
 EffectVblsApply = "{" _ inner:CommaEffects? _ "}" {return inner || []}
 
-LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaType? _ ")" _ "="
+CommaTypeIgnoringNames = (Identifier ":" _)? first:Type rest:(_ "," _ (Identifier ":" _)? Type)* ","? {return [first, ...rest.map((r: any) => r[4])]}
+LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaTypeIgnoringNames? _ ")" _ "="
     effects:("{" _ CommaEffects? _ "}")?
 ">" _ res:Type { return {
     type: 'lambda',

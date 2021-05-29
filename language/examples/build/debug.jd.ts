@@ -16,9 +16,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const getString#64605d94: () ={Read#22024b72}> string = () ={Read#22024b72}> raise!(
-    Read#22024b72.read(),
-)
+const getString#64605d94 = (): string ={Read#22024b72}> raise!(Read#22024b72.read())
 ```
 */
 export const hash_64605d94:
@@ -29,13 +27,10 @@ export const hash_64605d94:
 
 /**
 ```
-const provideString#0247dd82: (string, () ={Read#22024b72}> string) ={}> string = (
-    v#:0: string,
-    fn#:1: () ={Read#22024b72}> string,
-) ={}> handle! fn#:1 {
+const provideString#0247dd82 = (v#:0: string, fn#:1: () ={Read#22024b72}> string): string ={}> handle! fn#:1 {
     Read.read#0(() => k#:3) => (0247dd82#self(
         v#:0,
-        () ={Read#22024b72}> (k#:3((v#:0 + "got")) + "back"),
+        (): string ={Read#22024b72}> (k#:3((v#:0 + "got")) + "back"),
     ) + "provided"),
     pure(v#:2) => (v#:2 + "pure"),
 }
@@ -63,7 +58,7 @@ export const hash_0247dd82: (arg_0: string, arg_1:
 
 /**
 ```
-const StringEq#606c7034: Eq#553b4b8e<string> = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({

@@ -15,7 +15,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const IntEq#9275f914: Eq#553b4b8e<int> = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -25,14 +25,14 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const identity#d762885a: <T#:0>(T#:0) ={}> T#:0 = <T#:0>(x#:0: T#:0) ={}> x#:0
+const identity#d762885a = <T#:0>(x#:0: T#:0): T#:0 ={}> x#:0
 ```
 */
 export const hash_d762885a: <T_0>(arg_0: T_0) => T_0 = <T_0>(x: T_0) => x;
 
 /**
 ```
-const FloatEq#c41f7386: Eq#553b4b8e<float> = Eq#553b4b8e<float>{"=="#553b4b8e#0: floatEq}
+const FloatEq#c41f7386 = Eq#553b4b8e<float>{"=="#553b4b8e#0: floatEq}
 ```
 */
 export const hash_c41f7386: t_553b4b8e<number> = ({

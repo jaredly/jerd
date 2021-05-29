@@ -62,7 +62,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const IntEq#9275f914: Eq#553b4b8e<int> = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -72,7 +72,7 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const StringEq#606c7034: Eq#553b4b8e<string> = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({
@@ -82,7 +82,7 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 
 /**
 ```
-const y#1878539c: Option#45258310<int> = Option#45258310<int>:None#2449af94
+const y#1878539c = Option#45258310<int>:None#2449af94
 ```
 */
 export const hash_1878539c: t_45258310<number> = ({
@@ -91,7 +91,7 @@ export const hash_1878539c: t_45258310<number> = ({
 
 /**
 ```
-const check#752b5f22: (OptionOrTwice#d0eff35c<int>) ={}> bool = (y1#:0: OptionOrTwice#d0eff35c<int>) ={}> switch y1#:0 {
+const check#752b5f22 = (y1#:0: OptionOrTwice#d0eff35c<int>): bool ={}> switch y1#:0 {
     Twice#70487bcc{two: 5} => false,
     Twice#70487bcc => false,
     Option#45258310 as x#:1 => switch x#:1 {Some#0043a33c => false, None#2449af94 => true},
@@ -126,7 +126,7 @@ export const hash_752b5f22: (arg_0: t_d0eff35c<number>) => boolean = (y1: t_d0ef
 
 /**
 ```
-const isAs#7684e5e9: (Option#45258310<int>) ={}> bool = (y#:0: Option#45258310<int>) ={}> switch y#:0 {
+const isAs#7684e5e9 = (y#:0: Option#45258310<int>): bool ={}> switch y#:0 {
     Some#0043a33c as x#:1 => (x#:1.value#0043a33c#0 ==#9275f914#553b4b8e#0 2),
     None#2449af94 => true,
 }
@@ -146,10 +146,7 @@ export const hash_7684e5e9: (arg_0: t_45258310<number>) => boolean = (y: t_45258
 
 /**
 ```
-const isNotFalse#7caa41a0: (bool) ={}> bool = (n#:0: bool) ={}> switch n#:0 {
-    false => false,
-    _#:1 => true,
-}
+const isNotFalse#7caa41a0 = (n#:0: bool): bool ={}> switch n#:0 {false => false, _#:1 => true}
 ```
 */
 export const hash_7caa41a0: (arg_0: boolean) => boolean = (n: boolean) => {
@@ -162,7 +159,7 @@ export const hash_7caa41a0: (arg_0: boolean) => boolean = (n: boolean) => {
 
 /**
 ```
-const isSomeYes#5bb5304c: (Option#45258310<string>) ={}> bool = (v#:0: Option#45258310<string>) ={}> switch v#:0 {
+const isSomeYes#5bb5304c = (v#:0: Option#45258310<string>): bool ={}> switch v#:0 {
     Some#0043a33c{value: "no"} => false,
     None#2449af94 => false,
     Some#0043a33c{value: v#:1} => (v#:1 ==#606c7034#553b4b8e#0 "yes"),
@@ -187,11 +184,7 @@ export const hash_5bb5304c: (arg_0: t_45258310<string>) => boolean = (v: t_45258
 
 /**
 ```
-const isTen#5768cc58: (int) ={}> bool = (n#:0: int) ={}> switch n#:0 {
-    4 => false,
-    10 => true,
-    _#:1 => false,
-}
+const isTen#5768cc58 = (n#:0: int): bool ={}> switch n#:0 {4 => false, 10 => true, _#:1 => false}
 ```
 */
 export const hash_5768cc58: (arg_0: number) => boolean = (n: number) => {
@@ -208,10 +201,7 @@ export const hash_5768cc58: (arg_0: number) => boolean = (n: number) => {
 
 /**
 ```
-const getWithDefault#16e40f74: <T#:0>(Option#45258310<T#:0>, T#:0) ={}> T#:0 = <T#:0>(
-    x#:0: Option#45258310<T#:0>,
-    default#:1: T#:0,
-) ={}> {
+const getWithDefault#16e40f74 = <T#:0>(x#:0: Option#45258310<T#:0>, default#:1: T#:0): T#:0 ={}> {
     switch x#:0 {Some#0043a33c{value: v#:2} => v#:2, None#2449af94 => default#:1};
 }
 ```
@@ -230,9 +220,7 @@ export const hash_16e40f74: <T_0>(arg_0: t_45258310<T_0>, arg_1: T_0) => T_0 = <
 
 /**
 ```
-const isPresent#0c1d2cb0: <T#:0>(Option#45258310<T#:0>) ={}> bool = <T#:0>(
-    x#:0: Option#45258310<T#:0>,
-) ={}> {
+const isPresent#0c1d2cb0 = <T#:0>(x#:0: Option#45258310<T#:0>): bool ={}> {
     switch x#:0 {Some#0043a33c => true, None#2449af94 => false};
 }
 ```
@@ -251,14 +239,14 @@ export const hash_0c1d2cb0: <T_0>(arg_0: t_45258310<T_0>) => boolean = <T_0>(x$0
 
 /**
 ```
-const y1#38ea7aec: OptionOrTwice#d0eff35c<int> = OptionOrTwice#d0eff35c<int>:y#1878539c
+const y1#38ea7aec = OptionOrTwice#d0eff35c<int>:y#1878539c
 ```
 */
 export const hash_38ea7aec: t_d0eff35c<number> = hash_1878539c;
 
 /**
 ```
-const y1t#15dc4398: (OptionOrTwice#d0eff35c<int>) ={}> int = (y1#:0: OptionOrTwice#d0eff35c<int>) ={}> switch y1#:0 {
+const y1t#15dc4398 = (y1#:0: OptionOrTwice#d0eff35c<int>): int ={}> switch y1#:0 {
     Twice#70487bcc{one: one#:1, two: two#:2} => (one#:1 + two#:2),
     None#2449af94 => 2,
     _#:3 => 0,
@@ -279,7 +267,7 @@ export const hash_15dc4398: (arg_0: t_d0eff35c<number>) => number = (y1: t_d0eff
 
 /**
 ```
-const y2#21eb7d2c: OptionOrTwice#d0eff35c<int> = OptionOrTwice#d0eff35c<int>:Twice#70487bcc<int>{
+const y2#21eb7d2c = OptionOrTwice#d0eff35c<int>:Twice#70487bcc<int>{
     one#70487bcc#0: 3,
     two#70487bcc#1: 10,
 }
