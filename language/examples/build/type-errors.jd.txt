@@ -46,7 +46,7 @@ Trying to call int
 
 Wrong number of arguments (string) ={}> void, 1 vs 2
 
-Type error!UnresolvedIdentifier
+Type error!UnresolvedIdentifier2
 
 Return type of lambda doesn't fit type declaration
 

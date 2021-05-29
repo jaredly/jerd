@@ -416,13 +416,26 @@ const typeOp = (
 };
 
 const precedence = [
-    ['&', '|'],
+    ['&'],
+    ['|'],
     ['='],
     ['>', '<'],
     ['+', '-'],
     ['/', '*'],
     ['^'],
 ];
+
+export const getOpLevel = (op: string | null) => {
+    if (!op) {
+        return null;
+    }
+    for (let i = 0; i < precedence.length; i++) {
+        if (precedence[i].includes(op[0])) {
+            return i;
+        }
+    }
+    return null;
+};
 
 type Section = {
     ops: Ops;

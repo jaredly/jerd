@@ -7,6 +7,7 @@
 
 import { Location } from '../parsing/parser';
 import { idName, refName, typeEffect } from '../typing/env';
+import { getOpLevel } from '../typing/terms/ops';
 import {
     Case,
     EffectRef,
@@ -440,17 +441,38 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 ]);
             }
             if (isBinOp(env, term.target) && term.args.length === 2) {
-                // TODO: if term.args[0] is a binop with higher precedence, maybe wrap it?
+                const myName = getBinOpName(env, term.target);
+                const mine = getOpLevel(myName)!;
+                let left = termToPretty(env, term.args[0]);
+                if (
+                    term.args[0].type === 'apply' &&
+                    isBinOp(env, term.args[0].target)
+                ) {
+                    const leftName = getBinOpName(env, term.args[0].target);
+                    const level = getOpLevel(leftName)!;
+                    if (level < mine) {
+                        left = items([atom('('), left, atom(')')]);
+                    }
+                }
+                let right = termToPretty(env, term.args[1]);
+                if (
+                    term.args[1].type === 'apply' &&
+                    isBinOp(env, term.args[1].target)
+                ) {
+                    const rightName = getBinOpName(env, term.args[1].target);
+                    const level = getOpLevel(rightName)!;
+                    if (level < mine) {
+                        right = items([atom('('), right, atom(')')]);
+                    }
+                }
                 return items([
-                    atom('('),
-                    termToPretty(env, term.args[0]),
+                    left,
                     atom(' '),
                     isCustomBinOp(env, term.target)
                         ? showCustomBinOp(env, term.target)
                         : termToPretty(env, term.target),
                     atom(' '),
-                    termToPretty(env, term.args[1]),
-                    atom(')'),
+                    right,
                 ]);
             }
             return items([
@@ -770,6 +792,21 @@ const caseToPretty = (
         atom(') => '),
         termToPretty(env, kase.body),
     ]);
+
+const getBinOpName = (env: Env, term: Term): string | null => {
+    if (
+        term.type !== 'Attribute' ||
+        term.ref.type !== 'user' ||
+        term.target.type !== 'ref'
+    ) {
+        if (term.type === 'ref' && term.ref.type === 'builtin') {
+            return term.ref.name;
+        }
+        return null;
+    }
+    const name = env.global.recordGroups[idName(term.ref.id)][term.idx];
+    return name;
+};
 
 const isCustomBinOp = (env: Env, term: Term) => {
     if (

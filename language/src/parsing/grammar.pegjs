@@ -30,10 +30,10 @@ Decorator = "@" id:Identifier args:("(" _ CommaExpr _ ")")? {
 
 // Toplevels
 
-Define = "const" __ rec:("rec" __)? id:Identifier ann:(_ ":" _ Type)? __ "=" __ expr:Expression {return {
+Define = "const" __ rec:("rec" __)? id:Identifier ann:(_ ":" _ Type)? _ "=" _ expr:Expression {return {
     type: 'define', rec: !!rec, id, expr, ann: ann ? ann[3] : null, location: location()}}
 
-Effect = "effect" __ id:Identifier __ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {
+Effect = "effect" __ id:Identifier _ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {
     type: 'effect',
     location: location(),
     id, constrs: constrs.map((c: any) => c[0])}}

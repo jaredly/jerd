@@ -103,9 +103,7 @@ export const RenderItem = ({
                     padding: 8,
                 }}
             >
-                {content.text}
-                {/* @ts-ignore */}
-                <div style={styles.hash}>raw</div>
+                {content.text.trim() === '' ? '[empty]' : content.text}
             </div>
         );
     } else {

@@ -2,12 +2,12 @@
 ## What do we need in order to make this minimally usable by other people?
 
 ### Editor squirrlyness
-- [ ] make it so you can't select "inside" of an ID hash
-- [ ] make tab & shift-tab actually work reliably
+- [x] make it so you can't select "inside" of an ID hash
+- [x] make tab & shift-tab actually work reliably
 
 ### Basic usability
 - [ ] cmd+p to search for terms, showing most recently edited things, and their types, and such
-- [ ] pins should have a way to open up the cell of the source
+- [x] pins should have a way to open up the cell of the source
 - [ ] opening a cell should select it
 - [ ] editing a thing should properly make the previous version's metadata be deprecated ... I think?
   what if the previous version had a couple of names? Is it only deprecated for that name? I can deal with that later.
@@ -18,6 +18,10 @@
 - [ ] make a button to restart the timer
 - [ ] make a way to specify the size!
 - [ ] let's add "mouse button down" uniform! Probably a boolean I guess? or it could be an int, following https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button. And then ... have like 6 or something be "nothing pressed"? or -1?
+
+### Parser / Printer
+- [x] don't require spaces around the = for const!
+- [x] fix binop printing? so that it only wraps things that are the wrong level.
 
 ### Tutorial
 - [ ] make one!

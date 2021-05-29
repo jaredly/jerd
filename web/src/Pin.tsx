@@ -84,7 +84,15 @@ export const Pin = ({
                     display: 'flex',
                 }}
             >
-                <span css={hashStyle}>#{hash}</span>
+                <span
+                    onClick={() => onOpen(contentForId(env, pin.id))}
+                    css={{
+                        ...hashStyle,
+                        cursor: 'pointer',
+                    }}
+                >
+                    #{hash}
+                </span>
                 <div css={{ flex: 1 }} />
                 <button
                     css={{
@@ -105,4 +113,17 @@ export const Pin = ({
             {body}
         </div>
     );
+};
+
+const contentForId = (env: Env, id: Id): Content => {
+    const name = env.global.idNames[idName(id)];
+    if (name) {
+        return {
+            type: 'term',
+            id,
+            name,
+        };
+    } else {
+        return { type: 'expr', id };
+    }
 };

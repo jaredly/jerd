@@ -910,7 +910,7 @@ function peg$parse(input: string, options?: IParseOptions) {
               s5 = null;
             }
             if (s5 !== peg$FAILED) {
-              s6 = peg$parse__();
+              s6 = peg$parse_();
               if (s6 !== peg$FAILED) {
                 if (input.charCodeAt(peg$currPos) === 61) {
                   s7 = peg$c15;
@@ -920,7 +920,7 @@ function peg$parse(input: string, options?: IParseOptions) {
                   if (peg$silentFails === 0) { peg$fail(peg$c16); }
                 }
                 if (s7 !== peg$FAILED) {
-                  s8 = peg$parse__();
+                  s8 = peg$parse_();
                   if (s8 !== peg$FAILED) {
                     s9 = peg$parseExpression();
                     if (s9 !== peg$FAILED) {
@@ -983,7 +983,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       if (s2 !== peg$FAILED) {
         s3 = peg$parseIdentifier();
         if (s3 !== peg$FAILED) {
-          s4 = peg$parse__();
+          s4 = peg$parse_();
           if (s4 !== peg$FAILED) {
             if (input.charCodeAt(peg$currPos) === 123) {
               s5 = peg$c20;
