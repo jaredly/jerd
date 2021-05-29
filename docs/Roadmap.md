@@ -1,4 +1,32 @@
 
+## What do we need in order to make this minimally usable by other people?
+
+### Editor squirrlyness
+- [ ] make it so you can't select "inside" of an ID hash
+- [ ] make tab & shift-tab actually work reliably
+
+### Basic usability
+- [ ] cmd+p to search for terms, showing most recently edited things, and their types, and such
+- [ ] pins should have a way to open up the cell of the source
+- [ ] opening a cell should select it
+- [ ] editing a thing should properly make the previous version's metadata be deprecated ... I think?
+  what if the previous version had a couple of names? Is it only deprecated for that name? I can deal with that later.
+- [ ] if a deprecated thing is used, underline it somehow
+- [ ] type error should be underlined, thanks
+
+### GLSL Plugins
+- [ ] make a button to restart the timer
+- [ ] make a way to specify the size!
+- [ ] let's add "mouse button down" uniform! Probably a boolean I guess? or it could be an int, following https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button. And then ... have like 6 or something be "nothing pressed"? or -1?
+
+### Tutorial
+- [ ] make one!
+- [ ] could be cool to have a way to e.g. load an editor environment from a github gist or somewheres...
+
+
+
+
+
 ## Ok, grand vision folks
 This will probably get people excited.
 Make an explorable explanation for the pendulum fractal.
@@ -83,14 +111,44 @@ HMMmmmmm I want ... and optimization debugger
 ... and then lets me flip through them
 ... and optionally disable them? idk. or something.
 
+- [x] BETTER IDS!
+  - Here's the plan: instead of printing out the full ID for any of this, just output a single char, `#`, and give it a span-attribute of the ID or sym or whatever hash. If the user deletes the hash, then it frees it.
+  - at a later date, when we have full structured editing, we don't need that hack.
 
 ## Papercuts in the editor
 
-- [ ] fix printing of custom binops
-- [ ] do something about the proliferation of all those IDs. Do I have to make a more complicated editor? Or just elide the ones that can be unambiguously inferred? Yeah maybe that's the ticket.
+- [x] fix printing of custom binops
+- [x] do something about the proliferation of all those IDs. Do I have to make a more complicated editor? Or just elide the ones that can be unambiguously inferred? Yeah maybe that's the ticket.
+
+## Let's try some SDF raymarching in the editor!
+
+- [x] FIX optimization that's making this basic raymarch not work...
+
+- [ ] more complex raymarch! with normals this time
+  BORKEN! I'm thinking it's because ... the sceneSDF function
+  is being used twice.
+
+- [x] FIX optimization that's breaking normal js examples
+- [ ] let's have a `test-optimizer` that tries running each optimizer pass individually (?) to verify that they're making changes that are sane? idk. I'd also really like to have some fixture tests or something. But maybe that would mean ... making a pretty-printer for the ir.Expr?
+
+- [ ] ohmygosh allow me to type attr names for my function type, it's fine.
+- [ ] parsing of #self in the editor seems not to be working? Oh it's that we're not printing `rec` correctly. Got to do that.
+- [ ] infer lambda arguments from point of use pleeeease
+
+- [ ] hover of things should pull up a floater that you can click to open a thing
+- [ ] opening a cell *should focus it & scroll into view, gosh* (it should also be opened right below the current thing)
+- [ ] drag & drop to reorder cells probably?
+
+- [ ] might be nice to have "templates"? idk, like prefill for me the GLSLEnv, coord dealio.
+- [ ] fix tab to actually work
+
+
+
 - [ ] add grabbable sliders for twiddling constants!
 
 ## Fancier type error goodness!
+
+- [ ] it would be super cool to detect whether `env.time` was ever accessed, and if not, just not re-render with requestanimationframe. If it doesn't change with time, no need. Right?
 
 - [ ] start using the TypeError thing, and the Ambiguous thing, and have them show up in cool ways in the editor! not 100% sure how this will happen...
 
@@ -113,7 +171,7 @@ How / what to inline and stuff?
 - OH yes let's have struct support too folks. So we can do tuples and whatnot, thats nice
 - ALSO: type-directed name resolution, allow multiple names for things, so that we can overload vec4 and stuff, that would be extremely nice. Also so we can have "-" as a unary op and a binary op and so we can have "+" be for strings.
 
-- [ ] now that I have uniques, I don't have to worry about declaration collisions.
+- [x] now that I have uniques, I don't have to worry about declaration collisions.
 - [ ] make a transformer to sweep through blocks and move up empty defines to the first assign
 
 Whole program opt:

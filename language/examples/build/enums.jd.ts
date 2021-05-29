@@ -127,7 +127,7 @@ export const hash_752b5f22: (arg_0: t_d0eff35c<number>) => boolean = (y1: t_d0ef
 /**
 ```
 const isAs#7684e5e9: (Option#45258310<int>) ={}> bool = (y#:0: Option#45258310<int>) ={}> switch y#:0 {
-    Some#0043a33c as x#:1 => IntEq#9275f914."=="#553b4b8e#0(x#:1.value#0043a33c#0, 2),
+    Some#0043a33c as x#:1 => (x#:1.value#0043a33c#0 ==#9275f914#553b4b8e#0 2),
     None#2449af94 => true,
 }
 ```
@@ -165,7 +165,7 @@ export const hash_7caa41a0: (arg_0: boolean) => boolean = (n: boolean) => {
 const isSomeYes#5bb5304c: (Option#45258310<string>) ={}> bool = (v#:0: Option#45258310<string>) ={}> switch v#:0 {
     Some#0043a33c{value: "no"} => false,
     None#2449af94 => false,
-    Some#0043a33c{value: v#:1} => StringEq#606c7034."=="#553b4b8e#0(v#:1, "yes"),
+    Some#0043a33c{value: v#:1} => (v#:1 ==#606c7034#553b4b8e#0 "yes"),
 }
 ```
 */
@@ -292,10 +292,7 @@ export const hash_21eb7d2c: t_d0eff35c<number> = ({
 } as t_d0eff35c<number>);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(
-    switch y2#21eb7d2c {Twice#70487bcc{one: one#:0, two: two#:1} => (one#:0 + two#:1), _#:2 => 0},
-    13,
-)
+(switch y2#21eb7d2c {Twice#70487bcc{one: one#:0, two: two#:1} => (one#:0 + two#:1), _#:2 => 0} ==#9275f914#553b4b8e#0 13)
 */
 assertCall(hash_9275f914.h553b4b8e_0, (() => {
   if (hash_21eb7d2c.type === "70487bcc") {
@@ -306,7 +303,7 @@ assertCall(hash_9275f914.h553b4b8e_0, (() => {
 })(), 13);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(y1t#15dc4398(y1#38ea7aec), 2)
+(y1t#15dc4398(y1#38ea7aec) ==#9275f914#553b4b8e#0 2)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_15dc4398(hash_38ea7aec), 2);
 
@@ -326,20 +323,14 @@ assertEqual(hash_0c1d2cb0(({
 } as t_45258310<number>)), false);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(
-    getWithDefault#16e40f74<int>(Option#45258310<int>:None#2449af94, 20),
-    20,
-)
+(getWithDefault#16e40f74<int>(Option#45258310<int>:None#2449af94, 20) ==#9275f914#553b4b8e#0 20)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_16e40f74(({
   type: "2449af94"
 } as t_45258310<number>), 20), 20);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(
-    getWithDefault#16e40f74<int>(Option#45258310<int>:Some#0043a33c<int>{value#0043a33c#0: 3}, 20),
-    3,
-)
+(getWithDefault#16e40f74<int>(Option#45258310<int>:Some#0043a33c<int>{value#0043a33c#0: 3}, 20) ==#9275f914#553b4b8e#0 3)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_16e40f74(({
   type: "0043a33c",

@@ -183,8 +183,8 @@ export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
     return items([
         atom('const ', ['keyword']),
         idToPretty(env, id, 'term'),
-        atom(': '),
-        typeToPretty(env, term.is),
+        // atom(': '),
+        // typeToPretty(env, term.is),
         atom(' = '),
         termToPretty(env, term),
     ]);
@@ -406,6 +406,8 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         ]),
                     ),
                 ),
+                atom(': '),
+                typeToPretty(env, term.is.res),
                 atom(' ='),
                 args(
                     term.is.effects.map((e) => effToPretty(env, e)),
@@ -436,13 +438,15 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     typeToPretty(env, asInfo.type),
                 ]);
             }
-            if (isBinOp(term.target) && term.args.length === 2) {
+            if (isBinOp(env, term.target) && term.args.length === 2) {
                 // TODO: if term.args[0] is a binop with higher precedence, maybe wrap it?
                 return items([
                     atom('('),
                     termToPretty(env, term.args[0]),
                     atom(' '),
-                    termToPretty(env, term.target),
+                    isCustomBinOp(env, term.target)
+                        ? showCustomBinOp(env, term.target)
+                        : termToPretty(env, term.target),
                     atom(' '),
                     termToPretty(env, term.args[1]),
                     atom(')'),
@@ -535,17 +539,11 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             return items([
                 termToPretty(env, term.target),
                 atom('.'),
-                // TODO: use a name n stuff
                 idPretty(
                     maybeQuoteAttrName(names[term.idx]),
                     refName(term.ref) + '#' + term.idx.toString(),
-                    // term.idx.toString(),
                     'attribute',
                 ),
-
-                // atom(names[term.idx]),
-                // atom('#'),
-                // atom(term.idx.toString()),
             ]);
         }
         case 'unary':
@@ -772,7 +770,52 @@ const caseToPretty = (
         termToPretty(env, kase.body),
     ]);
 
-const isBinOp = (term: Term) =>
+const isCustomBinOp = (env: Env, term: Term) => {
+    if (
+        term.type !== 'Attribute' ||
+        term.ref.type !== 'user' ||
+        term.target.type !== 'ref'
+    ) {
+        return false;
+    }
+    const name = env.global.recordGroups[idName(term.ref.id)][term.idx];
+    return !name.match(/[\w_$]/);
+};
+
+const showCustomBinOp = (env: Env, term: Term) => {
+    if (
+        term.type !== 'Attribute' ||
+        term.ref.type !== 'user' ||
+        term.target.type !== 'ref'
+    ) {
+        throw new Error(`Not an attribute`);
+    }
+    const name = env.global.recordGroups[idName(term.ref.id)][term.idx];
+    // return !name.match(/[\w_$]/);
+    return idPretty(
+        name,
+        refName(term.target.ref) +
+            '#' +
+            refName(term.ref) +
+            '#' +
+            term.idx.toString(),
+        'binop',
+    );
+    // return items([
+    //     termToPretty(env, term.target),
+    //     atom('.'),
+    //     idPretty(
+    //         name,
+    //         refName(term.ref) + '#' + term.idx.toString(),
+    //         'attribute',
+    //     ),
+    // ]);
+};
+
+const isBinOp = (env: Env, term: Term) =>
+    isBuiltinBinOp(term) || isCustomBinOp(env, term);
+
+const isBuiltinBinOp = (term: Term) =>
     term.type === 'ref' &&
     term.ref.type === 'builtin' &&
     !term.ref.name.match(/[\w_$]/);

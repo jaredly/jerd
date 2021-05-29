@@ -175,13 +175,14 @@ export type Record = {
     >;
 };
 
+export type Op = { text: string; hash: string | null; location: Location };
+
 export type Ops = {
     type: 'ops';
     first: Expression;
     location: Location;
     rest: Array<{
-        op: string;
-        id: Identifier | null;
+        op: Op;
         right: Expression;
         location: Location;
     }>;

@@ -16,6 +16,7 @@ import { Env, newLocal, Term } from './typing/types';
 import { printToString } from './printing/printer';
 import { toplevelToPretty, ToplevelT } from './printing/printTsLike';
 import { walkTerm } from './typing/transform';
+import { LocatedError } from './typing/errors';
 
 export const withParseError = (text: string, location: Location) => {
     const lines = text.split('\n');
@@ -186,10 +187,14 @@ export const reprintToplevel = (
         console.log(chalk.green('Original'));
         console.log(origraw);
         console.log(chalk.green('Reprinted'));
-        console.log(reraw);
-        console.log(chalk.yellow('AST'));
-        console.log(JSON.stringify(withoutLocations(printed)));
-        console.error(err);
+        if (err instanceof LocatedError && err.loc != null) {
+            console.log(withParseError(reraw, err.loc));
+        } else {
+            console.log(reraw);
+        }
+        // console.log(chalk.yellow('AST'));
+        // console.log(JSON.stringify(withoutLocations(printed)));
+        console.error(err.toString());
         console.log(
             `Expression at ${showLocation(
                 toplevel.location,

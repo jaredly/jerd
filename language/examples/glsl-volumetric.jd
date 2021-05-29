@@ -423,7 +423,6 @@ const fishingBoueys = (sceneSDF: (float, Vec3) => float, iTime: float, fragCoord
     // TODO: trace!()
     const dist = shortestDistanceToSurface(sceneSDF, iTime, eye, dir, MIN_DIST, MAX_DIST, MAX_MARCHING_STEPS);
 
-
     if dist > MAX_DIST - EPSILON {
         // Nothing visible
         Vec4{x: 1.0, y: 1.0, z: 0.0, w: 1.0};

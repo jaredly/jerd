@@ -1,0 +1,14 @@
+
+effect Read {
+    read: () => string,
+}
+
+const getString = () ={Read}> raise!(Read.read())
+
+// Ok now for the famous handlers!
+const rec provideString: (string, () ={Read}> string) => string = (v: string, fn: () ={Read}> string) => handle! fn {
+    Read.read(() => k) => provideString(v, () ={Read}> k(v + "got") + "back") + "provided",
+    pure(v) => v + "pure"
+}
+
+provideString("Yes", getString) == "Yesgotbackpureprovided"

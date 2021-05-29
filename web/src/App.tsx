@@ -150,7 +150,7 @@ export default () => {
                     flexShrink: 0,
                 }}
             >
-                Pins
+                <div style={{ padding: 8 }}>Pinned terms</div>
                 {workspace.pins.map((pin, i) => (
                     <div
                         key={i}
@@ -305,9 +305,24 @@ const Pin = ({
 }) => {
     if (!evalEnv.terms[idName(pin.id)]) {
         return (
-            <div>
-                Not eval {idName(pin.id)}
-                <button onClick={() => onRun(pin.id)}>Run</button>
+            <div
+                style={{
+                    padding: 16,
+                    // width: 200,
+                    height: 200,
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                {/* {idName(pin.id)} has not yet been evaluated. */}
+                <button
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onRun(pin.id)}
+                >
+                    Evaluate {idName(pin.id)}
+                </button>
             </div>
         );
     }

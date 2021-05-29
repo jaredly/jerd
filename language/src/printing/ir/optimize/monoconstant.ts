@@ -2,6 +2,7 @@
 // ugh nvm that's complicated.
 
 import { hashObject, idFromName, idName } from '../../../typing/env';
+import { showLocation } from '../../../typing/typeExpr';
 import { Env, Id } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Block, Expr, LambdaExpr, LambdaType, Stmt } from '../types';
@@ -21,7 +22,7 @@ import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
 
 export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
     // let outerMax = maxUnique(expr);
-    // expr = liftLambdas(env, exprs, expr)
+    expr = liftLambdas(env, exprs, expr);
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
@@ -125,6 +126,7 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
             newTerm = optimizeDefine(env, newTerm, id);
             newTerm = optimizeAggressive(env, exprs, newTerm, id);
             newTerm = optimizeDefine(env, newTerm, id);
+            newTerm = optimizeAggressive(env, exprs, newTerm, id);
 
             exprs[newHash] = {
                 inline: false,

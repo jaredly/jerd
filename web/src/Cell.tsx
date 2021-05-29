@@ -36,9 +36,10 @@ import { void_ } from '@jerd/language/src/typing/preset';
 import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
 import { nullLocation } from '@jerd/language/src/parsing/parser';
 
-const maxWidth = 80;
+// const maxWidth = 80;
 
 export type CellProps = {
+    maxWidth: number;
     cell: Cell;
     env: Env;
     onChange: (env: Env, cell: Cell) => void;
@@ -51,16 +52,29 @@ export type CellProps = {
 };
 
 const CellWrapper = ({
+    title,
     onRemove,
     onToggleSource,
     children,
 }: {
+    title: React.ReactNode;
     children: React.ReactNode;
     onRemove: () => void;
     onToggleSource: (() => void) | null | undefined;
 }) => {
     return (
         <div style={{ padding: 4, position: 'relative' }}>
+            <div
+                css={{
+                    backgroundColor: '#151515',
+                    padding: '8px 12px',
+                    marginBottom: 0,
+                    borderTopLeftRadius: 4,
+                    borderTopRightRadius: 4,
+                }}
+            >
+                {title}
+            </div>
             {children}
             <div
                 css={{
@@ -114,6 +128,7 @@ const CellWrapper = ({
 export const CellView = ({
     cell,
     env,
+    maxWidth,
     onChange,
     onRemove,
     onRun,
@@ -124,72 +139,81 @@ export const CellView = ({
 }: CellProps) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     const [showSource, setShowSource] = React.useState(false);
-    if (editing) {
-        return (
-            <CellWrapper onRemove={onRemove} onToggleSource={null}>
-                <Editor
-                    env={env}
-                    plugins={plugins}
-                    evalEnv={evalEnv}
-                    display={cell.display}
-                    onSetPlugin={(display) => {
-                        onChange(env, { ...cell, display });
-                    }}
-                    contents={
-                        cell.content.type == 'raw'
-                            ? cell.content.text
-                            : getToplevel(env, cell.content)
-                    }
-                    onClose={() => setEditing(false)}
-                    onChange={(term) => {
-                        if (typeof term === 'string') {
-                            onChange(env, {
-                                ...cell,
-                                content: { type: 'raw', text: term },
-                            });
-                        } else {
-                            const { env: nenv, content } = updateToplevel(
-                                env,
-                                term,
-                            );
-                            onChange(nenv, {
-                                ...cell,
-                                content,
-                            });
-                        }
-                        setEditing(false);
-                    }}
-                />
-            </CellWrapper>
-        );
-    }
+    const body = editing ? (
+        <Editor
+            maxWidth={maxWidth}
+            env={env}
+            plugins={plugins}
+            evalEnv={evalEnv}
+            display={cell.display}
+            onSetPlugin={(display) => {
+                onChange(env, { ...cell, display });
+            }}
+            contents={
+                cell.content.type == 'raw'
+                    ? cell.content.text
+                    : getToplevel(env, cell.content)
+            }
+            onClose={() => setEditing(false)}
+            onChange={(term) => {
+                if (typeof term === 'string') {
+                    onChange(env, {
+                        ...cell,
+                        content: { type: 'raw', text: term },
+                    });
+                } else {
+                    const { env: nenv, content } = updateToplevel(env, term);
+                    onChange(nenv, {
+                        ...cell,
+                        content,
+                    });
+                }
+                setEditing(false);
+            }}
+        />
+    ) : (
+        <RenderItem
+            maxWidth={maxWidth}
+            onSetPlugin={(display) => {
+                onChange(env, { ...cell, display });
+            }}
+            onPin={onPin}
+            cell={cell}
+            plugins={plugins}
+            content={cell.content}
+            onEdit={() => setEditing(true)}
+            addCell={addCell}
+            showSource={showSource}
+            collapsed={cell.collapsed}
+            setCollapsed={(collapsed) => onChange(env, { ...cell, collapsed })}
+            env={env}
+            evalEnv={evalEnv}
+            onRun={onRun}
+        />
+    );
 
     return (
         <CellWrapper
+            title={cellTitle(env, cell)}
             onRemove={onRemove}
             onToggleSource={() => setShowSource(!showSource)}
         >
-            <RenderItem
-                onSetPlugin={(display) => {
-                    onChange(env, { ...cell, display });
-                }}
-                onPin={onPin}
-                cell={cell}
-                plugins={plugins}
-                content={cell.content}
-                onEdit={() => setEditing(true)}
-                addCell={addCell}
-                showSource={showSource}
-                collapsed={cell.collapsed}
-                setCollapsed={(collapsed) =>
-                    onChange(env, { ...cell, collapsed })
-                }
-                env={env}
-                evalEnv={evalEnv}
-                onRun={onRun}
-            />
+            {body}
         </CellWrapper>
     );
+};
+
+const cellTitle = (env: Env, cell: Cell) => {
+    switch (cell.content.type) {
+        case 'raw':
+            return `[raw text, invalid syntax]`;
+        case 'effect':
+            return `effect ${cell.content.name}`;
+        case 'term':
+            return `term ${cell.content.name}`;
+        default:
+            return cell.content.type;
+    }
 };
 
 const getMatchingPlugins = (
@@ -391,6 +415,7 @@ const RenderItem = ({
     addCell,
     plugins,
     showSource,
+    maxWidth,
 
     collapsed,
     setCollapsed,
@@ -399,6 +424,7 @@ const RenderItem = ({
 }: {
     env: Env;
     cell: Cell;
+    maxWidth: number;
     plugins: Plugins;
     content: Content;
     evalEnv: EvalEnv;

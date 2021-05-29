@@ -23,7 +23,7 @@ const arrayEq#7825e3a8: <T#:0>(Array<T#:0>, Array<T#:0>, Eq#553b4b8e<T#:0>) ={}>
     switch (one#:0, two#:1) {
         ([], []) => true,
         ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#553b4b8e#0(one#:3, two#:5) {
-            7825e3a8<T#:0>(rone#:4, rtwo#:6, eq#:2);
+            7825e3a8#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
         } else {
             false;
         },
@@ -70,7 +70,7 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 ```
 const recurse#3306c09c: (int) ={}> int = (n#:0: int) ={}> {
     if (n#:0 > 5) {
-        (3306c09c((n#:0 - 1)) + 1);
+        (3306c09c#self((n#:0 - 1)) + 1);
     } else {
         3;
     };
@@ -90,10 +90,9 @@ export const hash_3306c09c: (arg_0: number) => number = (n: number) => {
 const ArrayEq#bef2134a: <T#:0>(Eq#553b4b8e<T#:0>) ={}> Eq#553b4b8e<Array<T#:0>> = <T#:0>(
     eq#:0: Eq#553b4b8e<T#:0>,
 ) ={}> Eq#553b4b8e<Array<T#:0>>{
-    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>) ={}> (IntEq#9275f914."=="#553b4b8e#0(
-        len<T#:0>(one#:1),
-        len<T#:0>(two#:2),
-    ) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0)),
+    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>) ={}> ((len<T#:0>(one#:1) ==#9275f914#553b4b8e#0 len<
+        T#:0,
+    >(two#:2)) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0)),
 }
 ```
 */
@@ -129,7 +128,7 @@ const ArrayIntEq#4419935c: Eq#553b4b8e<Array<int>> = ArrayEq#bef2134a<int>(IntEq
 export const hash_4419935c: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_9275f914);
 
 /*
-ArrayIntEq#4419935c."=="#553b4b8e#0(<int>[1, 2], <int>[1, 2])
+(<int>[1, 2] ==#4419935c#553b4b8e#0 <int>[1, 2])
 */
 assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
 
@@ -139,10 +138,7 @@ assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
     switch a#:0 {
         [a#:1, ...b#:2] => switch b#:2 {
             [b#:3, ...c#:4] => switch c#:4 {
-                [c#:5] => ((IntEq#9275f914."=="#553b4b8e#0(a#:1, 1) && IntEq#9275f914."=="#553b4b8e#0(
-                    b#:3,
-                    2,
-                )) && IntEq#9275f914."=="#553b4b8e#0(c#:5, 3)),
+                [c#:5] => (((a#:1 ==#9275f914#553b4b8e#0 1) && (b#:3 ==#9275f914#553b4b8e#0 2)) && (c#:5 ==#9275f914#553b4b8e#0 3)),
                 _#:6 => false,
             },
             _#:7 => false,

@@ -115,16 +115,16 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(x#0992c290, 6)
+(x#0992c290 ==#9275f914#553b4b8e#0 6)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_0992c290, 6);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(z#526b8b52(2), 12)
+(z#526b8b52(2) ==#9275f914#553b4b8e#0 12)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_526b8b52(2), 12);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(x2#b022715c(), 6)
+(x2#b022715c() ==#9275f914#553b4b8e#0 6)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_b022715c(), 6);

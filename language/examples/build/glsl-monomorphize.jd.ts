@@ -41,11 +41,11 @@ export const hash_c41f7386: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-FloatEq#c41f7386."=="#553b4b8e#0(identity#d762885a<float>(1.0), 1.0)
+(identity#d762885a<float>(1.0) ==#c41f7386#553b4b8e#0 1.0)
 */
 assertCall(hash_c41f7386.h553b4b8e_0, hash_d762885a(1), 1);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(identity#d762885a<int>(2), 2)
+(identity#d762885a<int>(2) ==#9275f914#553b4b8e#0 2)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_d762885a(2), 2);

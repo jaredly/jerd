@@ -35,7 +35,7 @@ const arrayEq#7825e3a8: <T#:0>(Array<T#:0>, Array<T#:0>, Eq#553b4b8e<T#:0>) ={}>
     switch (one#:0, two#:1) {
         ([], []) => true,
         ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#553b4b8e#0(one#:3, two#:5) {
-            7825e3a8<T#:0>(rone#:4, rtwo#:6, eq#:2);
+            7825e3a8#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
         } else {
             false;
         },
@@ -83,10 +83,9 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 const ArrayEq#bef2134a: <T#:0>(Eq#553b4b8e<T#:0>) ={}> Eq#553b4b8e<Array<T#:0>> = <T#:0>(
     eq#:0: Eq#553b4b8e<T#:0>,
 ) ={}> Eq#553b4b8e<Array<T#:0>>{
-    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>) ={}> (IntEq#9275f914."=="#553b4b8e#0(
-        len<T#:0>(one#:1),
-        len<T#:0>(two#:2),
-    ) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0)),
+    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>) ={}> ((len<T#:0>(one#:1) ==#9275f914#553b4b8e#0 len<
+        T#:0,
+    >(two#:2)) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0)),
 }
 ```
 */
@@ -146,12 +145,12 @@ export const hash_f2052a3a: t_0cd54a60<Array<number>> = ({
 } as t_0cd54a60<Array<number>>);
 
 /*
-IntArrayAddable#f2052a3a."+"#0cd54a60#0(<int>[1], <int>[2, 3])
+(<int>[1] +#f2052a3a#0cd54a60#0 <int>[2, 3])
 */
 hash_f2052a3a.h0cd54a60_0([1], [2, 3]);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0(goToTown#a4c2a3f0((2, 3)), 2)
+(goToTown#a4c2a3f0((2, 3)) ==#9275f914#553b4b8e#0 2)
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_a4c2a3f0([2, 3]), 2);
 
@@ -166,21 +165,21 @@ ArrayEq#bef2134a<int>(IntEq#9275f914)."=="#553b4b8e#0(<int>[1, 2, 3], <int>[1, 2
 assertCall(hash_bef2134a(hash_9275f914).h553b4b8e_0, [1, 2, 3], [1, 2, 3]);
 
 /*
-ArrayIntEq#4419935c."=="#553b4b8e#0(<int>[1, 2], <int>[1, 2])
+(<int>[1, 2] ==#4419935c#553b4b8e#0 <int>[1, 2])
 */
 assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
 
 /*
-IntEq#9275f914."=="#553b4b8e#0((1 + (2 * 3)), 7)
+((1 + (2 * 3)) ==#9275f914#553b4b8e#0 7)
 */
 assertCall(hash_9275f914.h553b4b8e_0, 1 + 2 * 3, 7);
 
 /*
-FloatEq#c41f7386."=="#553b4b8e#0(den#70ad3796, -13.0)
+(den#70ad3796 ==#c41f7386#553b4b8e#0 -13.0)
 */
 assertCall(hash_c41f7386.h553b4b8e_0, hash_70ad3796, -13);
 
 /*
-FloatEq#c41f7386."=="#553b4b8e#0(deep#dcfc5c32, -70.0)
+(deep#dcfc5c32 ==#c41f7386#553b4b8e#0 -70.0)
 */
 assertCall(hash_c41f7386.h553b4b8e_0, hash_dcfc5c32, -70);

@@ -1,4 +1,5 @@
 import { idFromName, idName, refName } from '../../../typing/env';
+import { showLocation } from '../../../typing/typeExpr';
 import {
     Env,
     Id,

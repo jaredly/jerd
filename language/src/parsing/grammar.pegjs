@@ -88,8 +88,8 @@ Expression = first:WithUnary rest:BinOpRight* {
         return first
     }
 }
-BinOpRight = __ id:(Identifier ".")? op:binop __ right:WithUnary {
-    return {op, id: id ? id[0] : null, right, location: location()}
+BinOpRight = __ op:binopWithHash __ right:WithUnary {
+    return {op, right, location: location()}
 }
 WithUnary = op:UnaryOp? inner:WithSuffix {
     if (op != null) {
@@ -176,7 +176,7 @@ TupleLiteral = "(" _ items:TupleItems _ ")" {
     }
     return {type: 'Tuple', location: location(), items}
 }
-TupleItems = first:Expression rest:(_ "," _ Expression)* {
+TupleItems = first:Expression rest:(_ "," _ Expression)* _ ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 
@@ -306,6 +306,9 @@ EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 
+binopWithHash = op:binop hash:OpHash? {
+    return {text: op, hash, location: location()}
+}
 binop = !"//" [+*^/<>=|&-]+ {return text()}
 // binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<=" / ">=" / "=="  / "<" / ">" 
 
@@ -368,7 +371,11 @@ MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {
     return {type: "id", text: text.type === 'string' ? text.text : text, location: location(), hash}}
 IdText = !"enum" [0-9a-zA-Z_]+ {return text()}
 IdTextOrString = IdText / String
-IdHash = ("#" ":"? [0-9a-zA-Z]+ ("#" [0-9]+)?) {return text()}
+IdHash = SymHash {return text() } / OpHash {return text()}
+// IdHash = ("#" ":"? [0-9a-zA-Z]+ ("#" [0-9]+)?) {return text()}
+// TermHash = 
+SymHash = "#" ":" [0-9]+ {return text()}
+OpHash = ("#" [0-9a-zA-Z]+)+ {return text()}
 
 _ "whitespace"
   = [ \t\n\r]* (comment _)*

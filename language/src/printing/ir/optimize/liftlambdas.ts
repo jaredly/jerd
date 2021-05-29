@@ -1,7 +1,7 @@
 import { hashObject } from '../../../typing/env';
 import { Env, Id } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
-import { Expr, LambdaExpr } from '../types';
+import { Expr, LambdaExpr, Stmt } from '../types';
 import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
 
 export const findCapturedVariables = (lambda: Expr): Array<number> => {
@@ -40,6 +40,8 @@ export const liftToTopLevel = (
     const id: Id = { hash, size: 1, pos: 0 };
     let expr: Expr = optimizeDefine(env, lambda, id);
     expr = optimizeAggressive(env, exprs, expr, id);
+    expr = optimizeDefine(env, lambda, id);
+    expr = optimizeAggressive(env, exprs, expr, id);
     exprs[hash] = { expr: expr, inline: false };
     return {
         type: 'term',
@@ -54,21 +56,34 @@ export const liftLambdas = (env: Env, exprs: Exprs, expr: Expr) => {
     const immediatelyCalled: Array<LambdaExpr> = [];
     return transformExpr(expr, {
         ...defaultVisitor,
-        expr: (expr: Expr) => {
-            if (expr === toplevel) {
-                return null;
-            }
-            if (expr.type === 'apply' && expr.target.type === 'lambda') {
-                immediatelyCalled.push(expr.target);
-            }
+        stmt: (stmt: Stmt) => {
             if (
-                expr.type !== 'lambda' ||
-                immediatelyCalled.includes(expr) ||
-                findCapturedVariables(expr).length > 0
+                (stmt.type === 'Define' || stmt.type === 'Assign') &&
+                stmt.value &&
+                stmt.value.type === 'lambda'
             ) {
-                return null;
+                return {
+                    ...stmt,
+                    value: liftToTopLevel(env, exprs, stmt.value),
+                };
             }
-            return liftToTopLevel(env, exprs, expr);
+            return null;
         },
+        // expr: (expr: Expr) => {
+        //     if (expr === toplevel) {
+        //         return null;
+        //     }
+        //     if (expr.type === 'apply' && expr.target.type === 'lambda') {
+        //         immediatelyCalled.push(expr.target);
+        //     }
+        //     if (
+        //         expr.type !== 'lambda' ||
+        //         immediatelyCalled.includes(expr) ||
+        //         findCapturedVariables(expr).length > 0
+        //     ) {
+        //         return null;
+        //     }
+        //     return liftToTopLevel(env, exprs, expr);
+        // },
     });
 };
