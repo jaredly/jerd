@@ -312,16 +312,17 @@ const loadInit = (): Init => {
     return { typedBuiltins, initialEnv, builtinNames };
 };
 
-const main = (
-    fnames: Array<string>,
-    assert: boolean,
-    run: boolean,
-    cache: boolean,
-    failFast: boolean,
-    glsl: boolean,
-    init: Init,
-) => {
-    const { shouldSkip, successRerun } = cache
+export type Flags = {
+    assert: boolean;
+    run: boolean;
+    cache: boolean;
+    failFast: boolean;
+    glsl: boolean;
+    trace: boolean;
+};
+
+const main = (fnames: Array<string>, flags: Flags, init: Init) => {
+    const { shouldSkip, successRerun } = flags.cache
         ? loadCache(fnames, 'main.js')
         : { shouldSkip: null, successRerun: true };
     console.log(chalk.bold.green(`\n# Processing ${fnames.length} files\n`));
@@ -342,10 +343,11 @@ const main = (
                         fname,
                         newWithGlobal(initialEnv),
                         builtinNames,
-                        assert,
-                        run,
+                        flags.assert,
+                        flags.run,
                         reprint,
-                        glsl,
+                        flags.glsl,
+                        flags.trace,
                     ) === false
                 ) {
                     numFailures += 1;
@@ -385,7 +387,7 @@ const main = (
         }
         const success = runFile(fname);
         passed[fname] = success;
-        if (failFast && !success) {
+        if (flags.failFast && !success) {
             return true;
         }
     }
@@ -398,7 +400,7 @@ const main = (
             if (shouldSkip && shouldSkip[fname]) {
                 const success = runFile(fname);
                 passed[fname] = success;
-                if (failFast && !success) {
+                if (flags.failFast && !success) {
                     return true;
                 }
             }
@@ -407,7 +409,7 @@ const main = (
 
     console.log(`📢 Failures ${numFailures}`);
 
-    if (cache) {
+    if (flags.cache) {
         saveCache(
             Object.keys(passed).filter((p) => passed[p]),
             'main.js',
@@ -489,17 +491,21 @@ if (process.argv[2] === 'go') {
         !process.argv.includes('--no-cache');
     const failFast = process.argv.includes('--fail-fast');
     const glsl = process.argv.includes('--glsl');
+    const trace = process.argv.includes('--trace');
 
     const init = loadInit();
     watchFiles(fnames, () => {
         try {
             const failed = main(
                 expandDirectories(fnames),
-                assert,
-                run,
-                cache,
-                failFast,
-                glsl,
+                {
+                    assert,
+                    run,
+                    cache,
+                    failFast,
+                    glsl,
+                    trace,
+                },
                 init,
             );
             if (failed) {
@@ -522,14 +528,18 @@ if (process.argv[2] === 'go') {
         !process.argv.includes('--no-cache');
     const failFast = process.argv.includes('--fail-fast');
     const glsl = process.argv.includes('--glsl');
+    const trace = process.argv.includes('--trace');
     try {
         const failed = main(
             expandDirectories(fnames),
-            assert,
-            run,
-            cache,
-            failFast,
-            glsl,
+            {
+                assert,
+                run,
+                cache,
+                failFast,
+                glsl,
+                trace,
+            },
             loadInit(),
         );
         if (failed) {

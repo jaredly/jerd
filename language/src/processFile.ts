@@ -78,6 +78,7 @@ export const processFile = (
     run: boolean,
     reprint: boolean,
     glsl: boolean,
+    trace: boolean,
 ): boolean => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
@@ -97,6 +98,7 @@ export const processFile = (
     };
     const oopts: OutputOptions = {
         optimize: true,
+        enableTraces: trace,
         optimizeAggressive: true,
     };
 

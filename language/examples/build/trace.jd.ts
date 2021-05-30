@@ -1,4 +1,4 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq, $trace } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 
 /**
@@ -18,7 +18,7 @@ type t_553b4b8e<T_0> = {
 const oneTerm#3d1dc2e8 = (m#:0: int): int ={}> trace!(trace!(m#:0, "the m") + 2)
 ```
 */
-export const hash_3d1dc2e8: (arg_0: number) => number = (m: number) => m + 2;
+export const hash_3d1dc2e8: (arg_0: number) => number = (m: number) => $trace("3d1dc2e8", 1, $trace("3d1dc2e8", 0, m, "the m") + 2);
 
 /**
 ```

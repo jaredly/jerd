@@ -455,3 +455,28 @@ export const intEq = (a: number, b: number) => a === b;
 export const floatEq = (a: number, b: number) => a === b;
 //: (string, string) => bool
 export const stringEq = (a: string, b: string) => a === b;
+
+const traces: {
+    [key: string]: Array<Array<{ ts: number; args: Array<any> }>>;
+} = {};
+// @ts-ignore
+global.traces = traces;
+export const $trace = <T>(
+    hash: string,
+    idx: number,
+    mainArg: T,
+    ...others: Array<any>
+): T => {
+    if (!traces[hash]) {
+        traces[hash] = [];
+    }
+    if (!traces[hash][idx]) {
+        traces[hash][idx] = [];
+    }
+    traces[hash][idx].push({
+        ts: Date.now(),
+        args: [mainArg, ...others],
+    });
+    console.info(`[trace]`, hash, idx, mainArg, ...others);
+    return mainArg;
+};
