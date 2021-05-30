@@ -8,7 +8,7 @@ import {
 } from '@jerd/language/src/printing/printTsLike';
 import { hashObject, typeToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedTextToHTML } from './Render';
-import { Env } from '@jerd/language/src/typing/types';
+import { Env, newWithGlobal } from '@jerd/language/src/typing/types';
 
 const getOffset = (node: HTMLElement, offset: number) => {
     if (node.nodeName === '#text') {
@@ -85,7 +85,7 @@ const maybeParse = (
             return null;
         }
         return typeToplevelT(
-            env,
+            newWithGlobal(env.global),
             parsed[0],
             typeof contents !== 'string' && contents.type === 'RecordDef'
                 ? contents.def.unique

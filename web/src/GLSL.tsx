@@ -175,6 +175,8 @@ export default () => {
                 env.global.terms[mains[0]],
                 main,
                 evalEnv,
+                // Ignoring traces!
+                (_, __, arg, ...___) => arg,
                 false,
             );
             const fn = result[idName(main)];

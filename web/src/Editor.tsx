@@ -14,7 +14,14 @@ import {
     ToplevelT,
 } from '@jerd/language/src/printing/printTsLike';
 import { showLocation } from '@jerd/language/src/typing/typeExpr';
-import { Env, Id, Symbol, Term, Type } from '@jerd/language/src/typing/types';
+import {
+    Env,
+    Id,
+    newWithGlobal,
+    Symbol,
+    Term,
+    Type,
+} from '@jerd/language/src/typing/types';
 import {
     hashObject,
     idName,
@@ -131,7 +138,7 @@ export default ({
             }
             return [
                 typeToplevelT(
-                    env,
+                    newWithGlobal(env.global),
                     parsed[0],
                     typeof contents !== 'string' &&
                         contents.type === 'RecordDef'
@@ -160,7 +167,14 @@ export default ({
                 return evalCache.current[idName(id)];
             } else {
                 try {
-                    const v = runTerm(env, typed.term, id, evalEnv)[idName(id)];
+                    const v = runTerm(
+                        env,
+                        typed.term,
+                        id,
+                        evalEnv,
+                        // Ignoring traces!
+                        (_, __, arg, ...___) => arg,
+                    )[idName(id)];
                     evalCache.current[idName(id)] = v;
                     return v;
                 } catch (err) {

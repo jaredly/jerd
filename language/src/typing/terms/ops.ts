@@ -161,11 +161,11 @@ const typeNewOp = (
     env: Env,
     left: Term,
     op: Op,
-    right: Expression,
+    rarg: Term,
     location: Location,
 ): Term | null => {
-    const rarg =
-        right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
+    // const rarg =
+    //     right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
 
     let fn: Term;
     if (op.hash != null) {
@@ -284,10 +284,10 @@ const typeNewOp = (
     return {
         type: 'apply',
         location:
-            left.location && right.location
+            left.location && rarg.location
                 ? {
                       start: left.location.start,
-                      end: right.location.end,
+                      end: rarg.location.end,
                   }
                 : null,
         target: fn,
@@ -306,7 +306,11 @@ const typeOp = (
     right: Expression,
     location: Location,
 ): Term => {
-    const result = typeNewOp(env, left, op, right, location);
+    // Shortcut
+    const rarg =
+        right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
+
+    const result = typeNewOp(env, left, op, rarg, location);
     if (result != null) {
         return result;
     }
@@ -321,9 +325,6 @@ const typeOp = (
     if (is.args.length !== 2) {
         throw new LocatedError(location, `${op} is not a binary function`);
     }
-    // Shortcut
-    const rarg =
-        right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
 
     if (is.typeVbls.length === 1) {
         if (!typesEqual(left.is, rarg.is)) {

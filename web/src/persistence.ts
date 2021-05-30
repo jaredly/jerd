@@ -150,6 +150,7 @@ export const initialState = (): State => {
                     },
                     // Reset the local env
                     local: newLocal(),
+                    term: { nextTraceId: 0 },
                 },
                 evalEnv: {
                     builtins,

@@ -55,7 +55,11 @@ export const termToJS = (
     irTerms[idName(id)] = { expr: irTerm, inline: false };
     let termAst: any = termToTs(
         env,
-        { scope: 'jdScope', limitExecutionTime: withExecutionLimit },
+        {
+            scope: 'jdScope',
+            limitExecutionTime: withExecutionLimit,
+            enableTraces: true,
+        },
         irTerm,
     );
     let ast = t.file(
@@ -84,6 +88,7 @@ const runWithExecutionLimit = (
     evalEnv: EvalEnv,
     idName: string,
     executionLimit: { ticks: number; maxTime: number; enabled: boolean },
+    traceFn: TraceFn,
 ): any => {
     const jdScope = {
         ...evalEnv,
@@ -102,6 +107,7 @@ const runWithExecutionLimit = (
                 }
             },
         },
+        trace: traceFn,
         terms: {
             ...evalEnv.terms,
         },
@@ -114,11 +120,19 @@ const runWithExecutionLimit = (
     return result;
 };
 
+export type TraceFn = <T>(
+    hash: string,
+    idx: number,
+    main: T,
+    ...args: Array<any>
+) => T;
+
 export const runTerm = (
     env: Env,
     term: Term,
     id: Id,
     evalEnv: EvalEnv,
+    traceFn: TraceFn,
     withExecutionLimit: boolean = true,
 ) => {
     const results: { [key: string]: any } = {};
@@ -161,6 +175,7 @@ export const runTerm = (
                     innerEnv,
                     dep,
                     evalEnv.executionLimit,
+                    traceFn,
                 );
                 results[dep] = result;
                 console.log('result', dep, result);

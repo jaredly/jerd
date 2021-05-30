@@ -672,7 +672,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             ]);
         case 'Trace':
             return items([
-                atom('trace!'),
+                atom('trace!', ['trace', 'keyword', 'trace-' + term.idx]),
                 args(
                     term.args.map((item) => termToPretty(env, item)),
                     '(',
