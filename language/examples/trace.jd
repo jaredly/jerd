@@ -1,0 +1,4 @@
+
+const oneTerm = (m: int) => trace!(trace!(m, "the m") + 2)
+
+oneTerm(4) == 6

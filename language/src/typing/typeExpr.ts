@@ -545,7 +545,7 @@ const typeExpr = (env: Env, expr: Expression): Term => {
             return {
                 type: 'Trace',
                 location: expr.location,
-                idx: 0, // STOPSHIP: make this actually a thing
+                idx: env.term.nextTraceId++, // STOPSHIP: make this actually a thing
                 args,
                 is: args[0].is,
             };

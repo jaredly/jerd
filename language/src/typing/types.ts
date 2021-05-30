@@ -211,25 +211,37 @@ export const selfEnv = (env: Env, self: Self): Env => {
             ...env.local,
             self,
         },
+        term: { nextTraceId: 0 },
     };
 };
+
+export const cloneLocalEnv = (env: LocalEnv): LocalEnv => ({
+    self: env.self,
+    effectVbls: { ...env.effectVbls },
+    symMapping: { ...env.symMapping },
+    locals: { ...env.locals },
+    localNames: { ...env.localNames },
+    unique: env.unique,
+    typeVbls: { ...env.typeVbls },
+    typeVblNames: { ...env.typeVblNames },
+    tmpTypeVbls: env.tmpTypeVbls,
+});
+
+// export const termEnv = (env: Env): Env => {
+//     return {
+//         depth: 0,
+//         global: cloneGlobalEnv(env.global),
+//         local: cloneLocalEnv(env.local),
+//         term: { nextTraceId: 0 },
+//     };
+// };
 
 export const subEnv = (env: Env): Env => {
     // console.log('SUB ENV', env.depth, env.local.typeVbls);
     return {
         depth: env.depth + 1,
         global: cloneGlobalEnv(env.global),
-        local: {
-            self: env.local.self,
-            effectVbls: { ...env.local.effectVbls },
-            symMapping: { ...env.local.symMapping },
-            locals: { ...env.local.locals },
-            localNames: { ...env.local.localNames },
-            unique: env.local.unique,
-            typeVbls: { ...env.local.typeVbls },
-            typeVblNames: { ...env.local.typeVblNames },
-            tmpTypeVbls: env.local.tmpTypeVbls,
-        },
+        local: cloneLocalEnv(env.local),
         term: env.term,
     };
 };
