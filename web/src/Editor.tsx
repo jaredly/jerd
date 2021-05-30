@@ -95,6 +95,12 @@ const ShowError = ({ err, env }: { err: Error; env: Env }) => {
     return <div>{err.message}</div>;
 };
 
+export type Trace = { ts: number; arg: any; others: Array<any> };
+
+export type Traces = {
+    [idName: string]: Array<Array<Trace>>;
+};
+
 export default ({
     env,
     contents,
@@ -117,6 +123,8 @@ export default ({
     plugins: Plugins;
 }) => {
     const evalCache = React.useRef({} as { [key: string]: any });
+
+    const [traces, setTraces] = React.useState({} as Traces);
 
     const [text, setText] = React.useState(() => {
         return typeof contents === 'string'
@@ -161,12 +169,16 @@ export default ({
                     ? { hash: hashObject(typed.term), size: 1, pos: 0 }
                     : typed.id;
             const already = evalEnv.terms[idName(id)];
+            // oooh hm should the traces be part of the evalCache? it might want to be...
+            // because we cache these things...
+            // anyway, let's leave this for the moment. it doesn't actually matter just yet
             if (already) {
                 return already;
             } else if (evalCache.current[idName(id)] != null) {
                 return evalCache.current[idName(id)];
             } else {
                 try {
+                    setTraces({});
                     const v = runTerm(
                         env,
                         typed.term,
@@ -174,6 +186,26 @@ export default ({
                         evalEnv,
                         // Ignoring traces!
                         (_, __, arg, ...___) => arg,
+                        // (idName, idx, arg, ...others) => {
+                        //     setTraces((traces) => {
+                        //         const current = traces[idName]
+                        //             ? traces[idName].slice()
+                        //             : [];
+                        //         const trace: Trace = {
+                        //             ts: Date.now(),
+                        //             arg,
+                        //             others,
+                        //         };
+                        //         current[idx] = current[idx]
+                        //             ? current[idx].concat(trace)
+                        //             : [trace];
+                        //         return {
+                        //             ...traces,
+                        //             [idName]: current,
+                        //         };
+                        //     });
+                        //     return arg;
+                        // },
                     )[idName(id)];
                     evalCache.current[idName(id)] = v;
                     return v;
@@ -296,6 +328,7 @@ export default ({
                 ) : null}
             </div>
             {JSON.stringify(evaled)}
+            {/* {JSON.stringify(traces)} */}
         </div>
     );
 };

@@ -1,21 +1,15 @@
 // This is the fake one?
 
 import * as React from 'react';
-import {
-    Env,
-    Term,
-    Type,
-    TypeReference,
-    UserReference,
-} from '@jerd/language/src/typing/types';
+import { Env, Term } from '@jerd/language/src/typing/types';
 import {
     builtinType,
     int,
     pureFunction,
     refType,
 } from '@jerd/language/src/typing/preset';
-import { EvalEnv, Plugins, PluginT } from '../State';
-import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
+import { EvalEnv, Plugins } from '../State';
+import { hashObject, idName } from '@jerd/language/src/typing/env';
 import { wrapWithExecutaionLimit } from './Drawable';
 import {
     generateShader,
@@ -217,17 +211,6 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
                 currentMousePos.current,
                 shaders.slice(1).map((shader) => shader.text),
             );
-            // let tid: any;
-            // let last = Date.now();
-            // const fn = () => {
-            //     const now = Date.now();
-            //     timer.current += (now - last) / 1000;
-            //     last = now;
-            //     update(timer.current, currentMousePos.current);
-            //     tid = requestAnimationFrame(fn);
-            // };
-            // tid = requestAnimationFrame(fn);
-            // return () => cancelAnimationFrame(tid);
             return update;
         } catch (err) {
             console.log(err);

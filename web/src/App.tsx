@@ -49,8 +49,8 @@ export type State = {
     evalEnv: EvalEnv;
 };
 
-export default () => {
-    const [state, setState] = React.useState(() => initialState());
+export default ({ initial }: { initial: State }) => {
+    const [state, setState] = React.useState(() => initial);
     React.useEffect(() => {
         saveState(state);
     }, [state]);

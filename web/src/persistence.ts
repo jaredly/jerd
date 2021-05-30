@@ -10,6 +10,7 @@ import {
     newWithGlobal,
     Type,
 } from '@jerd/language/src/typing/types';
+import localForage from 'localforage';
 
 const saveKey = 'jd-repl-cache';
 
@@ -27,14 +28,22 @@ export const stateToString = (state: State) => {
 window.stateToString = stateToString;
 
 export const saveState = (state: State) => {
-    window.localStorage.setItem(saveKey, stateToString(state));
+    localForage.setItem(saveKey, stateToString(state));
+    // window.localStorage.setItem(saveKey, stateToString(state));
 };
 
 // @ts-ignore
 window.importState = saveState;
 
-export const initialState = (): State => {
-    const saved = window.localStorage.getItem(saveKey);
+export const initialState = async (): Promise<State> => {
+    const oldSaved = window.localStorage.getItem(saveKey);
+    let saved: string | null = '';
+    if (oldSaved != null) {
+        localForage.setItem(saveKey, oldSaved);
+        saved = oldSaved;
+    } else {
+        saved = await localForage.getItem(saveKey);
+    }
     const builtinsMap = loadBuiltins();
     const typedBuiltins: { [key: string]: Type } = {};
     Object.keys(builtinsMap).forEach((b) => {
