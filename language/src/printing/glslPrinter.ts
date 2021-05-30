@@ -71,7 +71,7 @@ import { Location, nullLocation } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
-import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
+import { maxUnique, recordAttributeName, termToTs } from './typeScriptPrinterSimple';
 import { explicitSpreads } from './ir/optimize/explicitSpreads';
 import { toplevelRecordAttribute } from './ir/optimize/inline';
 import { glslTester } from './glslTester';
@@ -577,6 +577,9 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 atom(' == '),
                 termToGlsl(env, opts, expr.literal),
             ]);
+        // Traces aren't supported in glsl, they just pass through.
+        case 'Trace':
+            return termToGlsl(env, opts, expr.args[0])
         default:
             return atom('nope_term_' + expr.type);
     }

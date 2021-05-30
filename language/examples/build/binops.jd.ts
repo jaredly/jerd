@@ -92,6 +92,13 @@ export const hash_bef2134a: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_
 
 /**
 ```
+const thing#5bafb634 = 1 - (2 - 1)
+```
+*/
+export const hash_5bafb634: number = 1 - (2 - 1);
+
+/**
+```
 const deep#dcfc5c32 = 1.0 * (2.0 - 3.0 * (4.0 + 2.0 * 10.0))
 ```
 */
@@ -179,3 +186,8 @@ assertCall(hash_c41f7386.h553b4b8e_0, hash_70ad3796, -13);
 deep#dcfc5c32 ==#c41f7386#553b4b8e#0 -70.0
 */
 assertCall(hash_c41f7386.h553b4b8e_0, hash_dcfc5c32, -70);
+
+/*
+thing#5bafb634 ==#9275f914#553b4b8e#0 0
+*/
+assertCall(hash_9275f914.h553b4b8e_0, hash_5bafb634, 0);

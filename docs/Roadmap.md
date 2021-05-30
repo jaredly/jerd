@@ -32,6 +32,10 @@
 - [ ] when printing a lambda, if the body is another lambda, we don't really need to print the return type. We can just infer it, right?
 
 
+## Loose ends!
+
+- I'm not printing term annotations anymore, and that will break re-parsing of recursive dealios. Need to infer the annotation from the lambda declaration.
+
 
 
 

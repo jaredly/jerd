@@ -461,7 +461,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 ) {
                     const rightName = getBinOpName(env, term.args[1].target);
                     const level = getOpLevel(rightName)!;
-                    if (level < mine) {
+                    if (level <= mine) {
                         right = items([atom('('), right, atom(')')]);
                     }
                 }

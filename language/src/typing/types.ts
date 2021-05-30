@@ -46,7 +46,12 @@ export type Env = {
     // like args n stuff?
     global: GlobalEnv;
     local: LocalEnv;
+    term: TermEnv;
     depth: number;
+};
+
+export type TermEnv = {
+    nextTraceId: number;
 };
 
 export type GlobalEnv = {
@@ -143,6 +148,9 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
         effectConstrNames: {},
         effects: {},
     },
+    term: {
+        nextTraceId: 0,
+    },
     local: {
         unique: { current: 0 },
         self,
@@ -172,6 +180,7 @@ export const newWithGlobal = (env: GlobalEnv): Env => ({
     depth: 0,
     global: cloneGlobalEnv(env),
     local: newLocal(),
+    term: { nextTraceId: 0 },
 });
 
 export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
@@ -221,6 +230,7 @@ export const subEnv = (env: Env): Env => {
             typeVblNames: { ...env.local.typeVblNames },
             tmpTypeVbls: env.local.tmpTypeVbls,
         },
+        term: env.term,
     };
 };
 
