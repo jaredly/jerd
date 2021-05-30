@@ -137,7 +137,7 @@ ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:Com
 }
 AttributeSuffix = "." id:MaybeQuotedIdentifier {return {type: 'Attribute', id, location: location()}}
 
-Apsub = Literal / Lambda / Block / Handle / Raise / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / TupleLiteral / Identifier
+Apsub = Literal / Lambda / Block / Handle / Raise / Trace / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / TupleLiteral / Identifier
 
 // TODO
 // / TraitCall
@@ -244,6 +244,7 @@ TuplePatternItems = first:Pattern rest:(_ "," _ Pattern)+ {
 
 // How do patterns look?
 
+Trace = "trace!(" _ args:CommaExpr _ ")" {return {type: 'Trace', args, location: location()}}
 
 // == Effects ==
 

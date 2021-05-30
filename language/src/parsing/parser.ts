@@ -124,6 +124,7 @@ export type Expression =
     | DecoratedExpression
     | Lambda
     | Raise
+    | Trace
     | Ops
     | If
     | Switch
@@ -251,6 +252,12 @@ export type ArrayPattern = {
 export type ArrayPatternSpread = {
     type: 'Spread';
     inner: Pattern;
+    location: Location;
+};
+
+export type Trace = {
+    type: 'Trace';
+    args: Array<Expression>;
     location: Location;
 };
 

@@ -74,6 +74,15 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
                 ? { ...expr, value, idx }
                 : expr;
         }
+        case 'Trace': {
+            let changed = false;
+            const args = expr.args.map((item) => {
+                const i = transformExpr(item, visitor);
+                changed = changed || i !== item;
+                return i;
+            });
+            return changed ? { ...expr, args } : expr;
+        }
         case 'tuple': {
             let changed = false;
             const items = expr.items.map((item) => {

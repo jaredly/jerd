@@ -71,6 +71,7 @@ const CellWrapper = ({
     onRemove: () => void;
     onToggleSource: (() => void) | null | undefined;
 }) => {
+    const [menu, setMenu] = React.useState(null);
     return (
         <div
             style={{

@@ -40,7 +40,7 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 /**
 ```
 const farther#dd523212 = (name#:0: string): string ={Stdio#1da337a2, Log#35f4b478}> {
-    log#eccbfbca(("yes please " ++ name#:0));
+    log#eccbfbca("yes please " ++ name#:0);
     raise!(Stdio#1da337a2.read());
 }
 ```
@@ -58,9 +58,9 @@ export const hash_dd523212:
 const handleMulti#fadf30b0 = (f#:0: () ={MultiArg#6ddb76fe}> string): string ={}> {
     handle! f#:0 {
         MultiArg.putTwo#0((num#:2, text#:3) => k#:4) => fadf30b0#self(
-            (): string ={MultiArg#6ddb76fe}> k#:4(((intToString(num#:2) ++ ":") ++ text#:3)),
+            (): string ={MultiArg#6ddb76fe}> k#:4(intToString(num#:2) ++ ":" ++ text#:3),
         ),
-        pure(v#:1) => (v#:1 ++ ":ok"),
+        pure(v#:1) => v#:1 ++ ":ok",
     };
 }
 ```
@@ -87,7 +87,7 @@ export const hash_fadf30b0: (arg_0:
 ```
 const letBind#12c25e9b = (): void ={Stdio#1da337a2, Log#35f4b478}> {
     const x#:0 = raise!(Stdio#1da337a2.read());
-    log#eccbfbca((x#:0 ++ "Hello"));
+    log#eccbfbca(x#:0 ++ "Hello");
 }
 ```
 */
@@ -108,12 +108,12 @@ const respondWith#59070068 = (responseValue#:0: string): <T#:0>{e#:0}(
     e#:0,
 }> {
     handle! fn#:1 {
-        Stdio.read#0(() => k#:3) => 59070068#self((responseValue#:0 ++ "."))<T#:0>{e#:0}(
+        Stdio.read#0(() => k#:3) => 59070068#self(responseValue#:0 ++ ".")<T#:0>{e#:0}(
             (): T#:0 ={Stdio#1da337a2, e#:0}> k#:3(responseValue#:0),
         ),
         Stdio.write#1((v#:4) => k#:5) => {
             log#eccbfbca(v#:4);
-            59070068#self((responseValue#:0 ++ "-"))<T#:0>{e#:0}(
+            59070068#self(responseValue#:0 ++ "-")<T#:0>{e#:0}(
                 (): T#:0 ={Stdio#1da337a2, e#:0}> k#:5(),
             );
         },
@@ -151,7 +151,7 @@ export const hash_59070068: (arg_0: string) =>
 /**
 ```
 const raiseIf#fce40b70 = (check#:0: string): string ={Stdio#1da337a2}> {
-    if (raise!(Stdio#1da337a2.read()) ==#606c7034#553b4b8e#0 check#:0) {
+    if raise!(Stdio#1da337a2.read()) ==#606c7034#553b4b8e#0 check#:0 {
         raise!(Stdio#1da337a2.read());
     } else {
         "didn't raise";
@@ -195,11 +195,11 @@ export const hash_42c8a590:
 /**
 ```
 const inner#19effbea = (name#:0: string): void ={Stdio#1da337a2, Log#35f4b478}> {
-    log#eccbfbca((farther#dd523212("Folks") ++ " from farther"));
+    log#eccbfbca(farther#dd523212("Folks") ++ " from farther");
     log#eccbfbca("getting");
     log#eccbfbca(name#:0);
-    log#eccbfbca(((raise!(Stdio#1da337a2.read()) ++ " and ") ++ raise!(Stdio#1da337a2.read())));
-    log#eccbfbca(("And then " ++ raise!(Stdio#1da337a2.read())));
+    log#eccbfbca(raise!(Stdio#1da337a2.read()) ++ " and " ++ raise!(Stdio#1da337a2.read()));
+    log#eccbfbca("And then " ++ raise!(Stdio#1da337a2.read()));
     log#eccbfbca("Dones");
 }
 ```
@@ -280,7 +280,7 @@ export const hash_1e213df0:
 const test2#a145008c = (): void ={Log#35f4b478}> {
     respondWith#59070068("<read>")<void>{Log#35f4b478}(
         (): void ={Stdio#1da337a2, Log#35f4b478}> log#eccbfbca(
-            (maybeRaise#42c8a590(true) ++ maybeRaise#42c8a590(false)),
+            maybeRaise#42c8a590(true) ++ maybeRaise#42c8a590(false),
         ),
     );
 }
@@ -303,7 +303,7 @@ export const hash_a145008c:
 const collect#2ce3943a = {e#:0}(fn#:0: () ={Log#35f4b478, e#:0}> void): string ={e#:0}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
-            ((v#:2 ++ "\n") ++ 2ce3943a#self{e#:0}((): void ={Log#35f4b478, e#:0}> k#:3()));
+            v#:2 ++ "\n" ++ 2ce3943a#self{e#:0}((): void ={Log#35f4b478, e#:0}> k#:3());
         },
         pure(a#:1) => "end",
     };
@@ -350,7 +350,7 @@ export const hash_2ce3943a: any = {
 const collectNew#4465c66a = (fn#:0: () ={Log#35f4b478}> void): string ={}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
-            ((v#:2 ++ "\n") ++ 4465c66a#self((): void ={Log#35f4b478}> k#:3()));
+            v#:2 ++ "\n" ++ 4465c66a#self((): void ={Log#35f4b478}> k#:3());
         },
         pure(a#:1) => "end",
     };
@@ -398,26 +398,26 @@ collectNew#4465c66a
 hash_4465c66a;
 
 /*
-(collect#2ce3943a{}(test1#22486482) ==#606c7034#553b4b8e#0 "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend")
+collect#2ce3943a{}(test1#22486482) ==#606c7034#553b4b8e#0 "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_22486482), "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend");
 
 /*
-(collect#2ce3943a{}(test2#a145008c) ==#606c7034#553b4b8e#0 "<read>didn't raise\nend")
+collect#2ce3943a{}(test2#a145008c) ==#606c7034#553b4b8e#0 "<read>didn't raise\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_a145008c), "<read>didn't raise\nend");
 
 /*
-(collect#2ce3943a{}(test3#1e213df0) ==#606c7034#553b4b8e#0 "<read>.\nend")
+collect#2ce3943a{}(test3#1e213df0) ==#606c7034#553b4b8e#0 "<read>.\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_1e213df0), "<read>.\nend");
 
 /*
-(collect#2ce3943a{}(test4#60ecb87c) ==#606c7034#553b4b8e#0 "<read>Hello\nend")
+collect#2ce3943a{}(test4#60ecb87c) ==#606c7034#553b4b8e#0 "<read>Hello\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_60ecb87c), "<read>Hello\nend");
 
 /*
-(full#d649a85c() ==#606c7034#553b4b8e#0 "4:five:ok")
+full#d649a85c() ==#606c7034#553b4b8e#0 "4:five:ok"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_d649a85c(), "4:five:ok");

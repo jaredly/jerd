@@ -355,6 +355,16 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 is: mapType(term.is),
             };
         }
+        // Should trace exist in the IR? idk. yeah sure why not. Pass the buck.
+        case 'Trace': {
+            return {
+                type: 'Trace',
+                args: term.args.map((item) => printTerm(env, opts, item)),
+                loc: term.location,
+                idx: term.idx,
+                is: mapType(term.is),
+            };
+        }
         case 'Tuple': {
             return {
                 type: 'tuple',

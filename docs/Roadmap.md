@@ -6,6 +6,8 @@
 - [x] make tab & shift-tab actually work reliably
 
 ### Basic usability
+- [ ] make a menu for cells, so I can do "export this term and dependencies" for debugging
+- [ ] ok for the maximally fancy, let's do "trace!() runs the javascript, and snoops the values"
 - [ ] cmd+p to search for terms, showing most recently edited things, and their types, and such
 - [x] pins should have a way to open up the cell of the source
 - [ ] opening a cell should select it

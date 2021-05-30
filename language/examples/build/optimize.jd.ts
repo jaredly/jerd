@@ -65,8 +65,8 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 /**
 ```
 const recurse#3306c09c = (n#:0: int): int ={}> {
-    if (n#:0 > 5) {
-        (3306c09c#self((n#:0 - 1)) + 1);
+    if n#:0 > 5 {
+        3306c09c#self(n#:0 - 1) + 1;
     } else {
         3;
     };
@@ -86,9 +86,9 @@ export const hash_3306c09c: (arg_0: number) => number = (n: number) => {
 const ArrayEq#bef2134a = <T#:0>(eq#:0: Eq#553b4b8e<T#:0>): Eq#553b4b8e<Array<T#:0>> ={}> Eq#553b4b8e<
     Array<T#:0>,
 >{
-    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>): bool ={}> ((len<T#:0>(one#:1) ==#9275f914#553b4b8e#0 len<
+    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>): bool ={}> len<T#:0>(one#:1) ==#9275f914#553b4b8e#0 len<
         T#:0,
-    >(two#:2)) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0)),
+    >(two#:2) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0),
 }
 ```
 */
@@ -100,11 +100,11 @@ export const hash_bef2134a: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_
 /**
 ```
 const m#b92dd000 = {
-    const x#:1 = recurse#3306c09c(({
+    const x#:1 = recurse#3306c09c({
         const y#:0 = recurse#3306c09c(4);
-        ((y#:0 + 2) + y#:0);
-    } + 3));
-    ((x#:1 + 3) + x#:1);
+        y#:0 + 2 + y#:0;
+    } + 3);
+    x#:1 + 3 + x#:1;
 }
 ```
 */
@@ -124,7 +124,7 @@ const ArrayIntEq#4419935c = ArrayEq#bef2134a<int>(IntEq#9275f914)
 export const hash_4419935c: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_9275f914);
 
 /*
-(<int>[1, 2] ==#4419935c#553b4b8e#0 <int>[1, 2])
+<int>[1, 2] ==#4419935c#553b4b8e#0 <int>[1, 2]
 */
 assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
 
@@ -134,7 +134,7 @@ assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
     switch a#:0 {
         [a#:1, ...b#:2] => switch b#:2 {
             [b#:3, ...c#:4] => switch c#:4 {
-                [c#:5] => (((a#:1 ==#9275f914#553b4b8e#0 1) && (b#:3 ==#9275f914#553b4b8e#0 2)) && (c#:5 ==#9275f914#553b4b8e#0 3)),
+                [c#:5] => a#:1 ==#9275f914#553b4b8e#0 1 && b#:3 ==#9275f914#553b4b8e#0 2 && c#:5 ==#9275f914#553b4b8e#0 3,
                 _#:6 => false,
             },
             _#:7 => false,

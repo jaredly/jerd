@@ -71,6 +71,21 @@ export const liftEffects = (env: Env, term: Term) => {
                     const target = processArg(env, term.target, 0, lets);
                     return subSequence(lets, { ...term, target });
                 }
+                case 'Trace': {
+                    if (
+                        !term.args.some((term) => getEffects(term).length > 0)
+                    ) {
+                        return null;
+                    }
+                    const lets: Array<Let | Term> = [];
+                    const args = term.args.map((arg, i) =>
+                        processArg(env, arg, i, lets),
+                    );
+                    return subSequence(lets, {
+                        ...term,
+                        args,
+                    });
+                }
                 case 'Tuple': {
                     if (
                         !term.items.some((term) => getEffects(term).length > 0)

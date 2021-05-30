@@ -26,8 +26,8 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 /**
 ```
 const within#004be9c0 = (found#:0: float, expected#:1: float, margin#:2: float): bool ={}> {
-    if ((found#:0 - margin#:2) < expected#:1) {
-        ((found#:0 + margin#:2) > expected#:1);
+    if found#:0 - margin#:2 < expected#:1 {
+        found#:0 + margin#:2 > expected#:1;
     } else {
         false;
     };
@@ -53,7 +53,7 @@ export const hash_c41f7386: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-(sqrt(4.0) ==#c41f7386#553b4b8e#0 2.0)
+sqrt(4.0) ==#c41f7386#553b4b8e#0 2.0
 */
 assertCall(hash_c41f7386.h553b4b8e_0, sqrt(4), 2);
 
@@ -63,7 +63,7 @@ within#004be9c0(sin(PI), 0.0, 0.0001)
 assertCall(hash_004be9c0, sin(PI), 0, 0.0001);
 
 /*
-(floatToInt(2.3) ==#9275f914#553b4b8e#0 2)
+floatToInt(2.3) ==#9275f914#553b4b8e#0 2
 */
 assertCall(hash_9275f914.h553b4b8e_0, floatToInt(2.3), 2);
 

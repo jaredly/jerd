@@ -538,6 +538,18 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                 is,
             };
         }
+        case 'Trace': {
+            const args: Array<Term> = expr.args.map((item) => {
+                return typeExpr(env, item);
+            });
+            return {
+                type: 'Trace',
+                location: expr.location,
+                idx: 0, // STOPSHIP: make this actually a thing
+                args,
+                is: args[0].is,
+            };
+        }
         case 'Tuple': {
             const items: Array<Term> = expr.items.map((item) => {
                 return typeExpr(env, item);

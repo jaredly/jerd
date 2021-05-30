@@ -5,16 +5,16 @@ type handle35f4b478 = [(arg_0: string, arg_1: (arg_0: handle35f4b478) => void) =
 
 /**
 ```
-type Person#066d8180 = {
+type Person#14c7c156 = {
     name: string,
     age: int,
 }
 ```
 */
-type t_066d8180 = {
-  type: "066d8180";
-  h066d8180_0: string;
-  h066d8180_1: number;
+type t_14c7c156 = {
+  type: "14c7c156";
+  h14c7c156_0: string;
+  h14c7c156_1: number;
 };
 
 /**
@@ -126,9 +126,9 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 const ArrayEq#bef2134a = <T#:0>(eq#:0: Eq#553b4b8e<T#:0>): Eq#553b4b8e<Array<T#:0>> ={}> Eq#553b4b8e<
     Array<T#:0>,
 >{
-    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>): bool ={}> ((len<T#:0>(one#:1) ==#9275f914#553b4b8e#0 len<
+    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>): bool ={}> len<T#:0>(one#:1) ==#9275f914#553b4b8e#0 len<
         T#:0,
-    >(two#:2)) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0)),
+    >(two#:2) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0),
 }
 ```
 */
@@ -139,41 +139,41 @@ export const hash_bef2134a: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_
 
 /**
 ```
-const getPerson#2a1f854a = (): Person#066d8180 ={Read#22024b72}> Person#066d8180{
-    name#066d8180#0: getString#64605d94(),
-    age#066d8180#1: 5,
+const getPerson#51951e88 = (): Person#14c7c156 ={Read#22024b72}> Person#14c7c156{
+    name#14c7c156#0: getString#64605d94(),
+    age#14c7c156#1: 5,
 }
 ```
 */
-export const hash_2a1f854a:
+export const hash_51951e88:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_066d8180) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_066d8180) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_14c7c156) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_14c7c156) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue: string) => {
     done$2(handlers, ({
-      type: "066d8180",
-      h066d8180_0: returnValue,
-      h066d8180_1: 5
-    } as t_066d8180));
+      type: "14c7c156",
+      h14c7c156_0: returnValue,
+      h14c7c156_1: 5
+    } as t_14c7c156));
   });
 };
 
 /**
 ```
-const getPersonName#3b2dbacb = (): string ={Read#22024b72}> Person#066d8180{
-    name#066d8180#0: getString#64605d94(),
-    age#066d8180#1: 5,
-}.name#066d8180#0
+const getPersonName#b5763352 = (): string ={Read#22024b72}> Person#14c7c156{
+    name#14c7c156#0: getString#64605d94(),
+    age#14c7c156#1: 5,
+}.name#14c7c156#0
 ```
 */
-export const hash_3b2dbacb:
+export const hash_b5763352:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void) => void = (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => {
     done$3(handlers, ({
-      type: "066d8180",
-      h066d8180_0: returnValue$5,
-      h066d8180_1: 5
-    } as t_066d8180).h066d8180_0);
+      type: "14c7c156",
+      h14c7c156_0: returnValue$5,
+      h14c7c156_1: 5
+    } as t_14c7c156).h14c7c156_0);
   });
 };
 
@@ -195,8 +195,8 @@ export const hash_3bfdbd8c:
 const provideIncrement#4ffa1f88 = <T#:0>(v#:0: string, i#:1: int, fn#:2: () ={Read#22024b72}> T#:0): T#:0 ={}> handle! fn#:2 {
     Read.read#0(() => k#:4) => 4ffa1f88#self<T#:0>(
         v#:0,
-        (i#:1 + 1),
-        (): T#:0 ={Read#22024b72}> k#:4((v#:0 + i#:1 as#1175499e string)),
+        i#:1 + 1,
+        (): T#:0 ={Read#22024b72}> k#:4(v#:0 + i#:1 as#1175499e string),
     ),
     pure(v#:3) => v#:3,
 }
@@ -229,20 +229,20 @@ export const hash_0d35c408: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_606c7034
 
 /**
 ```
-const spreadPerson#4668b1c3 = (): Person#066d8180 ={Read#22024b72}> Person#066d8180{
-    ...getPerson#2a1f854a(),
-    age#066d8180#1: 20,
+const spreadPerson#041a4e34 = (): Person#14c7c156 ={Read#22024b72}> Person#14c7c156{
+    ...getPerson#51951e88(),
+    age#14c7c156#1: 20,
 }
 ```
 */
-export const hash_4668b1c3:
+export const hash_041a4e34:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_066d8180) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_066d8180) => void) => {
-  hash_2a1f854a(handlers, (handlers: Handlers, returnValue: t_066d8180) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_14c7c156) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_14c7c156) => void) => {
+  hash_51951e88(handlers, (handlers: Handlers, returnValue: t_14c7c156) => {
     done$2(handlers, ({ ...returnValue,
-      type: "066d8180",
-      h066d8180_1: 20
-    } as t_066d8180));
+      type: "14c7c156",
+      h14c7c156_1: 20
+    } as t_14c7c156));
   });
 };
 
@@ -265,7 +265,7 @@ export const hash_a8135548:
 /**
 ```
 const sideBar#2df6410a = (n#:0: int): string ={Read#22024b72}> {
-    if (n#:0 ==#9275f914#553b4b8e#0 5) {
+    if n#:0 ==#9275f914#553b4b8e#0 5 {
         getString#64605d94();
     } else {
         "wot";
@@ -286,7 +286,7 @@ export const hash_2df6410a:
 /**
 ```
 const ifYes#5bf7f75c = (): string ={Read#22024b72}> {
-    if (getString#64605d94() ==#606c7034#553b4b8e#0 "Yes") {
+    if getString#64605d94() ==#606c7034#553b4b8e#0 "Yes" {
         "good";
     } else {
         "nope";
@@ -339,11 +339,11 @@ export const hash_2dbf3eae: <T_0>(arg_0: string, arg_1:
 /**
 ```
 const provideString#0247dd82 = (v#:0: string, fn#:1: () ={Read#22024b72}> string): string ={}> handle! fn#:1 {
-    Read.read#0(() => k#:3) => (0247dd82#self(
+    Read.read#0(() => k#:3) => 0247dd82#self(
         v#:0,
-        (): string ={Read#22024b72}> (k#:3((v#:0 + "got")) + "back"),
-    ) + "provided"),
-    pure(v#:2) => (v#:2 + "pure"),
+        (): string ={Read#22024b72}> k#:3(v#:0 + "got") + "back",
+    ) + "provided",
+    pure(v#:2) => v#:2 + "pure",
 }
 ```
 */
@@ -384,7 +384,7 @@ export const hash_bc94fd0c:
 };
 
 /*
-(a#:0: int, b#:1: string): string ={Read#22024b72, Write#35f4b478}> (b#:1 + getString#64605d94())
+(a#:0: int, b#:1: string): string ={Read#22024b72, Write#35f4b478}> b#:1 + getString#64605d94()
 */
 (a: number, b: string, handlers: Handlers, done$4: (arg_0: Handlers, arg_1: string) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue$6: string) => {
@@ -399,21 +399,21 @@ both#bc94fd0c
 hash_bc94fd0c;
 
 /*
-(provideString#0247dd82("Yes", getString#64605d94) ==#606c7034#553b4b8e#0 "Yesgotbackpureprovided")
+provideString#0247dd82("Yes", getString#64605d94) ==#606c7034#553b4b8e#0 "Yesgotbackpureprovided"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_0247dd82("Yes", hash_64605d94), "Yesgotbackpureprovided");
 
 /*
-(((provideStringPlain#2dbf3eae<string>("Yes", ifYes#5bf7f75c) + ":") + provideStringPlain#2dbf3eae<
+provideStringPlain#2dbf3eae<string>("Yes", ifYes#5bf7f75c) + ":" + provideStringPlain#2dbf3eae<
     string,
->("Yes?", ifYes#5bf7f75c)) ==#606c7034#553b4b8e#0 "good:nope")
+>("Yes?", ifYes#5bf7f75c) ==#606c7034#553b4b8e#0 "good:nope"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Yes", hash_5bf7f75c) + ":" + hash_2dbf3eae("Yes?", hash_5bf7f75c), "good:nope");
 
 /*
-(((provideStringPlain#2dbf3eae<string>("Yes", (): string ={Read#22024b72}> sideBar#2df6410a(5)) + ":") + provideStringPlain#2dbf3eae<
+provideStringPlain#2dbf3eae<string>("Yes", (): string ={Read#22024b72}> sideBar#2df6410a(5)) + ":" + provideStringPlain#2dbf3eae<
     string,
->("Yes?", (): string ={Read#22024b72}> sideBar#2df6410a(4))) ==#606c7034#553b4b8e#0 "Yes:wot")
+>("Yes?", (): string ={Read#22024b72}> sideBar#2df6410a(4)) ==#606c7034#553b4b8e#0 "Yes:wot"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Yes", (handlers: Handlers, done$8: (arg_0: Handlers, arg_1: string) => void) => {
   hash_2df6410a(5, handlers, (handlers: Handlers, returnValue$10: string) => done$8(handlers, returnValue$10));
@@ -422,7 +422,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Yes", (handlers: Handlers, 
 }), "Yes:wot");
 
 /*
-(provideStringPlain#2dbf3eae<string>("what", (): string ={Read#22024b72}> callAgain#a8135548()()) ==#606c7034#553b4b8e#0 "what")
+provideStringPlain#2dbf3eae<string>("what", (): string ={Read#22024b72}> callAgain#a8135548()()) ==#606c7034#553b4b8e#0 "what"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("what", (handlers: Handlers, done$15: (arg_0: Handlers, arg_1: string) => void) => {
   hash_a8135548(handlers, (handlers: Handlers, returnValue$17: () => string) => {
@@ -432,21 +432,21 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("what", (handlers: Handlers,
 }), "what");
 
 /*
-(provideStringPlain#2dbf3eae<Person#066d8180>("Me", getPerson#2a1f854a).name#066d8180#0 ==#606c7034#553b4b8e#0 "Me")
+provideStringPlain#2dbf3eae<Person#14c7c156>("Me", getPerson#51951e88).name#14c7c156#0 ==#606c7034#553b4b8e#0 "Me"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_2a1f854a).h066d8180_0, "Me");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_51951e88).h14c7c156_0, "Me");
 
 /*
-(provideStringPlain#2dbf3eae<Person#066d8180>("Me", spreadPerson#4668b1c3).name#066d8180#0 ==#606c7034#553b4b8e#0 "Me")
+provideStringPlain#2dbf3eae<Person#14c7c156>("Me", spreadPerson#041a4e34).name#14c7c156#0 ==#606c7034#553b4b8e#0 "Me"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_4668b1c3).h066d8180_0, "Me");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_041a4e34).h14c7c156_0, "Me");
 
 /*
-(provideIncrement#4ffa1f88<Array<string>>(
+provideIncrement#4ffa1f88<Array<string>>(
     "Hi",
     0,
     (): Array<string> ={Read#22024b72}> <string>[getString#64605d94(), getString#64605d94()],
-) ==#0d35c408#553b4b8e#0 <string>["Hi0", "Hi1"])
+) ==#0d35c408#553b4b8e#0 <string>["Hi0", "Hi1"]
 */
 assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers, done$21: (arg_0: Handlers, arg_1: Array<string>) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue$25: string) => {
@@ -459,11 +459,11 @@ assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers
 }), ["Hi0", "Hi1"]);
 
 /*
-(provideIncrement#4ffa1f88<Array<string>>(
+provideIncrement#4ffa1f88<Array<string>>(
     "Hi",
     0,
     (): Array<string> ={Read#22024b72}> <string>[...getStringArr#3bfdbd8c(), getString#64605d94()],
-) ==#0d35c408#553b4b8e#0 <string>["Hi0", "Hi1"])
+) ==#0d35c408#553b4b8e#0 <string>["Hi0", "Hi1"]
 */
 assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers, done$30: (arg_0: Handlers, arg_1: Array<string>) => void) => {
   hash_3bfdbd8c(handlers, (handlers: Handlers, returnValue$34: Array<string>) => {
@@ -498,6 +498,6 @@ assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers
 };
 
 /*
-(provideStringPlain#2dbf3eae<string>("ok", getPersonName#3b2dbacb) ==#606c7034#553b4b8e#0 "ok")
+provideStringPlain#2dbf3eae<string>("ok", getPersonName#b5763352) ==#606c7034#553b4b8e#0 "ok"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("ok", hash_3b2dbacb), "ok");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("ok", hash_b5763352), "ok");

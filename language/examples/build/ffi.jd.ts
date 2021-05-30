@@ -34,7 +34,7 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 } as t_553b4b8e<string>);
 
 /*
-(Person#270b466e{name#270b466e#0: "hi", age#270b466e#1: 2}.name#270b466e#0 ==#606c7034#553b4b8e#0 "hi")
+Person#270b466e{name#270b466e#0: "hi", age#270b466e#1: 2}.name#270b466e#0 ==#606c7034#553b4b8e#0 "hi"
 */
 assertCall(hash_606c7034.h553b4b8e_0, ({
   type: "Person",
@@ -43,7 +43,7 @@ assertCall(hash_606c7034.h553b4b8e_0, ({
 } as t_270b466e).name, "hi");
 
 /*
-(Box#df326b42{x#3c665e84#0: 1.0, y#3c665e84#1: 1.0, w#df326b42#0: 2.0, h#df326b42#1: 2.0}.x#3c665e84#0 ==#c41f7386#553b4b8e#0 1.0)
+Box#df326b42{x#3c665e84#0: 1.0, y#3c665e84#1: 1.0, w#df326b42#0: 2.0, h#df326b42#1: 2.0}.x#3c665e84#0 ==#c41f7386#553b4b8e#0 1.0
 */
 assertCall(hash_c41f7386.h553b4b8e_0, ({
   type: "Box",
@@ -54,11 +54,11 @@ assertCall(hash_c41f7386.h553b4b8e_0, ({
 } as t_df326b42).x, 1);
 
 /*
-(Box#df326b42{
+Box#df326b42{
     ...Pos#3c665e84{x#3c665e84#0: 10.0, y#3c665e84#1: 5.0},
     w#df326b42#0: 1.0,
     h#df326b42#1: 2.0,
-}.x#3c665e84#0 ==#c41f7386#553b4b8e#0 10.0)
+}.x#3c665e84#0 ==#c41f7386#553b4b8e#0 10.0
 */
 assertCall(hash_c41f7386.h553b4b8e_0, ({ ...({
     type: "Pos",

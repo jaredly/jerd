@@ -296,6 +296,7 @@ export type Expr =
       }
     | Record
     | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc; is: Type }
+    | { type: 'Trace'; args: Array<Expr>; is: Type; idx: number; loc: Loc }
     | {
           type: 'attribute';
           target: Expr;

@@ -483,6 +483,13 @@ export type Term =
     | Record
     | Switch
     | Enum
+    | {
+          type: 'Trace';
+          idx: number;
+          args: Array<Term>;
+          is: Type;
+          location: Location | null;
+      }
     | ArrayLiteral
     | TupleLiteral
     | TupleAccess
@@ -808,13 +815,15 @@ export type EffectDef = {
     location: Location;
 };
 
+const emptyEffects: Array<EffectRef> = [];
+
 // TODO need to resolve probably
 export const getEffects = (t: Term | Let): Array<EffectRef> => {
     switch (t.type) {
         case 'Let':
             return getEffects(t.value);
         case 'Array':
-            return ([] as Array<EffectRef>).concat(
+            return emptyEffects.concat(
                 ...t.items.map((i) =>
                     getEffects(i.type === 'ArraySpread' ? i.value : i),
                 ),
@@ -835,7 +844,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             );
         }
         case 'sequence':
-            return ([] as Array<EffectRef>).concat(...t.sts.map(getEffects));
+            return emptyEffects.concat(...t.sts.map(getEffects));
         case 'raise':
             return dedupEffects(
                 [{ type: 'ref', ref: t.ref } as EffectRef].concat(
@@ -899,12 +908,14 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
         case 'Enum':
         case 'unary':
             return getEffects(t.inner);
+        case 'Trace':
+            return emptyEffects.concat(...t.args.map(getEffects));
         case 'Switch':
             return getEffects(t.term).concat(
                 ...t.cases.map((c) => getEffects(c.body)),
             );
         case 'Tuple':
-            return ([] as Array<EffectRef>).concat(...t.items.map(getEffects));
+            return emptyEffects.concat(...t.items.map(getEffects));
         default:
             let _x: never = t;
             throw new Error('Unhandled term');
@@ -1006,6 +1017,9 @@ export const walkTerm = (
         case 'TupleAccess':
         case 'Attribute':
             walkTerm(term.target, handle);
+            return;
+        case 'Trace':
+            term.args.forEach((arg) => walkTerm(arg, handle));
             return;
         case 'string':
         case 'int':

@@ -25,10 +25,10 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const fib#ac346fbc = (prev#:0: int, cur#:1: int, n#:2: int): int ={}> if (n#:2 ==#9275f914#553b4b8e#0 0) {
+const fib#ac346fbc = (prev#:0: int, cur#:1: int, n#:2: int): int ={}> if n#:2 ==#9275f914#553b4b8e#0 0 {
     prev#:0;
 } else {
-    ac346fbc#self(cur#:1, (prev#:0 + cur#:1), (n#:2 - 1));
+    ac346fbc#self(cur#:1, prev#:0 + cur#:1, n#:2 - 1);
 }
 ```
 */
@@ -49,8 +49,8 @@ export const hash_ac346fbc: (arg_0: number, arg_1: number, arg_2: number) => num
 /**
 ```
 const z#ce5d9b4c = (n#:0: int): int ={}> {
-    const m#:1 = (n#:0 + 2);
-    (m#:1 - 1);
+    const m#:1 = n#:0 + 2;
+    m#:1 - 1;
 }
 ```
 */
@@ -67,16 +67,16 @@ const x#0c634e04 = {
 export const hash_0c634e04: number = 10;
 
 /*
-(x#0c634e04 ==#9275f914#553b4b8e#0 10)
+x#0c634e04 ==#9275f914#553b4b8e#0 10
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_0c634e04, 10);
 
 /*
-(z#ce5d9b4c(10) ==#9275f914#553b4b8e#0 11)
+z#ce5d9b4c(10) ==#9275f914#553b4b8e#0 11
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_ce5d9b4c(10), 11);
 
 /*
-(fib#ac346fbc(0, 1, 10) ==#9275f914#553b4b8e#0 55)
+fib#ac346fbc(0, 1, 10) ==#9275f914#553b4b8e#0 55
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_ac346fbc(0, 1, 10), 55);

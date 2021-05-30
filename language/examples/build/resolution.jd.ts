@@ -27,14 +27,14 @@ type t_As<T_10000, T_10001> = {
 
 /**
 ```
-const one#5678a3a0 = (a#:0: float): float ={}> (a#:0 + 4.0)
+const one#5678a3a0 = (a#:0: float): float ={}> a#:0 + 4.0
 ```
 */
 export const hash_5678a3a0: (arg_0: number) => number = (a: number) => a + 4;
 
 /**
 ```
-const one#f4c397d2 = (a#:0: int): int ={}> (a#:0 + 2)
+const one#f4c397d2 = (a#:0: int): int ={}> a#:0 + 2
 ```
 */
 export const hash_f4c397d2: (arg_0: number) => number = (a: number) => a + 2;
@@ -60,6 +60,6 @@ export const hash_c41f7386: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-((one#f4c397d2(2) as#6f186ad1 float + one#5678a3a0(3.0)) ==#c41f7386#553b4b8e#0 11.0)
+one#f4c397d2(2) as#6f186ad1 float + one#5678a3a0(3.0) ==#c41f7386#553b4b8e#0 11.0
 */
 assertCall(hash_c41f7386.h553b4b8e_0, hash_6f186ad1.hAs_0(hash_f4c397d2(2)) + hash_5678a3a0(3), 11);

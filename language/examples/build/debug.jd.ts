@@ -28,11 +28,11 @@ export const hash_64605d94:
 /**
 ```
 const provideString#0247dd82 = (v#:0: string, fn#:1: () ={Read#22024b72}> string): string ={}> handle! fn#:1 {
-    Read.read#0(() => k#:3) => (0247dd82#self(
+    Read.read#0(() => k#:3) => 0247dd82#self(
         v#:0,
-        (): string ={Read#22024b72}> (k#:3((v#:0 + "got")) + "back"),
-    ) + "provided"),
-    pure(v#:2) => (v#:2 + "pure"),
+        (): string ={Read#22024b72}> k#:3(v#:0 + "got") + "back",
+    ) + "provided",
+    pure(v#:2) => v#:2 + "pure",
 }
 ```
 */
@@ -67,6 +67,6 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 } as t_553b4b8e<string>);
 
 /*
-(provideString#0247dd82("Yes", getString#64605d94) ==#606c7034#553b4b8e#0 "Yesgotbackpureprovided")
+provideString#0247dd82("Yes", getString#64605d94) ==#606c7034#553b4b8e#0 "Yesgotbackpureprovided"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_0247dd82("Yes", hash_64605d94), "Yesgotbackpureprovided");

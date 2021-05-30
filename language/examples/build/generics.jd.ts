@@ -15,7 +15,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const addTwo#f4c397d2 = (one#:0: int): int ={}> (one#:0 + 2)
+const addTwo#f4c397d2 = (one#:0: int): int ={}> one#:0 + 2
 ```
 */
 export const hash_f4c397d2: (arg_0: number) => number = (one: number) => one + 2;
@@ -29,7 +29,7 @@ export const hash_777bf1fc: <T_0>(arg_0: (arg_0: T_0) => T_0, arg_1: T_0) => T_0
 
 /**
 ```
-const scopeIt#36626a20 = (x#:0: int): (int) ={}> int ={}> (y#:1: int): int ={}> (x#:0 + y#:1)
+const scopeIt#36626a20 = (x#:0: int): (int) ={}> int ={}> (y#:1: int): int ={}> x#:0 + y#:1
 ```
 */
 export const hash_36626a20: (arg_0: number) => (arg_0: number) => number = (x: number) => (y: number) => x + y;
@@ -59,11 +59,11 @@ const ten#48447074 = scopeIt#36626a20(4)(6)
 export const hash_48447074: number = hash_36626a20(4)(6);
 
 /*
-(ten#48447074 ==#9275f914#553b4b8e#0 10)
+ten#48447074 ==#9275f914#553b4b8e#0 10
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_48447074, 10);
 
 /*
-(callIt#2d15e126 ==#9275f914#553b4b8e#0 7)
+callIt#2d15e126 ==#9275f914#553b4b8e#0 7
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_2d15e126, 7);

@@ -87,6 +87,7 @@ export type OutputOptions = {
     readonly noTypes?: boolean;
     readonly limitExecutionTime?: boolean;
     readonly discriminant?: string;
+    readonly enableTraces?: boolean;
     readonly optimize?: boolean;
     readonly optimizeAggressive?: boolean;
     readonly showAllUniques?: boolean;
@@ -573,6 +574,39 @@ export const _termToTs = (
                 t.numericLiteral(term.idx),
                 true,
             );
+        case 'Trace':
+            if (opts.enableTraces) {
+                const target = opts.scope
+                    ? t.memberExpression(
+                          t.identifier(opts.scope),
+                          t.identifier('trace'),
+                      )
+                    : t.identifier('$trace');
+                return t.callExpression(target, [
+                    // TODO TODO:
+                    // refactor `local.self`
+                    // and `unique` probably
+                    // I really want a "term-level" env,
+                    // and a "scope-level" env. So split them up.
+                    // and the "term-level" on gets shared between scopes in a term.
+                    // yeah.
+                    // and then make the `self` better so that it's clear whether
+                    // this term has been defined as recursive.
+                    // anyway, do I absolutely need this refactor yet?
+                    // I could just move the `self` type to be optional, and also
+                    // make sure to include the hash explicitly. Right?
+                    // ORR also make a PrintingEnv that includes a different `self`.
+                    // hmm maybe that's the simplest and most appropriate change.
+                    // START HERE PLEASE
+                    t.stringLiteral(
+                        env.local.self ? env.local.self.name : '[no self]',
+                    ),
+                    t.numericLiteral(term.idx),
+                    ...term.args.map((arg) => termToTs(env, opts, arg)),
+                ]);
+            } else {
+                return termToTs(env, opts, term.args[0]);
+            }
         case 'slice': {
             const start = termToTs(env, opts, term.start);
             const end = term.end ? termToTs(env, opts, term.end) : null;

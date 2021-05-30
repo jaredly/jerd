@@ -4,10 +4,10 @@ import { Handlers } from "./prelude.mjs";
 /**
 ```
 const z#6a5b05d8 = (n#:0: int): int ={}> {
-    if (n#:0 < 10) {
+    if n#:0 < 10 {
         log("Ok");
     };
-    (n#:0 + 2);
+    n#:0 + 2;
 }
 ```
 */

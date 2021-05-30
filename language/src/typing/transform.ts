@@ -165,6 +165,15 @@ export const transform = (term: Term, visitor: Visitor): Term => {
             const inner = transform(term.inner, visitor);
             return inner !== term.inner ? { ...term, inner } : term;
         }
+        case 'Trace': {
+            let changed = false;
+            const args = term.args.map((item) => {
+                const t = transform(item, visitor);
+                changed = changed || t !== item;
+                return t;
+            });
+            return changed ? { ...term, args } : term;
+        }
         case 'Tuple': {
             let changed = false;
             const items = term.items.map((item) => {
@@ -317,6 +326,11 @@ export const walkTerm = (
         case 'unary':
         case 'Enum':
             return walkTerm(term.inner, handle);
+        case 'Trace':
+            term.args.forEach((item) => {
+                walkTerm(item, handle);
+            });
+            return;
         case 'Tuple':
             term.items.forEach((item) => {
                 walkTerm(item, handle);
