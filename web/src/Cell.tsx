@@ -310,7 +310,9 @@ const generateExport = (env: Env, id: Id) => {
     const items = typesInOrder
         .concat(depsInOrder)
         .map((top) => toplevelToPretty(env, top));
-    return items.map((pp) => printToString(pp, 100)).join('\n\n');
+    return items
+        .map((pp) => printToString(pp, 100, { hideIds: true }))
+        .join('\n\n');
 };
 
 export const hashStyle = {

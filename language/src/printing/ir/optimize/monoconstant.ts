@@ -21,6 +21,7 @@ import {
 import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
 
 export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
+    console.log('const');
     // let outerMax = maxUnique(expr);
     expr = liftLambdas(env, exprs, expr);
     return transformExpr(expr, {
@@ -123,6 +124,7 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
 
             let newTerm: Expr = { ...l, is, args, body };
             const id = { hash: newHash, size: 1, pos: 0 };
+            console.log('optimizing it all up', newHash);
             newTerm = optimizeDefine(env, newTerm, id);
             newTerm = optimizeAggressive(env, exprs, newTerm, id);
             newTerm = optimizeDefine(env, newTerm, id);

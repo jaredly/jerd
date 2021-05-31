@@ -555,13 +555,18 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
             }
             let body: Expr;
             if (expr.target.body.type === 'Block') {
-                if (
-                    expr.target.body.items.length !== 1 ||
-                    expr.target.body.items[0].type !== 'Expression'
-                ) {
+                if (expr.target.body.items.length !== 1) {
                     return null;
                 }
-                body = expr.target.body.items[0].expr;
+                if (expr.target.body.items[0].type === 'Expression') {
+                    body = expr.target.body.items[0].expr;
+                } else if (expr.target.body.items[0].type === 'Return') {
+                    body = expr.target.body.items[0].value;
+                } else {
+                    return null;
+                }
+                // TODO TODO: we have sophisticated inlining now, we don't have
+                // to bail here on multi-item bodies.
             } else {
                 body = expr.target.body;
             }

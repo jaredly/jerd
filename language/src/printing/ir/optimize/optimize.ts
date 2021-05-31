@@ -1,4 +1,5 @@
 import { idFromName, idName } from '../../../typing/env';
+import { showLocation } from '../../../typing/typeExpr';
 import {
     Env,
     Id,
@@ -20,24 +21,17 @@ import {
     Visitor,
 } from '../transform';
 import {
-    Apply,
-    Block,
-    Define,
     Expr,
-    isTerm,
-    LambdaExpr,
     OutputOptions,
     Record,
     RecordSubType,
-    ReturnStmt,
     Stmt,
     Tuple,
     Type,
 } from '../types';
 import {
+    block,
     callExpression,
-    define,
-    handlerSym,
     int,
     pureFunction,
     typeFromTermType,
@@ -47,6 +41,7 @@ import { flattenImmediateCalls } from './flattenImmediateCalls';
 import { inlint } from './inline';
 import { monoconstant } from './monoconstant';
 import { monomorphize } from './monomorphize';
+import { optimizeTailCalls } from './tailCall';
 
 export type Optimizer = (
     senv: Env,
@@ -60,10 +55,9 @@ const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
 export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
     expr = optimize(env, expr);
-    expr = optimizeTailCalls(env, expr, id);
-    expr = optimize(env, expr);
-    expr = arraySliceLoopToIndex(env, expr);
-    // expr = arraySlices(env, expr);
+    // expr = optimizeTailCalls(env, expr, id);
+    // expr = optimize(env, expr);
+    // expr = arraySliceLoopToIndex(env, expr);
     return expr;
 };
 
@@ -112,6 +106,7 @@ export const optimize = (env: Env, expr: Expr): Expr => {
         // OK so this iffe thing is still the only thing
         // helping us with the `if` at the end of
         // shortestDistanceToSurface
+
         flattenIffe,
         removeUnusedVariables,
         removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
@@ -449,51 +444,92 @@ export const removeSelfAssignments = (_: Env, expr: Expr) =>
         },
     });
 
-export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
+// export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
+//     const constants: {[v: string]: Expr | null} = {};
+//     return transformExpr(expr, {
+//         ...defaultVisitor,
+//         expr: expr => {
+
+//         },
+//         stmt: stmt => {
+//             if (stmt.type === 'Define') {
+//                 constants[stmt.sym.unique]
+//             }
+//         }
+//     })
+// }
+
+// Ugh ok so I do need to track scopes I guess
+// Yeaht that's the way to do it. hrmmm
+// Or actually I could just recursively call this! yeah that's great.
+export const foldConstantAssignments = (env: Env, topExpr: Expr): Expr => {
     // hrmmmmmmmmm soooooo hmmmm
     let constants: { [v: string]: Expr | null } = {};
     // let tupleConstants: { [v: string]: Tuple } = {};
-    return transformExpr(expr, {
+    // console.log('>> ', showLocation(topExpr.loc));
+    return transformExpr(topExpr, {
         ...defaultVisitor,
-        // Don't go into lambdas that aren't the toplevel one
-        expr: (value) => {
-            if (value.type === 'lambda' && value !== expr) {
+        expr: (expr, level) => {
+            // Lambdas that aren't toplevel should invalidate anything they assign to
+            if (expr.type === 'lambda' && level !== 0) {
+                // console.log(
+                //     'lambda at',
+                //     showLocation(expr.loc),
+                //     showLocation(topExpr.loc),
+                //     level,
+                // );
+                // console.log(new Error().stack);
                 const checkAssigns: Visitor = {
                     ...defaultVisitor,
                     expr: (expr) => {
+                        if (expr.type === 'var') {
+                            console.log(
+                                'inner',
+                                expr.sym,
+                                constants[expr.sym.unique],
+                            );
+                        }
                         if (
                             expr.type === 'var' &&
-                            constants[symName(expr.sym)]
+                            constants[expr.sym.unique] != null
                         ) {
-                            return constants[symName(expr.sym)];
+                            return constants[expr.sym.unique];
                         }
                         return null;
                     },
                     stmt: (stmt) => {
                         if (stmt.type === 'Assign') {
-                            constants[symName(stmt.sym)] = null;
+                            constants[stmt.sym.unique] = null;
                         }
                         return null;
                     },
                 };
-                value.body.type === 'Block'
-                    ? transformStmt(value.body, checkAssigns)
-                    : transformExpr(value.body, checkAssigns);
+                let body =
+                    expr.body.type === 'Block'
+                        ? transformStmt(expr.body, checkAssigns)
+                        : transformExpr(expr.body, checkAssigns);
+                if (Array.isArray(body)) {
+                    body = block(body, expr.body.loc);
+                }
+                let changed =
+                    body !== expr.body ? ({ ...expr, body } as Expr) : expr;
+                changed = foldConstantAssignments(env, changed);
+                return changed !== expr ? [changed] : false;
+            }
+            if (expr.type === 'handle') {
                 return false;
             }
-            if (value.type === 'handle') {
-                return false;
-            }
-            if (value.type === 'var') {
-                const v = constants[symName(value.sym)];
+            if (expr.type === 'var') {
+                const v = constants[expr.sym.unique];
                 if (v != null) {
                     return v;
                 }
             }
             return null;
         },
-        stmt: (value) => {
-            if (value.type === 'if') {
+        stmt: (stmt) => {
+            // Assigns in if blocks should invalidate the variables
+            if (stmt.type === 'if') {
                 const checkAssigns: Visitor = {
                     ...defaultVisitor,
                     expr: (expr) => {
@@ -504,31 +540,31 @@ export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
                     },
                     stmt: (stmt) => {
                         if (stmt.type === 'Assign') {
-                            constants[symName(stmt.sym)] = null;
+                            constants[stmt.sym.unique] = null;
                         }
                         return null;
                     },
                 };
-                transformStmt(value.yes, checkAssigns);
-                if (value.no) {
-                    transformStmt(value.no, checkAssigns);
+                transformStmt(stmt.yes, checkAssigns);
+                if (stmt.no) {
+                    transformStmt(stmt.no, checkAssigns);
                 }
                 return false;
             }
             // Remove x = x
             if (
-                value.type === 'Assign' &&
-                value.value.type === 'var' &&
-                value.sym.unique === value.value.sym.unique
+                stmt.type === 'Assign' &&
+                stmt.value.type === 'var' &&
+                stmt.sym.unique === stmt.value.sym.unique
             ) {
                 return [];
             }
             if (
-                (value.type === 'Define' || value.type === 'Assign') &&
-                value.value != null &&
-                isConstant(value.value)
+                (stmt.type === 'Define' || stmt.type === 'Assign') &&
+                stmt.value != null &&
+                isConstant(stmt.value)
             ) {
-                constants[symName(value.sym)] = value.value;
+                constants[stmt.sym.unique] = stmt.value;
             }
             return null;
         },
@@ -765,120 +801,6 @@ export const flattenRecordSpread = (
     } else {
         return expr;
     }
-};
-
-export const hasTailCall = (body: Block | Expr, self: Id): boolean => {
-    let found = false;
-    let hasLoop = false;
-    transformLambdaBody(body, {
-        ...defaultVisitor,
-        stmt: (stmt) => {
-            if (isSelfTail(stmt, self)) {
-                found = true;
-            } else if (stmt.type === 'Loop') {
-                hasLoop = true;
-            }
-            return null;
-        },
-        expr: (expr) => {
-            if (expr.type === 'lambda') {
-                // don't recurse into lambdas
-                return false;
-            }
-            // no changes, but do recurse
-            return null;
-        },
-    });
-    return found && !hasLoop;
-};
-
-const isSelfTail = (stmt: Stmt, self: Id) =>
-    stmt.type === 'Return' &&
-    stmt.value.type === 'apply' &&
-    isTerm(stmt.value.target, self);
-
-export const optimizeTailCalls = (env: Env, expr: Expr, self: Id) => {
-    if (expr.type === 'lambda') {
-        const body = tailCallRecursion(
-            env,
-            expr.body,
-            expr.args.map((a) => a.sym),
-            self,
-        );
-        return body !== expr.body ? { ...expr, body } : expr;
-    }
-    return expr;
-};
-
-export const tailCallRecursion = (
-    env: Env,
-    body: Block | Expr,
-    argNames: Array<Symbol>,
-    self: Id,
-): Block | Expr => {
-    if (!hasTailCall(body, self)) {
-        return body;
-    }
-    return {
-        type: 'Block',
-        loc: body.loc,
-        items: [
-            // This is where we would define any de-slicers
-            {
-                type: 'Loop',
-                loc: body.loc,
-                body: transformBlock(asBlock(body), {
-                    ...defaultVisitor,
-                    block: (block) => {
-                        if (!block.items.some((s) => isSelfTail(s, self))) {
-                            return null;
-                        }
-
-                        const items: Array<Stmt> = [];
-                        block.items.forEach((stmt) => {
-                            if (isSelfTail(stmt, self)) {
-                                const apply = (stmt as ReturnStmt)
-                                    .value as Apply;
-                                const vbls = apply.args.map((arg, i) => {
-                                    const sym: Symbol = {
-                                        name: 'recur',
-                                        unique: env.local.unique.current++,
-                                    };
-                                    // TODO: we need the type of all the things I guess...
-                                    items.push({
-                                        type: 'Define',
-                                        sym,
-                                        loc: arg.loc,
-                                        value: arg,
-                                        is: arg.is,
-                                    });
-                                    return sym;
-                                });
-                                vbls.forEach((sym, i) => {
-                                    items.push({
-                                        type: 'Assign',
-                                        sym: argNames[i],
-                                        loc: apply.args[i].loc,
-                                        is: apply.args[i].is,
-                                        value: {
-                                            type: 'var',
-                                            sym,
-                                            loc: apply.args[i].loc,
-                                            is: apply.args[i].is,
-                                        },
-                                    });
-                                });
-                                items.push({ type: 'Continue', loc: stmt.loc });
-                            } else {
-                                items.push(stmt);
-                            }
-                        });
-                        return { ...block, items };
-                    },
-                }),
-            },
-        ],
-    };
 };
 
 export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
