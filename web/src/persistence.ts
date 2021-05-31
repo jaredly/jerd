@@ -40,6 +40,7 @@ export const initialState = async (): Promise<State> => {
     let saved: string | null = '';
     if (oldSaved != null) {
         localForage.setItem(saveKey, oldSaved);
+        window.localStorage.removeItem(saveKey);
         saved = oldSaved;
     } else {
         saved = await localForage.getItem(saveKey);

@@ -477,6 +477,6 @@ export const $trace = <T>(
         ts: Date.now(),
         args: [mainArg, ...others],
     });
-    console.info(`[trace]`, hash, idx, mainArg, ...others);
+    console.info(`[trace:${hash}:${idx}]`, mainArg, ...others);
     return mainArg;
 };

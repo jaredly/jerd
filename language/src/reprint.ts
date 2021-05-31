@@ -129,6 +129,7 @@ export const reprintToplevel = (
             };
         } else if (toplevel.type === 'Define' && printed[0].type === 'define') {
             const hasSelf = findSelfReference(toplevel.term);
+            // console.log('um going again', toplevel.name);
             retyped = {
                 ...toplevel,
                 type: 'Define',

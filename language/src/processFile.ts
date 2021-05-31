@@ -180,20 +180,26 @@ export const processFile = (
     writeFile(path.join(buildDir, 'prelude.mjs.ts'), preludeTS);
 
     if (run) {
+        console.log(`🏃 Running ${chalk.yellow(fname)}`);
         const { stdout, error, stderr, status } = spawnSync(
             'node',
             ['--enable-source-maps', dest],
             { stdio: 'pipe', encoding: 'utf8' },
         );
         if (status !== 0) {
-            console.log(`❌ Execution failed ${chalk.blue(fname)}`);
+            console.log(`❌ Execution failed ${chalk.yellow(fname)}`);
             console.log('---------------');
             console.log(stdout);
             console.log(stderr);
             console.log('---------------');
             return false;
         } else {
-            console.log(`✅ all clear ${chalk.blue(fname)}`);
+            stdout.split('\n').forEach((line) => {
+                if (line.startsWith('[trace:')) {
+                    console.log(line);
+                }
+            });
+            console.log(`✅ all clear ${chalk.yellow(fname)}`);
             return true;
         }
     }
@@ -203,7 +209,7 @@ export const processFile = (
 const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
     let good = true;
 
-    // Test reprint
+    // Test expressions reprint
     for (let expr of expressions) {
         if (
             reprintToplevel(
@@ -222,7 +228,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
         }
     }
 
-    // Test reprint
+    // Test terms reprint
     for (let id of Object.keys(env.global.terms)) {
         const tenv: Env = {
             ...env,

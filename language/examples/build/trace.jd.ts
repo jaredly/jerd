@@ -15,10 +15,19 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const oneTerm#3d1dc2e8 = (m#:0: int): int ={}> trace!(trace!(m#:0, "the m") + 2)
+const otherTerm#2189e92c = (n#:0: int): int ={}> trace!(n#:0 - 1, "Yes")
 ```
 */
-export const hash_3d1dc2e8: (arg_0: number) => number = (m: number) => $trace("3d1dc2e8", 1, $trace("3d1dc2e8", 0, m, "the m") + 2);
+export const hash_2189e92c: (arg_0: number) => number = (n: number) => $trace("2189e92c", 0, n - 1, "Yes");
+
+/**
+```
+const oneTerm#fa256dec = (m#:0: int): int ={}> trace!(m#:0, "Hello from tracing!") + trace!(
+    otherTerm#2189e92c(4),
+)
+```
+*/
+export const hash_fa256dec: (arg_0: number) => number = (m: number) => $trace("fa256dec", 0, m, "Hello from tracing!") + $trace("fa256dec", 1, hash_2189e92c(4));
 
 /**
 ```
@@ -31,6 +40,6 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-oneTerm#3d1dc2e8(4) ==#9275f914#553b4b8e#0 6
+oneTerm#fa256dec(4) + oneTerm#fa256dec(1) ==#9275f914#553b4b8e#0 11
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_3d1dc2e8(4), 6);
+assertCall(hash_9275f914.h553b4b8e_0, hash_fa256dec(4) + hash_fa256dec(1), 11);
