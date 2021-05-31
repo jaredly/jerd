@@ -27,6 +27,7 @@ import {
     cloneGlobalEnv,
     selfEnv,
     Apply,
+    walkTerm,
 } from '../typing/types';
 import {
     PP,
@@ -181,9 +182,20 @@ export const effToPretty = (env: Env | null, eff: EffectRef) =>
         ? refToPretty(env, eff.ref, 'effect')
         : symToPretty(eff.sym);
 
+export const isRecursive = (term: Term) => {
+    let found = false;
+    walkTerm(term, (term) => {
+        if (term.type === 'self') {
+            found = true;
+        }
+    });
+    return found;
+};
+
 export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
     return items([
         atom('const ', ['keyword']),
+        isRecursive(term) ? atom('rec ', ['keyword']) : null,
         idToPretty(env, id, 'term'),
         // atom(': '),
         // typeToPretty(env, term.is),

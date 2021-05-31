@@ -1,10 +1,8 @@
 import { idFromName, idName, refName } from './env';
 import { applyTypeVariablesToRecord, getEnumReferences } from './typeExpr';
 import {
-    EnumDef,
     Env,
     Id,
-    RecordDef,
     Reference,
     Term,
     Type,
@@ -100,7 +98,7 @@ export const getUserTypeDependencies = (term: Term): Array<Id> => {
     ) as Array<UserReference>).map((r) => r.id);
 };
 
-export const expressionDeps = (env: Env, terms: Array<Term>) => {
+export const expressionDeps = (env: Env, terms: Array<Term>): Array<string> => {
     const allDeps: { [key: string]: Array<Id> } = {};
     terms.forEach((term) =>
         getUserDependencies(term).forEach((id) =>

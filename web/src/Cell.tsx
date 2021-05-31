@@ -33,6 +33,7 @@ import {
     id,
     items,
     printToAttributedText,
+    printToString,
 } from '@jerd/language/src/printing/printer';
 import Editor from './Editor';
 import { termToJS } from './eval';
@@ -44,6 +45,10 @@ import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { RenderResult } from './RenderResult';
 import { getToplevel, updateToplevel } from './toplevels';
 import { RenderItem } from './RenderItem';
+import {
+    expressionDeps,
+    expressionTypeDeps,
+} from '@jerd/language/src/typing/analyze';
 
 // const maxWidth = 80;
 
@@ -241,7 +246,19 @@ export const CellView = ({
                         ? {
                               name:
                                   'Export term & dependencies to tslike syntax',
-                              action: () => console.log('WIP'),
+                              action: () => {
+                                  if (
+                                      cell.content.type !== 'term' &&
+                                      cell.content.type !== 'expr'
+                                  ) {
+                                      return;
+                                  }
+                                  const text = generateExport(
+                                      env,
+                                      cell.content.id,
+                                  );
+                                  navigator.clipboard.writeText(text);
+                              },
                           }
                         : null,
                 ].filter(Boolean) as Array<MenuItem>;
@@ -250,6 +267,50 @@ export const CellView = ({
             {body}
         </CellWrapper>
     );
+};
+
+const generateExport = (env: Env, id: Id) => {
+    const typesInOrder: Array<ToplevelT> = expressionTypeDeps(env, [
+        env.global.terms[idName(id)],
+    ]).map(
+        (idRaw): ToplevelT => {
+            const defn = env.global.types[idRaw];
+            const name = env.global.idNames[idRaw];
+            if (defn.type === 'Record') {
+                return {
+                    type: 'RecordDef',
+                    attrNames: env.global.recordGroups[idRaw],
+                    def: defn,
+                    id: idFromName(idRaw),
+                    location: nullLocation,
+                    name,
+                };
+            } else {
+                return {
+                    type: 'EnumDef',
+                    def: defn,
+                    id: idFromName(idRaw),
+                    location: nullLocation,
+                    name,
+                };
+            }
+        },
+    );
+    const depsInOrder: Array<ToplevelT> = expressionDeps(env, [
+        env.global.terms[idName(id)],
+    ])
+        .concat([idName(id)])
+        .map((idRaw) => ({
+            type: 'Define',
+            id: idFromName(idRaw),
+            term: env.global.terms[idRaw],
+            location: nullLocation,
+            name: env.global.idNames[idRaw],
+        }));
+    const items = typesInOrder
+        .concat(depsInOrder)
+        .map((top) => toplevelToPretty(env, top));
+    return items.map((pp) => printToString(pp, 100)).join('\n\n');
 };
 
 export const hashStyle = {
