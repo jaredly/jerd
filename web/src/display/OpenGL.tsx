@@ -168,6 +168,7 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
     );
+    const [restartCount, setRestartCount] = React.useState(0);
     const [paused, setPaused] = React.useState(false);
     const [error, setError] = React.useState(null as any | null);
 
@@ -216,7 +217,7 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
             console.log(err);
             setError(err);
         }
-    }, [canvas, shaders]);
+    }, [canvas, shaders, restartCount]);
 
     React.useEffect(() => {
         if (!updateFn || paused) {
@@ -233,7 +234,7 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
         };
         tid = requestAnimationFrame(fn);
         return () => cancelAnimationFrame(tid);
-    }, [updateFn, paused]);
+    }, [updateFn, paused, restartCount]);
 
     if (error != null) {
         return (
@@ -287,6 +288,17 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
                 width="400"
                 height="400"
             />
+            <button
+                onClick={() => {
+                    timer.current = 0;
+                    if (paused) {
+                        setPaused(false);
+                    }
+                    setRestartCount(restartCount + 1);
+                }}
+            >
+                Restart
+            </button>
         </div>
     );
 };

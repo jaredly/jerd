@@ -1,6 +1,25 @@
 
 ## What do we need in order to make this minimally usable by other people?
 
+### Tracing!
+- [x] basic compiler support
+- [x] basic test runner support
+  - [ ] would be nice for the test runner to print out traces tho
+- [ ] web ide support! (need to integrate traces with the evalCache I think....)
+- [ ] GLSL yes let's get this folks!
+  - So the basic idea is: the IR that I'm compiling has some trace calls in it
+    (should be simple to check while generating the shaders), I go ahead and
+    eval the ....
+    ... hmmm. ok so the `trace` function is actually set up when the function
+    is first evaluated, and from then on it's basically immutable.
+    so I think that means that traces would all be collected globally? which would
+    be quite confusing.
+    OH wait I can just do a similar trick to what I'm doing with execution limits.
+    have a globally shared mutable variable, that I swap out when I'm about to execute something,
+    and then harvest right after.
+    Yeah that sounds legit.
+    Much better this way.
+
 ### Editor squirrlyness
 - [x] make it so you can't select "inside" of an ID hash
 - [x] make tab & shift-tab actually work reliably
