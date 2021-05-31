@@ -165,6 +165,7 @@ const envWithTerm = (env: Env, term: Term) => {
 };
 
 const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
+    const [width, setWidth] = React.useState(200);
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
     );
@@ -281,12 +282,12 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
                     }
                 }}
                 style={{
-                    width: 200,
-                    height: 200,
+                    width: width,
+                    height: width,
                 }}
                 // Double size for retina
-                width="400"
-                height="400"
+                width={width * 2 + ''}
+                height={width * 2 + ''}
             />
             <button
                 onClick={() => {
@@ -299,6 +300,15 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
             >
                 Restart
             </button>
+            <input
+                value={width + ''}
+                onChange={(evt) => {
+                    const value = +evt.target.value;
+                    if (!isNaN(value)) {
+                        setWidth(value);
+                    }
+                }}
+            />
         </div>
     );
 };

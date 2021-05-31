@@ -86,6 +86,7 @@ export const setup = (
     mousePos?: { x: number; y: number },
     bufferShaders: Array<string> = [],
 ) => {
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     const fragment = createShader(gl, gl.FRAGMENT_SHADER, fragmentShader);
     const vertex = createShader(gl, gl.VERTEX_SHADER, defaultVertextShader);
     const program = gl.createProgram();
