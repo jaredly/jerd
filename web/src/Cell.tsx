@@ -60,23 +60,26 @@ export type CellProps = {
     onPin: (display: Display, id: Id) => void;
 };
 
+export type MenuItem = { name: string; action: () => void };
+
 const CellWrapper = ({
     title,
     onRemove,
     onToggleSource,
     children,
+    menuItems,
 }: {
     title: React.ReactNode;
     children: React.ReactNode;
     onRemove: () => void;
     onToggleSource: (() => void) | null | undefined;
+    menuItems: () => Array<MenuItem>;
 }) => {
-    const [menu, setMenu] = React.useState(null);
+    const [menu, setMenu] = React.useState(false);
     return (
         <div
             style={{
                 padding: 4,
-                position: 'relative',
                 borderBottom: '2px dashed #ababab',
                 marginBottom: 8,
             }}
@@ -88,56 +91,64 @@ const CellWrapper = ({
                     marginBottom: 0,
                     borderTopLeftRadius: 4,
                     borderTopRightRadius: 4,
+                    display: 'flex',
+                    flexDirection: 'row',
                 }}
             >
                 {title}
-            </div>
-            {children}
-            <div
-                css={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    position: 'absolute',
-                    top: 8,
-                    left: '100%',
-                }}
-            >
-                <button
-                    onClick={onRemove}
+                <div style={{ flex: 1 }} />
+                <div
                     css={{
-                        padding: '4px 8px',
-                        borderRadius: 4,
-                        border: 'none',
-                        backgroundColor: 'transparent',
-                        color: 'white',
-                        cursor: 'pointer',
-                        ':hover': {
-                            backgroundColor: '#2b2b2b',
-                        },
+                        position: 'relative',
+                        alignSelf: 'flex-start',
                     }}
                 >
-                    ╳
-                </button>
-                {onToggleSource ? (
-                    <button
-                        onClick={onToggleSource}
+                    <div
                         css={{
-                            padding: '4px 8px',
-                            borderRadius: 4,
-                            border: 'none',
-                            backgroundColor: 'transparent',
-                            fontFamily: 'monospace',
-                            color: 'white',
                             cursor: 'pointer',
-                            ':hover': {
-                                backgroundColor: '#2b2b2b',
-                            },
+                            userSelect: 'none',
                         }}
+                        onClick={() => setMenu(!menu)}
                     >
-                        {'{}'}
-                    </button>
-                ) : null}
+                        menü
+                        {menu ? (
+                            <div
+                                css={{
+                                    zIndex: 1000,
+                                    backgroundColor: '#333',
+                                    position: 'absolute',
+                                    right: 0,
+                                    top: '100%',
+                                    width: 200,
+                                    marginTop: 8,
+                                    borderRadius: 4,
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                {menuItems().map((item, i) => (
+                                    <div
+                                        key={i}
+                                        css={{
+                                            padding: '4px 8px',
+                                            cursor: 'pointer',
+                                            ':hover': {
+                                                backgroundColor: '#444',
+                                            },
+                                        }}
+                                        onClick={() => {
+                                            item.action();
+                                            setMenu(false);
+                                        }}
+                                    >
+                                        {item.name}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : null}
+                    </div>
+                </div>
             </div>
+            {children}
         </div>
     );
 };
@@ -214,6 +225,27 @@ export const CellView = ({
             title={cellTitle(env, cell, maxWidth)}
             onRemove={onRemove}
             onToggleSource={() => setShowSource(!showSource)}
+            menuItems={() => {
+                return [
+                    { name: 'Delete cell', action: onRemove },
+                    showSource
+                        ? {
+                              name: 'Hide generated javascript',
+                              action: () => setShowSource(false),
+                          }
+                        : {
+                              name: 'Show generated javascript',
+                              action: () => setShowSource(true),
+                          },
+                    cell.content.type === 'term' || cell.content.type === 'expr'
+                        ? {
+                              name:
+                                  'Export term & dependencies to tslike syntax',
+                              action: () => console.log('WIP'),
+                          }
+                        : null,
+                ].filter(Boolean) as Array<MenuItem>;
+            }}
         >
             {body}
         </CellWrapper>
