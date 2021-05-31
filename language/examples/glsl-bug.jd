@@ -14,14 +14,14 @@ const marchNormals = (sceneSDF: (GLSLEnv, Vec3) ={}> float): (
     }
 }
 
-// @main
+@main
 const unnamed = marchNormals(
     (env: GLSLEnv, p: Vec3): float ={}> length(p) - 1.0,
 )
 
 const doIt = (env: GLSLEnv, p: Vec3): float ={}> length(p) - 1.0
 
-@main
+// @main
 const unnamed = {
     const sceneSDF = doIt;
     (env: GLSLEnv, coord: Vec2): Vec4 ={}> {

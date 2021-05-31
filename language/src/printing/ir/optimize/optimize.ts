@@ -55,9 +55,9 @@ const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
 export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
     expr = optimize(env, expr);
-    // expr = optimizeTailCalls(env, expr, id);
-    // expr = optimize(env, expr);
-    // expr = arraySliceLoopToIndex(env, expr);
+    expr = optimizeTailCalls(env, expr, id);
+    expr = optimize(env, expr);
+    expr = arraySliceLoopToIndex(env, expr);
     return expr;
 };
 
@@ -77,6 +77,10 @@ export const optimizeAggressive = (
     // console.log('[after mono]', printToString(termToGlsl(env, {}, expr), 50));
     expr = monoconstant(env, exprs, expr);
     // console.log('[after const]', printToString(termToGlsl(env, {}, expr), 50));
+    // UGHH This is aweful that I'm adding these all over the place.
+    // I should just run through each pass repeatedly until we have no more changes.
+    // right?
+    expr = optimize(env, expr);
 
     // Ok, now that we've inlined /some/ things,
     // let's inline more things!
@@ -513,6 +517,11 @@ export const foldConstantAssignments = (env: Env, topExpr: Expr): Expr => {
                 }
                 let changed =
                     body !== expr.body ? ({ ...expr, body } as Expr) : expr;
+                console.log(
+                    'Fold lambda constants',
+                    showLocation(topExpr.loc),
+                    showLocation(changed.loc),
+                );
                 changed = foldConstantAssignments(env, changed);
                 return changed !== expr ? [changed] : false;
             }
