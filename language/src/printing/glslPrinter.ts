@@ -664,9 +664,9 @@ export const assembleItemsForFile = (
         irTerm: Expr,
         id: Id,
     ) => {
-        irTerm = explicitSpreads(senv, irOpts, irTerm);
+        // irTerm = explicitSpreads(senv, irOpts, irTerm);
         // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        irTerm = optimizeDefine(senv, irTerm, id, irTerms);
+        irTerm = optimizeDefineNew(senv, irTerm, id, irTerms);
         // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         return irTerm;
     },

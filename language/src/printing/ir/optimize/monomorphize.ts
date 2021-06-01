@@ -72,6 +72,7 @@ export const monomorphize = (env: Env, exprs: Exprs, expr: Expr): Expr => {
             };
             return {
                 ...expr,
+                typeVbls: [],
                 target: {
                     ...expr.target,
                     id: { hash: newHash, size: 1, pos: 0 },

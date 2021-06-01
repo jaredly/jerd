@@ -1228,13 +1228,19 @@ export const optimizeDefineNew = (
     let changed = true;
     const opts = {};
     let passes = 0;
+    const changeCount: { [key: string]: number } = {};
     while (changed) {
-        if (passes++ > 100) {
+        if (passes++ > 200) {
+            console.log(changeCount);
             throw new Error(`Optimization passes failing to converge`);
         }
         let old = expr;
         fns.forEach((fn) => {
-            expr = fn(env, opts, exprss, expr, id);
+            const nexpr = fn(env, opts, exprss, expr, id);
+            if (nexpr !== expr) {
+                expr = nexpr;
+                changeCount[fn + ''] = (changeCount[fn + ''] || 0) + 1;
+            }
         });
         changed = old !== expr;
     }

@@ -26,12 +26,12 @@ struct GLSLEnv_451d5252{
 };
 
 /* -- generated -- */
-int identity_a19cd6f0(int x_0) {
+int identity_388f45de(int x_0) {
     return x_0;
 }
 
 /* -- generated -- */
-float identity_6d74aafe(float x_0) {
+float identity_f3968c5e(float x_0) {
     return x_0;
 }
 
@@ -59,8 +59,8 @@ vec4 Vtest_main(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1
 ) {
-    bool t0_4 = (identity_6d74aafe(1.0) == 1.0);
-    bool t1_5 = (identity_a19cd6f0(2) == 2);
+    bool t0_4 = (identity_f3968c5e(1.0) == 1.0);
+    bool t1_5 = (identity_388f45de(2) == 2);
     float size_2 = (env_0.resolution.x / 20.0);
     float size_3 = (size_2 * 0.40);
     if (((t0_4 && (length((fragCoord_1 - (vec2(1.0, 1.0) * size_2))) < size_3)) || (t1_5 && (length(
