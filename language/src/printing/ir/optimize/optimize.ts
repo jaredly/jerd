@@ -38,6 +38,7 @@ import {
     typeFromTermType,
 } from '../utils';
 import { and, asBlock, builtin, iffe } from '../utils';
+import { explicitSpreads } from './explicitSpreads';
 import { flattenImmediateCalls } from './flattenImmediateCalls';
 import { inlint } from './inline';
 import { monoconstant } from './monoconstant';
@@ -47,8 +48,8 @@ import { optimizeTailCalls } from './tailCall';
 export type Optimizer = (
     senv: Env,
     irOpts: OutputOptions,
-    irTerms: Exprs,
-    irTerm: Expr,
+    exprs: Exprs,
+    expr: Expr,
     id: Id,
 ) => Expr;
 
@@ -1200,3 +1201,37 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
         },
     });
 };
+
+const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
+    env,
+    opts,
+    exprs,
+    expr,
+    id,
+) => fn(env, expr);
+
+const javascriptOpts: Array<Optimizer> = [
+    simpleOpt(optimize),
+    (env, _, __, expr, id) => optimizeTailCalls(env, expr, id),
+    simpleOpt(optimize),
+    simpleOpt(arraySliceLoopToIndex),
+];
+
+// const aggressive: Array<Optimizer>
+
+const glslOpts: Array<Optimizer> = [
+    (env, opts, _, expr, __) => explicitSpreads(env, opts, expr),
+    ...javascriptOpts,
+    (env, _, exprs, expr, id) => inlint(env, exprs, expr, id),
+    // // console.log('[after inline]', printToString(termToGlsl(env, {}, expr), 50));
+    (env, _, exprs, expr, __) => monomorphize(env, exprs, expr),
+    (env, _, exprs, expr, __) => monoconstant(env, exprs, expr),
+    simpleOpt(optimize),
+    // // console.log('[after mono]', printToString(termToGlsl(env, {}, expr), 50));
+    // expr = monoconstant(env, exprs, expr),
+    // // console.log('[after const]', printToString(termToGlsl(env, {}, expr), 50));
+    // // UGHH This is aweful that I'm adding these all over the place.
+    // // I should just run through each pass repeatedly until we have no more changes.
+    // // right?
+    // expr = optimize(env, expr),
+];

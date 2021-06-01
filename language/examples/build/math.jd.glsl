@@ -16,6 +16,8 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
+// skipping Eq_553b4b8e, contains type variables
+
 struct GLSLEnv_451d5252{
     float time;
     vec2 resolution;
@@ -23,17 +25,11 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
-// skipping Eq_553b4b8e, contains type variables
-
 /**
 ```
-const within#004be9c0: (float, float, float) ={}> bool = (
-    found#:0: float,
-    expected#:1: float,
-    margin#:2: float,
-) ={}> {
-    if ((found#:0 - margin#:2) < expected#:1) {
-        ((found#:0 + margin#:2) > expected#:1);
+const within#004be9c0 = (found#:0: float, expected#:1: float, margin#:2: float): bool ={}> {
+    if found#:0 - margin#:2 < expected#:1 {
+        found#:0 + margin#:2 > expected#:1;
     } else {
         false;
     };
@@ -54,27 +50,27 @@ bool within_004be9c0(
 
 /**
 ```
-const unnamed#test_main: (GLSLEnv#451d5252, vec2) ={}> vec4 = (
-    env#:0: GLSLEnv#451d5252,
-    fragCoord#:1: vec2,
-) ={}> {
-    const t0#:4 = FloatEq#c41f7386."=="#553b4b8e#0(sqrt(4.0), 2.0);
+const unnamed#test_main = (env#:0: GLSLEnv#451d5252, fragCoord#:1: vec2): vec4 ={}> {
+    const t0#:4 = sqrt(4.0) ==#c41f7386#553b4b8e#0 2.0;
     const t1#:5 = within#004be9c0(sin(PI), 0.0, 0.0001);
-    const t2#:6 = IntEq#9275f914."=="#553b4b8e#0(floatToInt(2.3), 2);
-    const size#:2 = (env#:0.resolution#451d5252#1.x#43802a16#0 / 20.0);
-    const size#:3 = (size#:2 * 0.4);
-    if (((t0#:4 && (length((fragCoord#:1 - (vec2(1.0, 1.0) * size#:2))) < size#:3)) || (t1#:5 && (length(
-        (fragCoord#:1 - (vec2(2.0, 1.0) * size#:2)),
-    ) < size#:3))) || (t2#:6 && (length((fragCoord#:1 - (vec2(3.0, 1.0) * size#:2))) < size#:3))) vec4(
+    const t2#:6 = floatToInt(2.3) ==#9275f914#553b4b8e#0 2;
+    const size#:2 = env#:0.resolution#451d5252#1.x#43802a16#0 / 20.0;
+    const size#:3 = size#:2 * 0.4;
+    if (t0#:4 && length(fragCoord#:1 - vec2(1.0, 1.0) * size#:2) < size#:3) || (t1#:5 && length(
+        fragCoord#:1 - vec2(2.0, 1.0) * size#:2,
+    ) < size#:3) || (t2#:6 && length(fragCoord#:1 - vec2(3.0, 1.0) * size#:2) < size#:3) vec4(
         0.0,
         1.0,
         0.0,
         1.0,
-    ) else if (((!(t0#:4) && (length((fragCoord#:1 - (vec2(1.0, 1.0) * size#:2))) < size#:3)) || (!(
-        t1#:5,
-    ) && (length((fragCoord#:1 - (vec2(2.0, 1.0) * size#:2))) < size#:3))) || (!(t2#:6) && (length(
-        (fragCoord#:1 - (vec2(3.0, 1.0) * size#:2)),
-    ) < size#:3))) vec4(1.0, 0.0, 0.0, 1.0) else vec4(1.0, 1.0, 1.0, 1.0);
+    ) else if (!(t0#:4) && length(fragCoord#:1 - vec2(1.0, 1.0) * size#:2) < size#:3) || (!(t1#:5) && length(
+        fragCoord#:1 - vec2(2.0, 1.0) * size#:2,
+    ) < size#:3) || (!(t2#:6) && length(fragCoord#:1 - vec2(3.0, 1.0) * size#:2) < size#:3) vec4(
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+    ) else vec4(1.0, 1.0, 1.0, 1.0);
 }
 ```
 */

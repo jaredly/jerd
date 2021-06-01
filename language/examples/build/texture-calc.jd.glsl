@@ -20,21 +20,18 @@ uniform vec2 u_resolution;
 
 /**
 ```
-const pendulum#2d222162: (float, Vec2#43802a16, Vec2#43802a16, Vec3#9f1c0644, sampler2D) ={}> Vec4#3b941378 = (
+const pendulum#2d222162 = (
     iTime#:0: float,
     fragCoord#:1: Vec2#43802a16,
     iResolution#:2: Vec2#43802a16,
     uCamera#:3: Vec3#9f1c0644,
     buffer#:4: sampler2D,
-) ={}> {
-    if (iTime#:0 < 0.1) {
+): Vec4#3b941378 ={}> {
+    if iTime#:0 < 0.1 {
         Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 0.0, y#43802a16#1: 0.0, w#3b941378#0: 1.0};
     } else {
-        const current#:5 = texture(
-            buffer#:4,
-            MulVec2#090f77e7."/"#5ac12902#0(fragCoord#:1, iResolution#:2),
-        );
-        Vec4#3b941378{...current#:5, x#43802a16#0: (current#:5.x#43802a16#0 + 0.00001)};
+        const current#:5 = texture(buffer#:4, fragCoord#:1 /#090f77e7#5ac12902#0 iResolution#:2);
+        Vec4#3b941378{...current#:5, x#43802a16#0: current#:5.x#43802a16#0 + 0.00001};
     };
 }
 ```
@@ -56,14 +53,14 @@ vec4 pendulum_2d222162(
 
 /**
 ```
-const main#3a366a4a: (float, Vec2#43802a16, Vec2#43802a16, Vec3#9f1c0644, sampler2D) ={}> Vec4#3b941378 = (
+const main#3a366a4a = (
     iTime#:0: float,
     fragCoord#:1: Vec2#43802a16,
     iResolution#:2: Vec2#43802a16,
     uCamera#:3: Vec3#9f1c0644,
     buffer#:4: sampler2D,
-) ={}> {
-    texture(buffer#:4, MulVec2#090f77e7."/"#5ac12902#0(fragCoord#:1, iResolution#:2));
+): Vec4#3b941378 ={}> {
+    texture(buffer#:4, fragCoord#:1 /#090f77e7#5ac12902#0 iResolution#:2);
 }
 ```
 */

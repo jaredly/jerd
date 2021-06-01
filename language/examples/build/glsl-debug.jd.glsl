@@ -36,18 +36,15 @@ float inner_8288bc4c() {
 
 /**
 ```
-const z#f619aa18: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378 = outer#6cf560da(
-    (m#:0: float) ={}> (m#:0 / 2.0),
-    true,
-)
+const z#f619aa18 = outer#6cf560da((m#:0: float): float ={}> m#:0 / 2.0, true)
 ```
 */
 vec4 z_f619aa18(
-    GLSLEnv_451d5252 env_8,
-    vec2 p_9
+    GLSLEnv_451d5252 env_7,
+    vec2 p_8
 ) {
-    float m_10 = (p_9.x + p_9.y);
-    return vec4(inner_8288bc4c(), p_9.y, m_10, m_10);
+    float z_9 = (p_8.x + p_8.y);
+    return vec4(inner_8288bc4c(), p_8.y, z_9, z_9);
 }
 
 void main() {

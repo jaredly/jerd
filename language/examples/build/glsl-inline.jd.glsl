@@ -32,23 +32,19 @@ int V08045a1a(int n_0) {
 
 /**
 ```
-const h#15ece66a: (int) ={}> int = (m#:0: int) ={}> (m#:0 - 2)
+const h#15ece66a = (m#:0: int): int ={}> m#:0 - 2
 ```
 */
-int h_15ece66a(
-    int m_0
-) {
+int h_15ece66a(int m_0) {
     return (m_0 - 2);
 }
 
 /**
 ```
-const z#f4c397d2: (int) ={}> int = (m#:0: int) ={}> (m#:0 + 2)
+const z#f4c397d2 = (m#:0: int): int ={}> m#:0 + 2
 ```
 */
-int z_f4c397d2(
-    int m_0
-) {
+int z_f4c397d2(int m_0) {
     return (m_0 + 2);
 }
 
@@ -84,27 +80,27 @@ int y_7f8ca5c4(int v_1) {
 
 /**
 ```
-const unnamed#test_main: (GLSLEnv#451d5252, vec2) ={}> vec4 = (
-    env#:1: GLSLEnv#451d5252,
-    fragCoord#:2: vec2,
-) ={}> {
-    const t0#:5 = (y#7df35068(z#f4c397d2, 30) ==#9275f914#553b4b8e#0 (((60 + 2) + 5) + 2));
-    const t1#:6 = (y#7df35068(h#15ece66a, 30) ==#9275f914#553b4b8e#0 (((60 - 2) + 5) - 2));
-    const t2#:7 = (y#7df35068((n#:0: int) ={}> (n#:0 + 3), 30) ==#9275f914#553b4b8e#0 ((60 + 5) + 6));
-    const size#:3 = (env#:1.resolution#451d5252#1.x#43802a16#0 / 20.0);
-    const size#:4 = (size#:3 * 0.4);
-    if (((t0#:5 && (length((fragCoord#:2 - (vec2(1.0, 1.0) * size#:3))) < size#:4)) || (t1#:6 && (length(
-        (fragCoord#:2 - (vec2(2.0, 1.0) * size#:3)),
-    ) < size#:4))) || (t2#:7 && (length((fragCoord#:2 - (vec2(3.0, 1.0) * size#:3))) < size#:4))) vec4(
+const unnamed#test_main = (env#:1: GLSLEnv#451d5252, fragCoord#:2: vec2): vec4 ={}> {
+    const t0#:5 = y#7df35068(z#f4c397d2, 30) ==#9275f914#553b4b8e#0 60 + 2 + 5 + 2;
+    const t1#:6 = y#7df35068(h#15ece66a, 30) ==#9275f914#553b4b8e#0 60 - 2 + 5 - 2;
+    const t2#:7 = y#7df35068((n#:0: int): int ={}> n#:0 + 3, 30) ==#9275f914#553b4b8e#0 60 + 5 + 6;
+    const size#:3 = env#:1.resolution#451d5252#1.x#43802a16#0 / 20.0;
+    const size#:4 = size#:3 * 0.4;
+    if (t0#:5 && length(fragCoord#:2 - vec2(1.0, 1.0) * size#:3) < size#:4) || (t1#:6 && length(
+        fragCoord#:2 - vec2(2.0, 1.0) * size#:3,
+    ) < size#:4) || (t2#:7 && length(fragCoord#:2 - vec2(3.0, 1.0) * size#:3) < size#:4) vec4(
         0.0,
         1.0,
         0.0,
         1.0,
-    ) else if (((!(t0#:5) && (length((fragCoord#:2 - (vec2(1.0, 1.0) * size#:3))) < size#:4)) || (!(
-        t1#:6,
-    ) && (length((fragCoord#:2 - (vec2(2.0, 1.0) * size#:3))) < size#:4))) || (!(t2#:7) && (length(
-        (fragCoord#:2 - (vec2(3.0, 1.0) * size#:3)),
-    ) < size#:4))) vec4(1.0, 0.0, 0.0, 1.0) else vec4(1.0, 1.0, 1.0, 1.0);
+    ) else if (!(t0#:5) && length(fragCoord#:2 - vec2(1.0, 1.0) * size#:3) < size#:4) || (!(t1#:6) && length(
+        fragCoord#:2 - vec2(2.0, 1.0) * size#:3,
+    ) < size#:4) || (!(t2#:7) && length(fragCoord#:2 - vec2(3.0, 1.0) * size#:3) < size#:4) vec4(
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+    ) else vec4(1.0, 1.0, 1.0, 1.0);
 }
 ```
 */

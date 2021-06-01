@@ -27,13 +27,10 @@ struct GLSLEnv_451d5252{
 
 /**
 ```
-const fib#ac346fbc: (int, int, int) ={}> int = (prev#:0: int, cur#:1: int, n#:2: int) ={}> if IntEq#9275f914."=="#553b4b8e#0(
-    n#:2,
-    0,
-) {
+const rec fib#ac346fbc = (prev#:0: int, cur#:1: int, n#:2: int): int ={}> if n#:2 ==#9275f914#553b4b8e#0 0 {
     prev#:0;
 } else {
-    ac346fbc(cur#:1, (prev#:0 + cur#:1), (n#:2 - 1));
+    ac346fbc#self(cur#:1, prev#:0 + cur#:1, n#:2 - 1);
 }
 ```
 */
@@ -57,9 +54,9 @@ int fib_ac346fbc(
 
 /**
 ```
-const z#ce5d9b4c: (int) ={}> int = (n#:0: int) ={}> {
-    const m#:1 = (n#:0 + 2);
-    (m#:1 - 1);
+const z#ce5d9b4c = (n#:0: int): int ={}> {
+    const m#:1 = n#:0 + 2;
+    m#:1 - 1;
 }
 ```
 */
@@ -69,34 +66,39 @@ int z_ce5d9b4c(
     return ((n_0 + 2) - 1);
 }
 
-/* -- generated -- */
-int V4f4fbbd4() {
-    return 10;
+/* *
+```
+const x#0c634e04 = {
+    const y#:0 = 10;
+    y#:0;
 }
+```
+ */
+const int x_0c634e04 = 10;
 
 /**
 ```
-const unnamed#test_main: (GLSLEnv#451d5252, vec2) ={}> vec4 = (
-    env#:0: GLSLEnv#451d5252,
-    fragCoord#:1: vec2,
-) ={}> {
-    const t0#:4 = IntEq#9275f914."=="#553b4b8e#0(x#0c634e04, 10);
-    const t1#:5 = IntEq#9275f914."=="#553b4b8e#0(z#ce5d9b4c(10), 11);
-    const t2#:6 = IntEq#9275f914."=="#553b4b8e#0(fib#ac346fbc(0, 1, 10), 55);
-    const size#:2 = (env#:0.resolution#451d5252#1.x#43802a16#0 / 20.0);
-    const size#:3 = (size#:2 * 0.4);
-    if (((t0#:4 && (length((fragCoord#:1 - (vec2(1.0, 1.0) * size#:2))) < size#:3)) || (t1#:5 && (length(
-        (fragCoord#:1 - (vec2(2.0, 1.0) * size#:2)),
-    ) < size#:3))) || (t2#:6 && (length((fragCoord#:1 - (vec2(3.0, 1.0) * size#:2))) < size#:3))) vec4(
+const unnamed#test_main = (env#:0: GLSLEnv#451d5252, fragCoord#:1: vec2): vec4 ={}> {
+    const t0#:4 = x#0c634e04 ==#9275f914#553b4b8e#0 10;
+    const t1#:5 = z#ce5d9b4c(10) ==#9275f914#553b4b8e#0 11;
+    const t2#:6 = fib#ac346fbc(0, 1, 10) ==#9275f914#553b4b8e#0 55;
+    const size#:2 = env#:0.resolution#451d5252#1.x#43802a16#0 / 20.0;
+    const size#:3 = size#:2 * 0.4;
+    if (t0#:4 && length(fragCoord#:1 - vec2(1.0, 1.0) * size#:2) < size#:3) || (t1#:5 && length(
+        fragCoord#:1 - vec2(2.0, 1.0) * size#:2,
+    ) < size#:3) || (t2#:6 && length(fragCoord#:1 - vec2(3.0, 1.0) * size#:2) < size#:3) vec4(
         0.0,
         1.0,
         0.0,
         1.0,
-    ) else if (((!(t0#:4) && (length((fragCoord#:1 - (vec2(1.0, 1.0) * size#:2))) < size#:3)) || (!(
-        t1#:5,
-    ) && (length((fragCoord#:1 - (vec2(2.0, 1.0) * size#:2))) < size#:3))) || (!(t2#:6) && (length(
-        (fragCoord#:1 - (vec2(3.0, 1.0) * size#:2)),
-    ) < size#:3))) vec4(1.0, 0.0, 0.0, 1.0) else vec4(1.0, 1.0, 1.0, 1.0);
+    ) else if (!(t0#:4) && length(fragCoord#:1 - vec2(1.0, 1.0) * size#:2) < size#:3) || (!(t1#:5) && length(
+        fragCoord#:1 - vec2(2.0, 1.0) * size#:2,
+    ) < size#:3) || (!(t2#:6) && length(fragCoord#:1 - vec2(3.0, 1.0) * size#:2) < size#:3) vec4(
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+    ) else vec4(1.0, 1.0, 1.0, 1.0);
 }
 ```
 */
@@ -104,7 +106,7 @@ vec4 Vtest_main(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1
 ) {
-    bool t0_4 = (V4f4fbbd4() == 10);
+    bool t0_4 = (x_0c634e04 == 10);
     bool t1_5 = (z_ce5d9b4c(10) == 11);
     bool t2_6 = (fib_ac346fbc(0, 1, 10) == 55);
     float size_2 = (env_0.resolution.x / 20.0);

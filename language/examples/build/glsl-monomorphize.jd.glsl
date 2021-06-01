@@ -37,19 +37,16 @@ float identity_6d74aafe(float x_0) {
 
 /**
 ```
-const unnamed#test_main: (GLSLEnv#451d5252, vec2) ={}> vec4 = (
-    env#:0: GLSLEnv#451d5252,
-    fragCoord#:1: vec2,
-) ={}> {
-    const t0#:4 = (identity#d762885a<float>(1.0) ==#c41f7386#553b4b8e#0 1.0);
-    const t1#:5 = (identity#d762885a<int>(2) ==#9275f914#553b4b8e#0 2);
-    const size#:2 = (env#:0.resolution#451d5252#1.x#43802a16#0 / 20.0);
-    const size#:3 = (size#:2 * 0.4);
-    if ((t0#:4 && (length((fragCoord#:1 - (vec2(1.0, 1.0) * size#:2))) < size#:3)) || (t1#:5 && (length(
-        (fragCoord#:1 - (vec2(2.0, 1.0) * size#:2)),
-    ) < size#:3))) vec4(0.0, 1.0, 0.0, 1.0) else if ((!(t0#:4) && (length(
-        (fragCoord#:1 - (vec2(1.0, 1.0) * size#:2)),
-    ) < size#:3)) || (!(t1#:5) && (length((fragCoord#:1 - (vec2(2.0, 1.0) * size#:2))) < size#:3))) vec4(
+const unnamed#test_main = (env#:0: GLSLEnv#451d5252, fragCoord#:1: vec2): vec4 ={}> {
+    const t0#:4 = identity#d762885a<float>(1.0) ==#c41f7386#553b4b8e#0 1.0;
+    const t1#:5 = identity#d762885a<int>(2) ==#9275f914#553b4b8e#0 2;
+    const size#:2 = env#:0.resolution#451d5252#1.x#43802a16#0 / 20.0;
+    const size#:3 = size#:2 * 0.4;
+    if (t0#:4 && length(fragCoord#:1 - vec2(1.0, 1.0) * size#:2) < size#:3) || (t1#:5 && length(
+        fragCoord#:1 - vec2(2.0, 1.0) * size#:2,
+    ) < size#:3) vec4(0.0, 1.0, 0.0, 1.0) else if (!(t0#:4) && length(
+        fragCoord#:1 - vec2(1.0, 1.0) * size#:2,
+    ) < size#:3) || (!(t1#:5) && length(fragCoord#:1 - vec2(2.0, 1.0) * size#:2) < size#:3) vec4(
         1.0,
         0.0,
         0.0,
