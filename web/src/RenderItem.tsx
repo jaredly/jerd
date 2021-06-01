@@ -44,7 +44,6 @@ export const RenderItem = ({
     onEdit,
     addCell,
     plugins,
-    showSource,
     maxWidth,
 
     collapsed,
@@ -58,7 +57,6 @@ export const RenderItem = ({
     plugins: Plugins;
     content: Content;
     evalEnv: EvalEnv;
-    showSource: boolean;
     onRun: (id: Id) => void;
     addCell: (content: Content) => void;
     onEdit: () => void;
@@ -147,13 +145,6 @@ export const RenderItem = ({
                         onRun={onRun}
                     />
                 ) : null}
-                {term && showSource ? (
-                    <ViewSource
-                        hash={idName(content.id)}
-                        env={env}
-                        term={term}
-                    />
-                ) : null}
             </div>
         );
     }
@@ -174,45 +165,6 @@ const recordContent = (env: Env, rawId: string): Content => {
         name: env.global.idNames[rawId],
         attrs: env.global.recordGroups[rawId],
     };
-};
-
-const ViewSource = ({
-    env,
-    term,
-    hash,
-}: {
-    env: Env;
-    term: Term;
-    hash: string;
-}) => {
-    const source = React.useMemo(() => {
-        return termToJS(
-            selfEnv(env, {
-                type: 'Term',
-                name: hash,
-                ann: term.is,
-            }),
-            term,
-            idFromName(hash),
-            {},
-        );
-    }, [env, term]);
-    return (
-        <div
-            css={{
-                whiteSpace: 'pre-wrap',
-                fontFamily: 'monospace',
-                lineHeight: 1.4,
-                color: '#bbb',
-                textShadow: '1px 1px 2px #000',
-                padding: '8px 12px',
-                background: '#333',
-                borderRadius: '4px',
-            }}
-        >
-            {source}
-        </div>
-    );
 };
 
 const styles = {

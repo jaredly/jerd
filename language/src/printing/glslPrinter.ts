@@ -256,11 +256,11 @@ export const declarationToGlsl = (
     opts: OutputOptions,
     idRaw: string,
     term: Expr,
-    comment: string,
+    comment: string | null,
 ): PP => {
     if (term.type === 'lambda') {
         return items([
-            atom('/*' + comment + '*/\n'),
+            comment ? atom('/*' + comment + '*/\n') : null,
             typeToGlsl(env, opts, term.res),
             atom(' '),
             idToGlsl(env, opts, idFromName(idRaw), false),
@@ -591,8 +591,8 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
     // return atom('nope' + expr.type);
 };
 
-export const addComment = (value: PP, comment: string) =>
-    items([atom(`/* ${comment} */\n`), value]);
+export const addComment = (value: PP, comment: string | null) =>
+    comment ? items([atom(`/* ${comment} */\n`), value]) : value;
 
 // Object.keys(env.global.effects).forEach((r) => {
 //     const id = idFromName(r);
@@ -960,6 +960,7 @@ export const shaderAllButMains = (
     irOpts: IOutputOptions,
     mainTerm: Id,
     buffers: Array<Id>,
+    includeComments = true,
 ): { items: Array<PP>; invalidLocs: Array<Location> } => {
     const items: Array<PP> = shaderTop();
 
@@ -1010,9 +1011,11 @@ export const shaderAllButMains = (
                 opts,
                 name,
                 irTerms[name].expr,
-                irTerms[name].comment
-                    ? '*\n```\n' + irTerms[name].comment + '\n```\n'
-                    : ' -- generated -- ',
+                includeComments
+                    ? irTerms[name].comment
+                        ? '*\n```\n' + irTerms[name].comment + '\n```\n'
+                        : ' -- generated -- '
+                    : null,
             ),
         );
     });
@@ -1027,6 +1030,7 @@ export const generateSingleShader = (
     irOpts: IOutputOptions,
     mainTerm: Id,
     buffers: number,
+    includeComments = true,
 ): { text: string; invalidLocs: Array<Location> } => {
     const { items, invalidLocs } = shaderAllButMains(
         env,
@@ -1034,6 +1038,7 @@ export const generateSingleShader = (
         irOpts,
         mainTerm,
         [],
+        includeComments,
     );
 
     items.push(glslMain(env, opts, mainTerm, buffers));

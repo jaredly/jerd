@@ -136,7 +136,12 @@ const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
     );
 };
 
-const compileGLSL = (term: Term, env: Env, buffers: number = 0) => {
+export const compileGLSL = (
+    term: Term,
+    env: Env,
+    buffers: number = 0,
+    includeComments = true,
+) => {
     const termId =
         term.type === 'ref' && term.ref.type === 'user'
             ? term.ref.id
@@ -147,10 +152,11 @@ const compileGLSL = (term: Term, env: Env, buffers: number = 0) => {
         {},
         termId,
         buffers,
+        includeComments,
     );
 };
 
-const envWithTerm = (env: Env, term: Term) => {
+export const envWithTerm = (env: Env, term: Term) => {
     const id = { hash: hashObject(term), size: 1, pos: 0 };
     return {
         ...env,

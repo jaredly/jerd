@@ -49,6 +49,7 @@ import {
     expressionDeps,
     expressionTypeDeps,
 } from '@jerd/language/src/typing/analyze';
+import { envWithTerm, compileGLSL } from './display/OpenGL';
 
 // const maxWidth = 80;
 
@@ -172,6 +173,7 @@ export const CellView = ({
 }: CellProps) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     const [showSource, setShowSource] = React.useState(false);
+    const [showGLSL, setShowGLSL] = React.useState(false);
     const body = editing ? (
         <Editor
             maxWidth={maxWidth}
@@ -225,6 +227,12 @@ export const CellView = ({
         />
     );
 
+    // const top = getToplevel(env, cell.content);
+    const term =
+        cell.content.type === 'expr' || cell.content.type === 'term'
+            ? env.global.terms[idName(cell.content.id)]
+            : null;
+
     return (
         <CellWrapper
             title={cellTitle(env, cell, maxWidth)}
@@ -233,15 +241,28 @@ export const CellView = ({
             menuItems={() => {
                 return [
                     { name: 'Delete cell', action: onRemove },
-                    showSource
-                        ? {
-                              name: 'Hide generated javascript',
-                              action: () => setShowSource(false),
-                          }
-                        : {
-                              name: 'Show generated javascript',
-                              action: () => setShowSource(true),
-                          },
+                    term
+                        ? showSource
+                            ? {
+                                  name: 'Hide generated javascript',
+                                  action: () => setShowSource(false),
+                              }
+                            : {
+                                  name: 'Show generated javascript',
+                                  action: () => setShowSource(true),
+                              }
+                        : null,
+                    term
+                        ? showGLSL
+                            ? {
+                                  name: 'Hide generated GLSL',
+                                  action: () => setShowGLSL(false),
+                              }
+                            : {
+                                  name: 'Show generated GLSL',
+                                  action: () => setShowGLSL(true),
+                              }
+                        : null,
                     cell.content.type === 'term' || cell.content.type === 'expr'
                         ? {
                               name:
@@ -265,7 +286,91 @@ export const CellView = ({
             }}
         >
             {body}
+            {term && showSource ? (
+                <ViewSource
+                    hash={idName(cell.content.id)}
+                    env={env}
+                    term={term}
+                />
+            ) : null}
+            {term && showGLSL ? (
+                <ViewGLSL
+                    hash={idName(cell.content.id)}
+                    env={env}
+                    term={term}
+                />
+            ) : null}
         </CellWrapper>
+    );
+};
+
+const ViewGLSL = ({
+    env,
+    term,
+    hash,
+}: {
+    env: Env;
+    term: Term;
+    hash: string;
+}) => {
+    const source = React.useMemo(
+        () => compileGLSL(term, envWithTerm(env, term), 0, false).text,
+        [env, term],
+    );
+    return (
+        <div
+            css={{
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+                lineHeight: 1.4,
+                color: '#bbb',
+                textShadow: '1px 1px 2px #000',
+                padding: '8px 12px',
+                background: '#333',
+                borderRadius: '4px',
+            }}
+        >
+            {source}
+        </div>
+    );
+};
+
+const ViewSource = ({
+    env,
+    term,
+    hash,
+}: {
+    env: Env;
+    term: Term;
+    hash: string;
+}) => {
+    const source = React.useMemo(() => {
+        return termToJS(
+            selfEnv(env, {
+                type: 'Term',
+                name: hash,
+                ann: term.is,
+            }),
+            term,
+            idFromName(hash),
+            {},
+        );
+    }, [env, term]);
+    return (
+        <div
+            css={{
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+                lineHeight: 1.4,
+                color: '#bbb',
+                textShadow: '1px 1px 2px #000',
+                padding: '8px 12px',
+                background: '#333',
+                borderRadius: '4px',
+            }}
+        >
+            {source}
+        </div>
     );
 };
 
