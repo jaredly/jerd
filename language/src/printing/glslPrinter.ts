@@ -30,7 +30,6 @@ import * as ir from './ir/intermediateRepresentation';
 import {
     Exprs,
     isConstant,
-    optimize,
     optimizeAggressive,
     optimizeDefine,
 } from './ir/optimize/optimize';
@@ -71,7 +70,11 @@ import { Location, nullLocation } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
-import { maxUnique, recordAttributeName, termToTs } from './typeScriptPrinterSimple';
+import {
+    maxUnique,
+    recordAttributeName,
+    termToTs,
+} from './typeScriptPrinterSimple';
 import { explicitSpreads } from './ir/optimize/explicitSpreads';
 import { toplevelRecordAttribute } from './ir/optimize/inline';
 import { glslTester } from './glslTester';
@@ -579,7 +582,7 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             ]);
         // Traces aren't supported in glsl, they just pass through.
         case 'Trace':
-            return termToGlsl(env, opts, expr.args[0])
+            return termToGlsl(env, opts, expr.args[0]);
         default:
             return atom('nope_term_' + expr.type);
     }
@@ -661,9 +664,9 @@ export const assembleItemsForFile = (
         id: Id,
     ) => {
         irTerm = explicitSpreads(senv, irOpts, irTerm);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        irTerm = optimizeDefine(senv, irTerm, id);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        irTerm = optimizeDefine(senv, irTerm, id, irTerms);
+        // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         return irTerm;
     },
 ) => {
@@ -706,12 +709,8 @@ export const assembleItemsForFile = (
             ).wrap(err);
             throw outer;
         }
-        // irTerm = runOptimizations(senv, irTerms, irOpts, irTerm, id)
         irTerm = explicitSpreads(senv, irOpts, irTerm);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        irTerm = optimizeDefine(senv, irTerm, id);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        uniquesReallyAreUnique(irTerm);
+        irTerm = optimizeDefine(senv, irTerm, id, irTerms);
 
         irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 

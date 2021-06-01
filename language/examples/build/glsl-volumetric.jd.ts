@@ -1,4 +1,4 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq, $trace } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 
 /**
@@ -716,7 +716,7 @@ export const hash_62404440: number = 255;
 
 /**
 ```
-const shortestDistanceToSurface#56314282 = (
+const rec shortestDistanceToSurface#56314282 = (
     sceneSDF#:0: (float, Vec3#9f1c0644) ={}> float,
     iTime#:1: float,
     eye#:2: Vec3#9f1c0644,
@@ -769,12 +769,7 @@ export const hash_56314282: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number
         if (depth >= end) {
           return end;
         } else {
-          sceneSDF = sceneSDF;
-          iTime = iTime;
-          eye$2 = eye$2;
-          marchingDirection = marchingDirection;
           start = depth;
-          end = end;
           stepsLeft = stepsLeft - 1;
           continue;
         }

@@ -1,4 +1,4 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq, $trace } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 type handle22024b72 = [(arg_0: (arg_0: handle22024b72, arg_1: string) => void) => void];
 type handle35f4b478 = [(arg_0: string, arg_1: (arg_0: handle35f4b478) => void) => void];
@@ -43,7 +43,11 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const arrayEq#7825e3a8 = <T#:0>(one#:0: Array<T#:0>, two#:1: Array<T#:0>, eq#:2: Eq#553b4b8e<T#:0>): bool ={}> {
+const rec arrayEq#7825e3a8 = <T#:0>(
+    one#:0: Array<T#:0>,
+    two#:1: Array<T#:0>,
+    eq#:2: Eq#553b4b8e<T#:0>,
+): bool ={}> {
     switch (one#:0, two#:1) {
         ([], []) => true,
         ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#553b4b8e#0(one#:3, two#:5) {
@@ -69,7 +73,6 @@ export const hash_7825e3a8: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t
       if (eq.h553b4b8e_0(one[0 + one_i], two[0 + two_i])) {
         one_i = one_i + 1;
         two_i = two_i + 1;
-        eq = eq;
         continue;
       } else {
         return false;
@@ -192,7 +195,11 @@ export const hash_3bfdbd8c:
 
 /**
 ```
-const provideIncrement#4ffa1f88 = <T#:0>(v#:0: string, i#:1: int, fn#:2: () ={Read#22024b72}> T#:0): T#:0 ={}> handle! fn#:2 {
+const rec provideIncrement#4ffa1f88 = <T#:0>(
+    v#:0: string,
+    i#:1: int,
+    fn#:2: () ={Read#22024b72}> T#:0,
+): T#:0 ={}> handle! fn#:2 {
     Read.read#0(() => k#:4) => 4ffa1f88#self<T#:0>(
         v#:0,
         i#:1 + 1,
@@ -312,7 +319,7 @@ export const hash_5bf7f75c:
 
 /**
 ```
-const provideStringPlain#2dbf3eae = <T#:0>(v#:0: string, fn#:1: () ={Read#22024b72}> T#:0): T#:0 ={}> handle! fn#:1 {
+const rec provideStringPlain#2dbf3eae = <T#:0>(v#:0: string, fn#:1: () ={Read#22024b72}> T#:0): T#:0 ={}> handle! fn#:1 {
     Read.read#0(() => k#:3) => 2dbf3eae#self<T#:0>(v#:0, (): T#:0 ={Read#22024b72}> k#:3(v#:0)),
     pure(v#:2) => v#:2,
 }
@@ -338,7 +345,7 @@ export const hash_2dbf3eae: <T_0>(arg_0: string, arg_1:
 
 /**
 ```
-const provideString#0247dd82 = (v#:0: string, fn#:1: () ={Read#22024b72}> string): string ={}> handle! fn#:1 {
+const rec provideString#0247dd82 = (v#:0: string, fn#:1: () ={Read#22024b72}> string): string ={}> handle! fn#:1 {
     Read.read#0(() => k#:3) => 0247dd82#self(
         v#:0,
         (): string ={Read#22024b72}> k#:3(v#:0 + "got") + "back",

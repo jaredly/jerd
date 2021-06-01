@@ -38,10 +38,7 @@ export const liftToTopLevel = (
 ): Expr => {
     const hash = hashObject(lambda);
     const id: Id = { hash, size: 1, pos: 0 };
-    let expr: Expr = optimizeDefine(env, lambda, id);
-    expr = optimizeAggressive(env, exprs, expr, id);
-    expr = optimizeDefine(env, lambda, id);
-    expr = optimizeAggressive(env, exprs, expr, id);
+    let expr: Expr = optimizeDefine(env, lambda, id, exprs);
     exprs[hash] = { expr: expr, inline: false };
     return {
         type: 'term',

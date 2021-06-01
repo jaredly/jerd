@@ -31,7 +31,7 @@ const EPSILON#17261aaa = 0.0001
 const float EPSILON_17261aaa = 0.00010;
 
 /* -- generated -- */
-float V31eb0dc0(GLSLEnv_451d5252 env_0, vec3 p_1) {
+float Vd3450f8a(GLSLEnv_451d5252 env_0, vec3 p_1) {
     return (length(p_1) - 1.0);
 }
 
@@ -47,10 +47,10 @@ vec4 unnamed_82078c8c(
     vec2 coord_6
 ) {
     vec3 eye_7 = vec3(0.0, 0.0, 5.0);
-    if ((V31eb0dc0(env_5, eye_7) > (100.0 - EPSILON_17261aaa))) {
+    if ((Vd3450f8a(env_5, eye_7) > (100.0 - EPSILON_17261aaa))) {
         return vec4(1.0);
     } else {
-        return vec4(V31eb0dc0(env_5, (eye_7 + 1.0)));
+        return vec4(Vd3450f8a(env_5, (eye_7 + 1.0)));
     };
 }
 

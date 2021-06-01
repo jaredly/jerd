@@ -1,4 +1,4 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq, $trace } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 type handle22024b72 = [(arg_0: (arg_0: handle22024b72, arg_1: string) => void) => void];
 type handle35f4b478 = [(arg_0: string, arg_1: (arg_0: handle35f4b478) => void) => void];
@@ -64,7 +64,7 @@ export const hash_1175499e: t_As<number, string> = ({
 
 /**
 ```
-const chooseInt#54cbbab4 = (m#:0: int, n#:1: int): int ={DecideOrFail#7214565c}> {
+const rec chooseInt#54cbbab4 = (m#:0: int, n#:1: int): int ={DecideOrFail#7214565c}> {
     if m#:0 > n#:1 {
         fail#0620e972();
         10;
@@ -142,7 +142,7 @@ export const hash_0cdd5ff0:
 
 /**
 ```
-const backtrackReverse#70ad2630 = <T#:0>(
+const rec backtrackReverse#70ad2630 = <T#:0>(
     fn#:0: () ={DecideOrFail#7214565c}> T#:0,
     orElse#:1: () ={}> T#:0,
 ): T#:0 ={}> {
@@ -190,7 +190,10 @@ export const hash_70ad2630: <T_0>(arg_0:
 
 /**
 ```
-const backtrack#1603c390 = <T#:0>(fn#:0: () ={DecideOrFail#7214565c}> T#:0, orElse#:1: () ={}> T#:0): T#:0 ={}> {
+const rec backtrack#1603c390 = <T#:0>(
+    fn#:0: () ={DecideOrFail#7214565c}> T#:0,
+    orElse#:1: () ={}> T#:0,
+): T#:0 ={}> {
     handle! fn#:0 {
         DecideOrFail.decide#0(() => k#:3) => {
             1603c390#self<T#:0>(
@@ -315,7 +318,7 @@ export const hash_463fdaf6:
 
 /**
 ```
-const withInitialValue#478ee9c0 = <T#:0>(value#:0: int, fn#:1: () ={Store#7b45d75e}> T#:0): T#:0 ={}> {
+const rec withInitialValue#478ee9c0 = <T#:0>(value#:0: int, fn#:1: () ={Store#7b45d75e}> T#:0): T#:0 ={}> {
     handle! fn#:1 {
         Store.get#0(() => k#:3) => 478ee9c0#self<T#:0>(
             value#:0,
@@ -377,7 +380,7 @@ export const hash_db67c018: (arg_0: number, arg_1: number) => T_0 = (m: number, 
 
 /**
 ```
-const pickMax#998219d8 = (fn#:0: () ={Decide#086e3532}> int): int ={}> handle! fn#:0 {
+const rec pickMax#998219d8 = (fn#:0: () ={Decide#086e3532}> int): int ={}> handle! fn#:0 {
     Decide.decide#0(() => k#:2) => {
         const xt#:3 = 998219d8#self((): int ={Decide#086e3532}> k#:2(true));
         const xf#:4 = 998219d8#self((): int ={Decide#086e3532}> k#:2(false));
@@ -441,7 +444,7 @@ export const hash_61f16268:
 
 /**
 ```
-const pickTrue#268d3ca7 = <T#:0>(fn#:0: () ={Decide#086e3532}> T#:0): T#:0 ={}> handle! fn#:0 {
+const rec pickTrue#268d3ca7 = <T#:0>(fn#:0: () ={Decide#086e3532}> T#:0): T#:0 ={}> handle! fn#:0 {
     Decide.decide#0(() => k#:2) => 268d3ca7#self<T#:0>((): T#:0 ={Decide#086e3532}> k#:2(true)),
     pure(x#:1) => x#:1,
 }
@@ -477,7 +480,7 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const reverse#f201f930 = (fn#:0: () ={Write#35f4b478}> void): void ={Write#35f4b478}> {
+const rec reverse#f201f930 = (fn#:0: () ={Write#35f4b478}> void): void ={Write#35f4b478}> {
     handle! fn#:0 {
         Write.write#0((v#:2) => k#:3) => {
             f201f930#self(k#:3);
@@ -544,9 +547,10 @@ export const hash_64605d94:
 
 /**
 ```
-const alwaysRead#1762d528 = <T#:0>{e#:0}(value#:0: string, fn#:1: () ={Read#22024b72, e#:0}> T#:0): T#:0 ={
-    e#:0,
-}> {
+const rec alwaysRead#1762d528 = <T#:0>{e#:0}(
+    value#:0: string,
+    fn#:1: () ={Read#22024b72, e#:0}> T#:0,
+): T#:0 ={e#:0}> {
     handle! fn#:1 {
         Read.read#0(() => k#:3) => {
             1762d528#self<T#:0>{e#:0}(value#:0, (): T#:0 ={Read#22024b72, e#:0}> k#:3(value#:0));
@@ -589,7 +593,7 @@ export const hash_1762d528: any = {
 
 /**
 ```
-const collect#2ce3943a = {e#:0}(fn#:0: () ={Write#35f4b478, e#:0}> void): string ={e#:0}> {
+const rec collect#2ce3943a = {e#:0}(fn#:0: () ={Write#35f4b478, e#:0}> void): string ={e#:0}> {
     handle! fn#:0 {
         Write.write#0((v#:2) => k#:3) => {
             v#:2 ++ "\n" ++ 2ce3943a#self{e#:0}((): void ={Write#35f4b478, e#:0}> k#:3());

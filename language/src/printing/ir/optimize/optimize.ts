@@ -12,6 +12,7 @@ import {
 import { termToGlsl } from '../../glslPrinter';
 import { printToString } from '../../printer';
 import { reUnique } from '../../typeScriptPrinterSimple';
+import { uniquesReallyAreUnique } from '../analyze';
 import {
     defaultVisitor,
     transformBlock,
@@ -53,7 +54,29 @@ export type Optimizer = (
 
 const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
-export const optimizeDefine = (env: Env, expr: Expr, id: Id): Expr => {
+export const optimizeDefine = (
+    env: Env,
+    expr: Expr,
+    id: Id,
+    exprs: Exprs | null,
+): Expr => {
+    expr = optimizeDefineOld(env, expr, id);
+    if (exprs) {
+        expr = optimizeAggressive(env, exprs, expr, id);
+    }
+    expr = optimizeDefineOld(env, expr, id);
+    if (exprs) {
+        expr = optimizeAggressive(env, exprs, expr, id);
+    }
+    uniquesReallyAreUnique(expr);
+    // expr = optimize(env, expr);
+    // expr = optimizeTailCalls(env, expr, id);
+    // expr = optimize(env, expr);
+    // expr = arraySliceLoopToIndex(env, expr);
+    return expr;
+};
+
+export const optimizeDefineOld = (env: Env, expr: Expr, id: Id): Expr => {
     expr = optimize(env, expr);
     expr = optimizeTailCalls(env, expr, id);
     expr = optimize(env, expr);
@@ -486,13 +509,13 @@ export const foldConstantAssignments = (env: Env, topExpr: Expr): Expr => {
                 const checkAssigns: Visitor = {
                     ...defaultVisitor,
                     expr: (expr) => {
-                        if (expr.type === 'var') {
-                            console.log(
-                                'inner',
-                                expr.sym,
-                                constants[expr.sym.unique],
-                            );
-                        }
+                        // if (expr.type === 'var') {
+                        //     console.log(
+                        //         'inner',
+                        //         expr.sym,
+                        //         constants[expr.sym.unique],
+                        //     );
+                        // }
                         if (
                             expr.type === 'var' &&
                             constants[expr.sym.unique] != null
@@ -517,11 +540,11 @@ export const foldConstantAssignments = (env: Env, topExpr: Expr): Expr => {
                 }
                 let changed =
                     body !== expr.body ? ({ ...expr, body } as Expr) : expr;
-                console.log(
-                    'Fold lambda constants',
-                    showLocation(topExpr.loc),
-                    showLocation(changed.loc),
-                );
+                // console.log(
+                //     'Fold lambda constants',
+                //     showLocation(topExpr.loc),
+                //     showLocation(changed.loc),
+                // );
                 changed = foldConstantAssignments(env, changed);
                 return changed !== expr ? [changed] : false;
             }

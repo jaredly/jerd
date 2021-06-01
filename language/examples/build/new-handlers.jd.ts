@@ -1,4 +1,4 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq, $trace } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 type handle35f4b478 = [(arg_0: string, arg_1: (arg_0: handle35f4b478) => void) => void];
 type handle22024b72 = [(arg_0: (arg_0: handle22024b72, arg_1: string) => void) => void];
@@ -81,7 +81,7 @@ export const hash_19effbea:
 
 /**
 ```
-const respondWith#59070068 = (responseValue#:0: string): <T#:0>{e#:0}(
+const rec respondWith#59070068 = (responseValue#:0: string): <T#:0>{e#:0}(
     () ={Stdio#1da337a2, e#:0}> T#:0,
 ) ={Log#35f4b478, e#:0}> T#:0 ={}> <T#:0>{e#:0}(fn#:1: () ={Stdio#1da337a2, e#:0}> T#:0): T#:0 ={
     Log#35f4b478,
@@ -130,7 +130,7 @@ export const hash_59070068: (arg_0: string) =>
 
 /**
 ```
-const collect#2ce3943a = {e#:0}(fn#:0: () ={Log#35f4b478, e#:0}> void): string ={e#:0}> {
+const rec collect#2ce3943a = {e#:0}(fn#:0: () ={Log#35f4b478, e#:0}> void): string ={e#:0}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
             v#:2 ++ "\n" ++ 2ce3943a#self{e#:0}((): void ={Log#35f4b478, e#:0}> k#:3());
@@ -177,7 +177,7 @@ export const hash_2ce3943a: any = {
 
 /**
 ```
-const appendLog#0ea0eb0a = (fn#:0: () ={Log#35f4b478}> string): string ={}> {
+const rec appendLog#0ea0eb0a = (fn#:0: () ={Log#35f4b478}> string): string ={}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
             v#:2 ++ "\n" ++ 0ea0eb0a#self((): string ={Log#35f4b478}> k#:3());
@@ -207,7 +207,7 @@ export const hash_0ea0eb0a: (arg_0:
 
 /**
 ```
-const provide#5c316d50 = <T#:0>(v#:0: string, fn#:1: () ={Read#22024b72}> T#:0): T#:0 ={}> {
+const rec provide#5c316d50 = <T#:0>(v#:0: string, fn#:1: () ={Read#22024b72}> T#:0): T#:0 ={}> {
     handle! fn#:1 {
         Read.read#0(() => k#:3) => {
             5c316d50#self<T#:0>("<" + v#:0 + ">", (): T#:0 ={Read#22024b72}> k#:3(v#:0));
@@ -237,7 +237,7 @@ export const hash_5c316d50: <T_0>(arg_0: string, arg_1:
 
 /**
 ```
-const collectNew#4465c66a = (fn#:0: () ={Log#35f4b478}> void): string ={}> {
+const rec collectNew#4465c66a = (fn#:0: () ={Log#35f4b478}> void): string ={}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
             v#:2 ++ "\n" ++ 4465c66a#self((): void ={Log#35f4b478}> k#:3());

@@ -14,6 +14,12 @@ const marchNormals = (sceneSDF: (GLSLEnv, Vec3) ={}> float): (
     }
 }
 
+// START HERE PLEASE:
+// My optimization passes are quite unsatisfying.
+// I really should be running all of them until nothing changes.
+// But I'm sure there's a lot of redundant work going on.
+// Anyway, my "march normals" thing still isn't working right.
+
 @main
 const unnamed = marchNormals(
     (env: GLSLEnv, p: Vec3): float ={}> length(p) - 1.0,
