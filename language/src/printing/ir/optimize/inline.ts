@@ -146,18 +146,18 @@ export const toplevelRecordAttribute = (
 
 export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
     let outerMax = Math.max(maxUnique(expr), env.local.unique.current);
-    console.log('inlining', self);
+    // console.log('inlining', self);
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
             if (expr.type === 'term') {
                 const t = exprs[idName(expr.id)];
                 if (t && t.inline) {
-                    console.log(
-                        'bringing it in',
-                        expr.id,
-                        env.global.idNames[idName(expr.id)],
-                    );
+                    // console.log(
+                    //     'bringing it in',
+                    //     expr.id,
+                    //     env.global.idNames[idName(expr.id)],
+                    // );
                     const innerMax = maxUnique(t.expr);
                     const unique = {
                         current: Math.max(outerMax, innerMax) + 1,
@@ -176,7 +176,7 @@ export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
                 if (t && t.inline) {
                     return t.expr;
                 }
-                console.log('nope', t);
+                // console.log('nope', t);
                 return null;
             }
 
