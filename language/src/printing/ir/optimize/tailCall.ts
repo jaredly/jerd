@@ -51,25 +51,29 @@ import { monomorphize } from './monomorphize';
 export const hasTailCall = (body: Block | Expr, self: Id): boolean => {
     let found = false;
     let hasLoop = false;
-    transformLambdaBody(body, {
-        ...defaultVisitor,
-        stmt: (stmt) => {
-            if (isSelfTail(stmt, self)) {
-                found = true;
-            } else if (stmt.type === 'Loop') {
-                hasLoop = true;
-            }
-            return null;
+    transformLambdaBody(
+        body,
+        {
+            ...defaultVisitor,
+            stmt: (stmt) => {
+                if (isSelfTail(stmt, self)) {
+                    found = true;
+                } else if (stmt.type === 'Loop') {
+                    hasLoop = true;
+                }
+                return null;
+            },
+            expr: (expr) => {
+                if (expr.type === 'lambda') {
+                    // don't recurse into lambdas
+                    return false;
+                }
+                // no changes, but do recurse
+                return null;
+            },
         },
-        expr: (expr) => {
-            if (expr.type === 'lambda') {
-                // don't recurse into lambdas
-                return false;
-            }
-            // no changes, but do recurse
-            return null;
-        },
-    });
+        0,
+    );
     return found && !hasLoop;
 };
 

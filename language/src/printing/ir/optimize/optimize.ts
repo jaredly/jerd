@@ -69,10 +69,6 @@ export const optimizeDefine = (
         expr = optimizeAggressive(env, exprs, expr, id);
     }
     uniquesReallyAreUnique(expr);
-    // expr = optimize(env, expr);
-    // expr = optimizeTailCalls(env, expr, id);
-    // expr = optimize(env, expr);
-    // expr = arraySliceLoopToIndex(env, expr);
     return expr;
 };
 
