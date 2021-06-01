@@ -16,7 +16,10 @@ import {
     termToTs,
 } from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { EvalEnv } from './State';
-import { optimizeDefine } from '@jerd/language/src/printing/ir/optimize/optimize';
+import {
+    optimizeDefine,
+    optimizeDefineNew,
+} from '@jerd/language/src/printing/ir/optimize/optimize';
 import { liftEffects } from '@jerd/language/src/printing/pre-ir/lift-effectful';
 import { uniquesReallyAreUnique } from '@jerd/language/src/printing/ir/analyze';
 import { Expr } from '@jerd/language/src/printing/ir/types';
@@ -37,7 +40,7 @@ export const termToJS = (
         { limitExecutionTime: withExecutionLimit },
         term,
     );
-    irTerm = optimizeDefine(env, irTerm, id, null);
+    irTerm = optimizeDefineNew(env, irTerm, id, null);
     // then pop over to glslPrinter and start making things work.
     // try {
     //     uniquesReallyAreUnique(irTerm);

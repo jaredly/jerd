@@ -2,7 +2,12 @@ import { hashObject } from '../../../typing/env';
 import { Env, Id } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, LambdaExpr, Stmt } from '../types';
-import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
+import {
+    Exprs,
+    optimizeAggressive,
+    optimizeDefine,
+    optimizeDefineNew,
+} from './optimize';
 
 export const findCapturedVariables = (lambda: Expr): Array<number> => {
     const captured: Array<number> = [];
@@ -38,7 +43,7 @@ export const liftToTopLevel = (
 ): Expr => {
     const hash = hashObject(lambda);
     const id: Id = { hash, size: 1, pos: 0 };
-    let expr: Expr = optimizeDefine(env, lambda, id, exprs);
+    let expr: Expr = optimizeDefineNew(env, lambda, id, exprs);
     exprs[hash] = { expr: expr, inline: false };
     return {
         type: 'term',
