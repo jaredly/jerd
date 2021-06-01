@@ -18,7 +18,7 @@ uniform vec2 u_resolution;
 
 // skipping As_As, contains type variables
 
-// skipping Min_5cfbbc08, contains type variables
+// skipping Min_0c2608f2, contains type variables
 
 struct GLSLEnv_451d5252{
     float time;
@@ -29,40 +29,40 @@ struct GLSLEnv_451d5252{
 
 // skipping AddSub_b99b22d8, contains type variables
 
-struct Circle_44c72b50{
-    vec2 h44c72b50_0;
-    float h44c72b50_1;
+struct Circle_23c98f91{
+    vec2 h23c98f91_0;
+    float h23c98f91_1;
 };
 
 /**
 ```
-const circleSDF#632537ec = (p#:0: Vec2#43802a16, circle#:1: Circle#44c72b50): float ={}> {
-    length#c2805852(p#:0 -#70bb2056#b99b22d8#1 circle#:1.pos#44c72b50#0) - circle#:1.r#44c72b50#1;
+const circleSDF#596bb3b4 = (p#:0: Vec2#43802a16, circle#:1: Circle#23c98f91): float ={}> {
+    length#c2805852(p#:0 -#70bb2056#b99b22d8#1 circle#:1.pos#23c98f91#0) - circle#:1.r#23c98f91#1;
 }
 ```
 */
-float circleSDF_632537ec(
+float circleSDF_596bb3b4(
     vec2 p_0,
-    Circle_44c72b50 circle_1
+    Circle_23c98f91 circle_1
 ) {
-    return (length((p_0 - circle_1.h44c72b50_0)) - circle_1.h44c72b50_1);
+    return (length((p_0 - circle_1.h23c98f91_0)) - circle_1.h23c98f91_1);
 }
 
 /**
 ```
-const hello#6e44375b = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): Vec4#3b941378 ={}> {
-    const circle#:2 = Circle#44c72b50{
-        pos#44c72b50#0: env#:0.mouse#451d5252#3,
-        r#44c72b50#1: 40.0 + cos(env#:0.time#451d5252#0 * 4.0) * 20.0,
+const hello#ac281138 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): Vec4#3b941378 ={}> {
+    const circle#:2 = Circle#23c98f91{
+        pos#23c98f91#0: env#:0.mouse#451d5252#3,
+        r#23c98f91#1: 40.0 + cos(env#:0.time#451d5252#0 * 4.0) * 20.0,
     };
-    const color#:4 = if circleSDF#632537ec(fragCoord#:1, circle#:2) --#4e1890c8#5cfbbc08#0 circleSDF#632537ec(
+    const color#:4 = if circleSDF#596bb3b4(fragCoord#:1, circle#:2) --#a42728cc#0c2608f2#0 circleSDF#596bb3b4(
         fragCoord#:1,
-        Circle#44c72b50{
-            pos#44c72b50#0: env#:0.mouse#451d5252#3 +#70bb2056#b99b22d8#0 Vec2#43802a16{
+        Circle#23c98f91{
+            pos#23c98f91#0: env#:0.mouse#451d5252#3 +#70bb2056#b99b22d8#0 Vec2#43802a16{
                 x#43802a16#0: 10.0,
                 y#43802a16#1: 20.0,
             },
-            r#44c72b50#1: 30.0,
+            r#23c98f91#1: 30.0,
         },
     ) < 0.0 {
         switch modInt(fragCoord#:1.x#43802a16#0 as#184a69ed int, 2) {
@@ -76,18 +76,18 @@ const hello#6e44375b = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): 
 }
 ```
 */
-vec4 hello_6e44375b(
+vec4 hello_ac281138(
     GLSLEnv_451d5252 env_0,
     vec2 fragCoord_1
 ) {
     vec3 color_4;
     bool continueBlock_6 = true;
     if ((min(
-        circleSDF_632537ec(
+        circleSDF_596bb3b4(
             fragCoord_1,
-            Circle_44c72b50(env_0.mouse, (40.0 + (cos((env_0.time * 4.0)) * 20.0)))
+            Circle_23c98f91(env_0.mouse, (40.0 + (cos((env_0.time * 4.0)) * 20.0)))
         ),
-        circleSDF_632537ec(fragCoord_1, Circle_44c72b50((env_0.mouse + vec2(10.0, 20.0)), 30.0))
+        circleSDF_596bb3b4(fragCoord_1, Circle_23c98f91((env_0.mouse + vec2(10.0, 20.0)), 30.0))
     ) < 0.0)) {
         if ((int(fragCoord_1.x) % 2) == 0) {
             color_4 = vec3(1.0, 0.0, 0.0);
@@ -105,7 +105,7 @@ vec4 hello_6e44375b(
 }
 
 void main() {
-    fragColor = hello_6e44375b(
+    fragColor = hello_ac281138(
         GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
         gl_FragCoord.xy
     );

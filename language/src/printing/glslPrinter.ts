@@ -32,6 +32,7 @@ import {
     isConstant,
     optimizeAggressive,
     optimizeDefine,
+    optimizeDefineNew,
 } from './ir/optimize/optimize';
 import {
     Loc,
