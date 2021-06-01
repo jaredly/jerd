@@ -24,7 +24,12 @@ import {
 import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
-import { Exprs, optimize, optimizeDefine } from './ir/optimize/optimize';
+import {
+    Exprs,
+    optimize,
+    optimizeDefine,
+    optimizeDefineNew,
+} from './ir/optimize/optimize';
 import {
     Loc,
     Type as IRType,
@@ -964,7 +969,7 @@ export const fileToTypescript = (
         //     irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         // }
         if (opts.optimize) {
-            irTerm = optimizeDefine(senv, irTerm, id, null);
+            irTerm = optimizeDefineNew(senv, irTerm, id, null);
         }
         // then pop over to glslPrinter and start making things work.
         uniquesReallyAreUnique(irTerm);

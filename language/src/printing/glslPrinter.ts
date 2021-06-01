@@ -709,8 +709,9 @@ export const assembleItemsForFile = (
             ).wrap(err);
             throw outer;
         }
-        irTerm = explicitSpreads(senv, irOpts, irTerm);
-        irTerm = optimizeDefine(senv, irTerm, id, irTerms);
+        // irTerm = explicitSpreads(senv, irOpts, irTerm);
+        // irTerm = optimizeDefine(senv, irTerm, id, irTerms);
+        irTerm = optimization(senv, irOpts, irTerms, irTerm, id);
 
         irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 

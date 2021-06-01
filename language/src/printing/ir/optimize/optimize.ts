@@ -1217,6 +1217,40 @@ const javascriptOpts: Array<Optimizer> = [
     simpleOpt(arraySliceLoopToIndex),
 ];
 
+export const optimizeDefineNew = (
+    env: Env,
+    expr: Expr,
+    id: Id,
+    exprs: Exprs | null,
+): Expr => {
+    const fns = exprs ? glslOpts : javascriptOpts;
+    const exprss = exprs || {};
+    let changed = true;
+    const opts = {};
+    let passes = 0;
+    while (changed) {
+        if (passes++ > 100) {
+            throw new Error(`Optimization passes failing to converge`);
+        }
+        let old = expr;
+        fns.forEach((fn) => {
+            expr = fn(env, opts, exprss, expr, id);
+        });
+        changed = old !== expr;
+    }
+
+    // expr = optimizeDefineOld(env, expr, id);
+    // if (exprs) {
+    //     expr = optimizeAggressive(env, exprs, expr, id);
+    // }
+    // expr = optimizeDefineOld(env, expr, id);
+    // if (exprs) {
+    //     expr = optimizeAggressive(env, exprs, expr, id);
+    // }
+    uniquesReallyAreUnique(expr);
+    return expr;
+};
+
 // const aggressive: Array<Optimizer>
 
 const glslOpts: Array<Optimizer> = [
