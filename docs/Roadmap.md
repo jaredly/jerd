@@ -4,8 +4,12 @@
 ### Tracing!
 - [x] basic compiler support
 - [x] basic test runner support
-  - [ ] would be nice for the test runner to print out traces tho
+  - [x] would be nice for the test runner to print out traces tho
 - [ ] web ide support! (need to integrate traces with the evalCache I think....)
+  - [ ] yeah let's do this next, to get a feel for things.
+    - I do wonder about how best to /display/ traces from other terms though.
+      do I open up a temporary thing with the ...
+      or maybe I have a "full page debugging" view, that will open up terms that get traces?
 - [ ] GLSL yes let's get this folks!
   - So the basic idea is: the IR that I'm compiling has some trace calls in it
     (should be simple to check while generating the shaders), I go ahead and
@@ -19,6 +23,10 @@
     and then harvest right after.
     Yeah that sounds legit.
     Much better this way.
+  - [ ] tracing without buffers
+  - [ ] tracing with buffers
+    - this would mean, I think, swapping in a shader that just blits the texture out onto the canvas, then using toDataURL or something like that, and doing that for each buffer ... 
+    - ooh ok it would be cool to have a setting to "show the intermediate buffers" anyway. Yeah that would be neat.
 
 ### Editor squirrlyness
 - [x] make it so you can't select "inside" of an ID hash
@@ -37,8 +45,8 @@
 
 ### GLSL Plugins
 - [ ] preserve textures when updating shaders if possible....
-- [ ] make a button to restart the timer
-- [ ] make a way to specify the size!
+- [x] make a button to restart the timer
+- [x] make a way to specify the size!
 - [ ] let's add "mouse button down" uniform! Probably a boolean I guess? or it could be an int, following https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button. And then ... have like 6 or something be "nothing pressed"? or -1?
 
 ### Parser / Printer

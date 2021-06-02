@@ -50,6 +50,7 @@ import {
     expressionTypeDeps,
 } from '@jerd/language/src/typing/analyze';
 import { envWithTerm, compileGLSL } from './display/OpenGL';
+import { Position } from './Cells';
 
 // const maxWidth = 80;
 
@@ -61,7 +62,7 @@ export type CellProps = {
     onRun: (id: Id) => void;
     onRemove: () => void;
     evalEnv: EvalEnv;
-    addCell: (content: Content) => void;
+    addCell: (content: Content, position: Position) => void;
     plugins: { [id: string]: PluginT };
     onPin: (display: Display, id: Id) => void;
 };
@@ -218,7 +219,6 @@ export const CellView = ({
             content={cell.content}
             onEdit={() => setEditing(true)}
             addCell={addCell}
-            showSource={showSource}
             collapsed={cell.collapsed}
             setCollapsed={(collapsed) => onChange(env, { ...cell, collapsed })}
             env={env}
@@ -286,14 +286,18 @@ export const CellView = ({
             }}
         >
             {body}
-            {term && showSource ? (
+            {term &&
+            showSource &&
+            (cell.content.type === 'term' || cell.content.type === 'expr') ? (
                 <ViewSource
                     hash={idName(cell.content.id)}
                     env={env}
                     term={term}
                 />
             ) : null}
-            {term && showGLSL ? (
+            {term &&
+            showGLSL &&
+            (cell.content.type === 'term' || cell.content.type === 'expr') ? (
                 <ViewGLSL
                     hash={idName(cell.content.id)}
                     env={env}

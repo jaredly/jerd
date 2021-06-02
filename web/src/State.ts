@@ -9,8 +9,10 @@ export type Content =
     | { type: 'enum'; id: Id; name: string }
     | { type: 'effect'; id: Id; name: string; constrNames: Array<string> }
     | { type: 'raw'; text: string };
+
 export type Cell = {
     id: string;
+    order: number;
     content: Content;
     display?: Display | null;
     collapsed?: boolean;

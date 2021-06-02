@@ -34,6 +34,7 @@ import { renderAttributedText } from './Render';
 import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
 import { RenderResult } from './RenderResult';
 import { getToplevel, updateToplevel } from './toplevels';
+import { Position } from './Cells';
 
 export const RenderItem = ({
     env,
@@ -58,7 +59,7 @@ export const RenderItem = ({
     content: Content;
     evalEnv: EvalEnv;
     onRun: (id: Id) => void;
-    addCell: (content: Content) => void;
+    addCell: (content: Content, position: Position) => void;
     onEdit: () => void;
     collapsed: boolean | undefined;
     setCollapsed: (n: boolean) => void;
@@ -67,23 +68,27 @@ export const RenderItem = ({
 }) => {
     const onClick = (id: string, kind: string) => {
         console.log(kind);
+        const position: Position = { type: 'after', id: cell.id };
         if (kind === 'term' || kind === 'as') {
-            addCell({
-                type: 'term',
-                id: idFromName(id),
-                name: env.global.idNames[id],
-            });
+            addCell(
+                {
+                    type: 'term',
+                    id: idFromName(id),
+                    name: env.global.idNames[id],
+                },
+                position,
+            );
             return true;
         } else if (kind === 'type') {
             if (env.global.types[id].type === 'Record') {
-                addCell(recordContent(env, id));
+                addCell(recordContent(env, id), position);
                 return true;
             } else {
-                addCell(enumContent(env, id));
+                addCell(enumContent(env, id), position);
                 return true;
             }
         } else if (kind === 'record') {
-            addCell(recordContent(env, id));
+            addCell(recordContent(env, id), position);
             return true;
         }
         return false;

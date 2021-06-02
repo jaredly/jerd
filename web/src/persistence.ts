@@ -74,6 +74,21 @@ export const initialState = async (): Promise<State> => {
                 // @ts-ignore
                 delete data.cells;
             }
+
+            // Add "order" indices
+            Object.keys(data.workspaces).forEach((k) => {
+                const work = data.workspaces[k];
+                const cells = Object.keys(data.workspaces[k].cells);
+                if (
+                    cells.length &&
+                    data.workspaces[k].cells[cells[0]].order == null
+                ) {
+                    cells.forEach((id, i) => {
+                        data.workspaces[k].cells[id].order = i * 10;
+                    });
+                }
+            });
+
             // @ts-ignore
             if (data.pins) {
                 Object.keys(data.workspaces).forEach((k) => {
