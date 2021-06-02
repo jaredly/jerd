@@ -228,12 +228,12 @@ const Cells = ({
                             );
                         }}
                         onRun={(id) => {
-                            console.log(
-                                'Running',
-                                id,
-                                state.env,
-                                state.evalEnv,
-                            );
+                            // console.log(
+                            //     'Running',
+                            //     id,
+                            //     state.env,
+                            //     state.evalEnv,
+                            // );
                             let results: { [key: string]: any };
                             try {
                                 const term = state.env.global.terms[idName(id)];

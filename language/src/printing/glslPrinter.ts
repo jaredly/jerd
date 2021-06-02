@@ -785,13 +785,18 @@ const makeEnvRecord = (env: Env): Record => ({
     loc: nullLocation,
 });
 
-const shaderTop = () => {
+const shaderTop = (buffers: number) => {
+    const b: Array<PP> = [];
+    for (let i = 0; i < buffers; i++) {
+        b.push(atom(`uniform sampler2D u_buffer${i};`));
+    }
     return [
         pp.items([atom('#version 300 es')]),
         pp.items([atom('precision mediump float;')]),
         pp.items([atom('out vec4 fragColor;')]),
         pp.items([atom('const float PI = 3.14159;')]),
-        atom('uniform sampler2D u_buffer0;'),
+        // atom('uniform sampler2D u_buffer0;'),
+        ...b,
         pp.items([
             atom('uniform '),
             atom('float'),
@@ -961,8 +966,9 @@ export const shaderAllButMains = (
     mainTerm: Id,
     buffers: Array<Id>,
     includeComments = true,
+    bufferCount = buffers.length,
 ): { items: Array<PP>; invalidLocs: Array<Location> } => {
-    const items: Array<PP> = shaderTop();
+    const items: Array<PP> = shaderTop(bufferCount);
 
     const required = [mainTerm]
         .concat(buffers)
@@ -1039,6 +1045,7 @@ export const generateSingleShader = (
         mainTerm,
         [],
         includeComments,
+        buffers,
     );
 
     items.push(glslMain(env, opts, mainTerm, buffers));

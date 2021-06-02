@@ -326,27 +326,30 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
     );
 };
 
+const shaderFunction = (buffers: number) => {
+    const args = [refType('451d5252'), refType('43802a16')];
+    for (let i = 0; i < buffers; i++) {
+        args.push(builtinType('sampler2D'));
+    }
+    return pureFunction(args, refType('3b941378'));
+};
+
 const plugins: Plugins = {
     openglBuffer1: {
-        id: 'opengl',
+        id: 'opengl1',
         name: 'Shader GLSL',
-        type: builtinType('Tuple2', [
-            pureFunction(
-                [
-                    refType('451d5252'),
-                    refType('43802a16'),
-                    builtinType('sampler2D'),
-                ],
-                refType('3b941378'),
-            ),
-            pureFunction(
-                [
-                    refType('451d5252'),
-                    refType('43802a16'),
-                    builtinType('sampler2D'),
-                ],
-                refType('3b941378'),
-            ),
+        type: builtinType('Tuple2', [shaderFunction(1), shaderFunction(1)]),
+        render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
+            return <ShaderGLSLBuffers env={env} term={term} />;
+        },
+    },
+    openglBuffer2: {
+        id: 'opengl2',
+        name: 'Shader GLSL',
+        type: builtinType('Tuple3', [
+            shaderFunction(2),
+            shaderFunction(2),
+            shaderFunction(2),
         ]),
         render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
             return <ShaderGLSLBuffers env={env} term={term} />;

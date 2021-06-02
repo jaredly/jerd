@@ -20,6 +20,7 @@ import {
     selfEnv,
     Term,
     Type,
+    typesEqual,
 } from '@jerd/language/src/typing/types';
 import {
     declarationToPretty,
@@ -35,6 +36,7 @@ import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { void_ } from '@jerd/language/src/typing/preset';
 import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
 import { nullLocation } from '@jerd/language/src/parsing/parser';
+import { showType } from '@jerd/language/src/typing/unify';
 
 /*
 
@@ -143,6 +145,32 @@ export const RenderResult = ({
     }
 
     const matching = getMatchingPlugins(plugins, env, cell);
+    if (!matching || !matching.length) {
+        if (cell.content.type === 'expr') {
+            const t = env.global.terms[idName(cell.content.id)];
+            console.log(showType(env, t.is));
+            Object.keys(plugins).forEach((k) => {
+                const err = getTypeError(
+                    env,
+                    t.is,
+                    plugins[k].type,
+                    nullLocation,
+                );
+                if (!err) {
+                    console.error('its good', k);
+                } else {
+                    console.log(k, err.toString());
+                }
+            });
+            console.log(
+                cell.content,
+                matching,
+                cell.content.type,
+                cell.display,
+            );
+            console.log(plugins);
+        }
+    }
 
     return (
         <div
@@ -321,7 +349,11 @@ const getMatchingPlugins = (
         case 'expr':
         case 'term':
             const t = env.global.terms[idName(cell.content.id)];
-            if (!cell.display || !plugins[cell.display.type]) {
+            if (
+                !cell.display ||
+                !plugins[cell.display.type] ||
+                !typesEqual(plugins[cell.display.type].type, t.is)
+            ) {
                 return Object.keys(plugins).filter((k) => {
                     if (
                         getTypeError(
@@ -329,7 +361,7 @@ const getMatchingPlugins = (
                             t.is,
                             plugins[k].type,
                             nullLocation,
-                        ) === null
+                        ) == null
                     ) {
                         return true;
                     }

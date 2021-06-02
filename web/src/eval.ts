@@ -110,7 +110,7 @@ const runWithExecutionLimit = (
             ...evalEnv.terms,
         },
     };
-    console.log('code', code);
+    // console.log('code', code);
     // yay now it's safe from weird scoping things.
     const result = new Function('jdScope', code)(jdScope);
     // This is so recursive calls work
@@ -136,13 +136,13 @@ export const runTerm = (
     const results: { [key: string]: any } = {};
 
     const deps = getSortedTermDependencies(env, term, id);
-    console.log(deps);
+    // console.log(deps);
     const idn = idName(id);
     const irTerms = {};
     deps.forEach((dep) => {
         if (evalEnv.terms[dep] == null) {
             if (dep !== idn) {
-                console.log('Evaluating dependency', dep);
+                // console.log('Evaluating dependency', dep);
             }
             const depTerm = idn === dep ? term : env.global.terms[dep];
             const self: Self = { type: 'Term', name: dep, ann: term.is };
@@ -176,14 +176,14 @@ export const runTerm = (
                     traceFn,
                 );
                 results[dep] = result;
-                console.log('result', dep, result);
+                // console.log('result', dep, result);
             } catch (err) {
                 evalEnv.executionLimit.enabled = false;
                 throw err;
             }
             evalEnv.executionLimit.enabled = false;
         } else {
-            console.log('already evaluated', dep, evalEnv.terms[dep]);
+            // console.log('already evaluated', dep, evalEnv.terms[dep]);
         }
     });
     return results;
