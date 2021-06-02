@@ -184,6 +184,9 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
     const [error, setError] = React.useState(null as any | null);
 
     const shaders = React.useMemo(() => {
+        if (term.is.type === 'lambda') {
+            return [compileGLSL(term, envWithTerm(env, term), 0)];
+        }
         if (term.type !== 'Tuple') {
             throw new Error(`Expression must be a tuple literal`);
         }
@@ -322,120 +325,8 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
         </div>
     );
 };
-const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
-    const [canvas, setCanvas] = React.useState(
-        null as null | HTMLCanvasElement,
-    );
-    const [paused, setPaused] = React.useState(false);
-    const [error, setError] = React.useState(null as any | null);
-
-    const shader = React.useMemo(() => {
-        try {
-            return compileGLSL(term, envWithTerm(env, term));
-        } catch (err) {
-            setError(err.message);
-            return null;
-        }
-    }, [term]);
-
-    const timer = React.useRef(0);
-
-    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
-    const currentMousePos = React.useRef(mousePos);
-    currentMousePos.current = mousePos;
-
-    React.useEffect(() => {
-        if (!canvas || paused || !shader) {
-            return;
-        }
-        const ctx = canvas.getContext('webgl2');
-        if (!ctx) {
-            return;
-        }
-        try {
-            const update = setup(
-                ctx,
-                shader.text,
-                timer.current,
-                currentMousePos.current,
-            );
-            let tid: any;
-            let last = Date.now();
-            const fn = () => {
-                const now = Date.now();
-                timer.current += (now - last) / 1000;
-                last = now;
-                update(timer.current, currentMousePos.current);
-                tid = requestAnimationFrame(fn);
-            };
-            tid = requestAnimationFrame(fn);
-            return () => cancelAnimationFrame(tid);
-        } catch (err) {
-            setError(err);
-        }
-    }, [canvas, shader, paused]);
-
-    if (error != null) {
-        return (
-            <div>
-                <div
-                    style={{
-                        padding: 4,
-                        fontFamily: 'monospace',
-                        whiteSpace: 'pre-wrap',
-                        backgroundColor: '#300',
-                    }}
-                >
-                    {error.message}
-                </div>
-                {shader != null ? (
-                    <pre
-                        style={{
-                            fontFamily: 'monospace',
-                            whiteSpace: 'pre-wrap',
-                        }}
-                    >
-                        {shader.text}
-                    </pre>
-                ) : null}
-            </div>
-        );
-    }
-
-    return (
-        <div>
-            <canvas
-                onClick={() => setPaused(!paused)}
-                onMouseMove={(evt) => {
-                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
-                    setMousePos({
-                        x: (evt.clientX - box.left) * 2,
-                        y: (box.height - (evt.clientY - box.top)) * 2,
-                        button: evt.button,
-                    });
-                }}
-                ref={(node) => {
-                    if (node && !canvas) {
-                        setCanvas(node);
-                    }
-                }}
-                style={{
-                    width: 200,
-                    height: 200,
-                }}
-                // Double size for retina
-                width="400"
-                height="400"
-            />
-        </div>
-    );
-};
 
 const plugins: Plugins = {
-    // openglFake: {
-    //     id: 'opengl-fake',
-    //     name: 'Shader CPU',
-    // },
     openglBuffer1: {
         id: 'opengl',
         name: 'Shader GLSL',
@@ -470,7 +361,7 @@ const plugins: Plugins = {
         ),
         render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
             // return <div>Ok folks</div>;
-            return <ShaderGLSL env={env} term={term} />;
+            return <ShaderGLSLBuffers env={env} term={term} />;
         },
     },
     'opengl-fake': {
