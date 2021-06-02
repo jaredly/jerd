@@ -463,6 +463,7 @@ const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
                             ]),
                             maxWidth,
                         ),
+                        // TODO onclick
                         null,
                     )}{' '}
                 </div>

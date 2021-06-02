@@ -134,6 +134,10 @@ export const RenderItem = ({
                             maxWidth,
                         ),
                         onClick,
+                        undefined,
+                        undefined,
+                        (id, kind) =>
+                            ['term', 'type', 'as', 'record'].includes(kind),
                     )}
                 </div>
                 {term ? (

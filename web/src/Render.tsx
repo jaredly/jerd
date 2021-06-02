@@ -1,7 +1,11 @@
+/** @jsx jsx */
+import { jsx } from '@emotion/react';
+
 import * as React from 'react';
 import { AttributedText } from '@jerd/language/src/printing/printer';
 import { idName } from '@jerd/language/src/typing/env';
 import { GlobalEnv } from '@jerd/language/src/typing/types';
+import { css } from '@emotion/react';
 
 const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('string')) {
@@ -48,6 +52,7 @@ export const renderAttributedTextToHTML = (
     text: Array<AttributedText>,
     allIds?: boolean,
     idColors: Array<string> = colors,
+    openable = (_: string, __: string) => false,
 ): string => {
     const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
@@ -67,7 +72,15 @@ export const renderAttributedTextToHTML = (
                     item.kind === 'sym'
                         ? colorMap[item.id] || '#9CDCFE'
                         : '#4EC9B0'
-                }">${escapeHTML(item.text)}${
+                }"${
+                    openable(item.id, item.kind)
+                        ? ` class="${css({
+                              ':hover': {
+                                  textDecoration: 'underline',
+                              },
+                          })}"`
+                        : ''
+                }>${escapeHTML(item.text)}${
                     showHash
                         ? `<span style="color: #777; cursor: ew-resize" contenteditable="false" data-hash="${item.id}">#</span>`
                         : ''
@@ -89,6 +102,7 @@ export const renderAttributedText = (
     onClick?: ((id: string, kind: string) => boolean) | undefined | null,
     allIds?: boolean,
     idColors: Array<string> = colors,
+    openable = (id: string, kind: string) => false,
 ) => {
     const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
@@ -111,6 +125,15 @@ export const renderAttributedText = (
                                 : '#4EC9B0',
                         cursor: onClick ? 'pointer' : 'inherit',
                     }}
+                    css={
+                        openable(item.id, item.kind)
+                            ? css({
+                                  ':hover': {
+                                      textDecoration: 'underline',
+                                  },
+                              })
+                            : ''
+                    }
                     onMouseDown={(evt) => {}}
                     onClick={(evt) => {
                         if (onClick && onClick(item.id, item.kind)) {
