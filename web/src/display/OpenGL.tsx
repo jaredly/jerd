@@ -42,7 +42,11 @@ const drawToCanvas = (
     const dy = ctx.canvas.height / h;
     for (let x = 0; x < w; x++) {
         for (let y = 0; y < h; y++) {
-            const color = fn(env, { type: 'Vec2', x: x * dx, y: y * dy });
+            const color = fn(env, {
+                type: 'Vec2',
+                x: x * dx,
+                y: ctx.canvas.height - y * dy,
+            });
             ctx.fillStyle = `rgba(${color.x * 255},${color.y * 255},${
                 color.z * 255
             },${color.w})`;

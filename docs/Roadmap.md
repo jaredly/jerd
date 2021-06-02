@@ -25,7 +25,7 @@
 - [x] make tab & shift-tab actually work reliably
 
 ### Basic usability
-- [ ] make a menu for cells, so I can do "export this term and dependencies" for debugging
+- [x] make a menu for cells, so I can do "export this term and dependencies" for debugging
 - [ ] ok for the maximally fancy, let's do "trace!() runs the javascript, and snoops the values"
 - [ ] cmd+p to search for terms, showing most recently edited things, and their types, and such
 - [x] pins should have a way to open up the cell of the source
@@ -56,7 +56,11 @@
 - I'm not printing term annotations anymore, and that will break re-parsing of recursive dealios. Need to infer the annotation from the lambda declaration.
 
 
+## OTHER EXCITING THING: Dual JS + GLSL
 
+So you compile to js for the uniform management (and maybe responding to events? idk), things that only need to be done once per frame, and then sent to the shader.
+I'm imagining things like: tracking a list of "mouse trails". and such.
+So we'd have an extra value on the env, that would get calculated in js & then sent down.
 
 ## Ok, grand vision folks
 This will probably get people excited.
