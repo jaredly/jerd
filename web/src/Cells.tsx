@@ -137,6 +137,9 @@ const Cells = ({
     setState: (fn: (s: State) => State) => void;
 }) => {
     const work: Workspace = activeWorkspace(state);
+    const [focus, setFocus] = React.useState(
+        null as null | { id: string; tick: number },
+    );
 
     const tester = React.useRef(null as null | HTMLDivElement);
     const container = React.useRef(null as null | HTMLDivElement);
@@ -206,6 +209,14 @@ const Cells = ({
                     .map((id) => (
                         <CellView
                             key={id}
+                            focused={
+                                focus && focus.id == id ? focus.tick : null
+                            }
+                            onFocus={() =>
+                                !focus || focus.id !== id
+                                    ? setFocus({ id, tick: 0 })
+                                    : null
+                            }
                             maxWidth={maxWidth}
                             env={state.env}
                             cell={work.cells[id]}
@@ -273,14 +284,23 @@ const Cells = ({
                             }}
                             addCell={(content, position: Position) => {
                                 const work = activeWorkspace(state);
-                                if (
-                                    Object.keys(work.cells).some((id) =>
-                                        contentMatches(
-                                            content,
-                                            work.cells[id].content,
-                                        ),
-                                    )
-                                ) {
+                                const matching = Object.keys(
+                                    work.cells,
+                                ).find((id) =>
+                                    contentMatches(
+                                        content,
+                                        work.cells[id].content,
+                                    ),
+                                );
+                                if (matching) {
+                                    if (focus && focus.id == matching) {
+                                        setFocus({
+                                            id: matching,
+                                            tick: focus.tick + 1,
+                                        });
+                                    } else {
+                                        setFocus({ id: matching, tick: 0 });
+                                    }
                                     return;
                                 }
                                 const id = genId();
@@ -292,6 +312,7 @@ const Cells = ({
                                         ),
                                     ),
                                 );
+                                setFocus({ id, tick: 0 });
                             }}
                             onChange={(env, cell) => {
                                 console.log('Change', cell);

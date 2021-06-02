@@ -58,6 +58,8 @@ export type CellProps = {
     maxWidth: number;
     cell: Cell;
     env: Env;
+    focused: number | null;
+    onFocus: () => void;
     onChange: (env: Env, cell: Cell) => void;
     onRun: (id: Id) => void;
     onRemove: () => void;
@@ -75,21 +77,49 @@ const CellWrapper = ({
     onToggleSource,
     children,
     menuItems,
+    focused,
+    onFocus,
 }: {
     title: React.ReactNode;
+    focused: number | null;
+    onFocus: () => void;
     children: React.ReactNode;
     onRemove: () => void;
     onToggleSource: (() => void) | null | undefined;
     menuItems: () => Array<MenuItem>;
 }) => {
     const [menu, setMenu] = React.useState(false);
+    const ref = React.useRef(null as null | HTMLElement);
+    React.useEffect(() => {
+        if (focused != null && ref.current) {
+            ref.current.scrollIntoView({
+                block: 'nearest',
+                behavior: 'smooth',
+            });
+        }
+    }, [focused]);
     return (
         <div
-            style={{
+            ref={(node) => {
+                if (node != null) {
+                    ref.current = node;
+                    if (focused != null) {
+                        node.scrollIntoView({
+                            block: 'nearest',
+                            behavior: 'smooth',
+                        });
+                    }
+                }
+            }}
+            css={{
                 padding: 4,
                 borderBottom: '2px dashed #ababab',
                 marginBottom: 8,
+                border: `2px solid ${
+                    focused != null ? '#5d5dff' : 'transparent'
+                }`,
             }}
+            onClick={() => onFocus()}
         >
             <div
                 css={{
@@ -154,6 +184,22 @@ const CellWrapper = ({
                         ) : null}
                     </div>
                 </div>
+                <button
+                    onClick={onRemove}
+                    css={{
+                        border: '1px solid transparent',
+                        backgroundColor: 'transparent',
+                        cursor: 'pointer',
+                        color: 'red',
+                        marginLeft: 8,
+                        borderRadius: 3,
+                        ':hover': {
+                            borderColor: '#500',
+                        },
+                    }}
+                >
+                    ╳
+                </button>
             </div>
             {children}
         </div>
@@ -167,6 +213,8 @@ export const CellView = ({
     onChange,
     onRemove,
     onRun,
+    onFocus,
+    focused,
     evalEnv,
     addCell,
     onPin,
@@ -192,6 +240,7 @@ export const CellView = ({
             }
             onClose={() => setEditing(false)}
             onChange={(term) => {
+                onFocus();
                 if (typeof term === 'string') {
                     onChange(env, {
                         ...cell,
@@ -217,7 +266,10 @@ export const CellView = ({
             cell={cell}
             plugins={plugins}
             content={cell.content}
-            onEdit={() => setEditing(true)}
+            onEdit={() => {
+                setEditing(true);
+                onFocus();
+            }}
             addCell={addCell}
             collapsed={cell.collapsed}
             setCollapsed={(collapsed) => onChange(env, { ...cell, collapsed })}
@@ -237,6 +289,8 @@ export const CellView = ({
         <CellWrapper
             title={cellTitle(env, cell, maxWidth)}
             onRemove={onRemove}
+            focused={focused}
+            onFocus={onFocus}
             onToggleSource={() => setShowSource(!showSource)}
             menuItems={() => {
                 return [
