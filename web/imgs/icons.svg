@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
+   sodipodi:docname="icons.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="4.3281559"
+     inkscape:cx="246.29427"
+     inkscape:cy="145.44301"
+     inkscape:window-width="1920"
+     inkscape:window-height="1155"
+     inkscape:window-x="0"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid9" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       aria-label="v"
+       id="text13268"
+       style="font-size:10.5833px;line-height:1.25;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';stroke-width:0.264583"
+       transform="translate(-3.890419,-0.355224)">
+      <path
+         d="M 79.032074,43.641071 76.037,49.260803 h -1.968494 l -0.772581,-5.619732 h 1.809745 l 0.222249,4.339153 2.010827,-4.339153 z"
+         style="font-style:italic;font-weight:bold"
+         id="path14018" />
+    </g>
+    <g
+       aria-label="=&gt;"
+       id="text367"
+       style="font-size:10.5833px;line-height:1.25;stroke-width:0.264583"
+       transform="translate(18.647862,11.885078)">
+      <path
+         d="m 68.071965,33.961923 -3.196157,3.555988 -1.100663,-0.941913 0.391582,-0.423332 c 0.148167,-0.169333 0.310444,-0.313971 0.486832,-0.433916 H 59.53125 v -1.301745 h 6.222972 l 0.423332,-0.455082 -0.423332,-0.455082 H 59.53125 v -1.312329 h 5.122309 c -0.148166,-0.09172 -0.310443,-0.232833 -0.486832,-0.423332 l -0.391582,-0.423332 1.100663,-0.941914 z"
+         style="font-weight:bold"
+         id="path14027"
+         sodipodi:nodetypes="ccccccccccccccccc" />
+    </g>
+    <g
+       aria-label="t"
+       id="text10884"
+       style="font-size:10.5833px;line-height:1.25;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';stroke-width:0.264583">
+      <path
+         d="m 65.402325,48.932721 q -0.888997,0.507998 -1.936744,0.507998 -1.079496,0 -1.523995,-0.550331 -0.433915,-0.550332 -0.232833,-1.545162 l 0.507999,-2.550575 h -1.174747 l 0.232833,-1.15358 h 1.174746 l 0.243416,-1.217079 1.714495,-0.201083 -0.285749,1.418162 h 1.809744 l -0.402165,1.15358 h -1.640412 l -0.507998,2.550575 q -0.08467,0.412749 0.07408,0.592665 0.158749,0.179916 0.582081,0.179916 0.529165,0 1.02658,-0.253999 z"
+         style="font-style:italic;font-weight:bold"
+         id="path14024" />
+    </g>
+    <g
+       aria-label="U"
+       id="text12764"
+       style="font-size:10.5833px;line-height:1.25;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';stroke-width:0.264583"
+       transform="translate(0.49212805,-1.1906121)">
+      <path
+         d="m 56.821905,47.529734 c 0,0.486832 -0.102305,0.920747 -0.306916,1.301746 -0.197555,0.373943 -0.479777,0.66322 -0.846664,0.867831 -0.359832,0.204611 -0.783164,0.306916 -1.269996,0.306916 -0.493887,0 -0.920747,-0.102305 -1.280579,-0.306916 C 52.757917,49.487645 52.479224,49.19484 52.281669,48.820897 52.09117,48.446954 51.99592,48.016566 51.99592,47.529734 V 43.65625 h 0.920747 v 3.905234 c 0,0.550332 0.127,0.963081 0.380999,1.238246 0.253999,0.275166 0.620887,0.412749 1.100663,0.412749 0.479776,0 0.846664,-0.137583 1.100663,-0.412749 0.261055,-0.275165 0.391582,-0.687914 0.391582,-1.238246 V 43.65625 h 0.931331 z"
+         id="path14021"
+         sodipodi:nodetypes="sccsccsccssscsccs" />
+    </g>
+    <rect
+       style="fill:none;fill-opacity:0.560784;stroke:#0000ff;stroke-width:0.1"
+       id="rect14268"
+       width="9.260417"
+       height="9.260417"
+       x="50.270832"
+       y="41.010418" />
+  </g>
+</svg>

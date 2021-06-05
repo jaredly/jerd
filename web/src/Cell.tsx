@@ -485,6 +485,19 @@ export const hashStyle = {
     borderRadius: 4,
 };
 
+const Icon = ({ name }: { name: string }) => (
+    <img
+        src={`/imgs/${name}.svg`}
+        css={{
+            width: 16,
+            height: 16,
+            color: 'inherit',
+            marginBottom: -4,
+            marginRight: 8,
+        }}
+    />
+);
+
 const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
     switch (cell.content.type) {
         case 'raw':
@@ -500,6 +513,7 @@ const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
                         whiteSpace: 'pre-wrap',
                     }}
                 >
+                    <Icon name="icons_type" />
                     <span css={hashStyle}>#{idName(cell.content.id)}</span>
                     {renderAttributedText(
                         env.global,
@@ -529,6 +543,13 @@ const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
                         whiteSpace: 'pre-wrap',
                     }}
                 >
+                    <Icon
+                        name={
+                            term.is.type === 'lambda'
+                                ? 'icons_function'
+                                : 'icons_value'
+                        }
+                    />
                     <span css={hashStyle}>#{idName(cell.content.id)}</span>
                     {renderAttributedText(
                         env.global,
@@ -559,6 +580,13 @@ const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
                         whiteSpace: 'pre-wrap',
                     }}
                 >
+                    <Icon
+                        name={
+                            term.is.type === 'lambda'
+                                ? 'icons_function'
+                                : 'icons_value'
+                        }
+                    />
                     <span css={hashStyle}>#{idName(cell.content.id)}</span>
                     {renderAttributedText(
                         env.global,

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="9.260417mm"
+   height="9.260417mm"
+   viewBox="0 0 9.260417 9.260417"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
+   sodipodi:docname="icons_union.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="4.3281559"
+     inkscape:cx="13.97824"
+     inkscape:cy="-9.5883792"
+     inkscape:window-width="1920"
+     inkscape:window-height="1155"
+     inkscape:window-x="0"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid9"
+       originx="-50.270834"
+       originy="-41.010419" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-50.270832,-41.010418)">
+    <g
+       aria-label="U"
+       id="text12764"
+       style="font-size:10.5833px;line-height:1.25;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';stroke-width:0.264583"
+       transform="translate(0.49212805,-1.1906121)">
+      <path
+         d="m 56.821905,47.529734 c 0,0.486832 -0.102305,0.920747 -0.306916,1.301746 -0.197555,0.373943 -0.479777,0.66322 -0.846664,0.867831 -0.359832,0.204611 -0.783164,0.306916 -1.269996,0.306916 -0.493887,0 -0.920747,-0.102305 -1.280579,-0.306916 C 52.757917,49.487645 52.479224,49.19484 52.281669,48.820897 52.09117,48.446954 51.99592,48.016566 51.99592,47.529734 V 43.65625 h 0.920747 v 3.905234 c 0,0.550332 0.127,0.963081 0.380999,1.238246 0.253999,0.275166 0.620887,0.412749 1.100663,0.412749 0.479776,0 0.846664,-0.137583 1.100663,-0.412749 0.261055,-0.275165 0.391582,-0.687914 0.391582,-1.238246 V 43.65625 h 0.931331 z"
+         id="path14021"
+         fill="white"
+         sodipodi:nodetypes="sccsccsccssscsccs" />
+    </g>
+  </g>
+</svg>
