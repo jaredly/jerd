@@ -140,6 +140,8 @@ const Cells = ({
     const [focus, setFocus] = React.useState(
         null as null | { id: string; tick: number },
     );
+    const focusRef = React.useRef(focus);
+    focusRef.current = focus;
 
     const tester = React.useRef(null as null | HTMLDivElement);
     const container = React.useRef(null as null | HTMLDivElement);

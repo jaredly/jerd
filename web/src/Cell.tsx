@@ -283,6 +283,36 @@ export const CellView = ({
             ? env.global.terms[idName(cell.content.id)]
             : null;
 
+    React.useEffect(() => {
+        if (focused == null) {
+            return;
+        }
+        const fn = (evt: KeyboardEvent) => {
+            if (
+                document.activeElement !== document.body ||
+                evt.target !== document.body
+            ) {
+                return;
+            }
+            evt.preventDefault();
+            evt.stopPropagation();
+            console.log('key', evt.key);
+            if (evt.key === 'Enter') {
+                if (evt.shiftKey) {
+                    addCell(
+                        { type: 'raw', text: '' },
+                        { type: 'after', id: cell.id },
+                    );
+                } else {
+                    // um let's start editing? I don't have control over that just yet.
+                    setEditing(true);
+                }
+            }
+        };
+        window.addEventListener('keydown', fn);
+        return () => window.removeEventListener('keydown', fn);
+    }, [focused != null]);
+
     return (
         <CellWrapper
             title={cellTitle(env, cell, maxWidth)}
@@ -501,7 +531,7 @@ const Icon = ({ name }: { name: string }) => (
 const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
     switch (cell.content.type) {
         case 'raw':
-            return `[raw text, invalid syntax]`;
+            return <em>unevaluated</em>;
         case 'effect':
             return `effect ${cell.content.name}`;
         case 'record': {

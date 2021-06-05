@@ -1,6 +1,10 @@
 
 ## What do we need in order to make this minimally usable by other people?
 
+### THe Editor more
+- [ ] pressing enter should auto-indent for you.
+- [ ] let's acually try to reprint-as-you-type. This will require threading through locations to the PPs, so we can do source-mapping to preserve cursor position. Also maybe we'll want a more forgiving parser? idk.
+
 ### Tracing!
 - [x] basic compiler support
 - [x] basic test runner support

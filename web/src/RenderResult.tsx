@@ -191,7 +191,9 @@ export const RenderResult = ({
             >
                 -
             </button> */}
-            {JSON.stringify(evalEnv.terms[hash], null, 2)}
+            {typeof evalEnv.terms[hash] === 'function'
+                ? null
+                : JSON.stringify(evalEnv.terms[hash], null, 2)}
             {matching && matching.length ? (
                 <div>
                     <h4>Available render plugins</h4>
@@ -207,9 +209,9 @@ export const RenderResult = ({
                         </button>
                     ))}
                 </div>
-            ) : (
-                <div>No matching render plugins</div>
-            )}
+            ) : null
+            // <div>No matching render plugins</div>
+            }
         </div>
     );
 };
