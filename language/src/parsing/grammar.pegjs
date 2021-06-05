@@ -238,7 +238,7 @@ RecordPatternItem = id:Identifier pattern:(_ ":" _ Pattern)? {
 TuplePattern = "(" _ items:TuplePatternItems _ ")" {
     return {type: 'Tuple', location: location(), items}
 }
-TuplePatternItems = first:Pattern rest:(_ "," _ Pattern)+ {
+TuplePatternItems = first:Pattern rest:(_ "," _ Pattern)+ (_ ",")? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 

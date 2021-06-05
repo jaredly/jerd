@@ -47,6 +47,22 @@ for (let i = 0; i < colorsRaw.length; i += 6) {
     colors.push('#' + colorsRaw.slice(i, i + 6));
 }
 
+const colorForId = (
+    item: { kind: string; id: string; text: string },
+    colorMap: { [key: string]: string },
+) => {
+    if (item.kind === 'sym') {
+        return colorMap[item.id] || '#9CDCFE';
+    }
+    if (item.kind === 'term') {
+        return 'rgb(138,220,255)';
+    }
+    if (item.kind === 'type') {
+        return '#4EC9B0';
+        // return '#4EC9B0';
+    }
+};
+
 export const renderAttributedTextToHTML = (
     env: GlobalEnv,
     text: Array<AttributedText>,
@@ -68,11 +84,7 @@ export const renderAttributedTextToHTML = (
                 if (!colorMap[item.id] && item.kind === 'sym') {
                     colorMap[item.id] = idColors[colorAt++ % idColors.length];
                 }
-                return `<span style="color:${
-                    item.kind === 'sym'
-                        ? colorMap[item.id] || '#9CDCFE'
-                        : '#4EC9B0'
-                }"${
+                return `<span style="color:${colorForId(item, colorMap)}"${
                     openable(item.id, item.kind)
                         ? ` class="${css({
                               ':hover': {
@@ -119,10 +131,7 @@ export const renderAttributedText = (
             return (
                 <span
                     style={{
-                        color:
-                            item.kind === 'sym'
-                                ? colorMap[item.id] || '#9CDCFE'
-                                : '#4EC9B0',
+                        color: colorForId(item, colorMap),
                         cursor: onClick ? 'pointer' : 'inherit',
                     }}
                     css={

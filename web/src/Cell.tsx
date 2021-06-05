@@ -27,6 +27,7 @@ import {
     ToplevelT,
     toplevelToPretty,
     typeToPretty,
+    typeVblDeclsToPretty,
 } from '@jerd/language/src/printing/printTsLike';
 import {
     atom,
@@ -38,11 +39,8 @@ import {
 import Editor from './Editor';
 import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
-import { getTypeError } from '@jerd/language/src/typing/getTypeError';
-import { void_ } from '@jerd/language/src/typing/preset';
-import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
+import { Cell, Content, Display, EvalEnv, PluginT } from './State';
 import { nullLocation } from '@jerd/language/src/parsing/parser';
-import { RenderResult } from './RenderResult';
 import { getToplevel, updateToplevel } from './toplevels';
 import { RenderItem } from './RenderItem';
 import {
@@ -493,6 +491,35 @@ const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
             return `[raw text, invalid syntax]`;
         case 'effect':
             return `effect ${cell.content.name}`;
+        case 'record': {
+            const type = env.global.types[idName(cell.content.id)];
+            return (
+                <div
+                    style={{
+                        fontFamily: '"Source Code Pro", monospace',
+                        whiteSpace: 'pre-wrap',
+                    }}
+                >
+                    <span css={hashStyle}>#{idName(cell.content.id)}</span>
+                    {renderAttributedText(
+                        env.global,
+                        printToAttributedText(
+                            items([
+                                id(
+                                    cell.content.name,
+                                    idName(cell.content.id),
+                                    'type',
+                                ),
+                                typeVblDeclsToPretty(env, type.typeVbls),
+                            ]),
+                            maxWidth,
+                        ),
+                        // TODO onclick
+                        null,
+                    )}{' '}
+                </div>
+            );
+        }
         case 'term': {
             const term = env.global.terms[idName(cell.content.id)];
             return (

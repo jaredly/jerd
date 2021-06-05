@@ -216,9 +216,7 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
             : null,
         atom('type ', ['keyword']),
         idToPretty(env, id, 'record'),
-        recordDef.typeVbls.length
-            ? typeVblDeclsToPretty(env, recordDef.typeVbls)
-            : null,
+        typeVblDeclsToPretty(env, recordDef.typeVbls),
         atom(' = '),
         block(
             recordDef.extends
@@ -250,9 +248,7 @@ export const enumToPretty = (env: Env, id: Id, enumDef: EnumDef) => {
     return items([
         atom('enum ', ['keyword']),
         idToPretty(env, id, 'enum'),
-        enumDef.typeVbls.length
-            ? typeVblDeclsToPretty(env, enumDef.typeVbls)
-            : null,
+        typeVblDeclsToPretty(env, enumDef.typeVbls),
         atom(' '),
         block(
             enumDef.extends
@@ -274,10 +270,13 @@ const interleave = <T>(items: Array<T>, sep: T) => {
     return res;
 };
 
-const typeVblDeclsToPretty = (
+export const typeVblDeclsToPretty = (
     env: Env | null,
     typeVbls: Array<TypeVblDecl>,
-): PP => {
+): PP | null => {
+    if (!typeVbls.length) {
+        return null;
+    }
     return args(
         typeVbls.map((v) =>
             items([
@@ -317,9 +316,7 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
             return refToPretty(env, type.ref, 'type');
         case 'lambda':
             return items([
-                type.typeVbls.length
-                    ? typeVblDeclsToPretty(env, type.typeVbls)
-                    : null,
+                typeVblDeclsToPretty(env, type.typeVbls),
                 type.effectVbls.length
                     ? args(
                           type.effectVbls.map((n) =>
@@ -399,9 +396,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
         case 'lambda':
             return items([
                 term.tags ? items(term.tags.map((t) => atom(`@${t}`))) : null,
-                term.is.typeVbls.length
-                    ? typeVblDeclsToPretty(env, term.is.typeVbls)
-                    : null,
+                typeVblDeclsToPretty(env, term.is.typeVbls),
                 term.is.effectVbls.length
                     ? args(
                           term.is.effectVbls.map((n) =>
