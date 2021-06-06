@@ -1,6 +1,7 @@
 // Type definitions for state
 
 import { Env, Id, Term, Type } from '@jerd/language/src/typing/types';
+import { Traces } from './eval';
 
 export type Content =
     | { type: 'term'; id: Id; name: string }
@@ -37,4 +38,5 @@ export type EvalEnv = {
     builtins: { [key: string]: any };
     terms: { [hash: string]: any };
     executionLimit: { ticks: number; maxTime: number; enabled: boolean };
+    traceObj: Traces;
 };

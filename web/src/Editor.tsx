@@ -181,34 +181,7 @@ export default ({
             } else {
                 try {
                     setTraces({});
-                    const v = runTerm(
-                        env,
-                        typed.term,
-                        id,
-                        evalEnv,
-                        // Ignoring traces!
-                        (_, __, arg, ...___) => arg,
-                        // (idName, idx, arg, ...others) => {
-                        //     setTraces((traces) => {
-                        //         const current = traces[idName]
-                        //             ? traces[idName].slice()
-                        //             : [];
-                        //         const trace: Trace = {
-                        //             ts: Date.now(),
-                        //             arg,
-                        //             others,
-                        //         };
-                        //         current[idx] = current[idx]
-                        //             ? current[idx].concat(trace)
-                        //             : [trace];
-                        //         return {
-                        //             ...traces,
-                        //             [idName]: current,
-                        //         };
-                        //     });
-                        //     return arg;
-                        // },
-                    )[idName(id)];
+                    const v = runTerm(env, typed.term, id, evalEnv)[idName(id)];
                     evalCache.current[idName(id)] = v;
                     return v;
                 } catch (err) {

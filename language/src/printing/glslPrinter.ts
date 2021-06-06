@@ -466,7 +466,7 @@ export const printRecord = (
 };
 
 export const binops = [
-    'mod',
+    // 'mod',
     'modInt',
     '>',
     '<',
@@ -484,7 +484,8 @@ export const binops = [
 ];
 export const isBinop = (op: string) => binops.includes(op);
 
-const asBinop = (op: string) => (op === 'mod' || op === 'modInt' ? '%' : op);
+// op === 'mod' ||
+const asBinop = (op: string) => (op === 'modInt' ? '%' : op);
 
 export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {

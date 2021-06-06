@@ -1,7 +1,7 @@
 // This is the fake one?
 
 import * as React from 'react';
-import { Env, Term } from '@jerd/language/src/typing/types';
+import { Env, Id, Term } from '@jerd/language/src/typing/types';
 import {
     builtinType,
     int,
@@ -55,19 +55,19 @@ const drawToCanvas = (
     }
 };
 
-const newGLSLEnv = (ctx: CanvasRenderingContext2D): GLSLEnv => ({
+const newGLSLEnv = (canvas: HTMLCanvasElement): GLSLEnv => ({
     type: 'GLSLEnv',
     time: 0,
     resolution: {
         type: 'Vec2',
-        x: ctx.canvas.width,
-        y: ctx.canvas.height,
+        x: canvas.width,
+        y: canvas.height,
     },
     camera: { type: 'Vec3', x: 1.0, y: 0.0, z: 0.0 },
     mouse: {
         type: 'Vec2',
-        x: ctx.canvas.width / 2,
-        y: ctx.canvas.height / 2,
+        x: canvas.width / 2,
+        y: canvas.height / 2,
     },
 });
 
@@ -98,7 +98,7 @@ const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
             }
             const ctx = canvasRef.current.getContext('2d')!;
             if (!env) {
-                env = newGLSLEnv(ctx);
+                env = newGLSLEnv(ctx.canvas);
                 canvasRef.current.addEventListener('mousemove', (evt) => {
                     const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
                     env.mouse.x = evt.clientX - box.left;
@@ -175,12 +175,16 @@ export const envWithTerm = (env: Env, term: Term) => {
 };
 
 const ShaderGLSLBuffers = ({
+    fn,
     term,
     env,
+    evalEnv,
     startPaused,
 }: {
+    fn: OpenGLFn;
     term: Term;
     env: Env;
+    evalEnv: EvalEnv;
     startPaused: boolean;
 }) => {
     const [width, setWidth] = React.useState(200);
@@ -190,6 +194,8 @@ const ShaderGLSLBuffers = ({
     const [restartCount, setRestartCount] = React.useState(0);
     const [paused, setPaused] = React.useState(startPaused);
     const [error, setError] = React.useState(null as any | null);
+
+    const [tracing, setTracing] = React.useState(false);
 
     const shaders = React.useMemo(() => {
         if (term.is.type === 'lambda') {
@@ -217,6 +223,31 @@ const ShaderGLSLBuffers = ({
     const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
     const currentMousePos = React.useRef(mousePos);
     currentMousePos.current = mousePos;
+
+    const traceValue = React.useMemo(() => {
+        if (!tracing || !canvas) {
+            return null;
+        }
+        const hash = hashObject(term);
+        const id: Id = { hash, size: 1, pos: 0 };
+        // const fn = evalEnv.terms[idName(id)];
+        if (typeof fn !== 'function') {
+            console.log('not a function', fn);
+            return null;
+        }
+
+        const glEnv = newGLSLEnv(canvas);
+
+        const old = evalEnv.traceObj.traces;
+        const traces = (evalEnv.traceObj.traces = {});
+        const color = fn(glEnv, {
+            type: 'Vec2',
+            x: mousePos.x,
+            y: mousePos.y,
+        });
+        evalEnv.traceObj.traces = old;
+        return { color, traces };
+    }, [tracing, mousePos, term]);
 
     const updateFn = React.useMemo(() => {
         if (!canvas || !shaders) {
@@ -330,6 +361,11 @@ const ShaderGLSLBuffers = ({
                     }
                 }}
             />
+            {tracing && traceValue ? (
+                <div>{JSON.stringify(traceValue)}</div>
+            ) : (
+                <button onClick={() => setTracing(true)}>Trace</button>
+            )}
         </div>
     );
 };
@@ -356,7 +392,9 @@ const plugins: Plugins = {
         ) => {
             return (
                 <ShaderGLSLBuffers
+                    fn={fn}
                     env={env}
+                    evalEnv={evalEnv}
                     term={term}
                     startPaused={startPaused}
                 />
@@ -380,7 +418,9 @@ const plugins: Plugins = {
         ) => {
             return (
                 <ShaderGLSLBuffers
+                    fn={fn}
                     env={env}
+                    evalEnv={evalEnv}
                     term={term}
                     startPaused={startPaused}
                 />
@@ -404,7 +444,9 @@ const plugins: Plugins = {
             // return <div>Ok folks</div>;
             return (
                 <ShaderGLSLBuffers
+                    fn={fn}
                     env={env}
+                    evalEnv={evalEnv}
                     term={term}
                     startPaused={startPaused}
                 />

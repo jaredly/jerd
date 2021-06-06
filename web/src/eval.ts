@@ -23,6 +23,7 @@ import {
 import { liftEffects } from '@jerd/language/src/printing/pre-ir/lift-effectful';
 import { uniquesReallyAreUnique } from '@jerd/language/src/printing/ir/analyze';
 import { Expr } from '@jerd/language/src/printing/ir/types';
+import { Trace } from './Editor';
 
 export class TimeoutError extends Error {}
 
@@ -81,12 +82,14 @@ export const termToJS = (
     return code;
 };
 
+export type Traces = { traces: null | { [key: string]: Array<Array<Trace>> } };
+
 const runWithExecutionLimit = (
     code: string,
     evalEnv: EvalEnv,
     idName: string,
     executionLimit: { ticks: number; maxTime: number; enabled: boolean },
-    traceFn: TraceFn,
+    traceObj: Traces,
 ): any => {
     const jdScope = {
         ...evalEnv,
@@ -105,7 +108,21 @@ const runWithExecutionLimit = (
                 }
             },
         },
-        trace: traceFn,
+        trace: <T>(hash: string, idx: number, main: T, ...args: Array<any>) => {
+            if (traceObj.traces != null) {
+                if (!traceObj.traces[hash]) {
+                    traceObj.traces[hash] = [];
+                }
+                const trace = { ts: Date.now(), arg: main, others: args };
+                if (traceObj.traces[hash][idx] == null) {
+                    traceObj.traces[hash][idx] = [trace];
+                } else {
+                    traceObj.traces[hash][idx].push(trace);
+                }
+            }
+            traceObj.traces;
+            return main;
+        },
         terms: {
             ...evalEnv.terms,
         },
@@ -130,7 +147,6 @@ export const runTerm = (
     term: Term,
     id: Id,
     evalEnv: EvalEnv,
-    traceFn: TraceFn,
     withExecutionLimit: boolean = true,
 ) => {
     const results: { [key: string]: any } = {};
@@ -173,7 +189,7 @@ export const runTerm = (
                     innerEnv,
                     dep,
                     evalEnv.executionLimit,
-                    traceFn,
+                    evalEnv.traceObj,
                 );
                 results[dep] = result;
                 // console.log('result', dep, result);

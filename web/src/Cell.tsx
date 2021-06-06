@@ -587,7 +587,7 @@ const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
                         printToAttributedText(
                             items([
                                 id(
-                                    cell.content.name,
+                                    cell.content.name || 'unnamed',
                                     idName(cell.content.id),
                                     'term',
                                 ),

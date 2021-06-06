@@ -168,6 +168,7 @@ export default () => {
                 builtins,
                 terms: {},
                 executionLimit: { ticks: 0, maxTime: 0, enabled: false },
+                traceObj: { traces: null },
             });
 
             const result = runTerm(
@@ -175,8 +176,6 @@ export default () => {
                 env.global.terms[mains[0]],
                 main,
                 evalEnv,
-                // Ignoring traces!
-                (_, __, arg, ...___) => arg,
                 false,
             );
             const fn = result[idName(main)];

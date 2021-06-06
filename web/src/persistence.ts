@@ -181,6 +181,7 @@ export const initialState = async (): Promise<State> => {
                     builtins,
                     terms: data.evalEnv.terms,
                     executionLimit: { ticks: 0, maxTime: 0, enabled: false },
+                    traceObj: { traces: null },
                 },
             };
         } catch (err) {
@@ -202,6 +203,7 @@ export const initialState = async (): Promise<State> => {
             builtins,
             terms: {},
             executionLimit: { ticks: 0, maxTime: 0, enabled: false },
+            traceObj: { traces: null },
         },
     };
 };

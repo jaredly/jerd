@@ -188,8 +188,6 @@ export default ({ initial }: { initial: State }) => {
                                         term,
                                         id,
                                         state.evalEnv,
-                                        // Ignoring traces!
-                                        (_, __, arg, ...___) => arg,
                                     );
                                 } catch (err) {
                                     console.log(`Failed to run!`);
