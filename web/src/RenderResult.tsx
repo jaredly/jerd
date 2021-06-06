@@ -78,29 +78,6 @@ export const RenderResult = ({
     onPin: (display: Display, id: Id) => void;
 }) => {
     const hash = idName(id);
-    // const term = env.global.terms[hash];
-
-    // if (term.is.type !== 'lambda' && !evalEnv.terms[hash]) {
-    //     return (
-    //         <button
-    //             css={{
-    //                 cursor: 'pointer',
-    //                 backgroundColor: 'transparent',
-    //                 border: 'none',
-    //                 fontFamily: 'inherit',
-    //                 color: 'inherit',
-    //                 margin: 8,
-    //                 padding: '4px 8px',
-    //                 ':hover': {
-    //                     backgroundColor: 'rgba(100,100,100,0.3)',
-    //                 },
-    //             }}
-    //             onClick={() => onRun(id)}
-    //         >
-    //             Evaluate
-    //         </button>
-    //     );
-    // }
 
     React.useEffect(() => {
         if (evalEnv.terms[hash] == null) {
@@ -111,17 +88,6 @@ export const RenderResult = ({
     if (evalEnv.terms[hash] == null) {
         return <span>Unevaluated</span>;
     }
-
-    // if (collapsed) {
-    //     return (
-    //         <div
-    //             style={{ cursor: 'pointer' }}
-    //             onClick={() => setCollapsed(false)}
-    //         >
-    //             Collapsed
-    //         </div>
-    //     );
-    // }
 
     const renderPlugin = getPlugin(
         plugins,
