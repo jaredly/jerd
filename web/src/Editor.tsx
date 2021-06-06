@@ -109,6 +109,7 @@ export default ({
     evalEnv,
     display,
     plugins,
+    onPin,
     onSetPlugin,
     maxWidth,
 }: {
@@ -118,6 +119,7 @@ export default ({
     contents: ToplevelT | string;
     onClose: () => void;
     onChange: (term: ToplevelT | string) => void;
+    onPin: (display: Display, id: Id) => void;
     evalEnv: EvalEnv;
     display: Display | null | undefined;
     plugins: Plugins;
@@ -295,7 +297,8 @@ export default ({
             </div>
             {renderPlugin != null ? (
                 <RenderPlugin
-                    onPin={null}
+                    // onPin={null}
+                    onPin={() => onPin(display!, getId(typed!))}
                     display={display}
                     plugins={plugins}
                     onSetPlugin={onSetPlugin}
@@ -333,6 +336,16 @@ export default ({
     );
 };
 
+const getId = (typed: ToplevelT): Id => {
+    if (typed.type === 'Expression') {
+        return { hash: hashObject(typed.term), size: 1, pos: 0 };
+    }
+    if (typed.type === 'Define') {
+        return typed.id;
+    }
+    throw new Error(`No id for ${typed.type}`);
+};
+
 const getRenderPlugin = (
     plugins: Plugins,
     env: Env,
@@ -363,7 +376,7 @@ const getRenderPlugin = (
     }
     const err = getTypeError(env, term.is, plugin.type, nullLocation);
     if (err == null) {
-        return () => plugin.render(evaled, evalEnv, env, term);
+        return () => plugin.render(evaled, evalEnv, env, term, false);
     }
 
     return null;

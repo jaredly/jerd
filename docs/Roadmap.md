@@ -1,9 +1,36 @@
 
 ## What do we need in order to make this minimally usable by other people?
 
+START HERE: I'd really like tracing to be able to debug #454b9144.
+
 ### THe Editor more
+- [ ] enable pinning when you're mid-edit! That's key.
+- [ ] maybe pins should be pasued by default? That seems reasonable.
+- [ ] oof I really need a way to propagate changes 😅. like I just found a bug in a term, and want to fix it everywhere...
+- [ ] give me sliders to fiddle with constants, you cowards!
+  - Is this where custom render-widgets for different function calls comes into play? hmmm I think I might be able to do that already, it would be a little trippy though. Like I'm rendering to this contenteditable anyway, what's stopping me? I mean it's a little awkward to be rendering to literally HTML instead of react. hmmm. and also having to write the renderer twice.
 - [ ] pressing enter should auto-indent for you.
 - [ ] let's acually try to reprint-as-you-type. This will require threading through locations to the PPs, so we can do source-mapping to preserve cursor position. Also maybe we'll want a more forgiving parser? idk.
+
+### Full Page Design
+
+I think I need to rethink the design of the page.
+Maybe have the "pinned" pane be the same size as the unpinned pane?
+and ditch the current left column. I don't think it's really doing anything.
+I should think about how observable works
+and jupyter notebooks
+and then look into smalltalk maybe? idk.
+but like, having "the things in focus" and then "the things I'm just transiently looking at" seems good.
+Oooh maybe hovering over a term or type pops it up in the right-hand (non-pin) pane?
+
+hmmm but then I do still like the notion of a "gallery", especially when I'm experimenting.
+TODO link to that blog post -- here it is https://shalabh.com/programmable-systems/offload-mental-simulation.html
+hmm also the HN comments might be good https://news.ycombinator.com/item?id=27330740
+
+huh
+ok I really need to write a blog post or two about what I'm trying to do with jerd.
+
+But yeah, I think my north star right now should be "an IDE where I can tweak things and *hang on to the code* for each "screenshot" that I come up with.
 
 ### Tracing!
 - [x] basic compiler support

@@ -22,7 +22,13 @@ export type PluginT = {
     id: string;
     name: string;
     type: Type;
-    render: (value: any, evalEnv: EvalEnv, env: Env, term: Term) => JSX.Element;
+    render: (
+        value: any,
+        evalEnv: EvalEnv,
+        env: Env,
+        term: Term,
+        startPaused: boolean,
+    ) => JSX.Element;
 };
 export type Plugins = { [id: string]: PluginT };
 export type Display = { type: string; opts: { [key: string]: any } };

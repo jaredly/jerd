@@ -194,23 +194,24 @@ export const RenderResult = ({
             {typeof evalEnv.terms[hash] === 'function'
                 ? null
                 : JSON.stringify(evalEnv.terms[hash], null, 2)}
-            {matching && matching.length ? (
-                <div>
-                    <h4>Available render plugins</h4>
+            {
+                matching && matching.length ? (
+                    <div>
+                        <h4>Available render plugins</h4>
 
-                    {matching.map((k) => (
-                        <button
-                            key={k}
-                            onClick={() => {
-                                onSetPlugin({ type: k, opts: {} });
-                            }}
-                        >
-                            {plugins[k].name}
-                        </button>
-                    ))}
-                </div>
-            ) : null
-            // <div>No matching render plugins</div>
+                        {matching.map((k) => (
+                            <button
+                                key={k}
+                                onClick={() => {
+                                    onSetPlugin({ type: k, opts: {} });
+                                }}
+                            >
+                                {plugins[k].name}
+                            </button>
+                        ))}
+                    </div>
+                ) : null
+                // <div>No matching render plugins</div>
             }
         </div>
     );
@@ -235,7 +236,7 @@ export const getPlugin = (
             const plugin: PluginT = plugins[display.type];
             const err = getTypeError(env, t.is, plugin.type, nullLocation);
             if (err == null) {
-                return () => plugin.render(value, evalEnv, env, t);
+                return () => plugin.render(value, evalEnv, env, t, false);
             }
     }
     return null;

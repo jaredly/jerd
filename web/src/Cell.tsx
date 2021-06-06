@@ -225,6 +225,7 @@ export const CellView = ({
         <Editor
             maxWidth={maxWidth}
             env={env}
+            onPin={onPin}
             plugins={plugins}
             evalEnv={evalEnv}
             display={cell.display}
@@ -294,10 +295,10 @@ export const CellView = ({
             ) {
                 return;
             }
-            evt.preventDefault();
-            evt.stopPropagation();
             console.log('key', evt.key);
             if (evt.key === 'Enter') {
+                evt.preventDefault();
+                evt.stopPropagation();
                 if (evt.shiftKey) {
                     addCell(
                         { type: 'raw', text: '' },

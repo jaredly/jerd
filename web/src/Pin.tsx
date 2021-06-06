@@ -64,6 +64,7 @@ export const Pin = ({
                 evalEnv,
                 env,
                 t,
+                true,
             );
         } else {
             body = <div>Invalid term for plugin. Type mismatch.</div>;

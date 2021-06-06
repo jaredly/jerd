@@ -174,13 +174,21 @@ export const envWithTerm = (env: Env, term: Term) => {
     };
 };
 
-const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
+const ShaderGLSLBuffers = ({
+    term,
+    env,
+    startPaused,
+}: {
+    term: Term;
+    env: Env;
+    startPaused: boolean;
+}) => {
     const [width, setWidth] = React.useState(200);
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
     );
     const [restartCount, setRestartCount] = React.useState(0);
-    const [paused, setPaused] = React.useState(false);
+    const [paused, setPaused] = React.useState(startPaused);
     const [error, setError] = React.useState(null as any | null);
 
     const shaders = React.useMemo(() => {
@@ -339,8 +347,20 @@ const plugins: Plugins = {
         id: 'opengl1',
         name: 'Shader GLSL',
         type: builtinType('Tuple2', [shaderFunction(1), shaderFunction(1)]),
-        render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
-            return <ShaderGLSLBuffers env={env} term={term} />;
+        render: (
+            fn: OpenGLFn,
+            evalEnv: EvalEnv,
+            env: Env,
+            term: Term,
+            startPaused: boolean,
+        ) => {
+            return (
+                <ShaderGLSLBuffers
+                    env={env}
+                    term={term}
+                    startPaused={startPaused}
+                />
+            );
         },
     },
     openglBuffer2: {
@@ -351,8 +371,20 @@ const plugins: Plugins = {
             shaderFunction(2),
             shaderFunction(2),
         ]),
-        render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
-            return <ShaderGLSLBuffers env={env} term={term} />;
+        render: (
+            fn: OpenGLFn,
+            evalEnv: EvalEnv,
+            env: Env,
+            term: Term,
+            startPaused: boolean,
+        ) => {
+            return (
+                <ShaderGLSLBuffers
+                    env={env}
+                    term={term}
+                    startPaused={startPaused}
+                />
+            );
         },
     },
     opengl: {
@@ -362,9 +394,21 @@ const plugins: Plugins = {
             [refType('451d5252'), refType('43802a16')],
             refType('3b941378'),
         ),
-        render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
+        render: (
+            fn: OpenGLFn,
+            evalEnv: EvalEnv,
+            env: Env,
+            term: Term,
+            startPaused: boolean,
+        ) => {
             // return <div>Ok folks</div>;
-            return <ShaderGLSLBuffers env={env} term={term} />;
+            return (
+                <ShaderGLSLBuffers
+                    env={env}
+                    term={term}
+                    startPaused={startPaused}
+                />
+            );
         },
     },
     'opengl-fake': {
