@@ -85,6 +85,20 @@ export const envWithTerm = (env: Env, term: Term) => {
     };
 };
 
+function convertDataURIToBinary(dataURI: string) {
+    var base64 = dataURI.replace(/^data[^,]+,/, '');
+    var raw = window.atob(base64);
+    var rawLength = raw.length;
+
+    var array = new Uint8Array(new ArrayBuffer(rawLength));
+    for (let i = 0; i < rawLength; i++) {
+        array[i] = raw.charCodeAt(i);
+    }
+    return array;
+}
+
+export type PlayState = 'playing' | 'paused' | 'recording';
+
 const ShaderGLSLBuffers = ({
     fn,
     term,
@@ -103,7 +117,9 @@ const ShaderGLSLBuffers = ({
         null as null | HTMLCanvasElement,
     );
     const [restartCount, setRestartCount] = React.useState(0);
-    const [paused, setPaused] = React.useState(startPaused);
+    const [playState, setPlayState] = React.useState(
+        (startPaused ? 'paused' : 'playing') as PlayState,
+    );
     const [error, setError] = React.useState(null as any | null);
 
     const [tracing, setTracing] = React.useState(false);
@@ -130,6 +146,8 @@ const ShaderGLSLBuffers = ({
     }, [term]);
 
     const timer = React.useRef(0);
+
+    const [video, setVideo] = React.useState(null as null | string);
 
     const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
     const currentMousePos = React.useRef(mousePos);
@@ -185,21 +203,98 @@ const ShaderGLSLBuffers = ({
     }, [canvas, shaders, restartCount]);
 
     React.useEffect(() => {
-        if (!updateFn || paused) {
+        if (!updateFn || playState === 'paused') {
             return;
         }
-        let tid: any;
-        let last = Date.now();
-        const fn = () => {
-            const now = Date.now();
-            timer.current += (now - last) / 1000;
-            last = now;
-            updateFn(timer.current, currentMousePos.current);
+        if (playState === 'recording') {
+            // um just go to 2PI? let's try that...
+            // or maybe 4pi, idk
+            // 60fps please I think
+            const ffmpeg = new Worker('./ffmpeg-worker-mp4.js');
+
+            ffmpeg.onmessage = function (e) {
+                var msg = e.data;
+                switch (msg.type) {
+                    case 'stdout':
+                    case 'stderr':
+                        console.log(msg.data);
+                        // messages += msg.data + "\n";
+                        break;
+                    case 'exit':
+                        console.log('Process exited with code ' + msg.data);
+                        //worker.terminate();
+                        break;
+
+                    case 'done':
+                        const blob = new Blob([msg.data.MEMFS[0].data], {
+                            type: 'video/mp4',
+                        });
+                        setVideo(URL.createObjectURL(blob));
+                        break;
+                }
+            };
+
+            const images: Array<{ name: string; data: Uint8Array }> = [];
+
+            let tid: any;
+            let tick = 0;
+            const fn = () => {
+                updateFn(tick / 60, currentMousePos.current);
+
+                const dataUrl = canvas!.toDataURL('image/jpeg');
+                const data = convertDataURIToBinary(dataUrl);
+
+                images.push({
+                    name: `img${tick.toString().padStart(3, '0')}.jpg`,
+                    data,
+                });
+
+                if (tick++ / 60 > Math.PI * 2) {
+                    ffmpeg.postMessage({
+                        type: 'run',
+                        TOTAL_MEMORY: 268435456,
+                        //arguments: 'ffmpeg -framerate 24 -i img%03d.jpeg output.mp4'.split(' '),
+                        arguments: [
+                            '-r',
+                            '60',
+                            '-i',
+                            'img%03d.jpg',
+                            '-c:v',
+                            'libx264',
+                            '-crf',
+                            '18',
+                            // '-vf',
+                            // 'scale=150:150',
+                            '-pix_fmt',
+                            'yuv420p',
+                            '-vb',
+                            '20M',
+                            'out.mp4',
+                        ],
+                        //arguments: '-r 60 -i img%03d.jpeg -c:v libx264 -crf 1 -vf -pix_fmt yuv420p -vb 20M out.mp4'.split(' '),
+                        MEMFS: images,
+                    });
+
+                    return; // done
+                }
+                tid = requestAnimationFrame(fn);
+            };
             tid = requestAnimationFrame(fn);
-        };
-        tid = requestAnimationFrame(fn);
-        return () => cancelAnimationFrame(tid);
-    }, [updateFn, paused, restartCount]);
+            return () => cancelAnimationFrame(tid);
+        } else {
+            let tid: any;
+            let last = Date.now();
+            const fn = () => {
+                const now = Date.now();
+                timer.current += (now - last) / 1000;
+                last = now;
+                updateFn(timer.current, currentMousePos.current);
+                tid = requestAnimationFrame(fn);
+            };
+            tid = requestAnimationFrame(fn);
+            return () => cancelAnimationFrame(tid);
+        }
+    }, [updateFn, playState, restartCount]);
 
     if (error != null) {
         return (
@@ -231,7 +326,9 @@ const ShaderGLSLBuffers = ({
     return (
         <div>
             <canvas
-                onClick={() => setPaused(!paused)}
+                onClick={() =>
+                    setPlayState(playState === 'paused' ? 'playing' : 'paused')
+                }
                 onMouseMove={(evt) => {
                     const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
                     setMousePos({
@@ -256,8 +353,17 @@ const ShaderGLSLBuffers = ({
             <button
                 onClick={() => {
                     timer.current = 0;
-                    if (paused) {
-                        setPaused(false);
+                    setPlayState('recording');
+                    setRestartCount(restartCount + 1);
+                }}
+            >
+                Record 2PI seconds at 60fps
+            </button>
+            <button
+                onClick={() => {
+                    timer.current = 0;
+                    if (playState !== 'playing') {
+                        setPlayState('playing');
                     }
                     setRestartCount(restartCount + 1);
                 }}
@@ -278,6 +384,7 @@ const ShaderGLSLBuffers = ({
             ) : (
                 <button onClick={() => setTracing(true)}>Trace</button>
             )}
+            {video ? <video src={video} controls /> : null}
         </div>
     );
 };
