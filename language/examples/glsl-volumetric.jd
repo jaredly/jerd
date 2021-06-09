@@ -537,9 +537,9 @@ const randFolks = (env: GLSLEnv, fragCoord: Vec2) => {
     // const v = random(small / iResolution) / 10.0 + 0.9;
     const v = random(small / env.resolution) / 10.0 + 0.9;
     // const uCamera = Vec3{x: 0.0, y: -5.0, z: 2.0};
-    phongLit(sceneSDF, env, fragCoord);
-    // const bouey = fishingBoueys(sceneSDF, env.time, fragCoord, env.resolution, env.camera * -1.0);
-    // bouey
+    // phongLit(sceneSDF, env, fragCoord);
+    const bouey = fishingBoueys(sceneSDF, env.time, fragCoord, env.resolution, env.camera * -1.0);
+    bouey
     // const two = Vec4{...blue * v, w: 1.0} + bouey;
     // two / 2.0
 }

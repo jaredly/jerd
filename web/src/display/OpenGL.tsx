@@ -67,7 +67,7 @@ const newGLSLEnv = (canvas: HTMLCanvasElement): GLSLEnv => ({
         x: canvas.width,
         y: canvas.height,
     },
-    camera: { type: 'Vec3', x: 1.0, y: 0.0, z: 0.0 },
+    camera: { type: 'Vec3', x: 0.0, y: 0.0, z: -5.0 },
     mouse: {
         type: 'Vec2',
         x: canvas.width / 2,

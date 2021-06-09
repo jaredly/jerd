@@ -482,8 +482,12 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     right,
                 ]);
             }
+            let inner = termToPretty(env, term.target);
+            if (term.target.type === 'lambda') {
+                inner = items([atom('('), inner, atom(')')]);
+            }
             return items([
-                termToPretty(env, term.target),
+                inner,
                 term.typeVbls.length
                     ? args(
                           term.typeVbls.map((t) => typeToPretty(env, t)),
