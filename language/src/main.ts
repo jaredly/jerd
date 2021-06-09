@@ -517,6 +517,24 @@ if (process.argv[2] === 'go') {
     });
 } else if (process.argv[2] === '--test') {
     runTests();
+} else if (process.argv[2] === 'pretty') {
+    const fnames = process.argv
+        .slice(3)
+        .filter((name) => !name.startsWith('-'));
+    const init = loadInit();
+    const initialEnv = newWithGlobal(init.initialEnv);
+    fnames.forEach((fname) => {
+        // typeToplevelT
+        const raw = fs.readFileSync(fname, 'utf8');
+        const parsed: Array<Toplevel> = parse(raw);
+
+        const { expressions, env } = typeFile(parsed, initialEnv, fname);
+        expressions.forEach((term) => {
+            const text = printToString(termToPretty(env, term), 50);
+            console.log(text);
+        });
+        console.log('ok');
+    });
 } else {
     const fnames = process.argv
         .slice(2)

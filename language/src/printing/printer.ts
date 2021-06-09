@@ -2,9 +2,10 @@
 
 // Doesn't need to be terribly fancy.
 
-export const items = (items: Array<PP | null>): PP => ({
+export const items = (items: Array<PP | null>, breakable = false): PP => ({
     type: 'items',
     items: items.filter((x) => x != null) as Array<PP>,
+    breakable,
 });
 export const args = (
     contents: Array<PP>,
@@ -46,7 +47,7 @@ export type PP =
           right: string;
           trailing: boolean;
       } // surrounded by ()
-    | { type: 'items'; items: Array<PP> };
+    | { type: 'items'; items: Array<PP>; breakable: boolean };
 
 const white = (x: number) => new Array(x).fill(' ').join('');
 
@@ -89,6 +90,7 @@ export const printToStringInner = (
         }
         return pp.text + '#' + pp.id;
     }
+    // Always breaks
     if (pp.type === 'block') {
         let res = '{';
         current.indent += 4;
@@ -109,6 +111,7 @@ export const printToStringInner = (
         res += '}';
         return res;
     }
+    // Sometimes breaks
     if (pp.type === 'args') {
         const full = width(pp);
         // const full = pp.contents.reduce((w, x) => w + width(x), 0)
@@ -156,6 +159,23 @@ export const printToStringInner = (
         return res;
     }
     if (pp.type === 'items') {
+        if (pp.breakable && current.pos + width(pp) > maxWidth) {
+            let res = '';
+            current.indent += 4;
+            pp.items.forEach((item, i) => {
+                if (i > 0) {
+                    current.pos = current.indent;
+                    res += '\n' + white(current.indent);
+                }
+                res += printToStringInner(item, maxWidth, options, current);
+            });
+            current.indent -= 4;
+            // if (res.length > 1) {
+            //     res += '\n' + white(current.indent);
+            //     current.pos = current.indent;
+            // }
+            return res;
+        }
         let res = '';
         pp.items.forEach((item) => {
             res += printToStringInner(item, maxWidth, options, current);
@@ -261,6 +281,30 @@ export const printToAttributedText = (
         return res;
     }
     if (pp.type === 'items') {
+        if (
+            pp.breakable &&
+            pp.items.length &&
+            current.pos + width(pp) > maxWidth
+        ) {
+            const res: Array<AttributedText> = [];
+            pp.items.forEach((item, i) => {
+                if (i > 0) {
+                    current.pos = current.indent;
+                    res.push('\n' + white(current.indent));
+                }
+                res.push(...printToAttributedText(item, maxWidth, current));
+                if (i == 0) {
+                    current.indent += 4;
+                }
+            });
+            current.indent -= 4;
+            // if (res.length > 1) {
+            //     res.push('\n' + white(current.indent));
+            //     current.pos = current.indent;
+            // }
+            return res;
+        }
+
         const res: Array<AttributedText> = [];
         pp.items.forEach((item) => {
             res.push(...printToAttributedText(item, maxWidth, current));

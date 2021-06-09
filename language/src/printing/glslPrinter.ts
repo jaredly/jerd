@@ -240,7 +240,7 @@ export const symToGlsl = (env: Env, opts: OutputOptions, sym: Symbol) => {
     return atom(printSym(env, opts, sym));
 };
 
-const reservedSyms = ['const'];
+const reservedSyms = ['const', 'sample'];
 
 const printSym = (env: Env, opts: OutputOptions, sym: Symbol) =>
     !opts.showAllUniques &&

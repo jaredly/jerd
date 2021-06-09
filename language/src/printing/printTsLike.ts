@@ -472,15 +472,19 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         right = items([atom('('), right, atom(')')]);
                     }
                 }
-                return items([
-                    left,
-                    atom(' '),
-                    isCustomBinOp(env, term.target)
-                        ? showCustomBinOp(env, term.target)
-                        : termToPretty(env, term.target),
-                    atom(' '),
-                    right,
-                ]);
+                return items(
+                    [
+                        items([left, atom(' ')]),
+                        items([
+                            isCustomBinOp(env, term.target)
+                                ? showCustomBinOp(env, term.target)
+                                : termToPretty(env, term.target),
+                            atom(' '),
+                            right,
+                        ]),
+                    ],
+                    true,
+                );
             }
             let inner = termToPretty(env, term.target);
             if (term.target.type === 'lambda') {

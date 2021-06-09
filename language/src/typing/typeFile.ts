@@ -12,6 +12,7 @@ import {
     typeEnumDefn,
     typeEffect,
     idName,
+    typeToplevelT,
 } from '../typing/env';
 
 import { presetEnv } from '../typing/preset';
