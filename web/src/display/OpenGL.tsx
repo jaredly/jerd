@@ -1,4 +1,6 @@
 // This is the fake one?
+/* @jsx jsx */
+import { css, jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { Env, Id, Term } from '@jerd/language/src/typing/types';
@@ -10,15 +12,8 @@ import {
 } from '@jerd/language/src/typing/preset';
 import { EvalEnv, Plugins } from '../State';
 import { hashObject, idName } from '@jerd/language/src/typing/env';
-import { wrapWithExecutaionLimit } from './Drawable';
-import {
-    generateShader,
-    generateSingleShader,
-} from '@jerd/language/src/printing/glslPrinter';
+import { generateSingleShader } from '@jerd/language/src/printing/glslPrinter';
 import { setup } from '../setupGLSL';
-import { Traces } from '../eval';
-import { Trace } from '../Editor';
-import { hashStyle } from '../Cell';
 import { ShaderCPU } from './ShaderCPU';
 import { ShowTrace } from './ShowTrace';
 
@@ -50,6 +45,36 @@ export const newGLSLEnv = (canvas: HTMLCanvasElement): GLSLEnv => ({
         y: canvas.height / 2,
     },
 });
+
+const IconButton = ({
+    icon,
+    onClick,
+    selected,
+}: {
+    icon: string;
+    onClick: () => void;
+    selected: boolean;
+}) => {
+    return (
+        <button
+            onClick={onClick}
+            css={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                padding: 0,
+                margin: 0,
+                cursor: 'pointer',
+                transition: '.2s ease color',
+                ':hover': {
+                    color: '#777',
+                },
+                ...(selected ? { color: 'white' } : undefined),
+            }}
+        >
+            <span className="material-icons">{icon}</span>
+        </button>
+    );
+};
 
 export const compileGLSL = (
     term: Term,
@@ -98,6 +123,18 @@ function convertDataURIToBinary(dataURI: string) {
 }
 
 export type PlayState = 'playing' | 'paused' | 'recording' | 'transcoding';
+
+const hover = css({
+    opacity: 0,
+    // backgroundColor: 'white',
+    transition: '.3s ease opacity',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    display: 'flex',
+    justifyContent: 'center',
+});
 
 const ShaderGLSLBuffers = ({
     fn,
@@ -340,31 +377,71 @@ const ShaderGLSLBuffers = ({
 
     return (
         <div>
-            <canvas
-                onClick={() =>
-                    setPlayState(playState === 'paused' ? 'playing' : 'paused')
-                }
-                onMouseMove={(evt) => {
-                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
-                    setMousePos({
-                        x: (evt.clientX - box.left) * 2,
-                        y: (box.height - (evt.clientY - box.top)) * 2,
-                        button: evt.button != null ? evt.button : -1,
-                    });
+            <div
+                css={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    [`:hover .hover`]: {
+                        opacity: 1.0,
+                    },
                 }}
-                ref={(node) => {
-                    if (node && !canvas) {
-                        setCanvas(node);
-                    }
-                }}
-                style={{
-                    width: width,
-                    height: width,
-                }}
-                // Double size for retina
-                width={width * 2 + ''}
-                height={width * 2 + ''}
-            />
+            >
+                <canvas
+                    onMouseMove={(evt) => {
+                        const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
+                        setMousePos({
+                            x: (evt.clientX - box.left) * 2,
+                            y: (box.height - (evt.clientY - box.top)) * 2,
+                            button: evt.button != null ? evt.button : -1,
+                        });
+                    }}
+                    ref={(node) => {
+                        if (node && !canvas) {
+                            setCanvas(node);
+                        }
+                    }}
+                    style={{
+                        width: width,
+                        height: width,
+                    }}
+                    // Double size for retina
+                    width={width * 2 + ''}
+                    height={width * 2 + ''}
+                />
+                <div css={hover} className="hover">
+                    <IconButton
+                        icon="play_arrow"
+                        selected={playState === 'playing'}
+                        onClick={() => {
+                            if (playState !== 'playing') {
+                                setPlayState('playing');
+                            }
+                        }}
+                    />
+                    <IconButton
+                        icon="pause"
+                        selected={playState === 'paused'}
+                        onClick={() => {
+                            if (playState !== 'paused') {
+                                setPlayState('paused');
+                            }
+                        }}
+                    />
+                    <IconButton
+                        icon="replay"
+                        selected={false}
+                        onClick={() => {
+                            timer.current = 0;
+                            if (playState !== 'playing') {
+                                setPlayState('playing');
+                            }
+                            setRestartCount(restartCount + 1);
+                        }}
+                    />
+                    <IconButton icon="circle" />
+                    <IconButton icon="settings" />
+                </div>
+            </div>
             <button
                 onClick={() => {
                     timer.current = 0;
@@ -373,17 +450,6 @@ const ShaderGLSLBuffers = ({
                 }}
             >
                 Record 2PI seconds at 60fps
-            </button>
-            <button
-                onClick={() => {
-                    timer.current = 0;
-                    if (playState !== 'playing') {
-                        setPlayState('playing');
-                    }
-                    setRestartCount(restartCount + 1);
-                }}
-            >
-                Restart
             </button>
             Width:
             <input

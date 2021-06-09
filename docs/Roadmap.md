@@ -3,6 +3,7 @@
 
 ### OpenGL Bonanza
 - [ ] make a play / stop / restart / record hover overlay dealio. With a cog that opens config for the recording.
+  - oh maybe a time slider too? If we establish what the periodicity of the thing is.
 - [ ] fix the bug I'm seeing when trying to multisample.
 
 - [x] I'd really like tracing to be able to debug #454b9144.

@@ -524,7 +524,6 @@ if (process.argv[2] === 'go') {
     const init = loadInit();
     const initialEnv = newWithGlobal(init.initialEnv);
     fnames.forEach((fname) => {
-        // typeToplevelT
         const raw = fs.readFileSync(fname, 'utf8');
         const parsed: Array<Toplevel> = parse(raw);
 
