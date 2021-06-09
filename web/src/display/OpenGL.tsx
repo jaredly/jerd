@@ -157,6 +157,7 @@ const ShaderGLSLBuffers = ({
     const [playState, setPlayState] = React.useState(
         (startPaused ? 'paused' : 'playing') as PlayState,
     );
+    const [showSettings, toggleSettings] = React.useState(false);
     const [error, setError] = React.useState(null as any | null);
 
     const [tracing, setTracing] = React.useState(false);
@@ -438,44 +439,55 @@ const ShaderGLSLBuffers = ({
                             setRestartCount(restartCount + 1);
                         }}
                     />
-                    <IconButton icon="circle" />
-                    <IconButton icon="settings" />
+                    <IconButton
+                        icon="circle"
+                        onClick={() => {
+                            timer.current = 0;
+                            setPlayState('recording');
+                            setRestartCount(restartCount + 1);
+                        }}
+                        selected={playState === 'recording'}
+                    />
+                    <IconButton
+                        icon="settings"
+                        onClick={() => toggleSettings(!showSettings)}
+                        selected={showSettings}
+                    />
                 </div>
             </div>
-            <button
-                onClick={() => {
-                    timer.current = 0;
-                    setPlayState('recording');
-                    setRestartCount(restartCount + 1);
-                }}
-            >
-                Record 2PI seconds at 60fps
-            </button>
-            Width:
-            <input
-                value={width + ''}
-                onChange={(evt) => {
-                    const value = +evt.target.value;
-                    if (!isNaN(value)) {
-                        setWidth(value);
-                    }
-                }}
-            />
-            {tracing && traceValue ? (
-                <ShowTrace trace={traceValue} env={env} pos={mousePos} />
-            ) : (
-                <button onClick={() => setTracing(true)}>Trace</button>
-            )}
-            Recording length (frames):
-            <input
-                value={recordingLength.toString()}
-                onChange={(evt) => {
-                    const value = parseInt(evt.target.value);
-                    if (!isNaN(value)) {
-                        setRecordingLength(value);
-                    }
-                }}
-            />
+            {showSettings ? (
+                <div>
+                    Width:
+                    <input
+                        value={width + ''}
+                        onChange={(evt) => {
+                            const value = +evt.target.value;
+                            if (!isNaN(value)) {
+                                setWidth(value);
+                            }
+                        }}
+                    />
+                    {tracing && traceValue ? (
+                        <ShowTrace
+                            trace={traceValue}
+                            env={env}
+                            pos={mousePos}
+                        />
+                    ) : (
+                        <button onClick={() => setTracing(true)}>Trace</button>
+                    )}
+                    Recording length (frames):
+                    <input
+                        value={recordingLength.toString()}
+                        onChange={(evt) => {
+                            const value = parseInt(evt.target.value);
+                            if (!isNaN(value)) {
+                                setRecordingLength(value);
+                            }
+                        }}
+                    />
+                </div>
+            ) : null}
             {transcodingProgress > 0
                 ? `Transcoding: ${(transcodingProgress * 100).toFixed(2)}%`
                 : null}
