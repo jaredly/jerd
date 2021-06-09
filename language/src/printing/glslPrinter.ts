@@ -343,6 +343,9 @@ export const stmtToGlsl = (
         case 'Return':
             return items([atom('return '), termToGlsl(env, opts, stmt.value)]);
         case 'Define':
+            if (env.local.localNames[stmt.sym.name] == null) {
+                env.local.localNames[stmt.sym.name] = stmt.sym.unique;
+            }
             if (!stmt.value) {
                 return items([
                     typeToGlsl(env, opts, stmt.is),
@@ -569,6 +572,11 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 atom(']'),
             ]);
         case 'lambda':
+            expr.args.forEach((arg) => {
+                if (env.local.localNames[arg.sym.name] == null) {
+                    env.local.localNames[arg.sym.name] = arg.sym.unique;
+                }
+            });
             return items([
                 atom('lambda-woops'),
                 args(expr.args.map((arg) => symToGlsl(env, opts, arg.sym))),
@@ -1014,6 +1022,8 @@ export const shaderAllButMains = (
             : env;
         items.push(
             declarationToGlsl(
+                // Empty out the localNames
+                // { ...senv, local: { ...senv.local, localNames: {} } },
                 senv,
                 opts,
                 name,

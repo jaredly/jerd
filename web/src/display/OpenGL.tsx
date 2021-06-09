@@ -63,7 +63,7 @@ export const compileGLSL = (
             : { hash: hashObject(term), size: 1, pos: 0 };
     return generateSingleShader(
         env,
-        { includeCanonicalNames: true, showAllUniques: true },
+        { includeCanonicalNames: true, showAllUniques: false },
         {},
         termId,
         buffers,
