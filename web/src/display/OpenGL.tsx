@@ -97,7 +97,7 @@ function convertDataURIToBinary(dataURI: string) {
     return array;
 }
 
-export type PlayState = 'playing' | 'paused' | 'recording';
+export type PlayState = 'playing' | 'paused' | 'recording' | 'transcoding';
 
 const ShaderGLSLBuffers = ({
     fn,
@@ -123,6 +123,10 @@ const ShaderGLSLBuffers = ({
     const [error, setError] = React.useState(null as any | null);
 
     const [tracing, setTracing] = React.useState(false);
+    const [transcodingProgress, setTranscodingProgress] = React.useState(0.0);
+    const [recordingLength, setRecordingLength] = React.useState(
+        Math.ceil(2 * Math.PI * 60),
+    );
 
     const shaders = React.useMemo(() => {
         if (term.is.type === 'lambda') {
@@ -203,7 +207,11 @@ const ShaderGLSLBuffers = ({
     }, [canvas, shaders, restartCount]);
 
     React.useEffect(() => {
-        if (!updateFn || playState === 'paused') {
+        if (
+            !updateFn ||
+            playState === 'paused' ||
+            playState === 'transcoding'
+        ) {
             return;
         }
         if (playState === 'recording') {
@@ -212,11 +220,20 @@ const ShaderGLSLBuffers = ({
             // 60fps please I think
             const ffmpeg = new Worker('./ffmpeg-worker-mp4.js');
 
+            // const totalSeconds = Math.PI * 4;
+
             ffmpeg.onmessage = function (e) {
                 var msg = e.data;
                 switch (msg.type) {
                     case 'stdout':
                     case 'stderr':
+                        if (msg.data.startsWith('frame=')) {
+                            const frame = +(msg.data as string)
+                                .slice('frame='.length)
+                                .trimStart()
+                                .split(' ')[0];
+                            setTranscodingProgress(frame / recordingLength);
+                        }
                         console.log(msg.data);
                         // messages += msg.data + "\n";
                         break;
@@ -249,7 +266,7 @@ const ShaderGLSLBuffers = ({
                     data,
                 });
 
-                if (tick++ / 60 > Math.PI * 2) {
+                if (tick++ > recordingLength) {
                     ffmpeg.postMessage({
                         type: 'run',
                         TOTAL_MEMORY: 268435456,
@@ -263,17 +280,15 @@ const ShaderGLSLBuffers = ({
                             'libx264',
                             '-crf',
                             '18',
-                            // '-vf',
-                            // 'scale=150:150',
                             '-pix_fmt',
                             'yuv420p',
                             '-vb',
                             '20M',
                             'out.mp4',
                         ],
-                        //arguments: '-r 60 -i img%03d.jpeg -c:v libx264 -crf 1 -vf -pix_fmt yuv420p -vb 20M out.mp4'.split(' '),
                         MEMFS: images,
                     });
+                    setPlayState('transcoding');
 
                     return; // done
                 }
@@ -370,6 +385,7 @@ const ShaderGLSLBuffers = ({
             >
                 Restart
             </button>
+            Width:
             <input
                 value={width + ''}
                 onChange={(evt) => {
@@ -384,7 +400,20 @@ const ShaderGLSLBuffers = ({
             ) : (
                 <button onClick={() => setTracing(true)}>Trace</button>
             )}
-            {video ? <video src={video} controls /> : null}
+            Recording length (frames):
+            <input
+                value={recordingLength.toString()}
+                onChange={(evt) => {
+                    const value = parseInt(evt.target.value);
+                    if (!isNaN(value)) {
+                        setRecordingLength(value);
+                    }
+                }}
+            />
+            {transcodingProgress > 0
+                ? `Transcoding: ${(transcodingProgress * 100).toFixed(2)}%`
+                : null}
+            {video ? <video src={video} loop controls /> : null}
         </div>
     );
 };
