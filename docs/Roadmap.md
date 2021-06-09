@@ -1,11 +1,17 @@
 
 ## What do we need in order to make this minimally usable by other people?
 
-START HERE: I'd really like tracing to be able to debug #454b9144.
+- [x] I'd really like tracing to be able to debug #454b9144.
+- [ ] right-click on a variable declaration & "make this a function argument" would be very nice, and so easy.
+
+### Default Parameters
+- [ ] is this as ~simple as generating several functions with the same name, and having some take fewer arguments? hmm it would be good to have them "joined" somehow more than just sharing a name, so that if you decide to provide another argument, the editor knows exactly which function to pick.
+  - could it be a macro or something?
 
 ### THe Editor more
-- [ ] enable pinning when you're mid-edit! That's key.
-- [ ] maybe pins should be pasued by default? That seems reasonable.
+- [0] enable pinning when you're mid-edit! That's key.
+  - [ ] oh I need to add something to the env in that case it looks like.
+- [x] maybe pins should be pasued by default? That seems reasonable.
 - [ ] oof I really need a way to propagate changes 😅. like I just found a bug in a term, and want to fix it everywhere...
 - [ ] give me sliders to fiddle with constants, you cowards!
   - Is this where custom render-widgets for different function calls comes into play? hmmm I think I might be able to do that already, it would be a little trippy though. Like I'm rendering to this contenteditable anyway, what's stopping me? I mean it's a little awkward to be rendering to literally HTML instead of react. hmmm. and also having to write the renderer twice.
