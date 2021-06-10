@@ -61,17 +61,28 @@ const IconButton = ({
             css={{
                 backgroundColor: 'transparent',
                 border: 'none',
-                padding: 0,
+                padding: 4,
                 margin: 0,
                 cursor: 'pointer',
                 transition: '.2s ease color',
+                fontSize: '80%',
+                color: '#2a5e7d',
                 ':hover': {
-                    color: '#777',
+                    color: '#9edbff',
                 },
-                ...(selected ? { color: 'white' } : undefined),
+                ...(selected ? { color: '#24aeff' } : undefined),
             }}
         >
-            <span className="material-icons">{icon}</span>
+            <span
+                className="material-icons"
+                css={{
+                    // textShadow: '1px 1px 0px #aaa',
+                    fontSize: 20,
+                    pointerEvents: 'visible',
+                }}
+            >
+                {icon}
+            </span>
         </button>
     );
 };
@@ -126,7 +137,8 @@ export type PlayState = 'playing' | 'paused' | 'recording' | 'transcoding';
 
 const hover = css({
     opacity: 0,
-    // backgroundColor: 'white',
+    // backgroundColor: 'rgba(50, 50, 50, 0.1)',
+    paddingTop: 2,
     transition: '.3s ease opacity',
     position: 'absolute',
     bottom: 0,
@@ -134,6 +146,7 @@ const hover = css({
     right: 0,
     display: 'flex',
     justifyContent: 'center',
+    pointerEvents: 'none',
 });
 
 const ShaderGLSLBuffers = ({
