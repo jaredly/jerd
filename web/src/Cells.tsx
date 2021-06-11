@@ -4,7 +4,7 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { idFromName, idName } from '@jerd/language/src/typing/env';
-import { CellView } from './Cell';
+import { CellView, MovePosition } from './Cell';
 import { Cell, Content, Plugins } from './State';
 import { runTerm } from './eval';
 import { State, Workspace } from './App';
@@ -169,6 +169,8 @@ const Cells = ({
         return () => window.removeEventListener('resize', fn);
     }, [tester.current, container.current]);
 
+    const sortedCellIds = Object.keys(work.cells).sort(sortCells(work.cells));
+
     return (
         <div
             style={{
@@ -206,179 +208,150 @@ const Cells = ({
                 >
                     M
                 </span>
-                {Object.keys(work.cells)
-                    .sort(sortCells(work.cells))
-                    .map((id) => (
-                        <CellView
-                            key={id}
-                            focused={
-                                focus && focus.id == id ? focus.tick : null
-                            }
-                            onFocus={() =>
-                                !focus || focus.id !== id
-                                    ? setFocus({ id, tick: 0 })
-                                    : null
-                            }
-                            maxWidth={maxWidth}
-                            env={state.env}
-                            cell={work.cells[id]}
-                            evalEnv={state.evalEnv}
-                            plugins={plugins}
-                            onPin={(display, id) => {
-                                setState(
-                                    modActiveWorkspace((workspace) => ({
-                                        ...workspace,
-                                        pins: workspace.pins.concat([
-                                            { display, id },
-                                        ]),
-                                    })),
-                                );
-                            }}
-                            onRemove={() => {
-                                setState(
-                                    modActiveWorkspace((work) => {
-                                        const cells = { ...work.cells };
-                                        delete cells[id];
-                                        return { ...work, cells };
-                                    }),
-                                );
-                            }}
-                            onRun={(id) => {
-                                // console.log(
-                                //     'Running',
-                                //     id,
-                                //     state.env,
-                                //     state.evalEnv,
-                                // );
-                                let results: { [key: string]: any };
-                                try {
-                                    const term =
-                                        state.env.global.terms[idName(id)];
-                                    if (!term) {
-                                        throw new Error(
-                                            `No term ${idName(id)}`,
-                                        );
-                                    }
-
-                                    results = runTerm(
-                                        state.env,
-                                        term,
-                                        id,
-                                        state.evalEnv,
-                                    );
-                                } catch (err) {
-                                    console.log(`Failed to run!`);
-                                    console.log(err);
-                                    return;
+                {sortedCellIds.map((id) => (
+                    <CellView
+                        key={id}
+                        focused={focus && focus.id == id ? focus.tick : null}
+                        onFocus={() =>
+                            !focus || focus.id !== id
+                                ? setFocus({ id, tick: 0 })
+                                : null
+                        }
+                        maxWidth={maxWidth}
+                        env={state.env}
+                        cell={work.cells[id]}
+                        evalEnv={state.evalEnv}
+                        plugins={plugins}
+                        onPin={(display, id) => {
+                            setState(
+                                modActiveWorkspace((workspace) => ({
+                                    ...workspace,
+                                    pins: workspace.pins.concat([
+                                        { display, id },
+                                    ]),
+                                })),
+                            );
+                        }}
+                        onRemove={() => {
+                            setState(
+                                modActiveWorkspace((work) => {
+                                    const cells = { ...work.cells };
+                                    delete cells[id];
+                                    return { ...work, cells };
+                                }),
+                            );
+                        }}
+                        onRun={(id) => {
+                            // console.log(
+                            //     'Running',
+                            //     id,
+                            //     state.env,
+                            //     state.evalEnv,
+                            // );
+                            let results: { [key: string]: any };
+                            try {
+                                const term = state.env.global.terms[idName(id)];
+                                if (!term) {
+                                    throw new Error(`No term ${idName(id)}`);
                                 }
-                                setState((state) => ({
-                                    ...state,
-                                    evalEnv: {
-                                        ...state.evalEnv,
-                                        terms: {
-                                            ...state.evalEnv.terms,
-                                            ...results,
-                                        },
+
+                                results = runTerm(
+                                    state.env,
+                                    term,
+                                    id,
+                                    state.evalEnv,
+                                );
+                            } catch (err) {
+                                console.log(`Failed to run!`);
+                                console.log(err);
+                                return;
+                            }
+                            setState((state) => ({
+                                ...state,
+                                evalEnv: {
+                                    ...state.evalEnv,
+                                    terms: {
+                                        ...state.evalEnv.terms,
+                                        ...results,
                                     },
-                                }));
-                            }}
-                            addCell={(content, position: Position) => {
-                                const work = activeWorkspace(state);
-                                const matching = Object.keys(
-                                    work.cells,
-                                ).find((id) =>
-                                    contentMatches(
-                                        content,
-                                        work.cells[id].content,
-                                    ),
-                                );
-                                if (matching) {
-                                    if (focus && focus.id == matching) {
-                                        setFocus({
-                                            id: matching,
-                                            tick: focus.tick + 1,
-                                        });
-                                    } else {
-                                        setFocus({ id: matching, tick: 0 });
-                                    }
-                                    return;
+                                },
+                            }));
+                        }}
+                        addCell={(content, position: Position) => {
+                            const work = activeWorkspace(state);
+                            const matching = Object.keys(
+                                work.cells,
+                            ).find((id) =>
+                                contentMatches(content, work.cells[id].content),
+                            );
+                            if (matching) {
+                                if (focus && focus.id == matching) {
+                                    setFocus({
+                                        id: matching,
+                                        tick: focus.tick + 1,
+                                    });
+                                } else {
+                                    setFocus({ id: matching, tick: 0 });
                                 }
-                                const id = genId();
-                                setState(
-                                    modActiveWorkspace(
-                                        addCell(
-                                            { ...blankCell, id, content },
-                                            position,
-                                        ),
+                                return;
+                            }
+                            const id = genId();
+                            setState(
+                                modActiveWorkspace(
+                                    addCell(
+                                        { ...blankCell, id, content },
+                                        position,
                                     ),
-                                );
-                                setFocus({ id, tick: 0 });
-                            }}
-                            onChange={(env, cell) => {
-                                console.log('Change', cell);
-                                setState((state) => {
-                                    const w =
-                                        state.workspaces[state.activeWorkspace];
-                                    if (
-                                        cell.content ===
-                                        w.cells[cell.id].content
-                                    ) {
-                                        return modActiveWorkspace(
-                                            (workspace) => ({
-                                                ...workspace,
-                                                cells: {
-                                                    ...workspace.cells,
-                                                    [cell.id]: cell,
-                                                },
-                                            }),
-                                        )({ ...state, env });
-                                    }
-                                    if (
-                                        cell.content.type === 'expr' ||
-                                        cell.content.type === 'term'
-                                    ) {
-                                        const id = cell.content.id;
-                                        let results: any;
-                                        try {
-                                            const term =
-                                                env.global.terms[idName(id)];
-                                            if (!term) {
-                                                throw new Error(
-                                                    `No term ${idName(id)}`,
-                                                );
-                                            }
-
-                                            results = runTerm(
-                                                env,
-                                                term,
-                                                id,
-                                                state.evalEnv,
-                                            );
-                                        } catch (err) {
-                                            console.log(`Failed to run!`);
-                                            console.log(err);
-                                            return state;
-                                        }
-                                        return modActiveWorkspace(
-                                            (workspace) => ({
-                                                ...workspace,
-                                                cells: {
-                                                    ...workspace.cells,
-                                                    [cell.id]: cell,
-                                                },
-                                            }),
-                                        )({
-                                            ...state,
-                                            env,
-                                            evalEnv: {
-                                                ...state.evalEnv,
-                                                terms: {
-                                                    ...state.evalEnv.terms,
-                                                    ...results,
-                                                },
+                                ),
+                            );
+                            setFocus({ id, tick: 0 });
+                        }}
+                        onMove={(position: MovePosition) => {
+                            if (typeof position !== 'string') {
+                                return;
+                            }
+                            const idx = sortedCellIds.indexOf(id);
+                            if (idx === 0 && position === 'up') {
+                                return;
+                            }
+                            if (
+                                idx === sortedCellIds.length - 1 &&
+                                position === 'down'
+                            ) {
+                                return;
+                            }
+                            const pos: Position =
+                                position === 'up'
+                                    ? {
+                                          type: 'before',
+                                          id: sortedCellIds[idx - 1],
+                                      }
+                                    : {
+                                          type: 'after',
+                                          id: sortedCellIds[idx + 1],
+                                      };
+                            setState(
+                                modActiveWorkspace((w: Workspace) => {
+                                    const order = calculateOrder(w.cells, pos);
+                                    return {
+                                        ...w,
+                                        cells: {
+                                            ...w.cells,
+                                            [id]: {
+                                                ...w.cells[id],
+                                                order,
                                             },
-                                        });
-                                    }
+                                        },
+                                    };
+                                }),
+                            );
+                        }}
+                        onChange={(env, cell) => {
+                            console.log('Change', cell);
+                            setState((state) => {
+                                const w =
+                                    state.workspaces[state.activeWorkspace];
+                                if (cell.content === w.cells[cell.id].content) {
                                     return modActiveWorkspace((workspace) => ({
                                         ...workspace,
                                         cells: {
@@ -386,10 +359,62 @@ const Cells = ({
                                             [cell.id]: cell,
                                         },
                                     }))({ ...state, env });
-                                });
-                            }}
-                        />
-                    ))}
+                                }
+                                if (
+                                    cell.content.type === 'expr' ||
+                                    cell.content.type === 'term'
+                                ) {
+                                    const id = cell.content.id;
+                                    let results: any;
+                                    try {
+                                        const term =
+                                            env.global.terms[idName(id)];
+                                        if (!term) {
+                                            throw new Error(
+                                                `No term ${idName(id)}`,
+                                            );
+                                        }
+
+                                        results = runTerm(
+                                            env,
+                                            term,
+                                            id,
+                                            state.evalEnv,
+                                        );
+                                    } catch (err) {
+                                        console.log(`Failed to run!`);
+                                        console.log(err);
+                                        return state;
+                                    }
+                                    return modActiveWorkspace((workspace) => ({
+                                        ...workspace,
+                                        cells: {
+                                            ...workspace.cells,
+                                            [cell.id]: cell,
+                                        },
+                                    }))({
+                                        ...state,
+                                        env,
+                                        evalEnv: {
+                                            ...state.evalEnv,
+                                            terms: {
+                                                ...state.evalEnv.terms,
+                                                ...results,
+                                            },
+                                        },
+                                    });
+                                }
+                                return modActiveWorkspace((workspace) => ({
+                                    ...workspace,
+                                    cells: {
+                                        ...workspace.cells,
+                                        [cell.id]: cell,
+                                    },
+                                }))({ ...state, env });
+                            });
+                        }}
+                    />
+                ))}
                 <button
                     css={{
                         width: '200px',

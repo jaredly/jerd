@@ -52,6 +52,8 @@ import { Position } from './Cells';
 
 // const maxWidth = 80;
 
+export type MovePosition = 'up' | 'down' | { type: 'workspace'; idx: number };
+
 export type CellProps = {
     maxWidth: number;
     cell: Cell;
@@ -61,6 +63,7 @@ export type CellProps = {
     onChange: (env: Env, cell: Cell) => void;
     onRun: (id: Id) => void;
     onRemove: () => void;
+    onMove: (position: MovePosition) => void;
     evalEnv: EvalEnv;
     addCell: (content: Content, position: Position) => void;
     plugins: { [id: string]: PluginT };
@@ -216,6 +219,7 @@ export const CellView = ({
     evalEnv,
     addCell,
     onPin,
+    onMove,
     plugins,
 }: CellProps) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
@@ -324,6 +328,9 @@ export const CellView = ({
             menuItems={() => {
                 return [
                     { name: 'Delete cell', action: onRemove },
+                    { name: 'Move up', action: () => onMove('up') },
+                    { name: 'Move down', action: () => onMove('down') },
+                    { name: 'Move to workspace', action: () => {} },
                     term
                         ? showSource
                             ? {
