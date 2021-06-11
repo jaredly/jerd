@@ -4,7 +4,7 @@ import { Handlers } from "./prelude.mjs";
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -15,7 +15,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int#builtin>{"=="#553b4b8e#0: intEq#builtin}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -25,11 +25,11 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const rec fib#ac346fbc = (prev#:0: int, cur#:1: int, n#:2: int): int ={}> if n#:2 
+const rec fib#ac346fbc = (prev#:0: int#builtin, cur#:1: int#builtin, n#:2: int#builtin): int#builtin ={}> if n#:2 
     ==#9275f914#553b4b8e#0 0 {
     prev#:0;
 } else {
-    ac346fbc#self(cur#:1, prev#:0 + cur#:1, n#:2 - 1);
+    ac346fbc#self(cur#:1, prev#:0 +#builtin cur#:1, n#:2 -#builtin 1);
 }
 ```
 */
@@ -49,9 +49,9 @@ export const hash_ac346fbc: (arg_0: number, arg_1: number, arg_2: number) => num
 
 /**
 ```
-const z#ce5d9b4c = (n#:0: int): int ={}> {
-    const m#:1 = n#:0 + 2;
-    m#:1 - 1;
+const z#ce5d9b4c = (n#:0: int#builtin): int#builtin ={}> {
+    const m#:1 = n#:0 +#builtin 2;
+    m#:1 -#builtin 1;
 }
 ```
 */

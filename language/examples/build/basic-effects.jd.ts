@@ -7,7 +7,7 @@ type handle6ddb76fe = [(arg_0: number, arg_1: string, arg_2: (arg_0: handle6ddb7
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -18,7 +18,9 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const log#eccbfbca = (k#:0: string): void ={Log#35f4b478}> raise!(Log#35f4b478.log(k#:0))
+const log#eccbfbca = (k#:0: string#builtin): void#builtin ={Log#35f4b478}> raise!(
+    Log#35f4b478.log(k#:0),
+)
 ```
 */
 export const hash_eccbfbca:
@@ -29,7 +31,7 @@ export const hash_eccbfbca:
 
 /**
 ```
-const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string#builtin>{"=="#553b4b8e#0: stringEq#builtin}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({
@@ -39,8 +41,8 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 
 /**
 ```
-const farther#dd523212 = (name#:0: string): string ={Stdio#1da337a2, Log#35f4b478}> {
-    log#eccbfbca(k: "yes please " ++ name#:0);
+const farther#dd523212 = (name#:0: string#builtin): string#builtin ={Stdio#1da337a2, Log#35f4b478}> {
+    log#eccbfbca(k: "yes please " ++#builtin name#:0);
     raise!(Stdio#1da337a2.read());
 }
 ```
@@ -55,12 +57,14 @@ export const hash_dd523212:
 
 /**
 ```
-const rec handleMulti#fadf30b0 = (f#:0: () ={MultiArg#6ddb76fe}> string): string ={}> {
+const rec handleMulti#fadf30b0 = (f#:0: () ={MultiArg#6ddb76fe}> string#builtin): string#builtin ={}> {
     handle! f#:0 {
         MultiArg.putTwo#0((num#:2, text#:3) => k#:4) => fadf30b0#self(
-            (): string ={MultiArg#6ddb76fe}> k#:4(intToString(num#:2) ++ ":" ++ text#:3),
+            (): string#builtin ={MultiArg#6ddb76fe}> k#:4(
+                intToString#builtin(num#:2) ++#builtin ":" ++#builtin text#:3,
+            ),
         ),
-        pure(v#:1) => v#:1 ++ ":ok",
+        pure(v#:1) => v#:1 ++#builtin ":ok",
     };
 }
 ```
@@ -85,9 +89,9 @@ export const hash_fadf30b0: (arg_0:
 
 /**
 ```
-const letBind#12c25e9b = (): void ={Stdio#1da337a2, Log#35f4b478}> {
+const letBind#12c25e9b = (): void#builtin ={Stdio#1da337a2, Log#35f4b478}> {
     const x#:0 = raise!(Stdio#1da337a2.read());
-    log#eccbfbca(k: x#:0 ++ "Hello");
+    log#eccbfbca(k: x#:0 ++#builtin "Hello");
 }
 ```
 */
@@ -101,19 +105,19 @@ export const hash_12c25e9b:
 
 /**
 ```
-const rec respondWith#59070068 = (responseValue#:0: string): <T#:0>{e#:0}(
+const rec respondWith#59070068 = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
     () ={Stdio#1da337a2, e#:0}> T#:0,
 ) ={Log#35f4b478, e#:0}> T#:0 ={}> <T#:0>{e#:0}(fn#:1: () ={Stdio#1da337a2, e#:0}> T#:0): T#:0 ={
     Log#35f4b478,
     e#:0,
 }> {
     handle! fn#:1 {
-        Stdio.read#0(() => k#:3) => 59070068#self(responseValue#:0 ++ ".")<T#:0>{e#:0}(
+        Stdio.read#0(() => k#:3) => 59070068#self(responseValue#:0 ++#builtin ".")<T#:0>{e#:0}(
             (): T#:0 ={Stdio#1da337a2, e#:0}> k#:3(responseValue#:0),
         ),
         Stdio.write#1((v#:4) => k#:5) => {
             log#eccbfbca(k: v#:4);
-            59070068#self(responseValue#:0 ++ "-")<T#:0>{e#:0}(
+            59070068#self(responseValue#:0 ++#builtin "-")<T#:0>{e#:0}(
                 (): T#:0 ={Stdio#1da337a2, e#:0}> k#:5(),
             );
         },
@@ -150,7 +154,7 @@ export const hash_59070068: (arg_0: string) =>
 
 /**
 ```
-const raiseIf#fce40b70 = (check#:0: string): string ={Stdio#1da337a2}> {
+const raiseIf#fce40b70 = (check#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
     if raise!(Stdio#1da337a2.read()) ==#606c7034#553b4b8e#0 check#:0 {
         raise!(Stdio#1da337a2.read());
     } else {
@@ -173,7 +177,7 @@ export const hash_fce40b70:
 
 /**
 ```
-const maybeRaise#42c8a590 = (shouldRaise#:0: bool): string ={Stdio#1da337a2}> {
+const maybeRaise#42c8a590 = (shouldRaise#:0: bool#builtin): string#builtin ={Stdio#1da337a2}> {
     if shouldRaise#:0 {
         raise!(Stdio#1da337a2.read());
     } else {
@@ -194,12 +198,14 @@ export const hash_42c8a590:
 
 /**
 ```
-const inner#19effbea = (name#:0: string): void ={Stdio#1da337a2, Log#35f4b478}> {
-    log#eccbfbca(k: farther#dd523212(name: "Folks") ++ " from farther");
+const inner#19effbea = (name#:0: string#builtin): void#builtin ={Stdio#1da337a2, Log#35f4b478}> {
+    log#eccbfbca(k: farther#dd523212(name: "Folks") ++#builtin " from farther");
     log#eccbfbca(k: "getting");
     log#eccbfbca(k: name#:0);
-    log#eccbfbca(k: raise!(Stdio#1da337a2.read()) ++ " and " ++ raise!(Stdio#1da337a2.read()));
-    log#eccbfbca(k: "And then " ++ raise!(Stdio#1da337a2.read()));
+    log#eccbfbca(
+        k: raise!(Stdio#1da337a2.read()) ++#builtin " and " ++#builtin raise!(Stdio#1da337a2.read()),
+    );
+    log#eccbfbca(k: "And then " ++#builtin raise!(Stdio#1da337a2.read()));
     log#eccbfbca(k: "Dones");
 }
 ```
@@ -230,9 +236,9 @@ export const hash_19effbea:
 
 /**
 ```
-const full#d649a85c = (): string ={}> {
+const full#d649a85c = (): string#builtin ={}> {
     handleMulti#fadf30b0(
-        f: (): string ={MultiArg#6ddb76fe}> raise!(MultiArg#6ddb76fe.putTwo(4, "five")),
+        f: (): string#builtin ={MultiArg#6ddb76fe}> raise!(MultiArg#6ddb76fe.putTwo(4, "five")),
     );
 }
 ```
@@ -243,8 +249,8 @@ export const hash_d649a85c: () => string = () => hash_fadf30b0((handlers: Handle
 
 /**
 ```
-const test4#60ecb87c = (): void ={Log#35f4b478}> {
-    respondWith#59070068(responseValue: "<read>")<void>{Log#35f4b478}(letBind#12c25e9b);
+const test4#60ecb87c = (): void#builtin ={Log#35f4b478}> {
+    respondWith#59070068(responseValue: "<read>")<void#builtin>{Log#35f4b478}(letBind#12c25e9b);
 }
 ```
 */
@@ -256,10 +262,10 @@ export const hash_60ecb87c:
 
 /**
 ```
-const test3#1e213df0 = (): void ={Log#35f4b478}> {
+const test3#1e213df0 = (): void#builtin ={Log#35f4b478}> {
     log#eccbfbca(
-        k: respondWith#59070068(responseValue: "<read>")<string>{Log#35f4b478}(
-            (): string ={Stdio#1da337a2, Log#35f4b478}> raiseIf#fce40b70(check: "<read>"),
+        k: respondWith#59070068(responseValue: "<read>")<string#builtin>{Log#35f4b478}(
+            (): string#builtin ={Stdio#1da337a2, Log#35f4b478}> raiseIf#fce40b70(check: "<read>"),
         ),
     );
 }
@@ -277,10 +283,11 @@ export const hash_1e213df0:
 
 /**
 ```
-const test2#a145008c = (): void ={Log#35f4b478}> {
-    respondWith#59070068(responseValue: "<read>")<void>{Log#35f4b478}(
-        (): void ={Stdio#1da337a2, Log#35f4b478}> log#eccbfbca(
-            k: maybeRaise#42c8a590(shouldRaise: true) ++ maybeRaise#42c8a590(shouldRaise: false),
+const test2#a145008c = (): void#builtin ={Log#35f4b478}> {
+    respondWith#59070068(responseValue: "<read>")<void#builtin>{Log#35f4b478}(
+        (): void#builtin ={Stdio#1da337a2, Log#35f4b478}> log#eccbfbca(
+            k: maybeRaise#42c8a590(shouldRaise: true) 
+                ++#builtin maybeRaise#42c8a590(shouldRaise: false),
         ),
     );
 }
@@ -300,10 +307,13 @@ export const hash_a145008c:
 
 /**
 ```
-const rec collect#2ce3943a = {e#:0}(fn#:0: () ={Log#35f4b478, e#:0}> void): string ={e#:0}> {
+const rec collect#2ce3943a = {e#:0}(fn#:0: () ={Log#35f4b478, e#:0}> void#builtin): string#builtin ={
+    e#:0,
+}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
-            v#:2 ++ "\n" ++ 2ce3943a#self{e#:0}((): void ={Log#35f4b478, e#:0}> k#:3());
+            v#:2 ++#builtin "\n" 
+                ++#builtin 2ce3943a#self{e#:0}((): void#builtin ={Log#35f4b478, e#:0}> k#:3());
         },
         pure(a#:1) => "end",
     };
@@ -347,10 +357,10 @@ export const hash_2ce3943a: any = {
 
 /**
 ```
-const rec collectNew#4465c66a = (fn#:0: () ={Log#35f4b478}> void): string ={}> {
+const rec collectNew#4465c66a = (fn#:0: () ={Log#35f4b478}> void#builtin): string#builtin ={}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
-            v#:2 ++ "\n" ++ 4465c66a#self((): void ={Log#35f4b478}> k#:3());
+            v#:2 ++#builtin "\n" ++#builtin 4465c66a#self((): void#builtin ={Log#35f4b478}> k#:3());
         },
         pure(a#:1) => "end",
     };
@@ -377,9 +387,9 @@ export const hash_4465c66a: (arg_0:
 
 /**
 ```
-const test1#22486482 = (): void ={Log#35f4b478}> {
-    respondWith#59070068(responseValue: "<read>")<void>{Log#35f4b478}(
-        (): void ={Stdio#1da337a2, Log#35f4b478}> inner#19effbea(name: "Yes"),
+const test1#22486482 = (): void#builtin ={Log#35f4b478}> {
+    respondWith#59070068(responseValue: "<read>")<void#builtin>{Log#35f4b478}(
+        (): void#builtin ={Stdio#1da337a2, Log#35f4b478}> inner#19effbea(name: "Yes"),
     );
 }
 ```

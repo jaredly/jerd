@@ -169,6 +169,9 @@ const typeNewOp = (
 
     let fn: Term;
     if (op.hash != null) {
+        if (op.hash === '#builtin') {
+            return null;
+        }
         const [baseHash, attrHash, idxRaw] = op.hash.slice(1).split('#');
         const idx = +idxRaw;
         if (isNaN(idx)) {

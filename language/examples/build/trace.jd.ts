@@ -4,7 +4,7 @@ import { Handlers } from "./prelude.mjs";
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -15,22 +15,22 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const otherTerm#2189e92c = (n#:0: int): int ={}> trace!(n#:0 - 1, "Yes")
+const otherTerm#2189e92c = (n#:0: int#builtin): int#builtin ={}> trace!(n#:0 -#builtin 1, "Yes")
 ```
 */
 export const hash_2189e92c: (arg_0: number) => number = (n: number) => n - 1;
 
 /**
 ```
-const oneTerm#fa256dec = (m#:0: int): int ={}> trace!(m#:0, "Hello from tracing!") 
-    + trace!(otherTerm#2189e92c(n: 4))
+const oneTerm#fa256dec = (m#:0: int#builtin): int#builtin ={}> trace!(m#:0, "Hello from tracing!") 
+    +#builtin trace!(otherTerm#2189e92c(n: 4))
 ```
 */
 export const hash_fa256dec: (arg_0: number) => number = (m: number) => m + hash_2189e92c(4);
 
 /**
 ```
-const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int#builtin>{"=="#553b4b8e#0: intEq#builtin}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -39,6 +39,6 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-oneTerm#fa256dec(m: 4) + oneTerm#fa256dec(m: 1) ==#9275f914#553b4b8e#0 11
+oneTerm#fa256dec(m: 4) +#builtin oneTerm#fa256dec(m: 1) ==#9275f914#553b4b8e#0 11
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_fa256dec(4) + hash_fa256dec(1), 11);

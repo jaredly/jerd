@@ -7,7 +7,7 @@ type handle1da337a2 = [(arg_0: (arg_0: handle1da337a2, arg_1: string) => void) =
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -18,7 +18,9 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const log#eccbfbca = (k#:0: string): void ={Log#35f4b478}> raise!(Log#35f4b478.log(k#:0))
+const log#eccbfbca = (k#:0: string#builtin): void#builtin ={Log#35f4b478}> raise!(
+    Log#35f4b478.log(k#:0),
+)
 ```
 */
 export const hash_eccbfbca:
@@ -29,8 +31,8 @@ export const hash_eccbfbca:
 
 /**
 ```
-const farther#dd523212 = (name#:0: string): string ={Stdio#1da337a2, Log#35f4b478}> {
-    log#eccbfbca(k: "yes please " ++ name#:0);
+const farther#dd523212 = (name#:0: string#builtin): string#builtin ={Stdio#1da337a2, Log#35f4b478}> {
+    log#eccbfbca(k: "yes please " ++#builtin name#:0);
     raise!(Stdio#1da337a2.read());
 }
 ```
@@ -45,12 +47,14 @@ export const hash_dd523212:
 
 /**
 ```
-const inner#19effbea = (name#:0: string): void ={Stdio#1da337a2, Log#35f4b478}> {
-    log#eccbfbca(k: farther#dd523212(name: "Folks") ++ " from farther");
+const inner#19effbea = (name#:0: string#builtin): void#builtin ={Stdio#1da337a2, Log#35f4b478}> {
+    log#eccbfbca(k: farther#dd523212(name: "Folks") ++#builtin " from farther");
     log#eccbfbca(k: "getting");
     log#eccbfbca(k: name#:0);
-    log#eccbfbca(k: raise!(Stdio#1da337a2.read()) ++ " and " ++ raise!(Stdio#1da337a2.read()));
-    log#eccbfbca(k: "And then " ++ raise!(Stdio#1da337a2.read()));
+    log#eccbfbca(
+        k: raise!(Stdio#1da337a2.read()) ++#builtin " and " ++#builtin raise!(Stdio#1da337a2.read()),
+    );
+    log#eccbfbca(k: "And then " ++#builtin raise!(Stdio#1da337a2.read()));
     log#eccbfbca(k: "Dones");
 }
 ```
@@ -81,19 +85,19 @@ export const hash_19effbea:
 
 /**
 ```
-const rec respondWith#59070068 = (responseValue#:0: string): <T#:0>{e#:0}(
+const rec respondWith#59070068 = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
     () ={Stdio#1da337a2, e#:0}> T#:0,
 ) ={Log#35f4b478, e#:0}> T#:0 ={}> <T#:0>{e#:0}(fn#:1: () ={Stdio#1da337a2, e#:0}> T#:0): T#:0 ={
     Log#35f4b478,
     e#:0,
 }> {
     handle! fn#:1 {
-        Stdio.read#0(() => k#:3) => 59070068#self(responseValue#:0 ++ ".")<T#:0>{e#:0}(
+        Stdio.read#0(() => k#:3) => 59070068#self(responseValue#:0 ++#builtin ".")<T#:0>{e#:0}(
             (): T#:0 ={Stdio#1da337a2, e#:0}> k#:3(responseValue#:0),
         ),
         Stdio.write#1((v#:4) => k#:5) => {
             log#eccbfbca(k: v#:4);
-            59070068#self(responseValue#:0 ++ "-")<T#:0>{e#:0}(
+            59070068#self(responseValue#:0 ++#builtin "-")<T#:0>{e#:0}(
                 (): T#:0 ={Stdio#1da337a2, e#:0}> k#:5(),
             );
         },
@@ -130,10 +134,13 @@ export const hash_59070068: (arg_0: string) =>
 
 /**
 ```
-const rec collect#2ce3943a = {e#:0}(fn#:0: () ={Log#35f4b478, e#:0}> void): string ={e#:0}> {
+const rec collect#2ce3943a = {e#:0}(fn#:0: () ={Log#35f4b478, e#:0}> void#builtin): string#builtin ={
+    e#:0,
+}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
-            v#:2 ++ "\n" ++ 2ce3943a#self{e#:0}((): void ={Log#35f4b478, e#:0}> k#:3());
+            v#:2 ++#builtin "\n" 
+                ++#builtin 2ce3943a#self{e#:0}((): void#builtin ={Log#35f4b478, e#:0}> k#:3());
         },
         pure(a#:1) => "end",
     };
@@ -177,10 +184,11 @@ export const hash_2ce3943a: any = {
 
 /**
 ```
-const rec appendLog#0ea0eb0a = (fn#:0: () ={Log#35f4b478}> string): string ={}> {
+const rec appendLog#0ea0eb0a = (fn#:0: () ={Log#35f4b478}> string#builtin): string#builtin ={}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
-            v#:2 ++ "\n" ++ 0ea0eb0a#self((): string ={Log#35f4b478}> k#:3());
+            v#:2 ++#builtin "\n" 
+                ++#builtin 0ea0eb0a#self((): string#builtin ={Log#35f4b478}> k#:3());
         },
         pure(a#:1) => a#:1,
     };
@@ -207,10 +215,13 @@ export const hash_0ea0eb0a: (arg_0:
 
 /**
 ```
-const rec provide#5c316d50 = <T#:0>(v#:0: string, fn#:1: () ={Read#22024b72}> T#:0): T#:0 ={}> {
+const rec provide#5c316d50 = <T#:0>(v#:0: string#builtin, fn#:1: () ={Read#22024b72}> T#:0): T#:0 ={}> {
     handle! fn#:1 {
         Read.read#0(() => k#:3) => {
-            5c316d50#self<T#:0>("<" + v#:0 + ">", (): T#:0 ={Read#22024b72}> k#:3(v#:0));
+            5c316d50#self<T#:0>(
+                "<" +#builtin v#:0 +#builtin ">",
+                (): T#:0 ={Read#22024b72}> k#:3(v#:0),
+            );
         },
         pure(a#:2) => a#:2,
     };
@@ -237,10 +248,10 @@ export const hash_5c316d50: <T_0>(arg_0: string, arg_1:
 
 /**
 ```
-const rec collectNew#4465c66a = (fn#:0: () ={Log#35f4b478}> void): string ={}> {
+const rec collectNew#4465c66a = (fn#:0: () ={Log#35f4b478}> void#builtin): string#builtin ={}> {
     handle! fn#:0 {
         Log.log#0((v#:2) => k#:3) => {
-            v#:2 ++ "\n" ++ 4465c66a#self((): void ={Log#35f4b478}> k#:3());
+            v#:2 ++#builtin "\n" ++#builtin 4465c66a#self((): void#builtin ={Log#35f4b478}> k#:3());
         },
         pure(a#:1) => "end",
     };
@@ -267,7 +278,7 @@ export const hash_4465c66a: (arg_0:
 
 /**
 ```
-const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string#builtin>{"=="#553b4b8e#0: stringEq#builtin}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({
@@ -277,9 +288,9 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 
 /**
 ```
-const test1#22486482 = (): void ={Log#35f4b478}> {
-    respondWith#59070068(responseValue: "<read>")<void>{Log#35f4b478}(
-        (): void ={Stdio#1da337a2, Log#35f4b478}> inner#19effbea(name: "Yes"),
+const test1#22486482 = (): void#builtin ={Log#35f4b478}> {
+    respondWith#59070068(responseValue: "<read>")<void#builtin>{Log#35f4b478}(
+        (): void#builtin ={Stdio#1da337a2, Log#35f4b478}> inner#19effbea(name: "Yes"),
     );
 }
 ```
@@ -294,7 +305,7 @@ export const hash_22486482:
 
 /*
 collectNew#4465c66a(
-        fn: (): void ={Log#35f4b478}> {
+        fn: (): void#builtin ={Log#35f4b478}> {
             raise!(Log#35f4b478.log("Hello"));
             raise!(Log#35f4b478.log("Folks"));
         },
@@ -308,7 +319,10 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_4465c66a((handlers: Handlers, done$6:
 }), "Hello\nFolks\nend");
 
 /*
-provide#5c316d50<string>(v: "Hello", fn: (): string ={Read#22024b72}> raise!(Read#22024b72.read())) 
+provide#5c316d50<string#builtin>(
+        v: "Hello",
+        fn: (): string#builtin ={Read#22024b72}> raise!(Read#22024b72.read()),
+    ) 
     ==#606c7034#553b4b8e#0 "Hello"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_5c316d50("Hello", (handlers: Handlers, done$7: (arg_0: Handlers, arg_1: string) => void) => {
@@ -316,9 +330,10 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_5c316d50("Hello", (handlers: Handlers
 }), "Hello");
 
 /*
-provide#5c316d50<string>(
+provide#5c316d50<string#builtin>(
         v: "Hello",
-        fn: (): string ={Read#22024b72}> raise!(Read#22024b72.read()) + raise!(Read#22024b72.read()),
+        fn: (): string#builtin ={Read#22024b72}> raise!(Read#22024b72.read()) 
+            +#builtin raise!(Read#22024b72.read()),
     ) 
     ==#606c7034#553b4b8e#0 "Hello<Hello>"
 */
@@ -334,7 +349,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_5c316d50("Hello", (handlers: Handlers
 
 /*
 appendLog#0ea0eb0a(
-        fn: (): string ={Log#35f4b478}> {
+        fn: (): string#builtin ={Log#35f4b478}> {
             raise!(Log#35f4b478.log("Hello"));
             raise!(Log#35f4b478.log("Folks"));
             "Final value";
@@ -351,7 +366,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_0ea0eb0a((handlers: Handlers, done$13
 }), "Hello\nFolks\nFinal value");
 
 /*
-collect#2ce3943a{}(fn: (): void ={Log#35f4b478}> raise!(Log#35f4b478.log("Good news"))) 
+collect#2ce3943a{}(fn: (): void#builtin ={Log#35f4b478}> raise!(Log#35f4b478.log("Good news"))) 
     ==#606c7034#553b4b8e#0 "Good news\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$14: (arg_0: Handlers) => void) => {
@@ -359,11 +374,11 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "Good news\nend");
 
 /*
-provide#5c316d50<string>(
+provide#5c316d50<string#builtin>(
         v: "Folks",
-        fn: (): string ={Read#22024b72}> collect#2ce3943a{Read#22024b72}(
-            fn: (): void ={Read#22024b72, Log#35f4b478}> raise!(
-                Log#35f4b478.log("Good news " + raise!(Read#22024b72.read())),
+        fn: (): string#builtin ={Read#22024b72}> collect#2ce3943a{Read#22024b72}(
+            fn: (): void#builtin ={Read#22024b72, Log#35f4b478}> raise!(
+                Log#35f4b478.log("Good news " +#builtin raise!(Read#22024b72.read())),
             ),
         ),
     ) 

@@ -835,6 +835,19 @@ export const resolveIdentifier = (
     } else if (hash != null) {
         const [first, second] = hash.slice(1).split('#');
 
+        if (first === 'builtin') {
+            const type = env.global.builtins[text];
+            if (!type) {
+                throw new LocatedError(location, `Unknown builtin ${text}`);
+            }
+            return {
+                type: 'ref',
+                location,
+                is: type,
+                ref: { type: 'builtin', name: text },
+            };
+        }
+
         if (
             env.local.self &&
             env.local.self.type === 'Term' &&

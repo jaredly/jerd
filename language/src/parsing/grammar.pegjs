@@ -377,11 +377,12 @@ MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {
     return {type: "id", text: text.type === 'string' ? text.text : text, location: location(), hash}}
 IdText = !"enum" [0-9a-zA-Z_]+ {return text()}
 IdTextOrString = IdText / String
-IdHash = SymHash {return text() } / OpHash {return text()}
+IdHash = SymHash {return text() } / OpHash {return text()} / BuiltinHash {return text()}
 // IdHash = ("#" ":"? [0-9a-zA-Z]+ ("#" [0-9]+)?) {return text()}
 // TermHash = 
 SymHash = "#" ":" [0-9]+ {return text()}
 OpHash = ("#" [0-9a-zA-Z]+)+ {return text()}
+BuiltinHash = "#" "builtin" {return text()}
 
 _ "whitespace"
   = [ \t\n\r]* (comment _)*

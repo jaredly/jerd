@@ -37,6 +37,7 @@ import {
     atom,
     id as idPretty,
     printToString,
+    id,
 } from './printer';
 
 export type ToplevelT =
@@ -168,7 +169,7 @@ export const refToPretty = (env: Env | null, ref: Reference, kind: string) =>
     env && ref.type === 'user' && ref.id.hash === '<self>' && env.local.self
         ? idPretty('self', 'self', kind)
         : ref.type === 'builtin'
-        ? atom(ref.name)
+        ? id(ref.name, 'builtin', 'builtin')
         : idToPretty(env, ref.id, kind);
 export const idToPretty = (env: Env | null, id: Id, kind: string) => {
     const name = env ? env.global.idNames[idName(id)] : null;

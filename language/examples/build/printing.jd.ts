@@ -2,6 +2,6 @@ import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleSha
 import { Handlers } from "./prelude.mjs";
 
 /*
-"helloooooooooooooooooooooooooo" + "12333333333333333333333333"
+"helloooooooooooooooooooooooooo" +#builtin "12333333333333333333333333"
 */
 "helloooooooooooooooooooooooooo" + "12333333333333333333333333";

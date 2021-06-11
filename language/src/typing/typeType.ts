@@ -84,11 +84,32 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 };
             }
             if (type.id.hash) {
+                const rawId = type.id.hash.slice(1);
+                if (rawId === 'builtin') {
+                    if (env.global.builtinTypes[type.id.text] == null) {
+                        throw new LocatedError(
+                            type.location,
+                            `Unknown builtin type ${type.id.text}`,
+                        );
+                    }
+                    return {
+                        type: 'ref',
+                        ref: { type: 'builtin', name: type.id.text },
+                        location: type.location,
+                        typeVbls,
+                    };
+                }
+                if (!env.global.types[rawId]) {
+                    throw new LocatedError(
+                        type.location,
+                        `Unknown explicit type ${rawId}`,
+                    );
+                }
                 return {
                     type: 'ref',
                     ref: {
                         type: 'user',
-                        id: idFromName(type.id.hash.slice(1)),
+                        id: idFromName(rawId),
                     },
                     typeVbls,
                     // effectVbls,

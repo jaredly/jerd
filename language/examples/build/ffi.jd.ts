@@ -4,7 +4,7 @@ import { Handlers } from "./prelude.mjs";
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -15,7 +15,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const FloatEq#c41f7386 = Eq#553b4b8e<float>{"=="#553b4b8e#0: floatEq}
+const FloatEq#c41f7386 = Eq#553b4b8e<float#builtin>{"=="#553b4b8e#0: floatEq#builtin}
 ```
 */
 export const hash_c41f7386: t_553b4b8e<number> = ({
@@ -25,7 +25,7 @@ export const hash_c41f7386: t_553b4b8e<number> = ({
 
 /**
 ```
-const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string#builtin>{"=="#553b4b8e#0: stringEq#builtin}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({

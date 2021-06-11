@@ -4,7 +4,7 @@ import { Handlers } from "./prelude.mjs";
 /**
 ```
 type HasAge#4082e170 = {
-    age: int,
+    age: int#builtin,
 }
 ```
 */
@@ -16,7 +16,7 @@ type t_4082e170 = {
 /**
 ```
 type HasName#ad561a20 = {
-    name: string,
+    name: string#builtin,
 }
 ```
 */
@@ -30,7 +30,7 @@ type t_ad561a20 = {
 type Person#58c1982c = {
     ...HasName#ad561a20,
     ...HasAge#4082e170,
-    what: int,
+    what: int#builtin,
 }
 ```
 */
@@ -44,7 +44,7 @@ type t_58c1982c = {
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -57,7 +57,7 @@ type t_553b4b8e<T_0> = {
 ```
 type Employee#2736d9d6 = {
     ...Person#58c1982c,
-    address: string,
+    address: string#builtin,
 }
 ```
 */
@@ -85,7 +85,7 @@ type t_164905e5 = {
 ```
 type Counter#a4491948<T#:0> = {
     item: T#:0,
-    count: int,
+    count: int#builtin,
 }
 ```
 */
@@ -111,7 +111,7 @@ type t_Some<T_10000> = {
 ```
 type Animal#225ab688 = {
     ...HasName#ad561a20,
-    furColor: string,
+    furColor: string#builtin,
 }
 ```
 */
@@ -162,7 +162,7 @@ export const hash_5cd59c5d: t_225ab688 = ({
 
 /**
 ```
-const gotit#9781cfa0 = Some#Some<int>{contents#Some#0: 5}
+const gotit#9781cfa0 = Some#Some<int#builtin>{contents#Some#0: 5}
 ```
 */
 export const hash_9781cfa0: t_Some<number> = ({
@@ -172,8 +172,8 @@ export const hash_9781cfa0: t_Some<number> = ({
 
 /**
 ```
-const countNamed#8aced828 = Counter#a4491948<<T#:0: HasName#ad561a20>(T#:0) ={}> string>{
-    item#a4491948#0: <T#:0: HasName#ad561a20>(input#:0: T#:0): string ={}> input#:0.name#ad561a20#0,
+const countNamed#8aced828 = Counter#a4491948<<T#:0: HasName#ad561a20>(T#:0) ={}> string#builtin>{
+    item#a4491948#0: <T#:0: HasName#ad561a20>(input#:0: T#:0): string#builtin ={}> input#:0.name#ad561a20#0,
     count#a4491948#1: 10,
 }
 ```
@@ -192,8 +192,8 @@ export const hash_8aced828: t_a4491948<<T_0 extends {
 
 /**
 ```
-const countAny#5a5f83a0 = Counter#a4491948<<T#:0>(T#:0) ={}> string>{
-    item#a4491948#0: <T#:0>(input#:0: T#:0): string ={}> "hi",
+const countAny#5a5f83a0 = Counter#a4491948<<T#:0>(T#:0) ={}> string#builtin>{
+    item#a4491948#0: <T#:0>(input#:0: T#:0): string#builtin ={}> "hi",
     count#a4491948#1: 10,
 }
 ```
@@ -206,7 +206,7 @@ export const hash_5a5f83a0: t_a4491948<<T_0>(arg_0: T_0) => string> = ({
 
 /**
 ```
-const countMe#3fcbf771 = Counter#a4491948<int>{item#a4491948#0: 10, count#a4491948#1: 4000}
+const countMe#3fcbf771 = Counter#a4491948<int#builtin>{item#a4491948#0: 10, count#a4491948#1: 4000}
 ```
 */
 export const hash_3fcbf771: t_a4491948<number> = ({
@@ -227,7 +227,7 @@ export const hash_7bf95f66: t_164905e5 = ({
 
 /**
 ```
-const getName#1ef63c92 = <T#:0: Person#58c1982c>(m#:0: T#:0): string ={}> m#:0.name#ad561a20#0
+const getName#1ef63c92 = <T#:0: Person#58c1982c>(m#:0: T#:0): string#builtin ={}> m#:0.name#ad561a20#0
 ```
 */
 export const hash_1ef63c92: <T_0 extends {
@@ -280,7 +280,7 @@ export const hash_88bf856c: t_58c1982c = ({ ...hash_5af8296e,
 
 /**
 ```
-const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int#builtin>{"=="#553b4b8e#0: intEq#builtin}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -290,7 +290,7 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string#builtin>{"=="#553b4b8e#0: stringEq#builtin}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({
@@ -354,7 +354,10 @@ countMe#3fcbf771.item#a4491948#0 ==#9275f914#553b4b8e#0 10
 assertCall(hash_9275f914.h553b4b8e_0, hash_3fcbf771.ha4491948_0, 10);
 
 /*
-Counter#a4491948<() ={}> string>{item#a4491948#0: (): string ={}> "hi", count#a4491948#1: 10}.item#a4491948#0() 
+Counter#a4491948<() ={}> string#builtin>{
+        item#a4491948#0: (): string#builtin ={}> "hi",
+        count#a4491948#1: 10,
+    }.item#a4491948#0() 
     ==#606c7034#553b4b8e#0 "hi"
 */
 assertCall(hash_606c7034.h553b4b8e_0, ({
@@ -364,12 +367,12 @@ assertCall(hash_606c7034.h553b4b8e_0, ({
 } as t_a4491948<() => string>).ha4491948_0(), "hi");
 
 /*
-countAny#5a5f83a0.item#a4491948#0<string>("String") ==#606c7034#553b4b8e#0 "hi"
+countAny#5a5f83a0.item#a4491948#0<string#builtin>("String") ==#606c7034#553b4b8e#0 "hi"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_5a5f83a0.ha4491948_0("String"), "hi");
 
 /*
-countAny#5a5f83a0.item#a4491948#0<int>(10) ==#606c7034#553b4b8e#0 "hi"
+countAny#5a5f83a0.item#a4491948#0<int#builtin>(10) ==#606c7034#553b4b8e#0 "hi"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_5a5f83a0.ha4491948_0(10), "hi");
 

@@ -4,7 +4,7 @@ import { Handlers } from "./prelude.mjs";
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -16,10 +16,10 @@ type t_553b4b8e<T_0> = {
 /**
 ```
 const rec arrayEq#7825e3a8 = <T#:0>(
-    one#:0: Array<T#:0>,
-    two#:1: Array<T#:0>,
+    one#:0: Array#builtin<T#:0>,
+    two#:1: Array#builtin<T#:0>,
     eq#:2: Eq#553b4b8e<T#:0>,
-): bool ={}> {
+): bool#builtin ={}> {
     switch (one#:0, two#:1) {
         ([], []) => true,
         ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#553b4b8e#0(one#:3, two#:5) {

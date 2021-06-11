@@ -5,6 +5,20 @@
   - hm maybe I need types to have named arguments? hmmmm yeah I mean I think that would be nice actually. But that would mean a change to the ... hashing ... whatsit? or wait the hash needs to not care about the name ... but it still means a little bit of a change.
   ... ok I can put that off, and say "only do names if it's a term reference, it's fine"
 
+
+Ok, I'm playing around with 2d sdfs, and ... i really want arrays.
+... and maybe this will require like a whole new type?
+hmmmm
+so I might want a meta-type that's like "ArrayLiteral", similar to "AmbiguousNumeral"
+so that we can withhold judgement about whether it's going to be a FixedArray or a normal
+Array.
+
+Does that mean it's time to bring back type inference?
+
+
+- [ ] ugh I need `Loc`s to include filenames, so that I handle prelude better.
+
+
 ### OpenGL Bonanza
 - [x] make a play / stop / restart / record hover overlay dealio. With a cog that opens config for the recording.
   - oh maybe a time slider too? If we establish what the periodicity of the thing is.

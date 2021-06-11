@@ -115,7 +115,7 @@ switch Option<string>:Some<string>{_: "yes"} {
     None => false,
 }
 
-@typeError("found int, expected string")
+@typeError("found int#builtin, expected string#builtin")
 switch Option<string>:Some<string>{_: "yes"} {
     Some{_: 5} => false,
     None => false,

@@ -5,7 +5,7 @@ type handle22024b72 = [(arg_0: (arg_0: handle22024b72, arg_1: string) => void) =
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -16,12 +16,12 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const rec provideString#1d302ade = (responseValue#:0: string): (() ={GetString#22024b72}> string) ={}> string ={}> (
-    fn#:1: () ={GetString#22024b72}> string,
-): string ={}> {
+const rec provideString#1d302ade = (responseValue#:0: string#builtin): (
+    () ={GetString#22024b72}> string#builtin,
+) ={}> string#builtin ={}> (fn#:1: () ={GetString#22024b72}> string#builtin): string#builtin ={}> {
     handle! fn#:1 {
-        GetString.get#0(() => k#:3) => 1d302ade#self(responseValue#:0 ++ ".")(
-            (): string ={GetString#22024b72}> k#:3(responseValue#:0),
+        GetString.get#0(() => k#:3) => 1d302ade#self(responseValue#:0 ++#builtin ".")(
+            (): string#builtin ={GetString#22024b72}> k#:3(responseValue#:0),
         ),
         pure(a#:2) => a#:2,
     };
@@ -48,21 +48,24 @@ export const hash_1d302ade: (arg_0: string) => (arg_0:
 
 /**
 ```
-const freturn#38ab4eac = (): string ={}> "yes"
+const freturn#38ab4eac = (): string#builtin ={}> "yes"
 ```
 */
 export const hash_38ab4eac: () => string = () => "yes";
 
 /**
 ```
-const provideStringWithArg#8366c3ec = (responseValue#:0: string): (
-    string,
-    (string) ={GetString#22024b72}> string,
-) ={}> string ={}> (passIn#:1: string, fn#:2: (string) ={GetString#22024b72}> string): string ={}> {
-    handle! (): string ={GetString#22024b72}> fn#:2(passIn#:1) {
+const provideStringWithArg#8366c3ec = (responseValue#:0: string#builtin): (
+    string#builtin,
+    (string#builtin) ={GetString#22024b72}> string#builtin,
+) ={}> string#builtin ={}> (
+    passIn#:1: string#builtin,
+    fn#:2: (string#builtin) ={GetString#22024b72}> string#builtin,
+): string#builtin ={}> {
+    handle! (): string#builtin ={GetString#22024b72}> fn#:2(passIn#:1) {
         GetString.get#0(() => k#:4) => provideString#1d302ade(
-            responseValue: responseValue#:0 ++ ".",
-        )((): string ={GetString#22024b72}> k#:4(responseValue#:0)),
+            responseValue: responseValue#:0 ++#builtin ".",
+        )((): string#builtin ={GetString#22024b72}> k#:4(responseValue#:0)),
         pure(a#:3) => a#:3,
     };
 }
@@ -90,14 +93,14 @@ export const hash_8366c3ec: (arg_0: string) => (arg_0: string, arg_1:
 
 /**
 ```
-const pure#33e34a3a = (): string ={}> "AA"
+const pure#33e34a3a = (): string#builtin ={}> "AA"
 ```
 */
 export const hash_33e34a3a: () => string = () => "AA";
 
 /**
 ```
-const impure#74eaa230 = (): string ={GetString#22024b72}> "A"
+const impure#74eaa230 = (): string#builtin ={GetString#22024b72}> "A"
 ```
 */
 export const hash_74eaa230:
@@ -108,7 +111,7 @@ export const hash_74eaa230:
 
 /**
 ```
-const FloatEq#c41f7386 = Eq#553b4b8e<float>{"=="#553b4b8e#0: floatEq}
+const FloatEq#c41f7386 = Eq#553b4b8e<float#builtin>{"=="#553b4b8e#0: floatEq#builtin}
 ```
 */
 export const hash_c41f7386: t_553b4b8e<number> = ({
@@ -118,7 +121,7 @@ export const hash_c41f7386: t_553b4b8e<number> = ({
 
 /**
 ```
-const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int#builtin>{"=="#553b4b8e#0: intEq#builtin}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -135,21 +138,21 @@ export const hash_d762885a: <T_0>(arg_0: T_0) => T_0 = <T_0>(x: T_0) => x;
 
 /**
 ```
-const arg#7578690a = (arg#:0: string): string ={}> arg#:0 ++ "1"
+const arg#7578690a = (arg#:0: string#builtin): string#builtin ={}> arg#:0 ++#builtin "1"
 ```
 */
 export const hash_7578690a: (arg_0: string) => string = (arg: string) => arg + "1";
 
 /**
 ```
-const call#5e9cab43 = (): string ={}> freturn#38ab4eac() + "a"
+const call#5e9cab43 = (): string#builtin ={}> freturn#38ab4eac() +#builtin "a"
 ```
 */
 export const hash_5e9cab43: () => string = () => hash_38ab4eac() + "a";
 
 /**
 ```
-const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string#builtin>{"=="#553b4b8e#0: stringEq#builtin}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({
@@ -183,37 +186,37 @@ arg#7578690a(arg: "2") ==#606c7034#553b4b8e#0 "21"
 assertCall(hash_606c7034.h553b4b8e_0, hash_7578690a("2"), "21");
 
 /*
-identity#d762885a<string>(x: "5") ++ "4" ==#606c7034#553b4b8e#0 "54"
+identity#d762885a<string#builtin>(x: "5") ++#builtin "4" ==#606c7034#553b4b8e#0 "54"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_d762885a("5") + "4", "54");
 
 /*
-2 ==#9275f914#553b4b8e#0 1 + 1
+2 ==#9275f914#553b4b8e#0 1 +#builtin 1
 */
 assertCall(hash_9275f914.h553b4b8e_0, 2, 1 + 1);
 
 /*
-2 + 3 * 4 ==#9275f914#553b4b8e#0 16 - 2
+2 +#builtin 3 *#builtin 4 ==#9275f914#553b4b8e#0 16 -#builtin 2
 */
 assertCall(hash_9275f914.h553b4b8e_0, 2 + 3 * 4, 16 - 2);
 
 /*
-2.2 * 2.0 ==#c41f7386#553b4b8e#0 4.4
+2.2 *#builtin 2.0 ==#c41f7386#553b4b8e#0 4.4
 */
 assertCall(hash_c41f7386.h553b4b8e_0, 2.2 * 2, 4.4);
 
 /*
-2 ^ 3 ==#9275f914#553b4b8e#0 8
+2 ^#builtin 3 ==#9275f914#553b4b8e#0 8
 */
 assertCall(hash_9275f914.h553b4b8e_0, pow(2, 3), 8);
 
 /*
-sqrt(2.0 * 2.0) ==#c41f7386#553b4b8e#0 2.0
+sqrt#builtin(2.0 *#builtin 2.0) ==#c41f7386#553b4b8e#0 2.0
 */
 assertCall(hash_c41f7386.h553b4b8e_0, sqrt(2 * 2), 2);
 
 /*
-provideString#1d302ade(responseValue: "hi")((): string ={GetString#22024b72}> "m") 
+provideString#1d302ade(responseValue: "hi")((): string#builtin ={GetString#22024b72}> "m") 
     ==#606c7034#553b4b8e#0 "m"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, done$1: (arg_0: Handlers, arg_1: string) => void) => {
@@ -226,7 +229,9 @@ provideString#1d302ade(responseValue: "hi")(impure#74eaa230) ==#606c7034#553b4b8
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")(hash_74eaa230), "A");
 
 /*
-provideString#1d302ade(responseValue: "hi")((): string ={GetString#22024b72}> pure#33e34a3a()) 
+provideString#1d302ade(responseValue: "hi")(
+        (): string#builtin ={GetString#22024b72}> pure#33e34a3a(),
+    ) 
     ==#606c7034#553b4b8e#0 "AA"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
@@ -234,7 +239,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, d
 }), "AA");
 
 /*
-provideString#1d302ade(responseValue: "hi")((): string ={GetString#22024b72}> "m") 
+provideString#1d302ade(responseValue: "hi")((): string#builtin ={GetString#22024b72}> "m") 
     ==#606c7034#553b4b8e#0 "m"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
@@ -244,7 +249,7 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, d
 /*
 provideStringWithArg#8366c3ec(responseValue: "hi")(
         "Passed in",
-        (arg#:0: string): string ={GetString#22024b72}> arg#:0 ++ "-m",
+        (arg#:0: string#builtin): string#builtin ={GetString#22024b72}> arg#:0 ++#builtin "-m",
     ) 
     ==#606c7034#553b4b8e#0 "Passed in-m"
 */
