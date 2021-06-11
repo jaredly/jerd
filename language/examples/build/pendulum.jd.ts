@@ -114,7 +114,8 @@ export const hash_f2f2e188: (arg_0: number, arg_1: number, arg_2: number) => num
 
 /**
 ```
-const lerp#0c604a2c = (a#:0: float, b#:1: float, c#:2: float): float ={}> c#:2 * (b#:1 - a#:0) + a#:0
+const lerp#0c604a2c = (a#:0: float, b#:1: float, c#:2: float): float ={}> c#:2 * (b#:1 - a#:0) 
+    + a#:0
 ```
 */
 export const hash_0c604a2c: (arg_0: number, arg_1: number, arg_2: number) => number = (a: number, b: number, c: number) => c * (b - a) + a;
@@ -580,18 +581,20 @@ const hsv2rgb#5c8b4a90 = (c#:0: Vec3#9f1c0644): Vec3#9f1c0644 ={}> {
         z#9f1c0644#0: c#:0.x#43802a16#0,
     };
     const p#:3 = abs#1a074578(
-        fract#228606f4(xxx#:2 +#1c6fdd91#b99b22d8#0 kxyz#1f96d598) *#1d31aa6e#1de4e4c0#0 6.0 -#3b80b971#b99b22d8#1 3.0,
+        fract#228606f4(xxx#:2 +#1c6fdd91#b99b22d8#0 kxyz#1f96d598) *#1d31aa6e#1de4e4c0#0 6.0 
+            -#3b80b971#b99b22d8#1 3.0,
     );
     const kxxx#:4 = Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0};
-    c#:0.z#9f1c0644#0 *#c4a91006#1de4e4c0#0 mix#1d944e78(
-        kxxx#:4,
-        clamp#5483fdc2(
-            p#:3 -#1c6fdd91#b99b22d8#1 kxxx#:4,
-            Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
-            Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0},
-        ),
-        c#:0.y#43802a16#1,
-    );
+    c#:0.z#9f1c0644#0 
+        *#c4a91006#1de4e4c0#0 mix#1d944e78(
+            kxxx#:4,
+            clamp#5483fdc2(
+                p#:3 -#1c6fdd91#b99b22d8#1 kxxx#:4,
+                Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
+                Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0},
+            ),
+            c#:0.y#43802a16#1,
+        );
 }
 ```
 */
@@ -629,10 +632,8 @@ const rect#0fa3bd82 = (
     h#:3: float,
 ): float ={}> {
     max#e8162c1c(
-        abs#394fe488(samplePos#:0 -#70bb2056#b99b22d8#1 center#:1) -#70bb2056#b99b22d8#1 Vec2#43802a16{
-            x#43802a16#0: w#:2,
-            y#43802a16#1: h#:3,
-        },
+        abs#394fe488(samplePos#:0 -#70bb2056#b99b22d8#1 center#:1) 
+            -#70bb2056#b99b22d8#1 Vec2#43802a16{x#43802a16#0: w#:2, y#43802a16#1: h#:3},
     );
 }
 ```
@@ -673,7 +674,9 @@ export const hash_afc24bbe: t_5ac12902<t_43802a16, number, t_43802a16> = ({
 
 /**
 ```
-const pixelToData#446114f2 = (v#:0: Vec4#3b941378): Vec4#3b941378 ={}> v#:0 *#1b694fee#1de4e4c0#0 pixScale#32bd7938 -#0555d260#b99b22d8#1 pixOff#44de0a86
+const pixelToData#446114f2 = (v#:0: Vec4#3b941378): Vec4#3b941378 ={}> v#:0 
+        *#1b694fee#1de4e4c0#0 pixScale#32bd7938 
+    -#0555d260#b99b22d8#1 pixOff#44de0a86
 ```
 */
 export const hash_446114f2: (arg_0: t_3b941378) => t_3b941378 = (v: t_3b941378) => hash_0555d260.hb99b22d8_1(hash_1b694fee.h1de4e4c0_0(v, hash_32bd7938), hash_44de0a86);
@@ -703,20 +706,17 @@ const update#74a18562 = (a1#:0: float, a2#:1: float, a1_v#:2: float, a2_v#:3: fl
     const num1#:4 = -g#4466af4c * (2.0 * m2#b48c60a0 + m2#b48c60a0) * sin(a1#:0);
     const num2#:5 = -m2#b48c60a0 * g#4466af4c * sin(a1#:0 - 2.0 * a2#:1);
     const num3#:6 = -2.0 * sin(a1#:0 - a2#:1) * m2#b48c60a0;
-    const num4#:7 = a2_v#:3 * a2_v#:3 * r2#0ce717e6 + a1_v#:2 * a1_v#:2 * r2#0ce717e6 * cos(
-        a1#:0 - a2#:1,
-    );
-    const den#:8 = r2#0ce717e6 * (2.0 * m2#b48c60a0 + m2#b48c60a0 - m2#b48c60a0 * cos(
-        2.0 * a1#:0 - 2.0 * a2#:1,
-    ));
+    const num4#:7 = a2_v#:3 * a2_v#:3 * r2#0ce717e6 
+        + a1_v#:2 * a1_v#:2 * r2#0ce717e6 * cos(a1#:0 - a2#:1);
+    const den#:8 = r2#0ce717e6 
+        * (2.0 * m2#b48c60a0 + m2#b48c60a0 - m2#b48c60a0 * cos(2.0 * a1#:0 - 2.0 * a2#:1));
     const a1_a#:9 = (num1#:4 + num2#:5 + num3#:6 * num4#:7) / den#:8;
     const num1#:10 = 2.0 * sin(a1#:0 - a2#:1);
     const num2#:11 = a1_v#:2 * a1_v#:2 * r2#0ce717e6 * (m2#b48c60a0 + m2#b48c60a0);
     const num3#:12 = g#4466af4c * (m2#b48c60a0 + m2#b48c60a0) * cos(a1#:0);
     const num4#:13 = a2_v#:3 * a2_v#:3 * r2#0ce717e6 * m2#b48c60a0 * cos(a1#:0 - a2#:1);
-    const den#:14 = r2#0ce717e6 * (2.0 * m2#b48c60a0 + m2#b48c60a0 - m2#b48c60a0 * cos(
-        2.0 * a1#:0 - 2.0 * a2#:1,
-    ));
+    const den#:14 = r2#0ce717e6 
+        * (2.0 * m2#b48c60a0 + m2#b48c60a0 - m2#b48c60a0 * cos(2.0 * a1#:0 - 2.0 * a2#:1));
     const a2_a#:15 = num1#:10 * (num2#:11 + num3#:12 + num4#:13) / den#:14;
     const a1_v#:16 = a1_v#:2 + a1_a#:9;
     const a2_v#:17 = a2_v#:3 + a2_a#:15;
@@ -737,7 +737,8 @@ export const hash_74a18562: (arg_0: number, arg_1: number, arg_2: number, arg_3:
 /**
 ```
 const dataToPixel#6ca470d0 = (v#:0: Vec4#3b941378): Vec4#3b941378 ={}> {
-    const res#:1 = (v#:0 +#0555d260#b99b22d8#0 pixOff#44de0a86) /#5776a60e#5ac12902#0 pixScale#32bd7938;
+    const res#:1 = (v#:0 +#0555d260#b99b22d8#0 pixOff#44de0a86) 
+        /#5776a60e#5ac12902#0 pixScale#32bd7938;
     res#:1;
 }
 ```
@@ -750,7 +751,8 @@ const main#28a1e0b2 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16, bu
     const currentPos#:3 = env#:0.mouse#451d5252#3 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1;
     const currentp#:4 = texture(buffer#:2, currentPos#:3);
     const current#:5 = pixelToData#446114f2(currentp#:4);
-    const p1#:6 = fragCoord#:1 -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0;
+    const p1#:6 = fragCoord#:1 
+        -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0;
     const c1#:7 = Vec2#43802a16{
         x#43802a16#0: sin(current#:5.x#43802a16#0) * r2#0ce717e6,
         y#43802a16#1: -cos(current#:5.x#43802a16#0) * r2#0ce717e6,
@@ -766,24 +768,33 @@ const main#28a1e0b2 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16, bu
             vec4#4d4983bb(1.0, 1.0, 0.0, 1.0);
         } else {
             if max(
-                rect#0fa3bd82(
-                    p1#:6,
-                    env#:0.mouse#451d5252#3 -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0,
-                    10.0,
-                    10.0,
-                ),
-                -rect#0fa3bd82(
-                    p1#:6,
-                    env#:0.mouse#451d5252#3 -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0,
-                    9.0,
-                    9.0,
-                ),
-            ) < 0.0 {
+                    rect#0fa3bd82(
+                        p1#:6,
+                        env#:0.mouse#451d5252#3 
+                            -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
+                                /#afc24bbe#5ac12902#0 2.0,
+                        10.0,
+                        10.0,
+                    ),
+                    -rect#0fa3bd82(
+                        p1#:6,
+                        env#:0.mouse#451d5252#3 
+                            -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
+                                /#afc24bbe#5ac12902#0 2.0,
+                        9.0,
+                        9.0,
+                    ),
+                ) 
+                < 0.0 {
                 vec4#4d4983bb(0.0, 0.0, 0.0, 1.0);
             } else {
                 if length#c2805852(
-                    p1#:6 -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0),
-                ) < 100.0 {
+                        p1#:6 
+                            -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 
+                                -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
+                                    /#afc24bbe#5ac12902#0 2.0),
+                    ) 
+                    < 100.0 {
                     const t#:9 = texture(
                         buffer#:2,
                         fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1,
@@ -798,8 +809,12 @@ const main#28a1e0b2 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16, bu
                     Vec4#3b941378{...rgb#:10, w#3b941378#0: 1.0};
                 } else {
                     if length#c2805852(
-                        p1#:6 -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0),
-                    ) < 101.0 {
+                            p1#:6 
+                                -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 
+                                    -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
+                                        /#afc24bbe#5ac12902#0 2.0),
+                        ) 
+                        < 101.0 {
                         vec4#4d4983bb(0.0, 0.0, 0.0, 1.0);
                     } else {
                         const t#:11 = texture(

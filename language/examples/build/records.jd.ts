@@ -354,7 +354,8 @@ countMe#3fcbf771.item#a4491948#0 ==#9275f914#553b4b8e#0 10
 assertCall(hash_9275f914.h553b4b8e_0, hash_3fcbf771.ha4491948_0, 10);
 
 /*
-Counter#a4491948<() ={}> string>{item#a4491948#0: (): string ={}> "hi", count#a4491948#1: 10}.item#a4491948#0() ==#606c7034#553b4b8e#0 "hi"
+Counter#a4491948<() ={}> string>{item#a4491948#0: (): string ={}> "hi", count#a4491948#1: 10}.item#a4491948#0() 
+    ==#606c7034#553b4b8e#0 "hi"
 */
 assertCall(hash_606c7034.h553b4b8e_0, ({
   type: "a4491948",
@@ -383,7 +384,8 @@ gotit#9781cfa0.contents#Some#0 ==#9275f914#553b4b8e#0 5
 assertCall(hash_9275f914.h553b4b8e_0, hash_9781cfa0.hSome_0, 5);
 
 /*
-WereWolf#9b77cbb0{...aDog#5cd59c5d, ...aPerson#37c99a88}.name#ad561a20#0 ==#606c7034#553b4b8e#0 "ralf"
+WereWolf#9b77cbb0{...aDog#5cd59c5d, ...aPerson#37c99a88}.name#ad561a20#0 
+    ==#606c7034#553b4b8e#0 "ralf"
 */
 assertCall(hash_606c7034.h553b4b8e_0, ({ ...hash_5cd59c5d,
   ...hash_37c99a88,
@@ -391,7 +393,8 @@ assertCall(hash_606c7034.h553b4b8e_0, ({ ...hash_5cd59c5d,
 } as t_9b77cbb0).had561a20_0, "ralf");
 
 /*
-WereWolf#9b77cbb0{...aPerson#37c99a88, ...aDog#5cd59c5d}.name#ad561a20#0 ==#606c7034#553b4b8e#0 "wolrf"
+WereWolf#9b77cbb0{...aPerson#37c99a88, ...aDog#5cd59c5d}.name#ad561a20#0 
+    ==#606c7034#553b4b8e#0 "wolrf"
 */
 assertCall(hash_606c7034.h553b4b8e_0, ({ ...hash_37c99a88,
   ...hash_5cd59c5d,

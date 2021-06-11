@@ -82,9 +82,9 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 const ArrayEq#bef2134a = <T#:0>(eq#:0: Eq#553b4b8e<T#:0>): Eq#553b4b8e<Array<T#:0>> ={}> Eq#553b4b8e<
     Array<T#:0>,
 >{
-    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>): bool ={}> len<T#:0>(one#:1) ==#9275f914#553b4b8e#0 len<
-        T#:0,
-    >(two#:2) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0),
+    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>): bool ={}> len<T#:0>(one#:1) 
+            ==#9275f914#553b4b8e#0 len<T#:0>(two#:2) 
+        && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0),
 }
 ```
 */

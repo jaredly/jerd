@@ -398,7 +398,8 @@ collectNew#4465c66a
 hash_4465c66a;
 
 /*
-collect#2ce3943a{}(test1#22486482) ==#606c7034#553b4b8e#0 "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
+collect#2ce3943a{}(test1#22486482) 
+    ==#606c7034#553b4b8e#0 "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_22486482), "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend");
 

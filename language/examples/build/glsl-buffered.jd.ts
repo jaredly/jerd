@@ -243,46 +243,53 @@ const countNeighbors#77a447bc = (
     buffer#:2: sampler2D,
 ): int ={}> {
     neighbor#821c67e8(
-        Vec2#43802a16{x#43802a16#0: -1.0, y#43802a16#1: 0.0},
-        coord#:0,
-        res#:1,
-        buffer#:2,
-    ) + neighbor#821c67e8(
-        Vec2#43802a16{x#43802a16#0: -1.0, y#43802a16#1: 1.0},
-        coord#:0,
-        res#:1,
-        buffer#:2,
-    ) + neighbor#821c67e8(
-        Vec2#43802a16{x#43802a16#0: -1.0, y#43802a16#1: -1.0},
-        coord#:0,
-        res#:1,
-        buffer#:2,
-    ) + neighbor#821c67e8(
-        Vec2#43802a16{x#43802a16#0: 1.0, y#43802a16#1: 0.0},
-        coord#:0,
-        res#:1,
-        buffer#:2,
-    ) + neighbor#821c67e8(
-        Vec2#43802a16{x#43802a16#0: 1.0, y#43802a16#1: 1.0},
-        coord#:0,
-        res#:1,
-        buffer#:2,
-    ) + neighbor#821c67e8(
-        Vec2#43802a16{x#43802a16#0: 1.0, y#43802a16#1: -1.0},
-        coord#:0,
-        res#:1,
-        buffer#:2,
-    ) + neighbor#821c67e8(
-        Vec2#43802a16{x#43802a16#0: 0.0, y#43802a16#1: 1.0},
-        coord#:0,
-        res#:1,
-        buffer#:2,
-    ) + neighbor#821c67e8(
-        Vec2#43802a16{x#43802a16#0: 0.0, y#43802a16#1: -1.0},
-        coord#:0,
-        res#:1,
-        buffer#:2,
-    );
+                                    Vec2#43802a16{x#43802a16#0: -1.0, y#43802a16#1: 0.0},
+                                    coord#:0,
+                                    res#:1,
+                                    buffer#:2,
+                                ) 
+                                + neighbor#821c67e8(
+                                    Vec2#43802a16{x#43802a16#0: -1.0, y#43802a16#1: 1.0},
+                                    coord#:0,
+                                    res#:1,
+                                    buffer#:2,
+                                ) 
+                            + neighbor#821c67e8(
+                                Vec2#43802a16{x#43802a16#0: -1.0, y#43802a16#1: -1.0},
+                                coord#:0,
+                                res#:1,
+                                buffer#:2,
+                            ) 
+                        + neighbor#821c67e8(
+                            Vec2#43802a16{x#43802a16#0: 1.0, y#43802a16#1: 0.0},
+                            coord#:0,
+                            res#:1,
+                            buffer#:2,
+                        ) 
+                    + neighbor#821c67e8(
+                        Vec2#43802a16{x#43802a16#0: 1.0, y#43802a16#1: 1.0},
+                        coord#:0,
+                        res#:1,
+                        buffer#:2,
+                    ) 
+                + neighbor#821c67e8(
+                    Vec2#43802a16{x#43802a16#0: 1.0, y#43802a16#1: -1.0},
+                    coord#:0,
+                    res#:1,
+                    buffer#:2,
+                ) 
+            + neighbor#821c67e8(
+                Vec2#43802a16{x#43802a16#0: 0.0, y#43802a16#1: 1.0},
+                coord#:0,
+                res#:1,
+                buffer#:2,
+            ) 
+        + neighbor#821c67e8(
+            Vec2#43802a16{x#43802a16#0: 0.0, y#43802a16#1: -1.0},
+            coord#:0,
+            res#:1,
+            buffer#:2,
+        );
 }
 ```
 */
@@ -360,7 +367,8 @@ export const hash_59488bde: t_3b941378 = ({
 ```
 const random#347089ef = (st#:0: Vec2#43802a16): float ={}> {
     fract#495c4d22(
-        sin(dot#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) * 43758.5453123,
+        sin(dot#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) 
+            * 43758.5453123,
     );
 }
 ```
@@ -380,7 +388,8 @@ const drawToScreen#5349442c = (
 ): Vec4#3b941378 ={}> {
     const diff#:3 = env#:0.mouse#451d5252#3 -#70bb2056#b99b22d8#1 fragCoord#:1;
     if length#c2805852(diff#:3) < 250.0 {
-        const newCoord#:4 = env#:0.mouse#451d5252#3 -#70bb2056#b99b22d8#1 diff#:3 /#afc24bbe#5ac12902#0 4.0;
+        const newCoord#:4 = env#:0.mouse#451d5252#3 
+            -#70bb2056#b99b22d8#1 diff#:3 /#afc24bbe#5ac12902#0 4.0;
         texture(buffer0#:2, newCoord#:4 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1);
     } else {
         texture(buffer0#:2, fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1);
@@ -420,7 +429,8 @@ const drawToBuffer#5af2137f = (
             env#:0.resolution#451d5252#1,
             buffer#:2,
         );
-        if (self#:3 && neighbors#:4 ==#9275f914#553b4b8e#0 2) || neighbors#:4 ==#9275f914#553b4b8e#0 3 {
+        if (self#:3 && neighbors#:4 ==#9275f914#553b4b8e#0 2) 
+            || neighbors#:4 ==#9275f914#553b4b8e#0 3 {
             live#59488bde;
         } else {
             dead#b12c041e;

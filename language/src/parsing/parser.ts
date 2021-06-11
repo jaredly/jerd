@@ -340,7 +340,7 @@ export type WithSuffix = {
 };
 export type ApplySuffix = {
     type: 'Apply';
-    args: Array<Expression>;
+    args: Array<{ label: string; value: Expression }>;
     typevbls: Array<Type>;
     effectVbls: Array<Identifier>;
 };

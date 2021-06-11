@@ -89,9 +89,9 @@ export const hash_3306c09c: (arg_0: number) => number = (n: number) => {
 const ArrayEq#bef2134a = <T#:0>(eq#:0: Eq#553b4b8e<T#:0>): Eq#553b4b8e<Array<T#:0>> ={}> Eq#553b4b8e<
     Array<T#:0>,
 >{
-    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>): bool ={}> len<T#:0>(one#:1) ==#9275f914#553b4b8e#0 len<
-        T#:0,
-    >(two#:2) && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0),
+    "=="#553b4b8e#0: (one#:1: Array<T#:0>, two#:2: Array<T#:0>): bool ={}> len<T#:0>(one#:1) 
+            ==#9275f914#553b4b8e#0 len<T#:0>(two#:2) 
+        && arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0),
 }
 ```
 */
@@ -137,7 +137,8 @@ assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
     switch a#:0 {
         [a#:1, ...b#:2] => switch b#:2 {
             [b#:3, ...c#:4] => switch c#:4 {
-                [c#:5] => a#:1 ==#9275f914#553b4b8e#0 1 && b#:3 ==#9275f914#553b4b8e#0 2 && c#:5 ==#9275f914#553b4b8e#0 3,
+                [c#:5] => a#:1 ==#9275f914#553b4b8e#0 1 && b#:3 ==#9275f914#553b4b8e#0 2 
+                    && c#:5 ==#9275f914#553b4b8e#0 3,
                 _#:6 => false,
             },
             _#:7 => false,

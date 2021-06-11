@@ -254,7 +254,8 @@ export const hash_1c6fdd91: t_b99b22d8<t_9f1c0644, t_9f1c0644, t_9f1c0644> = ({
 /**
 ```
 const length#63e16b7a = (v#:0: Vec3#9f1c0644): float ={}> sqrt(
-    v#:0.x#43802a16#0 * v#:0.x#43802a16#0 + v#:0.y#43802a16#1 * v#:0.y#43802a16#1 + v#:0.z#9f1c0644#0 * v#:0.z#9f1c0644#0,
+    v#:0.x#43802a16#0 * v#:0.x#43802a16#0 + v#:0.y#43802a16#1 * v#:0.y#43802a16#1 
+        + v#:0.z#9f1c0644#0 * v#:0.z#9f1c0644#0,
 )
 ```
 */
@@ -277,11 +278,13 @@ export const hash_e7c85424: (arg_0: number, arg_1: number, arg_2: number) => num
 /**
 ```
 const opRepLim#cffec7f4 = (p#:0: Vec3#9f1c0644, c#:1: float, l#:2: Vec3#9f1c0644): Vec3#9f1c0644 ={}> {
-    p#:0 -#1c6fdd91#b99b22d8#1 c#:1 *#c4a91006#1de4e4c0#0 clamp#5483fdc2(
-        round#65acfcda(p#:0 /#68f73ad4#5ac12902#0 c#:1),
-        NegVec3#a5cd53ce."-"#3c2a4898#0(l#:2),
-        l#:2,
-    );
+    p#:0 
+        -#1c6fdd91#b99b22d8#1 c#:1 
+            *#c4a91006#1de4e4c0#0 clamp#5483fdc2(
+                round#65acfcda(p#:0 /#68f73ad4#5ac12902#0 c#:1),
+                NegVec3#a5cd53ce."-"#3c2a4898#0(l#:2),
+                l#:2,
+            );
 }
 ```
 */
@@ -298,11 +301,12 @@ export const hash_ec7f8d1c: number = 0.00005;
 ```
 const sceneSDF#e602af6c = (iTime#:0: float, samplePoint#:1: Vec3#9f1c0644): float ={}> {
     const double#:2 = iTime#:0 * 2.0;
-    const p2#:3 = samplePoint#:1 -#1c6fdd91#b99b22d8#1 Vec3#9f1c0644{
-        x#43802a16#0: -sin(double#:2) / 2.0,
-        y#43802a16#1: sin(iTime#:0 / 4.0) / 2.0,
-        z#9f1c0644#0: cos(double#:2) / 2.0,
-    };
+    const p2#:3 = samplePoint#:1 
+        -#1c6fdd91#b99b22d8#1 Vec3#9f1c0644{
+            x#43802a16#0: -sin(double#:2) / 2.0,
+            y#43802a16#1: sin(iTime#:0 / 4.0) / 2.0,
+            z#9f1c0644#0: cos(double#:2) / 2.0,
+        };
     const p1#:4 = samplePoint#:1;
     const p2#:5 = opRepLim#cffec7f4(
         p2#:3,
@@ -330,9 +334,8 @@ export const hash_e602af6c: (arg_0: number, arg_1: t_9f1c0644) => number = (iTim
 
 /**
 ```
-const normalize#48e6ea27 = (v#:0: Vec3#9f1c0644): Vec3#9f1c0644 ={}> v#:0 /#68f73ad4#5ac12902#0 length#63e16b7a(
-    v#:0,
-)
+const normalize#48e6ea27 = (v#:0: Vec3#9f1c0644): Vec3#9f1c0644 ={}> v#:0 
+    /#68f73ad4#5ac12902#0 length#63e16b7a(v#:0)
 ```
 */
 export const hash_48e6ea27: (arg_0: t_9f1c0644) => t_9f1c0644 = (v: t_9f1c0644) => hash_68f73ad4.h5ac12902_0(v, hash_63e16b7a(v));
@@ -340,7 +343,8 @@ export const hash_48e6ea27: (arg_0: t_9f1c0644) => t_9f1c0644 = (v: t_9f1c0644) 
 /**
 ```
 const dot#255c39c3 = (a#:0: Vec3#9f1c0644, b#:1: Vec3#9f1c0644): float ={}> {
-    a#:0.x#43802a16#0 * b#:1.x#43802a16#0 + a#:0.y#43802a16#1 * b#:1.y#43802a16#1 + a#:0.z#9f1c0644#0 * b#:1.z#9f1c0644#0;
+    a#:0.x#43802a16#0 * b#:1.x#43802a16#0 + a#:0.y#43802a16#1 * b#:1.y#43802a16#1 
+        + a#:0.z#9f1c0644#0 * b#:1.z#9f1c0644#0;
 }
 ```
 */
@@ -351,26 +355,29 @@ export const hash_255c39c3: (arg_0: t_9f1c0644, arg_1: t_9f1c0644) => number = (
 const estimateNormal#db522060 = (iTime#:0: float, p#:1: Vec3#9f1c0644): Vec3#9f1c0644 ={}> normalize#48e6ea27(
     Vec3#9f1c0644{
         x#43802a16#0: sceneSDF#e602af6c(
-            iTime#:0,
-            Vec3#9f1c0644{...p#:1, x#43802a16#0: p#:1.x#43802a16#0 + EPSILON#ec7f8d1c},
-        ) - sceneSDF#e602af6c(
-            iTime#:0,
-            Vec3#9f1c0644{...p#:1, x#43802a16#0: p#:1.x#43802a16#0 - EPSILON#ec7f8d1c},
-        ),
+                iTime#:0,
+                Vec3#9f1c0644{...p#:1, x#43802a16#0: p#:1.x#43802a16#0 + EPSILON#ec7f8d1c},
+            ) 
+            - sceneSDF#e602af6c(
+                iTime#:0,
+                Vec3#9f1c0644{...p#:1, x#43802a16#0: p#:1.x#43802a16#0 - EPSILON#ec7f8d1c},
+            ),
         y#43802a16#1: sceneSDF#e602af6c(
-            iTime#:0,
-            Vec3#9f1c0644{...p#:1, y#43802a16#1: p#:1.y#43802a16#1 + EPSILON#ec7f8d1c},
-        ) - sceneSDF#e602af6c(
-            iTime#:0,
-            Vec3#9f1c0644{...p#:1, y#43802a16#1: p#:1.y#43802a16#1 - EPSILON#ec7f8d1c},
-        ),
+                iTime#:0,
+                Vec3#9f1c0644{...p#:1, y#43802a16#1: p#:1.y#43802a16#1 + EPSILON#ec7f8d1c},
+            ) 
+            - sceneSDF#e602af6c(
+                iTime#:0,
+                Vec3#9f1c0644{...p#:1, y#43802a16#1: p#:1.y#43802a16#1 - EPSILON#ec7f8d1c},
+            ),
         z#9f1c0644#0: sceneSDF#e602af6c(
-            iTime#:0,
-            Vec3#9f1c0644{...p#:1, z#9f1c0644#0: p#:1.z#9f1c0644#0 + EPSILON#ec7f8d1c},
-        ) - sceneSDF#e602af6c(
-            iTime#:0,
-            Vec3#9f1c0644{...p#:1, z#9f1c0644#0: p#:1.z#9f1c0644#0 - EPSILON#ec7f8d1c},
-        ),
+                iTime#:0,
+                Vec3#9f1c0644{...p#:1, z#9f1c0644#0: p#:1.z#9f1c0644#0 + EPSILON#ec7f8d1c},
+            ) 
+            - sceneSDF#e602af6c(
+                iTime#:0,
+                Vec3#9f1c0644{...p#:1, z#9f1c0644#0: p#:1.z#9f1c0644#0 - EPSILON#ec7f8d1c},
+            ),
     },
 )
 ```
@@ -674,7 +681,8 @@ const fishingBoueys#4713c0cc = (
     if dist#:5 > MAX_DIST#0ce717e6 - EPSILON#ec7f8d1c {
         Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 0.0, y#43802a16#1: 0.0, w#3b941378#0: 1.0};
     } else {
-        const worldPosForPixel#:7 = eye#:4 +#1c6fdd91#b99b22d8#0 dist#:5 *#c4a91006#1de4e4c0#0 dir#:3;
+        const worldPosForPixel#:7 = eye#:4 
+            +#1c6fdd91#b99b22d8#0 dist#:5 *#c4a91006#1de4e4c0#0 dir#:3;
         const K_a#:8 = Vec3#9f1c0644{x#43802a16#0: 0.9, y#43802a16#1: 0.2, z#9f1c0644#0: 0.3};
         const K_d#:9 = Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.2, z#9f1c0644#0: 0.7};
         const K_s#:10 = Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0};
@@ -845,7 +853,8 @@ export const hash_090f77e7: t_5ac12902<t_43802a16, t_43802a16, t_43802a16> = ({
 ```
 const random#347089ef = (st#:0: Vec2#43802a16): float ={}> {
     fract#495c4d22(
-        sin(dot#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) * 43758.5453123,
+        sin(dot#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) 
+            * 43758.5453123,
     );
 }
 ```
@@ -893,17 +902,20 @@ export const hash_28569bc0: t_1de4e4c0<t_43802a16, number, t_43802a16> = ({
 ```
 const randFolks#50e82492 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): Vec4#3b941378 ={}> {
     const scale#:2 = 14.0;
-    const small#:3 = round#b9171b62(fragCoord#:1 /#afc24bbe#5ac12902#0 scale#:2) *#28569bc0#1de4e4c0#0 scale#:2;
+    const small#:3 = round#b9171b62(fragCoord#:1 /#afc24bbe#5ac12902#0 scale#:2) 
+        *#28569bc0#1de4e4c0#0 scale#:2;
     const small#:4 = Vec2#43802a16{
         x#43802a16#0: small#:3.x#43802a16#0,
         y#43802a16#1: small#:3.y#43802a16#1 + env#:0.time#451d5252#0,
     };
-    const v#:5 = random#347089ef(small#:4 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1) / 10.0 + 0.9;
-    const two#:6 = Vec4#3b941378{...red#7d188c3c *#1d31aa6e#1de4e4c0#0 v#:5, w#3b941378#0: 1.0} +#0555d260#b99b22d8#0 fishingBoueys#4713c0cc(
-        env#:0.time#451d5252#0,
-        fragCoord#:1,
-        env#:0.resolution#451d5252#1,
-    );
+    const v#:5 = random#347089ef(small#:4 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1) / 10.0 
+        + 0.9;
+    const two#:6 = Vec4#3b941378{...red#7d188c3c *#1d31aa6e#1de4e4c0#0 v#:5, w#3b941378#0: 1.0} 
+        +#0555d260#b99b22d8#0 fishingBoueys#4713c0cc(
+            env#:0.time#451d5252#0,
+            fragCoord#:1,
+            env#:0.resolution#451d5252#1,
+        );
     two#:6 /#56d43c0e#5ac12902#0 2.0;
 }
 ```

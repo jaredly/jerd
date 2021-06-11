@@ -69,7 +69,7 @@ export const typeApply = (
         // );
     }
 
-    let resArgs = args.map((arg) => typeExpr(env, arg));
+    let resArgs = args.map((arg) => typeExpr(env, arg.value));
 
     if (target.type === 'Ambiguous') {
         // OK! resolve ambiguity pleaseeee

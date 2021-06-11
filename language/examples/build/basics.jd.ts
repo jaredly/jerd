@@ -225,7 +225,8 @@ provideString#1d302ade("hi")(impure#74eaa230) ==#606c7034#553b4b8e#0 "A"
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")(hash_74eaa230), "A");
 
 /*
-provideString#1d302ade("hi")((): string ={GetString#22024b72}> pure#33e34a3a()) ==#606c7034#553b4b8e#0 "AA"
+provideString#1d302ade("hi")((): string ={GetString#22024b72}> pure#33e34a3a()) 
+    ==#606c7034#553b4b8e#0 "AA"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
   done$2(handlers, hash_33e34a3a());
@@ -240,9 +241,10 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, d
 
 /*
 provideStringWithArg#8366c3ec("hi")(
-    "Passed in",
-    (arg#:0: string): string ={GetString#22024b72}> arg#:0 ++ "-m",
-) ==#606c7034#553b4b8e#0 "Passed in-m"
+        "Passed in",
+        (arg#:0: string): string ={GetString#22024b72}> arg#:0 ++ "-m",
+    ) 
+    ==#606c7034#553b4b8e#0 "Passed in-m"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_8366c3ec("hi")("Passed in", (arg: string, handlers: Handlers, done$4: (arg_0: Handlers, arg_1: string) => void) => {
   done$4(handlers, arg + "-m");

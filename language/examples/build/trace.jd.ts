@@ -22,9 +22,8 @@ export const hash_2189e92c: (arg_0: number) => number = (n: number) => n - 1;
 
 /**
 ```
-const oneTerm#fa256dec = (m#:0: int): int ={}> trace!(m#:0, "Hello from tracing!") + trace!(
-    otherTerm#2189e92c(4),
-)
+const oneTerm#fa256dec = (m#:0: int): int ={}> trace!(m#:0, "Hello from tracing!") 
+    + trace!(otherTerm#2189e92c(4))
 ```
 */
 export const hash_fa256dec: (arg_0: number) => number = (m: number) => m + hash_2189e92c(4);

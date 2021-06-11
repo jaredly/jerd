@@ -126,7 +126,11 @@ FullSlice = left:(Expression __)? ":" right:(__ Expression)? {
     return {type: 'Slice', left: left ? left[0] : null, right: right ? right[1] : null, location: location()}
 }
 
-ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:CommaExpr? _ ")" {
+LabeledCommaExpr = label:(IdText ":" __)? first:Expression rest:(_ "," _ (IdText ":" __)? Expression)* _ ","? {
+    return [{label, value: first}, ...rest.map((r: any) => ({label: r[3] ? r[3][0] : null, value: r[4]}))]
+}
+
+ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:LabeledCommaExpr? _ ")" {
     return {
         type: 'Apply',
         typevbls: typevbls || [],

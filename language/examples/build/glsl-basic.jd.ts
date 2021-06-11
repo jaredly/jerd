@@ -205,16 +205,16 @@ const hello#6e44375b = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): 
         pos#44c72b50#0: env#:0.mouse#451d5252#3,
         r#44c72b50#1: 40.0 + cos(env#:0.time#451d5252#0 * 4.0) * 20.0,
     };
-    const color#:4 = if circleSDF#632537ec(fragCoord#:1, circle#:2) --#4e1890c8#5cfbbc08#0 circleSDF#632537ec(
-        fragCoord#:1,
-        Circle#44c72b50{
-            pos#44c72b50#0: env#:0.mouse#451d5252#3 +#70bb2056#b99b22d8#0 Vec2#43802a16{
-                x#43802a16#0: 10.0,
-                y#43802a16#1: 20.0,
-            },
-            r#44c72b50#1: 30.0,
-        },
-    ) < 0.0 {
+    const color#:4 = if circleSDF#632537ec(fragCoord#:1, circle#:2) 
+            --#4e1890c8#5cfbbc08#0 circleSDF#632537ec(
+                fragCoord#:1,
+                Circle#44c72b50{
+                    pos#44c72b50#0: env#:0.mouse#451d5252#3 
+                        +#70bb2056#b99b22d8#0 Vec2#43802a16{x#43802a16#0: 10.0, y#43802a16#1: 20.0},
+                    r#44c72b50#1: 30.0,
+                },
+            ) 
+        < 0.0 {
         switch modInt(fragCoord#:1.x#43802a16#0 as#184a69ed int, 2) {
             0 => Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
             _#:3 => Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 0.0},

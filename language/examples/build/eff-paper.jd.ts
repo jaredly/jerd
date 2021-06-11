@@ -650,12 +650,13 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 
 /*
 collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> {
-        raise!(Write#35f4b478.write("one"));
-        raise!(Write#35f4b478.write("two"));
-        raise!(Write#35f4b478.write("three"));
-    },
-) ==#606c7034#553b4b8e#0 "one\ntwo\nthree\nend"
+        (): void ={Write#35f4b478}> {
+            raise!(Write#35f4b478.write("one"));
+            raise!(Write#35f4b478.write("two"));
+            raise!(Write#35f4b478.write("three"));
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "one\ntwo\nthree\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "one", (handlers, value) => ((handlers: Handlers) => {
@@ -667,8 +668,9 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}((): void ={Write#35f4b478}> {
-    print#eccbfbca("HI");
-}) ==#606c7034#553b4b8e#0 "HI\nend"
+        print#eccbfbca("HI");
+    }) 
+    ==#606c7034#553b4b8e#0 "HI\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
   hash_eccbfbca("HI", handlers, (handlers: Handlers) => done$2(handlers));
@@ -676,9 +678,10 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}((): void ={Write#35f4b478}> {
-    print#eccbfbca("HI");
-    print#eccbfbca("HO");
-}) ==#606c7034#553b4b8e#0 "HI\nHO\nend"
+        print#eccbfbca("HI");
+        print#eccbfbca("HO");
+    }) 
+    ==#606c7034#553b4b8e#0 "HI\nHO\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
   hash_eccbfbca("HI", handlers, (handlers: Handlers) => {
@@ -689,11 +692,12 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> {
-        raise!(Write#35f4b478.write("HI"));
-        raise!(Write#35f4b478.write("HO"));
-    },
-) ==#606c7034#553b4b8e#0 "HI\nHO\nend"
+        (): void ={Write#35f4b478}> {
+            raise!(Write#35f4b478.write("HI"));
+            raise!(Write#35f4b478.write("HO"));
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "HI\nHO\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$8: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "HI", (handlers, value) => ((handlers: Handlers) => {
@@ -703,13 +707,14 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
-        "hi",
-        (): void ={Read#22024b72, Write#35f4b478}> print#eccbfbca(
-            raise!(Read#22024b72.read()) ++ " and " ++ raise!(Read#22024b72.read()),
+        (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
+            "hi",
+            (): void ={Read#22024b72, Write#35f4b478}> print#eccbfbca(
+                raise!(Read#22024b72.read()) ++ " and " ++ raise!(Read#22024b72.read()),
+            ),
         ),
-    ),
-) ==#606c7034#553b4b8e#0 "hi and hi\nend"
+    ) 
+    ==#606c7034#553b4b8e#0 "hi and hi\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$13: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$15: (arg_0: Handlers) => void) => {
@@ -725,9 +730,10 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}((): void ={Write#35f4b478}> {
-    print#eccbfbca("A");
-    print#eccbfbca("B");
-}) ==#606c7034#553b4b8e#0 "A\nB\nend"
+        print#eccbfbca("A");
+        print#eccbfbca("B");
+    }) 
+    ==#606c7034#553b4b8e#0 "A\nB\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$20: (arg_0: Handlers) => void) => {
   hash_eccbfbca("A", handlers, (handlers: Handlers) => {
@@ -738,16 +744,17 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
-        "hi",
-        (): void ={Read#22024b72, Write#35f4b478}> {
-            print#eccbfbca(read#64605d94());
-            print#eccbfbca("YA");
-            print#eccbfbca(read#64605d94());
-            print#eccbfbca("B");
-        },
-    ),
-) ==#606c7034#553b4b8e#0 "hi\nYA\nhi\nB\nend"
+        (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
+            "hi",
+            (): void ={Read#22024b72, Write#35f4b478}> {
+                print#eccbfbca(read#64605d94());
+                print#eccbfbca("YA");
+                print#eccbfbca(read#64605d94());
+                print#eccbfbca("B");
+            },
+        ),
+    ) 
+    ==#606c7034#553b4b8e#0 "hi\nYA\nhi\nB\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$26: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$28: (arg_0: Handlers) => void) => {
@@ -772,15 +779,16 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
-        "hi",
-        (): void ={Read#22024b72, Write#35f4b478}> {
-            raise!(Write#35f4b478.write("A"));
-            const x#:0 = raise!(Read#22024b72.read());
-            raise!(Write#35f4b478.write("B"));
-        },
-    ),
-) ==#606c7034#553b4b8e#0 "A\nB\nend"
+        (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
+            "hi",
+            (): void ={Read#22024b72, Write#35f4b478}> {
+                raise!(Write#35f4b478.write("A"));
+                const x#:0 = raise!(Read#22024b72.read());
+                raise!(Write#35f4b478.write("B"));
+            },
+        ),
+    ) 
+    ==#606c7034#553b4b8e#0 "A\nB\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$43: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$45: (arg_0: Handlers) => void) => {
@@ -795,14 +803,15 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
-        "hi",
-        (): void ={Read#22024b72, Write#35f4b478}> {
-            const x#:0 = raise!(Read#22024b72.read());
-            raise!(Write#35f4b478.write("B"));
-        },
-    ),
-) ==#606c7034#553b4b8e#0 "B\nend"
+        (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
+            "hi",
+            (): void ={Read#22024b72, Write#35f4b478}> {
+                const x#:0 = raise!(Read#22024b72.read());
+                raise!(Write#35f4b478.write("B"));
+            },
+        ),
+    ) 
+    ==#606c7034#553b4b8e#0 "B\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$48: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$50: (arg_0: Handlers) => void) => {
@@ -815,10 +824,11 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> {
-        alwaysRead#1762d528<void>{Write#35f4b478}("Me", printFullName#ea51ddfc);
-    },
-) ==#606c7034#553b4b8e#0 "What is your forename?\nWhat is your surname?\nMe Me\nend"
+        (): void ={Write#35f4b478}> {
+            alwaysRead#1762d528<void>{Write#35f4b478}("Me", printFullName#ea51ddfc);
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "What is your forename?\nWhat is your surname?\nMe Me\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$53: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$55: T_0) => done$53(handlers));
@@ -826,13 +836,14 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> reverse#f201f930(
-        (): void ={Write#35f4b478}> {
-            print#eccbfbca("A");
-            print#eccbfbca("B");
-        },
-    ),
-) ==#606c7034#553b4b8e#0 "B\nA\nend"
+        (): void ={Write#35f4b478}> reverse#f201f930(
+            (): void ={Write#35f4b478}> {
+                print#eccbfbca("A");
+                print#eccbfbca("B");
+            },
+        ),
+    ) 
+    ==#606c7034#553b4b8e#0 "B\nA\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$56: (arg_0: Handlers) => void) => {
   hash_f201f930((handlers: Handlers, done$58: (arg_0: Handlers) => void) => {
@@ -845,14 +856,15 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 
 /*
 collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> {
-        reverse#f201f930(
-            (): void ={Write#35f4b478}> {
-                alwaysRead#1762d528<void>{Write#35f4b478}("Me", printFullName#ea51ddfc);
-            },
-        );
-    },
-) ==#606c7034#553b4b8e#0 "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
+        (): void ={Write#35f4b478}> {
+            reverse#f201f930(
+                (): void ={Write#35f4b478}> {
+                    alwaysRead#1762d528<void>{Write#35f4b478}("Me", printFullName#ea51ddfc);
+                },
+            );
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$62: (arg_0: Handlers) => void) => {
   hash_f201f930((handlers: Handlers, done$64: (arg_0: Handlers) => void) => {
@@ -897,11 +909,12 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_478ee9c0(10, hash_463fdaf6), "10:14")
 
 /*
 withInitialValue#478ee9c0<int>(
-    4,
-    (): int ={Store#7b45d75e}> callPlus5#1d5e1778{Store#7b45d75e}(
-        (): int ={Store#7b45d75e}> raise!(Store#7b45d75e.get()),
-    ),
-) ==#9275f914#553b4b8e#0 9
+        4,
+        (): int ={Store#7b45d75e}> callPlus5#1d5e1778{Store#7b45d75e}(
+            (): int ={Store#7b45d75e}> raise!(Store#7b45d75e.get()),
+        ),
+    ) 
+    ==#9275f914#553b4b8e#0 9
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_478ee9c0(4, (handlers: Handlers, done$67: (arg_0: Handlers, arg_1: number) => void) => {
   hash_1d5e1778.effectful((handlers: Handlers, done$69: (arg_0: Handlers, arg_1: number) => void) => {

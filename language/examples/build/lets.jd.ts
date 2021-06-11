@@ -25,7 +25,8 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const rec fib#ac346fbc = (prev#:0: int, cur#:1: int, n#:2: int): int ={}> if n#:2 ==#9275f914#553b4b8e#0 0 {
+const rec fib#ac346fbc = (prev#:0: int, cur#:1: int, n#:2: int): int ={}> if n#:2 
+    ==#9275f914#553b4b8e#0 0 {
     prev#:0;
 } else {
     ac346fbc#self(cur#:1, prev#:0 + cur#:1, n#:2 - 1);

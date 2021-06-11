@@ -1,8 +1,12 @@
 
 ## What do we need in order to make this minimally usable by other people?
 
+- [ ] named arguments folks
+  - hm maybe I need types to have named arguments? hmmmm yeah I mean I think that would be nice actually. But that would mean a change to the ... hashing ... whatsit? or wait the hash needs to not care about the name ... but it still means a little bit of a change.
+  ... ok I can put that off, and say "only do names if it's a term reference, it's fine"
+
 ### OpenGL Bonanza
-- [ ] make a play / stop / restart / record hover overlay dealio. With a cog that opens config for the recording.
+- [x] make a play / stop / restart / record hover overlay dealio. With a cog that opens config for the recording.
   - oh maybe a time slider too? If we establish what the periodicity of the thing is.
 - [ ] fix the bug I'm seeing when trying to multisample.
 

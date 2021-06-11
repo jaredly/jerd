@@ -280,7 +280,8 @@ export const hash_21eb7d2c: t_d0eff35c<number> = ({
 } as t_d0eff35c<number>);
 
 /*
-switch y2#21eb7d2c {Twice#70487bcc{one: one#:0, two: two#:1} => one#:0 + two#:1, _#:2 => 0} ==#9275f914#553b4b8e#0 13
+switch y2#21eb7d2c {Twice#70487bcc{one: one#:0, two: two#:1} => one#:0 + two#:1, _#:2 => 0} 
+    ==#9275f914#553b4b8e#0 13
 */
 assertCall(hash_9275f914.h553b4b8e_0, (() => {
   if (hash_21eb7d2c.type === "70487bcc") {
@@ -318,7 +319,8 @@ assertCall(hash_9275f914.h553b4b8e_0, hash_16e40f74(({
 } as t_45258310<number>), 20), 20);
 
 /*
-getWithDefault#16e40f74<int>(Option#45258310<int>:Some#0043a33c<int>{value#0043a33c#0: 3}, 20) ==#9275f914#553b4b8e#0 3
+getWithDefault#16e40f74<int>(Option#45258310<int>:Some#0043a33c<int>{value#0043a33c#0: 3}, 20) 
+    ==#9275f914#553b4b8e#0 3
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_16e40f74(({
   type: "0043a33c",
