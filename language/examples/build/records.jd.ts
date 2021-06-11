@@ -334,12 +334,12 @@ them#3a789ae6.address#2736d9d6#0 ==#606c7034#553b4b8e#0 "No"
 assertCall(hash_606c7034.h553b4b8e_0, hash_3a789ae6.h2736d9d6_0, "No");
 
 /*
-getName#1ef63c92<Person#58c1982c>(me#5af8296e) ==#606c7034#553b4b8e#0 "June"
+getName#1ef63c92<Person#58c1982c>(m: me#5af8296e) ==#606c7034#553b4b8e#0 "June"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1ef63c92(hash_5af8296e), "June");
 
 /*
-getName#1ef63c92<Employee#2736d9d6>(them#3a789ae6) ==#606c7034#553b4b8e#0 "You"
+getName#1ef63c92<Employee#2736d9d6>(m: them#3a789ae6) ==#606c7034#553b4b8e#0 "You"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1ef63c92(hash_3a789ae6), "You");
 

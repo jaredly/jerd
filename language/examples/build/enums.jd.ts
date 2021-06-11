@@ -297,7 +297,7 @@ y1t#15dc4398(y1#38ea7aec) ==#9275f914#553b4b8e#0 2
 assertCall(hash_9275f914.h553b4b8e_0, hash_15dc4398(hash_38ea7aec), 2);
 
 /*
-isPresent#0c1d2cb0<int>(Option#45258310<int>:Some#0043a33c<int>{value#0043a33c#0: 3}) == true
+isPresent#0c1d2cb0<int>(x: Option#45258310<int>:Some#0043a33c<int>{value#0043a33c#0: 3}) == true
 */
 assertEqual(hash_0c1d2cb0(({
   type: "0043a33c",
@@ -305,21 +305,25 @@ assertEqual(hash_0c1d2cb0(({
 } as t_45258310<number>)), true);
 
 /*
-isPresent#0c1d2cb0<int>(Option#45258310<int>:None#2449af94) == false
+isPresent#0c1d2cb0<int>(x: Option#45258310<int>:None#2449af94) == false
 */
 assertEqual(hash_0c1d2cb0(({
   type: "2449af94"
 } as t_45258310<number>)), false);
 
 /*
-getWithDefault#16e40f74<int>(Option#45258310<int>:None#2449af94, 20) ==#9275f914#553b4b8e#0 20
+getWithDefault#16e40f74<int>(x: Option#45258310<int>:None#2449af94, default: 20) 
+    ==#9275f914#553b4b8e#0 20
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_16e40f74(({
   type: "2449af94"
 } as t_45258310<number>), 20), 20);
 
 /*
-getWithDefault#16e40f74<int>(Option#45258310<int>:Some#0043a33c<int>{value#0043a33c#0: 3}, 20) 
+getWithDefault#16e40f74<int>(
+        x: Option#45258310<int>:Some#0043a33c<int>{value#0043a33c#0: 3},
+        default: 20,
+    ) 
     ==#9275f914#553b4b8e#0 3
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_16e40f74(({
@@ -328,12 +332,13 @@ assertCall(hash_9275f914.h553b4b8e_0, hash_16e40f74(({
 } as t_45258310<number>), 20), 3);
 
 /*
-isTen#5768cc58(10) == true
+isTen#5768cc58(n: 10) == true
 */
 assertEqual(hash_5768cc58(10), true);
 
 /*
-isSomeYes#5bb5304c(Option#45258310<string>:Some#0043a33c<string>{value#0043a33c#0: "yes"}) == true
+isSomeYes#5bb5304c(v: Option#45258310<string>:Some#0043a33c<string>{value#0043a33c#0: "yes"}) 
+    == true
 */
 assertEqual(hash_5bb5304c(({
   type: "0043a33c",
@@ -341,7 +346,7 @@ assertEqual(hash_5bb5304c(({
 } as t_45258310<string>)), true);
 
 /*
-isNotFalse#7caa41a0(true) == true
+isNotFalse#7caa41a0(n: true) == true
 */
 assertEqual(hash_7caa41a0(true), true);
 

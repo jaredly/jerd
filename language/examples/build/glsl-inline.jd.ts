@@ -37,9 +37,9 @@ export const hash_f4c397d2: (arg_0: number) => number = (m: number) => m + 2;
 /**
 ```
 const y#7df35068 = (doit#:0: (int) ={}> int, v#:1: int): int ={}> yy#5c747e1a(
-    doit#:0,
-    doit#:0(v#:1 * 2),
-    5,
+    one: doit#:0,
+    z: doit#:0(v#:1 * 2),
+    b: 5,
 )
 ```
 */
@@ -56,16 +56,16 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-y#7df35068(z#f4c397d2, 30) ==#9275f914#553b4b8e#0 60 + 2 + 5 + 2
+y#7df35068(doit: z#f4c397d2, v: 30) ==#9275f914#553b4b8e#0 60 + 2 + 5 + 2
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_7df35068(hash_f4c397d2, 30), 60 + 2 + 5 + 2);
 
 /*
-y#7df35068(h#15ece66a, 30) ==#9275f914#553b4b8e#0 60 - 2 + 5 - 2
+y#7df35068(doit: h#15ece66a, v: 30) ==#9275f914#553b4b8e#0 60 - 2 + 5 - 2
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_7df35068(hash_15ece66a, 30), 60 - 2 + 5 - 2);
 
 /*
-y#7df35068((n#:0: int): int ={}> n#:0 + 3, 30) ==#9275f914#553b4b8e#0 60 + 5 + 6
+y#7df35068(doit: (n#:0: int): int ={}> n#:0 + 3, v: 30) ==#9275f914#553b4b8e#0 60 + 5 + 6
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_7df35068((n: number) => n + 3, 30), 60 + 5 + 6);

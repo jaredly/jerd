@@ -490,6 +490,18 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
             if (term.target.type === 'lambda') {
                 inner = items([atom('('), inner, atom(')')]);
             }
+            let argNames: null | Array<string> = null;
+            let resolvedTarget = term.target;
+            if (
+                resolvedTarget.type === 'ref' &&
+                resolvedTarget.ref.type === 'user'
+            ) {
+                resolvedTarget =
+                    env.global.terms[idName(resolvedTarget.ref.id)];
+            }
+            if (resolvedTarget.type === 'lambda') {
+                argNames = resolvedTarget.args.map((sym) => sym.name);
+            }
             return items([
                 inner,
                 term.typeVbls.length
@@ -506,7 +518,22 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                           '}',
                       )
                     : null,
-                args(term.args.map((t) => termToPretty(env, t))),
+                args(
+                    term.args.map((t, i) => {
+                        const term = termToPretty(env, t);
+                        if (
+                            argNames &&
+                            (term.type !== 'id' || term.text !== argNames[i])
+                        ) {
+                            return items([
+                                atom(argNames[i], ['argName']),
+                                atom(': '),
+                                term,
+                            ]);
+                        }
+                        return term;
+                    }),
+                ),
             ]);
         case 'ref':
             return refToPretty(env, term.ref, 'term');

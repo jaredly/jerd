@@ -182,7 +182,7 @@ export const hash_184a69ed: t_As<number, number> = ({
 /**
 ```
 const circleSDF#632537ec = (p#:0: Vec2#43802a16, circle#:1: Circle#44c72b50): float ={}> {
-    length#c2805852(p#:0 -#70bb2056#b99b22d8#1 circle#:1.pos#44c72b50#0) - circle#:1.r#44c72b50#1;
+    length#c2805852(v: p#:0 -#70bb2056#b99b22d8#1 circle#:1.pos#44c72b50#0) - circle#:1.r#44c72b50#1;
 }
 ```
 */
@@ -205,10 +205,10 @@ const hello#6e44375b = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): 
         pos#44c72b50#0: env#:0.mouse#451d5252#3,
         r#44c72b50#1: 40.0 + cos(env#:0.time#451d5252#0 * 4.0) * 20.0,
     };
-    const color#:4 = if circleSDF#632537ec(fragCoord#:1, circle#:2) 
+    const color#:4 = if circleSDF#632537ec(p: fragCoord#:1, circle#:2) 
             --#4e1890c8#5cfbbc08#0 circleSDF#632537ec(
-                fragCoord#:1,
-                Circle#44c72b50{
+                p: fragCoord#:1,
+                circle: Circle#44c72b50{
                     pos#44c72b50#0: env#:0.mouse#451d5252#3 
                         +#70bb2056#b99b22d8#0 Vec2#43802a16{x#43802a16#0: 10.0, y#43802a16#1: 20.0},
                     r#44c72b50#1: 30.0,
@@ -220,7 +220,7 @@ const hello#6e44375b = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): 
             _#:3 => Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 0.0},
         };
     } else {
-        abs#1a074578(Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: -1.0});
+        abs#1a074578(v: Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: -1.0});
     };
     Vec4#3b941378{...color#:4, w#3b941378#0: 1.0};
 }

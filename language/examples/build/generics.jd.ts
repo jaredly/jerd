@@ -36,7 +36,7 @@ export const hash_36626a20: (arg_0: number) => (arg_0: number) => number = (x: n
 
 /**
 ```
-const callIt#2d15e126 = callme#777bf1fc<int>(addTwo#f4c397d2, 5)
+const callIt#2d15e126 = callme#777bf1fc<int>(x: addTwo#f4c397d2, arg: 5)
 ```
 */
 export const hash_2d15e126: T_0 = hash_777bf1fc(hash_f4c397d2, 5);
@@ -53,7 +53,7 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const ten#48447074 = scopeIt#36626a20(4)(6)
+const ten#48447074 = scopeIt#36626a20(x: 4)(6)
 ```
 */
 export const hash_48447074: number = hash_36626a20(4)(6);

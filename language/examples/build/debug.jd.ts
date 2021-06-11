@@ -68,6 +68,7 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 } as t_553b4b8e<string>);
 
 /*
-provideString#0247dd82("Yes", getString#64605d94) ==#606c7034#553b4b8e#0 "Yesgotbackpureprovided"
+provideString#0247dd82(v: "Yes", fn: getString#64605d94) 
+    ==#606c7034#553b4b8e#0 "Yesgotbackpureprovided"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_0247dd82("Yes", hash_64605d94), "Yesgotbackpureprovided");

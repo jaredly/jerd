@@ -391,7 +391,7 @@ export const hash_f2f2e188: (arg_0: number, arg_1: number, arg_2: number) => num
 /**
 ```
 const distance#29bb6cab = (one#:0: Vec3#9f1c0644, two#:1: Vec3#9f1c0644): float ={}> length#63e16b7a(
-    two#:1 -#1c6fdd91#b99b22d8#1 one#:0,
+    v: two#:1 -#1c6fdd91#b99b22d8#1 one#:0,
 )
 ```
 */
@@ -485,7 +485,7 @@ const estimateNormal#6700be1f = (
     iTime#:1: float,
     p#:2: Vec3#9f1c0644,
 ): Vec3#9f1c0644 ={}> normalize#48e6ea27(
-    Vec3#9f1c0644{
+    v: Vec3#9f1c0644{
         x#43802a16#0: sceneSDF#:0(
                 iTime#:1,
                 Vec3#9f1c0644{...p#:2, x#43802a16#0: p#:2.x#43802a16#0 + EPSILON#ec7f8d1c},
@@ -579,9 +579,21 @@ export const hash_65acfcda: (arg_0: t_9f1c0644) => t_9f1c0644 = (v: t_9f1c0644) 
 /**
 ```
 const clamp#5483fdc2 = (v#:0: Vec3#9f1c0644, min#:1: Vec3#9f1c0644, max#:2: Vec3#9f1c0644): Vec3#9f1c0644 ={}> Vec3#9f1c0644{
-    x#43802a16#0: clamp#f2f2e188(v#:0.x#43802a16#0, min#:1.x#43802a16#0, max#:2.x#43802a16#0),
-    y#43802a16#1: clamp#f2f2e188(v#:0.y#43802a16#1, min#:1.y#43802a16#1, max#:2.y#43802a16#1),
-    z#9f1c0644#0: clamp#f2f2e188(v#:0.z#9f1c0644#0, min#:1.z#9f1c0644#0, max#:2.z#9f1c0644#0),
+    x#43802a16#0: clamp#f2f2e188(
+        v: v#:0.x#43802a16#0,
+        minv: min#:1.x#43802a16#0,
+        maxv: max#:2.x#43802a16#0,
+    ),
+    y#43802a16#1: clamp#f2f2e188(
+        v: v#:0.y#43802a16#1,
+        minv: min#:1.y#43802a16#1,
+        maxv: max#:2.y#43802a16#1,
+    ),
+    z#9f1c0644#0: clamp#f2f2e188(
+        v: v#:0.z#9f1c0644#0,
+        minv: min#:1.z#9f1c0644#0,
+        maxv: max#:2.z#9f1c0644#0,
+    ),
 }
 ```
 */
@@ -606,16 +618,16 @@ const volumetricSample#6354c64c = (
 ): float ={}> {
     const rdist#:8 = percent#:5 * dist#:4;
     const sample#:9 = eye#:3 +#1c6fdd91#b99b22d8#0 rdist#:8 *#c4a91006#1de4e4c0#0 dir#:6;
-    const lightDist#:10 = distance#29bb6cab(sample#:9, light#:2);
+    const lightDist#:10 = distance#29bb6cab(one: sample#:9, two: light#:2);
     const toLight#:11 = sample#:9 -#1c6fdd91#b99b22d8#1 light#:2;
     const marchToLight#:12 = shortestDistanceToSurface#56314282(
         sceneSDF#:0,
         iTime#:1,
-        sample#:9,
-        -1.0 *#c4a91006#1de4e4c0#0 normalize#48e6ea27(toLight#:11),
-        0.0,
-        lightDist#:10,
-        MAX_MARCHING_STEPS#62404440,
+        eye: sample#:9,
+        marchingDirection: -1.0 *#c4a91006#1de4e4c0#0 normalize#48e6ea27(v: toLight#:11),
+        start: 0.0,
+        end: lightDist#:10,
+        stepsLeft: MAX_MARCHING_STEPS#62404440,
     );
     if marchToLight#:12 >= lightDist#:10 - 0.1 {
         dist#:4 / pow(1.0 + lightDist#:10, 2.0);
@@ -702,8 +714,8 @@ const isPointingTowardLight#2a21d322 = (
     lightPos#:3: Vec3#9f1c0644,
 ): bool ={}> {
     const N#:4 = estimateNormal#6700be1f(sceneSDF#:0, iTime#:1, p#:2);
-    const L#:5 = normalize#48e6ea27(lightPos#:3 -#1c6fdd91#b99b22d8#1 p#:2);
-    const dotLN#:6 = dot#255c39c3(L#:5, N#:4);
+    const L#:5 = normalize#48e6ea27(v: lightPos#:3 -#1c6fdd91#b99b22d8#1 p#:2);
+    const dotLN#:6 = dot#255c39c3(a: L#:5, b: N#:4);
     dotLN#:6 >= 0.0;
 }
 ```
@@ -856,9 +868,9 @@ const opRepLim#cffec7f4 = (p#:0: Vec3#9f1c0644, c#:1: float, l#:2: Vec3#9f1c0644
     p#:0 
         -#1c6fdd91#b99b22d8#1 c#:1 
             *#c4a91006#1de4e4c0#0 clamp#5483fdc2(
-                round#65acfcda(p#:0 /#68f73ad4#5ac12902#0 c#:1),
-                NegVec3#a5cd53ce."-"#3c2a4898#0(l#:2),
-                l#:2,
+                v: round#65acfcda(v: p#:0 /#68f73ad4#5ac12902#0 c#:1),
+                min: NegVec3#a5cd53ce."-"#3c2a4898#0(l#:2),
+                max: l#:2,
             );
 }
 ```
@@ -988,21 +1000,26 @@ const lightSurface#c90c34d4 = (
     light#:4: float,
     hit#:5: float,
 ): Vec4#3b941378 ={}> {
-    if isPointingTowardLight#2a21d322(sceneSDF#:0, iTime#:1, worldPosForPixel#:2, light1Pos#:3) {
+    if isPointingTowardLight#2a21d322(
+        sceneSDF#:0,
+        iTime#:1,
+        p: worldPosForPixel#:2,
+        lightPos: light1Pos#:3,
+    ) {
         const toLight#:6 = light1Pos#:3 -#1c6fdd91#b99b22d8#1 worldPosForPixel#:2;
         const marchToLight#:7 = shortestDistanceToSurface#56314282(
             sceneSDF#:0,
             iTime#:1,
-            light1Pos#:3,
-            -1.0 *#c4a91006#1de4e4c0#0 normalize#48e6ea27(toLight#:6),
-            MIN_DIST#f2cd39b8,
-            MAX_DIST#0ce717e6,
-            MAX_MARCHING_STEPS#62404440,
+            eye: light1Pos#:3,
+            marchingDirection: -1.0 *#c4a91006#1de4e4c0#0 normalize#48e6ea27(v: toLight#:6),
+            start: MIN_DIST#f2cd39b8,
+            end: MAX_DIST#0ce717e6,
+            stepsLeft: MAX_MARCHING_STEPS#62404440,
         );
         if marchToLight#:7 > MAX_DIST#0ce717e6 - EPSILON#ec7f8d1c * 10.0 {
             Vec4#3b941378{...white#0678f03c *#1d31aa6e#1de4e4c0#0 light#:4, w#3b941378#0: 1.0};
         } else {
-            const offset#:8 = marchToLight#:7 - length#63e16b7a(toLight#:6);
+            const offset#:8 = marchToLight#:7 - length#63e16b7a(v: toLight#:6);
             const penumbra#:9 = 0.1;
             if offset#:8 < -EPSILON#ec7f8d1c * 1000.0 {
                 Vec4#3b941378{...white#0678f03c *#1d31aa6e#1de4e4c0#0 light#:4, w#3b941378#0: 1.0};
@@ -1051,10 +1068,10 @@ export const hash_c90c34d4: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number
 ```
 const MatByVector#16557d10 = Mul#1de4e4c0<Mat4#d92781e8, Vec4#3b941378, Vec4#3b941378>{
     "*"#1de4e4c0#0: (mat#:0: Mat4#d92781e8, vec#:1: Vec4#3b941378): Vec4#3b941378 ={}> Vec4#3b941378{
-        z#9f1c0644#0: dot#a0178052(mat#:0.r3#d92781e8#2, vec#:1),
-        x#43802a16#0: dot#a0178052(mat#:0.r1#d92781e8#0, vec#:1),
-        y#43802a16#1: dot#a0178052(mat#:0.r2#d92781e8#1, vec#:1),
-        w#3b941378#0: dot#a0178052(mat#:0.r4#d92781e8#3, vec#:1),
+        z#9f1c0644#0: dot#a0178052(a: mat#:0.r3#d92781e8#2, b: vec#:1),
+        x#43802a16#0: dot#a0178052(a: mat#:0.r1#d92781e8#0, b: vec#:1),
+        y#43802a16#1: dot#a0178052(a: mat#:0.r2#d92781e8#1, b: vec#:1),
+        w#3b941378#0: dot#a0178052(a: mat#:0.r4#d92781e8#3, b: vec#:1),
     },
 }
 ```
@@ -1089,14 +1106,14 @@ export const hash_1aedf216: (arg_0: t_3b941378) => t_9f1c0644 = (v: t_3b941378) 
 /**
 ```
 const viewMatrix#c336d78c = (eye#:0: Vec3#9f1c0644, center#:1: Vec3#9f1c0644, up#:2: Vec3#9f1c0644): Mat4#d92781e8 ={}> {
-    const f#:3 = normalize#48e6ea27(center#:1 -#1c6fdd91#b99b22d8#1 eye#:0);
-    const s#:4 = normalize#48e6ea27(cross#54f2119c(f#:3, up#:2));
-    const u#:5 = cross#54f2119c(s#:4, f#:3);
+    const f#:3 = normalize#48e6ea27(v: center#:1 -#1c6fdd91#b99b22d8#1 eye#:0);
+    const s#:4 = normalize#48e6ea27(v: cross#54f2119c(one: f#:3, two: up#:2));
+    const u#:5 = cross#54f2119c(one: s#:4, two: f#:3);
     Mat4#d92781e8{
         r1#d92781e8#0: Vec4#3b941378{...s#:4, w#3b941378#0: 0.0},
         r2#d92781e8#1: Vec4#3b941378{...u#:5, w#3b941378#0: 0.0},
         r3#d92781e8#2: Vec4#3b941378{...NegVec3#a5cd53ce."-"#3c2a4898#0(f#:3), w#3b941378#0: 0.0},
-        r4#d92781e8#3: vec4#4d4983bb(0.0, 0.0, 0.0, 1.0),
+        r4#d92781e8#3: vec4#4d4983bb(x: 0.0, y: 0.0, z: 0.0, w: 1.0),
     };
 }
 ```
@@ -1130,8 +1147,8 @@ const rayDirection#6258178a = (
     fragCoord#:2: Vec2#43802a16,
 ): Vec3#9f1c0644 ={}> {
     const xy#:3 = fragCoord#:2 -#70bb2056#b99b22d8#1 size#:1 /#afc24bbe#5ac12902#0 2.0;
-    const z#:4 = size#:1.y#43802a16#1 / tan(radians#dabe7f9c(fieldOfView#:0) / 2.0);
-    normalize#48e6ea27(vec3#5808ec54(xy#:3, -z#:4));
+    const z#:4 = size#:1.y#43802a16#1 / tan(radians#dabe7f9c(degrees: fieldOfView#:0) / 2.0);
+    normalize#48e6ea27(v: vec3#5808ec54(v: xy#:3, z: -z#:4));
 }
 ```
 */
@@ -1158,14 +1175,14 @@ export const hash_495c4d22: (arg_0: number) => number = (v: number) => v - floor
 const sceneSDF#c6d72c68 = (iTime#:0: float, samplePoint#:1: Vec3#9f1c0644): float ={}> {
     const double#:2 = iTime#:0 * 2.0;
     const p1#:3 = opRepLim#cffec7f4(
-        samplePoint#:1,
-        0.25,
-        Vec3#9f1c0644{x#43802a16#0: 2.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
+        p: samplePoint#:1,
+        c: 0.25,
+        l: Vec3#9f1c0644{x#43802a16#0: 2.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
     );
     min(
         max(
             max#3af3fc3c(
-                abs#1a074578(p1#:3) 
+                v: abs#1a074578(v: p1#:3) 
                     -#1c6fdd91#b99b22d8#1 Vec3#9f1c0644{
                         x#43802a16#0: 0.1,
                         y#43802a16#1: 0.3,
@@ -1173,7 +1190,7 @@ const sceneSDF#c6d72c68 = (iTime#:0: float, samplePoint#:1: Vec3#9f1c0644): floa
                     },
             ),
             -max#3af3fc3c(
-                abs#1a074578(p1#:3) 
+                v: abs#1a074578(v: p1#:3) 
                     -#1c6fdd91#b99b22d8#1 Vec3#9f1c0644{
                         x#43802a16#0: 0.11,
                         y#43802a16#1: 0.2,
@@ -1182,8 +1199,8 @@ const sceneSDF#c6d72c68 = (iTime#:0: float, samplePoint#:1: Vec3#9f1c0644): floa
             ),
         ),
         max#3af3fc3c(
-            abs#1a074578(
-                    samplePoint#:1 
+            v: abs#1a074578(
+                    v: samplePoint#:1 
                         -#1c6fdd91#b99b22d8#1 Vec3#9f1c0644{
                             x#43802a16#0: 0.0,
                             y#43802a16#1: 1.0,
@@ -1239,25 +1256,25 @@ const fishingBoueys#4d821b9e = (
     iResolution#:3: Vec2#43802a16,
     uCamera#:4: Vec3#9f1c0644,
 ): Vec4#3b941378 ={}> {
-    const viewDir#:5 = rayDirection#6258178a(45.0, iResolution#:3, fragCoord#:2);
+    const viewDir#:5 = rayDirection#6258178a(fieldOfView: 45.0, size: iResolution#:3, fragCoord#:2);
     const eye#:6 = uCamera#:4;
     const viewToWorld#:7 = viewMatrix#c336d78c(
         eye#:6,
-        Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
-        Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 1.0, z#9f1c0644#0: 0.0},
+        center: Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
+        up: Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 1.0, z#9f1c0644#0: 0.0},
     );
     const worldDir#:8 = xyz#1aedf216(
-        viewToWorld#:7 *#16557d10#1de4e4c0#0 Vec4#3b941378{...viewDir#:5, w#3b941378#0: 0.0},
+        v: viewToWorld#:7 *#16557d10#1de4e4c0#0 Vec4#3b941378{...viewDir#:5, w#3b941378#0: 0.0},
     );
     const dir#:9 = worldDir#:8;
     const dist#:10 = shortestDistanceToSurface#56314282(
         sceneSDF#:0,
         iTime#:1,
         eye#:6,
-        dir#:9,
-        MIN_DIST#f2cd39b8,
-        MAX_DIST#0ce717e6,
-        MAX_MARCHING_STEPS#62404440,
+        marchingDirection: dir#:9,
+        start: MIN_DIST#f2cd39b8,
+        end: MAX_DIST#0ce717e6,
+        stepsLeft: MAX_MARCHING_STEPS#62404440,
     );
     if dist#:10 > MAX_DIST#0ce717e6 - EPSILON#ec7f8d1c {
         Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 1.0, y#43802a16#1: 1.0, w#3b941378#0: 1.0};
@@ -1274,22 +1291,22 @@ const fishingBoueys#4d821b9e = (
             iTime#:1,
             worldPosForPixel#:11,
             light1Pos#:12,
-            0.0,
-            0.01,
+            light: 0.0,
+            hit: 0.01,
         );
         const samples#:14 = 10.0;
         const brightness#:15 = volumetric#359cb0c1(
                     sceneSDF#:0,
                     iTime#:1,
-                    fragCoord#:2 /#090f77e7#5ac12902#0 iResolution#:3 
+                    seed: fragCoord#:2 /#090f77e7#5ac12902#0 iResolution#:3 
                         +#6d631644#b99b22d8#0 iTime#:1 / 1000.0,
-                    light1Pos#:12,
+                    light: light1Pos#:12,
                     eye#:6,
                     dist#:10,
                     dir#:9,
-                    0.0,
-                    samples#:14 as#184a69ed int,
-                    samples#:14,
+                    current: 0.0,
+                    left: samples#:14 as#184a69ed int,
+                    total: samples#:14,
                 ) 
                 * 3.0 
             / samples#:14;
@@ -1347,7 +1364,12 @@ export const hash_4d821b9e: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number
 ```
 const random#347089ef = (st#:0: Vec2#43802a16): float ={}> {
     fract#495c4d22(
-        sin(dot#369652bb(st#:0, Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233})) 
+        v: sin(
+                dot#369652bb(
+                    a: st#:0,
+                    b: Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233},
+                ),
+            ) 
             * 43758.5453123,
     );
 }
@@ -1410,20 +1432,21 @@ export const hash_28569bc0: t_1de4e4c0<t_43802a16, number, t_43802a16> = ({
 ```
 const randFolks#5bc245fa = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): Vec4#3b941378 ={}> {
     const scale#:2 = 40.0;
-    const small#:3 = round#b9171b62(fragCoord#:1 /#afc24bbe#5ac12902#0 scale#:2) 
+    const small#:3 = round#b9171b62(v: fragCoord#:1 /#afc24bbe#5ac12902#0 scale#:2) 
         *#28569bc0#1de4e4c0#0 scale#:2;
     const small#:4 = vec2#54a9f2ef(
-        small#:3.x#43802a16#0,
-        small#:3.y#43802a16#1 + env#:0.time#451d5252#0,
+        x: small#:3.x#43802a16#0,
+        y: small#:3.y#43802a16#1 + env#:0.time#451d5252#0,
     );
-    const v#:5 = random#347089ef(small#:4 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1) / 10.0 
+    const v#:5 = random#347089ef(st: small#:4 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1) 
+            / 10.0 
         + 0.9;
     const bouey#:6 = fishingBoueys#4d821b9e(
         sceneSDF#c6d72c68,
-        env#:0.time#451d5252#0,
+        iTime: env#:0.time#451d5252#0,
         fragCoord#:1,
-        env#:0.resolution#451d5252#1,
-        env#:0.camera#451d5252#2 *#1d31aa6e#1de4e4c0#0 -1.0,
+        iResolution: env#:0.resolution#451d5252#1,
+        uCamera: env#:0.camera#451d5252#2 *#1d31aa6e#1de4e4c0#0 -1.0,
     );
     bouey#:6;
 }

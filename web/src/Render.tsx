@@ -23,6 +23,9 @@ const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('literal')) {
         return { color: '#faa' };
     }
+    if (attributes.includes('argName')) {
+        return { fontStyle: 'italic', color: '#888' };
+    }
     return { color: '#aaa' };
 };
 
@@ -32,11 +35,13 @@ const shouldShowHash = (
     kind: string,
     name: string,
 ) => {
-    if (kind === 'term') {
-        return !env.names[name] || idName(env.names[name][0]) !== id;
-    } else if (kind === 'type' || kind === 'record' || kind === 'enum') {
-        return !env.typeNames[name] || idName(env.typeNames[name][0]) !== id;
-    }
+    // I'm just gonna saw no on this for now
+
+    // if (kind === 'term') {
+    //     return !env.names[name] || idName(env.names[name][0]) !== id;
+    // } else if (kind === 'type' || kind === 'record' || kind === 'enum') {
+    //     return !env.typeNames[name] || idName(env.typeNames[name][0]) !== id;
+    // }
     return false;
 };
 

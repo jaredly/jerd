@@ -73,11 +73,11 @@ x#0c634e04 ==#9275f914#553b4b8e#0 10
 assertCall(hash_9275f914.h553b4b8e_0, hash_0c634e04, 10);
 
 /*
-z#ce5d9b4c(10) ==#9275f914#553b4b8e#0 11
+z#ce5d9b4c(n: 10) ==#9275f914#553b4b8e#0 11
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_ce5d9b4c(10), 11);
 
 /*
-fib#ac346fbc(0, 1, 10) ==#9275f914#553b4b8e#0 55
+fib#ac346fbc(prev: 0, cur: 1, n: 10) ==#9275f914#553b4b8e#0 55
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_ac346fbc(0, 1, 10), 55);

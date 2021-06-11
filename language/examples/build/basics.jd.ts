@@ -60,9 +60,9 @@ const provideStringWithArg#8366c3ec = (responseValue#:0: string): (
     (string) ={GetString#22024b72}> string,
 ) ={}> string ={}> (passIn#:1: string, fn#:2: (string) ={GetString#22024b72}> string): string ={}> {
     handle! (): string ={GetString#22024b72}> fn#:2(passIn#:1) {
-        GetString.get#0(() => k#:4) => provideString#1d302ade(responseValue#:0 ++ ".")(
-            (): string ={GetString#22024b72}> k#:4(responseValue#:0),
-        ),
+        GetString.get#0(() => k#:4) => provideString#1d302ade(
+            responseValue: responseValue#:0 ++ ".",
+        )((): string ={GetString#22024b72}> k#:4(responseValue#:0)),
         pure(a#:3) => a#:3,
     };
 }
@@ -178,12 +178,12 @@ call#5e9cab43() ==#606c7034#553b4b8e#0 "yesa"
 assertCall(hash_606c7034.h553b4b8e_0, hash_5e9cab43(), "yesa");
 
 /*
-arg#7578690a("2") ==#606c7034#553b4b8e#0 "21"
+arg#7578690a(arg: "2") ==#606c7034#553b4b8e#0 "21"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_7578690a("2"), "21");
 
 /*
-identity#d762885a<string>("5") ++ "4" ==#606c7034#553b4b8e#0 "54"
+identity#d762885a<string>(x: "5") ++ "4" ==#606c7034#553b4b8e#0 "54"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_d762885a("5") + "4", "54");
 
@@ -213,19 +213,20 @@ sqrt(2.0 * 2.0) ==#c41f7386#553b4b8e#0 2.0
 assertCall(hash_c41f7386.h553b4b8e_0, sqrt(2 * 2), 2);
 
 /*
-provideString#1d302ade("hi")((): string ={GetString#22024b72}> "m") ==#606c7034#553b4b8e#0 "m"
+provideString#1d302ade(responseValue: "hi")((): string ={GetString#22024b72}> "m") 
+    ==#606c7034#553b4b8e#0 "m"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, done$1: (arg_0: Handlers, arg_1: string) => void) => {
   done$1(handlers, "m");
 }), "m");
 
 /*
-provideString#1d302ade("hi")(impure#74eaa230) ==#606c7034#553b4b8e#0 "A"
+provideString#1d302ade(responseValue: "hi")(impure#74eaa230) ==#606c7034#553b4b8e#0 "A"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")(hash_74eaa230), "A");
 
 /*
-provideString#1d302ade("hi")((): string ={GetString#22024b72}> pure#33e34a3a()) 
+provideString#1d302ade(responseValue: "hi")((): string ={GetString#22024b72}> pure#33e34a3a()) 
     ==#606c7034#553b4b8e#0 "AA"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
@@ -233,14 +234,15 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, d
 }), "AA");
 
 /*
-provideString#1d302ade("hi")((): string ={GetString#22024b72}> "m") ==#606c7034#553b4b8e#0 "m"
+provideString#1d302ade(responseValue: "hi")((): string ={GetString#22024b72}> "m") 
+    ==#606c7034#553b4b8e#0 "m"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_1d302ade("hi")((handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   done$3(handlers, "m");
 }), "m");
 
 /*
-provideStringWithArg#8366c3ec("hi")(
+provideStringWithArg#8366c3ec(responseValue: "hi")(
         "Passed in",
         (arg#:0: string): string ={GetString#22024b72}> arg#:0 ++ "-m",
     ) 

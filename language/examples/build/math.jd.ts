@@ -58,7 +58,7 @@ sqrt(4.0) ==#c41f7386#553b4b8e#0 2.0
 assertCall(hash_c41f7386.h553b4b8e_0, sqrt(4), 2);
 
 /*
-within#004be9c0(sin(PI), 0.0, 0.0001)
+within#004be9c0(found: sin(PI), expected: 0.0, margin: 0.0001)
 */
 assertCall(hash_004be9c0, sin(PI), 0, 0.0001);
 

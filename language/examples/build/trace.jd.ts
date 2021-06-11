@@ -23,7 +23,7 @@ export const hash_2189e92c: (arg_0: number) => number = (n: number) => n - 1;
 /**
 ```
 const oneTerm#fa256dec = (m#:0: int): int ={}> trace!(m#:0, "Hello from tracing!") 
-    + trace!(otherTerm#2189e92c(4))
+    + trace!(otherTerm#2189e92c(n: 4))
 ```
 */
 export const hash_fa256dec: (arg_0: number) => number = (m: number) => m + hash_2189e92c(4);
@@ -39,6 +39,6 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-oneTerm#fa256dec(4) + oneTerm#fa256dec(1) ==#9275f914#553b4b8e#0 11
+oneTerm#fa256dec(m: 4) + oneTerm#fa256dec(m: 1) ==#9275f914#553b4b8e#0 11
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_fa256dec(4) + hash_fa256dec(1), 11);

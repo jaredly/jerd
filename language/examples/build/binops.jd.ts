@@ -126,7 +126,7 @@ export const hash_c41f7386: t_553b4b8e<number> = ({
 
 /**
 ```
-const ArrayIntEq#4419935c = ArrayEq#bef2134a<int>(IntEq#9275f914)
+const ArrayIntEq#4419935c = ArrayEq#bef2134a<int>(eq: IntEq#9275f914)
 ```
 */
 export const hash_4419935c: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_9275f914);
@@ -156,17 +156,17 @@ export const hash_f2052a3a: t_0cd54a60<Array<number>> = ({
 hash_f2052a3a.h0cd54a60_0([1], [2, 3]);
 
 /*
-goToTown#a4c2a3f0((2, 3)) ==#9275f914#553b4b8e#0 2
+goToTown#a4c2a3f0(t: (2, 3)) ==#9275f914#553b4b8e#0 2
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_a4c2a3f0([2, 3]), 2);
 
 /*
-ArrayEq#bef2134a<int>(IntEq#9275f914)."=="#553b4b8e#0(<int>[1, 2], <int>[1, 2])
+ArrayEq#bef2134a<int>(eq: IntEq#9275f914)."=="#553b4b8e#0(<int>[1, 2], <int>[1, 2])
 */
 assertCall(hash_bef2134a(hash_9275f914).h553b4b8e_0, [1, 2], [1, 2]);
 
 /*
-ArrayEq#bef2134a<int>(IntEq#9275f914)."=="#553b4b8e#0(<int>[1, 2, 3], <int>[1, 2, 3])
+ArrayEq#bef2134a<int>(eq: IntEq#9275f914)."=="#553b4b8e#0(<int>[1, 2, 3], <int>[1, 2, 3])
 */
 assertCall(hash_bef2134a(hash_9275f914).h553b4b8e_0, [1, 2, 3], [1, 2, 3]);
 

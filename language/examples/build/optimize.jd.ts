@@ -103,8 +103,8 @@ export const hash_bef2134a: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_
 /**
 ```
 const m#b92dd000 = {
-    const x#:1 = recurse#3306c09c({
-        const y#:0 = recurse#3306c09c(4);
+    const x#:1 = recurse#3306c09c(n: {
+        const y#:0 = recurse#3306c09c(n: 4);
         y#:0 + 2 + y#:0;
     } + 3);
     x#:1 + 3 + x#:1;
@@ -121,7 +121,7 @@ export const hash_b92dd000: number = (() => {
 
 /**
 ```
-const ArrayIntEq#4419935c = ArrayEq#bef2134a<int>(IntEq#9275f914)
+const ArrayIntEq#4419935c = ArrayEq#bef2134a<int>(eq: IntEq#9275f914)
 ```
 */
 export const hash_4419935c: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_9275f914);

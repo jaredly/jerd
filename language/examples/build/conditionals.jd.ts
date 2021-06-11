@@ -22,6 +22,6 @@ export const hash_6a5b05d8: (arg_0: number) => number = (n: number) => {
 };
 
 /*
-z#6a5b05d8(3)
+z#6a5b05d8(n: 3)
 */
 hash_6a5b05d8(3);

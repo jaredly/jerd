@@ -144,9 +144,21 @@ export const hash_fc1474ce: number = PI * 2;
 /**
 ```
 const clamp#5483fdc2 = (v#:0: Vec3#9f1c0644, min#:1: Vec3#9f1c0644, max#:2: Vec3#9f1c0644): Vec3#9f1c0644 ={}> Vec3#9f1c0644{
-    x#43802a16#0: clamp#f2f2e188(v#:0.x#43802a16#0, min#:1.x#43802a16#0, max#:2.x#43802a16#0),
-    y#43802a16#1: clamp#f2f2e188(v#:0.y#43802a16#1, min#:1.y#43802a16#1, max#:2.y#43802a16#1),
-    z#9f1c0644#0: clamp#f2f2e188(v#:0.z#9f1c0644#0, min#:1.z#9f1c0644#0, max#:2.z#9f1c0644#0),
+    x#43802a16#0: clamp#f2f2e188(
+        v: v#:0.x#43802a16#0,
+        minv: min#:1.x#43802a16#0,
+        maxv: max#:2.x#43802a16#0,
+    ),
+    y#43802a16#1: clamp#f2f2e188(
+        v: v#:0.y#43802a16#1,
+        minv: min#:1.y#43802a16#1,
+        maxv: max#:2.y#43802a16#1,
+    ),
+    z#9f1c0644#0: clamp#f2f2e188(
+        v: v#:0.z#9f1c0644#0,
+        minv: min#:1.z#9f1c0644#0,
+        maxv: max#:2.z#9f1c0644#0,
+    ),
 }
 ```
 */
@@ -161,9 +173,9 @@ export const hash_5483fdc2: (arg_0: t_9f1c0644, arg_1: t_9f1c0644, arg_2: t_9f1c
 ```
 const mix#1d944e78 = (a#:0: Vec3#9f1c0644, b#:1: Vec3#9f1c0644, c#:2: float): Vec3#9f1c0644 ={}> {
     Vec3#9f1c0644{
-        x#43802a16#0: lerp#0c604a2c(a#:0.x#43802a16#0, b#:1.x#43802a16#0, c#:2),
-        y#43802a16#1: lerp#0c604a2c(a#:0.y#43802a16#1, b#:1.y#43802a16#1, c#:2),
-        z#9f1c0644#0: lerp#0c604a2c(a#:0.z#9f1c0644#0, b#:1.z#9f1c0644#0, c#:2),
+        x#43802a16#0: lerp#0c604a2c(a: a#:0.x#43802a16#0, b: b#:1.x#43802a16#0, c#:2),
+        y#43802a16#1: lerp#0c604a2c(a: a#:0.y#43802a16#1, b: b#:1.y#43802a16#1, c#:2),
+        z#9f1c0644#0: lerp#0c604a2c(a: a#:0.z#9f1c0644#0, b: b#:1.z#9f1c0644#0, c#:2),
     };
 }
 ```
@@ -247,9 +259,9 @@ export const hash_1c6fdd91: t_b99b22d8<t_9f1c0644, t_9f1c0644, t_9f1c0644> = ({
 /**
 ```
 const fract#228606f4 = (v#:0: Vec3#9f1c0644): Vec3#9f1c0644 ={}> Vec3#9f1c0644{
-    x#43802a16#0: fract#495c4d22(v#:0.x#43802a16#0),
-    y#43802a16#1: fract#495c4d22(v#:0.y#43802a16#1),
-    z#9f1c0644#0: fract#495c4d22(v#:0.z#9f1c0644#0),
+    x#43802a16#0: fract#495c4d22(v: v#:0.x#43802a16#0),
+    y#43802a16#1: fract#495c4d22(v: v#:0.y#43802a16#1),
+    z#9f1c0644#0: fract#495c4d22(v: v#:0.z#9f1c0644#0),
 }
 ```
 */
@@ -574,26 +586,26 @@ export const hash_5776a60e: t_5ac12902<t_3b941378, t_3b941378, t_3b941378> = ({
 /**
 ```
 const hsv2rgb#5c8b4a90 = (c#:0: Vec3#9f1c0644): Vec3#9f1c0644 ={}> {
-    const K#:1 = vec4#4d4983bb(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    const K#:1 = vec4#4d4983bb(x: 1.0, y: 2.0 / 3.0, z: 1.0 / 3.0, w: 3.0);
     const xxx#:2 = Vec3#9f1c0644{
         x#43802a16#0: c#:0.x#43802a16#0,
         y#43802a16#1: c#:0.x#43802a16#0,
         z#9f1c0644#0: c#:0.x#43802a16#0,
     };
     const p#:3 = abs#1a074578(
-        fract#228606f4(xxx#:2 +#1c6fdd91#b99b22d8#0 kxyz#1f96d598) *#1d31aa6e#1de4e4c0#0 6.0 
+        v: fract#228606f4(v: xxx#:2 +#1c6fdd91#b99b22d8#0 kxyz#1f96d598) *#1d31aa6e#1de4e4c0#0 6.0 
             -#3b80b971#b99b22d8#1 3.0,
     );
     const kxxx#:4 = Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0};
     c#:0.z#9f1c0644#0 
         *#c4a91006#1de4e4c0#0 mix#1d944e78(
-            kxxx#:4,
-            clamp#5483fdc2(
-                p#:3 -#1c6fdd91#b99b22d8#1 kxxx#:4,
-                Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
-                Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0},
+            a: kxxx#:4,
+            b: clamp#5483fdc2(
+                v: p#:3 -#1c6fdd91#b99b22d8#1 kxxx#:4,
+                min: Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0},
+                max: Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0},
             ),
-            c#:0.y#43802a16#1,
+            c: c#:0.y#43802a16#1,
         );
 }
 ```
@@ -632,7 +644,7 @@ const rect#0fa3bd82 = (
     h#:3: float,
 ): float ={}> {
     max#e8162c1c(
-        abs#394fe488(samplePos#:0 -#70bb2056#b99b22d8#1 center#:1) 
+        v: abs#394fe488(v: samplePos#:0 -#70bb2056#b99b22d8#1 center#:1) 
             -#70bb2056#b99b22d8#1 Vec2#43802a16{x#43802a16#0: w#:2, y#43802a16#1: h#:3},
     );
 }
@@ -647,7 +659,7 @@ export const hash_0fa3bd82: (arg_0: t_43802a16, arg_1: t_43802a16, arg_2: number
 /**
 ```
 const circle#297cc3b2 = (samplePos#:0: Vec2#43802a16, center#:1: Vec2#43802a16, r#:2: float): float ={}> {
-    length#c2805852(samplePos#:0 -#70bb2056#b99b22d8#1 center#:1) - r#:2;
+    length#c2805852(v: samplePos#:0 -#70bb2056#b99b22d8#1 center#:1) - r#:2;
 }
 ```
 */
@@ -722,9 +734,9 @@ const update#74a18562 = (a1#:0: float, a2#:1: float, a1_v#:2: float, a2_v#:3: fl
     const a2_v#:17 = a2_v#:3 + a2_a#:15;
     const a1#:18 = a1#:0 + a1_v#:16;
     const a2#:19 = a2#:1 + a2_v#:17;
-    const a1#:20 = normalizeTheta#c3a71e42(a1#:18);
-    const a2#:21 = normalizeTheta#c3a71e42(a2#:19);
-    vec4#4d4983bb(a1#:20, a2#:21, a1_v#:16, a2_v#:17);
+    const a1#:20 = normalizeTheta#c3a71e42(t: a1#:18);
+    const a2#:21 = normalizeTheta#c3a71e42(t: a2#:19);
+    vec4#4d4983bb(x: a1#:20, y: a2#:21, z: a1_v#:16, w: a2_v#:17);
 }
 ```
 */
@@ -750,7 +762,7 @@ export const hash_6ca470d0: (arg_0: t_3b941378) => t_3b941378 = (v: t_3b941378) 
 const main#28a1e0b2 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16, buffer#:2: sampler2D): Vec4#3b941378 ={}> {
     const currentPos#:3 = env#:0.mouse#451d5252#3 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1;
     const currentp#:4 = texture(buffer#:2, currentPos#:3);
-    const current#:5 = pixelToData#446114f2(currentp#:4);
+    const current#:5 = pixelToData#446114f2(v: currentp#:4);
     const p1#:6 = fragCoord#:1 
         -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0;
     const c1#:7 = Vec2#43802a16{
@@ -761,35 +773,35 @@ const main#28a1e0b2 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16, bu
         x#43802a16#0: c1#:7.x#43802a16#0 + sin(current#:5.y#43802a16#1) * r2#0ce717e6,
         y#43802a16#1: c1#:7.y#43802a16#1 - cos(current#:5.y#43802a16#1) * r2#0ce717e6,
     };
-    if circle#297cc3b2(p1#:6, c1#:7, 10.0) < 0.0 {
-        vec4#4d4983bb(1.0, 0.0, 0.0, 1.0);
+    if circle#297cc3b2(samplePos: p1#:6, center: c1#:7, r: 10.0) < 0.0 {
+        vec4#4d4983bb(x: 1.0, y: 0.0, z: 0.0, w: 1.0);
     } else {
-        if circle#297cc3b2(p1#:6, c2#:8, 10.0) < 0.0 {
-            vec4#4d4983bb(1.0, 1.0, 0.0, 1.0);
+        if circle#297cc3b2(samplePos: p1#:6, center: c2#:8, r: 10.0) < 0.0 {
+            vec4#4d4983bb(x: 1.0, y: 1.0, z: 0.0, w: 1.0);
         } else {
             if max(
                     rect#0fa3bd82(
-                        p1#:6,
-                        env#:0.mouse#451d5252#3 
+                        samplePos: p1#:6,
+                        center: env#:0.mouse#451d5252#3 
                             -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
                                 /#afc24bbe#5ac12902#0 2.0,
-                        10.0,
-                        10.0,
+                        w: 10.0,
+                        h: 10.0,
                     ),
                     -rect#0fa3bd82(
-                        p1#:6,
-                        env#:0.mouse#451d5252#3 
+                        samplePos: p1#:6,
+                        center: env#:0.mouse#451d5252#3 
                             -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
                                 /#afc24bbe#5ac12902#0 2.0,
-                        9.0,
-                        9.0,
+                        w: 9.0,
+                        h: 9.0,
                     ),
                 ) 
                 < 0.0 {
-                vec4#4d4983bb(0.0, 0.0, 0.0, 1.0);
+                vec4#4d4983bb(x: 0.0, y: 0.0, z: 0.0, w: 1.0);
             } else {
                 if length#c2805852(
-                        p1#:6 
+                        v: p1#:6 
                             -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 
                                 -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
                                     /#afc24bbe#5ac12902#0 2.0),
@@ -800,7 +812,7 @@ const main#28a1e0b2 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16, bu
                         fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1,
                     );
                     const rgb#:10 = hsv2rgb#5c8b4a90(
-                        Vec3#9f1c0644{
+                        c: Vec3#9f1c0644{
                             x#43802a16#0: t#:9.z#9f1c0644#0,
                             y#43802a16#1: t#:9.w#3b941378#0,
                             z#9f1c0644#0: 1.0,
@@ -809,20 +821,20 @@ const main#28a1e0b2 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16, bu
                     Vec4#3b941378{...rgb#:10, w#3b941378#0: 1.0};
                 } else {
                     if length#c2805852(
-                            p1#:6 
+                            v: p1#:6 
                                 -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 
                                     -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
                                         /#afc24bbe#5ac12902#0 2.0),
                         ) 
                         < 101.0 {
-                        vec4#4d4983bb(0.0, 0.0, 0.0, 1.0);
+                        vec4#4d4983bb(x: 0.0, y: 0.0, z: 0.0, w: 1.0);
                     } else {
                         const t#:11 = texture(
                             buffer#:2,
                             fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1,
                         );
                         const rgb#:12 = hsv2rgb#5c8b4a90(
-                            Vec3#9f1c0644{
+                            c: Vec3#9f1c0644{
                                 x#43802a16#0: t#:11.y#43802a16#1,
                                 y#43802a16#1: t#:11.x#43802a16#0,
                                 z#9f1c0644#0: 1.0,
@@ -900,19 +912,19 @@ const pendulum#bf7a10e0 = (
 ): Vec4#3b941378 ={}> {
     if env#:0.time#451d5252#0 <= 0.01 {
         const t#:3 = fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1;
-        vec4#4d4983bb(0.0, 0.0, t#:3.x#43802a16#0, t#:3.y#43802a16#1);
+        vec4#4d4983bb(x: 0.0, y: 0.0, z: t#:3.x#43802a16#0, w: t#:3.y#43802a16#1);
     } else {
         const current#:4 = texture(
             buffer#:2,
             fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1,
         );
-        const current#:5 = pixelToData#446114f2(current#:4);
+        const current#:5 = pixelToData#446114f2(v: current#:4);
         dataToPixel#6ca470d0(
-            update#74a18562(
-                current#:5.x#43802a16#0,
-                current#:5.y#43802a16#1,
-                current#:5.z#9f1c0644#0,
-                current#:5.w#3b941378#0,
+            v: update#74a18562(
+                a1: current#:5.x#43802a16#0,
+                a2: current#:5.y#43802a16#1,
+                a1_v: current#:5.z#9f1c0644#0,
+                a2_v: current#:5.w#3b941378#0,
             ),
         );
     };
