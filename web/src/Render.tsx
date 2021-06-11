@@ -103,9 +103,14 @@ export const renderAttributedTextToHTML = (
                         : ''
                 }</span>`;
             }
-            return `<span style="color:${
-                stylesForAttributes(item.attributes).color
-            }">${escapeHTML(item.text)}</span>`;
+            const style = stylesForAttributes(item.attributes);
+            let styleString = `color:${style.color}`;
+            if (style.fontStyle) {
+                styleString += `;font-style:${style.fontStyle}`;
+            }
+            return `<span style="${styleString}">${escapeHTML(
+                item.text,
+            )}</span>`;
         })
         .join('');
 };

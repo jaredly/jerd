@@ -344,7 +344,7 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                 type: 'sequence',
                 sts: inner,
                 location: expr.location,
-                is: inner[inner.length - 1].is,
+                is: inner.length ? inner[inner.length - 1].is : void_,
             };
         }
         case 'If': {
