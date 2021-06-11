@@ -861,7 +861,7 @@ const showCustomBinOp = (env: Env, term: Term) => {
             refName(term.ref) +
             '#' +
             term.idx.toString(),
-        'binop',
+        'custom-binop',
     );
     // return items([
     //     termToPretty(env, term.target),

@@ -90,6 +90,20 @@ export const RenderItem = ({
         } else if (kind === 'record') {
             addCell(recordContent(env, id), position);
             return true;
+        } else if (kind === 'custom-binop') {
+            const [term, type, idx] = id.split('#');
+            if (!env.global.terms[term]) {
+                return false;
+            }
+            addCell(
+                {
+                    type: 'term',
+                    id: idFromName(term),
+                    name: env.global.idNames[term],
+                },
+                position,
+            );
+            return true;
         }
         return false;
     };
@@ -137,7 +151,13 @@ export const RenderItem = ({
                         undefined,
                         undefined,
                         (id, kind) =>
-                            ['term', 'type', 'as', 'record'].includes(kind),
+                            [
+                                'term',
+                                'type',
+                                'as',
+                                'record',
+                                'custom-binop',
+                            ].includes(kind),
                     )}
                 </div>
                 {term ? (
