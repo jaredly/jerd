@@ -34,7 +34,14 @@ import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { void_ } from '@jerd/language/src/typing/preset';
-import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
+import {
+    Cell,
+    Content,
+    Display,
+    EvalEnv,
+    RenderPlugins,
+    RenderPluginT,
+} from './State';
 import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { showType } from '@jerd/language/src/typing/unify';
 
@@ -67,7 +74,7 @@ export const RenderResult = ({
     onPin,
 }: {
     onSetPlugin: (d: Display | null) => void;
-    plugins: Plugins;
+    plugins: RenderPlugins;
     cell: Cell;
     id: Id;
     env: Env;
@@ -184,7 +191,7 @@ export const RenderResult = ({
 };
 
 export const getPlugin = (
-    plugins: Plugins,
+    plugins: RenderPlugins,
     env: Env,
     display: Display | undefined | null,
     content: Content,
@@ -199,7 +206,7 @@ export const getPlugin = (
         case 'expr':
         case 'term':
             const t = env.global.terms[idName(content.id)];
-            const plugin: PluginT = plugins[display.type];
+            const plugin: RenderPluginT = plugins[display.type];
             const err = getTypeError(env, t.is, plugin.type, nullLocation);
             if (err == null) {
                 return () => plugin.render(value, evalEnv, env, t, false);
@@ -217,7 +224,7 @@ export const RenderPlugin = ({
 }: {
     children: React.ReactNode;
     display: Display | undefined | null;
-    plugins: Plugins;
+    plugins: RenderPlugins;
     onSetPlugin: (name: Display | null) => void;
     onPin: null | (() => void);
 }) => {
@@ -310,7 +317,7 @@ export const RenderPlugin = ({
 };
 
 const getMatchingPlugins = (
-    plugins: Plugins,
+    plugins: RenderPlugins,
     env: Env,
     cell: Cell,
 ): Array<string> | null => {

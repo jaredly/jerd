@@ -19,7 +19,21 @@ export type Cell = {
     collapsed?: boolean;
 };
 
-export type PluginT = {
+// Ok so I think in future, there will be configuration that you set up
+// in-editor, where you can say "I want this editor plugin to apply to"
+// this function call or something".
+// And I guess you can author editor plugins via the language itself...
+export type Filter = {
+    type: 'nodeType';
+    termType: string;
+};
+
+export type EditPluginT = {
+    id: string;
+    filter: Filter;
+};
+
+export type RenderPluginT = {
     id: string;
     name: string;
     type: Type;
@@ -31,7 +45,7 @@ export type PluginT = {
         startPaused: boolean,
     ) => JSX.Element;
 };
-export type Plugins = { [id: string]: PluginT };
+export type RenderPlugins = { [id: string]: RenderPluginT };
 export type Display = { type: string; opts: { [key: string]: any } };
 
 export type EvalEnv = {

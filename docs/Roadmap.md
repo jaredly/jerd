@@ -6,6 +6,41 @@
   ... ok I can put that off, and say "only do names if it's a term reference, it's fine"
 
 
+- [ ] SLIDERSSSS will be so fun
+  - ok so this is a little interesting. Here is where I figure out how much I need to change things.
+    because right now I'm going (Term -> PP -> AttributedText -> React)
+    and what I want is to be able to ...
+    um
+    in React, have a way to respond to a click event, and pop up a dialog
+    and knows about the term that it was.
+    hmmmm
+    and I guess I don't /really/ have to modify the AttributedText while I'm messing with things,
+    and maybe I actually don't want to, so you can just `escape` out of the dialog, and it will
+    go back to what it was.
+    Ok
+    and then, I kindof want the dialog to be able to ... modify the term in-place? or something? hmmm
+    I guess we could be pretty far down in the tree. Would we identify the term by in-order DFS traversal
+    index? And then we could do a `transformExpr` and just swap it out .... yeah I guess that would work.
+    and then go ahead and recompute the shader. Which has been plenty fast so far. There's probably some
+    more caching I could do by re-using the exprs object or something.
+  - Ok so /actually/, I can get away with just annotating the PPs and therefore AttributedText with a
+    sourcemap-like index, that can get me back to original value.
+  - KINDS OF WIDGETS
+    - widgets that just operate on a literal? Simplest, easiest. So it would be Term.type-based
+    - widgets that can operate on any value of /type/. This might be a little more tricky to pull off?
+      unless ... it's evaluable, and I just go ahead and evaluate it 🤔. Although we might get into symbolic
+      evaluation here ... unless I go ahead and add a trace!(), and then I can just use the values that are
+      passed in in practice, collect a trace (while the execution is paused), yeah that would be really
+      very cool.
+    - widgets that operate on a /function call/. Now, widgets should be allowed to say "I only do literals for arguments" or something .... but also we can do our tracing trick here, if the values aren't immediately available.
+  - Ohh hHDSAHDM hmmmm ok so I /think/ I'm going to need a tighter connection between the editor and the
+    opengl output? I mean I guess I already have something of a connection, nvm I think it'll be fine.
+    - OH wait no I've been thinking that these things would be happening in a NON editor context ...
+      but maybe I want to make it still an editor kind of dealio ... yeah maybe I want a new component
+      just to manage all of this business.
+      - eh, I can refactor that out later.
+
+
 Ok, I'm playing around with 2d sdfs, and ... i really want arrays.
 ... and maybe this will require like a whole new type?
 hmmmm
@@ -17,6 +52,10 @@ Does that mean it's time to bring back type inference?
 
 
 - [ ] ugh I need `Loc`s to include filenames, so that I handle prelude better.
+
+
+- [ ] I think I want the "render" stuff to happen separate from ... hmm ... or maybe just the ... ffmpeg output, show up somewhere other than a cell.
+
 
 
 ### OpenGL Bonanza

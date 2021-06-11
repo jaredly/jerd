@@ -5,7 +5,7 @@ import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { idFromName, idName } from '@jerd/language/src/typing/env';
 import { CellView, MovePosition } from './Cell';
-import { Cell, Content, Plugins } from './State';
+import { Cell, Content, RenderPlugins } from './State';
 import { runTerm } from './eval';
 import { State, Workspace } from './App';
 
@@ -133,7 +133,7 @@ const Cells = ({
     setState,
 }: {
     state: State;
-    plugins: Plugins;
+    plugins: RenderPlugins;
     setState: (fn: (s: State) => State) => void;
 }) => {
     const work: Workspace = activeWorkspace(state);

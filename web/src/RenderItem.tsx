@@ -31,7 +31,14 @@ import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import Editor from './Editor';
 import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
-import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
+import {
+    Cell,
+    Content,
+    Display,
+    EvalEnv,
+    RenderPlugins,
+    RenderPluginT,
+} from './State';
 import { RenderResult } from './RenderResult';
 import { getToplevel, updateToplevel } from './toplevels';
 import { Position } from './Cells';
@@ -55,7 +62,7 @@ export const RenderItem = ({
     env: Env;
     cell: Cell;
     maxWidth: number;
-    plugins: Plugins;
+    plugins: RenderPlugins;
     content: Content;
     evalEnv: EvalEnv;
     onRun: (id: Id) => void;

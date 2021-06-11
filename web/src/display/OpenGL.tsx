@@ -10,7 +10,7 @@ import {
     pureFunction,
     refType,
 } from '@jerd/language/src/typing/preset';
-import { EvalEnv, Plugins } from '../State';
+import { EvalEnv, RenderPlugins } from '../State';
 import { hashObject, idName } from '@jerd/language/src/typing/env';
 import { generateSingleShader } from '@jerd/language/src/printing/glslPrinter';
 import { setup } from '../setupGLSL';
@@ -517,7 +517,7 @@ const shaderFunction = (buffers: number) => {
     return pureFunction(args, refType('3b941378'));
 };
 
-const plugins: Plugins = {
+const plugins: RenderPlugins = {
     openglBuffer1: {
         id: 'opengl1',
         name: 'Shader GLSL',

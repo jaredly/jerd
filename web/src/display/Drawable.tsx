@@ -11,7 +11,7 @@ import {
     int,
     pureFunction,
 } from '@jerd/language/src/typing/preset';
-import { EvalEnv, Plugins, PluginT } from '../State';
+import { EvalEnv, RenderPlugins, RenderPluginT } from '../State';
 import { idFromName } from '@jerd/language/src/typing/env';
 
 // TODO: I should be able to generate these
@@ -165,7 +165,7 @@ const Animation = ({
     );
 };
 
-const plugins: Plugins = {
+const plugins: RenderPlugins = {
     animation: {
         id: 'animation',
         name: 'Animation',

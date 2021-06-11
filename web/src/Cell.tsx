@@ -39,7 +39,7 @@ import {
 import Editor from './Editor';
 import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
-import { Cell, Content, Display, EvalEnv, PluginT } from './State';
+import { Cell, Content, Display, EvalEnv, RenderPluginT } from './State';
 import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { getToplevel, updateToplevel } from './toplevels';
 import { RenderItem } from './RenderItem';
@@ -66,7 +66,7 @@ export type CellProps = {
     onMove: (position: MovePosition) => void;
     evalEnv: EvalEnv;
     addCell: (content: Content, position: Position) => void;
-    plugins: { [id: string]: PluginT };
+    plugins: { [id: string]: RenderPluginT };
     onPin: (display: Display, id: Id) => void;
 };
 

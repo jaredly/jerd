@@ -33,7 +33,7 @@ import {
     TypeError,
     UnresolvedIdentifier,
 } from '@jerd/language/src/typing/errors';
-import { Display, EvalEnv, Plugins } from './State';
+import { Display, EvalEnv, RenderPlugins } from './State';
 import { runTerm } from './eval';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import ColorTextarea from './ColorTextarea';
@@ -122,7 +122,7 @@ export default ({
     onPin: (display: Display, id: Id) => void;
     evalEnv: EvalEnv;
     display: Display | null | undefined;
-    plugins: Plugins;
+    plugins: RenderPlugins;
 }) => {
     const evalCache = React.useRef({} as { [key: string]: any });
 
@@ -320,7 +320,7 @@ const getId = (typed: ToplevelT): Id => {
 };
 
 const getRenderPlugin = (
-    plugins: Plugins,
+    plugins: RenderPlugins,
     env: Env,
     display: Display | null | undefined,
     typed: ToplevelT | null,

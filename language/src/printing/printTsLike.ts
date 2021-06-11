@@ -346,7 +346,7 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
     }
 };
 
-export const termToPretty = (env: Env, term: Term | Let): PP => {
+export const termOrLetToPretty = (env: Env, term: Term | Let): PP => {
     switch (term.type) {
         case 'Let':
             return items([
@@ -355,6 +355,13 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 atom(' = '),
                 termToPretty(env, term.value),
             ]);
+        default:
+            return termToPretty(env, term);
+    }
+};
+
+export const termToPretty = (env: Env, term: Term): PP => {
+    switch (term.type) {
         case 'boolean':
             return atom(term.value.toString(), ['bool', 'literal']);
         case 'float':
@@ -436,7 +443,7 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 );
             }
         case 'sequence':
-            return block(term.sts.map((t) => termToPretty(env, t)));
+            return block(term.sts.map((t) => termOrLetToPretty(env, t)));
         case 'apply':
             const asInfo = getAsInfo(term);
             if (asInfo != null) {

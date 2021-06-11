@@ -4,7 +4,14 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { Env, Id } from '@jerd/language/src/typing/types';
-import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
+import {
+    Cell,
+    Content,
+    Display,
+    EvalEnv,
+    RenderPlugins,
+    RenderPluginT,
+} from './State';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { printToString } from '@jerd/language/src/printing/printer';
 
@@ -27,11 +34,13 @@ import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { getToplevel } from './toplevels';
 import { Pin } from './Pin';
 
-const defaultPlugins: Plugins = {
+const defaultPlugins: RenderPlugins = {
     ...DrawablePlugins,
     ...StdioPlugins,
     ...OpenGLPlugins,
 };
+
+const editorPlugins: EditorPlugins = {};
 
 // Yea
 
