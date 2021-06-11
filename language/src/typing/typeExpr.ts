@@ -15,8 +15,8 @@ import {
     TypeVblDecl,
     typesEqual,
 } from './types';
-import { Expression, Location } from '../parsing/parser';
-import { subEnv } from './types';
+import { Expression } from '../parsing/parser';
+import { subEnv, Location } from './types';
 import typeType, { walkType } from './typeType';
 import { showType } from './unify';
 import { void_, string, bool, float } from './preset';
@@ -128,9 +128,13 @@ export const showLocation = (loc: Location | null, startOnly?: boolean) => {
         return `<no location>`;
     }
     if (startOnly) {
-        return `${loc.start.line}:${loc.start.column}`;
+        return `${loc.source ? loc.source + ':' : ''}${loc.start.line}:${
+            loc.start.column
+        }`;
     }
-    return `${loc.start.line}:${loc.start.column}-${loc.end.line}:${loc.end.column}`;
+    return `${loc.source ? loc.source + ':' : ''}${loc.start.line}:${
+        loc.start.column
+    }-${loc.end.line}:${loc.end.column}`;
 };
 
 export const applyEffectVariables = (

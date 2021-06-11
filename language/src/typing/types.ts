@@ -3,7 +3,8 @@
 import {
     Expression,
     Identifier,
-    Location,
+    Loc,
+    // Location,
     nullLocation,
 } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
@@ -11,6 +12,8 @@ import { idName } from './env';
 import seedrandom from 'seedrandom';
 import { applyEffectVariables, applyTypeVariables } from './typeExpr';
 import { getTypeError } from './getTypeError';
+
+export type Location = { start: Loc; end: Loc; source?: string; idx?: number };
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
