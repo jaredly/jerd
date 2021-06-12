@@ -349,25 +349,18 @@ export const termToPretty = (env: Env, term: Term): PP => {
                 term.location,
             );
         case 'float':
-            return atom(
+            return id(
                 Math.floor(term.value) === term.value
                     ? term.value.toFixed(1)
                     : term.value.toString(),
-                ['float', 'literal'],
+                '',
+                'float',
                 term.location,
             );
         case 'int':
-            return atom(
-                term.value.toString(),
-                ['int', 'literal'],
-                term.location,
-            );
+            return id(term.value.toString(), '', 'int', term.location);
         case 'string':
-            return atom(
-                JSON.stringify(term.text),
-                ['string', 'literal'],
-                term.location,
-            );
+            return id(JSON.stringify(term.text), '', 'string', term.location);
         case 'raise':
             return items(
                 [

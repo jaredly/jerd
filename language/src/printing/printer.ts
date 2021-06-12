@@ -116,7 +116,7 @@ export const printToStringInner = (
     }
     if (pp.type === 'id') {
         current.pos += pp.text.length + 1 + pp.id.length;
-        if (options.hideIds) {
+        if (options.hideIds || !pp.id) {
             return pp.text;
         }
         return pp.text + '#' + pp.id;

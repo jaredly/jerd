@@ -7,6 +7,13 @@ import { idName } from '@jerd/language/src/typing/env';
 import { GlobalEnv, Location } from '@jerd/language/src/typing/types';
 import { css } from '@emotion/react';
 
+const kindColors: { [key: string]: string } = {
+    string: '#ce9178',
+    int: '#b5cea8',
+    float: '#b5cea8',
+    type: '#4EC9B0',
+};
+
 const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('string')) {
         return { color: '#ce9178' };
@@ -62,10 +69,7 @@ const colorForId = (
     if (item.kind === 'term') {
         return 'rgb(138,220,255)';
     }
-    if (item.kind === 'type') {
-        return '#4EC9B0';
-        // return '#4EC9B0';
-    }
+    return kindColors[item.kind];
 };
 
 export const renderAttributedTextToHTML = (
@@ -84,8 +88,9 @@ export const renderAttributedTextToHTML = (
             }
             if ('kind' in item) {
                 const showHash =
-                    allIds ||
-                    shouldShowHash(env, item.id, item.kind, item.text);
+                    item.id != '' &&
+                    (allIds ||
+                        shouldShowHash(env, item.id, item.kind, item.text));
                 if (!colorMap[item.id] && item.kind === 'sym') {
                     colorMap[item.id] = idColors[colorAt++ % idColors.length];
                 }
@@ -121,7 +126,10 @@ const escapeHTML = (e: string) =>
 export const renderAttributedText = (
     env: GlobalEnv,
     text: Array<AttributedText>,
-    onClick?: ((id: string, kind: string) => boolean) | undefined | null,
+    onClick?:
+        | ((id: string, kind: string, loc?: Location) => boolean)
+        | undefined
+        | null,
     allIds?: boolean,
     idColors: Array<string> = colors,
     openable = (id: string, kind: string, loc?: Location) => false,
@@ -134,8 +142,9 @@ export const renderAttributedText = (
         }
         if ('kind' in item) {
             const showHash =
-                allIds || shouldShowHash(env, item.id, item.kind, item.text);
-            if (!colorMap[item.id] && item.kind === 'sym') {
+                item.id != '' &&
+                (allIds || shouldShowHash(env, item.id, item.kind, item.text));
+            if (item.kind === 'sym' && !colorMap[item.id]) {
                 colorMap[item.id] = idColors[colorAt++ % idColors.length];
             }
             return (
@@ -158,7 +167,7 @@ export const renderAttributedText = (
                     }
                     onMouseDown={(evt) => {}}
                     onClick={(evt) => {
-                        if (onClick && onClick(item.id, item.kind)) {
+                        if (onClick && onClick(item.id, item.kind, item.loc)) {
                             evt.preventDefault();
                             evt.stopPropagation();
                         }
