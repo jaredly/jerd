@@ -3,13 +3,14 @@
 import { Env, Id, Term, Type } from '@jerd/language/src/typing/types';
 import { Traces } from './eval';
 
-export type Content =
+export type TopContent =
     | { type: 'term'; id: Id; name: string }
     | { type: 'expr'; id: Id }
     | { type: 'record'; id: Id; name: string; attrs: Array<string> }
     | { type: 'enum'; id: Id; name: string }
-    | { type: 'effect'; id: Id; name: string; constrNames: Array<string> }
-    | { type: 'raw'; text: string };
+    | { type: 'effect'; id: Id; name: string; constrNames: Array<string> };
+
+export type Content = TopContent | { type: 'raw'; text: string };
 
 export type Cell = {
     id: string;

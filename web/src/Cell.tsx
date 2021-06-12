@@ -27,7 +27,14 @@ import {
 import Editor from './Editor';
 import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
-import { Cell, Content, Display, EvalEnv, RenderPluginT } from './State';
+import {
+    Cell,
+    Content,
+    Display,
+    EvalEnv,
+    RenderPluginT,
+    TopContent,
+} from './State';
 import { getToplevel, updateToplevel } from './toplevels';
 import { RenderItem } from './RenderItem';
 import {
@@ -246,6 +253,22 @@ export const CellView = ({
                 setEditing(false);
             }}
         />
+    ) : cell.content.type === 'raw' ? (
+        <div
+            onClick={() => {
+                setEditing(true);
+                onFocus();
+            }}
+            style={{
+                fontFamily: '"Source Code Pro", monospace',
+                whiteSpace: 'pre-wrap',
+                position: 'relative',
+                cursor: 'pointer',
+                padding: 8,
+            }}
+        >
+            {cell.content.text.trim() === '' ? '[empty]' : cell.content.text}
+        </div>
     ) : (
         <RenderItem
             maxWidth={maxWidth}
@@ -261,8 +284,6 @@ export const CellView = ({
                 onFocus();
             }}
             addCell={addCell}
-            collapsed={cell.collapsed}
-            setCollapsed={(collapsed) => onChange(env, { ...cell, collapsed })}
             env={env}
             evalEnv={evalEnv}
             onRun={onRun}

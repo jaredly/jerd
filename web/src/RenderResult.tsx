@@ -8,6 +8,8 @@ import {
     Env,
     Id,
     nullLocation,
+    Term,
+    Type,
     typesEqual,
 } from '@jerd/language/src/typing/types';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
@@ -44,9 +46,9 @@ export const RenderResult = ({
     env,
     evalEnv,
     onRun,
-    collapsed,
-    setCollapsed,
     onSetPlugin,
+    value,
+    term,
     onPin,
 }: {
     onSetPlugin: (d: Display | null) => void;
@@ -55,20 +57,22 @@ export const RenderResult = ({
     id: Id;
     env: Env;
     evalEnv: EvalEnv;
+    value: any;
+    term: Term;
     onRun: (id: Id) => void;
-    collapsed: boolean | undefined;
-    setCollapsed: (c: boolean) => void;
     onPin: (display: Display, id: Id) => void;
 }) => {
-    const hash = idName(id);
+    // const hash = idName(id);
+
+    // const term = env.global.terms[hash];
 
     React.useEffect(() => {
-        if (evalEnv.terms[hash] == null) {
+        if (value == null) {
             onRun(id);
         }
-    }, [evalEnv.terms[hash] == null]);
+    }, [value == null]);
 
-    if (evalEnv.terms[hash] == null) {
+    if (value == null) {
         return <span>Unevaluated</span>;
     }
 
@@ -76,8 +80,8 @@ export const RenderResult = ({
         plugins,
         env,
         cell.display,
-        cell.content,
-        evalEnv.terms[hash],
+        term,
+        value,
         evalEnv,
     );
     if (renderPlugin != null) {
@@ -86,40 +90,14 @@ export const RenderResult = ({
                 display={cell.display}
                 plugins={plugins}
                 onSetPlugin={onSetPlugin}
-                onPin={() => onPin(cell.display!, idFromName(hash))}
+                onPin={() => onPin(cell.display!, id)}
             >
                 {renderPlugin()}
             </RenderPlugin>
         );
     }
 
-    const matching = getMatchingPlugins(plugins, env, cell);
-    if (!matching || !matching.length) {
-        if (cell.content.type === 'expr') {
-            const t = env.global.terms[idName(cell.content.id)];
-            console.log(showType(env, t.is));
-            Object.keys(plugins).forEach((k) => {
-                const err = getTypeError(
-                    env,
-                    t.is,
-                    plugins[k].type,
-                    nullLocation,
-                );
-                if (!err) {
-                    console.error('its good', k);
-                } else {
-                    console.log(k, err.toString());
-                }
-            });
-            console.log(
-                cell.content,
-                matching,
-                cell.content.type,
-                cell.display,
-            );
-            console.log(plugins);
-        }
-    }
+    const matching = getMatchingPlugins(plugins, env, cell.display, term.is);
 
     return (
         <div
@@ -130,38 +108,25 @@ export const RenderResult = ({
                 padding: 8,
             }}
         >
-            {/* <button
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                }}
-                onClick={() => setCollapsed(true)}
-            >
-                -
-            </button> */}
-            {typeof evalEnv.terms[hash] === 'function'
+            {typeof value === 'function'
                 ? null
-                : JSON.stringify(evalEnv.terms[hash], null, 2)}
-            {
-                matching && matching.length ? (
-                    <div>
-                        <h4>Available render plugins</h4>
+                : JSON.stringify(value, null, 2)}
+            {matching && matching.length ? (
+                <div>
+                    <h4>Available render plugins</h4>
 
-                        {matching.map((k) => (
-                            <button
-                                key={k}
-                                onClick={() => {
-                                    onSetPlugin({ type: k, opts: {} });
-                                }}
-                            >
-                                {plugins[k].name}
-                            </button>
-                        ))}
-                    </div>
-                ) : null
-                // <div>No matching render plugins</div>
-            }
+                    {matching.map((k) => (
+                        <button
+                            key={k}
+                            onClick={() => {
+                                onSetPlugin({ type: k, opts: {} });
+                            }}
+                        >
+                            {plugins[k].name}
+                        </button>
+                    ))}
+                </div>
+            ) : null}
         </div>
     );
 };
@@ -170,23 +135,20 @@ export const getPlugin = (
     plugins: RenderPlugins,
     env: Env,
     display: Display | undefined | null,
-    content: Content,
-    // cell: Cell,
+    term: Term,
     value: any,
+    // TODO: I only need the "control ovjects" here,
+    // not the terms or builtins. It would be nice to
+    // extract those out
     evalEnv: EvalEnv,
 ): (() => JSX.Element) | null => {
     if (!display || !plugins[display.type]) {
         return null;
     }
-    switch (content.type) {
-        case 'expr':
-        case 'term':
-            const t = env.global.terms[idName(content.id)];
-            const plugin: RenderPluginT = plugins[display.type];
-            const err = getTypeError(env, t.is, plugin.type, nullLocation);
-            if (err == null) {
-                return () => plugin.render(value, evalEnv, env, t, false);
-            }
+    const plugin: RenderPluginT = plugins[display.type];
+    const err = getTypeError(env, term.is, plugin.type, nullLocation);
+    if (err == null) {
+        return () => plugin.render(value, evalEnv, env, term, false);
     }
     return null;
 };
@@ -295,30 +257,21 @@ export const RenderPlugin = ({
 const getMatchingPlugins = (
     plugins: RenderPlugins,
     env: Env,
-    cell: Cell,
+    display: Display | null | undefined,
+    type: Type,
 ): Array<string> | null => {
-    switch (cell.content.type) {
-        case 'expr':
-        case 'term':
-            const t = env.global.terms[idName(cell.content.id)];
+    if (
+        !display ||
+        !plugins[display.type] ||
+        !typesEqual(plugins[display.type].type, type)
+    ) {
+        return Object.keys(plugins).filter((k) => {
             if (
-                !cell.display ||
-                !plugins[cell.display.type] ||
-                !typesEqual(plugins[cell.display.type].type, t.is)
+                getTypeError(env, type, plugins[k].type, nullLocation) == null
             ) {
-                return Object.keys(plugins).filter((k) => {
-                    if (
-                        getTypeError(
-                            env,
-                            t.is,
-                            plugins[k].type,
-                            nullLocation,
-                        ) == null
-                    ) {
-                        return true;
-                    }
-                });
+                return true;
             }
+        });
     }
     return null;
 };
