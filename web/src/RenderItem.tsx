@@ -214,8 +214,17 @@ export const RenderItem = ({
                     >
                         <input
                             type="range"
-                            min={scrub.original.value / 2.0}
-                            max={scrub.original.value * 2.0}
+                            min={
+                                scrub.original.value < 10
+                                    ? 0
+                                    : scrub.original.value / 2.0
+                            }
+                            max={
+                                scrub.original.value < 1
+                                    ? 1
+                                    : scrub.original.value * 2.0
+                            }
+                            step={Math.max(0.01, scrub.original.value / 50)}
                             value={scrub.scrubbed}
                             onChange={(evt) => {
                                 const value = +evt.target.value;
