@@ -1,13 +1,14 @@
 // At some point, it would be cool to have FixedArray implemented,
 // and I can make this much simpler.
 
-import { Location, nullLocation } from '../parsing/parser';
+import { Location } from '../parsing/parser';
 import { idName, newSym } from '../typing/env';
 import {
     and,
     applyBuiltin,
     bool,
     builtin,
+    builtinLocation,
     builtinType,
     float,
     floatLiteral,
@@ -88,7 +89,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         const sym = newSym(env, `t${i}`);
         const l: Let = {
             type: 'Let',
-            location: null,
+            location: builtinLocation,
             is: bool,
             binding: sym,
             value: term,
@@ -96,7 +97,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         syms.push(sym);
         return l;
     });
-    const loc = nullLocation;
+    const loc = builtinLocation;
     sts.push({
         type: 'Let',
         location: loc,
@@ -220,7 +221,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
     const block: Sequence = {
         type: 'sequence',
         sts,
-        location: null,
+        location: builtinLocation,
         is: Vec4,
     };
 
@@ -236,7 +237,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         type: 'lambda',
         args: [envSym, fragCoord],
         body: block,
-        location: null,
+        location: builtinLocation,
         is: pureFunction(
             [refType(idName(env.global.typeNames['GLSLEnv'][0])), Vec2],
             Vec4,

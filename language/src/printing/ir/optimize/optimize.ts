@@ -4,6 +4,7 @@ import {
     Env,
     Id,
     idsEqual,
+    Location,
     RecordDef,
     refsEqual,
     Symbol,
@@ -783,7 +784,7 @@ export const flattenRecordSpread = (
                     is: {
                         type: 'ref',
                         ref: { type: 'user', id: idFromName(k) },
-                        loc: null,
+                        loc: subType.spread.loc,
                         typeVbls: [],
                     },
                 });
@@ -1045,13 +1046,13 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                     (sym) =>
                         ({
                             type: 'Define',
-                            loc: null,
+                            loc: expr.loc,
                             is: int,
                             sym,
                             value: {
                                 type: 'int',
                                 value: 0,
-                                loc: null,
+                                loc: expr.loc,
                                 is: int,
                             },
                         } as Stmt),
@@ -1068,7 +1069,10 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
             src: Symbol;
         };
     } = {};
-    const resolve = (sym: Symbol): { src: Symbol; start: Expr } | null => {
+    const resolve = (
+        sym: Symbol,
+        loc: Location,
+    ): { src: Symbol; start: Expr } | null => {
         const n = symName(sym);
         if (!arrayInfos[n]) {
             return null;
@@ -1076,12 +1080,12 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
         // let {start, src} = arrayInfos[n]
         let start: Expr = {
             type: 'var',
-            loc: null,
+            loc,
             sym: arrayInfos[n].start,
             is: int,
         };
         let src = arrayInfos[n].src;
-        const nxt = resolve(arrayInfos[n].src);
+        const nxt = resolve(arrayInfos[n].src, loc);
         if (nxt != null) {
             src = nxt.src;
             start = callExpression(
@@ -1100,7 +1104,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
             switch (expr.type) {
                 case 'slice':
                     if (expr.value.type === 'var' && expr.end == null) {
-                        const res = resolve(expr.value.sym);
+                        const res = resolve(expr.value.sym, expr.loc);
                         if (res == null) {
                             return null;
                         }
@@ -1122,7 +1126,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                     return null;
                 case 'arrayIndex':
                     if (expr.value.type === 'var') {
-                        const res = resolve(expr.value.sym);
+                        const res = resolve(expr.value.sym, expr.loc);
                         if (res == null) {
                             return null;
                         }
@@ -1144,7 +1148,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                     return null;
                 case 'arrayLen':
                     if (expr.value.type === 'var') {
-                        const res = resolve(expr.value.sym);
+                        const res = resolve(expr.value.sym, expr.loc);
                         if (res == null) {
                             return null;
                         }

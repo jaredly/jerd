@@ -80,10 +80,10 @@ export type RecordRow = {
 
 export type Loc = { offset: number; line: number; column: number };
 export type Location = { start: Loc; end: Loc };
-export const nullLocation = {
-    start: { offset: 0, line: 0, column: 0 },
-    end: { offset: 0, line: 0, column: 0 },
-};
+// export const nullLocation = {
+//     start: { offset: 0, line: 0, column: 0 },
+//     end: { offset: 0, line: 0, column: 0 },
+// };
 export type Statement = Define | Expression;
 export type Define = {
     type: 'define';

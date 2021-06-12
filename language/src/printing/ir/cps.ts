@@ -99,12 +99,12 @@ export const effectConstructorType = (
                     ],
                     void_,
                     [],
-                    null,
+                    loc,
                 ),
             ]),
         void_,
         [],
-        null,
+        loc,
     );
 };
 
@@ -238,7 +238,7 @@ const _termToAstCPS = (
                 ([] as Array<EffectRef>).concat(...term.args.map(getEffects))
                     .length > 0
             ) {
-                return stringLiteral('raise args effects', null);
+                return stringLiteral('raise args effects', term.location);
             }
             if (term.ref.type === 'builtin') {
                 throw new Error('ok');

@@ -14,6 +14,7 @@ import {
     GlobalEnv,
     TypeVblDecl,
     typesEqual,
+    nullLocation,
 } from './types';
 import { Expression } from '../parsing/parser';
 import { subEnv, Location } from './types';
@@ -565,7 +566,10 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                 type: 'Tuple',
                 location: expr.location,
                 items,
-                is: tupleType(items.map((t) => t.is)),
+                is: tupleType(
+                    items.map((t) => t.is),
+                    expr.location,
+                ),
             };
         }
         case 'Array': {
@@ -632,15 +636,18 @@ const typeExpr = (env: Env, expr: Expression): Term => {
 export const arrayType = (elemType: Type): TypeReference => ({
     type: 'ref',
     ref: { type: 'builtin', name: 'Array' },
-    location: null,
+    location: nullLocation,
     typeVbls: [elemType],
     // effectVbls: [],
 });
 
-export const tupleType = (itemTypes: Array<Type>): TypeReference => ({
+export const tupleType = (
+    itemTypes: Array<Type>,
+    location: Location,
+): TypeReference => ({
     type: 'ref',
     ref: { type: 'builtin', name: `Tuple${itemTypes.length}` },
-    location: null,
+    location,
     typeVbls: itemTypes,
     // effectVbls: [],
 });
@@ -842,7 +849,7 @@ export const findAs = (
         ref: asRecord,
         typeVbls: [stype, ttype],
         // effectVbls: [],
-        location: null,
+        location,
     };
     let found = null;
     Object.keys(env.global.terms).some((k) => {

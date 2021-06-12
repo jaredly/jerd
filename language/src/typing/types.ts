@@ -5,7 +5,7 @@ import {
     Identifier,
     Loc,
     // Location,
-    nullLocation,
+    // nullLocation,
 } from '../parsing/parser';
 import deepEqual from 'fast-deep-equal';
 import { idName } from './env';
@@ -14,6 +14,19 @@ import { applyEffectVariables, applyTypeVariables } from './typeExpr';
 import { getTypeError } from './getTypeError';
 
 export type Location = { start: Loc; end: Loc; source?: string; idx?: number };
+export const nullLoc: Loc = { line: 0, column: 0, offset: 0 };
+
+export const encompassingLoc = (left: Location, right: Location) => {
+    if (left.start === nullLoc) {
+        return right;
+    }
+    if (right.end === nullLoc) {
+        return left;
+    }
+    return { start: left.start, end: right.end };
+};
+
+export const nullLocation: Location = { start: nullLoc, end: nullLoc };
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'
@@ -266,7 +279,7 @@ export type EffectRef =
     | { type: 'var'; sym: Symbol; location?: null | Location }; // TODO var, also args
 export type Handle = {
     type: 'handle';
-    location: Location | null;
+    location: Location;
     target: Term; // this must needs be typed as a LambdaType
     // These are the target's effects minus the one that is handled here.
     effect: Reference;
@@ -281,7 +294,7 @@ export type Handle = {
 };
 export type Raise = {
     type: 'raise';
-    location: Location | null;
+    location: Location;
     ref: Reference;
     idx: number;
     args: Array<Term>;
@@ -293,7 +306,7 @@ export type CPSAble =
     | Handle
     | {
           type: 'if';
-          location: Location | null;
+          location: Location;
           cond: Term;
           yes: Term;
           no: Term | null;
@@ -303,13 +316,13 @@ export type CPSAble =
     | Apply;
 export type Sequence = {
     type: 'sequence';
-    location: Location | null;
+    location: Location;
     sts: Array<Term | Let>;
     is: Type;
 };
 export type Apply = {
     type: 'apply';
-    location: Location | null;
+    location: Location;
     target: Term;
     typeVbls: Array<Type>;
     effectVbls: Array<EffectRef> | null;
@@ -322,7 +335,7 @@ export type Apply = {
 export const apply = (
     target: Term,
     args: Array<Term>,
-    location: Location | null,
+    location: Location,
 ): Term => ({
     type: 'apply',
     location,
@@ -336,7 +349,7 @@ export const apply = (
 
 export type Let = {
     type: 'Let';
-    location: Location | null;
+    location: Location;
     binding: Symbol; // TODO patterns folks
     value: Term;
     is: Type;
@@ -344,7 +357,7 @@ export type Let = {
 
 export type Var = {
     type: 'var';
-    location: Location | null;
+    location: Location;
     sym: Symbol;
     is: Type;
 };
@@ -380,12 +393,12 @@ export type Record = {
             rows: Array<Term | null>;
         };
     };
-    location: Location | null;
+    location: Location;
 };
 
 export type ArrayLiteral = {
     type: 'Array';
-    location: Location | null;
+    location: Location;
     items: Array<Term | ArraySpread>;
     is: TypeReference;
 };
@@ -393,7 +406,7 @@ export type ArrayLiteral = {
 export type ArraySpread = {
     type: 'ArraySpread';
     value: Term;
-    location: Location | null;
+    location: Location;
 };
 
 // This is basically a type coersion?
@@ -401,7 +414,7 @@ export type Enum = {
     type: 'Enum';
     inner: Term;
     is: TypeReference;
-    location: Location | null;
+    location: Location;
 };
 
 export type Switch = {
@@ -409,7 +422,7 @@ export type Switch = {
     term: Term;
     cases: Array<SwitchCase>;
     is: Type;
-    location: Location | null;
+    location: Location;
 };
 
 export type SwitchCase = {
@@ -428,30 +441,30 @@ export type Pattern =
 export type Binding = {
     type: 'Binding';
     sym: Symbol;
-    location: Location | null;
+    location: Location;
 };
 export type AliasPattern = {
     type: 'Alias';
     name: Symbol;
     inner: Pattern;
-    location: Location | null;
+    location: Location;
 };
 export type EnumPattern = {
     type: 'Enum';
     ref: TypeReference;
-    location: Location | null;
+    location: Location;
 };
 export type RecordPattern = {
     type: 'Record';
     ref: TypeReference;
     items: Array<RecordPatternItem>;
-    location: Location | null;
+    location: Location;
 };
 export type RecordPatternItem = {
     // sym: Symbol;
     ref: UserReference;
     idx: number; // is this right? hm no I need to know the subtype too
-    location: Location | null;
+    location: Location;
     pattern: Pattern;
     is: Type;
 };
@@ -465,20 +478,20 @@ export type ArrayPattern = {
     // like `spread: {pattern: Pattern, postItems: Array<Pattern>} | null`
     spread: Pattern | null;
     postItems: Array<Pattern>;
-    location: Location | null;
+    location: Location;
     is: Type;
 };
 export type TuplePattern = {
     type: 'Tuple';
     items: Array<Pattern>;
-    location: Location | null;
+    location: Location;
 };
 
 export type Unary = {
     type: 'unary';
     op: '-' | '!';
     inner: Term;
-    location: Location | null;
+    location: Location;
     is: Type;
 };
 
@@ -486,14 +499,14 @@ export type TypeError = {
     type: 'TypeError';
     is: Type; // this is the type that was needed
     inner: Term; // this has the type that was found
-    location: Location | null;
+    location: Location;
 };
 
 export type Ambiguous = {
     type: 'Ambiguous';
     options: Array<Term>;
     is: AmbiguousType;
-    location: Location | null;
+    location: Location;
 };
 
 export type ErrorTerm = Ambiguous | TypeError;
@@ -502,7 +515,7 @@ export type Term =
     | ErrorTerm
     | CPSAble
     | Unary
-    | { type: 'self'; is: Type; location: Location | null }
+    | { type: 'self'; is: Type; location: Location }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
     | Record
@@ -513,7 +526,7 @@ export type Term =
           idx: number;
           args: Array<Term>;
           is: Type;
-          location: Location | null;
+          location: Location;
       }
     | ArrayLiteral
     | TupleLiteral
@@ -525,12 +538,12 @@ export type Term =
           idx: number;
           // Shouldn't impact hash
           inferred: boolean;
-          location: Location | null;
+          location: Location;
           is: Type;
       }
     | {
           type: 'ref';
-          location: Location | null;
+          location: Location;
           ref: Reference;
           is: Type;
       }
@@ -542,7 +555,7 @@ export type TupleLiteral = {
     type: 'Tuple';
     is: TypeReference;
     items: Array<Term>;
-    location: Location | null;
+    location: Location;
 };
 
 export type TupleAccess = {
@@ -550,19 +563,19 @@ export type TupleAccess = {
     is: Type;
     target: Term;
     idx: number;
-    location: Location | null;
+    location: Location;
 };
 
 export type Literal = String | Float | Int | Boolean;
 export type Float = {
     type: 'float';
-    location: Location | null;
+    location: Location;
     value: number;
     is: Type;
 };
 export type Int = {
     type: 'int';
-    location: Location | null;
+    location: Location;
     value: number;
     is: Type;
 };
@@ -570,17 +583,17 @@ export type String = {
     type: 'string';
     text: string;
     is: Type;
-    location: Location | null;
+    location: Location;
 };
 export type Boolean = {
     type: 'boolean';
     value: boolean;
     is: Type;
-    location: Location | null;
+    location: Location;
 };
 export type Lambda = {
     type: 'lambda';
-    location: Location | null;
+    location: Location;
     args: Array<Symbol>;
     body: Term;
     is: LambdaType;
@@ -615,7 +628,7 @@ export type Lambda = {
 
 export type EnumDef = {
     type: 'Enum';
-    location: Location | null;
+    location: Location;
     typeVbls: Array<TypeVblDecl>;
     effectVbls: Array<number>;
     extends: Array<TypeReference>;
@@ -626,7 +639,7 @@ export type TypeDef = RecordDef | EnumDef;
 export type RecordDef = {
     type: 'Record';
     unique: number;
-    location: Location | null;
+    location: Location;
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
     extends: Array<Id>;
@@ -775,7 +788,7 @@ export const effectsMatch = (
 export type TypeReference = {
     type: 'ref';
     ref: Reference;
-    location: Location | null;
+    location: Location;
     typeVbls: Array<Type>;
     // effectVbls: Array<EffectRef>;
 };
@@ -784,10 +797,10 @@ export type TypeRef = TypeReference | TypeVar; // will also support vbls at some
 export type TypeVar = {
     type: 'var';
     sym: Symbol;
-    location: Location | null;
+    location: Location;
 };
 
-export type AmbiguousType = { type: 'Ambiguous'; location: Location | null };
+export type AmbiguousType = { type: 'Ambiguous'; location: Location };
 export type Type = TypeRef | LambdaType | AmbiguousType;
 
 // Here's the basics folks
@@ -802,7 +815,7 @@ export type TypeVblDecl = { subTypes: Array<Id>; unique: number };
 
 export type LambdaType = {
     type: 'lambda';
-    location: Location | null;
+    location: Location;
     // TODO: this shouldn't be an array,
     // we don't have to be order dependent here.
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.

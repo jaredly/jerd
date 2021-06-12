@@ -432,7 +432,7 @@ export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
     const args: Array<Var> = arg.is.args.map((t, i) => ({
         type: 'var',
         is: t,
-        location: null,
+        location: t.location,
         sym: {
             unique: env.local.unique.current++,
             name: `arg_${i}`,
@@ -487,7 +487,7 @@ export const wrapWithAssert = (expr: Term): Term => {
                 ),
             },
             [expr.target, ...expr.args],
-            null,
+            expr.location,
         );
     } else {
         return apply(
@@ -498,7 +498,7 @@ export const wrapWithAssert = (expr: Term): Term => {
                 is: pureFunction([bool], void_),
             },
             [expr],
-            null,
+            expr.location,
         );
     }
 };

@@ -21,7 +21,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
         ref: asRecord,
         typeVbls: [stype, ttype],
         // effectVbls: [],
-        location: null,
+        location: target.location,
     };
     let foundImpl: Term;
     if (suffix.hash != null) {
@@ -90,7 +90,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
             type: 'ref',
             ref,
             is: goalType,
-            location: null,
+            location: target.location,
         };
     }
     return {
@@ -102,13 +102,13 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
             target: foundImpl,
             idx: 0,
             ref: asRecord,
-            location: null,
+            location: target.location,
             inferred: true,
             is: pureFunction([stype], ttype),
         },
         typeVbls: [],
         effectVbls: null,
         is: ttype,
-        location: null,
+        location: target.location,
     };
 };

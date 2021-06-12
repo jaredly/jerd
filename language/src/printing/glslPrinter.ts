@@ -22,6 +22,7 @@ import {
     Term,
     Type,
     typesEqual,
+    nullLocation,
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { typeScriptPrelude } from './fileToTypeScript';
@@ -67,7 +68,7 @@ import {
 } from './typeScriptTypePrinter';
 import { effectConstructorType } from './ir/cps';
 import { getEnumReferences, showLocation } from '../typing/typeExpr';
-import { Location, nullLocation } from '../parsing/parser';
+import { Location } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
@@ -1439,7 +1440,7 @@ export const fileToGlsl = (
 };
 
 const hasInvalidGLSL = (expr: Expr) => {
-    let found: Loc = null;
+    let found: Loc | null = null;
     // Toplevel record not allowed
     if (
         expr.type === 'record' &&

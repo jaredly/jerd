@@ -8,7 +8,7 @@ import {
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
 // because we'll need it in a web ui.
-import { Env, Symbol, subEnv, Type, Id } from './types';
+import { Env, Symbol, subEnv, Type, Id, nullLocation } from './types';
 import { showLocation } from './typeExpr';
 import { idFromName, resolveEffect, symPrefix } from './env';
 import { LocatedError, MismatchedTypeVbl } from './errors';
@@ -58,7 +58,7 @@ export const newTypeVbl = (env: Env): Type => {
     return {
         type: 'var',
         sym: { unique, name: 'var_' + unique },
-        location: null,
+        location: nullLocation,
     };
 };
 

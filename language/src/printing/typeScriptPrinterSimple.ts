@@ -20,6 +20,7 @@ import {
     Term,
     Type,
     typesEqual,
+    nullLocation,
 } from '../typing/types';
 import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
@@ -55,7 +56,6 @@ import {
 } from './typeScriptTypePrinter';
 import { effectConstructorType } from './ir/cps';
 import { getEnumReferences, showLocation } from '../typing/typeExpr';
-import { nullLocation } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
@@ -854,9 +854,9 @@ export const fileToTypescript = (
                 typeVbls: constr.typeVbls.map((t, i) => ({
                     type: 'var',
                     sym: { name: 'T', unique: t.unique },
-                    location: null,
+                    location: constr.location,
                 })),
-                location: null,
+                location: constr.location,
             });
             items.push(
                 t.addComment(

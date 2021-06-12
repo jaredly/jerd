@@ -72,7 +72,7 @@ export const typeArray = (env: Env, expr: ArrayLiteral): Term => {
         is: {
             type: 'ref',
             ref: { type: 'builtin', name: 'Array' },
-            location: null,
+            location: expr.location,
             typeVbls: [itemType!],
             // effectVbls: [],
         },

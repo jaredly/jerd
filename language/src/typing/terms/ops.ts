@@ -1,6 +1,6 @@
 // Binary operations
 
-import { Identifier, nullLocation, Op, Ops } from '../../parsing/parser';
+import { Identifier, Op, Ops } from '../../parsing/parser';
 import {
     Env,
     Term,
@@ -10,6 +10,7 @@ import {
     idsEqual,
     Id,
     Type,
+    encompassingLoc,
 } from '../types';
 import { Expression, Location } from '../../parsing/parser';
 import { showType } from '../unify';
@@ -265,34 +266,18 @@ const typeNewOp = (
         throw new Error(`${op} is not a binary function`);
     }
 
-    const firstErr = getTypeError(
-        env,
-        left.is,
-        fn.is.args[0],
-        left.location || nullLocation,
-    );
+    const firstErr = getTypeError(env, left.is, fn.is.args[0], left.location);
     if (firstErr != null) {
         throw firstErr;
     }
-    const secondErr = getTypeError(
-        env,
-        rarg.is,
-        fn.is.args[1],
-        rarg.location || nullLocation,
-    );
+    const secondErr = getTypeError(env, rarg.is, fn.is.args[1], rarg.location);
     if (secondErr != null) {
         throw secondErr;
     }
 
     return {
         type: 'apply',
-        location:
-            left.location && rarg.location
-                ? {
-                      start: left.location.start,
-                      end: rarg.location.end,
-                  }
-                : null,
+        location: encompassingLoc(left.location, rarg.location),
         target: fn,
         hadAllVariableEffects: false,
         effectVbls: null,
@@ -350,12 +335,7 @@ const typeOp = (
         is.args[0].ref.name === 'numeric'
     ) {
         if (!typesEqual(left.is, rarg.is)) {
-            throw new TypeMismatch(
-                env,
-                left.is,
-                rarg.is,
-                left.location || nullLocation,
-            );
+            throw new TypeMismatch(env, left.is, rarg.is, left.location);
         }
         // STOPSHIP: have an actual solution for strings
         if (
@@ -377,34 +357,18 @@ const typeOp = (
         }
     }
 
-    const firstErr = getTypeError(
-        env,
-        left.is,
-        is.args[0],
-        left.location || nullLocation,
-    );
+    const firstErr = getTypeError(env, left.is, is.args[0], left.location);
     if (firstErr != null) {
         throw firstErr;
     }
-    const secondErr = getTypeError(
-        env,
-        rarg.is,
-        is.args[1],
-        rarg.location || nullLocation,
-    );
+    const secondErr = getTypeError(env, rarg.is, is.args[1], rarg.location);
     if (secondErr != null) {
         throw secondErr;
     }
 
     return {
         type: 'apply',
-        location:
-            left.location && right.location
-                ? {
-                      start: left.location.start,
-                      end: right.location.end,
-                  }
-                : null,
+        location: encompassingLoc(left.location, right.location),
         target: {
             location,
             type: 'ref',

@@ -3,6 +3,7 @@ import { applyTypeVariablesToRecord, getEnumReferences } from './typeExpr';
 import {
     Env,
     Id,
+    nullLocation,
     Reference,
     Term,
     Type,
@@ -40,7 +41,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
                             !allLiteral(env, {
                                 type: 'ref',
                                 ref: { type: 'user', id },
-                                location: null,
+                                location: nullLocation,
                                 typeVbls: [],
                                 // effectVbls: [],
                             }),

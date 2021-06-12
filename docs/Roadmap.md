@@ -1,12 +1,17 @@
 
 ## What do we need in order to make this minimally usable by other people?
 
-- [x] named arguments folks
-  - hm maybe I need types to have named arguments? hmmmm yeah I mean I think that would be nice actually. But that would mean a change to the ... hashing ... whatsit? or wait the hash needs to not care about the name ... but it still means a little bit of a change.
-  ... ok I can put that off, and say "only do names if it's a term reference, it's fine"
-
 
 - [ ] SLIDERSSSS will be so fun
+  - [x] add an "idx" to Location
+  - [ ] make locations mandatory on Terms and Types and stuff
+    - How do deal with the null case? Make a nullLoc
+  - [ ] populate it
+
+- [ ] add a 'source' thing to location, for better error reporting
+
+
+- sliders brainstorm
   - ok so this is a little interesting. Here is where I figure out how much I need to change things.
     because right now I'm going (Term -> PP -> AttributedText -> React)
     and what I want is to be able to ...
@@ -39,6 +44,11 @@
       but maybe I want to make it still an editor kind of dealio ... yeah maybe I want a new component
       just to manage all of this business.
       - eh, I can refactor that out later.
+
+- [x] named arguments folks
+  - hm maybe I need types to have named arguments? hmmmm yeah I mean I think that would be nice actually. But that would mean a change to the ... hashing ... whatsit? or wait the hash needs to not care about the name ... but it still means a little bit of a change.
+  ... ok I can put that off, and say "only do names if it's a term reference, it's fine"
+
 
 
 Ok, I'm playing around with 2d sdfs, and ... i really want arrays.

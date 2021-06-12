@@ -17,10 +17,10 @@ import {
     typeVblDeclsEqual,
     EffectReference,
     EffectRef,
+    Location,
 } from '../../typing/types';
-import { Location } from '../../parsing/parser';
 
-export type Loc = Location | null;
+export type Loc = Location;
 
 export type EffectHandlers = {
     [key: string]: Expr;
@@ -91,7 +91,7 @@ export type MaybeEffLambda = {
 
 export type LambdaType = {
     type: 'lambda';
-    loc: Location | null;
+    loc: Location;
     typeVbls: Array<TypeVblDecl>; // hmm how about subtypes. Do we keep those?
     args: Array<Type>;
     rest: Type | null;
@@ -101,7 +101,7 @@ export type LambdaType = {
 
 export type CPSLambdaType = {
     type: 'cps-lambda';
-    loc: Location | null;
+    loc: Location;
     typeVbls: Array<TypeVblDecl>; // hmm how about subtypes. Do we keep those?
     args: Array<Type>;
     // TODO: effectVbls?
@@ -113,7 +113,7 @@ export type CPSLambdaType = {
 
 export type DoneLambdaType = {
     type: 'done-lambda';
-    loc: Location | null;
+    loc: Location;
     // Umm do we need this?
     // typeVbls: Array<TypeVblDecl>; // hmm how about subtypes. Do we keep those?
     // args: Array<Type>;

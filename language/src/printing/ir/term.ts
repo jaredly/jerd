@@ -403,7 +403,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 : {
                       type: 'var',
                       sym: id,
-                      loc: null,
+                      loc: term.location,
                       is: mapType(term.term.is),
                   };
 
