@@ -4,7 +4,7 @@ import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { AttributedText } from '@jerd/language/src/printing/printer';
 import { idName } from '@jerd/language/src/typing/env';
-import { GlobalEnv } from '@jerd/language/src/typing/types';
+import { GlobalEnv, Location } from '@jerd/language/src/typing/types';
 import { css } from '@emotion/react';
 
 const stylesForAttributes = (attributes: Array<string>) => {
@@ -73,7 +73,7 @@ export const renderAttributedTextToHTML = (
     text: Array<AttributedText>,
     allIds?: boolean,
     idColors: Array<string> = colors,
-    openable = (_: string, __: string) => false,
+    openable = (_: string, __: string, ___?: Location) => false,
 ): string => {
     const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
@@ -90,7 +90,7 @@ export const renderAttributedTextToHTML = (
                     colorMap[item.id] = idColors[colorAt++ % idColors.length];
                 }
                 return `<span style="color:${colorForId(item, colorMap)}"${
-                    openable(item.id, item.kind)
+                    openable(item.id, item.kind, item.loc)
                         ? ` class="${css({
                               ':hover': {
                                   textDecoration: 'underline',
@@ -124,7 +124,7 @@ export const renderAttributedText = (
     onClick?: ((id: string, kind: string) => boolean) | undefined | null,
     allIds?: boolean,
     idColors: Array<string> = colors,
-    openable = (id: string, kind: string) => false,
+    openable = (id: string, kind: string, loc?: Location) => false,
 ) => {
     const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
@@ -144,8 +144,11 @@ export const renderAttributedText = (
                         color: colorForId(item, colorMap),
                         cursor: onClick ? 'pointer' : 'inherit',
                     }}
+                    data-location={
+                        item.loc ? JSON.stringify(item.loc) : undefined
+                    }
                     css={
-                        openable(item.id, item.kind)
+                        openable(item.id, item.kind, item.loc)
                             ? css({
                                   ':hover': {
                                       textDecoration: 'underline',
@@ -178,7 +181,11 @@ export const renderAttributedText = (
             );
         }
         return (
-            <span style={stylesForAttributes(item.attributes)} key={i}>
+            <span
+                data-location={item.loc ? JSON.stringify(item.loc) : undefined}
+                style={stylesForAttributes(item.attributes)}
+                key={i}
+            >
                 {item.text}
             </span>
         );

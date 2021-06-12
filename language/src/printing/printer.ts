@@ -1,53 +1,84 @@
 // A basic width-aware pretty printer
 
+import { Location, locToEnd, locToStart } from '../typing/types';
+
 // Doesn't need to be terribly fancy.
 
-export const items = (items: Array<PP | null>, breakable = false): PP => ({
+export const items = (
+    items: Array<PP | null>,
+    breakable = false,
+    loc?: Location,
+): PP => ({
     type: 'items',
     items: items.filter((x) => x != null) as Array<PP>,
     breakable,
+    loc,
 });
 export const args = (
     contents: Array<PP>,
     left = '(',
     right = ')',
     trailing = true,
+    loc?: Location,
 ): PP => ({
     type: 'args',
     contents,
     left,
     right,
     trailing,
+    loc,
 });
-export const block = (contents: Array<PP>, sep: string = ';'): PP => ({
+export const block = (
+    contents: Array<PP>,
+    sep: string = ';',
+    loc?: Location,
+): PP => ({
     type: 'block',
     contents,
     sep,
+    loc,
 });
-export const atom = (text: string, attributes?: Array<string>): PP => ({
+export const atom = (
+    text: string,
+    attributes?: Array<string>,
+    loc?: Location,
+): PP => ({
     type: 'atom',
     text,
     attributes,
+    loc,
 });
-export const id = (text: string, id: string, kind: string): PP => ({
+export const id = (
+    text: string,
+    id: string,
+    kind: string,
+    loc?: Location,
+): PP => ({
     type: 'id',
     text,
     id,
     kind,
+    loc,
 });
 
 export type PP =
-    | { type: 'atom'; text: string; attributes?: Array<string> }
-    | { type: 'id'; text: string; id: string; kind: string }
-    | { type: 'block'; contents: Array<PP>; sep: string } // surrounded by {}
+    | {
+          type: 'atom';
+          text: string;
+          attributes?: Array<string>;
+          loc: Location | undefined;
+      }
+    | { type: 'id'; text: string; id: string; kind: string; loc?: Location }
+    | { type: 'block'; contents: Array<PP>; sep: string; loc?: Location } // surrounded by {}
     | {
           type: 'args';
           contents: Array<PP>;
           left: string;
           right: string;
           trailing: boolean;
+          loc?: Location;
       } // surrounded by ()
-    | { type: 'items'; items: Array<PP>; breakable: boolean };
+    | { type: 'items'; items: Array<PP>; breakable: boolean; loc?: Location };
 
 const white = (x: number) => new Array(x).fill(' ').join('');
 
@@ -195,8 +226,8 @@ export const printToString = (
 
 export type AttributedText =
     | string
-    | { text: string; attributes: Array<string> }
-    | { id: string; text: string; kind: string };
+    | { text: string; attributes: Array<string>; loc?: Location }
+    | { id: string; text: string; kind: string; loc?: Location };
 
 export const printToAttributedText = (
     pp: PP,
@@ -205,8 +236,8 @@ export const printToAttributedText = (
 ): Array<AttributedText> => {
     if (pp.type === 'atom') {
         current.pos += pp.text.length;
-        return pp.attributes
-            ? [{ text: pp.text, attributes: pp.attributes }]
+        return pp.attributes || pp.loc
+            ? [{ text: pp.text, attributes: pp.attributes || [], loc: pp.loc }]
             : [pp.text];
     }
     if (pp.type === 'id') {
@@ -216,7 +247,11 @@ export const printToAttributedText = (
     }
     if (pp.type === 'block') {
         const res: Array<AttributedText> = [
-            { text: '{', attributes: ['brace'] },
+            {
+                text: '{',
+                attributes: ['brace'],
+                loc: pp.loc ? locToStart(pp.loc) : undefined,
+            },
         ];
         current.indent += 4;
         pp.contents.forEach((item) => {
@@ -233,7 +268,11 @@ export const printToAttributedText = (
             current.pos = current.indent;
         }
         current.pos += 1;
-        res.push({ text: '}', attributes: ['brace'] });
+        res.push({
+            text: '}',
+            attributes: ['brace'],
+            loc: pp.loc ? locToEnd(pp.loc) : undefined,
+        });
         return res;
     }
     if (pp.type === 'args') {

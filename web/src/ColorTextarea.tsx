@@ -236,7 +236,6 @@ export default ({
         // const chars = Math.floor(full.width / w.width);
         let parsed = maybeParse(env, value, contents);
         if (parsed) {
-            parsed = addLocationIndices(parsed);
             ref.current.innerHTML = renderAttributedTextToHTML(
                 env.global,
                 printToAttributedText(toplevelToPretty(env, parsed), maxWidth),

@@ -21,6 +21,7 @@ import {
 import { RenderResult } from './RenderResult';
 import { getToplevel, updateToplevel } from './toplevels';
 import { Position } from './Cells';
+import { addLocationIndices } from '../../language/src/typing/analyze';
 
 export const RenderItem = ({
     env,
@@ -110,7 +111,8 @@ export const RenderItem = ({
             </div>
         );
     } else {
-        const top = getToplevel(env, content);
+        let top = getToplevel(env, content);
+        top = addLocationIndices(top);
         const term =
             content.type === 'expr' || content.type === 'term'
                 ? env.global.terms[idName(content.id)]

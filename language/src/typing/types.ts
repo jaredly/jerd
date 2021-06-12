@@ -9,6 +9,15 @@ import { getTypeError } from './getTypeError';
 export type Location = { start: Loc; end: Loc; source?: string; idx?: number };
 export const nullLoc: Loc = { line: 0, column: 0, offset: 0 };
 
+export const locToStart = (loc: Location): Location => ({
+    ...loc,
+    end: loc.start,
+});
+export const locToEnd = (loc: Location): Location => ({
+    ...loc,
+    start: loc.end,
+});
+
 export const encompassingLoc = (left: Location, right: Location) => {
     if (left.start === nullLoc) {
         return right;
