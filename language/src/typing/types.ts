@@ -1,16 +1,9 @@
 // Types for the typed tree
 
-import {
-    Expression,
-    Identifier,
-    Loc,
-    // Location,
-    // nullLocation,
-} from '../parsing/parser';
-import deepEqual from 'fast-deep-equal';
+import { Identifier, Loc } from '../parsing/parser';
 import { idName } from './env';
 import seedrandom from 'seedrandom';
-import { applyEffectVariables, applyTypeVariables } from './typeExpr';
+import { applyEffectVariables } from './typeExpr';
 import { getTypeError } from './getTypeError';
 
 export type Location = { start: Loc; end: Loc; source?: string; idx?: number };
@@ -26,7 +19,11 @@ export const encompassingLoc = (left: Location, right: Location) => {
     return { start: left.start, end: right.end };
 };
 
-export const nullLocation: Location = { start: nullLoc, end: nullLoc };
+export const nullLocation: Location = {
+    start: nullLoc,
+    end: nullLoc,
+    source: '<generated>',
+};
 
 export const refsEqual = (one: Reference, two: Reference) => {
     return one.type === 'builtin'

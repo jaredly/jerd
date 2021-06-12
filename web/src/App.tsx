@@ -30,7 +30,6 @@ import Library from './Library';
 import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { runTerm } from './eval';
-import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { getToplevel } from './toplevels';
 import { Pin } from './Pin';
 
@@ -40,7 +39,7 @@ const defaultPlugins: RenderPlugins = {
     ...OpenGLPlugins,
 };
 
-const editorPlugins: EditorPlugins = {};
+// const editorPlugins: EditorPlugins = {};
 
 // Yea
 

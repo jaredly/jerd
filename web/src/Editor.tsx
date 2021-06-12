@@ -4,7 +4,7 @@
 import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { parse, SyntaxError } from '@jerd/language/src/parsing/grammar';
-import { nullLocation, Toplevel } from '@jerd/language/src/parsing/parser';
+import { Toplevel } from '@jerd/language/src/parsing/parser';
 import {
     printToAttributedText,
     printToString,
@@ -21,6 +21,7 @@ import {
     Symbol,
     Term,
     Type,
+    nullLocation,
 } from '@jerd/language/src/typing/types';
 import {
     hashObject,

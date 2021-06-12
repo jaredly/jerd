@@ -11,10 +11,9 @@ import {
     idName,
     addEffect,
 } from '@jerd/language/src/typing/env';
-import { EnumDef, Env } from '@jerd/language/src/typing/types';
+import { EnumDef, Env, nullLocation } from '@jerd/language/src/typing/types';
 import { ToplevelT } from '@jerd/language/src/printing/printTsLike';
 import { Content } from './State';
-import { nullLocation } from '@jerd/language/src/parsing/parser';
 
 export const getToplevel = (env: Env, content: Content): ToplevelT => {
     if (content.type === 'expr') {

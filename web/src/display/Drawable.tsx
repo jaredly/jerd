@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import {
+    nullLocation,
     Type,
     TypeReference,
     UserReference,
@@ -49,7 +50,7 @@ type Drawable = {
 
 const refType = (hash: string, typeVbls: Array<Type> = []): TypeReference => ({
     type: 'ref',
-    location: null,
+    location: nullLocation,
     // effectVbls: [],
     typeVbls,
     ref: {

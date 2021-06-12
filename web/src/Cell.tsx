@@ -20,6 +20,7 @@ import {
     selfEnv,
     Term,
     Type,
+    nullLocation,
 } from '@jerd/language/src/typing/types';
 import {
     declarationToPretty,
@@ -40,7 +41,6 @@ import Editor from './Editor';
 import { termToJS } from './eval';
 import { renderAttributedText } from './Render';
 import { Cell, Content, Display, EvalEnv, RenderPluginT } from './State';
-import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { getToplevel, updateToplevel } from './toplevels';
 import { RenderItem } from './RenderItem';
 import {

@@ -4,9 +4,10 @@
 
 - [ ] SLIDERSSSS will be so fun
   - [x] add an "idx" to Location
-  - [ ] make locations mandatory on Terms and Types and stuff
+  - [x] make locations mandatory on Terms and Types and stuff
     - How do deal with the null case? Make a nullLoc
-  - [ ] populate it
+  - [ ] populate the idx
+  - [ ] add the Location to PPs and AttributedText(?)
 
 - [ ] add a 'source' thing to location, for better error reporting
 

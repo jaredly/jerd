@@ -3,7 +3,7 @@ import { jsx } from '@emotion/react';
 // The app
 
 import * as React from 'react';
-import { Env, Id } from '@jerd/language/src/typing/types';
+import { Env, Id, nullLocation } from '@jerd/language/src/typing/types';
 import {
     Content,
     Display,
@@ -14,7 +14,6 @@ import {
 
 import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
-import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { hashStyle } from './Cell';
 
 export const Pin = ({

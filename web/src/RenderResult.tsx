@@ -20,6 +20,7 @@ import {
     selfEnv,
     Term,
     Type,
+    nullLocation,
     typesEqual,
 } from '@jerd/language/src/typing/types';
 import {
@@ -42,7 +43,6 @@ import {
     RenderPlugins,
     RenderPluginT,
 } from './State';
-import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { showType } from '@jerd/language/src/typing/unify';
 
 /*
