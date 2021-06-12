@@ -42,6 +42,12 @@ const onClick = (
 ) => (evt: React.MouseEvent, id: string, kind: string, loc?: Location) => {
     console.log(kind, id, loc);
     const position: Position = { type: 'after', id: cell.id };
+
+    // Vec2
+    if (kind === 'term' && id === '54a9f2ef') {
+        return true;
+    }
+
     if (kind === 'term' || kind === 'as') {
         addCell(
             {
@@ -94,13 +100,18 @@ const onClick = (
         setScrub({
             term,
             returnValue: value,
-            scrubbed: literal.value,
-            original: literal,
+            item: {
+                type: 'float',
+                x: {
+                    scrubbed: literal.value,
+                    original: literal,
+                    loc,
+                },
+            },
             pos: {
                 left: thisBox.left - box.left,
                 top: thisBox.bottom - box.top,
             },
-            loc,
         });
         return true;
     }
@@ -133,14 +144,40 @@ export type Props = {
     onChange: (toplevel: ToplevelT) => void;
 };
 
+export type FloatScrub = {
+    original: Float;
+    scrubbed: number;
+    loc: Location;
+};
+
+export type ScrubItem =
+    | {
+          type: 'float';
+          x: FloatScrub;
+          // original: Float,
+          // scrubbed: number;
+      }
+    | {
+          type: 'Vec2';
+          x: FloatScrub;
+          y: FloatScrub;
+      }
+    | {
+          type: 'color';
+          r: FloatScrub;
+          g: FloatScrub;
+          b: FloatScrub;
+      };
+
 export type Scrub = {
     term: Term;
     returnValue: any;
-    loc: Location;
     pos: { left: number; top: number };
+    item: ScrubItem;
     // TODO generalize
-    scrubbed: number;
-    original: Float;
+    // loc: Location;
+    // scrubbed: number;
+    // original: Float;
 };
 
 export const RenderItem = ({
@@ -193,89 +230,9 @@ export const RenderItem = ({
                             'float',
                         ].includes(kind),
                 )}
-                {scrub ? (
-                    <div
-                        css={{
-                            position: 'absolute',
-                            padding: '4px 8px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                            // color: 'black',
-                            borderRadius: 4,
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                        }}
-                        style={{
-                            left: scrub.pos.left,
-                            top: scrub.pos.top + 4,
-                        }}
-                        onMouseDown={(evt) => evt.stopPropagation()}
-                        onClick={(evt) => evt.stopPropagation()}
-                    >
-                        <input
-                            type="range"
-                            min={
-                                scrub.original.value < 10
-                                    ? 0
-                                    : scrub.original.value / 2.0
-                            }
-                            max={
-                                scrub.original.value < 1
-                                    ? 1
-                                    : scrub.original.value * 2.0
-                            }
-                            step={Math.max(0.01, scrub.original.value / 50)}
-                            value={scrub.scrubbed}
-                            onChange={(evt) => {
-                                const value = +evt.target.value;
-                                const term = transform(scrub.term, {
-                                    term: (t) => {
-                                        if (
-                                            t.location.idx ===
-                                            scrub.original.location.idx
-                                        ) {
-                                            return {
-                                                ...scrub.original,
-                                                value,
-                                            };
-                                        }
-                                        return null;
-                                    },
-                                    let: (l) => null,
-                                });
-                                setScrub({
-                                    ...scrub,
-                                    term,
-                                    scrubbed: value,
-                                });
-                            }}
-                        />
-                        {scrub.scrubbed}
-                        <IconButton
-                            icon="done"
-                            onClick={() => {
-                                if (
-                                    top.type !== 'Define' &&
-                                    top.type !== 'Expression'
-                                ) {
-                                    return;
-                                }
-                                onChange({
-                                    ...top,
-                                    term: scrub.term,
-                                });
-                                setScrub(null);
-                                // change the term to be this term ...
-                            }}
-                        />
-                        <IconButton
-                            icon="cancel"
-                            onClick={() => {
-                                setScrub(null);
-                            }}
-                        />
-                    </div>
-                ) : null}
+                {scrub
+                    ? renderScrub(env, top, scrub, setScrub, onChange)
+                    : null}
             </div>
             {term ? (
                 <RenderResult
@@ -291,6 +248,124 @@ export const RenderItem = ({
                     onRun={onRun}
                 />
             ) : null}
+        </div>
+    );
+};
+
+export const RangeScrub = ({
+    env,
+    fullScrub,
+    term,
+    scrub,
+    setScrub,
+}: {
+    env: Env;
+    term: Term;
+    scrub: FloatScrub;
+    setScrub: (s: Scrub) => void;
+    fullScrub: Scrub;
+}) => {
+    return (
+        <React.Fragment>
+            <input
+                type="range"
+                min={scrub.original.value < 10 ? 0 : scrub.original.value / 2.0}
+                max={scrub.original.value < 1 ? 1 : scrub.original.value * 2.0}
+                step={Math.max(0.01, scrub.original.value / 50)}
+                value={scrub.scrubbed}
+                onChange={(evt) => {
+                    const value = +evt.target.value;
+                    const newTerm = transform(term, {
+                        term: (t) => {
+                            if (
+                                t.location.idx === scrub.original.location.idx
+                            ) {
+                                return {
+                                    ...scrub.original,
+                                    value,
+                                };
+                            }
+                            return null;
+                        },
+                        let: (l) => null,
+                    });
+                    setScrub({
+                        ...fullScrub,
+                        term: newTerm,
+                        item: {
+                            type: 'float',
+                            x: {
+                                ...scrub,
+                                scrubbed: value,
+                            },
+                        },
+                    });
+                }}
+            />
+            {scrub.scrubbed}
+        </React.Fragment>
+    );
+};
+
+export const renderScrub = (
+    env: Env,
+    top: ToplevelT,
+    scrub: Scrub,
+    setScrub: (s: Scrub | null) => void,
+    onChange: (c: ToplevelT) => void,
+) => {
+    let body = null;
+    if (scrub.item.type === 'float') {
+        body = (
+            <RangeScrub
+                fullScrub={scrub}
+                env={env}
+                term={scrub.term}
+                scrub={scrub.item.x}
+                setScrub={setScrub}
+            />
+        );
+    }
+    return (
+        <div
+            css={{
+                position: 'absolute',
+                padding: '4px 8px',
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                // color: 'black',
+                borderRadius: 4,
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+            }}
+            style={{
+                left: scrub.pos.left,
+                top: scrub.pos.top + 4,
+            }}
+            onMouseDown={(evt) => evt.stopPropagation()}
+            onClick={(evt) => evt.stopPropagation()}
+        >
+            {body}
+            <IconButton
+                icon="done"
+                onClick={() => {
+                    if (top.type !== 'Define' && top.type !== 'Expression') {
+                        return;
+                    }
+                    onChange({
+                        ...top,
+                        term: scrub.term,
+                    });
+                    setScrub(null);
+                    // change the term to be this term ...
+                }}
+            />
+            <IconButton
+                icon="cancel"
+                onClick={() => {
+                    setScrub(null);
+                }}
+            />
         </div>
     );
 };
