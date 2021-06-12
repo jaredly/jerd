@@ -1,4 +1,5 @@
-import { idFromName, idName, refName } from './env';
+import { idFromName, idName, refName, ToplevelT } from './env';
+import { transformToplevel } from './transform';
 import { applyTypeVariablesToRecord, getEnumReferences } from './typeExpr';
 import {
     Env,
@@ -10,6 +11,33 @@ import {
     UserReference,
     walkTerm,
 } from './types';
+
+export const addLocationIndices = (toplevel: ToplevelT) => {
+    let idx = 0;
+    return transformToplevel(toplevel, {
+        toplevel: (value) => ({
+            ...value,
+            location: {
+                ...value.location,
+                idx: idx++,
+            },
+        }),
+        term: (term) => ({
+            ...term,
+            location: {
+                ...term.location,
+                idx: idx++,
+            },
+        }),
+        let: (l) => ({
+            ...l,
+            location: {
+                ...l.location,
+                idx: idx++,
+            },
+        }),
+    });
+};
 
 export const allLiteral = (env: Env, type: Type): boolean => {
     switch (type.type) {

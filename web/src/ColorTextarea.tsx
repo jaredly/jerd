@@ -6,6 +6,7 @@ import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { typeToplevelT, ToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedTextToHTML } from './Render';
 import { Env, newWithGlobal } from '@jerd/language/src/typing/types';
+import { addLocationIndices } from '../../language/src/typing/analyze';
 
 const getOffset = (node: HTMLElement, offset: number) => {
     if (node.nodeName === '#text') {
@@ -233,8 +234,9 @@ export default ({
         // const w = s.getBoundingClientRect();
         // const full = ref.current.getBoundingClientRect();
         // const chars = Math.floor(full.width / w.width);
-        const parsed = maybeParse(env, value, contents);
+        let parsed = maybeParse(env, value, contents);
         if (parsed) {
+            parsed = addLocationIndices(parsed);
             ref.current.innerHTML = renderAttributedTextToHTML(
                 env.global,
                 printToAttributedText(toplevelToPretty(env, parsed), maxWidth),

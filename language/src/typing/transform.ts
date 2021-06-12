@@ -1,5 +1,6 @@
 // Ok folks
 
+import { ToplevelT } from './env';
 import { bool, pureFunction, void_ } from './preset';
 import { applyEffectVariables, showLocation } from './typeExpr';
 import {
@@ -18,8 +19,42 @@ import {
 } from './types';
 
 export type Visitor = {
+    toplevel?: (value: ToplevelT) => ToplevelT | null | false;
     term: (value: Term) => Term | null | false;
     let: (value: Let) => Let | null | false;
+};
+
+// Ok so for the moment we're just doing terms, not types.
+// got it.
+export const transformToplevel = (
+    t: ToplevelT,
+    visitor: Visitor,
+): ToplevelT => {
+    if (visitor.toplevel) {
+        const transformed = visitor.toplevel(t);
+        if (transformed === false) {
+            return t;
+        }
+        if (transformed != null) {
+            t = transformed;
+        }
+    }
+    switch (t.type) {
+        // TODO when I add types, I'll need to handle this
+        case 'EnumDef':
+        case 'RecordDef':
+        case 'Effect': {
+            return t;
+        }
+        case 'Expression':
+        case 'Define': {
+            const term = transform(t.term, visitor);
+            return term !== t.term ? { ...t, term } : t;
+        }
+        default:
+            const _x: never = t;
+            throw new Error(`Unknown toplevel type ${(t as any).type}`);
+    }
 };
 
 export const transformLet = (l: Let, visitor: Visitor): Let => {
