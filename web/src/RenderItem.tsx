@@ -254,6 +254,12 @@ export const RenderItem = ({
                         <IconButton
                             icon="done"
                             onClick={() => {
+                                if (
+                                    top.type !== 'Define' &&
+                                    top.type !== 'Expression'
+                                ) {
+                                    return;
+                                }
                                 onChange({
                                     ...top,
                                     term: scrub.term,
