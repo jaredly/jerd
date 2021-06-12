@@ -5,6 +5,7 @@ import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { idName, idFromName, ToplevelT } from '@jerd/language/src/typing/env';
 import {
+    Apply,
     Env,
     Float,
     Id,
@@ -32,6 +33,17 @@ import { addLocationIndices } from '../../language/src/typing/analyze';
 import { transform, walkTerm } from '../../language/src/typing/transform';
 import { IconButton } from './display/OpenGL';
 
+const findApply = (term: Term, idx: number): Apply | null => {
+    let found: null | Apply = null;
+    walkTerm(term, (t) => {
+        if (t.type === 'apply' && t.target.location.idx === idx) {
+            found = t;
+            return false;
+        }
+    });
+    return found;
+};
+
 const onClick = (
     env: Env,
     cell: Cell,
@@ -44,7 +56,56 @@ const onClick = (
     const position: Position = { type: 'after', id: cell.id };
 
     // Vec2
-    if (kind === 'term' && id === '54a9f2ef') {
+    if (
+        kind === 'term' &&
+        id === '54a9f2ef' &&
+        term != null &&
+        loc != null &&
+        loc.idx != null
+    ) {
+        // ooohh hm ok maybe here is where we need paths?
+        // because I don't know if this vec2 is being called
+        // immediately. And I only want to match on that.
+        const idx = loc.idx;
+        const apply = findApply(term, loc.idx);
+        if (
+            apply == null ||
+            apply.args.length !== 2 ||
+            apply.args.some((arg) => arg.type !== 'float')
+        ) {
+            console.error('nope', apply);
+            return false;
+        }
+
+        const x = apply.args[0] as Float;
+        const y = apply.args[1] as Float;
+        console.log('GOT IT', x.location, y.location);
+
+        const parent = (evt.target as HTMLElement).offsetParent!;
+        const box = parent.getBoundingClientRect();
+        const thisBox = (evt.target as HTMLElement).getBoundingClientRect();
+
+        setScrub({
+            term,
+            returnValue: value,
+            item: {
+                type: 'Vec2',
+                x: {
+                    scrubbed: x.value,
+                    original: x,
+                    loc: x.location,
+                },
+                y: {
+                    scrubbed: y.value,
+                    original: y,
+                    loc: y.location,
+                },
+            },
+            pos: {
+                left: thisBox.left - box.left,
+                top: thisBox.bottom - box.top,
+            },
+        });
         return true;
     }
 
@@ -252,6 +313,129 @@ export const RenderItem = ({
     );
 };
 
+export const PositionScrub = ({
+    env,
+    fullScrub,
+    term,
+    x,
+    y,
+    width,
+    height,
+    setScrub,
+}: {
+    env: Env;
+    term: Term;
+    x: FloatScrub;
+    y: FloatScrub;
+    width: number;
+    height: number;
+    setScrub: (s: Scrub) => void;
+    fullScrub: Scrub;
+}) => {
+    const [dragging, setDragging] = React.useState(false);
+    return (
+        <div
+            css={{
+                width,
+                height,
+                position: 'relative',
+                backgroundColor: '#555',
+            }}
+            onMouseMove={(evt) => {
+                if (!dragging) {
+                    return;
+                }
+                const box = evt.currentTarget.getBoundingClientRect();
+                const left = evt.clientX - box.left;
+                const top = evt.clientY - box.top;
+                const newTerm = transform(term, {
+                    term: (t) => {
+                        if (t.location.idx === x.original.location.idx) {
+                            return {
+                                ...x.original,
+                                value: left,
+                            };
+                        }
+                        if (t.location.idx === y.original.location.idx) {
+                            return {
+                                ...y.original,
+                                value: top,
+                            };
+                        }
+                        return null;
+                    },
+                    let: (l) => null,
+                });
+
+                setScrub({
+                    ...fullScrub,
+                    term: newTerm,
+                    item: {
+                        type: 'Vec2',
+                        x: { ...x, scrubbed: left },
+                        y: { ...y, scrubbed: top },
+                    },
+                });
+            }}
+            onMouseUp={() => setDragging(false)}
+            onMouseDown={() => setDragging(true)}
+        >
+            <div
+                css={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: 2,
+                    position: 'absolute',
+                    backgroundColor: 'red',
+                    border: '1px solid black',
+                }}
+                style={{
+                    top: y.scrubbed,
+                    left: x.scrubbed,
+                }}
+            />
+        </div>
+        // <React.Fragment>
+        //     <input
+        //         type="range"
+        //         min={scrub.original.value < 10 ? 0 : scrub.original.value / 2.0}
+        //         max={scrub.original.value < 1 ? 1 : scrub.original.value * 2.0}
+        //         step={Math.max(0.01, scrub.original.value / 50)}
+        //         value={scrub.scrubbed}
+        //         onChange={(evt) => {
+        //             const value = +evt.target.value;
+        //             const newTerm = transform(term, {
+        //                 term: (t) => {
+        //                     if (
+        //                         t.location.idx === scrub.original.location.idx
+        //                     ) {
+        //                         return {
+        //                             ...scrub.original,
+        //                             value,
+        //                         };
+        //                     }
+        //                     return null;
+        //                 },
+        //                 let: (l) => null,
+        //             });
+        //             setScrub({
+        //                 ...fullScrub,
+        //                 term: newTerm,
+        //                 item: {
+        //                     type: 'float',
+        //                     x: {
+        //                         ...scrub,
+        //                         scrubbed: value,
+        //                     },
+        //                 },
+        //             });
+        //         }}
+        //     />
+        //     {scrub.scrubbed}
+        // </React.Fragment>
+    );
+};
+
 export const RangeScrub = ({
     env,
     fullScrub,
@@ -325,10 +509,24 @@ export const renderScrub = (
                 setScrub={setScrub}
             />
         );
+    } else if (scrub.item.type === 'Vec2') {
+        body = (
+            <PositionScrub
+                fullScrub={scrub}
+                env={env}
+                term={scrub.term}
+                x={scrub.item.x}
+                y={scrub.item.y}
+                setScrub={setScrub}
+                width={400}
+                height={400}
+            />
+        );
     }
     return (
         <div
             css={{
+                zIndex: 1000,
                 position: 'absolute',
                 padding: '4px 8px',
                 backgroundColor: 'rgba(0, 0, 0, 0.9)',

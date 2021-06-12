@@ -2,12 +2,19 @@
 ## What do we need in order to make this minimally usable by other people?
 
 
-- [ ] SLIDERSSSS will be so fun
+- [x] SLIDERSSSS will be so fun
   - [x] add an "idx" to Location
   - [x] make locations mandatory on Terms and Types and stuff
     - How do deal with the null case? Make a nullLoc
-  - [ ] populate the idx
-  - [ ] add the Location to PPs and AttributedText(?)
+  - [x] populate the idx
+  - [x] add the Location to PPs and AttributedText(?)
+- [x] baby's first slider! A simple input range delio
+- [ ] Now let's do a 2d slider for vec2!
+  - hmmmmm ok detecting this will require more sophisticated
+    analysis of the tree than I have been doing.
+    Because we want to /find the term/ and then /find its parent/. Right?
+    Well I guess we could just look for "apply"s, and see ...
+    yeah I mean that would work for the moment. Let's do that.
 
 - [ ] add a 'source' thing to location, for better error reporting
 
