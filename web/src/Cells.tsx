@@ -4,14 +4,15 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { idFromName, idName } from '@jerd/language/src/typing/env';
-import { CellView } from './Cell';
-import { Cell, Content, Plugins } from './State';
+import { CellView, MovePosition } from './Cell';
+import { Cell, Content, RenderPlugins } from './State';
 import { runTerm } from './eval';
 import { State, Workspace } from './App';
 
 export const genId = () => Math.random().toString(36).slice(2);
 export const blankCell: Cell = {
     id: '',
+    order: 0,
     content: { type: 'raw', text: '' },
 };
 
@@ -109,7 +110,7 @@ const WorkspacePicker = ({
                         );
                     }}
                 >
-                    Edit
+                    Rename
                 </button>
             </React.Fragment>
         );
@@ -132,10 +133,15 @@ const Cells = ({
     setState,
 }: {
     state: State;
-    plugins: Plugins;
+    plugins: RenderPlugins;
     setState: (fn: (s: State) => State) => void;
 }) => {
-    const work = activeWorkspace(state);
+    const work: Workspace = activeWorkspace(state);
+    const [focus, setFocus] = React.useState(
+        null as null | { id: string; tick: number },
+    );
+    const focusRef = React.useRef(focus);
+    focusRef.current = focus;
 
     const tester = React.useRef(null as null | HTMLDivElement);
     const container = React.useRef(null as null | HTMLDivElement);
@@ -162,6 +168,8 @@ const Cells = ({
         window.addEventListener('resize', fn);
         return () => window.removeEventListener('resize', fn);
     }, [tester.current, container.current]);
+
+    const sortedCellIds = Object.keys(work.cells).sort(sortCells(work.cells));
 
     return (
         <div
@@ -200,9 +208,15 @@ const Cells = ({
                 >
                     M
                 </span>
-                {Object.keys(work.cells).map((id) => (
+                {sortedCellIds.map((id) => (
                     <CellView
                         key={id}
+                        focused={focus && focus.id == id ? focus.tick : null}
+                        onFocus={() =>
+                            !focus || focus.id !== id
+                                ? setFocus({ id, tick: 0 })
+                                : null
+                        }
                         maxWidth={maxWidth}
                         env={state.env}
                         cell={work.cells[id]}
@@ -228,12 +242,12 @@ const Cells = ({
                             );
                         }}
                         onRun={(id) => {
-                            console.log(
-                                'Running',
-                                id,
-                                state.env,
-                                state.evalEnv,
-                            );
+                            // console.log(
+                            //     'Running',
+                            //     id,
+                            //     state.env,
+                            //     state.evalEnv,
+                            // );
                             let results: { [key: string]: any };
                             try {
                                 const term = state.env.global.terms[idName(id)];
@@ -263,27 +277,73 @@ const Cells = ({
                                 },
                             }));
                         }}
-                        addCell={(content) => {
+                        addCell={(content, position: Position) => {
                             const work = activeWorkspace(state);
-                            if (
-                                Object.keys(work.cells).some((id) =>
-                                    contentMatches(
-                                        content,
-                                        work.cells[id].content,
-                                    ),
-                                )
-                            ) {
+                            const matching = Object.keys(
+                                work.cells,
+                            ).find((id) =>
+                                contentMatches(content, work.cells[id].content),
+                            );
+                            if (matching) {
+                                if (focus && focus.id == matching) {
+                                    setFocus({
+                                        id: matching,
+                                        tick: focus.tick + 1,
+                                    });
+                                } else {
+                                    setFocus({ id: matching, tick: 0 });
+                                }
                                 return;
                             }
                             const id = genId();
                             setState(
-                                modActiveWorkspace((workspace) => ({
-                                    ...workspace,
-                                    cells: {
-                                        ...workspace.cells,
-                                        [id]: { ...blankCell, id, content },
-                                    },
-                                })),
+                                modActiveWorkspace(
+                                    addCell(
+                                        { ...blankCell, id, content },
+                                        position,
+                                    ),
+                                ),
+                            );
+                            setFocus({ id, tick: 0 });
+                        }}
+                        onMove={(position: MovePosition) => {
+                            if (typeof position !== 'string') {
+                                return;
+                            }
+                            const idx = sortedCellIds.indexOf(id);
+                            if (idx === 0 && position === 'up') {
+                                return;
+                            }
+                            if (
+                                idx === sortedCellIds.length - 1 &&
+                                position === 'down'
+                            ) {
+                                return;
+                            }
+                            const pos: Position =
+                                position === 'up'
+                                    ? {
+                                          type: 'before',
+                                          id: sortedCellIds[idx - 1],
+                                      }
+                                    : {
+                                          type: 'after',
+                                          id: sortedCellIds[idx + 1],
+                                      };
+                            setState(
+                                modActiveWorkspace((w: Workspace) => {
+                                    const order = calculateOrder(w.cells, pos);
+                                    return {
+                                        ...w,
+                                        cells: {
+                                            ...w.cells,
+                                            [id]: {
+                                                ...w.cells[id],
+                                                order,
+                                            },
+                                        },
+                                    };
+                                }),
                             );
                         }}
                         onChange={(env, cell) => {
@@ -389,6 +449,91 @@ const Cells = ({
             </div>
         </div>
     );
+};
+
+export type Position =
+    | { type: 'first' }
+    | { type: 'last' }
+    | { type: 'after'; id: string }
+    | { type: 'before'; id: string };
+
+export const addCell = (cell: Cell, position: Position) => (
+    workspace: Workspace,
+) => ({
+    ...workspace,
+    cells: {
+        ...workspace.cells,
+        [cell.id]: {
+            ...cell,
+            order: calculateOrder(workspace.cells, position),
+        },
+    },
+});
+
+const sortCells = (cells: { [key: string]: Cell }) => (
+    a: string,
+    b: string,
+) => {
+    // const oa =
+    //     cells[a].order != null
+    //         ? cells[a].order
+    //         : a.id;
+    // const ob =
+    //     cells[b].order != null
+    //         ? cells[b].order
+    //         : b.id;
+    // return oa < ob ? -1 : oa > ob ? 1 : 0;
+    return cells[a].order - cells[b].order;
+};
+
+const calculateOrder = (
+    cells: { [key: string]: Cell },
+    position: Position,
+): number => {
+    switch (position.type) {
+        case 'first':
+            const min = Object.keys(cells).reduce(
+                (v: null | number, k) =>
+                    v != null ? Math.min(v, cells[k].order) : cells[k].order,
+                null,
+            );
+            return min != null ? min - 10 : 0;
+        case 'last':
+            const max = Object.keys(cells).reduce(
+                (v: null | number, k: string) =>
+                    v != null ? Math.max(v, cells[k].order) : cells[k].order,
+                null,
+            );
+            return max != null ? max + 10 : 0;
+        case 'after':
+        case 'before':
+            const sorted = Object.keys(cells).sort(sortCells(cells));
+            const idx = sorted.indexOf(position.id);
+            if (idx === -1) {
+                console.warn(`Relative not found!`, position, cells);
+                return calculateOrder(cells, {
+                    type: position.type === 'before' ? 'first' : 'last',
+                });
+            }
+            if (position.type === 'before') {
+                return idx === 0
+                    ? cells[sorted[idx]].order - 10
+                    : (cells[sorted[idx - 1]].order +
+                          cells[sorted[idx]].order) /
+                          2;
+            } else {
+                return idx === sorted.length - 1
+                    ? cells[sorted[idx]].order + 10
+                    : (cells[sorted[idx + 1]].order +
+                          cells[sorted[idx]].order) /
+                          2;
+            }
+        default:
+            let _x: never = position;
+            throw new Error(
+                `Unexpected position type ${(position as any).type}`,
+            );
+    }
 };
 
 export const activeWorkspace = (state: State) =>

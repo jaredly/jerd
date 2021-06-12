@@ -1,9 +1,9 @@
 import { parse } from '../../../parsing/grammar';
-import { nullLocation, Toplevel } from '../../../parsing/parser';
+import { Toplevel } from '../../../parsing/parser';
 import { hashObject, idName, withoutLocs } from '../../../typing/env';
 import { presetEnv } from '../../../typing/preset';
 import { typeFile } from '../../../typing/typeFile';
-import { Env, Id, Term } from '../../../typing/types';
+import { Env, nullLocation, Term } from '../../../typing/types';
 import { assembleItemsForFile } from '../../glslPrinter';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import { Expr, OutputOptions } from '../types';

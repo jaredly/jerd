@@ -4,21 +4,27 @@
 import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { parse, SyntaxError } from '@jerd/language/src/parsing/grammar';
-import { nullLocation, Toplevel } from '@jerd/language/src/parsing/parser';
+import { Toplevel } from '@jerd/language/src/parsing/parser';
 import {
     printToAttributedText,
     printToString,
 } from '@jerd/language/src/printing/printer';
-import {
-    toplevelToPretty,
-    ToplevelT,
-} from '@jerd/language/src/printing/printTsLike';
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { showLocation } from '@jerd/language/src/typing/typeExpr';
-import { Env, Id, Symbol, Term, Type } from '@jerd/language/src/typing/types';
+import {
+    Env,
+    Id,
+    newWithGlobal,
+    Symbol,
+    Term,
+    Type,
+    nullLocation,
+} from '@jerd/language/src/typing/types';
 import {
     hashObject,
     idName,
     typeToplevelT,
+    ToplevelT,
 } from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
@@ -26,7 +32,7 @@ import {
     TypeError,
     UnresolvedIdentifier,
 } from '@jerd/language/src/typing/errors';
-import { Display, EvalEnv, Plugins } from './State';
+import { Display, EvalEnv, RenderPlugins } from './State';
 import { runTerm } from './eval';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import ColorTextarea from './ColorTextarea';
@@ -88,6 +94,12 @@ const ShowError = ({ err, env }: { err: Error; env: Env }) => {
     return <div>{err.message}</div>;
 };
 
+export type Trace = { ts: number; arg: any; others: Array<any> };
+
+export type Traces = {
+    [idName: string]: Array<Array<Trace>>;
+};
+
 export default ({
     env,
     contents,
@@ -96,6 +108,7 @@ export default ({
     evalEnv,
     display,
     plugins,
+    onPin,
     onSetPlugin,
     maxWidth,
 }: {
@@ -105,11 +118,14 @@ export default ({
     contents: ToplevelT | string;
     onClose: () => void;
     onChange: (term: ToplevelT | string) => void;
+    onPin: (display: Display, id: Id) => void;
     evalEnv: EvalEnv;
     display: Display | null | undefined;
-    plugins: Plugins;
+    plugins: RenderPlugins;
 }) => {
     const evalCache = React.useRef({} as { [key: string]: any });
+
+    const [traces, setTraces] = React.useState({} as Traces);
 
     const [text, setText] = React.useState(() => {
         return typeof contents === 'string'
@@ -131,7 +147,7 @@ export default ({
             }
             return [
                 typeToplevelT(
-                    env,
+                    newWithGlobal(env.global),
                     parsed[0],
                     typeof contents !== 'string' &&
                         contents.type === 'RecordDef'
@@ -154,12 +170,16 @@ export default ({
                     ? { hash: hashObject(typed.term), size: 1, pos: 0 }
                     : typed.id;
             const already = evalEnv.terms[idName(id)];
+            // oooh hm should the traces be part of the evalCache? it might want to be...
+            // because we cache these things...
+            // anyway, let's leave this for the moment. it doesn't actually matter just yet
             if (already) {
                 return already;
             } else if (evalCache.current[idName(id)] != null) {
                 return evalCache.current[idName(id)];
             } else {
                 try {
+                    setTraces({});
                     const v = runTerm(env, typed.term, id, evalEnv)[idName(id)];
                     evalCache.current[idName(id)] = v;
                     return v;
@@ -249,7 +269,8 @@ export default ({
             </div>
             {renderPlugin != null ? (
                 <RenderPlugin
-                    onPin={null}
+                    // onPin={null}
+                    onPin={() => onPin(display!, getId(typed!))}
                     display={display}
                     plugins={plugins}
                     onSetPlugin={onSetPlugin}
@@ -282,12 +303,23 @@ export default ({
                 ) : null}
             </div>
             {JSON.stringify(evaled)}
+            {/* {JSON.stringify(traces)} */}
         </div>
     );
 };
 
+const getId = (typed: ToplevelT): Id => {
+    if (typed.type === 'Expression') {
+        return { hash: hashObject(typed.term), size: 1, pos: 0 };
+    }
+    if (typed.type === 'Define') {
+        return typed.id;
+    }
+    throw new Error(`No id for ${typed.type}`);
+};
+
 const getRenderPlugin = (
-    plugins: Plugins,
+    plugins: RenderPlugins,
     env: Env,
     display: Display | null | undefined,
     typed: ToplevelT | null,
@@ -316,7 +348,7 @@ const getRenderPlugin = (
     }
     const err = getTypeError(env, term.is, plugin.type, nullLocation);
     if (err == null) {
-        return () => plugin.render(evaled, evalEnv, env, term);
+        return () => plugin.render(evaled, evalEnv, env, term, false);
     }
 
     return null;

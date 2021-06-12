@@ -1,4 +1,4 @@
-import { Location, nullLocation } from '../parsing/parser';
+import { Location } from '../parsing/parser';
 import { idName } from './env';
 import {
     LocatedError,
@@ -19,6 +19,7 @@ import {
     symbolsEqual,
     Type,
     TypeReference,
+    nullLocation,
     TypeVar,
 } from './types';
 

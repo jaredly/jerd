@@ -4,6 +4,7 @@ import {
     typeEnumInner,
     typeRecordDefn,
     withoutLocations,
+    ToplevelT,
 } from './typing/env';
 import parse, {
     Define,
@@ -14,9 +15,10 @@ import parse, {
 import typeExpr, { showLocation } from './typing/typeExpr';
 import { Env, newLocal, Term } from './typing/types';
 import { printToString } from './printing/printer';
-import { toplevelToPretty, ToplevelT } from './printing/printTsLike';
+import { toplevelToPretty } from './printing/printTsLike';
 import { walkTerm } from './typing/transform';
 import { LocatedError } from './typing/errors';
+import { writeFileSync } from 'fs';
 
 export const withParseError = (text: string, location: Location) => {
     const lines = text.split('\n');
@@ -128,6 +130,7 @@ export const reprintToplevel = (
             };
         } else if (toplevel.type === 'Define' && printed[0].type === 'define') {
             const hasSelf = findSelfReference(toplevel.term);
+            // console.log('um going again', toplevel.name);
             retyped = {
                 ...toplevel,
                 type: 'Define',
@@ -139,6 +142,7 @@ export const reprintToplevel = (
                             ...newLocal(),
                             self: hasSelf ? env.local.self : null,
                         },
+                        term: { nextTraceId: 0 },
                     },
                     (printed[0] as Define).expr,
                 ),
@@ -152,6 +156,7 @@ export const reprintToplevel = (
                     {
                         ...env,
                         local: newLocal(),
+                        term: { nextTraceId: 0 },
                     },
                     printed[0] as Expression,
                 ),
@@ -171,10 +176,18 @@ export const reprintToplevel = (
             console.log(reraw);
             console.log(chalk.green('Reprinted'));
             console.log(printToString(toplevelToPretty(env, retyped), 100));
-            console.log('\n---n');
-            console.log(JSON.stringify(withoutLocations(toplevel)));
-            console.log(JSON.stringify(withoutLocations(retyped)));
-            console.log('\n---n');
+            writeFileSync(
+                `reprint-${hash}.json`,
+                JSON.stringify(withoutLocations(toplevel)),
+            );
+            writeFileSync(
+                `reprint-${hash}-${nhash}.json`,
+                JSON.stringify(withoutLocations(retyped)),
+            );
+            console.log(
+                `./reprint-${hash}.json`,
+                `./reprint-${hash}-${nhash}.json`,
+            );
             console.warn(
                 `Expression at ${showLocation(
                     toplevel.location,

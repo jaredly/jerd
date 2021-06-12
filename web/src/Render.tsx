@@ -1,7 +1,18 @@
+/** @jsx jsx */
+import { jsx } from '@emotion/react';
+
 import * as React from 'react';
 import { AttributedText } from '@jerd/language/src/printing/printer';
 import { idName } from '@jerd/language/src/typing/env';
-import { GlobalEnv } from '@jerd/language/src/typing/types';
+import { GlobalEnv, Location } from '@jerd/language/src/typing/types';
+import { css } from '@emotion/react';
+
+const kindColors: { [key: string]: string } = {
+    string: '#ce9178',
+    int: '#b5cea8',
+    float: '#b5cea8',
+    type: '#4EC9B0',
+};
 
 const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('string')) {
@@ -19,6 +30,9 @@ const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('literal')) {
         return { color: '#faa' };
     }
+    if (attributes.includes('argName')) {
+        return { fontStyle: 'italic', color: '#888' };
+    }
     return { color: '#aaa' };
 };
 
@@ -28,11 +42,13 @@ const shouldShowHash = (
     kind: string,
     name: string,
 ) => {
-    if (kind === 'term') {
-        return !env.names[name] || idName(env.names[name][0]) !== id;
-    } else if (kind === 'type' || kind === 'record' || kind === 'enum') {
-        return !env.typeNames[name] || idName(env.typeNames[name][0]) !== id;
-    }
+    // I'm just gonna saw no on this for now
+
+    // if (kind === 'term') {
+    //     return !env.names[name] || idName(env.names[name][0]) !== id;
+    // } else if (kind === 'type' || kind === 'record' || kind === 'enum') {
+    //     return !env.typeNames[name] || idName(env.typeNames[name][0]) !== id;
+    // }
     return false;
 };
 
@@ -43,11 +59,25 @@ for (let i = 0; i < colorsRaw.length; i += 6) {
     colors.push('#' + colorsRaw.slice(i, i + 6));
 }
 
+const colorForId = (
+    item: { kind: string; id: string; text: string },
+    colorMap: { [key: string]: string },
+) => {
+    if (item.kind === 'sym') {
+        return colorMap[item.id] || '#9CDCFE';
+    }
+    if (item.kind === 'term') {
+        return 'rgb(138,220,255)';
+    }
+    return kindColors[item.kind];
+};
+
 export const renderAttributedTextToHTML = (
     env: GlobalEnv,
     text: Array<AttributedText>,
     allIds?: boolean,
     idColors: Array<string> = colors,
+    openable = (_: string, __: string, ___?: Location) => false,
 ): string => {
     const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
@@ -58,24 +88,34 @@ export const renderAttributedTextToHTML = (
             }
             if ('kind' in item) {
                 const showHash =
-                    allIds ||
-                    shouldShowHash(env, item.id, item.kind, item.text);
+                    item.id != '' &&
+                    (allIds ||
+                        shouldShowHash(env, item.id, item.kind, item.text));
                 if (!colorMap[item.id] && item.kind === 'sym') {
                     colorMap[item.id] = idColors[colorAt++ % idColors.length];
                 }
-                return `<span style="color:${
-                    item.kind === 'sym'
-                        ? colorMap[item.id] || '#9CDCFE'
-                        : '#4EC9B0'
-                }">${escapeHTML(item.text)}${
+                return `<span style="color:${colorForId(item, colorMap)}"${
+                    openable(item.id, item.kind, item.loc)
+                        ? ` class="${css({
+                              ':hover': {
+                                  textDecoration: 'underline',
+                              },
+                          })}"`
+                        : ''
+                }>${escapeHTML(item.text)}${
                     showHash
                         ? `<span style="color: #777; cursor: ew-resize" contenteditable="false" data-hash="${item.id}">#</span>`
                         : ''
                 }</span>`;
             }
-            return `<span style="color:${
-                stylesForAttributes(item.attributes).color
-            }">${escapeHTML(item.text)}</span>`;
+            const style = stylesForAttributes(item.attributes);
+            let styleString = `color:${style.color}`;
+            if (style.fontStyle) {
+                styleString += `;font-style:${style.fontStyle}`;
+            }
+            return `<span style="${styleString}">${escapeHTML(
+                item.text,
+            )}</span>`;
         })
         .join('');
 };
@@ -86,9 +126,18 @@ const escapeHTML = (e: string) =>
 export const renderAttributedText = (
     env: GlobalEnv,
     text: Array<AttributedText>,
-    onClick?: ((id: string, kind: string) => boolean) | undefined | null,
+    onClick?:
+        | ((
+              evt: React.MouseEvent,
+              id: string,
+              kind: string,
+              loc?: Location,
+          ) => boolean)
+        | undefined
+        | null,
     allIds?: boolean,
     idColors: Array<string> = colors,
+    openable = (id: string, kind: string, loc?: Location) => false,
 ) => {
     const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
@@ -98,22 +147,35 @@ export const renderAttributedText = (
         }
         if ('kind' in item) {
             const showHash =
-                allIds || shouldShowHash(env, item.id, item.kind, item.text);
-            if (!colorMap[item.id] && item.kind === 'sym') {
+                item.id != '' &&
+                (allIds || shouldShowHash(env, item.id, item.kind, item.text));
+            if (item.kind === 'sym' && !colorMap[item.id]) {
                 colorMap[item.id] = idColors[colorAt++ % idColors.length];
             }
             return (
                 <span
                     style={{
-                        color:
-                            item.kind === 'sym'
-                                ? colorMap[item.id] || '#9CDCFE'
-                                : '#4EC9B0',
+                        color: colorForId(item, colorMap),
                         cursor: onClick ? 'pointer' : 'inherit',
                     }}
+                    data-location={
+                        item.loc ? JSON.stringify(item.loc) : undefined
+                    }
+                    css={
+                        openable(item.id, item.kind, item.loc)
+                            ? css({
+                                  ':hover': {
+                                      textDecoration: 'underline',
+                                  },
+                              })
+                            : ''
+                    }
                     onMouseDown={(evt) => {}}
                     onClick={(evt) => {
-                        if (onClick && onClick(item.id, item.kind)) {
+                        if (
+                            onClick &&
+                            onClick(evt, item.id, item.kind, item.loc)
+                        ) {
                             evt.preventDefault();
                             evt.stopPropagation();
                         }
@@ -136,7 +198,11 @@ export const renderAttributedText = (
             );
         }
         return (
-            <span style={stylesForAttributes(item.attributes)} key={i}>
+            <span
+                data-location={item.loc ? JSON.stringify(item.loc) : undefined}
+                style={stylesForAttributes(item.attributes)}
+                key={i}
+            >
                 {item.text}
             </span>
         );

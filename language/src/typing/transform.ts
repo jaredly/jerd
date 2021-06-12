@@ -1,5 +1,6 @@
 // Ok folks
 
+import { ToplevelT } from './env';
 import { bool, pureFunction, void_ } from './preset';
 import { applyEffectVariables, showLocation } from './typeExpr';
 import {
@@ -18,8 +19,42 @@ import {
 } from './types';
 
 export type Visitor = {
+    toplevel?: (value: ToplevelT) => ToplevelT | null | false;
     term: (value: Term) => Term | null | false;
     let: (value: Let) => Let | null | false;
+};
+
+// Ok so for the moment we're just doing terms, not types.
+// got it.
+export const transformToplevel = (
+    t: ToplevelT,
+    visitor: Visitor,
+): ToplevelT => {
+    if (visitor.toplevel) {
+        const transformed = visitor.toplevel(t);
+        if (transformed === false) {
+            return t;
+        }
+        if (transformed != null) {
+            t = transformed;
+        }
+    }
+    switch (t.type) {
+        // TODO when I add types, I'll need to handle this
+        case 'EnumDef':
+        case 'RecordDef':
+        case 'Effect': {
+            return t;
+        }
+        case 'Expression':
+        case 'Define': {
+            const term = transform(t.term, visitor);
+            return term !== t.term ? { ...t, term } : t;
+        }
+        default:
+            const _x: never = t;
+            throw new Error(`Unknown toplevel type ${(t as any).type}`);
+    }
 };
 
 export const transformLet = (l: Let, visitor: Visitor): Let => {
@@ -164,6 +199,15 @@ export const transform = (term: Term, visitor: Visitor): Term => {
         case 'Enum': {
             const inner = transform(term.inner, visitor);
             return inner !== term.inner ? { ...term, inner } : term;
+        }
+        case 'Trace': {
+            let changed = false;
+            const args = term.args.map((item) => {
+                const t = transform(item, visitor);
+                changed = changed || t !== item;
+                return t;
+            });
+            return changed ? { ...term, args } : term;
         }
         case 'Tuple': {
             let changed = false;
@@ -317,6 +361,11 @@ export const walkTerm = (
         case 'unary':
         case 'Enum':
             return walkTerm(term.inner, handle);
+        case 'Trace':
+            term.args.forEach((item) => {
+                walkTerm(item, handle);
+            });
+            return;
         case 'Tuple':
             term.items.forEach((item) => {
                 walkTerm(item, handle);
@@ -418,7 +467,7 @@ export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
     const args: Array<Var> = arg.is.args.map((t, i) => ({
         type: 'var',
         is: t,
-        location: null,
+        location: t.location,
         sym: {
             unique: env.local.unique.current++,
             name: `arg_${i}`,
@@ -473,7 +522,7 @@ export const wrapWithAssert = (expr: Term): Term => {
                 ),
             },
             [expr.target, ...expr.args],
-            null,
+            expr.location,
         );
     } else {
         return apply(
@@ -484,7 +533,7 @@ export const wrapWithAssert = (expr: Term): Term => {
                 is: pureFunction([bool], void_),
             },
             [expr],
-            null,
+            expr.location,
         );
     }
 };

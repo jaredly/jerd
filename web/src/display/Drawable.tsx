@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import {
+    nullLocation,
     Type,
     TypeReference,
     UserReference,
@@ -11,7 +12,7 @@ import {
     int,
     pureFunction,
 } from '@jerd/language/src/typing/preset';
-import { EvalEnv, Plugins, PluginT } from '../State';
+import { EvalEnv, RenderPlugins, RenderPluginT } from '../State';
 import { idFromName } from '@jerd/language/src/typing/env';
 
 // TODO: I should be able to generate these
@@ -49,7 +50,7 @@ type Drawable = {
 
 const refType = (hash: string, typeVbls: Array<Type> = []): TypeReference => ({
     type: 'ref',
-    location: null,
+    location: nullLocation,
     // effectVbls: [],
     typeVbls,
     ref: {
@@ -165,7 +166,7 @@ const Animation = ({
     );
 };
 
-const plugins: Plugins = {
+const plugins: RenderPlugins = {
     animation: {
         id: 'animation',
         name: 'Animation',

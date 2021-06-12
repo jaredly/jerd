@@ -17,13 +17,13 @@ import {
 } from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { EvalEnv } from './State';
 import {
-    optimize,
-    optimizeAggressive,
     optimizeDefine,
+    optimizeDefineNew,
 } from '@jerd/language/src/printing/ir/optimize/optimize';
 import { liftEffects } from '@jerd/language/src/printing/pre-ir/lift-effectful';
 import { uniquesReallyAreUnique } from '@jerd/language/src/printing/ir/analyze';
 import { Expr } from '@jerd/language/src/printing/ir/types';
+import { Trace } from './Editor';
 
 export class TimeoutError extends Error {}
 
@@ -41,8 +41,7 @@ export const termToJS = (
         { limitExecutionTime: withExecutionLimit },
         term,
     );
-    // irTerm = optimizeAggressive(env, irTerms, irTerm, id);
-    irTerm = optimizeDefine(env, irTerm, id);
+    irTerm = optimizeDefineNew(env, irTerm, id, null);
     // then pop over to glslPrinter and start making things work.
     // try {
     //     uniquesReallyAreUnique(irTerm);
@@ -55,7 +54,11 @@ export const termToJS = (
     irTerms[idName(id)] = { expr: irTerm, inline: false };
     let termAst: any = termToTs(
         env,
-        { scope: 'jdScope', limitExecutionTime: withExecutionLimit },
+        {
+            scope: 'jdScope',
+            limitExecutionTime: withExecutionLimit,
+            enableTraces: true,
+        },
         irTerm,
     );
     let ast = t.file(
@@ -79,11 +82,14 @@ export const termToJS = (
     return code;
 };
 
+export type Traces = { traces: null | { [key: string]: Array<Array<Trace>> } };
+
 const runWithExecutionLimit = (
     code: string,
     evalEnv: EvalEnv,
     idName: string,
     executionLimit: { ticks: number; maxTime: number; enabled: boolean },
+    traceObj: Traces,
 ): any => {
     const jdScope = {
         ...evalEnv,
@@ -102,17 +108,39 @@ const runWithExecutionLimit = (
                 }
             },
         },
+        trace: <T>(hash: string, idx: number, main: T, ...args: Array<any>) => {
+            if (traceObj.traces != null) {
+                if (!traceObj.traces[hash]) {
+                    traceObj.traces[hash] = [];
+                }
+                const trace = { ts: Date.now(), arg: main, others: args };
+                if (traceObj.traces[hash][idx] == null) {
+                    traceObj.traces[hash][idx] = [trace];
+                } else {
+                    traceObj.traces[hash][idx].push(trace);
+                }
+            }
+            traceObj.traces;
+            return main;
+        },
         terms: {
             ...evalEnv.terms,
         },
     };
-    console.log('code', code);
+    // console.log('code', code);
     // yay now it's safe from weird scoping things.
     const result = new Function('jdScope', code)(jdScope);
     // This is so recursive calls work
     jdScope.terms[idName] = result;
     return result;
 };
+
+export type TraceFn = <T>(
+    hash: string,
+    idx: number,
+    main: T,
+    ...args: Array<any>
+) => T;
 
 export const runTerm = (
     env: Env,
@@ -124,13 +152,13 @@ export const runTerm = (
     const results: { [key: string]: any } = {};
 
     const deps = getSortedTermDependencies(env, term, id);
-    console.log(deps);
+    // console.log(deps);
     const idn = idName(id);
     const irTerms = {};
     deps.forEach((dep) => {
         if (evalEnv.terms[dep] == null) {
             if (dep !== idn) {
-                console.log('Evaluating dependency', dep);
+                // console.log('Evaluating dependency', dep);
             }
             const depTerm = idn === dep ? term : env.global.terms[dep];
             const self: Self = { type: 'Term', name: dep, ann: term.is };
@@ -161,16 +189,17 @@ export const runTerm = (
                     innerEnv,
                     dep,
                     evalEnv.executionLimit,
+                    evalEnv.traceObj,
                 );
                 results[dep] = result;
-                console.log('result', dep, result);
+                // console.log('result', dep, result);
             } catch (err) {
                 evalEnv.executionLimit.enabled = false;
                 throw err;
             }
             evalEnv.executionLimit.enabled = false;
         } else {
-            console.log('already evaluated', dep, evalEnv.terms[dep]);
+            // console.log('already evaluated', dep, evalEnv.terms[dep]);
         }
     });
     return results;

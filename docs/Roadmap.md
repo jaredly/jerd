@@ -1,11 +1,150 @@
 
 ## What do we need in order to make this minimally usable by other people?
 
+
+- [ ] SLIDERSSSS will be so fun
+  - [x] add an "idx" to Location
+  - [x] make locations mandatory on Terms and Types and stuff
+    - How do deal with the null case? Make a nullLoc
+  - [ ] populate the idx
+  - [ ] add the Location to PPs and AttributedText(?)
+
+- [ ] add a 'source' thing to location, for better error reporting
+
+
+- sliders brainstorm
+  - ok so this is a little interesting. Here is where I figure out how much I need to change things.
+    because right now I'm going (Term -> PP -> AttributedText -> React)
+    and what I want is to be able to ...
+    um
+    in React, have a way to respond to a click event, and pop up a dialog
+    and knows about the term that it was.
+    hmmmm
+    and I guess I don't /really/ have to modify the AttributedText while I'm messing with things,
+    and maybe I actually don't want to, so you can just `escape` out of the dialog, and it will
+    go back to what it was.
+    Ok
+    and then, I kindof want the dialog to be able to ... modify the term in-place? or something? hmmm
+    I guess we could be pretty far down in the tree. Would we identify the term by in-order DFS traversal
+    index? And then we could do a `transformExpr` and just swap it out .... yeah I guess that would work.
+    and then go ahead and recompute the shader. Which has been plenty fast so far. There's probably some
+    more caching I could do by re-using the exprs object or something.
+  - Ok so /actually/, I can get away with just annotating the PPs and therefore AttributedText with a
+    sourcemap-like index, that can get me back to original value.
+  - KINDS OF WIDGETS
+    - widgets that just operate on a literal? Simplest, easiest. So it would be Term.type-based
+    - widgets that can operate on any value of /type/. This might be a little more tricky to pull off?
+      unless ... it's evaluable, and I just go ahead and evaluate it 🤔. Although we might get into symbolic
+      evaluation here ... unless I go ahead and add a trace!(), and then I can just use the values that are
+      passed in in practice, collect a trace (while the execution is paused), yeah that would be really
+      very cool.
+    - widgets that operate on a /function call/. Now, widgets should be allowed to say "I only do literals for arguments" or something .... but also we can do our tracing trick here, if the values aren't immediately available.
+  - Ohh hHDSAHDM hmmmm ok so I /think/ I'm going to need a tighter connection between the editor and the
+    opengl output? I mean I guess I already have something of a connection, nvm I think it'll be fine.
+    - OH wait no I've been thinking that these things would be happening in a NON editor context ...
+      but maybe I want to make it still an editor kind of dealio ... yeah maybe I want a new component
+      just to manage all of this business.
+      - eh, I can refactor that out later.
+
+- [x] named arguments folks
+  - hm maybe I need types to have named arguments? hmmmm yeah I mean I think that would be nice actually. But that would mean a change to the ... hashing ... whatsit? or wait the hash needs to not care about the name ... but it still means a little bit of a change.
+  ... ok I can put that off, and say "only do names if it's a term reference, it's fine"
+
+
+
+Ok, I'm playing around with 2d sdfs, and ... i really want arrays.
+... and maybe this will require like a whole new type?
+hmmmm
+so I might want a meta-type that's like "ArrayLiteral", similar to "AmbiguousNumeral"
+so that we can withhold judgement about whether it's going to be a FixedArray or a normal
+Array.
+
+Does that mean it's time to bring back type inference?
+
+
+- [ ] ugh I need `Loc`s to include filenames, so that I handle prelude better.
+
+
+- [ ] I think I want the "render" stuff to happen separate from ... hmm ... or maybe just the ... ffmpeg output, show up somewhere other than a cell.
+
+
+
+### OpenGL Bonanza
+- [x] make a play / stop / restart / record hover overlay dealio. With a cog that opens config for the recording.
+  - oh maybe a time slider too? If we establish what the periodicity of the thing is.
+- [ ] fix the bug I'm seeing when trying to multisample.
+
+- [x] I'd really like tracing to be able to debug #454b9144.
+- [ ] right-click on a variable declaration & "make this a function argument" would be very nice, and so easy.
+
+### Default Parameters
+- [ ] is this as ~simple as generating several functions with the same name, and having some take fewer arguments? hmm it would be good to have them "joined" somehow more than just sharing a name, so that if you decide to provide another argument, the editor knows exactly which function to pick.
+  - could it be a macro or something?
+
+### THe Editor more
+- [0] enable pinning when you're mid-edit! That's key.
+  - [ ] oh I need to add something to the env in that case it looks like.
+- [x] maybe pins should be pasued by default? That seems reasonable.
+- [ ] oof I really need a way to propagate changes 😅. like I just found a bug in a term, and want to fix it everywhere...
+- [ ] give me sliders to fiddle with constants, you cowards!
+  - Is this where custom render-widgets for different function calls comes into play? hmmm I think I might be able to do that already, it would be a little trippy though. Like I'm rendering to this contenteditable anyway, what's stopping me? I mean it's a little awkward to be rendering to literally HTML instead of react. hmmm. and also having to write the renderer twice.
+- [ ] pressing enter should auto-indent for you.
+- [ ] let's acually try to reprint-as-you-type. This will require threading through locations to the PPs, so we can do source-mapping to preserve cursor position. Also maybe we'll want a more forgiving parser? idk.
+
+### Full Page Design
+
+I think I need to rethink the design of the page.
+Maybe have the "pinned" pane be the same size as the unpinned pane?
+and ditch the current left column. I don't think it's really doing anything.
+I should think about how observable works
+and jupyter notebooks
+and then look into smalltalk maybe? idk.
+but like, having "the things in focus" and then "the things I'm just transiently looking at" seems good.
+Oooh maybe hovering over a term or type pops it up in the right-hand (non-pin) pane?
+
+hmmm but then I do still like the notion of a "gallery", especially when I'm experimenting.
+TODO link to that blog post -- here it is https://shalabh.com/programmable-systems/offload-mental-simulation.html
+hmm also the HN comments might be good https://news.ycombinator.com/item?id=27330740
+
+huh
+ok I really need to write a blog post or two about what I'm trying to do with jerd.
+
+But yeah, I think my north star right now should be "an IDE where I can tweak things and *hang on to the code* for each "screenshot" that I come up with.
+
+### Tracing!
+- [x] basic compiler support
+- [x] basic test runner support
+  - [x] would be nice for the test runner to print out traces tho
+- [ ] web ide support! (need to integrate traces with the evalCache I think....)
+  - [ ] yeah let's do this next, to get a feel for things.
+    - I do wonder about how best to /display/ traces from other terms though.
+      do I open up a temporary thing with the ...
+      or maybe I have a "full page debugging" view, that will open up terms that get traces?
+- [ ] GLSL yes let's get this folks!
+  - So the basic idea is: the IR that I'm compiling has some trace calls in it
+    (should be simple to check while generating the shaders), I go ahead and
+    eval the ....
+    ... hmmm. ok so the `trace` function is actually set up when the function
+    is first evaluated, and from then on it's basically immutable.
+    so I think that means that traces would all be collected globally? which would
+    be quite confusing.
+    OH wait I can just do a similar trick to what I'm doing with execution limits.
+    have a globally shared mutable variable, that I swap out when I'm about to execute something,
+    and then harvest right after.
+    Yeah that sounds legit.
+    Much better this way.
+  - [ ] tracing without buffers
+  - [ ] tracing with buffers
+    - this would mean, I think, swapping in a shader that just blits the texture out onto the canvas, then using toDataURL or something like that, and doing that for each buffer ... 
+    - ooh ok it would be cool to have a setting to "show the intermediate buffers" anyway. Yeah that would be neat.
+
 ### Editor squirrlyness
 - [x] make it so you can't select "inside" of an ID hash
 - [x] make tab & shift-tab actually work reliably
 
 ### Basic usability
+- [x] make a menu for cells, so I can do "export this term and dependencies" for debugging
+- [ ] ok for the maximally fancy, let's do "trace!() runs the javascript, and snoops the values"
 - [ ] cmd+p to search for terms, showing most recently edited things, and their types, and such
 - [x] pins should have a way to open up the cell of the source
 - [ ] opening a cell should select it
@@ -16,8 +155,8 @@
 
 ### GLSL Plugins
 - [ ] preserve textures when updating shaders if possible....
-- [ ] make a button to restart the timer
-- [ ] make a way to specify the size!
+- [x] make a button to restart the timer
+- [x] make a way to specify the size!
 - [ ] let's add "mouse button down" uniform! Probably a boolean I guess? or it could be an int, following https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button. And then ... have like 6 or something be "nothing pressed"? or -1?
 
 ### Parser / Printer
@@ -30,8 +169,16 @@
 - [ ] when printing a lambda, if the body is another lambda, we don't really need to print the return type. We can just infer it, right?
 
 
+## Loose ends!
+
+- I'm not printing term annotations anymore, and that will break re-parsing of recursive dealios. Need to infer the annotation from the lambda declaration.
 
 
+## OTHER EXCITING THING: Dual JS + GLSL
+
+So you compile to js for the uniform management (and maybe responding to events? idk), things that only need to be done once per frame, and then sent to the shader.
+I'm imagining things like: tracking a list of "mouse trails". and such.
+So we'd have an extra value on the env, that would get calculated in js & then sent down.
 
 ## Ok, grand vision folks
 This will probably get people excited.

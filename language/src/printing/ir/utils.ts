@@ -18,6 +18,7 @@ import {
     TypeVblDecl,
     LambdaType as TermLambdaType,
     EffectReference,
+    nullLocation,
 } from '../../typing/types';
 import {
     binOps,
@@ -57,7 +58,7 @@ import {
     DoneLambdaType,
     CPS,
 } from './types';
-import { Location, nullLocation } from '../../parsing/parser';
+import { Location } from '../../parsing/parser';
 import { LocatedError, TypeMismatch } from '../../typing/errors';
 import { args, atom, id, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
@@ -136,7 +137,7 @@ export const tupleType = (itemTypes: Array<Type>, loc: Loc): Type => ({
 export const builtinType = (
     name: string,
     typeVbls: Array<Type> = [],
-    loc: Location | null = null,
+    loc: Location = nullLocation,
 ): Type => ({
     type: 'ref',
     ref: { type: 'builtin', name },
@@ -148,7 +149,7 @@ export const pureFunction = (
     args: Array<Type>,
     res: Type,
     typeVbls: Array<TypeVblDecl> = [],
-    loc: Location | null = null,
+    loc: Location = nullLocation,
 ): LambdaType => {
     return {
         type: 'lambda',

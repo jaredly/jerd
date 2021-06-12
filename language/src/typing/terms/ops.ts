@@ -1,6 +1,6 @@
 // Binary operations
 
-import { Identifier, nullLocation, Op, Ops } from '../../parsing/parser';
+import { Identifier, Op, Ops } from '../../parsing/parser';
 import {
     Env,
     Term,
@@ -10,6 +10,7 @@ import {
     idsEqual,
     Id,
     Type,
+    encompassingLoc,
 } from '../types';
 import { Expression, Location } from '../../parsing/parser';
 import { showType } from '../unify';
@@ -161,14 +162,17 @@ const typeNewOp = (
     env: Env,
     left: Term,
     op: Op,
-    right: Expression,
+    rarg: Term,
     location: Location,
 ): Term | null => {
-    const rarg =
-        right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
+    // const rarg =
+    //     right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
 
     let fn: Term;
     if (op.hash != null) {
+        if (op.hash === '#builtin') {
+            return null;
+        }
         const [baseHash, attrHash, idxRaw] = op.hash.slice(1).split('#');
         const idx = +idxRaw;
         if (isNaN(idx)) {
@@ -262,34 +266,18 @@ const typeNewOp = (
         throw new Error(`${op} is not a binary function`);
     }
 
-    const firstErr = getTypeError(
-        env,
-        left.is,
-        fn.is.args[0],
-        left.location || nullLocation,
-    );
+    const firstErr = getTypeError(env, left.is, fn.is.args[0], left.location);
     if (firstErr != null) {
         throw firstErr;
     }
-    const secondErr = getTypeError(
-        env,
-        rarg.is,
-        fn.is.args[1],
-        rarg.location || nullLocation,
-    );
+    const secondErr = getTypeError(env, rarg.is, fn.is.args[1], rarg.location);
     if (secondErr != null) {
         throw secondErr;
     }
 
     return {
         type: 'apply',
-        location:
-            left.location && right.location
-                ? {
-                      start: left.location.start,
-                      end: right.location.end,
-                  }
-                : null,
+        location: encompassingLoc(left.location, rarg.location),
         target: fn,
         hadAllVariableEffects: false,
         effectVbls: null,
@@ -306,7 +294,11 @@ const typeOp = (
     right: Expression,
     location: Location,
 ): Term => {
-    const result = typeNewOp(env, left, op, right, location);
+    // Shortcut
+    const rarg =
+        right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
+
+    const result = typeNewOp(env, left, op, rarg, location);
     if (result != null) {
         return result;
     }
@@ -321,9 +313,6 @@ const typeOp = (
     if (is.args.length !== 2) {
         throw new LocatedError(location, `${op} is not a binary function`);
     }
-    // Shortcut
-    const rarg =
-        right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
 
     if (is.typeVbls.length === 1) {
         if (!typesEqual(left.is, rarg.is)) {
@@ -346,12 +335,7 @@ const typeOp = (
         is.args[0].ref.name === 'numeric'
     ) {
         if (!typesEqual(left.is, rarg.is)) {
-            throw new TypeMismatch(
-                env,
-                left.is,
-                rarg.is,
-                left.location || nullLocation,
-            );
+            throw new TypeMismatch(env, left.is, rarg.is, left.location);
         }
         // STOPSHIP: have an actual solution for strings
         if (
@@ -373,34 +357,18 @@ const typeOp = (
         }
     }
 
-    const firstErr = getTypeError(
-        env,
-        left.is,
-        is.args[0],
-        left.location || nullLocation,
-    );
+    const firstErr = getTypeError(env, left.is, is.args[0], left.location);
     if (firstErr != null) {
         throw firstErr;
     }
-    const secondErr = getTypeError(
-        env,
-        rarg.is,
-        is.args[1],
-        rarg.location || nullLocation,
-    );
+    const secondErr = getTypeError(env, rarg.is, is.args[1], rarg.location);
     if (secondErr != null) {
         throw secondErr;
     }
 
     return {
         type: 'apply',
-        location:
-            left.location && right.location
-                ? {
-                      start: left.location.start,
-                      end: right.location.end,
-                  }
-                : null,
+        location: encompassingLoc(left.location, right.location),
         target: {
             location,
             type: 'ref',

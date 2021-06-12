@@ -10,6 +10,12 @@ import builtinsRaw from './builtins.ts.txt';
 export const loadBuiltins = () => {
     const builtins: { [key: string]: Type | null } = {};
     const lines = builtinsRaw.split('\n');
+
+    const env = presetEnv({});
+    // lying
+    env.global.types['43802a16'] = {} as any;
+    env.global.types['3b941378'] = {} as any;
+
     lines.forEach((line: string, i: number) => {
         if (!line.startsWith('export const ')) {
             return;
@@ -20,7 +26,7 @@ export const loadBuiltins = () => {
             c && c.startsWith('//: ')
                 ? parseType(c.slice('//: '.length))
                 : null;
-        const theType = parsed ? typeType(presetEnv({}), parsed) : null;
+        const theType = parsed ? typeType(env, parsed) : null;
         builtins[name] = theType;
     });
     return builtins;

@@ -1,0 +1,373 @@
+@ffi type Vec2 = {
+    x: float,
+    y: float,
+}
+
+@ffi type Vec3 = {
+    ...Vec2,
+    z: float,
+}
+
+@ffi type Vec4 = {
+    ...Vec3,
+    w: float,
+}
+
+@ffi type GLSLEnv = {
+    time: float,
+    resolution: Vec2,
+    camera: Vec3,
+    mouse: Vec2,
+}
+
+const length = (v: Vec3): float ={}> sqrt(
+    v.x * v.x + v.y * v.y + v.z * v.z,
+)
+
+const ScaleVec3Rev = Div<Vec3, float, Vec3>{
+    "/": (v: Vec3, scale: float): Vec3 ={}> Vec3{
+        x: v.x / scale,
+        y: v.y / scale,
+        z: v.z / scale,
+    },
+}
+
+const dot = (a: Vec4, b: Vec4): float ={}> {
+    a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+const vec4 = (x: float, y: float, z: float, w: float): Vec4 ={}> Vec4{
+    z: z,
+    x: x,
+    y: y,
+    w: w,
+}
+
+const NegVec3 = Neg<Vec3, Vec3>{
+    "-": (v: Vec3): Vec3 ={}> Vec3{
+        x: -v.x,
+        y: -v.y,
+        z: -v.z,
+    },
+}
+
+const cross = (one: Vec3, two: Vec3): Vec3 ={}> Vec3{
+    x: one.y * two.z - two.y * one.z,
+    y: one.z * two.x - two.z * one.x,
+    z: one.x * two.y - two.x * one.y,
+}
+
+const AddSubVec3 = AddSub<Vec3, Vec3, Vec3>{
+    "+": (one: Vec3, two: Vec3): Vec3 ={}> Vec3{
+        x: one.x + two.x,
+        y: one.y + two.y,
+        z: one.z + two.z,
+    },
+    "-": (one: Vec3, two: Vec3): Vec3 ={}> Vec3{
+        x: one.x - two.x,
+        y: one.y - two.y,
+        z: one.z - two.z,
+    },
+}
+
+const normalize = (v: Vec3): Vec3 ={}> v / length(
+    v,
+)
+
+const vec3 = (v: Vec2, z: float): Vec3 ={}> Vec3{
+    ...v,
+    z: z,
+}
+
+const radians = (degrees: float): float ={}> degrees / 180.0 * PI
+
+const ScaleVec2Rev = Div<Vec2, float, Vec2>{
+    "/": (v: Vec2, scale: float): Vec2 ={}> Vec2{
+        x: v.x / scale,
+        y: v.y / scale,
+    },
+}
+
+const AddSubVec2 = AddSub<Vec2, Vec2, Vec2>{
+    "+": (one: Vec2, two: Vec2): Vec2 ={}> Vec2{
+        x: one.x + two.x,
+        y: one.y + two.y,
+    },
+    "-": (one: Vec2, two: Vec2): Vec2 ={}> Vec2{
+        x: one.x - two.x,
+        y: one.y - two.y,
+    },
+}
+
+const EPSILON = 0.0001
+
+const vec3 = (x: float, y: float, z: float): Vec3 ={}> Vec3{
+    x: x,
+    y: y,
+    z: z,
+}
+
+const ScaleVec3 = Mul<float, Vec3, Vec3>{
+    "*": (scale: float, v: Vec3): Vec3 ={}> Vec3{
+        x: v.x * scale,
+        y: v.y * scale,
+        z: v.z * scale,
+    },
+}
+
+const MatByVector = Mul<Mat4, Vec4, Vec4>{
+    "*": (mat: Mat4, vec: Vec4): Vec4 ={}> Vec4{
+        z: dot(mat.r3, vec),
+        x: dot(mat.r1, vec),
+        y: dot(mat.r2, vec),
+        w: dot(mat.r4, vec),
+    },
+}
+
+const xyz = (v: Vec4): Vec3 ={}> Vec3{
+    x: v.x,
+    y: v.y,
+    z: v.z,
+}
+
+const viewMatrix = (eye: Vec3, center: Vec3, up: Vec3): Mat4 ={}> {
+    const f = normalize(center - eye);
+    const s = normalize(cross(f, up));
+    const u = cross(s, f);
+    Mat4{
+        r1: Vec4{...s, w: 0.0},
+        r2: Vec4{...u, w: 0.0},
+        r3: Vec4{...NegVec3."-"(f), w: 0.0},
+        r4: vec4(0.0, 0.0, 0.0, 1.0),
+    };
+}
+
+const rayDirection = (
+    fieldOfView: float,
+    size: Vec2,
+    fragCoord: Vec2,
+): Vec3 ={}> {
+    const xy = fragCoord - size / 2.0;
+    const z = size.y / tan(radians(fieldOfView) / 2.0);
+    normalize(vec3(xy, -z));
+}
+
+const vec4 = (v: Vec3, w: float): Vec4 ={}> Vec4{
+    ...v,
+    w: w,
+}
+
+const rotate = (tx: float, ty: float, tz: float): Mat4 ={}> {
+    const cg = cos(tx);
+    const sg = sin(tx);
+    const cb = cos(ty);
+    const sb = sin(ty);
+    const ca = cos(tz);
+    const sa = sin(tz);
+    Mat4{
+        r1: vec4(
+            ca * cb,
+            ca * sb * sg - sa * cg,
+            ca * sb * cg + sa * sg,
+            0.0,
+        ),
+        r2: vec4(
+            sa * cb,
+            sa * sb * sg + ca * cg,
+            sa * sb * cg - ca * sg,
+            0.0,
+        ),
+        r3: vec4(-sb, cb * sg, cb * cg, 0.0),
+        r4: vec4(0.0, 0.0, 0.0, 1.0),
+    };
+}
+
+const estimateNormal = (
+    sceneSDF: (GLSLEnv, Vec3) ={}> float,
+    env: GLSLEnv,
+    p: Vec3,
+): Vec3 ={}> normalize(
+    vec3(
+        sceneSDF(
+            env,
+            Vec3{...p, x: p.x + EPSILON},
+        ) - sceneSDF(
+            env,
+            Vec3{...p, x: p.x - EPSILON},
+        ),
+        sceneSDF(
+            env,
+            Vec3{...p, y: p.y + EPSILON},
+        ) - sceneSDF(
+            env,
+            Vec3{...p, y: p.y - EPSILON},
+        ),
+        sceneSDF(
+            env,
+            Vec3{...p, z: p.z + EPSILON},
+        ) - sceneSDF(
+            env,
+            Vec3{...p, z: p.z - EPSILON},
+        ),
+    ),
+)
+
+const ScaleVec3_ = Mul<Vec3, float, Vec3>{
+    "*": (v: Vec3, scale: float): Vec3 ={}> Vec3{
+        x: v.x * scale,
+        y: v.y * scale,
+        z: v.z * scale,
+    },
+}
+
+const vec4 = (x: float): Vec4 ={}> Vec4{
+    z: x,
+    x: x,
+    y: x,
+    w: x,
+}
+
+const rec shortestDistanceToSurface = (
+    sceneSDF: (GLSLEnv, Vec3) ={}> float,
+    env: GLSLEnv,
+    eye: Vec3,
+    marchingDirection: Vec3,
+    start: float,
+    end: float,
+    stepsLeft: int,
+): float ={}> {
+    const dist = sceneSDF(
+        env,
+        eye + start * marchingDirection,
+    );
+    if dist < EPSILON {
+        start;
+    } else {
+        const depth = start + dist;
+        if depth >= end || stepsLeft <= 0 {
+            end;
+        } else {
+            shortestDistanceToSurface#self(
+                sceneSDF,
+                env,
+                eye,
+                marchingDirection,
+                depth,
+                end,
+                stepsLeft - 1,
+            );
+        };
+    };
+}
+
+const getWorldDir = (
+    resolution: Vec2,
+    coord: Vec2,
+    eye: Vec3,
+    fieldOfView: float,
+): Vec3 ={}> {
+    const viewDir = rayDirection(fieldOfView, resolution, coord);
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    const viewToWorld = viewMatrix(
+        eye,
+        Vec3{x: 0.0, y: 0.0, z: 0.0},
+        Vec3{x: 0.0, y: 1.0, z: 0.0},
+    );
+    xyz(
+        viewToWorld * Vec4{...viewDir, w: 0.0},
+    );
+}
+
+const Scale4 = Div<Vec4, float, Vec4>{
+    "/": (v: Vec4, scale: float): Vec4 ={}> Vec4{
+        z: v.z / scale,
+        x: v.x / scale,
+        y: v.y / scale,
+        w: v.w / scale,
+    },
+}
+
+const vec2 = (x: float, y: float): Vec2 ={}> Vec2{
+    x: x,
+    y: y,
+}
+
+const AddSubVec4 = AddSub<Vec4, Vec4, Vec4>{
+    "+": (one: Vec4, two: Vec4): Vec4 ={}> Vec4{
+        z: one.z + two.z,
+        x: one.x + two.x,
+        y: one.y + two.y,
+        w: one.w + two.w,
+    },
+    "-": (one: Vec4, two: Vec4): Vec4 ={}> Vec4{
+        z: one.z - two.z,
+        x: one.x - two.x,
+        y: one.y - two.y,
+        w: one.w - two.w,
+    },
+}
+
+const rotate = (v: Vec3, x: float, y: float, z: float): Vec3 ={}> {
+    xyz(rotate(x, y, z) * vec4(v, 1.0));
+}
+
+const marchNormals = (sceneSDF: (GLSLEnv, Vec3) ={}> float): (
+    GLSLEnv,
+    Vec2,
+) ={}> Vec4 ={}> (env: GLSLEnv, coord: Vec2): Vec4 ={}> {
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    const worldDir = getWorldDir(env.resolution, coord, eye, 45.0);
+    const maxDist = 100.0;
+    const dist = shortestDistanceToSurface(
+        sceneSDF,
+        env,
+        eye,
+        worldDir,
+        0.0,
+        maxDist,
+        255,
+    );
+    if dist > maxDist - EPSILON {
+        vec4(0.0);
+    } else {
+        const worldPos = eye + worldDir * dist;
+        const normal = estimateNormal(sceneSDF, env, worldPos);
+        vec4(normal, 1.0);
+    };
+}
+
+const multiSample = (fn: (GLSLEnv, Vec2) ={}> Vec4): (
+    GLSLEnv,
+    Vec2,
+) ={}> Vec4 ={}> (env: GLSLEnv, pos: Vec2): Vec4 ={}> {
+    const total = fn(env, pos) + fn(
+        env,
+        pos + vec2(0.5, 0.0),
+    ) + fn(env, pos + vec2(-0.5, 0.0)) + fn(
+        env,
+        pos + vec2(0.0, 0.5),
+    ) + fn(env, pos + vec2(0.0, -0.5));
+    total / 5.0;
+}
+
+@ffi
+@main
+multiSample(
+    marchNormals(
+        (env: GLSLEnv, pos: Vec3): float ={}> {
+            const pos = rotate(
+                pos,
+                0.0,
+                env.time / 2.0,
+                env.time,
+            );
+            const mag = (sin(env.time / 2.0) + 1.0) * 60.0 + 1.0;
+            const period = 30.0 * (sin(env.time) + 1.0);
+            const sphere = length(pos) - 0.5;
+            const bumps = sin(pos.x * period) + sin(
+                pos.z * period,
+            ) + sin(pos.y * period);
+            sphere - bumps / mag;
+        },
+    ),
+)

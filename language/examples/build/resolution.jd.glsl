@@ -16,6 +16,10 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
+// skipping As_As, contains type variables
+
+// skipping Eq_553b4b8e, contains type variables
+
 struct GLSLEnv_451d5252{
     float time;
     vec2 resolution;
@@ -23,13 +27,9 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
-// skipping As_As, contains type variables
-
-// skipping Eq_553b4b8e, contains type variables
-
 /**
 ```
-const one#5678a3a0: (float) ={}> float = (a#:0: float) ={}> (a#:0 + 4.0)
+const one#5678a3a0 = (a#:0: float): float ={}> a#:0 + 4.0
 ```
 */
 float one_5678a3a0(
@@ -40,38 +40,27 @@ float one_5678a3a0(
 
 /**
 ```
-const one#f4c397d2: (int) ={}> int = (a#:0: int) ={}> (a#:0 + 2)
+const one#f4c397d2 = (a#:0: int): int ={}> a#:0 + 2
 ```
 */
-int one_f4c397d2(
-    int a_0
-) {
+int one_f4c397d2(int a_0) {
     return (a_0 + 2);
 }
 
 /**
 ```
-const unnamed#test_main: (GLSLEnv#451d5252, vec2) ={}> vec4 = (
-    env#:0: GLSLEnv#451d5252,
-    fragCoord#:1: vec2,
-) ={}> {
-    const t0#:4 = FloatEq#c41f7386."=="#553b4b8e#0(
-        (one#f4c397d2(2) as#6f186ad1 float + one#5678a3a0(3.0)),
-        11.0,
+const unnamed#test_main = (env#:0: GLSLEnv#451d5252, fragCoord#:1: vec2): vec4 ={}> {
+    const t0#:4 = one#f4c397d2(2) as#6f186ad1 float + one#5678a3a0(3.0) ==#c41f7386#553b4b8e#0 11.0;
+    const size#:2 = env#:0.resolution#451d5252#1.x#43802a16#0 / 20.0;
+    const size#:3 = size#:2 * 0.4;
+    if t0#:4 && length(fragCoord#:1 - vec2(1.0, 1.0) * size#:2) < size#:3 vec4(0.0, 1.0, 0.0, 1.0) else if !(
+        t0#:4,
+    ) && length(fragCoord#:1 - vec2(1.0, 1.0) * size#:2) < size#:3 vec4(1.0, 0.0, 0.0, 1.0) else vec4(
+        1.0,
+        1.0,
+        1.0,
+        1.0,
     );
-    const size#:2 = (env#:0.resolution#451d5252#1.x#43802a16#0 / 20.0);
-    const size#:3 = (size#:2 * 0.4);
-    if (t0#:4 && (length((fragCoord#:1 - (vec2(1.0, 1.0) * size#:2))) < size#:3)) vec4(
-        0.0,
-        1.0,
-        0.0,
-        1.0,
-    ) else if (!(t0#:4) && (length((fragCoord#:1 - (vec2(1.0, 1.0) * size#:2))) < size#:3)) vec4(
-        1.0,
-        0.0,
-        0.0,
-        1.0,
-    ) else vec4(1.0, 1.0, 1.0, 1.0);
 }
 ```
 */

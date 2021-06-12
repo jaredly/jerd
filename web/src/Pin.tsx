@@ -3,12 +3,17 @@ import { jsx } from '@emotion/react';
 // The app
 
 import * as React from 'react';
-import { Env, Id } from '@jerd/language/src/typing/types';
-import { Content, Display, EvalEnv, Plugins, PluginT } from './State';
+import { Env, Id, nullLocation } from '@jerd/language/src/typing/types';
+import {
+    Content,
+    Display,
+    EvalEnv,
+    RenderPlugins,
+    RenderPluginT,
+} from './State';
 
 import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
-import { nullLocation } from '@jerd/language/src/parsing/parser';
 import { hashStyle } from './Cell';
 
 export const Pin = ({
@@ -23,7 +28,7 @@ export const Pin = ({
     pin: { id: Id; display: Display };
     env: Env;
     evalEnv: EvalEnv;
-    plugins: Plugins;
+    plugins: RenderPlugins;
     onRun: (id: Id) => void;
     onRemove: () => void;
     onOpen: (content: Content) => void;
@@ -56,7 +61,7 @@ export const Pin = ({
         // </div>
     } else {
         const t = env.global.terms[hash];
-        const plugin: PluginT = plugins[pin.display.type];
+        const plugin: RenderPluginT = plugins[pin.display.type];
         const err = getTypeError(env, t.is, plugin.type, nullLocation);
         if (err == null) {
             body = plugin.render(
@@ -64,6 +69,7 @@ export const Pin = ({
                 evalEnv,
                 env,
                 t,
+                true,
             );
         } else {
             body = <div>Invalid term for plugin. Type mismatch.</div>;

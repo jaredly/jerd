@@ -2,13 +2,11 @@ import * as React from 'react';
 import { parse } from '@jerd/language/src/parsing/grammar';
 import { Toplevel } from '@jerd/language/src/parsing/parser';
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
-import {
-    toplevelToPretty,
-    ToplevelT,
-} from '@jerd/language/src/printing/printTsLike';
-import { hashObject, typeToplevelT } from '@jerd/language/src/typing/env';
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
+import { typeToplevelT, ToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedTextToHTML } from './Render';
-import { Env } from '@jerd/language/src/typing/types';
+import { Env, newWithGlobal } from '@jerd/language/src/typing/types';
+import { addLocationIndices } from '../../language/src/typing/analyze';
 
 const getOffset = (node: HTMLElement, offset: number) => {
     if (node.nodeName === '#text') {
@@ -85,7 +83,7 @@ const maybeParse = (
             return null;
         }
         return typeToplevelT(
-            env,
+            newWithGlobal(env.global),
             parsed[0],
             typeof contents !== 'string' && contents.type === 'RecordDef'
                 ? contents.def.unique
@@ -236,7 +234,7 @@ export default ({
         // const w = s.getBoundingClientRect();
         // const full = ref.current.getBoundingClientRect();
         // const chars = Math.floor(full.width / w.width);
-        const parsed = maybeParse(env, value, contents);
+        let parsed = maybeParse(env, value, contents);
         if (parsed) {
             ref.current.innerHTML = renderAttributedTextToHTML(
                 env.global,

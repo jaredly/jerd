@@ -1,162 +1,113 @@
 // This is the fake one?
+/* @jsx jsx */
+import { css, jsx } from '@emotion/react';
 
 import * as React from 'react';
-import {
-    Env,
-    Term,
-    Type,
-    TypeReference,
-    UserReference,
-} from '@jerd/language/src/typing/types';
+import { Env, Id, Term } from '@jerd/language/src/typing/types';
 import {
     builtinType,
     int,
     pureFunction,
     refType,
 } from '@jerd/language/src/typing/preset';
-import { EvalEnv, Plugins, PluginT } from '../State';
-import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
-import { wrapWithExecutaionLimit } from './Drawable';
-import {
-    generateShader,
-    generateSingleShader,
-} from '@jerd/language/src/printing/glslPrinter';
+import { EvalEnv, RenderPlugins } from '../State';
+import { hashObject, idName } from '@jerd/language/src/typing/env';
+import { generateSingleShader } from '@jerd/language/src/printing/glslPrinter';
 import { setup } from '../setupGLSL';
+import { ShaderCPU } from './ShaderCPU';
+import { ShowTrace } from './ShowTrace';
 
-type GLSLEnv = {
+export type GLSLEnv = {
     type: 'GLSLEnv';
     time: number;
     resolution: Vec2;
     camera: Vec3;
     mouse: Vec2;
 };
-type Vec2 = { type: 'Vec2'; x: number; y: number };
-type Vec3 = { type: 'Vec3'; x: number; y: number; z: number };
+export type Vec2 = { type: 'Vec2'; x: number; y: number };
+export type Vec3 = { type: 'Vec3'; x: number; y: number; z: number };
+export type Vec4 = { type: 'Vec4'; x: number; y: number; z: number; w: number };
 
-type OpenGLFn = (glslEnv: GLSLEnv, fragCoord: Vec2) => any;
+export type OpenGLFn = (glslEnv: GLSLEnv, fragCoord: Vec2) => any;
 
-const drawToCanvas = (
-    ctx: CanvasRenderingContext2D,
-    fn: OpenGLFn,
-    env: GLSLEnv,
-) => {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    const w = 20;
-    const h = 20;
-
-    const dx = ctx.canvas.width / w;
-    const dy = ctx.canvas.height / h;
-    for (let x = 0; x < w; x++) {
-        for (let y = 0; y < h; y++) {
-            const color = fn(env, { type: 'Vec2', x: x * dx, y: y * dy });
-            ctx.fillStyle = `rgba(${color.x * 255},${color.y * 255},${
-                color.z * 255
-            },${color.w})`;
-            ctx.fillRect(x * dx, y * dy, dx, dy);
-        }
-    }
-};
-
-const newGLSLEnv = (ctx: CanvasRenderingContext2D): GLSLEnv => ({
+export const newGLSLEnv = (canvas: HTMLCanvasElement): GLSLEnv => ({
     type: 'GLSLEnv',
     time: 0,
     resolution: {
         type: 'Vec2',
-        x: ctx.canvas.width,
-        y: ctx.canvas.height,
+        x: canvas.width,
+        y: canvas.height,
     },
-    camera: { type: 'Vec3', x: 1.0, y: 0.0, z: 0.0 },
+    camera: { type: 'Vec3', x: 0.0, y: 0.0, z: -5.0 },
     mouse: {
         type: 'Vec2',
-        x: ctx.canvas.width / 2,
-        y: ctx.canvas.height / 2,
+        x: canvas.width / 2,
+        y: canvas.height / 2,
     },
 });
 
-const ShaderCPU = ({ fn, evalEnv }: { fn: OpenGLFn; evalEnv: EvalEnv }) => {
-    const canvasRef = React.useRef(null as null | HTMLCanvasElement);
-    const [paused, setPaused] = React.useState(false);
-    // const [data, setData] = React.useState([]);
-    const [error, setError] = React.useState(null as any | null);
-
-    const wrapped = React.useMemo(() => wrapWithExecutaionLimit(evalEnv, fn), [
-        fn,
-    ]);
-    const fc = React.useRef(wrapped);
-    fc.current = wrapped;
-
-    const timer = React.useRef(0);
-
-    React.useEffect(() => {
-        if (paused) {
-            return;
-        }
-        let env: GLSLEnv;
-
-        let start = Date.now();
-        const tid = setInterval(() => {
-            if (!canvasRef.current) {
-                return;
-            }
-            const ctx = canvasRef.current.getContext('2d')!;
-            if (!env) {
-                env = newGLSLEnv(ctx);
-                canvasRef.current.addEventListener('mousemove', (evt) => {
-                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
-                    env.mouse.x = evt.clientX - box.left;
-                    env.mouse.y = evt.clientY - box.top;
-                });
-            }
-            timer.current += (Date.now() - start) / 1000;
-            start = Date.now();
-            env.time = timer.current;
-            try {
-                drawToCanvas(ctx, fc.current, env);
-            } catch (err) {
-                clearInterval(tid);
-                setError(err);
-            }
-        }, 40);
-        return () => clearInterval(tid);
-    }, [paused]);
-
-    if (error != null) {
-        return (
-            <div
-                style={{
-                    whiteSpace: 'pre-wrap',
+export const IconButton = ({
+    icon,
+    onClick,
+    selected,
+}: {
+    icon: string;
+    onClick: () => void;
+    selected?: boolean;
+}) => {
+    return (
+        <button
+            onClick={onClick}
+            css={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                padding: 4,
+                margin: 0,
+                cursor: 'pointer',
+                transition: '.2s ease color',
+                fontSize: '80%',
+                color: '#2a5e7d',
+                ':hover': {
+                    color: '#9edbff',
+                },
+                ...(selected ? { color: '#24aeff' } : undefined),
+            }}
+        >
+            <span
+                className="material-icons"
+                css={{
+                    // textShadow: '1px 1px 0px #aaa',
+                    fontSize: 20,
+                    pointerEvents: 'visible',
                 }}
             >
-                {error.message}
-            </div>
-        );
-    }
-
-    return (
-        <canvas
-            onClick={() => setPaused(!paused)}
-            ref={canvasRef}
-            width="200"
-            height="200"
-        />
+                {icon}
+            </span>
+        </button>
     );
 };
 
-const compileGLSL = (term: Term, env: Env, buffers: number = 0) => {
+export const compileGLSL = (
+    term: Term,
+    env: Env,
+    buffers: number = 0,
+    includeComments = true,
+) => {
     const termId =
         term.type === 'ref' && term.ref.type === 'user'
             ? term.ref.id
             : { hash: hashObject(term), size: 1, pos: 0 };
     return generateSingleShader(
         env,
-        { includeCanonicalNames: true, showAllUniques: true },
+        { includeCanonicalNames: true, showAllUniques: false },
         {},
         termId,
         buffers,
+        includeComments,
     );
 };
 
-const envWithTerm = (env: Env, term: Term) => {
+export const envWithTerm = (env: Env, term: Term) => {
     const id = { hash: hashObject(term), size: 1, pos: 0 };
     return {
         ...env,
@@ -170,14 +121,68 @@ const envWithTerm = (env: Env, term: Term) => {
     };
 };
 
-const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
+function convertDataURIToBinary(dataURI: string) {
+    var base64 = dataURI.replace(/^data[^,]+,/, '');
+    var raw = window.atob(base64);
+    var rawLength = raw.length;
+
+    var array = new Uint8Array(new ArrayBuffer(rawLength));
+    for (let i = 0; i < rawLength; i++) {
+        array[i] = raw.charCodeAt(i);
+    }
+    return array;
+}
+
+export type PlayState = 'playing' | 'paused' | 'recording' | 'transcoding';
+
+const hover = css({
+    opacity: 0,
+    // backgroundColor: 'rgba(50, 50, 50, 0.1)',
+    paddingTop: 2,
+    transition: '.3s ease opacity',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    display: 'flex',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+});
+
+const ShaderGLSLBuffers = ({
+    fn,
+    term,
+    env,
+    evalEnv,
+    startPaused,
+}: {
+    fn: OpenGLFn;
+    term: Term;
+    env: Env;
+    evalEnv: EvalEnv;
+    startPaused: boolean;
+}) => {
+    const [width, setWidth] = React.useState(200);
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
     );
-    const [paused, setPaused] = React.useState(false);
+    const [restartCount, setRestartCount] = React.useState(0);
+    const [playState, setPlayState] = React.useState(
+        (startPaused ? 'paused' : 'playing') as PlayState,
+    );
+    const [showSettings, toggleSettings] = React.useState(false);
     const [error, setError] = React.useState(null as any | null);
 
+    const [tracing, setTracing] = React.useState(false);
+    const [transcodingProgress, setTranscodingProgress] = React.useState(0.0);
+    const [recordingLength, setRecordingLength] = React.useState(
+        Math.ceil(2 * Math.PI * 60),
+    );
+
     const shaders = React.useMemo(() => {
+        if (term.is.type === 'lambda') {
+            return [compileGLSL(term, envWithTerm(env, term), 0)];
+        }
         if (term.type !== 'Tuple') {
             throw new Error(`Expression must be a tuple literal`);
         }
@@ -197,9 +202,37 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
 
     const timer = React.useRef(0);
 
+    const [video, setVideo] = React.useState(null as null | string);
+
     const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
     const currentMousePos = React.useRef(mousePos);
     currentMousePos.current = mousePos;
+
+    const traceValue = React.useMemo(() => {
+        if (!tracing || !canvas) {
+            return null;
+        }
+        const hash = hashObject(term);
+        const id: Id = { hash, size: 1, pos: 0 };
+        // const fn = evalEnv.terms[idName(id)];
+        if (typeof fn !== 'function') {
+            console.log('not a function', fn);
+            return null;
+        }
+
+        const glEnv = newGLSLEnv(canvas);
+        glEnv.time = timer.current;
+
+        const old = evalEnv.traceObj.traces;
+        const traces = (evalEnv.traceObj.traces = {});
+        const color = fn(glEnv, {
+            type: 'Vec2',
+            x: mousePos.x,
+            y: mousePos.y,
+        });
+        evalEnv.traceObj.traces = old;
+        return { color, traces };
+    }, [tracing, mousePos, term]);
 
     const updateFn = React.useMemo(() => {
         if (!canvas || !shaders) {
@@ -217,40 +250,117 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
                 currentMousePos.current,
                 shaders.slice(1).map((shader) => shader.text),
             );
-            // let tid: any;
-            // let last = Date.now();
-            // const fn = () => {
-            //     const now = Date.now();
-            //     timer.current += (now - last) / 1000;
-            //     last = now;
-            //     update(timer.current, currentMousePos.current);
-            //     tid = requestAnimationFrame(fn);
-            // };
-            // tid = requestAnimationFrame(fn);
-            // return () => cancelAnimationFrame(tid);
             return update;
         } catch (err) {
             console.log(err);
             setError(err);
         }
-    }, [canvas, shaders]);
+    }, [canvas, shaders, restartCount]);
 
     React.useEffect(() => {
-        if (!updateFn || paused) {
+        if (
+            !updateFn ||
+            playState === 'paused' ||
+            playState === 'transcoding'
+        ) {
             return;
         }
-        let tid: any;
-        let last = Date.now();
-        const fn = () => {
-            const now = Date.now();
-            timer.current += (now - last) / 1000;
-            last = now;
-            updateFn(timer.current, currentMousePos.current);
+        if (playState === 'recording') {
+            // um just go to 2PI? let's try that...
+            // or maybe 4pi, idk
+            // 60fps please I think
+            const ffmpeg = new Worker('./ffmpeg-worker-mp4.js');
+
+            // const totalSeconds = Math.PI * 4;
+
+            ffmpeg.onmessage = function (e) {
+                var msg = e.data;
+                switch (msg.type) {
+                    case 'stdout':
+                    case 'stderr':
+                        if (msg.data.startsWith('frame=')) {
+                            const frame = +(msg.data as string)
+                                .slice('frame='.length)
+                                .trimStart()
+                                .split(' ')[0];
+                            setTranscodingProgress(frame / recordingLength);
+                        }
+                        console.log(msg.data);
+                        // messages += msg.data + "\n";
+                        break;
+                    case 'exit':
+                        console.log('Process exited with code ' + msg.data);
+                        //worker.terminate();
+                        break;
+
+                    case 'done':
+                        const blob = new Blob([msg.data.MEMFS[0].data], {
+                            type: 'video/mp4',
+                        });
+                        setVideo(URL.createObjectURL(blob));
+                        break;
+                }
+            };
+
+            const images: Array<{ name: string; data: Uint8Array }> = [];
+
+            let tid: any;
+            let tick = 0;
+            const fn = () => {
+                updateFn(tick / 60, currentMousePos.current);
+
+                const dataUrl = canvas!.toDataURL('image/jpeg');
+                const data = convertDataURIToBinary(dataUrl);
+
+                images.push({
+                    name: `img${tick.toString().padStart(3, '0')}.jpg`,
+                    data,
+                });
+
+                if (tick++ > recordingLength) {
+                    ffmpeg.postMessage({
+                        type: 'run',
+                        TOTAL_MEMORY: 268435456,
+                        //arguments: 'ffmpeg -framerate 24 -i img%03d.jpeg output.mp4'.split(' '),
+                        arguments: [
+                            '-r',
+                            '60',
+                            '-i',
+                            'img%03d.jpg',
+                            '-c:v',
+                            'libx264',
+                            '-crf',
+                            '18',
+                            '-pix_fmt',
+                            'yuv420p',
+                            '-vb',
+                            '20M',
+                            'out.mp4',
+                        ],
+                        MEMFS: images,
+                    });
+                    setPlayState('transcoding');
+
+                    return; // done
+                }
+                tid = requestAnimationFrame(fn);
+            };
             tid = requestAnimationFrame(fn);
-        };
-        tid = requestAnimationFrame(fn);
-        return () => cancelAnimationFrame(tid);
-    }, [updateFn, paused]);
+            return () => cancelAnimationFrame(tid);
+        } else {
+            let tid: any;
+            let last = Date.now();
+            const fn = () => {
+                const now = Date.now();
+                timer.current += (now - last) / 1000;
+                last = now;
+                updateFn(timer.current, currentMousePos.current);
+                tid = requestAnimationFrame(fn);
+            };
+            tid = requestAnimationFrame(fn);
+            return () => cancelAnimationFrame(tid);
+        }
+    }, [updateFn, playState, restartCount]);
 
     if (error != null) {
         return (
@@ -281,169 +391,179 @@ const ShaderGLSLBuffers = ({ term, env }: { term: Term; env: Env }) => {
 
     return (
         <div>
-            <canvas
-                onClick={() => setPaused(!paused)}
-                onMouseMove={(evt) => {
-                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
-                    setMousePos({
-                        x: (evt.clientX - box.left) * 2,
-                        y: (box.height - (evt.clientY - box.top)) * 2,
-                        button: evt.button != null ? evt.button : -1,
-                    });
+            <div
+                css={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    [`:hover .hover`]: {
+                        opacity: 1.0,
+                    },
                 }}
-                ref={(node) => {
-                    if (node && !canvas) {
-                        setCanvas(node);
-                    }
-                }}
-                style={{
-                    width: 200,
-                    height: 200,
-                }}
-                // Double size for retina
-                width="400"
-                height="400"
-            />
-        </div>
-    );
-};
-const ShaderGLSL = ({ term, env }: { term: Term; env: Env }) => {
-    const [canvas, setCanvas] = React.useState(
-        null as null | HTMLCanvasElement,
-    );
-    const [paused, setPaused] = React.useState(false);
-    const [error, setError] = React.useState(null as any | null);
-
-    const shader = React.useMemo(() => {
-        try {
-            return compileGLSL(term, envWithTerm(env, term));
-        } catch (err) {
-            setError(err.message);
-            return null;
-        }
-    }, [term]);
-
-    const timer = React.useRef(0);
-
-    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
-    const currentMousePos = React.useRef(mousePos);
-    currentMousePos.current = mousePos;
-
-    React.useEffect(() => {
-        if (!canvas || paused || !shader) {
-            return;
-        }
-        const ctx = canvas.getContext('webgl2');
-        if (!ctx) {
-            return;
-        }
-        try {
-            const update = setup(
-                ctx,
-                shader.text,
-                timer.current,
-                currentMousePos.current,
-            );
-            let tid: any;
-            let last = Date.now();
-            const fn = () => {
-                const now = Date.now();
-                timer.current += (now - last) / 1000;
-                last = now;
-                update(timer.current, currentMousePos.current);
-                tid = requestAnimationFrame(fn);
-            };
-            tid = requestAnimationFrame(fn);
-            return () => cancelAnimationFrame(tid);
-        } catch (err) {
-            setError(err);
-        }
-    }, [canvas, shader, paused]);
-
-    if (error != null) {
-        return (
-            <div>
-                <div
-                    style={{
-                        padding: 4,
-                        fontFamily: 'monospace',
-                        whiteSpace: 'pre-wrap',
-                        backgroundColor: '#300',
+            >
+                <canvas
+                    onMouseMove={(evt) => {
+                        const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
+                        setMousePos({
+                            x: (evt.clientX - box.left) * 2,
+                            y: (box.height - (evt.clientY - box.top)) * 2,
+                            button: evt.button != null ? evt.button : -1,
+                        });
                     }}
-                >
-                    {error.message}
-                </div>
-                {shader != null ? (
-                    <pre
-                        style={{
-                            fontFamily: 'monospace',
-                            whiteSpace: 'pre-wrap',
+                    ref={(node) => {
+                        if (node && !canvas) {
+                            setCanvas(node);
+                        }
+                    }}
+                    style={{
+                        width: width,
+                        height: width,
+                    }}
+                    // Double size for retina
+                    width={width * 2 + ''}
+                    height={width * 2 + ''}
+                />
+                <div css={hover} className="hover">
+                    <IconButton
+                        icon="play_arrow"
+                        selected={playState === 'playing'}
+                        onClick={() => {
+                            if (playState !== 'playing') {
+                                setPlayState('playing');
+                            }
                         }}
-                    >
-                        {shader.text}
-                    </pre>
-                ) : null}
+                    />
+                    <IconButton
+                        icon="pause"
+                        selected={playState === 'paused'}
+                        onClick={() => {
+                            if (playState !== 'paused') {
+                                setPlayState('paused');
+                            }
+                        }}
+                    />
+                    <IconButton
+                        icon="replay"
+                        selected={false}
+                        onClick={() => {
+                            timer.current = 0;
+                            if (playState !== 'playing') {
+                                setPlayState('playing');
+                            }
+                            setRestartCount(restartCount + 1);
+                        }}
+                    />
+                    <IconButton
+                        icon="circle"
+                        onClick={() => {
+                            timer.current = 0;
+                            setPlayState('recording');
+                            setRestartCount(restartCount + 1);
+                        }}
+                        selected={playState === 'recording'}
+                    />
+                    <IconButton
+                        icon="settings"
+                        onClick={() => toggleSettings(!showSettings)}
+                        selected={showSettings}
+                    />
+                </div>
             </div>
-        );
-    }
-
-    return (
-        <div>
-            <canvas
-                onClick={() => setPaused(!paused)}
-                onMouseMove={(evt) => {
-                    const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
-                    setMousePos({
-                        x: (evt.clientX - box.left) * 2,
-                        y: (box.height - (evt.clientY - box.top)) * 2,
-                        button: evt.button,
-                    });
-                }}
-                ref={(node) => {
-                    if (node && !canvas) {
-                        setCanvas(node);
-                    }
-                }}
-                style={{
-                    width: 200,
-                    height: 200,
-                }}
-                // Double size for retina
-                width="400"
-                height="400"
-            />
+            {showSettings ? (
+                <div>
+                    Width:
+                    <input
+                        value={width + ''}
+                        onChange={(evt) => {
+                            const value = +evt.target.value;
+                            if (!isNaN(value)) {
+                                setWidth(value);
+                            }
+                        }}
+                    />
+                    {tracing && traceValue ? (
+                        <ShowTrace
+                            trace={traceValue}
+                            env={env}
+                            pos={mousePos}
+                        />
+                    ) : (
+                        <button onClick={() => setTracing(true)}>Trace</button>
+                    )}
+                    Recording length (frames):
+                    <input
+                        value={recordingLength.toString()}
+                        onChange={(evt) => {
+                            const value = parseInt(evt.target.value);
+                            if (!isNaN(value)) {
+                                setRecordingLength(value);
+                            }
+                        }}
+                    />
+                </div>
+            ) : null}
+            {transcodingProgress > 0
+                ? `Transcoding: ${(transcodingProgress * 100).toFixed(2)}%`
+                : null}
+            {video ? <video src={video} loop controls /> : null}
         </div>
     );
 };
 
-const plugins: Plugins = {
-    // openglFake: {
-    //     id: 'opengl-fake',
-    //     name: 'Shader CPU',
-    // },
+const shaderFunction = (buffers: number) => {
+    const args = [refType('451d5252'), refType('43802a16')];
+    for (let i = 0; i < buffers; i++) {
+        args.push(builtinType('sampler2D'));
+    }
+    return pureFunction(args, refType('3b941378'));
+};
+
+const plugins: RenderPlugins = {
     openglBuffer1: {
-        id: 'opengl',
+        id: 'opengl1',
         name: 'Shader GLSL',
-        type: builtinType('Tuple2', [
-            pureFunction(
-                [
-                    refType('451d5252'),
-                    refType('43802a16'),
-                    builtinType('sampler2D'),
-                ],
-                refType('3b941378'),
-            ),
-            pureFunction(
-                [
-                    refType('451d5252'),
-                    refType('43802a16'),
-                    builtinType('sampler2D'),
-                ],
-                refType('3b941378'),
-            ),
+        type: builtinType('Tuple2', [shaderFunction(1), shaderFunction(1)]),
+        render: (
+            fn: OpenGLFn,
+            evalEnv: EvalEnv,
+            env: Env,
+            term: Term,
+            startPaused: boolean,
+        ) => {
+            return (
+                <ShaderGLSLBuffers
+                    fn={fn}
+                    env={env}
+                    evalEnv={evalEnv}
+                    term={term}
+                    startPaused={startPaused}
+                />
+            );
+        },
+    },
+    openglBuffer2: {
+        id: 'opengl2',
+        name: 'Shader GLSL',
+        type: builtinType('Tuple3', [
+            shaderFunction(2),
+            shaderFunction(2),
+            shaderFunction(2),
         ]),
-        render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
-            return <ShaderGLSLBuffers env={env} term={term} />;
+        render: (
+            fn: OpenGLFn,
+            evalEnv: EvalEnv,
+            env: Env,
+            term: Term,
+            startPaused: boolean,
+        ) => {
+            return (
+                <ShaderGLSLBuffers
+                    fn={fn}
+                    env={env}
+                    evalEnv={evalEnv}
+                    term={term}
+                    startPaused={startPaused}
+                />
+            );
         },
     },
     opengl: {
@@ -453,9 +573,23 @@ const plugins: Plugins = {
             [refType('451d5252'), refType('43802a16')],
             refType('3b941378'),
         ),
-        render: (fn: OpenGLFn, evalEnv: EvalEnv, env: Env, term: Term) => {
+        render: (
+            fn: OpenGLFn,
+            evalEnv: EvalEnv,
+            env: Env,
+            term: Term,
+            startPaused: boolean,
+        ) => {
             // return <div>Ok folks</div>;
-            return <ShaderGLSL env={env} term={term} />;
+            return (
+                <ShaderGLSLBuffers
+                    fn={fn}
+                    env={env}
+                    evalEnv={evalEnv}
+                    term={term}
+                    startPaused={startPaused}
+                />
+            );
         },
     },
     'opengl-fake': {
@@ -466,7 +600,6 @@ const plugins: Plugins = {
             refType('3b941378'),
         ),
         render: (fn: OpenGLFn, evalEnv: EvalEnv) => {
-            // return <div>Hello fokls</div>;
             return <ShaderCPU fn={fn} evalEnv={evalEnv} />;
         },
     },

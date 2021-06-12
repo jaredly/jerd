@@ -1,11 +1,11 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq, $trace } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 type handle22024b72 = [(arg_0: (arg_0: handle22024b72, arg_1: string) => void) => void];
 
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -16,7 +16,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const getString#64605d94 = (): string ={Read#22024b72}> raise!(Read#22024b72.read())
+const getString#64605d94 = (): string#builtin ={Read#22024b72}> raise!(Read#22024b72.read())
 ```
 */
 export const hash_64605d94:
@@ -27,12 +27,16 @@ export const hash_64605d94:
 
 /**
 ```
-const provideString#0247dd82 = (v#:0: string, fn#:1: () ={Read#22024b72}> string): string ={}> handle! fn#:1 {
-    Read.read#0(() => k#:3) => (0247dd82#self(
-        v#:0,
-        (): string ={Read#22024b72}> (k#:3((v#:0 + "got")) + "back"),
-    ) + "provided"),
-    pure(v#:2) => (v#:2 + "pure"),
+const rec provideString#0247dd82 = (
+    v#:0: string#builtin,
+    fn#:1: () ={Read#22024b72}> string#builtin,
+): string#builtin ={}> handle! fn#:1 {
+    Read.read#0(() => k#:3) => 0247dd82#self(
+            v#:0,
+            (): string#builtin ={Read#22024b72}> k#:3(v#:0 +#builtin "got") +#builtin "back",
+        ) 
+        +#builtin "provided",
+    pure(v#:2) => v#:2 +#builtin "pure",
 }
 ```
 */
@@ -58,7 +62,7 @@ export const hash_0247dd82: (arg_0: string, arg_1:
 
 /**
 ```
-const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string#builtin>{"=="#553b4b8e#0: stringEq#builtin}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({
@@ -67,6 +71,7 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 } as t_553b4b8e<string>);
 
 /*
-(provideString#0247dd82("Yes", getString#64605d94) ==#606c7034#553b4b8e#0 "Yesgotbackpureprovided")
+provideString#0247dd82(v: "Yes", fn: getString#64605d94) 
+    ==#606c7034#553b4b8e#0 "Yesgotbackpureprovided"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_0247dd82("Yes", hash_64605d94), "Yesgotbackpureprovided");

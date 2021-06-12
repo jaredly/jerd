@@ -6,7 +6,7 @@
 // So that's probably some information I'll have to hang onto somehow.
 
 import { Location } from '../parsing/parser';
-import { idName, refName, typeEffect } from '../typing/env';
+import { idName, refName, ToplevelT } from '../typing/env';
 import { getOpLevel } from '../typing/terms/ops';
 import {
     Case,
@@ -27,6 +27,7 @@ import {
     cloneGlobalEnv,
     selfEnv,
     Apply,
+    walkTerm,
 } from '../typing/types';
 import {
     PP,
@@ -36,41 +37,8 @@ import {
     atom,
     id as idPretty,
     printToString,
+    id,
 } from './printer';
-
-export type ToplevelT =
-    | {
-          type: 'Effect';
-          id: Id;
-          effect: EffectDef;
-          location: Location;
-          name: string;
-          constrNames: Array<string>;
-      }
-    | { type: 'Expression'; term: Term; location: Location }
-    | {
-          type: 'Define';
-          id: Id;
-          term: Term;
-          location: Location;
-          name: string;
-          tags?: Array<string>;
-      }
-    | {
-          type: 'EnumDef';
-          def: EnumDef;
-          id: Id;
-          location: Location;
-          name: string;
-      }
-    | {
-          type: 'RecordDef';
-          def: RecordDef;
-          id: Id;
-          location: Location;
-          name: string;
-          attrNames: Array<string>;
-      };
 
 export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
     switch (toplevel.type) {
@@ -144,46 +112,71 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
 };
 
 export const effectToPretty = (env: Env, id: Id, effect: EffectDef): PP => {
-    return items([
-        atom('effect ', ['keyword']),
-        idToPretty(env, id, 'effect'),
-        atom(' '),
-        block(
-            effect.constrs.map((constr, i) =>
-                items([
-                    atom(env.global.effectConstrNames[idName(id)][i]),
-                    atom(': '),
-                    args(constr.args.map((t) => typeToPretty(env, t))),
-                    atom(' => '),
-                    typeToPretty(env, constr.ret),
-                ]),
+    return items(
+        [
+            atom('effect ', ['keyword']),
+            idToPretty(env, id, 'effect'),
+            atom(' '),
+            block(
+                effect.constrs.map((constr, i) =>
+                    items([
+                        atom(env.global.effectConstrNames[idName(id)][i]),
+                        atom(': '),
+                        args(constr.args.map((t) => typeToPretty(env, t))),
+                        atom(' => '),
+                        typeToPretty(env, constr.ret),
+                    ]),
+                ),
+                ',',
             ),
-            ',',
-        ),
-    ]);
+        ],
+        undefined,
+        effect.location,
+    );
 };
 
-export const refToPretty = (env: Env | null, ref: Reference, kind: string) =>
+export const refToPretty = (
+    env: Env | null,
+    ref: Reference,
+    kind: string,
+    loc?: Location,
+) =>
     env && ref.type === 'user' && ref.id.hash === '<self>' && env.local.self
-        ? idPretty('self', 'self', kind)
+        ? idPretty('self', 'self', kind, loc)
         : ref.type === 'builtin'
-        ? atom(ref.name)
-        : idToPretty(env, ref.id, kind);
-export const idToPretty = (env: Env | null, id: Id, kind: string) => {
+        ? id(ref.name, 'builtin', 'builtin', loc)
+        : idToPretty(env, ref.id, kind, loc);
+export const idToPretty = (
+    env: Env | null,
+    id: Id,
+    kind: string,
+    loc?: Location,
+) => {
     const name = env ? env.global.idNames[idName(id)] : null;
     const hash = id.hash + (id.pos !== 0 ? '_' + id.pos : '');
-    return idPretty(name ? name : 'unnamed', hash, kind);
+    return idPretty(name ? name : 'unnamed', hash, kind, loc);
 };
-export const symToPretty = (sym: Symbol) =>
-    idPretty(sym.name, ':' + sym.unique.toString(), 'sym');
-export const effToPretty = (env: Env | null, eff: EffectRef) =>
+export const symToPretty = (sym: Symbol, loc?: Location) =>
+    idPretty(sym.name, ':' + sym.unique.toString(), 'sym', loc);
+export const effToPretty = (env: Env | null, eff: EffectRef, loc?: Location) =>
     eff.type === 'ref'
-        ? refToPretty(env, eff.ref, 'effect')
-        : symToPretty(eff.sym);
+        ? refToPretty(env, eff.ref, 'effect', loc)
+        : symToPretty(eff.sym, loc);
+
+export const isRecursive = (term: Term) => {
+    let found = false;
+    walkTerm(term, (term) => {
+        if (term.type === 'self') {
+            found = true;
+        }
+    });
+    return found;
+};
 
 export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
     return items([
         atom('const ', ['keyword']),
+        isRecursive(term) ? atom('rec ', ['keyword']) : null,
         idToPretty(env, id, 'term'),
         // atom(': '),
         // typeToPretty(env, term.is),
@@ -204,9 +197,7 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
             : null,
         atom('type ', ['keyword']),
         idToPretty(env, id, 'record'),
-        recordDef.typeVbls.length
-            ? typeVblDeclsToPretty(env, recordDef.typeVbls)
-            : null,
+        typeVblDeclsToPretty(env, recordDef.typeVbls),
         atom(' = '),
         block(
             recordDef.extends
@@ -238,9 +229,7 @@ export const enumToPretty = (env: Env, id: Id, enumDef: EnumDef) => {
     return items([
         atom('enum ', ['keyword']),
         idToPretty(env, id, 'enum'),
-        enumDef.typeVbls.length
-            ? typeVblDeclsToPretty(env, enumDef.typeVbls)
-            : null,
+        typeVblDeclsToPretty(env, enumDef.typeVbls),
         atom(' '),
         block(
             enumDef.extends
@@ -262,10 +251,13 @@ const interleave = <T>(items: Array<T>, sep: T) => {
     return res;
 };
 
-const typeVblDeclsToPretty = (
+export const typeVblDeclsToPretty = (
     env: Env | null,
     typeVbls: Array<TypeVblDecl>,
-): PP => {
+): PP | null => {
+    if (!typeVbls.length) {
+        return null;
+    }
     return args(
         typeVbls.map((v) =>
             items([
@@ -305,9 +297,7 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
             return refToPretty(env, type.ref, 'type');
         case 'lambda':
             return items([
-                type.typeVbls.length
-                    ? typeVblDeclsToPretty(env, type.typeVbls)
-                    : null,
+                typeVblDeclsToPretty(env, type.typeVbls),
                 type.effectVbls.length
                     ? args(
                           type.effectVbls.map((n) =>
@@ -336,7 +326,7 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
     }
 };
 
-export const termToPretty = (env: Env, term: Term | Let): PP => {
+export const termOrLetToPretty = (env: Env, term: Term | Let): PP => {
     switch (term.type) {
         case 'Let':
             return items([
@@ -345,80 +335,105 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 atom(' = '),
                 termToPretty(env, term.value),
             ]);
+        default:
+            return termToPretty(env, term);
+    }
+};
+
+export const termToPretty = (env: Env, term: Term): PP => {
+    switch (term.type) {
         case 'boolean':
-            return atom(term.value.toString(), ['bool', 'literal']);
-        case 'float':
             return atom(
+                term.value.toString(),
+                ['bool', 'literal'],
+                term.location,
+            );
+        case 'float':
+            return id(
                 Math.floor(term.value) === term.value
                     ? term.value.toFixed(1)
                     : term.value.toString(),
-                ['float', 'literal'],
+                '',
+                'float',
+                term.location,
             );
         case 'int':
-            return atom(term.value.toString(), ['int', 'literal']);
+            return id(term.value.toString(), '', 'int', term.location);
         case 'string':
-            return atom(JSON.stringify(term.text), ['string', 'literal']);
+            return id(JSON.stringify(term.text), '', 'string', term.location);
         case 'raise':
-            return items([
-                atom('raise!', ['keyword']),
-                args([
-                    items([
-                        refToPretty(env, term.ref, 'effect'),
-                        atom('.'),
-                        atom(
-                            env.global.effectConstrNames[refName(term.ref)][
-                                term.idx
-                            ],
-                        ),
-                        args(term.args.map((t) => termToPretty(env, t))),
-                    ]),
-                ]),
-            ]);
-        case 'if':
-            return items([
-                atom('if '),
-                termToPretty(env, term.cond),
-                atom(' '),
-                termToPretty(env, term.yes),
-                ...(term.no
-                    ? [atom(' else '), termToPretty(env, term.no)]
-                    : []),
-            ]);
-        case 'lambda':
-            return items([
-                term.tags ? items(term.tags.map((t) => atom(`@${t}`))) : null,
-                term.is.typeVbls.length
-                    ? typeVblDeclsToPretty(env, term.is.typeVbls)
-                    : null,
-                term.is.effectVbls.length
-                    ? args(
-                          term.is.effectVbls.map((n) =>
-                              symToPretty({ name: 'e', unique: n }),
-                          ),
-                          '{',
-                          '}',
-                      )
-                    : null,
-                args(
-                    term.args.map((arg, i) =>
+            return items(
+                [
+                    atom('raise!', ['keyword']),
+                    args([
                         items([
-                            symToPretty(arg),
-                            atom(': '),
-                            typeToPretty(env, term.is.args[i]),
+                            refToPretty(env, term.ref, 'effect'),
+                            atom('.'),
+                            atom(
+                                env.global.effectConstrNames[refName(term.ref)][
+                                    term.idx
+                                ],
+                            ),
+                            args(term.args.map((t) => termToPretty(env, t))),
                         ]),
+                    ]),
+                ],
+                undefined,
+                term.location,
+            );
+        case 'if':
+            return items(
+                [
+                    atom('if '),
+                    termToPretty(env, term.cond),
+                    atom(' '),
+                    termToPretty(env, term.yes),
+                    ...(term.no
+                        ? [atom(' else '), termToPretty(env, term.no)]
+                        : []),
+                ],
+                undefined,
+                term.location,
+            );
+        case 'lambda':
+            return items(
+                [
+                    term.tags
+                        ? items(term.tags.map((t) => atom(`@${t}`)))
+                        : null,
+                    typeVblDeclsToPretty(env, term.is.typeVbls),
+                    term.is.effectVbls.length
+                        ? args(
+                              term.is.effectVbls.map((n) =>
+                                  symToPretty({ name: 'e', unique: n }),
+                              ),
+                              '{',
+                              '}',
+                          )
+                        : null,
+                    args(
+                        term.args.map((arg, i) =>
+                            items([
+                                symToPretty(arg),
+                                atom(': '),
+                                typeToPretty(env, term.is.args[i]),
+                            ]),
+                        ),
                     ),
-                ),
-                atom(': '),
-                typeToPretty(env, term.is.res),
-                atom(' ='),
-                args(
-                    term.is.effects.map((e) => effToPretty(env, e)),
-                    '{',
-                    '}',
-                ),
-                atom('> '),
-                termToPretty(env, term.body),
-            ]);
+                    atom(': '),
+                    typeToPretty(env, term.is.res),
+                    atom(' ='),
+                    args(
+                        term.is.effects.map((e) => effToPretty(env, e)),
+                        '{',
+                        '}',
+                    ),
+                    atom('> '),
+                    termToPretty(env, term.body),
+                ],
+                undefined,
+                term.location,
+            );
         case 'self':
             if (env.local.self && env.local.self.type === 'Term') {
                 return atom(env.local.self.name + '#self');
@@ -428,17 +443,21 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 );
             }
         case 'sequence':
-            return block(term.sts.map((t) => termToPretty(env, t)));
+            return block(term.sts.map((t) => termOrLetToPretty(env, t)));
         case 'apply':
             const asInfo = getAsInfo(term);
             if (asInfo != null) {
-                return items([
-                    termToPretty(env, asInfo.value),
-                    atom(' '),
-                    idPretty('as', idName(asInfo.id), 'as'),
-                    atom(' '),
-                    typeToPretty(env, asInfo.type),
-                ]);
+                return items(
+                    [
+                        termToPretty(env, asInfo.value),
+                        atom(' '),
+                        idPretty('as', idName(asInfo.id), 'as'),
+                        atom(' '),
+                        typeToPretty(env, asInfo.type),
+                    ],
+                    undefined,
+                    term.location,
+                );
             }
             if (isBinOp(env, term.target) && term.args.length === 2) {
                 const myName = getBinOpName(env, term.target);
@@ -461,88 +480,141 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                 ) {
                     const rightName = getBinOpName(env, term.args[1].target);
                     const level = getOpLevel(rightName)!;
-                    if (level < mine) {
+                    if (level <= mine) {
                         right = items([atom('('), right, atom(')')]);
                     }
                 }
-                return items([
-                    left,
-                    atom(' '),
-                    isCustomBinOp(env, term.target)
-                        ? showCustomBinOp(env, term.target)
-                        : termToPretty(env, term.target),
-                    atom(' '),
-                    right,
-                ]);
+                return items(
+                    [
+                        items([left, atom(' ')]),
+                        items([
+                            isCustomBinOp(env, term.target)
+                                ? showCustomBinOp(env, term.target)
+                                : termToPretty(env, term.target),
+                            atom(' '),
+                            right,
+                        ]),
+                    ],
+                    true,
+                    term.location,
+                );
             }
-            return items([
-                termToPretty(env, term.target),
-                term.typeVbls.length
-                    ? args(
-                          term.typeVbls.map((t) => typeToPretty(env, t)),
-                          '<',
-                          '>',
-                      )
-                    : null,
-                term.effectVbls
-                    ? args(
-                          term.effectVbls.map((e) => effToPretty(env, e)),
-                          '{',
-                          '}',
-                      )
-                    : null,
-                args(term.args.map((t) => termToPretty(env, t))),
-            ]);
+            let inner = termToPretty(env, term.target);
+            if (term.target.type === 'lambda') {
+                inner = items([atom('('), inner, atom(')')]);
+            }
+            let argNames: null | Array<string> = null;
+            let resolvedTarget = term.target;
+            if (
+                resolvedTarget.type === 'ref' &&
+                resolvedTarget.ref.type === 'user'
+            ) {
+                resolvedTarget =
+                    env.global.terms[idName(resolvedTarget.ref.id)];
+            }
+            if (resolvedTarget.type === 'lambda') {
+                argNames = resolvedTarget.args.map((sym) => sym.name);
+            }
+            return items(
+                [
+                    inner,
+                    term.typeVbls.length
+                        ? args(
+                              term.typeVbls.map((t) => typeToPretty(env, t)),
+                              '<',
+                              '>',
+                          )
+                        : null,
+                    term.effectVbls
+                        ? args(
+                              term.effectVbls.map((e) => effToPretty(env, e)),
+                              '{',
+                              '}',
+                          )
+                        : null,
+                    args(
+                        term.args.map((t, i) => {
+                            const term = termToPretty(env, t);
+                            if (
+                                argNames &&
+                                (term.type !== 'id' ||
+                                    term.text !== argNames[i])
+                            ) {
+                                return items([
+                                    atom(argNames[i], ['argName']),
+                                    atom(': '),
+                                    term,
+                                ]);
+                            }
+                            return term;
+                        }),
+                    ),
+                ],
+                undefined,
+                term.location,
+            );
         case 'ref':
-            return refToPretty(env, term.ref, 'term');
+            return refToPretty(env, term.ref, 'term', term.location);
         case 'var':
-            return symToPretty(term.sym);
+            return symToPretty(term.sym, term.location);
         case 'Switch':
-            return items([
-                atom('switch ', ['keyword']),
-                termToPretty(env, term.term),
-                atom(' '),
-                args(
-                    term.cases.map((t) => switchCaseToPretty(env, t)),
-                    '{',
-                    '}',
-                ),
-            ]);
+            return items(
+                [
+                    atom('switch ', ['keyword']),
+                    termToPretty(env, term.term),
+                    atom(' '),
+                    args(
+                        term.cases.map((t) => switchCaseToPretty(env, t)),
+                        '{',
+                        '}',
+                    ),
+                ],
+                undefined,
+                term.location,
+            );
         case 'handle': {
             const names = env.global.effectConstrNames[refName(term.effect)];
-            return items([
-                atom('handle! ', ['keyword']),
-                termToPretty(env, term.target),
-                atom(' '),
-                args(
-                    term.cases
-                        .map((t) =>
-                            caseToPretty(
-                                env,
-                                t,
-                                env.global.idNames[refName(term.effect)],
-                                names,
-                            ),
-                        )
-                        .concat([
-                            items([
-                                atom('pure('),
-                                symToPretty(term.pure.arg),
-                                atom(') => '),
-                                termToPretty(env, term.pure.body),
+            return items(
+                [
+                    atom('handle! ', ['keyword']),
+                    termToPretty(env, term.target),
+                    atom(' '),
+                    args(
+                        term.cases
+                            .map((t) =>
+                                caseToPretty(
+                                    env,
+                                    t,
+                                    env.global.idNames[refName(term.effect)],
+                                    names,
+                                ),
+                            )
+                            .concat([
+                                items([
+                                    atom('pure('),
+                                    symToPretty(term.pure.arg),
+                                    atom(') => '),
+                                    termToPretty(env, term.pure.body),
+                                ]),
                             ]),
-                        ]),
-                    '{',
-                    '}',
-                ),
-            ]);
+                        '{',
+                        '}',
+                    ),
+                ],
+                undefined,
+                term.location,
+            );
         }
         case 'TupleAccess': {
-            return items([
-                termToPretty(env, term.target),
-                atom('.'),
-                atom(term.idx.toString()),
-            ]);
+            return items(
+                [
+                    termToPretty(env, term.target),
+                    atom('.'),
+                    atom(term.idx.toString()),
+                ],
+                undefined,
+                term.location,
+            );
         }
         case 'Attribute': {
             const names =
@@ -559,24 +631,36 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                     )}`,
                 );
             }
-            return items([
-                termToPretty(env, term.target),
-                atom('.'),
-                idPretty(
-                    maybeQuoteAttrName(names[term.idx]),
-                    refName(term.ref) + '#' + term.idx.toString(),
-                    'attribute',
-                ),
-            ]);
+            return items(
+                [
+                    termToPretty(env, term.target),
+                    atom('.'),
+                    idPretty(
+                        maybeQuoteAttrName(names[term.idx]),
+                        refName(term.ref) + '#' + term.idx.toString(),
+                        'attribute',
+                    ),
+                ],
+                undefined,
+                term.location,
+            );
         }
         case 'unary':
-            return items([atom(term.op), termToPretty(env, term.inner)]);
+            return items(
+                [atom(term.op), termToPretty(env, term.inner)],
+                undefined,
+                term.location,
+            );
         case 'Enum':
-            return items([
-                typeToPretty(env, term.is),
-                atom(':'),
-                termToPretty(env, term.inner),
-            ]);
+            return items(
+                [
+                    typeToPretty(env, term.is),
+                    atom(':'),
+                    termToPretty(env, term.inner),
+                ],
+                undefined,
+                term.location,
+            );
         case 'Record': {
             const res = [];
             const typeVbls =
@@ -637,51 +721,76 @@ export const termToPretty = (env: Env, term: Term | Let): PP => {
                         .filter(Boolean) as Array<PP>),
                 );
             }
-            return items([
-                term.base.type === 'Concrete'
-                    ? refToPretty(env, term.base.ref, 'record')
-                    : symToPretty(term.base.var),
-                typeVbls
-                    ? args(
-                          typeVbls.map((t) => typeToPretty(env, t)),
-                          '<',
-                          '>',
-                      )
-                    : null,
-                res.length ? args(res, '{', '}') : null,
-            ]);
+            return items(
+                [
+                    term.base.type === 'Concrete'
+                        ? refToPretty(env, term.base.ref, 'record')
+                        : symToPretty(term.base.var),
+                    typeVbls
+                        ? args(
+                              typeVbls.map((t) => typeToPretty(env, t)),
+                              '<',
+                              '>',
+                          )
+                        : null,
+                    res.length ? args(res, '{', '}') : null,
+                ],
+                undefined,
+                term.location,
+            );
         }
         case 'Array':
             // const res = [];
-            return items([
-                atom('<'),
-                typeToPretty(env, term.is.typeVbls[0]),
-                atom('>'),
-                args(
-                    term.items.map((item) =>
-                        item.type === 'ArraySpread'
-                            ? items([
-                                  atom('...'),
-                                  termToPretty(env, item.value),
-                              ])
-                            : termToPretty(env, item),
+            return items(
+                [
+                    atom('<'),
+                    typeToPretty(env, term.is.typeVbls[0]),
+                    atom('>'),
+                    args(
+                        term.items.map((item) =>
+                            item.type === 'ArraySpread'
+                                ? items([
+                                      atom('...'),
+                                      termToPretty(env, item.value),
+                                  ])
+                                : termToPretty(env, item),
+                        ),
+                        '[',
+                        ']',
                     ),
-                    '[',
-                    ']',
-                ),
-            ]);
+                ],
+                undefined,
+                term.location,
+            );
+        case 'Trace':
+            return items(
+                [
+                    atom('trace!', ['trace', 'keyword', 'trace-' + term.idx]),
+                    args(
+                        term.args.map((item) => termToPretty(env, item)),
+                        '(',
+                        ')',
+                    ),
+                ],
+                undefined,
+                term.location,
+            );
         case 'Tuple':
-            return items([
-                args(
-                    term.items.map((item) => termToPretty(env, item)),
-                    '(',
-                    ')',
-                ),
-            ]);
+            return items(
+                [
+                    args(
+                        term.items.map((item) => termToPretty(env, item)),
+                        '(',
+                        ')',
+                    ),
+                ],
+                undefined,
+                term.location,
+            );
         case 'Ambiguous':
-            return atom('[ambiguous! error]');
+            return atom('[ambiguous! error]', undefined, term.location);
         case 'TypeError':
-            return atom('[type error!]');
+            return atom('[type error!]', undefined, term.location);
         default:
             let _x: never = term;
             return atom(
@@ -837,7 +946,7 @@ const showCustomBinOp = (env: Env, term: Term) => {
             refName(term.ref) +
             '#' +
             term.idx.toString(),
-        'binop',
+        'custom-binop',
     );
     // return items([
     //     termToPretty(env, term.target),

@@ -80,10 +80,10 @@ export type RecordRow = {
 
 export type Loc = { offset: number; line: number; column: number };
 export type Location = { start: Loc; end: Loc };
-export const nullLocation = {
-    start: { offset: 0, line: 0, column: 0 },
-    end: { offset: 0, line: 0, column: 0 },
-};
+// export const nullLocation = {
+//     start: { offset: 0, line: 0, column: 0 },
+//     end: { offset: 0, line: 0, column: 0 },
+// };
 export type Statement = Define | Expression;
 export type Define = {
     type: 'define';
@@ -124,6 +124,7 @@ export type Expression =
     | DecoratedExpression
     | Lambda
     | Raise
+    | Trace
     | Ops
     | If
     | Switch
@@ -254,6 +255,12 @@ export type ArrayPatternSpread = {
     location: Location;
 };
 
+export type Trace = {
+    type: 'Trace';
+    args: Array<Expression>;
+    location: Location;
+};
+
 // Effect things
 export type Raise = {
     type: 'raise';
@@ -333,7 +340,7 @@ export type WithSuffix = {
 };
 export type ApplySuffix = {
     type: 'Apply';
-    args: Array<Expression>;
+    args: Array<{ label: string; value: Expression }>;
     typevbls: Array<Type>;
     effectVbls: Array<Identifier>;
 };

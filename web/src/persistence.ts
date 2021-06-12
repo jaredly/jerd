@@ -10,6 +10,7 @@ import {
     newWithGlobal,
     Type,
 } from '@jerd/language/src/typing/types';
+import localForage from 'localforage';
 
 const saveKey = 'jd-repl-cache';
 
@@ -27,14 +28,23 @@ export const stateToString = (state: State) => {
 window.stateToString = stateToString;
 
 export const saveState = (state: State) => {
-    window.localStorage.setItem(saveKey, stateToString(state));
+    localForage.setItem(saveKey, stateToString(state));
+    // window.localStorage.setItem(saveKey, stateToString(state));
 };
 
 // @ts-ignore
 window.importState = saveState;
 
-export const initialState = (): State => {
-    const saved = window.localStorage.getItem(saveKey);
+export const initialState = async (): Promise<State> => {
+    const oldSaved = window.localStorage.getItem(saveKey);
+    let saved: string | null = '';
+    if (oldSaved != null) {
+        localForage.setItem(saveKey, oldSaved);
+        window.localStorage.removeItem(saveKey);
+        saved = oldSaved;
+    } else {
+        saved = await localForage.getItem(saveKey);
+    }
     const builtinsMap = loadBuiltins();
     const typedBuiltins: { [key: string]: Type } = {};
     Object.keys(builtinsMap).forEach((b) => {
@@ -64,6 +74,21 @@ export const initialState = (): State => {
                 // @ts-ignore
                 delete data.cells;
             }
+
+            // Add "order" indices
+            Object.keys(data.workspaces).forEach((k) => {
+                const work = data.workspaces[k];
+                const cells = Object.keys(data.workspaces[k].cells);
+                if (
+                    cells.length &&
+                    data.workspaces[k].cells[cells[0]].order == null
+                ) {
+                    cells.forEach((id, i) => {
+                        data.workspaces[k].cells[id].order = i * 10;
+                    });
+                }
+            });
+
             // @ts-ignore
             if (data.pins) {
                 Object.keys(data.workspaces).forEach((k) => {
@@ -150,11 +175,13 @@ export const initialState = (): State => {
                     },
                     // Reset the local env
                     local: newLocal(),
+                    term: { nextTraceId: 0 },
                 },
                 evalEnv: {
                     builtins,
                     terms: data.evalEnv.terms,
                     executionLimit: { ticks: 0, maxTime: 0, enabled: false },
+                    traceObj: { traces: null },
                 },
             };
         } catch (err) {
@@ -176,6 +203,7 @@ export const initialState = (): State => {
             builtins,
             terms: {},
             executionLimit: { ticks: 0, maxTime: 0, enabled: false },
+            traceObj: { traces: null },
         },
     };
 };

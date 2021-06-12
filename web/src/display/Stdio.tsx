@@ -4,9 +4,10 @@ import { jsx } from '@emotion/react';
 
 import * as React from 'react';
 import { void_ } from '@jerd/language/src/typing/preset';
-import { Plugins } from '../State';
+import { RenderPlugins } from '../State';
 import { handleSimpleShallow2 } from '@jerd/language/src/printing/builtins';
 import { idFromName } from '@jerd/language/src/typing/env';
+import { nullLocation } from '../../../language/src/typing/types';
 
 type Output = { type: 'out'; text: string } | { type: 'in'; text: string };
 
@@ -152,7 +153,7 @@ const ChatBot = ({ fn }: { fn: any }) => {
     );
 };
 
-const plugins: Plugins = {
+const plugins: RenderPlugins = {
     basic: {
         id: 'basic',
         name: 'Stdio',
@@ -172,7 +173,7 @@ const plugins: Plugins = {
             ],
             rest: null,
             res: void_,
-            location: null,
+            location: nullLocation,
         },
         render: (fn: (handlers: any, done: any) => void) => {
             return <ChatBot fn={fn} />;

@@ -232,7 +232,7 @@ export const printPattern = (
                     start: {
                         type: 'int',
                         value: pattern.preItems.length,
-                        loc: null,
+                        loc: pattern.location,
                         is: int,
                     },
                     end: pattern.postItems.length

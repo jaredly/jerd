@@ -1,4 +1,4 @@
-import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq } from "./prelude.mjs";
+import { handleSimpleShallow2Multi3, handleSimpleShallow2Multi2, handleSimpleShallow2Multi, raise, handleSimpleShallow2, assertCall, assert, assertEqual, pureCPS, log, isSquare, texture, intToString, intToFloat, floatToString, floatToInt, pow, round, TAU, PI, sqrt, abs, max, min, floor, ceil, mod, modInt, sin, ln, cos, tan, asin, acos, atan, atan2, concat, len, intEq, floatEq, stringEq, $trace } from "./prelude.mjs";
 import { Handlers } from "./prelude.mjs";
 type handle22024b72 = [(arg_0: (arg_0: handle22024b72, arg_1: string) => void) => void];
 type handle35f4b478 = [(arg_0: string, arg_1: (arg_0: handle35f4b478) => void) => void];
@@ -9,7 +9,7 @@ type handle7b45d75e = [(arg_0: (arg_0: handle7b45d75e, arg_1: number) => void) =
 /**
 ```
 type Eq#553b4b8e<T#:0> = {
-    "==": (T#:0, T#:0) ={}> bool,
+    "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
@@ -32,7 +32,9 @@ type t_As<T_10000, T_10001> = {
 
 /**
 ```
-const decide#6ab06b22 = (): bool ={DecideOrFail#7214565c}> raise!(DecideOrFail#7214565c.decide())
+const decide#6ab06b22 = (): bool#builtin ={DecideOrFail#7214565c}> raise!(
+    DecideOrFail#7214565c.decide(),
+)
 ```
 */
 export const hash_6ab06b22:
@@ -43,7 +45,7 @@ export const hash_6ab06b22:
 
 /**
 ```
-const fail#0620e972 = (): int ={DecideOrFail#7214565c}> raise!(DecideOrFail#7214565c.fail())
+const fail#0620e972 = (): int#builtin ={DecideOrFail#7214565c}> raise!(DecideOrFail#7214565c.fail())
 ```
 */
 export const hash_0620e972:
@@ -54,7 +56,7 @@ export const hash_0620e972:
 
 /**
 ```
-const IntAsString#1175499e = As#As<int, string>{as#As#0: intToString}
+const IntAsString#1175499e = As#As<int#builtin, string#builtin>{as#As#0: intToString#builtin}
 ```
 */
 export const hash_1175499e: t_As<number, string> = ({
@@ -64,15 +66,17 @@ export const hash_1175499e: t_As<number, string> = ({
 
 /**
 ```
-const chooseInt#54cbbab4 = (m#:0: int, n#:1: int): int ={DecideOrFail#7214565c}> {
-    if (m#:0 > n#:1) {
+const rec chooseInt#54cbbab4 = (m#:0: int#builtin, n#:1: int#builtin): int#builtin ={
+    DecideOrFail#7214565c,
+}> {
+    if m#:0 >#builtin n#:1 {
         fail#0620e972();
         10;
     } else {
         if decide#6ab06b22() {
             m#:0;
         } else {
-            54cbbab4#self((m#:0 + 1), n#:1);
+            54cbbab4#self(m#:0 +#builtin 1, n#:1);
         };
     };
 }
@@ -98,7 +102,7 @@ export const hash_54cbbab4:
 
 /**
 ```
-const decide#5334ea40 = (): bool ={Decide#086e3532}> raise!(Decide#086e3532.decide())
+const decide#5334ea40 = (): bool#builtin ={Decide#086e3532}> raise!(Decide#086e3532.decide())
 ```
 */
 export const hash_5334ea40:
@@ -109,14 +113,19 @@ export const hash_5334ea40:
 
 /**
 ```
-const pythagorean#0cdd5ff0 = (m#:0: int, n#:1: int): string ={DecideOrFail#7214565c}> {
-    const a#:2 = chooseInt#54cbbab4(m#:0, (n#:1 - 1));
-    const b#:3 = chooseInt#54cbbab4((a#:2 + 1), n#:1);
-    const a2#:4 = (a#:2 * a#:2);
-    const b2#:5 = (b#:3 * b#:3);
-    log(((("a " + a2#:4 as#1175499e string) + " b ") + b2#:5 as#1175499e string));
-    if isSquare((a2#:4 + b2#:5)) {
-        ((intToString(a#:2) ++ ":") ++ intToString(b#:3));
+const pythagorean#0cdd5ff0 = (m#:0: int#builtin, n#:1: int#builtin): string#builtin ={
+    DecideOrFail#7214565c,
+}> {
+    const a#:2 = chooseInt#54cbbab4(m#:0, n: n#:1 -#builtin 1);
+    const b#:3 = chooseInt#54cbbab4(m: a#:2 +#builtin 1, n#:1);
+    const a2#:4 = a#:2 *#builtin a#:2;
+    const b2#:5 = b#:3 *#builtin b#:3;
+    log#builtin(
+        "a " +#builtin a2#:4 as#1175499e string#builtin +#builtin " b " 
+            +#builtin b2#:5 as#1175499e string#builtin,
+    );
+    if isSquare#builtin(a2#:4 +#builtin b2#:5) {
+        intToString#builtin(a#:2) ++#builtin ":" ++#builtin intToString#builtin(b#:3);
     } else {
         fail#0620e972();
         "??? how did this return";
@@ -142,7 +151,7 @@ export const hash_0cdd5ff0:
 
 /**
 ```
-const backtrackReverse#70ad2630 = <T#:0>(
+const rec backtrackReverse#70ad2630 = <T#:0>(
     fn#:0: () ={DecideOrFail#7214565c}> T#:0,
     orElse#:1: () ={}> T#:0,
 ): T#:0 ={}> {
@@ -190,7 +199,10 @@ export const hash_70ad2630: <T_0>(arg_0:
 
 /**
 ```
-const backtrack#1603c390 = <T#:0>(fn#:0: () ={DecideOrFail#7214565c}> T#:0, orElse#:1: () ={}> T#:0): T#:0 ={}> {
+const rec backtrack#1603c390 = <T#:0>(
+    fn#:0: () ={DecideOrFail#7214565c}> T#:0,
+    orElse#:1: () ={}> T#:0,
+): T#:0 ={}> {
     handle! fn#:0 {
         DecideOrFail.decide#0(() => k#:3) => {
             1603c390#self<T#:0>(
@@ -265,7 +277,9 @@ export const hash_437fecbe:
 
 /**
 ```
-const print#eccbfbca = (x#:0: string): void ={Write#35f4b478}> raise!(Write#35f4b478.write(x#:0))
+const print#eccbfbca = (x#:0: string#builtin): void#builtin ={Write#35f4b478}> raise!(
+    Write#35f4b478.write(x#:0),
+)
 ```
 */
 export const hash_eccbfbca:
@@ -276,7 +290,8 @@ export const hash_eccbfbca:
 
 /**
 ```
-const callPlus5#1d5e1778 = {e#:0}(x#:0: () ={e#:0}> int): int ={e#:0}> (x#:0() + 5)
+const callPlus5#1d5e1778 = {e#:0}(x#:0: () ={e#:0}> int#builtin): int#builtin ={e#:0}> x#:0() 
+    +#builtin 5
 ```
 */
 export const hash_1d5e1778: any = {
@@ -294,10 +309,11 @@ export const hash_1d5e1778: any = {
 
 /**
 ```
-const getAndSet#463fdaf6 = (): string ={Store#7b45d75e}> {
+const getAndSet#463fdaf6 = (): string#builtin ={Store#7b45d75e}> {
     const x#:0 = raise!(Store#7b45d75e.get());
-    raise!(Store#7b45d75e.set((x#:0 + 4)));
-    ((intToString(x#:0) ++ ":") ++ intToString(raise!(Store#7b45d75e.get())));
+    raise!(Store#7b45d75e.set(x#:0 +#builtin 4));
+    intToString#builtin(x#:0) ++#builtin ":" 
+        ++#builtin intToString#builtin(raise!(Store#7b45d75e.get()));
 }
 ```
 */
@@ -315,7 +331,10 @@ export const hash_463fdaf6:
 
 /**
 ```
-const withInitialValue#478ee9c0 = <T#:0>(value#:0: int, fn#:1: () ={Store#7b45d75e}> T#:0): T#:0 ={}> {
+const rec withInitialValue#478ee9c0 = <T#:0>(
+    value#:0: int#builtin,
+    fn#:1: () ={Store#7b45d75e}> T#:0,
+): T#:0 ={}> {
     handle! fn#:1 {
         Store.get#0(() => k#:3) => 478ee9c0#self<T#:0>(
             value#:0,
@@ -351,11 +370,11 @@ export const hash_478ee9c0: <T_0>(arg_0: number, arg_1:
 
 /**
 ```
-const backtrackPythagReverse#5f048050 = (m#:0: int, n#:1: int): string ={}> backtrackReverse#70ad2630<
-    string,
+const backtrackPythagReverse#5f048050 = (m#:0: int#builtin, n#:1: int#builtin): string#builtin ={}> backtrackReverse#70ad2630<
+    string#builtin,
 >(
-    (): string ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1),
-    (): string ={}> "No solution found",
+    fn: (): string#builtin ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1),
+    orElse: (): string#builtin ={}> "No solution found",
 )
 ```
 */
@@ -365,9 +384,11 @@ export const hash_5f048050: (arg_0: number, arg_1: number) => T_0 = (m: number, 
 
 /**
 ```
-const backtrackPythag#db67c018 = (m#:0: int, n#:1: int): string ={}> backtrack#1603c390<string>(
-    (): string ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1),
-    (): string ={}> "No solution found",
+const backtrackPythag#db67c018 = (m#:0: int#builtin, n#:1: int#builtin): string#builtin ={}> backtrack#1603c390<
+    string#builtin,
+>(
+    fn: (): string#builtin ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1),
+    orElse: (): string#builtin ={}> "No solution found",
 )
 ```
 */
@@ -377,11 +398,11 @@ export const hash_db67c018: (arg_0: number, arg_1: number) => T_0 = (m: number, 
 
 /**
 ```
-const pickMax#998219d8 = (fn#:0: () ={Decide#086e3532}> int): int ={}> handle! fn#:0 {
+const rec pickMax#998219d8 = (fn#:0: () ={Decide#086e3532}> int#builtin): int#builtin ={}> handle! fn#:0 {
     Decide.decide#0(() => k#:2) => {
-        const xt#:3 = 998219d8#self((): int ={Decide#086e3532}> k#:2(true));
-        const xf#:4 = 998219d8#self((): int ={Decide#086e3532}> k#:2(false));
-        if (xt#:3 > xf#:4) {
+        const xt#:3 = 998219d8#self((): int#builtin ={Decide#086e3532}> k#:2(true));
+        const xf#:4 = 998219d8#self((): int#builtin ={Decide#086e3532}> k#:2(false));
+        if xt#:3 >#builtin xf#:4 {
             xt#:3;
         } else {
             xf#:4;
@@ -422,10 +443,10 @@ export const hash_998219d8: (arg_0:
 
 /**
 ```
-const chooseDiff#61f16268 = (): int ={Decide#086e3532}> {
-    const x1#:0 = choose#437fecbe<int>(15, 30);
-    const x2#:1 = choose#437fecbe<int>(5, 10);
-    (x1#:0 - x2#:1);
+const chooseDiff#61f16268 = (): int#builtin ={Decide#086e3532}> {
+    const x1#:0 = choose#437fecbe<int#builtin>(x: 15, y: 30);
+    const x2#:1 = choose#437fecbe<int#builtin>(x: 5, y: 10);
+    x1#:0 -#builtin x2#:1;
 }
 ```
 */
@@ -441,7 +462,7 @@ export const hash_61f16268:
 
 /**
 ```
-const pickTrue#268d3ca7 = <T#:0>(fn#:0: () ={Decide#086e3532}> T#:0): T#:0 ={}> handle! fn#:0 {
+const rec pickTrue#268d3ca7 = <T#:0>(fn#:0: () ={Decide#086e3532}> T#:0): T#:0 ={}> handle! fn#:0 {
     Decide.decide#0(() => k#:2) => 268d3ca7#self<T#:0>((): T#:0 ={Decide#086e3532}> k#:2(true)),
     pure(x#:1) => x#:1,
 }
@@ -467,7 +488,7 @@ export const hash_268d3ca7: <T_0>(arg_0:
 
 /**
 ```
-const IntEq#9275f914 = Eq#553b4b8e<int>{"=="#553b4b8e#0: intEq}
+const IntEq#9275f914 = Eq#553b4b8e<int#builtin>{"=="#553b4b8e#0: intEq#builtin}
 ```
 */
 export const hash_9275f914: t_553b4b8e<number> = ({
@@ -477,11 +498,13 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const reverse#f201f930 = (fn#:0: () ={Write#35f4b478}> void): void ={Write#35f4b478}> {
+const rec reverse#f201f930 = (fn#:0: () ={Write#35f4b478}> void#builtin): void#builtin ={
+    Write#35f4b478,
+}> {
     handle! fn#:0 {
         Write.write#0((v#:2) => k#:3) => {
             f201f930#self(k#:3);
-            print#eccbfbca(v#:2);
+            print#eccbfbca(x: v#:2);
         },
         pure(a#:1) => a#:1,
     };
@@ -508,12 +531,12 @@ export const hash_f201f930:
 
 /**
 ```
-const printFullName#ea51ddfc = (): void ={Read#22024b72, Write#35f4b478}> {
-    print#eccbfbca("What is your forename?");
+const printFullName#ea51ddfc = (): void#builtin ={Read#22024b72, Write#35f4b478}> {
+    print#eccbfbca(x: "What is your forename?");
     const foreName#:0 = raise!(Read#22024b72.read());
-    print#eccbfbca("What is your surname?");
+    print#eccbfbca(x: "What is your surname?");
     const surName#:1 = raise!(Read#22024b72.read());
-    print#eccbfbca(((foreName#:0 ++ " ") ++ surName#:1));
+    print#eccbfbca(x: foreName#:0 ++#builtin " " ++#builtin surName#:1);
 }
 ```
 */
@@ -533,7 +556,7 @@ export const hash_ea51ddfc:
 
 /**
 ```
-const read#64605d94 = (): string ={Read#22024b72}> raise!(Read#22024b72.read())
+const read#64605d94 = (): string#builtin ={Read#22024b72}> raise!(Read#22024b72.read())
 ```
 */
 export const hash_64605d94:
@@ -544,9 +567,10 @@ export const hash_64605d94:
 
 /**
 ```
-const alwaysRead#1762d528 = <T#:0>{e#:0}(value#:0: string, fn#:1: () ={Read#22024b72, e#:0}> T#:0): T#:0 ={
-    e#:0,
-}> {
+const rec alwaysRead#1762d528 = <T#:0>{e#:0}(
+    value#:0: string#builtin,
+    fn#:1: () ={Read#22024b72, e#:0}> T#:0,
+): T#:0 ={e#:0}> {
     handle! fn#:1 {
         Read.read#0(() => k#:3) => {
             1762d528#self<T#:0>{e#:0}(value#:0, (): T#:0 ={Read#22024b72, e#:0}> k#:3(value#:0));
@@ -589,10 +613,13 @@ export const hash_1762d528: any = {
 
 /**
 ```
-const collect#2ce3943a = {e#:0}(fn#:0: () ={Write#35f4b478, e#:0}> void): string ={e#:0}> {
+const rec collect#2ce3943a = {e#:0}(fn#:0: () ={Write#35f4b478, e#:0}> void#builtin): string#builtin ={
+    e#:0,
+}> {
     handle! fn#:0 {
         Write.write#0((v#:2) => k#:3) => {
-            ((v#:2 ++ "\n") ++ 2ce3943a#self{e#:0}((): void ={Write#35f4b478, e#:0}> k#:3()));
+            v#:2 ++#builtin "\n" 
+                ++#builtin 2ce3943a#self{e#:0}((): void#builtin ={Write#35f4b478, e#:0}> k#:3());
         },
         pure(a#:1) => "end",
     };
@@ -636,7 +663,7 @@ export const hash_2ce3943a: any = {
 
 /**
 ```
-const StringEq#606c7034 = Eq#553b4b8e<string>{"=="#553b4b8e#0: stringEq}
+const StringEq#606c7034 = Eq#553b4b8e<string#builtin>{"=="#553b4b8e#0: stringEq#builtin}
 ```
 */
 export const hash_606c7034: t_553b4b8e<string> = ({
@@ -645,13 +672,14 @@ export const hash_606c7034: t_553b4b8e<string> = ({
 } as t_553b4b8e<string>);
 
 /*
-(collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> {
-        raise!(Write#35f4b478.write("one"));
-        raise!(Write#35f4b478.write("two"));
-        raise!(Write#35f4b478.write("three"));
-    },
-) ==#606c7034#553b4b8e#0 "one\ntwo\nthree\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> {
+            raise!(Write#35f4b478.write("one"));
+            raise!(Write#35f4b478.write("two"));
+            raise!(Write#35f4b478.write("three"));
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "one\ntwo\nthree\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "one", (handlers, value) => ((handlers: Handlers) => {
@@ -662,19 +690,23 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "one\ntwo\nthree\nend");
 
 /*
-(collect#2ce3943a{}((): void ={Write#35f4b478}> {
-    print#eccbfbca("HI");
-}) ==#606c7034#553b4b8e#0 "HI\nend")
+collect#2ce3943a{}(fn: (): void#builtin ={Write#35f4b478}> {
+        print#eccbfbca(x: "HI");
+    }) 
+    ==#606c7034#553b4b8e#0 "HI\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
   hash_eccbfbca("HI", handlers, (handlers: Handlers) => done$2(handlers));
 }), "HI\nend");
 
 /*
-(collect#2ce3943a{}((): void ={Write#35f4b478}> {
-    print#eccbfbca("HI");
-    print#eccbfbca("HO");
-}) ==#606c7034#553b4b8e#0 "HI\nHO\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> {
+            print#eccbfbca(x: "HI");
+            print#eccbfbca(x: "HO");
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "HI\nHO\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
   hash_eccbfbca("HI", handlers, (handlers: Handlers) => {
@@ -684,12 +716,13 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "HI\nHO\nend");
 
 /*
-(collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> {
-        raise!(Write#35f4b478.write("HI"));
-        raise!(Write#35f4b478.write("HO"));
-    },
-) ==#606c7034#553b4b8e#0 "HI\nHO\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> {
+            raise!(Write#35f4b478.write("HI"));
+            raise!(Write#35f4b478.write("HO"));
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "HI\nHO\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$8: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "HI", (handlers, value) => ((handlers: Handlers) => {
@@ -698,14 +731,16 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "HI\nHO\nend");
 
 /*
-(collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
-        "hi",
-        (): void ={Read#22024b72, Write#35f4b478}> print#eccbfbca(
-            ((raise!(Read#22024b72.read()) ++ " and ") ++ raise!(Read#22024b72.read())),
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> alwaysRead#1762d528<void#builtin>{Write#35f4b478}(
+            value: "hi",
+            fn: (): void#builtin ={Read#22024b72, Write#35f4b478}> print#eccbfbca(
+                x: raise!(Read#22024b72.read()) ++#builtin " and " 
+                    ++#builtin raise!(Read#22024b72.read()),
+            ),
         ),
-    ),
-) ==#606c7034#553b4b8e#0 "hi and hi\nend")
+    ) 
+    ==#606c7034#553b4b8e#0 "hi and hi\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$13: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$15: (arg_0: Handlers) => void) => {
@@ -720,10 +755,13 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "hi and hi\nend");
 
 /*
-(collect#2ce3943a{}((): void ={Write#35f4b478}> {
-    print#eccbfbca("A");
-    print#eccbfbca("B");
-}) ==#606c7034#553b4b8e#0 "A\nB\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> {
+            print#eccbfbca(x: "A");
+            print#eccbfbca(x: "B");
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "A\nB\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$20: (arg_0: Handlers) => void) => {
   hash_eccbfbca("A", handlers, (handlers: Handlers) => {
@@ -733,17 +771,18 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "A\nB\nend");
 
 /*
-(collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
-        "hi",
-        (): void ={Read#22024b72, Write#35f4b478}> {
-            print#eccbfbca(read#64605d94());
-            print#eccbfbca("YA");
-            print#eccbfbca(read#64605d94());
-            print#eccbfbca("B");
-        },
-    ),
-) ==#606c7034#553b4b8e#0 "hi\nYA\nhi\nB\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> alwaysRead#1762d528<void#builtin>{Write#35f4b478}(
+            value: "hi",
+            fn: (): void#builtin ={Read#22024b72, Write#35f4b478}> {
+                print#eccbfbca(x: read#64605d94());
+                print#eccbfbca(x: "YA");
+                print#eccbfbca(x: read#64605d94());
+                print#eccbfbca(x: "B");
+            },
+        ),
+    ) 
+    ==#606c7034#553b4b8e#0 "hi\nYA\nhi\nB\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$26: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$28: (arg_0: Handlers) => void) => {
@@ -767,16 +806,17 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "hi\nYA\nhi\nB\nend");
 
 /*
-(collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
-        "hi",
-        (): void ={Read#22024b72, Write#35f4b478}> {
-            raise!(Write#35f4b478.write("A"));
-            const x#:0 = raise!(Read#22024b72.read());
-            raise!(Write#35f4b478.write("B"));
-        },
-    ),
-) ==#606c7034#553b4b8e#0 "A\nB\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> alwaysRead#1762d528<void#builtin>{Write#35f4b478}(
+            value: "hi",
+            fn: (): void#builtin ={Read#22024b72, Write#35f4b478}> {
+                raise!(Write#35f4b478.write("A"));
+                const x#:0 = raise!(Read#22024b72.read());
+                raise!(Write#35f4b478.write("B"));
+            },
+        ),
+    ) 
+    ==#606c7034#553b4b8e#0 "A\nB\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$43: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$45: (arg_0: Handlers) => void) => {
@@ -790,15 +830,16 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "A\nB\nend");
 
 /*
-(collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> alwaysRead#1762d528<void>{Write#35f4b478}(
-        "hi",
-        (): void ={Read#22024b72, Write#35f4b478}> {
-            const x#:0 = raise!(Read#22024b72.read());
-            raise!(Write#35f4b478.write("B"));
-        },
-    ),
-) ==#606c7034#553b4b8e#0 "B\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> alwaysRead#1762d528<void#builtin>{Write#35f4b478}(
+            value: "hi",
+            fn: (): void#builtin ={Read#22024b72, Write#35f4b478}> {
+                const x#:0 = raise!(Read#22024b72.read());
+                raise!(Write#35f4b478.write("B"));
+            },
+        ),
+    ) 
+    ==#606c7034#553b4b8e#0 "B\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$48: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$50: (arg_0: Handlers) => void) => {
@@ -810,25 +851,30 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "B\nend");
 
 /*
-(collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> {
-        alwaysRead#1762d528<void>{Write#35f4b478}("Me", printFullName#ea51ddfc);
-    },
-) ==#606c7034#553b4b8e#0 "What is your forename?\nWhat is your surname?\nMe Me\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> {
+            alwaysRead#1762d528<void#builtin>{Write#35f4b478}(
+                value: "Me",
+                fn: printFullName#ea51ddfc,
+            );
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "What is your forename?\nWhat is your surname?\nMe Me\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$53: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$55: T_0) => done$53(handlers));
 }), "What is your forename?\nWhat is your surname?\nMe Me\nend");
 
 /*
-(collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> reverse#f201f930(
-        (): void ={Write#35f4b478}> {
-            print#eccbfbca("A");
-            print#eccbfbca("B");
-        },
-    ),
-) ==#606c7034#553b4b8e#0 "B\nA\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> reverse#f201f930(
+            fn: (): void#builtin ={Write#35f4b478}> {
+                print#eccbfbca(x: "A");
+                print#eccbfbca(x: "B");
+            },
+        ),
+    ) 
+    ==#606c7034#553b4b8e#0 "B\nA\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$56: (arg_0: Handlers) => void) => {
   hash_f201f930((handlers: Handlers, done$58: (arg_0: Handlers) => void) => {
@@ -840,15 +886,19 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "B\nA\nend");
 
 /*
-(collect#2ce3943a{}(
-    (): void ={Write#35f4b478}> {
-        reverse#f201f930(
-            (): void ={Write#35f4b478}> {
-                alwaysRead#1762d528<void>{Write#35f4b478}("Me", printFullName#ea51ddfc);
-            },
-        );
-    },
-) ==#606c7034#553b4b8e#0 "Me Me\nWhat is your surname?\nWhat is your forename?\nend")
+collect#2ce3943a{}(
+        fn: (): void#builtin ={Write#35f4b478}> {
+            reverse#f201f930(
+                fn: (): void#builtin ={Write#35f4b478}> {
+                    alwaysRead#1762d528<void#builtin>{Write#35f4b478}(
+                        value: "Me",
+                        fn: printFullName#ea51ddfc,
+                    );
+                },
+            );
+        },
+    ) 
+    ==#606c7034#553b4b8e#0 "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$62: (arg_0: Handlers) => void) => {
   hash_f201f930((handlers: Handlers, done$64: (arg_0: Handlers) => void) => {
@@ -857,27 +907,27 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 }), "Me Me\nWhat is your surname?\nWhat is your forename?\nend");
 
 /*
-(pickTrue#268d3ca7<int>(chooseDiff#61f16268) ==#9275f914#553b4b8e#0 10)
+pickTrue#268d3ca7<int#builtin>(fn: chooseDiff#61f16268) ==#9275f914#553b4b8e#0 10
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_268d3ca7(hash_61f16268), 10);
 
 /*
-(pickMax#998219d8(chooseDiff#61f16268) ==#9275f914#553b4b8e#0 25)
+pickMax#998219d8(fn: chooseDiff#61f16268) ==#9275f914#553b4b8e#0 25
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_998219d8(hash_61f16268), 25);
 
 /*
-(backtrackPythag#db67c018(4, 15) ==#606c7034#553b4b8e#0 "5:12")
+backtrackPythag#db67c018(m: 4, n: 15) ==#606c7034#553b4b8e#0 "5:12"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_db67c018(4, 15), "5:12");
 
 /*
-(backtrackPythag#db67c018(7, 10) ==#606c7034#553b4b8e#0 "No solution found")
+backtrackPythag#db67c018(m: 7, n: 10) ==#606c7034#553b4b8e#0 "No solution found"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_db67c018(7, 10), "No solution found");
 
 /*
-(backtrackPythagReverse#5f048050(4, 15) ==#606c7034#553b4b8e#0 "9:12")
+backtrackPythagReverse#5f048050(m: 4, n: 15) ==#606c7034#553b4b8e#0 "9:12"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_5f048050(4, 15), "9:12");
 
@@ -887,17 +937,19 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_5f048050(4, 15), "9:12");
 10;
 
 /*
-(withInitialValue#478ee9c0<string>(10, getAndSet#463fdaf6) ==#606c7034#553b4b8e#0 "10:14")
+withInitialValue#478ee9c0<string#builtin>(value: 10, fn: getAndSet#463fdaf6) 
+    ==#606c7034#553b4b8e#0 "10:14"
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_478ee9c0(10, hash_463fdaf6), "10:14");
 
 /*
-(withInitialValue#478ee9c0<int>(
-    4,
-    (): int ={Store#7b45d75e}> callPlus5#1d5e1778{Store#7b45d75e}(
-        (): int ={Store#7b45d75e}> raise!(Store#7b45d75e.get()),
-    ),
-) ==#9275f914#553b4b8e#0 9)
+withInitialValue#478ee9c0<int#builtin>(
+        value: 4,
+        fn: (): int#builtin ={Store#7b45d75e}> callPlus5#1d5e1778{Store#7b45d75e}(
+            x: (): int#builtin ={Store#7b45d75e}> raise!(Store#7b45d75e.get()),
+        ),
+    ) 
+    ==#9275f914#553b4b8e#0 9
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_478ee9c0(4, (handlers: Handlers, done$67: (arg_0: Handlers, arg_1: number) => void) => {
   hash_1d5e1778.effectful((handlers: Handlers, done$69: (arg_0: Handlers, arg_1: number) => void) => {
@@ -906,6 +958,6 @@ assertCall(hash_9275f914.h553b4b8e_0, hash_478ee9c0(4, (handlers: Handlers, done
 }), 9);
 
 /*
-(callPlus5#1d5e1778{}((): int ={}> 4) ==#9275f914#553b4b8e#0 9)
+callPlus5#1d5e1778{}(x: (): int#builtin ={}> 4) ==#9275f914#553b4b8e#0 9
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_1d5e1778.direct(() => 4), 9);

@@ -1,0 +1,5 @@
+
+const otherTerm = (n: int): int => trace!(n - 1, "Yes")
+const oneTerm = (m: int): int => trace!(m, "Hello from tracing!") + trace!(otherTerm(4))
+
+oneTerm(4) + oneTerm(1) == 11

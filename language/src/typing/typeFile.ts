@@ -12,6 +12,7 @@ import {
     typeEnumDefn,
     typeEffect,
     idName,
+    typeToplevelT,
 } from '../typing/env';
 
 import { presetEnv } from '../typing/preset';
@@ -140,7 +141,26 @@ export function typeFile(
                     )}`,
                 );
             } else {
-                throw new LocatedError(item.location, `Unhandled decorator`);
+                if (
+                    item.wrapped.type === 'EnumDef' ||
+                    item.wrapped.type === 'effect' ||
+                    item.wrapped.type === 'Decorated'
+                ) {
+                    throw new LocatedError(
+                        item.location,
+                        `Unhandled decorator`,
+                    );
+                }
+                // HACK HACK
+                const term = typeExpr(env, item.wrapped);
+                if (getEffects(term).length > 0) {
+                    throw new Error(
+                        `Term at ${showLocation(
+                            term.location,
+                        )} has toplevel effects.`,
+                    );
+                }
+                expressions.push(term);
             }
         } else {
             // A standalone expression

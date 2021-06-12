@@ -14,9 +14,10 @@ import {
     GlobalEnv,
     TypeVblDecl,
     typesEqual,
+    nullLocation,
 } from './types';
-import { Expression, Location } from '../parsing/parser';
-import { subEnv } from './types';
+import { Expression } from '../parsing/parser';
+import { subEnv, Location } from './types';
 import typeType, { walkType } from './typeType';
 import { showType } from './unify';
 import { void_, string, bool, float } from './preset';
@@ -128,9 +129,13 @@ export const showLocation = (loc: Location | null, startOnly?: boolean) => {
         return `<no location>`;
     }
     if (startOnly) {
-        return `${loc.start.line}:${loc.start.column}`;
+        return `${loc.source ? loc.source + ':' : ''}${loc.start.line}:${
+            loc.start.column
+        }`;
     }
-    return `${loc.start.line}:${loc.start.column}-${loc.end.line}:${loc.end.column}`;
+    return `${loc.source ? loc.source + ':' : ''}${loc.start.line}:${
+        loc.start.column
+    }-${loc.end.line}:${loc.end.column}`;
 };
 
 export const applyEffectVariables = (
@@ -344,7 +349,7 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                 type: 'sequence',
                 sts: inner,
                 location: expr.location,
-                is: inner[inner.length - 1].is,
+                is: inner.length ? inner[inner.length - 1].is : void_,
             };
         }
         case 'If': {
@@ -538,6 +543,18 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                 is,
             };
         }
+        case 'Trace': {
+            const args: Array<Term> = expr.args.map((item) => {
+                return typeExpr(env, item);
+            });
+            return {
+                type: 'Trace',
+                location: expr.location,
+                idx: env.term.nextTraceId++, // STOPSHIP: make this actually a thing
+                args,
+                is: args[0].is,
+            };
+        }
         case 'Tuple': {
             const items: Array<Term> = expr.items.map((item) => {
                 return typeExpr(env, item);
@@ -549,7 +566,10 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                 type: 'Tuple',
                 location: expr.location,
                 items,
-                is: tupleType(items.map((t) => t.is)),
+                is: tupleType(
+                    items.map((t) => t.is),
+                    expr.location,
+                ),
             };
         }
         case 'Array': {
@@ -616,15 +636,18 @@ const typeExpr = (env: Env, expr: Expression): Term => {
 export const arrayType = (elemType: Type): TypeReference => ({
     type: 'ref',
     ref: { type: 'builtin', name: 'Array' },
-    location: null,
+    location: nullLocation,
     typeVbls: [elemType],
     // effectVbls: [],
 });
 
-export const tupleType = (itemTypes: Array<Type>): TypeReference => ({
+export const tupleType = (
+    itemTypes: Array<Type>,
+    location: Location,
+): TypeReference => ({
     type: 'ref',
     ref: { type: 'builtin', name: `Tuple${itemTypes.length}` },
-    location: null,
+    location,
     typeVbls: itemTypes,
     // effectVbls: [],
 });
@@ -826,7 +849,7 @@ export const findAs = (
         ref: asRecord,
         typeVbls: [stype, ttype],
         // effectVbls: [],
-        location: null,
+        location,
     };
     let found = null;
     Object.keys(env.global.terms).some((k) => {

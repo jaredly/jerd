@@ -126,7 +126,11 @@ FullSlice = left:(Expression __)? ":" right:(__ Expression)? {
     return {type: 'Slice', left: left ? left[0] : null, right: right ? right[1] : null, location: location()}
 }
 
-ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:CommaExpr? _ ")" {
+LabeledCommaExpr = label:(IdText ":" __)? first:Expression rest:(_ "," _ (IdText ":" __)? Expression)* _ ","? {
+    return [{label, value: first}, ...rest.map((r: any) => ({label: r[3] ? r[3][0] : null, value: r[4]}))]
+}
+
+ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:LabeledCommaExpr? _ ")" {
     return {
         type: 'Apply',
         typevbls: typevbls || [],
@@ -137,7 +141,7 @@ ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:Com
 }
 AttributeSuffix = "." id:MaybeQuotedIdentifier {return {type: 'Attribute', id, location: location()}}
 
-Apsub = Literal / Lambda / Block / Handle / Raise / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / TupleLiteral / Identifier
+Apsub = Literal / Lambda / Block / Handle / Raise / Trace / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / TupleLiteral / Identifier
 
 // TODO
 // / TraitCall
@@ -238,12 +242,13 @@ RecordPatternItem = id:Identifier pattern:(_ ":" _ Pattern)? {
 TuplePattern = "(" _ items:TuplePatternItems _ ")" {
     return {type: 'Tuple', location: location(), items}
 }
-TuplePatternItems = first:Pattern rest:(_ "," _ Pattern)+ {
+TuplePatternItems = first:Pattern rest:(_ "," _ Pattern)+ (_ ",")? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 
 // How do patterns look?
 
+Trace = "trace!(" _ args:CommaExpr _ ")" {return {type: 'Trace', args, location: location()}}
 
 // == Effects ==
 
@@ -372,11 +377,12 @@ MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {
     return {type: "id", text: text.type === 'string' ? text.text : text, location: location(), hash}}
 IdText = !"enum" [0-9a-zA-Z_]+ {return text()}
 IdTextOrString = IdText / String
-IdHash = SymHash {return text() } / OpHash {return text()}
+IdHash = SymHash {return text() } / OpHash {return text()} / BuiltinHash {return text()}
 // IdHash = ("#" ":"? [0-9a-zA-Z]+ ("#" [0-9]+)?) {return text()}
 // TermHash = 
 SymHash = "#" ":" [0-9]+ {return text()}
 OpHash = ("#" [0-9a-zA-Z]+)+ {return text()}
+BuiltinHash = "#" "builtin" {return text()}
 
 _ "whitespace"
   = [ \t\n\r]* (comment _)*

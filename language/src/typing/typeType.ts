@@ -8,7 +8,7 @@ import {
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
 // because we'll need it in a web ui.
-import { Env, Symbol, subEnv, Type, Id } from './types';
+import { Env, Symbol, subEnv, Type, Id, nullLocation } from './types';
 import { showLocation } from './typeExpr';
 import { idFromName, resolveEffect, symPrefix } from './env';
 import { LocatedError, MismatchedTypeVbl } from './errors';
@@ -58,7 +58,7 @@ export const newTypeVbl = (env: Env): Type => {
     return {
         type: 'var',
         sym: { unique, name: 'var_' + unique },
-        location: null,
+        location: nullLocation,
     };
 };
 
@@ -84,11 +84,32 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 };
             }
             if (type.id.hash) {
+                const rawId = type.id.hash.slice(1);
+                if (rawId === 'builtin') {
+                    if (env.global.builtinTypes[type.id.text] == null) {
+                        throw new LocatedError(
+                            type.location,
+                            `Unknown builtin type ${type.id.text}`,
+                        );
+                    }
+                    return {
+                        type: 'ref',
+                        ref: { type: 'builtin', name: type.id.text },
+                        location: type.location,
+                        typeVbls,
+                    };
+                }
+                if (!env.global.types[rawId]) {
+                    throw new LocatedError(
+                        type.location,
+                        `Unknown explicit type ${rawId}`,
+                    );
+                }
                 return {
                     type: 'ref',
                     ref: {
                         type: 'user',
-                        id: idFromName(type.id.hash.slice(1)),
+                        id: idFromName(rawId),
                     },
                     typeVbls,
                     // effectVbls,

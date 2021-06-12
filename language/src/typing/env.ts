@@ -37,10 +37,43 @@ import {
     selfEnv,
     newLocal,
 } from './types';
-import { ToplevelT } from '../printing/printTsLike';
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
 import { getTypeError } from './getTypeError';
+
+export type ToplevelT =
+    | {
+          type: 'Effect';
+          id: Id;
+          effect: EffectDef;
+          location: Location;
+          name: string;
+          constrNames: Array<string>;
+      }
+    | { type: 'Expression'; term: Term; location: Location }
+    | {
+          type: 'Define';
+          id: Id;
+          term: Term;
+          location: Location;
+          name: string;
+          tags?: Array<string>;
+      }
+    | {
+          type: 'EnumDef';
+          def: TypeEnumDef;
+          id: Id;
+          location: Location;
+          name: string;
+      }
+    | {
+          type: 'RecordDef';
+          def: RecordDef;
+          id: Id;
+          location: Location;
+          name: string;
+          attrNames: Array<string>;
+      };
 
 export const typeToplevelT = (
     env: Env,
@@ -519,19 +552,50 @@ export const withoutLocations = <T>(obj: T): T => {
     return obj;
 };
 
+export const getToplevelAnnotation = (env: Env, item: Define): Type => {
+    if (item.ann) {
+        return typeType(env, item.ann);
+    }
+    if (item.expr.type === 'lambda') {
+        const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
+            env,
+            item.expr.typevbls,
+            item.expr.effvbls,
+        );
+
+        return {
+            type: 'lambda',
+            args: item.expr.args.map((arg) => typeType(typeInner, arg.type)),
+            res: typeType(typeInner, item.expr.rettype) || void_,
+            location: item.expr.location,
+            typeVbls,
+            effectVbls,
+            effects: item.expr.effects
+                ? item.expr.effects.map((effName) =>
+                      resolveEffect(typeInner, effName),
+                  )
+                : [],
+            rest: null,
+        };
+    }
+    return void_;
+};
+
 export const typeDefineInner = (env: Env, item: Define) => {
     const tmpTypeVbls: { [key: string]: Array<TypeConstraint> } = {};
     const subEnv: Env = {
         ...env,
         // local: { ...env.local, tmpTypeVbls },
         local: { ...newLocal(), tmpTypeVbls },
+        term: { nextTraceId: 0 },
     };
 
     const self: Self | null = item.rec
         ? {
               type: 'Term',
               name: item.id.text,
-              ann: item.ann ? typeType(subEnv, item.ann) : void_,
+              ann: getToplevelAnnotation(subEnv, item),
+              //   ann: item.ann ? typeType(subEnv, item.ann) : void_,
           }
         : null;
 
@@ -803,6 +867,19 @@ export const resolveIdentifier = (
         };
     } else if (hash != null) {
         const [first, second] = hash.slice(1).split('#');
+
+        if (first === 'builtin') {
+            const type = env.global.builtins[text];
+            if (!type) {
+                throw new LocatedError(location, `Unknown builtin ${text}`);
+            }
+            return {
+                type: 'ref',
+                location,
+                is: type,
+                ref: { type: 'builtin', name: text },
+            };
+        }
 
         if (
             env.local.self &&

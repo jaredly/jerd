@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="9.260417mm"
+   height="9.260417mm"
+   viewBox="0 0 9.260417 9.260417"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
+   sodipodi:docname="icons_type.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="4.3281559"
+     inkscape:cx="13.97824"
+     inkscape:cy="-9.5883792"
+     inkscape:window-width="1920"
+     inkscape:window-height="1155"
+     inkscape:window-x="0"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid9"
+       originx="-50.270834"
+       originy="-41.010419" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-50.270832,-41.010418)">
+    <g
+       aria-label="t"
+       id="text10884"
+       style="font-size:10.5833px;line-height:1.25;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';stroke-width:0.264583"
+       transform="translate(-8.585707,-0.19118751)">
+      <path
+         d="m 65.402325,48.932721 q -0.888997,0.507998 -1.936744,0.507998 -1.079496,0 -1.523995,-0.550331 -0.433915,-0.550332 -0.232833,-1.545162 l 0.507999,-2.550575 h -1.174747 l 0.232833,-1.15358 h 1.174746 l 0.243416,-1.217079 1.714495,-0.201083 -0.285749,1.418162 h 1.809744 l -0.402165,1.15358 h -1.640412 l -0.507998,2.550575 q -0.08467,0.412749 0.07408,0.592665 0.158749,0.179916 0.582081,0.179916 0.529165,0 1.02658,-0.253999 z"
+         style="font-style:italic;font-weight:bold"
+         fill="white"
+         id="path14024" />
+    </g>
+  </g>
+</svg>

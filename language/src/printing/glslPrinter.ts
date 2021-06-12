@@ -22,6 +22,7 @@ import {
     Term,
     Type,
     typesEqual,
+    nullLocation,
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { typeScriptPrelude } from './fileToTypeScript';
@@ -30,9 +31,9 @@ import * as ir from './ir/intermediateRepresentation';
 import {
     Exprs,
     isConstant,
-    optimize,
     optimizeAggressive,
     optimizeDefine,
+    optimizeDefineNew,
 } from './ir/optimize/optimize';
 import {
     Loc,
@@ -67,11 +68,15 @@ import {
 } from './typeScriptTypePrinter';
 import { effectConstructorType } from './ir/cps';
 import { getEnumReferences, showLocation } from '../typing/typeExpr';
-import { Location, nullLocation } from '../parsing/parser';
+import { Location } from '../parsing/parser';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
-import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
+import {
+    maxUnique,
+    recordAttributeName,
+    termToTs,
+} from './typeScriptPrinterSimple';
 import { explicitSpreads } from './ir/optimize/explicitSpreads';
 import { toplevelRecordAttribute } from './ir/optimize/inline';
 import { glslTester } from './glslTester';
@@ -236,7 +241,7 @@ export const symToGlsl = (env: Env, opts: OutputOptions, sym: Symbol) => {
     return atom(printSym(env, opts, sym));
 };
 
-const reservedSyms = ['const'];
+const reservedSyms = ['const', 'sample'];
 
 const printSym = (env: Env, opts: OutputOptions, sym: Symbol) =>
     !opts.showAllUniques &&
@@ -252,11 +257,11 @@ export const declarationToGlsl = (
     opts: OutputOptions,
     idRaw: string,
     term: Expr,
-    comment: string,
+    comment: string | null,
 ): PP => {
     if (term.type === 'lambda') {
         return items([
-            atom('/*' + comment + '*/\n'),
+            comment ? atom('/*' + comment + '*/\n') : null,
             typeToGlsl(env, opts, term.res),
             atom(' '),
             idToGlsl(env, opts, idFromName(idRaw), false),
@@ -339,6 +344,9 @@ export const stmtToGlsl = (
         case 'Return':
             return items([atom('return '), termToGlsl(env, opts, stmt.value)]);
         case 'Define':
+            if (env.local.localNames[stmt.sym.name] == null) {
+                env.local.localNames[stmt.sym.name] = stmt.sym.unique;
+            }
             if (!stmt.value) {
                 return items([
                     typeToGlsl(env, opts, stmt.is),
@@ -462,7 +470,7 @@ export const printRecord = (
 };
 
 export const binops = [
-    'mod',
+    // 'mod',
     'modInt',
     '>',
     '<',
@@ -480,7 +488,8 @@ export const binops = [
 ];
 export const isBinop = (op: string) => binops.includes(op);
 
-const asBinop = (op: string) => (op === 'mod' || op === 'modInt' ? '%' : op);
+// op === 'mod' ||
+const asBinop = (op: string) => (op === 'modInt' ? '%' : op);
 
 export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {
@@ -564,6 +573,11 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 atom(']'),
             ]);
         case 'lambda':
+            expr.args.forEach((arg) => {
+                if (env.local.localNames[arg.sym.name] == null) {
+                    env.local.localNames[arg.sym.name] = arg.sym.unique;
+                }
+            });
             return items([
                 atom('lambda-woops'),
                 args(expr.args.map((arg) => symToGlsl(env, opts, arg.sym))),
@@ -577,6 +591,9 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 atom(' == '),
                 termToGlsl(env, opts, expr.literal),
             ]);
+        // Traces aren't supported in glsl, they just pass through.
+        case 'Trace':
+            return termToGlsl(env, opts, expr.args[0]);
         default:
             return atom('nope_term_' + expr.type);
     }
@@ -584,8 +601,8 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
     // return atom('nope' + expr.type);
 };
 
-export const addComment = (value: PP, comment: string) =>
-    items([atom(`/* ${comment} */\n`), value]);
+export const addComment = (value: PP, comment: string | null) =>
+    comment ? items([atom(`/* ${comment} */\n`), value]) : value;
 
 // Object.keys(env.global.effects).forEach((r) => {
 //     const id = idFromName(r);
@@ -657,10 +674,10 @@ export const assembleItemsForFile = (
         irTerm: Expr,
         id: Id,
     ) => {
-        irTerm = explicitSpreads(senv, irOpts, irTerm);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        irTerm = optimizeDefine(senv, irTerm, id);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        // irTerm = explicitSpreads(senv, irOpts, irTerm);
+        // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+        irTerm = optimizeDefineNew(senv, irTerm, id, irTerms);
+        // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         return irTerm;
     },
 ) => {
@@ -703,12 +720,9 @@ export const assembleItemsForFile = (
             ).wrap(err);
             throw outer;
         }
-        // irTerm = runOptimizations(senv, irTerms, irOpts, irTerm, id)
-        irTerm = explicitSpreads(senv, irOpts, irTerm);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        irTerm = optimizeDefine(senv, irTerm, id);
-        irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        uniquesReallyAreUnique(irTerm);
+        // irTerm = explicitSpreads(senv, irOpts, irTerm);
+        // irTerm = optimizeDefine(senv, irTerm, id, irTerms);
+        irTerm = optimization(senv, irOpts, irTerms, irTerm, id);
 
         irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 
@@ -781,13 +795,18 @@ const makeEnvRecord = (env: Env): Record => ({
     loc: nullLocation,
 });
 
-const shaderTop = () => {
+const shaderTop = (buffers: number) => {
+    const b: Array<PP> = [];
+    for (let i = 0; i < buffers; i++) {
+        b.push(atom(`uniform sampler2D u_buffer${i};`));
+    }
     return [
         pp.items([atom('#version 300 es')]),
         pp.items([atom('precision mediump float;')]),
         pp.items([atom('out vec4 fragColor;')]),
         pp.items([atom('const float PI = 3.14159;')]),
-        atom('uniform sampler2D u_buffer0;'),
+        // atom('uniform sampler2D u_buffer0;'),
+        ...b,
         pp.items([
             atom('uniform '),
             atom('float'),
@@ -956,8 +975,10 @@ export const shaderAllButMains = (
     irOpts: IOutputOptions,
     mainTerm: Id,
     buffers: Array<Id>,
+    includeComments = true,
+    bufferCount = buffers.length,
 ): { items: Array<PP>; invalidLocs: Array<Location> } => {
-    const items: Array<PP> = shaderTop();
+    const items: Array<PP> = shaderTop(bufferCount);
 
     const required = [mainTerm]
         .concat(buffers)
@@ -1002,13 +1023,17 @@ export const shaderAllButMains = (
             : env;
         items.push(
             declarationToGlsl(
+                // Empty out the localNames
+                // { ...senv, local: { ...senv.local, localNames: {} } },
                 senv,
                 opts,
                 name,
                 irTerms[name].expr,
-                irTerms[name].comment
-                    ? '*\n```\n' + irTerms[name].comment + '\n```\n'
-                    : ' -- generated -- ',
+                includeComments
+                    ? irTerms[name].comment
+                        ? '*\n```\n' + irTerms[name].comment + '\n```\n'
+                        : ' -- generated -- '
+                    : null,
             ),
         );
     });
@@ -1023,6 +1048,7 @@ export const generateSingleShader = (
     irOpts: IOutputOptions,
     mainTerm: Id,
     buffers: number,
+    includeComments = true,
 ): { text: string; invalidLocs: Array<Location> } => {
     const { items, invalidLocs } = shaderAllButMains(
         env,
@@ -1030,6 +1056,8 @@ export const generateSingleShader = (
         irOpts,
         mainTerm,
         [],
+        includeComments,
+        buffers,
     );
 
     items.push(glslMain(env, opts, mainTerm, buffers));
@@ -1412,7 +1440,7 @@ export const fileToGlsl = (
 };
 
 const hasInvalidGLSL = (expr: Expr) => {
-    let found: Loc = null;
+    let found: Loc | null = null;
     // Toplevel record not allowed
     if (
         expr.type === 'record' &&

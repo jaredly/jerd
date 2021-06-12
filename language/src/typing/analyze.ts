@@ -1,16 +1,43 @@
-import { idFromName, idName, refName } from './env';
+import { idFromName, idName, refName, ToplevelT } from './env';
+import { transformToplevel } from './transform';
 import { applyTypeVariablesToRecord, getEnumReferences } from './typeExpr';
 import {
-    EnumDef,
     Env,
     Id,
-    RecordDef,
+    nullLocation,
     Reference,
     Term,
     Type,
     UserReference,
     walkTerm,
 } from './types';
+
+export const addLocationIndices = (toplevel: ToplevelT) => {
+    let idx = 0;
+    return transformToplevel(toplevel, {
+        toplevel: (value) => ({
+            ...value,
+            location: {
+                ...value.location,
+                idx: idx++,
+            },
+        }),
+        term: (term) => ({
+            ...term,
+            location: {
+                ...term.location,
+                idx: idx++,
+            },
+        }),
+        let: (l) => ({
+            ...l,
+            location: {
+                ...l.location,
+                idx: idx++,
+            },
+        }),
+    });
+};
 
 export const allLiteral = (env: Env, type: Type): boolean => {
     switch (type.type) {
@@ -42,7 +69,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
                             !allLiteral(env, {
                                 type: 'ref',
                                 ref: { type: 'user', id },
-                                location: null,
+                                location: nullLocation,
                                 typeVbls: [],
                                 // effectVbls: [],
                             }),
@@ -100,7 +127,7 @@ export const getUserTypeDependencies = (term: Term): Array<Id> => {
     ) as Array<UserReference>).map((r) => r.id);
 };
 
-export const expressionDeps = (env: Env, terms: Array<Term>) => {
+export const expressionDeps = (env: Env, terms: Array<Term>): Array<string> => {
     const allDeps: { [key: string]: Array<Id> } = {};
     terms.forEach((term) =>
         getUserDependencies(term).forEach((id) =>
@@ -251,6 +278,7 @@ export const termDependencies = (term: Term): Array<Reference> => {
         case 'sequence':
         case 'apply':
         case 'lambda':
+        case 'Trace':
         case 'Record':
         case 'Switch':
         case 'TupleAccess':

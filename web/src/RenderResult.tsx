@@ -3,38 +3,25 @@ import { jsx } from '@emotion/react';
 // Ok
 
 import * as React from 'react';
+import { idName, idFromName } from '@jerd/language/src/typing/env';
 import {
-    addExpr,
-    addDefine,
-    addRecord,
-    addEnum,
-    idName,
-    addEffect,
-    idFromName,
-} from '@jerd/language/src/typing/env';
-import {
-    EnumDef,
     Env,
     Id,
-    RecordDef,
-    selfEnv,
+    nullLocation,
     Term,
     Type,
+    typesEqual,
 } from '@jerd/language/src/typing/types';
-import {
-    declarationToPretty,
-    termToPretty,
-    ToplevelT,
-    toplevelToPretty,
-} from '@jerd/language/src/printing/printTsLike';
-import { printToAttributedText } from '@jerd/language/src/printing/printer';
-import Editor from './Editor';
-import { termToJS } from './eval';
-import { renderAttributedText } from './Render';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
-import { void_ } from '@jerd/language/src/typing/preset';
-import { Cell, Content, Display, EvalEnv, Plugins, PluginT } from './State';
-import { nullLocation } from '@jerd/language/src/parsing/parser';
+import {
+    Cell,
+    Content,
+    Display,
+    EvalEnv,
+    RenderPlugins,
+    RenderPluginT,
+} from './State';
+import { showType } from '@jerd/language/src/typing/unify';
 
 /*
 
@@ -59,74 +46,42 @@ export const RenderResult = ({
     env,
     evalEnv,
     onRun,
-    collapsed,
-    setCollapsed,
     onSetPlugin,
+    value,
+    term,
     onPin,
 }: {
     onSetPlugin: (d: Display | null) => void;
-    plugins: Plugins;
+    plugins: RenderPlugins;
     cell: Cell;
     id: Id;
     env: Env;
     evalEnv: EvalEnv;
+    value: any;
+    term: Term;
     onRun: (id: Id) => void;
-    collapsed: boolean | undefined;
-    setCollapsed: (c: boolean) => void;
     onPin: (display: Display, id: Id) => void;
 }) => {
-    const hash = idName(id);
+    // const hash = idName(id);
+
     // const term = env.global.terms[hash];
 
-    // if (term.is.type !== 'lambda' && !evalEnv.terms[hash]) {
-    //     return (
-    //         <button
-    //             css={{
-    //                 cursor: 'pointer',
-    //                 backgroundColor: 'transparent',
-    //                 border: 'none',
-    //                 fontFamily: 'inherit',
-    //                 color: 'inherit',
-    //                 margin: 8,
-    //                 padding: '4px 8px',
-    //                 ':hover': {
-    //                     backgroundColor: 'rgba(100,100,100,0.3)',
-    //                 },
-    //             }}
-    //             onClick={() => onRun(id)}
-    //         >
-    //             Evaluate
-    //         </button>
-    //     );
-    // }
-
     React.useEffect(() => {
-        if (evalEnv.terms[hash] == null) {
+        if (value == null) {
             onRun(id);
         }
-    }, [evalEnv.terms[hash] == null]);
+    }, [value == null]);
 
-    if (evalEnv.terms[hash] == null) {
+    if (value == null) {
         return <span>Unevaluated</span>;
     }
-
-    // if (collapsed) {
-    //     return (
-    //         <div
-    //             style={{ cursor: 'pointer' }}
-    //             onClick={() => setCollapsed(false)}
-    //         >
-    //             Collapsed
-    //         </div>
-    //     );
-    // }
 
     const renderPlugin = getPlugin(
         plugins,
         env,
         cell.display,
-        cell.content,
-        evalEnv.terms[hash],
+        term,
+        value,
         evalEnv,
     );
     if (renderPlugin != null) {
@@ -135,14 +90,14 @@ export const RenderResult = ({
                 display={cell.display}
                 plugins={plugins}
                 onSetPlugin={onSetPlugin}
-                onPin={() => onPin(cell.display!, idFromName(hash))}
+                onPin={() => onPin(cell.display!, id)}
             >
                 {renderPlugin()}
             </RenderPlugin>
         );
     }
 
-    const matching = getMatchingPlugins(plugins, env, cell);
+    const matching = getMatchingPlugins(plugins, env, cell.display, term.is);
 
     return (
         <div
@@ -153,17 +108,9 @@ export const RenderResult = ({
                 padding: 8,
             }}
         >
-            {/* <button
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                }}
-                onClick={() => setCollapsed(true)}
-            >
-                -
-            </button> */}
-            {JSON.stringify(evalEnv.terms[hash], null, 2)}
+            {typeof value === 'function'
+                ? null
+                : JSON.stringify(value, null, 2)}
             {matching && matching.length ? (
                 <div>
                     <h4>Available render plugins</h4>
@@ -179,34 +126,29 @@ export const RenderResult = ({
                         </button>
                     ))}
                 </div>
-            ) : (
-                <div>No matching render plugins</div>
-            )}
+            ) : null}
         </div>
     );
 };
 
 export const getPlugin = (
-    plugins: Plugins,
+    plugins: RenderPlugins,
     env: Env,
     display: Display | undefined | null,
-    content: Content,
-    // cell: Cell,
+    term: Term,
     value: any,
+    // TODO: I only need the "control ovjects" here,
+    // not the terms or builtins. It would be nice to
+    // extract those out
     evalEnv: EvalEnv,
 ): (() => JSX.Element) | null => {
     if (!display || !plugins[display.type]) {
         return null;
     }
-    switch (content.type) {
-        case 'expr':
-        case 'term':
-            const t = env.global.terms[idName(content.id)];
-            const plugin: PluginT = plugins[display.type];
-            const err = getTypeError(env, t.is, plugin.type, nullLocation);
-            if (err == null) {
-                return () => plugin.render(value, evalEnv, env, t);
-            }
+    const plugin: RenderPluginT = plugins[display.type];
+    const err = getTypeError(env, term.is, plugin.type, nullLocation);
+    if (err == null) {
+        return () => plugin.render(value, evalEnv, env, term, false);
     }
     return null;
 };
@@ -220,7 +162,7 @@ export const RenderPlugin = ({
 }: {
     children: React.ReactNode;
     display: Display | undefined | null;
-    plugins: Plugins;
+    plugins: RenderPlugins;
     onSetPlugin: (name: Display | null) => void;
     onPin: null | (() => void);
 }) => {
@@ -313,28 +255,23 @@ export const RenderPlugin = ({
 };
 
 const getMatchingPlugins = (
-    plugins: Plugins,
+    plugins: RenderPlugins,
     env: Env,
-    cell: Cell,
+    display: Display | null | undefined,
+    type: Type,
 ): Array<string> | null => {
-    switch (cell.content.type) {
-        case 'expr':
-        case 'term':
-            const t = env.global.terms[idName(cell.content.id)];
-            if (!cell.display || !plugins[cell.display.type]) {
-                return Object.keys(plugins).filter((k) => {
-                    if (
-                        getTypeError(
-                            env,
-                            t.is,
-                            plugins[k].type,
-                            nullLocation,
-                        ) === null
-                    ) {
-                        return true;
-                    }
-                });
+    if (
+        !display ||
+        !plugins[display.type] ||
+        !typesEqual(plugins[display.type].type, type)
+    ) {
+        return Object.keys(plugins).filter((k) => {
+            if (
+                getTypeError(env, type, plugins[k].type, nullLocation) == null
+            ) {
+                return true;
             }
+        });
     }
     return null;
 };

@@ -6,7 +6,10 @@ import { Block, Expr, LambdaExpr, RecordSubType, Stmt } from './types';
 
 // export const transformExpr = (expr: Expr, )
 
-export type ExprVisitor = (value: Expr) => Expr | null | false | [Expr];
+export type ExprVisitor = (
+    value: Expr,
+    level?: number,
+) => Expr | null | false | [Expr];
 export type Visitor = {
     expr: ExprVisitor;
     block: (value: Block) => Block | null | false;
@@ -19,8 +22,12 @@ export const defaultVisitor: Visitor = {
     stmt: (stmt) => null,
 };
 
-export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
-    const transformed = visitor.expr(expr);
+export const transformExpr = (
+    expr: Expr,
+    visitor: Visitor,
+    level: number = 0,
+): Expr => {
+    const transformed = visitor.expr(expr, level);
     if (transformed === false) {
         return expr; // don't recurse
     }
@@ -31,6 +38,7 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
     if (transformed != null) {
         expr = transformed;
     }
+    level += 1;
     switch (expr.type) {
         case 'string':
         case 'int':
@@ -42,16 +50,18 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
         case 'var':
             return expr;
         case 'unary': {
-            const t = transformExpr(expr.inner, visitor);
+            const t = transformExpr(expr.inner, visitor, level);
             return t !== expr.inner ? { ...expr, inner: t } : expr;
         }
         case 'eqLiteral':
-            const t = transformExpr(expr.value, visitor);
+            const t = transformExpr(expr.value, visitor, level);
             return t !== expr.value ? { ...expr, value: t } : expr;
         case 'slice': {
-            const value = transformExpr(expr.value, visitor);
-            const start = transformExpr(expr.start, visitor);
-            const end = expr.end ? transformExpr(expr.end, visitor) : null;
+            const value = transformExpr(expr.value, visitor, level);
+            const start = transformExpr(expr.start, visitor, level);
+            const end = expr.end
+                ? transformExpr(expr.end, visitor, level)
+                : null;
             return value !== expr.value ||
                 start !== expr.start ||
                 end !== expr.end
@@ -64,20 +74,29 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
                 : expr;
         }
         case 'tupleAccess': {
-            const target = transformExpr(expr.target, visitor);
+            const target = transformExpr(expr.target, visitor, level);
             return target !== expr.target ? { ...expr, target } : expr;
         }
         case 'arrayIndex': {
-            const value = transformExpr(expr.value, visitor);
-            const idx = transformExpr(expr.idx, visitor);
+            const value = transformExpr(expr.value, visitor, level);
+            const idx = transformExpr(expr.idx, visitor, level);
             return value !== expr.value || idx !== expr.idx
                 ? { ...expr, value, idx }
                 : expr;
         }
+        case 'Trace': {
+            let changed = false;
+            const args = expr.args.map((item) => {
+                const i = transformExpr(item, visitor, level);
+                changed = changed || i !== item;
+                return i;
+            });
+            return changed ? { ...expr, args } : expr;
+        }
         case 'tuple': {
             let changed = false;
             const items = expr.items.map((item) => {
-                const i = transformExpr(item, visitor);
+                const i = transformExpr(item, visitor, level);
                 changed = changed || i !== item;
                 return i;
             });
@@ -87,11 +106,11 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
             let changed = false;
             const items = expr.items.map((item) => {
                 if (item.type === 'Spread') {
-                    const value = transformExpr(item.value, visitor);
+                    const value = transformExpr(item.value, visitor, level);
                     changed = changed || value !== item.value;
                     return { ...item, value };
                 }
-                const i = transformExpr(item, visitor);
+                const i = transformExpr(item, visitor, level);
                 changed = changed || i !== item;
                 return i;
             });
@@ -99,14 +118,14 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
         }
         case 'arrayLen':
         case 'IsRecord': {
-            const value = transformExpr(expr.value, visitor);
+            const value = transformExpr(expr.value, visitor, level);
             return value !== expr.value ? { ...expr, value } : expr;
         }
         case 'apply': {
-            const target = transformExpr(expr.target, visitor);
+            const target = transformExpr(expr.target, visitor, level);
             let changed = false;
             const args = expr.args.map((arg) => {
-                const a = transformExpr(arg, visitor);
+                const a = transformExpr(arg, visitor, level);
                 changed = changed || a !== arg;
                 return a;
             });
@@ -116,39 +135,43 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
         }
         case 'attribute':
         case 'effectfulOrDirect': {
-            const target = transformExpr(expr.target, visitor);
+            const target = transformExpr(expr.target, visitor, level);
             return target !== expr.target ? { ...expr, target } : expr;
         }
         case 'effectfulOrDirectLambda': {
-            const effectful = transformLambdaExpr(expr.effectful, visitor);
-            const direct = transformLambdaExpr(expr.direct, visitor);
+            const effectful = transformLambdaExpr(
+                expr.effectful,
+                visitor,
+                level,
+            );
+            const direct = transformLambdaExpr(expr.direct, visitor, level);
             return effectful !== expr.effectful || direct !== expr.direct
                 ? { ...expr, direct, effectful }
                 : expr;
         }
         case 'lambda':
-            return transformLambdaExpr(expr, visitor);
+            return transformLambdaExpr(expr, visitor, level);
         case 'raise': {
             let changed = false;
             const args = expr.args.map((arg) => {
-                const argn = transformExpr(arg, visitor);
+                const argn = transformExpr(arg, visitor, level);
                 changed = changed || argn !== arg;
                 return argn;
             });
-            const done = transformExpr(expr.done, visitor);
+            const done = transformExpr(expr.done, visitor, level);
             return changed || done !== expr.done
                 ? { ...expr, args, done }
                 : expr;
         }
         case 'handle': {
-            const target = transformExpr(expr.target, visitor);
+            const target = transformExpr(expr.target, visitor, level);
             let changed = false;
             const cases = expr.cases.map((kase) => {
-                const body = transformLambdaBody(kase.body, visitor);
+                const body = transformLambdaBody(kase.body, visitor, level);
                 changed = changed || body !== kase.body;
                 return body !== kase.body ? { ...kase, body } : kase;
             });
-            const body = transformLambdaBody(expr.pure.body, visitor);
+            const body = transformLambdaBody(expr.pure.body, visitor, level);
             return target !== expr.target || changed || body !== expr.pure.body
                 ? { ...expr, target, cases, pure: { ...expr.pure, body } }
                 : expr;
@@ -156,17 +179,17 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
         case 'record': {
             let base = expr.base;
             if (base.type === 'Variable') {
-                const spread = transformExpr(base.spread, visitor);
+                const spread = transformExpr(base.spread, visitor, level);
                 if (spread !== base.spread) {
                     base = { ...base, spread };
                 }
             } else {
                 const spread = base.spread
-                    ? transformExpr(base.spread, visitor)
+                    ? transformExpr(base.spread, visitor, level)
                     : base.spread;
                 let changed = false;
                 const rows = base.rows.map((row) => {
-                    const r = row ? transformExpr(row, visitor) : row;
+                    const r = row ? transformExpr(row, visitor, level) : row;
                     changed = changed || r !== row;
                     return r;
                 });
@@ -180,11 +203,11 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
             Object.keys(s).forEach((key) => {
                 const subType = s[key];
                 const spread = subType.spread
-                    ? transformExpr(subType.spread, visitor)
+                    ? transformExpr(subType.spread, visitor, level)
                     : subType.spread;
                 let subTypeChanged = false;
                 const rows = subType.rows.map((row) => {
-                    const r = row ? transformExpr(row, visitor) : row;
+                    const r = row ? transformExpr(row, visitor, level) : row;
                     subTypeChanged = subTypeChanged || r !== row;
                     return r;
                 });
@@ -209,22 +232,28 @@ export const transformExpr = (expr: Expr, visitor: Visitor): Expr => {
 export const transformLambdaExpr = (
     expr: LambdaExpr,
     visitor: Visitor,
+    level: number,
 ): LambdaExpr => {
-    const body = transformLambdaBody(expr.body, visitor);
+    const body = transformLambdaBody(expr.body, visitor, level + 1);
     return body !== expr.body ? { ...expr, body } : expr;
 };
 
 export const transformLambdaBody = (
     body: Expr | Block,
     visitor: Visitor,
+    level: number,
 ): Expr | Block => {
     if (body.type === 'Block') {
-        return transformBlock(body, visitor);
+        return transformBlock(body, visitor, level + 1);
     }
-    return transformExpr(body, visitor);
+    return transformExpr(body, visitor, level + 1);
 };
 
-export const transformBlock = (block: Block, visitor: Visitor): Block => {
+export const transformBlock = (
+    block: Block,
+    visitor: Visitor,
+    level: number = 0,
+): Block => {
     const tr = visitor.block(block);
     if (tr === false) {
         return block;
@@ -235,7 +264,7 @@ export const transformBlock = (block: Block, visitor: Visitor): Block => {
     let changed = false;
     const items: Array<Stmt> = [];
     block.items.forEach((stmt) => {
-        const s = transformStmt(stmt, visitor);
+        const s = transformStmt(stmt, visitor, level + 1);
         changed = changed || s !== stmt;
         if (Array.isArray(s)) {
             items.push(...s);
@@ -249,6 +278,7 @@ export const transformBlock = (block: Block, visitor: Visitor): Block => {
 export const transformStmt = (
     stmt: Stmt,
     visitor: Visitor,
+    level: number = 0,
 ): Stmt | Array<Stmt> => {
     const tr = visitor.stmt(stmt);
     if (tr === false) {
@@ -256,48 +286,55 @@ export const transformStmt = (
     }
     if (tr != null) {
         if (Array.isArray(tr)) {
-            return tr.map((s) => transformOneStmt(s, visitor));
+            return tr.map((s) => transformOneStmt(s, visitor, level + 1));
         }
         stmt = tr;
     }
-    return transformOneStmt(stmt, visitor);
+    return transformOneStmt(stmt, visitor, level + 1);
 };
 
 // NOTE: Does not visit the stmt!
-export const transformOneStmt = (stmt: Stmt, visitor: Visitor): Stmt => {
+export const transformOneStmt = (
+    stmt: Stmt,
+    visitor: Visitor,
+    level: number = 0,
+): Stmt => {
+    level += 1;
     switch (stmt.type) {
         case 'Expression': {
-            const expr = transformExpr(stmt.expr, visitor);
+            const expr = transformExpr(stmt.expr, visitor, level);
             return expr !== stmt.expr ? { ...stmt, expr } : stmt;
         }
         case 'Define': {
             const value: Expr | null = stmt.value
-                ? transformExpr(stmt.value, visitor)
+                ? transformExpr(stmt.value, visitor, level)
                 : stmt.value;
             return value !== stmt.value ? { ...stmt, value } : stmt;
         }
         case 'Return':
         case 'Assign': {
-            const value: Expr = transformExpr(stmt.value, visitor);
+            const value: Expr = transformExpr(stmt.value, visitor, level);
             return value !== stmt.value ? { ...stmt, value } : stmt;
         }
         case 'Loop': {
-            const body = transformBlock(stmt.body, visitor);
+            const body = transformBlock(stmt.body, visitor, level);
             return body !== stmt.body ? { ...stmt, body } : stmt;
         }
         case 'Continue':
         case 'MatchFail':
             return stmt;
         case 'if': {
-            const cond = transformExpr(stmt.cond, visitor);
-            const yes = transformBlock(stmt.yes, visitor);
-            const no = stmt.no ? transformBlock(stmt.no, visitor) : stmt.no;
+            const cond = transformExpr(stmt.cond, visitor, level);
+            const yes = transformBlock(stmt.yes, visitor, level);
+            const no = stmt.no
+                ? transformBlock(stmt.no, visitor, level)
+                : stmt.no;
             return cond !== stmt.cond || yes !== stmt.yes || no !== stmt.no
                 ? { ...stmt, cond, yes, no }
                 : stmt;
         }
         case 'Block':
-            return transformBlock(stmt, visitor);
+            return transformBlock(stmt, visitor, level);
         default:
             let _x: never = stmt;
             throw new Error(`Unhandled stmt ${(stmt as any).type}`);

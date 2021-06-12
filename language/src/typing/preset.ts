@@ -1,6 +1,6 @@
 // Presets
 
-import { Location } from '../parsing/parser';
+// import { Location } from '../parsing/parser';
 import { Loc } from '../printing/ir/types';
 import { idFromName } from './env';
 import { LocatedError } from './errors';
@@ -9,12 +9,18 @@ import {
     apply,
     LambdaType,
     newEnv,
+    nullLocation,
     Symbol,
     Term,
     Type,
-    typesEqual,
     TypeVblDecl,
+    Location,
 } from './types';
+
+export const builtinLocation: Location = {
+    ...nullLocation,
+    source: '<builtin>',
+};
 
 export const builtinType = (
     name: string,
@@ -22,7 +28,7 @@ export const builtinType = (
 ): Type => ({
     type: 'ref',
     ref: { type: 'builtin', name },
-    location: null,
+    location: builtinLocation,
     typeVbls,
     // effectVbls: [],
 });
@@ -30,7 +36,7 @@ export const builtinType = (
 export const refType = (id: string, typeVbls: Array<Type> = []): Type => ({
     type: 'ref',
     ref: { type: 'user', id: idFromName(id) },
-    location: null,
+    location: builtinLocation,
     typeVbls,
     // effectVbls: [],
 });
@@ -70,7 +76,7 @@ export const pureFunction = (
         effects: [],
         rest: null,
         res,
-        location: null,
+        location: builtinLocation,
     };
 };
 
@@ -116,12 +122,12 @@ export function presetEnv(builtins: { [key: string]: Type }) {
     const Y0: Type = {
         type: 'var',
         sym: { unique: 10001, name: 'Y' },
-        location: null,
+        location: builtinLocation,
     };
     const T0: Type = {
         type: 'var',
         sym: { unique: 10000, name: 'T' },
-        location: null,
+        location: builtinLocation,
     };
     env.global.builtins['++'] = pureFunction([string, string], string);
     env.global.builtins['>='] = pureFunction([numeric, numeric], bool, []);
@@ -167,7 +173,7 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         effectVbls: [],
         extends: [],
         items: [pureFunction([T0], Y0)],
-        location: null,
+        location: builtinLocation,
         ffi: null,
     };
     env.global.recordGroups['As'] = ['as'];
@@ -190,7 +196,7 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         effectVbls: [],
         extends: [],
         items: [],
-        location: null,
+        location: builtinLocation,
         ffi: null,
     };
     env.global.types['Some'] = {
@@ -200,7 +206,7 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         effectVbls: [],
         extends: [],
         items: [T0],
-        location: null,
+        location: builtinLocation,
         ffi: null,
     };
     env.global.recordGroups['Some'] = ['contents'];

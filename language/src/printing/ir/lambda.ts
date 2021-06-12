@@ -75,7 +75,7 @@ export const printLambda = (
                                 opts,
                                 directVersion.is.args[i],
                             ),
-                            loc: null,
+                            loc: term.location,
                         }), // TODO(sourcemap): hang on to location for lambda args?
                     ),
                     withExecutionLimit(
@@ -100,7 +100,7 @@ export const printLambda = (
             term.args.map((sym, i) => ({
                 sym,
                 type: typeFromTermType(env, opts, term.is.args[i]),
-                loc: null,
+                loc: term.location,
             })),
             withExecutionLimit(
                 env,

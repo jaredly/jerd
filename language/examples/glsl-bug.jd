@@ -1,0 +1,44 @@
+const EPSILON = 0.0001
+
+const marchNormals = (sceneSDF: (GLSLEnv, Vec3) ={}> float): (
+    GLSLEnv,
+    Vec2,
+) ={}> Vec4 ={}> (env: GLSLEnv, coord: Vec2): Vec4 ={}> {
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    const m = sceneSDF(env, eye);
+    if m > 100.0 - EPSILON {
+        vec4(1.0)
+    } else {
+        const n = sceneSDF(env, eye + 1.0);
+        vec4(n)
+    }
+}
+
+// START HERE PLEASE:
+// My optimization passes are quite unsatisfying.
+// I really should be running all of them until nothing changes.
+// But I'm sure there's a lot of redundant work going on.
+// Anyway, my "march normals" thing still isn't working right.
+
+@main
+const unnamed = marchNormals(
+    (env: GLSLEnv, p: Vec3): float ={}> length(p) - 1.0,
+)
+
+const doIt = (env: GLSLEnv, p: Vec3): float ={}> length(p) - 1.0
+
+// @main
+const unnamed = {
+    const sceneSDF = doIt;
+    (env: GLSLEnv, coord: Vec2): Vec4 ={}> {
+        const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+        const m = sceneSDF(env, eye);
+        if m > 100.0 - EPSILON {
+            vec4(1.0)
+        } else {
+            // const n = sceneSDF(env, eye + 1.0);
+            // vec4(n)
+            vec4(0.0)
+        }
+    }
+}

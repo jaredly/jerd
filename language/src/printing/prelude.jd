@@ -394,6 +394,12 @@ type GLSLEnv = {
     mouse: Vec2,
 }
 
+@ffi
+type GLSLBuffer1 = {
+    fragment: (GLSLEnv, Vec2, sampler2D) => Vec4,
+    buffer0: (GLSLEnv, Vec2, sampler2D) => Vec4,
+}
+
 // GLSL Tests you see
 
 // type ResultsState = {

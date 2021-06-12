@@ -6,20 +6,8 @@
 import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
-import {
-    hashObject,
-    idFromName,
-    idName,
-    typeEnumInner,
-    typeRecordDefn,
-    withoutLocations,
-} from './typing/env';
-import parse, {
-    Define,
-    Expression,
-    Location,
-    Toplevel,
-} from './parsing/parser';
+import { hashObject, idFromName, idName } from './typing/env';
+import parse, { Toplevel } from './parsing/parser';
 import {
     fileToTypescript,
     OutputOptions,
@@ -27,29 +15,8 @@ import {
 import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
-import {
-    Env,
-    Id,
-    newWithGlobal,
-    Self,
-    Term,
-    Type,
-    TypeConstraint,
-    typesEqual,
-} from './typing/types';
-import { printToString } from './printing/printer';
-import {
-    termToPretty,
-    typeToPretty,
-    toplevelToPretty,
-    ToplevelT,
-} from './printing/printTsLike';
-import {
-    typeDefine,
-    typeTypeDefn,
-    typeEnumDefn,
-    typeEffect,
-} from './typing/env';
+import { Env, Term } from './typing/types';
+import { ToplevelT } from './typing/env';
 import { typeFile } from './typing/typeFile';
 
 import { presetEnv } from './typing/preset';
@@ -78,6 +45,7 @@ export const processFile = (
     run: boolean,
     reprint: boolean,
     glsl: boolean,
+    trace: boolean,
 ): boolean => {
     const raw = fs.readFileSync(fname, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
@@ -97,6 +65,7 @@ export const processFile = (
     };
     const oopts: OutputOptions = {
         optimize: true,
+        enableTraces: trace,
         optimizeAggressive: true,
     };
 
@@ -178,20 +147,26 @@ export const processFile = (
     writeFile(path.join(buildDir, 'prelude.mjs.ts'), preludeTS);
 
     if (run) {
+        console.log(`🏃 Running ${chalk.yellow(fname)}`);
         const { stdout, error, stderr, status } = spawnSync(
             'node',
             ['--enable-source-maps', dest],
             { stdio: 'pipe', encoding: 'utf8' },
         );
         if (status !== 0) {
-            console.log(`❌ Execution failed ${chalk.blue(fname)}`);
+            console.log(`❌ Execution failed ${chalk.yellow(fname)}`);
             console.log('---------------');
             console.log(stdout);
             console.log(stderr);
             console.log('---------------');
             return false;
         } else {
-            console.log(`✅ all clear ${chalk.blue(fname)}`);
+            stdout.split('\n').forEach((line) => {
+                if (line.startsWith('[trace:')) {
+                    console.log(line);
+                }
+            });
+            console.log(`✅ all clear ${chalk.yellow(fname)}`);
             return true;
         }
     }
@@ -201,7 +176,7 @@ export const processFile = (
 const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
     let good = true;
 
-    // Test reprint
+    // Test expressions reprint
     for (let expr of expressions) {
         if (
             reprintToplevel(
@@ -220,7 +195,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
         }
     }
 
-    // Test reprint
+    // Test terms reprint
     for (let id of Object.keys(env.global.terms)) {
         const tenv: Env = {
             ...env,
