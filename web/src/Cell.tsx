@@ -236,15 +236,18 @@ export const CellView = ({
                     : getToplevel(env, cell.content)
             }
             onClose={() => setEditing(false)}
-            onChange={(term) => {
+            onChange={(rawOrToplevel) => {
                 onFocus();
-                if (typeof term === 'string') {
+                if (typeof rawOrToplevel === 'string') {
                     onChange(env, {
                         ...cell,
-                        content: { type: 'raw', text: term },
+                        content: { type: 'raw', text: rawOrToplevel },
                     });
                 } else {
-                    const { env: nenv, content } = updateToplevel(env, term);
+                    const { env: nenv, content } = updateToplevel(
+                        env,
+                        rawOrToplevel,
+                    );
                     onChange(nenv, {
                         ...cell,
                         content,
@@ -274,6 +277,14 @@ export const CellView = ({
             maxWidth={maxWidth}
             onSetPlugin={(display) => {
                 onChange(env, { ...cell, display });
+            }}
+            // onChange={}
+            onChange={(toplevel: ToplevelT) => {
+                const { env: nenv, content } = updateToplevel(env, toplevel);
+                onChange(nenv, {
+                    ...cell,
+                    content,
+                });
             }}
             onPin={onPin}
             cell={cell}

@@ -127,7 +127,12 @@ export const renderAttributedText = (
     env: GlobalEnv,
     text: Array<AttributedText>,
     onClick?:
-        | ((id: string, kind: string, loc?: Location) => boolean)
+        | ((
+              evt: React.MouseEvent,
+              id: string,
+              kind: string,
+              loc?: Location,
+          ) => boolean)
         | undefined
         | null,
     allIds?: boolean,
@@ -167,7 +172,10 @@ export const renderAttributedText = (
                     }
                     onMouseDown={(evt) => {}}
                     onClick={(evt) => {
-                        if (onClick && onClick(item.id, item.kind, item.loc)) {
+                        if (
+                            onClick &&
+                            onClick(evt, item.id, item.kind, item.loc)
+                        ) {
                             evt.preventDefault();
                             evt.stopPropagation();
                         }

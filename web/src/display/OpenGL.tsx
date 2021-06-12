@@ -46,14 +46,14 @@ export const newGLSLEnv = (canvas: HTMLCanvasElement): GLSLEnv => ({
     },
 });
 
-const IconButton = ({
+export const IconButton = ({
     icon,
     onClick,
     selected,
 }: {
     icon: string;
     onClick: () => void;
-    selected: boolean;
+    selected?: boolean;
 }) => {
     return (
         <button

@@ -3,8 +3,14 @@ import { jsx } from '@emotion/react';
 // Ok
 
 import * as React from 'react';
-import { idName, idFromName } from '@jerd/language/src/typing/env';
-import { Env, Id, Location } from '@jerd/language/src/typing/types';
+import { idName, idFromName, ToplevelT } from '@jerd/language/src/typing/env';
+import {
+    Env,
+    Float,
+    Id,
+    Location,
+    Term,
+} from '@jerd/language/src/typing/types';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import Editor from './Editor';
@@ -23,12 +29,17 @@ import { RenderResult } from './RenderResult';
 import { getToplevel, updateToplevel } from './toplevels';
 import { Position } from './Cells';
 import { addLocationIndices } from '../../language/src/typing/analyze';
+import { transform, walkTerm } from '../../language/src/typing/transform';
+import { IconButton } from './display/OpenGL';
 
 const onClick = (
     env: Env,
     cell: Cell,
     addCell: (c: Content, p: Position) => void,
-) => (id: string, kind: string, loc?: Location) => {
+    setScrub: (s: Scrub) => void,
+    term: Term | null,
+    value: any,
+) => (evt: React.MouseEvent, id: string, kind: string, loc?: Location) => {
     console.log(kind, id, loc);
     const position: Position = { type: 'after', id: cell.id };
     if (kind === 'term' || kind === 'as') {
@@ -66,11 +77,45 @@ const onClick = (
             position,
         );
         return true;
-    } else if (kind === 'float') {
-        console.log('a gloat!', loc);
+    } else if (kind === 'float' && term != null && loc && loc.idx != null) {
+        const literal = findByIndex(term, loc.idx);
+        if (!literal) {
+            console.log('notfound by index');
+            return false;
+        }
+        if (literal.type !== 'float') {
+            console.error('found not a float');
+            return false;
+        }
+        const parent = (evt.target as HTMLElement).offsetParent!;
+        const box = parent.getBoundingClientRect();
+        const thisBox = (evt.target as HTMLElement).getBoundingClientRect();
+
+        setScrub({
+            term,
+            returnValue: value,
+            scrubbed: literal.value,
+            original: literal,
+            pos: {
+                left: thisBox.left - box.left,
+                top: thisBox.bottom - box.top,
+            },
+            loc,
+        });
         return true;
     }
     return false;
+};
+
+const findByIndex = (term: Term, idx: number): Term | null => {
+    let found: null | Term = null;
+    walkTerm(term, (t) => {
+        if (t.type !== 'Let' && t.location.idx === idx) {
+            found = t;
+            return false;
+        }
+    });
+    return found;
 };
 
 export type Props = {
@@ -85,6 +130,17 @@ export type Props = {
     onEdit: () => void;
     onSetPlugin: (display: Display | null) => void;
     onPin: (display: Display, id: Id) => void;
+    onChange: (toplevel: ToplevelT) => void;
+};
+
+export type Scrub = {
+    term: Term;
+    returnValue: any;
+    loc: Location;
+    pos: { left: number; top: number };
+    // TODO generalize
+    scrubbed: number;
+    original: Float;
 };
 
 export const RenderItem = ({
@@ -99,14 +155,16 @@ export const RenderItem = ({
     maxWidth,
 
     onSetPlugin,
+    onChange,
     onPin,
 }: Props) => {
     let top = getToplevel(env, content);
     top = addLocationIndices(top);
     const term =
-        content.type === 'expr' || content.type === 'term'
-            ? env.global.terms[idName(content.id)]
-            : null;
+        top.type === 'Define' || top.type === 'Expression' ? top.term : null;
+    const [scrub, setScrub] = React.useState(null as null | Scrub);
+    const value = evalEnv.terms[idName(content.id)];
+
     return (
         <div>
             <div
@@ -122,7 +180,7 @@ export const RenderItem = ({
                 {renderAttributedText(
                     env.global,
                     printToAttributedText(toplevelToPretty(env, top), maxWidth),
-                    onClick(env, cell, addCell),
+                    onClick(env, cell, addCell, setScrub, term, value),
                     undefined,
                     undefined,
                     (id, kind) =>
@@ -135,14 +193,82 @@ export const RenderItem = ({
                             'float',
                         ].includes(kind),
                 )}
+                {scrub ? (
+                    <div
+                        css={{
+                            position: 'absolute',
+                            padding: '4px 8px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            // color: 'black',
+                            borderRadius: 4,
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                        }}
+                        style={{
+                            left: scrub.pos.left,
+                            top: scrub.pos.top + 4,
+                        }}
+                        onMouseDown={(evt) => evt.stopPropagation()}
+                        onClick={(evt) => evt.stopPropagation()}
+                    >
+                        <input
+                            type="range"
+                            min={scrub.original.value / 2.0}
+                            max={scrub.original.value * 2.0}
+                            value={scrub.scrubbed}
+                            onChange={(evt) => {
+                                const value = +evt.target.value;
+                                const term = transform(scrub.term, {
+                                    term: (t) => {
+                                        if (
+                                            t.location.idx ===
+                                            scrub.original.location.idx
+                                        ) {
+                                            return {
+                                                ...scrub.original,
+                                                value,
+                                            };
+                                        }
+                                        return null;
+                                    },
+                                    let: (l) => null,
+                                });
+                                setScrub({
+                                    ...scrub,
+                                    term,
+                                    scrubbed: value,
+                                });
+                            }}
+                        />
+                        {scrub.scrubbed}
+                        <IconButton
+                            icon="done"
+                            onClick={() => {
+                                onChange({
+                                    ...top,
+                                    term: scrub.term,
+                                });
+                                setScrub(null);
+                                // change the term to be this term ...
+                            }}
+                        />
+                        <IconButton
+                            icon="cancel"
+                            onClick={() => {
+                                setScrub(null);
+                            }}
+                        />
+                    </div>
+                ) : null}
             </div>
             {term ? (
                 <RenderResult
                     onSetPlugin={onSetPlugin}
                     onPin={onPin}
                     cell={cell}
-                    term={term}
-                    value={evalEnv.terms[idName(content.id)]}
+                    term={scrub ? scrub.term : term}
+                    value={scrub ? scrub.returnValue : value}
                     plugins={plugins}
                     id={content.id}
                     env={env}
