@@ -14,21 +14,14 @@ import {
 import {
     termToPretty,
     toplevelToPretty,
-    ToplevelT,
 } from '@jerd/language/src/printing/printTsLike';
 import typeExpr, { showLocation } from '@jerd/language/src/typing/typeExpr';
-import {
-    EnumDef,
-    Env,
-    Id,
-    Symbol,
-    Term,
-    Type,
-} from '@jerd/language/src/typing/types';
+import { Env } from '@jerd/language/src/typing/types';
 import {
     hashObject,
     idName,
     typeToplevelT,
+    ToplevelT,
 } from '@jerd/language/src/typing/env';
 import { renderAttributedText, renderAttributedTextToHTML } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';

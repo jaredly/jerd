@@ -6,7 +6,7 @@
 // So that's probably some information I'll have to hang onto somehow.
 
 import { Location } from '../parsing/parser';
-import { idName, refName, typeEffect } from '../typing/env';
+import { idName, refName, ToplevelT } from '../typing/env';
 import { getOpLevel } from '../typing/terms/ops';
 import {
     Case,
@@ -39,40 +39,6 @@ import {
     printToString,
     id,
 } from './printer';
-
-export type ToplevelT =
-    | {
-          type: 'Effect';
-          id: Id;
-          effect: EffectDef;
-          location: Location;
-          name: string;
-          constrNames: Array<string>;
-      }
-    | { type: 'Expression'; term: Term; location: Location }
-    | {
-          type: 'Define';
-          id: Id;
-          term: Term;
-          location: Location;
-          name: string;
-          tags?: Array<string>;
-      }
-    | {
-          type: 'EnumDef';
-          def: EnumDef;
-          id: Id;
-          location: Location;
-          name: string;
-      }
-    | {
-          type: 'RecordDef';
-          def: RecordDef;
-          id: Id;
-          location: Location;
-          name: string;
-          attrNames: Array<string>;
-      };
 
 export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
     switch (toplevel.type) {

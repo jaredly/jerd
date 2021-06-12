@@ -6,20 +6,8 @@
 import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
-import {
-    hashObject,
-    idFromName,
-    idName,
-    typeEnumInner,
-    typeRecordDefn,
-    withoutLocations,
-} from './typing/env';
-import parse, {
-    Define,
-    Expression,
-    Location,
-    Toplevel,
-} from './parsing/parser';
+import { hashObject, idFromName, idName } from './typing/env';
+import parse, { Toplevel } from './parsing/parser';
 import {
     fileToTypescript,
     OutputOptions,
@@ -27,29 +15,8 @@ import {
 import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
-import {
-    Env,
-    Id,
-    newWithGlobal,
-    Self,
-    Term,
-    Type,
-    TypeConstraint,
-    typesEqual,
-} from './typing/types';
-import { printToString } from './printing/printer';
-import {
-    termToPretty,
-    typeToPretty,
-    toplevelToPretty,
-    ToplevelT,
-} from './printing/printTsLike';
-import {
-    typeDefine,
-    typeTypeDefn,
-    typeEnumDefn,
-    typeEffect,
-} from './typing/env';
+import { Env, Term } from './typing/types';
+import { ToplevelT } from './typing/env';
 import { typeFile } from './typing/typeFile';
 
 import { presetEnv } from './typing/preset';

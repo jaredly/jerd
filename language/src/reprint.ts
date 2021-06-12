@@ -4,6 +4,7 @@ import {
     typeEnumInner,
     typeRecordDefn,
     withoutLocations,
+    ToplevelT,
 } from './typing/env';
 import parse, {
     Define,
@@ -14,7 +15,7 @@ import parse, {
 import typeExpr, { showLocation } from './typing/typeExpr';
 import { Env, newLocal, Term } from './typing/types';
 import { printToString } from './printing/printer';
-import { toplevelToPretty, ToplevelT } from './printing/printTsLike';
+import { toplevelToPretty } from './printing/printTsLike';
 import { walkTerm } from './typing/transform';
 import { LocatedError } from './typing/errors';
 import { writeFileSync } from 'fs';

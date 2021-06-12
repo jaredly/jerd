@@ -3,16 +3,16 @@
 import * as React from 'react';
 import parse, { Toplevel } from '@jerd/language/src/parsing/parser';
 
-import { presetEnv } from '@jerd/language/src/typing/preset';
 import { Env, newWithGlobal, Type } from '@jerd/language/src/typing/types';
 import { Content } from './State';
 
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import {
-    toplevelToPretty,
+    idName,
+    typeToplevelT,
     ToplevelT,
-} from '@jerd/language/src/printing/printTsLike';
-import { idName, typeToplevelT } from '@jerd/language/src/typing/env';
+} from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';

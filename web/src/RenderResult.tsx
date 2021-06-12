@@ -3,38 +3,14 @@ import { jsx } from '@emotion/react';
 // Ok
 
 import * as React from 'react';
+import { idName, idFromName } from '@jerd/language/src/typing/env';
 import {
-    addExpr,
-    addDefine,
-    addRecord,
-    addEnum,
-    idName,
-    addEffect,
-    idFromName,
-} from '@jerd/language/src/typing/env';
-import {
-    EnumDef,
     Env,
     Id,
-    RecordDef,
-    selfEnv,
-    Term,
-    Type,
     nullLocation,
     typesEqual,
 } from '@jerd/language/src/typing/types';
-import {
-    declarationToPretty,
-    termToPretty,
-    ToplevelT,
-    toplevelToPretty,
-} from '@jerd/language/src/printing/printTsLike';
-import { printToAttributedText } from '@jerd/language/src/printing/printer';
-import Editor from './Editor';
-import { termToJS } from './eval';
-import { renderAttributedText } from './Render';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
-import { void_ } from '@jerd/language/src/typing/preset';
 import {
     Cell,
     Content,

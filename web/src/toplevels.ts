@@ -10,9 +10,9 @@ import {
     addEnum,
     idName,
     addEffect,
+    ToplevelT,
 } from '@jerd/language/src/typing/env';
 import { EnumDef, Env, nullLocation } from '@jerd/language/src/typing/types';
-import { ToplevelT } from '@jerd/language/src/printing/printTsLike';
 import { Content } from './State';
 
 export const getToplevel = (env: Env, content: Content): ToplevelT => {

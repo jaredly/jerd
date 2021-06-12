@@ -9,10 +9,7 @@ import {
     printToAttributedText,
     printToString,
 } from '@jerd/language/src/printing/printer';
-import {
-    toplevelToPretty,
-    ToplevelT,
-} from '@jerd/language/src/printing/printTsLike';
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { showLocation } from '@jerd/language/src/typing/typeExpr';
 import {
     Env,
@@ -27,6 +24,7 @@ import {
     hashObject,
     idName,
     typeToplevelT,
+    ToplevelT,
 } from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';

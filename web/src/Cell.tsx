@@ -11,6 +11,7 @@ import {
     idName,
     addEffect,
     idFromName,
+    ToplevelT,
 } from '@jerd/language/src/typing/env';
 import {
     EnumDef,
@@ -25,7 +26,6 @@ import {
 import {
     declarationToPretty,
     termToPretty,
-    ToplevelT,
     toplevelToPretty,
     typeToPretty,
     typeVblDeclsToPretty,

@@ -37,10 +37,43 @@ import {
     selfEnv,
     newLocal,
 } from './types';
-import { ToplevelT } from '../printing/printTsLike';
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
 import { getTypeError } from './getTypeError';
+
+export type ToplevelT =
+    | {
+          type: 'Effect';
+          id: Id;
+          effect: EffectDef;
+          location: Location;
+          name: string;
+          constrNames: Array<string>;
+      }
+    | { type: 'Expression'; term: Term; location: Location }
+    | {
+          type: 'Define';
+          id: Id;
+          term: Term;
+          location: Location;
+          name: string;
+          tags?: Array<string>;
+      }
+    | {
+          type: 'EnumDef';
+          def: TypeEnumDef;
+          id: Id;
+          location: Location;
+          name: string;
+      }
+    | {
+          type: 'RecordDef';
+          def: RecordDef;
+          id: Id;
+          location: Location;
+          name: string;
+          attrNames: Array<string>;
+      };
 
 export const typeToplevelT = (
     env: Env,

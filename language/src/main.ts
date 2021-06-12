@@ -6,14 +6,7 @@
 import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
-import {
-    hashObject,
-    idFromName,
-    idName,
-    typeEnumInner,
-    typeRecordDefn,
-    withoutLocations,
-} from './typing/env';
+import { hashObject, idName } from './typing/env';
 import parse, {
     Define,
     Expression,
@@ -43,7 +36,6 @@ import {
     termToPretty,
     typeToPretty,
     toplevelToPretty,
-    ToplevelT,
 } from './printing/printTsLike';
 import {
     typeDefine,

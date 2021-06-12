@@ -2,11 +2,8 @@ import * as React from 'react';
 import { parse } from '@jerd/language/src/parsing/grammar';
 import { Toplevel } from '@jerd/language/src/parsing/parser';
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
-import {
-    toplevelToPretty,
-    ToplevelT,
-} from '@jerd/language/src/printing/printTsLike';
-import { hashObject, typeToplevelT } from '@jerd/language/src/typing/env';
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
+import { typeToplevelT, ToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedTextToHTML } from './Render';
 import { Env, newWithGlobal } from '@jerd/language/src/typing/types';
 
