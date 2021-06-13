@@ -33,17 +33,10 @@ import { addLocationIndices } from '../../language/src/typing/analyze';
 import { transform, walkTerm } from '../../language/src/typing/transform';
 import { IconButton } from './display/OpenGL';
 import { RangeScrub } from './Scrubbers/Range';
+import { detectVec2Scrub, PositionScrub } from './Scrubbers/Position';
+import { ColorScrub, detectColorScrub } from './Scrubbers/Color';
 
-const findApply = (term: Term, idx: number): Apply | null => {
-    let found: null | Apply = null;
-    walkTerm(term, (t) => {
-        if (t.type === 'apply' && t.target.location.idx === idx) {
-            found = t;
-            return false;
-        }
-    });
-    return found;
-};
+const detectors = [detectVec2Scrub, detectColorScrub];
 
 const onClick = (
     env: Env,
@@ -56,58 +49,44 @@ const onClick = (
     console.log(kind, id, loc);
     const position: Position = { type: 'after', id: cell.id };
 
-    // Vec2
-    if (
-        kind === 'term' &&
-        id === '54a9f2ef' &&
-        term != null &&
-        loc != null &&
-        loc.idx != null
-    ) {
-        // ooohh hm ok maybe here is where we need paths?
-        // because I don't know if this vec2 is being called
-        // immediately. And I only want to match on that.
-        const idx = loc.idx;
-        const apply = findApply(term, loc.idx);
-        if (
-            apply == null ||
-            apply.args.length !== 2 ||
-            apply.args.some((arg) => arg.type !== 'float')
-        ) {
-            console.error('nope', apply);
-            return false;
+    if (term != null && loc != null && loc.idx != null) {
+        for (let detector of detectors) {
+            const item = detector(kind, id, term, loc.idx);
+            if (item != null) {
+                const parent = (evt.target as HTMLElement).offsetParent!;
+                const box = parent.getBoundingClientRect();
+                const thisBox = (evt.target as HTMLElement).getBoundingClientRect();
+
+                setScrub({
+                    term,
+                    returnValue: value,
+                    item,
+                    pos: {
+                        left: thisBox.left - box.left,
+                        top: thisBox.bottom - box.top,
+                    },
+                });
+                return true;
+            }
         }
 
-        const x = apply.args[0] as Float;
-        const y = apply.args[1] as Float;
-        console.log('GOT IT', x.location, y.location);
+        // const parent = (evt.target as HTMLElement).offsetParent!;
+        // const box = parent.getBoundingClientRect();
+        // const thisBox = (evt.target as HTMLElement).getBoundingClientRect();
 
-        const parent = (evt.target as HTMLElement).offsetParent!;
-        const box = parent.getBoundingClientRect();
-        const thisBox = (evt.target as HTMLElement).getBoundingClientRect();
-
-        setScrub({
-            term,
-            returnValue: value,
-            item: {
-                type: 'Vec2',
-                x: {
-                    scrubbed: x.value,
-                    original: x,
-                    loc: x.location,
-                },
-                y: {
-                    scrubbed: y.value,
-                    original: y,
-                    loc: y.location,
-                },
-            },
-            pos: {
-                left: thisBox.left - box.left,
-                top: thisBox.bottom - box.top,
-            },
-        });
-        return true;
+        // const vec2 = detectVec2Scrub(kind, id, term, loc.idx);
+        // if (vec2) {
+        //     setScrub({
+        //         term,
+        //         returnValue: value,
+        //         item: vec2,
+        //         pos: {
+        //             left: thisBox.left - box.left,
+        //             top: thisBox.bottom - box.top,
+        //         },
+        //     });
+        //     return true;
+        // }
     }
 
     if (kind === 'term' || kind === 'as') {
@@ -314,91 +293,6 @@ export const RenderItem = ({
     );
 };
 
-export const PositionScrub = ({
-    env,
-    fullScrub,
-    term,
-    x,
-    y,
-    width,
-    height,
-    setScrub,
-}: {
-    env: Env;
-    term: Term;
-    x: FloatScrub;
-    y: FloatScrub;
-    width: number;
-    height: number;
-    setScrub: (s: Scrub) => void;
-    fullScrub: Scrub;
-}) => {
-    const [dragging, setDragging] = React.useState(false);
-    return (
-        <div
-            css={{
-                width: width / 2,
-                height: height / 2,
-                position: 'relative',
-                backgroundColor: 'transparent',
-            }}
-            onMouseMove={(evt) => {
-                if (!dragging) {
-                    return;
-                }
-                const box = evt.currentTarget.getBoundingClientRect();
-                const left = (evt.clientX - box.left) * 2;
-                const top = height - (evt.clientY - box.top) * 2;
-                const newTerm = transform(term, {
-                    term: (t) => {
-                        if (t.location.idx === x.original.location.idx) {
-                            return {
-                                ...x.original,
-                                value: left,
-                            };
-                        }
-                        if (t.location.idx === y.original.location.idx) {
-                            return {
-                                ...y.original,
-                                value: top,
-                            };
-                        }
-                        return null;
-                    },
-                    let: (l) => null,
-                });
-
-                setScrub({
-                    ...fullScrub,
-                    term: newTerm,
-                    item: {
-                        type: 'Vec2',
-                        x: { ...x, scrubbed: left },
-                        y: { ...y, scrubbed: top },
-                    },
-                });
-            }}
-            onMouseUp={() => setDragging(false)}
-            onMouseDown={() => setDragging(true)}
-        >
-            <div
-                css={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    position: 'absolute',
-                    backgroundColor: 'transparent',
-                    border: '1px solid white',
-                }}
-                style={{
-                    top: (height - y.scrubbed) / 2 - 4,
-                    left: x.scrubbed / 2 - 4,
-                }}
-            />
-        </div>
-    );
-};
-
 export const renderScrub = (
     env: Env,
     top: ToplevelT,
@@ -430,6 +324,21 @@ export const renderScrub = (
                 height={400}
             />
         );
+    } else if (scrub.item.type === 'color') {
+        body = (
+            <ColorScrub
+                fullScrub={scrub}
+                env={env}
+                term={scrub.term}
+                r={scrub.item.r}
+                g={scrub.item.g}
+                b={scrub.item.b}
+                setScrub={setScrub}
+            />
+        );
+    }
+    if (!body) {
+        return <div>Unknown scrub type {scrub.item.type}</div>;
     }
     return (
         <div

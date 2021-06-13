@@ -3,9 +3,67 @@ import { jsx } from '@emotion/react';
 // Ok
 
 import * as React from 'react';
-import { Env, Term } from '@jerd/language/src/typing/types';
-import { transform } from '../../../language/src/typing/transform';
-import { FloatScrub, Scrub } from '../RenderItem';
+import {
+    Apply,
+    Env,
+    Float,
+    Location,
+    Term,
+} from '@jerd/language/src/typing/types';
+import { transform, walkTerm } from '../../../language/src/typing/transform';
+import { FloatScrub, Scrub, ScrubItem } from '../RenderItem';
+
+export const findApplyWithTarget = (term: Term, idx: number): Apply | null => {
+    let found: null | Apply = null;
+    walkTerm(term, (t) => {
+        if (t.type === 'apply' && t.target.location.idx === idx) {
+            found = t;
+            return false;
+        }
+    });
+    return found;
+};
+
+export const detectVec2Scrub = (
+    kind: string,
+    id: string,
+    term: Term,
+    idx: number,
+): ScrubItem | null => {
+    // Vec2
+    if (kind !== 'term' || id !== '54a9f2ef') {
+        return null;
+    }
+    // ooohh hm ok maybe here is where we need paths?
+    // because I don't know if this vec2 is being called
+    // immediately. And I only want to match on that.
+    const apply = findApplyWithTarget(term, idx);
+    if (
+        apply == null ||
+        apply.args.length !== 2 ||
+        apply.args.some((arg) => arg.type !== 'float')
+    ) {
+        console.error('nope', apply);
+        return null;
+    }
+
+    const x = apply.args[0] as Float;
+    const y = apply.args[1] as Float;
+
+    return {
+        type: 'Vec2',
+        x: {
+            scrubbed: x.value,
+            original: x,
+            loc: x.location,
+        },
+        y: {
+            scrubbed: y.value,
+            original: y,
+            loc: y.location,
+        },
+    };
+};
 
 export const PositionScrub = ({
     env,
