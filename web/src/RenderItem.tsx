@@ -32,6 +32,7 @@ import { Position } from './Cells';
 import { addLocationIndices } from '../../language/src/typing/analyze';
 import { transform, walkTerm } from '../../language/src/typing/transform';
 import { IconButton } from './display/OpenGL';
+import { RangeScrub } from './Scrubbers/Range';
 
 const findApply = (term: Term, idx: number): Apply | null => {
     let found: null | Apply = null;
@@ -395,61 +396,6 @@ export const PositionScrub = ({
                 }}
             />
         </div>
-    );
-};
-
-export const RangeScrub = ({
-    env,
-    fullScrub,
-    term,
-    scrub,
-    setScrub,
-}: {
-    env: Env;
-    term: Term;
-    scrub: FloatScrub;
-    setScrub: (s: Scrub) => void;
-    fullScrub: Scrub;
-}) => {
-    return (
-        <React.Fragment>
-            <input
-                type="range"
-                min={scrub.original.value < 10 ? 0 : scrub.original.value / 2.0}
-                max={scrub.original.value < 1 ? 1 : scrub.original.value * 2.0}
-                step={Math.max(0.01, scrub.original.value / 50)}
-                value={scrub.scrubbed}
-                onChange={(evt) => {
-                    const value = +evt.target.value;
-                    const newTerm = transform(term, {
-                        term: (t) => {
-                            if (
-                                t.location.idx === scrub.original.location.idx
-                            ) {
-                                return {
-                                    ...scrub.original,
-                                    value,
-                                };
-                            }
-                            return null;
-                        },
-                        let: (l) => null,
-                    });
-                    setScrub({
-                        ...fullScrub,
-                        term: newTerm,
-                        item: {
-                            type: 'float',
-                            x: {
-                                ...scrub,
-                                scrubbed: value,
-                            },
-                        },
-                    });
-                }}
-            />
-            {scrub.scrubbed}
-        </React.Fragment>
     );
 };
 
