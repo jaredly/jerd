@@ -336,18 +336,18 @@ export const PositionScrub = ({
     return (
         <div
             css={{
-                width,
-                height,
+                width: width / 2,
+                height: height / 2,
                 position: 'relative',
-                backgroundColor: '#555',
+                backgroundColor: 'transparent',
             }}
             onMouseMove={(evt) => {
                 if (!dragging) {
                     return;
                 }
                 const box = evt.currentTarget.getBoundingClientRect();
-                const left = evt.clientX - box.left;
-                const top = evt.clientY - box.top;
+                const left = (evt.clientX - box.left) * 2;
+                const top = height - (evt.clientY - box.top) * 2;
                 const newTerm = transform(term, {
                     term: (t) => {
                         if (t.location.idx === x.original.location.idx) {
@@ -382,57 +382,19 @@ export const PositionScrub = ({
         >
             <div
                 css={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: 2,
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
                     position: 'absolute',
-                    backgroundColor: 'red',
-                    border: '1px solid black',
+                    backgroundColor: 'transparent',
+                    border: '1px solid white',
                 }}
                 style={{
-                    top: y.scrubbed,
-                    left: x.scrubbed,
+                    top: (height - y.scrubbed) / 2 - 4,
+                    left: x.scrubbed / 2 - 4,
                 }}
             />
         </div>
-        // <React.Fragment>
-        //     <input
-        //         type="range"
-        //         min={scrub.original.value < 10 ? 0 : scrub.original.value / 2.0}
-        //         max={scrub.original.value < 1 ? 1 : scrub.original.value * 2.0}
-        //         step={Math.max(0.01, scrub.original.value / 50)}
-        //         value={scrub.scrubbed}
-        //         onChange={(evt) => {
-        //             const value = +evt.target.value;
-        //             const newTerm = transform(term, {
-        //                 term: (t) => {
-        //                     if (
-        //                         t.location.idx === scrub.original.location.idx
-        //                     ) {
-        //                         return {
-        //                             ...scrub.original,
-        //                             value,
-        //                         };
-        //                     }
-        //                     return null;
-        //                 },
-        //                 let: (l) => null,
-        //             });
-        //             setScrub({
-        //                 ...fullScrub,
-        //                 term: newTerm,
-        //                 item: {
-        //                     type: 'float',
-        //                     x: {
-        //                         ...scrub,
-        //                         scrubbed: value,
-        //                     },
-        //                 },
-        //             });
-        //         }}
-        //     />
-        //     {scrub.scrubbed}
-        // </React.Fragment>
     );
 };
 

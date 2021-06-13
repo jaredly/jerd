@@ -192,6 +192,11 @@ const MulVec2 = Div<Vec2, Vec2, Vec2>{
 }
 
 @glsl_builtin
+const ScaleVec2 = Mul<Vec2, Vec2, Vec2>{
+    "*": (v: Vec2, scale: Vec2) => Vec2{x: v.x * scale.x, y: v.y * scale.y}
+}
+
+@glsl_builtin
 const ScaleVec3Rev = Div<Vec3, float, Vec3>{
     "/": (v: Vec3, scale: float) => Vec3{x: v.x / scale, y: v.y / scale, z: v.z / scale}
 }
@@ -293,6 +298,12 @@ const clamp = (v: Vec3, min: Vec3, max: Vec3) => Vec3{
     x: clamp(v.x, min.x, max.x),
     y: clamp(v.y, min.y, max.y),
     z: clamp(v.z, min.z, max.z),
+}
+
+@glsl_builtin
+const max = (v: Vec2, n: float) => Vec2{
+    x: max(v.x, n),
+    y: max(v.y, n),
 }
 
 @glsl_builtin

@@ -12,6 +12,8 @@ import typeExpr, {
 import typeType from '../typeType';
 import { getTypeError } from '../getTypeError';
 import { LocatedError } from '../errors';
+import { printToString } from '../../printing/printer';
+import { termToPretty } from '../../printing/printTsLike';
 
 export const typeApply = (
     env: Env,
@@ -118,7 +120,14 @@ export const typeApply = (
                 target.location,
                 `Ambiguous term doesn't match arguments ${resArgs
                     .map((arg) => showType(env, arg.is))
-                    .join(', ')}`,
+                    .join(', ')}. Options:\n  - ${target.options
+                    .map(
+                        (t) =>
+                            printToString(termToPretty(env, t), 100) +
+                            ' : ' +
+                            showType(env, t.is),
+                    )
+                    .join('\n  - ')}`,
             );
         }
         target = matching[0].option;
