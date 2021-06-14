@@ -1,6 +1,16 @@
 
 ## What do we need in order to make this minimally usable by other people?
 
+- [ ] "Workspace history"
+  - this shows things like "created term #xyz from term #zyx"
+  - "renamed abc to def"
+  - "created term abc#xyz"
+  - "opened term abc"
+  ... yeah it does seem like a thing that would be nice...
+- [ ] cmd+p to add something to your workspace pleeeease. Maybe include search by type?
+
+
+
 
 - [x] SLIDERSSSS will be so fun
   - [x] add an "idx" to Location
@@ -9,7 +19,7 @@
   - [x] populate the idx
   - [x] add the Location to PPs and AttributedText(?)
 - [x] baby's first slider! A simple input range delio
-- [ ] Now let's do a 2d slider for vec2!
+- [x] Now let's do a 2d slider for vec2!
   - hmmmmm ok detecting this will require more sophisticated
     analysis of the tree than I have been doing.
     Because we want to /find the term/ and then /find its parent/. Right?
@@ -127,7 +137,7 @@ But yeah, I think my north star right now should be "an IDE where I can tweak th
     - I do wonder about how best to /display/ traces from other terms though.
       do I open up a temporary thing with the ...
       or maybe I have a "full page debugging" view, that will open up terms that get traces?
-- [ ] GLSL yes let's get this folks!
+- [x] GLSL yes let's get this folks!
   - So the basic idea is: the IR that I'm compiling has some trace calls in it
     (should be simple to check while generating the shaders), I go ahead and
     eval the ....
@@ -140,7 +150,7 @@ But yeah, I think my north star right now should be "an IDE where I can tweak th
     and then harvest right after.
     Yeah that sounds legit.
     Much better this way.
-  - [ ] tracing without buffers
+  - [x] tracing without buffers
   - [ ] tracing with buffers
     - this would mean, I think, swapping in a shader that just blits the texture out onto the canvas, then using toDataURL or something like that, and doing that for each buffer ... 
     - ooh ok it would be cool to have a setting to "show the intermediate buffers" anyway. Yeah that would be neat.
@@ -151,7 +161,7 @@ But yeah, I think my north star right now should be "an IDE where I can tweak th
 
 ### Basic usability
 - [x] make a menu for cells, so I can do "export this term and dependencies" for debugging
-- [ ] ok for the maximally fancy, let's do "trace!() runs the javascript, and snoops the values"
+- [x] ok for the maximally fancy, let's do "trace!() runs the javascript, and snoops the values"
 - [ ] cmd+p to search for terms, showing most recently edited things, and their types, and such
 - [x] pins should have a way to open up the cell of the source
 - [ ] opening a cell should select it

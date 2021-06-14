@@ -306,6 +306,26 @@ const Cells = ({
                             );
                             setFocus({ id, tick: 0 });
                         }}
+                        onDuplicate={() => {
+                            const pos: Position = { type: 'after', id };
+                            const nid = genId();
+                            setState(
+                                modActiveWorkspace((w: Workspace) => {
+                                    const order = calculateOrder(w.cells, pos);
+                                    return {
+                                        ...w,
+                                        cells: {
+                                            ...w.cells,
+                                            [nid]: {
+                                                ...w.cells[id],
+                                                id: nid,
+                                                order,
+                                            },
+                                        },
+                                    };
+                                }),
+                            );
+                        }}
                         onMove={(position: MovePosition) => {
                             if (typeof position !== 'string') {
                                 return;

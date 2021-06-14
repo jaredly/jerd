@@ -236,10 +236,15 @@ export const RenderItem = ({
     onChange,
     onPin,
 }: Props) => {
-    let top = getToplevel(env, content);
-    top = addLocationIndices(top);
-    const term =
-        top.type === 'Define' || top.type === 'Expression' ? top.term : null;
+    let [top, term] = React.useMemo(() => {
+        let top = getToplevel(env, content);
+        top = addLocationIndices(top);
+        const term =
+            top.type === 'Define' || top.type === 'Expression'
+                ? top.term
+                : null;
+        return [top, term];
+    }, [env, content]);
     const [scrub, setScrub] = React.useState(null as null | Scrub);
     const value = evalEnv.terms[idName(content.id)];
 

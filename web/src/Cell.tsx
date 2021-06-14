@@ -53,6 +53,7 @@ export type CellProps = {
     cell: Cell;
     env: Env;
     focused: number | null;
+    onDuplicate: () => void;
     onFocus: () => void;
     onChange: (env: Env, cell: Cell) => void;
     onRun: (id: Id) => void;
@@ -74,6 +75,8 @@ const CellWrapper = ({
     menuItems,
     focused,
     onFocus,
+    collapsed,
+    setCollapsed,
 }: {
     title: React.ReactNode;
     focused: number | null;
@@ -82,6 +85,8 @@ const CellWrapper = ({
     onRemove: () => void;
     onToggleSource: (() => void) | null | undefined;
     menuItems: () => Array<MenuItem>;
+    collapsed: boolean;
+    setCollapsed: (c: boolean) => void;
 }) => {
     const [menu, setMenu] = React.useState(false);
     const ref = React.useRef(null as null | HTMLElement);
@@ -196,7 +201,7 @@ const CellWrapper = ({
                     ╳
                 </button>
             </div>
-            {children}
+            {collapsed ? null : children}
         </div>
     );
 };
@@ -207,6 +212,7 @@ export const CellView = ({
     maxWidth,
     onChange,
     onRemove,
+    onDuplicate,
     onRun,
     onFocus,
     focused,
@@ -337,12 +343,17 @@ export const CellView = ({
         return () => window.removeEventListener('keydown', fn);
     }, [focused != null]);
 
+    const setCollapsed = (collapsed: boolean) =>
+        onChange(env, { ...cell, collapsed });
+
     return (
         <CellWrapper
             title={cellTitle(env, cell, maxWidth)}
             onRemove={onRemove}
             focused={focused}
             onFocus={onFocus}
+            collapsed={cell.collapsed}
+            setCollapsed={setCollapsed}
             onToggleSource={() => setShowSource(!showSource)}
             menuItems={() => {
                 return [
@@ -350,6 +361,13 @@ export const CellView = ({
                     { name: 'Move up', action: () => onMove('up') },
                     { name: 'Move down', action: () => onMove('down') },
                     { name: 'Move to workspace', action: () => {} },
+                    { name: 'Duplicate cell', action: onDuplicate },
+                    cell.collapsed
+                        ? { name: 'Expand', action: () => setCollapsed(false) }
+                        : {
+                              name: 'Collapse',
+                              action: () => setCollapsed(true),
+                          },
                     term
                         ? showSource
                             ? {

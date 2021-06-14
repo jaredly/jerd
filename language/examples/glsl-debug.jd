@@ -49,3 +49,8 @@ const goToTown = (
     );
 }
 
+// const sdf = 
+
+// superSample(
+//     sdf: marchNormals(sceneSDF: (env: GLSLEnv, pos: Vec3): float# ={}> length(v: pos) - 0.5),
+// )
