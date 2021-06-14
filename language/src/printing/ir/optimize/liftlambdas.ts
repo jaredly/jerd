@@ -45,6 +45,10 @@ export const liftToTopLevel = (
     const id: Id = { hash, size: 1, pos: 0 };
     let expr: Expr = optimizeDefineNew(env, lambda, id, exprs);
     exprs[hash] = { expr: expr, inline: false };
+    if (env.local.self) {
+        const idSelf = env.local.self.name;
+        env.global.idNames[hash] = env.global.idNames[idSelf] + '_lambda';
+    }
     return {
         type: 'term',
         id,

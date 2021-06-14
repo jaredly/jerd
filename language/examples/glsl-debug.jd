@@ -29,7 +29,7 @@ const outer: ((float) ={}> float, bool) ={}> (GLSLEnv, Vec2) ={}> Vec4 = (
     vec4(inner(v), p.y, m, m);
 }
 
-@main
+// @main
 const z = outer((m: float) ={}> (m / 2.0), true)
 
 // @main
@@ -49,8 +49,20 @@ const goToTown = (
     );
 }
 
-// const sdf = 
+const marchNormals = (sdf: (env: GLSLEnv, pos: Vec3) => float) => (env: GLSLEnv, pos: Vec2) => {
+    const one = sdf(env, vec3(pos, 0.0));
+    const two = sdf(env, vec3(pos, 1.0));
+    if one > two {
+        vec4(0.0)
+    } else {
+        vec4(1.0)
+    }
+}
 
-// superSample(
-//     sdf: marchNormals(sceneSDF: (env: GLSLEnv, pos: Vec3): float# ={}> length(v: pos) - 0.5),
-// )
+const superSample = (sdf: (env: GLSLEnv, pos: Vec2) => Vec4) => 
+    (env: GLSLEnv, pos: Vec2) => (sdf(env, pos) + sdf(env, pos + vec2(0.0, 0.5))) / 2.0
+
+@main
+const m = superSample(
+    sdf: marchNormals(sceneSDF: (env: GLSLEnv, pos: Vec3): float ={}> length(v: pos) - 0.5),
+)
