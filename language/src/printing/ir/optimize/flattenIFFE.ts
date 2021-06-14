@@ -9,7 +9,7 @@ import {
     Type,
 } from '../types';
 import { and, asBlock, builtin, iffe } from '../utils';
-import { optimizer } from './optimize';
+import { optimizer } from './utils';
 
 // This flattens IFFEs that are the bodies of a lambda expr, or
 // the value of a return statement.

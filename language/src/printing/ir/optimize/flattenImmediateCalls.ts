@@ -52,7 +52,8 @@ import {
 } from '../utils';
 import { and, asBlock, builtin, iffe } from '../utils';
 import { inlint } from './inline';
-import { isConstant, transformRepeatedly } from './optimize';
+import { isConstant } from './optimize';
+import { transformRepeatedly } from './utils';
 
 export const hasReturns = (stmt: Stmt): boolean => {
     switch (stmt.type) {

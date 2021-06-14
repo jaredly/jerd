@@ -51,6 +51,7 @@ import { inlint } from './inline';
 import { monoconstant } from './monoconstant';
 import { monomorphize } from './monomorphize';
 import { optimizeTailCalls } from './tailCall';
+import { transformRepeatedly } from './utils';
 
 export type Optimizer = (
     senv: Env,
@@ -61,6 +62,46 @@ export type Optimizer = (
 ) => Expr;
 
 export const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
+
+export const optimizeDefineNew = (
+    env: Env,
+    expr: Expr,
+    id: Id,
+    exprs: Exprs | null,
+): Expr => {
+    const fns = exprs ? glslOpts : javascriptOpts;
+    const exprss = exprs || {};
+    let changed = true;
+    const opts = {};
+    let passes = 0;
+    const changeCount: { [key: string]: number } = {};
+    while (changed) {
+        if (passes++ > 200) {
+            console.log(changeCount);
+            throw new Error(`Optimization passes failing to converge`);
+        }
+        let old = expr;
+        fns.forEach((fn) => {
+            const nexpr = fn(env, opts, exprss, expr, id);
+            if (nexpr !== expr) {
+                expr = nexpr;
+                changeCount[fn + ''] = (changeCount[fn + ''] || 0) + 1;
+            }
+        });
+        changed = old !== expr;
+    }
+
+    // expr = optimizeDefineOld(env, expr, id);
+    // if (exprs) {
+    //     expr = optimizeAggressive(env, exprs, expr, id);
+    // }
+    // expr = optimizeDefineOld(env, expr, id);
+    // if (exprs) {
+    //     expr = optimizeAggressive(env, exprs, expr, id);
+    // }
+    uniquesReallyAreUnique(expr);
+    return expr;
+};
 
 export const optimizeDefine = (
     env: Env,
@@ -156,9 +197,6 @@ export const optimize = (env: Env, expr: Expr): Expr => {
     return expr;
 };
 
-export const optimizer = (visitor: Visitor) => (env: Env, expr: Expr): Expr =>
-    transformRepeatedly(expr, visitor);
-
 // TODO: need an `&&` logicOp type. Or just a general binOp type?
 // or something. Maybe have && be a builtin, binop.
 export const flattenNestedIfs = (env: Env, expr: Expr): Expr => {
@@ -187,17 +225,6 @@ export const flattenNestedIfs = (env: Env, expr: Expr): Expr => {
             };
         },
     });
-};
-
-export const transformRepeatedly = (expr: Expr, visitor: Visitor): Expr => {
-    while (true) {
-        const nexp = transformExpr(expr, visitor);
-        if (nexp === expr) {
-            break;
-        }
-        expr = nexp;
-    }
-    return expr;
 };
 
 export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
@@ -379,46 +406,6 @@ const javascriptOpts: Array<Optimizer> = [
     simpleOpt(optimize),
     simpleOpt(arraySliceLoopToIndex),
 ];
-
-export const optimizeDefineNew = (
-    env: Env,
-    expr: Expr,
-    id: Id,
-    exprs: Exprs | null,
-): Expr => {
-    const fns = exprs ? glslOpts : javascriptOpts;
-    const exprss = exprs || {};
-    let changed = true;
-    const opts = {};
-    let passes = 0;
-    const changeCount: { [key: string]: number } = {};
-    while (changed) {
-        if (passes++ > 200) {
-            console.log(changeCount);
-            throw new Error(`Optimization passes failing to converge`);
-        }
-        let old = expr;
-        fns.forEach((fn) => {
-            const nexpr = fn(env, opts, exprss, expr, id);
-            if (nexpr !== expr) {
-                expr = nexpr;
-                changeCount[fn + ''] = (changeCount[fn + ''] || 0) + 1;
-            }
-        });
-        changed = old !== expr;
-    }
-
-    // expr = optimizeDefineOld(env, expr, id);
-    // if (exprs) {
-    //     expr = optimizeAggressive(env, exprs, expr, id);
-    // }
-    // expr = optimizeDefineOld(env, expr, id);
-    // if (exprs) {
-    //     expr = optimizeAggressive(env, exprs, expr, id);
-    // }
-    uniquesReallyAreUnique(expr);
-    return expr;
-};
 
 // const aggressive: Array<Optimizer>
 

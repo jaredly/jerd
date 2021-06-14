@@ -8,7 +8,8 @@ import {
 } from '../transform';
 import { Expr, OutputOptions, Stmt, Record, RecordSubType } from '../types';
 import { block, iffe, typeFromTermType } from '../utils';
-import { isConstant, transformRepeatedly } from './optimize';
+import { isConstant } from './optimize';
+import { transformRepeatedly } from './utils';
 
 export const flattenRecordSpread = (
     env: Env,

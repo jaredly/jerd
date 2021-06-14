@@ -18,7 +18,12 @@ import {
     liftLambdas,
     liftToTopLevel,
 } from './liftlambdas';
-import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
+import {
+    Exprs,
+    optimizeAggressive,
+    optimizeDefine,
+    optimizeDefineNew,
+} from './optimize';
 
 export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
     // console.log('const');
@@ -125,7 +130,7 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
             let newTerm: Expr = { ...l, is, args, body };
             const id = { hash: newHash, size: 1, pos: 0 };
             // console.log('optimizing it all up', newHash);
-            newTerm = optimizeDefine(env, newTerm, id, exprs);
+            newTerm = optimizeDefineNew(env, newTerm, id, exprs);
 
             exprs[newHash] = {
                 inline: false,

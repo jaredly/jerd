@@ -1,16 +1,7 @@
 import { Env, symbolsEqual } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
-import {
-    Expr,
-    OutputOptions,
-    Record,
-    RecordSubType,
-    Stmt,
-    Tuple,
-    Type,
-} from '../types';
-import { and, asBlock, builtin, iffe } from '../utils';
-import { optimizer, symName } from './optimize';
+import { Expr, Stmt } from '../types';
+import { symName } from './optimize';
 
 // We need to ensure that
 /*
