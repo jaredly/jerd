@@ -1,27 +1,19 @@
 
-const EPSILON = 0.0001
+const estimateNormal = (sceneSDF: (Vec3) ={}> float): Vec3 ={}> vec3(sceneSDF(vec3(0.0)))
 
-const estimateNormal = (
-    sceneSDF: (Vec3) ={}> float,
-): Vec3 ={}> vec3(sceneSDF(vec3(0.0)))
-
-const rec callIt = (
+const callIt = (
     sceneSDF: (Vec3) ={}> float,
     eye: Vec3,
 ): float ={}> {
-    sceneSDF( eye,);
+    sceneSDF(eye);
 }
 
-const marchNormals = (sceneSDF: (Vec3) ={}> float): (
-    Vec2,
-) ={}> Vec4 ={}> (coord: Vec2): Vec4 ={}> {
+const marchNormals = (sceneSDF: (Vec3) ={}> float) ={}> (coord: Vec2) ={}> {
     const dist = callIt(sceneSDF, vec3(0.0));
     vec4(estimateNormal(sceneSDF), w: dist);
 }
 
-const superSample = (sdf: (Vec2) ={}> Vec4): (
-    Vec2,
-) ={}> Vec4 ={}> (coord: Vec2): Vec4 ={}> {
+const superSample = (sdf: (Vec2) ={}> Vec4) ={}> (coord: Vec2) ={}> {
     sdf(coord)
 }
 
@@ -31,6 +23,5 @@ const unnamed = superSample(
         sceneSDF: (pos: Vec3): float ={}> length(
                 v: pos,
             ) 
-            - 0.5,
     ),
 )

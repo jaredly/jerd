@@ -42,28 +42,27 @@ vec3 estimateNormal_11a35a34(
 }
 
 /* -- generated -- */
-vec4 unnamed_lambda_0e99f0cc(vec2 coord_6) {
+vec4 unnamed_lambda_4394a4d0(vec2 coord_6) {
     return vec4(estimateNormal_11a35a34(sceneSDF_5), callIt_384c60bc(sceneSDF_5, vec3(0.0)));
 }
 
 /**
 ```
-const unnamed#60bdbc02 = superSample#65753cd2(
+const unnamed#e8d2ec00 = superSample#65753cd2(
     sdf: marchNormals#78ed8034(
-        sceneSDF: (pos#:0: Vec3#9f1c0644): float#builtin ={}> length#63e16b7a(v: pos#:0) 
-            -#builtin 0.5,
+        sceneSDF: (pos#:0: Vec3#9f1c0644): float#builtin ={}> length#63e16b7a(v: pos#:0),
     ),
 )
 ```
 */
-vec4 unnamed_60bdbc02(
+vec4 unnamed_e8d2ec00(
     vec2 coord_3
 ) {
-    return unnamed_lambda_0e99f0cc(coord_3);
+    return unnamed_lambda_4394a4d0(coord_3);
 }
 
 void main() {
-    fragColor = unnamed_60bdbc02(
+    fragColor = unnamed_e8d2ec00(
         GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
         gl_FragCoord.xy
     );
