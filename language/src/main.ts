@@ -7,17 +7,7 @@ import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
 import { hashObject, idName } from './typing/env';
-import parse, {
-    Define,
-    Expression,
-    Location,
-    Toplevel,
-} from './parsing/parser';
-import {
-    fileToTypescript,
-    OutputOptions,
-} from './printing/typeScriptPrinterSimple';
-import { removeTypescriptTypes } from './printing/typeScriptOptimize';
+import parse, { Toplevel } from './parsing/parser';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
 import {
@@ -26,17 +16,12 @@ import {
     Id,
     newWithGlobal,
     Self,
-    Term,
     Type,
     TypeConstraint,
     typesEqual,
 } from './typing/types';
 import { printToString } from './printing/printer';
-import {
-    termToPretty,
-    typeToPretty,
-    toplevelToPretty,
-} from './printing/printTsLike';
+import { termToPretty, typeToPretty } from './printing/printTsLike';
 import {
     typeDefine,
     typeTypeDefn,

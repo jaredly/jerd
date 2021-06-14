@@ -1449,6 +1449,12 @@ const hasInvalidGLSL = (expr: Expr) => {
     ) {
         return expr.loc;
     }
+    // Functions can't have a lambda as an argument
+    if (expr.type === 'lambda') {
+        if (expr.args.some((arg) => arg.type.type === 'lambda')) {
+            return expr.loc;
+        }
+    }
     if (
         expr.type === 'lambda' &&
         expr.is.type === 'lambda' &&
