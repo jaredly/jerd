@@ -561,7 +561,7 @@ const plugins: RenderPlugins = {
                     env={env}
                     evalEnv={evalEnv}
                     term={term}
-                    startPaused={startPaused}
+                    startPaused={true}
                 />
             );
         },
@@ -587,7 +587,7 @@ const plugins: RenderPlugins = {
                     env={env}
                     evalEnv={evalEnv}
                     term={term}
-                    startPaused={startPaused}
+                    startPaused={true}
                 />
             );
         },
