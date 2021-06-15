@@ -55,6 +55,10 @@ import { inlint } from './inline';
 import { isConstant } from './optimize';
 import { transformRepeatedly } from './utils';
 
+// Ok START HERE
+// Let's um ... make a big old test file,
+// with all of the permutations I can think of.
+
 export const hasReturns = (stmt: Stmt): boolean => {
     switch (stmt.type) {
         case 'Return':

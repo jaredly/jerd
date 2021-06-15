@@ -25,3 +25,15 @@ const unnamed = superSample(
             ) 
     ),
 )
+
+
+/* Ok, so at a basic level:
+
+What I want is:
+- calling a function that returns a function ... should
+  make a wrapping function with the same args, and then
+  inline the function call. Right?
+- and then, relatedly, we specialize any function arguments
+  that are lambdas.
+
+*/

@@ -1,4 +1,4 @@
-import { idFromName, idName } from '../../../typing/env';
+import { idFromName, idName, newSym } from '../../../typing/env';
 import { showLocation } from '../../../typing/typeExpr';
 import {
     Env,
@@ -23,6 +23,7 @@ import {
     Visitor,
 } from '../transform';
 import {
+    Arg,
     Expr,
     OutputOptions,
     Record,
@@ -32,11 +33,13 @@ import {
     Type,
 } from '../types';
 import {
+    arrowFunctionExpression,
     block,
     callExpression,
     int,
     pureFunction,
     typeFromTermType,
+    var_,
 } from '../utils';
 import { and, asBlock, builtin, iffe } from '../utils';
 import { arraySlices } from './arraySlices';
@@ -409,19 +412,65 @@ const javascriptOpts: Array<Optimizer> = [
 
 // const aggressive: Array<Optimizer>
 
+export const ensureToplevelFunctionsAreLambdas = (
+    env: Env,
+    irOpts: OutputOptions,
+    exprs: Exprs,
+    expr: Expr,
+) => {
+    if (expr.is.type !== 'lambda' || expr.type === 'lambda') {
+        return expr;
+    }
+    // TODO: fn types having args would be nice so we
+    // can name these args here.
+    const args: Array<Arg> = expr.is.args.map((t, i) => ({
+        type: t,
+        sym: newSym(env, 'arg' + i),
+        loc: expr.loc,
+    }));
+    return arrowFunctionExpression(
+        args,
+        callExpression(
+            env,
+            expr,
+            args.map((arg) => var_(arg.sym, arg.loc, arg.type)),
+            expr.loc,
+        ),
+        expr.loc,
+    );
+};
+
+// This is just calls to terms. Not calls to vars, or lambdas
+export const inlineCallsThatReturnFunctions = (
+    env: Env,
+    irOpts: OutputOptions,
+    exprs: Exprs,
+    expr: Expr,
+) => {
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (
+                expr.type !== 'apply' ||
+                expr.target.is.type !== 'lambda' ||
+                expr.target.type !== 'term' ||
+                expr.target.is.res.type !== 'lambda'
+            ) {
+                return null;
+            }
+            const t = exprs[idName(expr.target.id)];
+            return reUnique(env.local.unique, t.expr);
+        },
+    });
+};
+
 const glslOpts: Array<Optimizer> = [
-    (env, opts, _, expr, __) => explicitSpreads(env, opts, expr),
-    ...javascriptOpts,
-    (env, _, exprs, expr, id) => inlint(env, exprs, expr, id),
-    // // console.log('[after inline]', printToString(termToGlsl(env, {}, expr), 50));
-    (env, _, exprs, expr, __) => monomorphize(env, exprs, expr),
-    (env, _, exprs, expr, __) => monoconstant(env, exprs, expr),
-    simpleOpt(optimize),
-    // // console.log('[after mono]', printToString(termToGlsl(env, {}, expr), 50));
-    // expr = monoconstant(env, exprs, expr),
-    // // console.log('[after const]', printToString(termToGlsl(env, {}, expr), 50));
-    // // UGHH This is aweful that I'm adding these all over the place.
-    // // I should just run through each pass repeatedly until we have no more changes.
-    // // right?
-    // expr = optimize(env, expr),
+    ensureToplevelFunctionsAreLambdas,
+    inlineCallsThatReturnFunctions,
+    // (env, opts, _, expr, __) => explicitSpreads(env, opts, expr),
+    // ...javascriptOpts,
+    // (env, _, exprs, expr, id) => inlint(env, exprs, expr, id),
+    // (env, _, exprs, expr, __) => monomorphize(env, exprs, expr),
+    // (env, _, exprs, expr, __) => monoconstant(env, exprs, expr),
+    // simpleOpt(optimize),
 ];
