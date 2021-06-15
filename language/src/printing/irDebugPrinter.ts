@@ -193,8 +193,12 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
                 ']',
             );
         case 'apply':
+            let inner = debugExpr(env, expr.target);
+            if (expr.target.type === 'lambda') {
+                inner = items([atom('('), inner, atom(')')]);
+            }
             return items([
-                debugExpr(env, expr.target),
+                inner,
                 args(expr.args.map((arg) => debugExpr(env, arg))),
             ]);
         case 'Trace':

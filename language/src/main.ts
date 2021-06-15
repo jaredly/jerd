@@ -266,28 +266,6 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
         }
     }
 };
-type Init = {
-    typedBuiltins: { [key: string]: Type };
-    initialEnv: GlobalEnv;
-    builtinNames: Array<string>;
-};
-
-const loadInit = (): Init => {
-    const tsBuiltins = loadBuiltins();
-    console.log('loaded builtins');
-    const typedBuiltins: { [key: string]: Type } = {};
-    Object.keys(tsBuiltins).forEach((b) => {
-        const v = tsBuiltins[b];
-        if (v != null) {
-            typedBuiltins[b] = v;
-        }
-    });
-    const builtinNames = Object.keys(tsBuiltins);
-    const initialEnv = loadPrelude(typedBuiltins);
-    console.log('loaded prelude');
-
-    return { typedBuiltins, initialEnv, builtinNames };
-};
 
 export type Flags = {
     assert: boolean;
@@ -400,7 +378,7 @@ import { LocatedError, TypeError } from './typing/errors';
 // import { fileToGo } from './printing/goPrinter';
 import { getTypeError } from './typing/getTypeError';
 import { loadBuiltins } from './printing/loadBuiltins';
-import { loadPrelude } from './printing/loadPrelude';
+import { Init, loadInit, loadPrelude } from './printing/loadPrelude';
 import { OutputOptions as IOutputOptions } from './printing/ir/types';
 import { reprintToplevel } from './reprint';
 import { processFile } from './processFile';

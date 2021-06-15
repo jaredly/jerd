@@ -1,50 +1,12 @@
-import { idFromName, idName, newSym } from '../../../typing/env';
-import { showLocation } from '../../../typing/typeExpr';
-import {
-    Env,
-    Id,
-    idsEqual,
-    Location,
-    RecordDef,
-    refsEqual,
-    Symbol,
-    symbolsEqual,
-} from '../../../typing/types';
-import { termToGlsl } from '../../glslPrinter';
-import { printToString } from '../../printer';
+import { idName, newSym } from '../../../typing/env';
+import { Env, Id, Symbol } from '../../../typing/types';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import { uniquesReallyAreUnique } from '../analyze';
-import {
-    defaultVisitor,
-    transformBlock,
-    transformExpr,
-    transformLambdaBody,
-    transformStmt,
-    Visitor,
-} from '../transform';
-import {
-    Arg,
-    Expr,
-    OutputOptions,
-    Record,
-    RecordSubType,
-    Stmt,
-    Tuple,
-    Type,
-} from '../types';
-import {
-    arrowFunctionExpression,
-    block,
-    callExpression,
-    int,
-    pureFunction,
-    typeFromTermType,
-    var_,
-} from '../utils';
-import { and, asBlock, builtin, iffe } from '../utils';
+import { defaultVisitor, transformExpr, Visitor } from '../transform';
+import { Arg, Expr, OutputOptions, Stmt, Tuple } from '../types';
+import { and, arrowFunctionExpression, callExpression, var_ } from '../utils';
 import { arraySlices } from './arraySlices';
 import { arraySliceLoopToIndex } from './arraySliceToLoopIndex';
-import { explicitSpreads } from './explicitSpreads';
 import { flattenIffe } from './flattenIFFE';
 import { flattenImmediateCalls } from './flattenImmediateCalls';
 import { flattenRecordSpreads } from './flattenRecordSpread';
