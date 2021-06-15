@@ -29,6 +29,21 @@ const unnamed = superSample(
 
 /* Ok, so at a basic level:
 
+
+ohhhhh maybe we have a fight here,
+where the one thing is like "I can't inline this,
+the inner function relies on outer function values!!"
+and,
+uh
+hm.
+
+well ok, as long as the outer function /only/ takes
+functions as arguments, then we can inline it.
+
+ok yeah.
+
+
+
 What I want is:
 - calling a function that returns a function ... should
   make a wrapping function with the same args, and then

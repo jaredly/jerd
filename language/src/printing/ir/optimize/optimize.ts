@@ -464,6 +464,56 @@ export const inlineCallsThatReturnFunctions = (
     });
 };
 
+/* So, things we need to handle lambdas completely:
+  - inline calls that return functions
+  - outline local lambdas! buuut how do we deal
+    with lambdas that close over things? um I think the idea
+    there was to just fold those up? Or something? Or maybe
+    turn them into functions that take a record? Yeah so
+    we'd need an Expr type that is "lambda with scope vbls"
+    and then when applying it or whatever, we might end up
+    passing the vbls in as a record or something...
+    I think I'll need an IRType that's "lambda with scope'
+    as well... so that I can track function arguments
+    correctly? maybe? idk.
+        - see, if we're compiling for Zig, then I can have
+          function pointers, but not closures.
+          And so I'll need to specialize any functions
+          that use a closured function. But non-closured
+          functions can be handled as-is.
+
+    Yeah, so maybe the process is
+
+  - turn all lambdas that close over things into
+    lambda-with-scope.
+  - inline any calls that return functions
+  - flatten immediate calls
+  - specialize any functions that take functions as arguments
+
+  I think that's it?
+*/
+
+/*
+Ok, so somewhat end-game level stuff:
+if I have a top-level thing that isn't /const/able,
+I think the *right* way to do it would be to compute it
+in main(), and then pass it around to anything that needs it.
+but that's a bottom-up rather than a top-down thing like the
+lambda constantization is, right?
+oh wait; because toplevel things have to be pure (yay) they
+/must/ be precomutable, and so I can precompute them during
+compilation!
+
+Now I do have to think about what that would look like
+for things that are lambdas.
+like `const plus2 = plus(2)`
+
+ok we'll get to that when we need to.
+
+
+
+*/
+
 const glslOpts: Array<Optimizer> = [
     ensureToplevelFunctionsAreLambdas,
     inlineCallsThatReturnFunctions,
