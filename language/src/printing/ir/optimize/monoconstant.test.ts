@@ -1,38 +1,53 @@
+import { hasInvalidGLSL } from '../../glslPrinter';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { specializeFunctionsCalledWithLambdas } from './monoconstant';
-import { combineOpts, midOpt, simpleOpt } from './optimize';
+import {
+    combineOpts,
+    midOpt,
+    removeUnusedVariables,
+    simpleOpt,
+} from './optimize';
 import { runFixture, snapshotSerializer } from './optimizeTestUtils';
 
 expect.addSnapshotSerializer(snapshotSerializer);
 
 describe('specializeFunctionsCalledWithLambdas', () => {
     it('should work', () => {
-        expect(
-            runFixture(
-                `
-			const f = (g: () => int) => g() + 2
-			f(() => 4) - f(() => 23)
-			`,
-                combineOpts([
-                    specializeFunctionsCalledWithLambdas,
-                    foldConstantAssignments,
-                ]),
-            ),
-        ).toMatchInlineSnapshot(`
-              const expr0_lambda#0e868bd2: () => int = () => 23
-              const expr0_lambda#0a732d10: () => int = () => 4
-              const f_specialization#6bd04dc4: () => int = () => {
-                  const g#:0: () => int = expr0_lambda#0e868bd2;
-                  return +(expr0_lambda#0e868bd2(), 2);
+        const result = runFixture(
+            `const f = (g: (int) => int, n: int) => g(n / 2) + 2
+			 f((m: int) => m + 4, 11) - f((m: int) => m - 23, 42)
+		`,
+            combineOpts([
+                specializeFunctionsCalledWithLambdas,
+                // These are needed for cleanup
+                foldConstantAssignments,
+                removeUnusedVariables,
+            ]),
+        );
+        result.inOrder.forEach((id) => {
+            expect(hasInvalidGLSL(result.irTerms[id].expr)).toBeFalsy();
+        });
+
+        expect(result).toMatchInlineSnapshot(`
+              const expr0_lambda#0a384548: (int) => int = (
+                  m#:1: int,
+              ) => m#:1 - 23
+              const expr0_lambda#72e8c5ec: (int) => int = (
+                  m#:0: int,
+              ) => m#:0 + 4
+              const f_specialization#1b2fb1f8: (int) => int = (
+                  n#:1: int,
+              ) => {
+                  return expr0_lambda#0a384548(n#:1 / 2) + 2;
               }
-              const f_specialization#7e960666: () => int = () => {
-                  const g#:0: () => int = expr0_lambda#0a732d10;
-                  return +(expr0_lambda#0a732d10(), 2);
+              const f_specialization#31ad3db0: (int) => int = (
+                  n#:1: int,
+              ) => {
+                  return expr0_lambda#72e8c5ec(n#:1 / 2) + 2;
               }
-              const expr0#0846ff16: int = -(
-                  f_specialization#7e960666(),
-                  f_specialization#6bd04dc4(),
-              )
+              const expr0#1e1e9a9e: int = f_specialization#31ad3db0(
+                  11,
+              ) - f_specialization#1b2fb1f8(42)
         `);
     });
 });

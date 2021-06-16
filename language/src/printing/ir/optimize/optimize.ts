@@ -328,7 +328,7 @@ export const removeSelfAssignments = (_: Env, expr: Expr) =>
         },
     });
 
-export const removeUnusedVariables = (env: Env, expr: Expr): Expr => {
+export const removeUnusedVariables = (ctx: Context, expr: Expr): Expr => {
     const used: { [key: string]: boolean } = {};
     const visitor: Visitor = {
         ...defaultVisitor,

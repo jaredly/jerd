@@ -80,6 +80,8 @@ import {
 import { explicitSpreads } from './ir/optimize/explicitSpreads';
 import { toplevelRecordAttribute } from './ir/optimize/inline';
 import { glslTester } from './glslTester';
+import { isBinop } from './glslPrinter';
+import { getOpLevel } from '../typing/terms/ops';
 
 export const idToDebug = (env: Env, id: Id, isType: boolean): PP => {
     const idRaw = idName(id);
@@ -199,6 +201,24 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
             if (expr.target.type === 'lambda') {
                 inner = items([atom('('), inner, atom(')')]);
             }
+            if (
+                expr.target.type === 'builtin' &&
+                isBinop(expr.target.name) &&
+                expr.args.length === 2
+            ) {
+                const level = getOpLevel(expr.target.name)!;
+                const left = maybeParen(
+                    getBinopName(expr.args[0]),
+                    debugExpr(env, expr.args[0]),
+                    level,
+                );
+                const right = maybeParen(
+                    getBinopName(expr.args[0]),
+                    debugExpr(env, expr.args[1]),
+                    level,
+                );
+                return items([left, atom(' '), inner, atom(' '), right]);
+            }
             return items([
                 inner,
                 args(expr.args.map((arg) => debugExpr(env, arg))),
@@ -217,6 +237,28 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
                 ]),
             ]);
     }
+};
+
+const getBinopName = (expr: Expr) => {
+    if (
+        expr.type === 'apply' &&
+        expr.target.type === 'builtin' &&
+        isBinop(expr.target.name)
+    ) {
+        return expr.target.name;
+    }
+    return null;
+};
+
+const maybeParen = (name: string | null, v: PP, mine: number): PP => {
+    if (!name) {
+        return v;
+    }
+    const level = getOpLevel(name)!;
+    if (level < mine) {
+        return items([atom('('), v, atom(')')]);
+    }
+    return v;
 };
 
 export const debugType = (env: Env, type: ir.Type): PP => {

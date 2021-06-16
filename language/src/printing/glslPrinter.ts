@@ -1439,7 +1439,7 @@ export const fileToGlsl = (
     return generateShader(env, opts, irOpts, mainId, buffers.map(idFromName));
 };
 
-const hasInvalidGLSL = (expr: Expr) => {
+export const hasInvalidGLSL = (expr: Expr) => {
     let found: Loc | null = null;
     // Toplevel record not allowed
     if (
@@ -1468,6 +1468,12 @@ const hasInvalidGLSL = (expr: Expr) => {
     const top = expr;
     transformExpr(expr, {
         ...defaultVisitor,
+        stmt: (stmt) => {
+            if (stmt.type === 'Define' && stmt.is.type === 'lambda') {
+                found = stmt.loc;
+            }
+            return null;
+        },
         expr: (expr) => {
             if (expr === top) {
                 return null;
