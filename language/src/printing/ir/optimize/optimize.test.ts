@@ -132,15 +132,15 @@ describe('glsl in concert', () => {
               const expr0_lambda#🧜‍♂️🥂🏜️: (int) => float = (
                   pos#:0: int,
               ) => 23
-              
+
               const estimateNormal_specialization#🤷‍♂️🥜😭: () => float = () => expr0_lambda#🧜‍♂️🥂🏜️(
                   1,
               )
-              
+
               const callIt_specialization#🖤🐐🏨: (int) => float = (
                   eye#:1: int,
               ) => expr0_lambda#🧜‍♂️🥂🏜️(eye#:1)
-              
+
               const expr0#🧃💆‍♀️😋: (float) => float = (
                   coord#:2: float,
               ) => estimateNormal_specialization#🤷‍♂️🥜😭() + callIt_specialization#🖤🐐🏨(

@@ -2,7 +2,7 @@ import { parse } from '../../../parsing/grammar';
 import { hashObject, idFromName, idName } from '../../../typing/env';
 import { typeFile } from '../../../typing/typeFile';
 import { Env, newWithGlobal, nullLocation, Term } from '../../../typing/types';
-import { assembleItemsForFile } from '../../glslPrinter';
+import { assembleItemsForFile, hasInvalidGLSL } from '../../glslPrinter';
 import { debugExpr, debugType, idToDebug } from '../../irDebugPrinter';
 import { loadInit } from '../../loadPrelude';
 import { atom, items, printToString } from '../../printer';
@@ -12,6 +12,17 @@ import { presetEnv } from '../../../typing/preset';
 
 // const init = loadInit();
 const init = presetEnv({});
+
+export const expectValidGlsl = (result: {
+    env: Env;
+    irTerms: Exprs;
+    inOrder: Array<string>;
+}) => {
+    result.inOrder.forEach((id) => {
+        expect(hasInvalidGLSL(result.irTerms[id].expr)).toBeFalsy();
+    });
+    return result;
+};
 
 export const runFixture = (text: string, optimize: Optimizer2) => {
     const initialEnv = newWithGlobal(init.global);
@@ -89,7 +100,7 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
                     ),
                 )
                 .join('\n\n'),
-        );
+        ).replace(/\n\s+\n/g, '\n\n');
     },
 };
 

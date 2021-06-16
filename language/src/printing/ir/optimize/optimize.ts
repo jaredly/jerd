@@ -51,10 +51,12 @@ export type Optimizer = (
     id: Id,
 ) => Expr;
 
-export const optimizeRepeatedly = (opt: Optimizer2): Optimizer2 => (
-    ctx: Context,
-    expr: Expr,
-) => {
+export const optimizeRepeatedly = (
+    opt: Optimizer2 | Array<Optimizer2>,
+): Optimizer2 => (ctx: Context, expr: Expr) => {
+    if (Array.isArray(opt)) {
+        opt = combineOpts(opt);
+    }
     for (let i = 0; i < 100; i++) {
         const newExpr = opt(ctx, expr);
         if (newExpr === expr) {
