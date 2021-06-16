@@ -8,11 +8,13 @@ import { loadInit } from '../../loadPrelude';
 import { atom, items, printToString } from '../../printer';
 import * as pp from '../../printer';
 import { Exprs, Optimizer, Optimizer2, toOldOptimize } from './optimize';
+import { presetEnv } from '../../../typing/preset';
 
-const init = loadInit();
+// const init = loadInit();
+const init = presetEnv({});
 
 export const runFixture = (text: string, optimize: Optimizer2) => {
-    const initialEnv = newWithGlobal(init.initialEnv);
+    const initialEnv = newWithGlobal(init.global);
     const { env, expressions } = typeFile(
         parse(text),
         initialEnv,
