@@ -173,12 +173,8 @@ export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
 export const isTerm = (expr: Expr, id: Id) =>
     expr.type === 'term' && idsEqual(id, expr.id);
 
-export const typeForLambdaExpression = (body: Expr | Block): Type | null => {
-    if (body.type === 'Block') {
-        return returnTypeForStmt(body);
-    } else {
-        return body.is;
-    }
+export const typeForLambdaExpression = (body: Block): Type | null => {
+    return returnTypeForStmt(body);
 };
 
 export const returnTypeForStmt = (stmt: Stmt): Type | null => {
@@ -276,12 +272,12 @@ export type Expr =
           target: Expr;
           effect: Id;
           loc: Loc;
-          pure: { arg: Symbol; body: Expr | Block; argType: Type };
+          pure: { arg: Symbol; body: Block; argType: Type };
           cases: Array<{
               constr: number;
               args: Array<{ sym: Symbol; type: Type }>;
               k: { sym: Symbol; type: Type };
-              body: Expr | Block;
+              body: Block;
           }>;
           done: Expr | null;
           is: Type;
@@ -356,7 +352,7 @@ export type LambdaExpr = {
     type: 'lambda';
     args: Array<Arg>;
     res: Type;
-    body: Expr | Block;
+    body: Block;
     loc: Loc;
     is: LambdaType | CPSLambdaType;
     tags?: Array<string>;

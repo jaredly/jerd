@@ -4,7 +4,13 @@ import { reUnique } from '../../typeScriptPrinterSimple';
 import { uniquesReallyAreUnique } from '../analyze';
 import { defaultVisitor, transformExpr, Visitor } from '../transform';
 import { Arg, Expr, OutputOptions, Stmt, Tuple } from '../types';
-import { and, arrowFunctionExpression, callExpression, var_ } from '../utils';
+import {
+    and,
+    arrowFunctionExpression,
+    asBlock,
+    callExpression,
+    var_,
+} from '../utils';
 import { arraySlices } from './arraySlices';
 import { arraySliceLoopToIndex } from './arraySliceToLoopIndex';
 import { flattenIffe } from './flattenIFFE';
@@ -246,17 +252,16 @@ export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
 ): Expr => {
     return transformRepeatedly(expr, {
         ...defaultVisitor,
-        expr: (expr) => {
-            if (
-                expr.type === 'lambda' &&
-                expr.body.type === 'Block' &&
-                expr.body.items.length === 1 &&
-                expr.body.items[0].type === 'Return'
-            ) {
-                return { ...expr, body: expr.body.items[0].value };
-            }
-            return null;
-        },
+        // expr: (expr) => {
+        //     if (
+        //         expr.type === 'lambda' &&
+        //         expr.body.items.length === 1 &&
+        //         expr.body.items[0].type === 'Return'
+        //     ) {
+        //         return { ...expr, body: expr.body.items[0].value };
+        //     }
+        //     return null;
+        // },
         block: (block) => {
             const items: Array<Stmt> = [];
             let changed = false;
@@ -441,11 +446,13 @@ export const ensureToplevelFunctionsAreLambdas = (
     }));
     return arrowFunctionExpression(
         args,
-        callExpression(
-            env,
-            expr,
-            args.map((arg) => var_(arg.sym, arg.loc, arg.type)),
-            expr.loc,
+        asBlock(
+            callExpression(
+                env,
+                expr,
+                args.map((arg) => var_(arg.sym, arg.loc, arg.type)),
+                expr.loc,
+            ),
         ),
         expr.loc,
     );

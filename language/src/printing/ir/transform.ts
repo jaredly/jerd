@@ -239,14 +239,11 @@ export const transformLambdaExpr = (
 };
 
 export const transformLambdaBody = (
-    body: Expr | Block,
+    body: Block,
     visitor: Visitor,
     level: number,
-): Expr | Block => {
-    if (body.type === 'Block') {
-        return transformBlock(body, visitor, level + 1);
-    }
-    return transformExpr(body, visitor, level + 1);
+): Block => {
+    return transformBlock(body, visitor, level + 1);
 };
 
 export const transformBlock = (

@@ -98,12 +98,12 @@ export const hashToEmoji = (hash: string) => {
     let num = parseInt(hash, 16);
     const base = emojis.length;
     const bits = Math.floor(Math.log(base) / Math.log(2));
-    console.log('HASHING', num, base, bits);
+    // console.log('HASHING', num, base, bits);
     const mask = (1 << bits) - 1;
     let res = '';
     while (num > 0) {
         const bit = num & mask;
-        console.log(num, mask, bit, emojis[bit]);
+        // console.log(num, mask, bit, emojis[bit]);
         res += emojis[bit];
         num = num >> bits;
     }
@@ -340,9 +340,6 @@ export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
     }
 };
 
-export const debugBody = (env: Env, body: ir.Expr | ir.Block) => {
-    if (body.type === 'Block') {
-        return debugStmt(env, body);
-    }
-    return debugExpr(env, body);
+export const debugBody = (env: Env, body: ir.Block) => {
+    return debugStmt(env, body);
 };

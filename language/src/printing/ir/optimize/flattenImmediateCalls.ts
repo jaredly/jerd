@@ -222,20 +222,24 @@ export const flattenLambda = (
         .filter((arg) => arg.sym.unique !== handlerSym.unique);
 
     // If there's only one thing in town, go for it.
-    if (target.body.type !== 'Block') {
+    if (
+        target.body.items.length === 1 &&
+        target.body.items[0].type == 'Return'
+    ) {
+        const value = target.body.items[0].value;
         if (returnAs) {
             stmts.push({
                 type: 'Assign',
                 sym: returnAs,
-                value: target.body,
-                loc: target.body.loc,
-                is: target.body.is,
+                value: value,
+                loc: value.loc,
+                is: value.is,
             });
         } else {
             stmts.push({
                 type: 'Expression',
-                expr: target.body,
-                loc: target.body.loc,
+                expr: value,
+                loc: value.loc,
             });
         }
         return stmts;
@@ -529,52 +533,52 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
             }
             // TODO: huh should I just remove the "lambda body is expr" case
             // from the IR? that would simplify some things.
-            if (expr.type === 'lambda' && expr.body.type !== 'Block') {
-                // handle the toplevel case folks
-                const ret: Stmt = {
-                    type: 'Return',
-                    value: expr.body,
-                    loc: expr.body.loc,
-                };
-                // const block = asBlock(expr.body)
-                let flattened = flattenDefineLambdas(env, ret);
-                if (flattened === ret) {
-                    return null;
-                }
-                if (!Array.isArray(flattened)) {
-                    flattened = [flattened];
-                }
+            // if (expr.type === 'lambda' && expr.body.type !== 'Block') {
+            //     // handle the toplevel case folks
+            //     const ret: Stmt = {
+            //         type: 'Return',
+            //         value: expr.body,
+            //         loc: expr.body.loc,
+            //     };
+            //     // const block = asBlock(expr.body)
+            //     let flattened = flattenDefineLambdas(env, ret);
+            //     if (flattened === ret) {
+            //         return null;
+            //     }
+            //     if (!Array.isArray(flattened)) {
+            //         flattened = [flattened];
+            //     }
 
-                return {
-                    ...expr,
-                    body: {
-                        type: 'Block',
-                        loc: expr.body.loc,
-                        items: flattened,
-                    },
-                };
-            }
+            //     return {
+            //         ...expr,
+            //         body: {
+            //             type: 'Block',
+            //             loc: expr.body.loc,
+            //             items: flattened,
+            //         },
+            //     };
+            // }
 
             if (expr.type !== 'apply' || expr.target.type !== 'lambda') {
                 return null;
             }
             let body: Expr;
-            if (expr.target.body.type === 'Block') {
-                if (expr.target.body.items.length !== 1) {
-                    return null;
-                }
-                if (expr.target.body.items[0].type === 'Expression') {
-                    body = expr.target.body.items[0].expr;
-                } else if (expr.target.body.items[0].type === 'Return') {
-                    body = expr.target.body.items[0].value;
-                } else {
-                    return null;
-                }
-                // TODO TODO: we have sophisticated inlining now, we don't have
-                // to bail here on multi-item bodies.
-            } else {
-                body = expr.target.body;
+            // if (expr.target.body.type === 'Block') {
+            if (expr.target.body.items.length !== 1) {
+                return null;
             }
+            if (expr.target.body.items[0].type === 'Expression') {
+                body = expr.target.body.items[0].expr;
+            } else if (expr.target.body.items[0].type === 'Return') {
+                body = expr.target.body.items[0].value;
+            } else {
+                return null;
+            }
+            // TODO TODO: we have sophisticated inlining now, we don't have
+            // to bail here on multi-item bodies.
+            // } else {
+            //     body = expr.target.body;
+            // }
             if (expr.args.length === 0) {
                 return body;
             }
@@ -662,7 +666,7 @@ const checkMultiUse = (expr: LambdaExpr, indices: Array<number>) => {
     const uniques = indices.map((i) => expr.args[i].sym.unique);
     const uses: { [u: number]: number } = {};
     uniques.forEach((u) => (uses[u] = 0));
-    transformExpr(expr.body as Expr, {
+    transformStmt(expr.body, {
         ...defaultVisitor,
         expr: (expr) => {
             if (expr.type === 'var' && uniques.includes(expr.sym.unique)) {

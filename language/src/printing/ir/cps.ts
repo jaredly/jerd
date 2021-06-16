@@ -15,6 +15,7 @@ import {
     refsEqual,
 } from '../../typing/types';
 import {
+    asBlock,
     bool,
     builtinType,
     cpsArrowFunctionExpression,
@@ -488,19 +489,21 @@ export const maybeWrapForEffects = (
         expectedEffects,
         doneType,
         (cps) =>
-            passDone(
-                env,
-                opts,
-                expr,
-                otherArgs.map((arg, i) => {
-                    // maybe wrap here too?
-                    return var_(arg.sym, arg.loc, arg.type);
-                }),
-                expectedTypel.args,
-                expectedTypel.args,
-                cps,
-                expr.loc,
-                [], // STOPSHIP type vbls?
+            asBlock(
+                passDone(
+                    env,
+                    opts,
+                    expr,
+                    otherArgs.map((arg, i) => {
+                        // maybe wrap here too?
+                        return var_(arg.sym, arg.loc, arg.type);
+                    }),
+                    expectedTypel.args,
+                    expectedTypel.args,
+                    cps,
+                    expr.loc,
+                    [], // STOPSHIP type vbls?
+                ),
             ),
         expr.loc,
         [], // STOPSHIP type vbls?
@@ -804,14 +807,16 @@ export const maybeWrapDone = (
     const result = arrowFunctionExpression(
         // TODO: pass the done one? idk
         args.concat(returnValue ? [returnValue] : []),
-        callDone(
-            env,
-            opts,
-            { done, handlers: { ...outerHandlers, ...handlers } },
-            returnValue
-                ? var_(returnValue.sym, returnValue.loc, returnValue.type)
-                : null,
-            done.loc,
+        asBlock(
+            callDone(
+                env,
+                opts,
+                { done, handlers: { ...outerHandlers, ...handlers } },
+                returnValue
+                    ? var_(returnValue.sym, returnValue.loc, returnValue.type)
+                    : null,
+                done.loc,
+            ),
         ),
         done.loc,
     );

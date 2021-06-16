@@ -45,82 +45,82 @@ import {
 import { and, asBlock, builtin, iffe } from '../utils';
 import { Exprs, isConstant } from './optimize';
 
-const isInlinable = (t: LambdaExpr, self: Id) => {
-    // TODO: make this much faster folks
-    if (t.body.type === 'Block') {
-        return false;
-    }
-    let found = false;
-    transformExpr(t, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            found = found || (expr.type === 'term' && idsEqual(self, expr.id));
-            return null;
-        },
-    });
-    return !found;
-    // return false;
-};
+// const isInlinable = (t: LambdaExpr, self: Id) => {
+//     // TODO: make this much faster folks
+//     if (t.body.type === 'Block') {
+//         return false;
+//     }
+//     let found = false;
+//     transformExpr(t, {
+//         ...defaultVisitor,
+//         expr: (expr) => {
+//             found = found || (expr.type === 'term' && idsEqual(self, expr.id));
+//             return null;
+//         },
+//     });
+//     return !found;
+//     // return false;
+// };
 
-const getInlineableFunction = (
-    env: Env,
-    exprs: Exprs,
-    target: Expr,
-    self: Id,
-): Expr | null => {
-    // lol this would be nice
-    // if (target.type === 'builtin')
-    if (target.type === 'term') {
-        // Self recursion, can't do it folks.
-        if (idsEqual(self, target.id)) {
-            return null;
-        }
-        // console.log('inline', target.id, self);
-        // Hmm this might just be a rename. Can't count on it being an expr
-        const t = exprs[idName(target.id)];
-        if (!t) {
-            return null;
-        }
-        if (t.expr.type !== 'lambda') {
-            if (t.expr.type === 'term' || t.expr.type === 'builtin') {
-                return t.expr;
-            }
-            return null;
-        }
-        return null;
-        // hmm just reject self-recursive things please I think
-        // if (isInlinable(t, target.id)) {
-        //     return t;
-        // }
-    }
-    // It's might be a constant!
-    if (target.type === 'attribute' && target.target.type === 'term') {
-        const t = exprs[idName(target.target.id)];
-        if (!t || t.expr.type !== 'record' || t.expr.base.type !== 'Concrete') {
-            return null;
-        }
-        if (!refsEqual(target.ref, t.expr.base.ref)) {
-            console.error('attribute not right ref');
-            return null;
-        }
-        // these can't be self-referrential, at least not right now
-        const value = t.expr.base.rows[target.idx];
-        if (!value) {
-            return null;
-        }
-        if (value.type !== 'lambda') {
-            if (value.type === 'term' || value.type === 'builtin') {
-                return value;
-            }
-            return null;
-        }
-        return null;
-        // if (isInlinable(value as LambdaExpr, self)) {
-        //     return value;
-        // }
-    }
-    return null;
-};
+// const getInlineableFunction = (
+//     env: Env,
+//     exprs: Exprs,
+//     target: Expr,
+//     self: Id,
+// ): Expr | null => {
+//     // lol this would be nice
+//     // if (target.type === 'builtin')
+//     if (target.type === 'term') {
+//         // Self recursion, can't do it folks.
+//         if (idsEqual(self, target.id)) {
+//             return null;
+//         }
+//         // console.log('inline', target.id, self);
+//         // Hmm this might just be a rename. Can't count on it being an expr
+//         const t = exprs[idName(target.id)];
+//         if (!t) {
+//             return null;
+//         }
+//         if (t.expr.type !== 'lambda') {
+//             if (t.expr.type === 'term' || t.expr.type === 'builtin') {
+//                 return t.expr;
+//             }
+//             return null;
+//         }
+//         return null;
+//         // hmm just reject self-recursive things please I think
+//         // if (isInlinable(t, target.id)) {
+//         //     return t;
+//         // }
+//     }
+//     // It's might be a constant!
+//     if (target.type === 'attribute' && target.target.type === 'term') {
+//         const t = exprs[idName(target.target.id)];
+//         if (!t || t.expr.type !== 'record' || t.expr.base.type !== 'Concrete') {
+//             return null;
+//         }
+//         if (!refsEqual(target.ref, t.expr.base.ref)) {
+//             console.error('attribute not right ref');
+//             return null;
+//         }
+//         // these can't be self-referrential, at least not right now
+//         const value = t.expr.base.rows[target.idx];
+//         if (!value) {
+//             return null;
+//         }
+//         if (value.type !== 'lambda') {
+//             if (value.type === 'term' || value.type === 'builtin') {
+//                 return value;
+//             }
+//             return null;
+//         }
+//         return null;
+//         // if (isInlinable(value as LambdaExpr, self)) {
+//         //     return value;
+//         // }
+//     }
+//     return null;
+// };
 
 export const maxUnique = (expr: Expr) => {
     let max = 0;

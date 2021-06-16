@@ -48,7 +48,7 @@ import { inlint } from './inline';
 import { monoconstant } from './monoconstant';
 import { monomorphize } from './monomorphize';
 
-export const hasTailCall = (body: Block | Expr, self: Id): boolean => {
+export const hasTailCall = (body: Block, self: Id): boolean => {
     let found = false;
     let hasLoop = false;
     transformLambdaBody(
@@ -97,10 +97,10 @@ export const optimizeTailCalls = (env: Env, expr: Expr, self: Id) => {
 
 export const tailCallRecursion = (
     env: Env,
-    body: Block | Expr,
+    body: Block,
     argNames: Array<Symbol>,
     self: Id,
-): Block | Expr => {
+): Block => {
     if (!hasTailCall(body, self)) {
         return body;
     }

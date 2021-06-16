@@ -502,7 +502,7 @@ export const cpsArrowFunctionExpression = (
     args: Array<Arg>,
     effects: Array<EffectRef>,
     doneType: Type,
-    makeBody: (cps: CPS) => Expr | Block,
+    makeBody: (cps: CPS) => Block,
     loc: Loc,
     typeVbls?: Array<TypeVblDecl>,
     tags?: Array<string>,
@@ -568,11 +568,12 @@ export const arrowFunctionExpression = (
     typeVbls?: Array<TypeVblDecl>,
     tags?: Array<string>,
 ): LambdaExpr => {
-    const res = typeForLambdaExpression(body) || void_;
+    const block = asBlock(body);
+    const res = typeForLambdaExpression(block) || void_;
     return {
         type: 'lambda',
         args,
-        body,
+        body: block,
         res,
         loc,
         is: pureFunction(

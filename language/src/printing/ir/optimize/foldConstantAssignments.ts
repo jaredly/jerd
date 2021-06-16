@@ -54,10 +54,7 @@ export const foldConstantAssignments = (ctx: Context, topExpr: Expr): Expr => {
                         return null;
                     },
                 };
-                let body =
-                    expr.body.type === 'Block'
-                        ? transformStmt(expr.body, checkAssigns)
-                        : transformExpr(expr.body, checkAssigns);
+                let body = transformStmt(expr.body, checkAssigns);
                 if (Array.isArray(body)) {
                     body = block(body, expr.body.loc);
                 }

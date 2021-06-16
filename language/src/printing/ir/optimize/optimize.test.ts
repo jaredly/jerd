@@ -85,6 +85,10 @@ const testFixtures = (
     });
 };
 
+describe('ok', () => {
+    it('is ok', () => {});
+});
+
 // STOPSHIP: reenable
 // testFixtures(
 //     'removeUnusedVariable',

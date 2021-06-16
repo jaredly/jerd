@@ -34,20 +34,21 @@ export const flattenIffe = optimizer({
         return changed ? { ...block, items } : block;
     },
     expr: (expr) => {
+        // STOPSHIP: Do we still need this?
+        // if (
+        //     expr.type === 'lambda' &&
+        //     expr.body.type === 'apply' &&
+        //     expr.body.args.length === 0 &&
+        //     expr.body.target.type === 'lambda'
+        // ) {
+        //     return {
+        //         ...expr,
+        //         body: expr.body.target.body,
+        //     };
+        // }
         if (
             expr.type === 'lambda' &&
-            expr.body.type === 'apply' &&
-            expr.body.args.length === 0 &&
-            expr.body.target.type === 'lambda'
-        ) {
-            return {
-                ...expr,
-                body: expr.body.target.body,
-            };
-        }
-        if (
-            expr.type === 'lambda' &&
-            expr.body.type === 'Block' &&
+            // expr.body.type === 'Block' &&
             expr.body.items.length === 1 &&
             expr.body.items[0].type === 'Expression' &&
             expr.body.items[0].expr.type === 'apply' &&

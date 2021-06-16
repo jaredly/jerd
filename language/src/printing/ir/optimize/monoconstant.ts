@@ -132,22 +132,9 @@ export const monoconstant = (ctx: Context, expr: Expr): Expr => {
     return specializeFunctionsCalledWithLambdas(ctx, expr);
 };
 
-const wrapBlock = (body: Expr | Block, stmts: Array<Stmt>): Block => {
-    if (body.type === 'Block') {
-        return {
-            ...body,
-            items: stmts.concat(body.items),
-        };
-    } else {
-        return block(
-            stmts.concat([
-                {
-                    type: 'Return',
-                    value: body,
-                    loc: body.loc,
-                },
-            ]),
-            body.loc,
-        );
-    }
+const wrapBlock = (body: Block, stmts: Array<Stmt>): Block => {
+    return {
+        ...body,
+        items: stmts.concat(body.items),
+    };
 };

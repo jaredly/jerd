@@ -278,17 +278,7 @@ export const declarationToGlsl = (
                 false,
             ),
             atom(' '),
-            block(
-                term.body.type === 'Block'
-                    ? term.body.items.map((item) => stmtToGlsl(env, opts, item))
-                    : [
-                          stmtToGlsl(env, opts, {
-                              type: 'Return',
-                              loc: term.body.loc,
-                              value: term.body,
-                          }),
-                      ],
-            ),
+            block(term.body.items.map((item) => stmtToGlsl(env, opts, item))),
         ]);
     } else {
         // if (!isBuiltin(term.is) || isLiteral(term)) {
@@ -581,9 +571,7 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             return items([
                 atom('lambda-woops'),
                 args(expr.args.map((arg) => symToGlsl(env, opts, arg.sym))),
-                expr.body.type === 'Block'
-                    ? stmtToGlsl(env, opts, expr.body)
-                    : block([termToGlsl(env, opts, expr.body)]),
+                stmtToGlsl(env, opts, expr.body),
             ]);
         case 'eqLiteral':
             return items([
