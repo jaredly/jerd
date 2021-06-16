@@ -301,6 +301,9 @@ export const debugType = (env: Env, type: ir.Type): PP => {
 export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
     switch (stmt.type) {
         case 'Block':
+            if (stmt.items.length === 1 && stmt.items[0].type === 'Return') {
+                return debugExpr(env, stmt.items[0].value);
+            }
             return block(stmt.items.map((s) => debugStmt(env, s)));
         case 'Assign':
             return items([
