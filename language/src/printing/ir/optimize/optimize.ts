@@ -19,6 +19,7 @@ import { flattenRecordSpreads } from './flattenRecordSpread';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inlint } from './inline';
+import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
 import { monoconstant } from './monoconstant';
 import { monomorphize } from './monomorphize';
 import { optimizeTailCalls } from './tailCall';
@@ -49,6 +50,20 @@ export type Optimizer = (
     expr: Expr,
     id: Id,
 ) => Expr;
+
+export const optimizeRepeatedly = (opt: Optimizer2): Optimizer2 => (
+    ctx: Context,
+    expr: Expr,
+) => {
+    for (let i = 0; i < 100; i++) {
+        const newExpr = opt(ctx, expr);
+        if (newExpr === expr) {
+            return expr;
+        }
+        expr = newExpr;
+    }
+    throw new Error(`Optimize failed to converge`);
+};
 
 export const combineOpts = (opts: Array<Optimizer2>): Optimizer2 => (
     ctx: Context,
@@ -204,13 +219,13 @@ export const optimize = (ctx: Context, expr: Expr): Expr => {
         fromSimpleOpt(foldConstantTuples),
         fromSimpleOpt(removeSelfAssignments),
         foldConstantAssignments,
-        fromSimpleOpt(foldSingleUseAssignments),
+        foldSingleUseAssignments,
         fromSimpleOpt(flattenNestedIfs),
         fromSimpleOpt(arraySlices),
         foldConstantAssignments,
         removeUnusedVariables,
         fromSimpleOpt(flattenNestedIfs),
-        fromSimpleOpt(flattenImmediateCalls),
+        flattenImmediateCalls,
     ];
     transformers.forEach((t) => (expr = t(ctx, expr)));
     return expr;
@@ -458,30 +473,6 @@ export const ensureToplevelFunctionsAreLambdas = (
     );
 };
 
-// This is just calls to terms. Not calls to vars, or lambdas
-export const inlineCallsThatReturnFunctions = (
-    env: Env,
-    irOpts: OutputOptions,
-    exprs: Exprs,
-    expr: Expr,
-) => {
-    return transformExpr(expr, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            if (
-                expr.type !== 'apply' ||
-                expr.target.is.type !== 'lambda' ||
-                expr.target.type !== 'term' ||
-                expr.target.is.res.type !== 'lambda'
-            ) {
-                return null;
-            }
-            const t = exprs[idName(expr.target.id)];
-            return reUnique(env.local.unique, t.expr);
-        },
-    });
-};
-
 /* So, things we need to handle lambdas completely:
   - inline calls that return functions
   - outline local lambdas! buuut how do we deal
@@ -534,7 +525,7 @@ ok we'll get to that when we need to.
 
 const glslOpts: Array<Optimizer> = [
     ensureToplevelFunctionsAreLambdas,
-    inlineCallsThatReturnFunctions,
+    // inlineCallsThatReturnFunctions,
     // (env, opts, _, expr, __) => explicitSpreads(env, opts, expr),
     // ...javascriptOpts,
     // (env, _, exprs, expr, id) => inlint(env, exprs, expr, id),

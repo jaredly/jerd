@@ -1,7 +1,7 @@
 import { Env, symbolsEqual } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, Stmt } from '../types';
-import { symName } from './optimize';
+import { Context, symName } from './optimize';
 
 // We need to ensure that
 /*
@@ -13,7 +13,7 @@ z = x
 // doesn't end up with z being equal to 3.
 // So we need to ensure that ... "nothing that is used by
 // this thing gets reassigned"?
-export const foldSingleUseAssignments = (env: Env, expr: Expr): Expr => {
+export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
     let usages: { [v: string]: number } = {};
     let subUses: { [v: string]: { [key: string]: boolean } } = {};
     transformExpr(expr, {

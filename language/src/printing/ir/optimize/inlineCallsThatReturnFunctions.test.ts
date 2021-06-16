@@ -41,6 +41,7 @@ describe('inlineCallsThatReturnFunctions', () => {
               const f#🏜️🦢💣😃: (string) => string = (
                   n#:0: string,
               ) => n#:0 + "hi"
+              
               const expr0#🏋️‍♂️🏃💇‍♂️: string = f#🏜️🦢💣😃(
                   "ho",
               )

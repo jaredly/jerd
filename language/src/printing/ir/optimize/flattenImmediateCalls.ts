@@ -52,7 +52,7 @@ import {
 } from '../utils';
 import { and, asBlock, builtin, iffe } from '../utils';
 import { inlint } from './inline';
-import { isConstant } from './optimize';
+import { Context, isConstant } from './optimize';
 import { transformRepeatedly } from './utils';
 
 // Ok START HERE
@@ -353,8 +353,36 @@ export const flattenLambda = (
         stmts.push(...results);
     });
     return stmts;
-    // return [target.body];
 };
+
+export const flattenImmediateAssigns = (ctx: Context, expr: Expr): Expr =>
+    transformExpr(expr, {
+        ...defaultVisitor,
+        block: (block) => {
+            let last = null;
+            let results: Array<Stmt> = [];
+            for (let i = 0; i < block.items.length; i++) {
+                const d = block.items[i - 1];
+                const a = block.items[i];
+                if (i > 0 && d.type === 'Define' && a.type === 'Assign') {
+                    if (symbolsEqual(d.sym, a.sym)) {
+                        results[results.length - 1] = {
+                            ...d,
+                            value: a.value,
+                        };
+                        last = 1;
+                        continue;
+                    }
+                }
+                results.push(block.items[i]);
+            }
+            if (last != null) {
+                return { ...block, items: results };
+            } else {
+                return block;
+            }
+        },
+    });
 
 const flattenSingleLambda = (
     env: Env,
@@ -368,27 +396,42 @@ const flattenSingleLambda = (
     ) {
         return null;
     }
-    const stmts: Array<Stmt> = [];
-
-    // if (true) {
-    //     return null;
-    // }
+    let stmts: Array<Stmt> = [];
 
     const sym = typesEqual(expr.is, void_)
         ? null
         : newSym(env, `lambdaBlockResult`);
 
+    const rest = flattenLambda(env, expr, expr.target, sym);
     if (sym) {
-        stmts.push({
-            type: 'Define',
-            sym,
-            is: expr.is,
-            value: null,
-            fakeInit: true,
-            loc: expr.loc,
-        });
+        if (rest[0].type === 'Assign' && symbolsEqual(sym, rest[0].sym)) {
+            stmts = [
+                {
+                    type: 'Define',
+                    sym,
+                    is: expr.is,
+                    value: rest[0].value,
+                    fakeInit: true,
+                    loc: expr.loc,
+                },
+                ...rest.slice(1),
+            ];
+        } else {
+            stmts = [
+                {
+                    type: 'Define',
+                    sym,
+                    is: expr.is,
+                    value: null,
+                    fakeInit: true,
+                    loc: expr.loc,
+                },
+                ...rest,
+            ];
+        }
+    } else {
+        stmts = rest;
     }
-    stmts.push(...flattenLambda(env, expr, expr.target, sym));
 
     prefixes = stmts.concat(prefixes);
     // return stmts;
@@ -458,7 +501,7 @@ export const flattenDefineLambdas = (
     return prefixes.concat(Array.isArray(result) ? result : [result]);
 };
 
-export const flattenImmediateCalls = (env: Env, expr: Expr) => {
+export const flattenImmediateCalls = (ctx: Context, expr: Expr) => {
     return transformRepeatedly(expr, {
         ...defaultVisitor,
         stmt: (stmt) => {
@@ -474,28 +517,42 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
                 stmt.value.target.type === 'lambda'
             ) {
                 // const x = (() => {})()
-                const stmts: Array<Stmt> = [];
-                if (stmt.type === 'Define') {
-                    stmts.push({
-                        type: 'Define',
-                        sym: stmt.sym,
-                        is: stmt.is,
-                        value: null,
-                        fakeInit: true,
-                        loc: stmt.loc,
-                    });
-                }
-                stmts.push(
-                    ...flattenLambda(
-                        env,
-                        stmt.value,
-                        stmt.value.target,
-                        stmt.sym,
-                    ),
+                const rest = flattenLambda(
+                    ctx.env,
+                    stmt.value,
+                    stmt.value.target,
+                    stmt.sym,
                 );
-
-                // return stmts;
-                return stmts;
+                if (stmt.type === 'Define') {
+                    if (
+                        rest[0].type === 'Assign' &&
+                        symbolsEqual(rest[0].sym, stmt.sym)
+                    ) {
+                        return [
+                            {
+                                type: 'Define',
+                                sym: stmt.sym,
+                                is: stmt.is,
+                                value: rest[0].value,
+                                fakeInit: true,
+                                loc: stmt.loc,
+                            },
+                            ...rest.slice(1),
+                        ];
+                    }
+                    return [
+                        {
+                            type: 'Define',
+                            sym: stmt.sym,
+                            is: stmt.is,
+                            value: null,
+                            fakeInit: true,
+                            loc: stmt.loc,
+                        },
+                        ...rest,
+                    ];
+                }
+                return rest;
             }
 
             // Take care of the top-level expression-statement case,
@@ -524,7 +581,7 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
                 }
                 return items;
             }
-            return flattenDefineLambdas(env, stmt);
+            return flattenDefineLambdas(ctx.env, stmt);
         },
 
         expr: (expr) => {
@@ -619,7 +676,7 @@ export const flattenImmediateCalls = (env: Env, expr: Expr) => {
                 const inits: Array<Stmt> = multiUse.map((i) =>
                     define(targs[i].sym, expr.args[i]),
                 );
-                return iffe(env, {
+                return iffe(ctx.env, {
                     type: 'Block',
                     items: inits.concat({
                         type: 'Return',

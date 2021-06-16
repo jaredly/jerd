@@ -15,12 +15,13 @@ const init = presetEnv({});
 
 export const runFixture = (text: string, optimize: Optimizer2) => {
     const initialEnv = newWithGlobal(init.global);
-    const { env, expressions } = typeFile(
-        parse(text),
-        initialEnv,
-        'test-fixture',
-    );
-
+    let res;
+    try {
+        res = typeFile(parse(text), initialEnv, 'test-fixture');
+    } catch (err) {
+        throw new Error(err.toString());
+    }
+    const { env, expressions } = res;
     const mains: Array<Term> = expressions.map((expr, i) => {
         const hash = hashObject(expr);
         const id = { hash, size: 1, pos: 0 };
@@ -87,7 +88,7 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
                         50,
                     ),
                 )
-                .join('\n'),
+                .join('\n\n'),
         );
     },
 };

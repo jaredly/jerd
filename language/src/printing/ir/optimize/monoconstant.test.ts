@@ -32,15 +32,19 @@ describe('specializeFunctionsCalledWithLambdas', () => {
               const expr0_lambda#🧱⛰️🦙😃: (int) => int = (
                   m#:1: int,
               ) => m#:1 - 23
+              
               const expr0_lambda#🎎🌫️🐺😃: (int) => int = (
                   m#:0: int,
               ) => m#:0 + 4
+              
               const f_specialization#🧿⛅👨‍✈️: (int) => int = (
                   n#:1: int,
               ) => expr0_lambda#🧱⛰️🦙😃(n#:1 / 2) + 2
+              
               const f_specialization#😟🕦🌠😃: (int) => int = (
                   n#:1: int,
               ) => expr0_lambda#🎎🌫️🐺😃(n#:1 / 2) + 2
+              
               const expr0#🌯🌨️👨‍👧‍👦: int = f_specialization#😟🕦🌠😃(
                   11,
               ) - f_specialization#🧿⛅👨‍✈️(42)

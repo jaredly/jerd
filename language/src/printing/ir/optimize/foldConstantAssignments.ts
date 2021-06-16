@@ -22,23 +22,9 @@ export const foldConstantAssignments = (ctx: Context, topExpr: Expr): Expr => {
         expr: (expr, level) => {
             // Lambdas that aren't toplevel should invalidate anything they assign to
             if (expr.type === 'lambda' && level !== 0) {
-                // console.log(
-                //     'lambda at',
-                //     showLocation(expr.loc),
-                //     showLocation(topExpr.loc),
-                //     level,
-                // );
-                // console.log(new Error().stack);
                 const checkAssigns: Visitor = {
                     ...defaultVisitor,
                     expr: (expr) => {
-                        // if (expr.type === 'var') {
-                        //     console.log(
-                        //         'inner',
-                        //         expr.sym,
-                        //         constants[expr.sym.unique],
-                        //     );
-                        // }
                         if (
                             expr.type === 'var' &&
                             constants[expr.sym.unique] != null
@@ -60,11 +46,6 @@ export const foldConstantAssignments = (ctx: Context, topExpr: Expr): Expr => {
                 }
                 let changed =
                     body !== expr.body ? ({ ...expr, body } as Expr) : expr;
-                // console.log(
-                //     'Fold lambda constants',
-                //     showLocation(topExpr.loc),
-                //     showLocation(changed.loc),
-                // );
                 changed = foldConstantAssignments(ctx, changed);
                 return changed !== expr ? [changed] : false;
             }
