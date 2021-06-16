@@ -82,11 +82,32 @@ import { toplevelRecordAttribute } from './ir/optimize/inline';
 import { glslTester } from './glslTester';
 import { isBinop } from './glslPrinter';
 import { getOpLevel } from '../typing/terms/ops';
+import { emojis } from './emojis';
 
 export const idToDebug = (env: Env, id: Id, isType: boolean): PP => {
     const idRaw = idName(id);
     const readableName = env.global.idNames[idRaw];
-    return pp.id(readableName || 'unnamed', idRaw, isType ? 'type' : 'term');
+    return pp.id(
+        readableName || 'unnamed',
+        hashToEmoji(idRaw),
+        isType ? 'type' : 'term',
+    );
+};
+
+export const hashToEmoji = (hash: string) => {
+    let num = parseInt(hash, 16);
+    const base = emojis.length;
+    const bits = Math.floor(Math.log(base) / Math.log(2));
+    console.log('HASHING', num, base, bits);
+    const mask = (1 << bits) - 1;
+    let res = '';
+    while (num > 0) {
+        const bit = num & mask;
+        console.log(num, mask, bit, emojis[bit]);
+        res += emojis[bit];
+        num = num >> bits;
+    }
+    return res;
 };
 
 export const refToDebug = (env: Env, ref: Reference, isType: boolean): PP => {

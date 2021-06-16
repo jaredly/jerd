@@ -6,7 +6,7 @@ expect.addSnapshotSerializer(snapshotSerializer);
 describe('serializer', () => {
     it('should work', () => {
         expect(runFixture(`2 + 3`, (env, expr) => expr)).toMatchInlineSnapshot(
-            `  const expr0#23157700: int = 2 + 3`,
+            `  const expr0#🏣🧛‍♂️🕊️: int = 2 + 3`,
         );
     });
 });
@@ -22,7 +22,7 @@ describe('inlineCallsThatReturnFunctions', () => {
                 inlineCallsThatReturnFunctions,
             ),
         ).toMatchInlineSnapshot(`
-              const expr0#7c2fb0d1: string = ((n#:1: string) => (
+              const expr0#👨‍🦲🎿🎋😃: string = ((n#:1: string) => (
                   m#:2: string,
               ) => m#:2 + n#:1)("hi")("ho")
         `);
@@ -38,10 +38,12 @@ describe('inlineCallsThatReturnFunctions', () => {
                 inlineCallsThatReturnFunctions,
             ),
         ).toMatchInlineSnapshot(`
-              const f#48f8d2f4: (string) => string = (
+              const f#🏜️🦢💣😃: (string) => string = (
                   n#:0: string,
               ) => n#:0 + "hi"
-              const expr0#16f60da6: string = f#48f8d2f4("ho")
+              const expr0#🏋️‍♂️🏃💇‍♂️: string = f#🏜️🦢💣😃(
+                  "ho",
+              )
         `);
     });
 });

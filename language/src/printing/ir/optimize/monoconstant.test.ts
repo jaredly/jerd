@@ -29,25 +29,25 @@ describe('specializeFunctionsCalledWithLambdas', () => {
         });
 
         expect(result).toMatchInlineSnapshot(`
-              const expr0_lambda#0a384548: (int) => int = (
+              const expr0_lambda#🤱🦙👉: (int) => int = (
                   m#:1: int,
               ) => m#:1 - 23
-              const expr0_lambda#72e8c5ec: (int) => int = (
+              const expr0_lambda#🐵🕊️🚝😃: (int) => int = (
                   m#:0: int,
               ) => m#:0 + 4
-              const f_specialization#1b2fb1f8: (int) => int = (
+              const f_specialization#🐱🎿🤼‍♂️: (int) => int = (
                   n#:1: int,
               ) => {
-                  return expr0_lambda#0a384548(n#:1 / 2) + 2;
+                  return expr0_lambda#🤱🦙👉(n#:1 / 2) + 2;
               }
-              const f_specialization#31ad3db0: (int) => int = (
+              const f_specialization#🤸‍♀️🚨🌄: (int) => int = (
                   n#:1: int,
               ) => {
-                  return expr0_lambda#72e8c5ec(n#:1 / 2) + 2;
+                  return expr0_lambda#🐵🕊️🚝😃(n#:1 / 2) + 2;
               }
-              const expr0#1e1e9a9e: int = f_specialization#31ad3db0(
+              const expr0#🌯🌨️👨‍👧‍👦: int = f_specialization#🤸‍♀️🚨🌄(
                   11,
-              ) - f_specialization#1b2fb1f8(42)
+              ) - f_specialization#🐱🎿🤼‍♂️(42)
         `);
     });
 });
