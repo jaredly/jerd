@@ -3,13 +3,11 @@ import { Env } from '../../../typing/types';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, OutputOptions } from '../types';
-import { Exprs } from './optimize';
+import { Context, Exprs, Optimizer2 } from './optimize';
 
 // This is just calls to terms. Not calls to vars, or lambdas
-export const inlineCallsThatReturnFunctions = (
-    env: Env,
-    irOpts: OutputOptions,
-    exprs: Exprs,
+export const inlineCallsThatReturnFunctions: Optimizer2 = (
+    ctx: Context,
     expr: Expr,
 ) => {
     return transformExpr(expr, {
@@ -23,10 +21,10 @@ export const inlineCallsThatReturnFunctions = (
             ) {
                 return null;
             }
-            const t = exprs[idName(expr.target.id)];
+            const t = ctx.exprs[idName(expr.target.id)];
             return {
                 ...expr,
-                target: reUnique(env.local.unique, t.expr),
+                target: reUnique(ctx.env.local.unique, t.expr),
             };
         },
     });

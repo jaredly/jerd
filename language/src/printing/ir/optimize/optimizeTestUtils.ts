@@ -3,14 +3,15 @@ import { hashObject, idFromName, idName } from '../../../typing/env';
 import { typeFile } from '../../../typing/typeFile';
 import { Env, newWithGlobal, nullLocation, Term } from '../../../typing/types';
 import { assembleItemsForFile } from '../../glslPrinter';
-import { debugExpr, idToDebug } from '../../irDebugPrinter';
+import { debugExpr, debugType, idToDebug } from '../../irDebugPrinter';
 import { loadInit } from '../../loadPrelude';
 import { atom, items, printToString } from '../../printer';
-import { Exprs, Optimizer } from './optimize';
+import * as pp from '../../printer';
+import { Exprs, Optimizer, Optimizer2, toOldOptimize } from './optimize';
 
 const init = loadInit();
 
-export const runFixture = (text: string, optimize: Optimizer) => {
+export const runFixture = (text: string, optimize: Optimizer2) => {
     const initialEnv = newWithGlobal(init.initialEnv);
     const { env, expressions } = typeFile(
         parse(text),
@@ -37,7 +38,7 @@ export const runFixture = (text: string, optimize: Optimizer) => {
         mains.map((main) => idName((main as any).ref.id)),
         {},
         {},
-        optimize,
+        toOldOptimize(optimize),
     );
 
     return { env, irTerms, inOrder };
@@ -53,15 +54,33 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
             inOrder: Array<string>;
             irTerms: Exprs;
         };
+        const extraIdNames: { [id: string]: string } = {};
+        inOrder.forEach((id) => {
+            if (irTerms[id].source) {
+                extraIdNames[id] = `${
+                    env.global.idNames[idName(irTerms[id].source!.id)]
+                }_${irTerms[id].source!.kind}`;
+            }
+        });
+        const envWithNames = {
+            ...env,
+            global: {
+                ...env.global,
+                idNames: { ...env.global.idNames, ...extraIdNames },
+            },
+        };
         return indent(
             inOrder
                 .map((id) =>
                     printToString(
                         items([
                             atom('const '),
-                            idToDebug(env, idFromName(id), false),
+                            idToDebug(envWithNames, idFromName(id), false),
+                            atom(': '),
+                            debugType(envWithNames, irTerms[id].expr.is),
+                            // pp.id(getName(env, irTerms, id), id, 'term'),
                             atom(' = '),
-                            debugExpr(env, irTerms[id].expr),
+                            debugExpr(envWithNames, irTerms[id].expr),
                         ]),
                         50,
                     ),
@@ -70,3 +89,13 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
         );
     },
 };
+
+// const getName = (env: Env, exprs: Exprs, id: string) => {
+//     if (exprs[id].source) {
+//         const parentName = env.global.idNames[idName(exprs[id].source!.id)];
+//         if (parentName) {
+//             return `${parentName}:${exprs[id].source!.kind}`;
+//         }
+//     }
+//     return env.global.idNames[id] || 'unnamed';
+// };

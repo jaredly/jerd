@@ -19,6 +19,7 @@ import {
     liftToTopLevel,
 } from './liftlambdas';
 import {
+    Context,
     Exprs,
     optimizeAggressive,
     optimizeDefine,
@@ -26,8 +27,7 @@ import {
 } from './optimize';
 
 export const specializeFunctionsCalledWithLambdas = (
-    env: Env,
-    exprs: Exprs,
+    ctx: Context,
     expr: Expr,
 ): Expr => {
     return transformExpr(expr, {
@@ -48,7 +48,7 @@ export const specializeFunctionsCalledWithLambdas = (
                         arg.type === 'lambda' &&
                         findCapturedVariables(arg).length === 0
                     ) {
-                        return { arg: liftToTopLevel(env, exprs, arg), i };
+                        return { arg: liftToTopLevel(ctx, arg), i };
                     }
                     return { arg, i };
                 });
@@ -66,14 +66,12 @@ export const specializeFunctionsCalledWithLambdas = (
                 base: expr.target.id,
                 lambdaArgs: lambdaArgs,
             });
-            const target = exprs[idName(expr.target.id)];
+            const target = ctx.exprs[idName(expr.target.id)];
             if (!target) {
                 console.error('no target?', expr.target.id);
                 return null;
             }
             const l = target.expr as LambdaExpr;
-            env.global.idNames[newHash] =
-                env.global.idNames[idName(expr.target.id)];
 
             // MODIFY:
             // types
@@ -103,11 +101,17 @@ export const specializeFunctionsCalledWithLambdas = (
             let newTerm: Expr = { ...l, is, args, body };
             const id = { hash: newHash, size: 1, pos: 0 };
             // console.log('optimizing it all up', newHash);
-            newTerm = optimizeDefineNew(env, newTerm, id, exprs);
+            newTerm = ctx.optimize({ ...ctx, id }, newTerm);
+            // newTerm = optimizeDefineNew(env, newTerm, id, exprs);
 
-            exprs[newHash] = {
+            // TODO: Sources could just be part of Exprs
+            ctx.exprs[newHash] = {
                 inline: false,
                 expr: newTerm,
+                source: {
+                    id: expr.target.id,
+                    kind: 'specialization',
+                },
             };
             return {
                 ...expr,
@@ -121,11 +125,11 @@ export const specializeFunctionsCalledWithLambdas = (
     });
 };
 
-export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
+export const monoconstant = (ctx: Context, expr: Expr): Expr => {
     // console.log('const');
     // let outerMax = maxUnique(expr);
-    expr = liftLambdas(env, exprs, expr);
-    return specializeFunctionsCalledWithLambdas(env, exprs, expr);
+    expr = liftLambdas(ctx, expr);
+    return specializeFunctionsCalledWithLambdas(ctx, expr);
 };
 
 const wrapBlock = (body: Expr | Block, stmts: Array<Stmt>): Block => {

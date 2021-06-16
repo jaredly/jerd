@@ -7,12 +7,12 @@ import {
 } from '../transform';
 import { Expr } from '../types';
 import { block } from '../utils';
-import { isConstant } from './optimize';
+import { Context, isConstant } from './optimize';
 
 // Ugh ok so I do need to track scopes I guess
 // Yeaht that's the way to do it. hrmmm
 // Or actually I could just recursively call this! yeah that's great.
-export const foldConstantAssignments = (env: Env, topExpr: Expr): Expr => {
+export const foldConstantAssignments = (ctx: Context, topExpr: Expr): Expr => {
     // hrmmmmmmmmm soooooo hmmmm
     let constants: { [v: string]: Expr | null } = {};
     // let tupleConstants: { [v: string]: Tuple } = {};
@@ -68,7 +68,7 @@ export const foldConstantAssignments = (env: Env, topExpr: Expr): Expr => {
                 //     showLocation(topExpr.loc),
                 //     showLocation(changed.loc),
                 // );
-                changed = foldConstantAssignments(env, changed);
+                changed = foldConstantAssignments(ctx, changed);
                 return changed !== expr ? [changed] : false;
             }
             if (expr.type === 'handle') {

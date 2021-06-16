@@ -18,6 +18,24 @@ import { monomorphize } from './monomorphize';
 import { optimizeTailCalls } from './tailCall';
 import { transformRepeatedly } from './utils';
 
+export type Context = {
+    id: Id;
+    env: Env;
+    exprs: Exprs;
+    opts: OutputOptions;
+    optimize: Optimizer2;
+};
+
+export const toOldOptimize = (opt: Optimizer2): Optimizer => (
+    env: Env,
+    irOpts: OutputOptions,
+    exprs: Exprs,
+    expr: Expr,
+    id: Id,
+) => opt({ exprs, env, opts: irOpts, id, optimize: opt }, expr);
+
+export type Optimizer2 = (ctx: Context, expr: Expr) => Expr;
+
 export type Optimizer = (
     senv: Env,
     irOpts: OutputOptions,
@@ -26,14 +44,11 @@ export type Optimizer = (
     id: Id,
 ) => Expr;
 
-export const combineOpts = (opts: Array<Optimizer>): Optimizer => (
-    env: Env,
-    ir: OutputOptions,
-    exprs: Exprs,
+export const combineOpts = (opts: Array<Optimizer2>): Optimizer2 => (
+    ctx: Context,
     expr: Expr,
-    id: Id,
 ) => {
-    opts.forEach((fn) => (expr = fn(env, ir, exprs, expr, id)));
+    opts.forEach((fn) => (expr = fn(ctx, expr)));
     return expr;
 };
 
@@ -111,7 +126,12 @@ export const optimizeDefineOld = (env: Env, expr: Expr, id: Id): Expr => {
 };
 
 export type Exprs = {
-    [idName: string]: { expr: Expr; inline: boolean; comment?: string };
+    [idName: string]: {
+        expr: Expr;
+        inline: boolean;
+        source?: { id: Id; kind: string };
+        comment?: string;
+    };
 };
 
 export const optimizeAggressive = (

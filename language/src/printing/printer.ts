@@ -53,13 +53,18 @@ export const id = (
     id: string,
     kind: string,
     loc?: Location,
-): PP => ({
-    type: 'id',
-    text,
-    id,
-    kind,
-    loc,
-});
+): PP => {
+    if (text == null) {
+        throw new Error(`ID with no text`);
+    }
+    return {
+        type: 'id',
+        text,
+        id,
+        kind,
+        loc,
+    };
+};
 
 export type PP =
     | {

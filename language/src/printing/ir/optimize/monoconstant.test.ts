@@ -14,24 +14,24 @@ describe('specializeFunctionsCalledWithLambdas', () => {
 			f(() => 4) - f(() => 23)
 			`,
                 combineOpts([
-                    midOpt(specializeFunctionsCalledWithLambdas),
-                    simpleOpt(foldConstantAssignments),
+                    specializeFunctionsCalledWithLambdas,
+                    foldConstantAssignments,
                 ]),
             ),
         ).toMatchInlineSnapshot(`
-              const expr0_lambda#0e868bd2 = () => 23
-              const expr0_lambda#0a732d10 = () => 4
-              const f#6bd04dc4 = () => {
-                  const g#:0: () => int#builtin = expr0_lambda#0e868bd2;
-                  return +#builtin(g#:0(), 2);
+              const expr0_lambda#0e868bd2: () => int = () => 23
+              const expr0_lambda#0a732d10: () => int = () => 4
+              const f_specialization#6bd04dc4: () => int = () => {
+                  const g#:0: () => int = expr0_lambda#0e868bd2;
+                  return +(expr0_lambda#0e868bd2(), 2);
               }
-              const f#7e960666 = () => {
-                  const g#:0: () => int#builtin = expr0_lambda#0a732d10;
-                  return +#builtin(g#:0(), 2);
+              const f_specialization#7e960666: () => int = () => {
+                  const g#:0: () => int = expr0_lambda#0a732d10;
+                  return +(expr0_lambda#0a732d10(), 2);
               }
-              const expr0#0846ff16 = -#builtin(
-                  f#7e960666(),
-                  f#6bd04dc4(),
+              const expr0#0846ff16: int = -(
+                  f_specialization#7e960666(),
+                  f_specialization#6bd04dc4(),
               )
         `);
     });

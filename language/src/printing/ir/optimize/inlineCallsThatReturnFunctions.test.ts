@@ -5,9 +5,9 @@ expect.addSnapshotSerializer(snapshotSerializer);
 
 describe('serializer', () => {
     it('should work', () => {
-        expect(
-            runFixture(`2 + 3`, (_, __, ___, expr) => expr),
-        ).toMatchInlineSnapshot(`  const expr0#23157700 = +#builtin(2, 3)`);
+        expect(runFixture(`2 + 3`, (env, expr) => expr)).toMatchInlineSnapshot(
+            `  const expr0#23157700: int = +(2, 3)`,
+        );
     });
 });
 
@@ -22,9 +22,9 @@ describe('inlineCallsThatReturnFunctions', () => {
                 inlineCallsThatReturnFunctions,
             ),
         ).toMatchInlineSnapshot(`
-              const expr0#7c2fb0d1 = ((n#:1: string#builtin) => (
-                  m#:2: string#builtin,
-              ) => +#builtin(m#:2, n#:1))("hi")("ho")
+              const expr0#7c2fb0d1: string = ((n#:1: string) => (
+                  m#:2: string,
+              ) => +(m#:2, n#:1))("hi")("ho")
         `);
     });
 
@@ -38,11 +38,10 @@ describe('inlineCallsThatReturnFunctions', () => {
                 inlineCallsThatReturnFunctions,
             ),
         ).toMatchInlineSnapshot(`
-              const f#48f8d2f4 = (n#:0: string#builtin) => +#builtin(
-                  n#:0,
-                  "hi",
-              )
-              const expr0#16f60da6 = f#48f8d2f4("ho")
+              const f#48f8d2f4: (string) => string = (
+                  n#:0: string,
+              ) => +(n#:0, "hi")
+              const expr0#16f60da6: string = f#48f8d2f4("ho")
         `);
     });
 });

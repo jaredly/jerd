@@ -84,13 +84,14 @@ import { glslTester } from './glslTester';
 export const idToDebug = (env: Env, id: Id, isType: boolean): PP => {
     const idRaw = idName(id);
     const readableName = env.global.idNames[idRaw];
-    return pp.id(readableName, idRaw, isType ? 'type' : 'term');
+    return pp.id(readableName || 'unnamed', idRaw, isType ? 'type' : 'term');
 };
 
 export const refToDebug = (env: Env, ref: Reference, isType: boolean): PP => {
     return ref.type === 'user'
         ? idToDebug(env, ref.id, isType)
-        : pp.id(ref.name, 'builtin', isType ? 'type' : 'term');
+        : atom(ref.name);
+    // : pp.id(ref.name, 'builtin', isType ? 'type' : 'term');
 };
 
 export const debugSym = (sym: Symbol) => {
@@ -165,7 +166,8 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
         case 'effectfulOrDirect':
             return atom('get effectful or direct TODO');
         case 'builtin':
-            return id(expr.name, 'builtin', 'builtin');
+            return atom(expr.name);
+        // return id(expr.name, 'builtin', 'builtin');
         case 'attribute':
             return items([
                 debugExpr(env, expr.target),
