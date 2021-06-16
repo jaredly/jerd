@@ -65,36 +65,29 @@ export const optimizeDefineNew = (
     id: Id,
     exprs: Exprs | null,
 ): Expr => {
-    const fns = exprs ? glslOpts : javascriptOpts;
-    const exprss = exprs || {};
-    let changed = true;
-    const opts = {};
-    let passes = 0;
-    const changeCount: { [key: string]: number } = {};
-    while (changed) {
-        if (passes++ > 200) {
-            console.log(changeCount);
-            throw new Error(`Optimization passes failing to converge`);
-        }
-        let old = expr;
-        fns.forEach((fn) => {
-            const nexpr = fn(env, opts, exprss, expr, id);
-            if (nexpr !== expr) {
-                expr = nexpr;
-                changeCount[fn + ''] = (changeCount[fn + ''] || 0) + 1;
-            }
-        });
-        changed = old !== expr;
-    }
+    // STOPSHIP: re-enable
+    // const fns = exprs ? glslOpts : javascriptOpts;
+    // const exprss = exprs || {};
+    // let changed = true;
+    // const opts = {};
+    // let passes = 0;
+    // const changeCount: { [key: string]: number } = {};
+    // while (changed) {
+    //     if (passes++ > 200) {
+    //         console.log(changeCount);
+    //         throw new Error(`Optimization passes failing to converge`);
+    //     }
+    //     let old = expr;
+    //     fns.forEach((fn) => {
+    //         const nexpr = fn(env, opts, exprss, expr, id);
+    //         if (nexpr !== expr) {
+    //             expr = nexpr;
+    //             changeCount[fn + ''] = (changeCount[fn + ''] || 0) + 1;
+    //         }
+    //     });
+    //     changed = old !== expr;
+    // }
 
-    // expr = optimizeDefineOld(env, expr, id);
-    // if (exprs) {
-    //     expr = optimizeAggressive(env, exprs, expr, id);
-    // }
-    // expr = optimizeDefineOld(env, expr, id);
-    // if (exprs) {
-    //     expr = optimizeAggressive(env, exprs, expr, id);
-    // }
     uniquesReallyAreUnique(expr);
     return expr;
 };
@@ -105,23 +98,42 @@ export const optimizeDefine = (
     id: Id,
     exprs: Exprs | null,
 ): Expr => {
-    expr = optimizeDefineOld(env, expr, id);
-    if (exprs) {
-        expr = optimizeAggressive(env, exprs, expr, id);
-    }
-    expr = optimizeDefineOld(env, expr, id);
-    if (exprs) {
-        expr = optimizeAggressive(env, exprs, expr, id);
-    }
+    // STOPSHIP: re-enable
+    // expr = optimizeDefineOld(env, expr, id);
+    // if (exprs) {
+    //     expr = optimizeAggressive(
+    //         {
+    //             env,
+    //             exprs,
+    //             id,
+    //             optimize: optimizeAggressive,
+    //             opts: {},
+    //         },
+    //         expr,
+    //     );
+    // }
+    // expr = optimizeDefineOld(env, expr, id);
+    // if (exprs) {
+    //     expr = optimizeAggressive(
+    //         {
+    //             env,
+    //             exprs,
+    //             id,
+    //             optimize: optimizeAggressive,
+    //             opts: {},
+    //         },
+    //         expr,
+    //     );
+    // }
     uniquesReallyAreUnique(expr);
     return expr;
 };
 
-export const optimizeDefineOld = (env: Env, expr: Expr, id: Id): Expr => {
-    expr = optimize(env, expr);
-    expr = optimizeTailCalls(env, expr, id);
-    expr = optimize(env, expr);
-    expr = arraySliceLoopToIndex(env, expr);
+export const optimizeDefineOld = (ctx: Context, expr: Expr): Expr => {
+    expr = optimize(ctx, expr);
+    expr = optimizeTailCalls(ctx.env, expr, ctx.id);
+    expr = optimize(ctx, expr);
+    expr = arraySliceLoopToIndex(ctx.env, expr);
     return expr;
 };
 
@@ -134,22 +146,17 @@ export type Exprs = {
     };
 };
 
-export const optimizeAggressive = (
-    env: Env,
-    exprs: Exprs,
-    expr: Expr,
-    id: Id,
-): Expr => {
-    expr = inlint(env, exprs, expr, id);
+export const optimizeAggressive = (ctx: Context, expr: Expr): Expr => {
+    expr = inlint(ctx.env, ctx.exprs, expr, ctx.id);
     // console.log('[after inline]', printToString(termToGlsl(env, {}, expr), 50));
-    expr = monomorphize(env, exprs, expr);
+    expr = monomorphize(ctx.env, ctx.exprs, expr);
     // console.log('[after mono]', printToString(termToGlsl(env, {}, expr), 50));
-    expr = monoconstant(env, exprs, expr);
+    expr = monoconstant(ctx, expr);
     // console.log('[after const]', printToString(termToGlsl(env, {}, expr), 50));
     // UGHH This is aweful that I'm adding these all over the place.
     // I should just run through each pass repeatedly until we have no more changes.
     // right?
-    expr = optimize(env, expr);
+    expr = optimize(ctx, expr);
 
     // Ok, now that we've inlined /some/ things,
     // let's inline more things!
@@ -174,27 +181,32 @@ export const optimizeAggressive = (
     return expr;
 };
 
-export const optimize = (env: Env, expr: Expr): Expr => {
-    const transformers: Array<(env: Env, e: Expr) => Expr> = [
+const fromSimpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer2 => (
+    ctx: Context,
+    expr: Expr,
+) => fn(ctx.env, expr);
+
+export const optimize = (ctx: Context, expr: Expr): Expr => {
+    const transformers: Array<(ctx: Context, e: Expr) => Expr> = [
         // OK so this iffe thing is still the only thing
         // helping us with the `if` at the end of
         // shortestDistanceToSurface
 
-        flattenIffe,
+        fromSimpleOpt(flattenIffe),
         removeUnusedVariables,
-        removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
-        foldConstantTuples,
-        removeSelfAssignments,
+        fromSimpleOpt(removeNestedBlocksWithoutDefinesAndCodeAfterReturns),
+        fromSimpleOpt(foldConstantTuples),
+        fromSimpleOpt(removeSelfAssignments),
         foldConstantAssignments,
-        foldSingleUseAssignments,
-        flattenNestedIfs,
-        arraySlices,
+        fromSimpleOpt(foldSingleUseAssignments),
+        fromSimpleOpt(flattenNestedIfs),
+        fromSimpleOpt(arraySlices),
         foldConstantAssignments,
         removeUnusedVariables,
-        flattenNestedIfs,
-        flattenImmediateCalls,
+        fromSimpleOpt(flattenNestedIfs),
+        fromSimpleOpt(flattenImmediateCalls),
     ];
-    transformers.forEach((t) => (expr = t(env, expr)));
+    transformers.forEach((t) => (expr = t(ctx, expr)));
     return expr;
 };
 
@@ -401,11 +413,12 @@ export const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
     id,
 ) => fn(env, expr);
 
-const javascriptOpts: Array<Optimizer> = [
-    simpleOpt(optimize),
-    (env, _, __, expr, id) => optimizeTailCalls(env, expr, id),
-    simpleOpt(optimize),
-    simpleOpt(arraySliceLoopToIndex),
+const javascriptOpts: Array<Optimizer2> = [
+    optimize,
+    // STOPSHIP
+    // (env, _, __, expr, id) => optimizeTailCalls(env, expr, id),
+    // simpleOpt(optimize),
+    // simpleOpt(arraySliceLoopToIndex),
 ];
 
 // const aggressive: Array<Optimizer>

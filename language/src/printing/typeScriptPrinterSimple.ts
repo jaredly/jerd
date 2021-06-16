@@ -6,7 +6,7 @@ import {
     expressionTypeDeps,
     sortTerms,
 } from '../typing/analyze';
-import { idFromName, idName, refName } from '../typing/env';
+import { hashObject, idFromName, idName, refName } from '../typing/env';
 import { binOps, bool } from '../typing/preset';
 import {
     EffectRef,
@@ -996,7 +996,20 @@ export const fileToTypescript = (
         items.push(
             t.addComment(
                 t.expressionStatement(
-                    termToTs(env, opts, optimize(env, irTerm)),
+                    termToTs(
+                        env,
+                        opts,
+                        optimize(
+                            {
+                                env,
+                                exprs: {},
+                                id: idFromName(hashObject(term)),
+                                opts: {},
+                                optimize: optimize,
+                            },
+                            irTerm,
+                        ),
+                    ),
                 ),
                 'leading',
                 '\n' + comment + '\n',
