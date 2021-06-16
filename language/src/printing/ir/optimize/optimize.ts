@@ -26,6 +26,22 @@ export type Optimizer = (
     id: Id,
 ) => Expr;
 
+export const combineOpts = (opts: Array<Optimizer>): Optimizer => (
+    env: Env,
+    ir: OutputOptions,
+    exprs: Exprs,
+    expr: Expr,
+    id: Id,
+) => {
+    opts.forEach((fn) => (expr = fn(env, ir, exprs, expr, id)));
+    return expr;
+};
+
+export const midOpt = (
+    fn: (env: Env, exprs: Exprs, expr: Expr) => Expr,
+): Optimizer => (env: Env, _: OutputOptions, exprs: Exprs, expr: Expr) =>
+    fn(env, exprs, expr);
+
 export const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
 
 export const optimizeDefineNew = (
@@ -357,7 +373,7 @@ export const isConstant = (arg: Expr): boolean => {
     }
 };
 
-const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
+export const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
     env,
     opts,
     exprs,

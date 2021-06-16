@@ -25,10 +25,11 @@ import {
     optimizeDefineNew,
 } from './optimize';
 
-export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
-    // console.log('const');
-    // let outerMax = maxUnique(expr);
-    expr = liftLambdas(env, exprs, expr);
+export const specializeFunctionsCalledWithLambdas = (
+    env: Env,
+    exprs: Exprs,
+    expr: Expr,
+): Expr => {
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
@@ -59,34 +60,6 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
                 return null;
             }
             const lambdaArgs: Array<{ arg: Expr; i: number }> = largs;
-            // const lambdaArgs: Array<{
-            //     arg: Expr;
-            //     i: number;
-            // }> = expr.args
-            //     .map((arg, i) => ({ arg, i }))
-            //     .filter((a) => a.arg.is.type === 'lambda');
-            // .map((arg) => {
-            //     if (arg.arg.type === 'lambda') {
-            //         // toplevel that folks
-            //         if (findCapturedVariables(arg.arg).length) {
-            //             return arg;
-            //         }
-            //         const hash = hashObject(arg.arg);
-            //         const id: Id = { hash, size: 1, pos: 0 };
-            //         exprs[hash] = { expr: arg.arg, inline: false };
-            //         return {
-            //             ...arg,
-            //             arg: {
-            //                 type: 'term',
-            //                 id,
-            //                 loc: arg.arg.loc,
-            //                 is: arg.arg.is,
-            //             },
-            //         };
-            //     } else {
-            //         return arg;
-            //     }
-            // });
             const indices: { [key: number]: true } = {};
             lambdaArgs.forEach((arg) => (indices[arg.i] = true));
             const newHash = hashObject({
@@ -146,6 +119,13 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
             };
         },
     });
+};
+
+export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
+    // console.log('const');
+    // let outerMax = maxUnique(expr);
+    expr = liftLambdas(env, exprs, expr);
+    return specializeFunctionsCalledWithLambdas(env, exprs, expr);
 };
 
 const wrapBlock = (body: Expr | Block, stmts: Array<Stmt>): Block => {

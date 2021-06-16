@@ -247,9 +247,10 @@ export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
             return atom('continue');
         case 'Define':
             return items([
-                debugType(env, stmt.is),
-                atom(' '),
+                atom('const '),
                 debugSym(stmt.sym),
+                atom(': '),
+                debugType(env, stmt.is),
                 ...(stmt.value != null
                     ? [atom(' = '), debugExpr(env, stmt.value)]
                     : []),
