@@ -77,6 +77,7 @@ describe('specializeFunctionsCalledWithLambdas', () => {
               const expr0#⛷️👨‍👧‍👧👵😃: int = f_specialization#👨‍👩‍👧()
         `));
 
+    // TODO: Figure out how to do this!!
     it('should not inline when scope variables are in play', () => {
         const result = runFixture(
             `const f = (g: (int) => int) => g(1) + 2

@@ -22,6 +22,21 @@ export const defaultVisitor: Visitor = {
     stmt: (stmt) => null,
 };
 
+// export const transformAny = (v: Expr | Stmt, visitor: Visitor) => {
+//     switch (v.type) {
+//         case 'Expression':
+//            case 'Define':
+//                case 'Assign':
+//                    case 'if':
+//                        case 'MatchFail':
+//                            case 'Return':
+//                                case 'Loop':
+//                                    case 'Continue':
+//                                        case 'Block':
+//                                            return transformOneStmt
+//     }
+// }
+
 export const transformExpr = (
     expr: Expr,
     visitor: Visitor,

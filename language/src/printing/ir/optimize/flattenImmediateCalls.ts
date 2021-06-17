@@ -389,13 +389,10 @@ const flattenSingleLambda = (
     expr: Expr,
     prefixes: Array<Stmt>,
 ): null | { prefixes: Array<Stmt>; res: Expr | null } => {
-    if (
-        expr.type !== 'apply' ||
-        expr.target.type !== 'lambda' ||
-        expr.target.body.type !== 'Block'
-    ) {
+    if (expr.type !== 'apply' || expr.target.type !== 'lambda') {
         return null;
     }
+
     let stmts: Array<Stmt> = [];
 
     const sym = typesEqual(expr.is, void_)
@@ -502,12 +499,39 @@ export const flattenDefineLambdas = (
 };
 
 export const flattenImmediateCalls = (ctx: Context, expr: Expr) => {
-    return transformRepeatedly(expr, {
+    return transformExpr(expr, {
         ...defaultVisitor,
         stmt: (stmt) => {
             // not the place
             if (stmt.type === 'Block') {
                 return null;
+            }
+
+            if (
+                stmt.type === 'Return' &&
+                stmt.value.type === 'apply' &&
+                stmt.value.target.type === 'lambda'
+            ) {
+                const args = stmt.value.args;
+                const defines: Array<Stmt> = stmt.value.target.args
+                    .map(
+                        (arg, i): Define =>
+                            ({
+                                type: 'Define',
+                                loc: arg.loc,
+                                is: arg.type,
+                                value: args[i],
+                                sym: arg.sym,
+                            } as Define),
+                    )
+                    .filter((arg) => arg.sym.unique !== handlerSym.unique);
+                return defines.concat(stmt.value.target.body.items);
+                // return flattenLambda(
+                //     ctx.env,
+                //     stmt.value,
+                //     stmt.value.target,
+                //     null
+                // );
             }
 
             if (

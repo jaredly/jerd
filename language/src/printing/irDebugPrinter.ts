@@ -157,6 +157,15 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
         case 'raise':
             return atom('TODO raise');
         case 'lambda':
+            let body: PP;
+            if (
+                expr.body.items.length === 1 &&
+                expr.body.items[0].type === 'Return'
+            ) {
+                body = debugExpr(env, expr.body.items[0].value);
+            } else {
+                body = debugBody(env, expr.body);
+            }
             return items([
                 args(
                     expr.args.map((arg) =>
@@ -168,7 +177,7 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
                     ),
                 ),
                 atom(' => '),
-                debugBody(env, expr.body),
+                body,
             ]);
         case 'int':
         case 'float':
@@ -301,9 +310,6 @@ export const debugType = (env: Env, type: ir.Type): PP => {
 export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
     switch (stmt.type) {
         case 'Block':
-            if (stmt.items.length === 1 && stmt.items[0].type === 'Return') {
-                return debugExpr(env, stmt.items[0].value);
-            }
             return block(stmt.items.map((s) => debugStmt(env, s)));
         case 'Assign':
             return items([
@@ -335,6 +341,7 @@ export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
             return items([
                 atom('if '),
                 debugExpr(env, stmt.cond),
+                atom(' '),
                 debugBody(env, stmt.yes),
                 ...(stmt.no != null
                     ? [atom(' else '), debugBody(env, stmt.no)]
