@@ -100,6 +100,7 @@ export const optimizeDefineNew = (
         optimize: opt,
     };
     expr = opt(ctx, expr);
+
     // let changed = true;
     // const opts = {};
     // let passes = 0;

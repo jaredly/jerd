@@ -757,6 +757,22 @@ export const assembleItemsForFile = (
 
     const inOrder = sortAllDepsPlain(irDeps).filter((id) => usedAfterOpt[id]);
 
+    // const extraIdNames: { [id: string]: string } = {};
+    inOrder.forEach((id) => {
+        if (irTerms[id].source) {
+            env.global.idNames[id] = `${
+                env.global.idNames[idName(irTerms[id].source!.id)]
+            }_${irTerms[id].source!.kind}`;
+        }
+    });
+    // const envWithNames = {
+    //     ...env,
+    //     global: {
+    //         ...env.global,
+    //         idNames: { ...env.global.idNames, ...extraIdNames },
+    //     },
+    // };
+
     return { inOrder, irTerms };
 };
 

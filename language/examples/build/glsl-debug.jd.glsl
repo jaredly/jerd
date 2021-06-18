@@ -22,12 +22,8 @@ struct GLSLEnv_451d5252{
 };
 
 /* -- generated -- */
-vec4 V3f3fca62(GLSLEnv_451d5252 env_8, vec2 pos_9) {
-    if ((sdf_7(env_8, vec3(pos_9, 0.0)) > sdf_7(env_8, vec3(pos_9, 1.0)))) {
-        return vec4(0.0);
-    } else {
-        return vec4(1.0);
-    };
+vec4 m_lambda_f467f07a(GLSLEnv_451d5252 env_5, vec2 pos_6) {
+    return ((sdf_4(env_5, pos_6) + sdf_4(env_5, (pos_6 + vec2(0.0, 0.50)))) / 2.0);
 }
 
 /**
@@ -43,10 +39,10 @@ const m#3c4200ce = superSample#7fbe027c(
 ```
 */
 vec4 m_3c4200ce(
-    GLSLEnv_451d5252 env_4,
-    vec2 pos_5
+    GLSLEnv_451d5252 arg0_2,
+    vec2 arg1_3
 ) {
-    return ((V3f3fca62(env_4, pos_5) + V3f3fca62(env_4, (pos_5 + vec2(0.0, 0.50)))) / 2.0);
+    return m_lambda_f467f07a(arg0_2, arg1_3);
 }
 
 void main() {
