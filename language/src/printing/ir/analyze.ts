@@ -80,7 +80,7 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
             `Multiple declarations for unique ${failed[0]}.`,
         );
     }
-    if (undefinedUses.length > 0) {
-        throw new LocatedError(undefinedUses[0], `Undefined unique usage!`);
-    }
+    // if (undefinedUses.length > 0) {
+    //     throw new LocatedError(undefinedUses[0], `Undefined unique usage!`);
+    // }
 };

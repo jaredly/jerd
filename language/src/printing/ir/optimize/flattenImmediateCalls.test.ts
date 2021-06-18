@@ -97,9 +97,9 @@ describe('flattenImmediateCalls', () => {
         expect(result).toMatchInlineSnapshot(`
               const expr0#🐻‍❄️: () => int = () => {
                   const lambdaBlockResult#:1: () => int;
-                  const v#:0: int = 10;
+                  const v#:2: int = 10;
                   lambdaBlockResult#:1 = (() => {
-                      if v#:0 > 10 {
+                      if v#:2 > 10 {
                           return () => 20;
                       } else {
                           return () => 30;

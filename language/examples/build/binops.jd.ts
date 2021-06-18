@@ -3,14 +3,14 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-type Addable#0c2608f2<T#:0> = {
+type Addable#0cd54a60<T#:0> = {
     "+": (T#:0, T#:0) ={}> T#:0,
 }
 ```
 */
-type t_0c2608f2<T_0> = {
-  type: "0c2608f2";
-  h0c2608f2_0: (arg_0: T_0, arg_1: T_0) => T_0;
+type t_0cd54a60<T_0> = {
+  type: "0cd54a60";
+  h0cd54a60_0: (arg_0: T_0, arg_1: T_0) => T_0;
 };
 
 /**
@@ -143,22 +143,22 @@ export const hash_a4c2a3f0: (arg_0: [number, number]) => number = (t: [number, n
 
 /**
 ```
-const IntArrayAddable#d813fe5c = Addable#0c2608f2<Array#builtin<int#builtin>>{
-    "+"#0c2608f2#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
+const IntArrayAddable#f2052a3a = Addable#0cd54a60<Array#builtin<int#builtin>>{
+    "+"#0cd54a60#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
         int#builtin,
     > ={}> concat#builtin<int#builtin>(a#:0, b#:1),
 }
 ```
 */
-export const hash_d813fe5c: t_0c2608f2<Array<number>> = ({
-  type: "0c2608f2",
-  h0c2608f2_0: (a: Array<number>, b: Array<number>) => concat(a, b)
-} as t_0c2608f2<Array<number>>);
+export const hash_f2052a3a: t_0cd54a60<Array<number>> = ({
+  type: "0cd54a60",
+  h0cd54a60_0: (a: Array<number>, b: Array<number>) => concat(a, b)
+} as t_0cd54a60<Array<number>>);
 
 /*
-<int#builtin>[1] +#d813fe5c#0c2608f2#0 <int#builtin>[2, 3]
+<int#builtin>[1] +#f2052a3a#0cd54a60#0 <int#builtin>[2, 3]
 */
-hash_d813fe5c.h0c2608f2_0([1], [2, 3]);
+hash_f2052a3a.h0cd54a60_0([1], [2, 3]);
 
 /*
 goToTown#a4c2a3f0(t: (2, 3)) ==#9275f914#553b4b8e#0 2

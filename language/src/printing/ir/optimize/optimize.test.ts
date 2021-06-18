@@ -20,6 +20,16 @@ import {
 
 expect.addSnapshotSerializer(snapshotSerializer);
 
+const combinedOptimize = optimizeRepeatedly([
+    specializeFunctionsCalledWithLambdas,
+    inlineCallsThatReturnFunctions,
+    flattenImmediateCalls,
+    foldConstantAssignments(true),
+    foldSingleUseAssignments,
+    flattenImmediateAssigns,
+    removeUnusedVariables,
+]);
+
 describe('removeUnusedVariable', () => {
     it('should work', () => {
         expect(
@@ -78,15 +88,7 @@ describe('glsl in concert', () => {
                 const m = getIt(10);
                 m() + 10
             }`,
-            combineOpts([
-                specializeFunctionsCalledWithLambdas,
-                inlineCallsThatReturnFunctions,
-                foldConstantAssignments(true),
-                flattenImmediateCalls,
-                foldSingleUseAssignments,
-                flattenImmediateAssigns,
-                removeUnusedVariables,
-            ]),
+            combinedOptimize,
         );
         expect(result).toMatchInlineSnapshot(`
               const expr0#💟: () => int = () => {
@@ -190,15 +192,7 @@ describe('glsl in concert', () => {
                 ),
             )
             `,
-            optimizeRepeatedly([
-                specializeFunctionsCalledWithLambdas,
-                inlineCallsThatReturnFunctions,
-                flattenImmediateCalls,
-                foldConstantAssignments(true),
-                foldSingleUseAssignments,
-                flattenImmediateAssigns,
-                removeUnusedVariables,
-            ]),
+            combinedOptimize,
         );
 
         expect(result).toMatchInlineSnapshot(`
@@ -221,9 +215,7 @@ describe('glsl in concert', () => {
               )
         `);
 
-        result.inOrder.forEach((id) => {
-            expect(hasInvalidGLSL(result.irTerms[id].expr)).toBeFalsy();
-        });
+        expectValidGlsl(result);
     });
 
     it('more lambda', () => {
@@ -252,15 +244,7 @@ describe('glsl in concert', () => {
                 ),
             )
             `,
-            optimizeRepeatedly([
-                specializeFunctionsCalledWithLambdas,
-                inlineCallsThatReturnFunctions,
-                flattenImmediateCalls,
-                foldConstantAssignments(true),
-                foldSingleUseAssignments,
-                flattenImmediateAssigns,
-                removeUnusedVariables,
-            ]),
+            combinedOptimize,
         );
 
         expect(result).toMatchInlineSnapshot(`
@@ -283,8 +267,39 @@ describe('glsl in concert', () => {
               )
         `);
 
-        result.inOrder.forEach((id) => {
-            expect(hasInvalidGLSL(result.irTerms[id].expr)).toBeFalsy();
-        });
+        expectValidGlsl(result);
+    });
+
+    it('multi-use lambda', () => {
+        const result = runFixture(
+            `() => {
+                const doThings = (x: int) => {
+                    const z = x + 2;
+                    z * z
+                };
+                doThings(2) + doThings(4)
+            }`,
+            optimizeRepeatedly([
+                specializeFunctionsCalledWithLambdas,
+                inlineCallsThatReturnFunctions,
+                flattenImmediateCalls,
+                foldConstantAssignments(true),
+                foldSingleUseAssignments,
+                flattenImmediateAssigns,
+                removeUnusedVariables,
+            ]),
+        );
+        expect(result).toMatchInlineSnapshot(`
+              const expr0#🧳⛽🕵️‍♀️: () => int = () => {
+                  const lambdaBlockResult#:9: int;
+                  const z#:11: int = 4 + 2;
+                  lambdaBlockResult#:9 = z#:11 * z#:11;
+                  const lambdaBlockResult#:5: int;
+                  const z#:7: int = 2 + 2;
+                  lambdaBlockResult#:5 = z#:7 * z#:7;
+                  return lambdaBlockResult#:5 + lambdaBlockResult#:9;
+              }
+        `);
+        expectValidGlsl(result);
     });
 });

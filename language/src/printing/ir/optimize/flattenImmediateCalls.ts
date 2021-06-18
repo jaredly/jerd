@@ -207,6 +207,7 @@ export const flattenLambda = (
     target: LambdaExpr,
     returnAs: Symbol | null,
 ): Array<Stmt> => {
+    target = reUnique(env.local.unique, target) as LambdaExpr;
     const args = expr.args;
     const stmts: Array<Stmt> = target.args
         .map(
@@ -355,6 +356,9 @@ export const flattenLambda = (
     return stmts;
 };
 
+/**
+ *
+ */
 export const flattenImmediateAssigns = (ctx: Context, expr: Expr): Expr =>
     transformExpr(expr, {
         ...defaultVisitor,

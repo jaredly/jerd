@@ -52,10 +52,10 @@ const z#526b8b52 = (n#:0: int#builtin): int#builtin ={}> {
 }
 ```
 */
-export const hash_526b8b52: (arg_0: number) => number = (n: number) => {
+export const hash_526b8b52: (arg_0: number) => number = (n$0: number) => {
   let m: number = (null as any);
   let continueBlock: boolean = true;
-  let z: number = n + 2;
+  let z: number = n$0 + 2;
 
   if (continueBlock && z === 3) {
     m = 3;

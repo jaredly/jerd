@@ -9,6 +9,7 @@ import { atom, items, printToString } from '../../printer';
 import * as pp from '../../printer';
 import { Exprs, Optimizer, Optimizer2, toOldOptimize } from './optimize';
 import { presetEnv } from '../../../typing/preset';
+import { uniquesReallyAreUnique } from '../analyze';
 
 // const init = loadInit();
 const init = presetEnv({});
@@ -19,6 +20,7 @@ export const expectValidGlsl = (result: {
     inOrder: Array<string>;
 }) => {
     result.inOrder.forEach((id) => {
+        uniquesReallyAreUnique(result.irTerms[id].expr);
         expect(hasInvalidGLSL(result.irTerms[id].expr)).toBeFalsy();
     });
     return result;
