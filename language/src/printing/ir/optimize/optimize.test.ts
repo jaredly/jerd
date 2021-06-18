@@ -291,13 +291,9 @@ describe('glsl in concert', () => {
         );
         expect(result).toMatchInlineSnapshot(`
               const expr0#🧳⛽🕵️‍♀️: () => int = () => {
-                  const lambdaBlockResult#:9: int;
                   const z#:11: int = 4 + 2;
-                  lambdaBlockResult#:9 = z#:11 * z#:11;
-                  const lambdaBlockResult#:5: int;
                   const z#:7: int = 2 + 2;
-                  lambdaBlockResult#:5 = z#:7 * z#:7;
-                  return lambdaBlockResult#:5 + lambdaBlockResult#:9;
+                  return z#:7 * z#:7 + z#:11 * z#:11;
               }
         `);
         expectValidGlsl(result);
