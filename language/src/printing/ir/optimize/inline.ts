@@ -158,11 +158,11 @@ export const toplevelRecordAttribute = (
 export const inlint = (ctx: Context, expr: Expr): Expr => {
     const uMax = maxUnique(expr);
     if (uMax > ctx.env.local.unique.current) {
-        console.log(
-            'inlint unique max greater',
-            uMax,
-            ctx.env.local.unique.current,
-        );
+        // console.log(
+        //     'inlint unique max greater',
+        //     uMax,
+        //     ctx.env.local.unique.current,
+        // );
         ctx.env.local.unique.current = uMax;
     }
     // let outerMax = Math.max(maxUnique(expr), ctx.env.local.unique.current);
