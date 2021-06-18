@@ -22,8 +22,8 @@ struct GLSLEnv_451d5252{
 };
 
 /* -- generated -- */
-vec4 m_lambda_f467f07a(GLSLEnv_451d5252 env_5, vec2 pos_6) {
-    return ((sdf_4(env_5, pos_6) + sdf_4(env_5, (pos_6 + vec2(0.0, 0.50)))) / 2.0);
+float m_lambda_7c39d44b(GLSLEnv_451d5252 env_0, vec3 pos_1) {
+    return (length(pos_1) - 0.50);
 }
 
 /**
@@ -39,10 +39,27 @@ const m#3c4200ce = superSample#7fbe027c(
 ```
 */
 vec4 m_3c4200ce(
-    GLSLEnv_451d5252 arg0_2,
-    vec2 arg1_3
+    GLSLEnv_451d5252 arg0_8,
+    vec2 arg1_9
 ) {
-    return m_lambda_f467f07a(arg0_2, arg1_3);
+    GLSLEnv_451d5252 env = arg0_8;
+    vec2 pos = arg1_9;
+    vec4 lambdaBlockResult;
+    if ((m_lambda_7c39d44b(env, vec3((pos + vec2(0.0, 0.50)), 0.0)) > m_lambda_7c39d44b(
+        env,
+        vec3((pos + vec2(0.0, 0.50)), 1.0)
+    ))) {
+        lambdaBlockResult = vec4(0.0);
+    } else {
+        lambdaBlockResult = vec4(1.0);
+    };
+    vec4 lambdaBlockResult_11;
+    if ((m_lambda_7c39d44b(env, vec3(pos, 0.0)) > m_lambda_7c39d44b(env, vec3(pos, 1.0)))) {
+        lambdaBlockResult_11 = vec4(0.0);
+    } else {
+        lambdaBlockResult_11 = vec4(1.0);
+    };
+    return ((lambdaBlockResult_11 + lambdaBlockResult) / 2.0);
 }
 
 void main() {

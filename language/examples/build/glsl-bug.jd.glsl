@@ -29,13 +29,8 @@ const EPSILON#17261aaa = 0.0001
 const float EPSILON_17261aaa = 0.00010;
 
 /* -- generated -- */
-vec4 unnamed_lambda_1f2e12d2(GLSLEnv_451d5252 env_5, vec2 coord_6) {
-    vec3 eye = vec3(0.0, 0.0, 5.0);
-    if ((sceneSDF_4(env_5, eye) > (100.0 - EPSILON_17261aaa))) {
-        return vec4(1.0);
-    } else {
-        return vec4(sceneSDF_4(env_5, (eye + 1.0)));
-    };
+float unnamed_lambda_a5e200ec(GLSLEnv_451d5252 env_0, vec3 p_1) {
+    return (length(p_1) - 1.0);
 }
 
 /**
@@ -49,10 +44,15 @@ const unnamed#82078c8c = marchNormals#4a29cc54(
 ```
 */
 vec4 unnamed_82078c8c(
-    GLSLEnv_451d5252 arg0_2,
-    vec2 arg1_3
+    GLSLEnv_451d5252 env_3,
+    vec2 coord_4
 ) {
-    return unnamed_lambda_1f2e12d2(arg0_2, arg1_3);
+    vec3 eye = vec3(0.0, 0.0, 5.0);
+    if ((unnamed_lambda_a5e200ec(env_3, eye) > (100.0 - EPSILON_17261aaa))) {
+        return vec4(1.0);
+    } else {
+        return vec4(unnamed_lambda_a5e200ec(env_3, (eye + 1.0)));
+    };
 }
 
 void main() {

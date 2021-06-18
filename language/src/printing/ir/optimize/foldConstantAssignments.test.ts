@@ -15,7 +15,7 @@ expect.addSnapshotSerializer(snapshotSerializer);
 
 describe('flattenImmediateCalls', () => {
     it('should work', () => {
-        expect(runFixture(`{const x = 10; x}`, foldConstantAssignments))
+        expect(runFixture(`{const x = 10; x}`, foldConstantAssignments(true)))
             .toMatchInlineSnapshot(`
               const expr0#🐮👩‍🦰👶: int = (() => {
                   const x#:0: int = 10;
@@ -36,7 +36,7 @@ describe('flattenImmediateCalls', () => {
 					y + 1
 				}`,
                 combineOpts([
-                    foldConstantAssignments,
+                    foldConstantAssignments(true),
                     flattenImmediateCalls,
                     removeUnusedVariables,
                 ]),

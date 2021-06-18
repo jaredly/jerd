@@ -84,7 +84,6 @@ vec4 hello_ac281138(
     vec2 fragCoord_1
 ) {
     vec3 color;
-    bool continueBlock = true;
     if ((min(
         circleSDF_596bb3b4(
             fragCoord_1,
@@ -92,6 +91,7 @@ vec4 hello_ac281138(
         ),
         circleSDF_596bb3b4(fragCoord_1, Circle_23c98f91((env_0.mouse + vec2(10.0, 20.0)), 30.0))
     ) < 0.0)) {
+        bool continueBlock = true;
         if ((int(fragCoord_1.x) % 2) == 0) {
             color = vec3(1.0, 0.0, 0.0);
             continueBlock = false;
@@ -102,7 +102,6 @@ vec4 hello_ac281138(
         };
     } else {
         color = abs(vec3(1.0, 1.0, -1.0));
-        continueBlock = false;
     };
     return vec4(color.x, color.y, color.z, 1.0);
 }

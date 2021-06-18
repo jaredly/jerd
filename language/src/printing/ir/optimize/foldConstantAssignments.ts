@@ -13,6 +13,7 @@ import { Context, isConstant } from './optimize';
 const visitor = (
     ctx: Context,
     constants: { [key: number]: Expr | null },
+    foldLambdas: boolean,
 ): Visitor => ({
     ...defaultVisitor,
     expr: (expr, level) => {
@@ -42,7 +43,7 @@ const visitor = (
             }
             let changed =
                 body !== expr.body ? ({ ...expr, body } as Expr) : expr;
-            changed = foldConstantAssignments(ctx, changed);
+            changed = foldConstantAssignments(foldLambdas)(ctx, changed);
             return changed !== expr ? [changed] : false;
         }
         if (expr.type === 'handle') {
@@ -78,9 +79,9 @@ const visitor = (
             if (stmt.no) {
                 transformStmt(stmt.no, checkAssigns);
             }
-            let yes = transformBlock(stmt.yes, visitor(ctx, {}));
+            let yes = transformBlock(stmt.yes, visitor(ctx, {}, foldLambdas));
             let no = stmt.no
-                ? transformBlock(stmt.no, visitor(ctx, {}))
+                ? transformBlock(stmt.no, visitor(ctx, {}, foldLambdas))
                 : stmt.no;
             return yes !== stmt.yes || no !== stmt.no
                 ? [{ ...stmt, yes, no }]
@@ -97,7 +98,8 @@ const visitor = (
         if (
             (stmt.type === 'Define' || stmt.type === 'Assign') &&
             stmt.value != null &&
-            isConstant(stmt.value)
+            (isConstant(stmt.value) ||
+                (foldLambdas && stmt.value.type === 'lambda'))
         ) {
             constants[stmt.sym.unique] = stmt.value;
         }
@@ -108,8 +110,11 @@ const visitor = (
 // Ugh ok so I do need to track scopes I guess
 // Yeaht that's the way to do it. hrmmm
 // Or actually I could just recursively call this! yeah that's great.
-export const foldConstantAssignments = (ctx: Context, topExpr: Expr): Expr => {
-    return transformExpr(topExpr, visitor(ctx, {}));
+export const foldConstantAssignments = (foldLambdas: boolean) => (
+    ctx: Context,
+    topExpr: Expr,
+): Expr => {
+    return transformExpr(topExpr, visitor(ctx, {}, foldLambdas));
 };
 
 // export const foldConstantAssignmentsBlock = (ctx: Context, topExpr: Block): Block => {

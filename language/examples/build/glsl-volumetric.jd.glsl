@@ -284,13 +284,15 @@ mat4 viewMatrix_c336d78c(
 ) {
     vec3 f = normalize((center_1 - eye_0));
     vec3 s = normalize(cross_54f2119c(f, up_2));
-    vec3 u = cross_54f2119c(s, f);
     vec4 lambdaBlockResult;
     vec3 spread = -f;
     lambdaBlockResult = vec4(spread.x, spread.y, spread.z, 0.0);
+    vec4 lambdaBlockResult_9;
+    vec3 spread_6 = cross_54f2119c(s, f);
+    lambdaBlockResult_9 = vec4(spread_6.x, spread_6.y, spread_6.z, 0.0);
     return mat4(
         vec4(s.x, s.y, s.z, 0.0),
-        vec4(u.x, u.y, u.z, 0.0),
+        lambdaBlockResult_9,
         lambdaBlockResult,
         vec4(0.0, 0.0, 0.0, 1.0)
     );
@@ -352,11 +354,13 @@ vec4 fishingBoueys_specialization_19918a50(
     vec2 iResolution_3,
     vec3 uCamera_4
 ) {
-    vec3 viewDir = rayDirection_6258178a(45.0, iResolution_3, fragCoord_2);
+    vec4 lambdaBlockResult_18;
+    vec3 spread_16 = rayDirection_6258178a(45.0, iResolution_3, fragCoord_2);
+    lambdaBlockResult_18 = vec4(spread_16.x, spread_16.y, spread_16.z, 0.0);
     vec3 worldDir = xyz_1aedf216(
         V16557d10_1de4e4c0_0(
             viewMatrix_c336d78c(uCamera_4, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
-            vec4(viewDir.x, viewDir.y, viewDir.z, 0.0)
+            lambdaBlockResult_18
         )
     );
     float dist_10 = shortestDistanceToSurface_specialization_6ad47240(
@@ -381,8 +385,8 @@ vec4 fishingBoueys_specialization_19918a50(
             int(10.0),
             10.0
         ) * 3.0) / 10.0);
-        vec3 spread_16 = (((vec3(1.0, 1.0, 1.0) * brightness) * brightness) * brightness);
-        return vec4(spread_16.x, spread_16.y, spread_16.z, 1.0);
+        vec3 spread_17 = (((vec3(1.0, 1.0, 1.0) * brightness) * brightness) * brightness);
+        return vec4(spread_17.x, spread_17.y, spread_17.z, 1.0);
     };
 }
 

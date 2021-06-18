@@ -25,7 +25,7 @@ describe('specializeFunctionsCalledWithLambdas', () => {
             combineOpts([
                 specializeFunctionsCalledWithLambdas,
                 // These are needed for cleanup
-                foldConstantAssignments,
+                foldConstantAssignments(true),
                 removeUnusedVariables,
             ]),
         );
@@ -107,7 +107,7 @@ describe('specializeFunctionsCalledWithLambdas', () => {
 			m((n: int) => n + 5)`,
             optimizeRepeatedly([
                 specializeFunctionsCalledWithLambdas,
-                foldConstantAssignments,
+                foldConstantAssignments(true),
                 removeUnusedVariables,
             ]),
         );
