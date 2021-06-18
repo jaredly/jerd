@@ -153,13 +153,11 @@ const getPerson#2a1f854a = (): Person#066d8180 ={Read#22024b72}> Person#066d8180
 export const hash_2a1f854a:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_066d8180) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_066d8180) => void) => {
-  hash_64605d94(handlers, (handlers: Handlers, returnValue: string) => {
-    done$2(handlers, ({
-      type: "066d8180",
-      h066d8180_0: returnValue,
-      h066d8180_1: 5
-    } as t_066d8180));
-  });
+  hash_64605d94(handlers, (handlers: Handlers, returnValue: string) => done$2(handlers, ({
+    type: "066d8180",
+    h066d8180_0: returnValue,
+    h066d8180_1: 5
+  } as t_066d8180)));
 };
 
 /**
@@ -192,9 +190,7 @@ const getStringArr#3bfdbd8c = (): Array#builtin<string#builtin> ={Read#22024b72}
 export const hash_3bfdbd8c:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: Array<string>) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: Array<string>) => void) => {
-  hash_64605d94(handlers, (handlers: Handlers, returnValue: string) => {
-    done$2(handlers, [returnValue]);
-  });
+  hash_64605d94(handlers, (handlers: Handlers, returnValue: string) => done$2(handlers, [returnValue]));
 };
 
 /**
@@ -249,12 +245,10 @@ const spreadPerson#4668b1c3 = (): Person#066d8180 ={Read#22024b72}> Person#066d8
 export const hash_4668b1c3:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_066d8180) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_066d8180) => void) => {
-  hash_2a1f854a(handlers, (handlers: Handlers, returnValue: t_066d8180) => {
-    done$2(handlers, ({ ...returnValue,
-      type: "066d8180",
-      h066d8180_1: 20
-    } as t_066d8180));
-  });
+  hash_2a1f854a(handlers, (handlers: Handlers, returnValue: t_066d8180) => done$2(handlers, ({ ...returnValue,
+    type: "066d8180",
+    h066d8180_1: 20
+  } as t_066d8180)));
 };
 
 /**
@@ -268,9 +262,7 @@ const callAgain#a8135548 = (): () ={}> string#builtin ={Read#22024b72}> {
 export const hash_a8135548:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: () => string) => void) => void = (handlers: Handlers, done: (arg_0: Handlers, arg_1: () => string) => void) => {
-  hash_64605d94(handlers, (handlers: Handlers, returnValue$3: string) => {
-    done(handlers, () => returnValue$3);
-  });
+  hash_64605d94(handlers, (handlers: Handlers, returnValue$3: string) => done(handlers, () => returnValue$3));
 };
 
 /**
@@ -405,10 +397,10 @@ export const hash_bc94fd0c:
 (a#:0: int#builtin, b#:1: string#builtin): string#builtin ={Read#22024b72, Write#35f4b478}> b#:1 
     +#builtin getString#64605d94()
 */
-(a: number, b: string, handlers: Handlers, done$4: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_64605d94(handlers, (handlers: Handlers, returnValue$6: string) => {
-    let continueBlock: boolean = true;
-    done$4(handlers, b + returnValue$6);
+(a: number, b: string, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => {
+    let arg_lift_1: string = returnValue$5;
+    return done$3(handlers, b + arg_lift_1);
   });
 };
 
@@ -442,10 +434,10 @@ provideStringPlain#2dbf3eae<string#builtin>(
         ) 
     ==#606c7034#553b4b8e#0 "Yes:wot"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Yes", (handlers: Handlers, done$8: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_2df6410a(5, handlers, (handlers: Handlers, returnValue$10: string) => done$8(handlers, returnValue$10));
-}) + ":" + hash_2dbf3eae("Yes?", (handlers: Handlers, done$11: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_2df6410a(4, handlers, (handlers: Handlers, returnValue$13: string) => done$11(handlers, returnValue$13));
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Yes", (handlers: Handlers, done$6: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_2df6410a(5, handlers, (handlers: Handlers, returnValue$8: string) => done$6(handlers, returnValue$8));
+}) + ":" + hash_2dbf3eae("Yes?", (handlers: Handlers, done$9: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_2df6410a(4, handlers, (handlers: Handlers, returnValue$11: string) => done$9(handlers, returnValue$11));
 }), "Yes:wot");
 
 /*
@@ -455,10 +447,10 @@ provideStringPlain#2dbf3eae<string#builtin>(
     ) 
     ==#606c7034#553b4b8e#0 "what"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("what", (handlers: Handlers, done$15: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_a8135548(handlers, (handlers: Handlers, returnValue$17: () => string) => {
-    let continueBlock$18: boolean = true;
-    done$15(handlers, returnValue$17());
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("what", (handlers: Handlers, done$13: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_a8135548(handlers, (handlers: Handlers, returnValue$15: () => string) => {
+    let arg_lift_0$12: () => string = returnValue$15;
+    return done$13(handlers, arg_lift_0$12());
   });
 }), "what");
 
@@ -485,12 +477,12 @@ provideIncrement#4ffa1f88<Array#builtin<string#builtin>>(
     ) 
     ==#0d35c408#553b4b8e#0 <string#builtin>["Hi0", "Hi1"]
 */
-assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers, done$21: (arg_0: Handlers, arg_1: Array<string>) => void) => {
-  hash_64605d94(handlers, (handlers: Handlers, returnValue$25: string) => {
-    let continueBlock$26: boolean = true;
-    hash_64605d94(handlers, (handlers: Handlers, returnValue$23: string) => {
-      let continueBlock$27: boolean = true;
-      done$21(handlers, [returnValue$25, returnValue$23]);
+assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers, done$18: (arg_0: Handlers, arg_1: Array<string>) => void) => {
+  hash_64605d94(handlers, (handlers: Handlers, returnValue$22: string) => {
+    let arg_lift_0$16: string = returnValue$22;
+    return hash_64605d94(handlers, (handlers: Handlers, returnValue$20: string) => {
+      let arg_lift_1$17: string = returnValue$20;
+      return done$18(handlers, [arg_lift_0$16, arg_lift_1$17]);
     });
   });
 }), ["Hi0", "Hi1"]);
@@ -506,12 +498,12 @@ provideIncrement#4ffa1f88<Array#builtin<string#builtin>>(
     ) 
     ==#0d35c408#553b4b8e#0 <string#builtin>["Hi0", "Hi1"]
 */
-assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers, done$30: (arg_0: Handlers, arg_1: Array<string>) => void) => {
-  hash_3bfdbd8c(handlers, (handlers: Handlers, returnValue$34: Array<string>) => {
-    let continueBlock$35: boolean = true;
-    hash_64605d94(handlers, (handlers: Handlers, returnValue$32: string) => {
-      let continueBlock$36: boolean = true;
-      done$30(handlers, [...returnValue$34, returnValue$32]);
+assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers, done$25: (arg_0: Handlers, arg_1: Array<string>) => void) => {
+  hash_3bfdbd8c(handlers, (handlers: Handlers, returnValue$29: Array<string>) => {
+    let arg_lift_0$23: Array<string> = returnValue$29;
+    return hash_64605d94(handlers, (handlers: Handlers, returnValue$27: string) => {
+      let arg_lift_1$24: string = returnValue$27;
+      return done$25(handlers, [...arg_lift_0$23, arg_lift_1$24]);
     });
   });
 }), ["Hi0", "Hi1"]);
@@ -522,19 +514,21 @@ assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers
     getString#64605d94();
 }
 */
-(handlers: Handlers, done$37: (arg_0: Handlers, arg_1: string) => void) => {
+(handlers: Handlers, done$30: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "35f4b478", 0, "hello", (handlers, value) => ((handlers: Handlers) => {
-    hash_64605d94(handlers, (handlers: Handlers, returnValue$39: string) => done$37(handlers, returnValue$39));
+    hash_64605d94(handlers, (handlers: Handlers, returnValue$32: string) => done$30(handlers, returnValue$32));
   })(handlers, value));
 };
 
 /*
 (): string#builtin ={Read#22024b72}> (getString#64605d94(), 1.0).0
 */
-(handlers: Handlers, done$42: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_64605d94(handlers, (handlers: Handlers, returnValue$44: string) => {
-    let continueBlock$45: boolean = true;
-    done$42(handlers, [returnValue$44, 1][0]);
+(handlers: Handlers, done$35: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_64605d94(handlers, (handlers: Handlers, returnValue$37: string) => {
+    let arg_lift_0$34: string = returnValue$37;
+    return ((handlers: Handlers, arg_lift_0$33: [string, number]) => {
+      done$35(handlers, arg_lift_0$33[0]);
+    })(handlers, [arg_lift_0$34, 1]);
   });
 };
 

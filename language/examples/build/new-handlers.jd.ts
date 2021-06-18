@@ -52,7 +52,8 @@ const inner#19effbea = (name#:0: string#builtin): void#builtin ={Stdio#1da337a2,
     log#eccbfbca(k: "getting");
     log#eccbfbca(k: name#:0);
     log#eccbfbca(
-        k: raise!(Stdio#1da337a2.read()) ++#builtin " and " ++#builtin raise!(Stdio#1da337a2.read()),
+        k: raise!(Stdio#1da337a2.read()) ++#builtin " and " 
+            ++#builtin raise!(Stdio#1da337a2.read()),
     );
     log#eccbfbca(k: "And then " ++#builtin raise!(Stdio#1da337a2.read()));
     log#eccbfbca(k: "Dones");
@@ -339,9 +340,7 @@ provide#5c316d50<string#builtin>(
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_5c316d50("Hello", (handlers: Handlers, done$10: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$8: string) => {
-    let continueBlock: boolean = true;
     raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$9: string) => {
-      let continueBlock$12: boolean = true;
       done$10(handlers, arg_lift_0$8 + arg_lift_1$9);
     })(handlers, value));
   })(handlers, value));
@@ -357,10 +356,10 @@ appendLog#0ea0eb0a(
     ) 
     ==#606c7034#553b4b8e#0 "Hello\nFolks\nFinal value"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_0ea0eb0a((handlers: Handlers, done$13: (arg_0: Handlers, arg_1: string) => void) => {
+assertCall(hash_606c7034.h553b4b8e_0, hash_0ea0eb0a((handlers: Handlers, done$11: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "35f4b478", 0, "Hello", (handlers, value) => ((handlers: Handlers) => {
     raise(handlers, "35f4b478", 0, "Folks", (handlers, value) => ((handlers: Handlers) => {
-      done$13(handlers, "Final value");
+      done$11(handlers, "Final value");
     })(handlers, value));
   })(handlers, value));
 }), "Hello\nFolks\nFinal value");
@@ -369,8 +368,8 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_0ea0eb0a((handlers: Handlers, done$13
 collect#2ce3943a{}(fn: (): void#builtin ={Log#35f4b478}> raise!(Log#35f4b478.log("Good news"))) 
     ==#606c7034#553b4b8e#0 "Good news\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$14: (arg_0: Handlers) => void) => {
-  raise(handlers, "35f4b478", 0, "Good news", (handlers, value) => done$14(handlers, value));
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$12: (arg_0: Handlers) => void) => {
+  raise(handlers, "35f4b478", 0, "Good news", (handlers, value) => done$12(handlers, value));
 }), "Good news\nend");
 
 /*
@@ -384,13 +383,14 @@ provide#5c316d50<string#builtin>(
     ) 
     ==#606c7034#553b4b8e#0 "Good news Folks\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_5c316d50("Folks", (handlers: Handlers, done$17: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_2ce3943a.effectful((handlers: Handlers, done$19: (arg_0: Handlers) => void) => {
-    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$16: string) => {
-      let continueBlock$21: boolean = true;
-      raise(handlers, "35f4b478", 0, "Good news " + arg_lift_1$16, (handlers, value) => done$19(handlers, value));
+assertCall(hash_606c7034.h553b4b8e_0, hash_5c316d50("Folks", (handlers: Handlers, done$15: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_2ce3943a.effectful((handlers: Handlers, done$17: (arg_0: Handlers) => void) => {
+    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$14: string) => {
+      ((handlers: Handlers) => {
+        raise(handlers, "35f4b478", 0, "Good news " + arg_lift_1$14, (handlers, value) => done$17(handlers, value));
+      })(handlers);
     })(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$20: string) => done$17(handlers, returnValue$20));
+  }, handlers, (handlers: Handlers, returnValue$18: string) => done$15(handlers, returnValue$18));
 }), "Good news Folks\nend");
 
 /*

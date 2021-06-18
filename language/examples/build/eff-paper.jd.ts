@@ -136,17 +136,15 @@ const pythagorean#0cdd5ff0 = (m#:0: int#builtin, n#:1: int#builtin): string#buil
 export const hash_0cdd5ff0:
 /*from cps lambda*/
 (arg_0: number, arg_1: number, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: string) => void) => void = (m: number, n: number, handlers: Handlers, done$6: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_54cbbab4(m, n - 1, handlers, (handlers: Handlers, returnValue$12: number) => {
-    hash_54cbbab4(returnValue$12 + 1, n, handlers, (handlers: Handlers, returnValue$10: number) => {
-      if (isSquare(returnValue$12 * returnValue$12 + returnValue$10 * returnValue$10)) {
-        done$6(handlers, intToString(returnValue$12) + ":" + intToString(returnValue$10));
-      } else {
-        hash_0620e972(handlers, (handlers: Handlers, returnValue$8: number) => {
-          done$6(handlers, "??? how did this return");
-        });
-      }
-    });
-  });
+  hash_54cbbab4(m, n - 1, handlers, (handlers: Handlers, returnValue$12: number) => hash_54cbbab4(returnValue$12 + 1, n, handlers, (handlers: Handlers, returnValue$10: number) => {
+    if (isSquare(returnValue$12 * returnValue$12 + returnValue$10 * returnValue$10)) {
+      done$6(handlers, intToString(returnValue$12) + ":" + intToString(returnValue$10));
+    } else {
+      hash_0620e972(handlers, (handlers: Handlers, returnValue$8: number) => {
+        done$6(handlers, "??? how did this return");
+      });
+    }
+  }));
 };
 
 /**
@@ -260,18 +258,15 @@ export const hash_437fecbe:
 /*from cps lambda*/
 <T_0>(arg_0: T_0, arg_1: T_0, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: T_0) => void) => void = <T_0>(x: T_0, y: T_0, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: T_0) => void) => {
   hash_5334ea40(handlers, (handlers: Handlers, returnValue: boolean) => {
-    let continueBlock: boolean = true;
     let lambdaBlockResult: T_0 = (null as any);
 
-    if (continueBlock && returnValue) {
+    if (returnValue) {
       lambdaBlockResult = x;
     } else {
       lambdaBlockResult = y;
     }
 
-    if (continueBlock) {
-      done$3(handlers, lambdaBlockResult);
-    }
+    return done$3(handlers, lambdaBlockResult);
   });
 };
 
@@ -298,13 +293,9 @@ export const hash_1d5e1778: any = {
   effectful: (x$5:
   /*from cps lambda*/
   (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: number) => void) => void, handlers: Handlers, done$6: (arg_0: Handlers, arg_1: number) => void) => {
-    x$5(handlers, (handlers: Handlers, returnValue$7: number) => {
-      done$6(handlers, returnValue$7 + 5);
-    });
+    x$5(handlers, (handlers: Handlers, returnValue$7: number) => done$6(handlers, returnValue$7 + 5));
   },
-  direct: (x: () => number) => {
-    return x() + 5;
-  }
+  direct: (x: () => number) => x() + 5
 };
 
 /**
@@ -453,11 +444,7 @@ const chooseDiff#61f16268 = (): int#builtin ={Decide#086e3532}> {
 export const hash_61f16268:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: number) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: number) => void) => {
-  hash_437fecbe(15, 30, handlers, (handlers: Handlers, returnValue$6: T_0) => {
-    hash_437fecbe(5, 10, handlers, (handlers: Handlers, returnValue$4: T_0) => {
-      done$2(handlers, returnValue$6 - returnValue$4);
-    });
-  });
+  hash_437fecbe(15, 30, handlers, (handlers: Handlers, returnValue$6: T_0) => hash_437fecbe(5, 10, handlers, (handlers: Handlers, returnValue$4: T_0) => done$2(handlers, returnValue$6 - returnValue$4)));
 };
 
 /**
@@ -710,7 +697,6 @@ collect#2ce3943a{}(
 */
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
   hash_eccbfbca("HI", handlers, (handlers: Handlers) => {
-    let continueBlock$7: boolean = true;
     hash_eccbfbca("HO", handlers, (handlers: Handlers) => done$4(handlers));
   });
 }), "HI\nHO\nend");
@@ -724,9 +710,9 @@ collect#2ce3943a{}(
     ) 
     ==#606c7034#553b4b8e#0 "HI\nHO\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$8: (arg_0: Handlers) => void) => {
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$7: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "HI", (handlers, value) => ((handlers: Handlers) => {
-    raise(handlers, "35f4b478", 0, "HO", (handlers, value) => done$8(handlers, value));
+    raise(handlers, "35f4b478", 0, "HO", (handlers, value) => done$7(handlers, value));
   })(handlers, value));
 }), "HI\nHO\nend");
 
@@ -742,16 +728,18 @@ collect#2ce3943a{}(
     ) 
     ==#606c7034#553b4b8e#0 "hi and hi\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$13: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("hi", (handlers: Handlers, done$15: (arg_0: Handlers) => void) => {
-    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$12: string) => {
-      let continueBlock$18: boolean = true;
-      raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$11: string) => {
-        let continueBlock$19: boolean = true;
-        hash_eccbfbca(arg_lift_0$12 + " and " + arg_lift_1$11, handlers, (handlers: Handlers) => done$15(handlers));
-      })(handlers, value));
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$12: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("hi", (handlers: Handlers, done$14: (arg_0: Handlers) => void) => {
+    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$11: string) => {
+      ((handlers: Handlers) => {
+        raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$10: string) => {
+          ((handlers: Handlers) => {
+            hash_eccbfbca(arg_lift_0$11 + " and " + arg_lift_1$10, handlers, (handlers: Handlers) => done$14(handlers));
+          })(handlers);
+        })(handlers, value));
+      })(handlers);
     })(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$17: T_0) => done$13(handlers));
+  }, handlers, (handlers: Handlers, returnValue$16: T_0) => done$12(handlers));
 }), "hi and hi\nend");
 
 /*
@@ -763,10 +751,9 @@ collect#2ce3943a{}(
     ) 
     ==#606c7034#553b4b8e#0 "A\nB\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$20: (arg_0: Handlers) => void) => {
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$17: (arg_0: Handlers) => void) => {
   hash_eccbfbca("A", handlers, (handlers: Handlers) => {
-    let continueBlock$23: boolean = true;
-    hash_eccbfbca("B", handlers, (handlers: Handlers) => done$20(handlers));
+    hash_eccbfbca("B", handlers, (handlers: Handlers) => done$17(handlers));
   });
 }), "A\nB\nend");
 
@@ -784,25 +771,22 @@ collect#2ce3943a{}(
     ) 
     ==#606c7034#553b4b8e#0 "hi\nYA\nhi\nB\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$26: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("hi", (handlers: Handlers, done$28: (arg_0: Handlers) => void) => {
-    hash_64605d94(handlers, (handlers: Handlers, returnValue$36: string) => {
-      let continueBlock$41: boolean = true;
-      hash_eccbfbca(returnValue$36, handlers, (handlers: Handlers) => {
-        let continueBlock$38: boolean = true;
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$22: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("hi", (handlers: Handlers, done$24: (arg_0: Handlers) => void) => {
+    hash_64605d94(handlers, (handlers: Handlers, returnValue$32: string) => {
+      let arg_lift_0$20: string = returnValue$32;
+      return hash_eccbfbca(arg_lift_0$20, handlers, (handlers: Handlers) => {
         hash_eccbfbca("YA", handlers, (handlers: Handlers) => {
-          let continueBlock$39: boolean = true;
-          hash_64605d94(handlers, (handlers: Handlers, returnValue$32: string) => {
-            let continueBlock$42: boolean = true;
-            hash_eccbfbca(returnValue$32, handlers, (handlers: Handlers) => {
-              let continueBlock$40: boolean = true;
-              hash_eccbfbca("B", handlers, (handlers: Handlers) => done$28(handlers));
+          hash_64605d94(handlers, (handlers: Handlers, returnValue$28: string) => {
+            let arg_lift_0$21: string = returnValue$28;
+            return hash_eccbfbca(arg_lift_0$21, handlers, (handlers: Handlers) => {
+              hash_eccbfbca("B", handlers, (handlers: Handlers) => done$24(handlers));
             });
           });
         });
       });
     });
-  }, handlers, (handlers: Handlers, returnValue$37: T_0) => done$26(handlers));
+  }, handlers, (handlers: Handlers, returnValue$33: T_0) => done$22(handlers));
 }), "hi\nYA\nhi\nB\nend");
 
 /*
@@ -818,15 +802,14 @@ collect#2ce3943a{}(
     ) 
     ==#606c7034#553b4b8e#0 "A\nB\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$43: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("hi", (handlers: Handlers, done$45: (arg_0: Handlers) => void) => {
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$34: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("hi", (handlers: Handlers, done$36: (arg_0: Handlers) => void) => {
     raise(handlers, "35f4b478", 0, "A", (handlers, value) => ((handlers: Handlers) => {
       raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, x: string) => {
-        let continueBlock$47: boolean = true;
-        raise(handlers, "35f4b478", 0, "B", (handlers, value) => done$45(handlers, value));
+        raise(handlers, "35f4b478", 0, "B", (handlers, value) => done$36(handlers, value));
       })(handlers, value));
     })(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$46: T_0) => done$43(handlers));
+  }, handlers, (handlers: Handlers, returnValue$37: T_0) => done$34(handlers));
 }), "A\nB\nend");
 
 /*
@@ -841,13 +824,12 @@ collect#2ce3943a{}(
     ) 
     ==#606c7034#553b4b8e#0 "B\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$48: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("hi", (handlers: Handlers, done$50: (arg_0: Handlers) => void) => {
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$38: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("hi", (handlers: Handlers, done$40: (arg_0: Handlers) => void) => {
     raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, x: string) => {
-      let continueBlock$52: boolean = true;
-      raise(handlers, "35f4b478", 0, "B", (handlers, value) => done$50(handlers, value));
+      raise(handlers, "35f4b478", 0, "B", (handlers, value) => done$40(handlers, value));
     })(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$51: T_0) => done$48(handlers));
+  }, handlers, (handlers: Handlers, returnValue$41: T_0) => done$38(handlers));
 }), "B\nend");
 
 /*
@@ -861,8 +843,8 @@ collect#2ce3943a{}(
     ) 
     ==#606c7034#553b4b8e#0 "What is your forename?\nWhat is your surname?\nMe Me\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$53: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$55: T_0) => done$53(handlers));
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$42: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$44: T_0) => done$42(handlers));
 }), "What is your forename?\nWhat is your surname?\nMe Me\nend");
 
 /*
@@ -876,13 +858,12 @@ collect#2ce3943a{}(
     ) 
     ==#606c7034#553b4b8e#0 "B\nA\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$56: (arg_0: Handlers) => void) => {
-  hash_f201f930((handlers: Handlers, done$58: (arg_0: Handlers) => void) => {
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$45: (arg_0: Handlers) => void) => {
+  hash_f201f930((handlers: Handlers, done$47: (arg_0: Handlers) => void) => {
     hash_eccbfbca("A", handlers, (handlers: Handlers) => {
-      let continueBlock$61: boolean = true;
-      hash_eccbfbca("B", handlers, (handlers: Handlers) => done$58(handlers));
+      hash_eccbfbca("B", handlers, (handlers: Handlers) => done$47(handlers));
     });
-  }, handlers, (handlers: Handlers) => done$56(handlers));
+  }, handlers, (handlers: Handlers) => done$45(handlers));
 }), "B\nA\nend");
 
 /*
@@ -900,10 +881,10 @@ collect#2ce3943a{}(
     ) 
     ==#606c7034#553b4b8e#0 "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$62: (arg_0: Handlers) => void) => {
-  hash_f201f930((handlers: Handlers, done$64: (arg_0: Handlers) => void) => {
-    hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$66: T_0) => done$64(handlers));
-  }, handlers, (handlers: Handlers) => done$62(handlers));
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$50: (arg_0: Handlers) => void) => {
+  hash_f201f930((handlers: Handlers, done$52: (arg_0: Handlers) => void) => {
+    hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$54: T_0) => done$52(handlers));
+  }, handlers, (handlers: Handlers) => done$50(handlers));
 }), "Me Me\nWhat is your surname?\nWhat is your forename?\nend");
 
 /*
@@ -951,10 +932,10 @@ withInitialValue#478ee9c0<int#builtin>(
     ) 
     ==#9275f914#553b4b8e#0 9
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_478ee9c0(4, (handlers: Handlers, done$67: (arg_0: Handlers, arg_1: number) => void) => {
-  hash_1d5e1778.effectful((handlers: Handlers, done$69: (arg_0: Handlers, arg_1: number) => void) => {
-    raise(handlers, "7b45d75e", 0, null, (handlers, value) => done$69(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$70: number) => done$67(handlers, returnValue$70));
+assertCall(hash_9275f914.h553b4b8e_0, hash_478ee9c0(4, (handlers: Handlers, done$55: (arg_0: Handlers, arg_1: number) => void) => {
+  hash_1d5e1778.effectful((handlers: Handlers, done$57: (arg_0: Handlers, arg_1: number) => void) => {
+    raise(handlers, "7b45d75e", 0, null, (handlers, value) => done$57(handlers, value));
+  }, handlers, (handlers: Handlers, returnValue$58: number) => done$55(handlers, returnValue$58));
 }), 9);
 
 /*

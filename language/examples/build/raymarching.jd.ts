@@ -911,7 +911,11 @@ const phongIllumination#eb0d8500 = (
     eye#:6: Vec3#9f1c0644,
 ): Vec3#9f1c0644 ={}> {
     const ambientLight#:7 = 0.5 
-        *#c4a91006#1de4e4c0#0 Vec3#9f1c0644{x#43802a16#0: 1.0, y#43802a16#1: 1.0, z#9f1c0644#0: 1.0};
+        *#c4a91006#1de4e4c0#0 Vec3#9f1c0644{
+            x#43802a16#0: 1.0,
+            y#43802a16#1: 1.0,
+            z#9f1c0644#0: 1.0,
+        };
     const color#:8 = ambientLight#:7 *#73d73040#1de4e4c0#0 k_a#:1;
     const light1Pos#:9 = Vec3#9f1c0644{
         x#43802a16#0: 4.0 *#builtin sin#builtin(iTime#:0),
@@ -1096,7 +1100,12 @@ const mainImage#e4a02974 = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a1
         stepsLeft: MAX_MARCHING_STEPS#62404440,
     );
     if dist#:4 >#builtin MAX_DIST#0ce717e6 -#builtin EPSILON#17261aaa {
-        Vec4#3b941378{z#9f1c0644#0: 1.0, x#43802a16#0: 1.0, y#43802a16#1: 1.0, w#3b941378#0: 1.0};
+        Vec4#3b941378{
+            z#9f1c0644#0: 1.0,
+            x#43802a16#0: 1.0,
+            y#43802a16#1: 1.0,
+            w#3b941378#0: 1.0,
+        };
     } else {
         const p#:5 = eye#:3 +#1c6fdd91#b99b22d8#0 dist#:4 *#c4a91006#1de4e4c0#0 dir#:2;
         const K_a#:6 = Vec3#9f1c0644{x#43802a16#0: 0.9, y#43802a16#1: 0.2, z#9f1c0644#0: 0.3};

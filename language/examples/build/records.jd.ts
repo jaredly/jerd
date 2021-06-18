@@ -123,7 +123,11 @@ type t_225ab688 = {
 
 /**
 ```
-const me#5af8296e = Person#58c1982c{name#ad561a20#0: "June", age#4082e170#0: 10, what#58c1982c#0: 3}
+const me#5af8296e = Person#58c1982c{
+    name#ad561a20#0: "June",
+    age#4082e170#0: 10,
+    what#58c1982c#0: 3,
+}
 ```
 */
 export const hash_5af8296e: t_58c1982c = ({
@@ -206,7 +210,10 @@ export const hash_5a5f83a0: t_a4491948<<T_0>(arg_0: T_0) => string> = ({
 
 /**
 ```
-const countMe#3fcbf771 = Counter#a4491948<int#builtin>{item#a4491948#0: 10, count#a4491948#1: 4000}
+const countMe#3fcbf771 = Counter#a4491948<int#builtin>{
+    item#a4491948#0: 10,
+    count#a4491948#1: 4000,
+}
 ```
 */
 export const hash_3fcbf771: t_a4491948<number> = ({

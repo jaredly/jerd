@@ -1288,7 +1288,12 @@ const fishingBoueys#4d821b9e = (
         stepsLeft: MAX_MARCHING_STEPS#62404440,
     );
     if dist#:10 >#builtin MAX_DIST#0ce717e6 -#builtin EPSILON#ec7f8d1c {
-        Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 1.0, y#43802a16#1: 1.0, w#3b941378#0: 1.0};
+        Vec4#3b941378{
+            z#9f1c0644#0: 0.0,
+            x#43802a16#0: 1.0,
+            y#43802a16#1: 1.0,
+            w#3b941378#0: 1.0,
+        };
     } else {
         const worldPosForPixel#:11 = eye#:6 
             +#1c6fdd91#b99b22d8#0 dist#:10 *#c4a91006#1de4e4c0#0 dir#:9;
@@ -1357,13 +1362,12 @@ export const hash_4d821b9e: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number
       w: 1
     } as t_3b941378);
   } else {
-    let samples: number = 10;
     let brightness: number = hash_359cb0c1(sceneSDF, iTime, hash_6d631644.hb99b22d8_0(hash_090f77e7.h5ac12902_0(fragCoord, iResolution), iTime / 1000), ({
       type: "Vec3",
       x: 0.15 + sin(iTime / 2) / 1,
       y: 0,
       z: 0.05
-    } as t_9f1c0644), uCamera, dist$10, worldDir, 0, hash_184a69ed.hAs_0(samples), samples) * 3 / samples;
+    } as t_9f1c0644), uCamera, dist$10, worldDir, 0, hash_184a69ed.hAs_0(10), 10) * 3 / 10;
     return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_1d31aa6e.h1de4e4c0_0(hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, brightness), brightness), brightness),
       type: "Vec4",
       w: 1

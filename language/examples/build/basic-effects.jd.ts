@@ -203,7 +203,8 @@ const inner#19effbea = (name#:0: string#builtin): void#builtin ={Stdio#1da337a2,
     log#eccbfbca(k: "getting");
     log#eccbfbca(k: name#:0);
     log#eccbfbca(
-        k: raise!(Stdio#1da337a2.read()) ++#builtin " and " ++#builtin raise!(Stdio#1da337a2.read()),
+        k: raise!(Stdio#1da337a2.read()) ++#builtin " and " 
+            ++#builtin raise!(Stdio#1da337a2.read()),
     );
     log#eccbfbca(k: "And then " ++#builtin raise!(Stdio#1da337a2.read()));
     log#eccbfbca(k: "Dones");
@@ -276,9 +277,7 @@ export const hash_1e213df0:
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
   hash_59070068("<read>")((handlers: Handlers, done$5: (arg_0: Handlers, arg_1: string) => void) => {
     hash_fce40b70("<read>", handlers, (handlers: Handlers, returnValue$7: string) => done$5(handlers, returnValue$7));
-  }, handlers, (handlers: Handlers, returnValue: T_0) => {
-    hash_eccbfbca(returnValue, handlers, (handlers: Handlers) => done$2(handlers));
-  });
+  }, handlers, (handlers: Handlers, returnValue: T_0) => hash_eccbfbca(returnValue, handlers, (handlers: Handlers) => done$2(handlers)));
 };
 
 /**
@@ -297,11 +296,9 @@ export const hash_a145008c:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
   hash_59070068("<read>")((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
-    hash_42c8a590(true, handlers, (handlers: Handlers, returnValue$11: string) => {
-      hash_42c8a590(false, handlers, (handlers: Handlers, returnValue$9: string) => {
-        hash_eccbfbca(returnValue$11 + returnValue$9, handlers, (handlers: Handlers) => done$6(handlers));
-      });
-    });
+    hash_42c8a590(true, handlers, (handlers: Handlers, returnValue$11: string) => hash_42c8a590(false, handlers, (handlers: Handlers, returnValue$9: string) => {
+      hash_eccbfbca(returnValue$11 + returnValue$9, handlers, (handlers: Handlers) => done$6(handlers));
+    }));
   }, handlers, (handlers: Handlers, returnValue$12: T_0) => done$4(handlers));
 };
 

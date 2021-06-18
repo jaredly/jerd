@@ -720,7 +720,12 @@ const fishingBoueys#4713c0cc = (
     );
     const light#:6 = 0.2;
     if dist#:5 >#builtin MAX_DIST#0ce717e6 -#builtin EPSILON#ec7f8d1c {
-        Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 0.0, y#43802a16#1: 0.0, w#3b941378#0: 1.0};
+        Vec4#3b941378{
+            z#9f1c0644#0: 0.0,
+            x#43802a16#0: 0.0,
+            y#43802a16#1: 0.0,
+            w#3b941378#0: 1.0,
+        };
     } else {
         const worldPosForPixel#:7 = eye#:4 
             +#1c6fdd91#b99b22d8#0 dist#:5 *#c4a91006#1de4e4c0#0 dir#:3;

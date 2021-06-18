@@ -71,7 +71,7 @@ const something = (x: int) => (y: int) => x + y
 const other = something(2)
 const third = (fn: (int) => int) => 2 + fn(3)
 const final = () => {
-    third(something(1)) + other
+    third(something(1)) + other(1)
 }
 
 /*

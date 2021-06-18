@@ -767,12 +767,12 @@ export const blockToTs = (
 export const lambdaBodyToTs = (
     env: Env,
     opts: OutputOptions,
-    term: ir.Expr | ir.Block,
+    term: ir.Block,
 ): t.BlockStatement | t.Expression => {
-    if (term.type === 'Block') {
-        return blockToTs(env, opts, term);
+    if (term.items.length === 1 && term.items[0].type === 'Return') {
+        return termToTs(env, opts, term.items[0].value);
     } else {
-        return termToTs(env, opts, term);
+        return blockToTs(env, opts, term);
     }
 };
 

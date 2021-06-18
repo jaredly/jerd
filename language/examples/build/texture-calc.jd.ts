@@ -102,7 +102,12 @@ const pendulum#2d222162 = (
     buffer#:4: sampler2D#builtin,
 ): Vec4#3b941378 ={}> {
     if iTime#:0 <#builtin 0.1 {
-        Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 0.0, y#43802a16#1: 0.0, w#3b941378#0: 1.0};
+        Vec4#3b941378{
+            z#9f1c0644#0: 0.0,
+            x#43802a16#0: 0.0,
+            y#43802a16#1: 0.0,
+            w#3b941378#0: 1.0,
+        };
     } else {
         const current#:5 = texture#builtin(
             buffer#:4,
