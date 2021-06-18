@@ -1,30 +1,15 @@
 // Well first pass, we can just monomorphize types, like people usually do.
 // ugh nvm that's complicated.
 
-import { hashObject, idFromName, idName } from '../../../typing/env';
-import { showLocation } from '../../../typing/typeExpr';
-import { Env, Id } from '../../../typing/types';
+import { hashObject, idName } from '../../../typing/env';
 import { defaultVisitor, transformExpr } from '../transform';
-import { Block, Expr, LambdaExpr, LambdaType, Stmt } from '../types';
-import {
-    applyTypeVariables,
-    block,
-    makeTypeVblMapping,
-    subtTypeVars,
-} from '../utils';
-import { maxUnique } from './inline';
+import { Block, Expr, LambdaExpr, Stmt } from '../types';
 import {
     findCapturedVariables,
     liftLambdas,
     liftToTopLevel,
 } from './liftlambdas';
-import {
-    Context,
-    Exprs,
-    optimizeAggressive,
-    optimizeDefine,
-    optimizeDefineNew,
-} from './optimize';
+import { Context } from './optimize';
 
 export const specializeFunctionsCalledWithLambdas = (
     ctx: Context,

@@ -13,7 +13,7 @@ export type ExprVisitor = (
 export type Visitor = {
     expr: ExprVisitor;
     block: (value: Block) => Block | null | false;
-    stmt: (value: Stmt) => Stmt | null | false | Array<Stmt>;
+    stmt: (value: Stmt, visitor: Visitor) => Stmt | null | false | Array<Stmt>;
 };
 
 export const defaultVisitor: Visitor = {
@@ -287,12 +287,30 @@ export const transformBlock = (
     return changed ? { ...block, items } : block;
 };
 
+// export const transformBlock = (
+//     stmt: Block,
+//     visitor: Visitor,
+//     level: number = 0,
+// ): Stmt | Array<Stmt> => {
+//     const tr = visitor.stmt(stmt);
+//     if (tr === false) {
+//         return stmt;
+//     }
+//     if (tr != null) {
+//         if (Array.isArray(tr)) {
+//             return tr.map((s) => transformOneStmt(s, visitor, level + 1));
+//         }
+//         stmt = tr;
+//     }
+//     return transformOneStmt(stmt, visitor, level + 1);
+// };
+
 export const transformStmt = (
     stmt: Stmt,
     visitor: Visitor,
     level: number = 0,
 ): Stmt | Array<Stmt> => {
-    const tr = visitor.stmt(stmt);
+    const tr = visitor.stmt(stmt, visitor);
     if (tr === false) {
         return stmt;
     }

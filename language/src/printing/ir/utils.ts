@@ -1,69 +1,47 @@
 // General thing
 
-import {
-    Term,
-    Env,
-    Type as TermType,
-    getEffects,
-    Symbol,
-    Reference,
-    Let,
-    Var,
-    EffectRef,
-    Lambda,
-    LambdaType as TLambdaType,
-    walkTerm,
-    Pattern,
-    UserReference,
-    TypeVblDecl,
-    LambdaType as TermLambdaType,
-    EffectReference,
-    nullLocation,
-} from '../../typing/types';
-import {
-    binOps,
-    // bool,
-    // builtinType,
-    // int,
-    // pureFunction,
-    // string,
-    // void_,
-} from '../../typing/preset';
-import {
-    applyEffectVariables,
-    getEnumReferences,
-    showLocation,
-} from '../../typing/typeExpr';
-import { idName, newSym, refName } from '../../typing/env';
-
-import {
-    Loc,
-    Expr,
-    Block,
-    Stmt,
-    Arg,
-    LambdaExpr,
-    Literal,
-    Type,
-    OutputOptions,
-    LambdaType,
-    returnTypeForStmt,
-    typeForLambdaExpression,
-    typesEqual,
-    MaybeEffLambda,
-    Define,
-    Assign,
-    EffectHandler,
-    CPSLambdaType,
-    DoneLambdaType,
-    CPS,
-} from './types';
 import { Location } from '../../parsing/parser';
-import { LocatedError, TypeMismatch } from '../../typing/errors';
+import { newSym, refName } from '../../typing/env';
+import { LocatedError } from '../../typing/errors';
+import { binOps } from '../../typing/preset';
+import { applyEffectVariables } from '../../typing/typeExpr';
+import {
+    EffectRef,
+    EffectReference,
+    Env,
+    LambdaType as TermLambdaType,
+    LambdaType as TLambdaType,
+    nullLocation,
+    Reference,
+    Symbol,
+    Term,
+    Type as TermType,
+    TypeVblDecl,
+} from '../../typing/types';
 import { args, atom, id, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
 import { handleArgsForEffects, handlerTypesForEffects } from './cps';
-import { isVoid } from '../../typing/terms/handle';
+import {
+    Arg,
+    Assign,
+    Block,
+    CPS,
+    CPSLambdaType,
+    Define,
+    DoneLambdaType,
+    EffectHandler,
+    Expr,
+    LambdaExpr,
+    LambdaType,
+    Loc,
+    MaybeEffLambda,
+    OutputOptions,
+    Stmt,
+    Type,
+    typeForLambdaExpression,
+    typesEqual,
+} from './types';
+
 // import { getTypeError } from '../../typing/getTypeError';
 
 const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);

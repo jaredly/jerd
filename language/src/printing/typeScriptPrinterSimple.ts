@@ -59,6 +59,7 @@ import { getEnumReferences, showLocation } from '../typing/typeExpr';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
+import { Location } from '../parsing/parser';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -1071,19 +1072,35 @@ export const maxUnique = (term: Term) => {
 };
 
 export const reUnique = (unique: { current: number }, expr: Expr) => {
+    if (isNaN(unique.current) || typeof unique.current !== 'number') {
+        throw new Error('initial unique not a number');
+    }
     const mapping: { [orig: number]: number } = {};
     const addSym = (sym: Symbol) => {
         if (sym.unique === handlerSym.unique) {
             mapping[sym.unique] = sym.unique;
             return sym;
         }
+        if (isNaN(unique.current)) {
+            throw new Error('current uneique NaN');
+        }
         mapping[sym.unique] = unique.current++;
+        if (isNaN(unique.current)) {
+            console.log(unique);
+            throw new Error('now uneique NaN');
+        }
         return { ...sym, unique: mapping[sym.unique] };
     };
-    const getSym = (sym: Symbol): Symbol => ({
-        ...sym,
-        unique: mapping[sym.unique],
-    });
+    const getSym = (sym: Symbol, loc: Location): Symbol => {
+        if (mapping[sym.unique] == null) {
+            // This is probably an upper-scope variable
+            return sym;
+        }
+        return {
+            ...sym,
+            unique: mapping[sym.unique],
+        };
+    };
     return transformExpr(expr, {
         ...defaultVisitor,
         stmt: (value) => {
@@ -1091,7 +1108,7 @@ export const reUnique = (unique: { current: number }, expr: Expr) => {
                 return { ...value, sym: addSym(value.sym) };
             }
             if (value.type === 'Assign') {
-                return { ...value, sym: getSym(value.sym) };
+                return { ...value, sym: getSym(value.sym, value.loc) };
             }
             return null;
         },
@@ -1119,7 +1136,7 @@ export const reUnique = (unique: { current: number }, expr: Expr) => {
                         })),
                     };
                 case 'var':
-                    return { ...value, sym: getSym(value.sym) };
+                    return { ...value, sym: getSym(value.sym, value.loc) };
             }
             return null;
         },

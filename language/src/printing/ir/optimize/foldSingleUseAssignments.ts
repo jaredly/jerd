@@ -84,25 +84,22 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
     const defns: { [key: string]: Expr } = {};
     return transformExpr(expr, {
         ...defaultVisitor,
-        block: (block) => {
-            const items: Array<Stmt> = [];
-            block.items.forEach((item) => {
-                if (item.type === 'Define' && singles[symName(item.sym)]) {
-                    defns[symName(item.sym)] = item.value!;
-                    return; // skip this
+        stmt: (stmt) => {
+            if (stmt.type === 'Define' && singles[symName(stmt.sym)]) {
+                if (stmt.value != null) {
+                    defns[symName(stmt.sym)] = stmt.value;
                 }
-                if (
-                    item.type === 'Assign' &&
-                    item.value.type === 'var' &&
-                    symbolsEqual(item.sym, item.value.sym)
-                ) {
-                    return; // x = x, noop
-                }
-                items.push(item);
-            });
-            return items.length !== block.items.length
-                ? { ...block, items }
-                : block;
+                return [];
+            }
+            if (
+                stmt.type === 'Assign' &&
+                stmt.value.type === 'var' &&
+                symbolsEqual(stmt.sym, stmt.value.sym)
+            ) {
+                defns[symName(stmt.sym)] = stmt.value;
+                return [];
+            }
+            return null;
         },
         expr: (value) => {
             if (value.type === 'var') {
@@ -113,15 +110,5 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
             }
             return null;
         },
-        // stmt: (value) => {
-        //     if (
-        //         (value.type === 'Define' || value.type === 'Assign') &&
-        //         value.value != null &&
-        //         isConstant(value.value)
-        //     ) {
-        //         constants[symName(value.sym)] = value.value;
-        //     }
-        //     return null;
-        // },
     });
 };

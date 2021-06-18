@@ -39,11 +39,11 @@ const m#3c4200ce = superSample#7fbe027c(
 ```
 */
 vec4 m_3c4200ce(
-    GLSLEnv_451d5252 arg0_8,
-    vec2 arg1_9
+    GLSLEnv_451d5252 arg0_9,
+    vec2 arg1_10
 ) {
-    GLSLEnv_451d5252 env = arg0_8;
-    vec2 pos = arg1_9;
+    GLSLEnv_451d5252 env = arg0_9;
+    vec2 pos = arg1_10;
     vec4 lambdaBlockResult;
     if ((m_lambda_7c39d44b(env, vec3((pos + vec2(0.0, 0.50)), 0.0)) > m_lambda_7c39d44b(
         env,
@@ -53,13 +53,13 @@ vec4 m_3c4200ce(
     } else {
         lambdaBlockResult = vec4(1.0);
     };
-    vec4 lambdaBlockResult_11;
+    vec4 lambdaBlockResult_19;
     if ((m_lambda_7c39d44b(env, vec3(pos, 0.0)) > m_lambda_7c39d44b(env, vec3(pos, 1.0)))) {
-        lambdaBlockResult_11 = vec4(0.0);
+        lambdaBlockResult_19 = vec4(0.0);
     } else {
-        lambdaBlockResult_11 = vec4(1.0);
+        lambdaBlockResult_19 = vec4(1.0);
     };
-    return ((lambdaBlockResult_11 + lambdaBlockResult) / 2.0);
+    return ((lambdaBlockResult_19 + lambdaBlockResult) / 2.0);
 }
 
 void main() {

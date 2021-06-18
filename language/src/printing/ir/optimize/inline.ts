@@ -130,6 +130,17 @@ export const maxUnique = (expr: Expr) => {
             if (expr.type === 'var') {
                 max = Math.max(max, expr.sym.unique);
             }
+            if (expr.type === 'lambda') {
+                expr.args.forEach((arg) => {
+                    max = Math.max(max, arg.sym.unique);
+                });
+            }
+            return null;
+        },
+        stmt: (stmt) => {
+            if (stmt.type === 'Define' || stmt.type === 'Assign') {
+                max = Math.max(max, stmt.sym.unique);
+            }
             return null;
         },
     });
@@ -145,7 +156,16 @@ export const toplevelRecordAttribute = (
 };
 
 export const inlint = (ctx: Context, expr: Expr): Expr => {
-    let outerMax = Math.max(maxUnique(expr), ctx.env.local.unique.current);
+    const uMax = maxUnique(expr);
+    if (uMax > ctx.env.local.unique.current) {
+        console.log(
+            'inlint unique max greater',
+            uMax,
+            ctx.env.local.unique.current,
+        );
+        ctx.env.local.unique.current = uMax;
+    }
+    // let outerMax = Math.max(maxUnique(expr), ctx.env.local.unique.current);
     // console.log('inlining', self);
     return transformExpr(expr, {
         ...defaultVisitor,
@@ -158,14 +178,14 @@ export const inlint = (ctx: Context, expr: Expr): Expr => {
                     //     expr.id,
                     //     env.global.idNames[idName(expr.id)],
                     // );
-                    const innerMax = maxUnique(t.expr);
-                    const unique = {
-                        current: Math.max(outerMax, innerMax) + 1,
-                    };
+                    // const innerMax = maxUnique(t.expr);
+                    // const unique = {
+                    //     current: Math.max(outerMax, innerMax) + 1,
+                    // };
                     // Redo uniques for the inline that we bring in.
-                    const newTerm = reUnique(unique, t.expr);
-                    ctx.env.local.unique.current = unique.current;
-                    outerMax = unique.current;
+                    const newTerm = reUnique(ctx.env.local.unique, t.expr);
+                    // ctx.env.local.unique.current = unique.current;
+                    // outerMax = unique.current;
                     return newTerm;
                 }
                 return null;

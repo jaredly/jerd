@@ -357,7 +357,7 @@ vec4 fishingBoueys_specialization_19918a50(
     vec4 lambdaBlockResult_18;
     vec3 spread_16 = rayDirection_6258178a(45.0, iResolution_3, fragCoord_2);
     lambdaBlockResult_18 = vec4(spread_16.x, spread_16.y, spread_16.z, 0.0);
-    vec3 worldDir = xyz_1aedf216(
+    vec3 dir = xyz_1aedf216(
         V16557d10_1de4e4c0_0(
             viewMatrix_c336d78c(uCamera_4, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
             lambdaBlockResult_18
@@ -366,7 +366,7 @@ vec4 fishingBoueys_specialization_19918a50(
     float dist_10 = shortestDistanceToSurface_specialization_6ad47240(
         iTime_1,
         uCamera_4,
-        worldDir,
+        dir,
         MIN_DIST_f2cd39b8,
         MAX_DIST_0ce717e6,
         MAX_MARCHING_STEPS_62404440
@@ -380,7 +380,7 @@ vec4 fishingBoueys_specialization_19918a50(
             vec3((0.150 + (sin((iTime_1 / 2.0)) / 1.0)), 0.0, 0.050),
             uCamera_4,
             dist_10,
-            worldDir,
+            dir,
             0.0,
             int(10.0),
             10.0

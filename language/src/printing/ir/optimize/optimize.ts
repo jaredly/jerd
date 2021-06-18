@@ -1,5 +1,8 @@
 import { idName, newSym } from '../../../typing/env';
+import { showLocation } from '../../../typing/typeExpr';
 import { Env, Id, Symbol } from '../../../typing/types';
+import { debugExpr } from '../../irDebugPrinter';
+import { printToString } from '../../printer';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import { uniquesReallyAreUnique } from '../analyze';
 import { defaultVisitor, transformExpr, Visitor } from '../transform';
@@ -78,7 +81,10 @@ export const combineOpts = (opts: Array<Optimizer2>): Optimizer2 => (
     ctx: Context,
     expr: Expr,
 ) => {
-    opts.forEach((fn) => (expr = fn(ctx, expr)));
+    opts.forEach((fn) => {
+        // console.log('run opt', fn);
+        expr = fn(ctx, expr);
+    });
     return expr;
 };
 
@@ -95,6 +101,7 @@ export const optimizeDefineNew = (
     id: Id,
     exprs: Exprs | null,
 ): Expr => {
+    const orig = expr;
     const fns = exprs ? glslOpts : javascriptOpts;
     const exprss = exprs || {};
     const opt = optimizeRepeatedly(fns);
@@ -105,29 +112,47 @@ export const optimizeDefineNew = (
         opts: {},
         optimize: opt,
     };
-    expr = opt(ctx, expr);
 
-    // let changed = true;
-    // const opts = {};
-    // let passes = 0;
-    // const changeCount: { [key: string]: number } = {};
-    // while (changed) {
-    //     if (passes++ > 200) {
-    //         console.log(changeCount);
-    //         throw new Error(`Optimization passes failing to converge`);
-    //     }
-    //     let old = expr;
-    //     fns.forEach((fn) => {
-    //         const nexpr = fn(env, opts, exprss, expr, id);
-    //         if (nexpr !== expr) {
-    //             expr = nexpr;
-    //             changeCount[fn + ''] = (changeCount[fn + ''] || 0) + 1;
-    //         }
-    //     });
-    //     changed = old !== expr;
-    // }
-
-    uniquesReallyAreUnique(expr);
+    try {
+        expr = opt(ctx, expr);
+        uniquesReallyAreUnique(expr);
+    } catch (err) {
+        console.log('-- oops --');
+        // Oh no! Inconsistent!
+        // Let's do this again, but more slowly.
+        const opt = optimizeRepeatedly((ctx, expr) => {
+            fns.forEach((fn) => {
+                // const uMax = maxUnique(expr);
+                // if (uMax > ctx.env.local.unique.current) {
+                //     console.log(
+                //         'inlint unique max greater',
+                //         uMax,
+                //         ctx.env.local.unique.current,
+                //     );
+                //     ctx.env.local.unique.current = uMax;
+                // }
+                try {
+                    expr = fn(ctx, expr);
+                    uniquesReallyAreUnique(expr);
+                } catch (err) {
+                    console.log('Offending optimizer');
+                    console.log(fn);
+                    console.log(printToString(debugExpr(env, expr), 100));
+                    console.log(showLocation(err.loc));
+                    throw err;
+                }
+            });
+            return expr;
+        });
+        const ctx: Context = {
+            env,
+            id,
+            exprs: exprss,
+            opts: {},
+            optimize: opt,
+        };
+        expr = opt(ctx, orig);
+    }
     return expr;
 };
 
@@ -537,8 +562,8 @@ const glslOpts: Array<Optimizer2> = [
     specializeFunctionsCalledWithLambdas,
     inlineCallsThatReturnFunctions,
     flattenImmediateCalls,
-    foldConstantAssignments(true),
     foldSingleUseAssignments,
+    foldConstantAssignments(true),
     flattenImmediateAssigns,
     removeUnusedVariables,
 

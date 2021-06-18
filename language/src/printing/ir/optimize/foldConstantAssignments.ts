@@ -1,4 +1,5 @@
 import { Env } from '../../../typing/types';
+import { reUnique } from '../../typeScriptPrinterSimple';
 import {
     defaultVisitor,
     transformBlock,
@@ -57,7 +58,7 @@ const visitor = (
         }
         return null;
     },
-    stmt: (stmt) => {
+    stmt: (stmt, revisit) => {
         // Assigns in if blocks should invalidate the variables
         if (stmt.type === 'if') {
             const checkAssigns: Visitor = {
@@ -101,7 +102,36 @@ const visitor = (
             (isConstant(stmt.value) ||
                 (foldLambdas && stmt.value.type === 'lambda'))
         ) {
-            constants[stmt.sym.unique] = stmt.value;
+            if (stmt.value.type === 'lambda') {
+                if (typeof ctx.env.local.unique.current !== 'number') {
+                    throw new Error('what no unique');
+                }
+                // START HERE:
+                // At *some* point, we are:
+                // eliminating something, such that we have
+                // dangling references.
+                // Maybe I should make a "verify all symbols are defined"
+                // consistency check, similar to "all uniques are unique".
+                /// HASDKLJ OH WAIT
+                // This is just saying that we're capturing some variables
+                // Which is perfectly fine.
+                // So, re-unique, if it sees something it doesn't own,
+                // should leave it alone. Well that makes total sense.
+                constants[stmt.sym.unique] = reUnique(
+                    ctx.env.local.unique,
+                    transformExpr(stmt.value, revisit),
+                );
+            } else {
+                // ohhhhhhhh HDMASMDJKFDJSDKLFMmmmmm
+                // SO
+                // what if
+                // The value that we're plopping here
+                // gets stale?????
+                // I thin kthat might be whats happening.
+                // Because we're inlining a fnction and such
+                // but the outer one has already been
+                constants[stmt.sym.unique] = transformExpr(stmt.value, revisit);
+            }
         }
         return null;
     },

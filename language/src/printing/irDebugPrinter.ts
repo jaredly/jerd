@@ -1,88 +1,35 @@
 // Ok
 
 // import * as t from '@babel/types';
-import {
-    expressionDeps,
-    expressionTypeDeps,
-    sortAllDeps,
-    sortAllDepsPlain,
-    sortTerms,
-} from '../typing/analyze';
-import { idFromName, idName, refName } from '../typing/env';
-// import { bool } from '../typing/preset';
-import {
-    EffectRef,
-    Env,
-    getAllSubTypes,
-    Id,
-    RecordDef,
-    Reference,
-    selfEnv,
-    Symbol,
-    Term,
-    Type,
-    typesEqual,
-    nullLocation,
-} from '../typing/types';
-import * as preset from '../typing/preset';
-import { typeScriptPrelude } from './fileToTypeScript';
-import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
-import * as ir from './ir/intermediateRepresentation';
-import {
-    Exprs,
-    isConstant,
-    optimizeAggressive,
-    optimizeDefine,
-    optimizeDefineNew,
-} from './ir/optimize/optimize';
-import {
-    Loc,
-    Type as IRType,
-    OutputOptions as IOutputOptions,
-    Expr,
-    Record,
-    Apply,
-} from './ir/types';
-import {
-    bool,
-    builtin,
-    float,
-    handlersType,
-    handlerSym,
-    int,
-    pureFunction,
-    typeFromTermType,
-    void_,
-} from './ir/utils';
-import { liftEffects } from './pre-ir/lift-effectful';
-import { args, atom, block, id, items, PP, printToString } from './printer';
-import * as pp from './printer';
-import { declarationToPretty, enumToPretty, termToPretty } from './printTsLike';
-import { optimizeAST } from './typeScriptOptimize';
-import {
-    printType,
-    recordMemberSignature,
-    typeIdToString,
-    typeToAst,
-    typeVblsToParameters,
-} from './typeScriptTypePrinter';
-import { effectConstructorType } from './ir/cps';
-import { getEnumReferences, showLocation } from '../typing/typeExpr';
-import { Location } from '../parsing/parser';
-import { defaultVisitor, transformExpr } from './ir/transform';
-import { uniquesReallyAreUnique } from './ir/analyze';
-import { LocatedError } from '../typing/errors';
-import {
-    maxUnique,
-    recordAttributeName,
-    termToTs,
-} from './typeScriptPrinterSimple';
-import { explicitSpreads } from './ir/optimize/explicitSpreads';
-import { toplevelRecordAttribute } from './ir/optimize/inline';
-import { glslTester } from './glslTester';
-import { isBinop } from './glslPrinter';
+import { idName } from '../typing/env';
 import { getOpLevel } from '../typing/terms/ops';
+// import { bool } from '../typing/preset';
+import { Env, Id, Reference, Symbol } from '../typing/types';
 import { emojis } from './emojis';
+// import { isBinop } from './glslPrinter';
+import * as ir from './ir/intermediateRepresentation';
+import { Expr } from './ir/types';
+import * as pp from './printer';
+import { args, atom, block, id, items, PP } from './printer';
+
+export const binops = [
+    // 'mod',
+    'modInt',
+    '>',
+    '<',
+    '>=',
+    '<=',
+    '+',
+    '-',
+    '/',
+    '*',
+    '==',
+    '|',
+    '||',
+    '&&',
+    '^',
+];
+export const isBinop = (op: string) => binops.includes(op);
 
 export const idToDebug = (env: Env, id: Id, isType: boolean): PP => {
     const idRaw = idName(id);
