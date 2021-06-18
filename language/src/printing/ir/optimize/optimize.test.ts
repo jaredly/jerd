@@ -225,4 +225,66 @@ describe('glsl in concert', () => {
             expect(hasInvalidGLSL(result.irTerms[id].expr)).toBeFalsy();
         });
     });
+
+    it('more lambda', () => {
+        const result = runFixture(
+            `const estimateNormal = (sceneSDF: (float) ={}> float): float ={}> sceneSDF(2.3 + 1.0) + 1.2
+
+            const callIt = (
+                sceneSDF: (float) ={}> float,
+                eye: float,
+            ): float ={}> {
+                sceneSDF(eye);
+            }
+            
+            const marchNormals = (sceneSDF: (float) ={}> float) ={}> (coord: float) ={}> {
+                const dist = callIt(sceneSDF, 0.1 + 2.3);
+                estimateNormal(sceneSDF) - dist
+            }
+            
+            const superSample = (sdf: (float) ={}> float) ={}> (coord: float) ={}> {
+                sdf(coord)
+            }
+            
+            superSample(
+                sdf: marchNormals(
+                    sceneSDF: (pos: float): float ={}> pos + 2.3 
+                ),
+            )
+            `,
+            optimizeRepeatedly([
+                specializeFunctionsCalledWithLambdas,
+                inlineCallsThatReturnFunctions,
+                flattenImmediateCalls,
+                foldConstantAssignments,
+                foldSingleUseAssignments,
+                flattenImmediateAssigns,
+                removeUnusedVariables,
+            ]),
+        );
+
+        expect(result).toMatchInlineSnapshot(`
+              const expr0_lambda#❄️👊🏠😃: (float) => float = (
+                  pos#:0: float,
+              ) => pos#:0 + 2.3
+
+              const callIt_specialization#🐈🧔😪: (float) => float = (
+                  eye#:1: float,
+              ) => expr0_lambda#❄️👊🏠😃(eye#:1)
+
+              const estimateNormal_specialization#💬🧚‍♂️🍞: () => float = () => expr0_lambda#❄️👊🏠😃(
+                  2.3 + 1,
+              ) + 1.2
+
+              const expr0#⛷️: (float) => float = (
+                  coord#:2: float,
+              ) => estimateNormal_specialization#💬🧚‍♂️🍞() - callIt_specialization#🐈🧔😪(
+                  0.1 + 2.3,
+              )
+        `);
+
+        result.inOrder.forEach((id) => {
+            expect(hasInvalidGLSL(result.irTerms[id].expr)).toBeFalsy();
+        });
+    });
 });

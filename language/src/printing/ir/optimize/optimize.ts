@@ -15,13 +15,19 @@ import { arraySlices } from './arraySlices';
 import { arraySliceLoopToIndex } from './arraySliceToLoopIndex';
 import { explicitSpreads } from './explicitSpreads';
 import { flattenIffe } from './flattenIFFE';
-import { flattenImmediateCalls } from './flattenImmediateCalls';
+import {
+    flattenImmediateAssigns,
+    flattenImmediateCalls,
+} from './flattenImmediateCalls';
 import { flattenRecordSpreads } from './flattenRecordSpread';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inlint } from './inline';
 import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
-import { monoconstant } from './monoconstant';
+import {
+    monoconstant,
+    specializeFunctionsCalledWithLambdas,
+} from './monoconstant';
 import { monomorphize } from './monomorphize';
 import { optimizeTailCalls } from './tailCall';
 import { transformRepeatedly } from './utils';
@@ -528,12 +534,20 @@ ok we'll get to that when we need to.
 */
 
 const glslOpts: Array<Optimizer2> = [
+    specializeFunctionsCalledWithLambdas,
+    inlineCallsThatReturnFunctions,
+    flattenImmediateCalls,
+    foldConstantAssignments,
+    foldSingleUseAssignments,
+    flattenImmediateAssigns,
+    removeUnusedVariables,
+
     ensureToplevelFunctionsAreLambdas,
     inlineCallsThatReturnFunctions,
     explicitSpreads,
     ...javascriptOpts,
     inlint,
     monomorphize,
-    monoconstant,
+    // monoconstant,
     optimize,
 ];

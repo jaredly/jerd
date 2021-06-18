@@ -14,41 +14,19 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
-/**
-```
-const callIt#384c60bc = (sceneSDF#:0: (Vec3#9f1c0644) ={}> float#builtin, eye#:1: Vec3#9f1c0644): float#builtin ={}> {
-    sceneSDF#:0(eye#:1);
-}
-```
-*/
-float callIt_384c60bc(
-    invalid_lambda sceneSDF_0,
-    vec3 eye_1
-) {
-    return sceneSDF_0(eye_1);
-}
-
-/**
-```
-const estimateNormal#11a35a34 = (sceneSDF#:0: (Vec3#9f1c0644) ={}> float#builtin): Vec3#9f1c0644 ={}> vec3#dc78826c(
-    x: sceneSDF#:0(vec3#dc78826c(x: 0.0)),
-)
-```
-*/
-vec3 estimateNormal_11a35a34(
-    invalid_lambda sceneSDF_0
-) {
-    return vec3(sceneSDF_0(vec3(0.0)));
+/* -- generated -- */
+float unnamed_lambda_041ad038(vec3 pos_0) {
+    return length(pos_0);
 }
 
 /* -- generated -- */
-vec4 undefined_lambda_452e7f3a(vec2 coord_5) {
-    return vec4(estimateNormal_11a35a34(sceneSDF_4), callIt_384c60bc(sceneSDF_4, vec3(0.0)));
+float callIt_specialization_2f32b102(vec3 eye_1) {
+    return unnamed_lambda_041ad038(eye_1);
 }
 
 /* -- generated -- */
-vec4 unnamed_lambda_6b818bb0(vec2 coord_3) {
-    return undefined_lambda_452e7f3a(coord_3);
+vec3 estimateNormal_specialization_49157882() {
+    return vec3(unnamed_lambda_041ad038(vec3(0.0)));
 }
 
 /**
@@ -61,9 +39,9 @@ const unnamed#e8d2ec00 = superSample#65753cd2(
 ```
 */
 vec4 unnamed_e8d2ec00(
-    vec2 arg0_1
+    vec2 coord_3
 ) {
-    return unnamed_lambda_6b818bb0(arg0_1);
+    return vec4(estimateNormal_specialization_49157882(), callIt_specialization_2f32b102(vec3(0.0)));
 }
 
 void main() {
