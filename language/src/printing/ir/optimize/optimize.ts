@@ -13,6 +13,7 @@ import {
 } from '../utils';
 import { arraySlices } from './arraySlices';
 import { arraySliceLoopToIndex } from './arraySliceToLoopIndex';
+import { explicitSpreads } from './explicitSpreads';
 import { flattenIffe } from './flattenIFFE';
 import { flattenImmediateCalls } from './flattenImmediateCalls';
 import { flattenRecordSpreads } from './flattenRecordSpread';
@@ -88,9 +89,17 @@ export const optimizeDefineNew = (
     id: Id,
     exprs: Exprs | null,
 ): Expr => {
-    // STOPSHIP: re-enable
-    // const fns = exprs ? glslOpts : javascriptOpts;
-    // const exprss = exprs || {};
+    const fns = exprs ? glslOpts : javascriptOpts;
+    const exprss = exprs || {};
+    const opt = optimizeRepeatedly(fns);
+    const ctx: Context = {
+        env,
+        id,
+        exprs: exprss,
+        opts: {},
+        optimize: opt,
+    };
+    expr = opt(ctx, expr);
     // let changed = true;
     // const opts = {};
     // let passes = 0;
@@ -154,9 +163,9 @@ export const optimizeDefine = (
 
 export const optimizeDefineOld = (ctx: Context, expr: Expr): Expr => {
     expr = optimize(ctx, expr);
-    expr = optimizeTailCalls(ctx.env, expr, ctx.id);
+    expr = optimizeTailCalls(ctx, expr);
     expr = optimize(ctx, expr);
-    expr = arraySliceLoopToIndex(ctx.env, expr);
+    expr = arraySliceLoopToIndex(ctx, expr);
     return expr;
 };
 
@@ -170,9 +179,9 @@ export type Exprs = {
 };
 
 export const optimizeAggressive = (ctx: Context, expr: Expr): Expr => {
-    expr = inlint(ctx.env, ctx.exprs, expr, ctx.id);
+    expr = inlint(ctx, expr);
     // console.log('[after inline]', printToString(termToGlsl(env, {}, expr), 50));
-    expr = monomorphize(ctx.env, ctx.exprs, expr);
+    expr = monomorphize(ctx, expr);
     // console.log('[after mono]', printToString(termToGlsl(env, {}, expr), 50));
     expr = monoconstant(ctx, expr);
     // console.log('[after const]', printToString(termToGlsl(env, {}, expr), 50));
@@ -437,20 +446,12 @@ export const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
 
 const javascriptOpts: Array<Optimizer2> = [
     optimize,
-    // STOPSHIP
-    // (env, _, __, expr, id) => optimizeTailCalls(env, expr, id),
-    // simpleOpt(optimize),
-    // simpleOpt(arraySliceLoopToIndex),
+    optimizeTailCalls,
+    optimize,
+    arraySliceLoopToIndex,
 ];
 
-// const aggressive: Array<Optimizer>
-
-export const ensureToplevelFunctionsAreLambdas = (
-    env: Env,
-    irOpts: OutputOptions,
-    exprs: Exprs,
-    expr: Expr,
-) => {
+export const ensureToplevelFunctionsAreLambdas = (ctx: Context, expr: Expr) => {
     if (expr.is.type !== 'lambda' || expr.type === 'lambda') {
         return expr;
     }
@@ -458,14 +459,14 @@ export const ensureToplevelFunctionsAreLambdas = (
     // can name these args here.
     const args: Array<Arg> = expr.is.args.map((t, i) => ({
         type: t,
-        sym: newSym(env, 'arg' + i),
+        sym: newSym(ctx.env, 'arg' + i),
         loc: expr.loc,
     }));
     return arrowFunctionExpression(
         args,
         asBlock(
             callExpression(
-                env,
+                ctx.env,
                 expr,
                 args.map((arg) => var_(arg.sym, arg.loc, arg.type)),
                 expr.loc,
@@ -525,13 +526,13 @@ ok we'll get to that when we need to.
 
 */
 
-const glslOpts: Array<Optimizer> = [
+const glslOpts: Array<Optimizer2> = [
     ensureToplevelFunctionsAreLambdas,
-    // inlineCallsThatReturnFunctions,
-    // (env, opts, _, expr, __) => explicitSpreads(env, opts, expr),
-    // ...javascriptOpts,
-    // (env, _, exprs, expr, id) => inlint(env, exprs, expr, id),
-    // (env, _, exprs, expr, __) => monomorphize(env, exprs, expr),
-    // (env, _, exprs, expr, __) => monoconstant(env, exprs, expr),
-    // simpleOpt(optimize),
+    inlineCallsThatReturnFunctions,
+    explicitSpreads,
+    ...javascriptOpts,
+    inlint,
+    monomorphize,
+    monoconstant,
+    optimize,
 ];

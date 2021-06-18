@@ -11,16 +11,15 @@ import {
     isConstantExpr,
     var_,
 } from '../utils';
+import { Context } from './optimize';
 
 export const missingOrConstant = (v: Expr | null) =>
     v == null || isConstantExpr(v);
 
 // TODO: allow just lifting the spreads
-export const explicitSpreads = (
-    env: Env,
-    opts: OutputOptions,
-    expr: Expr,
-): Expr => {
+export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
+    const env = ctx.env;
+    const opts = ctx.opts;
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
@@ -56,7 +55,14 @@ export const explicitSpreads = (
                     rows: base.rows.map((row, i) =>
                         row
                             ? row
-                            : attribute(env, opts, v!, b.ref, i, expr.loc),
+                            : attribute(
+                                  ctx.env,
+                                  ctx.opts,
+                                  v!,
+                                  b.ref,
+                                  i,
+                                  expr.loc,
+                              ),
                     ),
                 };
 

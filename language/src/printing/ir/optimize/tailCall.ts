@@ -47,6 +47,7 @@ import { flattenImmediateCalls } from './flattenImmediateCalls';
 import { inlint } from './inline';
 import { monoconstant } from './monoconstant';
 import { monomorphize } from './monomorphize';
+import { Context } from './optimize';
 
 export const hasTailCall = (body: Block, self: Id): boolean => {
     let found = false;
@@ -82,13 +83,13 @@ const isSelfTail = (stmt: Stmt, self: Id) =>
     stmt.value.type === 'apply' &&
     isTerm(stmt.value.target, self);
 
-export const optimizeTailCalls = (env: Env, expr: Expr, self: Id) => {
+export const optimizeTailCalls = (ctx: Context, expr: Expr) => {
     if (expr.type === 'lambda') {
         const body = tailCallRecursion(
-            env,
+            ctx.env,
             expr.body,
             expr.args.map((a) => a.sym),
-            self,
+            ctx.id,
         );
         return body !== expr.body ? { ...expr, body } : expr;
     }

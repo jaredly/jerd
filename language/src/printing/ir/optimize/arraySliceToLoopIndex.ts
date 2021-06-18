@@ -1,57 +1,15 @@
-import { idFromName, idName } from '../../../typing/env';
-import { showLocation } from '../../../typing/typeExpr';
-import {
-    Env,
-    Id,
-    idsEqual,
-    Location,
-    RecordDef,
-    refsEqual,
-    Symbol,
-    symbolsEqual,
-} from '../../../typing/types';
-import { termToGlsl } from '../../glslPrinter';
-import { printToString } from '../../printer';
-import { reUnique } from '../../typeScriptPrinterSimple';
-import { uniquesReallyAreUnique } from '../analyze';
+import { Symbol, symbolsEqual } from '../../../typing/types';
 import {
     defaultVisitor,
-    transformBlock,
     transformExpr,
-    transformLambdaBody,
     transformStmt,
     Visitor,
 } from '../transform';
-import {
-    Expr,
-    OutputOptions,
-    Record,
-    RecordSubType,
-    Stmt,
-    Tuple,
-    Type,
-} from '../types';
-import {
-    block,
-    callExpression,
-    int,
-    pureFunction,
-    typeFromTermType,
-} from '../utils';
-import { and, asBlock, builtin, iffe } from '../utils';
-import { explicitSpreads } from './explicitSpreads';
-import { flattenIffe } from './flattenIFFE';
-import { flattenImmediateCalls } from './flattenImmediateCalls';
-import { flattenRecordSpreads } from './flattenRecordSpread';
-import { foldConstantAssignments } from './foldConstantAssignments';
-import { foldSingleUseAssignments } from './foldSingleUseAssignments';
-import { inlint } from './inline';
-import { monoconstant } from './monoconstant';
-import { monomorphize } from './monomorphize';
-import { symName } from './optimize';
-import { optimizeTailCalls } from './tailCall';
+import { Expr, Stmt, Type } from '../types';
+import { builtin, callExpression, int, pureFunction } from '../utils';
+import { Context, symName } from './optimize';
 
-export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
+export const arraySliceLoopToIndex = (ctx: Context, expr: Expr): Expr => {
     if (expr.type !== 'lambda') {
         // console.log('not a lambda', expr.type);
         return expr;
@@ -137,7 +95,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
     }
     const indexForSym: { [key: string]: { sym: Symbol; type: Type } } = {};
     const indices: Array<Symbol> = corrects.map((arg) => {
-        const unique = env.local.unique.current++;
+        const unique = ctx.env.local.unique.current++;
         const s = { name: arg.sym.name + '_i', unique };
         indexForSym[symName(arg.sym)] = { sym: s, type: int };
         return s;
@@ -159,7 +117,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                         ...stmt,
                         sym: indexForSym[n].sym,
                         value: callExpression(
-                            env,
+                            ctx.env,
                             builtin(
                                 '+',
                                 expr.loc,
@@ -191,7 +149,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                             return {
                                 ...expr,
                                 idx: callExpression(
-                                    env,
+                                    ctx.env,
                                     builtin(
                                         '+',
                                         expr.loc,
@@ -222,7 +180,7 @@ export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
                         if (argMap[n] === true) {
                             modified.push(expr);
                             return callExpression(
-                                env,
+                                ctx.env,
                                 builtin(
                                     '-',
                                     expr.loc,

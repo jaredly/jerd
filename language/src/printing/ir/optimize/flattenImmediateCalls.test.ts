@@ -65,6 +65,35 @@ describe('flattenImmediateCalls', () => {
         // - [ ] make flattenImmediateCalls test for multiple returns; if so, break out
         // - [ ] make a flattenDoubleCallsToCPS; hope it works?
 
+        // erghhh no this will fall apart with more complicated setups.
+        // like if you use the function multiple times.
+        // or if you've got a record that you're returning.
+        //
+        // Ok new plan:
+        // we go all in on "function numbers", and switch off of them?
+        // for multi-use things.
+        // and if the thing is single-use, maybe we can re-optimize it with
+        // constant folding?
+        //
+        // Ok yeah, I do think that's the more robust method
+        // but hm
+        //
+        // Ok yeah, so:
+        // >
+        // If a function is used ... with ... hm ...
+
+        // Ok, but how about
+        // so, for compiling to zig,
+        // we'll need to magic away our closures
+        // yeah, because closures are definitely not supported by zig
+        // on the other hand, Roc is all about the closures.
+
+        // Ok anyway, I don't think I'm going to mess with this right now.
+        // I'll say: I apply the transforms I can, and if we still
+        // have lambdas, I'll say "sorry this is using fancier lambdas
+        // than we can eliminate."
+        // Same story with arrays, I imagine.
+
         expect(result).toMatchInlineSnapshot(`
               const expr0#🐻‍❄️: () => int = () => {
                   const lambdaBlockResult#:1: () => int;

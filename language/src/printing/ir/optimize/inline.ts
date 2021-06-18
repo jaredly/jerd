@@ -43,7 +43,7 @@ import {
     typeFromTermType,
 } from '../utils';
 import { and, asBlock, builtin, iffe } from '../utils';
-import { Exprs, isConstant } from './optimize';
+import { Context, Exprs, isConstant } from './optimize';
 
 // const isInlinable = (t: LambdaExpr, self: Id) => {
 //     // TODO: make this much faster folks
@@ -144,14 +144,14 @@ export const toplevelRecordAttribute = (
     return `${idName(id)}_${refName(ref)}_${idx}`;
 };
 
-export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
-    let outerMax = Math.max(maxUnique(expr), env.local.unique.current);
+export const inlint = (ctx: Context, expr: Expr): Expr => {
+    let outerMax = Math.max(maxUnique(expr), ctx.env.local.unique.current);
     // console.log('inlining', self);
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
             if (expr.type === 'term') {
-                const t = exprs[idName(expr.id)];
+                const t = ctx.exprs[idName(expr.id)];
                 if (t && t.inline) {
                     // console.log(
                     //     'bringing it in',
@@ -164,7 +164,7 @@ export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
                     };
                     // Redo uniques for the inline that we bring in.
                     const newTerm = reUnique(unique, t.expr);
-                    env.local.unique.current = unique.current;
+                    ctx.env.local.unique.current = unique.current;
                     outerMax = unique.current;
                     return newTerm;
                 }
@@ -172,7 +172,7 @@ export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
             }
 
             if (expr.type === 'genTerm') {
-                const t = exprs[expr.id];
+                const t = ctx.exprs[expr.id];
                 if (t && t.inline) {
                     return t.expr;
                 }
@@ -191,11 +191,14 @@ export const inlint = (env: Env, exprs: Exprs, expr: Expr, self: Id): Expr => {
                     expr.ref,
                     expr.idx,
                 );
-                if (!exprs[name]) {
+                if (!ctx.exprs[name]) {
                     return null;
                 }
-                if (exprs[name].inline || isConstant(exprs[name].expr)) {
-                    return exprs[name].expr;
+                if (
+                    ctx.exprs[name].inline ||
+                    isConstant(ctx.exprs[name].expr)
+                ) {
+                    return ctx.exprs[name].expr;
                 }
                 // const t = exprs[idName(expr.ref.id)]
                 // if (t.type !== 'record') {
