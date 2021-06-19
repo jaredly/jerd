@@ -86,6 +86,9 @@ export const findBounds = (
     argNames: Array<Symbol>,
     id: Id,
 ): undefined | { bounds: LoopBounds; body: Block; after: Block } => {
+    if (true) {
+        return;
+    }
     const item = body.items[0];
     if (body.items.length !== 1 || item.type !== 'if' || !item.no) {
         return;
