@@ -21,6 +21,7 @@ import {
 import { args, atom, id, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
 import { handleArgsForEffects, handlerTypesForEffects } from './cps';
+import { defaultVisitor, transformExpr } from './transform';
 import {
     Arg,
     Assign,
@@ -835,4 +836,56 @@ export const walkType = (
         }
     }
     return null;
+};
+
+export const hasUndefinedReferences = (expr: Expr) => {
+    const undefinedLocs: Array<{ sym: Symbol; loc: Location }> = [];
+    const defined: { [unique: number]: true } = {};
+    const addSym = (sym: Symbol) => {
+        defined[sym.unique] = true;
+    };
+    const getSym = (sym: Symbol, loc: Location) => {
+        if (defined[sym.unique] == null) {
+            // This is probably an upper-scope variable
+            undefinedLocs.push({ sym, loc });
+        }
+    };
+    transformExpr(expr, {
+        ...defaultVisitor,
+        stmt: (value) => {
+            if (value.type === 'Define') {
+                addSym(value.sym);
+            }
+            if (value.type === 'Assign') {
+                getSym(value.sym, value.loc);
+            }
+            return null;
+        },
+        expr: (value) => {
+            switch (value.type) {
+                case 'handle':
+                    value.cases.map((kase) => ({
+                        ...kase,
+                        args: kase.args.map((arg) => ({
+                            ...arg,
+                            sym: addSym(arg.sym),
+                        })),
+                        k: { ...kase.k, sym: addSym(kase.k.sym) },
+                    }));
+                    addSym(value.pure.arg);
+                    return null;
+                case 'lambda':
+                    value.args.map((arg) => ({
+                        ...arg,
+                        sym: addSym(arg.sym),
+                    }));
+                    return null;
+                case 'var':
+                    getSym(value.sym, value.loc);
+                    return null;
+            }
+            return null;
+        },
+    });
+    return undefinedLocs;
 };

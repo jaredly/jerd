@@ -246,6 +246,16 @@ export const flattenLambda = (
         return stmts;
     }
 
+    target.args.forEach((arg, i) => {
+        stmts.push({
+            type: 'Define',
+            is: arg.type,
+            loc: arg.loc,
+            value: args[i],
+            sym: arg.sym,
+        });
+    });
+
     const byUnique: { [key: number]: Expr } | null =
         target.args.length > 0 ? {} : null;
     if (byUnique) {
@@ -338,19 +348,19 @@ export const flattenLambda = (
             },
         });
         let results = Array.isArray(result) ? result : [result];
-        if (byUnique) {
-            results = ([] as Array<Stmt>).concat(
-                ...results.map(
-                    (result): Array<Stmt> => {
-                        const m = transformStmt(
-                            result,
-                            substituteVariables(byUnique),
-                        );
-                        return Array.isArray(m) ? m : [m];
-                    },
-                ),
-            );
-        }
+        // if (byUnique) {
+        //     results = ([] as Array<Stmt>).concat(
+        //         ...results.map(
+        //             (result): Array<Stmt> => {
+        //                 const m = transformStmt(
+        //                     result,
+        //                     substituteVariables(byUnique),
+        //                 );
+        //                 return Array.isArray(m) ? m : [m];
+        //             },
+        //         ),
+        //     );
+        // }
         stmts.push(...results);
     });
     return stmts;
@@ -743,37 +753,37 @@ export const flattenImmediateCalls = (ctx: Context, expr: Expr) => {
             // console.log(body);
             // console.log(byUnique);
             // console.log('new body');
-            const newBody = transformExpr(body, {
-                ...defaultVisitor,
-                expr: (expr) => {
-                    if (
-                        expr.type === 'var' &&
-                        byUnique[expr.sym.unique] != null // &&
-                        // !args.includes(expr)
-                    ) {
-                        return [byUnique[expr.sym.unique]];
-                    }
-                    return null;
-                },
-            });
+            // const newBody = transformExpr(body, {
+            //     ...defaultVisitor,
+            //     expr: (expr) => {
+            //         if (
+            //             expr.type === 'var' &&
+            //             byUnique[expr.sym.unique] != null // &&
+            //             // !args.includes(expr)
+            //         ) {
+            //             return [byUnique[expr.sym.unique]];
+            //         }
+            //         return null;
+            //     },
+            // });
             // console.log('ok');
 
-            if (multiUse.length > 0) {
-                const inits: Array<Stmt> = multiUse.map((i) =>
-                    define(targs[i].sym, expr.args[i]),
-                );
-                return iffe(ctx.env, {
-                    type: 'Block',
-                    items: inits.concat({
-                        type: 'Return',
-                        loc: expr.loc,
-                        value: newBody,
-                    }),
+            // if (multiUse.length > 0) {
+            const inits: Array<Stmt> = multiUse.map((i) =>
+                define(targs[i].sym, expr.args[i]),
+            );
+            return iffe(ctx.env, {
+                type: 'Block',
+                items: inits.concat({
+                    type: 'Return',
                     loc: expr.loc,
-                });
-            }
+                    value: body,
+                }),
+                loc: expr.loc,
+            });
+            // }
 
-            return newBody;
+            // return newBody;
 
             // console.log('yes please', expr.args);
             // return null;

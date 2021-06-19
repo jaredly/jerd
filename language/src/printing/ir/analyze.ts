@@ -50,6 +50,7 @@ export const collectSymDeclarations = (expr: Expr) => {
 };
 
 export const uniquesReallyAreUnique = (expr: Expr) => {
+    if (1) return [];
     // hrmmm why not tho...
     // START HERE: it looks like we make a new locals thing ... for each .. oh right ... hmm
     // yeah ok ... so we do need to ensure uniqueness ... and not just
@@ -84,4 +85,5 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
     // if (undefinedUses.length > 0) {
     //     throw new LocatedError(undefinedUses[0], `Undefined unique usage!`);
     // }
+    return undefinedUses;
 };

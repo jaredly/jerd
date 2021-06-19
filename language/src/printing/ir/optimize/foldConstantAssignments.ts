@@ -11,6 +11,27 @@ import { Expr } from '../types';
 import { block } from '../utils';
 import { Context, isConstant } from './optimize';
 
+const checkAssigns: (constants: { [key: number]: Expr | null }) => Visitor = (
+    constants,
+) => ({
+    ...defaultVisitor,
+    expr: (expr) => {
+        if (expr.type === 'var' && constants[expr.sym.unique] != null) {
+            return constants[expr.sym.unique];
+        }
+        return null;
+    },
+    stmt: (stmt) => {
+        if (stmt.type === 'Assign') {
+            constants[stmt.sym.unique] = null;
+        }
+        if (stmt.type === 'Loop' && stmt.bounds != null) {
+            constants[stmt.bounds.sym.unique] = null;
+        }
+        return null;
+    },
+});
+
 const visitor = (
     ctx: Context,
     constants: { [key: number]: Expr | null },
@@ -20,25 +41,7 @@ const visitor = (
     expr: (expr, level) => {
         // Lambdas that aren't toplevel should invalidate anything they assign to
         if (expr.type === 'lambda' && level !== 0) {
-            const checkAssigns: Visitor = {
-                ...defaultVisitor,
-                expr: (expr) => {
-                    if (
-                        expr.type === 'var' &&
-                        constants[expr.sym.unique] != null
-                    ) {
-                        return constants[expr.sym.unique];
-                    }
-                    return null;
-                },
-                stmt: (stmt) => {
-                    if (stmt.type === 'Assign') {
-                        constants[stmt.sym.unique] = null;
-                    }
-                    return null;
-                },
-            };
-            let body = transformStmt(expr.body, checkAssigns);
+            let body = transformStmt(expr.body, checkAssigns(constants));
             if (Array.isArray(body)) {
                 body = block(body, expr.body.loc);
             }
@@ -62,27 +65,27 @@ const visitor = (
         return null;
     },
     stmt: (stmt, revisit) => {
-        const checkAssigns: Visitor = {
-            ...defaultVisitor,
-            expr: (expr) => {
-                if (expr.type === 'lambda') {
-                    return false;
-                }
-                return null;
-            },
-            stmt: (stmt) => {
-                if (stmt.type === 'Assign') {
-                    constants[stmt.sym.unique] = null;
-                }
-                return null;
-            },
-        };
+        // const checkAssigns: Visitor = {
+        //     ...defaultVisitor,
+        //     expr: (expr) => {
+        //         if (expr.type === 'lambda') {
+        //             return false;
+        //         }
+        //         return null;
+        //     },
+        //     stmt: (stmt) => {
+        //         if (stmt.type === 'Assign') {
+        //             constants[stmt.sym.unique] = null;
+        //         }
+        //         return null;
+        //     },
+        // };
 
         // Assigns in if blocks should invalidate the variables
         if (stmt.type === 'if') {
-            transformStmt(stmt.yes, checkAssigns);
+            transformStmt(stmt.yes, checkAssigns(constants));
             if (stmt.no) {
-                transformStmt(stmt.no, checkAssigns);
+                transformStmt(stmt.no, checkAssigns(constants));
             }
             let yes = transformBlock(stmt.yes, visitor(ctx, {}, foldLambdas));
             let no = stmt.no
@@ -94,7 +97,10 @@ const visitor = (
         }
         // Assigns in loops should also invalidate
         if (stmt.type === 'Loop') {
-            transformStmt(stmt.body, checkAssigns);
+            if (stmt.bounds != null) {
+                constants[stmt.bounds.sym.unique] = null;
+            }
+            transformStmt(stmt.body, checkAssigns(constants));
             let body = transformBlock(stmt.body, visitor(ctx, {}, foldLambdas));
             return body !== stmt.body
                 ? { type: '*stop*', stmt: { ...stmt, body } }

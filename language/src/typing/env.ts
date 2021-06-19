@@ -498,7 +498,7 @@ export const withoutLocs = <T>(obj: T): T => {
     if (typeof obj === 'object') {
         const res: any = {};
         Object.keys(obj).forEach((key) => {
-            if (key === 'loc') {
+            if (key === 'loc' || key === 'location') {
                 return;
             }
             // It's a symbol, ditch it for the purposes of hashing

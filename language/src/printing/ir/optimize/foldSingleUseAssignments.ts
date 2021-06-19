@@ -27,6 +27,9 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
             return null;
         },
         stmt: (stmt) => {
+            if (stmt.type === 'Loop' && stmt.bounds != null) {
+                usages[symName(stmt.bounds.sym)] = 2;
+            }
             if (stmt.type === 'Assign') {
                 const en = symName(stmt.sym);
                 // hm ok, assign isnt strictly a use...
@@ -96,7 +99,7 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
                 stmt.type === 'Assign' &&
                 stmt.value.type === 'var' &&
                 // TODO: assigns shouldn't increase usage I dont think
-                // singles[symName(stmt.sym)] &&
+                singles[symName(stmt.sym)] &&
                 symbolsEqual(stmt.sym, stmt.value.sym)
             ) {
                 defns[symName(stmt.sym)] = stmt.value;

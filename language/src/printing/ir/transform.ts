@@ -2,7 +2,15 @@
 // and if they aren't effectful, which I think is guarenteed,
 // then yeah we can just drop them.
 
-import { Block, Expr, LambdaExpr, RecordSubType, Stmt } from './types';
+import {
+    Apply,
+    Block,
+    Expr,
+    LambdaExpr,
+    LoopBounds,
+    RecordSubType,
+    Stmt,
+} from './types';
 
 // export const transformExpr = (expr: Expr, )
 
@@ -330,6 +338,18 @@ export const transformStmt = (
     return transformOneStmt(stmt, visitor, level + 1);
 };
 
+export const transformBounds = (
+    bounds: LoopBounds,
+    visitor: Visitor,
+    level: number,
+): LoopBounds => {
+    const end = transformExpr(bounds.end, visitor, level);
+    const step = transformExpr(bounds.step, visitor, level) as Apply;
+    return end !== bounds.end || step !== bounds.step
+        ? { ...bounds, end, step }
+        : bounds;
+};
+
 // NOTE: Does not visit the stmt!
 export const transformOneStmt = (
     stmt: Stmt,
@@ -355,7 +375,12 @@ export const transformOneStmt = (
         }
         case 'Loop': {
             const body = transformBlock(stmt.body, visitor, level);
-            return body !== stmt.body ? { ...stmt, body } : stmt;
+            const bounds = stmt.bounds
+                ? transformBounds(stmt.bounds, visitor, level)
+                : stmt.bounds;
+            return body !== stmt.body || bounds !== stmt.bounds
+                ? { ...stmt, body, bounds }
+                : stmt;
         }
         case 'Continue':
         case 'MatchFail':

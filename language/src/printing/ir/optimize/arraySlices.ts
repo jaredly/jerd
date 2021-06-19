@@ -1,55 +1,8 @@
-import { idFromName, idName } from '../../../typing/env';
-import { showLocation } from '../../../typing/typeExpr';
-import {
-    Env,
-    Id,
-    idsEqual,
-    Location,
-    RecordDef,
-    refsEqual,
-    Symbol,
-    symbolsEqual,
-} from '../../../typing/types';
-import { termToGlsl } from '../../glslPrinter';
-import { printToString } from '../../printer';
-import { reUnique } from '../../typeScriptPrinterSimple';
-import { uniquesReallyAreUnique } from '../analyze';
-import {
-    defaultVisitor,
-    transformBlock,
-    transformExpr,
-    transformLambdaBody,
-    transformStmt,
-    Visitor,
-} from '../transform';
-import {
-    Expr,
-    OutputOptions,
-    Record,
-    RecordSubType,
-    Stmt,
-    Tuple,
-    Type,
-} from '../types';
-import {
-    block,
-    callExpression,
-    int,
-    pureFunction,
-    typeFromTermType,
-} from '../utils';
-import { and, asBlock, builtin, iffe } from '../utils';
-import { explicitSpreads } from './explicitSpreads';
-import { flattenIffe } from './flattenIFFE';
-import { flattenImmediateCalls } from './flattenImmediateCalls';
-import { flattenRecordSpreads } from './flattenRecordSpread';
-import { foldConstantAssignments } from './foldConstantAssignments';
-import { foldSingleUseAssignments } from './foldSingleUseAssignments';
-import { inlint } from './inline';
-import { monoconstant } from './monoconstant';
-import { monomorphize } from './monomorphize';
+import { Env, Location, Symbol } from '../../../typing/types';
+import { defaultVisitor, transformExpr } from '../transform';
+import { Expr } from '../types';
+import { builtin, callExpression, int, pureFunction } from '../utils';
 import { symName } from './optimize';
-import { optimizeTailCalls } from './tailCall';
 
 export const arraySlices = (env: Env, expr: Expr): Expr => {
     const arrayInfos: {

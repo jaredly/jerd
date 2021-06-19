@@ -49,6 +49,7 @@ import {
     float,
     handlersType,
     handlerSym,
+    hasUndefinedReferences,
     int,
     pureFunction,
     typeFromTermType,
@@ -720,7 +721,10 @@ export const assembleItemsForFile = (
         term = liftEffects(senv, term);
         let irTerm = ir.printTerm(senv, irOpts, term);
         try {
-            uniquesReallyAreUnique(irTerm);
+            const undefinedUses = uniquesReallyAreUnique(irTerm);
+            if (undefinedUses.length > 0) {
+                throw new Error(`Undefined var!`);
+            }
         } catch (err) {
             const outer = new LocatedError(
                 term.location,
@@ -733,6 +737,24 @@ export const assembleItemsForFile = (
         irTerm = optimization(senv, irOpts, irTerms, irTerm, id);
 
         irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
+
+        try {
+            const undefinedUses = uniquesReallyAreUnique(irTerm);
+            if (undefinedUses.length > 0) {
+                throw new Error(`Undefined var!`);
+            }
+        } catch (err) {
+            const outer = new LocatedError(
+                term.location,
+                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+            ).wrap(err);
+            throw outer;
+        }
+
+        const unrefs = hasUndefinedReferences(irTerm);
+        if (unrefs.length) {
+            throw new Error(`bad news bears`);
+        }
 
         const shouldInline =
             !['bool', 'float', 'int', 'ref', 'lambda'].includes(irTerm.type) ||
