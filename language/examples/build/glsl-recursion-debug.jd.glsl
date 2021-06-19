@@ -18,6 +18,8 @@ uniform vec2 u_resolution;
 
 // skipping As_As, contains type variables
 
+// skipping Div_5ac12902, contains type variables
+
 // skipping Neg_3c2a4898, contains type variables
 
 // skipping Mul_1de4e4c0, contains type variables
@@ -31,29 +33,12 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
-// skipping Div_5ac12902, contains type variables
-
 /* *
 ```
 const EPSILON#17261aaa = 0.0001
 ```
  */
 const float EPSILON_17261aaa = 0.00010;
-
-/**
-```
-const max#4ad0798a = (v#:0: Vec2#43802a16, n#:1: float#builtin): Vec2#43802a16 ={}> Vec2#43802a16{
-    x#43802a16#0: max#builtin(v#:0.x#43802a16#0, n#:1),
-    y#43802a16#1: max#builtin(v#:0.y#43802a16#1, n#:1),
-}
-```
-*/
-vec2 max_4ad0798a(
-    vec2 v_0,
-    float n_1
-) {
-    return vec2(max(v_0.x, n_1), max(v_0.y, n_1));
-}
 
 /**
 ```
@@ -67,34 +52,6 @@ vec2 xz_76ad3e42(
     vec3 v_0
 ) {
     return vec2(v_0.x, v_0.z);
-}
-
-/**
-```
-const length#c2805852 = (v#:0: Vec2#43802a16): float#builtin ={}> sqrt#builtin(
-    v#:0.x#43802a16#0 *#builtin v#:0.x#43802a16#0 
-        +#builtin v#:0.y#43802a16#1 *#builtin v#:0.y#43802a16#1,
-)
-```
-*/
-float length_c2805852(
-    vec2 v_0
-) {
-    return sqrt(((v_0.x * v_0.x) + (v_0.y * v_0.y)));
-}
-
-/**
-```
-const abs#394fe488 = (v#:0: Vec2#43802a16): Vec2#43802a16 ={}> Vec2#43802a16{
-    x#43802a16#0: abs#builtin(v#:0.x#43802a16#0),
-    y#43802a16#1: abs#builtin(v#:0.y#43802a16#1),
-}
-```
-*/
-vec2 abs_394fe488(
-    vec2 v_0
-) {
-    return vec2(abs(v_0.x), abs(v_0.y));
 }
 
 /**
@@ -172,18 +129,6 @@ vec3 xyz_1aedf216(
     vec4 v_0
 ) {
     return vec3(v_0.x, v_0.y, v_0.z);
-}
-
-/**
-```
-const normalize#48e6ea27 = (v#:0: Vec3#9f1c0644): Vec3#9f1c0644 ={}> v#:0 
-    /#68f73ad4#5ac12902#0 length#63e16b7a(v#:0)
-```
-*/
-vec3 normalize_48e6ea27(
-    vec3 v_0
-) {
-    return (v_0 / length(v_0));
 }
 
 /**
@@ -279,8 +224,8 @@ float cappedCylinder_0ba54544(
     float r_1,
     float h_2
 ) {
-    vec2 d = (abs_394fe488(vec2(length_c2805852(xz_76ad3e42(p_0)), p_0.y)) - vec2(r_1, h_2));
-    return (min(max(d.x, d.y), 0.0) + length_c2805852(max_4ad0798a(d, 0.0)));
+    vec2 d = (abs(vec2(length(xz_76ad3e42(p_0)), p_0.y)) - vec2(r_1, h_2));
+    return (min(max(d.x, d.y), 0.0) + length(max(d, 0.0)));
 }
 
 /**
@@ -328,33 +273,6 @@ vec3 cross_54f2119c(
         ((one_0.z * two_1.x) - (two_1.z * one_0.x)),
         ((one_0.x * two_1.y) - (two_1.x * one_0.y))
     );
-}
-
-/**
-```
-const radians#dabe7f9c = (degrees#:0: float#builtin): float#builtin ={}> degrees#:0 /#builtin 180.0 
-    *#builtin PI#builtin
-```
-*/
-float radians_dabe7f9c(
-    float degrees_0
-) {
-    return ((degrees_0 / 180.0) * PI);
-}
-
-/**
-```
-const vec3#5808ec54 = (v#:0: Vec2#43802a16, z#:1: float#builtin): Vec3#9f1c0644 ={}> Vec3#9f1c0644{
-    ...v#:0,
-    z#9f1c0644#0: z#:1,
-}
-```
-*/
-vec3 vec3_5808ec54(
-    vec2 v_0,
-    float z_1
-) {
-    return vec3(v_0.x, v_0.y, z_1);
 }
 
 /**
@@ -427,7 +345,7 @@ float volumetricSample_20dcd432(
         sceneSDF_0,
         env_1,
         sample_9,
-        (-1.0 * normalize_48e6ea27((sample_9 - light_2))),
+        (-1.0 * normalize((sample_9 - light_2))),
         0.0,
         lightDist,
         255
@@ -439,7 +357,7 @@ float volumetricSample_20dcd432(
 }
 
 /* -- generated -- */
-float unnamed_lambda_c7a42ad4(GLSLEnv_451d5252 env_0, vec3 pos_1) {
+float unnamed_lambda_1606b073(GLSLEnv_451d5252 env_0, vec3 pos_1) {
     vec3 cpos = rotate_6734d670(pos_1, 0.0, 0.0, (PI / 2.0));
     float lambdaBlockResult;
     int start = 0;
@@ -452,7 +370,7 @@ float unnamed_lambda_c7a42ad4(GLSLEnv_451d5252 env_0, vec3 pos_1) {
             start = (start + 1);
             initial = min(
                 initial,
-                (length_c2805852(
+                (length(
                     (xy_4e146cdf(
                         rotate_6734d670(
                             cpos,
@@ -489,8 +407,8 @@ mat4 viewMatrix_c336d78c(
     vec3 center_1,
     vec3 up_2
 ) {
-    vec3 f = normalize_48e6ea27((center_1 - eye_0));
-    vec3 s = normalize_48e6ea27(cross_54f2119c(f, up_2));
+    vec3 f = normalize((center_1 - eye_0));
+    vec3 s = normalize(cross_54f2119c(f, up_2));
     vec3 spread = -f;
     vec3 spread_10 = cross_54f2119c(s, f);
     return mat4(
@@ -520,22 +438,9 @@ vec3 rayDirection_6258178a(
     vec2 size_1,
     vec2 fragCoord_2
 ) {
-    return normalize_48e6ea27(
-        vec3_5808ec54(
-            (fragCoord_2 - (size_1 / 2.0)),
-            -(size_1.y / tan((radians_dabe7f9c(fieldOfView_0) / 2.0)))
-        )
+    return normalize(
+        vec3((fragCoord_2 - (size_1 / 2.0)), -(size_1.y / tan((radians(fieldOfView_0) / 2.0))))
     );
-}
-
-/* -- generated -- */
-vec2 V090f77e7_5ac12902_0(vec2 v_0, vec2 scale_1) {
-    return vec2((v_0.x / scale_1.x), (v_0.y / scale_1.y));
-}
-
-/* -- generated -- */
-vec2 V9e207bb6_d8a54ca8_0(vec2 one_0, float two_1) {
-    return vec2((one_0.x + two_1), (one_0.y + two_1));
 }
 
 /**
@@ -620,7 +525,7 @@ float volumetric_0ecc095f(
 }
 
 /* -- generated -- */
-float shortestDistanceToSurface_specialization_a5d844f0(
+float shortestDistanceToSurface_specialization_7c2cdd98(
     GLSLEnv_451d5252 env_1,
     vec3 eye_2,
     vec3 marchingDirection_3,
@@ -629,7 +534,7 @@ float shortestDistanceToSurface_specialization_a5d844f0(
     int stepsLeft_6
 ) {
     for (int i=0; i<10000; i++) {
-        float dist = unnamed_lambda_c7a42ad4(env_1, (eye_2 + (start_4 * marchingDirection_3)));
+        float dist = unnamed_lambda_1606b073(env_1, (eye_2 + (start_4 * marchingDirection_3)));
         if ((dist < EPSILON_17261aaa)) {
             return start_4;
         } else {
@@ -687,7 +592,7 @@ vec3 getWorldDir_92052fca(
 
 /**
 ```
-const unnamed#1dd6d66c = {
+const unnamed#5483c5b6 = {
     const sdf#:11 = (env#:0: GLSLEnv#451d5252, pos#:1: Vec3#9f1c0644): float#builtin ={}> {
         const cpos#:2 = rotate#6734d670(pos#:1, x: 0.0, y: 0.0, z: PI#builtin /#builtin 2.0);
         const cylindar#:3 = cappedCylinder#0ba54544(p: cpos#:2, r: 0.4, h: 1.0);
@@ -716,7 +621,7 @@ const unnamed#1dd6d66c = {
         );
         pos#:1.z#9f1c0644#0 +#builtin 2.0 <<<#0fb28206#af969fe0#0 cylindar#:10;
     };
-    const m#:13 = marchVolume#4c9fa02c(
+    const m#:13 = marchVolume#702f1420(
         sceneSDF: sdf#:11,
         lightPos: (env#:12: GLSLEnv#451d5252): Vec3#9f1c0644 ={}> vec3#18cdf03e(
             x: sin#builtin(env#:12.time#451d5252#0) /#builtin 3.0,
@@ -731,7 +636,7 @@ const unnamed#1dd6d66c = {
 }
 ```
 */
-vec4 unnamed_1dd6d66c(
+vec4 unnamed_5483c5b6(
     GLSLEnv_451d5252 arg0_105,
     vec2 arg1_106
 ) {
@@ -750,7 +655,7 @@ vec4 unnamed_1dd6d66c(
                 start_140 = (start_140 + 1);
                 initial_142 = min(
                     initial_142,
-                    (length_c2805852(
+                    (length(
                         (xy_4e146cdf(
                             rotate_6734d670(
                                 cpos_111,
@@ -769,7 +674,7 @@ vec4 unnamed_1dd6d66c(
     GLSLEnv_451d5252 env_167 = arg0_105;
     vec3 eye = vec3(0.0, 0.0, 5.0);
     vec3 worldDir = getWorldDir_92052fca(arg0_105.resolution, arg1_106, eye, 45.0);
-    float dist_171 = shortestDistanceToSurface_specialization_a5d844f0(
+    float dist_171 = shortestDistanceToSurface_specialization_7c2cdd98(
         arg0_105,
         eye,
         worldDir,
@@ -783,10 +688,7 @@ vec4 unnamed_1dd6d66c(
         float brightness = ((volumetric_0ecc095f(
             sceneSDF,
             env_167,
-            V9e207bb6_d8a54ca8_0(
-                V090f77e7_5ac12902_0(arg1_106, env_167.resolution),
-                (env_167.time / 1000.0)
-            ),
+            ((arg1_106 / env_167.resolution) + (env_167.time / 1000.0)),
             vec3((sin(env_167.time) / 3.0), 0.0, 0.0),
             eye,
             dist_171,
@@ -800,7 +702,7 @@ vec4 unnamed_1dd6d66c(
 }
 
 void main() {
-    fragColor = unnamed_1dd6d66c(
+    fragColor = unnamed_5483c5b6(
         GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
         gl_FragCoord.xy
     );

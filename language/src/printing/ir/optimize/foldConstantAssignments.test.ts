@@ -57,4 +57,32 @@ describe('flattenImmediateCalls', () => {
               })()
         `);
     });
+
+    it('should fold into if and lambda', () => {
+        expect(
+            runFixture(
+                `{
+                    const x = 10;
+                    if x > 2 {
+                        x + 2
+                    } else {
+                        x - 2
+                    }
+                }`,
+                optimizeRepeatedly([
+                    flattenImmediateCalls,
+                    foldConstantAssignments(false),
+                ]),
+            ),
+        ).toMatchInlineSnapshot(`
+            const expr0#🚚: int = (() => {
+                const x#:0: int = 10;
+                if x#:0 > 2 {
+                    return x#:0 + 2;
+                } else {
+                    return x#:0 - 2;
+                };
+            })()
+        `);
+    });
 });
