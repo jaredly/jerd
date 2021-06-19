@@ -307,6 +307,26 @@ export const stmtToGlsl = (
 ): PP => {
     switch (stmt.type) {
         case 'Loop':
+            if (stmt.bounds) {
+                return items([
+                    atom('for '),
+                    items([
+                        atom('(; '),
+                        symToGlsl(env, opts, stmt.bounds.sym),
+                        atom(' '),
+                        atom(stmt.bounds.op),
+                        atom(' '),
+                        termToGlsl(env, opts, stmt.bounds.end),
+                        atom('; '),
+                        symToGlsl(env, opts, stmt.bounds.sym),
+                        atom(' = '),
+                        termToGlsl(env, opts, stmt.bounds.step),
+                        atom(')'),
+                    ]),
+                    atom(' '),
+                    stmtToGlsl(env, opts, stmt.body),
+                ]);
+            }
             return items([
                 atom('for '),
                 atom('(int i=0; i<10000; i++) '),

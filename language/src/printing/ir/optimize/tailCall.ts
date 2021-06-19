@@ -246,7 +246,7 @@ export const tailCallRecursion = (
     if (!hasTailCall(body, self)) {
         return body;
     }
-    const bounds = null; // findBounds(body, argNames, self);
+    const bounds = findBounds(body, argNames, self);
     return {
         type: 'Block',
         loc: body.loc,

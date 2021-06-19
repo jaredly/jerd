@@ -10,10 +10,14 @@ export type ExprVisitor = (
     value: Expr,
     level?: number,
 ) => Expr | null | false | [Expr];
+
 export type Visitor = {
     expr: ExprVisitor;
     block: (value: Block) => Block | null | false;
-    stmt: (value: Stmt, visitor: Visitor) => Stmt | null | false | Array<Stmt>;
+    stmt: (
+        value: Stmt,
+        visitor: Visitor,
+    ) => Stmt | null | false | Array<Stmt> | { type: '*stop*'; stmt: Stmt };
 };
 
 export const defaultVisitor: Visitor = {
@@ -317,6 +321,9 @@ export const transformStmt = (
     if (tr != null) {
         if (Array.isArray(tr)) {
             return tr.map((s) => transformOneStmt(s, visitor, level + 1));
+        }
+        if (tr.type === '*stop*') {
+            return tr.stmt;
         }
         stmt = tr;
     }

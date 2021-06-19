@@ -59,23 +59,24 @@ const visitor = (
         return null;
     },
     stmt: (stmt, revisit) => {
+        const checkAssigns: Visitor = {
+            ...defaultVisitor,
+            expr: (expr) => {
+                if (expr.type === 'lambda') {
+                    return false;
+                }
+                return null;
+            },
+            stmt: (stmt) => {
+                if (stmt.type === 'Assign') {
+                    constants[stmt.sym.unique] = null;
+                }
+                return null;
+            },
+        };
+
         // Assigns in if blocks should invalidate the variables
         if (stmt.type === 'if') {
-            const checkAssigns: Visitor = {
-                ...defaultVisitor,
-                expr: (expr) => {
-                    if (expr.type === 'lambda') {
-                        return false;
-                    }
-                    return null;
-                },
-                stmt: (stmt) => {
-                    if (stmt.type === 'Assign') {
-                        constants[stmt.sym.unique] = null;
-                    }
-                    return null;
-                },
-            };
             transformStmt(stmt.yes, checkAssigns);
             if (stmt.no) {
                 transformStmt(stmt.no, checkAssigns);
@@ -86,6 +87,14 @@ const visitor = (
                 : stmt.no;
             return yes !== stmt.yes || no !== stmt.no
                 ? [{ ...stmt, yes, no }]
+                : false;
+        }
+        // Assigns in loops should also invalidate
+        if (stmt.type === 'Loop') {
+            transformStmt(stmt.body, checkAssigns);
+            let body = transformBlock(stmt.body, visitor(ctx, {}, foldLambdas));
+            return body !== stmt.body
+                ? { type: '*stop*', stmt: { ...stmt, body } }
                 : false;
         }
         // Remove x = x
