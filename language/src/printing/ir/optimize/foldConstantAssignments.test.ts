@@ -109,6 +109,34 @@ describe('flattenImmediateCalls', () => {
 
         expectDefined(expr, [x, y, z], []);
 
+        expr = runOpt(env, expr, foldConstantAssignments(true));
+
+        // After
+        expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
+            const unnamed#⛴️🤷🌕: int = (() => {
+                const x#:0: int = 10;
+                const z#:2: int = 10 + 14;
+                if true {
+                    const y#:1: int = 42;
+                    x#:0 = 42;
+                } else {
+                    x#:0 = 4;
+                };
+                return 4 + z#:2;
+            })()
+        `);
+
+        expr = runOpt(env, expr, removeUnusedVariables);
+
+        // After
+        expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
+            const unnamed#🌉🍊🥟😃: int = (() => {
+                const z#:2: int = 10 + 14;
+                if true {} else {};
+                return 4 + z#:2;
+            })()
+        `);
+
         expr = runOpt(
             env,
             expr,
