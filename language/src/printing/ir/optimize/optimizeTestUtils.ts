@@ -93,24 +93,22 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
                 idNames: { ...env.global.idNames, ...extraIdNames },
             },
         };
-        return indent(
-            inOrder
-                .map((id) =>
-                    printToString(
-                        items([
-                            atom('const '),
-                            idToDebug(envWithNames, idFromName(id), false),
-                            atom(': '),
-                            debugType(envWithNames, irTerms[id].expr.is),
-                            // pp.id(getName(env, irTerms, id), id, 'term'),
-                            atom(' = '),
-                            debugExpr(envWithNames, irTerms[id].expr),
-                        ]),
-                        50,
-                    ),
-                )
-                .join('\n\n'),
-        ).replace(/\n\s+\n/g, '\n\n');
+        return inOrder
+            .map((id) =>
+                printToString(
+                    items([
+                        atom('const '),
+                        idToDebug(envWithNames, idFromName(id), false),
+                        atom(': '),
+                        debugType(envWithNames, irTerms[id].expr.is),
+                        // pp.id(getName(env, irTerms, id), id, 'term'),
+                        atom(' = '),
+                        debugExpr(envWithNames, irTerms[id].expr),
+                    ]),
+                    50,
+                ),
+            )
+            .join('\n\n');
     },
 };
 

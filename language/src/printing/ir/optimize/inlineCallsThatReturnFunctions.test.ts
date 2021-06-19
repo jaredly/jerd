@@ -6,7 +6,7 @@ expect.addSnapshotSerializer(snapshotSerializer);
 describe('serializer', () => {
     it('should work', () => {
         expect(runFixture(`2 + 3`, (env, expr) => expr)).toMatchInlineSnapshot(
-            `  const expr0#🏣🧛‍♂️🕊️: int = 2 + 3`,
+            `const expr0#🏣🧛‍♂️🕊️: int = 2 + 3`,
         );
     });
 });

@@ -10,13 +10,13 @@ describe('flattenImmediateCalls', () => {
     it('should work', () => {
         expect(
             runFixture(`(() => 10)()`, flattenImmediateCalls),
-        ).toMatchInlineSnapshot(`  const expr0#🌾🤶🦹‍♂️😃: int = 10`);
+        ).toMatchInlineSnapshot(`const expr0#🌾🤶🦹‍♂️😃: int = 10`);
     });
 
     it('should work double', () => {
         expect(
             runFixture(`(() => (() => 10)())()`, flattenImmediateCalls),
-        ).toMatchInlineSnapshot(`  const expr0#☂️🧸🙆‍♀️😃: int = (() => 10)()`);
+        ).toMatchInlineSnapshot(`const expr0#☂️🧸🙆‍♀️😃: int = (() => 10)()`);
     });
 
     it('should do ifs', () => {
