@@ -331,11 +331,15 @@ describe('glsl in concert', () => {
                   collect#:1: int,
                   most#:2: int,
               ) => {
-                  for (; max#:0 > most#:2; max#:0 = max#:0 - 2) {
-                      collect#:1 = collect#:1 + 10;
-                      continue;
+                  loop {
+                      if max#:0 <= most#:2 {
+                          return collect#:1;
+                      } else {
+                          max#:0 = max#:0 - 2;
+                          collect#:1 = collect#:1 + 10;
+                          continue;
+                      };
                   };
-                  return collect#:1;
               }
 
               const expr1#🚠: int = tailMe#🤹🥐🐒(1, 0, 2)
