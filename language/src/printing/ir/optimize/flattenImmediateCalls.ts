@@ -1,24 +1,11 @@
-import { idFromName, idName, newSym } from '../../../typing/env';
+import { newSym } from '../../../typing/env';
 import { LocatedError } from '../../../typing/errors';
-import { showLocation } from '../../../typing/typeExpr';
-import {
-    Env,
-    Id,
-    idsEqual,
-    RecordDef,
-    refsEqual,
-    Symbol,
-    symbolsEqual,
-} from '../../../typing/types';
-import { termToGlsl } from '../../glslPrinter';
-import { printToString } from '../../printer';
+import { Env, Symbol, symbolsEqual } from '../../../typing/types';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import {
     defaultVisitor,
     ExprVisitor,
-    transformBlock,
     transformExpr,
-    transformLambdaBody,
     transformStmt,
     Visitor,
 } from '../transform';
@@ -27,33 +14,23 @@ import {
     Block,
     Define,
     Expr,
-    isTerm,
     LambdaExpr,
     Loc,
-    OutputOptions,
-    Record,
-    RecordSubType,
-    ReturnStmt,
     Stmt,
-    Tuple,
-    Type,
     typesEqual,
 } from '../types';
 import {
     bool,
+    builtin,
     callExpression,
     define,
     handlerSym,
-    int,
+    iffe,
     pureFunction,
-    typeFromTermType,
     var_,
     void_,
 } from '../utils';
-import { and, asBlock, builtin, iffe } from '../utils';
-import { inlint } from './inline';
 import { Context, isConstant } from './optimize';
-import { transformRepeatedly } from './utils';
 
 // Ok START HERE
 // Let's um ... make a big old test file,

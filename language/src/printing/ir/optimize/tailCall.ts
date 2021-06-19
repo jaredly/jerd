@@ -86,9 +86,6 @@ export const findBounds = (
     argNames: Array<Symbol>,
     id: Id,
 ): undefined | { bounds: LoopBounds; body: Block; after: Block } => {
-    if (true) {
-        return;
-    }
     const item = body.items[0];
     if (body.items.length !== 1 || item.type !== 'if' || !item.no) {
         return;
@@ -249,7 +246,7 @@ export const tailCallRecursion = (
     if (!hasTailCall(body, self)) {
         return body;
     }
-    const bounds = null; // findBounds(body, argNames, self);
+    const bounds = true ? null : findBounds(body, argNames, self);
     return {
         type: 'Block',
         loc: body.loc,
