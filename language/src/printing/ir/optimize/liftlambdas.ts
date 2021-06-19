@@ -1,5 +1,6 @@
 import { hashObject, idName } from '../../../typing/env';
 import { Env, Id } from '../../../typing/types';
+import { reUnique } from '../../typeScriptPrinterSimple';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, LambdaExpr, Stmt } from '../types';
 import {
@@ -38,6 +39,8 @@ export const findCapturedVariables = (lambda: Expr): Array<number> => {
 
 // The caller needs to ensure that no variables are being captured.
 export const liftToTopLevel = (ctx: Context, lambda: LambdaExpr): Expr => {
+    // We're bringing this to the top level, it can have fresh uniques
+    lambda = reUnique({ current: 0 }, lambda) as LambdaExpr;
     const hash = hashObject(lambda);
     const id: Id = { hash, size: 1, pos: 0 };
     let expr: Expr = ctx.optimize({ ...ctx, id }, lambda);

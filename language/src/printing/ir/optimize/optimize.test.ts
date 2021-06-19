@@ -17,6 +17,7 @@ import {
     runFixture,
     snapshotSerializer,
 } from './optimizeTestUtils';
+import { optimizeTailCalls, tailCallRecursion } from './tailCall';
 
 expect.addSnapshotSerializer(snapshotSerializer);
 
@@ -295,6 +296,55 @@ describe('glsl in concert', () => {
                   const z#:7: int = 2 + 2;
                   return z#:7 * z#:7 + z#:11 * z#:11;
               }
+        `);
+        expectValidGlsl(result);
+    });
+
+    it('recursion and such', () => {
+        const result = runFixture(
+            `const rec tailMe = (max: int, collect: int, most: int): int => {
+				if max <= most {
+					collect
+				} else {
+					tailMe(max - 2, collect + 10, most)
+				}
+			}
+
+			tailMe(20, 0, 1)
+
+			tailMe(1, 0, 2)
+			`,
+            optimizeRepeatedly([
+                specializeFunctionsCalledWithLambdas,
+                inlineCallsThatReturnFunctions,
+                flattenImmediateCalls,
+                foldConstantAssignments(true),
+                foldSingleUseAssignments,
+                flattenImmediateAssigns,
+                removeUnusedVariables,
+                optimizeTailCalls,
+            ]),
+        );
+        expect(result).toMatchInlineSnapshot(`
+              const tailMe#🤹🥐🐒: (int, int, int) => int = (
+                  max#:0: int,
+                  collect#:1: int,
+                  most#:2: int,
+              ) => {
+                  loop {
+                      if max#:0 <= most#:2 {
+                          return collect#:1;
+                      } else {
+                          max#:0 = max#:0 - 2;
+                          collect#:1 = collect#:1 + 10;
+                          continue;
+                      };
+                  };
+              }
+
+              const expr1#🚠: int = tailMe#🤹🥐🐒(1, 0, 2)
+
+              const expr0#😬: int = tailMe#🤹🥐🐒(20, 0, 1)
         `);
         expectValidGlsl(result);
     });
