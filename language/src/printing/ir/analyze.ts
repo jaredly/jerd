@@ -1,7 +1,7 @@
 // Let's ensure some invariants are met!
 
 import { Location } from '../../parsing/parser';
-import { LocatedError } from '../../typing/errors';
+import { LocatedError, UniqueError } from '../../typing/errors';
 import { Symbol } from '../../typing/types';
 import { defaultVisitor, transformExpr } from './transform';
 import { Expr, Loc } from './types';
@@ -75,9 +75,10 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
         }
     });
     if (failed.length > 0) {
-        throw new LocatedError(
+        throw new UniqueError(
             seen[failed[0]][1].loc,
-            `Multiple declarations for unique ${failed[0]}.`,
+            expr,
+            // `Multiple declarations for unique ${failed[0]}.`,
         );
     }
     // if (undefinedUses.length > 0) {

@@ -10,6 +10,7 @@ import * as pp from '../../printer';
 import { Exprs, Optimizer, Optimizer2, toOldOptimize } from './optimize';
 import { presetEnv } from '../../../typing/preset';
 import { uniquesReallyAreUnique } from '../analyze';
+import { UniqueError } from '../../../typing/errors';
 
 // const init = loadInit();
 const init = presetEnv({});
@@ -48,16 +49,23 @@ export const runFixture = (text: string, optimize: Optimizer2) => {
         };
     });
 
-    const { inOrder, irTerms } = assembleItemsForFile(
-        env,
-        mains,
-        mains.map((main) => idName((main as any).ref.id)),
-        {},
-        {},
-        toOldOptimize(optimize),
-    );
+    try {
+        const { inOrder, irTerms } = assembleItemsForFile(
+            env,
+            mains,
+            mains.map((main) => idName((main as any).ref.id)),
+            {},
+            {},
+            toOldOptimize(optimize),
+        );
 
-    return { env, irTerms, inOrder };
+        return { env, irTerms, inOrder };
+    } catch (err) {
+        if (err instanceof UniqueError) {
+            console.log(printToString(debugExpr(env, err.expr), 100));
+        }
+        throw err;
+    }
 };
 
 export const snapshotSerializer: jest.SnapshotSerializerPlugin = {

@@ -1,49 +1,10 @@
-import { idFromName, idName, refName } from '../../../typing/env';
-import { showLocation } from '../../../typing/typeExpr';
-import {
-    Env,
-    Id,
-    idsEqual,
-    RecordDef,
-    Reference,
-    refsEqual,
-    Symbol,
-    symbolsEqual,
-} from '../../../typing/types';
+import { idName, refName } from '../../../typing/env';
+import { Id, Reference } from '../../../typing/types';
 import { reUnique } from '../../typeScriptPrinterSimple';
-import {
-    defaultVisitor,
-    transformBlock,
-    transformExpr,
-    transformLambdaBody,
-    transformStmt,
-    Visitor,
-} from '../transform';
-import {
-    Apply,
-    Block,
-    Define,
-    Expr,
-    isTerm,
-    LambdaExpr,
-    OutputOptions,
-    Record,
-    RecordSubType,
-    ReturnStmt,
-    Stmt,
-    Tuple,
-    Type,
-} from '../types';
-import {
-    callExpression,
-    define,
-    handlerSym,
-    int,
-    pureFunction,
-    typeFromTermType,
-} from '../utils';
-import { and, asBlock, builtin, iffe } from '../utils';
-import { Context, Exprs, isConstant } from './optimize';
+import { defaultVisitor, transformExpr } from '../transform';
+import { Expr } from '../types';
+import { findCapturedVariables } from './liftlambdas';
+import { Context, isConstant } from './optimize';
 
 // const isInlinable = (t: LambdaExpr, self: Id) => {
 //     // TODO: make this much faster folks
@@ -153,6 +114,46 @@ export const toplevelRecordAttribute = (
     idx: number,
 ) => {
     return `${idName(id)}_${refName(ref)}_${idx}`;
+};
+
+export const inlineFunctionsCalledWithCapturingLambdas = (
+    ctx: Context,
+    expr: Expr,
+) => {
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (
+                expr.type !== 'apply' ||
+                (expr.target.type !== 'term' && expr.target.type !== 'genTerm')
+            ) {
+                return null;
+            }
+            const largs = expr.args
+                // .map((arg, i) => ({ arg, i }))
+                .filter(
+                    (a) =>
+                        a.type === 'lambda' &&
+                        findCapturedVariables(a).length != 0,
+                );
+
+            if (largs.length > 0) {
+                const name =
+                    expr.target.type === 'term'
+                        ? idName(expr.target.id)
+                        : expr.target.id;
+                const v = ctx.exprs[name];
+                if (v == null) {
+                    throw new Error(`Unable to find expr... ${name}`);
+                }
+                return {
+                    ...expr,
+                    target: reUnique(ctx.env.local.unique, v.expr),
+                };
+            }
+            return null;
+        },
+    });
 };
 
 export const inlint = (ctx: Context, expr: Expr): Expr => {

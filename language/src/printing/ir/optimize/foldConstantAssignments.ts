@@ -53,6 +53,9 @@ const visitor = (
         if (expr.type === 'var') {
             const v = constants[expr.sym.unique];
             if (v != null) {
+                if (v.type === 'lambda') {
+                    return reUnique(ctx.env.local.unique, v);
+                }
                 return v;
             }
         }
@@ -126,10 +129,7 @@ const visitor = (
                 // Which is perfectly fine.
                 // So, re-unique, if it sees something it doesn't own,
                 // should leave it alone. Well that makes total sense.
-                constants[stmt.sym.unique] = reUnique(
-                    ctx.env.local.unique,
-                    transformExpr(stmt.value, revisit),
-                );
+                constants[stmt.sym.unique] = transformExpr(stmt.value, revisit);
             } else {
                 // ohhhhhhhh HDMASMDJKFDJSDKLFMmmmmm
                 // SO

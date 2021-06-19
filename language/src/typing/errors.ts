@@ -1,4 +1,5 @@
 import { Identifier, Location } from '../parsing/parser';
+import { Expr } from '../printing/ir/types';
 import { printToString } from '../printing/printer';
 import { effToPretty, refToPretty, symToPretty } from '../printing/printTsLike';
 import { EffectRef, Env, LambdaType, Reference, Symbol, Type } from './types';
@@ -36,6 +37,14 @@ export class LocatedError extends TypeError {
     constructor(loc: Location | null, message?: string) {
         super(message);
         this.loc = loc;
+    }
+}
+
+export class UniqueError extends LocatedError {
+    expr: Expr;
+    constructor(loc: Location, expr: Expr) {
+        super(loc, `Multiple declarations for unique`);
+        this.expr = expr;
     }
 }
 

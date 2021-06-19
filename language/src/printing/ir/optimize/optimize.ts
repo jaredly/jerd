@@ -25,7 +25,7 @@ import {
 import { flattenRecordSpreads } from './flattenRecordSpread';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
-import { inlint } from './inline';
+import { inlineFunctionsCalledWithCapturingLambdas, inlint } from './inline';
 import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
 import {
     monoconstant,
@@ -73,6 +73,7 @@ export const optimizeRepeatedly = (
             return expr;
         }
         expr = newExpr;
+        uniquesReallyAreUnique(expr);
     }
     throw new Error(`Optimize failed to converge`);
 };
@@ -118,6 +119,7 @@ export const optimizeDefineNew = (
         uniquesReallyAreUnique(expr);
     } catch (err) {
         console.log('-- oops --');
+        console.error(err);
         // Oh no! Inconsistent!
         // Let's do this again, but more slowly.
         const opt = optimizeRepeatedly((ctx, expr) => {
@@ -567,6 +569,7 @@ const glslOpts: Array<Optimizer2> = [
     flattenImmediateAssigns,
     removeUnusedVariables,
 
+    inlineFunctionsCalledWithCapturingLambdas,
     ensureToplevelFunctionsAreLambdas,
     inlineCallsThatReturnFunctions,
     explicitSpreads,
