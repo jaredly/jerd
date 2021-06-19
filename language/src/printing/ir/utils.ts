@@ -434,6 +434,20 @@ export const ifBlock = (x: Block | Expr): Block => {
     }
 };
 
+export const boolLiteral = (value: boolean, loc: Location): Expr => ({
+    type: 'boolean',
+    value,
+    loc,
+    is: bool,
+});
+
+export const intLiteral = (value: number, loc: Location): Expr => ({
+    type: 'int',
+    value,
+    loc,
+    is: int,
+});
+
 export const ifStatement = (
     cond: Expr,
     yes: Expr | Block,

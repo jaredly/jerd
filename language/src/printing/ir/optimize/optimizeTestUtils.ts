@@ -13,13 +13,15 @@ import { uniquesReallyAreUnique } from '../analyze';
 import { UniqueError } from '../../../typing/errors';
 
 // const init = loadInit();
-const init = presetEnv({});
+export const defaultEnv = presetEnv({});
 
-export const expectValidGlsl = (result: {
+export type Result = {
     env: Env;
     irTerms: Exprs;
     inOrder: Array<string>;
-}) => {
+};
+
+export const expectValidGlsl = (result: Result) => {
     result.inOrder.forEach((id) => {
         uniquesReallyAreUnique(result.irTerms[id].expr);
         expect(hasInvalidGLSL(result.irTerms[id].expr)).toBeFalsy();
@@ -28,7 +30,7 @@ export const expectValidGlsl = (result: {
 };
 
 export const runFixture = (text: string, optimize: Optimizer2) => {
-    const initialEnv = newWithGlobal(init.global);
+    const initialEnv = newWithGlobal(defaultEnv.global);
     let res;
     try {
         res = typeFile(parse(text), initialEnv, 'test-fixture');
