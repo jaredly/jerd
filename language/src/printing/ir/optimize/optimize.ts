@@ -32,6 +32,7 @@ import {
     specializeFunctionsCalledWithLambdas,
 } from './monoconstant';
 import { monomorphize } from './monomorphize';
+import { removeUnusedVariables } from './removeUnusedVariables';
 import { optimizeTailCalls } from './tailCall';
 import { transformRepeatedly } from './utils';
 
@@ -94,7 +95,7 @@ export const midOpt = (
 ): Optimizer => (env: Env, _: OutputOptions, exprs: Exprs, expr: Expr) =>
     fn(env, exprs, expr);
 
-export const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
+export const symName = (sym: Symbol) => sym.unique + '';
 
 export const optimizeDefineNew = (
     env: Env,
@@ -404,38 +405,6 @@ export const removeSelfAssignments = (_: Env, expr: Expr) =>
             return null;
         },
     });
-
-export const removeUnusedVariables = (ctx: Context, expr: Expr): Expr => {
-    const used: { [key: string]: boolean } = {};
-    const visitor: Visitor = {
-        ...defaultVisitor,
-        expr: (value: Expr) => {
-            switch (value.type) {
-                case 'var':
-                    used[symName(value.sym)] = true;
-            }
-            return null;
-        },
-    };
-    if (transformExpr(expr, visitor) !== expr) {
-        throw new Error(`Noop visitor somehow mutated`);
-    }
-    const remover: Visitor = {
-        ...defaultVisitor,
-        block: (block) => {
-            const items = block.items.filter((stmt) => {
-                const unused =
-                    (stmt.type === 'Define' || stmt.type === 'Assign') &&
-                    used[symName(stmt.sym)] !== true;
-                return !unused;
-            });
-            return items.length !== block.items.length
-                ? { ...block, items }
-                : null;
-        },
-    };
-    return transformExpr(expr, remover);
-};
 
 /// Optimizations for go, and possibly other languages
 

@@ -7,16 +7,13 @@ import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
 import { specializeFunctionsCalledWithLambdas } from './monoconstant';
-import {
-    combineOpts,
-    optimizeRepeatedly,
-    removeUnusedVariables,
-} from './optimize';
+import { combineOpts, optimizeRepeatedly } from './optimize';
 import {
     expectValidGlsl,
     runFixture,
     snapshotSerializer,
 } from './optimizeTestUtils';
+import { removeUnusedVariables } from './removeUnusedVariables';
 import { optimizeTailCalls, tailCallRecursion } from './tailCall';
 
 expect.addSnapshotSerializer(snapshotSerializer);

@@ -1,5 +1,12 @@
 import { hashObject, newSym } from '../../../typing/env';
-import { Env, Id, newWithGlobal, nullLocation } from '../../../typing/types';
+import {
+    Env,
+    Id,
+    newWithGlobal,
+    nullLocation,
+    Symbol,
+} from '../../../typing/types';
+import { defaultVisitor, transformExpr } from '../transform';
 import { Expr } from '../types';
 import {
     assign,
@@ -22,41 +29,25 @@ import {
 } from './flattenImmediateCalls';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
-import {
-    combineOpts,
-    Optimizer2,
-    optimizeRepeatedly,
-    removeUnusedVariables,
-} from './optimize';
+import { combineOpts, Optimizer2, optimizeRepeatedly } from './optimize';
 import {
     runFixture,
     snapshotSerializer,
     defaultEnv,
     Result,
+    resultForExpr,
+    runOpt,
 } from './optimizeTestUtils';
+import { expectDefined, removeUnusedVariables } from './removeUnusedVariables';
 
 expect.addSnapshotSerializer(snapshotSerializer);
 
-const resultForExpr = (env: Env, expr: Expr): Result => {
-    const hash = hashObject(expr);
-    const result: Result = {
+const plus = (env: Env, a: Expr, b: Expr): Expr =>
+    callExpression(
         env,
-        irTerms: { [hash]: { expr, inline: false } },
-        inOrder: [hash],
-    };
-    return result;
-};
-
-const runOpt = (env: Env, expr: Expr, opt: Optimizer2) =>
-    opt(
-        {
-            env,
-            exprs: {},
-            opts: {},
-            optimize: opt,
-            id: { hash: 'nope', size: 1, pos: 0 },
-        },
-        expr,
+        builtin('+', nullLocation, pureFunction([int, int], int)),
+        [a, b],
+        nullLocation,
     );
 
 describe('flattenImmediateCalls', () => {
@@ -77,39 +68,25 @@ describe('flattenImmediateCalls', () => {
         const x = newSym(env, 'x');
         const y = newSym(env, 'y');
         const z = newSym(env, 'z');
+        const xv = var_(x, noloc, int);
+        const yv = var_(y, noloc, int);
+        const zv = var_(z, noloc, int);
         let expr = iffe(
             env,
             block(
                 [
                     define(x, intLiteral(10, noloc)),
-                    define(z, callExpression(
-                        env,
-                        builtin('+', noloc, pureFunction([int, int], int)),
-                        [var_(x, noloc, int), intLiteral(14, noloc)],
-                        noloc,
-                    )),
+                    define(z, plus(env, xv, intLiteral(14, noloc))),
                     ifStatement(
                         boolLiteral(true, noloc),
                         block(
-                            [
-                                define(y, callExpression(
-                                    env,
-                                    builtin(
-                                        '+',
-                                        noloc,
-                                        pureFunction([int, int], int),
-                                    ),
-                                    [var_(x, noloc, int), intLiteral(4, noloc)],
-                                    noloc,
-                                )),
-                                assign(x, var_(y, noloc, int)),
-                            ],
+                            [define(y, intLiteral(42, noloc)), assign(x, yv)],
                             noloc,
                         ),
                         block([assign(x, intLiteral(4, noloc))], noloc),
                         noloc,
                     ),
-                    returnStatement(var_(x, noloc, int)),
+                    returnStatement(plus(env, xv, zv)),
                 ],
                 noloc,
             ),
@@ -117,35 +94,40 @@ describe('flattenImmediateCalls', () => {
 
         // Before
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#⛄🏵️🦁: int = (() => {
+            const unnamed#🚐🦚🐻😃: int = (() => {
                 const x#:0: int = 10;
                 const z#:2: int = x#:0 + 14;
                 if true {
-                    const y#:1: int = x#:0 + 4;
+                    const y#:1: int = 42;
                     x#:0 = y#:1;
                 } else {
                     x#:0 = 4;
                 };
-                return x#:0;
+                return x#:0 + z#:2;
             })()
         `);
 
-        expr = runOpt(env, expr, foldConstantAssignments(true));
+        expectDefined(expr, [x, y, z], []);
+
+        expr = runOpt(
+            env,
+            expr,
+            optimizeRepeatedly([
+                foldConstantAssignments(true),
+                removeUnusedVariables,
+            ]),
+        );
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🧏‍♀️🦍🧞‍♂️: int = (() => {
-                const x#:0: int = 10;
+            const unnamed#🌉🍊🥟😃: int = (() => {
                 const z#:2: int = 10 + 14;
-                if true {
-                    const y#:1: int = x#:0 + 4;
-                    x#:0 = y#:1;
-                } else {
-                    x#:0 = 4;
-                };
-                return x#:0;
+                if true {} else {};
+                return 4 + z#:2;
             })()
         `);
+
+        expectDefined(expr, [x, z], [y]);
     });
 
     it('should fold into if and lambda', () => {

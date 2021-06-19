@@ -1,20 +1,13 @@
-import { hasInvalidGLSL } from '../../glslPrinter';
 import { flattenImmediateCalls } from './flattenImmediateCalls';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
-import { specializeFunctionsCalledWithLambdas } from './monoconstant';
-import {
-    combineOpts,
-    midOpt,
-    optimizeRepeatedly,
-    removeUnusedVariables,
-    simpleOpt,
-} from './optimize';
+import { optimizeRepeatedly } from './optimize';
 import {
     expectValidGlsl,
     runFixture,
     snapshotSerializer,
 } from './optimizeTestUtils';
+import { removeUnusedVariables } from './removeUnusedVariables';
 import { optimizeTailCalls } from './tailCall';
 
 expect.addSnapshotSerializer(snapshotSerializer);

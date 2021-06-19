@@ -11,6 +11,7 @@ import { Exprs, Optimizer, Optimizer2, toOldOptimize } from './optimize';
 import { presetEnv } from '../../../typing/preset';
 import { uniquesReallyAreUnique } from '../analyze';
 import { UniqueError } from '../../../typing/errors';
+import { Expr } from '../types';
 
 // const init = loadInit();
 export const defaultEnv = presetEnv({});
@@ -20,6 +21,28 @@ export type Result = {
     irTerms: Exprs;
     inOrder: Array<string>;
 };
+
+export const resultForExpr = (env: Env, expr: Expr): Result => {
+    const hash = hashObject(expr);
+    const result: Result = {
+        env,
+        irTerms: { [hash]: { expr, inline: false } },
+        inOrder: [hash],
+    };
+    return result;
+};
+
+export const runOpt = (env: Env, expr: Expr, opt: Optimizer2) =>
+    opt(
+        {
+            env,
+            exprs: {},
+            opts: {},
+            optimize: opt,
+            id: { hash: 'nope', size: 1, pos: 0 },
+        },
+        expr,
+    );
 
 export const expectValidGlsl = (result: Result) => {
     result.inOrder.forEach((id) => {
