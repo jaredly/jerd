@@ -154,6 +154,14 @@ export type Assign = {
     loc: Loc;
 };
 export type ReturnStmt = { type: 'Return'; value: Expr; loc: Loc };
+
+export type LoopBounds = {
+    end: Expr;
+    op: '<=' | '<' | '>' | '>=';
+    step: Apply;
+    sym: Symbol;
+};
+
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
     | Define
@@ -165,7 +173,14 @@ export type Stmt =
     // or do I just want to optimize a recursive function w/ switch +
     // array destructuring?
     // or I could just have Array.forEach
-    | { type: 'Loop'; body: Block; loc: Loc }
+    // Ok but also: optional :somethingsomething: "Bounds"?
+    //
+    | {
+          type: 'Loop';
+          body: Block;
+          loc: Loc;
+          bounds?: LoopBounds;
+      }
     | { type: 'Continue'; loc: Loc }
     | Block;
 export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
@@ -229,6 +244,7 @@ export type Literal =
     | { type: 'int'; value: number; loc: Loc; is: Type }
     | { type: 'boolean'; value: boolean; loc: Loc; is: Type }
     | { type: 'float'; value: number; loc: Loc; is: Type };
+export type Var = { type: 'var'; sym: Symbol; loc: Loc; is: Type };
 
 export type Expr =
     | Literal
@@ -236,7 +252,7 @@ export type Expr =
     | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
     | { type: 'term'; id: Id; loc: Loc; is: Type }
     | { type: 'genTerm'; loc: Loc; is: Type; id: string }
-    | { type: 'var'; sym: Symbol; loc: Loc; is: Type }
+    | Var
     | {
           type: 'slice';
           value: Expr;

@@ -46,6 +46,18 @@ import {
 
 const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
+export const isLiteral = (expr: Expr) => {
+    switch (expr.type) {
+        case 'int':
+        case 'float':
+        case 'string':
+        case 'boolean':
+            return true;
+        default:
+            return false;
+    }
+};
+
 export const expectLambdaType = (
     env: Env,
     opts: OutputOptions,

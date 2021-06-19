@@ -49,4 +49,16 @@ describe('getUserDependencies', () => {
             ['a', 'b'],
         );
     });
+
+    it('should work with recursive again', () => {
+        testDependencies(
+            `const rec tailMe = (max: int, collect: int): int => {
+				tailMe(max - 1, collect + 10)
+			}
+
+			tailMe(20, 0)
+			`,
+            ['tailMe'],
+        );
+    });
 });

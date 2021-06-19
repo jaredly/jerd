@@ -742,10 +742,19 @@ export const assembleItemsForFile = (
             ...defaultVisitor,
             expr: (expr) => {
                 if (expr.type === 'term') {
-                    deps[idName(expr.id)] = true;
-                    toWalk.push(idName(expr.id));
+                    const raw = idName(expr.id);
+                    // Recursion, ignore
+                    if (raw === next) {
+                        return null;
+                    }
+                    deps[raw] = true;
+                    toWalk.push(raw);
                 }
                 if (expr.type === 'genTerm') {
+                    // Recursion, ignore
+                    if (expr.id === next) {
+                        return null;
+                    }
                     deps[expr.id] = true;
                     toWalk.push(expr.id);
                 }

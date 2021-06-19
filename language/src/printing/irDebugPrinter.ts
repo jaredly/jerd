@@ -279,6 +279,26 @@ export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
         case 'Expression':
             return debugExpr(env, stmt.expr);
         case 'Loop':
+            if (stmt.bounds) {
+                return items([
+                    atom('for '),
+                    items([
+                        atom('(; '),
+                        debugSym(stmt.bounds.sym),
+                        atom(' '),
+                        atom(stmt.bounds.op),
+                        atom(' '),
+                        debugExpr(env, stmt.bounds.end),
+                        atom('; '),
+                        debugSym(stmt.bounds.sym),
+                        atom(' = '),
+                        debugExpr(env, stmt.bounds.step),
+                        atom(')'),
+                    ]),
+                    atom(' '),
+                    debugBody(env, stmt.body),
+                ]);
+            }
             return items([atom('loop '), debugBody(env, stmt.body)]);
         case 'MatchFail':
             return atom('match_fail!()');
