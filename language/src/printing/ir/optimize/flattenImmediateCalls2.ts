@@ -30,6 +30,7 @@ import {
     handlerSym,
     iffe,
     ifStatement,
+    intLiteral,
     pureFunction,
     var_,
     void_,
@@ -320,7 +321,11 @@ export const flattenImmediateCalls2 = (ctx: Context, expr: Expr) => {
                     stmt.value.target,
                     stmt.sym,
                 );
-                return [{ ...stmt, value: null }, ...result.stmts];
+                return [
+                    { ...stmt, value: null },
+                    ...result.stmts,
+                    assign(stmt.sym, result.expr),
+                ];
             }
 
             const extras: Array<Stmt> = [];

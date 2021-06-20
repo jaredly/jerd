@@ -98,6 +98,7 @@ describe('flattenImmediateCalls2', () => {
                         m#:1 = x#:0 - 1;
                         continueBlock#:6 = false;
                     };
+                    m#:1 = m#:1;
                     result#:4 = m#:1 / 2;
                     continueBlock#:5 = false;
                     z#:2 = result#:4;
@@ -106,6 +107,7 @@ describe('flattenImmediateCalls2', () => {
                     z#:2 = 30;
                     continueBlock#:3 = false;
                 };
+                z#:2 = z#:2;
                 return z#:2 + 2;
             })()
         `);

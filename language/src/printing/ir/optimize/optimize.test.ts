@@ -23,7 +23,7 @@ expect.addSnapshotSerializer(snapshotSerializer);
 const combinedOptimize = optimizeRepeatedly([
     specializeFunctionsCalledWithLambdas,
     inlineCallsThatReturnFunctions,
-    flattenImmediateCalls,
+    flattenImmediateCalls2,
     foldConstantAssignments(true),
     foldSingleUseAssignments,
     flattenImmediateAssigns,
@@ -91,15 +91,16 @@ describe('glsl in concert', () => {
             combinedOptimize,
         );
         expect(result).toMatchInlineSnapshot(`
-              const expr0#💟: () => int = () => {
-                  const m#:0: () => int;
-                  if 10 > 10 {
-                      m#:0 = () => 20;
-                  } else {
-                      m#:0 = () => 30;
-                  };
-                  return m#:0() + 10;
-              }
+            const expr0#💟: () => int = () => {
+                const m#:0: () => int;
+                if 10 > 10 {
+                    m#:0 = () => 20;
+                } else {
+                    m#:0 = () => 30;
+                };
+                m#:0 = m#:0;
+                return m#:0() + 10;
+            }
         `);
 
         // so
@@ -168,6 +169,70 @@ describe('glsl in concert', () => {
     it('should work', () => {
         const result = runFixture(
             `
+            const estimateNormal = (sceneSDF: (float) ={}> float): float ={}> sceneSDF(1.23)
+            
+            const callIt = (
+                sceneSDF: (float) ={}> float,
+                eye: float,
+            ): float ={}> {
+                sceneSDF(eye);
+            }
+            
+            const marchNormals = (sceneSDF: (float) ={}> float) ={}> (coord: float) ={}> {
+                estimateNormal(sceneSDF) + coord
+            }
+            
+            const superSample = (sdf: (float) ={}> float) ={}> (coord: float) ={}> {
+                sdf(coord) + 23.0
+            }
+            
+            {
+                const x = marchNormals(
+                    sceneSDF: (pos: float): float ={}> 23.0 + pos
+                );
+
+            superSample(
+                sdf: x,
+            )
+            }
+            `,
+            optimizeRepeatedly([
+                // optimizeRepeatedly([
+                specializeFunctionsCalledWithLambdas,
+                inlineCallsThatReturnFunctions,
+                flattenImmediateCalls2,
+                foldConstantAssignments(true),
+                flattenImmediateAssigns,
+                foldSingleUseAssignments,
+                // ]),
+                removeUnusedVariables,
+                // foldConstantAssignments(true),
+                // flattenImmediateAssigns,
+                // foldSingleUseAssignments,
+                // removeUnusedVariables,
+            ]),
+        );
+
+        expect(result).toMatchInlineSnapshot(`
+            const expr0_lambda#💟👯🤚😃: (float) => float = (
+                pos#:0: float,
+            ) => 23 + pos#:0
+
+            const estimateNormal_specialization#🧑‍🦳🦾👽😃: () => float = () => expr0_lambda#💟👯🤚😃(
+                1.23,
+            )
+
+            const expr0#🏺🧇🥧😃: (float) => float = (
+                coord#:4: float,
+            ) => estimateNormal_specialization#🧑‍🦳🦾👽😃() + coord#:4 + 23
+        `);
+
+        expectValidGlsl(result);
+    });
+
+    it('should work', () => {
+        const result = runFixture(
+            `
             const estimateNormal = (sceneSDF: (int) ={}> float): float ={}> sceneSDF(1)
             
             const callIt = (
@@ -192,20 +257,14 @@ describe('glsl in concert', () => {
                 ),
             )
             `,
-            combineOpts([
-                optimizeRepeatedly([
-                    specializeFunctionsCalledWithLambdas,
-                    inlineCallsThatReturnFunctions,
-                    flattenImmediateCalls2,
-                    foldConstantAssignments(true),
-                    flattenImmediateAssigns,
-                    foldSingleUseAssignments,
-                ]),
-                // removeUnusedVariables,
-                // foldConstantAssignments(true),
-                // flattenImmediateAssigns,
-                // foldSingleUseAssignments,
-                // removeUnusedVariables,
+            optimizeRepeatedly([
+                specializeFunctionsCalledWithLambdas,
+                inlineCallsThatReturnFunctions,
+                flattenImmediateCalls2,
+                foldConstantAssignments(true),
+                flattenImmediateAssigns,
+                foldSingleUseAssignments,
+                removeUnusedVariables,
             ]),
         );
 
@@ -214,42 +273,19 @@ describe('glsl in concert', () => {
                 pos#:0: int,
             ) => 23
 
-            const estimateNormal_specialization#😟💃🤮: () => float = () => {
-                const sceneSDF#:0: (int) => float = expr0_lambda#☕;
-                return expr0_lambda#☕(1);
-            }
-
             const callIt_specialization#🕖: (int) => float = (
                 eye#:1: int,
-            ) => {
-                const sceneSDF#:0: (int) => float = expr0_lambda#☕;
-                return expr0_lambda#☕(eye#:1);
-            }
+            ) => expr0_lambda#☕(eye#:1)
 
-            const expr0#😙🦗💆😃: (float) => float = (() => {
-                const continueBlock#:6: bool = true;
-                const sceneSDF#:3: (int) => float = expr0_lambda#☕;
-                const sdf#:1: (float) => float = (
-                    coord#:4: float,
-                ) => {
-                    const dist#:5: float = callIt_specialization#🕖(
-                        1000,
-                    );
-                    return estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
-                        1000,
-                    ) + coord#:4;
-                };
-                continueBlock#:6 = false;
-                return (coord#:2: float) => {
-                    const coord#:7: float = coord#:2;
-                    const dist#:8: float = callIt_specialization#🕖(
-                        1000,
-                    );
-                    return estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
-                        1000,
-                    ) + coord#:2;
-                };
-            })()
+            const estimateNormal_specialization#😟💃🤮: () => float = () => expr0_lambda#☕(
+                1,
+            )
+
+            const expr0#😙🦗💆😃: (float) => float = (
+                coord#:2: float,
+            ) => estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
+                1000,
+            ) + coord#:2
         `);
 
         result.inOrder.forEach((k) => {
@@ -274,13 +310,13 @@ describe('glsl in concert', () => {
                 pos#:0: int,
             ) => 23
 
-            const estimateNormal_specialization#😟💃🤮: () => float = () => expr0_lambda#☕(
-                1,
-            )
-
             const callIt_specialization#🕖: (int) => float = (
                 eye#:1: int,
             ) => expr0_lambda#☕(eye#:1)
+
+            const estimateNormal_specialization#😟💃🤮: () => float = () => expr0_lambda#☕(
+                1,
+            )
 
             const expr0#😙🦗💆😃: (float) => float = (
                 coord#:2: float,
@@ -322,9 +358,23 @@ describe('glsl in concert', () => {
         );
 
         expect(result).toMatchInlineSnapshot(`
+            const expr0_lambda#❄️👊🏠😃: (float) => float = (
+                pos#:0: float,
+            ) => pos#:0 + 2.3
+
+            const callIt_specialization#🐈🧔😪: (float) => float = (
+                eye#:1: float,
+            ) => expr0_lambda#❄️👊🏠😃(eye#:1)
+
+            const estimateNormal_specialization#💬🧚‍♂️🍞: () => float = () => expr0_lambda#❄️👊🏠😃(
+                2.3 + 1,
+            ) + 1.2
+
             const expr0#⛷️: (float) => float = (
                 coord#:2: float,
-            ) => sdf#:1(coord#:2)
+            ) => estimateNormal_specialization#💬🧚‍♂️🍞() - callIt_specialization#🐈🧔😪(
+                0.1 + 2.3,
+            )
         `);
 
         expectValidGlsl(result);
