@@ -68,6 +68,7 @@ describe('flattenImmediateCalls', () => {
         const x = newSym(env, 'x');
         const y = newSym(env, 'y');
         const z = newSym(env, 'z');
+        const a = newSym(env, 'a');
         const xv = var_(x, noloc, int);
         const yv = var_(y, noloc, int);
         const zv = var_(z, noloc, int);
@@ -80,7 +81,11 @@ describe('flattenImmediateCalls', () => {
                     ifStatement(
                         boolLiteral(true, noloc),
                         block(
-                            [define(y, intLiteral(42, noloc)), assign(x, yv)],
+                            [
+                                define(y, intLiteral(42, noloc)),
+                                define(a, plus(env, xv, intLiteral(12, noloc))),
+                                assign(x, yv),
+                            ],
                             noloc,
                         ),
                         block([assign(x, intLiteral(4, noloc))], noloc),
@@ -94,11 +99,12 @@ describe('flattenImmediateCalls', () => {
 
         // Before
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🚐🦚🐻😃: int = (() => {
+            const unnamed#🌞🕹️🦷: int = (() => {
                 const x#:0: int = 10;
                 const z#:2: int = x#:0 + 14;
                 if true {
                     const y#:1: int = 42;
+                    const a#:3: int = x#:0 + 12;
                     x#:0 = y#:1;
                 } else {
                     x#:0 = 4;
@@ -113,16 +119,17 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#⛴️🤷🌕: int = (() => {
+            const unnamed#☂️: int = (() => {
                 const x#:0: int = 10;
                 const z#:2: int = 10 + 14;
                 if true {
                     const y#:1: int = 42;
+                    const a#:3: int = 10 + 12;
                     x#:0 = 42;
                 } else {
                     x#:0 = 4;
                 };
-                return 4 + z#:2;
+                return x#:0 + z#:2;
             })()
         `);
 
@@ -130,10 +137,15 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🌉🍊🥟😃: int = (() => {
+            const unnamed#🥊: int = (() => {
+                const x#:0: int = 10;
                 const z#:2: int = 10 + 14;
-                if true {} else {};
-                return 4 + z#:2;
+                if true {
+                    x#:0 = 42;
+                } else {
+                    x#:0 = 4;
+                };
+                return x#:0 + z#:2;
             })()
         `);
 
@@ -148,10 +160,15 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🌉🍊🥟😃: int = (() => {
+            const unnamed#🥊: int = (() => {
+                const x#:0: int = 10;
                 const z#:2: int = 10 + 14;
-                if true {} else {};
-                return 4 + z#:2;
+                if true {
+                    x#:0 = 42;
+                } else {
+                    x#:0 = 4;
+                };
+                return x#:0 + z#:2;
             })()
         `);
 
@@ -181,11 +198,11 @@ describe('flattenImmediateCalls', () => {
                 const x#:0: int = 10;
                 const v#:1: int;
                 if x#:0 > 2 {
-                    v#:1 = x#:0 + 2;
+                    v#:1 = 10 + 2;
                 } else {
                     v#:1 = x#:0 - 2;
                 };
-                return () => 10 + v#:1;
+                return () => x#:0 + v#:1;
             })()
         `);
     });
@@ -213,11 +230,11 @@ describe('flattenImmediateCalls', () => {
                 const x#:0: int = 10;
                 const v#:1: int;
                 if x#:0 > 2 {
-                    v#:1 = x#:0 + 2;
+                    v#:1 = 10 + 2;
                 } else {
                     v#:1 = x#:0 - 2;
                 };
-                return () => 10 + v#:1;
+                return () => x#:0 + v#:1;
             })()
         `);
     });

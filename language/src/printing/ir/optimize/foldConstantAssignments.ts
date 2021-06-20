@@ -1,4 +1,4 @@
-import { Env } from '../../../typing/types';
+import { Env, Symbol } from '../../../typing/types';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import {
     defaultVisitor,
@@ -7,9 +7,267 @@ import {
     transformStmt,
     Visitor,
 } from '../transform';
-import { Expr } from '../types';
+import { Assign, Block, Define, Expr } from '../types';
 import { block } from '../utils';
 import { Context, isConstant } from './optimize';
+
+export const foldConstantAssignments2 = (ctx: Context, expr: Expr) => {
+    return foldInner(ctx, expr, {});
+};
+
+// Null: not initialized yet (or it wasn't constant)
+// False: poisoned
+type Defines = { [key: number]: Expr | null | false };
+
+// Ok, so I could do the "level it was assigned"
+// but I don't want "sibling" deep levels to be able
+// to infect each other.
+//
+/*
+const x =10
+
+if true {
+    x = 2
+    // this is fine
+    const z = x
+} else {
+    x = 3
+}
+
+const y = x
+
+if false {
+    // Needs to know that x is bad news
+    y = x
+}
+
+So, what I need is ....
+...
+
+yeah, so "deeper levels can see all parents"
+but parent levels shouldn't /see/ deeper levels,
+but still need to know that a thing has been "corrupted".
+
+So I'm thinking I want a list of maps?
+
+orrr
+well
+
+so a child just needs to set a flat on the parent one
+indicating that it is gonzo for the purposes of the parent
+
+
+*/
+
+const foldVisitor = (ctx: Context, defines: Defines): Visitor => {
+    return visitorGeneral(ctx, {
+        onDefine: (define) => {
+            defines[define.sym.unique] = define.value;
+        },
+        onAssign: (assign) => {
+            if (defines[assign.sym.unique] !== false) {
+                defines[assign.sym.unique] = assign.value;
+            }
+        },
+        onGet: (s) => {
+            const v = defines[s.unique];
+            if (v != null && v !== false) {
+                return v;
+            }
+            return null;
+        },
+        onNested: (b) => {
+            const inner: Defines = { ...defines };
+            const res = transformBlock(b, foldVisitor(ctx, inner));
+            Object.keys(inner).forEach((s) => {
+                const k = +s;
+                if (defines[k] !== undefined && inner[k] !== defines) {
+                    defines[k] = false;
+                }
+            });
+            return res;
+        },
+    });
+};
+
+const foldThemUpFolks = (ctx: Context, expr: Expr) => {
+    const defines: { [key: number]: Expr | null | false } = {};
+    return transformExpr(expr, foldVisitor(ctx, defines));
+};
+
+type FoldVisitor = {
+    onDefine: (d: Define) => void;
+    onAssign: (a: Assign) => void;
+    onGet: (s: Symbol) => Expr | null;
+    onNested: (b: Block) => Block;
+};
+
+const visitorGeneral = (
+    ctx: Context,
+    { onDefine, onAssign, onGet, onNested }: FoldVisitor,
+): Visitor => {
+    const defines: Defines = {};
+    // sooo
+    // anything defined at my level or lower, I update or use
+    // anything defined above my level, I can use or invalidate
+    return {
+        ...defaultVisitor,
+        stmt: (stmt, visitor) => {
+            if (stmt.type === 'Define') {
+                onDefine(stmt);
+            }
+            if (stmt.type === 'Assign') {
+                onAssign(stmt);
+                // if(defines[stmt.sym.unique] !== undefined) {
+                //     defines[stmt.sym.unique] = isConstant(stmt.value) ? stmt.value : null
+                // }
+                // if (outer[stmt.sym.unique] != null) {
+                //     outer[stmt.sym.unique] = false
+                // }
+            }
+            if (stmt.type === 'if') {
+                // const newOuter = {...outer, ...defines}
+                const yes = onNested(stmt.yes);
+                const no = stmt.no ? onNested(stmt.no) : stmt.no;
+                const cond = transformExpr(stmt.cond, visitor);
+                if (yes !== stmt.yes || no !== stmt.no || cond !== stmt.cond) {
+                    return { type: '*stop*', stmt: { ...stmt, yes, no, cond } };
+                }
+                return false;
+            }
+            // if (stmt.type)
+            return null;
+        },
+        expr: (expr) => {
+            if (expr.type === 'lambda') {
+                const body = onNested(expr.body);
+                return body !== expr.body ? [{ ...expr, body }] : false;
+            }
+            if (expr.type === 'var') {
+                const v = onGet(expr.sym);
+                if (v != null) {
+                    if (v.type === 'lambda') {
+                        return reUnique(ctx.env.local.unique, v);
+                    }
+                    return v;
+                }
+            }
+            return null;
+        },
+    };
+};
+
+const visitor2 = (ctx: Context, outer: Defines): Visitor => {
+    const defines: Defines = {};
+    // sooo
+    // anything defined at my level or lower, I update or use
+    // anything defined above my level, I can use or invalidate
+    return {
+        ...defaultVisitor,
+        stmt: (stmt, visitor) => {
+            if (stmt.type === 'Define') {
+                defines[stmt.sym.unique] =
+                    stmt.value != null && isConstant(stmt.value)
+                        ? stmt.value
+                        : null;
+            }
+            if (stmt.type === 'Assign') {
+                if (defines[stmt.sym.unique] !== undefined) {
+                    defines[stmt.sym.unique] = isConstant(stmt.value)
+                        ? stmt.value
+                        : null;
+                }
+                if (outer[stmt.sym.unique] != null) {
+                    outer[stmt.sym.unique] = false;
+                }
+            }
+            if (stmt.type === 'if') {
+                const newOuter = { ...outer, ...defines };
+                const yes = transformBlock(stmt.yes, visitor2(ctx, newOuter));
+                const no = stmt.no
+                    ? transformBlock(stmt.no, visitor2(ctx, newOuter))
+                    : stmt.no;
+                const cond = transformExpr(stmt.cond, visitor);
+                if (yes !== stmt.yes || no !== stmt.no || cond !== stmt.cond) {
+                    return { type: '*stop*', stmt: { ...stmt, yes, no, cond } };
+                }
+                return false;
+            }
+            // if (stmt.type)
+            return null;
+        },
+        expr: (expr) => {
+            if (expr.type === 'var') {
+                let v = defines[expr.sym.unique];
+                if (v != null && v !== false) {
+                    if (v.type === 'lambda') {
+                        return reUnique(ctx.env.local.unique, v);
+                    }
+                    return v;
+                }
+                v = outer[expr.sym.unique];
+                if (v != null && v !== false) {
+                    if (v.type === 'lambda') {
+                        return reUnique(ctx.env.local.unique, v);
+                    }
+                    return v;
+                }
+            }
+            return null;
+        },
+    };
+};
+
+export const foldInner = (ctx: Context, expr: Expr, outer: Defines) => {
+    const defines: Defines = {};
+    // sooo
+    // anything defined at my level or lower, I update or use
+    // anything defined above my level, I can use or invalidate
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        stmt: (stmt) => {
+            if (stmt.type === 'Define') {
+                defines[stmt.sym.unique] =
+                    stmt.value != null && isConstant(stmt.value)
+                        ? stmt.value
+                        : null;
+            }
+            if (stmt.type === 'Assign') {
+                if (defines[stmt.sym.unique] !== undefined) {
+                    defines[stmt.sym.unique] = isConstant(stmt.value)
+                        ? stmt.value
+                        : null;
+                }
+                if (outer[stmt.sym.unique] != null) {
+                    outer[stmt.sym.unique] = false;
+                }
+            }
+            if (stmt.type === 'if') {
+                // const yes = foldInner(ctx, stmt)
+            }
+            return null;
+        },
+        expr: (expr) => {
+            if (expr.type === 'var') {
+                let v = defines[expr.sym.unique];
+                if (v != null && v !== false) {
+                    if (v.type === 'lambda') {
+                        return reUnique(ctx.env.local.unique, v);
+                    }
+                    return v;
+                }
+                v = outer[expr.sym.unique];
+                if (v != null && v !== false) {
+                    if (v.type === 'lambda') {
+                        return reUnique(ctx.env.local.unique, v);
+                    }
+                    return v;
+                }
+            }
+            return null;
+        },
+    });
+};
 
 const checkAssigns: (constants: { [key: number]: Expr | null }) => Visitor = (
     constants,
@@ -159,7 +417,9 @@ export const foldConstantAssignments = (foldLambdas: boolean) => (
     ctx: Context,
     topExpr: Expr,
 ): Expr => {
-    return transformExpr(topExpr, visitor(ctx, {}, foldLambdas));
+    return foldThemUpFolks(ctx, topExpr);
+    // This is the old way
+    // return transformExpr(topExpr, visitor(ctx, {}, foldLambdas));
 };
 
 // export const foldConstantAssignmentsBlock = (ctx: Context, topExpr: Block): Block => {
