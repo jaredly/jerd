@@ -93,7 +93,7 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
                 if (stmt.value != null) {
                     defns[symName(stmt.sym)] = stmt.value;
                 }
-                return [];
+                // return [];
             }
             if (
                 stmt.type === 'Assign' &&
@@ -103,7 +103,7 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
                 symbolsEqual(stmt.sym, stmt.value.sym)
             ) {
                 defns[symName(stmt.sym)] = stmt.value;
-                return [];
+                // return [];
             }
             return null;
         },

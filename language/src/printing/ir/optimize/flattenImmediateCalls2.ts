@@ -213,18 +213,19 @@ export const returnsToAssigns = (
     return [define(continueSym, boolLiteral(true, nullLocation)), ...newStmts];
 };
 
-const getIFFE = (expr: Expr) => {
-    if (
-        expr.type === 'apply' &&
-        expr.target.type === 'lambda' &&
-        expr.args.length === 0 &&
-        expr.target.body.items.length === 1 &&
-        expr.target.body.items[0].type === 'Return'
-    ) {
-        return expr.target.body.items[0].value;
-    }
-    return null;
-};
+// const getIFFE = (expr: Expr) => {
+//     if (
+//         expr.type === 'apply' &&
+//         expr.target.type === 'lambda' &&
+//         expr.args.length === 0 &&
+//         expr.target.body.items.length === 1 &&
+//         expr.target.body.items[0].type === 'Return'
+//     ) {
+//         return expr.target.body.items[0].value;
+//     }
+// 	if (expr.type === 'apply' && expr.target.type === 'lambda')
+//     return null;
+// };
 
 export const flattenLambda = (
     env: Env,
@@ -258,7 +259,36 @@ export const flattenImmediateCalls2 = (ctx: Context, expr: Expr) => {
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
-            return getIFFE(expr);
+            if (expr.type === 'apply' && expr.target.type === 'lambda') {
+                // If there are no args, we just check for a single-return body
+                if (expr.target.args.length === 0) {
+                    if (
+                        expr.target.body.items.length === 1 &&
+                        expr.target.body.items[0].type === 'Return'
+                    ) {
+                        return expr.target.body.items[0].value;
+                    } else {
+                        return null;
+                    }
+                }
+                const ta = expr.target.args;
+                // If there are args, then we convert this to an iffe, and inline the args.
+                // Perhaps we can get one step closer.
+                return iffe(
+                    ctx.env,
+                    block(
+                        [
+                            ...expr.args.map((arg, i) => {
+                                return define(ta[i].sym, arg, arg.loc);
+                            }),
+                            ...expr.target.body.items,
+                        ],
+                        expr.loc,
+                    ),
+                );
+            }
+            return null;
+            // return getIFFE(expr);
         },
         stmt: (stmt) => {
             // Special case for returning an applied call; we can shortcut some things
@@ -275,6 +305,9 @@ export const flattenImmediateCalls2 = (ctx: Context, expr: Expr) => {
                 return [...extras, ...stmt.value.target.body.items];
             }
 
+            // Special case for when we're defining a variable;
+            // we don't need to create an extra "result" variable
+            // to store things in.
             if (
                 stmt.type === 'Define' &&
                 stmt.value != null &&

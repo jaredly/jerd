@@ -3,6 +3,7 @@ import {
     flattenImmediateAssigns,
     flattenImmediateCalls,
 } from './flattenImmediateCalls';
+import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
@@ -177,7 +178,7 @@ describe('glsl in concert', () => {
             
             const marchNormals = (sceneSDF: (int) ={}> float) ={}> (coord: float) ={}> {
                 const dist = callIt(sceneSDF, 1000);
-                estimateNormal(sceneSDF) + dist
+                estimateNormal(sceneSDF) + dist + coord
             }
             
             const superSample = (sdf: (float) ={}> float) ={}> (coord: float) ={}> {
@@ -191,20 +192,48 @@ describe('glsl in concert', () => {
             )
             `,
             combineOpts([
-                specializeFunctionsCalledWithLambdas,
-                inlineCallsThatReturnFunctions,
-                flattenImmediateCalls,
-                // foldConstantAssignments(true),
-                // foldSingleUseAssignments,
-                // flattenImmediateAssigns,
-                // removeUnusedVariables,
+                optimizeRepeatedly([
+                    specializeFunctionsCalledWithLambdas,
+                    inlineCallsThatReturnFunctions,
+                    flattenImmediateCalls2,
+                    // foldConstantAssignments(true),
+                    // flattenImmediateAssigns,
+                    // foldSingleUseAssignments,
+                ]),
+                removeUnusedVariables,
+                foldConstantAssignments(true),
+                flattenImmediateAssigns,
+                foldSingleUseAssignments,
             ]),
         );
 
         expect(result).toMatchInlineSnapshot(`
-            const expr0#🧃💆‍♀️😋: (float) => float = (() => (
-                coord#:2: float,
-            ) => sdf#:1(coord#:2))()
+            const expr0_lambda#☕: (int) => float = (
+                pos#:0: int,
+            ) => 23
+
+            const callIt_specialization#🕖: (int) => float = (
+                eye#:1: int,
+            ) => {
+                const sceneSDF#:0: (int) => float = expr0_lambda#☕;
+                return expr0_lambda#☕(eye#:1);
+            }
+
+            const estimateNormal_specialization#😟💃🤮: () => float = () => {
+                const sceneSDF#:0: (int) => float = expr0_lambda#☕;
+                return expr0_lambda#☕(1);
+            }
+
+            const expr0#😙🦗💆😃: (float) => float = (() => {
+                const sdf#:1: (float) => float = (
+                    coord#:4: float,
+                ) => estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
+                    1000,
+                ) + coord#:4;
+                return (coord#:2: float) => ((coord#:6: float) => estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
+                    1000,
+                ) + coord#:6)(coord#:2);
+            })()
         `);
 
         expectValidGlsl(result);
