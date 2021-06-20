@@ -76,17 +76,26 @@ export const removeUnusedVariables = (ctx: Context, expr: Expr): Expr => {
     }
     const remover: Visitor = {
         ...defaultVisitor,
-        block: (block) => {
-            const items = block.items.filter((stmt) => {
-                const unused =
-                    (stmt.type === 'Define' || stmt.type === 'Assign') &&
-                    used[symName(stmt.sym)] !== true;
-                return !unused;
-            });
-            return items.length !== block.items.length
-                ? { ...block, items }
-                : null;
+        stmt: (stmt) => {
+            if (
+                (stmt.type === 'Define' || stmt.type === 'Assign') &&
+                used[symName(stmt.sym)] !== true
+            ) {
+                return [];
+            }
+            return null;
         },
+        // block: (block) => {
+        //     const items = block.items.filter((stmt) => {
+        //         const unused =
+        //             (stmt.type === 'Define' || stmt.type === 'Assign') &&
+        //             used[symName(stmt.sym)] !== true;
+        //         return !unused;
+        //     });
+        //     return items.length !== block.items.length
+        //         ? { ...block, items }
+        //         : null;
+        // },
     };
     return transformExpr(expr, remover);
 };

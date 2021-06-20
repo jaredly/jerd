@@ -12,6 +12,7 @@ import { combineOpts, optimizeRepeatedly } from './optimize';
 import {
     expectValidGlsl,
     runFixture,
+    runOpt,
     snapshotSerializer,
 } from './optimizeTestUtils';
 import { removeUnusedVariables } from './removeUnusedVariables';
@@ -196,14 +197,15 @@ describe('glsl in concert', () => {
                     specializeFunctionsCalledWithLambdas,
                     inlineCallsThatReturnFunctions,
                     flattenImmediateCalls2,
-                    // foldConstantAssignments(true),
-                    // flattenImmediateAssigns,
-                    // foldSingleUseAssignments,
+                    foldConstantAssignments(true),
+                    flattenImmediateAssigns,
+                    foldSingleUseAssignments,
                 ]),
-                removeUnusedVariables,
-                foldConstantAssignments(true),
-                flattenImmediateAssigns,
-                foldSingleUseAssignments,
+                // removeUnusedVariables,
+                // foldConstantAssignments(true),
+                // flattenImmediateAssigns,
+                // foldSingleUseAssignments,
+                // removeUnusedVariables,
             ]),
         );
 
@@ -212,6 +214,11 @@ describe('glsl in concert', () => {
                 pos#:0: int,
             ) => 23
 
+            const estimateNormal_specialization#😟💃🤮: () => float = () => {
+                const sceneSDF#:0: (int) => float = expr0_lambda#☕;
+                return expr0_lambda#☕(1);
+            }
+
             const callIt_specialization#🕖: (int) => float = (
                 eye#:1: int,
             ) => {
@@ -219,21 +226,67 @@ describe('glsl in concert', () => {
                 return expr0_lambda#☕(eye#:1);
             }
 
-            const estimateNormal_specialization#😟💃🤮: () => float = () => {
-                const sceneSDF#:0: (int) => float = expr0_lambda#☕;
-                return expr0_lambda#☕(1);
-            }
-
             const expr0#😙🦗💆😃: (float) => float = (() => {
+                const continueBlock#:6: bool = true;
+                const sceneSDF#:3: (int) => float = expr0_lambda#☕;
                 const sdf#:1: (float) => float = (
                     coord#:4: float,
-                ) => estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
-                    1000,
-                ) + coord#:4;
-                return (coord#:2: float) => ((coord#:6: float) => estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
-                    1000,
-                ) + coord#:6)(coord#:2);
+                ) => {
+                    const dist#:5: float = callIt_specialization#🕖(
+                        1000,
+                    );
+                    return estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
+                        1000,
+                    ) + coord#:4;
+                };
+                continueBlock#:6 = false;
+                return (coord#:2: float) => {
+                    const coord#:7: float = coord#:2;
+                    const dist#:8: float = callIt_specialization#🕖(
+                        1000,
+                    );
+                    return estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
+                        1000,
+                    ) + coord#:2;
+                };
             })()
+        `);
+
+        result.inOrder.forEach((k) => {
+            result.irTerms[k].expr = runOpt(
+                result.env,
+                result.irTerms[k].expr,
+                optimizeRepeatedly([
+                    removeUnusedVariables,
+                    flattenImmediateCalls2,
+                ]),
+            );
+        });
+
+        // const last = result.inOrder[result.inOrder.length - 1];
+        // result.irTerms[last].expr = runOpt(
+        //     result.env,
+        //     result.irTerms[last].expr,
+        //     optimizeRepeatedly([removeUnusedVariables, flattenImmediateCalls2]),
+        // );
+        expect(result).toMatchInlineSnapshot(`
+            const expr0_lambda#☕: (int) => float = (
+                pos#:0: int,
+            ) => 23
+
+            const estimateNormal_specialization#😟💃🤮: () => float = () => expr0_lambda#☕(
+                1,
+            )
+
+            const callIt_specialization#🕖: (int) => float = (
+                eye#:1: int,
+            ) => expr0_lambda#☕(eye#:1)
+
+            const expr0#😙🦗💆😃: (float) => float = (
+                coord#:2: float,
+            ) => estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
+                1000,
+            ) + coord#:2
         `);
 
         expectValidGlsl(result);
