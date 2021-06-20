@@ -14,17 +14,9 @@ uniform vec3 u_camera;
 
 uniform vec2 u_resolution;
 
-// skipping CutOut_af969fe0, contains type variables
-
 // skipping As_As, contains type variables
 
-// skipping Div_5ac12902, contains type variables
-
-// skipping Neg_3c2a4898, contains type variables
-
-// skipping Mul_1de4e4c0, contains type variables
-
-// skipping AddSub_b99b22d8, contains type variables
+// skipping CutOut_af969fe0, contains type variables
 
 struct GLSLEnv_451d5252{
     float time;
@@ -33,12 +25,13 @@ struct GLSLEnv_451d5252{
     vec2 mouse;
 };
 
-/* *
-```
-const EPSILON#17261aaa = 0.0001
-```
- */
-const float EPSILON_17261aaa = 0.00010;
+// skipping Div_5ac12902, contains type variables
+
+// skipping Neg_3c2a4898, contains type variables
+
+// skipping Mul_1de4e4c0, contains type variables
+
+// skipping AddSub_b99b22d8, contains type variables
 
 /**
 ```
@@ -133,68 +126,6 @@ vec3 xyz_1aedf216(
 
 /**
 ```
-const rec shortestDistanceToSurface#52c7ebac = (
-    sceneSDF#:0: (GLSLEnv#451d5252, Vec3#9f1c0644) ={}> float#builtin,
-    env#:1: GLSLEnv#451d5252,
-    eye#:2: Vec3#9f1c0644,
-    marchingDirection#:3: Vec3#9f1c0644,
-    start#:4: float#builtin,
-    end#:5: float#builtin,
-    stepsLeft#:6: int#builtin,
-): float#builtin ={}> {
-    const dist#:7 = sceneSDF#:0(
-        env#:1,
-        eye#:2 +#1c6fdd91#b99b22d8#0 start#:4 *#c4a91006#1de4e4c0#0 marchingDirection#:3,
-    );
-    if dist#:7 <#builtin EPSILON#17261aaa {
-        start#:4;
-    } else {
-        const depth#:8 = start#:4 +#builtin dist#:7;
-        if depth#:8 >=#builtin end#:5 ||#builtin stepsLeft#:6 <=#builtin 0 {
-            end#:5;
-        } else {
-            52c7ebac#self(
-                sceneSDF#:0,
-                env#:1,
-                eye#:2,
-                marchingDirection#:3,
-                depth#:8,
-                end#:5,
-                stepsLeft#:6 -#builtin 1,
-            );
-        };
-    };
-}
-```
-*/
-float shortestDistanceToSurface_52c7ebac(
-    invalid_lambda sceneSDF_0,
-    GLSLEnv_451d5252 env_1,
-    vec3 eye_2,
-    vec3 marchingDirection_3,
-    float start_4,
-    float end_5,
-    int stepsLeft_6
-) {
-    for (int i=0; i<10000; i++) {
-        float dist = sceneSDF_0(env_1, (eye_2 + (start_4 * marchingDirection_3)));
-        if ((dist < EPSILON_17261aaa)) {
-            return start_4;
-        } else {
-            float depth = (start_4 + dist);
-            if (((depth >= end_5) || (stepsLeft_6 <= 0))) {
-                return end_5;
-            } else {
-                start_4 = depth;
-                stepsLeft_6 = (stepsLeft_6 - 1);
-                continue;
-            };
-        };
-    };
-}
-
-/**
-```
 const xy#4e146cdf = (v#:0: Vec3#9f1c0644): Vec2#43802a16 ={}> vec2#54a9f2ef(
     x: v#:0.x#43802a16#0,
     y: v#:0.y#43802a16#1,
@@ -252,6 +183,70 @@ vec3 rotate_6734d670(
     return xyz_1aedf216(V16557d10_1de4e4c0_0(rotate_d804569c(x_1, y_2, z_3), vec4(pos_0, 1.0)));
 }
 
+/* *
+```
+const EPSILON#17261aaa = 0.0001
+```
+ */
+const float EPSILON_17261aaa = 0.00010;
+
+/* -- generated -- */
+float unnamed_lambda_107d4927(GLSLEnv_451d5252 env_0, vec3 pos_1) {
+    vec3 cpos = rotate_6734d670(pos_1, 0.0, 0.0, (PI / 2.0));
+    float lambdaBlockResult;
+    int start = 0;
+    float initial = abs(cappedCylinder_0ba54544(cpos, 0.40, 1.0));
+    for (int i=0; i<10000; i++) {
+        if ((start >= 7)) {
+            lambdaBlockResult = initial;
+        } else {
+            start = (start + 1);
+            float n = float(0);
+            initial = min(
+                initial,
+                (length(
+                    (xy_4e146cdf(
+                        rotate_6734d670(
+                            cpos,
+                            0.0,
+                            ((((env_0.time * n) / 2.0) + (n * (PI / 10.0))) + 0.50),
+                            0.0
+                        )
+                    ) - vec2(0.0, (n / 10.0)))
+                ) - 0.020)
+            );
+            continue;
+        };
+    };
+    return min((pos_1.z + 2.0), lambdaBlockResult);
+}
+
+/* -- generated -- */
+float shortestDistanceToSurface_specialization_69a8c338(
+    GLSLEnv_451d5252 env_1,
+    vec3 eye_2,
+    vec3 marchingDirection_3,
+    float start,
+    float end_5,
+    int stepsLeft_6
+) {
+    for (int i=0; i<10000; i++) {
+        float dist = unnamed_lambda_107d4927(env_1, (eye_2 + (start * marchingDirection_3)));
+        if ((dist < EPSILON_17261aaa)) {
+            return start;
+        } else {
+            float depth = (start + dist);
+            if (((depth >= end_5) || (stepsLeft_6 <= 0))) {
+                return end_5;
+            } else {
+                start = depth;
+                stepsLeft_6 = (stepsLeft_6 - 1);
+                continue;
+            };
+        };
+    };
+}
+
 /**
 ```
 const cross#54f2119c = (one#:0: Vec3#9f1c0644, two#:1: Vec3#9f1c0644): Vec3#9f1c0644 ={}> Vec3#9f1c0644{
@@ -296,41 +291,8 @@ float random_347089ef(
     return fract((sin(dot(st_0, vec2(12.98980, 78.2330))) * 43758.54531));
 }
 
-/**
-```
-const volumetricSample#20dcd432 = (
-    sceneSDF#:0: (GLSLEnv#451d5252, Vec3#9f1c0644) ={}> float#builtin,
-    env#:1: GLSLEnv#451d5252,
-    light#:2: Vec3#9f1c0644,
-    eye#:3: Vec3#9f1c0644,
-    dist#:4: float#builtin,
-    percent#:5: float#builtin,
-    dir#:6: Vec3#9f1c0644,
-    left#:7: int#builtin,
-): float#builtin ={}> {
-    const rdist#:8 = percent#:5 *#builtin dist#:4;
-    const sample#:9 = eye#:3 +#1c6fdd91#b99b22d8#0 rdist#:8 *#c4a91006#1de4e4c0#0 dir#:6;
-    const lightDist#:10 = distance#29bb6cab(one: sample#:9, two: light#:2);
-    const toLight#:11 = sample#:9 -#1c6fdd91#b99b22d8#1 light#:2;
-    const marchToLight#:12 = shortestDistanceToSurface#52c7ebac(
-        sceneSDF#:0,
-        env#:1,
-        eye: sample#:9,
-        marchingDirection: -1.0 *#c4a91006#1de4e4c0#0 normalize#48e6ea27(v: toLight#:11),
-        start: 0.0,
-        end: lightDist#:10,
-        stepsLeft: 255,
-    );
-    if marchToLight#:12 >=#builtin lightDist#:10 -#builtin 0.1 {
-        dist#:4 /#builtin pow#builtin(1.0 +#builtin lightDist#:10, 2.0);
-    } else {
-        0.0;
-    };
-}
-```
-*/
-float volumetricSample_20dcd432(
-    invalid_lambda sceneSDF_0,
+/* -- generated -- */
+float volumetricSample_specialization_125d0f70(
     GLSLEnv_451d5252 env_1,
     vec3 light_2,
     vec3 eye_3,
@@ -341,8 +303,7 @@ float volumetricSample_20dcd432(
 ) {
     vec3 sample_9 = (eye_3 + ((percent_5 * dist_4) * dir_6));
     float lightDist = distance(sample_9, light_2);
-    if ((shortestDistanceToSurface_52c7ebac(
-        sceneSDF_0,
+    if ((shortestDistanceToSurface_specialization_69a8c338(
         env_1,
         sample_9,
         (-1.0 * normalize((sample_9 - light_2))),
@@ -354,37 +315,6 @@ float volumetricSample_20dcd432(
     } else {
         return 0.0;
     };
-}
-
-/* -- generated -- */
-float unnamed_lambda_1606b073(GLSLEnv_451d5252 env_0, vec3 pos_1) {
-    vec3 cpos = rotate_6734d670(pos_1, 0.0, 0.0, (PI / 2.0));
-    float lambdaBlockResult;
-    int start = 0;
-    float initial = abs(cappedCylinder_0ba54544(cpos, 0.40, 1.0));
-    for (int i=0; i<10000; i++) {
-        if ((start >= 7)) {
-            lambdaBlockResult = initial;
-        } else {
-            float n = float(start);
-            start = (start + 1);
-            initial = min(
-                initial,
-                (length(
-                    (xy_4e146cdf(
-                        rotate_6734d670(
-                            cpos,
-                            0.0,
-                            ((((env_0.time * n) / 2.0) + (n * (PI / 10.0))) + 0.50),
-                            0.0
-                        )
-                    ) - vec2(0.0, (n / 10.0)))
-                ) - 0.020)
-            );
-            continue;
-        };
-    };
-    return min((pos_1.z + 2.0), lambdaBlockResult);
 }
 
 /**
@@ -443,57 +373,8 @@ vec3 rayDirection_6258178a(
     );
 }
 
-/**
-```
-const rec volumetric#0ecc095f = (
-    sceneSDF#:0: (GLSLEnv#451d5252, Vec3#9f1c0644) ={}> float#builtin,
-    env#:1: GLSLEnv#451d5252,
-    seed#:2: Vec2#43802a16,
-    light#:3: Vec3#9f1c0644,
-    eye#:4: Vec3#9f1c0644,
-    dist#:5: float#builtin,
-    dir#:6: Vec3#9f1c0644,
-    current#:7: float#builtin,
-    left#:8: int#builtin,
-    total#:9: float#builtin,
-): float#builtin ={}> {
-    if left#:8 <=#builtin 0 {
-        current#:7;
-    } else {
-        const percent#:10 = random#347089ef(
-            st: Vec2#43802a16{
-                x#43802a16#0: seed#:2.x#43802a16#0,
-                y#43802a16#1: seed#:2.y#43802a16#1 +#builtin left#:8 as#6f186ad1 float#builtin,
-            },
-        );
-        const sample#:11 = volumetricSample#20dcd432(
-            sceneSDF#:0,
-            env#:1,
-            light#:3,
-            eye#:4,
-            dist#:5,
-            percent#:10,
-            dir#:6,
-            left#:8,
-        );
-        0ecc095f#self(
-            sceneSDF#:0,
-            env#:1,
-            seed#:2,
-            light#:3,
-            eye#:4,
-            dist#:5,
-            dir#:6,
-            current#:7 +#builtin sample#:11,
-            left#:8 -#builtin 1,
-            total#:9,
-        );
-    };
-}
-```
-*/
-float volumetric_0ecc095f(
-    invalid_lambda sceneSDF_0,
+/* -- generated -- */
+float volumetric_specialization_a2927d12(
     GLSLEnv_451d5252 env_1,
     vec2 seed_2,
     vec3 light_3,
@@ -508,8 +389,7 @@ float volumetric_0ecc095f(
         if ((left_8 <= 0)) {
             return current_7;
         } else {
-            current_7 = (current_7 + volumetricSample_20dcd432(
-                sceneSDF_0,
+            current_7 = (current_7 + volumetricSample_specialization_125d0f70(
                 env_1,
                 light_3,
                 eye_4,
@@ -520,32 +400,6 @@ float volumetric_0ecc095f(
             ));
             left_8 = (left_8 - 1);
             continue;
-        };
-    };
-}
-
-/* -- generated -- */
-float shortestDistanceToSurface_specialization_7c2cdd98(
-    GLSLEnv_451d5252 env_1,
-    vec3 eye_2,
-    vec3 marchingDirection_3,
-    float start_4,
-    float end_5,
-    int stepsLeft_6
-) {
-    for (int i=0; i<10000; i++) {
-        float dist = unnamed_lambda_1606b073(env_1, (eye_2 + (start_4 * marchingDirection_3)));
-        if ((dist < EPSILON_17261aaa)) {
-            return start_4;
-        } else {
-            float depth = (start_4 + dist);
-            if (((depth >= end_5) || (stepsLeft_6 <= 0))) {
-                return end_5;
-            } else {
-                start_4 = depth;
-                stepsLeft_6 = (stepsLeft_6 - 1);
-                continue;
-            };
         };
     };
 }
@@ -637,61 +491,28 @@ const unnamed#5483c5b6 = {
 ```
 */
 vec4 unnamed_5483c5b6(
-    GLSLEnv_451d5252 arg0_105,
-    vec2 arg1_106
+    GLSLEnv_451d5252 arg0_75,
+    vec2 arg1_76
 ) {
-    invalid_lambda sceneSDF = lambda-woops(env, pos){
-        vec3 cpos_111 = rotate_6734d670(pos, 0.0, 0.0, (PI / 2.0));
-        float lambdaBlockResult_139;
-        int start_140 = 0;
-        float initial_142 = abs(cappedCylinder_0ba54544(cpos_111, 0.40, 1.0));
-        int start_140 = 0;
-        float initial_142 = abs(cappedCylinder_0ba54544(cpos_111, 0.40, 1.0));
-        for (int i=0; i<10000; i++) {
-            if ((start_140 >= 7)) {
-                lambdaBlockResult_139 = initial_142;
-            } else {
-                float n_176 = float(start_140);
-                start_140 = (start_140 + 1);
-                initial_142 = min(
-                    initial_142,
-                    (length(
-                        (xy_4e146cdf(
-                            rotate_6734d670(
-                                cpos_111,
-                                0.0,
-                                ((((env.time * n_176) / 2.0) + (n_176 * (PI / 10.0))) + 0.50),
-                                0.0
-                            )
-                        ) - vec2(0.0, (n_176 / 10.0)))
-                    ) - 0.020)
-                );
-                continue;
-            };
-        };
-        return min((pos.z + 2.0), lambdaBlockResult_139);
-    };
-    GLSLEnv_451d5252 env_167 = arg0_105;
     vec3 eye = vec3(0.0, 0.0, 5.0);
-    vec3 worldDir = getWorldDir_92052fca(arg0_105.resolution, arg1_106, eye, 45.0);
-    float dist_171 = shortestDistanceToSurface_specialization_7c2cdd98(
-        arg0_105,
+    vec3 worldDir = getWorldDir_92052fca(arg0_75.resolution, arg1_76, eye, 45.0);
+    float dist_155 = shortestDistanceToSurface_specialization_69a8c338(
+        arg0_75,
         eye,
         worldDir,
         0.0,
         100.0,
         255
     );
-    if ((dist_171 > (100.0 - EPSILON_17261aaa))) {
+    if ((dist_155 > (100.0 - EPSILON_17261aaa))) {
         return vec4(0.0);
     } else {
-        float brightness = ((volumetric_0ecc095f(
-            sceneSDF,
-            env_167,
-            ((arg1_106 / env_167.resolution) + (env_167.time / 1000.0)),
-            vec3((sin(env_167.time) / 3.0), 0.0, 0.0),
+        float brightness = ((volumetric_specialization_a2927d12(
+            arg0_75,
+            ((arg1_76 / arg0_75.resolution) + (arg0_75.time / 1000.0)),
+            vec3((sin(arg0_75.time) / 3.0), 0.0, 0.0),
             eye,
-            dist_171,
+            dist_155,
             worldDir,
             0.0,
             int(10.0),
