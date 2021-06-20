@@ -135,7 +135,14 @@ const visitorGeneral = (
                 }
                 return false;
             }
-            // if (stmt.type)
+            if (stmt.type === 'Loop') {
+                // STOPSHIP: account for bounds!
+                const body = onNested(stmt.body);
+                if (body !== stmt.body) {
+                    return { type: '*stop*', stmt: { ...stmt, body } };
+                }
+                return false;
+            }
             return null;
         },
         expr: (expr) => {
@@ -417,9 +424,9 @@ export const foldConstantAssignments = (foldLambdas: boolean) => (
     ctx: Context,
     topExpr: Expr,
 ): Expr => {
-    return foldThemUpFolks(ctx, topExpr);
+    // return foldThemUpFolks(ctx, topExpr);
     // This is the old way
-    // return transformExpr(topExpr, visitor(ctx, {}, foldLambdas));
+    return transformExpr(topExpr, visitor(ctx, {}, foldLambdas));
 };
 
 // export const foldConstantAssignmentsBlock = (ctx: Context, topExpr: Block): Block => {

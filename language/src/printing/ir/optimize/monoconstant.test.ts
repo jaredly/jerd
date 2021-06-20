@@ -1,18 +1,13 @@
 import { hasInvalidGLSL } from '../../glslPrinter';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { specializeFunctionsCalledWithLambdas } from './monoconstant';
-import {
-    combineOpts,
-    midOpt,
-    optimizeRepeatedly,
-    removeUnusedVariables,
-    simpleOpt,
-} from './optimize';
+import { combineOpts, midOpt, optimizeRepeatedly, simpleOpt } from './optimize';
 import {
     expectValidGlsl,
     runFixture,
     snapshotSerializer,
 } from './optimizeTestUtils';
+import { removeUnusedVariables } from './removeUnusedVariables';
 
 expect.addSnapshotSerializer(snapshotSerializer);
 
