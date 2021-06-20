@@ -752,9 +752,9 @@ export const assembleItemsForFile = (
         }
 
         const unrefs = hasUndefinedReferences(irTerm);
-        if (unrefs.length) {
-            throw new Error(`bad news bears`);
-        }
+        // if (unrefs.length) {
+        //     throw new Error(`bad news bears`);
+        // }
 
         const shouldInline =
             !['bool', 'float', 'int', 'ref', 'lambda'].includes(irTerm.type) ||

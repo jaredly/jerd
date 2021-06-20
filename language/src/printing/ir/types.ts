@@ -182,6 +182,7 @@ export type Stmt =
           bounds?: LoopBounds;
       }
     | { type: 'Continue'; loc: Loc }
+    | { type: 'Break'; loc: Loc }
     | Block;
 export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
 
@@ -199,6 +200,7 @@ export const returnTypeForStmt = (stmt: Stmt): Type | null => {
         case 'MatchFail':
         case 'Expression':
         case 'Define':
+        case 'Break':
             return null;
         case 'Return':
             return stmt.value.is;

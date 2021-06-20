@@ -25,7 +25,12 @@ export type Visitor = {
     stmt: (
         value: Stmt,
         visitor: Visitor,
-    ) => Stmt | null | false | Array<Stmt> | { type: '*stop*'; stmt: Stmt };
+    ) =>
+        | Stmt
+        | null
+        | false
+        | Array<Stmt>
+        | { type: '*stop*'; stmt: Stmt | Array<Stmt> };
 };
 
 export const defaultVisitor: Visitor = {
