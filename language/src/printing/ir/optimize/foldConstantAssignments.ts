@@ -424,7 +424,7 @@ export const foldConstantAssignments = (foldLambdas: boolean) => (
     ctx: Context,
     topExpr: Expr,
 ): Expr => {
-    // return foldThemUpFolks(ctx, topExpr);
+    return foldThemUpFolks(ctx, topExpr);
     // This is the old way
     return transformExpr(topExpr, visitor(ctx, {}, foldLambdas));
 };
