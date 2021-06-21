@@ -1,12 +1,5 @@
-import { hashObject, newSym } from '../../../typing/env';
-import {
-    Env,
-    Id,
-    newWithGlobal,
-    nullLocation,
-    Symbol,
-} from '../../../typing/types';
-import { defaultVisitor, transformExpr } from '../transform';
+import { newSym } from '../../../typing/env';
+import { Env, newWithGlobal, nullLocation } from '../../../typing/types';
 import { Expr } from '../types';
 import {
     assign,
@@ -23,22 +16,19 @@ import {
     returnStatement,
     var_,
 } from '../utils';
-import { flattenImmediateAssigns } from './flattenImmediateCalls';
 import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { foldConstantAssignments } from './foldConstantAssignments';
-import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inlineFunctionsCalledWithCapturingLambdas } from './inline';
-import { combineOpts, Optimizer2, optimizeRepeatedly } from './optimize';
+import { optimizeRepeatedly } from './optimize';
 import {
-    runFixture,
-    snapshotSerializer,
     defaultEnv,
-    Result,
     resultForExpr,
+    runFixture,
     runOpt,
+    snapshotSerializer,
 } from './optimizeTestUtils';
 import { expectDefined, removeUnusedVariables } from './removeUnusedVariables';
-import { optimizeTailCalls, tailCallRecursion } from './tailCall';
+import { optimizeTailCalls } from './tailCall';
 
 expect.addSnapshotSerializer(snapshotSerializer);
 

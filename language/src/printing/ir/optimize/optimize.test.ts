@@ -1,5 +1,5 @@
 import { hasInvalidGLSL } from '../../glslPrinter';
-import { flattenImmediateAssigns } from './flattenImmediateCalls';
+import { flattenImmediateAssigns } from './flattenImmediateAssigns';
 import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';

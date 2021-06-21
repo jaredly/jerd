@@ -1,11 +1,10 @@
-import { idName, newSym } from '../../../typing/env';
+import { newSym } from '../../../typing/env';
 import { showLocation } from '../../../typing/typeExpr';
 import { Env, Id, Symbol } from '../../../typing/types';
 import { debugExpr } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
-import { reUnique } from '../../typeScriptPrinterSimple';
 import { uniquesReallyAreUnique } from '../analyze';
-import { defaultVisitor, transformExpr, Visitor } from '../transform';
+import { defaultVisitor, transformExpr } from '../transform';
 import { Arg, Expr, OutputOptions, Stmt, Tuple } from '../types';
 import {
     and,
@@ -18,10 +17,7 @@ import { arraySlices } from './arraySlices';
 import { arraySliceLoopToIndex } from './arraySliceToLoopIndex';
 import { explicitSpreads } from './explicitSpreads';
 import { flattenIffe } from './flattenIFFE';
-import {
-    flattenImmediateAssigns,
-    // flattenImmediateCalls,
-} from './flattenImmediateCalls';
+import { flattenImmediateAssigns } from './flattenImmediateAssigns';
 import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { flattenRecordSpreads } from './flattenRecordSpread';
 import { foldConstantAssignments } from './foldConstantAssignments';
