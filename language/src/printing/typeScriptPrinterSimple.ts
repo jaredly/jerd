@@ -1105,6 +1105,15 @@ export const reUnique = (unique: { current: number }, expr: Expr) => {
             if (value.type === 'Assign') {
                 return { ...value, sym: getSym(value.sym, value.loc) };
             }
+            if (value.type === 'Loop' && value.bounds) {
+                return {
+                    ...value,
+                    bounds: {
+                        ...value.bounds,
+                        sym: getSym(value.bounds.sym, value.loc),
+                    },
+                };
+            }
             return null;
         },
         expr: (value) => {

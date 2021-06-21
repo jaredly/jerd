@@ -191,13 +191,14 @@ const EPSILON#17261aaa = 0.0001
 const float EPSILON_17261aaa = 0.00010;
 
 /* -- generated -- */
-float unnamed_lambda_4ee19b50(GLSLEnv_451d5252 env_0, vec3 pos_1) {
+float unnamed_lambda_4ef05b98(GLSLEnv_451d5252 env_0, vec3 pos_1) {
     vec3 cpos = rotate_6734d670(pos_1, 0.0, 0.0, (PI / 2.0));
+    int start = 0;
     float initial = abs(cappedCylinder_0ba54544(cpos, 0.40, 1.0));
     float result;
     bool continueBlock = true;
-    for (; start_0 < 7; start_0 = (0 + 1)) {
-        float n = float(0);
+    for (; start < 7; start = (start + 1)) {
+        float n = float(start);
         initial = min(
             initial,
             (length(
@@ -221,7 +222,7 @@ float unnamed_lambda_4ee19b50(GLSLEnv_451d5252 env_0, vec3 pos_1) {
 }
 
 /* -- generated -- */
-float shortestDistanceToSurface_specialization_3272d8f0(
+float shortestDistanceToSurface_specialization_5f6b0dd6(
     GLSLEnv_451d5252 env_1,
     vec3 eye_2,
     vec3 marchingDirection_3,
@@ -230,7 +231,7 @@ float shortestDistanceToSurface_specialization_3272d8f0(
     int stepsLeft_6
 ) {
     for (int i=0; i<10000; i++) {
-        float dist = unnamed_lambda_4ee19b50(env_1, (eye_2 + (start_4 * marchingDirection_3)));
+        float dist = unnamed_lambda_4ef05b98(env_1, (eye_2 + (start_4 * marchingDirection_3)));
         if ((dist < EPSILON_17261aaa)) {
             return start_4;
         } else {
@@ -291,7 +292,7 @@ float random_347089ef(
 }
 
 /* -- generated -- */
-float volumetricSample_specialization_1d9288bc(
+float volumetricSample_specialization_40373578(
     GLSLEnv_451d5252 env_1,
     vec3 light_2,
     vec3 eye_3,
@@ -302,7 +303,7 @@ float volumetricSample_specialization_1d9288bc(
 ) {
     vec3 sample_9 = (eye_3 + ((percent_5 * dist_4) * dir_6));
     float lightDist = distance(sample_9, light_2);
-    if ((shortestDistanceToSurface_specialization_3272d8f0(
+    if ((shortestDistanceToSurface_specialization_5f6b0dd6(
         env_1,
         sample_9,
         (-1.0 * normalize((sample_9 - light_2))),
@@ -373,7 +374,7 @@ vec3 rayDirection_6258178a(
 }
 
 /* -- generated -- */
-float volumetric_specialization_09584514(
+float volumetric_specialization_28f96810(
     GLSLEnv_451d5252 env_1,
     vec2 seed_2,
     vec3 light_3,
@@ -385,7 +386,7 @@ float volumetric_specialization_09584514(
     float total_9
 ) {
     for (; left_8 > 0; left_8 = (left_8 - 1)) {
-        current_7 = (current_7 + volumetricSample_specialization_1d9288bc(
+        current_7 = (current_7 + volumetricSample_specialization_40373578(
             env_1,
             light_3,
             eye_4,
@@ -491,7 +492,7 @@ vec4 unnamed_5483c5b6(
 ) {
     vec3 eye = vec3(0.0, 0.0, 5.0);
     vec3 worldDir = getWorldDir_92052fca(arg0_112.resolution, arg1_113, eye, 45.0);
-    float dist_140 = shortestDistanceToSurface_specialization_3272d8f0(
+    float dist_142 = shortestDistanceToSurface_specialization_5f6b0dd6(
         arg0_112,
         eye,
         worldDir,
@@ -499,15 +500,15 @@ vec4 unnamed_5483c5b6(
         100.0,
         255
     );
-    if ((dist_140 > (100.0 - EPSILON_17261aaa))) {
+    if ((dist_142 > (100.0 - EPSILON_17261aaa))) {
         return vec4(0.0);
     } else {
-        float brightness = ((volumetric_specialization_09584514(
+        float brightness = ((volumetric_specialization_28f96810(
             arg0_112,
             ((arg1_113 / arg0_112.resolution) + (arg0_112.time / 1000.0)),
             vec3((sin(arg0_112.time) / 3.0), 0.0, 0.0),
             eye,
-            dist_140,
+            dist_142,
             worldDir,
             0.0,
             int(10.0),
