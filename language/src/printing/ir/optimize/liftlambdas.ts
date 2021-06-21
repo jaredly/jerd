@@ -1,15 +1,9 @@
 import { hashObject, idName } from '../../../typing/env';
-import { Env, Id } from '../../../typing/types';
+import { Id } from '../../../typing/types';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, LambdaExpr, Stmt } from '../types';
-import {
-    Context,
-    Exprs,
-    optimizeAggressive,
-    optimizeDefine,
-    optimizeDefineNew,
-} from './optimize';
+import { Context } from './optimize';
 
 export const findCapturedVariables = (lambda: Expr): Array<number> => {
     const captured: Array<number> = [];

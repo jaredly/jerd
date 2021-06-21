@@ -19,9 +19,11 @@ import {
 import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { inlineFunctionsCalledWithCapturingLambdas } from './inline';
+import { specializeFunctionsCalledWithLambdas } from './monoconstant';
 import { optimizeRepeatedly } from './optimize';
 import {
     defaultEnv,
+    expectValidGlsl,
     resultForExpr,
     runFixture,
     runOpt,
@@ -268,55 +270,55 @@ describe('flattenImmediateCalls', () => {
     });
 
     it('should hold off from loops entirely', () => {
-        expect(
-            runFixture(
-                `
-                const rec repeatedly = (m: int, x: int, init: int, y: (int, int) => int): int => {
-                    if x <= 0 {
-                        init + m
-                    } else {
-                        repeatedly(m, x - 1, y(init, x), y)
-                    }
+        const result = runFixture(
+            `
+            const rec repeatedly = (m: int, x: int, init: int, y: (int, int) => int): int => {
+                if x <= 0 {
+                    init + m
+                } else {
+                    repeatedly(m, x - 1, y(init, x), y)
                 }
+            }
 
-                {
-                    const x = 10;
-                    const z = 12 + 1;
-                    repeatedly(23, x, 4, (init: int, i: int): int => init + i + z)
-                }`,
-                optimizeRepeatedly([
-                    flattenImmediateCalls2,
-                    foldConstantAssignments(true),
-                    inlineFunctionsCalledWithCapturingLambdas,
-                    removeUnusedVariables,
-                    optimizeTailCalls,
-                ]),
-            ),
-        ).toMatchInlineSnapshot(`
+            {
+                const x = 10;
+                const z = 12 + 1;
+                repeatedly(23, x, 4, (init: int, i: int): int => init + i + z)
+            }`,
+            optimizeRepeatedly([
+                flattenImmediateCalls2,
+                // foldConstantAssignments(true),
+                inlineFunctionsCalledWithCapturingLambdas,
+                // removeUnusedVariables,
+                optimizeTailCalls,
+                // specializeFunctionsCalledWithLambdas,
+            ]),
+        );
+        expect(result).toMatchInlineSnapshot(`
             const expr0#🚴‍♀️😽🥝: int = (() => {
+                const x#:0: int = 10;
                 const z#:1: int = 12 + 1;
                 const m#:4: int = 23;
-                const x#:5: int = 10;
+                const x#:5: int = x#:0;
                 const init#:6: int = 4;
                 const y#:7: (int, int) => int = (
                     init#:2: int,
                     i#:3: int,
                 ) => init#:2 + i#:3 + z#:1;
-                loop {
-                    if x#:5 <= 0 {
-                        return init#:6 + 23;
-                    } else {
-                        const recur#:8: int = x#:5 - 1;
-                        const recur#:9: int;
-                        recur#:9 = init#:6 + x#:5 + z#:1;
-                        m#:4 = m#:4;
-                        x#:5 = recur#:8;
-                        init#:6 = recur#:9;
-                        y#:7 = y#:7;
-                        continue;
-                    };
+                for (; x#:1 > 0; x#:1 = x#:5 - 1) {
+                    const recur#:8: int = m#:4;
+                    const recur#:9: int = x#:5 - 1;
+                    const recur#:10: int = y#:7(init#:6, x#:5);
+                    const recur#:11: (int, int) => int = y#:7;
+                    m#:4 = recur#:8;
+                    init#:6 = recur#:10;
+                    y#:7 = recur#:11;
+                    continue;
                 };
+                return init#:6 + m#:4;
             })()
         `);
+
+        expectValidGlsl(result);
     });
 });

@@ -25,12 +25,7 @@ import {
 import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
-import {
-    Exprs,
-    optimize,
-    optimizeDefine,
-    optimizeDefineNew,
-} from './ir/optimize/optimize';
+import { Exprs, optimize, optimizeDefineNew } from './ir/optimize/optimize';
 import {
     Loc,
     Type as IRType,

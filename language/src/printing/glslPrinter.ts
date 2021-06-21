@@ -1,20 +1,21 @@
 // Ok
 
 // import * as t from '@babel/types';
+import { Location } from '../parsing/parser';
 import {
     expressionDeps,
     expressionTypeDeps,
-    sortAllDeps,
     sortAllDepsPlain,
-    sortTerms,
 } from '../typing/analyze';
-import { idFromName, idName, refName } from '../typing/env';
+import { idFromName, idName } from '../typing/env';
+import { LocatedError } from '../typing/errors';
+import * as preset from '../typing/preset';
 // import { bool } from '../typing/preset';
 import {
-    EffectRef,
     Env,
     getAllSubTypes,
     Id,
+    nullLocation,
     RecordDef,
     Reference,
     selfEnv,
@@ -22,33 +23,23 @@ import {
     Term,
     Type,
     typesEqual,
-    nullLocation,
 } from '../typing/types';
-import * as preset from '../typing/preset';
-import { typeScriptPrelude } from './fileToTypeScript';
-import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
+import { glslTester } from './glslTester';
+import { uniquesReallyAreUnique } from './ir/analyze';
 import * as ir from './ir/intermediateRepresentation';
+import { toplevelRecordAttribute } from './ir/optimize/inline';
+import { Exprs, isConstant, optimizeDefineNew } from './ir/optimize/optimize';
+import { defaultVisitor, transformExpr } from './ir/transform';
 import {
-    Exprs,
-    isConstant,
-    optimizeAggressive,
-    optimizeDefine,
-    optimizeDefineNew,
-} from './ir/optimize/optimize';
-import {
-    Loc,
-    Type as IRType,
-    OutputOptions as IOutputOptions,
-    Expr,
-    Record,
     Apply,
+    Expr,
+    Loc,
+    OutputOptions as IOutputOptions,
+    Record,
 } from './ir/types';
 import {
-    bool,
     builtin,
     float,
-    handlersType,
-    handlerSym,
     hasUndefinedReferences,
     int,
     pureFunction,
@@ -56,31 +47,10 @@ import {
     void_,
 } from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
-import { args, atom, block, id, items, PP, printToString } from './printer';
 import * as pp from './printer';
-import { declarationToPretty, enumToPretty, termToPretty } from './printTsLike';
-import { optimizeAST } from './typeScriptOptimize';
-import {
-    printType,
-    recordMemberSignature,
-    typeIdToString,
-    typeToAst,
-    typeVblsToParameters,
-} from './typeScriptTypePrinter';
-import { effectConstructorType } from './ir/cps';
-import { getEnumReferences, showLocation } from '../typing/typeExpr';
-import { Location } from '../parsing/parser';
-import { defaultVisitor, transformExpr } from './ir/transform';
-import { uniquesReallyAreUnique } from './ir/analyze';
-import { LocatedError } from '../typing/errors';
-import {
-    maxUnique,
-    recordAttributeName,
-    termToTs,
-} from './typeScriptPrinterSimple';
-import { explicitSpreads } from './ir/optimize/explicitSpreads';
-import { toplevelRecordAttribute } from './ir/optimize/inline';
-import { glslTester } from './glslTester';
+import { args, atom, block, items, PP, printToString } from './printer';
+import { declarationToPretty } from './printTsLike';
+import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
 
 export type OutputOptions = {
     // readonly scope?: string;
@@ -551,6 +521,8 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             return items([atom(expr.op), termToGlsl(env, opts, expr.inner)]);
         case 'float':
             return atom(expr.value.toFixed(5).replace(/0+$/, '0'));
+        case 'boolean':
+            return atom(expr.value + '');
         case 'int':
         case 'string':
             return atom(expr.value.toString());

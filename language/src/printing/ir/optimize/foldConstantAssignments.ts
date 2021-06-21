@@ -53,12 +53,18 @@ const foldVisitor = (
             }
             return null;
         },
+        onInvalidate: (sym) => {
+            defines[sym.unique] = false;
+        },
         onNested: (b, noOuterRedefines) => {
             const inner: Defines = { ...defines };
             if (noOuterRedefines) {
                 transformBlock(b, {
                     ...defaultVisitor,
                     stmt: (stmt) => {
+                        if (stmt.type === 'Loop' && stmt.bounds) {
+                            inner[stmt.bounds.sym.unique] = false;
+                        }
                         if (stmt.type === 'Assign') {
                             // x = x doesn't count
                             if (
@@ -109,6 +115,7 @@ type FoldVisitor = {
     onAssign: (a: Assign) => void;
     onGet: (s: Symbol) => Expr | null;
     onNested: (b: Block, noOuterRedfines: boolean) => Block;
+    onInvalidate: (s: Symbol) => void;
 };
 
 const visitorGeneral = ({
@@ -116,6 +123,7 @@ const visitorGeneral = ({
     onAssign,
     onGet,
     onNested,
+    onInvalidate,
 }: FoldVisitor): Visitor => {
     const defines: Defines = {};
     // sooo
@@ -141,6 +149,9 @@ const visitorGeneral = ({
                 return false;
             }
             if (stmt.type === 'Loop') {
+                if (stmt.bounds) {
+                    onInvalidate(stmt.bounds.sym);
+                }
                 // STOPSHIP: account for bounds!
                 const body = onNested(stmt.body, true);
                 if (body !== stmt.body) {

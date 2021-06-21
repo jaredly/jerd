@@ -156,43 +156,6 @@ export const optimizeDefineNew = (
     return expr;
 };
 
-export const optimizeDefine = (
-    env: Env,
-    expr: Expr,
-    id: Id,
-    exprs: Exprs | null,
-): Expr => {
-    // STOPSHIP: re-enable
-    // expr = optimizeDefineOld(env, expr, id);
-    // if (exprs) {
-    //     expr = optimizeAggressive(
-    //         {
-    //             env,
-    //             exprs,
-    //             id,
-    //             optimize: optimizeAggressive,
-    //             opts: {},
-    //         },
-    //         expr,
-    //     );
-    // }
-    // expr = optimizeDefineOld(env, expr, id);
-    // if (exprs) {
-    //     expr = optimizeAggressive(
-    //         {
-    //             env,
-    //             exprs,
-    //             id,
-    //             optimize: optimizeAggressive,
-    //             opts: {},
-    //         },
-    //         expr,
-    //     );
-    // }
-    uniquesReallyAreUnique(expr);
-    return expr;
-};
-
 export const optimizeDefineOld = (ctx: Context, expr: Expr): Expr => {
     expr = optimize(ctx, expr);
     expr = optimizeTailCalls(ctx, expr);
