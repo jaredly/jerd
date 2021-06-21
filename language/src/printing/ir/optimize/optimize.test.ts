@@ -1,8 +1,5 @@
 import { hasInvalidGLSL } from '../../glslPrinter';
-import {
-    flattenImmediateAssigns,
-    flattenImmediateCalls,
-} from './flattenImmediateCalls';
+import { flattenImmediateAssigns } from './flattenImmediateCalls';
 import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
@@ -392,7 +389,7 @@ describe('glsl in concert', () => {
             optimizeRepeatedly([
                 specializeFunctionsCalledWithLambdas,
                 inlineCallsThatReturnFunctions,
-                flattenImmediateCalls,
+                flattenImmediateCalls2,
                 foldConstantAssignments(true),
                 foldSingleUseAssignments,
                 flattenImmediateAssigns,
@@ -400,11 +397,11 @@ describe('glsl in concert', () => {
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-              const expr0#🧳⛽🕵️‍♀️: () => int = () => {
-                  const z#:13: int = 4 + 2;
-                  const z#:9: int = 2 + 2;
-                  return z#:9 * z#:9 + z#:13 * z#:13;
-              }
+            const expr0#🧳⛽🕵️‍♀️: () => int = () => {
+                const z#:4: int = 2 + 2;
+                const z#:6: int = 4 + 2;
+                return z#:4 * z#:4 + z#:6 * z#:6;
+            }
         `);
         expectValidGlsl(result);
     });
@@ -426,7 +423,7 @@ describe('glsl in concert', () => {
             optimizeRepeatedly([
                 specializeFunctionsCalledWithLambdas,
                 inlineCallsThatReturnFunctions,
-                flattenImmediateCalls,
+                flattenImmediateCalls2,
                 foldConstantAssignments(true),
                 foldSingleUseAssignments,
                 flattenImmediateAssigns,

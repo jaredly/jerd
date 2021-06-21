@@ -389,6 +389,7 @@ export const transformOneStmt = (
         }
         case 'Continue':
         case 'MatchFail':
+        case 'Break':
             return stmt;
         case 'if': {
             const cond = transformExpr(stmt.cond, visitor, level);

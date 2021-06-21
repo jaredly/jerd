@@ -1,4 +1,4 @@
-import { flattenImmediateCalls } from './flattenImmediateCalls';
+import { flattenImmediateCalls_ as flattenImmediateCalls } from './flattenImmediateCalls';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { combineOpts } from './optimize';

@@ -1,43 +1,5 @@
-import { hashObject, newSym } from '../../../typing/env';
+import { runFixture, snapshotSerializer } from './optimizeTestUtils';
 import {
-    Env,
-    Id,
-    newWithGlobal,
-    nullLocation,
-    Symbol,
-} from '../../../typing/types';
-import { defaultVisitor, transformExpr } from '../transform';
-import { Expr } from '../types';
-import {
-    assign,
-    block,
-    boolLiteral,
-    builtin,
-    callExpression,
-    define,
-    iffe,
-    ifStatement,
-    int,
-    intLiteral,
-    pureFunction,
-    returnStatement,
-    var_,
-} from '../utils';
-import {
-    flattenImmediateAssigns,
-    flattenImmediateCalls,
-} from './flattenImmediateCalls';
-import { foldConstantAssignments } from './foldConstantAssignments';
-import { foldSingleUseAssignments } from './foldSingleUseAssignments';
-import { combineOpts, Optimizer2, optimizeRepeatedly } from './optimize';
-import {
-    runFixture,
-    snapshotSerializer,
-    defaultEnv,
-    Result,
-} from './optimizeTestUtils';
-import {
-    expectDefined,
     expectDefinedNames,
     removeUnusedVariables,
 } from './removeUnusedVariables';

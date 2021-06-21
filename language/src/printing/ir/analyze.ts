@@ -79,6 +79,7 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
         throw new UniqueError(
             seen[failed[0]][1].loc,
             expr,
+            +failed[0],
             // `Multiple declarations for unique ${failed[0]}.`,
         );
     }

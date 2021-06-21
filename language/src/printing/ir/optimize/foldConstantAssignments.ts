@@ -99,8 +99,40 @@ const foldVisitor = (
             }
             return null;
         },
-        onNested: (b) => {
+        onNested: (b, noOuterRedefines) => {
             const inner: Defines = { ...defines };
+            if (noOuterRedefines) {
+                transformBlock(b, {
+                    ...defaultVisitor,
+                    stmt: (stmt) => {
+                        if (stmt.type === 'Assign') {
+                            // x = x doesn't count
+                            if (
+                                stmt.value.type === 'var' &&
+                                stmt.sym.unique === stmt.value.sym.unique
+                            ) {
+                                return null;
+                            }
+                            inner[stmt.sym.unique] = false;
+                        }
+                        return null;
+                    },
+                });
+                // START HERE: We're erroring because:
+                /*
+
+                int x = 10
+                loop {
+                    // This x is being folded, but it shouldn't!
+                    int y = x
+                    x = x + 1
+                }
+
+                TODO: Traverse the dealio, and poison all
+                assigns, before we do the normal transform
+
+                */
+            }
             const res = transformBlock(b, foldVisitor(ctx, inner, foldLambdas));
             Object.keys(inner).forEach((s) => {
                 const k = +s;
@@ -122,7 +154,7 @@ type FoldVisitor = {
     onDefine: (d: Define) => void;
     onAssign: (a: Assign) => void;
     onGet: (s: Symbol) => Expr | null;
-    onNested: (b: Block) => Block;
+    onNested: (b: Block, noOuterRedfines: boolean) => Block;
 };
 
 const visitorGeneral = ({
@@ -152,8 +184,8 @@ const visitorGeneral = ({
             }
             if (stmt.type === 'if') {
                 // const newOuter = {...outer, ...defines}
-                const yes = onNested(stmt.yes);
-                const no = stmt.no ? onNested(stmt.no) : stmt.no;
+                const yes = onNested(stmt.yes, false);
+                const no = stmt.no ? onNested(stmt.no, false) : stmt.no;
                 const cond = transformExpr(stmt.cond, visitor);
                 if (yes !== stmt.yes || no !== stmt.no || cond !== stmt.cond) {
                     return { type: '*stop*', stmt: { ...stmt, yes, no, cond } };
@@ -162,7 +194,7 @@ const visitorGeneral = ({
             }
             if (stmt.type === 'Loop') {
                 // STOPSHIP: account for bounds!
-                const body = onNested(stmt.body);
+                const body = onNested(stmt.body, true);
                 if (body !== stmt.body) {
                     return { type: '*stop*', stmt: { ...stmt, body } };
                 }
@@ -172,7 +204,7 @@ const visitorGeneral = ({
         },
         expr: (expr) => {
             if (expr.type === 'lambda') {
-                const body = onNested(expr.body);
+                const body = onNested(expr.body, true);
                 return body !== expr.body ? [{ ...expr, body }] : false;
             }
             if (expr.type === 'apply' && expr.target.type === 'var') {

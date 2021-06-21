@@ -340,6 +340,8 @@ export const stmtToGlsl = (
         // ]);
         case 'Continue':
             return atom('continue');
+        case 'Break':
+            return atom('break');
         case 'if':
             return items([
                 atom('if ('),

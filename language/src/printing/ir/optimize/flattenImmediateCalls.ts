@@ -547,7 +547,7 @@ export const flattenDefineLambdas = (
     return prefixes.concat(Array.isArray(result) ? result : [result]);
 };
 
-export const flattenImmediateCalls = (ctx: Context, expr: Expr) => {
+export const flattenImmediateCalls_ = (ctx: Context, expr: Expr) => {
     return transformExpr(expr, {
         ...defaultVisitor,
         stmt: (stmt) => {

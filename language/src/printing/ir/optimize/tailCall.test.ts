@@ -1,4 +1,4 @@
-import { flattenImmediateCalls } from './flattenImmediateCalls';
+import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { optimizeRepeatedly } from './optimize';
@@ -28,7 +28,7 @@ describe('tailCall', () => {
 			tailMe(1, 0, 2)
 			`,
             optimizeRepeatedly([
-                flattenImmediateCalls,
+                flattenImmediateCalls2,
                 // specializeFunctionsCalledWithLambdas,
                 // // These are needed for cleanup
                 foldConstantAssignments(true),

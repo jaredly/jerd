@@ -20,8 +20,9 @@ import { explicitSpreads } from './explicitSpreads';
 import { flattenIffe } from './flattenIFFE';
 import {
     flattenImmediateAssigns,
-    flattenImmediateCalls,
+    // flattenImmediateCalls,
 } from './flattenImmediateCalls';
+import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { flattenRecordSpreads } from './flattenRecordSpread';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
@@ -271,7 +272,7 @@ export const optimize = (ctx: Context, expr: Expr): Expr => {
         foldConstantAssignments(false),
         removeUnusedVariables,
         fromSimpleOpt(flattenNestedIfs),
-        flattenImmediateCalls,
+        flattenImmediateCalls2,
     ];
     transformers.forEach((t) => (expr = t(ctx, expr)));
     return expr;
@@ -532,7 +533,7 @@ ok we'll get to that when we need to.
 const glslOpts: Array<Optimizer2> = [
     specializeFunctionsCalledWithLambdas,
     inlineCallsThatReturnFunctions,
-    flattenImmediateCalls,
+    flattenImmediateCalls2,
     foldSingleUseAssignments,
     foldConstantAssignments(true),
     flattenImmediateAssigns,

@@ -42,8 +42,8 @@ export class LocatedError extends TypeError {
 
 export class UniqueError extends LocatedError {
     expr: Expr;
-    constructor(loc: Location, expr: Expr) {
-        super(loc, `Multiple declarations for unique`);
+    constructor(loc: Location, expr: Expr, num: number) {
+        super(loc, `Multiple declarations for unique: ${num}`);
         this.expr = expr;
     }
 }
