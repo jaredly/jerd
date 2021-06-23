@@ -352,44 +352,50 @@ export const CellView = ({
             onRemove={onRemove}
             focused={focused}
             onFocus={onFocus}
-            collapsed={cell.collapsed}
+            collapsed={cell.collapsed || false}
             setCollapsed={setCollapsed}
             onToggleSource={() => setShowSource(!showSource)}
             menuItems={() => {
                 return [
-                    { name: 'Delete cell', action: onRemove },
                     { name: 'Move up', action: () => onMove('up') },
                     { name: 'Move down', action: () => onMove('down') },
                     { name: 'Move to workspace', action: () => {} },
                     { name: 'Duplicate cell', action: onDuplicate },
-                    cell.collapsed
-                        ? { name: 'Expand', action: () => setCollapsed(false) }
-                        : {
-                              name: 'Collapse',
-                              action: () => setCollapsed(true),
-                          },
-                    term
-                        ? showSource
-                            ? {
-                                  name: 'Hide generated javascript',
-                                  action: () => setShowSource(false),
-                              }
-                            : {
-                                  name: 'Show generated javascript',
-                                  action: () => setShowSource(true),
-                              }
-                        : null,
-                    term
-                        ? showGLSL
-                            ? {
-                                  name: 'Hide generated GLSL',
-                                  action: () => setShowGLSL(false),
-                              }
-                            : {
-                                  name: 'Show generated GLSL',
-                                  action: () => setShowGLSL(true),
-                              }
-                        : null,
+                    ...(cell.collapsed
+                        ? [
+                              {
+                                  name: 'Expand',
+                                  action: () => setCollapsed(false),
+                              },
+                          ]
+                        : [
+                              {
+                                  name: 'Collapse',
+                                  action: () => setCollapsed(true),
+                              },
+                              term
+                                  ? showSource
+                                      ? {
+                                            name: 'Hide generated javascript',
+                                            action: () => setShowSource(false),
+                                        }
+                                      : {
+                                            name: 'Show generated javascript',
+                                            action: () => setShowSource(true),
+                                        }
+                                  : null,
+                              term
+                                  ? showGLSL
+                                      ? {
+                                            name: 'Hide generated GLSL',
+                                            action: () => setShowGLSL(false),
+                                        }
+                                      : {
+                                            name: 'Show generated GLSL',
+                                            action: () => setShowGLSL(true),
+                                        }
+                                  : null,
+                          ]),
                     cell.content.type === 'term' || cell.content.type === 'expr'
                         ? {
                               name:

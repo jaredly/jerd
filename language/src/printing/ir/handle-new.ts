@@ -198,22 +198,30 @@ export const _printHandleNew = (
                           loc: term.location,
                       },
                   ]),
-            callExpression(
-                env,
-                var_(fnReturnPointer, term.location, fnReturn.is),
-                [
-                    ...handleValuesForEffects(
-                        env,
-                        opts,
-                        { ...cps.handlers, ...handlers },
-                        fnReturn.is.args,
-                        term.location,
-                    ),
-                    ...(targetReturnsVoid
-                        ? []
-                        : [var_(returnValue, term.location, targetReturnType)]),
-                ],
-                term.location,
+            asBlock(
+                callExpression(
+                    env,
+                    var_(fnReturnPointer, term.location, fnReturn.is),
+                    [
+                        ...handleValuesForEffects(
+                            env,
+                            opts,
+                            { ...cps.handlers, ...handlers },
+                            fnReturn.is.args,
+                            term.location,
+                        ),
+                        ...(targetReturnsVoid
+                            ? []
+                            : [
+                                  var_(
+                                      returnValue,
+                                      term.location,
+                                      targetReturnType,
+                                  ),
+                              ]),
+                    ],
+                    term.location,
+                ),
             ),
             term.location,
         ),
@@ -498,14 +506,6 @@ export const withSyncDone = (
     );
 };
 
-const prependToBody = (stmt: Stmt, body: Expr | Block): Block => {
-    if (body.type === 'Block') {
-        return { ...body, items: [stmt, ...body.items] };
-    } else {
-        return {
-            type: 'Block',
-            items: [stmt, { type: 'Return', value: body, loc: body.loc }],
-            loc: body.loc,
-        };
-    }
+const prependToBody = (stmt: Stmt, body: Block): Block => {
+    return { ...body, items: [stmt, ...body.items] };
 };

@@ -1,72 +1,63 @@
 // General thing
 
-import {
-    Term,
-    Env,
-    Type as TermType,
-    getEffects,
-    Symbol,
-    Reference,
-    Let,
-    Var,
-    EffectRef,
-    Lambda,
-    LambdaType as TLambdaType,
-    walkTerm,
-    Pattern,
-    UserReference,
-    TypeVblDecl,
-    LambdaType as TermLambdaType,
-    EffectReference,
-    nullLocation,
-} from '../../typing/types';
-import {
-    binOps,
-    // bool,
-    // builtinType,
-    // int,
-    // pureFunction,
-    // string,
-    // void_,
-} from '../../typing/preset';
-import {
-    applyEffectVariables,
-    getEnumReferences,
-    showLocation,
-} from '../../typing/typeExpr';
-import { idName, newSym, refName } from '../../typing/env';
-
-import {
-    Loc,
-    Expr,
-    Block,
-    Stmt,
-    Arg,
-    LambdaExpr,
-    Literal,
-    Type,
-    OutputOptions,
-    LambdaType,
-    returnTypeForStmt,
-    typeForLambdaExpression,
-    typesEqual,
-    MaybeEffLambda,
-    Define,
-    Assign,
-    EffectHandler,
-    CPSLambdaType,
-    DoneLambdaType,
-    CPS,
-} from './types';
 import { Location } from '../../parsing/parser';
-import { LocatedError, TypeMismatch } from '../../typing/errors';
+import { newSym, refName } from '../../typing/env';
+import { LocatedError } from '../../typing/errors';
+import { binOps } from '../../typing/preset';
+import { applyEffectVariables } from '../../typing/typeExpr';
+import {
+    EffectRef,
+    EffectReference,
+    Env,
+    LambdaType as TermLambdaType,
+    LambdaType as TLambdaType,
+    nullLocation,
+    Reference,
+    Symbol,
+    Term,
+    Type as TermType,
+    TypeVblDecl,
+} from '../../typing/types';
 import { args, atom, id, items, PP, printToString } from '../printer';
 import { refToPretty, symToPretty } from '../printTsLike';
 import { handleArgsForEffects, handlerTypesForEffects } from './cps';
-import { isVoid } from '../../typing/terms/handle';
+import { defaultVisitor, transformExpr } from './transform';
+import {
+    Arg,
+    Assign,
+    Block,
+    CPS,
+    CPSLambdaType,
+    Define,
+    DoneLambdaType,
+    EffectHandler,
+    Expr,
+    LambdaExpr,
+    LambdaType,
+    Loc,
+    MaybeEffLambda,
+    OutputOptions,
+    Stmt,
+    Type,
+    typeForLambdaExpression,
+    typesEqual,
+} from './types';
+
 // import { getTypeError } from '../../typing/getTypeError';
 
 const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+export const isLiteral = (expr: Expr) => {
+    switch (expr.type) {
+        case 'int':
+        case 'float':
+        case 'string':
+        case 'boolean':
+            return true;
+        default:
+            return false;
+    }
+};
 
 export const expectLambdaType = (
     env: Env,
@@ -443,6 +434,20 @@ export const ifBlock = (x: Block | Expr): Block => {
     }
 };
 
+export const boolLiteral = (value: boolean, loc: Location): Expr => ({
+    type: 'boolean',
+    value,
+    loc,
+    is: bool,
+});
+
+export const intLiteral = (value: number, loc: Location): Expr => ({
+    type: 'int',
+    value,
+    loc,
+    is: int,
+});
+
 export const ifStatement = (
     cond: Expr,
     yes: Expr | Block,
@@ -502,7 +507,7 @@ export const cpsArrowFunctionExpression = (
     args: Array<Arg>,
     effects: Array<EffectRef>,
     doneType: Type,
-    makeBody: (cps: CPS) => Expr | Block,
+    makeBody: (cps: CPS) => Block,
     loc: Loc,
     typeVbls?: Array<TypeVblDecl>,
     tags?: Array<string>,
@@ -568,11 +573,12 @@ export const arrowFunctionExpression = (
     typeVbls?: Array<TypeVblDecl>,
     tags?: Array<string>,
 ): LambdaExpr => {
-    const res = typeForLambdaExpression(body) || void_;
+    const block = asBlock(body);
+    const res = typeForLambdaExpression(block) || void_;
     return {
         type: 'lambda',
         args,
-        body,
+        body: block,
         res,
         loc,
         is: pureFunction(
@@ -844,4 +850,56 @@ export const walkType = (
         }
     }
     return null;
+};
+
+export const hasUndefinedReferences = (expr: Expr) => {
+    const undefinedLocs: Array<{ sym: Symbol; loc: Location }> = [];
+    const defined: { [unique: number]: true } = {};
+    const addSym = (sym: Symbol) => {
+        defined[sym.unique] = true;
+    };
+    const getSym = (sym: Symbol, loc: Location) => {
+        if (defined[sym.unique] == null) {
+            // This is probably an upper-scope variable
+            undefinedLocs.push({ sym, loc });
+        }
+    };
+    transformExpr(expr, {
+        ...defaultVisitor,
+        stmt: (value) => {
+            if (value.type === 'Define') {
+                addSym(value.sym);
+            }
+            if (value.type === 'Assign') {
+                getSym(value.sym, value.loc);
+            }
+            return null;
+        },
+        expr: (value) => {
+            switch (value.type) {
+                case 'handle':
+                    value.cases.map((kase) => ({
+                        ...kase,
+                        args: kase.args.map((arg) => ({
+                            ...arg,
+                            sym: addSym(arg.sym),
+                        })),
+                        k: { ...kase.k, sym: addSym(kase.k.sym) },
+                    }));
+                    addSym(value.pure.arg);
+                    return null;
+                case 'lambda':
+                    value.args.map((arg) => ({
+                        ...arg,
+                        sym: addSym(arg.sym),
+                    }));
+                    return null;
+                case 'var':
+                    getSym(value.sym, value.loc);
+                    return null;
+            }
+            return null;
+        },
+    });
+    return undefinedLocs;
 };

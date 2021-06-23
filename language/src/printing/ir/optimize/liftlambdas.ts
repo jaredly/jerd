@@ -1,13 +1,9 @@
-import { hashObject } from '../../../typing/env';
-import { Env, Id } from '../../../typing/types';
+import { hashObject, idName } from '../../../typing/env';
+import { Id } from '../../../typing/types';
+import { reUnique } from '../../typeScriptPrinterSimple';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, LambdaExpr, Stmt } from '../types';
-import {
-    Exprs,
-    optimizeAggressive,
-    optimizeDefine,
-    optimizeDefineNew,
-} from './optimize';
+import { Context } from './optimize';
 
 export const findCapturedVariables = (lambda: Expr): Array<number> => {
     const captured: Array<number> = [];
@@ -36,19 +32,17 @@ export const findCapturedVariables = (lambda: Expr): Array<number> => {
 };
 
 // The caller needs to ensure that no variables are being captured.
-export const liftToTopLevel = (
-    env: Env,
-    exprs: Exprs,
-    lambda: LambdaExpr,
-): Expr => {
+export const liftToTopLevel = (ctx: Context, lambda: LambdaExpr): Expr => {
+    // We're bringing this to the top level, it can have fresh uniques
+    lambda = reUnique({ current: 0 }, lambda) as LambdaExpr;
     const hash = hashObject(lambda);
     const id: Id = { hash, size: 1, pos: 0 };
-    let expr: Expr = optimizeDefineNew(env, lambda, id, exprs);
-    exprs[hash] = { expr: expr, inline: false };
-    if (env.local.self) {
-        const idSelf = env.local.self.name;
-        env.global.idNames[hash] = env.global.idNames[idSelf] + '_lambda';
-    }
+    let expr: Expr = ctx.optimize({ ...ctx, id }, lambda);
+    ctx.exprs[idName(id)] = {
+        expr: expr,
+        inline: false,
+        source: { id: ctx.id, kind: 'lambda' },
+    };
     return {
         type: 'term',
         id,
@@ -57,7 +51,7 @@ export const liftToTopLevel = (
     };
 };
 
-export const liftLambdas = (env: Env, exprs: Exprs, expr: Expr) => {
+export const liftLambdas = (ctx: Context, expr: Expr) => {
     const toplevel = expr;
     const immediatelyCalled: Array<LambdaExpr> = [];
     return transformExpr(expr, {
@@ -70,7 +64,7 @@ export const liftLambdas = (env: Env, exprs: Exprs, expr: Expr) => {
             ) {
                 return {
                     ...stmt,
-                    value: liftToTopLevel(env, exprs, stmt.value),
+                    value: liftToTopLevel(ctx, stmt.value),
                 };
             }
             return null;

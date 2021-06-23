@@ -45,3 +45,7 @@ I'd love to have fixture tests or something.
 
 
 */
+
+describe('cps stuff', () => {
+    it('is ok', () => {});
+});

@@ -22,12 +22,8 @@ struct GLSLEnv_451d5252{
 };
 
 /* -- generated -- */
-vec4 V3f3fca62(GLSLEnv_451d5252 env_8, vec2 pos_9) {
-    if ((sdf_7(env_8, vec3(pos_9, 0.0)) > sdf_7(env_8, vec3(pos_9, 1.0)))) {
-        return vec4(0.0);
-    } else {
-        return vec4(1.0);
-    };
+float m_lambda_7c39d44b(GLSLEnv_451d5252 env_0, vec3 pos_1) {
+    return (length(pos_1) - 0.50);
 }
 
 /**
@@ -43,10 +39,27 @@ const m#3c4200ce = superSample#7fbe027c(
 ```
 */
 vec4 m_3c4200ce(
-    GLSLEnv_451d5252 env_4,
-    vec2 pos_5
+    GLSLEnv_451d5252 arg0_9,
+    vec2 arg1_10
 ) {
-    return ((V3f3fca62(env_4, pos_5) + V3f3fca62(env_4, (pos_5 + vec2(0.0, 0.50)))) / 2.0);
+    GLSLEnv_451d5252 env = arg0_9;
+    vec2 pos = arg1_10;
+    vec4 lambdaBlockResult;
+    if ((m_lambda_7c39d44b(env, vec3((pos + vec2(0.0, 0.50)), 0.0)) > m_lambda_7c39d44b(
+        env,
+        vec3((pos + vec2(0.0, 0.50)), 1.0)
+    ))) {
+        lambdaBlockResult = vec4(0.0);
+    } else {
+        lambdaBlockResult = vec4(1.0);
+    };
+    vec4 lambdaBlockResult_19;
+    if ((m_lambda_7c39d44b(env, vec3(pos, 0.0)) > m_lambda_7c39d44b(env, vec3(pos, 1.0)))) {
+        lambdaBlockResult_19 = vec4(0.0);
+    } else {
+        lambdaBlockResult_19 = vec4(1.0);
+    };
+    return ((lambdaBlockResult_19 + lambdaBlockResult) / 2.0);
 }
 
 void main() {

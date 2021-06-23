@@ -616,26 +616,23 @@ const rec shortestDistanceToSurface#8ce5f688 = (
 */
 export const hash_8ce5f688: (arg_0: number, arg_1: t_9f1c0644, arg_2: t_9f1c0644, arg_3: number, arg_4: number, arg_5: number) => number = (iTime: number, eye: t_9f1c0644, marchingDirection: t_9f1c0644, start: number, end: number, stepsLeft: number) => {
   while (true) {
-    if (stepsLeft <= 0) {
-      return end;
+    let dist: number = hash_e602af6c(iTime, hash_1c6fdd91.hb99b22d8_0(eye, hash_c4a91006.h1de4e4c0_0(start, marchingDirection)));
+
+    if (dist < hash_ec7f8d1c) {
+      return start;
     } else {
-      let dist: number = hash_e602af6c(iTime, hash_1c6fdd91.hb99b22d8_0(eye, hash_c4a91006.h1de4e4c0_0(start, marchingDirection)));
+      let depth: number = start + dist;
 
-      if (dist < hash_ec7f8d1c) {
-        return start;
+      if (depth >= end) {
+        return end;
       } else {
-        let depth: number = start + dist;
-
-        if (depth >= end) {
-          return end;
-        } else {
-          start = depth;
-          stepsLeft = stepsLeft - 1;
-          continue;
-        }
+        start = depth;
+        continue;
       }
     }
   }
+
+  return end;
 };
 
 /**
@@ -720,7 +717,12 @@ const fishingBoueys#4713c0cc = (
     );
     const light#:6 = 0.2;
     if dist#:5 >#builtin MAX_DIST#0ce717e6 -#builtin EPSILON#ec7f8d1c {
-        Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 0.0, y#43802a16#1: 0.0, w#3b941378#0: 1.0};
+        Vec4#3b941378{
+            z#9f1c0644#0: 0.0,
+            x#43802a16#0: 0.0,
+            y#43802a16#1: 0.0,
+            w#3b941378#0: 1.0,
+        };
     } else {
         const worldPosForPixel#:7 = eye#:4 
             +#1c6fdd91#b99b22d8#0 dist#:5 *#c4a91006#1de4e4c0#0 dir#:3;
@@ -774,7 +776,6 @@ export const hash_4713c0cc: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16
     z: 5
   } as t_9f1c0644);
   let dist$5: number = hash_8ce5f688(iTime, eye$4, dir, hash_f2cd39b8, hash_0ce717e6, hash_62404440);
-  let light: number = 0.2;
 
   if (dist$5 > hash_0ce717e6 - hash_ec7f8d1c) {
     return ({
@@ -798,13 +799,13 @@ export const hash_4713c0cc: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16
       let marchToLight: number = hash_8ce5f688(iTime, light1Pos, hash_c4a91006.h1de4e4c0_0(-1, hash_48e6ea27(toLight)), hash_f2cd39b8, hash_0ce717e6, hash_62404440);
 
       if (marchToLight > hash_0ce717e6 - hash_ec7f8d1c * 10) {
-        return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, light),
+        return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, 0.2),
           type: "Vec4",
           w: 1
         } as t_3b941378);
       } else {
         if (marchToLight - hash_63e16b7a(toLight) < -hash_ec7f8d1c * 1000) {
-          return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, light),
+          return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, 0.2),
             type: "Vec4",
             w: 1
           } as t_3b941378);
@@ -816,7 +817,7 @@ export const hash_4713c0cc: (arg_0: number, arg_1: t_43802a16, arg_2: t_43802a16
         }
       }
     } else {
-      return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, light),
+      return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, 0.2),
         type: "Vec4",
         w: 1
       } as t_3b941378);

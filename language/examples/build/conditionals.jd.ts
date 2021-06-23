@@ -12,11 +12,9 @@ const z#6a5b05d8 = (n#:0: int#builtin): int#builtin ={}> {
 ```
 */
 export const hash_6a5b05d8: (arg_0: number) => number = (n: number) => {
-  (() => {
-    if (n < 10) {
-      return log("Ok");
-    }
-  })();
+  if (n < 10) {
+    log("Ok");
+  }
 
   return n + 2;
 };

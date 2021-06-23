@@ -6,7 +6,7 @@ import {
     expressionTypeDeps,
     sortTerms,
 } from '../typing/analyze';
-import { idFromName, idName, refName } from '../typing/env';
+import { hashObject, idFromName, idName, refName } from '../typing/env';
 import { binOps, bool } from '../typing/preset';
 import {
     EffectRef,
@@ -25,12 +25,7 @@ import {
 import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
-import {
-    Exprs,
-    optimize,
-    optimizeDefine,
-    optimizeDefineNew,
-} from './ir/optimize/optimize';
+import { Exprs, optimize, optimizeDefineNew } from './ir/optimize/optimize';
 import {
     Loc,
     Type as IRType,
@@ -59,6 +54,7 @@ import { getEnumReferences, showLocation } from '../typing/typeExpr';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
+import { Location } from '../parsing/parser';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -676,6 +672,8 @@ export const stmtToTs = (
     switch (stmt.type) {
         case 'Continue':
             return withLocation(t.continueStatement(), stmt.loc);
+        case 'Break':
+            return withLocation(t.breakStatement(), stmt.loc);
         case 'Loop':
             return withLocation(
                 t.whileStatement(
@@ -767,12 +765,12 @@ export const blockToTs = (
 export const lambdaBodyToTs = (
     env: Env,
     opts: OutputOptions,
-    term: ir.Expr | ir.Block,
+    term: ir.Block,
 ): t.BlockStatement | t.Expression => {
-    if (term.type === 'Block') {
-        return blockToTs(env, opts, term);
+    if (term.items.length === 1 && term.items[0].type === 'Return') {
+        return termToTs(env, opts, term.items[0].value);
     } else {
-        return termToTs(env, opts, term);
+        return blockToTs(env, opts, term);
     }
 };
 
@@ -996,7 +994,20 @@ export const fileToTypescript = (
         items.push(
             t.addComment(
                 t.expressionStatement(
-                    termToTs(env, opts, optimize(env, irTerm)),
+                    termToTs(
+                        env,
+                        opts,
+                        optimize(
+                            {
+                                env,
+                                exprs: {},
+                                id: idFromName(hashObject(term)),
+                                opts: {},
+                                optimize: optimize,
+                            },
+                            irTerm,
+                        ),
+                    ),
                 ),
                 'leading',
                 '\n' + comment + '\n',
@@ -1058,19 +1069,35 @@ export const maxUnique = (term: Term) => {
 };
 
 export const reUnique = (unique: { current: number }, expr: Expr) => {
+    if (isNaN(unique.current) || typeof unique.current !== 'number') {
+        throw new Error('initial unique not a number');
+    }
     const mapping: { [orig: number]: number } = {};
     const addSym = (sym: Symbol) => {
         if (sym.unique === handlerSym.unique) {
             mapping[sym.unique] = sym.unique;
             return sym;
         }
+        if (isNaN(unique.current)) {
+            throw new Error('current uneique NaN');
+        }
         mapping[sym.unique] = unique.current++;
+        if (isNaN(unique.current)) {
+            console.log(unique);
+            throw new Error('now uneique NaN');
+        }
         return { ...sym, unique: mapping[sym.unique] };
     };
-    const getSym = (sym: Symbol): Symbol => ({
-        ...sym,
-        unique: mapping[sym.unique],
-    });
+    const getSym = (sym: Symbol, loc: Location): Symbol => {
+        if (mapping[sym.unique] == null) {
+            // This is probably an upper-scope variable
+            return sym;
+        }
+        return {
+            ...sym,
+            unique: mapping[sym.unique],
+        };
+    };
     return transformExpr(expr, {
         ...defaultVisitor,
         stmt: (value) => {
@@ -1078,7 +1105,16 @@ export const reUnique = (unique: { current: number }, expr: Expr) => {
                 return { ...value, sym: addSym(value.sym) };
             }
             if (value.type === 'Assign') {
-                return { ...value, sym: getSym(value.sym) };
+                return { ...value, sym: getSym(value.sym, value.loc) };
+            }
+            if (value.type === 'Loop' && value.bounds) {
+                return {
+                    ...value,
+                    bounds: {
+                        ...value.bounds,
+                        sym: getSym(value.bounds.sym, value.loc),
+                    },
+                };
             }
             return null;
         },
@@ -1106,7 +1142,7 @@ export const reUnique = (unique: { current: number }, expr: Expr) => {
                         })),
                     };
                 case 'var':
-                    return { ...value, sym: getSym(value.sym) };
+                    return { ...value, sym: getSym(value.sym, value.loc) };
             }
             return null;
         },

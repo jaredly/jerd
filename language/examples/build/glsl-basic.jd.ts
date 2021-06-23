@@ -213,7 +213,10 @@ const hello#6e44375b = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): 
                 p: fragCoord#:1,
                 circle: Circle#44c72b50{
                     pos#44c72b50#0: env#:0.mouse#451d5252#3 
-                        +#70bb2056#b99b22d8#0 Vec2#43802a16{x#43802a16#0: 10.0, y#43802a16#1: 20.0},
+                        +#70bb2056#b99b22d8#0 Vec2#43802a16{
+                            x#43802a16#0: 10.0,
+                            y#43802a16#1: 20.0,
+                        },
                     r#44c72b50#1: 30.0,
                 },
             ) 
@@ -230,7 +233,7 @@ const hello#6e44375b = (env#:0: GLSLEnv#451d5252, fragCoord#:1: Vec2#43802a16): 
 ```
 */
 export const hash_6e44375b: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16) => {
-  let lambdaBlockResult: t_9f1c0644 = (null as any);
+  let result: t_9f1c0644;
   let continueBlock: boolean = true;
 
   if (hash_4e1890c8.h5cfbbc08_0(hash_632537ec(fragCoord, ({
@@ -247,7 +250,7 @@ export const hash_6e44375b: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378
     h44c72b50_1: 30
   } as t_44c72b50))) < 0) {
     if (modInt(hash_184a69ed.hAs_0(fragCoord.x), 2) === 0) {
-      lambdaBlockResult = ({
+      result = ({
         type: "Vec3",
         x: 1,
         y: 0,
@@ -257,7 +260,7 @@ export const hash_6e44375b: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378
     }
 
     if (continueBlock) {
-      lambdaBlockResult = ({
+      result = ({
         type: "Vec3",
         x: 1,
         y: 1,
@@ -266,7 +269,7 @@ export const hash_6e44375b: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378
       continueBlock = false;
     }
   } else {
-    lambdaBlockResult = hash_1a074578(({
+    result = hash_1a074578(({
       type: "Vec3",
       x: 1,
       y: 1,
@@ -275,7 +278,7 @@ export const hash_6e44375b: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378
     continueBlock = false;
   }
 
-  return ({ ...lambdaBlockResult,
+  return ({ ...result,
     type: "Vec4",
     w: 1
   } as t_3b941378);

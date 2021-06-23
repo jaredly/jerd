@@ -30,6 +30,7 @@
         ],
         "transform": {
             "\\.jd": "./jest-load-static.js",
+            "\\.txt": "./jest-load-static.js",
             "\\.js$": "babel-jest",
             "\\.ts$": "babel-jest"
         }

@@ -1,50 +1,55 @@
-import { idFromName, idName } from '../../../typing/env';
+import { newSym } from '../../../typing/env';
 import { showLocation } from '../../../typing/typeExpr';
-import {
-    Env,
-    Id,
-    idsEqual,
-    Location,
-    RecordDef,
-    refsEqual,
-    Symbol,
-    symbolsEqual,
-} from '../../../typing/types';
-import { termToGlsl } from '../../glslPrinter';
+import { Env, Id, Symbol } from '../../../typing/types';
+import { debugExpr } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
-import { reUnique } from '../../typeScriptPrinterSimple';
 import { uniquesReallyAreUnique } from '../analyze';
+import { defaultVisitor, transformExpr } from '../transform';
+import { Arg, Expr, OutputOptions, Stmt, Tuple } from '../types';
 import {
-    defaultVisitor,
-    transformBlock,
-    transformExpr,
-    transformLambdaBody,
-    transformStmt,
-    Visitor,
-} from '../transform';
-import {
-    Expr,
-    OutputOptions,
-    Record,
-    RecordSubType,
-    Stmt,
-    Tuple,
-    Type,
-} from '../types';
-import {
-    block,
+    and,
+    arrowFunctionExpression,
+    asBlock,
     callExpression,
-    int,
-    pureFunction,
-    typeFromTermType,
+    var_,
 } from '../utils';
-import { and, asBlock, builtin, iffe } from '../utils';
+import { arraySlices } from './arraySlices';
+import { arraySliceLoopToIndex } from './arraySliceToLoopIndex';
 import { explicitSpreads } from './explicitSpreads';
-import { flattenImmediateCalls } from './flattenImmediateCalls';
-import { inlint } from './inline';
-import { monoconstant } from './monoconstant';
+import { flattenIffe } from './flattenIFFE';
+import { flattenImmediateAssigns } from './flattenImmediateAssigns';
+import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
+import { flattenRecordSpreads } from './flattenRecordSpread';
+import { foldConstantAssignments } from './foldConstantAssignments';
+import { foldSingleUseAssignments } from './foldSingleUseAssignments';
+import { inlineFunctionsCalledWithCapturingLambdas, inlint } from './inline';
+import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
+import {
+    monoconstant,
+    specializeFunctionsCalledWithLambdas,
+} from './monoconstant';
 import { monomorphize } from './monomorphize';
+import { removeUnusedVariables } from './removeUnusedVariables';
 import { optimizeTailCalls } from './tailCall';
+import { transformRepeatedly } from './utils';
+
+export type Context = {
+    id: Id;
+    env: Env;
+    exprs: Exprs;
+    opts: OutputOptions;
+    optimize: Optimizer2;
+};
+
+export const toOldOptimize = (opt: Optimizer2): Optimizer => (
+    env: Env,
+    irOpts: OutputOptions,
+    exprs: Exprs,
+    expr: Expr,
+    id: Id,
+) => opt({ exprs, env, opts: irOpts, id, optimize: opt }, expr);
+
+export type Optimizer2 = (ctx: Context, expr: Expr) => Expr;
 
 export type Optimizer = (
     senv: Env,
@@ -54,54 +59,131 @@ export type Optimizer = (
     id: Id,
 ) => Expr;
 
-const symName = (sym: Symbol) => `${sym.name}$${sym.unique}`;
+export const optimizeRepeatedly = (
+    opt: Optimizer2 | Array<Optimizer2>,
+): Optimizer2 => (ctx: Context, expr: Expr) => {
+    if (Array.isArray(opt)) {
+        opt = combineOpts(opt);
+    }
+    for (let i = 0; i < 100; i++) {
+        const newExpr = opt(ctx, expr);
+        if (newExpr === expr) {
+            return expr;
+        }
+        expr = newExpr;
+        uniquesReallyAreUnique(expr);
+    }
+    throw new Error(`Optimize failed to converge`);
+};
 
-export const optimizeDefine = (
+export const combineOpts = (opts: Array<Optimizer2>): Optimizer2 => (
+    ctx: Context,
+    expr: Expr,
+) => {
+    opts.forEach((fn) => {
+        // console.log('run opt', fn);
+        expr = fn(ctx, expr);
+    });
+    return expr;
+};
+
+export const midOpt = (
+    fn: (env: Env, exprs: Exprs, expr: Expr) => Expr,
+): Optimizer => (env: Env, _: OutputOptions, exprs: Exprs, expr: Expr) =>
+    fn(env, exprs, expr);
+
+export const symName = (sym: Symbol) => sym.unique + '';
+
+export const optimizeDefineNew = (
     env: Env,
     expr: Expr,
     id: Id,
     exprs: Exprs | null,
 ): Expr => {
-    expr = optimizeDefineOld(env, expr, id);
-    if (exprs) {
-        expr = optimizeAggressive(env, exprs, expr, id);
+    const orig = expr;
+    const fns = exprs ? glslOpts : javascriptOpts;
+    const exprss = exprs || {};
+    const opt = optimizeRepeatedly(fns);
+    const ctx: Context = {
+        env,
+        id,
+        exprs: exprss,
+        opts: {},
+        optimize: opt,
+    };
+
+    try {
+        expr = opt(ctx, expr);
+        uniquesReallyAreUnique(expr);
+    } catch (err) {
+        console.log('-- oops --');
+        console.error(err);
+        // Oh no! Inconsistent!
+        // Let's do this again, but more slowly.
+        const opt = optimizeRepeatedly((ctx, expr) => {
+            fns.forEach((fn) => {
+                // const uMax = maxUnique(expr);
+                // if (uMax > ctx.env.local.unique.current) {
+                //     console.log(
+                //         'inlint unique max greater',
+                //         uMax,
+                //         ctx.env.local.unique.current,
+                //     );
+                //     ctx.env.local.unique.current = uMax;
+                // }
+                try {
+                    expr = fn(ctx, expr);
+                    uniquesReallyAreUnique(expr);
+                } catch (err) {
+                    console.log('Offending optimizer');
+                    console.log(fn);
+                    console.log(printToString(debugExpr(env, expr), 100));
+                    console.log(showLocation(err.loc));
+                    throw err;
+                }
+            });
+            return expr;
+        });
+        const ctx: Context = {
+            env,
+            id,
+            exprs: exprss,
+            opts: {},
+            optimize: opt,
+        };
+        expr = opt(ctx, orig);
     }
-    expr = optimizeDefineOld(env, expr, id);
-    if (exprs) {
-        expr = optimizeAggressive(env, exprs, expr, id);
-    }
-    uniquesReallyAreUnique(expr);
     return expr;
 };
 
-export const optimizeDefineOld = (env: Env, expr: Expr, id: Id): Expr => {
-    expr = optimize(env, expr);
-    expr = optimizeTailCalls(env, expr, id);
-    expr = optimize(env, expr);
-    expr = arraySliceLoopToIndex(env, expr);
+export const optimizeDefineOld = (ctx: Context, expr: Expr): Expr => {
+    expr = optimize(ctx, expr);
+    expr = optimizeTailCalls(ctx, expr);
+    expr = optimize(ctx, expr);
+    expr = arraySliceLoopToIndex(ctx, expr);
     return expr;
 };
 
 export type Exprs = {
-    [idName: string]: { expr: Expr; inline: boolean; comment?: string };
+    [idName: string]: {
+        expr: Expr;
+        inline: boolean;
+        source?: { id: Id; kind: string };
+        comment?: string;
+    };
 };
 
-export const optimizeAggressive = (
-    env: Env,
-    exprs: Exprs,
-    expr: Expr,
-    id: Id,
-): Expr => {
-    expr = inlint(env, exprs, expr, id);
+export const optimizeAggressive = (ctx: Context, expr: Expr): Expr => {
+    expr = inlint(ctx, expr);
     // console.log('[after inline]', printToString(termToGlsl(env, {}, expr), 50));
-    expr = monomorphize(env, exprs, expr);
+    expr = monomorphize(ctx, expr);
     // console.log('[after mono]', printToString(termToGlsl(env, {}, expr), 50));
-    expr = monoconstant(env, exprs, expr);
+    expr = monoconstant(ctx, expr);
     // console.log('[after const]', printToString(termToGlsl(env, {}, expr), 50));
     // UGHH This is aweful that I'm adding these all over the place.
     // I should just run through each pass repeatedly until we have no more changes.
     // right?
-    expr = optimize(env, expr);
+    expr = optimize(ctx, expr);
 
     // Ok, now that we've inlined /some/ things,
     // let's inline more things!
@@ -126,84 +208,33 @@ export const optimizeAggressive = (
     return expr;
 };
 
-export const optimize = (env: Env, expr: Expr): Expr => {
-    const transformers: Array<(env: Env, e: Expr) => Expr> = [
+const fromSimpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer2 => (
+    ctx: Context,
+    expr: Expr,
+) => fn(ctx.env, expr);
+
+export const optimize = (ctx: Context, expr: Expr): Expr => {
+    const transformers: Array<(ctx: Context, e: Expr) => Expr> = [
         // OK so this iffe thing is still the only thing
         // helping us with the `if` at the end of
         // shortestDistanceToSurface
-
-        flattenIffe,
+        fromSimpleOpt(flattenIffe),
         removeUnusedVariables,
-        removeNestedBlocksWithoutDefinesAndCodeAfterReturns,
-        foldConstantTuples,
-        removeSelfAssignments,
-        foldConstantAssignments,
+        fromSimpleOpt(removeNestedBlocksWithoutDefinesAndCodeAfterReturns),
+        fromSimpleOpt(foldConstantTuples),
+        fromSimpleOpt(removeSelfAssignments),
+        foldConstantAssignments(false),
         foldSingleUseAssignments,
-        flattenNestedIfs,
-        arraySlices,
-        foldConstantAssignments,
+        fromSimpleOpt(flattenNestedIfs),
+        fromSimpleOpt(arraySlices),
+        foldConstantAssignments(false),
         removeUnusedVariables,
-        flattenNestedIfs,
-        flattenImmediateCalls,
+        fromSimpleOpt(flattenNestedIfs),
+        flattenImmediateCalls2,
     ];
-    transformers.forEach((t) => (expr = t(env, expr)));
+    transformers.forEach((t) => (expr = t(ctx, expr)));
     return expr;
 };
-
-export const optimizer = (visitor: Visitor) => (env: Env, expr: Expr): Expr =>
-    transformRepeatedly(expr, visitor);
-
-// This flattens IFFEs that are the bodies of a lambda expr, or
-// the value of a return statement.
-export const flattenIffe = optimizer({
-    ...defaultVisitor,
-    block: (block) => {
-        const items: Array<Stmt> = [];
-        let changed = false;
-        block.items.forEach((stmt) => {
-            if (
-                stmt.type === 'Return' &&
-                stmt.value.type === 'apply' &&
-                stmt.value.args.length === 0 &&
-                stmt.value.target.type === 'lambda'
-            ) {
-                items.push(...asBlock(stmt.value.target.body).items);
-                changed = true;
-            } else {
-                items.push(stmt);
-            }
-        });
-        return changed ? { ...block, items } : block;
-    },
-    expr: (expr) => {
-        if (
-            expr.type === 'lambda' &&
-            expr.body.type === 'apply' &&
-            expr.body.args.length === 0 &&
-            expr.body.target.type === 'lambda'
-        ) {
-            return {
-                ...expr,
-                body: expr.body.target.body,
-            };
-        }
-        if (
-            expr.type === 'lambda' &&
-            expr.body.type === 'Block' &&
-            expr.body.items.length === 1 &&
-            expr.body.items[0].type === 'Expression' &&
-            expr.body.items[0].expr.type === 'apply' &&
-            expr.body.items[0].expr.target.type === 'lambda' &&
-            expr.body.items[0].expr.args.length === 0
-        ) {
-            return {
-                ...expr,
-                body: expr.body.items[0].expr.target.body,
-            };
-        }
-        return null;
-    },
-});
 
 // TODO: need an `&&` logicOp type. Or just a general binOp type?
 // or something. Maybe have && be a builtin, binop.
@@ -235,34 +266,22 @@ export const flattenNestedIfs = (env: Env, expr: Expr): Expr => {
     });
 };
 
-export const transformRepeatedly = (expr: Expr, visitor: Visitor): Expr => {
-    while (true) {
-        const nexp = transformExpr(expr, visitor);
-        if (nexp === expr) {
-            break;
-        }
-        expr = nexp;
-    }
-    return expr;
-};
-
 export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
     env: Env,
     expr: Expr,
 ): Expr => {
     return transformRepeatedly(expr, {
         ...defaultVisitor,
-        expr: (expr) => {
-            if (
-                expr.type === 'lambda' &&
-                expr.body.type === 'Block' &&
-                expr.body.items.length === 1 &&
-                expr.body.items[0].type === 'Return'
-            ) {
-                return { ...expr, body: expr.body.items[0].value };
-            }
-            return null;
-        },
+        // expr: (expr) => {
+        //     if (
+        //         expr.type === 'lambda' &&
+        //         expr.body.items.length === 1 &&
+        //         expr.body.items[0].type === 'Return'
+        //     ) {
+        //         return { ...expr, body: expr.body.items[0].value };
+        //     }
+        //     return null;
+        // },
         block: (block) => {
             const items: Array<Stmt> = [];
             let changed = false;
@@ -331,129 +350,6 @@ export const foldConstantTuples = (env: Env, expr: Expr): Expr => {
     });
 };
 
-// We need to ensure that
-/*
-let y = 1
-let x = y
-y = 3
-z = x
-*/
-// doesn't end up with z being equal to 3.
-// So we need to ensure that ... "nothing that is used by
-// this thing gets reassigned"?
-export const foldSingleUseAssignments = (env: Env, expr: Expr): Expr => {
-    let usages: { [v: string]: number } = {};
-    let subUses: { [v: string]: { [key: string]: boolean } } = {};
-    transformExpr(expr, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            if (expr.type === 'var') {
-                const n = symName(expr.sym);
-                // console.log('hi', expr.sym, usages[n]);
-                usages[n] = (usages[n] || 0) + 1;
-            }
-            return null;
-        },
-        stmt: (stmt) => {
-            if (stmt.type === 'Assign') {
-                const en = symName(stmt.sym);
-                usages[en] = (usages[en] || 0) + 1;
-
-                // We're reassigning something! Anything that uses
-                // this variable, but that hasn't yet seen its first use,
-                // should be "poisoned".
-                Object.keys(subUses[en] || {}).forEach((k) => {
-                    // Special case: if the value we're assigning to is the
-                    // single-use variable itself, we're fine
-                    if (
-                        stmt.value.type === 'var' &&
-                        symName(stmt.value.sym) === k
-                    ) {
-                        return;
-                    }
-                    if (usages[k] !== 1) {
-                        usages[k] = 2; // disqualify from single-use
-                    }
-                });
-            } else if (stmt.type === 'Define' && stmt.value != null) {
-                const top = symName(stmt.sym);
-                // const subs: {[key: string]: boolean} = {}
-                transformExpr(stmt.value, {
-                    ...defaultVisitor,
-                    expr: (expr) => {
-                        if (expr.type === 'var') {
-                            const en = symName(expr.sym);
-                            if (!subUses[en]) {
-                                subUses[en] = {};
-                            }
-                            subUses[en][top] = true;
-                        }
-                        return null;
-                    },
-                });
-                // subUses[symName(stmt.sym)] = subs
-                // return false;
-            }
-            return null;
-        },
-    });
-    const singles: { [key: string]: boolean } = {};
-    let found = false;
-    Object.keys(usages).forEach((k) => {
-        if (usages[k] === 1) {
-            found = true;
-            singles[k] = true;
-        }
-    });
-    // console.log(usages, singles);
-    if (!found) {
-        return expr;
-    }
-    const defns: { [key: string]: Expr } = {};
-    return transformExpr(expr, {
-        ...defaultVisitor,
-        block: (block) => {
-            const items: Array<Stmt> = [];
-            block.items.forEach((item) => {
-                if (item.type === 'Define' && singles[symName(item.sym)]) {
-                    defns[symName(item.sym)] = item.value!;
-                    return; // skip this
-                }
-                if (
-                    item.type === 'Assign' &&
-                    item.value.type === 'var' &&
-                    symbolsEqual(item.sym, item.value.sym)
-                ) {
-                    return; // x = x, noop
-                }
-                items.push(item);
-            });
-            return items.length !== block.items.length
-                ? { ...block, items }
-                : block;
-        },
-        expr: (value) => {
-            if (value.type === 'var') {
-                const v = defns[symName(value.sym)];
-                if (v != null) {
-                    return v;
-                }
-            }
-            return null;
-        },
-        // stmt: (value) => {
-        //     if (
-        //         (value.type === 'Define' || value.type === 'Assign') &&
-        //         value.value != null &&
-        //         isConstant(value.value)
-        //     ) {
-        //         constants[symName(value.sym)] = value.value;
-        //     }
-        //     return null;
-        // },
-    });
-};
-
 export const removeSelfAssignments = (_: Env, expr: Expr) =>
     transformExpr(expr, {
         ...defaultVisitor,
@@ -469,170 +365,6 @@ export const removeSelfAssignments = (_: Env, expr: Expr) =>
         },
     });
 
-// export const foldConstantAssignments = (env: Env, expr: Expr): Expr => {
-//     const constants: {[v: string]: Expr | null} = {};
-//     return transformExpr(expr, {
-//         ...defaultVisitor,
-//         expr: expr => {
-
-//         },
-//         stmt: stmt => {
-//             if (stmt.type === 'Define') {
-//                 constants[stmt.sym.unique]
-//             }
-//         }
-//     })
-// }
-
-// Ugh ok so I do need to track scopes I guess
-// Yeaht that's the way to do it. hrmmm
-// Or actually I could just recursively call this! yeah that's great.
-export const foldConstantAssignments = (env: Env, topExpr: Expr): Expr => {
-    // hrmmmmmmmmm soooooo hmmmm
-    let constants: { [v: string]: Expr | null } = {};
-    // let tupleConstants: { [v: string]: Tuple } = {};
-    // console.log('>> ', showLocation(topExpr.loc));
-    return transformExpr(topExpr, {
-        ...defaultVisitor,
-        expr: (expr, level) => {
-            // Lambdas that aren't toplevel should invalidate anything they assign to
-            if (expr.type === 'lambda' && level !== 0) {
-                // console.log(
-                //     'lambda at',
-                //     showLocation(expr.loc),
-                //     showLocation(topExpr.loc),
-                //     level,
-                // );
-                // console.log(new Error().stack);
-                const checkAssigns: Visitor = {
-                    ...defaultVisitor,
-                    expr: (expr) => {
-                        // if (expr.type === 'var') {
-                        //     console.log(
-                        //         'inner',
-                        //         expr.sym,
-                        //         constants[expr.sym.unique],
-                        //     );
-                        // }
-                        if (
-                            expr.type === 'var' &&
-                            constants[expr.sym.unique] != null
-                        ) {
-                            return constants[expr.sym.unique];
-                        }
-                        return null;
-                    },
-                    stmt: (stmt) => {
-                        if (stmt.type === 'Assign') {
-                            constants[stmt.sym.unique] = null;
-                        }
-                        return null;
-                    },
-                };
-                let body =
-                    expr.body.type === 'Block'
-                        ? transformStmt(expr.body, checkAssigns)
-                        : transformExpr(expr.body, checkAssigns);
-                if (Array.isArray(body)) {
-                    body = block(body, expr.body.loc);
-                }
-                let changed =
-                    body !== expr.body ? ({ ...expr, body } as Expr) : expr;
-                // console.log(
-                //     'Fold lambda constants',
-                //     showLocation(topExpr.loc),
-                //     showLocation(changed.loc),
-                // );
-                changed = foldConstantAssignments(env, changed);
-                return changed !== expr ? [changed] : false;
-            }
-            if (expr.type === 'handle') {
-                return false;
-            }
-            if (expr.type === 'var') {
-                const v = constants[expr.sym.unique];
-                if (v != null) {
-                    return v;
-                }
-            }
-            return null;
-        },
-        stmt: (stmt) => {
-            // Assigns in if blocks should invalidate the variables
-            if (stmt.type === 'if') {
-                const checkAssigns: Visitor = {
-                    ...defaultVisitor,
-                    expr: (expr) => {
-                        if (expr.type === 'lambda') {
-                            return false;
-                        }
-                        return null;
-                    },
-                    stmt: (stmt) => {
-                        if (stmt.type === 'Assign') {
-                            constants[stmt.sym.unique] = null;
-                        }
-                        return null;
-                    },
-                };
-                transformStmt(stmt.yes, checkAssigns);
-                if (stmt.no) {
-                    transformStmt(stmt.no, checkAssigns);
-                }
-                return false;
-            }
-            // Remove x = x
-            if (
-                stmt.type === 'Assign' &&
-                stmt.value.type === 'var' &&
-                stmt.sym.unique === stmt.value.sym.unique
-            ) {
-                return [];
-            }
-            if (
-                (stmt.type === 'Define' || stmt.type === 'Assign') &&
-                stmt.value != null &&
-                isConstant(stmt.value)
-            ) {
-                constants[stmt.sym.unique] = stmt.value;
-            }
-            return null;
-        },
-    });
-};
-
-export const removeUnusedVariables = (env: Env, expr: Expr): Expr => {
-    const used: { [key: string]: boolean } = {};
-    const visitor: Visitor = {
-        ...defaultVisitor,
-        expr: (value: Expr) => {
-            switch (value.type) {
-                case 'var':
-                    used[symName(value.sym)] = true;
-            }
-            return null;
-        },
-    };
-    if (transformExpr(expr, visitor) !== expr) {
-        throw new Error(`Noop visitor somehow mutated`);
-    }
-    const remover: Visitor = {
-        ...defaultVisitor,
-        block: (block) => {
-            const items = block.items.filter((stmt) => {
-                const unused =
-                    (stmt.type === 'Define' || stmt.type === 'Assign') &&
-                    used[symName(stmt.sym)] !== true;
-                return !unused;
-            });
-            return items.length !== block.items.length
-                ? { ...block, items }
-                : null;
-        },
-    };
-    return transformExpr(expr, remover);
-};
-
 /// Optimizations for go, and possibly other languages
 
 export const goOptimizations = (
@@ -645,30 +377,6 @@ export const goOptimizations = (
     > = [flattenRecordSpreads];
     transformers.forEach((t) => (expr = t(env, opts, expr)));
     return expr;
-};
-
-const hasSpreads = (expr: Record) =>
-    (expr.base.type === 'Concrete' && expr.base.spread != null) ||
-    Object.keys(expr.subTypes).some((k) => expr.subTypes[k].spread != null);
-
-export const flattenRecordSpreads = (
-    env: Env,
-    opts: OutputOptions,
-    expr: Expr,
-): Expr => {
-    return transformRepeatedly(expr, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            if (expr.type !== 'record') {
-                return null;
-            }
-            // nothing to flatten
-            if (!hasSpreads(expr)) {
-                return null;
-            }
-            return flattenRecordSpread(env, opts, expr);
-        },
-    });
 };
 
 export const isConstant = (arg: Expr): boolean => {
@@ -690,523 +398,7 @@ export const isConstant = (arg: Expr): boolean => {
     }
 };
 
-export const flattenRecordSpread = (
-    env: Env,
-    opts: OutputOptions,
-    expr: Record,
-): Expr => {
-    // console.log('flatten');
-    const inits: Array<Stmt> = [];
-
-    const subTypes: { [key: string]: RecordSubType } = { ...expr.subTypes };
-
-    if (expr.base.type === 'Concrete') {
-        const b = expr.base;
-        if (expr.base.spread) {
-            let target: Expr;
-            if (isConstant(expr.base.spread)) {
-                target = expr.base.spread;
-            } else {
-                const v: Symbol = {
-                    name: 'arg_spread',
-                    unique: env.local.unique.current++,
-                };
-                inits.push({
-                    type: 'Define',
-                    sym: v,
-                    value: expr.base.spread,
-                    loc: expr.loc,
-                    is: expr.is,
-                });
-                target = { type: 'var', sym: v, loc: expr.loc, is: expr.is };
-            }
-            const d = env.global.types[idName(expr.base.ref.id)] as RecordDef;
-            const rows: Array<Expr> = expr.base.rows.map((row, i) => {
-                if (row == null) {
-                    return {
-                        type: 'attribute',
-                        target,
-                        ref: b.ref,
-                        idx: i,
-                        loc: expr.loc,
-                        is: typeFromTermType(env, opts, d.items[i]),
-                    };
-                } else {
-                    return row;
-                }
-            });
-            expr = { ...expr, base: { ...expr.base, spread: null, rows } };
-
-            Object.keys(expr.subTypes).forEach((k) => {
-                const subType = expr.subTypes[k];
-                const d = env.global.types[k] as RecordDef;
-                const rows: Array<Expr> = subType.rows.map((row, i) => {
-                    if (row == null) {
-                        return {
-                            type: 'attribute',
-                            // TODO: check if this is complex,
-                            // and if so, make a variable
-                            target,
-                            ref: { type: 'user', id: idFromName(k) },
-                            idx: i,
-                            loc: expr.loc,
-                            is: typeFromTermType(env, opts, d.items[i]),
-                        };
-                    } else {
-                        return row;
-                    }
-                });
-                subTypes[k] = { ...subType, rows };
-            });
-        } else if (expr.base.rows.some((r) => r == null)) {
-            throw new Error(`No spread, but some null`);
-        }
-    } else {
-        throw new Error('variable sorry');
-    }
-
-    Object.keys(expr.subTypes).forEach((k) => {
-        const subType = expr.subTypes[k];
-        if (subType.spread) {
-            let target: Expr;
-            if (isConstant(subType.spread)) {
-                target = subType.spread;
-            } else {
-                const v: Symbol = {
-                    name: 'st' + k,
-                    unique: env.local.unique.current++,
-                };
-                inits.push({
-                    type: 'Define',
-                    sym: v,
-                    value: subType.spread,
-                    loc: subType.spread.loc,
-                    is: {
-                        type: 'ref',
-                        ref: { type: 'user', id: idFromName(k) },
-                        loc: subType.spread.loc,
-                        typeVbls: [],
-                    },
-                });
-                target = { type: 'var', sym: v, loc: expr.loc, is: expr.is };
-            }
-            const d = env.global.types[k] as RecordDef;
-            const rows: Array<Expr> = subType.rows.map((row, i) => {
-                if (row == null) {
-                    return {
-                        type: 'attribute',
-                        // TODO: check if this is complex,
-                        // and if so, make a variable
-                        target,
-                        ref: { type: 'user', id: idFromName(k) },
-                        idx: i,
-                        loc: expr.loc,
-                        is: typeFromTermType(env, opts, d.items[i]),
-                    };
-                } else {
-                    return row;
-                }
-            });
-            subTypes[k] = { ...subTypes[k], spread: null, rows };
-        } else {
-            subTypes[k] = subTypes[k];
-        }
-    });
-    expr = { ...expr, subTypes };
-
-    if (hasSpreads(expr)) {
-        throw new Error('not gone');
-    }
-
-    if (inits.length) {
-        return iffe(env, {
-            type: 'Block',
-            items: inits.concat({
-                type: 'Return',
-                loc: expr.loc,
-                value: expr,
-            }),
-            loc: expr.loc,
-        });
-    } else {
-        return expr;
-    }
-};
-
-export const arraySliceLoopToIndex = (env: Env, expr: Expr): Expr => {
-    if (expr.type !== 'lambda') {
-        // console.log('not a lambda', expr.type);
-        return expr;
-    }
-    // being fairly conservative here
-    if (
-        expr.body.type !== 'Block' ||
-        expr.body.items.length !== 1 ||
-        expr.body.items[0].type !== 'Loop'
-    ) {
-        // console.log('not a block', expr.body.type);
-        return expr;
-    }
-    const arrayArgs = expr.args.filter(
-        (arg) =>
-            arg.type.type === 'ref' &&
-            arg.type.ref.type === 'builtin' &&
-            arg.type.ref.name === 'Array',
-    );
-    if (!arrayArgs.length) {
-        // console.log('no arrays');
-        return expr;
-    }
-    const argMap: { [key: string]: null | boolean } = {};
-    // null = no slice
-    // false = disqualified
-    // true = slice
-    // Valid state transitions:
-    //   null -> true
-    //   null -> false
-    //   true -> false
-    arrayArgs.forEach((a) => (argMap[symName(a.sym)] = null));
-    // IF an array arg is used for anything other than
-    // - arr.length
-    // - arr[idx]
-    // - arr.slice
-    // Then it is disqualified
-    // Also, if it's not used for arr.slice, we don't need to mess
-    transformExpr(expr, {
-        ...defaultVisitor,
-        stmt: (stmt) => {
-            if (
-                stmt.type === 'Assign' &&
-                stmt.value.type === 'slice' &&
-                stmt.value.end === null &&
-                stmt.value.value.type === 'var' &&
-                symbolsEqual(stmt.sym, stmt.value.value.sym)
-            ) {
-                const n = symName(stmt.sym);
-                if (argMap[n] !== false) {
-                    argMap[n] = true;
-                }
-                return false;
-            }
-            return null;
-        },
-        expr: (expr) => {
-            switch (expr.type) {
-                case 'var':
-                    // console.log('Found a far!', expr);
-                    argMap[symName(expr.sym)] = false;
-                    return null;
-                // Slices *are* disqualifying if they're not
-                // a self-assign slice
-                case 'arrayIndex':
-                case 'arrayLen':
-                    if (expr.value.type === 'var') {
-                        // don't recurse, these are valid uses
-                        return false;
-                    }
-                    return null;
-            }
-            return null;
-        },
-    });
-    // I wonder if there's a more general optimization
-    // that I can do that would remove the need for slices
-    // even when it's not self-recursive.......
-    const corrects = arrayArgs.filter((k) => argMap[symName(k.sym)] === true);
-    if (!corrects.length) {
-        // console.log('no corrects', argMap);
-        return expr;
-    }
-    const indexForSym: { [key: string]: { sym: Symbol; type: Type } } = {};
-    const indices: Array<Symbol> = corrects.map((arg) => {
-        const unique = env.local.unique.current++;
-        const s = { name: arg.sym.name + '_i', unique };
-        indexForSym[symName(arg.sym)] = { sym: s, type: int };
-        return s;
-    });
-    const modified: Array<Expr> = [];
-    const stmtTransformer: Visitor = {
-        ...defaultVisitor,
-        stmt: (stmt) => {
-            if (
-                stmt.type === 'Assign' &&
-                stmt.value.type === 'slice' &&
-                stmt.value.end === null &&
-                stmt.value.value.type === 'var' &&
-                symbolsEqual(stmt.sym, stmt.value.value.sym)
-            ) {
-                const n = symName(stmt.sym);
-                if (argMap[n] === true) {
-                    return {
-                        ...stmt,
-                        sym: indexForSym[n].sym,
-                        value: callExpression(
-                            env,
-                            builtin(
-                                '+',
-                                expr.loc,
-                                pureFunction([int, int], int),
-                            ),
-                            [
-                                {
-                                    type: 'var',
-                                    loc: expr.loc,
-                                    sym: indexForSym[n].sym,
-                                    is: indexForSym[n].type,
-                                },
-                                stmt.value.start,
-                            ],
-                            expr.loc,
-                        ),
-                    };
-                }
-                return false;
-            }
-            return null;
-        },
-        expr: (expr) => {
-            switch (expr.type) {
-                case 'arrayIndex': {
-                    if (expr.value.type === 'var') {
-                        const n = symName(expr.value.sym);
-                        if (argMap[n] === true) {
-                            return {
-                                ...expr,
-                                idx: callExpression(
-                                    env,
-                                    builtin(
-                                        '+',
-                                        expr.loc,
-                                        pureFunction([int, int], int),
-                                    ),
-                                    [
-                                        expr.idx,
-                                        {
-                                            type: 'var',
-                                            loc: expr.loc,
-                                            sym: indexForSym[n].sym,
-                                            is: indexForSym[n].type,
-                                        },
-                                    ],
-                                    expr.loc,
-                                ),
-                            };
-                        }
-                    }
-                    return null;
-                }
-                case 'arrayLen':
-                    if (expr.value.type === 'var') {
-                        if (modified.includes(expr)) {
-                            return false;
-                        }
-                        const n = symName(expr.value.sym);
-                        if (argMap[n] === true) {
-                            modified.push(expr);
-                            return callExpression(
-                                env,
-                                builtin(
-                                    '-',
-                                    expr.loc,
-                                    pureFunction([int, int], int),
-                                ),
-                                [
-                                    expr,
-                                    {
-                                        type: 'var',
-                                        loc: expr.loc,
-                                        sym: indexForSym[n].sym,
-                                        is: indexForSym[n].type,
-                                    },
-                                ],
-                                expr.loc,
-                            );
-                        }
-                    }
-                    return null;
-            }
-            return null;
-        },
-    };
-    const items: Array<Stmt> = [];
-    expr.body.items.forEach((item) => {
-        const res = transformStmt(item, stmtTransformer);
-        if (Array.isArray(res)) {
-            items.push(...res);
-        } else {
-            items.push(res);
-        }
-    });
-    return {
-        ...expr,
-        body: {
-            ...expr.body,
-            items: indices
-                .map(
-                    (sym) =>
-                        ({
-                            type: 'Define',
-                            loc: expr.loc,
-                            is: int,
-                            sym,
-                            value: {
-                                type: 'int',
-                                value: 0,
-                                loc: expr.loc,
-                                is: int,
-                            },
-                        } as Stmt),
-                )
-                .concat(items),
-        },
-    };
-};
-
-export const arraySlices = (env: Env, expr: Expr): Expr => {
-    const arrayInfos: {
-        [key: string]: {
-            start: Symbol;
-            src: Symbol;
-        };
-    } = {};
-    const resolve = (
-        sym: Symbol,
-        loc: Location,
-    ): { src: Symbol; start: Expr } | null => {
-        const n = symName(sym);
-        if (!arrayInfos[n]) {
-            return null;
-        }
-        // let {start, src} = arrayInfos[n]
-        let start: Expr = {
-            type: 'var',
-            loc,
-            sym: arrayInfos[n].start,
-            is: int,
-        };
-        let src = arrayInfos[n].src;
-        const nxt = resolve(arrayInfos[n].src, loc);
-        if (nxt != null) {
-            src = nxt.src;
-            start = callExpression(
-                env,
-                builtin('+', expr.loc, pureFunction([int, int], int)),
-                [start, nxt.start],
-                expr.loc,
-            );
-        }
-        return { src, start };
-    };
-
-    return transformExpr(expr, {
-        ...defaultVisitor,
-        expr: (expr) => {
-            switch (expr.type) {
-                case 'slice':
-                    if (expr.value.type === 'var' && expr.end == null) {
-                        const res = resolve(expr.value.sym, expr.loc);
-                        if (res == null) {
-                            return null;
-                        }
-                        return {
-                            ...expr,
-                            value: { ...expr.value, sym: res.src },
-                            start: callExpression(
-                                env,
-                                builtin(
-                                    '+',
-                                    expr.loc,
-                                    pureFunction([int, int], int),
-                                ),
-                                [expr.start, res.start],
-                                expr.loc,
-                            ),
-                        };
-                    }
-                    return null;
-                case 'arrayIndex':
-                    if (expr.value.type === 'var') {
-                        const res = resolve(expr.value.sym, expr.loc);
-                        if (res == null) {
-                            return null;
-                        }
-                        return {
-                            ...expr,
-                            value: { ...expr.value, sym: res.src },
-                            idx: callExpression(
-                                env,
-                                builtin(
-                                    '+',
-                                    expr.loc,
-                                    pureFunction([int, int], int),
-                                ),
-                                [expr.idx, res.start],
-                                expr.loc,
-                            ),
-                        };
-                    }
-                    return null;
-                case 'arrayLen':
-                    if (expr.value.type === 'var') {
-                        const res = resolve(expr.value.sym, expr.loc);
-                        if (res == null) {
-                            return null;
-                        }
-                        return callExpression(
-                            env,
-                            builtin(
-                                '-',
-                                expr.loc,
-                                pureFunction([int, int], int),
-                            ),
-                            [
-                                {
-                                    ...expr,
-                                    value: { ...expr.value, sym: res.src },
-                                },
-                                res.start,
-                            ],
-                            expr.loc,
-                        );
-                    }
-                    return null;
-            }
-            return null;
-        },
-        stmt: (stmt) => {
-            // TODO assign as well
-            if (
-                stmt.type === 'Define' &&
-                stmt.value != null &&
-                stmt.value.type === 'slice' &&
-                stmt.value.end == null &&
-                stmt.value.value.type === 'var'
-            ) {
-                const sym = {
-                    name: stmt.sym.name + '_i',
-                    unique: env.local.unique.current++,
-                };
-                arrayInfos[symName(stmt.sym)] = {
-                    start: sym,
-                    src: stmt.value.value.sym,
-                };
-                return [
-                    stmt,
-                    {
-                        type: 'Define',
-                        is: int,
-                        loc: stmt.loc,
-                        sym,
-                        value: stmt.value.start,
-                    },
-                ];
-            }
-            return null;
-        },
-    });
-};
-
-const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
+export const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
     env,
     opts,
     exprs,
@@ -1214,68 +406,106 @@ const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
     id,
 ) => fn(env, expr);
 
-const javascriptOpts: Array<Optimizer> = [
-    simpleOpt(optimize),
-    (env, _, __, expr, id) => optimizeTailCalls(env, expr, id),
-    simpleOpt(optimize),
-    simpleOpt(arraySliceLoopToIndex),
+const javascriptOpts: Array<Optimizer2> = [
+    optimize,
+    optimizeTailCalls,
+    optimize,
+    arraySliceLoopToIndex,
 ];
 
-export const optimizeDefineNew = (
-    env: Env,
-    expr: Expr,
-    id: Id,
-    exprs: Exprs | null,
-): Expr => {
-    const fns = exprs ? glslOpts : javascriptOpts;
-    const exprss = exprs || {};
-    let changed = true;
-    const opts = {};
-    let passes = 0;
-    const changeCount: { [key: string]: number } = {};
-    while (changed) {
-        if (passes++ > 200) {
-            console.log(changeCount);
-            throw new Error(`Optimization passes failing to converge`);
-        }
-        let old = expr;
-        fns.forEach((fn) => {
-            const nexpr = fn(env, opts, exprss, expr, id);
-            if (nexpr !== expr) {
-                expr = nexpr;
-                changeCount[fn + ''] = (changeCount[fn + ''] || 0) + 1;
-            }
-        });
-        changed = old !== expr;
+export const ensureToplevelFunctionsAreLambdas = (ctx: Context, expr: Expr) => {
+    if (expr.is.type !== 'lambda' || expr.type === 'lambda') {
+        return expr;
     }
-
-    // expr = optimizeDefineOld(env, expr, id);
-    // if (exprs) {
-    //     expr = optimizeAggressive(env, exprs, expr, id);
-    // }
-    // expr = optimizeDefineOld(env, expr, id);
-    // if (exprs) {
-    //     expr = optimizeAggressive(env, exprs, expr, id);
-    // }
-    uniquesReallyAreUnique(expr);
-    return expr;
+    // TODO: fn types having args would be nice so we
+    // can name these args here.
+    const args: Array<Arg> = expr.is.args.map((t, i) => ({
+        type: t,
+        sym: newSym(ctx.env, 'arg' + i),
+        loc: expr.loc,
+    }));
+    return arrowFunctionExpression(
+        args,
+        asBlock(
+            callExpression(
+                ctx.env,
+                expr,
+                args.map((arg) => var_(arg.sym, arg.loc, arg.type)),
+                expr.loc,
+            ),
+        ),
+        expr.loc,
+    );
 };
 
-// const aggressive: Array<Optimizer>
+/* So, things we need to handle lambdas completely:
+  - inline calls that return functions
+  - outline local lambdas! buuut how do we deal
+    with lambdas that close over things? um I think the idea
+    there was to just fold those up? Or something? Or maybe
+    turn them into functions that take a record? Yeah so
+    we'd need an Expr type that is "lambda with scope vbls"
+    and then when applying it or whatever, we might end up
+    passing the vbls in as a record or something...
+    I think I'll need an IRType that's "lambda with scope'
+    as well... so that I can track function arguments
+    correctly? maybe? idk.
+        - see, if we're compiling for Zig, then I can have
+          function pointers, but not closures.
+          And so I'll need to specialize any functions
+          that use a closured function. But non-closured
+          functions can be handled as-is.
 
-const glslOpts: Array<Optimizer> = [
-    (env, opts, _, expr, __) => explicitSpreads(env, opts, expr),
+    Yeah, so maybe the process is
+
+  - turn all lambdas that close over things into
+    lambda-with-scope.
+  - inline any calls that return functions
+  - flatten immediate calls
+  - specialize any functions that take functions as arguments
+
+  I think that's it?
+*/
+
+/*
+Ok, so somewhat end-game level stuff:
+if I have a top-level thing that isn't /const/able,
+I think the *right* way to do it would be to compute it
+in main(), and then pass it around to anything that needs it.
+but that's a bottom-up rather than a top-down thing like the
+lambda constantization is, right?
+oh wait; because toplevel things have to be pure (yay) they
+/must/ be precomutable, and so I can precompute them during
+compilation!
+
+Now I do have to think about what that would look like
+for things that are lambdas.
+like `const plus2 = plus(2)`
+
+ok we'll get to that when we need to.
+
+
+
+*/
+
+const glslOpts: Array<Optimizer2> = [
+    specializeFunctionsCalledWithLambdas,
+    inlineCallsThatReturnFunctions,
+    flattenImmediateCalls2,
+    foldSingleUseAssignments,
+    foldConstantAssignments(true),
+    flattenImmediateAssigns,
+    // flattenImmediateCalls,
+    removeUnusedVariables,
+
+    inlineFunctionsCalledWithCapturingLambdas,
+    ensureToplevelFunctionsAreLambdas,
+    inlineCallsThatReturnFunctions,
+    explicitSpreads,
+    optimizeTailCalls,
     ...javascriptOpts,
-    (env, _, exprs, expr, id) => inlint(env, exprs, expr, id),
-    // // console.log('[after inline]', printToString(termToGlsl(env, {}, expr), 50));
-    (env, _, exprs, expr, __) => monomorphize(env, exprs, expr),
-    (env, _, exprs, expr, __) => monoconstant(env, exprs, expr),
-    simpleOpt(optimize),
-    // // console.log('[after mono]', printToString(termToGlsl(env, {}, expr), 50));
-    // expr = monoconstant(env, exprs, expr),
-    // // console.log('[after const]', printToString(termToGlsl(env, {}, expr), 50));
-    // // UGHH This is aweful that I'm adding these all over the place.
-    // // I should just run through each pass repeatedly until we have no more changes.
-    // // right?
-    // expr = optimize(env, expr),
+    inlint,
+    monomorphize,
+    // monoconstant,
+    optimize,
 ];

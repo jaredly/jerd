@@ -181,7 +181,13 @@ const ShaderGLSLBuffers = ({
 
     const shaders = React.useMemo(() => {
         if (term.is.type === 'lambda') {
-            return [compileGLSL(term, envWithTerm(env, term), 0)];
+            try {
+                return [compileGLSL(term, envWithTerm(env, term), 0)];
+            } catch (err) {
+                console.error(err);
+                setError(err);
+                return null;
+            }
         }
         if (term.type !== 'Tuple') {
             throw new Error(`Expression must be a tuple literal`);
@@ -195,6 +201,7 @@ const ShaderGLSLBuffers = ({
                 ),
             );
         } catch (err) {
+            console.error(err);
             setError(err);
             return null;
         }
@@ -390,7 +397,14 @@ const ShaderGLSLBuffers = ({
     }
 
     return (
-        <div>
+        <div
+            onMouseDown={(evt) => {
+                evt.stopPropagation();
+            }}
+            onClick={(evt) => {
+                evt.stopPropagation();
+            }}
+        >
             <div
                 css={{
                     position: 'relative',
@@ -561,7 +575,7 @@ const plugins: RenderPlugins = {
                     env={env}
                     evalEnv={evalEnv}
                     term={term}
-                    startPaused={startPaused}
+                    startPaused={true}
                 />
             );
         },
@@ -587,7 +601,7 @@ const plugins: RenderPlugins = {
                     env={env}
                     evalEnv={evalEnv}
                     term={term}
-                    startPaused={startPaused}
+                    startPaused={true}
                 />
             );
         },

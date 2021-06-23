@@ -154,6 +154,14 @@ export type Assign = {
     loc: Loc;
 };
 export type ReturnStmt = { type: 'Return'; value: Expr; loc: Loc };
+
+export type LoopBounds = {
+    end: Expr;
+    op: '<=' | '<' | '>' | '>=';
+    step: Apply;
+    sym: Symbol;
+};
+
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
     | Define
@@ -165,20 +173,24 @@ export type Stmt =
     // or do I just want to optimize a recursive function w/ switch +
     // array destructuring?
     // or I could just have Array.forEach
-    | { type: 'Loop'; body: Block; loc: Loc }
+    // Ok but also: optional :somethingsomething: "Bounds"?
+    //
+    | {
+          type: 'Loop';
+          body: Block;
+          loc: Loc;
+          bounds?: LoopBounds;
+      }
     | { type: 'Continue'; loc: Loc }
+    | { type: 'Break'; loc: Loc }
     | Block;
 export type Block = { type: 'Block'; items: Array<Stmt>; loc: Loc };
 
 export const isTerm = (expr: Expr, id: Id) =>
     expr.type === 'term' && idsEqual(id, expr.id);
 
-export const typeForLambdaExpression = (body: Expr | Block): Type | null => {
-    if (body.type === 'Block') {
-        return returnTypeForStmt(body);
-    } else {
-        return body.is;
-    }
+export const typeForLambdaExpression = (body: Block): Type | null => {
+    return returnTypeForStmt(body);
 };
 
 export const returnTypeForStmt = (stmt: Stmt): Type | null => {
@@ -188,6 +200,7 @@ export const returnTypeForStmt = (stmt: Stmt): Type | null => {
         case 'MatchFail':
         case 'Expression':
         case 'Define':
+        case 'Break':
             return null;
         case 'Return':
             return stmt.value.is;
@@ -233,6 +246,7 @@ export type Literal =
     | { type: 'int'; value: number; loc: Loc; is: Type }
     | { type: 'boolean'; value: boolean; loc: Loc; is: Type }
     | { type: 'float'; value: number; loc: Loc; is: Type };
+export type Var = { type: 'var'; sym: Symbol; loc: Loc; is: Type };
 
 export type Expr =
     | Literal
@@ -240,7 +254,7 @@ export type Expr =
     | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
     | { type: 'term'; id: Id; loc: Loc; is: Type }
     | { type: 'genTerm'; loc: Loc; is: Type; id: string }
-    | { type: 'var'; sym: Symbol; loc: Loc; is: Type }
+    | Var
     | {
           type: 'slice';
           value: Expr;
@@ -276,12 +290,12 @@ export type Expr =
           target: Expr;
           effect: Id;
           loc: Loc;
-          pure: { arg: Symbol; body: Expr | Block; argType: Type };
+          pure: { arg: Symbol; body: Block; argType: Type };
           cases: Array<{
               constr: number;
               args: Array<{ sym: Symbol; type: Type }>;
               k: { sym: Symbol; type: Type };
-              body: Expr | Block;
+              body: Block;
           }>;
           done: Expr | null;
           is: Type;
@@ -356,7 +370,7 @@ export type LambdaExpr = {
     type: 'lambda';
     args: Array<Arg>;
     res: Type;
-    body: Expr | Block;
+    body: Block;
     loc: Loc;
     is: LambdaType | CPSLambdaType;
     tags?: Array<string>;

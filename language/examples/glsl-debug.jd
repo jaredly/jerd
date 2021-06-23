@@ -66,3 +66,46 @@ const superSample = (sdf: (env: GLSLEnv, pos: Vec2) => Vec4) =>
 const m = superSample(
     sdf: marchNormals(sceneSDF: (env: GLSLEnv, pos: Vec3): float ={}> length(v: pos) - 0.5),
 )
+
+const something = (x: int) => (y: int) => x + y
+const other = something(2)
+const third = (fn: (int) => int) => 2 + fn(3)
+const final = () => {
+    third(something(1)) + other(1)
+}
+
+/*
+Sooo how does function inlining work
+when the function we're passing in needs scope?
+
+Again, a top-down approach is best.
+ALSO we can replace the function argument
+with the scope argument
+so that's kinda nice.
+
+In a Zig world, we'd have to make the function
+take two arguments (one for the fn pointer, one
+for the scope). And we'd specialize on the type
+of the scope record.
+
+
+
+hmmm in making these tests, there are some things
+that I definitely can't represent...
+like the "continue variables"...
+how do I manage that?
+Do I make a new parser for the ir whatsits?
+🤔 might not be too bad actually.
+and then I could just print out the difference as json or something, right?
+hmmmmmm how much explicit typing do I need.....
+
+
+ORrr wait,
+simpler would be:
+make a /printer/ for the ir
+and compare the resulting strings?
+
+yeah that sounds good.
+
+*/
+

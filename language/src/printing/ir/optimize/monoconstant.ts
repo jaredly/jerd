@@ -1,29 +1,20 @@
 // Well first pass, we can just monomorphize types, like people usually do.
 // ugh nvm that's complicated.
 
-import { hashObject, idFromName, idName } from '../../../typing/env';
-import { showLocation } from '../../../typing/typeExpr';
-import { Env, Id } from '../../../typing/types';
+import { hashObject, idName } from '../../../typing/env';
 import { defaultVisitor, transformExpr } from '../transform';
-import { Block, Expr, LambdaExpr, LambdaType, Stmt } from '../types';
-import {
-    applyTypeVariables,
-    block,
-    makeTypeVblMapping,
-    subtTypeVars,
-} from '../utils';
-import { maxUnique } from './inline';
+import { Block, Expr, LambdaExpr, Stmt } from '../types';
 import {
     findCapturedVariables,
     liftLambdas,
     liftToTopLevel,
 } from './liftlambdas';
-import { Exprs, optimizeAggressive, optimizeDefine } from './optimize';
+import { Context } from './optimize';
 
-export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
-    // console.log('const');
-    // let outerMax = maxUnique(expr);
-    expr = liftLambdas(env, exprs, expr);
+export const specializeFunctionsCalledWithLambdas = (
+    ctx: Context,
+    expr: Expr,
+): Expr => {
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
@@ -42,7 +33,7 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
                         arg.type === 'lambda' &&
                         findCapturedVariables(arg).length === 0
                     ) {
-                        return { arg: liftToTopLevel(env, exprs, arg), i };
+                        return { arg: liftToTopLevel(ctx, arg), i };
                     }
                     return { arg, i };
                 });
@@ -54,48 +45,18 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
                 return null;
             }
             const lambdaArgs: Array<{ arg: Expr; i: number }> = largs;
-            // const lambdaArgs: Array<{
-            //     arg: Expr;
-            //     i: number;
-            // }> = expr.args
-            //     .map((arg, i) => ({ arg, i }))
-            //     .filter((a) => a.arg.is.type === 'lambda');
-            // .map((arg) => {
-            //     if (arg.arg.type === 'lambda') {
-            //         // toplevel that folks
-            //         if (findCapturedVariables(arg.arg).length) {
-            //             return arg;
-            //         }
-            //         const hash = hashObject(arg.arg);
-            //         const id: Id = { hash, size: 1, pos: 0 };
-            //         exprs[hash] = { expr: arg.arg, inline: false };
-            //         return {
-            //             ...arg,
-            //             arg: {
-            //                 type: 'term',
-            //                 id,
-            //                 loc: arg.arg.loc,
-            //                 is: arg.arg.is,
-            //             },
-            //         };
-            //     } else {
-            //         return arg;
-            //     }
-            // });
             const indices: { [key: number]: true } = {};
             lambdaArgs.forEach((arg) => (indices[arg.i] = true));
             const newHash = hashObject({
                 base: expr.target.id,
                 lambdaArgs: lambdaArgs,
             });
-            const target = exprs[idName(expr.target.id)];
+            const target = ctx.exprs[idName(expr.target.id)];
             if (!target) {
                 console.error('no target?', expr.target.id);
                 return null;
             }
             const l = target.expr as LambdaExpr;
-            env.global.idNames[newHash] =
-                env.global.idNames[idName(expr.target.id)];
 
             // MODIFY:
             // types
@@ -125,11 +86,17 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
             let newTerm: Expr = { ...l, is, args, body };
             const id = { hash: newHash, size: 1, pos: 0 };
             // console.log('optimizing it all up', newHash);
-            newTerm = optimizeDefine(env, newTerm, id, exprs);
+            newTerm = ctx.optimize({ ...ctx, id }, newTerm);
+            // newTerm = optimizeDefineNew(env, newTerm, id, exprs);
 
-            exprs[newHash] = {
+            // TODO: Sources could just be part of Exprs
+            ctx.exprs[newHash] = {
                 inline: false,
                 expr: newTerm,
+                source: {
+                    id: expr.target.id,
+                    kind: 'specialization',
+                },
             };
             return {
                 ...expr,
@@ -143,22 +110,16 @@ export const monoconstant = (env: Env, exprs: Exprs, expr: Expr): Expr => {
     });
 };
 
-const wrapBlock = (body: Expr | Block, stmts: Array<Stmt>): Block => {
-    if (body.type === 'Block') {
-        return {
-            ...body,
-            items: stmts.concat(body.items),
-        };
-    } else {
-        return block(
-            stmts.concat([
-                {
-                    type: 'Return',
-                    value: body,
-                    loc: body.loc,
-                },
-            ]),
-            body.loc,
-        );
-    }
+export const monoconstant = (ctx: Context, expr: Expr): Expr => {
+    // console.log('const');
+    // let outerMax = maxUnique(expr);
+    expr = liftLambdas(ctx, expr);
+    return specializeFunctionsCalledWithLambdas(ctx, expr);
+};
+
+const wrapBlock = (body: Block, stmts: Array<Stmt>): Block => {
+    return {
+        ...body,
+        items: stmts.concat(body.items),
+    };
 };

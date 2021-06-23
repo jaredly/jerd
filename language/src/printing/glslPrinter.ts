@@ -1,20 +1,21 @@
 // Ok
 
 // import * as t from '@babel/types';
+import { Location } from '../parsing/parser';
 import {
     expressionDeps,
     expressionTypeDeps,
-    sortAllDeps,
     sortAllDepsPlain,
-    sortTerms,
 } from '../typing/analyze';
-import { idFromName, idName, refName } from '../typing/env';
+import { idFromName, idName } from '../typing/env';
+import { LocatedError } from '../typing/errors';
+import * as preset from '../typing/preset';
 // import { bool } from '../typing/preset';
 import {
-    EffectRef,
     Env,
     getAllSubTypes,
     Id,
+    nullLocation,
     RecordDef,
     Reference,
     selfEnv,
@@ -22,64 +23,34 @@ import {
     Term,
     Type,
     typesEqual,
-    nullLocation,
 } from '../typing/types';
-import * as preset from '../typing/preset';
-import { typeScriptPrelude } from './fileToTypeScript';
-import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
+import { glslTester } from './glslTester';
+import { uniquesReallyAreUnique } from './ir/analyze';
 import * as ir from './ir/intermediateRepresentation';
+import { toplevelRecordAttribute } from './ir/optimize/inline';
+import { Exprs, isConstant, optimizeDefineNew } from './ir/optimize/optimize';
+import { defaultVisitor, transformExpr } from './ir/transform';
 import {
-    Exprs,
-    isConstant,
-    optimizeAggressive,
-    optimizeDefine,
-    optimizeDefineNew,
-} from './ir/optimize/optimize';
-import {
-    Loc,
-    Type as IRType,
-    OutputOptions as IOutputOptions,
-    Expr,
-    Record,
     Apply,
+    Expr,
+    Loc,
+    OutputOptions as IOutputOptions,
+    Record,
 } from './ir/types';
 import {
-    bool,
     builtin,
     float,
-    handlersType,
-    handlerSym,
+    hasUndefinedReferences,
     int,
     pureFunction,
     typeFromTermType,
     void_,
 } from './ir/utils';
 import { liftEffects } from './pre-ir/lift-effectful';
-import { args, atom, block, id, items, PP, printToString } from './printer';
 import * as pp from './printer';
-import { declarationToPretty, enumToPretty, termToPretty } from './printTsLike';
-import { optimizeAST } from './typeScriptOptimize';
-import {
-    printType,
-    recordMemberSignature,
-    typeIdToString,
-    typeToAst,
-    typeVblsToParameters,
-} from './typeScriptTypePrinter';
-import { effectConstructorType } from './ir/cps';
-import { getEnumReferences, showLocation } from '../typing/typeExpr';
-import { Location } from '../parsing/parser';
-import { defaultVisitor, transformExpr } from './ir/transform';
-import { uniquesReallyAreUnique } from './ir/analyze';
-import { LocatedError } from '../typing/errors';
-import {
-    maxUnique,
-    recordAttributeName,
-    termToTs,
-} from './typeScriptPrinterSimple';
-import { explicitSpreads } from './ir/optimize/explicitSpreads';
-import { toplevelRecordAttribute } from './ir/optimize/inline';
-import { glslTester } from './glslTester';
+import { args, atom, block, items, PP, printToString } from './printer';
+import { declarationToPretty } from './printTsLike';
+import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
 
 export type OutputOptions = {
     // readonly scope?: string;
@@ -278,17 +249,7 @@ export const declarationToGlsl = (
                 false,
             ),
             atom(' '),
-            block(
-                term.body.type === 'Block'
-                    ? term.body.items.map((item) => stmtToGlsl(env, opts, item))
-                    : [
-                          stmtToGlsl(env, opts, {
-                              type: 'Return',
-                              loc: term.body.loc,
-                              value: term.body,
-                          }),
-                      ],
-            ),
+            block(term.body.items.map((item) => stmtToGlsl(env, opts, item))),
         ]);
     } else {
         // if (!isBuiltin(term.is) || isLiteral(term)) {
@@ -317,6 +278,26 @@ export const stmtToGlsl = (
 ): PP => {
     switch (stmt.type) {
         case 'Loop':
+            if (stmt.bounds) {
+                return items([
+                    atom('for '),
+                    items([
+                        atom('(; '),
+                        symToGlsl(env, opts, stmt.bounds.sym),
+                        atom(' '),
+                        atom(stmt.bounds.op),
+                        atom(' '),
+                        termToGlsl(env, opts, stmt.bounds.end),
+                        atom('; '),
+                        symToGlsl(env, opts, stmt.bounds.sym),
+                        atom(' = '),
+                        termToGlsl(env, opts, stmt.bounds.step),
+                        atom(')'),
+                    ]),
+                    atom(' '),
+                    stmtToGlsl(env, opts, stmt.body),
+                ]);
+            }
             return items([
                 atom('for '),
                 atom('(int i=0; i<10000; i++) '),
@@ -329,6 +310,8 @@ export const stmtToGlsl = (
         // ]);
         case 'Continue':
             return atom('continue');
+        case 'Break':
+            return atom('break');
         case 'if':
             return items([
                 atom('if ('),
@@ -538,6 +521,8 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             return items([atom(expr.op), termToGlsl(env, opts, expr.inner)]);
         case 'float':
             return atom(expr.value.toFixed(5).replace(/0+$/, '0'));
+        case 'boolean':
+            return atom(expr.value + '');
         case 'int':
         case 'string':
             return atom(expr.value.toString());
@@ -581,9 +566,7 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             return items([
                 atom('lambda-woops'),
                 args(expr.args.map((arg) => symToGlsl(env, opts, arg.sym))),
-                expr.body.type === 'Block'
-                    ? stmtToGlsl(env, opts, expr.body)
-                    : block([termToGlsl(env, opts, expr.body)]),
+                stmtToGlsl(env, opts, expr.body),
             ]);
         case 'eqLiteral':
             return items([
@@ -712,7 +695,10 @@ export const assembleItemsForFile = (
         term = liftEffects(senv, term);
         let irTerm = ir.printTerm(senv, irOpts, term);
         try {
-            uniquesReallyAreUnique(irTerm);
+            const undefinedUses = uniquesReallyAreUnique(irTerm);
+            if (undefinedUses.length > 0) {
+                throw new Error(`Undefined var!`);
+            }
         } catch (err) {
             const outer = new LocatedError(
                 term.location,
@@ -725,6 +711,24 @@ export const assembleItemsForFile = (
         irTerm = optimization(senv, irOpts, irTerms, irTerm, id);
 
         irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
+
+        try {
+            const undefinedUses = uniquesReallyAreUnique(irTerm);
+            if (undefinedUses.length > 0) {
+                throw new Error(`Undefined var!`);
+            }
+        } catch (err) {
+            const outer = new LocatedError(
+                term.location,
+                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+            ).wrap(err);
+            throw outer;
+        }
+
+        const unrefs = hasUndefinedReferences(irTerm);
+        // if (unrefs.length) {
+        //     throw new Error(`bad news bears`);
+        // }
 
         const shouldInline =
             !['bool', 'float', 'int', 'ref', 'lambda'].includes(irTerm.type) ||
@@ -754,10 +758,19 @@ export const assembleItemsForFile = (
             ...defaultVisitor,
             expr: (expr) => {
                 if (expr.type === 'term') {
-                    deps[idName(expr.id)] = true;
-                    toWalk.push(idName(expr.id));
+                    const raw = idName(expr.id);
+                    // Recursion, ignore
+                    if (raw === next) {
+                        return null;
+                    }
+                    deps[raw] = true;
+                    toWalk.push(raw);
                 }
                 if (expr.type === 'genTerm') {
+                    // Recursion, ignore
+                    if (expr.id === next) {
+                        return null;
+                    }
                     deps[expr.id] = true;
                     toWalk.push(expr.id);
                 }
@@ -768,6 +781,22 @@ export const assembleItemsForFile = (
     }
 
     const inOrder = sortAllDepsPlain(irDeps).filter((id) => usedAfterOpt[id]);
+
+    // const extraIdNames: { [id: string]: string } = {};
+    inOrder.forEach((id) => {
+        if (irTerms[id].source) {
+            env.global.idNames[id] = `${
+                env.global.idNames[idName(irTerms[id].source!.id)]
+            }_${irTerms[id].source!.kind}`;
+        }
+    });
+    // const envWithNames = {
+    //     ...env,
+    //     global: {
+    //         ...env.global,
+    //         idNames: { ...env.global.idNames, ...extraIdNames },
+    //     },
+    // };
 
     return { inOrder, irTerms };
 };
@@ -1439,7 +1468,7 @@ export const fileToGlsl = (
     return generateShader(env, opts, irOpts, mainId, buffers.map(idFromName));
 };
 
-const hasInvalidGLSL = (expr: Expr) => {
+export const hasInvalidGLSL = (expr: Expr) => {
     let found: Loc | null = null;
     // Toplevel record not allowed
     if (
@@ -1448,6 +1477,12 @@ const hasInvalidGLSL = (expr: Expr) => {
         !builtinTypes[idName(expr.base.ref.id)]
     ) {
         return expr.loc;
+    }
+    // Functions can't have a lambda as an argument
+    if (expr.type === 'lambda') {
+        if (expr.args.some((arg) => arg.type.type === 'lambda')) {
+            return expr.loc;
+        }
     }
     if (
         expr.type === 'lambda' &&
@@ -1462,6 +1497,12 @@ const hasInvalidGLSL = (expr: Expr) => {
     const top = expr;
     transformExpr(expr, {
         ...defaultVisitor,
+        stmt: (stmt) => {
+            if (stmt.type === 'Define' && stmt.is.type === 'lambda') {
+                found = stmt.loc;
+            }
+            return null;
+        },
         expr: (expr) => {
             if (expr === top) {
                 return null;

@@ -447,26 +447,23 @@ const rec shortestDistanceToSurface#56314282 = (
 */
 export const hash_56314282: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number, arg_1: number, arg_2: t_9f1c0644, arg_3: t_9f1c0644, arg_4: number, arg_5: number, arg_6: number) => number = (sceneSDF: (arg_0: number, arg_1: t_9f1c0644) => number, iTime: number, eye: t_9f1c0644, marchingDirection: t_9f1c0644, start: number, end: number, stepsLeft: number) => {
   while (true) {
-    if (stepsLeft <= 0) {
-      return end;
+    let dist: number = sceneSDF(iTime, hash_1c6fdd91.hb99b22d8_0(eye, hash_c4a91006.h1de4e4c0_0(start, marchingDirection)));
+
+    if (dist < hash_ec7f8d1c) {
+      return start;
     } else {
-      let dist: number = sceneSDF(iTime, hash_1c6fdd91.hb99b22d8_0(eye, hash_c4a91006.h1de4e4c0_0(start, marchingDirection)));
+      let depth: number = start + dist;
 
-      if (dist < hash_ec7f8d1c) {
-        return start;
+      if (depth >= end) {
+        return end;
       } else {
-        let depth: number = start + dist;
-
-        if (depth >= end) {
-          return end;
-        } else {
-          start = depth;
-          stepsLeft = stepsLeft - 1;
-          continue;
-        }
+        start = depth;
+        continue;
       }
     }
   }
+
+  return end;
 };
 
 /**
@@ -989,14 +986,11 @@ const rec volumetric#359cb0c1 = (
 */
 export const hash_359cb0c1: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number, arg_1: number, arg_2: t_43802a16, arg_3: t_9f1c0644, arg_4: t_9f1c0644, arg_5: number, arg_6: t_9f1c0644, arg_7: number, arg_8: number, arg_9: number) => number = (sceneSDF: (arg_0: number, arg_1: t_9f1c0644) => number, iTime: number, seed: t_43802a16, light$3: t_9f1c0644, eye$4: t_9f1c0644, dist$5: number, dir: t_9f1c0644, current: number, left$8: number, total: number) => {
   while (true) {
-    if (left$8 <= 0) {
-      return current;
-    } else {
-      current = current + hash_6354c64c(sceneSDF, iTime, light$3, eye$4, dist$5, hash_6f186ad1.hAs_0(left$8) / total, dir, left$8);
-      left$8 = left$8 - 1;
-      continue;
-    }
+    current = current + hash_6354c64c(sceneSDF, iTime, light$3, eye$4, dist$5, hash_6f186ad1.hAs_0(left$8) / total, dir, left$8);
+    continue;
   }
+
+  return current;
 };
 
 /**
@@ -1288,7 +1282,12 @@ const fishingBoueys#4d821b9e = (
         stepsLeft: MAX_MARCHING_STEPS#62404440,
     );
     if dist#:10 >#builtin MAX_DIST#0ce717e6 -#builtin EPSILON#ec7f8d1c {
-        Vec4#3b941378{z#9f1c0644#0: 0.0, x#43802a16#0: 1.0, y#43802a16#1: 1.0, w#3b941378#0: 1.0};
+        Vec4#3b941378{
+            z#9f1c0644#0: 0.0,
+            x#43802a16#0: 1.0,
+            y#43802a16#1: 1.0,
+            w#3b941378#0: 1.0,
+        };
     } else {
         const worldPosForPixel#:11 = eye#:6 
             +#1c6fdd91#b99b22d8#0 dist#:10 *#c4a91006#1de4e4c0#0 dir#:9;
@@ -1357,13 +1356,12 @@ export const hash_4d821b9e: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number
       w: 1
     } as t_3b941378);
   } else {
-    let samples: number = 10;
     let brightness: number = hash_359cb0c1(sceneSDF, iTime, hash_6d631644.hb99b22d8_0(hash_090f77e7.h5ac12902_0(fragCoord, iResolution), iTime / 1000), ({
       type: "Vec3",
       x: 0.15 + sin(iTime / 2) / 1,
       y: 0,
       z: 0.05
-    } as t_9f1c0644), uCamera, dist$10, worldDir, 0, hash_184a69ed.hAs_0(samples), samples) * 3 / samples;
+    } as t_9f1c0644), uCamera, dist$10, worldDir, 0, hash_184a69ed.hAs_0(10), 10) * 3 / 10;
     return ({ ...hash_1d31aa6e.h1de4e4c0_0(hash_1d31aa6e.h1de4e4c0_0(hash_1d31aa6e.h1de4e4c0_0(hash_0678f03c, brightness), brightness), brightness),
       type: "Vec4",
       w: 1

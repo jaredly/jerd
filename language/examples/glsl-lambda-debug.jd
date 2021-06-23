@@ -1,0 +1,407 @@
+@ffi type Vec2 = {
+    x: float,
+    y: float,
+}
+
+@ffi type Vec3 = {
+    ...Vec2,
+    z: float,
+}
+
+@ffi type Vec4 = {
+    ...Vec3,
+    w: float,
+}
+
+@ffi type GLSLEnv = {
+    time: float,
+    resolution: Vec2,
+    camera: Vec3,
+    mouse: Vec2,
+}
+
+const length = (v: Vec3): float ={}> sqrt(
+    v.x * v.x 
+            + v.y * v.y 
+        + v.z * v.z,
+)
+
+const ScaleVec3Rev = Div<Vec3, float, Vec3>{
+    "/": (v: Vec3, scale: float): Vec3 ={}> Vec3{
+        x: v.x / scale,
+        y: v.y / scale,
+        z: v.z / scale,
+    },
+}
+
+const EPSILON = 0.0001
+
+const ScaleVec3 = Mul<float, Vec3, Vec3>{
+    "*": (scale: float, v: Vec3): Vec3 ={}> Vec3{
+        x: v.x * scale,
+        y: v.y * scale,
+        z: v.z * scale,
+    },
+}
+
+const AddSubVec3 = AddSub<Vec3, Vec3, Vec3>{
+    "+": (one: Vec3, two: Vec3): Vec3 ={}> Vec3{
+        x: one.x + two.x,
+        y: one.y + two.y,
+        z: one.z + two.z,
+    },
+    "-": (one: Vec3, two: Vec3): Vec3 ={}> Vec3{
+        x: one.x - two.x,
+        y: one.y - two.y,
+        z: one.z - two.z,
+    },
+}
+
+const normalize = (v: Vec3): Vec3 ={}> v 
+    / length(v)
+
+const rec shortestDistanceToSurface = (
+    sceneSDF: (GLSLEnv, Vec3) ={}> float,
+    env: GLSLEnv,
+    eye: Vec3,
+    marchingDirection: Vec3,
+    start: float,
+    end: float,
+    stepsLeft: int,
+): float ={}> {
+    const dist = sceneSDF(
+        env,
+        eye + start * marchingDirection,
+    );
+    if dist < EPSILON {
+        start;
+    } else {
+        const depth = start + dist;
+        if depth >= end || stepsLeft <= 0 {
+            end;
+        } else {
+            shortestDistanceToSurface#self(
+                sceneSDF,
+                env,
+                eye,
+                marchingDirection,
+                depth,
+                end,
+                stepsLeft - 1,
+            );
+        };
+    };
+}
+
+const distance = (one: Vec3, two: Vec3): float ={}> length(
+    v: two - one,
+)
+
+const dot = (a: Vec4, b: Vec4): float ={}> {
+    a.x * b.x 
+                + a.y * b.y 
+            + a.z * b.z 
+        + a.w * b.w;
+}
+
+const vec4 = (
+    x: float,
+    y: float,
+    z: float,
+    w: float,
+): Vec4 ={}> Vec4{
+    z: z,
+    x: x,
+    y: y,
+    w: w,
+}
+
+const NegVec3 = Neg<Vec3, Vec3>{
+    "-": (v: Vec3): Vec3 ={}> Vec3{
+        x: -v.x,
+        y: -v.y,
+        z: -v.z,
+    },
+}
+
+const cross = (one: Vec3, two: Vec3): Vec3 ={}> Vec3{
+    x: one.y * two.z 
+        - two.y * one.z,
+    y: one.z * two.x 
+        - two.z * one.x,
+    z: one.x * two.y 
+        - two.x * one.y,
+}
+
+const vec3 = (v: Vec2, z: float): Vec3 ={}> Vec3{
+    ...v,
+    z: z,
+}
+
+const radians = (degrees: float): float ={}> degrees / 180.0 
+    * PI
+
+const ScaleVec2Rev = Div<Vec2, float, Vec2>{
+    "/": (v: Vec2, scale: float): Vec2 ={}> Vec2{
+        x: v.x / scale,
+        y: v.y / scale,
+    },
+}
+
+const AddSubVec2 = AddSub<Vec2, Vec2, Vec2>{
+    "+": (one: Vec2, two: Vec2): Vec2 ={}> Vec2{
+        x: one.x + two.x,
+        y: one.y + two.y,
+    },
+    "-": (one: Vec2, two: Vec2): Vec2 ={}> Vec2{
+        x: one.x - two.x,
+        y: one.y - two.y,
+    },
+}
+
+const volumetricSample = (
+    sceneSDF: (GLSLEnv, Vec3) ={}> float,
+    env: GLSLEnv,
+    light: Vec3,
+    eye: Vec3,
+    dist: float,
+    percent: float,
+    dir: Vec3,
+    left: int,
+): float ={}> {
+    const rdist = percent * dist;
+    const sample = eye + rdist * dir;
+    const lightDist = distance(one: sample, two: light);
+    const toLight = sample - light;
+    const marchToLight = shortestDistanceToSurface(
+        sceneSDF,
+        env,
+        eye: sample,
+        marchingDirection: -1.0 * normalize(v: toLight),
+        start: 0.0,
+        end: lightDist,
+        stepsLeft: 255,
+    );
+    if marchToLight >= lightDist - 0.1 {
+        dist / pow(1.0 + lightDist, 2.0);
+    } else {
+        0.0;
+    };
+}
+
+const IntAsFloat = As<int, float>{as: intToFloat}
+
+const MatByVector = Mul<Mat4, Vec4, Vec4>{
+    "*": (mat: Mat4, vec: Vec4): Vec4 ={}> Vec4{
+        z: dot(a: mat.r3, b: vec),
+        x: dot(a: mat.r1, b: vec),
+        y: dot(a: mat.r2, b: vec),
+        w: dot(a: mat.r4, b: vec),
+    },
+}
+
+const xyz = (v: Vec4): Vec3 ={}> Vec3{
+    x: v.x,
+    y: v.y,
+    z: v.z,
+}
+
+const viewMatrix = (eye: Vec3, center: Vec3, up: Vec3): Mat4 ={}> {
+    const f = normalize(v: center - eye);
+    const s = normalize(v: cross(one: f, two: up));
+    const u = cross(one: s, two: f);
+    Mat4{
+        r1: Vec4{...s, w: 0.0},
+        r2: Vec4{...u, w: 0.0},
+        r3: Vec4{...NegVec3."-"(f), w: 0.0},
+        r4: vec4(x: 0.0, y: 0.0, z: 0.0, w: 1.0),
+    };
+}
+
+const rayDirection = (
+    fieldOfView: float,
+    size: Vec2,
+    fragCoord: Vec2,
+): Vec3 ={}> {
+    const xy = fragCoord - size / 2.0;
+    const z = size.y 
+        / tan(radians(degrees: fieldOfView) / 2.0);
+    normalize(v: vec3(v: xy, z: -z));
+}
+
+const vec3 = (x: float): Vec3 ={}> Vec3{
+    x: x,
+    y: x,
+    z: x,
+}
+
+const vec4 = (v: Vec3, w: float): Vec4 ={}> Vec4{
+    ...v,
+    w: w,
+}
+
+const FloatAsInt = As<float, int>{as: floatToInt}
+
+const MulVec2 = Div<Vec2, Vec2, Vec2>{
+    "/": (v: Vec2, scale: Vec2): Vec2 ={}> Vec2{
+        x: v.x / scale.x,
+        y: v.y / scale.y,
+    },
+}
+
+const AddSubVec2_ = AddSub<Vec2, float, Vec2>{
+    "+": (one: Vec2, two: float): Vec2 ={}> Vec2{
+        x: one.x + two,
+        y: one.y + two,
+    },
+    "-": (one: Vec2, two: float): Vec2 ={}> Vec2{
+        x: one.x - two,
+        y: one.y - two,
+    },
+}
+
+const rec volumetricStepped = (
+    sceneSDF: (GLSLEnv, Vec3) ={}> float,
+    env: GLSLEnv,
+    seed: Vec2,
+    light: Vec3,
+    eye: Vec3,
+    dist: float,
+    dir: Vec3,
+    current: float,
+    left: int,
+    total: float,
+): float ={}> {
+    if left <= 0 {
+        current;
+    } else {
+        const percent = left as float / total;
+        const sample = volumetricSample(
+            sceneSDF,
+            env,
+            light,
+            eye,
+            dist,
+            percent,
+            dir,
+            left,
+        );
+        volumetricStepped#self(
+            sceneSDF,
+            env,
+            seed,
+            light,
+            eye,
+            dist,
+            dir,
+            current + sample,
+            left - 1,
+            total,
+        );
+    };
+}
+
+const ScaleVec3_ = Mul<Vec3, float, Vec3>{
+    "*": (v: Vec3, scale: float): Vec3 ={}> Vec3{
+        x: v.x * scale,
+        y: v.y * scale,
+        z: v.z * scale,
+    },
+}
+
+const vec4 = (x: float): Vec4 ={}> Vec4{
+    z: x,
+    x: x,
+    y: x,
+    w: x,
+}
+
+const getWorldDir = (
+    resolution: Vec2,
+    coord: Vec2,
+    eye: Vec3,
+    fieldOfView: float,
+): Vec3 ={}> {
+    const viewDir = rayDirection(
+        fieldOfView,
+        size: resolution,
+        fragCoord: coord,
+    );
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    const viewToWorld = viewMatrix(
+        eye,
+        center: Vec3{x: 0.0, y: 0.0, z: 0.0},
+        up: Vec3{x: 0.0, y: 1.0, z: 0.0},
+    );
+    xyz(
+        v: viewToWorld * Vec4{...viewDir, w: 0.0},
+    );
+}
+
+const marchVolumeStepped = (
+    sceneSDF: (GLSLEnv, Vec3) ={}> float,
+    lightPos: (GLSLEnv) ={}> Vec3,
+    exposure: float,
+    samples: float,
+): (GLSLEnv, Vec2) ={}> Vec4 ={}> (
+    env: GLSLEnv,
+    coord: Vec2,
+): Vec4 ={}> {
+    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
+    const worldDir = getWorldDir(
+        resolution: env.resolution,
+        coord,
+        eye,
+        fieldOfView: 45.0,
+    );
+    const maxDist = 100.0;
+    const dist = shortestDistanceToSurface(
+        sceneSDF,
+        env,
+        eye,
+        marchingDirection: worldDir,
+        start: 0.0,
+        end: maxDist,
+        stepsLeft: 255,
+    );
+    if dist > maxDist - EPSILON {
+        vec4(x: 0.0);
+    } else {
+        const worldPos = eye + worldDir * dist;
+        const light = lightPos(env);
+        const brightness = volumetricStepped(
+                    sceneSDF,
+                    env,
+                    seed: coord / env.resolution 
+                        + env.time / 1000.0,
+                    light,
+                    eye,
+                    dist,
+                    dir: worldDir,
+                    current: 0.0,
+                    left: samples as int,
+                    total: samples,
+                ) 
+                * exposure 
+            / samples;
+        vec4(
+            v: vec3(x: 1.0) * brightness 
+                    * brightness 
+                * brightness,
+            w: 1.0,
+        );
+    };
+}
+
+@main
+const unnamed = {
+    const m = marchVolumeStepped(
+        sceneSDF: (env: GLSLEnv, pos: Vec3): float ={}> {
+            length(v: pos) - 2.0;
+        },
+        lightPos: (env: GLSLEnv): Vec3 ={}> vec3(x: 0.0),
+        exposure: 3.0,
+        samples: 100.0,
+    );
+    m;
+}

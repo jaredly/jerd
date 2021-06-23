@@ -393,6 +393,11 @@ const precedence = [
     ['^'],
 ];
 
+export const opPrefixes = ([] as Array<string>).concat(...precedence);
+
+// TODO: something more than this though
+export const isBinop = (name: string) => opPrefixes.includes(name[0]);
+
 export const getOpLevel = (op: string | null) => {
     if (!op) {
         return null;

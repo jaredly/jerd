@@ -58,12 +58,14 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 } as t_553b4b8e<number>);
 
 /*
-y#7df35068(doit: z#f4c397d2, v: 30) ==#9275f914#553b4b8e#0 60 +#builtin 2 +#builtin 5 +#builtin 2
+y#7df35068(doit: z#f4c397d2, v: 30) 
+    ==#9275f914#553b4b8e#0 60 +#builtin 2 +#builtin 5 +#builtin 2
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_7df35068(hash_f4c397d2, 30), 60 + 2 + 5 + 2);
 
 /*
-y#7df35068(doit: h#15ece66a, v: 30) ==#9275f914#553b4b8e#0 60 -#builtin 2 +#builtin 5 -#builtin 2
+y#7df35068(doit: h#15ece66a, v: 30) 
+    ==#9275f914#553b4b8e#0 60 -#builtin 2 +#builtin 5 -#builtin 2
 */
 assertCall(hash_9275f914.h553b4b8e_0, hash_7df35068(hash_15ece66a, 30), 60 - 2 + 5 - 2);
 

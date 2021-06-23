@@ -2,7 +2,15 @@
 // and if they aren't effectful, which I think is guarenteed,
 // then yeah we can just drop them.
 
-import { Block, Expr, LambdaExpr, RecordSubType, Stmt } from './types';
+import {
+    Apply,
+    Block,
+    Expr,
+    LambdaExpr,
+    LoopBounds,
+    RecordSubType,
+    Stmt,
+} from './types';
 
 // export const transformExpr = (expr: Expr, )
 
@@ -10,10 +18,19 @@ export type ExprVisitor = (
     value: Expr,
     level?: number,
 ) => Expr | null | false | [Expr];
+
 export type Visitor = {
     expr: ExprVisitor;
     block: (value: Block) => Block | null | false;
-    stmt: (value: Stmt) => Stmt | null | false | Array<Stmt>;
+    stmt: (
+        value: Stmt,
+        visitor: Visitor,
+    ) =>
+        | Stmt
+        | null
+        | false
+        | Array<Stmt>
+        | { type: '*stop*'; stmt: Stmt | Array<Stmt> };
 };
 
 export const defaultVisitor: Visitor = {
@@ -21,6 +38,21 @@ export const defaultVisitor: Visitor = {
     block: (block) => null,
     stmt: (stmt) => null,
 };
+
+// export const transformAny = (v: Expr | Stmt, visitor: Visitor) => {
+//     switch (v.type) {
+//         case 'Expression':
+//            case 'Define':
+//                case 'Assign':
+//                    case 'if':
+//                        case 'MatchFail':
+//                            case 'Return':
+//                                case 'Loop':
+//                                    case 'Continue':
+//                                        case 'Block':
+//                                            return transformOneStmt
+//     }
+// }
 
 export const transformExpr = (
     expr: Expr,
@@ -239,14 +271,11 @@ export const transformLambdaExpr = (
 };
 
 export const transformLambdaBody = (
-    body: Expr | Block,
+    body: Block,
     visitor: Visitor,
     level: number,
-): Expr | Block => {
-    if (body.type === 'Block') {
-        return transformBlock(body, visitor, level + 1);
-    }
-    return transformExpr(body, visitor, level + 1);
+): Block => {
+    return transformBlock(body, visitor, level + 1);
 };
 
 export const transformBlock = (
@@ -275,12 +304,30 @@ export const transformBlock = (
     return changed ? { ...block, items } : block;
 };
 
+// export const transformBlock = (
+//     stmt: Block,
+//     visitor: Visitor,
+//     level: number = 0,
+// ): Stmt | Array<Stmt> => {
+//     const tr = visitor.stmt(stmt);
+//     if (tr === false) {
+//         return stmt;
+//     }
+//     if (tr != null) {
+//         if (Array.isArray(tr)) {
+//             return tr.map((s) => transformOneStmt(s, visitor, level + 1));
+//         }
+//         stmt = tr;
+//     }
+//     return transformOneStmt(stmt, visitor, level + 1);
+// };
+
 export const transformStmt = (
     stmt: Stmt,
     visitor: Visitor,
     level: number = 0,
 ): Stmt | Array<Stmt> => {
-    const tr = visitor.stmt(stmt);
+    const tr = visitor.stmt(stmt, visitor);
     if (tr === false) {
         return stmt;
     }
@@ -288,9 +335,24 @@ export const transformStmt = (
         if (Array.isArray(tr)) {
             return tr.map((s) => transformOneStmt(s, visitor, level + 1));
         }
+        if (tr.type === '*stop*') {
+            return tr.stmt;
+        }
         stmt = tr;
     }
     return transformOneStmt(stmt, visitor, level + 1);
+};
+
+export const transformBounds = (
+    bounds: LoopBounds,
+    visitor: Visitor,
+    level: number,
+): LoopBounds => {
+    const end = transformExpr(bounds.end, visitor, level);
+    const step = transformExpr(bounds.step, visitor, level) as Apply;
+    return end !== bounds.end || step !== bounds.step
+        ? { ...bounds, end, step }
+        : bounds;
 };
 
 // NOTE: Does not visit the stmt!
@@ -318,10 +380,16 @@ export const transformOneStmt = (
         }
         case 'Loop': {
             const body = transformBlock(stmt.body, visitor, level);
-            return body !== stmt.body ? { ...stmt, body } : stmt;
+            const bounds = stmt.bounds
+                ? transformBounds(stmt.bounds, visitor, level)
+                : stmt.bounds;
+            return body !== stmt.body || bounds !== stmt.bounds
+                ? { ...stmt, body, bounds }
+                : stmt;
         }
         case 'Continue':
         case 'MatchFail':
+        case 'Break':
             return stmt;
         case 'if': {
             const cond = transformExpr(stmt.cond, visitor, level);

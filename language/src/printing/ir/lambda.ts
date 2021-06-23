@@ -10,6 +10,7 @@ import {
     getEffects,
 } from '../../typing/types';
 import {
+    asBlock,
     builtinType,
     cpsArrowFunctionExpression,
     lambdaTypeFromTermType,
@@ -117,8 +118,8 @@ export const printLambda = (
 export const withExecutionLimit = (
     env: Env,
     opts: OutputOptions,
-    body: Block | Expr,
-): Expr | Block => {
+    body: Block,
+): Block => {
     if (!opts.limitExecutionTime) {
         return body;
     }
@@ -140,9 +141,7 @@ export const withExecutionLimit = (
                     body.loc,
                 ),
             },
-            ...(body.type === 'Block'
-                ? body.items
-                : [{ type: 'Return', loc: body.loc, value: body } as Stmt]),
+            ...body.items,
         ],
     };
     // return t.blockStatement([
@@ -294,12 +293,12 @@ export const printLambdaBody = (
     opts: OutputOptions,
     term: Term,
     cps: null | CPS,
-): Block | Expr => {
+): Block => {
     if (cps == null) {
         if (term.type === 'sequence') {
             return sequenceToBlock(env, opts, term, null);
         } else {
-            return printTerm(env, opts, term);
+            return asBlock(printTerm(env, opts, term));
         }
     } else {
         if (term.type === 'sequence') {

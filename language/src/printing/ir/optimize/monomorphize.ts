@@ -6,11 +6,11 @@ import { Env } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, LambdaExpr, LambdaType } from '../types';
 import { applyTypeVariables, makeTypeVblMapping, subtTypeVars } from '../utils';
-import { maxUnique } from './inline';
-import { Exprs } from './optimize';
+// import { maxUnique } from './inline';
+import { Context, Exprs } from './optimize';
 
-export const monomorphize = (env: Env, exprs: Exprs, expr: Expr): Expr => {
-    let outerMax = maxUnique(expr);
+export const monomorphize = ({ env, exprs }: Context, expr: Expr): Expr => {
+    // let outerMax = maxUnique(expr);
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {

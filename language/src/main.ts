@@ -7,17 +7,7 @@ import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
 import { hashObject, idName } from './typing/env';
-import parse, {
-    Define,
-    Expression,
-    Location,
-    Toplevel,
-} from './parsing/parser';
-import {
-    fileToTypescript,
-    OutputOptions,
-} from './printing/typeScriptPrinterSimple';
-import { removeTypescriptTypes } from './printing/typeScriptOptimize';
+import parse, { Toplevel } from './parsing/parser';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
 import {
@@ -26,17 +16,12 @@ import {
     Id,
     newWithGlobal,
     Self,
-    Term,
     Type,
     TypeConstraint,
     typesEqual,
 } from './typing/types';
 import { printToString } from './printing/printer';
-import {
-    termToPretty,
-    typeToPretty,
-    toplevelToPretty,
-} from './printing/printTsLike';
+import { termToPretty, typeToPretty } from './printing/printTsLike';
 import {
     typeDefine,
     typeTypeDefn,
@@ -281,28 +266,6 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
         }
     }
 };
-type Init = {
-    typedBuiltins: { [key: string]: Type };
-    initialEnv: GlobalEnv;
-    builtinNames: Array<string>;
-};
-
-const loadInit = (): Init => {
-    const tsBuiltins = loadBuiltins();
-    console.log('loaded builtins');
-    const typedBuiltins: { [key: string]: Type } = {};
-    Object.keys(tsBuiltins).forEach((b) => {
-        const v = tsBuiltins[b];
-        if (v != null) {
-            typedBuiltins[b] = v;
-        }
-    });
-    const builtinNames = Object.keys(tsBuiltins);
-    const initialEnv = loadPrelude(typedBuiltins);
-    console.log('loaded prelude');
-
-    return { typedBuiltins, initialEnv, builtinNames };
-};
 
 export type Flags = {
     assert: boolean;
@@ -415,7 +378,7 @@ import { LocatedError, TypeError } from './typing/errors';
 // import { fileToGo } from './printing/goPrinter';
 import { getTypeError } from './typing/getTypeError';
 import { loadBuiltins } from './printing/loadBuiltins';
-import { loadPrelude } from './printing/loadPrelude';
+import { Init, loadInit, loadPrelude } from './printing/loadPrelude';
 import { OutputOptions as IOutputOptions } from './printing/ir/types';
 import { reprintToplevel } from './reprint';
 import { processFile } from './processFile';

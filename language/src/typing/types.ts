@@ -7,7 +7,7 @@ import { applyEffectVariables } from './typeExpr';
 import { getTypeError } from './getTypeError';
 
 export type Location = { start: Loc; end: Loc; source?: string; idx?: number };
-export const nullLoc: Loc = { line: 0, column: 0, offset: 0 };
+export const nullLoc: Loc = { line: 1, column: 0, offset: 0 };
 
 export const locToStart = (loc: Location): Location => ({
     ...loc,

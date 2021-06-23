@@ -116,10 +116,10 @@ const m#b92dd000 = {
 ```
 */
 export const hash_b92dd000: number = (() => {
-  let lambdaBlockResult: number = (null as any);
+  let result: number;
   let y: number = hash_3306c09c(4);
-  lambdaBlockResult = y + 2 + y;
-  let x: number = hash_3306c09c(lambdaBlockResult + 3);
+  result = y + 2 + y;
+  let x: number = hash_3306c09c(result + 3);
   return x + 3 + x;
 })();
 
@@ -158,10 +158,10 @@ assert((() => {
     let b_i: number = 1;
 
     if (a.length - b_i >= 1) {
-      let c_i: number = 1;
+      let c: Array<number> = a.slice(1 + b_i);
 
-      if (a.length - (c_i + b_i) == 1) {
-        return hash_9275f914.h553b4b8e_0(a[0], 1) && hash_9275f914.h553b4b8e_0(a[0 + b_i], 2) && hash_9275f914.h553b4b8e_0(a[0 + (c_i + b_i)], 3);
+      if (a.length - (1 + b_i) == 1) {
+        return hash_9275f914.h553b4b8e_0(a[0], 1) && hash_9275f914.h553b4b8e_0(a[0 + b_i], 2) && hash_9275f914.h553b4b8e_0(a[0 + (1 + b_i)], 3);
       }
 
       return false;

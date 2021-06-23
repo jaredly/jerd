@@ -104,7 +104,8 @@ export const hash_5bafb634: number = 1 - (2 - 1);
 
 /**
 ```
-const deep#dcfc5c32 = 1.0 *#builtin (2.0 -#builtin 3.0 *#builtin (4.0 +#builtin 2.0 *#builtin 10.0))
+const deep#dcfc5c32 = 1.0 
+    *#builtin (2.0 -#builtin 3.0 *#builtin (4.0 +#builtin 2.0 *#builtin 10.0))
 ```
 */
 export const hash_dcfc5c32: number = 1 * (2 - 3 * (4 + 2 * 10));

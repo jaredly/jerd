@@ -1,55 +1,32 @@
-import { idFromName, idName } from '../../../typing/env';
-import {
-    Env,
-    Id,
-    idsEqual,
-    RecordDef,
-    refsEqual,
-    Symbol,
-    symbolsEqual,
-} from '../../../typing/types';
-import { termToGlsl } from '../../glslPrinter';
-import { printToString } from '../../printer';
-import { reUnique } from '../../typeScriptPrinterSimple';
+import { Env, Id, Symbol, symbolsEqual } from '../../../typing/types';
 import {
     defaultVisitor,
     transformBlock,
-    transformExpr,
     transformLambdaBody,
-    transformStmt,
-    Visitor,
 } from '../transform';
 import {
     Apply,
     Block,
-    Define,
     Expr,
     isTerm,
-    LambdaExpr,
-    OutputOptions,
-    Record,
-    RecordSubType,
+    LoopBounds,
     ReturnStmt,
     Stmt,
-    Tuple,
-    Type,
+    Var,
 } from '../types';
-import {
-    callExpression,
-    define,
-    handlerSym,
-    int,
-    pureFunction,
-    typeFromTermType,
-} from '../utils';
-import { and, asBlock, builtin, iffe } from '../utils';
-import { flattenImmediateCalls } from './flattenImmediateCalls';
-import { inlint } from './inline';
-import { monoconstant } from './monoconstant';
-import { monomorphize } from './monomorphize';
+import { asBlock } from '../utils';
+import { Context } from './optimize';
 
-export const hasTailCall = (body: Block | Expr, self: Id): boolean => {
-    let found = false;
+export const hasTailCall = (body: Block, self: Id) => {
+    const res = collectTailCalls(body, self);
+    return res.calls.length > 0 && !res.hasLoop;
+};
+
+export const collectTailCalls = (
+    body: Block,
+    self: Id,
+): { calls: Array<Array<Expr>>; hasLoop: boolean } => {
+    let calls: Array<Array<Expr>> = [];
     let hasLoop = false;
     transformLambdaBody(
         body,
@@ -57,7 +34,7 @@ export const hasTailCall = (body: Block | Expr, self: Id): boolean => {
             ...defaultVisitor,
             stmt: (stmt) => {
                 if (isSelfTail(stmt, self)) {
-                    found = true;
+                    calls.push(((stmt as ReturnStmt).value as Apply).args);
                 } else if (stmt.type === 'Loop') {
                     hasLoop = true;
                 }
@@ -74,7 +51,7 @@ export const hasTailCall = (body: Block | Expr, self: Id): boolean => {
         },
         0,
     );
-    return found && !hasLoop;
+    return { calls, hasLoop };
 };
 
 const isSelfTail = (stmt: Stmt, self: Id) =>
@@ -82,37 +59,204 @@ const isSelfTail = (stmt: Stmt, self: Id) =>
     stmt.value.type === 'apply' &&
     isTerm(stmt.value.target, self);
 
-export const optimizeTailCalls = (env: Env, expr: Expr, self: Id) => {
+export const optimizeTailCalls = (ctx: Context, expr: Expr) => {
     if (expr.type === 'lambda') {
         const body = tailCallRecursion(
-            env,
+            ctx.env,
             expr.body,
             expr.args.map((a) => a.sym),
-            self,
+            ctx.id,
         );
         return body !== expr.body ? { ...expr, body } : expr;
     }
     return expr;
 };
 
+const cmps = ['<', '<=', '>', '>='];
+const flips: { [key: string]: string } = {
+    '<': '>=',
+    '<=': '>',
+    '>': '<=',
+    '>=': '<',
+};
+const steps = ['+', '-'];
+
+export const findBounds = (
+    body: Block,
+    argNames: Array<Symbol>,
+    id: Id,
+): undefined | { bounds: LoopBounds; body: Block; after: Block } => {
+    const item = body.items[0];
+    if (body.items.length !== 1 || item.type !== 'if' || !item.no) {
+        return;
+    }
+    const cond = item.cond;
+    if (
+        cond.type !== 'apply' ||
+        cond.args.length !== 2 ||
+        cond.target.type !== 'builtin' ||
+        !cmps.includes(cond.target.name)
+    ) {
+        return;
+    }
+
+    const yesRes = collectTailCalls(item.yes, id);
+    const noRes = collectTailCalls(item.no, id);
+    const yes = yesRes.calls.length && !yesRes.hasLoop;
+    const no = noRes.calls.length && !noRes.hasLoop;
+    // must be either one or the other
+    if (yes === no) {
+        return;
+    }
+
+    const op = yes ? cond.target.name : flips[cond.target.name];
+
+    const calls = yesRes.calls.concat(noRes.calls);
+
+    // Here are the args that are constant
+    const constArgs = argNames
+        .filter((sym, i) => {
+            return calls.every((args) => {
+                const arg = args[i];
+                return arg.type === 'var' && symbolsEqual(arg.sym, sym);
+            });
+        })
+        .map((name) => name.unique);
+
+    const nonConst = argNames
+        .filter((sym) => !constArgs.includes(sym.unique))
+        .map((sym) => sym.unique);
+
+    // One of the sides should be a non-constant argument
+    // the other side should either be a constant argument, or a literal
+
+    const left = cond.args[0];
+    const right = cond.args[1];
+
+    const leftConst = isConstant(left, constArgs);
+    const rightConst = isConstant(right, constArgs);
+
+    // must be either one or the other
+    if (leftConst === rightConst) {
+        return;
+    }
+
+    const leftNonConst =
+        left.type === 'var' && nonConst.includes(left.sym.unique);
+    const rightNonConst =
+        right.type === 'var' && nonConst.includes(right.sym.unique);
+
+    if (leftNonConst === rightNonConst) {
+        return;
+    }
+
+    const cmp = leftConst ? left : right;
+    const counter = (leftConst ? right : left) as Var;
+
+    let step: null | false | Apply = null;
+    const counterIdx = argNames.findIndex(
+        (sym) => sym.unique === counter.sym.unique,
+    );
+    calls.forEach((args) => {
+        if (step === false) {
+            return;
+        }
+        const arg = args[counterIdx];
+        if (
+            arg.type !== 'apply' ||
+            arg.target.type !== 'builtin' ||
+            arg.args.length !== 2 ||
+            !steps.includes(arg.target.name)
+        ) {
+            step = false;
+            return;
+        }
+        // TODO: Support right-hand-side e.g. `1 + x`
+        if (
+            arg.args[0].type !== 'var' ||
+            arg.args[0].sym.unique !== counter.sym.unique
+        ) {
+            step = false;
+            return;
+        }
+        if (!isConstant(arg.args[1], constArgs)) {
+            step = false;
+            return;
+        }
+        if (step != null && !stepsEqual(step, arg)) {
+            step = false;
+            return;
+        }
+        step = arg;
+    });
+
+    if (step === false || step === null) {
+        return;
+    }
+
+    return {
+        bounds: {
+            sym: counter.sym,
+            end: cmp,
+            op: op as any,
+            step,
+        },
+        body: yes ? item.yes : item.no!,
+        after: yes ? item.no : item.yes!,
+    };
+};
+
+const sideEqual = (a: Expr, b: Expr) => {
+    if (a.type !== b.type) {
+        return false;
+    }
+    if (a.type === 'int' || a.type === 'float') {
+        return a.value === (b as any).value;
+    }
+    if (a.type === 'var') {
+        return a.sym.unique === (b as Var).sym.unique;
+    }
+    return false;
+};
+
+const stepsEqual = (a: Apply, b: Apply) => {
+    if (a.args.length !== 2 || b.args.length !== 2) {
+        return false;
+    }
+    if (a.target.type !== 'builtin' || b.target.type !== 'builtin') {
+        return false;
+    }
+    if (a.target.name !== b.target.name) {
+        return false;
+    }
+    return sideEqual(a.args[0], b.args[0]) && sideEqual(a.args[1], b.args[1]);
+};
+
+const isConstant = (v: Expr, consts: Array<number>) =>
+    isNumericLiteral(v) || (v.type === 'var' && consts.includes(v.sym.unique));
+
+const isNumericLiteral = (v: Expr) => v.type === 'int' || v.type === 'float';
+
 export const tailCallRecursion = (
     env: Env,
-    body: Block | Expr,
+    body: Block,
     argNames: Array<Symbol>,
     self: Id,
-): Block | Expr => {
+): Block => {
     if (!hasTailCall(body, self)) {
         return body;
     }
+    const bounds = findBounds(body, argNames, self);
     return {
         type: 'Block',
         loc: body.loc,
-        items: [
+        items: ([
             // This is where we would define any de-slicers
             {
                 type: 'Loop',
                 loc: body.loc,
-                body: transformBlock(asBlock(body), {
+                bounds: bounds ? bounds.bounds : undefined,
+                body: transformBlock(bounds ? bounds.body : body, {
                     ...defaultVisitor,
                     block: (block) => {
                         if (!block.items.some((s) => isSelfTail(s, self))) {
@@ -140,6 +284,16 @@ export const tailCallRecursion = (
                                     return sym;
                                 });
                                 vbls.forEach((sym, i) => {
+                                    if (
+                                        bounds &&
+                                        symbolsEqual(
+                                            bounds.bounds.sym,
+                                            argNames[i],
+                                        )
+                                    ) {
+                                        // Skip this one, we've handled it
+                                        return;
+                                    }
                                     items.push({
                                         type: 'Assign',
                                         sym: argNames[i],
@@ -162,6 +316,6 @@ export const tailCallRecursion = (
                     },
                 }),
             },
-        ],
+        ] as Array<Stmt>).concat(bounds ? bounds.after.items : []),
     };
 };

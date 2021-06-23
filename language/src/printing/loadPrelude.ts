@@ -21,3 +21,26 @@ export const loadPrelude = (builtins: { [key: string]: Type }): GlobalEnv => {
     // });
     return typeFile(parsed, presetEnv(builtins), 'prelude.jd').env.global;
 };
+
+export type Init = {
+    typedBuiltins: { [key: string]: Type };
+    initialEnv: GlobalEnv;
+    builtinNames: Array<string>;
+};
+
+export const loadInit = (): Init => {
+    const tsBuiltins = loadBuiltins();
+    console.log('loaded builtins');
+    const typedBuiltins: { [key: string]: Type } = {};
+    Object.keys(tsBuiltins).forEach((b) => {
+        const v = tsBuiltins[b];
+        if (v != null) {
+            typedBuiltins[b] = v;
+        }
+    });
+    const builtinNames = Object.keys(tsBuiltins);
+    const initialEnv = loadPrelude(typedBuiltins);
+    console.log('loaded prelude');
+
+    return { typedBuiltins, initialEnv, builtinNames };
+};
