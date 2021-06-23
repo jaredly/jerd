@@ -189,8 +189,22 @@ const ShaderGLSLBuffers = ({
                 return null;
             }
         }
+        // TODO: it would be really nice to be able to lift this restriction.
+        // Something like "inline this until we have a literal"?
+        // Although maybe I'd actually want to do that at the Term level
+        // instead of IR? hmmmmmmmmmmmmmmmm
+        // oh I dunno. because if it evaluates to like, a block ...
+        // hmm.
+        // ok maybe I'd just throw everything I have at it, take the result
+        // and do `.0` or `.1` or so, and see if it ends up being good.
+        // I'd have to make tuple constant folding happen, but that doesn't sound too bad.
+        // Also inlining of "anything that returns anything that contains a function",
+        // instead of just "returns a function".
         if (term.type !== 'Tuple') {
-            throw new Error(`Expression must be a tuple literal`);
+            const err = new Error(`Expression must be a tuple literal`);
+            console.error();
+            setError(err);
+            return null;
         }
         try {
             return term.items.map((item) =>

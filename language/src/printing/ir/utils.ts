@@ -700,6 +700,27 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                 atom(' => '),
                 typeToPretty(env, type.res),
             ]);
+        case 'cps-lambda':
+            return items([
+                atom('[cps]'),
+                type.note ? atom('[' + type.note + ']') : null,
+                type.typeVbls.length
+                    ? typeVblDeclsToPretty(env, type.typeVbls)
+                    : null,
+                args(type.args.map((t) => typeToPretty(env, t))),
+                atom(' ='),
+                args(
+                    type.effects.map((ef) =>
+                        ef.type === 'ref'
+                            ? refToPretty(env, ef.ref, 'effect')
+                            : atom('*effvar*'),
+                    ),
+                    '{',
+                    '}',
+                ),
+                atom('> '),
+                typeToPretty(env, type.returnValue),
+            ]);
         case 'var':
             return symToPretty(type.sym);
         case 'effect-handler':

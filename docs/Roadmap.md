@@ -4,6 +4,12 @@
 - fix the "non-uniques" error
 - 
 
+## EXAMPLES to show off a little bit
+
+- the 2d colorFlatDist, which demonstrates some sliders
+- 
+
+
 ## What about dependency injection?
 So I have this idea
 I'm doing this marchVolume stuff
