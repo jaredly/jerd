@@ -29,10 +29,9 @@ const x2#b022715c = (): int#builtin ={}> {
 ```
 */
 export const hash_b022715c: () => number = () => {
-  let y: number = (null as any);
-  let n: number = 2;
+  let y: number;
 
-  if (n + n < 3) {
+  if (2 + 2 < 3) {
     y = 4;
   } else {
     y = 2;
@@ -52,29 +51,33 @@ const z#526b8b52 = (n#:0: int#builtin): int#builtin ={}> {
 }
 ```
 */
-export const hash_526b8b52: (arg_0: number) => number = (n$0: number) => {
-  let m: number = (null as any);
+export const hash_526b8b52: (arg_0: number) => number = (n: number) => {
+  let m: number;
   let continueBlock: boolean = true;
-  let z: number = n$0 + 2;
+  let z: number = n + 2;
 
-  if (continueBlock && z === 3) {
+  if (z === 3) {
     m = 3;
     continueBlock = false;
   }
 
-  if (continueBlock && z === 4) {
-    m = 4;
-    continueBlock = false;
-  }
-
-  if (continueBlock && z === 5) {
-    m = 10;
-    continueBlock = false;
-  }
-
   if (continueBlock) {
-    m = 11;
-    continueBlock = false;
+    if (z === 4) {
+      m = 4;
+      continueBlock = false;
+    }
+
+    if (continueBlock) {
+      if (z === 5) {
+        m = 10;
+        continueBlock = false;
+      }
+
+      if (continueBlock) {
+        m = 11;
+        continueBlock = false;
+      }
+    }
   }
 
   return m + m * 2;
@@ -93,7 +96,7 @@ const x#0992c290 = {
 ```
 */
 export const hash_0992c290: number = (() => {
-  let y$0: number = (null as any);
+  let y$0: number;
 
   if (10 < 3) {
     y$0 = 4;

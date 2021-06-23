@@ -447,26 +447,23 @@ const rec shortestDistanceToSurface#56314282 = (
 */
 export const hash_56314282: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number, arg_1: number, arg_2: t_9f1c0644, arg_3: t_9f1c0644, arg_4: number, arg_5: number, arg_6: number) => number = (sceneSDF: (arg_0: number, arg_1: t_9f1c0644) => number, iTime: number, eye: t_9f1c0644, marchingDirection: t_9f1c0644, start: number, end: number, stepsLeft: number) => {
   while (true) {
-    if (stepsLeft <= 0) {
-      return end;
+    let dist: number = sceneSDF(iTime, hash_1c6fdd91.hb99b22d8_0(eye, hash_c4a91006.h1de4e4c0_0(start, marchingDirection)));
+
+    if (dist < hash_ec7f8d1c) {
+      return start;
     } else {
-      let dist: number = sceneSDF(iTime, hash_1c6fdd91.hb99b22d8_0(eye, hash_c4a91006.h1de4e4c0_0(start, marchingDirection)));
+      let depth: number = start + dist;
 
-      if (dist < hash_ec7f8d1c) {
-        return start;
+      if (depth >= end) {
+        return end;
       } else {
-        let depth: number = start + dist;
-
-        if (depth >= end) {
-          return end;
-        } else {
-          start = depth;
-          stepsLeft = stepsLeft - 1;
-          continue;
-        }
+        start = depth;
+        continue;
       }
     }
   }
+
+  return end;
 };
 
 /**
@@ -989,14 +986,11 @@ const rec volumetric#359cb0c1 = (
 */
 export const hash_359cb0c1: (arg_0: (arg_0: number, arg_1: t_9f1c0644) => number, arg_1: number, arg_2: t_43802a16, arg_3: t_9f1c0644, arg_4: t_9f1c0644, arg_5: number, arg_6: t_9f1c0644, arg_7: number, arg_8: number, arg_9: number) => number = (sceneSDF: (arg_0: number, arg_1: t_9f1c0644) => number, iTime: number, seed: t_43802a16, light$3: t_9f1c0644, eye$4: t_9f1c0644, dist$5: number, dir: t_9f1c0644, current: number, left$8: number, total: number) => {
   while (true) {
-    if (left$8 <= 0) {
-      return current;
-    } else {
-      current = current + hash_6354c64c(sceneSDF, iTime, light$3, eye$4, dist$5, hash_6f186ad1.hAs_0(left$8) / total, dir, left$8);
-      left$8 = left$8 - 1;
-      continue;
-    }
+    current = current + hash_6354c64c(sceneSDF, iTime, light$3, eye$4, dist$5, hash_6f186ad1.hAs_0(left$8) / total, dir, left$8);
+    continue;
   }
+
+  return current;
 };
 
 /**

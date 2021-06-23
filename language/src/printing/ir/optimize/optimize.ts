@@ -218,7 +218,6 @@ export const optimize = (ctx: Context, expr: Expr): Expr => {
         // OK so this iffe thing is still the only thing
         // helping us with the `if` at the end of
         // shortestDistanceToSurface
-
         fromSimpleOpt(flattenIffe),
         removeUnusedVariables,
         fromSimpleOpt(removeNestedBlocksWithoutDefinesAndCodeAfterReturns),

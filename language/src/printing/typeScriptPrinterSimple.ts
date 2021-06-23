@@ -672,6 +672,8 @@ export const stmtToTs = (
     switch (stmt.type) {
         case 'Continue':
             return withLocation(t.continueStatement(), stmt.loc);
+        case 'Break':
+            return withLocation(t.breakStatement(), stmt.loc);
         case 'Loop':
             return withLocation(
                 t.whileStatement(

@@ -49,13 +49,13 @@ export const hash_0247dd82: (arg_0: string, arg_1:
   handleSimpleShallow2<any, any, any>("22024b72", fn, [(handlers, _, k$3:
   /*from cps lambda*/
   (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void) => {
-    result = (() => hash_0247dd82(v, (handlers: Handlers, done$6: (arg_0: Handlers, arg_1: string) => void) => {
-      k$3(v + "got", handlers, (handlers: Handlers, returnValue: string) => ((handlers: Handlers, arg_lift_0: string) => ((handlers: Handlers) => {
-        done$6(handlers, arg_lift_0 + "back");
-      })(handlers))(handlers, returnValue));
-    }) + "provided")();
+    result = hash_0247dd82(v, (handlers: Handlers, done$6: (arg_0: Handlers, arg_1: string) => void) => {
+      k$3(v + "got", handlers, (handlers: Handlers, returnValue: string) => {
+        done$6(handlers, returnValue + "back");
+      });
+    }) + "provided";
   }], (handlers: Handlers, v$2: string) => {
-    result = (() => v$2 + "pure")();
+    result = v$2 + "pure";
   });
   return result;
 };

@@ -97,7 +97,7 @@ export const pushMulti = (v: Array<Stmt>, s: Stmt | Array<Stmt>) => {
 export const returnsToAssignsInner = (
     env: Env,
     stmts: Array<Stmt>,
-    sym: Symbol,
+    sym: Symbol | null,
     continueSym: Symbol,
 ): Array<Stmt> => {
     const sections: Array<Array<Stmt>> = [[]];
@@ -111,7 +111,13 @@ export const returnsToAssignsInner = (
                     stmt: (inner) => {
                         if (inner.type === 'Return') {
                             return [
-                                assign(sym, inner.value),
+                                sym
+                                    ? assign(sym, inner.value)
+                                    : {
+                                          type: 'Expression',
+                                          expr: inner.value,
+                                          loc: inner.loc,
+                                      },
                                 assign(
                                     continueSym,
                                     boolLiteral(false, inner.loc),
@@ -158,7 +164,9 @@ export const returnsToAssignsInner = (
             sections.push([]);
         } else if (stmt.type === 'Return') {
             sections[sections.length - 1].push(
-                assign(sym, stmt.value),
+                sym
+                    ? assign(sym, stmt.value)
+                    : { type: 'Expression', expr: stmt.value, loc: stmt.loc },
                 assign(continueSym, boolLiteral(false, stmt.loc)),
             );
         } else {
@@ -185,7 +193,7 @@ export const returnsToAssignsInner = (
 export const returnsToAssigns = (
     env: Env,
     stmts: Array<Stmt>,
-    sym: Symbol,
+    sym: Symbol | null,
 ): Array<Stmt> => {
     // So the way this can happen is:
     // ok also loops can have returns?
@@ -232,28 +240,45 @@ export const flattenLambda = (
     env: Env,
     expr: Apply,
     target: LambdaExpr,
-    resultSym?: Symbol,
+    resultSym?: Symbol | false,
 ) => {
     const extras: Array<Stmt> = [];
     const ta = target.args;
     expr.args.forEach((arg, i) => {
+        // HACK(handlers): This should only happen with the hacky handlers variable.
+        // Once I redo handlers, this won't happen anymore.
+        if (arg.type === 'var' && arg.sym.unique === ta[i].sym.unique) {
+            return;
+        }
         extras.push(define(ta[i].sym, arg, arg.loc));
     });
 
     // Shortcut, if the function body is just a single return
     if (
         target.body.items.length === 1 &&
-        target.body.items[0].type === 'Return'
+        target.body.items[0].type === 'Return' &&
+        resultSym !== false
     ) {
         return { stmts: extras, expr: target.body.items[0].value };
     }
 
-    const result = resultSym ? resultSym : newSym(env, 'result');
+    const result: Symbol | null =
+        resultSym == null
+            ? newSym(env, 'result')
+            : resultSym === false
+            ? null
+            : resultSym;
+    // const result = resultSym != null ? resultSym : (result !== false ? newSym(env, 'result') : null);
     if (resultSym == null) {
-        extras.push(define(result, undefined, expr.loc, expr.is));
+        extras.push(define(result!, undefined, expr.loc, expr.is));
     }
     extras.push(...returnsToAssigns(env, target.body.items, result));
-    return { stmts: extras, expr: var_(result, expr.loc, expr.is) };
+    return {
+        stmts: extras,
+        expr: result
+            ? var_(result, expr.loc, expr.is)
+            : builtin('void', nullLocation, void_),
+    };
 };
 
 export const flattenImmediateCalls2 = (ctx: Context, expr: Expr) => {
@@ -279,9 +304,19 @@ export const flattenImmediateCalls2 = (ctx: Context, expr: Expr) => {
                     ctx.env,
                     block(
                         [
-                            ...expr.args.map((arg, i) => {
-                                return define(ta[i].sym, arg, arg.loc);
-                            }),
+                            ...(expr.args
+                                .map((arg, i) => {
+                                    // HACK(handlers): This should only happen with the hacky handlers variable.
+                                    // Once I redo handlers, this won't happen anymore.
+                                    if (
+                                        arg.type === 'var' &&
+                                        arg.sym.unique === ta[i].sym.unique
+                                    ) {
+                                        return null;
+                                    }
+                                    return define(ta[i].sym, arg, arg.loc);
+                                })
+                                .filter((x) => x !== null) as Array<Stmt>),
                             ...expr.target.body.items,
                         ],
                         expr.loc,
@@ -301,6 +336,14 @@ export const flattenImmediateCalls2 = (ctx: Context, expr: Expr) => {
                 const extras: Array<Stmt> = [];
                 const ta = stmt.value.target.args;
                 stmt.value.args.forEach((arg, i) => {
+                    // HACK(handlers): This should only happen with the hacky handlers variable.
+                    // Once I redo handlers, this won't happen anymore.
+                    if (
+                        arg.type === 'var' &&
+                        arg.sym.unique === ta[i].sym.unique
+                    ) {
+                        return;
+                    }
                     extras.push(define(ta[i].sym, arg, arg.loc));
                 });
                 return [...extras, ...stmt.value.target.body.items];
@@ -326,6 +369,23 @@ export const flattenImmediateCalls2 = (ctx: Context, expr: Expr) => {
                     ...result.stmts,
                     assign(stmt.sym, result.expr),
                 ];
+            }
+
+            // Special case for when it's a non-returned expression;
+            // we don't need to create an extra "result" variable
+            // to store things in.
+            if (
+                stmt.type === 'Expression' &&
+                stmt.expr.type === 'apply' &&
+                stmt.expr.target.type === 'lambda'
+            ) {
+                const result = flattenLambda(
+                    ctx.env,
+                    stmt.expr,
+                    stmt.expr.target,
+                    false,
+                );
+                return result.stmts;
             }
 
             const extras: Array<Stmt> = [];

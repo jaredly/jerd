@@ -166,6 +166,21 @@ const visitorGeneral = ({
                 const body = onNested(expr.body, true);
                 return body !== expr.body ? [{ ...expr, body }] : false;
             }
+            if (expr.type === 'handle') {
+                const pure = onNested(expr.pure.body, true);
+                let changed = false;
+                const cases = expr.cases.map((kase) => {
+                    const body = onNested(kase.body, true);
+                    changed = changed || body !== kase.body;
+                    return { ...kase, body };
+                });
+                return pure !== expr.pure.body || changed
+                    ? {
+                          ...expr,
+                          pure: { ...expr.pure, body: pure, cases },
+                      }
+                    : expr;
+            }
             if (expr.type === 'apply' && expr.target.type === 'var') {
                 const v = onGet(expr.target.sym);
                 if (v != null) {
