@@ -1,4 +1,67 @@
 
+# Immediate stuff
+
+- fix the "non-uniques" error
+- 
+
+## What about dependency injection?
+So I have this idea
+I'm doing this marchVolume stuff
+and I find myself wanting to swap out
+different `random()` implementations.
+And I wonder:
+what if the language had first-class support
+for some kind of dependency injection?
+Something like "hidden arguments"
+or maybe it's just default arguments?
+but if you don't provide them, the default
+behavior is to just forward them to the definition
+of the enclosing function
+and then at the very top level, you can either
+- supply it
+- or, if it was optional, you can not
+
+Ways to identify them:
+They could be a separate "type", like effects.
+a `requirement` or something?
+but then if you had two functions in the tree
+with the same requirement, you couldn't
+provide them differently.
+Do I want to be able to provide /different/
+dependencies to the /same/ function that shows
+up at different points in the tree?
+certainly not automatically.
+It would have to be explicitly handled
+at the nearest common ancestor I would think.
+
+So maybe these requirements are identified by
+... BOTH a `requirement` type, AND the hash
+of the function requesting it.
+So that you can know, at a function callsite,
+where these dependencies are headed.
+Although what about when multiple functions
+all really do want the same requirement?
+I mean there again ... hmm ... ok so what would it
+look like to specify these explicitly?
+
+I'm thinking like
+const x = (x: int, y: float, requirement z: int) => {
+  ...
+}
+or something?
+idk what the text repesentation would be
+but the HTML version would hide away all implicit
+requirements...
+except at the point of definition, you'd definitely want them there.
+and if they're accessed explicitly anywhere within
+the function, even if they're not strictly /defined/
+within this function
+I guess? idk
+
+it's possible I'm overthinking this?
+but it's also possible that I'm not...
+
+
 ## What do we need in order to make this minimally usable by other people?
 
 - [ ] "Workspace history"

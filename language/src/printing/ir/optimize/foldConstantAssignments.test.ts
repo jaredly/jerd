@@ -269,7 +269,7 @@ describe('flattenImmediateCalls', () => {
         `);
     });
 
-    it('should hold off from loops entirely', () => {
+    it('should handle loops correctly', () => {
         const result = runFixture(
             `
             const rec repeatedly = (m: int, x: int, init: int, y: (int, int) => int): int => {
