@@ -211,17 +211,17 @@ describe('glsl in concert', () => {
         );
 
         expect(result).toMatchInlineSnapshot(`
-            const expr0_lambda#💟👯🤚😃: (float) => float = (
+            const expr0_lambda#🍕: (float) => float = (
                 pos#:0: float,
             ) => 23 + pos#:0
 
-            const estimateNormal_specialization#🧑‍🦳🦾👽😃: () => float = () => expr0_lambda#💟👯🤚😃(
+            const estimateNormal_specialization#🤽: () => float = () => expr0_lambda#🍕(
                 1.23,
             )
 
             const expr0#🏺🧇🥧😃: (float) => float = (
                 coord#:4: float,
-            ) => estimateNormal_specialization#🧑‍🦳🦾👽😃() + coord#:4 + 23
+            ) => estimateNormal_specialization#🤽() + coord#:4 + 23
         `);
 
         expectValidGlsl(result);
@@ -266,21 +266,21 @@ describe('glsl in concert', () => {
         );
 
         expect(result).toMatchInlineSnapshot(`
-            const expr0_lambda#☕: (int) => float = (
+            const expr0_lambda#🥜🏂🤨: (int) => float = (
                 pos#:0: int,
             ) => 23
 
-            const callIt_specialization#🕖: (int) => float = (
+            const callIt_specialization#🧿: (int) => float = (
                 eye#:1: int,
-            ) => expr0_lambda#☕(eye#:1)
+            ) => expr0_lambda#🥜🏂🤨(eye#:1)
 
-            const estimateNormal_specialization#😟💃🤮: () => float = () => expr0_lambda#☕(
+            const estimateNormal_specialization#🌕🐗⛹️‍♀️: () => float = () => expr0_lambda#🥜🏂🤨(
                 1,
             )
 
             const expr0#😙🦗💆😃: (float) => float = (
                 coord#:2: float,
-            ) => estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
+            ) => estimateNormal_specialization#🌕🐗⛹️‍♀️() + callIt_specialization#🧿(
                 1000,
             ) + coord#:2
         `);
@@ -303,21 +303,21 @@ describe('glsl in concert', () => {
         //     optimizeRepeatedly([removeUnusedVariables, flattenImmediateCalls2]),
         // );
         expect(result).toMatchInlineSnapshot(`
-            const expr0_lambda#☕: (int) => float = (
+            const expr0_lambda#🥜🏂🤨: (int) => float = (
                 pos#:0: int,
             ) => 23
 
-            const callIt_specialization#🕖: (int) => float = (
+            const callIt_specialization#🧿: (int) => float = (
                 eye#:1: int,
-            ) => expr0_lambda#☕(eye#:1)
+            ) => expr0_lambda#🥜🏂🤨(eye#:1)
 
-            const estimateNormal_specialization#😟💃🤮: () => float = () => expr0_lambda#☕(
+            const estimateNormal_specialization#🌕🐗⛹️‍♀️: () => float = () => expr0_lambda#🥜🏂🤨(
                 1,
             )
 
             const expr0#😙🦗💆😃: (float) => float = (
                 coord#:2: float,
-            ) => estimateNormal_specialization#😟💃🤮() + callIt_specialization#🕖(
+            ) => estimateNormal_specialization#🌕🐗⛹️‍♀️() + callIt_specialization#🧿(
                 1000,
             ) + coord#:2
         `);
@@ -355,21 +355,21 @@ describe('glsl in concert', () => {
         );
 
         expect(result).toMatchInlineSnapshot(`
-            const expr0_lambda#❄️👊🏠😃: (float) => float = (
+            const expr0_lambda#🌬️🧀👨‍🔬: (float) => float = (
                 pos#:0: float,
             ) => pos#:0 + 2.3
 
-            const callIt_specialization#🐈🧔😪: (float) => float = (
+            const callIt_specialization#♥️🤸‍♀️👺😃: (float) => float = (
                 eye#:1: float,
-            ) => expr0_lambda#❄️👊🏠😃(eye#:1)
+            ) => expr0_lambda#🌬️🧀👨‍🔬(eye#:1)
 
-            const estimateNormal_specialization#💬🧚‍♂️🍞: () => float = () => expr0_lambda#❄️👊🏠😃(
+            const estimateNormal_specialization#🤾‍♂️🤺🎖️: () => float = () => expr0_lambda#🌬️🧀👨‍🔬(
                 2.3 + 1,
             ) + 1.2
 
             const expr0#⛷️: (float) => float = (
                 coord#:2: float,
-            ) => estimateNormal_specialization#💬🧚‍♂️🍞() - callIt_specialization#🐈🧔😪(
+            ) => estimateNormal_specialization#🤾‍♂️🤺🎖️() - callIt_specialization#♥️🤸‍♀️👺😃(
                 0.1 + 2.3,
             )
         `);
@@ -439,7 +439,6 @@ describe('glsl in concert', () => {
             ) => {
                 for (; max#:0 > most#:2; max#:0 = max#:0 - 2) {
                     collect#:1 = collect#:1 + 10;
-                    most#:2 = most#:2;
                     continue;
                 };
                 return collect#:1;

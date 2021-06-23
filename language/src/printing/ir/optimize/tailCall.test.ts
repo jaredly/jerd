@@ -45,7 +45,6 @@ describe('tailCall', () => {
             ) => {
                 for (; max#:0 > most#:2; max#:0 = max#:0 - 2) {
                     collect#:1 = collect#:1 + 10;
-                    most#:2 = most#:2;
                     continue;
                 };
                 return collect#:1;

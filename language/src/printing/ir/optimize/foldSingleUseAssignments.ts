@@ -95,14 +95,15 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
                 }
                 return [];
             }
+            // if(stmt.type === 'Assign' && stmt.value.type === 'var')
             if (
                 stmt.type === 'Assign' &&
                 stmt.value.type === 'var' &&
                 // TODO: assigns shouldn't increase usage I dont think
-                singles[symName(stmt.sym)] &&
+                // singles[symName(stmt.sym)] &&
                 symbolsEqual(stmt.sym, stmt.value.sym)
             ) {
-                defns[symName(stmt.sym)] = stmt.value;
+                // defns[symName(stmt.sym)] = stmt.value;
                 return [];
             }
             return null;

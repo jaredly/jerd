@@ -18,6 +18,7 @@ import {
 } from '../utils';
 import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { foldConstantAssignments } from './foldConstantAssignments';
+import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inlineFunctionsCalledWithCapturingLambdas } from './inline';
 import { specializeFunctionsCalledWithLambdas } from './monoconstant';
 import { optimizeRepeatedly } from './optimize';
@@ -129,7 +130,7 @@ describe('flattenImmediateCalls', () => {
 
         // Before
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#😥💇🔪: int = (() => {
+            const unnamed#🥎: int = (() => {
                 const x#:0: int = 10;
                 const z#:2: int = x#:0 + 14;
                 if true {
@@ -149,7 +150,7 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#😙😪🏣: int = (() => {
+            const unnamed#🦎: int = (() => {
                 const x#:0: int = 10;
                 const z#:2: int = 10 + 14;
                 if true {
@@ -167,7 +168,7 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🥊: int = (() => {
+            const unnamed#🛶🏬🧂😃: int = (() => {
                 const x#:0: int = 10;
                 const z#:2: int = 10 + 14;
                 if true {
@@ -190,7 +191,7 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🥊: int = (() => {
+            const unnamed#🛶🏬🧂😃: int = (() => {
                 const x#:0: int = 10;
                 const z#:2: int = 10 + 14;
                 if true {
@@ -280,41 +281,30 @@ describe('flattenImmediateCalls', () => {
                 }
             }
 
-            {
+            () => {
                 const z = 12 + 1;
                 repeatedly(23, 10, 4, (init: int, i: int): int => init + i + z)
             }`,
             optimizeRepeatedly([
                 flattenImmediateCalls2,
-                // foldConstantAssignments(true),
+                foldConstantAssignments(true),
                 inlineFunctionsCalledWithCapturingLambdas,
-                // removeUnusedVariables,
+                removeUnusedVariables,
                 optimizeTailCalls,
+                foldSingleUseAssignments,
                 // specializeFunctionsCalledWithLambdas,
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-            const expr0#🦽🚄🌭😃: int = (() => {
-                const z#:0: int = 12 + 1;
-                const m#:3: int = 23;
+            const expr0#🧍: () => int = () => {
                 const x#:4: int = 10;
                 const init#:5: int = 4;
-                const y#:6: (int, int) => int = (
-                    init#:1: int,
-                    i#:2: int,
-                ) => init#:1 + i#:2 + z#:0;
                 for (; x#:4 > 0; x#:4 = x#:4 - 1) {
-                    const recur#:7: int = m#:3;
-                    const recur#:8: int = x#:4 - 1;
-                    const recur#:9: int = y#:6(init#:5, x#:4);
-                    const recur#:10: (int, int) => int = y#:6;
-                    m#:3 = recur#:7;
-                    init#:5 = recur#:9;
-                    y#:6 = recur#:10;
+                    init#:5 = init#:5 + x#:4 + 12 + 1;
                     continue;
                 };
-                return init#:5 + m#:3;
-            })()
+                return init#:5 + 23;
+            }
         `);
 
         expectValidGlsl(result);
