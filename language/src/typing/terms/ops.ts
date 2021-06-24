@@ -335,6 +335,9 @@ const typeOp = (
         is.args[0].ref.name === 'numeric'
     ) {
         if (!typesEqual(left.is, rarg.is)) {
+            // OK START EHERE:
+            // This is where we would, instead of bailing, say
+            // "this is ok, we wrap it in an error term"
             throw new TypeMismatch(env, left.is, rarg.is, left.location);
         }
         // STOPSHIP: have an actual solution for strings

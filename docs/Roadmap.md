@@ -1,13 +1,18 @@
 
 # Immediate stuff
 
-- fix the "non-uniques" error
-- 
+- [x] fix the "non-uniques" error
+- [ ] ok lets actually use the "type holes" bananas.
+
+
+- [ ] get some serious validaton in here folks
 
 ## EXAMPLES to show off a little bit
 
 - the 2d colorFlatDist, which demonstrates some sliders
-- 
+- volumetrics
+- normal raymarching dealios
+- game of life please
 
 
 ## What about dependency injection?

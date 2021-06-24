@@ -255,6 +255,8 @@ const ShaderGLSLBuffers = ({
         return { color, traces };
     }, [tracing, mousePos, term]);
 
+    const textures = React.useRef([]);
+
     const updateFn = React.useMemo(() => {
         if (!canvas || !shaders) {
             return null;
@@ -270,6 +272,7 @@ const ShaderGLSLBuffers = ({
                 timer.current,
                 currentMousePos.current,
                 shaders.slice(1).map((shader) => shader.text),
+                textures.current,
             );
             return update;
         } catch (err) {
