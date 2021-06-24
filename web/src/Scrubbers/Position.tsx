@@ -237,6 +237,7 @@ export const PositionScrub = ({
                     height: height / 2,
                     position: 'relative',
                     backgroundColor: 'transparent',
+                    border: '1px solid #555',
                 }}
                 onMouseMove={(evt) => {
                     if (!dragging) {
@@ -253,8 +254,25 @@ export const PositionScrub = ({
             >
                 <div
                     css={{
+                        pointerEvents: 'none',
+                        width: 4,
+                        height: 4,
+                        position: 'absolute',
+                        marginLeft: -2,
+                        marginTop: -2,
+                        backgroundColor: 'yellow',
+                        border: '1px solid white',
+                    }}
+                    style={{
+                        ...withinBounds(0, 0, width / 2, height / 2, bounds),
+                    }}
+                />
+                <div
+                    css={{
                         width: 8,
                         height: 8,
+                        marginLeft: -4,
+                        marginTop: -4,
                         borderRadius: '50%',
                         position: 'absolute',
                         backgroundColor: 'transparent',
