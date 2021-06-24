@@ -257,6 +257,11 @@ const ShaderGLSLBuffers = ({
 
     const textures = React.useRef([]);
 
+    const restart = () => {
+        setRestartCount(restartCount + 1);
+        textures.current = [];
+    };
+
     const updateFn = React.useMemo(() => {
         if (!canvas || !shaders) {
             return null;
@@ -480,7 +485,7 @@ const ShaderGLSLBuffers = ({
                             if (playState !== 'playing') {
                                 setPlayState('playing');
                             }
-                            setRestartCount(restartCount + 1);
+                            restart();
                         }}
                     />
                     <IconButton
@@ -488,7 +493,7 @@ const ShaderGLSLBuffers = ({
                         onClick={() => {
                             timer.current = 0;
                             setPlayState('recording');
-                            setRestartCount(restartCount + 1);
+                            restart();
                         }}
                         selected={playState === 'recording'}
                     />
@@ -592,7 +597,7 @@ const plugins: RenderPlugins = {
                     env={env}
                     evalEnv={evalEnv}
                     term={term}
-                    startPaused={true}
+                    startPaused={startPaused}
                 />
             );
         },
@@ -618,7 +623,7 @@ const plugins: RenderPlugins = {
                     env={env}
                     evalEnv={evalEnv}
                     term={term}
-                    startPaused={true}
+                    startPaused={startPaused}
                 />
             );
         },

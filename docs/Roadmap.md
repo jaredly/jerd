@@ -2,6 +2,58 @@
 # Immediate stuff
 
 - [x] fix the "non-uniques" error
+
+- [x] better restart (reuse textures)
+- [x] yay conway love it
+- [ ] make an "ease" function that takes an enum config
+      then we can have a Scrubber just for that function, that
+      flips through the different options. could be rad
+      I wonder if it would make sense to auto-scrub any enums 🤔
+      like "what if this were a X". I dunno.
+- [ ] can we have multiple scrubbers at once?
+
+
+
+# Inspired by hazel
+
+- aww yeah I want self-hosting widget definitions
+- but hm I probably want reasonable code sharing & storage and stuff?
+- hmm "collected closures" seems like my "traces"
+
+- Rolph Recto (
+    really cool work. i think a killer application of this would be algorithmic music)
+  - Eric is thinking of () doing some synth generation stuff
+- Eelco Visser
+- Hazel levine
+- Fabian Muehlboek
+
+
+- Can the grade_cutoffs thing choose to filter out indeterminate values?
+- Can you have a livelit in the livelit definition?
+- Thoughts about the choice to make a structured editor
+- What can you 
+- 
+
+Marno Dursky History of Scala at Oopsla
+
+
+
+DataFrame livelit...
+have excel-like, you can put a formula in a thing
+
+.. the way they do "closure collection", where the final value
+
+
+
+
+
+
+Polymorphism + type holes is notorious (we've had a gradual typing paper at every popl for the past few years)
+
+
+
+##
+
 - [ ] ok lets actually use the "type holes" bananas.
 
 

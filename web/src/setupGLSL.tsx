@@ -28,8 +28,8 @@ const createShader = (
 const makeTextureAndStuff = (
     gl: WebGL2RenderingContext,
     i: number,
-    textures: Array<WebGLTexture>,
-) => {
+    textures: Array<BufferInfo>,
+): BufferInfo => {
     if (textures[i]) {
         return textures[i];
     }
@@ -90,6 +90,12 @@ void main() {
     gl_Position = position;
 }`;
 
+export type BufferInfo = {
+    fb: WebGLFramebuffer;
+    texture: WebGLTexture;
+    i: number;
+};
+
 // Many thanks to https://github.com/tsherif/webgl2examples/
 export const setup = (
     gl: WebGL2RenderingContext,
@@ -97,7 +103,7 @@ export const setup = (
     currentTime: number,
     mousePos?: { x: number; y: number },
     bufferShaders: Array<string> = [],
-    textures: Array<WebGLTexture> = [],
+    textures: Array<BufferInfo> = [],
 ) => {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     const fragment = createShader(gl, gl.FRAGMENT_SHADER, fragmentShader);
@@ -168,12 +174,6 @@ export const setup = (
         gl.useProgram(program);
         return { program, bound: bindUniforms(program) };
     });
-
-    type BufferInfo = {
-        fb: WebGLFramebuffer;
-        texture: WebGLTexture;
-        i: number;
-    };
 
     let frameBuffers: Array<BufferInfo> = [];
     let backBuffers: Array<BufferInfo> = [];
