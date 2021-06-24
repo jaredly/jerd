@@ -65,6 +65,26 @@ export const detectVec2Scrub = (
     };
 };
 
+export type Bounds = { x0: number; y0: number; x1: number; y1: number };
+
+// Ok better: size & origin
+// size: 1, 10, 100, {dims}
+// origin: center | corner
+
+// const bounds = [
+//     {x: 0, y: 0, width, height},
+//     {x: -100, y: -100, width: 200, height: 200},
+//     {x: -1, y: -1, width: 2, height: 2},
+//     {x: -10, y: -10, width: 20, height: 20},
+// ]
+
+const calcBounds = ({ center, size }: { center: boolean; size: number }) => {
+    if (center) {
+        return { x: -size, y: -size, width: size * 2, height: size * 2 };
+    }
+    return { x: 0, y: 0, width: size, height: size };
+};
+
 export const PositionScrub = ({
     env,
     fullScrub,
@@ -84,7 +104,65 @@ export const PositionScrub = ({
     setScrub: (s: Scrub) => void;
     fullScrub: Scrub;
 }) => {
-    const [dragging, setDragging] = React.useState(false);
+    const [bounds, setBounds] = React.useState({
+        center: false,
+        size: width,
+    });
+    const [dragging, setDragging] = React.useState(null as null | HTMLElement);
+
+    React.useEffect(() => {
+        if (!dragging) {
+            return;
+        }
+        const fn = (evt: MouseEvent) => {
+            const box = dragging.getBoundingClientRect();
+            const left = (evt.clientX - box.left) / (width / 2);
+            const top = 1.0 - (evt.clientY - box.top) / (height / 2);
+
+            const boundBox = calcBounds(bounds);
+            const xn = left * boundBox.width + boundBox.x;
+            const yn = top * boundBox.height + boundBox.y;
+
+            const newTerm = transform(term, {
+                term: (t) => {
+                    if (t.location.idx === x.original.location.idx) {
+                        return {
+                            ...x.original,
+                            value: xn,
+                        };
+                    }
+                    if (t.location.idx === y.original.location.idx) {
+                        return {
+                            ...y.original,
+                            value: yn,
+                        };
+                    }
+                    return null;
+                },
+                let: (l) => null,
+            });
+
+            setScrub({
+                ...fullScrub,
+                term: newTerm,
+                item: {
+                    type: 'Vec2',
+                    x: { ...x, scrubbed: xn },
+                    y: { ...y, scrubbed: yn },
+                },
+            });
+        };
+        const off = () => {
+            setDragging(null);
+        };
+        window.addEventListener('mousemove', fn, true);
+        window.addEventListener('mouseup', off, true);
+        return () => {
+            window.removeEventListener('mousemove', fn, true);
+            window.removeEventListener('mouseup', off, true);
+        };
+    }, [dragging, setScrub]);
+
     return (
         <div
             css={{
@@ -97,40 +175,14 @@ export const PositionScrub = ({
                 if (!dragging) {
                     return;
                 }
-                const box = evt.currentTarget.getBoundingClientRect();
-                const left = (evt.clientX - box.left) * 2;
-                const top = height - (evt.clientY - box.top) * 2;
-                const newTerm = transform(term, {
-                    term: (t) => {
-                        if (t.location.idx === x.original.location.idx) {
-                            return {
-                                ...x.original,
-                                value: left,
-                            };
-                        }
-                        if (t.location.idx === y.original.location.idx) {
-                            return {
-                                ...y.original,
-                                value: top,
-                            };
-                        }
-                        return null;
-                    },
-                    let: (l) => null,
-                });
-
-                setScrub({
-                    ...fullScrub,
-                    term: newTerm,
-                    item: {
-                        type: 'Vec2',
-                        x: { ...x, scrubbed: left },
-                        y: { ...y, scrubbed: top },
-                    },
-                });
+                evt.preventDefault();
+                evt.stopPropagation();
             }}
-            onMouseUp={() => setDragging(false)}
-            onMouseDown={() => setDragging(true)}
+            onMouseDown={(evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                setDragging(evt.currentTarget);
+            }}
         >
             <div
                 css={{
