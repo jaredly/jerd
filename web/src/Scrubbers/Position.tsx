@@ -163,41 +163,130 @@ export const PositionScrub = ({
         };
     }, [dragging, setScrub]);
 
+    // START HERE:
+    // Add buttons for variable bounds.
+
+    const boundsOptions = [
+        {
+            title: '-1 - 1',
+            center: true,
+            size: 1,
+        },
+        {
+            title: '0 - 10',
+            center: false,
+            size: 10,
+        },
+        {
+            title: '-10 - 10',
+            center: true,
+            size: 10,
+        },
+        {
+            title: '0 - 100',
+            center: false,
+            size: 100,
+        },
+        {
+            title: '-100 - 100',
+            center: true,
+            size: 100,
+        },
+        {
+            title: 'screen',
+            center: false,
+            size: width,
+        },
+    ];
+
     return (
-        <div
-            css={{
-                width: width / 2,
-                height: height / 2,
-                position: 'relative',
-                backgroundColor: 'transparent',
-            }}
-            onMouseMove={(evt) => {
-                if (!dragging) {
-                    return;
-                }
-                evt.preventDefault();
-                evt.stopPropagation();
-            }}
-            onMouseDown={(evt) => {
-                evt.preventDefault();
-                evt.stopPropagation();
-                setDragging(evt.currentTarget);
-            }}
-        >
+        <div>
             <div
                 css={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    position: 'absolute',
+                    display: 'flex',
+                }}
+            >
+                {boundsOptions.map((option, i) => {
+                    const isSelected =
+                        option.center === bounds.center &&
+                        option.size === bounds.size;
+                    return (
+                        <button
+                            key={i}
+                            css={{
+                                background: isSelected ? '#fff' : '#ccc',
+                                border: 'none',
+                                color: '#000',
+                            }}
+                            onClick={() => {
+                                setBounds({
+                                    center: option.center,
+                                    size: option.size,
+                                });
+                            }}
+                        >
+                            {option.title}
+                        </button>
+                    );
+                })}
+            </div>
+
+            <div
+                css={{
+                    width: width / 2,
+                    height: height / 2,
+                    position: 'relative',
                     backgroundColor: 'transparent',
-                    border: '1px solid white',
                 }}
-                style={{
-                    top: (height - y.scrubbed) / 2 - 4,
-                    left: x.scrubbed / 2 - 4,
+                onMouseMove={(evt) => {
+                    if (!dragging) {
+                        return;
+                    }
+                    evt.preventDefault();
+                    evt.stopPropagation();
                 }}
-            />
+                onMouseDown={(evt) => {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    setDragging(evt.currentTarget);
+                }}
+            >
+                <div
+                    css={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        position: 'absolute',
+                        backgroundColor: 'transparent',
+                        border: '1px solid white',
+                    }}
+                    style={{
+                        ...withinBounds(
+                            x.scrubbed,
+                            y.scrubbed,
+                            width / 2,
+                            height / 2,
+                            bounds,
+                        ),
+                    }}
+                />
+            </div>
         </div>
     );
+};
+
+// Ok so x is -1 to 1
+// output is 0 to 100
+// box is -1 to 1
+const withinBounds = (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    bounds: { center: boolean; size: number },
+) => {
+    const box = calcBounds(bounds);
+    const leftPercent = (x - box.x) / box.width;
+    const topPercent = (y - box.y) / box.height;
+    return { left: leftPercent * width, top: height - topPercent * height };
 };
