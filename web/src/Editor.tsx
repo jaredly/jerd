@@ -192,12 +192,16 @@ export default ({
         return null;
     }, [typed]);
 
+    const lastValidResult = React.useRef(null as null | [ToplevelT, any]);
+    if (typed != null && evaled != null) {
+        lastValidResult.current = [typed, evaled];
+    }
+
     const renderPlugin = getRenderPlugin(
         plugins,
         env,
         display,
-        typed,
-        evaled,
+        lastValidResult.current ? lastValidResult.current : [typed, evaled],
         evalEnv,
     );
 
@@ -322,8 +326,7 @@ const getRenderPlugin = (
     plugins: RenderPlugins,
     env: Env,
     display: Display | null | undefined,
-    typed: ToplevelT | null,
-    evaled: any,
+    [typed, evaled]: [ToplevelT | null, any],
     evalEnv: EvalEnv,
 ) => {
     if (display == null || typed == null || evaled == null) {

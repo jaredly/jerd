@@ -256,6 +256,8 @@ export const debugType = (env: Env, type: ir.Type): PP => {
 
 export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
     switch (stmt.type) {
+        case 'Break':
+            return atom('break');
         case 'Block':
             return block(stmt.items.map((s) => debugStmt(env, s)));
         case 'Assign':

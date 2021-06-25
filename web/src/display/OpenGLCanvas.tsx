@@ -120,6 +120,7 @@ export const OpenGLCanvas = ({
         mousePos: { x: number; y: number },
     ) => React.ReactNode;
 }) => {
+    const [zoom, setZoom] = React.useState(0.5);
     const [width, setWidth] = React.useState(initialSize);
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
@@ -131,7 +132,10 @@ export const OpenGLCanvas = ({
     const [showSettings, toggleSettings] = React.useState(false);
 
     const [tracing, setTracing] = React.useState(false);
-    const [transcodingProgress, setTranscodingProgress] = React.useState(0.0);
+    const [transcodingProgress, setTranscodingProgress] = React.useState({
+        start: 0.0,
+        percent: 0.0,
+    });
     const [recordingLength, setRecordingLength] = React.useState(
         Math.ceil(2 * Math.PI * 60),
     );
@@ -191,8 +195,16 @@ export const OpenGLCanvas = ({
             return;
         }
         if (playState === 'recording') {
+            // Clear out any video
+            setVideo(null);
+
             const sendRun = makeFfmpeg(
-                (frame) => setTranscodingProgress(frame / recordingLength),
+                (frame) =>
+                    setTranscodingProgress((t) => ({
+                        ...t,
+                        percent: frame / recordingLength,
+                        // start: t.start === 0.0 ? Date.now() : t.start,
+                    })),
                 setVideo,
             );
 
@@ -202,6 +214,10 @@ export const OpenGLCanvas = ({
             let tick = 0;
             const fn = () => {
                 updateFn(tick / 60, currentMousePos.current);
+                setTranscodingProgress({
+                    start: Date.now(),
+                    percent: tick / recordingLength,
+                });
 
                 const dataUrl = canvas!.toDataURL('image/jpeg');
                 const data = convertDataURIToBinary(dataUrl);
@@ -214,6 +230,7 @@ export const OpenGLCanvas = ({
                 if (tick++ > recordingLength) {
                     sendRun(images);
                     setPlayState('transcoding');
+                    setTranscodingProgress({ start: Date.now(), percent: 0 });
 
                     return; // done
                 }
@@ -258,8 +275,8 @@ export const OpenGLCanvas = ({
                     onMouseMove={(evt) => {
                         const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
                         setMousePos({
-                            x: (evt.clientX - box.left) * 2,
-                            y: (box.height - (evt.clientY - box.top)) * 2,
+                            x: (evt.clientX - box.left) / zoom,
+                            y: (box.height - (evt.clientY - box.top)) / zoom,
                             button: evt.button != null ? evt.button : -1,
                         });
                     }}
@@ -271,10 +288,11 @@ export const OpenGLCanvas = ({
                     style={{
                         width: width,
                         height: width,
+                        imageRendering: 'pixelated',
                     }}
                     // Double size for retina
-                    width={width * 2 + ''}
-                    height={width * 2 + ''}
+                    width={width / zoom + ''}
+                    height={width / zoom + ''}
                 />
                 <div css={hover} className="hover">
                     <IconButton
@@ -326,11 +344,23 @@ export const OpenGLCanvas = ({
                 <div>
                     Width:
                     <input
+                        style={{ width: 40 }}
                         value={width + ''}
                         onChange={(evt) => {
                             const value = +evt.target.value;
                             if (!isNaN(value)) {
                                 setWidth(value);
+                            }
+                        }}
+                    />
+                    Zoom:
+                    <input
+                        style={{ width: 40 }}
+                        value={zoom + ''}
+                        onChange={(evt) => {
+                            const value = +evt.target.value;
+                            if (!isNaN(value)) {
+                                setZoom(value);
                             }
                         }}
                     />
@@ -364,12 +394,25 @@ export const OpenGLCanvas = ({
                     </button>
                 </div>
             ) : null}
-            {transcodingProgress > 0
-                ? `Transcoding: ${(transcodingProgress * 100).toFixed(2)}%`
+            {transcodingProgress.start !== 0.0
+                ? `${playState}: ${(transcodingProgress.percent * 100).toFixed(
+                      2,
+                  )}% ETA: ${calcEta(transcodingProgress)}`
                 : null}
             {video ? <video src={video} loop controls /> : null}
         </div>
     );
+};
+
+const calcEta = ({ start, percent }: { start: number; percent: number }) => {
+    const delta = Date.now() - start;
+    const total = delta / percent;
+    const secondsLeft = Math.floor((total - delta) / 1000);
+    return `${((secondsLeft / 60) | 0).toString().padStart(2, '0')}:${(
+        secondsLeft % 60
+    )
+        .toString()
+        .padStart(2, '0')}`;
 };
 
 function convertDataURIToBinary(dataURI: string) {

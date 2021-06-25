@@ -6,6 +6,8 @@
 - [x] better restart (reuse textures)
 - [x] yay conway love it
 
+- [ ] when we enter an invalid state, don't clear out the plugins if we don't have to.
+
 - [ ] ok the very next thing I want to do is make these
       glsl bonanzas exportable
       no need to embed an editor at the moment, although
@@ -14,12 +16,13 @@
         which would be very cool
       - but just dropping on a page is also OK
 
-  - V0
-    I can paste a thing into a place and have it work
+  - [x] V0
+    I can paste a thing into a place and have it work (yay github gists)
     Will still need esbuild to bundle up the surrounding stuffs
     means I should extract the glslviewer stuff? maybe? maybe not though, it's fine.
     Ok so what does the viewer need? hmmm
-    - hm ok there's some complexity
+  - [ ] allow the gist to specify the size & zoom level
+  - [ ] include the source and an editor and such! the gist would be rather larger...
 
 - [ ] make an "ease" function that takes an enum config
       then we can have a Scrubber just for that function, that
@@ -29,6 +32,10 @@
 - [ ] can we have multiple scrubbers at once?
 
 
+# Can I do some of hazel's holes with algebraic effects?
+- won't be able to do "here's a partially evaluated tree"
+- but might be able to do // hm yeah it won't do the closures dealio
+- yeah let's just do my own thing, it's fine. I mean you know, I could still do tracing capture
 
 # Inspired by hazel
 
