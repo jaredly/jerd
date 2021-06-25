@@ -55,6 +55,7 @@ import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
 import { Location } from '../parsing/parser';
+import { showViolation, validate } from './ir/validate';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -961,6 +962,18 @@ export const fileToTypescript = (
             // // console.error( outer);
             // // console.log(showLocation(term.location));
             throw outer;
+        }
+        // TODO: Make this work, and re-enable
+        const VALIDATE = false;
+        if (VALIDATE) {
+            const violations = validate(irTerm);
+            violations.forEach((v) => {
+                const text = showViolation(env, v, 'something');
+                console.error(text);
+            });
+            if (violations.length) {
+                throw new LocatedError(violations[0].loc, `Validation errors`);
+            }
         }
         // STOPSHIP: Turn this back on
         // if (opts.optimizeAggressive) {

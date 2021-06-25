@@ -25,10 +25,21 @@ const createShader = (
     return shader;
 };
 
-const makeTextureAndStuff = (gl: WebGL2RenderingContext, i: number) => {
+const makeTextureAndStuff = (
+    gl: WebGL2RenderingContext,
+    i: number,
+    textures: Array<BufferInfo>,
+): BufferInfo => {
+    if (textures[i]) {
+        return textures[i];
+    }
     const targetTextureWidth = gl.canvas.width;
     const targetTextureHeight = gl.canvas.height;
     const texture = gl.createTexture();
+    // if (!texture) {
+    //     throw new Error(`Unable to make texture`);
+    // }
+    // textures[i] = texture;
     gl.activeTexture(gl.TEXTURE0 + i);
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -68,7 +79,8 @@ const makeTextureAndStuff = (gl: WebGL2RenderingContext, i: number) => {
     //     level,
     // );
 
-    return { fb: fb!, texture: texture!, i };
+    textures[i] = { fb: fb!, texture: texture!, i };
+    return textures[i];
 };
 
 const defaultVertextShader = `#version 300 es
@@ -78,6 +90,12 @@ void main() {
     gl_Position = position;
 }`;
 
+export type BufferInfo = {
+    fb: WebGLFramebuffer;
+    texture: WebGLTexture;
+    i: number;
+};
+
 // Many thanks to https://github.com/tsherif/webgl2examples/
 export const setup = (
     gl: WebGL2RenderingContext,
@@ -85,6 +103,7 @@ export const setup = (
     currentTime: number,
     mousePos?: { x: number; y: number },
     bufferShaders: Array<string> = [],
+    textures: Array<BufferInfo> = [],
 ) => {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     const fragment = createShader(gl, gl.FRAGMENT_SHADER, fragmentShader);
@@ -156,18 +175,14 @@ export const setup = (
         return { program, bound: bindUniforms(program) };
     });
 
-    type BufferInfo = {
-        fb: WebGLFramebuffer;
-        texture: WebGLTexture;
-        i: number;
-    };
-
     let frameBuffers: Array<BufferInfo> = [];
     let backBuffers: Array<BufferInfo> = [];
 
     for (let i = 0; i < bufferShaders.length; i++) {
-        frameBuffers.push(makeTextureAndStuff(gl, i));
-        backBuffers.push(makeTextureAndStuff(gl, bufferShaders.length + i));
+        frameBuffers.push(makeTextureAndStuff(gl, i, textures));
+        backBuffers.push(
+            makeTextureAndStuff(gl, bufferShaders.length + i, textures),
+        );
     }
 
     const swap = () => {

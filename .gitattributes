@@ -2,3 +2,4 @@ language/src/parsing/simple-grammar.ts binary
 language/src/parsing/grammar.ts binary
 *.map binary
 docs/run.js binary
+docs/*.js binary

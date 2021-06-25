@@ -531,6 +531,10 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
         case 'apply':
             return printApply(env, opts, expr);
         case 'builtin':
+            // fixup ln vs log
+            if (expr.name === 'ln') {
+                return atom('log');
+            }
             return atom(expr.name);
         case 'attribute':
             // hrm special-case matrices I guess

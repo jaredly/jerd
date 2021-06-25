@@ -393,8 +393,15 @@ const box = (samplePoint: Vec3, pos: Vec3, dims: Vec3) => {
 
 const lerp = (a: float, b: float, c: float) => c * (b - a) + a
 
+@glsl_builtin
 const mix = (a: Vec3, b: Vec3, c: float) => {
     Vec3{x: lerp(a.x, b.x, c), y: lerp(a.y, b.y, c), z: lerp(a.z, b.z, c)}
+}
+
+@glsl_builtin
+const smoothstep = (edge0: float, edge1: float, x: float) => {
+    const t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+    t * t * (3.0 - 2.0 * t);
 }
 
 @ffi

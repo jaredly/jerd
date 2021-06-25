@@ -1,40 +1,35 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react';
-// Ok
-
-import * as React from 'react';
-import { idName, idFromName, ToplevelT } from '@jerd/language/src/typing/env';
+import { printToAttributedText } from '@jerd/language/src/printing/printer';
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
+import { idFromName, idName, ToplevelT } from '@jerd/language/src/typing/env';
 import {
-    Apply,
     Env,
     Float,
     Id,
     Location,
     Term,
 } from '@jerd/language/src/typing/types';
-import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
-import { printToAttributedText } from '@jerd/language/src/printing/printer';
-import Editor from './Editor';
-import { termToJS } from './eval';
+// Ok
+import * as React from 'react';
+import { addLocationIndices } from '../../language/src/typing/analyze';
+import { walkTerm } from '../../language/src/typing/transform';
+import { Position } from './Cells';
+import { IconButton } from './display/OpenGLCanvas';
 import { renderAttributedText } from './Render';
+import { RenderResult } from './RenderResult';
+import { ColorScrub, detectColorScrub } from './Scrubbers/Color';
+import { detectVec2Scrub, PositionScrub } from './Scrubbers/Position';
+import { RangeScrub } from './Scrubbers/Range';
 import {
     Cell,
     Content,
     Display,
     EvalEnv,
     RenderPlugins,
-    RenderPluginT,
     TopContent,
 } from './State';
-import { RenderResult } from './RenderResult';
-import { getToplevel, updateToplevel } from './toplevels';
-import { Position } from './Cells';
-import { addLocationIndices } from '../../language/src/typing/analyze';
-import { transform, walkTerm } from '../../language/src/typing/transform';
-import { IconButton } from './display/OpenGL';
-import { RangeScrub } from './Scrubbers/Range';
-import { detectVec2Scrub, PositionScrub } from './Scrubbers/Position';
-import { ColorScrub, detectColorScrub } from './Scrubbers/Color';
+import { getToplevel } from './toplevels';
 
 const detectors = [detectVec2Scrub, detectColorScrub];
 

@@ -389,7 +389,14 @@ export const termToPretty = (env: Env, term: Term): PP => {
                     atom(' '),
                     termToPretty(env, term.yes),
                     ...(term.no
-                        ? [atom(' else '), termToPretty(env, term.no)]
+                        ? [
+                              atom(' else '),
+                              term.no.type === 'sequence' &&
+                              term.no.sts.length === 1 &&
+                              term.no.sts[0].type === 'if'
+                                  ? termToPretty(env, term.no.sts[0])
+                                  : termToPretty(env, term.no),
+                          ]
                         : []),
                 ],
                 undefined,
