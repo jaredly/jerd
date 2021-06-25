@@ -255,13 +255,28 @@ export const PositionScrub = ({
                 <div
                     css={{
                         pointerEvents: 'none',
-                        width: 4,
-                        height: 4,
+                        width: 2,
+                        height: 12,
                         position: 'absolute',
-                        marginLeft: -2,
-                        marginTop: -2,
+                        marginLeft: -1,
+                        marginTop: -6,
                         backgroundColor: 'yellow',
-                        border: '1px solid white',
+                        // border: '1px solid white',
+                    }}
+                    style={{
+                        ...withinBounds(0, 0, width / 2, height / 2, bounds),
+                    }}
+                />
+                <div
+                    css={{
+                        pointerEvents: 'none',
+                        width: 12,
+                        height: 2,
+                        position: 'absolute',
+                        marginLeft: -6,
+                        marginTop: -1,
+                        backgroundColor: 'yellow',
+                        // border: '1px solid white',
                     }}
                     style={{
                         ...withinBounds(0, 0, width / 2, height / 2, bounds),

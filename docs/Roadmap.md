@@ -5,6 +5,22 @@
 
 - [x] better restart (reuse textures)
 - [x] yay conway love it
+
+- [ ] ok the very next thing I want to do is make these
+      glsl bonanzas exportable
+      no need to embed an editor at the moment, although
+      that could also be dope
+      - ok so I could have a "load from gist" if I wanted
+        which would be very cool
+      - but just dropping on a page is also OK
+
+  - V0
+    I can paste a thing into a place and have it work
+    Will still need esbuild to bundle up the surrounding stuffs
+    means I should extract the glslviewer stuff? maybe? maybe not though, it's fine.
+    Ok so what does the viewer need? hmmm
+    - hm ok there's some complexity
+
 - [ ] make an "ease" function that takes an enum config
       then we can have a Scrubber just for that function, that
       flips through the different options. could be rad

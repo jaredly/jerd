@@ -1,19 +1,17 @@
 // This is the fake one?
 /* @jsx jsx */
-import { css, jsx } from '@emotion/react';
-
-import * as React from 'react';
-import { Env, Id, Term } from '@jerd/language/src/typing/types';
+import { jsx } from '@emotion/react';
+import { generateSingleShader } from '@jerd/language/src/printing/glslPrinter';
+import { hashObject, idName } from '@jerd/language/src/typing/env';
 import {
     builtinType,
-    int,
     pureFunction,
     refType,
 } from '@jerd/language/src/typing/preset';
+import { Env, Id, Term } from '@jerd/language/src/typing/types';
+import * as React from 'react';
 import { EvalEnv, RenderPlugins } from '../State';
-import { hashObject, idName } from '@jerd/language/src/typing/env';
-import { generateSingleShader } from '@jerd/language/src/printing/glslPrinter';
-import { setup } from '../setupGLSL';
+import { OpenGLCanvas } from './OpenGLCanvas';
 import { ShaderCPU } from './ShaderCPU';
 import { ShowTrace } from './ShowTrace';
 
@@ -45,47 +43,6 @@ export const newGLSLEnv = (canvas: HTMLCanvasElement): GLSLEnv => ({
         y: canvas.height / 2,
     },
 });
-
-export const IconButton = ({
-    icon,
-    onClick,
-    selected,
-}: {
-    icon: string;
-    onClick: () => void;
-    selected?: boolean;
-}) => {
-    return (
-        <button
-            onClick={onClick}
-            css={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                padding: 4,
-                margin: 0,
-                cursor: 'pointer',
-                transition: '.2s ease color',
-                fontSize: '80%',
-                color: '#2a5e7d',
-                ':hover': {
-                    color: '#9edbff',
-                },
-                ...(selected ? { color: '#24aeff' } : undefined),
-            }}
-        >
-            <span
-                className="material-icons"
-                css={{
-                    // textShadow: '1px 1px 0px #aaa',
-                    fontSize: 20,
-                    pointerEvents: 'visible',
-                }}
-            >
-                {icon}
-            </span>
-        </button>
-    );
-};
 
 export const compileGLSL = (
     term: Term,
@@ -121,34 +78,6 @@ export const envWithTerm = (env: Env, term: Term) => {
     };
 };
 
-function convertDataURIToBinary(dataURI: string) {
-    var base64 = dataURI.replace(/^data[^,]+,/, '');
-    var raw = window.atob(base64);
-    var rawLength = raw.length;
-
-    var array = new Uint8Array(new ArrayBuffer(rawLength));
-    for (let i = 0; i < rawLength; i++) {
-        array[i] = raw.charCodeAt(i);
-    }
-    return array;
-}
-
-export type PlayState = 'playing' | 'paused' | 'recording' | 'transcoding';
-
-const hover = css({
-    opacity: 0,
-    // backgroundColor: 'rgba(50, 50, 50, 0.1)',
-    paddingTop: 2,
-    transition: '.3s ease opacity',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    display: 'flex',
-    justifyContent: 'center',
-    pointerEvents: 'none',
-});
-
 const ShaderGLSLBuffers = ({
     fn,
     term,
@@ -162,22 +91,7 @@ const ShaderGLSLBuffers = ({
     evalEnv: EvalEnv;
     startPaused: boolean;
 }) => {
-    const [width, setWidth] = React.useState(200);
-    const [canvas, setCanvas] = React.useState(
-        null as null | HTMLCanvasElement,
-    );
-    const [restartCount, setRestartCount] = React.useState(0);
-    const [playState, setPlayState] = React.useState(
-        (startPaused ? 'paused' : 'playing') as PlayState,
-    );
-    const [showSettings, toggleSettings] = React.useState(false);
     const [error, setError] = React.useState(null as any | null);
-
-    const [tracing, setTracing] = React.useState(false);
-    const [transcodingProgress, setTranscodingProgress] = React.useState(0.0);
-    const [recordingLength, setRecordingLength] = React.useState(
-        Math.ceil(2 * Math.PI * 60),
-    );
 
     const shaders = React.useMemo(() => {
         if (term.is.type === 'lambda') {
@@ -221,175 +135,31 @@ const ShaderGLSLBuffers = ({
         }
     }, [term]);
 
-    const timer = React.useRef(0);
+    const onTrace = React.useCallback(
+        (mousePos, time, canvas) => {
+            const hash = hashObject(term);
+            const id: Id = { hash, size: 1, pos: 0 };
+            // const fn = evalEnv.terms[idName(id)];
+            if (typeof fn !== 'function') {
+                console.log('not a function', fn);
+                return null;
+            }
 
-    const [video, setVideo] = React.useState(null as null | string);
+            const glEnv = newGLSLEnv(canvas);
+            glEnv.time = time;
 
-    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
-    const currentMousePos = React.useRef(mousePos);
-    currentMousePos.current = mousePos;
-
-    const traceValue = React.useMemo(() => {
-        if (!tracing || !canvas) {
-            return null;
-        }
-        const hash = hashObject(term);
-        const id: Id = { hash, size: 1, pos: 0 };
-        // const fn = evalEnv.terms[idName(id)];
-        if (typeof fn !== 'function') {
-            console.log('not a function', fn);
-            return null;
-        }
-
-        const glEnv = newGLSLEnv(canvas);
-        glEnv.time = timer.current;
-
-        const old = evalEnv.traceObj.traces;
-        const traces = (evalEnv.traceObj.traces = {});
-        const color = fn(glEnv, {
-            type: 'Vec2',
-            x: mousePos.x,
-            y: mousePos.y,
-        });
-        evalEnv.traceObj.traces = old;
-        return { color, traces };
-    }, [tracing, mousePos, term]);
-
-    const textures = React.useRef([]);
-
-    const restart = () => {
-        setRestartCount(restartCount + 1);
-        textures.current = [];
-    };
-
-    const updateFn = React.useMemo(() => {
-        if (!canvas || !shaders) {
-            return null;
-        }
-        const ctx = canvas.getContext('webgl2');
-        if (!ctx) {
-            return;
-        }
-        try {
-            const update = setup(
-                ctx,
-                shaders[0].text,
-                timer.current,
-                currentMousePos.current,
-                shaders.slice(1).map((shader) => shader.text),
-                textures.current,
-            );
-            return update;
-        } catch (err) {
-            console.log(err);
-            setError(err);
-        }
-    }, [canvas, shaders, restartCount]);
-
-    React.useEffect(() => {
-        if (
-            !updateFn ||
-            playState === 'paused' ||
-            playState === 'transcoding'
-        ) {
-            return;
-        }
-        if (playState === 'recording') {
-            // um just go to 2PI? let's try that...
-            // or maybe 4pi, idk
-            // 60fps please I think
-            const ffmpeg = new Worker('./ffmpeg-worker-mp4.js');
-
-            // const totalSeconds = Math.PI * 4;
-
-            ffmpeg.onmessage = function (e) {
-                var msg = e.data;
-                switch (msg.type) {
-                    case 'stdout':
-                    case 'stderr':
-                        if (msg.data.startsWith('frame=')) {
-                            const frame = +(msg.data as string)
-                                .slice('frame='.length)
-                                .trimStart()
-                                .split(' ')[0];
-                            setTranscodingProgress(frame / recordingLength);
-                        }
-                        console.log(msg.data);
-                        // messages += msg.data + "\n";
-                        break;
-                    case 'exit':
-                        console.log('Process exited with code ' + msg.data);
-                        //worker.terminate();
-                        break;
-
-                    case 'done':
-                        const blob = new Blob([msg.data.MEMFS[0].data], {
-                            type: 'video/mp4',
-                        });
-                        setVideo(URL.createObjectURL(blob));
-                        break;
-                }
-            };
-
-            const images: Array<{ name: string; data: Uint8Array }> = [];
-
-            let tid: any;
-            let tick = 0;
-            const fn = () => {
-                updateFn(tick / 60, currentMousePos.current);
-
-                const dataUrl = canvas!.toDataURL('image/jpeg');
-                const data = convertDataURIToBinary(dataUrl);
-
-                images.push({
-                    name: `img${tick.toString().padStart(3, '0')}.jpg`,
-                    data,
-                });
-
-                if (tick++ > recordingLength) {
-                    ffmpeg.postMessage({
-                        type: 'run',
-                        TOTAL_MEMORY: 268435456,
-                        //arguments: 'ffmpeg -framerate 24 -i img%03d.jpeg output.mp4'.split(' '),
-                        arguments: [
-                            '-r',
-                            '60',
-                            '-i',
-                            'img%03d.jpg',
-                            '-c:v',
-                            'libx264',
-                            '-crf',
-                            '18',
-                            '-pix_fmt',
-                            'yuv420p',
-                            '-vb',
-                            '20M',
-                            'out.mp4',
-                        ],
-                        MEMFS: images,
-                    });
-                    setPlayState('transcoding');
-
-                    return; // done
-                }
-                tid = requestAnimationFrame(fn);
-            };
-            tid = requestAnimationFrame(fn);
-            return () => cancelAnimationFrame(tid);
-        } else {
-            let tid: any;
-            let last = Date.now();
-            const fn = () => {
-                const now = Date.now();
-                timer.current += (now - last) / 1000;
-                last = now;
-                updateFn(timer.current, currentMousePos.current);
-                tid = requestAnimationFrame(fn);
-            };
-            tid = requestAnimationFrame(fn);
-            return () => cancelAnimationFrame(tid);
-        }
-    }, [updateFn, playState, restartCount]);
+            const old = evalEnv.traceObj.traces;
+            const traces = (evalEnv.traceObj.traces = {});
+            const color = fn(glEnv, {
+                type: 'Vec2',
+                x: mousePos.x,
+                y: mousePos.y,
+            });
+            evalEnv.traceObj.traces = old;
+            return { color, traces };
+        },
+        [term],
+    );
 
     if (error != null) {
         return (
@@ -418,130 +188,20 @@ const ShaderGLSLBuffers = ({
         );
     }
 
+    if (shaders == null) {
+        return <div>No shaders!!</div>;
+    }
+
     return (
-        <div
-            onMouseDown={(evt) => {
-                evt.stopPropagation();
-            }}
-            onClick={(evt) => {
-                evt.stopPropagation();
-            }}
-        >
-            <div
-                css={{
-                    position: 'relative',
-                    display: 'inline-block',
-                    [`:hover .hover`]: {
-                        opacity: 1.0,
-                    },
-                }}
-            >
-                <canvas
-                    onMouseMove={(evt) => {
-                        const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
-                        setMousePos({
-                            x: (evt.clientX - box.left) * 2,
-                            y: (box.height - (evt.clientY - box.top)) * 2,
-                            button: evt.button != null ? evt.button : -1,
-                        });
-                    }}
-                    ref={(node) => {
-                        if (node && !canvas) {
-                            setCanvas(node);
-                        }
-                    }}
-                    style={{
-                        width: width,
-                        height: width,
-                    }}
-                    // Double size for retina
-                    width={width * 2 + ''}
-                    height={width * 2 + ''}
-                />
-                <div css={hover} className="hover">
-                    <IconButton
-                        icon="play_arrow"
-                        selected={playState === 'playing'}
-                        onClick={() => {
-                            if (playState !== 'playing') {
-                                setPlayState('playing');
-                            }
-                        }}
-                    />
-                    <IconButton
-                        icon="pause"
-                        selected={playState === 'paused'}
-                        onClick={() => {
-                            if (playState !== 'paused') {
-                                setPlayState('paused');
-                            }
-                        }}
-                    />
-                    <IconButton
-                        icon="replay"
-                        selected={false}
-                        onClick={() => {
-                            timer.current = 0;
-                            if (playState !== 'playing') {
-                                setPlayState('playing');
-                            }
-                            restart();
-                        }}
-                    />
-                    <IconButton
-                        icon="circle"
-                        onClick={() => {
-                            timer.current = 0;
-                            setPlayState('recording');
-                            restart();
-                        }}
-                        selected={playState === 'recording'}
-                    />
-                    <IconButton
-                        icon="settings"
-                        onClick={() => toggleSettings(!showSettings)}
-                        selected={showSettings}
-                    />
-                </div>
-            </div>
-            {showSettings ? (
-                <div>
-                    Width:
-                    <input
-                        value={width + ''}
-                        onChange={(evt) => {
-                            const value = +evt.target.value;
-                            if (!isNaN(value)) {
-                                setWidth(value);
-                            }
-                        }}
-                    />
-                    {tracing && traceValue ? (
-                        <ShowTrace
-                            trace={traceValue}
-                            env={env}
-                            pos={mousePos}
-                        />
-                    ) : (
-                        <button onClick={() => setTracing(true)}>Trace</button>
-                    )}
-                    Recording length (frames):
-                    <input
-                        value={recordingLength.toString()}
-                        onChange={(evt) => {
-                            const value = parseInt(evt.target.value);
-                            if (!isNaN(value)) {
-                                setRecordingLength(value);
-                            }
-                        }}
-                    />
-                </div>
-            ) : null}
-            {transcodingProgress > 0
-                ? `Transcoding: ${(transcodingProgress * 100).toFixed(2)}%`
-                : null}
-            {video ? <video src={video} loop controls /> : null}
-        </div>
+        <OpenGLCanvas
+            onTrace={onTrace}
+            shaders={shaders.map((shader) => shader.text)}
+            startPaused={startPaused}
+            onError={setError}
+            renderTrace={(traceValue, mousePos) => (
+                <ShowTrace trace={traceValue} env={env} pos={mousePos} />
+            )}
+        />
     );
 };
 
