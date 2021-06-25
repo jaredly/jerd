@@ -353,6 +353,15 @@ export const OpenGLCanvas = ({
                             }
                         }}
                     />
+                    <button
+                        onClick={() => {
+                            navigator.clipboard.writeText(
+                                JSON.stringify(shaders),
+                            );
+                        }}
+                    >
+                        Copy Shaders as JSON array
+                    </button>
                 </div>
             ) : null}
             {transcodingProgress > 0
