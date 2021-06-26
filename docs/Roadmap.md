@@ -1,13 +1,6 @@
 
 # Immediate stuff
 
-- [x] fix the "non-uniques" error
-
-- [x] better restart (reuse textures)
-- [x] yay conway love it
-
-- [ ] when we enter an invalid state, don't clear out the plugins if we don't have to.
-
 - [ ] ok the very next thing I want to do is make these
       glsl bonanzas exportable
       no need to embed an editor at the moment, although
@@ -21,8 +14,24 @@
     Will still need esbuild to bundle up the surrounding stuffs
     means I should extract the glslviewer stuff? maybe? maybe not though, it's fine.
     Ok so what does the viewer need? hmmm
-  - [ ] allow the gist to specify the size & zoom level
+  - [x] allow the gist to specify the size & zoom level
+    - [ ] ok but we really need the plugin dealios to persist size and zoom, tyvm
   - [ ] include the source and an editor and such! the gist would be rather larger...
+
+- [x] fix the "non-uniques" error
+
+- [x] better restart (reuse textures)
+- [x] yay conway love it
+
+- [x] when we enter an invalid state, don't clear out the plugins if we don't have to.
+- [ ] start on invalid type nodes
+  - [ ] add an "invalid type" node for arguments with the wrong type
+  - [ ] add a "error" node for unresolved values
+  - [ ] when rendering that, do an autocomplete!
+        hrm oh wait, I guess I first need reprint? I mean not totally, I can try it out
+- [ ] ok but so I also really want to support uniforms. so that once exported, things can be twiddled as well
+  - 🤔 hmmmmmm ok but so what if I did have a "livelit" like macro ... that would turn the spot into a uniform
+    when exported? 🤔 I mean so it wouldn't do the closure capture thing, but still
 
 - [ ] make an "ease" function that takes an enum config
       then we can have a Scrubber just for that function, that

@@ -9,7 +9,15 @@ import { OpenGLCanvas } from './display/OpenGLCanvas';
 
 // Get the shader data somehow
 
-const App = ({ shaders }: { shaders: Array<string> }) => {
+const App = ({
+    shaders,
+    size,
+    zoom,
+}: {
+    zoom: number;
+    size: number;
+    shaders: Array<string>;
+}) => {
     const [error, setError] = React.useState(null as null | Error);
     if (error != null) {
         return (
@@ -23,33 +31,73 @@ const App = ({ shaders }: { shaders: Array<string> }) => {
     return (
         <OpenGLCanvas
             shaders={shaders}
-            initialSize={500}
+            initialSize={size}
+            initialZoom={zoom}
             onError={(e: Error) => setError(e)}
             startPaused={false}
         />
     );
 };
 
+const Unloaded = () => {
+    const [url, setUrl] = React.useState('');
+    return (
+        <div>
+            <input value={url} onChange={(evt) => setUrl(evt.target.value)} />
+            <button
+                onClick={() => {
+                    const id = url.split('/').slice(-1)[0];
+                    window.location.search = '?' + id;
+                }}
+            >
+                Load Gist
+            </button>
+        </div>
+    );
+};
+
+const isShaders = (data: any) =>
+    Array.isArray(data) &&
+    data.every((s) => typeof s === 'string' && s.startsWith('#version'));
+
 if (window.location.search) {
     const gist = window.location.search.slice(1);
+    render(<div>Loading...</div>, document.getElementById('root'));
     fetch('https://api.github.com/gists/' + gist)
         .then((r) => r.json())
-        .then((data) => {
-            const raw = data.files[Object.keys(data.files)[0]].content;
-            let shaders = [];
-            try {
-                shaders = JSON.parse(raw);
-            } catch (err) {
-                return render(
-                    <div>
-                        Invalid gist. The first file must be a json
-                        stringification of the glsl.
-                    </div>,
+        .then(
+            (response) => {
+                const raw =
+                    response.files[Object.keys(response.files)[0]].content;
+                let data = null;
+                try {
+                    data = JSON.parse(raw);
+                } catch (err) {
+                    return render(
+                        <div>
+                            Invalid gist. The first file must be a json
+                            stringification of the glsl.
+                        </div>,
+                        document.getElementById('root'),
+                    );
+                }
+                let shaders: Array<string> = [];
+                let size = 500;
+                let zoom = 0.5;
+                if (isShaders(data)) {
+                    shaders = data;
+                } else if (isShaders(data.shaders)) {
+                    shaders = data.shaders;
+                    size = data.size || 400;
+                    zoom = data.zoom || 0.5;
+                }
+                render(
+                    <App size={size} zoom={zoom} shaders={shaders} />,
                     document.getElementById('root'),
                 );
-            }
-            render(<App shaders={shaders} />, document.getElementById('root'));
-        });
+            },
+            (err) => {},
+        );
 } else {
-    render(<div>Hello!</div>, document.getElementById('root'));
+    render(<Unloaded />, document.getElementById('root'));
 }

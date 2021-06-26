@@ -36,6 +36,7 @@ export const newGLSLEnv = (canvas: HTMLCanvasElement): GLSLEnv => ({
 });
 
 const makeFfmpeg = (
+    zoom: number,
     onFrame: (frame: number) => void,
     onDone: (url: string) => void,
 ) => {
@@ -90,6 +91,8 @@ const makeFfmpeg = (
                 'yuv420p',
                 '-vb',
                 '20M',
+                '-vf',
+                `scale=iw*${zoom}:ih*${zoom}:flags=neighbor`,
                 'out.mp4',
             ],
             MEMFS: images,
@@ -104,8 +107,10 @@ export const OpenGLCanvas = ({
     onError,
     renderTrace,
     initialSize = 200,
+    initialZoom = 0.5,
 }: {
     initialSize?: number;
+    initialZoom?: number;
     startPaused: boolean;
     shaders: Array<string>;
     onError: (e: Error) => void;
@@ -120,7 +125,7 @@ export const OpenGLCanvas = ({
         mousePos: { x: number; y: number },
     ) => React.ReactNode;
 }) => {
-    const [zoom, setZoom] = React.useState(0.5);
+    const [zoom, setZoom] = React.useState(initialZoom);
     const [width, setWidth] = React.useState(initialSize);
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
@@ -199,6 +204,7 @@ export const OpenGLCanvas = ({
             setVideo(null);
 
             const sendRun = makeFfmpeg(
+                zoom,
                 (frame) =>
                     setTranscodingProgress((t) => ({
                         ...t,
@@ -386,7 +392,7 @@ export const OpenGLCanvas = ({
                     <button
                         onClick={() => {
                             navigator.clipboard.writeText(
-                                JSON.stringify(shaders),
+                                JSON.stringify({ shaders, zoom, size: width }),
                             );
                         }}
                     >
