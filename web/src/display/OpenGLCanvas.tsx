@@ -396,7 +396,7 @@ export const OpenGLCanvas = ({
                             );
                         }}
                     >
-                        Copy Shaders as JSON array
+                        Copy as JSON
                     </button>
                 </div>
             ) : null}

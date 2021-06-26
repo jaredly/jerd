@@ -18,6 +18,17 @@
     - [ ] ok but we really need the plugin dealios to persist size and zoom, tyvm
   - [ ] include the source and an editor and such! the gist would be rather larger...
 
+IDEA: Snake + LIFE
+- big gameoflife board going on in the background (maybe with specific initialization, idk)
+- what you see is a zoomed in like 50x50 board or something
+- you are a snake? Or maybe just a spaceship, idk
+- you are nagivating toward a goal maybe? or maybe just going around trying to eat the apples
+- snake + apples + longer, or spaceship ya know
+- how to detect collision? oh hm I could do like a hm special color that I output if I detect collision? Like I'm drawing the spaceship or something, and it's a colliding pixel
+- and then the js just looks for any pixels? Can I do that at speed?
+
+
+
 - [x] fix the "non-uniques" error
 
 - [x] better restart (reuse textures)
