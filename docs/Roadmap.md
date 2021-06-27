@@ -1,4 +1,21 @@
 
+# NEXT UP
+
+- UI improvements! Implement the wireframe.
+  - ok but maybe "pins" ... maybe the display configs for a hash should be stored somewhere separate
+    so that you can say "this is no longer pinned" but the knowledge of that config doesn't go away.
+    do I want display configs to have tags? are they separate entities? are they in fact just hashes?
+    🤔 I mean that would definitely be one way to do it. Have them "associated" with the term in question
+    and I could display (and cache) backlinks for terms in their metadata
+    so like
+    there would be a type for OpenGLConfig? or something? hmmmm
+
+# General robustness stuff
+
+- stop just using a single localstorage value for the whole env. use dexie or something to break it into one row per term.
+- and then we can have a single row for a workspace, I think? It shouldn't get tooo expensive.
+- How much should I limit the history length? I'll try 100 items, see what happens.
+
 # Immediate stuff
 
 - [ ] ok the very next thing I want to do is make these

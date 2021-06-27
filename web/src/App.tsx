@@ -1,37 +1,27 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react';
-// The app
-
-import * as React from 'react';
-import { Env, Id } from '@jerd/language/src/typing/types';
-import {
-    Cell,
-    Content,
-    Display,
-    EvalEnv,
-    RenderPlugins,
-    RenderPluginT,
-} from './State';
-import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { printToString } from '@jerd/language/src/printing/printer';
-
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
+import { idName } from '@jerd/language/src/typing/env';
+import { Env, Id } from '@jerd/language/src/typing/types';
+// The app
+import * as React from 'react';
 import Cells, {
+    activeWorkspace,
+    blankCell,
     contentMatches,
     genId,
-    blankCell,
-    activeWorkspace,
     modActiveWorkspace,
 } from './Cells';
 import DrawablePlugins from './display/Drawable';
-import StdioPlugins from './display/Stdio';
 import OpenGLPlugins from './display/OpenGL';
-import { initialState, saveState, stateToString } from './persistence';
-import Library from './Library';
-import { idName } from '@jerd/language/src/typing/env';
-import { getTypeError } from '@jerd/language/src/typing/getTypeError';
+import StdioPlugins from './display/Stdio';
 import { runTerm } from './eval';
-import { getToplevel } from './toplevels';
+import Library from './Library';
+import { saveState, stateToString } from './persistence';
 import { Pin } from './Pin';
+import { Cell, Content, Display, EvalEnv, RenderPlugins } from './State';
+import { getToplevel } from './toplevels';
 
 const defaultPlugins: RenderPlugins = {
     ...DrawablePlugins,
@@ -39,15 +29,28 @@ const defaultPlugins: RenderPlugins = {
     ...OpenGLPlugins,
 };
 
-// const editorPlugins: EditorPlugins = {};
-
 // Yea
+
+export type HistoryItem =
+    | {
+          type: 'update';
+          cellId: string;
+          fromHash: string;
+          toHash: string;
+      }
+    | {
+          type: 'pin';
+          cellId: string;
+          id: string;
+      }; // etc. TODO fill in if I have ideas
 
 export type Workspace = {
     name: string;
     cells: { [key: string]: Cell };
     pins: Array<{ display: Display; id: Id }>;
+    currentPin: number;
     order: number;
+    history: Array<HistoryItem>;
 };
 
 export type State = {

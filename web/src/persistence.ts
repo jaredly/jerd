@@ -75,9 +75,17 @@ export const initialState = async (): Promise<State> => {
                 delete data.cells;
             }
 
-            // Add "order" indices
+            // Add "order" indices and such
             Object.keys(data.workspaces).forEach((k) => {
                 const work = data.workspaces[k];
+
+                if (work.history == null) {
+                    work.history = [];
+                }
+                if (work.currentPin == null) {
+                    work.currentPin = 0;
+                }
+
                 const cells = Object.keys(data.workspaces[k].cells);
                 if (
                     cells.length &&
