@@ -13,8 +13,11 @@ import { jsx } from '@emotion/react';
 // - um probably some refactoring commands? idk
 
 import * as React from 'react';
-import { idFromName, idName } from '../../language/src/typing/env';
-import { Env } from '../../language/src/typing/types';
+import { printToAttributedText } from '../../language/src/printing/printer';
+import { toplevelToPretty } from '../../language/src/printing/printTsLike';
+import { idFromName, idName, ToplevelT } from '../../language/src/typing/env';
+import { Env, nullLoc, nullLocation } from '../../language/src/typing/types';
+import { renderAttributedText } from './Render';
 import { Content } from './State';
 
 export type Props = {
@@ -23,19 +26,28 @@ export type Props = {
     onOpen: (content: Content) => void;
 };
 
+export type State = {
+    input: string;
+    selected: number;
+    hashIdx: number;
+    refered: Array<{ type: 'type' | 'term'; id: string }>;
+};
+
 export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
-    const [refered, setRefered] = React.useState(
-        [] as Array<{ type: 'type' | 'term'; id: string }>,
-    );
-    const [input, setInput] = React.useState('');
+    const [state, setState] = React.useState({
+        input: '',
+        selected: 0,
+        hashIdx: 0,
+        refered: [],
+    } as State);
 
     const results = React.useMemo(() => {
         const names = Object.keys(env.global.names);
         const typeNames = Object.keys(env.global.typeNames);
-        const needle = input.toLowerCase();
+        const needle = state.input.toLowerCase();
         // TODO: sort by added date
         // env.global.metaData
-        if (input == '') {
+        if (state.input == '') {
             return names.slice(-10).map((n) => ({ type: 'term', name: n }));
         }
         return names
@@ -46,7 +58,26 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                     .filter((n) => n.toLowerCase().includes(needle))
                     .map((n) => ({ type: 'type', name: n })),
             );
-    }, [env, input, refered]);
+    }, [env, state.input, state.refered]);
+
+    const toplevel: ToplevelT | null = React.useMemo((): null | ToplevelT => {
+        const current = results[state.selected];
+        if (!current) {
+            return null;
+        }
+        if (current.type === 'term') {
+            const id = env.global.names[current.name][state.hashIdx];
+            const term = env.global.terms[idName(id)];
+            return {
+                type: 'Define',
+                name: current.name,
+                location: term.location,
+                id,
+                term,
+            };
+        }
+        return null;
+    }, [env, state.selected, state.hashIdx, results]);
 
     return (
         <div
@@ -66,6 +97,8 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                     maxWidth: '90vw',
                     boxShadow: '0 0 2px #fff',
                     padding: 4,
+                    flex: 1,
+                    minHeight: 100,
                     borderRadius: 4,
                     width: 800,
                     flexDirection: 'column',
@@ -74,10 +107,21 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                 }}
             >
                 <input
-                    value={input || ''}
+                    value={state.input}
+                    css={{
+                        fontSize: '120%',
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        border: 'none',
+                        padding: 8,
+                    }}
                     autoFocus
                     onChange={(evt) => {
-                        setInput(evt.target.value);
+                        setState((s) => ({
+                            ...s,
+                            input: evt.target.value,
+                            selected: 0,
+                            hashIdx: 0,
+                        }));
                     }}
                     onKeyDown={(evt) => {
                         if (evt.key === 'Escape') {
@@ -85,12 +129,51 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                             onClose();
                             return;
                         }
+                        if (evt.key === 'ArrowUp') {
+                            setState((s) => ({
+                                ...s,
+                                selected: wrap(results.length, s.selected - 1),
+                                hashIdx: 0,
+                            }));
+                        }
+                        if (evt.key === 'ArrowDown') {
+                            setState((s) => ({
+                                ...s,
+                                selected: wrap(results.length, s.selected + 1),
+                                hashIdx: 0,
+                            }));
+                        }
+                        if (evt.key === 'ArrowRight') {
+                            const t = evt.target as HTMLInputElement;
+                            // TODO: only if selection is at the far right
+                            if (t.selectionStart! < t.value.length) {
+                                return;
+                            }
+                            setState((s) => {
+                                const r = results[s.selected];
+                                const hashes =
+                                    r.type === 'term'
+                                        ? env.global.names[r.name]
+                                        : env.global.typeNames[r.name];
+                                return {
+                                    ...s,
+                                    selected: wrap(
+                                        results.length,
+                                        s.selected + 1,
+                                    ),
+                                    hashIdx: wrap(
+                                        hashes.length,
+                                        state.hashIdx + 1,
+                                    ),
+                                };
+                            });
+                        }
                         if (evt.key === 'Enter') {
-                            const r = results[0];
+                            const r = results[state.selected];
                             if (r.type === 'term') {
                                 onOpen({
                                     type: 'term',
-                                    id: env.global.names[r.name][0],
+                                    id: env.global.names[r.name][state.hashIdx],
                                     name: r.name,
                                 });
                                 onClose();
@@ -101,6 +184,7 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                 <div
                     css={{
                         overflow: 'auto',
+                        minHeight: 100,
                     }}
                 >
                     {results
@@ -110,21 +194,48 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                                     key: 'term-' + r.name,
                                     title: r.name,
                                     ids: env.global.names[r.name],
+                                    item: r,
                                 };
                             } else {
                                 return {
                                     key: 'type-' + r.name,
                                     title: r.name,
                                     ids: env.global.typeNames[r.name],
+                                    item: r,
                                 };
                             }
                         })
-                        .map((r) => {
+                        .map((r, i) => {
                             return (
                                 <div
+                                    onMouseOver={() => {
+                                        setState((s) => ({
+                                            ...s,
+                                            selected: i,
+                                            hashIdx: 0,
+                                        }));
+                                    }}
+                                    onClick={() => {
+                                        if (r.item.type === 'term') {
+                                            onOpen({
+                                                type: 'term',
+                                                id: r.ids[0],
+                                                name: r.item.name,
+                                            });
+                                            onClose();
+                                        }
+                                    }}
                                     key={r.key}
+                                    style={
+                                        i === state.selected
+                                            ? {
+                                                  backgroundColor:
+                                                      'rgba(255,255,255,0.2)',
+                                              }
+                                            : undefined
+                                    }
                                     css={{
-                                        padding: '4px 8px',
+                                        padding: 8,
                                         cursor: 'pointer',
                                         display: 'flex',
                                         alignItems: 'flex-start',
@@ -132,14 +243,91 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                                 >
                                     {r.title}
                                     <div css={{ flex: 1 }} />
-                                    {r.ids
-                                        .map((r) => '#' + idName(r))
-                                        .join(' ')}
+                                    {r.ids.map((id, hidx) => (
+                                        <div
+                                            key={idName(id)}
+                                            onClick={(evt) => {
+                                                evt.stopPropagation();
+                                                if (r.item.type === 'term') {
+                                                    onOpen({
+                                                        type: 'term',
+                                                        id: id,
+                                                        name: r.item.name,
+                                                    });
+                                                    onClose();
+                                                }
+                                            }}
+                                            onMouseOver={(evt) => {
+                                                evt.stopPropagation();
+                                                setState((s) => ({
+                                                    ...s,
+                                                    selected: i,
+                                                    hashIdx: hidx,
+                                                }));
+                                            }}
+                                            css={{
+                                                padding: '2px 4px',
+                                                borderRadius: 2,
+                                            }}
+                                            style={
+                                                i === state.selected &&
+                                                hidx === state.hashIdx
+                                                    ? {
+                                                          backgroundColor:
+                                                              'rgba(255,255,255,0.2)',
+                                                      }
+                                                    : undefined
+                                            }
+                                        >
+                                            #{idName(id)}
+                                        </div>
+                                    ))}
                                 </div>
                             );
                         })}
+                </div>
+                {/* <div css={{ flex: 1 }} /> */}
+                <div
+                    style={{
+                        fontFamily: '"Source Code Pro", monospace',
+                        whiteSpace: 'pre-wrap',
+                        position: 'relative',
+                        cursor: 'pointer',
+                        // maxHeight: '50vh',
+                        minHeight: 100,
+                        overflow: 'auto',
+                        flex: 1,
+                        padding: 8,
+                    }}
+                >
+                    {toplevel
+                        ? renderAttributedText(
+                              env.global,
+                              printToAttributedText(
+                                  toplevelToPretty(env, toplevel),
+                                  100,
+                              ),
+                              undefined,
+                              // onClick(env, cell, addCell, setScrub, term, value),
+                              false,
+                              undefined,
+                              undefined,
+                              // (id, kind) =>
+                              //     [
+                              //         'term',
+                              //         'type',
+                              //         'as',
+                              //         'record',
+                              //         'custom-binop',
+                              //         'float',
+                              //     ].includes(kind),
+                          )
+                        : null}
                 </div>
             </div>
         </div>
     );
 };
+
+const wrap = (length: number, n: number) =>
+    n < 0 ? length - 1 : n > length - 1 ? 0 : n;
