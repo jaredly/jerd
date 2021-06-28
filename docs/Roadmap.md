@@ -1,10 +1,36 @@
 
+# Ugh ok data integrity, maybe we can have it
+
+Maybe set up a server dealio.
+Could we sync directly with github? hmm that sounds more complicated than I really want.
+- uh well isomorphic-git will do git in the browser, which is a little wild
+- hmmmmm
+- ok, so I definitely want to be storing things for much more efficient writing in indexeddb.
+- and then we'd have the option of only loading up /some/ of it
+- BUT this would mean that we wouldn't be passing around the full "env" object, right?
+
+
 # NEXT UP
 
 - make a cmd+p menu, for pulling things up
   - tabbing with a type searches for things that use that type
   - tabbing with a term searches for usages of the term
-- 
+  - so cool
+  - also, wow um yeah I've done a lot of experimentation.
+  - hmmmmmmmm
+  - so I do want a way to mouseover things and have them render
+  - also to be able to give names to things that don't currently have names
+  - or to give names to groups of things?
+- ok I do think I need some kind of namespace support. What should that look like?
+  - orrr do I also want tags or something?
+  - or pins, but more so? so you can archive a pin, or something
+    and also have pins take screenshots?
+
+- I think I want a "cleanup" button to remove all unnamed items that aren't pinned or something 🤔
+  which means that I need a better way to name things, obvs. which is why I think of namespaces.
+  Right, I feel like what I want is to be messing around with a thing, and to be able to say "oh this is a nice one, screenshot this" or something.
+  and then have it be marked as "keep" or something like that. yeah. and then when cleaning up,
+  we'd clean up any superceded non-keep items as well that aren't used by anything? and do that iteratively
 
 - UI improvements! Implement the wireframe.
   - ok but maybe "pins" ... maybe the display configs for a hash should be stored somewhere separate

@@ -1,6 +1,10 @@
-import { State } from './App';
+import { Index, Indices, State } from './App';
 
-import { allLiteral } from '@jerd/language/src/typing/analyze';
+import {
+    allLiteral,
+    getUserDependencies,
+    getUserTypeDependencies,
+} from '@jerd/language/src/typing/analyze';
 import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
 import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import * as builtins from '@jerd/language/src/printing/builtins';
@@ -11,6 +15,7 @@ import {
     Type,
 } from '@jerd/language/src/typing/types';
 import localForage from 'localforage';
+import { idFromName, idName } from '../../language/src/typing/env';
 
 const saveKey = 'jd-repl-cache';
 
@@ -62,6 +67,8 @@ export const initialState = async (): Promise<State> => {
             if (!data.workspaces) {
                 data.workspaces = {
                     default: {
+                        currentPin: 0,
+                        history: [],
                         name: 'Default',
                         // @ts-ignore
                         pins: data.pins,
@@ -96,6 +103,12 @@ export const initialState = async (): Promise<State> => {
                     });
                 }
             });
+
+            // STOPSHIP: Update the index when updating env 🤔 need a more structured way to do this.
+            // maybe the index should be part of env? but no, I don't like that.
+            // if (!data.index) {
+            data.index = buildIndex(data.env.global);
+            // }
 
             // @ts-ignore
             if (data.pins) {
@@ -199,12 +212,19 @@ export const initialState = async (): Promise<State> => {
     return {
         env: newWithGlobal(env),
         activeWorkspace: 'default',
+        index: {
+            termsToTerms: { from: {}, to: {} },
+            termsToTypes: { from: {}, to: {} },
+            typesToTypes: { from: {}, to: {} },
+        },
         workspaces: {
             default: {
                 name: 'Default',
                 cells: {},
                 pins: [],
                 order: 0,
+                currentPin: 0,
+                history: [],
             },
         },
         evalEnv: {
@@ -213,5 +233,59 @@ export const initialState = async (): Promise<State> => {
             executionLimit: { ticks: 0, maxTime: 0, enabled: false },
             traceObj: { traces: null },
         },
+    };
+};
+
+export const buildIndex = (env: GlobalEnv): Indices => {
+    const termsToTerms: Index = { from: {}, to: {} };
+
+    Object.keys(env.terms).forEach((idRaw, i) => {
+        const id = idFromName(idRaw);
+        const term = env.terms[idRaw];
+
+        termsToTerms.from[idRaw] = getUserDependencies(term);
+        termsToTerms.to[idRaw] = [];
+    });
+
+    Object.keys(env.terms).forEach((idRaw) => {
+        const sid = idFromName(idRaw);
+        termsToTerms.from[idRaw].forEach((id) => {
+            termsToTerms.to[idName(id)].push(sid);
+        });
+    });
+
+    const termsToTypes: Index = { from: {}, to: {} };
+
+    Object.keys(env.terms).forEach((idRaw, i) => {
+        const id = idFromName(idRaw);
+        const term = env.terms[idRaw];
+        const types = getUserTypeDependencies(term);
+
+        termsToTypes.from[idRaw] = types;
+        types.forEach((t) => {
+            const ti = idName(t);
+            if (!termsToTypes.to[ti]) {
+                termsToTypes.to[ti] = [];
+            }
+            termsToTypes.to[ti].push(id);
+        });
+    });
+
+    const typesToTypes: Index = { from: {}, to: {} };
+
+    // try {
+    //     console.log(types);
+    //     // index.from[idRaw] = index.from[idRaw].concat(i);
+    // } catch (err) {
+    //     console.log(err);
+    // }
+    // // .concat(
+    // //     getUserTypeDependencies(term),
+    // // );
+
+    return {
+        termsToTerms,
+        termsToTypes,
+        typesToTypes,
     };
 };

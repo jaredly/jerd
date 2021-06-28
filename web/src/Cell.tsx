@@ -253,6 +253,7 @@ export const CellView = ({
                     const { env: nenv, content } = updateToplevel(
                         env,
                         rawOrToplevel,
+                        cell.content,
                     );
                     onChange(nenv, {
                         ...cell,
@@ -286,7 +287,11 @@ export const CellView = ({
             }}
             // onChange={}
             onChange={(toplevel: ToplevelT) => {
-                const { env: nenv, content } = updateToplevel(env, toplevel);
+                const { env: nenv, content } = updateToplevel(
+                    env,
+                    toplevel,
+                    cell.content,
+                );
                 onChange(nenv, {
                     ...cell,
                     content,
@@ -348,7 +353,7 @@ export const CellView = ({
 
     return (
         <CellWrapper
-            title={cellTitle(env, cell, maxWidth)}
+            title={cellTitle(env, cell, maxWidth, cell.collapsed)}
             onRemove={onRemove}
             focused={focused}
             onFocus={onFocus}
@@ -579,7 +584,15 @@ const Icon = ({ name }: { name: string }) => (
     />
 );
 
-const cellTitle = (env: Env, cell: Cell, maxWidth: number) => {
+const cellTitle = (
+    env: Env,
+    cell: Cell,
+    maxWidth: number,
+    collapsed?: boolean,
+) => {
+    if (collapsed) {
+        maxWidth = 10000;
+    }
     switch (cell.content.type) {
         case 'raw':
             return <em>unevaluated</em>;

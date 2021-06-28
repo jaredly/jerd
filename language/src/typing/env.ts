@@ -40,6 +40,7 @@ import {
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
 import { getTypeError } from './getTypeError';
+import { env } from 'process';
 
 export type ToplevelT =
     | {
@@ -669,7 +670,11 @@ export const addDefine = (env: Env, name: string, term: Term) => {
     return { id, env: { ...env, global: glob } };
 };
 
-export const addExpr = (env: Env, term: Term) => {
+export const addExpr = (
+    env: Env,
+    term: Term,
+    pid: Id | null,
+): { id: Id; env: Env } => {
     const hash = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
     if (env.global.terms[hash]) {
@@ -682,6 +687,22 @@ export const addExpr = (env: Env, term: Term) => {
             global: {
                 ...env.global,
                 terms: { ...env.global.terms, [hash]: term },
+                metaData: {
+                    ...env.global.metaData,
+                    [hash]: {
+                        createdMs: Date.now(),
+                        tags: [],
+                        supersedes: pid ? idName(pid) : undefined,
+                    },
+                    ...(pid
+                        ? {
+                              [idName(pid)]: {
+                                  ...env.global.metaData[idName(pid)],
+                                  supersededBy: idName(id),
+                              },
+                          }
+                        : {}),
+                },
             },
         },
     };

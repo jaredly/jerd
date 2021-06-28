@@ -78,9 +78,14 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
 export const updateToplevel = (
     env: Env,
     term: ToplevelT,
+    prevContent: Content,
 ): { env: Env; content: Content } => {
     if (term.type === 'Expression') {
-        const { id, env: nenv } = addExpr(env, term.term);
+        const pid = null;
+        // prevContent.type === 'expr' || prevContent.type === 'term'
+        //     ? prevContent.id
+        //     : null;
+        let { id, env: nenv } = addExpr(env, term.term, pid);
         return { content: { type: 'expr', id: id }, env: nenv };
     } else if (term.type === 'Define') {
         const { id, env: nenv } = addDefine(env, term.name, term.term);

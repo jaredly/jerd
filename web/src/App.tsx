@@ -54,8 +54,25 @@ export type Workspace = {
     history: Array<HistoryItem>;
 };
 
+// TODO: This should just be taken care of by indexeddb
+export type Index = {
+    // Things that the key references
+    from: { [key: string]: Array<Id> };
+    // Things that reference the key
+    to: { [key: string]: Array<Id> };
+};
+export type Indices = {
+    termsToTerms: Index;
+    termsToTypes: Index;
+    typesToTypes: Index;
+};
+
 export type State = {
     env: Env;
+    // terms to terms
+    // terms to types and types to types
+    // [srcId, srcKind term/type, destId, destKind term/type]
+    index: Indices;
     activeWorkspace: string;
     workspaces: { [key: string]: Workspace };
     evalEnv: EvalEnv;
@@ -246,9 +263,11 @@ export default ({ initial }: { initial: State }) => {
                 ))}
             </div>
             {/* <ImportExport state={state} setState={setState} /> */}
+            <ImportExport state={state} setState={setState} />
             {showMenu ? (
                 <QuickMenu
                     env={state.env}
+                    index={state.index}
                     onClose={() => setShowMenu(false)}
                     onOpen={onOpen}
                 />
@@ -257,7 +276,7 @@ export default ({ initial }: { initial: State }) => {
     );
 };
 
-const ImportExport = ({
+export const ImportExport = ({
     state,
     setState,
 }: {
