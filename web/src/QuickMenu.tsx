@@ -17,6 +17,7 @@ import { printToAttributedText } from '../../language/src/printing/printer';
 import { toplevelToPretty } from '../../language/src/printing/printTsLike';
 import { idFromName, idName, ToplevelT } from '../../language/src/typing/env';
 import { Env, nullLoc, nullLocation } from '../../language/src/typing/types';
+import { HashIcon } from './HashIcon';
 import { renderAttributedText } from './Render';
 import { Content } from './State';
 
@@ -78,6 +79,10 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
         }
         return null;
     }, [env, state.selected, state.hashIdx, results]);
+    const meta =
+        toplevel && toplevel.type === 'Define'
+            ? env.global.metaData[idName(toplevel.id)]
+            : null;
 
     return (
         <div
@@ -110,6 +115,7 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                     value={state.input}
                     css={{
                         fontSize: '120%',
+                        color: 'white',
                         backgroundColor: 'rgba(255,255,255,0.1)',
                         border: 'none',
                         padding: 8,
@@ -280,6 +286,7 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                                             }
                                         >
                                             #{idName(id)}
+                                            {/* <HashIcon hash={id.hash} /> */}
                                         </div>
                                     ))}
                                 </div>
@@ -287,6 +294,13 @@ export const QuickMenu = ({ env, onClose, onOpen }: Props) => {
                         })}
                 </div>
                 {/* <div css={{ flex: 1 }} /> */}
+                {meta ? (
+                    <div>
+                        <span css={{ fontFamily: 'monospace' }}>
+                            {new Date(meta.createdMs).toLocaleString()}
+                        </span>
+                    </div>
+                ) : null}
                 <div
                     style={{
                         fontFamily: '"Source Code Pro", monospace',
