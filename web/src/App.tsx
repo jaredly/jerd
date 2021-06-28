@@ -20,6 +20,7 @@ import { runTerm } from './eval';
 import Library from './Library';
 import { saveState, stateToString } from './persistence';
 import { Pin } from './Pin';
+import { QuickMenu } from './QuickMenu';
 import { Cell, Content, Display, EvalEnv, RenderPlugins } from './State';
 import { getToplevel } from './toplevels';
 
@@ -62,6 +63,7 @@ export type State = {
 
 export default ({ initial }: { initial: State }) => {
     const [state, setState] = React.useState(() => initial);
+    const [showMenu, setShowMenu] = React.useState(false);
     React.useEffect(() => {
         saveState(state);
     }, [state]);
@@ -89,7 +91,23 @@ export default ({ initial }: { initial: State }) => {
             .join('\n\n');
     };
 
+    React.useEffect(() => {
+        const fn = (evt: KeyboardEvent) => {
+            if (evt.key === 'p' && (evt.metaKey || evt.ctrlKey)) {
+                evt.preventDefault();
+                setShowMenu(true);
+                return;
+            }
+        };
+        window.addEventListener('keydown', fn);
+        return () => window.removeEventListener('keydown', fn);
+    }, []);
+
     const workspace = activeWorkspace(state);
+
+    const [focus, setFocus] = React.useState(
+        null as null | { id: string; tick: number },
+    );
 
     const onOpen = (content: Content) => {
         if (
@@ -105,6 +123,7 @@ export default ({ initial }: { initial: State }) => {
             return;
         }
         const id = genId();
+        setFocus({ id, tick: 0 });
         setState((state) => {
             const w = state.workspaces[state.activeWorkspace];
             return {
@@ -145,7 +164,13 @@ export default ({ initial }: { initial: State }) => {
             > */}
             <Library env={state.env} onOpen={onOpen} />
             {/* </div> */}
-            <Cells state={state} plugins={defaultPlugins} setState={setState} />
+            <Cells
+                state={state}
+                focus={focus}
+                setFocus={setFocus}
+                plugins={defaultPlugins}
+                setState={setState}
+            />
             <div
                 style={{
                     // position: 'absolute',
@@ -221,6 +246,13 @@ export default ({ initial }: { initial: State }) => {
                 ))}
             </div>
             {/* <ImportExport state={state} setState={setState} /> */}
+            {showMenu ? (
+                <QuickMenu
+                    env={state.env}
+                    onClose={() => setShowMenu(false)}
+                    onOpen={onOpen}
+                />
+            ) : null}
         </div>
     );
 };

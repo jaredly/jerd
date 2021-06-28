@@ -1,6 +1,11 @@
 
 # NEXT UP
 
+- make a cmd+p menu, for pulling things up
+  - tabbing with a type searches for things that use that type
+  - tabbing with a term searches for usages of the term
+- 
+
 - UI improvements! Implement the wireframe.
   - ok but maybe "pins" ... maybe the display configs for a hash should be stored somewhere separate
     so that you can say "this is no longer pinned" but the knowledge of that config doesn't go away.
@@ -13,6 +18,7 @@
 # General robustness stuff
 
 - stop just using a single localstorage value for the whole env. use dexie or something to break it into one row per term.
+  - idb looks like the best dealio
 - and then we can have a single row for a workspace, I think? It shouldn't get tooo expensive.
 - How much should I limit the history length? I'll try 100 items, see what happens.
 

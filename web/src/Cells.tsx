@@ -83,6 +83,8 @@ const WorkspacePicker = ({
                                         name: 'New Workspace',
                                         pins: [],
                                         cells: {},
+                                        history: [],
+                                        currentPin: 0,
                                         order: Object.keys(state.workspaces)
                                             .length,
                                     },
@@ -131,15 +133,16 @@ const Cells = ({
     state,
     plugins,
     setState,
+    focus,
+    setFocus,
 }: {
     state: State;
+    focus: { id: string; tick: number } | null;
+    setFocus: (f: { id: string; tick: number } | null) => void;
     plugins: RenderPlugins;
     setState: (fn: (s: State) => State) => void;
 }) => {
     const work: Workspace = activeWorkspace(state);
-    const [focus, setFocus] = React.useState(
-        null as null | { id: string; tick: number },
-    );
     const focusRef = React.useRef(focus);
     focusRef.current = focus;
 
