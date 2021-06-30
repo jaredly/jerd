@@ -1,4 +1,13 @@
 
+- [ ] it would be nice to be able to support the pipe operator
+- [ ] how far can I get with just optimizations, on doing those array things?
+      or do I have to go ahead and implement ... 
+  - [ ] ok I mean reduceRange works, which is maybe good enough.
+      well it almost works -- need to fix the "generate a lambda"
+      to specialize the return value of the function.
+
+
+
 # Ugh ok data integrity, maybe we can have it
 
 - [x] oh ok so I fixed the immediate "everything dies" issue
