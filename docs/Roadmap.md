@@ -22,9 +22,11 @@
   - what if I auto-update everything I can all the time, but provide really easy undo?
     also, pins should have history you can page through. Oh yeah. And you can say "break this
     one out into its own pin"
-  - ok yeah I need the concept of an "archived pin". So it's in the showcase, but it doesn't
-    auto-update anymore.
-    yeah, and then you can like "open the whole showcase"
+  - [x] ok yeah I need the concept of an "archived pin". So it's in the showcase, but it doesn't
+        auto-update anymore.
+        yeah, and then you can like "open the whole showcase"
+    - [ ] have a button to show all archived pins, like ...
+          or maybe instead of "archive" it's "frozen"? And frozen pins are hidden by default? Yeah I like that.
 
 
 Workspace:

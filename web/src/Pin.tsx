@@ -116,7 +116,7 @@ export const Pin = ({
                     onClick={onArchive}
                     className="material-icons"
                 >
-                    inventory_2
+                    ac_unit
                 </button>
                 <button
                     css={{

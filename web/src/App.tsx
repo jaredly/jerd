@@ -206,7 +206,7 @@ export default ({ initial }: { initial: State }) => {
                 <div style={{ padding: 8 }}>Pinned terms</div>
                 <div>
                     {workspace.archivedPins.length
-                        ? `${workspace.archivedPins.length} saved pins`
+                        ? `${workspace.archivedPins.length} frozen pins`
                         : null}
                 </div>
                 {workspace.pins.map((pin, i) => (
