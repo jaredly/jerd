@@ -52,6 +52,7 @@ import {
     typeFromTermType,
     void_,
 } from './ir/utils';
+import { debugExpr } from './irDebugPrinter';
 import { liftEffects } from './pre-ir/lift-effectful';
 import * as pp from './printer';
 import { args, atom, block, items, PP, printToString } from './printer';
@@ -242,7 +243,9 @@ export const declarationToGlsl = (
     if (term.type === 'lambda') {
         return items([
             comment ? atom('/*' + comment + '*/\n') : null,
-            term.note ? atom(`/* ${term.note} */\n`) : null,
+            term.note
+                ? atom(`/* ${term.note} */\n`)
+                : items([atom('/*'), debugExpr(env, term), atom('*/')]),
             typeToGlsl(env, opts, term.res),
             atom(' '),
             idToGlsl(env, opts, idFromName(idRaw), false),
@@ -267,6 +270,7 @@ export const declarationToGlsl = (
         // }
         return addComment(
             items([
+                items([atom('/*'), debugExpr(env, term), atom('*/')]),
                 atom('const '),
                 typeToGlsl(env, opts, term.is),
                 atom(' '),
@@ -1004,7 +1008,7 @@ export const populateBuiltins = (env: Env) => {
     return builtins;
 };
 
-const makeTermExpr = (id: Id, env: Env): Term => ({
+export const makeTermExpr = (id: Id, env: Env): Term => ({
     type: 'ref',
     ref: {
         type: 'user',

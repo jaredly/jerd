@@ -617,6 +617,24 @@ export const callExpression = (
 
     let tt = expectLambdaType(env, {}, target.is);
     let note = undefined;
+
+    if (typeVbls) {
+        try {
+            tt = applyTypeVariables(
+                env,
+                target.is,
+                typeVbls,
+                undefined,
+                loc,
+            ) as LambdaType;
+        } catch (err) {
+            throw new LocatedError(
+                loc,
+                `Um Failed to apply type variables.`,
+            ).wrap(err);
+        }
+    }
+
     if (CHECK_CALLS) {
         if (tt.args.length !== args.length) {
             throw new LocatedError(
@@ -625,22 +643,6 @@ export const callExpression = (
                     args.length
                 }\n${showType(env, tt)}`,
             );
-        }
-        if (typeVbls) {
-            try {
-                tt = applyTypeVariables(
-                    env,
-                    target.is,
-                    typeVbls,
-                    undefined,
-                    loc,
-                ) as LambdaType;
-            } catch (err) {
-                throw new LocatedError(
-                    loc,
-                    `Um Failed to apply type variables.`,
-                ).wrap(err);
-            }
         }
         args.forEach((arg, i) => {
             // const err= getTypeError(env, arg.is, tt.args[i], loc)

@@ -1,6 +1,7 @@
 // Ok
 
 // import * as t from '@babel/types';
+import { Location } from '../parsing/parser';
 import { idName } from '../typing/env';
 import { getOpLevel } from '../typing/terms/ops';
 // import { bool } from '../typing/preset';
@@ -31,13 +32,19 @@ export const binops = [
 ];
 export const isBinop = (op: string) => binops.includes(op);
 
-export const idToDebug = (env: Env, id: Id, isType: boolean): PP => {
+export const idToDebug = (
+    env: Env,
+    id: Id,
+    isType: boolean,
+    loc: Location,
+): PP => {
     const idRaw = idName(id);
     const readableName = env.global.idNames[idRaw];
     return pp.id(
         readableName || 'unnamed',
         hashToEmoji(idRaw),
         isType ? 'type' : 'term',
+        loc,
     );
 };
 
@@ -57,25 +64,39 @@ export const hashToEmoji = (hash: string) => {
     return res;
 };
 
-export const refToDebug = (env: Env, ref: Reference, isType: boolean): PP => {
+export const refToDebug = (
+    env: Env,
+    ref: Reference,
+    isType: boolean,
+    loc: Location,
+): PP => {
     return ref.type === 'user'
-        ? idToDebug(env, ref.id, isType)
-        : atom(ref.name);
+        ? idToDebug(env, ref.id, isType, loc)
+        : atom(ref.name, undefined, loc);
     // : pp.id(ref.name, 'builtin', isType ? 'type' : 'term');
 };
 
-export const debugSym = (sym: Symbol) => {
+export const debugSym = (sym: Symbol, loc: Location) => {
     // return atom(`${sym.name}_${sym.unique}`);
-    return id(sym.name, ':' + sym.unique, 'sym');
+    return id(sym.name, ':' + sym.unique, 'sym', loc);
 };
 
 // TODO: Should I wrap /everything/ in a type annotation?
 // for being explicit?
 // Seems like it would be nice to have the option
 export const debugExpr = (env: Env, expr: Expr): PP => {
+    return _debugExpr(env, expr);
+    // return items([
+    //     _debugExpr(env, expr),
+    //     atom(' {'),
+    //     debugType(env, expr.is),
+    //     atom('}'),
+    // ]);
+};
+export const _debugExpr = (env: Env, expr: Expr): PP => {
     switch (expr.type) {
         case 'var':
-            return debugSym(expr.sym);
+            return debugSym(expr.sym, expr.loc);
         case 'unary':
             return items([atom(expr.op), debugExpr(env, expr.inner)]);
         case 'tupleAccess':
@@ -88,7 +109,7 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
         case 'tuple':
             return args(expr.items.map((e) => debugExpr(env, e)));
         case 'term':
-            return idToDebug(env, expr.id, false);
+            return idToDebug(env, expr.id, false, expr.loc);
         case 'string':
             return atom(JSON.stringify(expr.value));
         case 'slice':
@@ -97,10 +118,14 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
             if (expr.base.type === 'Variable') {
                 throw new Error('not yet impl');
             }
-            return items([
-                idToDebug(env, expr.base.ref.id, true),
-                atom('TODO TODO'),
-            ]);
+            return items(
+                [
+                    idToDebug(env, expr.base.ref.id, true, expr.loc),
+                    atom('TODO TODO'),
+                ],
+                undefined,
+                expr.loc,
+            );
         case 'raise':
             return atom('TODO raise');
         case 'lambda':
@@ -113,35 +138,43 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
             } else {
                 body = debugBody(env, expr.body);
             }
-            return items([
-                args(
-                    expr.args.map((arg) =>
-                        items([
-                            debugSym(arg.sym),
-                            atom(': '),
-                            debugType(env, arg.type),
-                        ]),
+            return items(
+                [
+                    args(
+                        expr.args.map((arg) =>
+                            items([
+                                debugSym(arg.sym, arg.loc),
+                                atom(': '),
+                                debugType(env, arg.type),
+                            ]),
+                        ),
                     ),
-                ),
-                atom(': '),
-                debugType(env, expr.res),
-                atom(' => '),
-                body,
-            ]);
+                    atom(': '),
+                    debugType(env, expr.res),
+                    atom(' => '),
+                    body,
+                ],
+                undefined,
+                expr.loc,
+            );
         case 'int':
         case 'float':
         case 'boolean':
-            return atom(expr.value + '');
+            return atom(expr.value + '', undefined, expr.loc);
         case 'handle':
-            return atom('TODO Handle');
+            return atom('TODO Handle', undefined, expr.loc);
         case 'genTerm':
-            return id('generated', expr.id, 'genTerm');
+            return id('generated', expr.id, 'genTerm', expr.loc);
         case 'eqLiteral':
-            return items([
-                debugExpr(env, expr.value),
-                atom(' == '),
-                debugExpr(env, expr.literal),
-            ]);
+            return items(
+                [
+                    debugExpr(env, expr.value),
+                    atom(' == '),
+                    debugExpr(env, expr.literal),
+                ],
+                undefined,
+                expr.loc,
+            );
         case 'effectfulOrDirectLambda':
             return atom('TODO effectful or direct lambda');
         case 'effectfulOrDirect':
@@ -150,21 +183,33 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
             return atom(expr.name);
         // return id(expr.name, 'builtin', 'builtin');
         case 'attribute':
-            return items([
-                debugExpr(env, expr.target),
-                atom('.#'),
-                refToDebug(env, expr.ref, true),
-                atom('#' + expr.idx + ''),
-            ]);
+            return items(
+                [
+                    debugExpr(env, expr.target),
+                    atom('.#'),
+                    refToDebug(env, expr.ref, true, expr.loc),
+                    atom('#' + expr.idx + ''),
+                ],
+                undefined,
+                expr.loc,
+            );
         case 'arrayLen':
-            return items([atom('len'), args([debugExpr(env, expr.value)])]);
+            return items(
+                [atom('len'), args([debugExpr(env, expr.value)])],
+                undefined,
+                expr.loc,
+            );
         case 'arrayIndex':
-            return items([
-                debugExpr(env, expr.value),
-                atom('['),
-                debugExpr(env, expr.idx),
-                atom(']'),
-            ]);
+            return items(
+                [
+                    debugExpr(env, expr.value),
+                    atom('['),
+                    debugExpr(env, expr.idx),
+                    atom(']'),
+                ],
+                undefined,
+                expr.loc,
+            );
         case 'array':
             return args(
                 expr.items.map((e) =>
@@ -174,6 +219,8 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
                 ),
                 '[',
                 ']',
+                true,
+                expr.loc,
             );
         case 'apply':
             let inner = debugExpr(env, expr.target);
@@ -196,25 +243,35 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
                     debugExpr(env, expr.args[1]),
                     level,
                 );
-                return items([left, atom(' '), inner, atom(' '), right]);
+                return items(
+                    [left, atom(' '), inner, atom(' '), right],
+                    undefined,
+                    expr.loc,
+                );
             }
-            return items([
-                inner,
-                args(expr.args.map((arg) => debugExpr(env, arg))),
-            ]);
+            return items(
+                [inner, args(expr.args.map((arg) => debugExpr(env, arg)))],
+                undefined,
+                expr.loc,
+            );
         case 'Trace':
-            return items([
-                atom('trace!'),
-                args(expr.args.map((e) => debugExpr(env, e))),
-            ]);
+            return items(
+                [atom('trace!'), args(expr.args.map((e) => debugExpr(env, e)))],
+                undefined,
+                expr.loc,
+            );
         case 'IsRecord':
-            return items([
-                atom('isRecord!'),
-                args([
-                    debugExpr(env, expr.value),
-                    refToDebug(env, expr.ref, true),
-                ]),
-            ]);
+            return items(
+                [
+                    atom('isRecord!'),
+                    args([
+                        debugExpr(env, expr.value),
+                        refToDebug(env, expr.ref, true, expr.loc),
+                    ]),
+                ],
+                undefined,
+                expr.loc,
+            );
     }
 };
 
@@ -243,17 +300,21 @@ const maybeParen = (name: string | null, v: PP, mine: number): PP => {
 export const debugType = (env: Env, type: ir.Type): PP => {
     switch (type.type) {
         case 'var':
-            return items([atom(`[var]`), debugSym(type.sym)]);
+            return items([atom(`[var]`), debugSym(type.sym, type.loc)]);
         case 'ref':
-            return refToDebug(env, type.ref, true);
+            return refToDebug(env, type.ref, true, type.loc);
         case 'lambda':
-            return items([
-                args(type.args.map((t) => debugType(env, t))),
-                atom(' => '),
-                debugType(env, type.res),
-            ]);
+            return items(
+                [
+                    args(type.args.map((t) => debugType(env, t))),
+                    atom(' => '),
+                    debugType(env, type.res),
+                ],
+                undefined,
+                type.loc,
+            );
     }
-    return atom('nope type: ' + type.type);
+    return atom('nope type: ' + type.type, undefined, type.loc);
 };
 
 export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
@@ -263,61 +324,85 @@ export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
         case 'Block':
             return block(stmt.items.map((s) => debugStmt(env, s)));
         case 'Assign':
-            return items([
-                debugSym(stmt.sym),
-                atom(' = '),
-                debugExpr(env, stmt.value),
-            ]);
+            return items(
+                [
+                    debugSym(stmt.sym, stmt.loc),
+                    atom(' = '),
+                    debugExpr(env, stmt.value),
+                ],
+                undefined,
+                stmt.loc,
+            );
         case 'Continue':
             return atom('continue');
         case 'Define':
-            return items([
-                atom('const '),
-                debugSym(stmt.sym),
-                atom(': '),
-                debugType(env, stmt.is),
-                ...(stmt.value != null
-                    ? [atom(' = '), debugExpr(env, stmt.value)]
-                    : []),
-            ]);
+            return items(
+                [
+                    atom('const '),
+                    debugSym(stmt.sym, stmt.loc),
+                    atom(': '),
+                    debugType(env, stmt.is),
+                    ...(stmt.value != null
+                        ? [atom(' = '), debugExpr(env, stmt.value)]
+                        : []),
+                ],
+                undefined,
+                stmt.loc,
+            );
         case 'Expression':
             return debugExpr(env, stmt.expr);
         case 'Loop':
             if (stmt.bounds) {
-                return items([
-                    atom('for '),
-                    items([
-                        atom('(; '),
-                        debugSym(stmt.bounds.sym),
+                return items(
+                    [
+                        atom('for '),
+                        items([
+                            atom('(; '),
+                            debugSym(stmt.bounds.sym, stmt.loc),
+                            atom(' '),
+                            atom(stmt.bounds.op),
+                            atom(' '),
+                            debugExpr(env, stmt.bounds.end),
+                            atom('; '),
+                            debugSym(stmt.bounds.sym, stmt.loc),
+                            atom(' = '),
+                            debugExpr(env, stmt.bounds.step),
+                            atom(')'),
+                        ]),
                         atom(' '),
-                        atom(stmt.bounds.op),
-                        atom(' '),
-                        debugExpr(env, stmt.bounds.end),
-                        atom('; '),
-                        debugSym(stmt.bounds.sym),
-                        atom(' = '),
-                        debugExpr(env, stmt.bounds.step),
-                        atom(')'),
-                    ]),
-                    atom(' '),
-                    debugBody(env, stmt.body),
-                ]);
+                        debugBody(env, stmt.body),
+                    ],
+                    undefined,
+                    stmt.loc,
+                );
             }
-            return items([atom('loop '), debugBody(env, stmt.body)]);
+            return items(
+                [atom('loop '), debugBody(env, stmt.body)],
+                undefined,
+                stmt.loc,
+            );
         case 'MatchFail':
-            return atom('match_fail!()');
+            return atom('match_fail!()', undefined, stmt.loc);
         case 'Return':
-            return items([atom('return '), debugExpr(env, stmt.value)]);
+            return items(
+                [atom('return '), debugExpr(env, stmt.value)],
+                undefined,
+                stmt.loc,
+            );
         case 'if':
-            return items([
-                atom('if '),
-                debugExpr(env, stmt.cond),
-                atom(' '),
-                debugBody(env, stmt.yes),
-                ...(stmt.no != null
-                    ? [atom(' else '), debugBody(env, stmt.no)]
-                    : []),
-            ]);
+            return items(
+                [
+                    atom('if '),
+                    debugExpr(env, stmt.cond),
+                    atom(' '),
+                    debugBody(env, stmt.yes),
+                    ...(stmt.no != null
+                        ? [atom(' else '), debugBody(env, stmt.no)]
+                        : []),
+                ],
+                undefined,
+                stmt.loc,
+            );
     }
 };
 
