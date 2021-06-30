@@ -69,6 +69,7 @@ export const initialState = async (): Promise<State> => {
                     default: {
                         currentPin: 0,
                         history: [],
+                        archivedPins: [],
                         name: 'Default',
                         // @ts-ignore
                         pins: data.pins,
@@ -91,6 +92,10 @@ export const initialState = async (): Promise<State> => {
                 }
                 if (work.currentPin == null) {
                     work.currentPin = 0;
+                }
+
+                if (work.archivedPins == null) {
+                    work.archivedPins = [];
                 }
 
                 const cells = Object.keys(data.workspaces[k].cells);
@@ -206,7 +211,9 @@ export const initialState = async (): Promise<State> => {
                 },
             };
         } catch (err) {
-            window.localStorage.removeItem(saveKey);
+            console.log('OH NOES', err);
+            throw err;
+            // window.localStorage.removeItem(saveKey);
         }
     }
     return {
@@ -222,6 +229,7 @@ export const initialState = async (): Promise<State> => {
                 name: 'Default',
                 cells: {},
                 pins: [],
+                archivedPins: [],
                 order: 0,
                 currentPin: 0,
                 history: [],

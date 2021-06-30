@@ -48,7 +48,9 @@ export type HistoryItem =
 export type Workspace = {
     name: string;
     cells: { [key: string]: Cell };
+    // TODO: add a history to each pin
     pins: Array<{ display: Display; id: Id }>;
+    archivedPins: Array<{ display: Display; id: Id }>;
     currentPin: number;
     order: number;
     history: Array<HistoryItem>;
@@ -202,6 +204,11 @@ export default ({ initial }: { initial: State }) => {
                 }}
             >
                 <div style={{ padding: 8 }}>Pinned terms</div>
+                <div>
+                    {workspace.archivedPins.length
+                        ? `${workspace.archivedPins.length} saved pins`
+                        : null}
+                </div>
                 {workspace.pins.map((pin, i) => (
                     <div
                         key={i}
@@ -215,6 +222,19 @@ export default ({ initial }: { initial: State }) => {
                             evalEnv={state.evalEnv}
                             plugins={defaultPlugins}
                             onOpen={onOpen}
+                            onArchive={() =>
+                                setState(
+                                    modActiveWorkspace((workspace) => ({
+                                        ...workspace,
+                                        pins: workspace.pins.filter(
+                                            (p) => p !== pin,
+                                        ),
+                                        archivedPins: workspace.archivedPins.concat(
+                                            [pin],
+                                        ),
+                                    })),
+                                )
+                            }
                             onRemove={() =>
                                 setState(
                                     modActiveWorkspace((workspace) => ({

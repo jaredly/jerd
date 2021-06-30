@@ -28,6 +28,17 @@ import { float, int, numeric, string } from '../preset';
 import { termToPretty } from '../../printing/printTsLike';
 import { printToString } from '../../printing/printer';
 
+// loosest at the top, tightest at the bottom
+const precedence = [
+    ['&'],
+    ['|'],
+    ['='],
+    ['>', '<'],
+    ['+', '-'],
+    ['/', '*'],
+    ['^'],
+];
+
 export const findUnaryOp = (
     env: Env,
     id: Id,
@@ -385,16 +396,6 @@ const typeOp = (
         is: is.res,
     };
 };
-
-const precedence = [
-    ['&'],
-    ['|'],
-    ['='],
-    ['>', '<'],
-    ['+', '-'],
-    ['/', '*'],
-    ['^'],
-];
 
 export const opPrefixes = ([] as Array<string>).concat(...precedence);
 

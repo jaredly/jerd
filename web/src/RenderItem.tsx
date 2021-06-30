@@ -18,7 +18,12 @@ import { Position } from './Cells';
 import { IconButton } from './display/OpenGLCanvas';
 import { renderAttributedText } from './Render';
 import { RenderResult } from './RenderResult';
-import { ColorScrub, detectColorScrub } from './Scrubbers/Color';
+import {
+    ColorScrub,
+    ColorScrub4,
+    detectColor4Scrub,
+    detectColorScrub,
+} from './Scrubbers/Color';
 import { detectVec2Scrub, PositionScrub } from './Scrubbers/Position';
 import { RangeScrub } from './Scrubbers/Range';
 import {
@@ -31,7 +36,7 @@ import {
 } from './State';
 import { getToplevel } from './toplevels';
 
-const detectors = [detectVec2Scrub, detectColorScrub];
+const detectors = [detectVec2Scrub, detectColorScrub, detectColor4Scrub];
 
 const onClick = (
     env: Env,
@@ -199,6 +204,13 @@ export type ScrubItem =
           y: FloatScrub;
       }
     | {
+          type: 'color4';
+          r: FloatScrub;
+          g: FloatScrub;
+          b: FloatScrub;
+          a: FloatScrub;
+      }
+    | {
           type: 'color';
           r: FloatScrub;
           g: FloatScrub;
@@ -322,6 +334,19 @@ export const renderScrub = (
                 setScrub={setScrub}
                 width={400}
                 height={400}
+            />
+        );
+    } else if (scrub.item.type === 'color4') {
+        body = (
+            <ColorScrub4
+                fullScrub={scrub}
+                env={env}
+                term={scrub.term}
+                r={scrub.item.r}
+                g={scrub.item.g}
+                b={scrub.item.b}
+                a={scrub.item.a}
+                setScrub={setScrub}
             />
         );
     } else if (scrub.item.type === 'color') {

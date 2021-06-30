@@ -23,6 +23,7 @@ export const Pin = ({
     plugins,
     onRun,
     onRemove,
+    onArchive,
     onOpen,
 }: {
     pin: { id: Id; display: Display };
@@ -31,6 +32,7 @@ export const Pin = ({
     plugins: RenderPlugins;
     onRun: (id: Id) => void;
     onRemove: () => void;
+    onArchive: () => void;
     onOpen: (content: Content) => void;
 }) => {
     const hash = idName(pin.id);
@@ -100,6 +102,22 @@ export const Pin = ({
                     #{hash}
                 </span>
                 <div css={{ flex: 1 }} />
+                <button
+                    css={{
+                        cursor: 'pointer',
+                        fontSize: '50%',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: 'inherit',
+                        padding: 0,
+                        marginLeft: 8,
+                        marginRight: 4,
+                    }}
+                    onClick={onArchive}
+                    className="material-icons"
+                >
+                    inventory_2
+                </button>
                 <button
                     css={{
                         cursor: 'pointer',

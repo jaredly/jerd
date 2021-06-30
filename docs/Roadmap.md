@@ -1,6 +1,39 @@
 
 # Ugh ok data integrity, maybe we can have it
 
+- [x] oh ok so I fixed the immediate "everything dies" issue
+- We have pins,
+  and we have ... cells ...
+  hmmm
+  maybe I want a new workspace concept? workspacev2?
+  because we've got ... 
+  ok so what if I tried to just whole hog architect stuff for
+  saving to the indexeddb
+  in a good way
+
+  - [ ] 1: pull back hard on passing `env` everywhere. Maybe? Once I get to a Term, I should
+        have loaded its dependencies, right?
+        hm
+
+
+
+- Ok so thoughts
+  - I do really like the history idea
+  - what if I auto-update everything I can all the time, but provide really easy undo?
+    also, pins should have history you can page through. Oh yeah. And you can say "break this
+    one out into its own pin"
+  - ok yeah I need the concept of an "archived pin". So it's in the showcase, but it doesn't
+    auto-update anymore.
+    yeah, and then you can like "open the whole showcase"
+
+
+Workspace:
+  - pins (including how to display it, might be null actually?)
+  - cells
+
+
+
+
 Maybe set up a server dealio.
 Could we sync directly with github? hmm that sounds more complicated than I really want.
 - uh well isomorphic-git will do git in the browser, which is a little wild
@@ -9,6 +42,18 @@ Could we sync directly with github? hmm that sounds more complicated than I real
 - and then we'd have the option of only loading up /some/ of it
 - BUT this would mean that we wouldn't be passing around the full "env" object, right?
 
+
+- oh a pipe operator might be nice. should we do "fast pipe"? which I think is what roc is doing too?
+  or does it matter, given that I'm not doing inference? orr should I have a placeholder dealio for
+  on-the-fly lambdas like clojure has?
+  like `hello(.., a, b, c)` or something
+  I feel like I have enough other fancy things going on
+  I can just ... do a normal pipe operator, a |> b(c) == b(c)(a)
+  because I'm not currying everything, it makes more sense.
+  -> ?
+  |> ?
+  how tight should it bind?
+  looks like |> would get me the binding level that I want.
 
 # NEXT UP
 

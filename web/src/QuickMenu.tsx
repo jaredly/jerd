@@ -201,12 +201,17 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                             };
                         });
                     } else {
-                        options = options.filter(
-                            (opt) =>
-                                opt.toplevel &&
-                                opt.toplevel.type === 'Define' &&
-                                to.find((i) => idsEqual(opt.toplevel!.id, i)),
-                        );
+                        options = options.filter((opt) => {
+                            if (
+                                !opt.toplevel ||
+                                opt.toplevel.type !== 'Define'
+                            ) {
+                                return false;
+                            }
+                            const id = opt.toplevel.id;
+
+                            return to.find((i) => idsEqual(id, i));
+                        });
                     }
                 }
             });

@@ -399,6 +399,11 @@ const mix = (a: Vec3, b: Vec3, c: float) => {
 }
 
 @glsl_builtin
+const mix = (a: Vec4, b: Vec4, c: float) => {
+    Vec4{x: lerp(a.x, b.x, c), y: lerp(a.y, b.y, c), z: lerp(a.z, b.z, c), w: lerp(a.w, b.w, c)}
+}
+
+@glsl_builtin
 const smoothstep = (edge0: float, edge1: float, x: float) => {
     const t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
     t * t * (3.0 - 2.0 * t);
