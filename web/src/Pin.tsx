@@ -25,11 +25,13 @@ export const Pin = ({
     onRemove,
     onArchive,
     onOpen,
+    isFrozen,
 }: {
     pin: { id: Id; display: Display };
     env: Env;
     evalEnv: EvalEnv;
     plugins: RenderPlugins;
+    isFrozen: boolean;
     onRun: (id: Id) => void;
     onRemove: () => void;
     onArchive: () => void;
@@ -108,10 +110,17 @@ export const Pin = ({
                         fontSize: '50%',
                         backgroundColor: 'transparent',
                         border: 'none',
-                        color: 'inherit',
                         padding: 0,
                         marginLeft: 8,
                         marginRight: 4,
+                        ...(isFrozen
+                            ? {
+                                  color: 'white',
+                                  //   backgroundColor: 'rgba(255,255,255,0.8)',
+                              }
+                            : {
+                                  color: '#ccc',
+                              }),
                     }}
                     onClick={onArchive}
                     className="material-icons"

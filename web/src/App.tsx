@@ -83,6 +83,7 @@ export type State = {
 export default ({ initial }: { initial: State }) => {
     const [state, setState] = React.useState(() => initial);
     const [showMenu, setShowMenu] = React.useState(false);
+    const [showFrozen, setShowFrozen] = React.useState(false);
     React.useEffect(() => {
         saveState(state);
     }, [state]);
@@ -204,12 +205,26 @@ export default ({ initial }: { initial: State }) => {
                 }}
             >
                 <div style={{ padding: 8 }}>Pinned terms</div>
-                <div>
+                <div
+                    onClick={() => {
+                        setShowFrozen(!showFrozen);
+                    }}
+                    css={{
+                        cursor: 'pointer',
+                        padding: '4px 8px',
+                        ':hover': {
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                    }}
+                >
                     {workspace.archivedPins.length
                         ? `${workspace.archivedPins.length} frozen pins`
                         : null}
                 </div>
-                {workspace.pins.map((pin, i) => (
+                {(showFrozen
+                    ? workspace.archivedPins.concat(workspace.pins)
+                    : workspace.pins
+                ).map((pin, i) => (
                     <div
                         key={i}
                         css={{
@@ -222,23 +237,43 @@ export default ({ initial }: { initial: State }) => {
                             evalEnv={state.evalEnv}
                             plugins={defaultPlugins}
                             onOpen={onOpen}
+                            isFrozen={workspace.archivedPins.includes(pin)}
                             onArchive={() =>
                                 setState(
-                                    modActiveWorkspace((workspace) => ({
-                                        ...workspace,
-                                        pins: workspace.pins.filter(
-                                            (p) => p !== pin,
-                                        ),
-                                        archivedPins: workspace.archivedPins.concat(
-                                            [pin],
-                                        ),
-                                    })),
+                                    modActiveWorkspace((workspace) => {
+                                        const isFrozen = workspace.archivedPins.includes(
+                                            pin,
+                                        );
+                                        if (isFrozen) {
+                                            return {
+                                                ...workspace,
+                                                archivedPins: workspace.archivedPins.filter(
+                                                    (p) => p !== pin,
+                                                ),
+                                                pins: workspace.pins.concat([
+                                                    pin,
+                                                ]),
+                                            };
+                                        }
+                                        return {
+                                            ...workspace,
+                                            pins: workspace.pins.filter(
+                                                (p) => p !== pin,
+                                            ),
+                                            archivedPins: workspace.archivedPins.concat(
+                                                [pin],
+                                            ),
+                                        };
+                                    }),
                                 )
                             }
                             onRemove={() =>
                                 setState(
                                     modActiveWorkspace((workspace) => ({
                                         ...workspace,
+                                        archivedPins: workspace.archivedPins.filter(
+                                            (p) => p !== pin,
+                                        ),
                                         pins: workspace.pins.filter(
                                             (p) => p !== pin,
                                         ),
