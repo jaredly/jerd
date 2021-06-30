@@ -374,6 +374,7 @@ export type LambdaExpr = {
     loc: Loc;
     is: LambdaType | CPSLambdaType;
     tags?: Array<string>;
+    note?: string;
 };
 
 export type Arg = { sym: Symbol; type: Type; loc: Loc };

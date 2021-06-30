@@ -1,5 +1,7 @@
 import { hashObject, idName } from '../../../typing/env';
 import { Id } from '../../../typing/types';
+import { debugExpr } from '../../irDebugPrinter';
+import { printToString } from '../../printer';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, LambdaExpr, Stmt } from '../types';
@@ -37,7 +39,11 @@ export const liftToTopLevel = (ctx: Context, lambda: LambdaExpr): Expr => {
     lambda = reUnique({ current: 0 }, lambda) as LambdaExpr;
     const hash = hashObject(lambda);
     const id: Id = { hash, size: 1, pos: 0 };
-    let expr: Expr = ctx.optimize({ ...ctx, id }, lambda);
+    let expr: LambdaExpr = ctx.optimize({ ...ctx, id }, lambda) as LambdaExpr;
+    const e = new Error();
+    expr.note = (expr.note || '') + '\nLifted to toplevel\n' + e.stack + '\n';
+    expr.note += printToString(debugExpr(ctx.env, expr), 100);
+    console.log(e);
     ctx.exprs[idName(id)] = {
         expr: expr,
         inline: false,

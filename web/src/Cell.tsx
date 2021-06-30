@@ -400,6 +400,15 @@ export const CellView = ({
                                             action: () => setShowGLSL(true),
                                         }
                                   : null,
+                              term
+                                  ? {
+                                        name: 'Debug GLSL',
+                                        action: () =>
+                                            (window.location.search =
+                                                '?debug-glsl=' +
+                                                idName(cell.content.id)),
+                                    }
+                                  : null,
                           ]),
                     cell.content.type === 'term' || cell.content.type === 'expr'
                         ? {

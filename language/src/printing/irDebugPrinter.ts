@@ -123,6 +123,8 @@ export const debugExpr = (env: Env, expr: Expr): PP => {
                         ]),
                     ),
                 ),
+                atom(': '),
+                debugType(env, expr.res),
                 atom(' => '),
                 body,
             ]);
@@ -241,7 +243,7 @@ const maybeParen = (name: string | null, v: PP, mine: number): PP => {
 export const debugType = (env: Env, type: ir.Type): PP => {
     switch (type.type) {
         case 'var':
-            return atom('variable type here');
+            return items([atom(`[var]`), debugSym(type.sym)]);
         case 'ref':
             return refToDebug(env, type.ref, true);
         case 'lambda':

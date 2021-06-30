@@ -488,7 +488,26 @@ ok we'll get to that when we need to.
 
 */
 
-const glslOpts: Array<Optimizer2> = [
+export const glslOptsNamed = {
+    specializeFunctionsCalledWithLambdas,
+    inlineCallsThatReturnFunctions,
+    flattenImmediateCalls2,
+    foldSingleUseAssignments,
+    flattenImmediateAssigns,
+    // flattenImmediateCalls,
+    removeUnusedVariables,
+
+    inlineFunctionsCalledWithCapturingLambdas,
+    ensureToplevelFunctionsAreLambdas,
+    explicitSpreads,
+    optimizeTailCalls,
+    optimize,
+    arraySliceLoopToIndex,
+    inlint,
+    monomorphize,
+};
+
+export const glslOpts: Array<Optimizer2> = [
     specializeFunctionsCalledWithLambdas,
     inlineCallsThatReturnFunctions,
     flattenImmediateCalls2,

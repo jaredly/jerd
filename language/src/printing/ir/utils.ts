@@ -573,6 +573,10 @@ export const arrowFunctionExpression = (
     typeVbls?: Array<TypeVblDecl>,
     tags?: Array<string>,
 ): LambdaExpr => {
+    const e = new Error();
+    const stack = e.stack!.split('\n').slice(0, 4).join('\n');
+    console.log(e);
+
     const block = asBlock(body);
     const res = typeForLambdaExpression(block) || void_;
     return {
@@ -587,6 +591,7 @@ export const arrowFunctionExpression = (
             typeVbls,
         ),
         tags,
+        note: stack,
     };
 };
 

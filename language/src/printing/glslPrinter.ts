@@ -28,7 +28,13 @@ import { glslTester } from './glslTester';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import * as ir from './ir/intermediateRepresentation';
 import { toplevelRecordAttribute } from './ir/optimize/inline';
-import { Exprs, isConstant, optimizeDefineNew } from './ir/optimize/optimize';
+import {
+    Exprs,
+    isConstant,
+    optimizeDefineNew,
+    Optimizer,
+    Optimizer2,
+} from './ir/optimize/optimize';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import {
     Apply,
@@ -202,6 +208,9 @@ export const typeToGlsl = (
     switch (type.type) {
         case 'ref':
             return refToGlsl(env, opts, type.ref, true);
+        case 'var':
+            // return atom(JSON.stringify(type));
+            return atom(`invalid_var_${symToGlsl(env, opts, type.sym)}`);
         default:
             return atom(`invalid_${type.type.replace(/-/g, '_')}`);
     }
@@ -233,6 +242,7 @@ export const declarationToGlsl = (
     if (term.type === 'lambda') {
         return items([
             comment ? atom('/*' + comment + '*/\n') : null,
+            term.note ? atom(`/* ${term.note} */\n`) : null,
             typeToGlsl(env, opts, term.res),
             atom(' '),
             idToGlsl(env, opts, idFromName(idRaw), false),
@@ -648,25 +658,27 @@ const maybeAddRecordInlines = (irTerms: Exprs, id: Id, irTerm: ir.Expr) => {
     return irTerm;
 };
 
+export const defaultOptimizer: Optimizer = (
+    senv: Env,
+    irOpts: IOutputOptions,
+    irTerms: Exprs,
+    irTerm: Expr,
+    id: Id,
+) => {
+    // irTerm = explicitSpreads(senv, irOpts, irTerm);
+    // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+    irTerm = optimizeDefineNew(senv, irTerm, id, irTerms);
+    // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+    return irTerm;
+};
+
 export const assembleItemsForFile = (
     env: Env,
     required: Array<Term>,
     requiredIds: Array<string>,
     irOpts: IOutputOptions,
     builtins: { [key: string]: ir.Expr },
-    optimization = (
-        senv: Env,
-        irOpts: IOutputOptions,
-        irTerms: Exprs,
-        irTerm: Expr,
-        id: Id,
-    ) => {
-        // irTerm = explicitSpreads(senv, irOpts, irTerm);
-        // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        irTerm = optimizeDefineNew(senv, irTerm, id, irTerms);
-        // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-        return irTerm;
-    },
+    optimization = defaultOptimizer,
 ) => {
     const orderedTerms = expressionDeps(env, required);
 
@@ -1010,6 +1022,7 @@ export const shaderAllButMains = (
     buffers: Array<Id>,
     includeComments = true,
     bufferCount = buffers.length,
+    optimizer = defaultOptimizer,
 ): { items: Array<PP>; invalidLocs: Array<Location> } => {
     const items: Array<PP> = shaderTop(bufferCount);
 
@@ -1025,6 +1038,7 @@ export const shaderAllButMains = (
         [mainTerm].concat(buffers).map(idName),
         irOpts,
         builtins,
+        optimizer,
     );
 
     const allTypes = expressionTypeDeps(
@@ -1082,6 +1096,7 @@ export const generateSingleShader = (
     mainTerm: Id,
     buffers: number,
     includeComments = true,
+    optimizer = defaultOptimizer,
 ): { text: string; invalidLocs: Array<Location> } => {
     const { items, invalidLocs } = shaderAllButMains(
         env,
@@ -1091,6 +1106,7 @@ export const generateSingleShader = (
         [],
         includeComments,
         buffers,
+        optimizer,
     );
 
     items.push(glslMain(env, opts, mainTerm, buffers));
