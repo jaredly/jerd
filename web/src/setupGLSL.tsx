@@ -7,6 +7,7 @@ const createShader = (
 ) => {
     const shader = gl.createShader(kind);
     if (!shader) {
+        // TODO: Indicate in the UI that this is probably just the browser limiting stuff
         throw new Error(`no shader`);
     }
     gl.shaderSource(shader, source);

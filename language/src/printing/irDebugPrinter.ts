@@ -84,6 +84,7 @@ export const debugSym = (sym: Symbol, loc: Location) => {
 // TODO: Should I wrap /everything/ in a type annotation?
 // for being explicit?
 // Seems like it would be nice to have the option
+// um anyway, uncomment this code to show all type annotations.
 export const debugExpr = (env: Env, expr: Expr): PP => {
     return _debugExpr(env, expr);
     // return items([

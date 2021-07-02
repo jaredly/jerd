@@ -65,6 +65,7 @@ export const addLocationIndices = (expr: Expr): Expr => {
 
 export const DebugGlsl = ({ state, id }: { state: State; id: Id }) => {
     const [enabled, setEnabled] = React.useState(opts.map((o) => false));
+    const [selected, setSelected] = React.useState(null);
     const glsl = React.useMemo(() => {
         const opt = optimizeRepeatedly(opts.filter((_, i) => enabled[i]));
 
@@ -129,15 +130,25 @@ export const DebugGlsl = ({ state, id }: { state: State; id: Id }) => {
                                 debugExpr(state.env, expr.expr),
                                 100,
                             ),
-                            (evt, id, kind, loc) => {
+                            (evt, id_, kind, loc) => {
+                                if (!loc) {
+                                    return false;
+                                }
                                 console.log(loc.idx);
+                                // TODO
+                                // setSelected()
                                 return true;
                             },
+                            undefined,
+                            undefined,
                             () => true,
                         )}
                     </div>
                 ))}
             </div>
+            {/* <div>
+				{glsl.}
+			</div> */}
         </div>
     );
 };

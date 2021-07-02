@@ -16,12 +16,8 @@ import {
     termToTs,
 } from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { EvalEnv } from './State';
-import {
-    optimizeDefine,
-    optimizeDefineNew,
-} from '@jerd/language/src/printing/ir/optimize/optimize';
+import { optimizeDefineNew } from '@jerd/language/src/printing/ir/optimize/optimize';
 import { liftEffects } from '@jerd/language/src/printing/pre-ir/lift-effectful';
-import { uniquesReallyAreUnique } from '@jerd/language/src/printing/ir/analyze';
 import { Expr } from '@jerd/language/src/printing/ir/types';
 import { Trace } from './Editor';
 

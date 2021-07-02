@@ -245,7 +245,9 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
         if (!current) {
             return;
         }
-        return current.subOptions && state.hashIdx > 0
+        return current.subOptions &&
+            state.hashIdx > 0 &&
+            state.hashIdx < current.subOptions.length
             ? current.subOptions[state.hashIdx].toplevel
             : current.toplevel;
         // if (current.type === 'term') {
@@ -367,16 +369,13 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                                 const r = results[s.selected];
                                 return {
                                     ...s,
-                                    selected: wrap(
-                                        results.length,
-                                        s.selected + 1,
-                                    ),
                                     hashIdx: wrap(
                                         r.subOptions ? r.subOptions.length : 0,
                                         state.hashIdx + 1,
                                     ),
                                 };
                             });
+                            return;
                         }
                         if (evt.key === 'Enter') {
                             const r = results[state.selected];

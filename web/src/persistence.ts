@@ -10,6 +10,7 @@ import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import * as builtins from '@jerd/language/src/printing/builtins';
 import {
     GlobalEnv,
+    Id,
     newLocal,
     newWithGlobal,
     Type,
@@ -177,10 +178,10 @@ export const initialState = async (): Promise<State> => {
                             ...env.attributeNames,
                             ...data.env.global.attributeNames,
                         },
-                        typeNames: {
-                            ...env.typeNames,
-                            ...data.env.global.typeNames,
-                        },
+                        typeNames: mergeNames(
+                            env.typeNames,
+                            data.env.global.typeNames,
+                        ),
                         idNames: {
                             ...env.idNames,
                             ...data.env.global.idNames,
@@ -242,6 +243,25 @@ export const initialState = async (): Promise<State> => {
             traceObj: { traces: null },
         },
     };
+};
+
+export const mergeNames = (
+    a: { [key: string]: Array<Id> },
+    b: { [key: string]: Array<Id> },
+) => {
+    const names = { ...a };
+    Object.keys(b).forEach((name) => {
+        if (!names[name]) {
+            names[name] = b[name];
+            return;
+        }
+        const got: { [key: string]: true } = {};
+        names[name].forEach((k) => (got[idName(k)] = true));
+        names[name] = names[name].concat(
+            b[name].filter((n) => !got[idName(n)]),
+        );
+    });
+    return names;
 };
 
 export const buildIndex = (env: GlobalEnv): Indices => {

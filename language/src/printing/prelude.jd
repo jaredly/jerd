@@ -162,6 +162,11 @@ const MulVec3 = Mul<Vec3, Vec3, Vec3>{
 }
 
 @glsl_builtin
+const ScaleVec4_ = Mul<Vec4, float, Vec4>{
+    "*": (v: Vec4, scale: float) => Vec4{x: v.x * scale, y: v.y * scale, z: v.z * scale, w: v.w * scale}
+}
+
+@glsl_builtin
 const ScaleVec3_ = Mul<Vec3, float, Vec3>{
     "*": (v: Vec3, scale: float) => Vec3{x: v.x * scale, y: v.y * scale, z: v.z * scale}
 }
@@ -422,6 +427,17 @@ type GLSLBuffer1 = {
     fragment: (GLSLEnv, Vec2, sampler2D) => Vec4,
     buffer0: (GLSLEnv, Vec2, sampler2D) => Vec4,
 }
+
+@ffi
+type GLSLEnv<T> = {
+    state: T,
+    time: float,
+    resolution: Vec2,
+    camera: Vec3,
+    mouse: Vec2,
+    mouseButton: int,
+}
+
 
 // GLSL Tests you see
 

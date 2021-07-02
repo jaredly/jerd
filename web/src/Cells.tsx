@@ -84,6 +84,7 @@ const WorkspacePicker = ({
                                         pins: [],
                                         cells: {},
                                         history: [],
+                                        archivedPins: [],
                                         currentPin: 0,
                                         order: Object.keys(state.workspaces)
                                             .length,
