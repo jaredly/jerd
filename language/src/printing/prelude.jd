@@ -438,6 +438,12 @@ type GLSLEnv<T> = {
     mouseButton: int,
 }
 
+@ffi
+type GLSLScene<T> = {
+    initial: T,
+    step: (GLSLEnv<T,>, GLSLEnv<T,>) => T,
+    render: (GLSLEnv<T>, Vec2) => Vec4,
+}
 
 // GLSL Tests you see
 

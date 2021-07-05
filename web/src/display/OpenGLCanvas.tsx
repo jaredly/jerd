@@ -108,6 +108,8 @@ export const OpenGLCanvas = ({
     renderTrace,
     initialSize = 200,
     initialZoom = 0.5,
+    // START HERE: Use state if its there....
+    state,
 }: {
     initialSize?: number;
     initialZoom?: number;
@@ -124,6 +126,10 @@ export const OpenGLCanvas = ({
         trace: any,
         mousePos: { x: number; y: number },
     ) => React.ReactNode;
+    state?: {
+        initial: any;
+        step: (env: any, prev: any) => any;
+    };
 }) => {
     const [zoom, setZoom] = React.useState(initialZoom);
     const [width, setWidth] = React.useState(initialSize);
@@ -300,51 +306,14 @@ export const OpenGLCanvas = ({
                     width={width / zoom + ''}
                     height={width / zoom + ''}
                 />
-                <div css={hover} className="hover">
-                    <IconButton
-                        icon="play_arrow"
-                        selected={playState === 'playing'}
-                        onClick={() => {
-                            if (playState !== 'playing') {
-                                setPlayState('playing');
-                            }
-                        }}
-                    />
-                    <IconButton
-                        icon="pause"
-                        selected={playState === 'paused'}
-                        onClick={() => {
-                            if (playState !== 'paused') {
-                                setPlayState('paused');
-                            }
-                        }}
-                    />
-                    <IconButton
-                        icon="replay"
-                        selected={false}
-                        onClick={() => {
-                            timer.current = 0;
-                            if (playState !== 'playing') {
-                                setPlayState('playing');
-                            }
-                            restart();
-                        }}
-                    />
-                    <IconButton
-                        icon="circle"
-                        onClick={() => {
-                            timer.current = 0;
-                            setPlayState('recording');
-                            restart();
-                        }}
-                        selected={playState === 'recording'}
-                    />
-                    <IconButton
-                        icon="settings"
-                        onClick={() => toggleSettings(!showSettings)}
-                        selected={showSettings}
-                    />
-                </div>
+                <HoverPanel
+                    playState={playState}
+                    setPlayState={setPlayState}
+                    timer={timer}
+                    restart={restart}
+                    showSettings={showSettings}
+                    toggleSettings={toggleSettings}
+                />
             </div>
             {showSettings ? (
                 <div>
@@ -409,6 +378,68 @@ export const OpenGLCanvas = ({
         </div>
     );
 };
+
+export const HoverPanel = ({
+    playState,
+    setPlayState,
+    timer,
+    restart,
+    showSettings,
+    toggleSettings,
+}: {
+    playState: PlayState;
+    setPlayState: (s: PlayState) => void;
+    timer: { current: number };
+    restart: () => void;
+    showSettings: boolean;
+    toggleSettings: (s: boolean) => void;
+}) => (
+    <div css={hover} className="hover">
+        <IconButton
+            icon="play_arrow"
+            selected={playState === 'playing'}
+            onClick={() => {
+                if (playState !== 'playing') {
+                    setPlayState('playing');
+                }
+            }}
+        />
+        <IconButton
+            icon="pause"
+            selected={playState === 'paused'}
+            onClick={() => {
+                if (playState !== 'paused') {
+                    setPlayState('paused');
+                }
+            }}
+        />
+        <IconButton
+            icon="replay"
+            selected={false}
+            onClick={() => {
+                timer.current = 0;
+                if (playState !== 'playing') {
+                    setPlayState('playing');
+                }
+                restart();
+            }}
+        />
+        <IconButton
+            icon="circle"
+            onClick={() => {
+                timer.current = 0;
+                setPlayState('recording');
+                restart();
+            }}
+            selected={playState === 'recording'}
+        />
+        <IconButton
+            icon="settings"
+            onClick={() => toggleSettings(!showSettings)}
+            selected={showSettings}
+        />
+    </div>
+);
 
 const calcEta = ({ start, percent }: { start: number; percent: number }) => {
     const delta = Date.now() - start;

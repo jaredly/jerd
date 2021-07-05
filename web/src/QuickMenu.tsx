@@ -171,12 +171,14 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                             };
                         });
                     } else {
-                        options = options.filter(
-                            (opt) =>
-                                opt.toplevel &&
-                                opt.toplevel.type === 'Define' &&
-                                to.find((i) => idsEqual(opt.toplevel!.id, i)),
-                        );
+                        options = options.filter((opt) => {
+                            const top = opt.toplevel;
+                            return (
+                                top &&
+                                top.type === 'Define' &&
+                                to.find((i) => idsEqual(top.id, i))
+                            );
+                        });
                     }
                 } else if (r.toplevel.type === 'RecordDef') {
                     const to =

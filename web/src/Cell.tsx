@@ -406,7 +406,9 @@ export const CellView = ({
                                         action: () =>
                                             (window.location.search =
                                                 '?debug-glsl=' +
-                                                idName(cell.content.id)),
+                                                idName(
+                                                    (cell.content as any).id,
+                                                )),
                                     }
                                   : null,
                           ]),

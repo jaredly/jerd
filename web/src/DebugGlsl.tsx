@@ -31,7 +31,7 @@ import { renderAttributedText } from './Render';
 const getName = (opt: any) => {
     return (
         Object.keys(glslOptsNamed).find(
-            (k: string) => opt === glslOptsNamed[k],
+            (k: string) => opt === (glslOptsNamed as any)[k],
         ) || opt.name
     );
 };

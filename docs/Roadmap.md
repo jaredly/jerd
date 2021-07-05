@@ -7,6 +7,9 @@
       to specialize the return value of the function.
 
 
+- [ ] really want to have "refactor this" (I guess the selection mode has to come first), where you
+      say "change the type of this argument to this other type", and it can suggest a mapping of field names.
+
 
 # Ugh ok data integrity, maybe we can have it
 

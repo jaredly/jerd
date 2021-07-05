@@ -78,7 +78,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
 export const updateToplevel = (
     env: Env,
     term: ToplevelT,
-    prevContent: Content,
+    prevContent?: Content,
 ): { env: Env; content: Content } => {
     if (term.type === 'Expression') {
         const pid = null;

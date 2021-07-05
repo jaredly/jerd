@@ -8,7 +8,13 @@ import {
     pureFunction,
     refType,
 } from '@jerd/language/src/typing/preset';
-import { Env, Id, Term } from '@jerd/language/src/typing/types';
+import {
+    Env,
+    Id,
+    nullLocation,
+    Reference,
+    Term,
+} from '@jerd/language/src/typing/types';
 import * as React from 'react';
 import { EvalEnv, RenderPlugins } from '../State';
 import { OpenGLCanvas } from './OpenGLCanvas';
@@ -49,6 +55,7 @@ export const compileGLSL = (
     env: Env,
     buffers: number = 0,
     includeComments = true,
+    stateUniform?: Reference,
 ) => {
     const termId =
         term.type === 'ref' && term.ref.type === 'user'
@@ -61,6 +68,8 @@ export const compileGLSL = (
         termId,
         buffers,
         includeComments,
+        undefined,
+        stateUniform,
     );
 };
 
@@ -76,6 +85,134 @@ export const envWithTerm = (env: Env, term: Term) => {
             },
         },
     };
+};
+
+const ShaderGLSLScene = <T,>({
+    value,
+    term,
+    env,
+    evalEnv,
+    startPaused,
+}: {
+    value: GLSLScene<T>;
+    term: Term;
+    env: Env;
+    evalEnv: EvalEnv;
+    startPaused: boolean;
+}) => {
+    const [error, setError] = React.useState(null as any | null);
+
+    const shaders = React.useMemo(() => {
+        try {
+            if (term.type !== 'Record') {
+                throw new Error(`Must be a record literal`);
+            }
+            const render =
+                term.base.type === 'Concrete' ? term.base.rows[2] : null;
+            if (!render) {
+                throw new Error(`Unable to get render function out`);
+            }
+            let stateUniform: null | Reference = null;
+            if (
+                term.is.type === 'ref' &&
+                term.is.typeVbls.length === 1 &&
+                term.is.typeVbls[0].type === 'ref'
+            ) {
+                if (term.is.typeVbls[0].typeVbls.length) {
+                    throw new Error(`state uniform can't be generic yet`);
+                }
+                stateUniform = term.is.typeVbls[0].ref;
+            }
+            if (stateUniform == null) {
+                throw new Error(`Nope`);
+            }
+            return [
+                compileGLSL(
+                    render,
+                    envWithTerm(env, render),
+                    0,
+                    undefined,
+                    stateUniform,
+                ),
+            ];
+        } catch (err) {
+            console.error(err);
+            setError(err);
+            return null;
+        }
+    }, [term]);
+
+    const onTrace = React.useCallback(
+        (mousePos, time, canvas) => {
+            const hash = hashObject(term);
+            const id: Id = { hash, size: 1, pos: 0 };
+            // const fn = evalEnv.terms[idName(id)];
+            if (typeof value.render !== 'function') {
+                console.log('not a function', value.render);
+                return null;
+            }
+
+            // TODO: figure out the env
+
+            // const glEnv = newGLSLEnv(canvas);
+            // glEnv.time = time;
+
+            // const old = evalEnv.traceObj.traces;
+            // const traces = (evalEnv.traceObj.traces = {});
+            // const color = value.render(glEnv, {
+            //     type: 'Vec2',
+            //     x: mousePos.x,
+            //     y: mousePos.y,
+            // });
+            // evalEnv.traceObj.traces = old;
+            // return { color, traces };
+            return null;
+        },
+        [term],
+    );
+
+    if (error != null) {
+        return (
+            <div>
+                <div
+                    style={{
+                        padding: 4,
+                        fontFamily: 'monospace',
+                        whiteSpace: 'pre-wrap',
+                        backgroundColor: '#300',
+                    }}
+                >
+                    {error.message + '\n' + error.stack}
+                </div>
+                {shaders != null ? (
+                    <pre
+                        style={{
+                            fontFamily: 'monospace',
+                            whiteSpace: 'pre-wrap',
+                        }}
+                    >
+                        {error.shader ? error.shader : shaders[0].text}
+                    </pre>
+                ) : null}
+            </div>
+        );
+    }
+
+    if (shaders == null) {
+        return <div>No shaders!!</div>;
+    }
+
+    return (
+        <OpenGLCanvas
+            onTrace={onTrace}
+            shaders={shaders.map((shader) => shader.text)}
+            startPaused={startPaused}
+            onError={setError}
+            renderTrace={(traceValue, mousePos) => (
+                <ShowTrace trace={traceValue} env={env} pos={mousePos} />
+            )}
+        />
+    );
 };
 
 const ShaderGLSLBuffers = ({
@@ -205,15 +342,77 @@ const ShaderGLSLBuffers = ({
     );
 };
 
+const Vec4 = refType('3b941378');
+const Vec2 = refType('43802a16');
+const GLSLEnv = refType('451d5252');
+const GLSLEnvT = refType('d2ea39a0', [
+    {
+        type: 'var',
+        sym: { name: 'T', unique: 0 },
+        location: nullLocation,
+    },
+]);
+const GLSLScene = refType('7eb87aa6', [
+    {
+        type: 'var',
+        sym: { name: 'T', unique: 0 },
+        location: nullLocation,
+    },
+]);
+
 const shaderFunction = (buffers: number) => {
-    const args = [refType('451d5252'), refType('43802a16')];
+    const args = [GLSLEnv, Vec2];
     for (let i = 0; i < buffers; i++) {
         args.push(builtinType('sampler2D'));
     }
-    return pureFunction(args, refType('3b941378'));
+    return pureFunction(args, Vec4);
+};
+
+// Ok, so what we need is:
+// the ability to have parameterized dealios
+// like, if you find a type variable, add a constraint for it.
+// this could be the beginning of the inferences
+
+export type GLSLEnv2<T> = {
+    state: T;
+    time: number;
+    resolution: Vec2;
+    camera: Vec3;
+    mouse: Vec2;
+    mouseButton: number;
+};
+
+export type GLSLScene<T> = {
+    type: 'GLSLScene';
+    initial: T;
+    step: (env: GLSLEnv2<T>, prev: GLSLEnv2<T>) => T;
+    render: (env: GLSLEnv2<T>, pos: Vec2) => Vec4;
 };
 
 const plugins: RenderPlugins = {
+    openGlglOk: {
+        id: 'openGlglOk',
+        name: 'Shader for goodness',
+        type: pureFunction([GLSLEnvT, Vec2], Vec4),
+        render: <T,>(
+            value: GLSLScene<T>,
+            evalEnv: EvalEnv,
+            env: Env,
+            term: Term,
+            startPaused: boolean,
+        ) => {
+            return (
+                <ShaderGLSLScene
+                    value={value}
+                    env={env}
+                    evalEnv={evalEnv}
+                    term={term}
+                    startPaused={startPaused}
+                />
+            );
+        },
+    },
+
     openglBuffer1: {
         id: 'opengl1',
         name: 'Shader GLSL',

@@ -1027,6 +1027,7 @@ export const shaderAllButMains = (
     includeComments = true,
     bufferCount = buffers.length,
     optimizer = defaultOptimizer,
+    stateUniform?: Reference,
 ): { items: Array<PP>; invalidLocs: Array<Location> } => {
     const items: Array<PP> = shaderTop(bufferCount);
 
@@ -1056,6 +1057,14 @@ export const shaderAllButMains = (
             items.push(printed);
         }
     });
+
+    if (stateUniform) {
+        items.push(
+            atom(
+                `uniform ${refToGlsl(env, opts, stateUniform, true)} u_state;`,
+            ),
+        );
+    }
 
     const invalidLocs: Array<Location> = [];
 
@@ -1101,6 +1110,7 @@ export const generateSingleShader = (
     buffers: number,
     includeComments = true,
     optimizer = defaultOptimizer,
+    stateUniform?: Reference,
 ): { text: string; invalidLocs: Array<Location> } => {
     const { items, invalidLocs } = shaderAllButMains(
         env,
@@ -1111,6 +1121,7 @@ export const generateSingleShader = (
         includeComments,
         buffers,
         optimizer,
+        stateUniform,
     );
 
     items.push(glslMain(env, opts, mainTerm, buffers));
