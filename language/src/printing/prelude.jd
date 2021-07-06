@@ -428,22 +428,22 @@ type GLSLBuffer1 = {
     buffer0: (GLSLEnv, Vec2, sampler2D) => Vec4,
 }
 
-@ffi
-type GLSLEnv<T> = {
-    state: T,
-    time: float,
-    resolution: Vec2,
-    camera: Vec3,
-    mouse: Vec2,
-    mouseButton: int,
-}
+// @ffi
+// type GLSLEnv<T> = {
+//     state: T,
+//     time: float,
+//     resolution: Vec2,
+//     camera: Vec3,
+//     mouse: Vec2,
+//     mouseButton: int,
+// }
 
-@ffi
-type GLSLScene<T> = {
-    initial: T,
-    step: (GLSLEnv<T,>, GLSLEnv<T,>) => T,
-    render: (GLSLEnv<T>, Vec2) => Vec4,
-}
+// @ffi
+// type GLSLScene<T> = {
+//     initial: T,
+//     step: (GLSLEnv<T,>, GLSLEnv<T,>) => T,
+//     render: (GLSLEnv<T>, Vec2) => Vec4,
+// }
 
 // GLSL Tests you see
 
