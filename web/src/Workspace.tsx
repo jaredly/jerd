@@ -244,7 +244,6 @@ export const Workspace = ({ state, setState }: Props) => {
                 ))}
             </div>
             {/* <ImportExport state={state} setState={setState} /> */}
-            <ImportExport state={state} setState={setState} />
             {showMenu ? (
                 <QuickMenu
                     env={state.env}

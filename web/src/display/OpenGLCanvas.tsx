@@ -133,6 +133,7 @@ export const OpenGLCanvas = ({
 }) => {
     const [zoom, setZoom] = React.useState(initialZoom);
     const [width, setWidth] = React.useState(initialSize);
+    const [height, setHeight] = React.useState(null as null | number);
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
     );
@@ -381,12 +382,12 @@ export const OpenGLCanvas = ({
                     }}
                     style={{
                         width: width,
-                        height: width,
+                        height: height != null ? height : width,
                         imageRendering: 'pixelated',
                     }}
                     // Double size for retina
                     width={width / zoom + ''}
-                    height={width / zoom + ''}
+                    height={(height != null ? height : width) / zoom + ''}
                 />
                 <HoverPanel
                     playState={playState}
@@ -407,6 +408,19 @@ export const OpenGLCanvas = ({
                             const value = +evt.target.value;
                             if (!isNaN(value)) {
                                 setWidth(value);
+                            }
+                        }}
+                    />
+                    Height:
+                    <input
+                        style={{ width: 40 }}
+                        value={height == null ? '' : height + ''}
+                        onChange={(evt) => {
+                            const value = +evt.target.value;
+                            if (!isNaN(value) && value > 0) {
+                                setHeight(value);
+                            } else {
+                                setHeight(null);
                             }
                         }}
                     />
@@ -443,7 +457,12 @@ export const OpenGLCanvas = ({
                     <button
                         onClick={() => {
                             navigator.clipboard.writeText(
-                                JSON.stringify({ shaders, zoom, size: width }),
+                                JSON.stringify({
+                                    shaders,
+                                    zoom,
+                                    width,
+                                    height,
+                                }),
                             );
                         }}
                     >
