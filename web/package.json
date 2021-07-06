@@ -5,7 +5,7 @@
     "license": "MIT",
     "scripts": {
         "build": "esbuild src/run.tsx --loader:.jd=text --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --outdir=../docs",
-        "start": "esbuild src/run.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --servedir=. --outdir=. --serve=:4343 --external:fs",
+        "start": "esbuild src/run.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --servedir=. --outdir=. --serve=:4343 --external:fs --external:events --external:constants",
         "start-showcase": "esbuild src/openglShowcase.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --servedir=. --outdir=. --serve=:4344 --external:fs",
         "build-showcase": "esbuild src/openglShowcase.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --outdir=../docs/showcase --external:fs && cp showcase.html ../docs/showcase/index.html"
     },
@@ -17,7 +17,8 @@
         "react": "^17.0.1",
         "react-colorful": "^5.2.2",
         "react-dom": "^17.0.1",
-        "react-textarea-autosize": "^8.3.2"
+        "react-textarea-autosize": "^8.3.2",
+        "tinytar": "^0.1.0"
     },
     "devDependencies": {
         "@types/react": "^17.0.3",

@@ -155,6 +155,8 @@ export const OpenGLCanvas = ({
 
     const [video, setVideo] = React.useState(null as null | string);
 
+    const [downloadUrl, setDownloadUrl] = React.useState(null as null | string);
+
     const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
     const currentMousePos = React.useRef(mousePos);
     currentMousePos.current = mousePos;
@@ -220,34 +222,114 @@ export const OpenGLCanvas = ({
                 setVideo,
             );
 
-            const images: Array<{ name: string; data: Uint8Array }> = [];
+            const images: Array<Uint8Array> = [];
 
             let tid: any;
             let tick = 0;
+
             const fn = () => {
                 updateFn(tick / 60, currentMousePos.current);
                 setTranscodingProgress({
                     start: Date.now(),
                     percent: tick / recordingLength,
                 });
+                // canvas!.toBlob
 
                 const dataUrl = canvas!.toDataURL('image/jpeg');
                 const data = convertDataURIToBinary(dataUrl);
 
-                images.push({
-                    name: `img${tick.toString().padStart(3, '0')}.jpg`,
-                    data,
-                });
+                // TODO: Re-enable this if the user wants to do the slower,
+                // in-browser transcoding.
+                // images.push({
+                //     name: `img${tick.toString().padStart(3, '0')}.jpg`,
+                //     data,
+                // });
+                images.push(data);
 
                 if (tick++ > recordingLength) {
-                    sendRun(images);
-                    setPlayState('transcoding');
-                    setTranscodingProgress({ start: Date.now(), percent: 0 });
+                    // sendRun(images);
+                    // setPlayState('transcoding');
+                    // setTranscodingProgress({ start: Date.now(), percent: 0 });
+                    const tar = require('tinytar').tar;
+
+                    const args = [
+                        '-r',
+                        '60',
+                        '-i',
+                        'image%03d.jpg',
+                        '-c:v',
+                        'libx264',
+                        '-crf',
+                        '18',
+                        '-pix_fmt',
+                        'yuv420p',
+                        // '-vb',
+                        // '20M',
+                    ];
+                    if (zoom !== 1.0) {
+                        args.push(
+                            '-vf',
+                            `scale=iw*${zoom}:ih*${zoom}:flags=neighbor`,
+                        );
+                    }
+                    args.push('video.mp4');
+
+                    const res = tar(
+                        images
+                            .map(
+                                (image, i) =>
+                                    ({
+                                        name: `image${i
+                                            .toString()
+                                            .padStart(3, '0')}.jpg`,
+                                        data: image,
+                                    } as any),
+                            )
+                            .concat([
+                                {
+                                    name: 'run_ffmpeg.bash',
+                                    mode: parseInt('777', 8),
+                                    data: `#!/bin/bash
+                                    set -ex
+                                    ffmpeg ${args
+                                        .map((a) =>
+                                            a[0] === '-' ? a : `"${a}"`,
+                                        )
+                                        .join(' ')}
+                                    `,
+                                },
+                                {
+                                    name: `config.json`,
+                                    data: JSON.stringify({
+                                        zoom,
+                                        recordingLength,
+                                    }),
+                                },
+                            ]),
+                    );
+                    // images.forEach((image, i) => {
+                    //     tar.entry(
+                    //         {
+                    //         },
+                    //     );
+                    // });
+                    // tar.finalize();
+                    // const stream = tar.c({ sync: true }, [images]);
+
+                    const blob = new Blob([res], {
+                        type: 'tar',
+                    });
+
+                    setDownloadUrl(URL.createObjectURL(blob));
+                    // sendRun(images);
+                    // setPlayState('transcoding');
+                    // setTranscodingProgress({ start: Date.now(), percent: 0 });
 
                     return; // done
                 }
                 tid = requestAnimationFrame(fn);
             };
+
             tid = requestAnimationFrame(fn);
             return () => cancelAnimationFrame(tid);
         } else {
@@ -368,6 +450,14 @@ export const OpenGLCanvas = ({
                         Copy as JSON
                     </button>
                 </div>
+            ) : null}
+            {downloadUrl ? (
+                <a
+                    href={downloadUrl}
+                    download={'animation_' + new Date().toISOString() + '.tar'}
+                >
+                    Download DataURIs
+                </a>
             ) : null}
             {transcodingProgress.start !== 0.0
                 ? `${playState}: ${(transcodingProgress.percent * 100).toFixed(
