@@ -154,7 +154,8 @@ export const idToPretty = (
 ) => {
     const name = env ? env.global.idNames[idName(id)] : null;
     const hash = id.hash + (id.pos !== 0 ? '_' + id.pos : '');
-    return idPretty(name ? name : 'unnamed', hash, kind, loc);
+    // return idPretty(name ? name : 'unnamed', hash, kind, loc);
+    return idPretty('ahaha', hash, kind, loc);
 };
 export const symToPretty = (sym: Symbol, loc?: Location) =>
     idPretty(sym.name, ':' + sym.unique.toString(), 'sym', loc);

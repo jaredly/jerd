@@ -72,12 +72,10 @@ const rec chooseInt#54cbbab4 = (m#:0: int#builtin, n#:1: int#builtin): int#built
     if m#:0 >#builtin n#:1 {
         fail#0620e972();
         10;
+    } else if decide#6ab06b22() {
+        m#:0;
     } else {
-        if decide#6ab06b22() {
-            m#:0;
-        } else {
-            54cbbab4#self(m#:0 +#builtin 1, n#:1);
-        };
+        54cbbab4#self(m#:0 +#builtin 1, n#:1);
     };
 }
 ```
@@ -373,7 +371,7 @@ const backtrackPythagReverse#5f048050 = (m#:0: int#builtin, n#:1: int#builtin): 
 )
 ```
 */
-export const hash_5f048050: (arg_0: number, arg_1: number) => T_0 = (m: number, n: number) => hash_70ad2630((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
+export const hash_5f048050: (arg_0: number, arg_1: number) => string = (m: number, n: number) => hash_70ad2630((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
   hash_0cdd5ff0(m, n, handlers, (handlers: Handlers, returnValue$4: string) => done$2(handlers, returnValue$4));
 }, () => "No solution found");
 
@@ -387,7 +385,7 @@ const backtrackPythag#db67c018 = (m#:0: int#builtin, n#:1: int#builtin): string#
 )
 ```
 */
-export const hash_db67c018: (arg_0: number, arg_1: number) => T_0 = (m: number, n: number) => hash_1603c390((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
+export const hash_db67c018: (arg_0: number, arg_1: number) => string = (m: number, n: number) => hash_1603c390((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
   hash_0cdd5ff0(m, n, handlers, (handlers: Handlers, returnValue$4: string) => done$2(handlers, returnValue$4));
 }, () => "No solution found");
 

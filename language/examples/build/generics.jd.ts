@@ -41,7 +41,7 @@ export const hash_36626a20: (arg_0: number) => (arg_0: number) => number = (x: n
 const callIt#2d15e126 = callme#777bf1fc<int#builtin>(x: addTwo#f4c397d2, arg: 5)
 ```
 */
-export const hash_2d15e126: T_0 = hash_777bf1fc(hash_f4c397d2, 5);
+export const hash_2d15e126: number = hash_777bf1fc(hash_f4c397d2, 5);
 
 /**
 ```

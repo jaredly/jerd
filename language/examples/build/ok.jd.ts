@@ -5,16 +5,16 @@ type handle35f4b478 = [(arg_0: string, arg_1: (arg_0: handle35f4b478) => void) =
 
 /**
 ```
-type Person#55143d83 = {
+type Person#872c6ee8 = {
     name: string#builtin,
     age: int#builtin,
 }
 ```
 */
-type t_55143d83 = {
-  type: "55143d83";
-  h55143d83_0: string;
-  h55143d83_1: number;
+type t_872c6ee8 = {
+  type: "872c6ee8";
+  h872c6ee8_0: string;
+  h872c6ee8_1: number;
 };
 
 /**
@@ -144,41 +144,41 @@ export const hash_bef2134a: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_
 
 /**
 ```
-const getPerson#6a969928 = (): Person#55143d83 ={Read#22024b72}> Person#55143d83{
-    name#55143d83#0: getString#64605d94(),
-    age#55143d83#1: 5,
+const getPerson#52ce3d72 = (): Person#872c6ee8 ={Read#22024b72}> Person#872c6ee8{
+    name#872c6ee8#0: getString#64605d94(),
+    age#872c6ee8#1: 5,
 }
 ```
 */
-export const hash_6a969928:
+export const hash_52ce3d72:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_55143d83) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_55143d83) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_872c6ee8) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_872c6ee8) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue: string) => {
     done$2(handlers, ({
-      type: "55143d83",
-      h55143d83_0: returnValue,
-      h55143d83_1: 5
-    } as t_55143d83));
+      type: "872c6ee8",
+      h872c6ee8_0: returnValue,
+      h872c6ee8_1: 5
+    } as t_872c6ee8));
   });
 };
 
 /**
 ```
-const getPersonName#53dd4a18 = (): string#builtin ={Read#22024b72}> Person#55143d83{
-    name#55143d83#0: getString#64605d94(),
-    age#55143d83#1: 5,
-}.name#55143d83#0
+const getPersonName#fd1532c0 = (): string#builtin ={Read#22024b72}> Person#872c6ee8{
+    name#872c6ee8#0: getString#64605d94(),
+    age#872c6ee8#1: 5,
+}.name#872c6ee8#0
 ```
 */
-export const hash_53dd4a18:
+export const hash_fd1532c0:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void) => void = (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => {
     done$3(handlers, ({
-      type: "55143d83",
-      h55143d83_0: returnValue$5,
-      h55143d83_1: 5
-    } as t_55143d83).h55143d83_0);
+      type: "872c6ee8",
+      h872c6ee8_0: returnValue$5,
+      h872c6ee8_1: 5
+    } as t_872c6ee8).h872c6ee8_0);
   });
 };
 
@@ -236,24 +236,24 @@ export const hash_4ffa1f88: <T_0>(arg_0: string, arg_1: number, arg_2:
 const ArrayStringEq#0d35c408 = ArrayEq#bef2134a<string#builtin>(eq: StringEq#606c7034)
 ```
 */
-export const hash_0d35c408: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_606c7034);
+export const hash_0d35c408: t_553b4b8e<Array<string>> = hash_bef2134a(hash_606c7034);
 
 /**
 ```
-const spreadPerson#27dce4fb = (): Person#55143d83 ={Read#22024b72}> Person#55143d83{
-    ...getPerson#6a969928(),
-    age#55143d83#1: 20,
+const spreadPerson#60b0fdf9 = (): Person#872c6ee8 ={Read#22024b72}> Person#872c6ee8{
+    ...getPerson#52ce3d72(),
+    age#872c6ee8#1: 20,
 }
 ```
 */
-export const hash_27dce4fb:
+export const hash_60b0fdf9:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_55143d83) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_55143d83) => void) => {
-  hash_6a969928(handlers, (handlers: Handlers, returnValue: t_55143d83) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: t_872c6ee8) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: t_872c6ee8) => void) => {
+  hash_52ce3d72(handlers, (handlers: Handlers, returnValue: t_872c6ee8) => {
     done$2(handlers, ({ ...returnValue,
-      type: "55143d83",
-      h55143d83_1: 20
-    } as t_55143d83));
+      type: "872c6ee8",
+      h872c6ee8_1: 20
+    } as t_872c6ee8));
   });
 };
 
@@ -469,16 +469,16 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("what", (handlers: Handlers,
 }), "what");
 
 /*
-provideStringPlain#2dbf3eae<Person#55143d83>(v: "Me", fn: getPerson#6a969928).name#55143d83#0 
+provideStringPlain#2dbf3eae<Person#872c6ee8>(v: "Me", fn: getPerson#52ce3d72).name#872c6ee8#0 
     ==#606c7034#553b4b8e#0 "Me"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_6a969928).h55143d83_0, "Me");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_52ce3d72).h872c6ee8_0, "Me");
 
 /*
-provideStringPlain#2dbf3eae<Person#55143d83>(v: "Me", fn: spreadPerson#27dce4fb).name#55143d83#0 
+provideStringPlain#2dbf3eae<Person#872c6ee8>(v: "Me", fn: spreadPerson#60b0fdf9).name#872c6ee8#0 
     ==#606c7034#553b4b8e#0 "Me"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_27dce4fb).h55143d83_0, "Me");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("Me", hash_60b0fdf9).h872c6ee8_0, "Me");
 
 /*
 provideIncrement#4ffa1f88<Array#builtin<string#builtin>>(
@@ -562,7 +562,7 @@ assertCall(hash_0d35c408.h553b4b8e_0, hash_4ffa1f88("Hi", 0, (handlers: Handlers
 };
 
 /*
-provideStringPlain#2dbf3eae<string#builtin>(v: "ok", fn: getPersonName#53dd4a18) 
+provideStringPlain#2dbf3eae<string#builtin>(v: "ok", fn: getPersonName#fd1532c0) 
     ==#606c7034#553b4b8e#0 "ok"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("ok", hash_53dd4a18), "ok");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("ok", hash_fd1532c0), "ok");

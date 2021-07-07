@@ -796,15 +796,13 @@ const phongContribForLight#2cd4f58d = (
     const dotRV#:13 = dot#255c39c3(a: R#:11, b: V#:10);
     if dotLN#:12 <#builtin 0.0 {
         Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.0, z#9f1c0644#0: 0.0};
+    } else if dotRV#:13 <#builtin 0.0 {
+        const m#:14 = k_d#:1 *#1d31aa6e#1de4e4c0#0 dotLN#:12;
+        lightIntensity#:7 *#73d73040#1de4e4c0#0 m#:14;
     } else {
-        if dotRV#:13 <#builtin 0.0 {
-            const m#:14 = k_d#:1 *#1d31aa6e#1de4e4c0#0 dotLN#:12;
-            lightIntensity#:7 *#73d73040#1de4e4c0#0 m#:14;
-        } else {
-            const m#:15 = k_d#:1 *#1d31aa6e#1de4e4c0#0 dotLN#:12 
-                +#1c6fdd91#b99b22d8#0 k_s#:2 *#1d31aa6e#1de4e4c0#0 pow#builtin(dotRV#:13, alpha#:3);
-            lightIntensity#:7 *#73d73040#1de4e4c0#0 m#:15;
-        };
+        const m#:15 = k_d#:1 *#1d31aa6e#1de4e4c0#0 dotLN#:12 
+            +#1c6fdd91#b99b22d8#0 k_s#:2 *#1d31aa6e#1de4e4c0#0 pow#builtin(dotRV#:13, alpha#:3);
+        lightIntensity#:7 *#73d73040#1de4e4c0#0 m#:15;
     };
 }
 ```

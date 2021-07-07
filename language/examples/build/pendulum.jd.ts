@@ -526,12 +526,10 @@ export const hash_0555d260: t_b99b22d8<t_3b941378, t_3b941378, t_3b941378> = ({
 const normalizeTheta#c3a71e42 = (t#:0: float#builtin): float#builtin ={}> if t#:0 
     >#builtin PI#builtin {
     t#:0 -#builtin TWO_PI#fc1474ce;
+} else if t#:0 <#builtin -PI#builtin {
+    t#:0 +#builtin TWO_PI#fc1474ce;
 } else {
-    if t#:0 <#builtin -PI#builtin {
-        t#:0 +#builtin TWO_PI#fc1474ce;
-    } else {
-        t#:0;
-    };
+    t#:0;
 }
 ```
 */
@@ -805,76 +803,64 @@ const main#28a1e0b2 = (
     };
     if circle#297cc3b2(samplePos: p1#:6, center: c1#:7, r: 10.0) <#builtin 0.0 {
         vec4#4d4983bb(x: 1.0, y: 0.0, z: 0.0, w: 1.0);
+    } else if circle#297cc3b2(samplePos: p1#:6, center: c2#:8, r: 10.0) <#builtin 0.0 {
+        vec4#4d4983bb(x: 1.0, y: 1.0, z: 0.0, w: 1.0);
+    } else if max#builtin(
+            rect#0fa3bd82(
+                samplePos: p1#:6,
+                center: env#:0.mouse#451d5252#3 
+                    -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0,
+                w: 10.0,
+                h: 10.0,
+            ),
+            -rect#0fa3bd82(
+                samplePos: p1#:6,
+                center: env#:0.mouse#451d5252#3 
+                    -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0,
+                w: 9.0,
+                h: 9.0,
+            ),
+        ) 
+        <#builtin 0.0 {
+        vec4#4d4983bb(x: 0.0, y: 0.0, z: 0.0, w: 1.0);
+    } else if length#c2805852(
+            v: p1#:6 
+                -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 
+                    -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0),
+        ) 
+        <#builtin 100.0 {
+        const t#:9 = texture#builtin(
+            buffer#:2,
+            fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1,
+        );
+        const rgb#:10 = hsv2rgb#5c8b4a90(
+            c: Vec3#9f1c0644{
+                x#43802a16#0: t#:9.z#9f1c0644#0,
+                y#43802a16#1: t#:9.w#3b941378#0,
+                z#9f1c0644#0: 1.0,
+            },
+        );
+        Vec4#3b941378{...rgb#:10, w#3b941378#0: 1.0};
+    } else if length#c2805852(
+            v: p1#:6 
+                -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 
+                    -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 /#afc24bbe#5ac12902#0 2.0),
+        ) 
+        <#builtin 101.0 {
+        vec4#4d4983bb(x: 0.0, y: 0.0, z: 0.0, w: 1.0);
     } else {
-        if circle#297cc3b2(samplePos: p1#:6, center: c2#:8, r: 10.0) <#builtin 0.0 {
-            vec4#4d4983bb(x: 1.0, y: 1.0, z: 0.0, w: 1.0);
-        } else {
-            if max#builtin(
-                    rect#0fa3bd82(
-                        samplePos: p1#:6,
-                        center: env#:0.mouse#451d5252#3 
-                            -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
-                                /#afc24bbe#5ac12902#0 2.0,
-                        w: 10.0,
-                        h: 10.0,
-                    ),
-                    -rect#0fa3bd82(
-                        samplePos: p1#:6,
-                        center: env#:0.mouse#451d5252#3 
-                            -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
-                                /#afc24bbe#5ac12902#0 2.0,
-                        w: 9.0,
-                        h: 9.0,
-                    ),
-                ) 
-                <#builtin 0.0 {
-                vec4#4d4983bb(x: 0.0, y: 0.0, z: 0.0, w: 1.0);
-            } else {
-                if length#c2805852(
-                        v: p1#:6 
-                            -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 
-                                -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
-                                    /#afc24bbe#5ac12902#0 2.0),
-                    ) 
-                    <#builtin 100.0 {
-                    const t#:9 = texture#builtin(
-                        buffer#:2,
-                        fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1,
-                    );
-                    const rgb#:10 = hsv2rgb#5c8b4a90(
-                        c: Vec3#9f1c0644{
-                            x#43802a16#0: t#:9.z#9f1c0644#0,
-                            y#43802a16#1: t#:9.w#3b941378#0,
-                            z#9f1c0644#0: 1.0,
-                        },
-                    );
-                    Vec4#3b941378{...rgb#:10, w#3b941378#0: 1.0};
-                } else {
-                    if length#c2805852(
-                            v: p1#:6 
-                                -#70bb2056#b99b22d8#1 (env#:0.mouse#451d5252#3 
-                                    -#70bb2056#b99b22d8#1 env#:0.resolution#451d5252#1 
-                                        /#afc24bbe#5ac12902#0 2.0),
-                        ) 
-                        <#builtin 101.0 {
-                        vec4#4d4983bb(x: 0.0, y: 0.0, z: 0.0, w: 1.0);
-                    } else {
-                        const t#:11 = texture#builtin(
-                            buffer#:2,
-                            fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1,
-                        );
-                        const rgb#:12 = hsv2rgb#5c8b4a90(
-                            c: Vec3#9f1c0644{
-                                x#43802a16#0: t#:11.y#43802a16#1,
-                                y#43802a16#1: t#:11.x#43802a16#0,
-                                z#9f1c0644#0: 1.0,
-                            },
-                        );
-                        Vec4#3b941378{...rgb#:12, w#3b941378#0: 1.0};
-                    };
-                };
-            };
-        };
+        const t#:11 = texture#builtin(
+            buffer#:2,
+            fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1,
+        );
+        const rgb#:12 = hsv2rgb#5c8b4a90(
+            c: Vec3#9f1c0644{
+                x#43802a16#0: t#:11.y#43802a16#1,
+                y#43802a16#1: t#:11.x#43802a16#0,
+                z#9f1c0644#0: 1.0,
+            },
+        );
+        Vec4#3b941378{...rgb#:12, w#3b941378#0: 1.0};
     };
 }
 ```

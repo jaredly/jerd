@@ -51,8 +51,8 @@ Type error!UnresolvedIdentifier2
 Return type of lambda doesn't fit type declaration
 
 Function declared with explicit effects, but missing at least one: 
-GetString#22024b72
-Exepcted: GetInt#b54d969c
+ahaha#22024b72
+Exepcted: ahaha#b54d969c
 
 Can't handle multiple effects in one handler.
 
@@ -68,7 +68,7 @@ Multiple values provided for 1 undefined at 113:39-113:42
 
 Record missing attribute "what" at 115:1-115:29
 
-Invalid spread Dog#1de5e9d2
+Invalid spread ahaha#1de5e9d2
 
 Expected a subtype of 1de5e9d2
 
