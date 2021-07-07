@@ -3,7 +3,7 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@ffi type Vec2#43802a16 = {
+@ffi("Vec2") type Vec2#43802a16 = {
     x: float#builtin,
     y: float#builtin,
 }
@@ -17,7 +17,7 @@ type t_43802a16 = {
 
 /**
 ```
-@ffi type Vec2#43802a16 = {
+@ffi("Vec2") type Vec2#43802a16 = {
     x: float#builtin,
     y: float#builtin,
 }
@@ -31,7 +31,7 @@ type t_43802a16 = {
 
 /**
 ```
-@ffi type Vec2#43802a16 = {
+@ffi("Vec2") type Vec2#43802a16 = {
     x: float#builtin,
     y: float#builtin,
 }
@@ -45,7 +45,7 @@ type t_43802a16 = {
 
 /**
 ```
-@ffi type Vec2#43802a16 = {
+@ffi("Vec2") type Vec2#43802a16 = {
     x: float#builtin,
     y: float#builtin,
 }
@@ -59,7 +59,7 @@ type t_43802a16 = {
 
 /**
 ```
-@ffi type Vec3#9f1c0644 = {
+@ffi("Vec3") type Vec3#9f1c0644 = {
     ...Vec2#43802a16,
     z: float#builtin,
 }
@@ -74,7 +74,7 @@ type t_9f1c0644 = {
 
 /**
 ```
-@ffi type Vec3#9f1c0644 = {
+@ffi("Vec3") type Vec3#9f1c0644 = {
     ...Vec2#43802a16,
     z: float#builtin,
 }
@@ -89,7 +89,7 @@ type t_9f1c0644 = {
 
 /**
 ```
-@ffi type Vec3#9f1c0644 = {
+@ffi("Vec3") type Vec3#9f1c0644 = {
     ...Vec2#43802a16,
     z: float#builtin,
 }
@@ -104,7 +104,7 @@ type t_9f1c0644 = {
 
 /**
 ```
-@ffi type Vec3#9f1c0644 = {
+@ffi("Vec3") type Vec3#9f1c0644 = {
     ...Vec2#43802a16,
     z: float#builtin,
 }
@@ -119,7 +119,7 @@ type t_9f1c0644 = {
 
 /**
 ```
-@ffi type Vec4#3b941378 = {
+@ffi("Vec4") type Vec4#3b941378 = {
     ...Vec3#9f1c0644,
     w: float#builtin,
 }
@@ -135,7 +135,7 @@ type t_3b941378 = {
 
 /**
 ```
-@ffi type Vec4#3b941378 = {
+@ffi("Vec4") type Vec4#3b941378 = {
     ...Vec3#9f1c0644,
     w: float#builtin,
 }
@@ -151,7 +151,7 @@ type t_3b941378 = {
 
 /**
 ```
-@ffi type Vec4#3b941378 = {
+@ffi("Vec4") type Vec4#3b941378 = {
     ...Vec3#9f1c0644,
     w: float#builtin,
 }
@@ -167,7 +167,7 @@ type t_3b941378 = {
 
 /**
 ```
-@ffi type Vec4#3b941378 = {
+@ffi("Vec4") type Vec4#3b941378 = {
     ...Vec3#9f1c0644,
     w: float#builtin,
 }
@@ -183,7 +183,7 @@ type t_3b941378 = {
 
 /**
 ```
-@ffi type GLSLEnv#451d5252 = {
+@ffi("GLSLEnv") type GLSLEnv#451d5252 = {
     time: float#builtin,
     resolution: Vec2#43802a16,
     camera: Vec3#9f1c0644,
@@ -201,7 +201,7 @@ type t_451d5252 = {
 
 /**
 ```
-@ffi type Mat4#d92781e8 = {
+@ffi("Mat4") type Mat4#d92781e8 = {
     r1: Vec4#3b941378,
     r2: Vec4#3b941378,
     r3: Vec4#3b941378,

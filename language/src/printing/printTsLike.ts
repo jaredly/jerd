@@ -154,8 +154,8 @@ export const idToPretty = (
 ) => {
     const name = env ? env.global.idNames[idName(id)] : null;
     const hash = id.hash + (id.pos !== 0 ? '_' + id.pos : '');
-    // return idPretty(name ? name : 'unnamed', hash, kind, loc);
-    return idPretty('ahaha', hash, kind, loc);
+    return idPretty(name ? name : 'unnamed', hash, kind, loc);
+    // return idPretty('ahaha', hash, kind, loc);
 };
 export const symToPretty = (sym: Symbol, loc?: Location) =>
     idPretty(sym.name, ':' + sym.unique.toString(), 'sym', loc);
@@ -179,8 +179,6 @@ export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
         atom('const ', ['keyword']),
         isRecursive(term) ? atom('rec ', ['keyword']) : null,
         idToPretty(env, id, 'term'),
-        // atom(': '),
-        // typeToPretty(env, term.is),
         atom(' = '),
         termToPretty(env, term),
     ]);
@@ -192,7 +190,7 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
         recordDef.ffi
             ? items([
                   atom('@ffi'),
-                  // args([atom(recordDef.ffi.tag)]),
+                  args([atom(`"${recordDef.ffi.tag}"`)]),
                   atom(' '),
               ])
             : null,
