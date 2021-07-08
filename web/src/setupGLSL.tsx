@@ -102,7 +102,8 @@ export const setup = (
     gl: WebGL2RenderingContext,
     fragmentShader: string,
     currentTime: number,
-    mousePos?: { x: number; y: number },
+    mousePos?: { x: number; y: number; button: number },
+    state?: { x: number; y: number },
     bufferShaders: Array<string> = [],
     textures: Array<BufferInfo> = [],
 ) => {
@@ -129,6 +130,8 @@ export const setup = (
     type Bound = {
         utime: WebGLUniformLocation;
         umouse: WebGLUniformLocation;
+        umousebutton: WebGLUniformLocation;
+        ustate: WebGLUniformLocation;
         textureLocs: Array<WebGLUniformLocation>;
     };
 
@@ -146,11 +149,22 @@ export const setup = (
         const uresolution = gl.getUniformLocation(program, 'u_resolution');
         gl.uniform2f(uresolution, gl.canvas.width, gl.canvas.height);
 
+        const umousebutton = gl.getUniformLocation(program, 'u_mousebutton')!;
+        if (mousePos) {
+            gl.uniform1i(umousebutton, mousePos.button);
+        }
+
         const umouse = gl.getUniformLocation(program, 'u_mouse')!;
         if (mousePos) {
             gl.uniform2f(umouse, mousePos.x, mousePos.y);
         }
-        return { utime, umouse, textureLocs };
+
+        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        if (state) {
+            gl.uniform2f(ustate, state.x, state.y);
+        }
+
+        return { utime, umouse, umousebutton, textureLocs, ustate };
     };
 
     const bufferPrograms = bufferShaders.map((fragmentShader) => {
@@ -238,6 +252,7 @@ export const setup = (
     return (
         uTime: number,
         mousePos?: { x: number; y: number; button: number },
+        state?: { x: number; y: number },
     ) => {
         swap();
         if (bufferPrograms.length) {
@@ -248,6 +263,11 @@ export const setup = (
 
                 if (mousePos) {
                     gl.uniform2f(bound.umouse, mousePos.x, mousePos.y);
+                    gl.uniform1i(bound.umousebutton, mousePos.button);
+                }
+
+                if (state) {
+                    gl.uniform2f(bound.ustate, state.x, state.y);
                 }
 
                 bound.textureLocs.forEach((loc, i) => {
@@ -272,8 +292,14 @@ export const setup = (
 
         gl.uniform1f(bound.utime, uTime);
 
+        // TODO: Need to handle many different state types
+        if (state) {
+            gl.uniform2f(bound.ustate, state.x, state.y);
+        }
+
         if (mousePos) {
             gl.uniform2f(bound.umouse, mousePos.x, mousePos.y);
+            gl.uniform1i(bound.umousebutton, mousePos.button);
         }
 
         bound.textureLocs.forEach((loc, i) => {

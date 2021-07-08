@@ -2,7 +2,12 @@
 import { jsx } from '@emotion/react';
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
-import { idFromName, idName, ToplevelT } from '@jerd/language/src/typing/env';
+import {
+    hashObject,
+    idFromName,
+    idName,
+    ToplevelT,
+} from '@jerd/language/src/typing/env';
 import {
     Env,
     Float,
@@ -16,6 +21,7 @@ import { addLocationIndices } from '../../language/src/typing/analyze';
 import { walkTerm } from '../../language/src/typing/transform';
 import { Position } from './Cells';
 import { IconButton } from './display/OpenGLCanvas';
+import { runTerm } from './eval';
 import { renderAttributedText } from './Render';
 import { RenderResult } from './RenderResult';
 import {
@@ -284,7 +290,7 @@ export const RenderItem = ({
                         ].includes(kind),
                 )}
                 {scrub
-                    ? renderScrub(env, top, scrub, setScrub, onChange)
+                    ? renderScrub(env, top, scrub, setScrub, onChange, evalEnv)
                     : null}
             </div>
             {term ? (
@@ -311,7 +317,13 @@ export const renderScrub = (
     scrub: Scrub,
     setScrub: (s: Scrub | null) => void,
     onChange: (c: ToplevelT) => void,
+    evalEnv: EvalEnv,
 ) => {
+    const update = (term: Term, item: ScrubItem) => {
+        const id = idFromName(hashObject(term));
+        const value = runTerm(env, term, id, evalEnv);
+        setScrub({ ...scrub, term, item, returnValue: value[idName(id)] });
+    };
     let body = null;
     if (scrub.item.type === 'float') {
         body = (
@@ -320,7 +332,8 @@ export const renderScrub = (
                 env={env}
                 term={scrub.term}
                 scrub={scrub.item.x}
-                setScrub={setScrub}
+                onUpdate={update}
+                // setScrub={setScrub}
             />
         );
     } else if (scrub.item.type === 'Vec2') {
@@ -331,6 +344,7 @@ export const renderScrub = (
                 term={scrub.term}
                 x={scrub.item.x}
                 y={scrub.item.y}
+                // onUpdate={update}
                 setScrub={setScrub}
                 width={400}
                 height={400}
@@ -347,6 +361,7 @@ export const renderScrub = (
                 b={scrub.item.b}
                 a={scrub.item.a}
                 setScrub={setScrub}
+                // onUpdate={update}
             />
         );
     } else if (scrub.item.type === 'color') {
@@ -359,6 +374,7 @@ export const renderScrub = (
                 g={scrub.item.g}
                 b={scrub.item.b}
                 setScrub={setScrub}
+                // onUpdate={update}
             />
         );
     }

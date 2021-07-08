@@ -101,6 +101,7 @@ const ShaderGLSLScene = <T,>({
     startPaused: boolean;
 }) => {
     const [error, setError] = React.useState(null as any | null);
+    console.log('the value', value);
 
     const shaders = React.useMemo(() => {
         try {
@@ -211,6 +212,10 @@ const ShaderGLSLScene = <T,>({
             renderTrace={(traceValue, mousePos) => (
                 <ShowTrace trace={traceValue} env={env} pos={mousePos} />
             )}
+            state={{
+                initial: value.initial,
+                step: value.step,
+            }}
         />
     );
 };

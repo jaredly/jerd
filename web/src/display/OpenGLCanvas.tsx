@@ -3,6 +3,7 @@
 import { css, jsx } from '@emotion/react';
 import * as React from 'react';
 import { setup } from '../setupGLSL';
+import { GLSLEnv2 } from './OpenGL';
 
 export type PlayState = 'playing' | 'paused' | 'recording' | 'transcoding';
 
@@ -176,6 +177,10 @@ export const OpenGLCanvas = ({
         textures.current = [];
     };
 
+    const stateRef = React.useRef(state);
+    stateRef.current = state;
+    console.log('hello state', state);
+
     const updateFn = React.useMemo(() => {
         if (!canvas || !shaders) {
             return null;
@@ -190,10 +195,44 @@ export const OpenGLCanvas = ({
                 shaders[0],
                 timer.current,
                 currentMousePos.current,
+                state ? state.initial : undefined,
                 shaders.slice(1),
                 textures.current,
             );
-            return update;
+            let oldState = state ? state.initial : undefined;
+            let oldCtx: GLSLEnv2<any> = {
+                state: state ? state.initial : null,
+                time: 0.0,
+                resolution: { type: 'Vec2', x: width, y: height || width },
+                camera: { type: 'Vec3', x: 0, y: 0, z: 0 },
+                mouse: { type: 'Vec2', x: 0, y: 0 },
+                mouseButton: -1,
+            };
+            return (
+                time: number,
+                mousePos: { x: number; y: number; button: number },
+            ) => {
+                let newState: any | undefined = oldState;
+                if (state) {
+                    if (time > 0) {
+                        const newCtx: GLSLEnv2<any> = {
+                            ...oldCtx,
+                            state: oldState,
+                            time,
+                            mouse: {
+                                type: 'Vec2',
+                                x: mousePos.x,
+                                y: mousePos.y,
+                            },
+                            mouseButton: mousePos.button,
+                        };
+                        newState = stateRef.current!.step(newCtx, oldCtx);
+                        oldCtx = newCtx;
+                        oldState = newState;
+                    }
+                }
+                return update(time, mousePos, newState);
+            };
         } catch (err) {
             console.log(err);
             onError(err);

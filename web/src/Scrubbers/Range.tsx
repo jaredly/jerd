@@ -5,19 +5,21 @@ import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { Env, Term } from '@jerd/language/src/typing/types';
 import { transform } from '../../../language/src/typing/transform';
-import { FloatScrub, Scrub } from '../RenderItem';
+import { FloatScrub, Scrub, ScrubItem } from '../RenderItem';
 
 export const RangeScrub = ({
     env,
     fullScrub,
     term,
     scrub,
-    setScrub,
+    // setScrub,
+    onUpdate,
 }: {
     env: Env;
     term: Term;
     scrub: FloatScrub;
-    setScrub: (s: Scrub) => void;
+    // setScrub: (s: Scrub) => void;
+    onUpdate: (t: Term, s: ScrubItem) => void;
     fullScrub: Scrub;
 }) => {
     return (
@@ -44,15 +46,11 @@ export const RangeScrub = ({
                         },
                         let: (l) => null,
                     });
-                    setScrub({
-                        ...fullScrub,
-                        term: newTerm,
-                        item: {
-                            type: 'float',
-                            x: {
-                                ...scrub,
-                                scrubbed: value,
-                            },
+                    onUpdate(newTerm, {
+                        type: 'float',
+                        x: {
+                            ...scrub,
+                            scrubbed: value,
                         },
                     });
                 }}
