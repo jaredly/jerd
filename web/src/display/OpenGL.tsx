@@ -101,7 +101,7 @@ const ShaderGLSLScene = <T,>({
     startPaused: boolean;
 }) => {
     const [error, setError] = React.useState(null as any | null);
-    console.log('the value', value);
+    // console.log('the value', value);
 
     const shaders = React.useMemo(() => {
         try {

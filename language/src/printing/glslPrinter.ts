@@ -1153,7 +1153,7 @@ export const shaderAllButMains = (
         if (printed) {
             items.push(printed);
         } else {
-            console.log('NO', r);
+            // console.log('NO', r);
         }
     });
     Object.keys(env.typeDefs).forEach((id) => {
@@ -1210,7 +1210,7 @@ export const shaderAllButMains = (
             ),
         );
     });
-    console.log('MAIN IR', irTerms[idName(mainTerm)]);
+    // console.log('MAIN IR', irTerms[idName(mainTerm)]);
     return { items, invalidLocs, mainType: irTerms[idName(mainTerm)].expr.is };
 };
 

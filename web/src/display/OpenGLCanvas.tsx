@@ -179,7 +179,14 @@ export const OpenGLCanvas = ({
 
     const stateRef = React.useRef(state);
     stateRef.current = state;
-    console.log('hello state', state);
+    // console.log('hello state', state);
+
+    const old = React.useRef(
+        null as null | {
+            state: any;
+            ctx: GLSLEnv2<any>;
+        },
+    );
 
     const updateFn = React.useMemo(() => {
         if (!canvas || !shaders) {
@@ -195,29 +202,47 @@ export const OpenGLCanvas = ({
                 shaders[0],
                 timer.current,
                 currentMousePos.current,
-                state ? state.initial : undefined,
+                old.current
+                    ? old.current.state
+                    : state
+                    ? state.initial
+                    : undefined,
                 shaders.slice(1),
                 textures.current,
             );
-            let oldState = state ? state.initial : undefined;
-            let oldCtx: GLSLEnv2<any> = {
-                state: state ? state.initial : null,
-                time: 0.0,
-                resolution: { type: 'Vec2', x: width, y: height || width },
-                camera: { type: 'Vec3', x: 0, y: 0, z: 0 },
-                mouse: { type: 'Vec2', x: 0, y: 0 },
-                mouseButton: -1,
-            };
+            if (state) {
+                old.current = {
+                    state: old.current ? old.current.state : state.initial,
+                    // let oldState = state ? state.initial : undefined;
+                    // ctx: GLSLEnv2<any> = {
+                    ctx: {
+                        state: old.current
+                            ? old.current.state
+                            : state
+                            ? state.initial
+                            : null,
+                        time: timer.current,
+                        resolution: {
+                            type: 'Vec2',
+                            x: width,
+                            y: height || width,
+                        },
+                        camera: { type: 'Vec3', x: 0, y: 0, z: 0 },
+                        mouse: { type: 'Vec2', x: 0, y: 0 },
+                        mouseButton: -1,
+                    },
+                };
+            }
             return (
                 time: number,
                 mousePos: { x: number; y: number; button: number },
             ) => {
-                let newState: any | undefined = oldState;
-                if (state) {
+                // let newState: any | undefined = oldState;
+                if (state && old.current) {
                     if (time > 0) {
                         const newCtx: GLSLEnv2<any> = {
-                            ...oldCtx,
-                            state: oldState,
+                            ...old.current!.ctx,
+                            state: old.current!.state,
                             time,
                             mouse: {
                                 type: 'Vec2',
@@ -226,12 +251,20 @@ export const OpenGLCanvas = ({
                             },
                             mouseButton: mousePos.button,
                         };
-                        newState = stateRef.current!.step(newCtx, oldCtx);
-                        oldCtx = newCtx;
-                        oldState = newState;
+                        const newState = stateRef.current!.step(
+                            newCtx,
+                            old.current!.ctx,
+                        );
+                        // oldCtx = newCtx;
+                        // oldState = newState;
+                        old.current = { ctx: newCtx, state: newState };
                     }
                 }
-                return update(time, mousePos, newState);
+                return update(
+                    time,
+                    mousePos,
+                    old.current ? old.current.state : undefined,
+                );
             };
         } catch (err) {
             console.log(err);
