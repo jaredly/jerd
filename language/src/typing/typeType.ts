@@ -10,8 +10,8 @@ import {
 // because we'll need it in a web ui.
 import { Env, Symbol, subEnv, Type, Id, nullLocation } from './types';
 import { showLocation } from './typeExpr';
-import { idFromName, resolveEffect, symPrefix } from './env';
-import { LocatedError, MismatchedTypeVbl } from './errors';
+import { idFromName, idName, resolveEffect, symPrefix } from './env';
+import { LocatedError } from './errors';
 
 export const walkType = (
     term: Type,
@@ -165,16 +165,29 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 };
             }
             if (env.global.typeNames[type.id.text] != null) {
-                return {
-                    type: 'ref',
-                    ref: {
-                        type: 'user',
-                        id: env.global.typeNames[type.id.text][0],
-                    },
-                    typeVbls,
-                    // effectVbls,
-                    location: type.location,
-                };
+                const ids = env.global.typeNames[type.id.text];
+                // console.log('looking for', type.id.text, ids);
+                const numTypeVbls = type.typeVbls ? type.typeVbls.length : 0;
+                let id: Id | null = null;
+                for (let i of ids) {
+                    const def = env.global.types[idName(i)];
+                    if (def.typeVbls.length === numTypeVbls) {
+                        id = i;
+                        break;
+                    }
+                }
+                if (id !== null) {
+                    return {
+                        type: 'ref',
+                        ref: {
+                            type: 'user',
+                            id,
+                        },
+                        typeVbls,
+                        // effectVbls,
+                        location: type.location,
+                    };
+                }
             }
             if (env.global.builtinTypes[type.id.text] != null) {
                 return {

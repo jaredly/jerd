@@ -54,7 +54,9 @@ export const reprintToplevel = (
               toplevel.location.end.offset,
           )
         : '<no original text>';
-    const reraw = printToString(toplevelToPretty(env, toplevel), 100);
+    const reraw = printToString(toplevelToPretty(env, toplevel), 100, {
+        hideNames: true,
+    });
     let printed: Array<Toplevel>;
     try {
         printed = parse(reraw);

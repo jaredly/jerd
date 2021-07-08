@@ -1,5 +1,6 @@
 // A basic width-aware pretty printer
 
+import { isBinop } from '../typing/terms/ops';
 import { Location, locToEnd, locToStart } from '../typing/types';
 
 // Doesn't need to be terribly fancy.
@@ -107,7 +108,7 @@ const width = (x: PP): number => {
     }
 };
 
-export type StringOptions = { hideIds?: boolean };
+export type StringOptions = { hideIds?: boolean; hideNames?: boolean };
 
 export const printToStringInner = (
     pp: PP,
@@ -120,6 +121,18 @@ export const printToStringInner = (
         return pp.text;
     }
     if (pp.type === 'id') {
+        if (
+            options.hideNames &&
+            pp.kind === 'type'
+            // pp.kind !== 'builtin' &&
+            // pp.kind !== 'attribute' &&
+            // !isBinop(pp.text) &&
+            // pp.text !== 'as' &&
+            // pp.id
+        ) {
+            return `anon#${pp.id}`;
+        }
+
         current.pos += pp.text.length + 1 + pp.id.length;
         if (options.hideIds || !pp.id) {
             return pp.text;
@@ -224,7 +237,7 @@ export const printToStringInner = (
 export const printToString = (
     pp: PP,
     maxWidth: number,
-    options: StringOptions = { hideIds: false },
+    options: StringOptions = { hideIds: false, hideNames: false },
 ): string => {
     return printToStringInner(pp, maxWidth, options, { indent: 0, pos: 0 });
 };

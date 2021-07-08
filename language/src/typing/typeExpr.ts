@@ -27,6 +27,7 @@ import {
     idName,
     makeLocal,
     resolveIdentifier,
+    resolveType,
 } from './env';
 import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
@@ -40,6 +41,8 @@ import { typeAs } from './terms/as-suffix';
 import { typeAttribute } from './terms/attribute';
 import { typeArray } from './terms/array';
 import { Loc } from '../printing/ir/types';
+import { enumToPretty } from '../printing/printTsLike';
+import { printToString } from '../printing/printer';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -206,7 +209,8 @@ export const applyTypeVariablesToRecord = (
     selfHash: string,
 ): RecordDef => {
     if (type.typeVbls.length !== vbls.length) {
-        throw new Error(
+        throw new LocatedError(
+            location,
             `Expected ${type.typeVbls.length} at ${showLocation(
                 location,
             )}, found ${vbls.length}`,
@@ -489,15 +493,18 @@ const typeExpr = (env: Env, expr: Expression): Term => {
             return typeRecord(env, expr);
         }
         case 'Enum': {
-            const ids = env.global.typeNames[expr.id.text];
-            if (!ids) {
-                throw new Error(
-                    `No Enum type ${expr.id.text} at ${showLocation(
-                        expr.location,
-                    )}`,
-                );
-            }
-            const id = ids[0];
+            // TODO: make multiple names work
+            const id = resolveType(env, expr.id)[0];
+
+            // const ids = env.global.typeNames[expr.id.text];
+            // if (!ids) {
+            //     throw new Error(
+            //         `No Enum type ${expr.id.text} at ${showLocation(
+            //             expr.location,
+            //         )}`,
+            //     );
+            // }
+            // const id = ids[0];
 
             let t = env.global.types[idName(id)] as EnumDef;
             if (t.type !== 'Enum') {
@@ -514,13 +521,16 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                 ref: { type: 'user', id },
                 location: expr.id.location,
                 typeVbls,
-                // effectVbls: [],
             };
 
             const inner = typeExpr(env, expr.expr);
             try {
                 if (!typeFitsEnum(env, inner.is, is, expr.location)) {
-                    throw new Error(
+                    // console.log(printToString(enumToPretty(env, id, t), 100));
+                    // console.log(is);
+                    // console.log(inner.is);
+                    throw new LocatedError(
+                        expr.location,
                         `Record ${showType(
                             env,
                             inner.is,
@@ -531,9 +541,7 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                     );
                 }
             } catch (err) {
-                throw new Error(
-                    err.message + ' : ' + showLocation(expr.location),
-                );
+                throw new LocatedError(expr.location, err.message);
             }
 
             return {

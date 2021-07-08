@@ -821,11 +821,13 @@ export const assembleItemsForFile = (
     return { inOrder, irTerms };
 };
 
+export const GLSLEnvId = idFromName('451d5252');
+
 const makeEnvRecord = (env: Env): Record => ({
     type: 'record',
     base: {
         type: 'Concrete',
-        ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
+        ref: { type: 'user', id: GLSLEnvId },
         spread: null,
         rows: [
             builtin('u_time', nullLocation, float),
@@ -836,7 +838,7 @@ const makeEnvRecord = (env: Env): Record => ({
     },
     is: {
         type: 'ref',
-        ref: { type: 'user', id: env.global.typeNames['GLSLEnv'][0] },
+        ref: { type: 'user', id: GLSLEnvId },
         loc: nullLocation,
         typeVbls: [],
     },

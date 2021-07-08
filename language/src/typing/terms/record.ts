@@ -43,6 +43,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     let subTypeIds: Array<Id>;
     let is: Type;
 
+    // TODO: we should resolve the #hash first
     if (env.local.typeVblNames[expr.id.text]) {
         const sym = env.local.typeVblNames[expr.id.text];
         const t = env.local.typeVbls[sym.unique];
@@ -78,11 +79,24 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 );
             }
             id = ids[0];
+            if (ids.length > 1) {
+                for (let i of ids) {
+                    const def = env.global.types[idName(i)];
+                    if (
+                        def.type === 'Record' &&
+                        def.typeVbls.length === expr.typeVbls.length
+                    ) {
+                        id = i;
+                        break;
+                    }
+                }
+            }
         }
+        const def = env.global.types[idName(id)] as RecordDef;
         const typeVbls = expr.typeVbls.map((t) => typeType(env, t));
         const t = applyTypeVariablesToRecord(
             env,
-            env.global.types[idName(id)] as RecordDef,
+            def,
             typeVbls,
             expr.location,
             id.hash,

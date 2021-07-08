@@ -3,42 +3,42 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-type HasAge#6f94e290 = {
+type HasAge#5dc1538c = {
     age: int#builtin,
 }
 ```
 */
-type t_6f94e290 = {
-  type: "6f94e290";
-  h6f94e290_0: number;
+type t_5dc1538c = {
+  type: "5dc1538c";
+  h5dc1538c_0: number;
 };
 
 /**
 ```
-type HasName#72629e32 = {
+type HasName#7ffb15a6 = {
     name: string#builtin,
 }
 ```
 */
-type t_72629e32 = {
-  type: "72629e32";
-  h72629e32_0: string;
+type t_7ffb15a6 = {
+  type: "7ffb15a6";
+  h7ffb15a6_0: string;
 };
 
 /**
 ```
-type Person#251afc1a = {
-    ...HasName#72629e32,
-    ...HasAge#6f94e290,
+type Person#1e5bfcf4 = {
+    ...HasName#7ffb15a6,
+    ...HasAge#5dc1538c,
     what: int#builtin,
 }
 ```
 */
-type t_251afc1a = {
-  type: "251afc1a";
-  h251afc1a_0: number;
-  h72629e32_0: string;
-  h6f94e290_0: number;
+type t_1e5bfcf4 = {
+  type: "1e5bfcf4";
+  h1e5bfcf4_0: number;
+  h7ffb15a6_0: string;
+  h5dc1538c_0: number;
 };
 
 /**
@@ -55,44 +55,44 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-type Employee#9f76c608 = {
-    ...Person#251afc1a,
+type Employee#7c386be0 = {
+    ...Person#1e5bfcf4,
     address: string#builtin,
 }
 ```
 */
-type t_9f76c608 = {
-  type: "9f76c608";
-  h9f76c608_0: string;
-  h251afc1a_0: number;
-  h72629e32_0: string;
-  h6f94e290_0: number;
+type t_7c386be0 = {
+  type: "7c386be0";
+  h7c386be0_0: string;
+  h1e5bfcf4_0: number;
+  h7ffb15a6_0: string;
+  h5dc1538c_0: number;
 };
 
 /**
 ```
-type House#75ff6d9a = {
-    occupant: Person#251afc1a,
+type House#6febb808 = {
+    occupant: Person#1e5bfcf4,
 }
 ```
 */
-type t_75ff6d9a = {
-  type: "75ff6d9a";
-  h75ff6d9a_0: t_251afc1a;
+type t_6febb808 = {
+  type: "6febb808";
+  h6febb808_0: t_1e5bfcf4;
 };
 
 /**
 ```
-type Counter#43dee7da<T#:0> = {
+type Counter#28ad7060<T#:0> = {
     item: T#:0,
     count: int#builtin,
 }
 ```
 */
-type t_43dee7da<T_0> = {
-  type: "43dee7da";
-  h43dee7da_0: T_0;
-  h43dee7da_1: number;
+type t_28ad7060<T_0> = {
+  type: "28ad7060";
+  h28ad7060_0: T_0;
+  h28ad7060_1: number;
 };
 
 /**
@@ -109,60 +109,60 @@ type t_Some<T_10000> = {
 
 /**
 ```
-type Animal#fd0924c4 = {
-    ...HasName#72629e32,
+type Animal#3eec0102 = {
+    ...HasName#7ffb15a6,
     furColor: string#builtin,
 }
 ```
 */
-type t_fd0924c4 = {
-  type: "fd0924c4";
-  hfd0924c4_0: string;
-  h72629e32_0: string;
+type t_3eec0102 = {
+  type: "3eec0102";
+  h3eec0102_0: string;
+  h7ffb15a6_0: string;
 };
 
 /**
 ```
-const me#f1927f86 = Person#251afc1a{
-    name#72629e32#0: "June",
-    age#6f94e290#0: 10,
-    what#251afc1a#0: 3,
+const me#8b5e50c4 = Person#1e5bfcf4{
+    name#7ffb15a6#0: "June",
+    age#5dc1538c#0: 10,
+    what#1e5bfcf4#0: 3,
 }
 ```
 */
-export const hash_f1927f86: t_251afc1a = ({
-  type: "251afc1a",
-  h72629e32_0: "June",
-  h6f94e290_0: 10,
-  h251afc1a_0: 3
-} as t_251afc1a);
+export const hash_8b5e50c4: t_1e5bfcf4 = ({
+  type: "1e5bfcf4",
+  h7ffb15a6_0: "June",
+  h5dc1538c_0: 10,
+  h1e5bfcf4_0: 3
+} as t_1e5bfcf4);
 
 /**
 ```
-const aPerson#26d2e2d4 = Person#251afc1a{
-    name#72629e32#0: "ralf",
-    age#6f94e290#0: 23,
-    what#251afc1a#0: 2,
+const aPerson#3602ea70 = Person#1e5bfcf4{
+    name#7ffb15a6#0: "ralf",
+    age#5dc1538c#0: 23,
+    what#1e5bfcf4#0: 2,
 }
 ```
 */
-export const hash_26d2e2d4: t_251afc1a = ({
-  type: "251afc1a",
-  h72629e32_0: "ralf",
-  h6f94e290_0: 23,
-  h251afc1a_0: 2
-} as t_251afc1a);
+export const hash_3602ea70: t_1e5bfcf4 = ({
+  type: "1e5bfcf4",
+  h7ffb15a6_0: "ralf",
+  h5dc1538c_0: 23,
+  h1e5bfcf4_0: 2
+} as t_1e5bfcf4);
 
 /**
 ```
-const aDog#4f2b700e = Animal#fd0924c4{name#72629e32#0: "wolrf", furColor#fd0924c4#0: "red"}
+const aDog#119b34f9 = Animal#3eec0102{name#7ffb15a6#0: "wolrf", furColor#3eec0102#0: "red"}
 ```
 */
-export const hash_4f2b700e: t_fd0924c4 = ({
-  type: "fd0924c4",
-  h72629e32_0: "wolrf",
-  hfd0924c4_0: "red"
-} as t_fd0924c4);
+export const hash_119b34f9: t_3eec0102 = ({
+  type: "3eec0102",
+  h7ffb15a6_0: "wolrf",
+  h3eec0102_0: "red"
+} as t_3eec0102);
 
 /**
 ```
@@ -176,114 +176,99 @@ export const hash_9781cfa0: t_Some<number> = ({
 
 /**
 ```
-const countNamed#57d6650e = Counter#43dee7da<<T#:0: HasName#72629e32>(T#:0) ={}> string#builtin>{
-    item#43dee7da#0: <T#:0: HasName#72629e32>(input#:0: T#:0): string#builtin ={}> input#:0.name#72629e32#0,
-    count#43dee7da#1: 10,
+const countNamed#1d40b8c5 = Counter#28ad7060<<T#:0: HasName#7ffb15a6>(T#:0) ={}> string#builtin>{
+    item#28ad7060#0: <T#:0: HasName#7ffb15a6>(input#:0: T#:0): string#builtin ={}> input#:0.name#7ffb15a6#0,
+    count#28ad7060#1: 10,
 }
 ```
 */
-export const hash_57d6650e: t_43dee7da<<T_0 extends {
-  h72629e32_0: string;
+export const hash_1d40b8c5: t_28ad7060<<T_0 extends {
+  h7ffb15a6_0: string;
 }>(arg_0: T_0) => string> = ({
-  type: "43dee7da",
-  h43dee7da_0: <T_0 extends {
-    h72629e32_0: string;
-  }>(input: T_0) => input.h72629e32_0,
-  h43dee7da_1: 10
-} as t_43dee7da<<T_0 extends {
-  h72629e32_0: string;
+  type: "28ad7060",
+  h28ad7060_0: <T_0 extends {
+    h7ffb15a6_0: string;
+  }>(input: T_0) => input.h7ffb15a6_0,
+  h28ad7060_1: 10
+} as t_28ad7060<<T_0 extends {
+  h7ffb15a6_0: string;
 }>(arg_0: T_0) => string>);
 
 /**
 ```
-const countAny#368ae45c = Counter#43dee7da<<T#:0>(T#:0) ={}> string#builtin>{
-    item#43dee7da#0: <T#:0>(input#:0: T#:0): string#builtin ={}> "hi",
-    count#43dee7da#1: 10,
+const countAny#b9763660 = Counter#28ad7060<<T#:0>(T#:0) ={}> string#builtin>{
+    item#28ad7060#0: <T#:0>(input#:0: T#:0): string#builtin ={}> "hi",
+    count#28ad7060#1: 10,
 }
 ```
 */
-export const hash_368ae45c: t_43dee7da<<T_0>(arg_0: T_0) => string> = ({
-  type: "43dee7da",
-  h43dee7da_0: <T_0>(input: T_0) => "hi",
-  h43dee7da_1: 10
-} as t_43dee7da<<T_0>(arg_0: T_0) => string>);
+export const hash_b9763660: t_28ad7060<<T_0>(arg_0: T_0) => string> = ({
+  type: "28ad7060",
+  h28ad7060_0: <T_0>(input: T_0) => "hi",
+  h28ad7060_1: 10
+} as t_28ad7060<<T_0>(arg_0: T_0) => string>);
 
 /**
 ```
-const countMe#39011d90 = Counter#43dee7da<int#builtin>{
-    item#43dee7da#0: 10,
-    count#43dee7da#1: 4000,
+const countMe#3115ea0c = Counter#28ad7060<int#builtin>{
+    item#28ad7060#0: 10,
+    count#28ad7060#1: 4000,
 }
 ```
 */
-export const hash_39011d90: t_43dee7da<number> = ({
-  type: "43dee7da",
-  h43dee7da_0: 10,
-  h43dee7da_1: 4000
-} as t_43dee7da<number>);
+export const hash_3115ea0c: t_28ad7060<number> = ({
+  type: "28ad7060",
+  h28ad7060_0: 10,
+  h28ad7060_1: 4000
+} as t_28ad7060<number>);
 
 /**
 ```
-const here#5d061954 = House#75ff6d9a{occupant#75ff6d9a#0: me#f1927f86}
+const here#22e3486e = House#6febb808{occupant#6febb808#0: me#8b5e50c4}
 ```
 */
-export const hash_5d061954: t_75ff6d9a = ({
-  type: "75ff6d9a",
-  h75ff6d9a_0: hash_f1927f86
-} as t_75ff6d9a);
+export const hash_22e3486e: t_6febb808 = ({
+  type: "6febb808",
+  h6febb808_0: hash_8b5e50c4
+} as t_6febb808);
 
 /**
 ```
-const getName#73a4b778 = <T#:0: Person#251afc1a>(m#:0: T#:0): string#builtin ={}> m#:0.name#72629e32#0
-```
-*/
-export const hash_73a4b778: <T_0 extends {
-  h251afc1a_0: number;
-  h72629e32_0: string;
-  h6f94e290_0: number;
-}>(arg_0: T_0) => string = <T_0 extends {
-  h251afc1a_0: number;
-  h72629e32_0: string;
-  h6f94e290_0: number;
-}>(m: T_0) => m.h72629e32_0;
-
-/**
-```
-const them#364ee0bc = Employee#9f76c608{
-    what#251afc1a#0: 3,
-    name#72629e32#0: "You",
-    age#6f94e290#0: 100,
-    address#9f76c608#0: "No",
+const them#7fa2bdd0 = Employee#7c386be0{
+    what#1e5bfcf4#0: 3,
+    name#7ffb15a6#0: "You",
+    age#5dc1538c#0: 100,
+    address#7c386be0#0: "No",
 }
 ```
 */
-export const hash_364ee0bc: t_9f76c608 = ({
-  type: "9f76c608",
-  h251afc1a_0: 3,
-  h72629e32_0: "You",
-  h6f94e290_0: 100,
-  h9f76c608_0: "No"
-} as t_9f76c608);
+export const hash_7fa2bdd0: t_7c386be0 = ({
+  type: "7c386be0",
+  h1e5bfcf4_0: 3,
+  h7ffb15a6_0: "You",
+  h5dc1538c_0: 100,
+  h7c386be0_0: "No"
+} as t_7c386be0);
 
 /**
 ```
-const you#0ba6c656 = Employee#9f76c608{...me#f1927f86, address#9f76c608#0: "Yes"}
+const you#f2be3098 = Employee#7c386be0{...me#8b5e50c4, address#7c386be0#0: "Yes"}
 ```
 */
-export const hash_0ba6c656: t_9f76c608 = ({ ...hash_f1927f86,
-  type: "9f76c608",
-  h9f76c608_0: "Yes"
-} as t_9f76c608);
+export const hash_f2be3098: t_7c386be0 = ({ ...hash_8b5e50c4,
+  type: "7c386be0",
+  h7c386be0_0: "Yes"
+} as t_7c386be0);
 
 /**
 ```
-const alsoMe#0c457bae = Person#251afc1a{...me#f1927f86, what#251afc1a#0: 11}
+const alsoMe#5f189724 = Person#1e5bfcf4{...me#8b5e50c4, what#1e5bfcf4#0: 11}
 ```
 */
-export const hash_0c457bae: t_251afc1a = ({ ...hash_f1927f86,
-  type: "251afc1a",
-  h251afc1a_0: 11
-} as t_251afc1a);
+export const hash_5f189724: t_1e5bfcf4 = ({ ...hash_8b5e50c4,
+  type: "1e5bfcf4",
+  h1e5bfcf4_0: 11
+} as t_1e5bfcf4);
 
 /**
 ```
@@ -305,88 +290,103 @@ export const hash_606c7034: t_553b4b8e<string> = ({
   h553b4b8e_0: stringEq
 } as t_553b4b8e<string>);
 
-/*
-me#f1927f86.name#72629e32#0 ==#606c7034#553b4b8e#0 "June"
+/**
+```
+const getName#99997058 = <T#:0: Person#1e5bfcf4>(m#:0: T#:0): string#builtin ={}> m#:0.name#7ffb15a6#0
+```
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_f1927f86.h72629e32_0, "June");
+export const hash_99997058: <T_0 extends {
+  h1e5bfcf4_0: number;
+  h7ffb15a6_0: string;
+  h5dc1538c_0: number;
+}>(arg_0: T_0) => string = <T_0 extends {
+  h1e5bfcf4_0: number;
+  h7ffb15a6_0: string;
+  h5dc1538c_0: number;
+}>(m: T_0) => m.h7ffb15a6_0;
 
 /*
-me#f1927f86.age#6f94e290#0 ==#9275f914#553b4b8e#0 10
+me#8b5e50c4.name#7ffb15a6#0 ==#606c7034#553b4b8e#0 "June"
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_f1927f86.h6f94e290_0, 10);
+assertCall(hash_606c7034.h553b4b8e_0, hash_8b5e50c4.h7ffb15a6_0, "June");
 
 /*
-alsoMe#0c457bae.name#72629e32#0 ==#606c7034#553b4b8e#0 "June"
+me#8b5e50c4.age#5dc1538c#0 ==#9275f914#553b4b8e#0 10
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_0c457bae.h72629e32_0, "June");
+assertCall(hash_9275f914.h553b4b8e_0, hash_8b5e50c4.h5dc1538c_0, 10);
 
 /*
-alsoMe#0c457bae.what#251afc1a#0 ==#9275f914#553b4b8e#0 11
+alsoMe#5f189724.name#7ffb15a6#0 ==#606c7034#553b4b8e#0 "June"
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_0c457bae.h251afc1a_0, 11);
+assertCall(hash_606c7034.h553b4b8e_0, hash_5f189724.h7ffb15a6_0, "June");
 
 /*
-you#0ba6c656.name#72629e32#0 ==#606c7034#553b4b8e#0 "June"
+alsoMe#5f189724.what#1e5bfcf4#0 ==#9275f914#553b4b8e#0 11
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_0ba6c656.h72629e32_0, "June");
+assertCall(hash_9275f914.h553b4b8e_0, hash_5f189724.h1e5bfcf4_0, 11);
 
 /*
-them#364ee0bc.name#72629e32#0 ==#606c7034#553b4b8e#0 "You"
+you#f2be3098.name#7ffb15a6#0 ==#606c7034#553b4b8e#0 "June"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_364ee0bc.h72629e32_0, "You");
+assertCall(hash_606c7034.h553b4b8e_0, hash_f2be3098.h7ffb15a6_0, "June");
 
 /*
-them#364ee0bc.address#9f76c608#0 ==#606c7034#553b4b8e#0 "No"
+them#7fa2bdd0.name#7ffb15a6#0 ==#606c7034#553b4b8e#0 "You"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_364ee0bc.h9f76c608_0, "No");
+assertCall(hash_606c7034.h553b4b8e_0, hash_7fa2bdd0.h7ffb15a6_0, "You");
 
 /*
-getName#73a4b778<Person#251afc1a>(m: me#f1927f86) ==#606c7034#553b4b8e#0 "June"
+them#7fa2bdd0.address#7c386be0#0 ==#606c7034#553b4b8e#0 "No"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_73a4b778(hash_f1927f86), "June");
+assertCall(hash_606c7034.h553b4b8e_0, hash_7fa2bdd0.h7c386be0_0, "No");
 
 /*
-getName#73a4b778<Employee#9f76c608>(m: them#364ee0bc) ==#606c7034#553b4b8e#0 "You"
+getName#99997058<Person#1e5bfcf4>(m: me#8b5e50c4) ==#606c7034#553b4b8e#0 "June"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_73a4b778(hash_364ee0bc), "You");
+assertCall(hash_606c7034.h553b4b8e_0, hash_99997058(hash_8b5e50c4), "June");
 
 /*
-here#5d061954.occupant#75ff6d9a#0.name#72629e32#0 ==#606c7034#553b4b8e#0 "June"
+getName#99997058<Employee#7c386be0>(m: them#7fa2bdd0) ==#606c7034#553b4b8e#0 "You"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_5d061954.h75ff6d9a_0.h72629e32_0, "June");
+assertCall(hash_606c7034.h553b4b8e_0, hash_99997058(hash_7fa2bdd0), "You");
 
 /*
-countMe#39011d90.item#43dee7da#0 ==#9275f914#553b4b8e#0 10
+here#22e3486e.occupant#6febb808#0.name#7ffb15a6#0 ==#606c7034#553b4b8e#0 "June"
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_39011d90.h43dee7da_0, 10);
+assertCall(hash_606c7034.h553b4b8e_0, hash_22e3486e.h6febb808_0.h7ffb15a6_0, "June");
 
 /*
-Counter#43dee7da<() ={}> string#builtin>{
-        item#43dee7da#0: (): string#builtin ={}> "hi",
-        count#43dee7da#1: 10,
-    }.item#43dee7da#0() 
+countMe#3115ea0c.item#28ad7060#0 ==#9275f914#553b4b8e#0 10
+*/
+assertCall(hash_9275f914.h553b4b8e_0, hash_3115ea0c.h28ad7060_0, 10);
+
+/*
+Counter#28ad7060<() ={}> string#builtin>{
+        item#28ad7060#0: (): string#builtin ={}> "hi",
+        count#28ad7060#1: 10,
+    }.item#28ad7060#0() 
     ==#606c7034#553b4b8e#0 "hi"
 */
 assertCall(hash_606c7034.h553b4b8e_0, ({
-  type: "43dee7da",
-  h43dee7da_0: () => "hi",
-  h43dee7da_1: 10
-} as t_43dee7da<() => string>).h43dee7da_0(), "hi");
+  type: "28ad7060",
+  h28ad7060_0: () => "hi",
+  h28ad7060_1: 10
+} as t_28ad7060<() => string>).h28ad7060_0(), "hi");
 
 /*
-countAny#368ae45c.item#43dee7da#0<string#builtin>("String") ==#606c7034#553b4b8e#0 "hi"
+countAny#b9763660.item#28ad7060#0<string#builtin>("String") ==#606c7034#553b4b8e#0 "hi"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_368ae45c.h43dee7da_0("String"), "hi");
+assertCall(hash_606c7034.h553b4b8e_0, hash_b9763660.h28ad7060_0("String"), "hi");
 
 /*
-countAny#368ae45c.item#43dee7da#0<int#builtin>(10) ==#606c7034#553b4b8e#0 "hi"
+countAny#b9763660.item#28ad7060#0<int#builtin>(10) ==#606c7034#553b4b8e#0 "hi"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_368ae45c.h43dee7da_0(10), "hi");
+assertCall(hash_606c7034.h553b4b8e_0, hash_b9763660.h28ad7060_0(10), "hi");
 
 /*
-countNamed#57d6650e.item#43dee7da#0<Person#251afc1a>(me#f1927f86) ==#606c7034#553b4b8e#0 "June"
+countNamed#1d40b8c5.item#28ad7060#0<Person#1e5bfcf4>(me#8b5e50c4) ==#606c7034#553b4b8e#0 "June"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_57d6650e.h43dee7da_0(hash_f1927f86), "June");
+assertCall(hash_606c7034.h553b4b8e_0, hash_1d40b8c5.h28ad7060_0(hash_8b5e50c4), "June");
 
 /*
 gotit#9781cfa0.contents#Some#0 ==#9275f914#553b4b8e#0 5
@@ -394,19 +394,19 @@ gotit#9781cfa0.contents#Some#0 ==#9275f914#553b4b8e#0 5
 assertCall(hash_9275f914.h553b4b8e_0, hash_9781cfa0.hSome_0, 5);
 
 /*
-WereWolf#17fd7853{...aDog#4f2b700e, ...aPerson#26d2e2d4}.name#72629e32#0 
+WereWolf#7b334d8c{...aDog#119b34f9, ...aPerson#3602ea70}.name#7ffb15a6#0 
     ==#606c7034#553b4b8e#0 "ralf"
 */
-assertCall(hash_606c7034.h553b4b8e_0, ({ ...hash_4f2b700e,
-  ...hash_26d2e2d4,
-  type: "17fd7853"
-} as t_17fd7853).h72629e32_0, "ralf");
+assertCall(hash_606c7034.h553b4b8e_0, ({ ...hash_119b34f9,
+  ...hash_3602ea70,
+  type: "7b334d8c"
+} as t_7b334d8c).h7ffb15a6_0, "ralf");
 
 /*
-WereWolf#17fd7853{...aPerson#26d2e2d4, ...aDog#4f2b700e}.name#72629e32#0 
+WereWolf#7b334d8c{...aPerson#3602ea70, ...aDog#119b34f9}.name#7ffb15a6#0 
     ==#606c7034#553b4b8e#0 "wolrf"
 */
-assertCall(hash_606c7034.h553b4b8e_0, ({ ...hash_26d2e2d4,
-  ...hash_4f2b700e,
-  type: "17fd7853"
-} as t_17fd7853).h72629e32_0, "wolrf");
+assertCall(hash_606c7034.h553b4b8e_0, ({ ...hash_3602ea70,
+  ...hash_119b34f9,
+  type: "7b334d8c"
+} as t_7b334d8c).h7ffb15a6_0, "wolrf");

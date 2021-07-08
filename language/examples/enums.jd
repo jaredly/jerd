@@ -24,6 +24,7 @@ type Some<T> = {
 }
 type None = {}
 
+
 enum Option<T> {
     Some<T>,
     None

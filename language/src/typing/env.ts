@@ -131,7 +131,7 @@ export const typeToplevelT = (
                 env,
                 item.wrapped,
                 unique,
-                tag ? tag.type : item.wrapped.id.text,
+                tag ? tag.text : item.wrapped.id.text,
             );
             const hash = hashObject(defn);
             return {
@@ -362,13 +362,13 @@ export const idName = (id: Id) => id.hash + (id.pos !== 0 ? '_' + id.pos : '');
 export const refName = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : idName(ref.id);
 
-export const resolveType = (env: Env, id: Identifier): Id => {
+export const resolveType = (env: Env, id: Identifier): Array<Id> => {
     if (id.hash != null) {
         const rawId = id.hash.slice(1);
         if (!env.global.types[rawId]) {
             throw new Error(`Unknown type hash ${rawId}`);
         }
-        return idFromName(rawId);
+        return [idFromName(rawId)];
     }
     // if (
     //     env.local.self &&
@@ -381,7 +381,7 @@ export const resolveType = (env: Env, id: Identifier): Id => {
     if (!env.global.typeNames[id.text]) {
         throw new Error(`Unable to resolve type ${id.text}`);
     }
-    return env.global.typeNames[id.text][0];
+    return env.global.typeNames[id.text];
 };
 
 export const typeRecordDefn = (
@@ -421,8 +421,12 @@ export const typeRecordDefn = (
         extends: record.items
             .filter((r) => r.type === 'Spread')
             // TODO: only allow ffi to spread into ffi, etc.
-            .map((r) =>
-                resolveType(typeInnerWithSelf, (r as RecordSpread).constr),
+            .map(
+                (r) =>
+                    resolveType(
+                        typeInnerWithSelf,
+                        (r as RecordSpread).constr,
+                    )[0],
             ),
         items: record.items
             .filter((r) => r.type === 'Row')

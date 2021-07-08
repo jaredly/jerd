@@ -146,6 +146,7 @@ export const refToPretty = (
         : ref.type === 'builtin'
         ? id(ref.name, 'builtin', 'builtin', loc)
         : idToPretty(env, ref.id, kind, loc);
+
 export const idToPretty = (
     env: Env | null,
     id: Id,
@@ -157,8 +158,10 @@ export const idToPretty = (
     return idPretty(name ? name : 'unnamed', hash, kind, loc);
     // return idPretty('ahaha', hash, kind, loc);
 };
+
 export const symToPretty = (sym: Symbol, loc?: Location) =>
     idPretty(sym.name, ':' + sym.unique.toString(), 'sym', loc);
+
 export const effToPretty = (env: Env | null, eff: EffectRef, loc?: Location) =>
     eff.type === 'ref'
         ? refToPretty(env, eff.ref, 'effect', loc)

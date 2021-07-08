@@ -31,6 +31,7 @@ import {
     Symbol,
     Type,
 } from '../typing/types';
+import { GLSLEnvId } from './glslPrinter';
 
 const Vec2: Type = builtinType('vec2');
 const Vec3: Type = builtinType('vec3');
@@ -115,18 +116,14 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
                     ref: { type: 'user', id: env.global.typeNames['Vec2'][0] },
                     target: {
                         type: 'Attribute',
-                        target: var_(
-                            envSym,
-                            refType(idName(env.global.typeNames['GLSLEnv'][0])),
-                            loc,
-                        ),
+                        target: var_(envSym, refType(idName(GLSLEnvId)), loc),
                         idx: env.global.attributeNames['resolution'][0].idx,
                         location: loc,
                         inferred: false,
                         is: Vec2,
                         ref: {
                             type: 'user',
-                            id: env.global.typeNames['GLSLEnv'][0],
+                            id: GLSLEnvId,
                         },
                     },
                 },
