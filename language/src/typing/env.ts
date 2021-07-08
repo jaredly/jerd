@@ -1065,7 +1065,7 @@ const plainRecord = (id: Id, location: Location): Term => ({
 export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (type.type === 'var') {
         const found = env.local.typeVbls[type.sym.unique];
-        console.log(type.sym.unique, type, env.local.typeVbls);
+        // console.log(type.sym.unique, type, env.local.typeVbls);
         // if (found.ty)
         for (let sid of found.subTypes) {
             if (idsEqual(id, sid)) {
