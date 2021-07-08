@@ -62,9 +62,13 @@ export const newTypeVbl = (env: Env): Type => {
     };
 };
 
-const typeType = (env: Env, type: ParseType | null): Type => {
+const typeType = (
+    env: Env,
+    type: ParseType | null,
+    expectedType?: Type | null,
+): Type => {
     if (type == null) {
-        return newTypeVbl(env);
+        return expectedType ? expectedType : newTypeVbl(env);
     }
     switch (type.type) {
         case 'TypeRef': {

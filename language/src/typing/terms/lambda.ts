@@ -22,7 +22,11 @@ import { makeLocal, resolveEffect } from '../env';
 import { LocatedError, TypeError } from '../errors';
 import { getTypeError } from '../getTypeError';
 
-export const typeLambda = (env: Env, expr: Lambda): Term => {
+export const typeLambda = (
+    env: Env,
+    expr: Lambda,
+    expectedType?: Type,
+): Term => {
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         expr.typevbls,
@@ -35,8 +39,12 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
     const args: Array<Symbol> = [];
     const argst: Array<Type> = [];
 
-    expr.args.forEach(({ id, type: rawType }) => {
-        const type = typeType(typeInner, rawType);
+    expr.args.forEach(({ id, type: rawType }, i) => {
+        const expectedArgType =
+            expectedType && expectedType.type === 'lambda'
+                ? expectedType.args[i]
+                : null;
+        const type = typeType(typeInner, rawType, expectedArgType);
         const sym = makeLocal(inner, id, type);
         args.push(sym);
         argst.push(type);

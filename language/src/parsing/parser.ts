@@ -294,7 +294,7 @@ export type Lambda = {
     typevbls: Array<TypeVbl>;
     effvbls: Array<Identifier>;
     effects: null | Array<Identifier>;
-    args: Array<{ id: Identifier; type: Type }>;
+    args: Array<{ id: Identifier; type: Type | null }>;
     rettype: Type | null;
     body: Expression;
 };

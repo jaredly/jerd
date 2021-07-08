@@ -268,7 +268,7 @@ export const applyTypeVariables = (
     throw new Error(`Can't apply variables to non-lambdas just yet`);
 };
 
-const typeExpr = (env: Env, expr: Expression): Term => {
+const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
     switch (expr.type) {
         case 'float':
             return {
@@ -358,8 +358,8 @@ const typeExpr = (env: Env, expr: Expression): Term => {
         }
         case 'If': {
             const cond = typeExpr(env, expr.cond);
-            const yes = typeExpr(env, expr.yes);
-            const no = expr.no ? typeExpr(env, expr.no) : null;
+            const yes = typeExpr(env, expr.yes, expectedType);
+            const no = expr.no ? typeExpr(env, expr.no, expectedType) : null;
             const condErr = getTypeError(
                 env,
                 cond.is,
@@ -438,7 +438,7 @@ const typeExpr = (env: Env, expr: Expression): Term => {
             throw new UnresolvedIdentifier(expr, env);
         }
         case 'lambda':
-            return typeLambda(env, expr);
+            return typeLambda(env, expr, expectedType);
 
         case 'handle': {
             return typeHandle(env, expr);

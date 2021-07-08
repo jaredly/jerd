@@ -260,7 +260,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 } at ${showLocation(row.id.location)}`,
             );
         }
-        const v = typeExpr(env, row.value);
+        const v = typeExpr(env, row.value, rowsToMod[i].type);
         const err = getTypeError(
             env,
             v.is,
