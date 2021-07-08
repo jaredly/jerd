@@ -70,7 +70,16 @@ export const monomorphizeTypes = (
                         }
                         return arg;
                     });
-                    return changed ? { ...expr, args } : null;
+                    return changed
+                        ? {
+                              ...expr,
+                              args,
+                              is: {
+                                  ...(expr.is as LambdaType),
+                                  args: args.map((arg) => arg.type),
+                              },
+                          }
+                        : null;
                 }
             }
             return null;

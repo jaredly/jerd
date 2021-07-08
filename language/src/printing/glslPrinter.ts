@@ -857,12 +857,20 @@ export const assembleItemsForFile = (
 
 export const GLSLEnvId = idFromName('451d5252');
 
-const makeEnvRecord = (env: Env, id: Id): Record => {
-    const t = env.global.terms[idName(id)];
-    if (t.is.type !== 'lambda') {
-        throw new Error(`Main fn not a lambda`);
+const makeEnvRecord = (env: Env, id: Id, mainType?: ir.Type): Record => {
+    let arg0: ir.Type | null = null;
+    if (mainType) {
+        if (mainType.type !== 'lambda') {
+            throw new Error(`not lambda`);
+        }
+        arg0 = mainType.args[0];
+    } else {
+        const t = env.global.terms[idName(id)];
+        if (t.is.type !== 'lambda') {
+            throw new Error(`Main fn not a lambda`);
+        }
+        arg0 = typeFromTermType(env, {}, t.is.args[0]);
     }
-    const arg0 = t.is.args[0];
     if (arg0.type !== 'ref' || arg0.ref.type === 'builtin') {
         throw new Error(`Unexpected arg 0 for main fn`);
     }
@@ -1117,7 +1125,7 @@ export const shaderAllButMains = (
     bufferCount = buffers.length,
     optimizer = defaultOptimizer,
     stateUniform?: Reference,
-): { items: Array<PP>; invalidLocs: Array<Location> } => {
+): { items: Array<PP>; invalidLocs: Array<Location>; mainType: ir.Type } => {
     const items: Array<PP> = shaderTop(bufferCount);
 
     const required = [mainTerm]
@@ -1202,7 +1210,8 @@ export const shaderAllButMains = (
             ),
         );
     });
-    return { items, invalidLocs };
+    console.log('MAIN IR', irTerms[idName(mainTerm)]);
+    return { items, invalidLocs, mainType: irTerms[idName(mainTerm)].expr.is };
 };
 
 // This will generate a single shader, which might be used
@@ -1218,7 +1227,7 @@ export const generateSingleShader = (
     stateUniform?: Reference,
 ): { text: string; invalidLocs: Array<Location> } => {
     const env: Env = { ...termEnv, typeDefs: {} };
-    const { items, invalidLocs } = shaderAllButMains(
+    const { items, invalidLocs, mainType } = shaderAllButMains(
         env,
         opts,
         irOpts,
@@ -1230,7 +1239,8 @@ export const generateSingleShader = (
         stateUniform,
     );
 
-    items.push(glslMain(env, opts, mainTerm, buffers));
+    // console.log('main', mainTerm);
+    items.push(glslMain(env, opts, mainTerm, buffers, mainType));
 
     return {
         invalidLocs,
@@ -1282,8 +1292,9 @@ const glslMain = (
     opts: OutputOptions,
     id: Id,
     numBuffers: number,
+    mainType?: ir.Type,
 ) => {
-    const glslEnv = makeEnvRecord(env, id);
+    const glslEnv = makeEnvRecord(env, id, mainType);
     let mainArgs = [termToGlsl(env, opts, glslEnv), atom('gl_FragCoord.xy')];
     for (let i = 0; i < numBuffers; i++) {
         mainArgs.push(atom(`u_buffer${i}`));
