@@ -377,6 +377,16 @@ export type LambdaExpr = {
     note?: string;
 };
 
+export type RecordDef = {
+    type: 'Record';
+    unique: number;
+    location: Location;
+    typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
+    extends: Array<Id>;
+    items: Array<Type>;
+    ffi: { tag: string; names: Array<string> } | null;
+};
+
 export type Arg = { sym: Symbol; type: Type; loc: Loc };
 // and that's all folks
 

@@ -35,6 +35,7 @@ import {
     optimizeDefineNew,
     Optimizer,
     Optimizer2,
+    TypeDefs,
 } from './ir/optimize/optimize';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import {
@@ -677,6 +678,7 @@ export const defaultOptimizer: Optimizer = (
     senv: Env,
     irOpts: IOutputOptions,
     irTerms: Exprs,
+    // irTypes: TypeDefs
     irTerm: Expr,
     id: Id,
 ) => {

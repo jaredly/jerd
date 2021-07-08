@@ -1014,6 +1014,7 @@ export const fileToTypescript = (
                             {
                                 env,
                                 exprs: {},
+                                types: {},
                                 id: idFromName(hashObject(term)),
                                 opts: {},
                                 optimize: optimize,

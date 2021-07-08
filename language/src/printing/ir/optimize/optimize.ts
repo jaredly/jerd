@@ -5,7 +5,7 @@ import { debugExpr } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
 import { uniquesReallyAreUnique } from '../analyze';
 import { defaultVisitor, transformExpr } from '../transform';
-import { Arg, Expr, OutputOptions, Stmt, Tuple } from '../types';
+import { Arg, Expr, OutputOptions, RecordDef, Stmt, Tuple } from '../types';
 import {
     and,
     arrowFunctionExpression,
@@ -28,7 +28,7 @@ import {
     monoconstant,
     specializeFunctionsCalledWithLambdas,
 } from './monoconstant';
-import { monomorphize } from './monomorphize';
+import { monomorphize, monomorphizeTypes } from './monomorphize';
 import { removeUnusedVariables } from './removeUnusedVariables';
 import { optimizeTailCalls } from './tailCall';
 import { transformRepeatedly } from './utils';
@@ -37,8 +37,25 @@ export type Context = {
     id: Id;
     env: Env;
     exprs: Exprs;
+    types: TypeDefs;
     opts: OutputOptions;
     optimize: Optimizer2;
+};
+
+export type TypeDefs = {
+    [idName: string]: {
+        typeDef: RecordDef;
+        source: Id;
+    };
+};
+
+export type Exprs = {
+    [idName: string]: {
+        expr: Expr;
+        inline: boolean;
+        source?: { id: Id; kind: string };
+        comment?: string;
+    };
 };
 
 export const toOldOptimize = (opt: Optimizer2): Optimizer => (
@@ -47,7 +64,7 @@ export const toOldOptimize = (opt: Optimizer2): Optimizer => (
     exprs: Exprs,
     expr: Expr,
     id: Id,
-) => opt({ exprs, env, opts: irOpts, id, optimize: opt }, expr);
+) => opt({ exprs, env, opts: irOpts, id, optimize: opt, types: {} }, expr);
 
 export type Optimizer2 = (ctx: Context, expr: Expr) => Expr;
 
@@ -109,6 +126,7 @@ export const optimizeDefineNew = (
         id,
         exprs: exprss,
         opts: {},
+        types: {},
         optimize: opt,
     };
 
@@ -148,6 +166,7 @@ export const optimizeDefineNew = (
             env,
             id,
             exprs: exprss,
+            types: {},
             opts: {},
             optimize: opt,
         };
@@ -162,15 +181,6 @@ export const optimizeDefineOld = (ctx: Context, expr: Expr): Expr => {
     expr = optimize(ctx, expr);
     expr = arraySliceLoopToIndex(ctx, expr);
     return expr;
-};
-
-export type Exprs = {
-    [idName: string]: {
-        expr: Expr;
-        inline: boolean;
-        source?: { id: Id; kind: string };
-        comment?: string;
-    };
 };
 
 export const optimizeAggressive = (ctx: Context, expr: Expr): Expr => {
@@ -525,6 +535,7 @@ export const glslOpts: Array<Optimizer2> = [
     ...javascriptOpts,
     inlint,
     monomorphize,
+    monomorphizeTypes,
     // monoconstant,
     optimize,
 ];

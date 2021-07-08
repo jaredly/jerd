@@ -1,7 +1,7 @@
 // General thing
 
 import { Location } from '../../parsing/parser';
-import { newSym, refName } from '../../typing/env';
+import { idName, newSym, refName } from '../../typing/env';
 import { LocatedError } from '../../typing/errors';
 import { binOps } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
@@ -16,6 +16,7 @@ import {
     Symbol,
     Term,
     Type as TermType,
+    RecordDef as TermRecordDef,
     TypeVblDecl,
 } from '../../typing/types';
 import { args, atom, id, items, PP, printToString } from '../printer';
@@ -37,6 +38,7 @@ import {
     Loc,
     MaybeEffLambda,
     OutputOptions,
+    RecordDef,
     Stmt,
     Type,
     typeForLambdaExpression,
@@ -220,6 +222,22 @@ export const parseCPSArgs = (args: Array<Type>) => {
         throw new Error(`Unexpected cps arg`);
     });
     return { normal, handlers, done };
+};
+
+export const recordDefFromTermType = (
+    env: Env,
+    opts: OutputOptions,
+    defn: TermRecordDef,
+): RecordDef => {
+    return {
+        type: 'Record',
+        unique: defn.unique,
+        location: defn.location,
+        typeVbls: defn.typeVbls,
+        extends: defn.extends,
+        items: defn.items.map((t) => typeFromTermType(env, opts, t)),
+        ffi: defn.ffi,
+    };
 };
 
 export const typeFromTermType = (
@@ -769,6 +787,59 @@ export const makeTypeVblMapping = (
     });
 
     return mapping;
+};
+
+export const createTypeVblMapping = (
+    env: Env,
+    typeVbls: Array<TypeVblDecl>,
+    vbls: Array<Type>,
+): { [unique: number]: Type } => {
+    // console.log('create mapping', vbls);
+    const mapping: { [unique: number]: Type } = {};
+    if (vbls.length !== typeVbls.length) {
+        // console.log('the ones', typeVbls);
+        throw new Error(
+            `Wrong number of type variables: ${vbls.length} : ${typeVbls.length}`,
+        );
+    }
+
+    vbls.forEach((typ, i) => {
+        const subs = typeVbls[i].subTypes;
+        if (subs.length) {
+            throw new Error(`We don't handle subtypes here yet`);
+        }
+        // console.log(i, typ, subs);
+        // for (let sub of subs) {
+        //     if (!hasSubType(env, typ, sub)) {
+        //         throw new Error(`Expected a subtype of ${idName(sub)}`);
+        //     }
+        // }
+        mapping[typeVbls[i].unique] = typ;
+    });
+
+    return mapping;
+};
+
+export const applyTypeVariablesToRecord = (
+    env: Env,
+    type: RecordDef,
+    vbls: Array<Type>,
+    location: Location | null,
+    selfHash: string,
+): RecordDef => {
+    if (type.typeVbls.length !== vbls.length) {
+        throw new LocatedError(
+            location,
+            `Expected ${type.typeVbls.length}, found ${vbls.length}`,
+        );
+    }
+    const mapping = createTypeVblMapping(env, type.typeVbls, vbls);
+    return {
+        ...type,
+        typeVbls: [],
+        // TODO: Also extends!!! I mean I guess we can't supply type variables to extends yet, but soon
+        items: type.items.map((t) => subtTypeVars(t, mapping, selfHash)),
+    };
 };
 
 export const applyTypeVariables = (

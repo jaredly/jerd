@@ -1,13 +1,86 @@
 // Well first pass, we can just monomorphize types, like people usually do.
 // ugh nvm that's complicated.
 
-import { hashObject, idName } from '../../../typing/env';
+import { hashObject, idFromName, idName } from '../../../typing/env';
 import { Env } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, LambdaExpr, LambdaType } from '../types';
-import { applyTypeVariables, makeTypeVblMapping, subtTypeVars } from '../utils';
+import {
+    applyTypeVariables,
+    applyTypeVariablesToRecord,
+    makeTypeVblMapping,
+    recordDefFromTermType,
+    subtTypeVars,
+    typeFromTermType,
+} from '../utils';
 // import { maxUnique } from './inline';
 import { Context, Exprs } from './optimize';
+
+export const monomorphizeTypes = (
+    { env, exprs, types, opts }: Context,
+    expr: Expr,
+): Expr => {
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            switch (expr.type) {
+                case 'lambda': {
+                    let changed = false;
+                    const args = expr.args.map((arg) => {
+                        if (
+                            arg.type.type === 'ref' &&
+                            arg.type.ref.type === 'user' &&
+                            arg.type.typeVbls.length > 0
+                        ) {
+                            const defn =
+                                env.global.types[idName(arg.type.ref.id)];
+                            if (defn.type === 'Record') {
+                                const def = recordDefFromTermType(
+                                    env,
+                                    opts,
+                                    defn,
+                                );
+                                // oooh hm got to go back I guess
+                                // ooh wait so type variables
+                                // we don't have an IR version of type declarations
+                                // and maybe we need one?
+                                const ndef = applyTypeVariablesToRecord(
+                                    env,
+                                    def,
+                                    arg.type.typeVbls,
+                                    expr.loc,
+                                    idName(arg.type.ref.id),
+                                );
+                                const hash = hashObject(ndef);
+                                const nid = idFromName(hash);
+                                types[hash] = {
+                                    typeDef: ndef,
+                                    source: arg.type.ref.id,
+                                };
+                                changed = true;
+                                return {
+                                    ...arg,
+                                    type: {
+                                        ...arg.type,
+                                        typeVbls: [],
+                                        ref: { ...arg.type.ref, id: nid },
+                                    },
+                                };
+                            }
+                        }
+                        return arg;
+                    });
+                    return changed ? { ...expr, args } : null;
+                }
+            }
+            return null;
+        },
+        stmt: (stmt) => {
+            // TODO: define and maybe assign idk
+            return null;
+        },
+    });
+};
 
 export const monomorphize = ({ env, exprs }: Context, expr: Expr): Expr => {
     // let outerMax = maxUnique(expr);
