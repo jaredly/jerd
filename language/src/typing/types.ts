@@ -371,11 +371,17 @@ export type Var = {
     is: Type;
 };
 
-export const getAllSubTypes = (env: GlobalEnv, t: RecordDef): Array<Id> => {
+export const getAllSubTypes = (
+    env: GlobalEnv,
+    extend: Array<Id>,
+): Array<Id> => {
     return ([] as Array<Id>).concat(
-        ...t.extends.map((id) =>
+        ...extend.map((id) =>
             [id].concat(
-                getAllSubTypes(env, env.types[idName(id)] as RecordDef),
+                getAllSubTypes(
+                    env,
+                    (env.types[idName(id)] as RecordDef).extends,
+                ),
             ),
         ),
     );

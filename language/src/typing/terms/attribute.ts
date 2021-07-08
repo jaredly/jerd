@@ -71,7 +71,7 @@ export const typeAttribute = (
         if (idx !== -1) {
             ref = target.is.ref;
         } else {
-            const subTypes = getAllSubTypes(env.global, defn);
+            const subTypes = getAllSubTypes(env.global, defn.extends);
             for (let id of subTypes) {
                 idx = env.global.recordGroups[idName(id)].indexOf(
                     suffix.id.text,

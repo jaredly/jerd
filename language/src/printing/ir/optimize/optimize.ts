@@ -111,7 +111,7 @@ export const midOpt = (
 
 export const symName = (sym: Symbol) => sym.unique + '';
 
-export const optimizeDefineNew = (
+export const optimizeDefineNew_ = (
     env: Env,
     expr: Expr,
     id: Id,
@@ -134,6 +134,7 @@ export const optimizeDefineNew = (
         expr = opt(ctx, expr);
         uniquesReallyAreUnique(expr);
     } catch (err) {
+        // TODO: extract this out
         console.log('-- oops --');
         console.error(err);
         // Oh no! Inconsistent!
@@ -416,7 +417,7 @@ export const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
     id,
 ) => fn(env, expr);
 
-const javascriptOpts: Array<Optimizer2> = [
+export const javascriptOpts: Array<Optimizer2> = [
     optimize,
     optimizeTailCalls,
     optimize,

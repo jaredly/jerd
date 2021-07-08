@@ -55,7 +55,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         subTypeIds = [];
         t.subTypes.forEach((id) => {
             const t = env.global.types[idName(id)] as RecordDef;
-            subTypeIds.push(...getAllSubTypes(env.global, t));
+            subTypeIds.push(...getAllSubTypes(env.global, t.extends));
         });
         is = { type: 'var', sym, location: expr.id.location };
     } else {
@@ -118,7 +118,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         );
 
         // TODO: deduplicate
-        subTypeIds = getAllSubTypes(env.global, t);
+        subTypeIds = getAllSubTypes(env.global, t.extends);
         is = {
             type: 'ref',
             ref,
@@ -211,7 +211,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     sub.covered = true;
                     getAllSubTypes(
                         env.global,
-                        subTypeTypes[idName(id)],
+                        subTypeTypes[idName(id)].extends,
                     ).forEach((sid) => {
                         subTypes[idName(sid)].covered = true;
                     });

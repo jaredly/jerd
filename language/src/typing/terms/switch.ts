@@ -336,7 +336,7 @@ const recordToExPattern = (
         groups[groupId] = all.map((t) => groupIdForRef(t.ref));
     }
     const defn = env.global.types[groupIdForRef(pattern.ref.ref)] as RecordDef;
-    const subTypes = getAllSubTypes(env.global, defn);
+    const subTypes = getAllSubTypes(env.global, defn.extends);
     const valuesBySubType: {
         [idName: string]: {
             row: Array<ExPattern>;

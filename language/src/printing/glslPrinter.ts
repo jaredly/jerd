@@ -12,29 +12,35 @@ import { LocatedError } from '../typing/errors';
 import * as preset from '../typing/preset';
 // import { bool } from '../typing/preset';
 import {
-    Env,
+    GlobalEnv,
+    Env as TermEnv,
+    // LocalEnv,
     getAllSubTypes,
+    // getAllSubTypes,
     Id,
     idsEqual,
     nullLocation,
-    RecordDef,
+    RecordDef as TermRecordDef,
     Reference,
     selfEnv,
     Symbol,
     Term,
     Type,
     typesEqual,
+    LocalEnv,
 } from '../typing/types';
 import { glslTester } from './glslTester';
 import { uniquesReallyAreUnique } from './ir/analyze';
 import * as ir from './ir/intermediateRepresentation';
 import { toplevelRecordAttribute } from './ir/optimize/inline';
 import {
+    Context,
     Exprs,
+    glslOpts,
     isConstant,
-    optimizeDefineNew,
     Optimizer,
     Optimizer2,
+    optimizeRepeatedly,
     TypeDefs,
 } from './ir/optimize/optimize';
 import { defaultVisitor, transformExpr } from './ir/transform';
@@ -44,6 +50,7 @@ import {
     Loc,
     OutputOptions as IOutputOptions,
     Record,
+    RecordDef,
 } from './ir/types';
 import {
     builtin,
@@ -51,6 +58,7 @@ import {
     hasUndefinedReferences,
     int,
     pureFunction,
+    recordDefFromTermType,
     typeFromTermType,
     void_,
 } from './ir/utils';
@@ -60,6 +68,10 @@ import * as pp from './printer';
 import { args, atom, block, items, PP, printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
+
+export type Env = TermEnv & {
+    typeDefs: TypeDefs;
+};
 
 export type OutputOptions = {
     // readonly scope?: string;
@@ -578,7 +590,9 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             return items([
                 termToGlsl(env, opts, expr.target),
                 atom('.'),
-                atom(recordAttributeName(env, expr.ref, expr.idx)),
+                atom(
+                    recordAttributeName(env, expr.ref, expr.idx, env.typeDefs),
+                ),
             ]);
         case 'tupleAccess':
             return items([
@@ -674,20 +688,16 @@ const maybeAddRecordInlines = (irTerms: Exprs, id: Id, irTerm: ir.Expr) => {
     return irTerm;
 };
 
-export const defaultOptimizer: Optimizer = (
-    senv: Env,
-    irOpts: IOutputOptions,
-    irTerms: Exprs,
-    // irTypes: TypeDefs
-    irTerm: Expr,
-    id: Id,
-) => {
-    // irTerm = explicitSpreads(senv, irOpts, irTerm);
-    // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-    irTerm = optimizeDefineNew(senv, irTerm, id, irTerms);
-    // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
-    return irTerm;
-};
+// export const defaultOptimizer: Optimizer2 = (ctx: Context, expr: Expr) => {
+//     // irTerm = explicitSpreads(senv, irOpts, irTerm);
+//     // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+//     // irTerm = optimizeDefineNew(senv, irTerm, id, irTerms);
+//     const opt = optimizeRepeatedly(glslOpts);
+//     // irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
+//     return opt({ ...ctx, optimize: opt }, expr);
+// };
+
+export const defaultOptimizer: Optimizer2 = optimizeRepeatedly(glslOpts);
 
 export const assembleItemsForFile = (
     env: Env,
@@ -706,6 +716,7 @@ export const assembleItemsForFile = (
     // );
 
     const irTerms: Exprs = {};
+    // const typeDefs: TypeDefs = {};
     // const printed: { [id: string]: PP } = {};
 
     orderedTerms.forEach((idRaw) => {
@@ -741,7 +752,17 @@ export const assembleItemsForFile = (
         }
         // irTerm = explicitSpreads(senv, irOpts, irTerm);
         // irTerm = optimizeDefine(senv, irTerm, id, irTerms);
-        irTerm = optimization(senv, irOpts, irTerms, irTerm, id);
+        irTerm = optimization(
+            {
+                env: senv,
+                opts: irOpts,
+                exprs: irTerms,
+                id,
+                types: env.typeDefs,
+                optimize: optimization,
+            },
+            irTerm,
+        );
 
         irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 
@@ -923,6 +944,7 @@ const shaderTop = (buffers: number) => {
             atom('u_mouse'),
             atom(';'),
         ]),
+        pp.atom('uniform int u_mousebutton;'),
         pp.items([
             atom('uniform '),
             atom('vec3'),
@@ -972,7 +994,13 @@ export const typeDefToGLSL = (
     if (builtinTypes[key]) {
         return null;
     }
-    return recordToGLSL(env, constr, opts, irOpts, id);
+    return recordToGLSL(
+        env,
+        recordDefFromTermType(env, irOpts, constr),
+        opts,
+        irOpts,
+        id,
+    );
 };
 
 export const recordToGLSL = (
@@ -982,7 +1010,7 @@ export const recordToGLSL = (
     irOpts: IOutputOptions,
     id: Id,
 ) => {
-    const subTypes = getAllSubTypes(env.global, constr);
+    const subTypes = getAllSubTypes(env.global, constr.extends);
 
     return pp.items([
         atom('struct '),
@@ -990,9 +1018,16 @@ export const recordToGLSL = (
         block([
             ...constr.items.map((item, i) =>
                 pp.items([
-                    typeToGlsl(env, opts, typeFromTermType(env, irOpts, item)),
+                    typeToGlsl(env, opts, item),
                     atom(' '),
-                    atom(recordAttributeName(env, { type: 'user', id }, i)),
+                    atom(
+                        recordAttributeName(
+                            env,
+                            { type: 'user', id },
+                            i,
+                            env.typeDefs,
+                        ),
+                    ),
                 ]),
             ),
             ...([] as Array<PP>).concat(
@@ -1012,6 +1047,7 @@ export const recordToGLSL = (
                                     env,
                                     { type: 'user', id },
                                     i,
+                                    env.typeDefs,
                                 ),
                             ),
                         ]),
@@ -1023,7 +1059,7 @@ export const recordToGLSL = (
     ]);
 };
 
-export const populateBuiltins = (env: Env) => {
+export const populateBuiltins = (env: TermEnv) => {
     const builtins = { ...glslBuiltins };
     Object.keys(env.global.metaData).forEach((idRaw) => {
         const tags = env.global.metaData[idRaw].tags;
@@ -1042,7 +1078,7 @@ export const populateBuiltins = (env: Env) => {
             ) {
                 // throw new Error('aa');
                 const refId = idName(term.base.ref.id);
-                const decl = env.global.types[refId] as RecordDef;
+                const decl = env.global.types[refId] as TermRecordDef;
                 const names = env.global.recordGroups[refId];
                 builtins[idRaw] = record(
                     refId,
@@ -1061,7 +1097,7 @@ export const populateBuiltins = (env: Env) => {
     return builtins;
 };
 
-export const makeTermExpr = (id: Id, env: Env): Term => ({
+export const makeTermExpr = (id: Id, env: TermEnv): Term => ({
     type: 'ref',
     ref: {
         type: 'user',
@@ -1108,7 +1144,20 @@ export const shaderAllButMains = (
         const printed = typeDefToGLSL(env, opts, irOpts, r);
         if (printed) {
             items.push(printed);
+        } else {
+            console.log('NO', r);
         }
+    });
+    Object.keys(env.typeDefs).forEach((id) => {
+        const printed = recordToGLSL(
+            env,
+            env.typeDefs[id].typeDef,
+            opts,
+            irOpts,
+            idFromName(id),
+        );
+        items.push(printed);
+        // typeDefToGLSL(env, opts, irOpts, typeDefs[id].typeDef);
     });
 
     if (stateUniform) {
@@ -1141,7 +1190,7 @@ export const shaderAllButMains = (
             declarationToGlsl(
                 // Empty out the localNames
                 // { ...senv, local: { ...senv.local, localNames: {} } },
-                senv,
+                { ...senv, typeDefs: env.typeDefs },
                 opts,
                 name,
                 irTerms[name].expr,
@@ -1159,7 +1208,7 @@ export const shaderAllButMains = (
 // This will generate a single shader, which might be used
 // for writing to a texture buffer, or writing to the screen.
 export const generateSingleShader = (
-    env: Env,
+    termEnv: TermEnv,
     opts: OutputOptions,
     irOpts: IOutputOptions,
     mainTerm: Id,
@@ -1168,6 +1217,7 @@ export const generateSingleShader = (
     optimizer = defaultOptimizer,
     stateUniform?: Reference,
 ): { text: string; invalidLocs: Array<Location> } => {
+    const env: Env = { ...termEnv, typeDefs: {} };
     const { items, invalidLocs } = shaderAllButMains(
         env,
         opts,

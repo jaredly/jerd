@@ -179,12 +179,12 @@ export default () => {
                 false,
             );
             const fn = result[idName(main)];
-            console.log(fn);
+            // console.log(fn);
             jsRef.current = fn;
 
             const pp = fileToGlsl(
                 expressions,
-                env,
+                { ...env, typeDefs: {} },
                 oopts,
                 irOpts,
                 false,

@@ -72,12 +72,12 @@ export const DebugGlsl = ({ state, id }: { state: State; id: Id }) => {
         const builtins = populateBuiltins(state.env);
 
         const { inOrder, irTerms } = assembleItemsForFile(
-            state.env,
+            { ...state.env, typeDefs: {} },
             [makeTermExpr(id, state.env)],
             [idName(id)],
             {},
             builtins,
-            toOldOptimize(opt),
+            opt,
         );
 
         const exprs = inOrder

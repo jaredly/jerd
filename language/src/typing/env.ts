@@ -1072,7 +1072,7 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
                 return true;
             }
             const t = env.global.types[idName(sid)] as RecordDef;
-            const allSubTypes = getAllSubTypes(env.global, t);
+            const allSubTypes = getAllSubTypes(env.global, t.extends);
             if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
                 return true;
             }
@@ -1085,6 +1085,6 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
         return true;
     }
     const t = env.global.types[idName(type.ref.id)] as RecordDef;
-    const allSubTypes = getAllSubTypes(env.global, t);
+    const allSubTypes = getAllSubTypes(env.global, t.extends);
     return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };

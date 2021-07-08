@@ -85,9 +85,7 @@ export const specializeFunctionsCalledWithLambdas = (
 
             let newTerm: Expr = { ...l, is, args, body };
             const id = { hash: newHash, size: 1, pos: 0 };
-            // console.log('optimizing it all up', newHash);
             newTerm = ctx.optimize({ ...ctx, id }, newTerm);
-            // newTerm = optimizeDefineNew(env, newTerm, id, exprs);
 
             // TODO: Sources could just be part of Exprs
             ctx.exprs[newHash] = {

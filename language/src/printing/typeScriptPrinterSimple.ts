@@ -25,7 +25,13 @@ import {
 import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
-import { Exprs, optimize, optimizeDefineNew } from './ir/optimize/optimize';
+import {
+    Exprs,
+    javascriptOpts,
+    optimize,
+    optimizeRepeatedly,
+    TypeDefs,
+} from './ir/optimize/optimize';
 import {
     Loc,
     Type as IRType,
@@ -650,13 +656,24 @@ export const recordAttributeName = (
     env: Env,
     ref: Reference | string,
     idx: number,
+    typeDefs?: TypeDefs,
 ) => {
     if (typeof ref !== 'string' && ref.type === 'builtin') {
         return `${ref.name}_${idx}`;
     }
     const id = typeof ref === 'string' ? ref : idName(ref.id);
+    if (typeDefs && typeDefs[id]) {
+        const t = typeDefs[id].typeDef;
+        if (t.ffi) {
+            return t.ffi.names[idx];
+        }
+        if (typeof ref === 'string') {
+            return `h${ref}_${idx}`;
+        }
+        return `h${idName(ref.id)}_${idx}`;
+    }
     const t = env.global.types[id] as RecordDef;
-    if (t.ffi) {
+    if (t && t.ffi) {
         return t.ffi.names[idx];
     }
     if (typeof ref === 'string') {
@@ -881,7 +898,7 @@ export const fileToTypescript = (
             return;
         }
         const comment = printToString(recordToPretty(env, id, constr), 100);
-        const subTypes = getAllSubTypes(env.global, constr);
+        const subTypes = getAllSubTypes(env.global, constr.extends);
         items.push(
             t.addComment(
                 t.tsTypeAliasDeclaration(
@@ -980,7 +997,19 @@ export const fileToTypescript = (
         //     irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         // }
         if (opts.optimize) {
-            irTerm = optimizeDefineNew(senv, irTerm, id, null);
+            const opt = optimizeRepeatedly(javascriptOpts);
+            irTerm = opt(
+                {
+                    env: senv,
+                    exprs: irTerms,
+                    types: {},
+                    id,
+                    optimize: opt,
+                    opts: {},
+                },
+                irTerm,
+            );
+            // irTerm = optimizeDefineNew(senv, irTerm, id, null);
         }
         // then pop over to glslPrinter and start making things work.
         uniquesReallyAreUnique(irTerm);
