@@ -1,4 +1,17 @@
 
+## Next steps
+
+- monomorphize types with type variables folks
+- 
+
+## Inference
+
+- definitely arg annotations
+- anything else? hm
+
+
+##
+
 - [ ] it would be nice to be able to support the pipe operator
 - [ ] how far can I get with just optimizations, on doing those array things?
       or do I have to go ahead and implement ... 

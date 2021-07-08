@@ -352,7 +352,7 @@ const GLSLEnvT = refType('d2ea39a0', [
         location: nullLocation,
     },
 ]);
-const GLSLScene = refType('7eb87aa6', [
+const GLSLSceneRef = refType('7eb87aa6', [
     {
         type: 'var',
         sym: { name: 'T', unique: 0 },
@@ -393,7 +393,7 @@ const plugins: RenderPlugins = {
     openGlglOk: {
         id: 'openGlglOk',
         name: 'Shader for goodness',
-        type: pureFunction([GLSLEnvT, Vec2], Vec4),
+        type: GLSLSceneRef,
         render: <T,>(
             value: GLSLScene<T>,
             evalEnv: EvalEnv,

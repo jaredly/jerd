@@ -15,6 +15,7 @@ import {
     Env,
     getAllSubTypes,
     Id,
+    idsEqual,
     nullLocation,
     RecordDef,
     Reference,
@@ -208,6 +209,16 @@ export const typeToGlsl = (
 ): PP => {
     switch (type.type) {
         case 'ref':
+            if (type.typeVbls.length) {
+                return items([
+                    refToGlsl(env, opts, type.ref, true),
+                    args(
+                        type.typeVbls.map((t) => typeToGlsl(env, opts, t)),
+                        '[',
+                        ']',
+                    ),
+                ]);
+            }
             return refToGlsl(env, opts, type.ref, true);
         case 'var':
             // return atom(JSON.stringify(type));
@@ -823,28 +834,66 @@ export const assembleItemsForFile = (
 
 export const GLSLEnvId = idFromName('451d5252');
 
-const makeEnvRecord = (env: Env): Record => ({
-    type: 'record',
-    base: {
-        type: 'Concrete',
-        ref: { type: 'user', id: GLSLEnvId },
-        spread: null,
-        rows: [
-            builtin('u_time', nullLocation, float),
-            builtin('u_resolution', nullLocation, Vec2),
-            builtin('u_camera', nullLocation, Vec3),
-            builtin('u_mouse', nullLocation, Vec2),
-        ],
-    },
-    is: {
-        type: 'ref',
-        ref: { type: 'user', id: GLSLEnvId },
-        loc: nullLocation,
-        typeVbls: [],
-    },
-    subTypes: {},
-    loc: nullLocation,
-});
+const makeEnvRecord = (env: Env, id: Id): Record => {
+    const t = env.global.terms[idName(id)];
+    if (t.is.type !== 'lambda') {
+        throw new Error(`Main fn not a lambda`);
+    }
+    const arg0 = t.is.args[0];
+    if (arg0.type !== 'ref' || arg0.ref.type === 'builtin') {
+        throw new Error(`Unexpected arg 0 for main fn`);
+    }
+    if (idsEqual(arg0.ref.id, GLSLEnvId)) {
+        return {
+            type: 'record',
+            base: {
+                type: 'Concrete',
+                ref: { type: 'user', id: GLSLEnvId },
+                spread: null,
+                rows: [
+                    builtin('u_time', nullLocation, float),
+                    builtin('u_resolution', nullLocation, Vec2),
+                    builtin('u_camera', nullLocation, Vec3),
+                    builtin('u_mouse', nullLocation, Vec2),
+                ],
+            },
+            is: {
+                type: 'ref',
+                ref: { type: 'user', id: GLSLEnvId },
+                loc: nullLocation,
+                typeVbls: [],
+            },
+            subTypes: {},
+            loc: nullLocation,
+        };
+        // assume it's a monomorphized version of GLSLEnv<T>
+    } else {
+        return {
+            type: 'record',
+            base: {
+                type: 'Concrete',
+                ref: { type: 'user', id: arg0.ref.id },
+                spread: null,
+                rows: [
+                    builtin('u_state', nullLocation, void_), // TODO: do we need the real one here?
+                    builtin('u_time', nullLocation, float),
+                    builtin('u_resolution', nullLocation, Vec2),
+                    builtin('u_camera', nullLocation, Vec3),
+                    builtin('u_mouse', nullLocation, Vec2),
+                    builtin('u_mousebutton', nullLocation, int),
+                ],
+            },
+            is: {
+                type: 'ref',
+                ref: { type: 'user', id: GLSLEnvId },
+                loc: nullLocation,
+                typeVbls: [],
+            },
+            subTypes: {},
+            loc: nullLocation,
+        };
+    }
+};
 
 const shaderTop = (buffers: number) => {
     const b: Array<PP> = [];
@@ -1063,7 +1112,10 @@ export const shaderAllButMains = (
     if (stateUniform) {
         items.push(
             atom(
-                `uniform ${refToGlsl(env, opts, stateUniform, true)} u_state;`,
+                `uniform ${printToString(
+                    refToGlsl(env, opts, stateUniform, true),
+                    100,
+                )} u_state;`,
             ),
         );
     }
@@ -1179,7 +1231,7 @@ const glslMain = (
     id: Id,
     numBuffers: number,
 ) => {
-    const glslEnv = makeEnvRecord(env);
+    const glslEnv = makeEnvRecord(env, id);
     let mainArgs = [termToGlsl(env, opts, glslEnv), atom('gl_FragCoord.xy')];
     for (let i = 0; i < numBuffers; i++) {
         mainArgs.push(atom(`u_buffer${i}`));

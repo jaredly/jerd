@@ -137,7 +137,7 @@ export const getPlugin = (
     display: Display | undefined | null,
     term: Term,
     value: any,
-    // TODO: I only need the "control ovjects" here,
+    // TODO: I only need the "control objects" here,
     // not the terms or builtins. It would be nice to
     // extract those out
     evalEnv: EvalEnv,
@@ -146,7 +146,14 @@ export const getPlugin = (
         return null;
     }
     const plugin: RenderPluginT = plugins[display.type];
-    const err = getTypeError(env, term.is, plugin.type, nullLocation);
+    const err = getTypeError(
+        env,
+        term.is,
+        plugin.type,
+        nullLocation,
+        undefined,
+        true,
+    );
     if (err == null) {
         return () => plugin.render(value, evalEnv, env, term, true);
     }
@@ -265,9 +272,17 @@ const getMatchingPlugins = (
         !plugins[display.type] ||
         !typesEqual(plugins[display.type].type, type)
     ) {
+        console.log('ok', plugins, type);
         return Object.keys(plugins).filter((k) => {
             if (
-                getTypeError(env, type, plugins[k].type, nullLocation) == null
+                getTypeError(
+                    env,
+                    type,
+                    plugins[k].type,
+                    nullLocation,
+                    undefined,
+                    true,
+                ) == null
             ) {
                 return true;
             }

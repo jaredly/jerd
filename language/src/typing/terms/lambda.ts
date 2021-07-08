@@ -49,6 +49,7 @@ export const typeLambda = (
         args.push(sym);
         argst.push(type);
     });
+
     const body = typeExpr(inner, expr.body);
     if (expr.rettype) {
         const err = getTypeError(
@@ -63,6 +64,7 @@ export const typeLambda = (
             ).wrap(err);
         }
     }
+
     const effects = getEffects(body);
     if (expr.effects != null) {
         const declaredEffects: Array<EffectRef> = expr.effects.map((effName) =>
