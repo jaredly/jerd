@@ -190,10 +190,7 @@ export const initialState = async (): Promise<State> => {
                             ...env.types,
                             ...data.env.global.types,
                         },
-                        names: {
-                            ...env.names,
-                            ...data.env.global.names,
-                        },
+                        names: mergeNames(env.names, data.env.global.names),
                         terms: {
                             // In case we added new global terms
                             ...env.terms,

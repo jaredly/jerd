@@ -526,9 +526,6 @@ const typeExpr = (env: Env, expr: Expression): Term => {
             const inner = typeExpr(env, expr.expr);
             try {
                 if (!typeFitsEnum(env, inner.is, is, expr.location)) {
-                    // console.log(printToString(enumToPretty(env, id, t), 100));
-                    // console.log(is);
-                    // console.log(inner.is);
                     throw new LocatedError(
                         expr.location,
                         `Record ${showType(
