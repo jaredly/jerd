@@ -2,6 +2,7 @@
 /* @jsx jsx */
 import { css, jsx } from '@emotion/react';
 import * as React from 'react';
+import { Env, Reference } from '../../../language/src/typing/types';
 import { setup } from '../setupGLSL';
 import { GLSLEnv2 } from './OpenGL';
 
@@ -130,6 +131,8 @@ export const OpenGLCanvas = ({
     state?: {
         initial: any;
         step: (env: any, prev: any) => any;
+        stateType: Reference;
+        env: Env;
     };
 }) => {
     const [zoom, setZoom] = React.useState(initialZoom);
@@ -202,10 +205,15 @@ export const OpenGLCanvas = ({
                 shaders[0],
                 timer.current,
                 currentMousePos.current,
-                old.current
-                    ? old.current.state
-                    : state
-                    ? state.initial
+                // lol this is terrible
+                state
+                    ? {
+                          value: old.current
+                              ? old.current.state
+                              : state.initial,
+                          type: state.stateType,
+                          env: state.env,
+                      }
                     : undefined,
                 shaders.slice(1),
                 textures.current,

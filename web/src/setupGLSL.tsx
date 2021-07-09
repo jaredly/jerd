@@ -1,5 +1,13 @@
 // ugh
 
+import {
+    Env,
+    idsEqual,
+    Reference,
+    refsEqual,
+} from '../../language/src/typing/types';
+import { Vec2 } from './display/OpenGL';
+
 const createShader = (
     gl: WebGL2RenderingContext,
     kind: number,
@@ -103,7 +111,7 @@ export const setup = (
     fragmentShader: string,
     currentTime: number,
     mousePos?: { x: number; y: number; button: number },
-    state?: { x: number; y: number },
+    state?: { value: unknown; type: Reference; env: Env },
     bufferShaders: Array<string> = [],
     textures: Array<BufferInfo> = [],
 ) => {
@@ -131,7 +139,7 @@ export const setup = (
         utime: WebGLUniformLocation;
         umouse: WebGLUniformLocation;
         umousebutton: WebGLUniformLocation;
-        ustate: WebGLUniformLocation;
+        ustate: null | ((value: unknown) => void);
         textureLocs: Array<WebGLUniformLocation>;
     };
 
@@ -159,9 +167,15 @@ export const setup = (
             gl.uniform2f(umouse, mousePos.x, mousePos.y);
         }
 
-        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        let ustate = null;
         if (state) {
-            gl.uniform2f(ustate, state.x, state.y);
+            ustate = getStateLocations(
+                gl,
+                program,
+                state.env,
+                state.type,
+                state.value,
+            );
         }
 
         return { utime, umouse, umousebutton, textureLocs, ustate };
@@ -252,7 +266,7 @@ export const setup = (
     return (
         uTime: number,
         mousePos?: { x: number; y: number; button: number },
-        state?: { x: number; y: number },
+        state?: unknown,
     ) => {
         swap();
         if (bufferPrograms.length) {
@@ -266,8 +280,8 @@ export const setup = (
                     gl.uniform1i(bound.umousebutton, mousePos.button);
                 }
 
-                if (state) {
-                    gl.uniform2f(bound.ustate, state.x, state.y);
+                if (state && bound.ustate) {
+                    bound.ustate(state);
                 }
 
                 bound.textureLocs.forEach((loc, i) => {
@@ -293,8 +307,9 @@ export const setup = (
         gl.uniform1f(bound.utime, uTime);
 
         // TODO: Need to handle many different state types
-        if (state) {
-            gl.uniform2f(bound.ustate, state.x, state.y);
+        if (state && bound.ustate) {
+            bound.ustate(state);
+            // gl.uniform2f(bound.ustate, state.x, state.y);
         }
 
         if (mousePos) {
@@ -317,3 +332,30 @@ const tr = [1.0, 1.0, 0.0];
 const tl = [-1.0, 1.0, 0.0];
 
 var positions = new Float32Array(bl.concat(br, tr, bl, tr, tl));
+
+export const getStateLocations = (
+    gl: WebGL2RenderingContext,
+    program: WebGLProgram,
+    env: Env,
+    type: Reference,
+    value: unknown,
+) => {
+    if (type.type === 'builtin' && type.name === 'float') {
+        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        gl.uniform1f(ustate, value as number);
+        return (newState: unknown) => {
+            gl.uniform1f(ustate, newState as number);
+        };
+    } else if (refsEqual(type, Vec2.ref)) {
+        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        const state = value as { type: 'Vec2'; x: number; y: number };
+        gl.uniform2f(ustate, state.x, state.y);
+        return (newState: unknown) => {
+            const state = newState as { type: 'Vec2'; x: number; y: number };
+            gl.uniform2f(ustate, state.x, state.y);
+        };
+    } else {
+        console.log('Unable to handle this kind of state');
+        return null;
+    }
+};

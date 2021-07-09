@@ -87,6 +87,20 @@ export const envWithTerm = (env: Env, term: Term) => {
     };
 };
 
+export const getStateUniform = (term: Term): Reference | null => {
+    if (
+        term.is.type === 'ref' &&
+        term.is.typeVbls.length === 1 &&
+        term.is.typeVbls[0].type === 'ref'
+    ) {
+        if (term.is.typeVbls[0].typeVbls.length) {
+            throw new Error(`state uniform can't be generic yet`);
+        }
+        return term.is.typeVbls[0].ref;
+    }
+    return null;
+};
+
 const ShaderGLSLScene = <T,>({
     value,
     term,
@@ -102,7 +116,7 @@ const ShaderGLSLScene = <T,>({
 }) => {
     const [error, setError] = React.useState(null as any | null);
 
-    const shaders = React.useMemo(() => {
+    const [shaders, stateUniform] = React.useMemo(() => {
         try {
             if (term.type !== 'Record') {
                 throw new Error(`Must be a record literal`);
@@ -112,33 +126,26 @@ const ShaderGLSLScene = <T,>({
             if (!render) {
                 throw new Error(`Unable to get render function out`);
             }
-            let stateUniform: null | Reference = null;
-            if (
-                term.is.type === 'ref' &&
-                term.is.typeVbls.length === 1 &&
-                term.is.typeVbls[0].type === 'ref'
-            ) {
-                if (term.is.typeVbls[0].typeVbls.length) {
-                    throw new Error(`state uniform can't be generic yet`);
-                }
-                stateUniform = term.is.typeVbls[0].ref;
-            }
+            const stateUniform: null | Reference = getStateUniform(term);
             if (stateUniform == null) {
                 throw new Error(`Nope`);
             }
             return [
-                compileGLSL(
-                    render,
-                    envWithTerm(env, render),
-                    0,
-                    undefined,
-                    stateUniform,
-                ),
+                [
+                    compileGLSL(
+                        render,
+                        envWithTerm(env, render),
+                        0,
+                        undefined,
+                        stateUniform,
+                    ),
+                ],
+                stateUniform,
             ];
         } catch (err) {
             console.error(err);
             setError(err);
-            return null;
+            return [null, null];
         }
     }, [term]);
 
@@ -198,7 +205,7 @@ const ShaderGLSLScene = <T,>({
         );
     }
 
-    if (shaders == null) {
+    if (shaders == null || stateUniform == null) {
         return <div>No shaders!!</div>;
     }
 
@@ -214,6 +221,8 @@ const ShaderGLSLScene = <T,>({
             state={{
                 initial: value.initial,
                 step: value.step,
+                stateType: stateUniform,
+                env,
             }}
         />
     );
@@ -347,7 +356,7 @@ const ShaderGLSLBuffers = ({
 };
 
 const Vec4 = refType('3b941378');
-const Vec2 = refType('43802a16');
+export const Vec2 = refType('43802a16');
 const GLSLEnv = refType('451d5252');
 const GLSLEnvT = refType('d2ea39a0', [
     {

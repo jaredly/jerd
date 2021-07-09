@@ -42,7 +42,7 @@ import {
     expressionDeps,
     expressionTypeDeps,
 } from '@jerd/language/src/typing/analyze';
-import { envWithTerm, compileGLSL } from './display/OpenGL';
+import { envWithTerm, compileGLSL, getStateUniform } from './display/OpenGL';
 import { Position } from './Cells';
 
 // const maxWidth = 80;
@@ -477,17 +477,7 @@ const ViewGLSL = ({
         if (!render) {
             throw new Error(`not concrete`);
         }
-        let stateUniform: null | Reference = null;
-        if (
-            term.is.type === 'ref' &&
-            term.is.typeVbls.length === 1 &&
-            term.is.typeVbls[0].type === 'ref'
-        ) {
-            if (term.is.typeVbls[0].typeVbls.length) {
-                throw new Error(`state uniform can't be generic yet`);
-            }
-            stateUniform = term.is.typeVbls[0].ref;
-        }
+        const stateUniform: null | Reference = getStateUniform(term);
         if (stateUniform == null) {
             throw new Error(`Nope`);
         }
