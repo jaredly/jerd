@@ -1,10 +1,14 @@
 // ugh
 
+import { recordAttributeName } from '../../language/src/printing/typeScriptPrinterSimple';
+import { allRecordMembers } from '../../language/src/printing/typeScriptTypePrinter';
+import { addRecord, idName } from '../../language/src/typing/env';
 import {
     Env,
     idsEqual,
     Reference,
     refsEqual,
+    TypeReference,
 } from '../../language/src/typing/types';
 import { Vec2, Vec3, Vec4 } from './display/OpenGL';
 
@@ -341,25 +345,26 @@ export const getStateLocations = (
     program: WebGLProgram,
     env: Env,
     type: Reference,
+    prefix: string = 'u_state',
 ) => {
     if (type.type === 'builtin' && type.name === 'float') {
-        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        const ustate = gl.getUniformLocation(program, prefix)!;
         return (newState: unknown) => {
             gl.uniform1f(ustate, newState as number);
         };
     } else if (type.type === 'builtin' && type.name === 'int') {
-        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        const ustate = gl.getUniformLocation(program, prefix)!;
         return (newState: unknown) => {
             gl.uniform1i(ustate, newState as number);
         };
     } else if (refsEqual(type, Vec2.ref)) {
-        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        const ustate = gl.getUniformLocation(program, prefix)!;
         return (newState: unknown) => {
             const state = newState as { type: 'Vec2'; x: number; y: number };
             gl.uniform2f(ustate, state.x, state.y);
         };
     } else if (refsEqual(type, Vec3.ref)) {
-        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        const ustate = gl.getUniformLocation(program, prefix)!;
         return (newState: unknown) => {
             const state = newState as {
                 type: 'Vec3';
@@ -370,7 +375,7 @@ export const getStateLocations = (
             gl.uniform3f(ustate, state.x, state.y, state.z);
         };
     } else if (refsEqual(type, Vec4.ref)) {
-        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        const ustate = gl.getUniformLocation(program, prefix)!;
         return (newState: unknown) => {
             const state = newState as {
                 type: 'Vec4';
@@ -380,6 +385,36 @@ export const getStateLocations = (
                 w: number;
             };
             gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
+        };
+    } else if (type.type === 'user') {
+        const attrs = allRecordMembers(env, type.id).map((member) => {
+            const name = recordAttributeName(
+                env,
+                { type: 'user', id: member.id },
+                member.i,
+            );
+            if (member.item.type === 'ref') {
+                return {
+                    name,
+                    fn: getStateLocations(
+                        gl,
+                        program,
+                        env,
+                        member.item.ref,
+                        `${prefix}.${name}`,
+                    ),
+                };
+            } else {
+                throw new Error(`member type not processable`);
+            }
+            // return {name, loc: gl.getUniformLocation(program, `${prefix}.${name}`), type: member.item}
+        });
+        console.log(attrs);
+        // const locations = attrNames.map(name => ({name, loc: gl.getUniformLocation(program, `u_state.${name}`)}))
+        return (newState: unknown) => {
+            const state = newState as any;
+            attrs.forEach((attr) => attr.fn(state[attr.name]));
+            // gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
         };
     } else {
         throw new Error('Unable to handle this kind of state');

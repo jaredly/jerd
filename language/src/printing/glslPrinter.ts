@@ -594,6 +594,12 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                     recordAttributeName(env, expr.ref, expr.idx, env.typeDefs),
                 ),
             ]);
+        case 'tuple': {
+            // hrmmm
+            // ok, turn tuples into something else.
+            // and then tuple access turns into normal record access and stuff
+            return atom('tuples_not_supported');
+        }
         case 'tupleAccess':
             return items([
                 termToGlsl(env, opts, expr.target),
