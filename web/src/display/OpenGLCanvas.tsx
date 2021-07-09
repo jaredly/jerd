@@ -141,6 +141,7 @@ export const OpenGLCanvas = ({
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
     );
+    const [showControls, setShowControls] = React.useState(false);
     const [restartCount, setRestartCount] = React.useState(0);
     const [playState, setPlayState] = React.useState(
         (startPaused ? 'paused' : 'playing') as PlayState,
@@ -444,12 +445,17 @@ export const OpenGLCanvas = ({
                 css={{
                     position: 'relative',
                     display: 'inline-block',
-                    [`:hover .hover`]: {
-                        opacity: 1.0,
-                    },
+                    // [`:hover .hover`]: {
+                    //     opacity: 1.0,
+                    // },
                 }}
             >
                 <canvas
+                    onContextMenu={(evt) => {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        setShowControls(!showControls);
+                    }}
                     onMouseMove={(evt) => {
                         const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
                         setMousePos({
@@ -472,14 +478,16 @@ export const OpenGLCanvas = ({
                     width={width / zoom + ''}
                     height={(height != null ? height : width) / zoom + ''}
                 />
-                <HoverPanel
-                    playState={playState}
-                    setPlayState={setPlayState}
-                    timer={timer}
-                    restart={restart}
-                    showSettings={showSettings}
-                    toggleSettings={toggleSettings}
-                />
+                {showControls || playState === 'paused' ? (
+                    <HoverPanel
+                        playState={playState}
+                        setPlayState={setPlayState}
+                        timer={timer}
+                        restart={restart}
+                        showSettings={showSettings}
+                        toggleSettings={toggleSettings}
+                    />
+                ) : null}
             </div>
             {showSettings ? (
                 <div>
@@ -698,7 +706,7 @@ export const IconButton = ({
 };
 
 const hover = css({
-    opacity: 0,
+    // opacity: 0,
     // backgroundColor: 'rgba(50, 50, 50, 0.1)',
     paddingTop: 2,
     transition: '.3s ease opacity',
