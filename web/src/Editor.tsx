@@ -349,7 +349,14 @@ const getRenderPlugin = (
     } else {
         return null;
     }
-    const err = getTypeError(env, term.is, plugin.type, nullLocation);
+    const err = getTypeError(
+        env,
+        term.is,
+        plugin.type,
+        nullLocation,
+        undefined,
+        true,
+    );
     if (err == null) {
         return () => plugin.render(evaled, evalEnv, env, term, false);
     }

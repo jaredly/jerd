@@ -14,6 +14,7 @@ import {
     nullLocation,
     Reference,
     Term,
+    Type,
 } from '@jerd/language/src/typing/types';
 import * as React from 'react';
 import { EvalEnv, RenderPlugins } from '../State';
@@ -375,7 +376,7 @@ const GLSLSceneRef = refType('7eb87aa6', [
 ]);
 
 const shaderFunction = (buffers: number) => {
-    const args = [GLSLEnv, Vec2];
+    const args: Array<Type> = [GLSLEnv, Vec2];
     for (let i = 0; i < buffers; i++) {
         args.push(builtinType('sampler2D'));
     }

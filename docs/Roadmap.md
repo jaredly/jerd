@@ -3,7 +3,7 @@
 
 - [x] monomorphize types with type variables folks
 - [x] get basic scenes working!
-- [ ] fix my hacky hardcode of vec2, so that non-vec2 states work
+- [x] fix my hacky hardcode of vec2, so that non-vec2 states work
 
 ## Inference
 

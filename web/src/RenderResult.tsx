@@ -62,10 +62,6 @@ export const RenderResult = ({
     onRun: (id: Id) => void;
     onPin: (display: Display, id: Id) => void;
 }) => {
-    // const hash = idName(id);
-
-    // const term = env.global.terms[hash];
-
     React.useEffect(() => {
         if (value == null) {
             onRun(id);
