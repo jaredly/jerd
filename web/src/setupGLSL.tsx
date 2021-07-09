@@ -6,7 +6,7 @@ import {
     Reference,
     refsEqual,
 } from '../../language/src/typing/types';
-import { Vec2 } from './display/OpenGL';
+import { Vec2, Vec3, Vec4 } from './display/OpenGL';
 
 const createShader = (
     gl: WebGL2RenderingContext,
@@ -347,11 +347,39 @@ export const getStateLocations = (
         return (newState: unknown) => {
             gl.uniform1f(ustate, newState as number);
         };
+    } else if (type.type === 'builtin' && type.name === 'int') {
+        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        return (newState: unknown) => {
+            gl.uniform1i(ustate, newState as number);
+        };
     } else if (refsEqual(type, Vec2.ref)) {
         const ustate = gl.getUniformLocation(program, 'u_state')!;
         return (newState: unknown) => {
             const state = newState as { type: 'Vec2'; x: number; y: number };
             gl.uniform2f(ustate, state.x, state.y);
+        };
+    } else if (refsEqual(type, Vec3.ref)) {
+        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        return (newState: unknown) => {
+            const state = newState as {
+                type: 'Vec3';
+                x: number;
+                y: number;
+                z: number;
+            };
+            gl.uniform3f(ustate, state.x, state.y, state.z);
+        };
+    } else if (refsEqual(type, Vec4.ref)) {
+        const ustate = gl.getUniformLocation(program, 'u_state')!;
+        return (newState: unknown) => {
+            const state = newState as {
+                type: 'Vec4';
+                x: number;
+                y: number;
+                z: number;
+                w: number;
+            };
+            gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
         };
     } else {
         throw new Error('Unable to handle this kind of state');

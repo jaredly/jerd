@@ -355,7 +355,8 @@ const ShaderGLSLBuffers = ({
     );
 };
 
-const Vec4 = refType('3b941378');
+export const Vec4 = refType('3b941378');
+export const Vec3 = refType('9f1c0644');
 export const Vec2 = refType('43802a16');
 const GLSLEnv = refType('451d5252');
 const GLSLEnvT = refType('d2ea39a0', [
