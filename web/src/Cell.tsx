@@ -11,6 +11,7 @@ import {
     Term,
     Type,
     nullLocation,
+    Reference,
 } from '@jerd/language/src/typing/types';
 import {
     toplevelToPretty,
@@ -466,10 +467,39 @@ const ViewGLSL = ({
     term: Term;
     hash: string;
 }) => {
-    const source = React.useMemo(
-        () => compileGLSL(term, envWithTerm(env, term), 0, false).text,
-        [env, term],
-    );
+    const source = React.useMemo(() => {
+        if (term.is.type === 'lambda') {
+            return compileGLSL(term, envWithTerm(env, term), 0, false).text;
+        } else if (term.type !== 'Record' || term.base.type !== 'Concrete') {
+            throw new Error(`Must be a record literal`);
+        }
+        const render = term.base.rows[2];
+        if (!render) {
+            throw new Error(`not concrete`);
+        }
+        let stateUniform: null | Reference = null;
+        if (
+            term.is.type === 'ref' &&
+            term.is.typeVbls.length === 1 &&
+            term.is.typeVbls[0].type === 'ref'
+        ) {
+            if (term.is.typeVbls[0].typeVbls.length) {
+                throw new Error(`state uniform can't be generic yet`);
+            }
+            stateUniform = term.is.typeVbls[0].ref;
+        }
+        if (stateUniform == null) {
+            throw new Error(`Nope`);
+        }
+
+        return compileGLSL(
+            render,
+            envWithTerm(env, render),
+            0,
+            false,
+            stateUniform,
+        ).text;
+    }, [env, term]);
     return (
         <div
             css={{

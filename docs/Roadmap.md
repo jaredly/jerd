@@ -1,12 +1,14 @@
 
 ## Next steps
 
-- monomorphize types with type variables folks
-- 
+- [x] monomorphize types with type variables folks
+- [x] get basic scenes working!
+- [ ] fix my hacky hardcode of vec2, so that non-vec2 states work
 
 ## Inference
 
-- definitely arg annotations
+- [x] definitely arg annotations
+- [ ] need to indicate somewhere that these were inferred, so that re-parsing can be more flexible with those
 - anything else? hm
 
 
