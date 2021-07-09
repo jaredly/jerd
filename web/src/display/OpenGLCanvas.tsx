@@ -178,6 +178,9 @@ export const OpenGLCanvas = ({
     const restart = () => {
         setRestartCount(restartCount + 1);
         textures.current = [];
+        if (old.current) {
+            old.current.state = state!.initial;
+        }
     };
 
     const stateRef = React.useRef(state);

@@ -174,8 +174,11 @@ export const setup = (
                 program,
                 state.env,
                 state.type,
-                state.value,
+                // state.value,
             );
+            if (ustate) {
+                ustate(state.value);
+            }
         }
 
         return { utime, umouse, umousebutton, textureLocs, ustate };
@@ -338,24 +341,19 @@ export const getStateLocations = (
     program: WebGLProgram,
     env: Env,
     type: Reference,
-    value: unknown,
 ) => {
     if (type.type === 'builtin' && type.name === 'float') {
         const ustate = gl.getUniformLocation(program, 'u_state')!;
-        gl.uniform1f(ustate, value as number);
         return (newState: unknown) => {
             gl.uniform1f(ustate, newState as number);
         };
     } else if (refsEqual(type, Vec2.ref)) {
         const ustate = gl.getUniformLocation(program, 'u_state')!;
-        const state = value as { type: 'Vec2'; x: number; y: number };
-        gl.uniform2f(ustate, state.x, state.y);
         return (newState: unknown) => {
             const state = newState as { type: 'Vec2'; x: number; y: number };
             gl.uniform2f(ustate, state.x, state.y);
         };
     } else {
-        console.log('Unable to handle this kind of state');
-        return null;
+        throw new Error('Unable to handle this kind of state');
     }
 };
