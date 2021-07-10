@@ -10,6 +10,7 @@ import {
 import { idFromName, idName } from '../typing/env';
 import { LocatedError } from '../typing/errors';
 import * as preset from '../typing/preset';
+import { applyTypeVariablesToRecord } from '../typing/typeExpr';
 // import { bool } from '../typing/preset';
 import {
     GlobalEnv,
@@ -28,6 +29,7 @@ import {
     Type,
     typesEqual,
     LocalEnv,
+    EnumDef,
 } from '../typing/types';
 import { glslTester } from './glslTester';
 import { uniquesReallyAreUnique } from './ir/analyze';
@@ -985,12 +987,13 @@ export const typeDefToGLSL = (
     const constr = env.global.types[key];
     const id = idFromName(key);
     if (constr.type === 'Enum') {
-        return atom(
-            `// skipping ${printToString(
-                idToGlsl(env, opts, id, true),
-                100,
-            )}, enums not supported`,
-        );
+        return enumToGLSL(env, constr, opts, irOpts, id);
+        // return atom(
+        //     `// skipping ${printToString(
+        //         idToGlsl(env, opts, id, true),
+        //         100,
+        //     )}, enums not supported`,
+        // );
     }
     if (constr.typeVbls.length) {
         // No type vbls allowed sorry
@@ -1017,20 +1020,55 @@ export const typeDefToGLSL = (
     );
 };
 
-export const recordToGLSL = (
+export const enumToGLSL = (
     env: Env,
-    constr: RecordDef,
+    constr: EnumDef,
     opts: OutputOptions,
     irOpts: IOutputOptions,
     id: Id,
 ) => {
-    const subTypes = getAllSubTypes(env.global, constr.extends);
+    if (constr.extends.length) {
+        throw new Error(`no extends yet`);
+    }
+    const items = constr.items;
+
+    const allAllItems = ([] as Array<RecordAttribute>).concat(
+        ...constr.items.map((tref, i) => {
+            if (tref.ref.type !== 'user') {
+                throw new Error(`nope builtin`);
+            }
+            let r = env.global.types[idName(tref.ref.id)] as TermRecordDef;
+
+            if (r.type !== 'Record') {
+                throw new Error('nope');
+            }
+
+            if (tref.typeVbls.length) {
+                r = applyTypeVariablesToRecord(
+                    env,
+                    r,
+                    tref.typeVbls,
+                    tref.location,
+                    tref.ref.id.hash,
+                );
+            }
+
+            return getAllRecordAttributes(
+                env,
+                irOpts,
+                tref.ref.id,
+                recordDefFromTermType(env, irOpts, r),
+            );
+        }),
+    );
+    // TODO: Dedup! If there are duplicates, things will break
 
     return pp.items([
         atom('struct '),
         idToGlsl(env, opts, id, true),
         block([
-            ...constr.items.map((item, i) =>
+            atom(`int tag`),
+            ...allAllItems.map(({ id, item, i }) =>
                 pp.items([
                     typeToGlsl(env, opts, item),
                     atom(' '),
@@ -1044,29 +1082,87 @@ export const recordToGLSL = (
                     ),
                 ]),
             ),
-            ...([] as Array<PP>).concat(
-                ...subTypes.map((id) =>
-                    env.global.types[
-                        idName(id)
-                    ].items.map((item: Type, i: number) =>
-                        pp.items([
-                            typeToGlsl(
-                                env,
-                                opts,
-                                typeFromTermType(env, irOpts, item),
-                            ),
-                            atom(' '),
-                            atom(
-                                recordAttributeName(
-                                    env,
-                                    { type: 'user', id },
-                                    i,
-                                    env.typeDefs,
-                                ),
-                            ),
-                        ]),
-                    ),
+            // ...([] as Array<PP>).concat(
+            //     ...constr.items.map((tref, i) => {
+            //         if (tref.ref.type !== 'user') {
+            //             throw new Error(`nope builtin`);
+            //         }
+            //         const r = env.global.types[
+            //             idName(tref.ref.id)
+            //         ] as TermRecordDef;
+            //         if (r.type !== 'Record') {
+            //             throw new Error('nope');
+            //         }
+            //         return getAllRecordAttributes(
+            //             env,
+            //             irOpts,
+            //             tref.ref.id,
+            //             recordDefFromTermType(env, irOpts, r),
+            //         ).map(({ id, item, i }) =>
+            //         );
+            //     }),
+            // ),
+        ]),
+        atom(';'),
+    ]);
+    // constr.extends
+};
+
+type RecordAttribute = { item: ir.Type; i: number; id: Id };
+const getAllRecordAttributes = (
+    env: Env,
+    opts: IOutputOptions,
+    id: Id,
+    constr: RecordDef,
+): Array<RecordAttribute> => {
+    const subTypes = getAllSubTypes(env.global, constr.extends);
+    return [
+        ...constr.items.map((item, i) => ({ id, item, i })),
+        ...([] as Array<RecordAttribute>).concat(
+            ...subTypes.map((id) =>
+                env.global.types[idName(id)].items.map(
+                    (item: Type, i: number) => ({
+                        id,
+                        item: typeFromTermType(env, opts, item),
+                        i,
+                    }),
                 ),
+            ),
+        ),
+    ];
+};
+
+export const recordToGLSL = (
+    env: Env,
+    constr: RecordDef,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    id: Id,
+) => {
+    const subTypes = getAllSubTypes(env.global, constr.extends);
+
+    return pp.items([
+        atom('struct '),
+        idToGlsl(env, opts, id, true),
+        block([
+            ...getAllRecordAttributes(
+                env,
+                irOpts,
+                id,
+                constr,
+            ).map(({ i, item, id }) =>
+                pp.items([
+                    typeToGlsl(env, opts, item),
+                    atom(' '),
+                    atom(
+                        recordAttributeName(
+                            env,
+                            { type: 'user', id },
+                            i,
+                            env.typeDefs,
+                        ),
+                    ),
+                ]),
             ),
         ]),
         atom(';'),

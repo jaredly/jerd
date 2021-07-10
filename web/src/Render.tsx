@@ -136,7 +136,7 @@ export const renderAttributedTextToHTML = (
                 </span>`;
             }
             return `<span style="${styleString}">${escapeHTML(
-                item.text,
+                (item as any).text,
             )}</span>`;
         })
         .join('');
@@ -245,7 +245,7 @@ export const renderAttributedText = (
                 style={stylesForAttributes(item.attributes)}
                 key={i}
             >
-                {item.text}
+                {(item as any).text}
             </span>
         );
     });
