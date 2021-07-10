@@ -801,12 +801,13 @@ export const termToPretty = (env: Env, term: Term): PP => {
         case 'TypeError':
             return items(
                 [
-                    atom('[type error!'),
+                    // atom('[type error!'),
                     termToPretty(env, term.inner),
-                    atom(']'),
+                    // atom(']'),
                 ],
                 undefined,
                 term.location,
+                ['error'],
             );
         default:
             let _x: never = term;

@@ -9,11 +9,13 @@ export const items = (
     items: Array<PP | null>,
     breakable = false,
     loc?: Location,
+    attributes?: Array<string>,
 ): PP => ({
     type: 'items',
     items: items.filter((x) => x != null) as Array<PP>,
     breakable,
     loc,
+    attributes,
 });
 export const args = (
     contents: Array<PP>,
@@ -84,7 +86,13 @@ export type PP =
           trailing: boolean;
           loc?: Location;
       } // surrounded by ()
-    | { type: 'items'; items: Array<PP>; breakable: boolean; loc?: Location };
+    | {
+          type: 'items';
+          items: Array<PP>;
+          breakable: boolean;
+          loc?: Location;
+          attributes?: Array<string>;
+      };
 
 const white = (x: number) => new Array(x).fill(' ').join('');
 
@@ -245,6 +253,12 @@ export const printToString = (
 export type AttributedText =
     | string
     | { text: string; attributes: Array<string>; loc?: Location }
+    | {
+          type: 'Group';
+          contents: Array<AttributedText>;
+          attributes: Array<string>;
+          loc?: Location;
+      }
     | { id: string; text: string; kind: string; loc?: Location };
 
 export const printToAttributedText = (
@@ -359,6 +373,16 @@ export const printToAttributedText = (
             //     res.push('\n' + white(current.indent));
             //     current.pos = current.indent;
             // }
+            if (pp.attributes) {
+                return [
+                    {
+                        type: 'Group',
+                        contents: res,
+                        attributes: pp.attributes,
+                        loc: pp.loc,
+                    },
+                ];
+            }
             return res;
         }
 
@@ -366,6 +390,16 @@ export const printToAttributedText = (
         pp.items.forEach((item) => {
             res.push(...printToAttributedText(item, maxWidth, current));
         });
+        if (pp.attributes) {
+            return [
+                {
+                    type: 'Group',
+                    contents: res,
+                    attributes: pp.attributes,
+                    loc: pp.loc,
+                },
+            ];
+        }
         return res;
     }
     throw new Error(`unexpected pp type ${JSON.stringify(pp)}`);

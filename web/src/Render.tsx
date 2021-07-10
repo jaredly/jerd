@@ -33,6 +33,9 @@ const stylesForAttributes = (attributes: Array<string>) => {
     if (attributes.includes('argName')) {
         return { fontStyle: 'italic', color: '#888' };
     }
+    if (attributes.includes('error')) {
+        return { textDecoration: 'underline 4px red' };
+    }
     return { color: '#aaa' };
 };
 
@@ -112,6 +115,25 @@ export const renderAttributedTextToHTML = (
             let styleString = `color:${style.color}`;
             if (style.fontStyle) {
                 styleString += `;font-style:${style.fontStyle}`;
+            }
+            if (style.textDecoration) {
+                styleString += `;text-decoration:${style.textDecoration}`;
+            }
+            if ('type' in item && item.type === 'Group') {
+                return `<span
+                    data-location=${
+                        item.loc ? JSON.stringify(item.loc) : undefined
+                    }
+                    style=${styleString}
+                    key={i}
+                >
+                    ${renderAttributedTextToHTML(
+                        env,
+                        item.contents,
+                        allIds,
+                        idColors,
+                    )}
+                </span>`;
             }
             return `<span style="${styleString}">${escapeHTML(
                 item.text,
@@ -194,6 +216,26 @@ export const renderAttributedText = (
                             #{item.id}
                         </span>
                     ) : null}
+                </span>
+            );
+        }
+        if ('type' in item && item.type === 'Group') {
+            return (
+                <span
+                    data-location={
+                        item.loc ? JSON.stringify(item.loc) : undefined
+                    }
+                    style={stylesForAttributes(item.attributes)}
+                    key={i}
+                >
+                    {renderAttributedText(
+                        env,
+                        item.contents,
+                        onClick,
+                        allIds,
+                        idColors,
+                        openable,
+                    )}
                 </span>
             );
         }

@@ -332,7 +332,6 @@ export default ({
                     position: 'relative',
                 }}
             >
-                errors
                 {err != null ? (
                     <ShowError err={err} env={env} text={text} />
                 ) : typed == null ? null : (

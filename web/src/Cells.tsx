@@ -389,7 +389,7 @@ const Cells = ({
                                     cell.content.type === 'term'
                                 ) {
                                     const id = cell.content.id;
-                                    let results: any;
+                                    let results: any = {};
                                     try {
                                         const term =
                                             env.global.terms[idName(id)];
@@ -408,7 +408,7 @@ const Cells = ({
                                     } catch (err) {
                                         console.log(`Failed to run!`);
                                         console.log(err);
-                                        return state;
+                                        // return state;
                                     }
                                     return modActiveWorkspace((workspace) => ({
                                         ...workspace,
