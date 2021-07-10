@@ -66,6 +66,7 @@ export const transformExpr = (
         case 'genTerm':
         case 'var':
             return expr;
+        case 'Enum':
         case 'unary': {
             const t = transformExpr(expr.inner, visitor, level);
             return t !== expr.inner ? { ...expr, inner: t } : expr;

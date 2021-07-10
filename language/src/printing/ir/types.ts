@@ -60,18 +60,19 @@ export type OutputOptions = {
 // And then would I have these things be parameterized by the `Type`?
 // rggggggggggggg yeah I mean I guess so?
 
+export type TypeReference = {
+    type: 'ref';
+    ref: Reference;
+    loc: Loc;
+    typeVbls: Array<Type>;
+};
 export type Type =
     | {
           type: 'var';
           sym: Symbol;
           loc: Loc;
       }
-    | {
-          type: 'ref';
-          ref: Reference;
-          loc: Loc;
-          typeVbls: Array<Type>;
-      }
+    | TypeReference
     | LambdaType
     | CPSLambdaType
     | DoneLambdaType
@@ -248,8 +249,11 @@ export type Literal =
     | { type: 'float'; value: number; loc: Loc; is: Type };
 export type Var = { type: 'var'; sym: Symbol; loc: Loc; is: Type };
 
+export type Enum = { type: 'Enum'; is: TypeReference; inner: Expr; loc: Loc };
+
 export type Expr =
     | Literal
+    | Enum
     | { type: 'unary'; inner: Expr; is: Type; loc: Loc; op: string }
     | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
     | { type: 'term'; id: Id; loc: Loc; is: Type }

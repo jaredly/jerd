@@ -98,6 +98,12 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
     switch (expr.type) {
         case 'var':
             return debugSym(expr.sym, expr.loc);
+        case 'Enum':
+            return items([
+                debugType(env, expr.is),
+                atom(':'),
+                debugExpr(env, expr.inner),
+            ]);
         case 'unary':
             return items([atom(expr.op), debugExpr(env, expr.inner)]);
         case 'tupleAccess':

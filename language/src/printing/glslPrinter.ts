@@ -1146,7 +1146,7 @@ export const enumToGLSL = (
 
 type RecordAttribute = { item: ir.Type; i: number; id: Id };
 const getAllRecordAttributes = (
-    env: Env,
+    env: TermEnv,
     opts: IOutputOptions,
     id: Id,
     constr: RecordDef,

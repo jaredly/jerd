@@ -33,7 +33,7 @@ import {
     showLocation,
 } from '../../typing/typeExpr';
 import { idFromName, idName } from '../../typing/env';
-import { LambdaType as ILambdaType } from './types';
+import { LambdaType as ILambdaType, TypeReference } from './types';
 
 import { Loc, Expr, Stmt, OutputOptions, Type } from './types';
 import { callExpression, pureFunction, typeFromTermType } from './utils';
@@ -331,10 +331,11 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 op: term.op,
             };
         case 'Enum':
-            // @ts-ignore
             return {
-                ...printTerm(env, opts, term.inner),
-                is: mapType(term.is),
+                type: 'Enum',
+                loc: term.location,
+                is: mapType(term.is) as TypeReference,
+                inner: printTerm(env, opts, term.inner),
             };
         case 'TupleAccess': {
             return {

@@ -1,9 +1,13 @@
 
 ## Next steps
 
-- [ ] enums?
+- [-] enums?
       how do we do it
       you make a union, right? 
+  - [x] passing enums as uniforms
+  - [x] IsRecord
+  - [ ] explicit upgrading to enum (needed for glsl, but not for js interestingly)
+  - [ ] explicit downgrading from enum (if, as in glsl, it's needed)
 
 - [ ] when you click a thing from a term, it opens up as a /sub/ cell. And then if you edit that cell,
       then it updates all the other things in the main & sub cells.

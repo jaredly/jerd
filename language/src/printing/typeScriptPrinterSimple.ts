@@ -623,6 +623,9 @@ export const _termToTs = (
         }
         case 'genTerm':
             throw new Error(`No genTerms in typescript yet`);
+        case 'Enum':
+            // js doesn't need explicit casting to enum
+            return termToTs(env, opts, term.inner);
         default:
             let _v: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
