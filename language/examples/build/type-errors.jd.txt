@@ -62,7 +62,7 @@ All case arms must have the same return type: int#builtin string#builtin
 
 Unknown effect Undef.get
 
-Invalid type for attribute age at 111:26-111:30. Expected int#builtin, got string#builtin
+expected int#builtin, found string#builtin
 
 Multiple values provided for 1 undefined at 113:39-113:42
 
@@ -78,8 +78,8 @@ Expected 1 at 147:1-147:28, found 0
 
 Wrong number of arguments (string#builtin) ={}> string#builtin, 1 vs 0
 
-Invalid type for attribute item at 152:33-152:47. Expected T#:0, got <T#:0>() ={}> string#builtin
+expected <T#:0>(T#:0) ={}> string#builtin, found <T#:0>() ={}> string#builtin
 
-Invalid type for attribute item at 154:28-154:50. Expected T#:0, got <T#:0>(T#:0) ={}> string#builtin
+expected <T#:0>(T#:0) ={}> T#:0, found <T#:0>(T#:0) ={}> string#builtin
 
 Expected a subtype of 06e495ea

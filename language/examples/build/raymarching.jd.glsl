@@ -10,6 +10,8 @@ uniform float u_time;
 
 uniform vec2 u_mouse;
 
+uniform int u_mousebutton;
+
 uniform vec3 u_camera;
 
 uniform vec2 u_resolution;

@@ -19,6 +19,7 @@ import {
     Type,
     TypeConstraint,
     typesEqual,
+    TypeError as TypeErrorTerm,
 } from './typing/types';
 import { printToString } from './printing/printer';
 import { termToPretty, typeToPretty } from './printing/printTsLike';
@@ -175,6 +176,25 @@ const processErrors = (fname: string, builtins: { [key: string]: Type }) => {
             } catch (err) {
                 errors.push(err.message);
                 return; // yup
+            }
+            const typeErrors: Array<TypeErrorTerm> = [];
+            transform(term, {
+                let: () => null,
+                term: (term) => {
+                    if (term.type === 'TypeError') {
+                        typeErrors.push(term);
+                    }
+                    return null;
+                },
+            });
+            if (typeErrors.length) {
+                errors.push(
+                    `expected ${showType(
+                        env,
+                        typeErrors[0].is,
+                    )}, found ${showType(env, typeErrors[0].inner.is)}`,
+                );
+                return;
             }
             console.log(item);
             throw new Error(
@@ -382,6 +402,8 @@ import { Init, loadInit, loadPrelude } from './printing/loadPrelude';
 import { OutputOptions as IOutputOptions } from './printing/ir/types';
 import { reprintToplevel } from './reprint';
 import { processFile } from './processFile';
+import { transform } from './typing/transform';
+import { showType } from './typing/unify';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');

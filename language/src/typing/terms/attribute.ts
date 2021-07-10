@@ -5,6 +5,7 @@ import { applyTypeVariablesToRecord, showLocation } from '../typeExpr';
 import {
     Env,
     getAllSubTypes,
+    idsEqual,
     isRecord,
     refsEqual,
     Term,
@@ -41,24 +42,39 @@ export const typeAttribute = (
                 )}`,
             );
         }
-        // TODO: need to check subtypes / spreads n stuffs
-        // this is wrong
-        if (!refsEqual(ref, target.is.ref)) {
-            target = {
-                type: 'TypeError',
-                is: {
-                    type: 'ref',
-                    ref,
-                    typeVbls: [],
+        if (target.is.ref.type === 'user') {
+            // This is the type of the record at hand that we're trying to get something out of.
+            // If this is a valid attribute, the hash must be equal to the record type, or
+            // an extended record type.
+            const rid = target.is.ref.id;
+            const defn = env.global.types[idName(rid)];
+            if (defn.type === 'Enum') {
+                throw new Error(`can't attribute an enum just yet folks`);
+            }
+            const sub = getAllSubTypes(env.global, defn.extends);
+            // TODO: need to check subtypes / spreads n stuffs
+            // this is wrong
+            if (
+                !refsEqual(ref, target.is.ref) &&
+                !sub.some((id) => idsEqual(id, ref!.id))
+            ) {
+                // console.log(sub, rid, ref);
+                target = {
+                    type: 'TypeError',
+                    is: {
+                        type: 'ref',
+                        ref,
+                        typeVbls: [],
+                        location: target.location,
+                    },
+                    inner: target,
                     location: target.location,
-                },
-                inner: target,
-                location: target.location,
-            };
-            // throw new LocatedError(
-            //     suffix.location,
-            //     `hashed attribute doesnt line up`,
-            // );
+                };
+                // throw new LocatedError(
+                //     suffix.location,
+                //     `hashed attribute doesnt line up`,
+                // );
+            }
         }
     } else if (suffix.id.text.match(/^\d+$/)) {
         idx = +suffix.id.text;

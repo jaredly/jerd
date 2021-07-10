@@ -1320,7 +1320,7 @@ const glslMain = (
 
 export const fileToGlsl = (
     expressions: Array<Term>,
-    env: Env,
+    env: TermEnv,
     opts: OutputOptions,
     irOpts: IOutputOptions,
     assert: boolean,
@@ -1623,7 +1623,13 @@ export const fileToGlsl = (
     // }
 
     // const inOrder = sortAllDepsPlain(irDeps);
-    return generateShader(env, opts, irOpts, mainId, buffers.map(idFromName));
+    return generateShader(
+        { ...env, typeDefs: {} },
+        opts,
+        irOpts,
+        mainId,
+        buffers.map(idFromName),
+    );
 };
 
 export const hasInvalidGLSL = (expr: Expr) => {
