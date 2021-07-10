@@ -1,5 +1,6 @@
 // ugh
 
+import { allEnumAttributes } from '../../language/src/printing/glslPrinter';
 import { recordAttributeName } from '../../language/src/printing/typeScriptPrinterSimple';
 import { allRecordMembers } from '../../language/src/printing/typeScriptTypePrinter';
 import { addRecord, idName } from '../../language/src/typing/env';
@@ -387,35 +388,94 @@ export const getStateLocations = (
             gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
         };
     } else if (type.type === 'user') {
-        const attrs = allRecordMembers(env, type.id).map((member) => {
-            const name = recordAttributeName(
-                env,
-                { type: 'user', id: member.id },
-                member.i,
-            );
-            if (member.item.type === 'ref') {
-                return {
-                    name,
-                    fn: getStateLocations(
-                        gl,
-                        program,
-                        env,
-                        member.item.ref,
-                        `${prefix}.${name}`,
-                    ),
-                };
-            } else {
-                throw new Error(`member type not processable`);
+        const constr = env.global.types[idName(type.id)];
+        if (constr.type === 'Record') {
+            const attrs = allRecordMembers(env, type.id).map((member) => {
+                const name = recordAttributeName(
+                    env,
+                    { type: 'user', id: member.id },
+                    member.i,
+                );
+                if (member.item.type === 'ref') {
+                    return {
+                        name,
+                        fn: getStateLocations(
+                            gl,
+                            program,
+                            env,
+                            member.item.ref,
+                            `${prefix}.${name}`,
+                        ),
+                    };
+                } else {
+                    throw new Error(`member type not processable`);
+                }
+                // return {name, loc: gl.getUniformLocation(program, `${prefix}.${name}`), type: member.item}
+            });
+            console.log(attrs);
+            // const locations = attrNames.map(name => ({name, loc: gl.getUniformLocation(program, `u_state.${name}`)}))
+            return (newState: unknown) => {
+                const state = newState as any;
+                attrs.forEach((attr) => attr.fn(state[attr.name]));
+                // gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
+            };
+        } else {
+            if (constr.extends.length) {
+                throw new Error(`enum extends not supported atm`);
             }
-            // return {name, loc: gl.getUniformLocation(program, `${prefix}.${name}`), type: member.item}
-        });
-        console.log(attrs);
-        // const locations = attrNames.map(name => ({name, loc: gl.getUniformLocation(program, `u_state.${name}`)}))
-        return (newState: unknown) => {
-            const state = newState as any;
-            attrs.forEach((attr) => attr.fn(state[attr.name]));
-            // gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
-        };
+
+            const tag = gl.getUniformLocation(program, `${prefix}.tag`)!;
+            const idNames = constr.items.map((i) => idName(i.ref.id));
+
+            const attrs = allEnumAttributes(env, constr, {}).map(
+                ({ i, id, item }) => {
+                    if (item.type !== 'ref' || item.typeVbls.length) {
+                        throw new Error(`enum item not processable`);
+                    }
+                    const name = recordAttributeName(
+                        env,
+                        { type: 'user', id },
+                        i,
+                    );
+                    return {
+                        id,
+                        name,
+                        fn: getStateLocations(
+                            gl,
+                            program,
+                            env,
+                            item.ref,
+                            `${prefix}.${name}`,
+                        ),
+                    };
+                },
+            );
+
+            // so ... we ... set the tag ... and the ... things
+            console.log(constr);
+            return (newState: unknown) => {
+                if (!newState) {
+                    console.log(newState);
+                    throw new Error(`Oh no`);
+                }
+                const state = newState as { type: string } & {
+                    [key: string]: unknown;
+                };
+
+                const idx = idNames.indexOf(state.type);
+                if (idx === -1) {
+                    throw new Error(`isRecord but record isnt in enum`);
+                }
+                gl.uniform1i(tag, idx);
+
+                attrs.forEach((attr) => {
+                    // If this attr is for the active enum item
+                    if (idName(attr.id) === state.type) {
+                        attr.fn(state[attr.name]);
+                    }
+                });
+            };
+        }
     } else {
         throw new Error('Unable to handle this kind of state');
     }

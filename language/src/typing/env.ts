@@ -36,6 +36,7 @@ import {
     Self,
     selfEnv,
     newLocal,
+    UserTypeReference,
 } from './types';
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
@@ -308,12 +309,12 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
                     `${idName(row.ref.id)} is an enum. use ...spread syntax.`,
                 );
             }
-            return row as TypeReference;
+            return row as UserTypeReference;
         });
     const extend = defn.items
         .filter((x) => x.type === 'Spread')
         .map((x) => {
-            const sub = typeType(typeInnerWithSelf, x.ref) as TypeReference;
+            const sub = typeType(typeInnerWithSelf, x.ref) as UserTypeReference;
             return sub;
         });
     // console.log(items.length, extend.length);

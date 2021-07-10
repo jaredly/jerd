@@ -267,7 +267,7 @@ export type Expr =
     | { type: 'arrayLen'; value: Expr; loc: Loc; is: Type } // TODO this could just be represented with a buitin, right? yeah
     | { type: 'builtin'; name: string; loc: Loc; is: Type }
     // used in switches
-    | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc; is: Type }
+    | { type: 'IsRecord'; value: Expr; ref: UserReference; loc: Loc; is: Type }
     | {
           type: 'effectfulOrDirect';
           effectful: boolean;

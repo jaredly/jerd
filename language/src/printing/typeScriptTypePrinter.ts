@@ -252,6 +252,9 @@ export const recordMemberSignature = (
 
 export const allRecordMembers = (env: Env, id: Id) => {
     const constr = env.global.types[idName(id)] as RecordDef;
+    if (constr.type !== 'Record') {
+        throw new Error(`Not a record`);
+    }
     return constr.items
         .map((item, i) => ({ id, item, i }))
         .concat(

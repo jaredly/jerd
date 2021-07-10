@@ -15,6 +15,7 @@ import {
     TypeVblDecl,
     typesEqual,
     nullLocation,
+    UserTypeReference,
 } from './types';
 import { Expression } from '../parsing/parser';
 import { subEnv, Location } from './types';
@@ -738,7 +739,7 @@ export const typeFitsEnum = (
 export const getEnumSuperTypes = (
     env: Env,
     enumRef: TypeReference,
-): Array<TypeReference> => {
+): Array<UserTypeReference> => {
     let enumDef = typeDef(env.global, enumRef.ref);
     if (enumDef == null) {
         throw new Error(`Unknown type definition ${showType(env, enumRef)}`);
@@ -763,7 +764,7 @@ export const getEnumSuperTypes = (
 export const getEnumReferences = (
     env: Env,
     enumRef: TypeReference,
-): Array<TypeReference> => {
+): Array<UserTypeReference> => {
     let enumDef = typeDef(env.global, enumRef.ref);
     if (enumDef == null) {
         throw new Error(`Unknown type definition ${showType(env, enumRef)}`);
@@ -830,10 +831,10 @@ export const applyTypeVariablesToEnum = (
         typeVbls: [],
         effectVbls: [], // STOPSHIP effect vbls for enums
         items: type.items.map(
-            (t) => subtTypeVars(t, mapping, selfHash) as TypeReference,
+            (t) => subtTypeVars(t, mapping, selfHash) as UserTypeReference,
         ),
         extends: type.extends.map(
-            (t) => subtTypeVars(t, mapping, selfHash) as TypeReference,
+            (t) => subtTypeVars(t, mapping, selfHash) as UserTypeReference,
         ),
         location: type.location,
     };

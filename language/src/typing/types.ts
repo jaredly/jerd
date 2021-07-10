@@ -646,8 +646,8 @@ export type EnumDef = {
     location: Location;
     typeVbls: Array<TypeVblDecl>;
     effectVbls: Array<number>;
-    extends: Array<TypeReference>;
-    items: Array<TypeReference>;
+    extends: Array<UserTypeReference>;
+    items: Array<UserTypeReference>;
 };
 
 export type TypeDef = RecordDef | EnumDef;
@@ -800,6 +800,13 @@ export const effectsMatch = (
     return true;
 };
 
+export type UserTypeReference = {
+    type: 'ref';
+    ref: UserReference;
+    location: Location;
+    typeVbls: Array<Type>;
+    // effectVbls: Array<EffectRef>;
+};
 export type TypeReference = {
     type: 'ref';
     ref: Reference;
@@ -807,7 +814,7 @@ export type TypeReference = {
     typeVbls: Array<Type>;
     // effectVbls: Array<EffectRef>;
 };
-export type TypeRef = TypeReference | TypeVar; // will also support vbls at some point I guess
+export type TypeRef = UserTypeReference | TypeReference | TypeVar; // will also support vbls at some point I guess
 
 export type TypeVar = {
     type: 'var';

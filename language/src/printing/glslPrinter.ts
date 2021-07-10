@@ -390,6 +390,8 @@ export const stmtToGlsl = (
                 atom(' = '),
                 termToGlsl(env, opts, stmt.value),
             ]);
+        case 'MatchFail':
+            return atom('// match fail');
         default:
             return atom(`nope_stmt_${stmt.type}`);
     }
@@ -629,6 +631,32 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
         // Traces aren't supported in glsl, they just pass through.
         case 'Trace':
             return termToGlsl(env, opts, expr.args[0]);
+        case 'IsRecord': {
+            if (
+                expr.value.is.type !== 'ref' ||
+                expr.value.is.ref.type !== 'user'
+            ) {
+                throw new Error(`isRecord only for user refs`);
+            }
+            const constr = env.global.types[idName(expr.value.is.ref.id)];
+            if (constr.type !== 'Enum') {
+                throw new Error(`expected enum`);
+            }
+            if (constr.extends.length) {
+                throw new Error(`extends enum not supported`);
+            }
+            const idNames = constr.items.map((i) => idName(i.ref.id));
+            const idx = idNames.indexOf(idName(expr.ref.id));
+            if (idx === -1) {
+                throw new Error(`isRecord but record isnt in enum`);
+            }
+            return items([
+                termToGlsl(env, opts, expr.value),
+                atom('.tag'),
+                atom(' == '),
+                atom(`${idx}`),
+            ]);
+        }
         default:
             return atom('nope_term_' + expr.type);
     }
@@ -1020,19 +1048,13 @@ export const typeDefToGLSL = (
     );
 };
 
-export const enumToGLSL = (
-    env: Env,
+export const allEnumAttributes = (
+    env: TermEnv,
     constr: EnumDef,
-    opts: OutputOptions,
-    irOpts: IOutputOptions,
-    id: Id,
+    opts: IOutputOptions,
 ) => {
-    if (constr.extends.length) {
-        throw new Error(`no extends yet`);
-    }
-    const items = constr.items;
-
-    const allAllItems = ([] as Array<RecordAttribute>).concat(
+    // TODO: Dedup! If there are duplicates, things will break
+    return ([] as Array<RecordAttribute>).concat(
         ...constr.items.map((tref, i) => {
             if (tref.ref.type !== 'user') {
                 throw new Error(`nope builtin`);
@@ -1055,13 +1077,27 @@ export const enumToGLSL = (
 
             return getAllRecordAttributes(
                 env,
-                irOpts,
+                opts,
                 tref.ref.id,
-                recordDefFromTermType(env, irOpts, r),
+                recordDefFromTermType(env, opts, r),
             );
         }),
     );
-    // TODO: Dedup! If there are duplicates, things will break
+};
+
+export const enumToGLSL = (
+    env: Env,
+    constr: EnumDef,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    id: Id,
+) => {
+    if (constr.extends.length) {
+        throw new Error(`no extends yet`);
+    }
+    const items = constr.items;
+
+    const allAllItems = allEnumAttributes(env, constr, irOpts);
 
     return pp.items([
         atom('struct '),
