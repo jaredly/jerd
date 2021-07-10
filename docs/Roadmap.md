@@ -1,6 +1,13 @@
 
 ## Next steps
 
+- [ ] when you click a thing from a term, it opens up as a /sub/ cell. And then if you edit that cell,
+      then it updates all the other things in the main & sub cells.
+      - so I also need TypeErrors
+        - arguments
+        - attributes
+
+
 - [x] monomorphize types with type variables folks
 - [x] get basic scenes working!
 - [x] fix my hacky hardcode of vec2, so that non-vec2 states work

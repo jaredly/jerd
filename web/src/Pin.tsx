@@ -66,7 +66,14 @@ export const Pin = ({
     } else {
         const t = env.global.terms[hash];
         const plugin: RenderPluginT = plugins[pin.display.type];
-        const err = getTypeError(env, t.is, plugin.type, nullLocation);
+        const err = getTypeError(
+            env,
+            t.is,
+            plugin.type,
+            nullLocation,
+            undefined,
+            true,
+        );
         if (err == null) {
             body = plugin.render(
                 evalEnv.terms[idName(pin.id)],

@@ -595,24 +595,21 @@ export const HoverPanel = ({
     toggleSettings: (s: boolean) => void;
 }) => (
     <div css={hover} className="hover">
-        <IconButton
-            icon="play_arrow"
-            selected={playState === 'playing'}
-            onClick={() => {
-                if (playState !== 'playing') {
-                    setPlayState('playing');
-                }
-            }}
-        />
-        <IconButton
-            icon="pause"
-            selected={playState === 'paused'}
-            onClick={() => {
-                if (playState !== 'paused') {
+        {playState === 'playing' ? (
+            <IconButton
+                icon="pause"
+                onClick={() => {
                     setPlayState('paused');
-                }
-            }}
-        />
+                }}
+            />
+        ) : (
+            <IconButton
+                icon="play_arrow"
+                onClick={() => {
+                    setPlayState('playing');
+                }}
+            />
+        )}
         <IconButton
             icon="replay"
             selected={false}
