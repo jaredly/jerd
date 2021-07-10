@@ -99,7 +99,6 @@ const ShowError = ({
 }) => {
     if (err instanceof UnresolvedIdentifier) {
         return <AutoComplete env={err.env} name={err.id.text} />;
-        // return <div>Unresolved {err.id.text}</div>;
     }
     const lines = text.split(/\n/g);
     if (err instanceof SyntaxError) {
@@ -110,7 +109,7 @@ const ShowError = ({
             <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
                 Syntax error at {showLocation(err.location) + '\n'}
                 {lines[err.location.start.line - 1] + '\n'}
-                {white(err.location.start.column) + '^\n'}
+                {white(err.location.start.column - 1) + '^\n'}
                 {lines
                     .slice(err.location.start.line, err.location.end.line + 2)
                     .join('\n')}
@@ -122,7 +121,7 @@ const ShowError = ({
             <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
                 {err.toString()} at {showLocation(err.loc) + '\n'}
                 {lines[err.loc.start.line - 1] + '\n'}
-                {white(err.loc.start.column) + '^\n'}
+                {white(err.loc.start.column - 1) + '^\n'}
                 {lines
                     .slice(err.loc.start.line, err.loc.end.line + 2)
                     .join('\n')}

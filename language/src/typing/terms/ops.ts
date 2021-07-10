@@ -21,12 +21,9 @@ import typeExpr, {
 } from '../typeExpr';
 import { getTypeError } from '../getTypeError';
 import { idFromName, idName, resolveIdentifier } from '../env';
-import { LocatedError, TypeMismatch, UnresolvedIdentifier } from '../errors';
-import { refName } from '../typePattern';
+import { LocatedError, TypeMismatch } from '../errors';
 import { walkType } from '../typeType';
 import { float, int, numeric, string } from '../preset';
-import { termToPretty } from '../../printing/printTsLike';
-import { printToString } from '../../printing/printer';
 
 // loosest at the top, tightest at the bottom
 const precedence = [
@@ -279,11 +276,23 @@ const typeNewOp = (
 
     const firstErr = getTypeError(env, left.is, fn.is.args[0], left.location);
     if (firstErr != null) {
-        throw firstErr;
+        left = {
+            type: 'TypeError',
+            is: fn.is.args[0],
+            location: left.location,
+            inner: left,
+        };
+        // throw firstErr;
     }
     const secondErr = getTypeError(env, rarg.is, fn.is.args[1], rarg.location);
     if (secondErr != null) {
-        throw secondErr;
+        // throw secondErr;
+        rarg = {
+            type: 'TypeError',
+            inner: rarg,
+            location: rarg.location,
+            is: fn.is.args[1],
+        };
     }
 
     return {
@@ -306,7 +315,7 @@ const typeOp = (
     location: Location,
 ): Term => {
     // Shortcut
-    const rarg =
+    let rarg =
         right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
 
     const result = typeNewOp(env, left, op, rarg, location);
@@ -373,11 +382,23 @@ const typeOp = (
 
     const firstErr = getTypeError(env, left.is, is.args[0], left.location);
     if (firstErr != null) {
-        throw firstErr;
+        left = {
+            type: 'TypeError',
+            is: is.args[0],
+            location: left.location,
+            inner: left,
+        };
+        // throw firstErr;
     }
     const secondErr = getTypeError(env, rarg.is, is.args[1], rarg.location);
     if (secondErr != null) {
-        throw secondErr;
+        // throw secondErr;
+        rarg = {
+            type: 'TypeError',
+            inner: rarg,
+            location: rarg.location,
+            is: is.args[1],
+        };
     }
 
     return {

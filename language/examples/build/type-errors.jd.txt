@@ -46,7 +46,7 @@ Trying to call int#builtin
 
 Wrong number of arguments (string#builtin) ={}> void#builtin, 1 vs 2
 
-Type error!UnresolvedIdentifier2
+Type error!UnresolvedIdentifier
 
 Return type of lambda doesn't fit type declaration
 
