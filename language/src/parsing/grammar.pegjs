@@ -232,7 +232,7 @@ ArrayPatternItems = first:ArrayPatternItem rest:(_ "," _ ArrayPatternItem)* ","?
 ArrayPatternItem = ArrayPatternSpread / Pattern
 ArrayPatternSpread = "..." pattern:Pattern {return {type: 'Spread', inner: pattern, location: location()}}
 
-RecordPattern = id:Identifier "{" items:RecordPatternCommas "}" {
+RecordPattern = id:Identifier _ "{" _ items:RecordPatternCommas _ "}" {
     return {type: 'Record', id, items, location: location()}
 }
 RecordPatternCommas = first:RecordPatternItem rest:(_ "," _ RecordPatternItem)* ","? {return [first, ...rest.map((r: any) => r[3])]}

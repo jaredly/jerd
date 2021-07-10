@@ -1,6 +1,10 @@
 
 ## Next steps
 
+- [ ] enums?
+      how do we do it
+      you make a union, right? 
+
 - [ ] when you click a thing from a term, it opens up as a /sub/ cell. And then if you edit that cell,
       then it updates all the other things in the main & sub cells.
       - so I also need TypeErrors

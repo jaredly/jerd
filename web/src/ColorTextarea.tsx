@@ -103,6 +103,9 @@ const getCode = (root: ChildNode) => {
             return '#' + hash;
         }
     }
+    if (root.nodeName === 'BR') {
+        return '\n';
+    }
     let res = '';
     root.childNodes.forEach((node) => {
         if (node.nodeName === '#text') {

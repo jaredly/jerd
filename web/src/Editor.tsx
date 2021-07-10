@@ -79,17 +79,40 @@ const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
     );
 };
 
-const ShowError = ({ err, env }: { err: Error; env: Env }) => {
+const ShowError = ({
+    err,
+    env,
+    text,
+}: {
+    err: Error;
+    env: Env;
+    text: string;
+}) => {
     if (err instanceof UnresolvedIdentifier) {
         return <AutoComplete env={err.env} name={err.id.text} />;
         // return <div>Unresolved {err.id.text}</div>;
     }
     if (err instanceof SyntaxError) {
-        return <div>Syntax error at {showLocation(err.location)}</div>;
+        console.log('syntax error', err);
+        console.log(Object.keys(err));
+        console.log(err.expected, err.found, err.location, err.name);
+        const lines = text.split(/\n/g);
+        return (
+            <div style={{ whiteSpace: 'pre', fontFamily: 'monospace' }}>
+                Syntax error at {showLocation(err.location)}
+                {lines
+                    .slice(
+                        err.location.start.line - 1,
+                        err.location.end.line + 2,
+                    )
+                    .join('\n')}
+            </div>
+        );
     }
     if (err instanceof TypeError) {
         return <div>{err.toString()}</div>;
     }
+    console.log('error here we are');
     console.log(err);
     return <div>{err.message}</div>;
 };
@@ -290,8 +313,9 @@ export default ({
                     position: 'relative',
                 }}
             >
+                errors
                 {err != null ? (
-                    <ShowError err={err} env={env} />
+                    <ShowError err={err} env={env} text={text} />
                 ) : typed == null ? null : (
                     renderAttributedText(
                         env.global,
