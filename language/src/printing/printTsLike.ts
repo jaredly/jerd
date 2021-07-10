@@ -799,7 +799,15 @@ export const termToPretty = (env: Env, term: Term): PP => {
         case 'Ambiguous':
             return atom('[ambiguous! error]', undefined, term.location);
         case 'TypeError':
-            return atom('[type error!]', undefined, term.location);
+            return items(
+                [
+                    atom('[type error!'),
+                    termToPretty(env, term.inner),
+                    atom(']'),
+                ],
+                undefined,
+                term.location,
+            );
         default:
             let _x: never = term;
             return atom(

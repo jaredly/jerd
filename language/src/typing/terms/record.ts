@@ -260,7 +260,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 } at ${showLocation(row.id.location)}`,
             );
         }
-        const v = typeExpr(env, row.value, rowsToMod[i].type);
+        let v = typeExpr(env, row.value, rowsToMod[i].type);
         const err = getTypeError(
             env,
             v.is,
@@ -268,15 +268,21 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             row.value.location,
         );
         if (err != null) {
-            throw new LocatedError(
-                row.value.location,
-                `Invalid type for attribute ${row.id.text} at ${showLocation(
-                    row.value.location,
-                )}. Expected ${showType(
-                    env,
-                    recordType.items[i],
-                )}, got ${showType(env, v.is)}`,
-            ).wrap(err);
+            v = {
+                type: 'TypeError',
+                is: rowsToMod[i].type,
+                inner: v,
+                location: v.location,
+            };
+            // throw new LocatedError(
+            //     row.value.location,
+            //     `Invalid type for attribute ${row.id.text} at ${showLocation(
+            //         row.value.location,
+            //     )}. Expected ${showType(
+            //         env,
+            //         recordType.items[i],
+            //     )}, got ${showType(env, v.is)}`,
+            // ).wrap(err);
         }
         rowsToMod[i].value = v;
     });
