@@ -1,7 +1,7 @@
 /** @jsx jsx */
 // The editor bit
 
-import { jsx } from '@emotion/react';
+import { jsx, withTheme } from '@emotion/react';
 import * as React from 'react';
 import { parse, SyntaxError } from '@jerd/language/src/parsing/grammar';
 import { Toplevel } from '@jerd/language/src/parsing/parser';
@@ -29,6 +29,7 @@ import {
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import {
+    LocatedError,
     TypeError,
     UnresolvedIdentifier,
 } from '@jerd/language/src/typing/errors';
@@ -79,6 +80,14 @@ const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
     );
 };
 
+const white = (num: number) => {
+    let r = '';
+    for (let i = 0; i < num; i++) {
+        r += ' ';
+    }
+    return r;
+};
+
 const ShowError = ({
     err,
     env,
@@ -92,19 +101,30 @@ const ShowError = ({
         return <AutoComplete env={err.env} name={err.id.text} />;
         // return <div>Unresolved {err.id.text}</div>;
     }
+    const lines = text.split(/\n/g);
     if (err instanceof SyntaxError) {
         console.log('syntax error', err);
         console.log(Object.keys(err));
         console.log(err.expected, err.found, err.location, err.name);
-        const lines = text.split(/\n/g);
         return (
-            <div style={{ whiteSpace: 'pre', fontFamily: 'monospace' }}>
-                Syntax error at {showLocation(err.location)}
+            <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+                Syntax error at {showLocation(err.location) + '\n'}
+                {lines[err.location.start.line - 1] + '\n'}
+                {white(err.location.start.column) + '^\n'}
                 {lines
-                    .slice(
-                        err.location.start.line - 1,
-                        err.location.end.line + 2,
-                    )
+                    .slice(err.location.start.line, err.location.end.line + 2)
+                    .join('\n')}
+            </div>
+        );
+    }
+    if (err instanceof LocatedError && err.loc) {
+        return (
+            <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+                {err.toString()} at {showLocation(err.loc) + '\n'}
+                {lines[err.loc.start.line - 1] + '\n'}
+                {white(err.loc.start.column) + '^\n'}
+                {lines
+                    .slice(err.loc.start.line, err.loc.end.line + 2)
                     .join('\n')}
             </div>
         );

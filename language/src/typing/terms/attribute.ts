@@ -2,7 +2,14 @@ import { AttributeSuffix } from '../../parsing/parser';
 import { hasSubType, idFromName, idName } from '../env';
 import { LocatedError } from '../errors';
 import { applyTypeVariablesToRecord, showLocation } from '../typeExpr';
-import { Env, getAllSubTypes, isRecord, Term, UserReference } from '../types';
+import {
+    Env,
+    getAllSubTypes,
+    isRecord,
+    refsEqual,
+    Term,
+    UserReference,
+} from '../types';
 import { showType } from '../unify';
 
 export const typeAttribute = (
@@ -26,6 +33,33 @@ export const typeAttribute = (
         const [id, num] = suffix.id.hash.slice(1).split('#');
         ref = { type: 'user', id: idFromName(id) };
         idx = +num;
+        if (target.is.type !== 'ref') {
+            throw new LocatedError(
+                suffix.location,
+                `Not a record ${showType(env, target.is)} at ${showLocation(
+                    suffix.location,
+                )}`,
+            );
+        }
+        // TODO: need to check subtypes / spreads n stuffs
+        // this is wrong
+        if (!refsEqual(ref, target.is.ref)) {
+            target = {
+                type: 'TypeError',
+                is: {
+                    type: 'ref',
+                    ref,
+                    typeVbls: [],
+                    location: target.location,
+                },
+                inner: target,
+                location: target.location,
+            };
+            // throw new LocatedError(
+            //     suffix.location,
+            //     `hashed attribute doesnt line up`,
+            // );
+        }
     } else if (suffix.id.text.match(/^\d+$/)) {
         idx = +suffix.id.text;
         if (
