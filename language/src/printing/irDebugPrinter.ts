@@ -5,13 +5,23 @@ import { Location } from '../parsing/parser';
 import { idName } from '../typing/env';
 import { getOpLevel } from '../typing/terms/ops';
 // import { bool } from '../typing/preset';
-import { Env, Id, Reference, Symbol } from '../typing/types';
+import {
+    Env,
+    Id,
+    idsEqual,
+    nullLocation,
+    Reference,
+    Symbol,
+} from '../typing/types';
 import { emojis } from './emojis';
 // import { isBinop } from './glslPrinter';
 import * as ir from './ir/intermediateRepresentation';
 import { Expr } from './ir/types';
+import { float } from './ir/utils';
 import * as pp from './printer';
 import { args, atom, block, id, items, PP } from './printer';
+import { recordAttributeName } from './typeScriptPrinterSimple';
+import { allRecordMembers } from './typeScriptTypePrinter';
 
 export const binops = [
     // 'mod',
@@ -125,10 +135,42 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
             if (expr.base.type === 'Variable') {
                 throw new Error('not yet impl');
             }
+            const base = expr.base;
+            const rows = allRecordMembers(env, expr.base.ref.id);
             return items(
                 [
                     idToDebug(env, expr.base.ref.id, true, expr.loc),
-                    atom('TODO TODO'),
+                    atom('{TODO SPREADs}'),
+                    // TODO SPREADS
+                    args(
+                        rows.map(({ id, i, item }) =>
+                            items([
+                                atom(
+                                    recordAttributeName(
+                                        env,
+                                        { type: 'user', id },
+                                        i,
+                                    ),
+                                ),
+                                atom(': '),
+                                debugExpr(
+                                    env,
+                                    (idsEqual(id, base.ref.id)
+                                        ? base.rows[i]
+                                        : expr.subTypes[idName(id)].rows[
+                                              i
+                                          ]) || {
+                                        type: 'var',
+                                        sym: { name: '_', unique: 0 },
+                                        loc: nullLocation,
+                                        is: float,
+                                    },
+                                ),
+                            ]),
+                        ),
+                        '{',
+                        '}',
+                    ),
                 ],
                 undefined,
                 expr.loc,

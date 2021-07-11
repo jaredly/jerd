@@ -1,4 +1,10 @@
-import { Env, Type, Pattern } from '../../typing/types';
+import {
+    Env,
+    Type,
+    Pattern,
+    UserTypeReference,
+    UserReference,
+} from '../../typing/types';
 import { showType } from '../../typing/unify';
 import { getEnumReferences } from '../../typing/typeExpr';
 import { idName } from '../../typing/env';
@@ -139,7 +145,8 @@ export const printPattern = (
                     {
                         type: 'IsRecord',
                         value,
-                        ref: pattern.ref.ref,
+                        // TODO this is a bug maybe?
+                        ref: pattern.ref.ref as UserReference,
                         loc: pattern.location,
                         is: bool,
                     },

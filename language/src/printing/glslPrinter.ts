@@ -61,6 +61,7 @@ import {
     int,
     pureFunction,
     recordDefFromTermType,
+    showType,
     typeFromTermType,
     void_,
 } from './ir/utils';
@@ -657,11 +658,123 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 atom(`${idx}`),
             ]);
         }
+        case 'Enum': {
+            if (expr.is.ref.type === 'builtin') {
+                throw new Error(`no builtin enums`);
+            }
+            const constr = env.global.types[idName(expr.is.ref.id)] as EnumDef;
+            if (constr.type !== 'Enum') {
+                throw new Error(`Not an enum`);
+            }
+            const attrs = allEnumAttributes(env, constr, {});
+            // We're upgrading to an enum.
+            if (
+                expr.inner.type === 'record' &&
+                expr.inner.base.type === 'Concrete' &&
+                expr.inner.is.type === 'ref' &&
+                expr.inner.is.ref.type === 'user'
+            ) {
+                const idNames = constr.items.map((i) => idName(i.ref.id));
+                const idx = idNames.indexOf(idName(expr.inner.is.ref.id));
+                if (idx === -1) {
+                    throw new Error(`isRecord but record isnt in enum`);
+                }
+
+                const iid = expr.inner.is.ref.id;
+                const name = idToGlsl(env, opts, expr.is.ref.id, true);
+                const rows = expr.inner.base.rows;
+                return items([
+                    name,
+                    args(
+                        [atom(idx.toString())].concat(
+                            attrs.map(({ i, id, item }) =>
+                                termToGlsl(
+                                    env,
+                                    opts,
+                                    idsEqual(id, iid)
+                                        ? rows[i]!
+                                        : // STOPSHIP: irOpts here????
+                                          makeZeroValue(
+                                              env,
+                                              {},
+                                              item,
+                                              expr.loc,
+                                          ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ]);
+            } else if (
+                expr.inner.type === 'var' ||
+                expr.inner.type === 'term'
+            ) {
+                // This is a 'constant', so we can just do things
+                return atom('nope_enum_varterm');
+            } else {
+                return atom('nope_enum_upgrade');
+            }
+        }
         default:
             return atom('nope_term_' + expr.type);
     }
     // return atom(`vec4(1.0,0.0,0.0,1.0)`);
     // return atom('nope' + expr.type);
+};
+
+export const makeZeroValue = (
+    env: TermEnv,
+    opts: IOutputOptions,
+    item: ir.Type,
+    loc: Location,
+): ir.Expr => {
+    switch (item.type) {
+        case 'var':
+            throw new Error(`STOPSHIP can't zero value a var`);
+        case 'ref':
+            if (item.ref.type === 'builtin') {
+                switch (item.ref.name) {
+                    case 'float':
+                        return { type: 'float', loc, is: float, value: 0 };
+                    case 'int':
+                        return { type: 'int', loc, is: int, value: 0 };
+                }
+            } else {
+                const constr = env.global.types[idName(item.ref.id)];
+                if (constr.type === 'Enum') {
+                    const id = typeFromTermType(env, opts, constr.items[0]);
+                    return {
+                        type: 'Enum',
+                        is: item,
+                        loc,
+                        inner: makeZeroValue(env, opts, id, loc),
+                    };
+                }
+                if (constr.extends.length) {
+                    throw new Error('STOPSHIP extends');
+                }
+                return {
+                    type: 'record',
+                    is: item,
+                    loc,
+                    subTypes: {},
+                    base: {
+                        type: 'Concrete',
+                        ref: item.ref,
+                        spread: null,
+                        rows: constr.items.map((t) =>
+                            makeZeroValue(
+                                env,
+                                opts,
+                                typeFromTermType(env, opts, t),
+                                loc,
+                            ),
+                        ),
+                    },
+                };
+            }
+    }
+    throw new Error(`Can't make zero value for ${showType(env, item)}`);
 };
 
 export const addComment = (value: PP, comment: string | null) =>
