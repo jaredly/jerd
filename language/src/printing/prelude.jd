@@ -443,14 +443,52 @@ type GLSLEnv<T> = {
     mouseButton: int,
 }
 
-@ffi
-type GLSLScene<T> = {
+@ffi("GLSLScene")
+type GLSLSceneOld<T> = {
     initial: T,
     step: (GLSLEnv<T,>, GLSLEnv<T,>) => T,
     render: (GLSLEnv<T>, Vec2) => Vec4,
 }
 
-// GLSL Tests you see
+@ffi
+type KeyEvent = {key: string, press: bool, ctrlKey: bool, shiftKey: bool, metaKey: bool}
+
+@ffi
+type MouseButton = {
+    button: int,
+    down: bool, ctrlKey: bool, shiftKey: bool, metaKey: bool}
+
+enum GLSLEvent {
+    KeyEvent,
+    MouseButton
+    // MouseMove maybe? idk
+}
+
+@ffi
+type GLSLScene<T> = {
+    initial: T,
+    step: (GLSLEnv<T,>, GLSLEnv<T,>, Array<GLSLEvent>) => T,
+    render: (GLSLEnv<T>, Vec2) => Vec4,
+}
+
+const rec reduce = <T, R>(
+    items: Array<T>,
+    init: R,
+    fn: (R, T) ={}> R,
+): R ={}> switch items {
+    [] => init,
+    [item, ...rest] => reduce#self<T, R>(rest, fn(init, item), fn),
+}
+
+
+// const reduce = <T, R>(items: Array<T>, initial: R, fn: (current: R, item: T) => R) => switch items {
+//     [] => initial,
+//     [value, ...rest] => reduce<T, R>(rest, fn(initial, value), fn)
+// }
+const rec reduce = <T, R>(items: Array<T>, initial: R, fn: (current: R, item: T) => R): R => switch items {
+    [] => initial,
+    [value, ...rest] => reduce<T, R>(rest, fn(initial, value), fn)
+}
 
 // type ResultsState = {
 //     passed: float,
