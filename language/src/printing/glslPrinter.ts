@@ -71,6 +71,7 @@ import * as pp from './printer';
 import { args, atom, block, items, PP, printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
 import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
+import { allRecordMembers } from './typeScriptTypePrinter';
 
 export type Env = TermEnv & {
     typeDefs: TypeDefs;
@@ -592,8 +593,12 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                     atom(']'),
                 ]);
             }
+            const target =
+                expr.target.type === 'SpecializeEnum'
+                    ? expr.target.inner
+                    : expr.target;
             return items([
-                termToGlsl(env, opts, expr.target),
+                termToGlsl(env, opts, target),
                 atom('.'),
                 atom(
                     recordAttributeName(env, expr.ref, expr.idx, env.typeDefs),
@@ -657,6 +662,33 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 atom(' == '),
                 atom(`${idx}`),
             ]);
+        }
+        case 'SpecializeEnum': {
+            if (expr.is.ref.type === 'builtin') {
+                throw new Error('nope folks');
+            }
+            const constr = env.global.types[idName(expr.is.ref.id)];
+            if (constr.type === 'Record') {
+                const attrs = allRecordMembers(env, expr.is.ref.id);
+                return items([
+                    idToGlsl(env, opts, expr.is.ref.id, true),
+                    args(
+                        attrs.map(({ id, item, i }) =>
+                            termToGlsl(env, opts, {
+                                type: 'attribute',
+                                target: expr.inner,
+                                // STOPSHPI: pass opts here
+                                is: typeFromTermType(env, {}, item),
+                                loc: expr.loc,
+                                ref: { type: 'user', id },
+                                idx: i,
+                            }),
+                        ),
+                    ),
+                ]);
+            } else {
+                throw new Error('NOT IMPL');
+            }
         }
         case 'Enum': {
             if (expr.is.ref.type === 'builtin') {

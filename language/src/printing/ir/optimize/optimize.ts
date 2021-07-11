@@ -21,6 +21,7 @@ import { flattenImmediateAssigns } from './flattenImmediateAssigns';
 import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { flattenRecordSpreads } from './flattenRecordSpread';
 import { foldConstantAssignments } from './foldConstantAssignments';
+import { foldImmediateAttributeAccess } from './foldImmediateAttributeAccess';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inlineFunctionsCalledWithCapturingLambdas, inlint } from './inline';
 import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
@@ -422,6 +423,7 @@ export const javascriptOpts: Array<Optimizer2> = [
     optimizeTailCalls,
     optimize,
     arraySliceLoopToIndex,
+    foldImmediateAttributeAccess,
 ];
 
 export const ensureToplevelFunctionsAreLambdas = (ctx: Context, expr: Expr) => {

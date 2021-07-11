@@ -174,11 +174,7 @@ export const hash_fd1532c0:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void) => void = (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => {
-    done$3(handlers, ({
-      type: "872c6ee8",
-      h872c6ee8_0: returnValue$5,
-      h872c6ee8_1: 5
-    } as t_872c6ee8).h872c6ee8_0);
+    done$3(handlers, returnValue$5);
   });
 };
 

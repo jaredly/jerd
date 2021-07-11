@@ -108,6 +108,12 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
     switch (expr.type) {
         case 'var':
             return debugSym(expr.sym, expr.loc);
+        case 'SpecializeEnum':
+            return items([
+                debugType(env, expr.is),
+                atom(' <- '),
+                debugExpr(env, expr.inner),
+            ]);
         case 'Enum':
             return items([
                 debugType(env, expr.is),

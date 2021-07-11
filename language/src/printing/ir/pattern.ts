@@ -83,7 +83,25 @@ export const printPattern = (
                     {
                         type: 'Define',
                         sym: pattern.name,
-                        value,
+                        // then it's smallify this enum
+                        value:
+                            pattern.inner.type === 'Enum' ||
+                            // STOPSHIP smallify the enum
+                            //
+                            pattern.inner.type === 'Record'
+                                ? {
+                                      type: 'SpecializeEnum',
+                                      // STOPSHP: carry over the proper type variables
+                                      is: {
+                                          type: 'ref',
+                                          ref: pattern.inner.ref.ref,
+                                          typeVbls: [],
+                                          loc: pattern.inner.location,
+                                      },
+                                      inner: value,
+                                      loc: pattern.inner.location,
+                                  }
+                                : value,
                         is: mapType(type),
                         loc: pattern.location,
                     },

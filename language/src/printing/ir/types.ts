@@ -251,9 +251,18 @@ export type Var = { type: 'var'; sym: Symbol; loc: Loc; is: Type };
 
 export type Enum = { type: 'Enum'; is: TypeReference; inner: Expr; loc: Loc };
 
+export type SpecializeEnum = {
+    type: 'SpecializeEnum';
+    inner: Expr;
+    // Could either be a smaller enum, or a record
+    is: TypeReference;
+    loc: Location;
+};
+
 export type Expr =
     | Literal
     | Enum
+    | SpecializeEnum
     | { type: 'unary'; inner: Expr; is: Type; loc: Loc; op: string }
     | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
     | { type: 'term'; id: Id; loc: Loc; is: Type }

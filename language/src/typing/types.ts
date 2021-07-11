@@ -424,7 +424,7 @@ export type ArraySpread = {
     location: Location;
 };
 
-// This is basically a type coersion?
+// This is basically a type coersion? well not when we have to deal with unions explicitly
 export type Enum = {
     type: 'Enum';
     inner: Term;

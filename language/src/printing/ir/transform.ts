@@ -67,6 +67,7 @@ export const transformExpr = (
         case 'var':
             return expr;
         case 'Enum':
+        case 'SpecializeEnum':
         case 'unary': {
             const t = transformExpr(expr.inner, visitor, level);
             return t !== expr.inner ? { ...expr, inner: t } : expr;
