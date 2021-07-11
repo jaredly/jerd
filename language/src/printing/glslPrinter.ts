@@ -709,8 +709,49 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 expr.inner.type === 'var' ||
                 expr.inner.type === 'term'
             ) {
-                // This is a 'constant', so we can just do things
-                return atom('nope_enum_varterm');
+                if (
+                    expr.inner.is.type !== 'ref' ||
+                    expr.inner.is.ref.type !== 'user'
+                ) {
+                    throw new Error(`Not a user erf`);
+                }
+                const idNames = constr.items.map((i) => idName(i.ref.id));
+                const idx = idNames.indexOf(idName(expr.inner.is.ref.id));
+                if (idx === -1) {
+                    throw new Error(`isRecord but record isnt in enum`);
+                }
+
+                const iid = expr.inner.is.ref.id;
+                const name = idToGlsl(env, opts, expr.is.ref.id, true);
+                return items([
+                    name,
+                    args(
+                        [atom(idx.toString())].concat(
+                            attrs.map(({ i, id, item }) =>
+                                termToGlsl(
+                                    env,
+                                    opts,
+                                    idsEqual(id, iid)
+                                        ? {
+                                              type: 'attribute',
+                                              target: expr.inner,
+                                              ref: { type: 'user', id },
+                                              idx: i,
+                                              loc: expr.inner.loc,
+                                              is: item,
+                                          }
+                                        : // STOPSHIP: irOpts here????
+                                          makeZeroValue(
+                                              env,
+                                              {},
+                                              item,
+                                              expr.loc,
+                                          ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ]);
             } else {
                 return atom('nope_enum_upgrade');
             }
