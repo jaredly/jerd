@@ -5,9 +5,20 @@ import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { idFromName, idName } from '@jerd/language/src/typing/env';
 import { CellView, MovePosition } from './Cell';
-import { Cell, Content, RenderPlugins } from './State';
+import { Cell, Content, EvalEnv, RenderPlugins } from './State';
 import { runTerm } from './eval';
 import { State, Workspace } from './App';
+import {
+    Env,
+    Id,
+    idsEqual,
+    Location,
+    nullLocation,
+    Term,
+} from '../../language/src/typing/types';
+import { transform } from '../../language/src/typing/transform';
+import { getTypeError } from '../../language/src/typing/getTypeError';
+import { getToplevel, updateToplevel } from './toplevels';
 
 export const genId = () => Math.random().toString(36).slice(2);
 export const blankCell: Cell = {
@@ -373,68 +384,7 @@ const Cells = ({
                         onChange={(env, cell) => {
                             console.log('Change', cell);
                             setState((state) => {
-                                const w =
-                                    state.workspaces[state.activeWorkspace];
-                                if (cell.content === w.cells[cell.id].content) {
-                                    return modActiveWorkspace((workspace) => ({
-                                        ...workspace,
-                                        cells: {
-                                            ...workspace.cells,
-                                            [cell.id]: cell,
-                                        },
-                                    }))({ ...state, env });
-                                }
-                                if (
-                                    cell.content.type === 'expr' ||
-                                    cell.content.type === 'term'
-                                ) {
-                                    const id = cell.content.id;
-                                    let results: any = {};
-                                    try {
-                                        const term =
-                                            env.global.terms[idName(id)];
-                                        if (!term) {
-                                            throw new Error(
-                                                `No term ${idName(id)}`,
-                                            );
-                                        }
-
-                                        results = runTerm(
-                                            env,
-                                            term,
-                                            id,
-                                            state.evalEnv,
-                                        );
-                                    } catch (err) {
-                                        console.log(`Failed to run!`);
-                                        console.log(err);
-                                        // return state;
-                                    }
-                                    return modActiveWorkspace((workspace) => ({
-                                        ...workspace,
-                                        cells: {
-                                            ...workspace.cells,
-                                            [cell.id]: cell,
-                                        },
-                                    }))({
-                                        ...state,
-                                        env,
-                                        evalEnv: {
-                                            ...state.evalEnv,
-                                            terms: {
-                                                ...state.evalEnv.terms,
-                                                ...results,
-                                            },
-                                        },
-                                    });
-                                }
-                                return modActiveWorkspace((workspace) => ({
-                                    ...workspace,
-                                    cells: {
-                                        ...workspace.cells,
-                                        [cell.id]: cell,
-                                    },
-                                }))({ ...state, env });
+                                return onChangeCell(env, state, cell);
                             });
                         }}
                     />
@@ -558,6 +508,127 @@ const calculateOrder = (
                 `Unexpected position type ${(position as any).type}`,
             );
     }
+};
+
+// What things am I updating?
+// - cells
+// - env
+// - evalEnv
+export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
+    const w = state.workspaces[state.activeWorkspace];
+    let evalEnv = state.evalEnv;
+    if (cell.content !== w.cells[cell.id].content) {
+        if (cell.content.type === 'expr' || cell.content.type === 'term') {
+            evalEnv = updateEvalEnv(env, cell.content.id, state.evalEnv);
+        }
+    }
+
+    state = modActiveWorkspace((workspace) => ({
+        ...workspace,
+        cells: {
+            ...workspace.cells,
+            [cell.id]: cell,
+        },
+    }))({ ...state, env, evalEnv });
+
+    const prevCell = w.cells[cell.id];
+    if (
+        (prevCell.content.type === 'expr' ||
+            prevCell.content.type === 'term') &&
+        (cell.content.type === 'expr' || cell.content.type === 'term')
+    ) {
+        const prevId = prevCell.content.id;
+        const prevTerm = env.global.terms[idName(prevId)];
+        const newId = cell.content.id;
+        const newTerm = env.global.terms[idName(newId)];
+        const areDifferent = getTypeError(
+            env,
+            newTerm.is,
+            prevTerm.is,
+            newTerm.location,
+        );
+        const replace = (location: Location): Term => {
+            const newRef: Term = {
+                type: 'ref',
+                ref: { type: 'user', id: newId },
+                is: newTerm.is,
+                location,
+            };
+            return areDifferent
+                ? {
+                      type: 'TypeError',
+                      is: prevTerm.is,
+                      inner: newRef,
+                      location,
+                  }
+                : newRef;
+        };
+
+        // START HERE:
+        // go through other cells, find dependencies
+        Object.keys(w.cells).forEach((cid) => {
+            if (cid === cell.id) {
+                return;
+            }
+            const other = w.cells[cid];
+            if (
+                other.content.type !== 'expr' &&
+                other.content.type !== 'term'
+            ) {
+                return;
+            }
+            const oid = other.content.id;
+            const term = env.global.terms[idName(oid)];
+            const newTerm = transform(term, {
+                let: (_) => null,
+                term: (term) => {
+                    if (
+                        term.type === 'ref' &&
+                        term.ref.type === 'user' &&
+                        idsEqual(term.ref.id, prevId)
+                    ) {
+                        return replace(term.location);
+                    }
+                    return null;
+                },
+            });
+
+            if (newTerm !== term) {
+                const top = getToplevel(env, other.content);
+                const { env: nenv, content } = updateToplevel(
+                    env,
+                    { ...(top as any), term: newTerm },
+                    cell.content,
+                );
+                state = onChangeCell(nenv, state, { ...other, content });
+            }
+        });
+    }
+
+    return state;
+};
+
+export const updateEvalEnv = (env: Env, id: Id, evalEnv: EvalEnv): EvalEnv => {
+    let results: any = {};
+    try {
+        const term = env.global.terms[idName(id)];
+        if (!term) {
+            throw new Error(`No term ${idName(id)}`);
+        }
+
+        results = runTerm(env, term, id, evalEnv);
+    } catch (err) {
+        console.log(`Failed to run!`);
+        console.log(err);
+        // return state;
+    }
+    return {
+        ...evalEnv,
+        terms: {
+            ...evalEnv.terms,
+            ...results,
+        },
+    };
 };
 
 export const activeWorkspace = (state: State) =>
