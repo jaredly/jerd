@@ -451,12 +451,22 @@ type GLSLSceneOld<T> = {
 }
 
 @ffi
-type KeyEvent = {key: string, press: bool, ctrlKey: bool, shiftKey: bool, metaKey: bool}
+type KeyEvent = {
+    key: string,
+    press: bool,
+    ctrlKey: bool,
+    shiftKey: bool,
+    metaKey: bool
+}
 
 @ffi
 type MouseButton = {
     button: int,
-    down: bool, ctrlKey: bool, shiftKey: bool, metaKey: bool}
+    down: bool,
+    ctrlKey: bool,
+    shiftKey: bool,
+    metaKey: bool,
+}
 
 enum GLSLEvent {
     KeyEvent,

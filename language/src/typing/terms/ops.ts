@@ -358,7 +358,13 @@ const typeOp = (
             // OK START EHERE:
             // This is where we would, instead of bailing, say
             // "this is ok, we wrap it in an error term"
-            throw new TypeMismatch(env, left.is, rarg.is, left.location);
+            // throw new TypeMismatch(env, left.is, rarg.is, left.location);
+            rarg = {
+                type: 'TypeError',
+                inner: rarg,
+                is: left.is,
+                location: rarg.location,
+            };
         }
         // STOPSHIP: have an actual solution for strings
         if (

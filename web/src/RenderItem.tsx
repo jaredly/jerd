@@ -1,6 +1,9 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react';
-import { printToAttributedText } from '@jerd/language/src/printing/printer';
+import {
+    Extra,
+    printToAttributedText,
+} from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import {
     hashObject,
@@ -19,6 +22,7 @@ import {
 import * as React from 'react';
 import { addLocationIndices } from '../../language/src/typing/analyze';
 import { walkTerm } from '../../language/src/typing/transform';
+import { showType } from '../../language/src/typing/unify';
 import { Position } from './Cells';
 import { IconButton } from './display/OpenGLCanvas';
 import { runTerm } from './eval';
@@ -260,6 +264,9 @@ export const RenderItem = ({
     }, [env, content]);
     const [scrub, setScrub] = React.useState(null as null | Scrub);
     const value = evalEnv.terms[idName(content.id)];
+    const [hover, setHover] = React.useState(
+        null as null | [Extra, HTMLDivElement],
+    );
 
     return (
         <div>
@@ -288,10 +295,18 @@ export const RenderItem = ({
                             'custom-binop',
                             'float',
                         ].includes(kind),
+                    (extra: Extra, target: HTMLDivElement | null) => {
+                        if (target) {
+                            setHover([extra, target]);
+                        } else if (hover) {
+                            setHover(null);
+                        }
+                    },
                 )}
                 {scrub
                     ? renderScrub(env, top, scrub, setScrub, onChange, evalEnv)
                     : null}
+                {hover ? renderHover(env, hover) : null}
             </div>
             {term ? (
                 <RenderResult
@@ -307,6 +322,36 @@ export const RenderItem = ({
                     onRun={onRun}
                 />
             ) : null}
+        </div>
+    );
+};
+
+const renderHover = (env: Env, hover: [Extra, HTMLDivElement]) => {
+    const box = hover[1].getBoundingClientRect();
+    const pbox = hover[1].offsetParent!.getBoundingClientRect();
+    return (
+        <div
+            css={{
+                position: 'absolute',
+                backgroundColor: 'black',
+                fontFamily: 'monospace',
+                whiteSpace: 'pre-wrap',
+                color: 'white',
+                padding: 8,
+                pointerEvents: 'none',
+            }}
+            style={{
+                top: box.bottom - pbox.top + 4,
+                left: box.left - pbox.left,
+            }}
+        >
+            Expected:
+            <br />
+            {showType(env, hover[0].expected)}
+            <br />
+            Found:
+            <br />
+            {showType(env, hover[0].found)}
         </div>
     );
 };

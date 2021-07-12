@@ -2,7 +2,7 @@
 import { jsx } from '@emotion/react';
 
 import * as React from 'react';
-import { AttributedText } from '@jerd/language/src/printing/printer';
+import { AttributedText, Extra } from '@jerd/language/src/printing/printer';
 import { idName } from '@jerd/language/src/typing/env';
 import { GlobalEnv, Location } from '@jerd/language/src/typing/types';
 import { css } from '@emotion/react';
@@ -14,7 +14,7 @@ const kindColors: { [key: string]: string } = {
     type: '#4EC9B0',
 };
 
-const stylesForAttributes = (attributes: Array<string>) => {
+const stylesForAttributes = (attributes: Array<string | Extra>) => {
     if (attributes.includes('string')) {
         return { color: '#ce9178' };
     }
@@ -112,7 +112,10 @@ export const renderAttributedTextToHTML = (
                 }</span>`;
             }
             const style = stylesForAttributes(item.attributes);
-            let styleString = `color:${style.color}`;
+            let styleString = '';
+            if (style.color) {
+                styleString = `color:${style.color}`;
+            }
             if (style.fontStyle) {
                 styleString += `;font-style:${style.fontStyle}`;
             }
@@ -124,16 +127,14 @@ export const renderAttributedTextToHTML = (
                     data-location=${
                         item.loc ? JSON.stringify(item.loc) : undefined
                     }
-                    style=${styleString}
-                    key={i}
-                >
-                    ${renderAttributedTextToHTML(
-                        env,
-                        item.contents,
-                        allIds,
-                        idColors,
-                    )}
-                </span>`;
+                    style='${styleString}'
+                    key=${i}
+                >${renderAttributedTextToHTML(
+                    env,
+                    item.contents,
+                    allIds,
+                    idColors,
+                )}</span>`;
             }
             return `<span style="${styleString}">${escapeHTML(
                 (item as any).text,
@@ -160,6 +161,8 @@ export const renderAttributedText = (
     allIds?: boolean,
     idColors: Array<string> = colors,
     openable = (id: string, kind: string, loc?: Location) => false,
+    setHover = (hover: Extra, target: HTMLDivElement | null) =>
+        console.log('hover', hover, target),
 ) => {
     const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
@@ -220,10 +223,30 @@ export const renderAttributedText = (
             );
         }
         if ('type' in item && item.type === 'Group') {
+            const first = item.attributes.find(
+                (x) => typeof x !== 'string',
+            ) as Extra | null;
             return (
                 <span
                     data-location={
                         item.loc ? JSON.stringify(item.loc) : undefined
+                    }
+                    onMouseEnter={
+                        first
+                            ? (evt) => {
+                                  setHover(
+                                      first,
+                                      evt.currentTarget as HTMLDivElement,
+                                  );
+                              }
+                            : undefined
+                    }
+                    onMouseLeave={
+                        first
+                            ? (evt) => {
+                                  setHover(first, null);
+                              }
+                            : undefined
                     }
                     style={stylesForAttributes(item.attributes)}
                     key={i}
@@ -235,6 +258,7 @@ export const renderAttributedText = (
                         allIds,
                         idColors,
                         openable,
+                        setHover,
                     )}
                 </span>
             );

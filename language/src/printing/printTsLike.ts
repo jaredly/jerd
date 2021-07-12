@@ -800,14 +800,16 @@ export const termToPretty = (env: Env, term: Term): PP => {
             return atom('[ambiguous! error]', undefined, term.location);
         case 'TypeError':
             return items(
-                [
-                    // atom('[type error!'),
-                    termToPretty(env, term.inner),
-                    // atom(']'),
-                ],
+                [termToPretty(env, term.inner)],
                 undefined,
                 term.location,
-                ['error'],
+                // ok so I feel like I want a way to pass more complicated infos
+                // idk
+                // maybe a type Extra? that might have `typeError`, or like `loc` or sommat
+                [
+                    'error',
+                    { type: 'Error', expected: term.is, found: term.inner.is },
+                ],
             );
         default:
             let _x: never = term;

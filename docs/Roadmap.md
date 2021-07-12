@@ -10,10 +10,24 @@
     - [x] this is needed in the IR
   - [x] explicit downgrading from enum (if, as in glsl, it's needed)
 
+## Editor updating
+
+### Simplest case: a constant is updated, no type change
+if there's a type change, it just turns into a type error, right?
+### Slightly more complex: a record type is updated in a backwards compatible way...
+well adding a record item only works if there aren't any instances where things are created
+but if not, then we can turn it into a type error dealio
+
 ## Can I make snake?
 
-- [ ] arrow keys, need to be able to handle in the /step/ fn, right?
+- [ ] arrow keys, need to be able to handle in the /step/ fn, right? Are there other events I want to handle?
+    hmmmmm
+    I guess a reduce is what I'd be doing, right?
+    - [x] make a new GLSLScene2 type
+    - [ ] weep that my js dealio doesn't have the properties of my language, such that I have to duplicate a bunch of things maybe
+    - [ ] or just move to the new version, and require that all current pins get manually updated. Which is fine I guess. Would be nice to have a way to indicate (in prelude.jd) "this deprecates the old version folks" so that I can do my deprecation annotations in the editor 🎉
 - [ ] arrays please?
+  - so I can do a snake game probably?
 
 - [ ] when you click a thing from a term, it opens up as a /sub/ cell. And then if you edit that cell,
       then it updates all the other things in the main & sub cells.

@@ -1,15 +1,17 @@
 // A basic width-aware pretty printer
 
 import { isBinop } from '../typing/terms/ops';
-import { Location, locToEnd, locToStart } from '../typing/types';
+import { Location, locToEnd, locToStart, Type } from '../typing/types';
 
 // Doesn't need to be terribly fancy.
+
+export type Extra = { type: 'Error'; expected: Type; found: Type };
 
 export const items = (
     items: Array<PP | null>,
     breakable = false,
     loc?: Location,
-    attributes?: Array<string>,
+    attributes?: Array<string | Extra>,
 ): PP => ({
     type: 'items',
     items: items.filter((x) => x != null) as Array<PP>,
@@ -91,7 +93,7 @@ export type PP =
           items: Array<PP>;
           breakable: boolean;
           loc?: Location;
-          attributes?: Array<string>;
+          attributes?: Array<string | Extra>;
       };
 
 const white = (x: number) => new Array(x).fill(' ').join('');
@@ -256,7 +258,7 @@ export type AttributedText =
     | {
           type: 'Group';
           contents: Array<AttributedText>;
-          attributes: Array<string>;
+          attributes: Array<string | Extra>;
           loc?: Location;
       }
     | { id: string; text: string; kind: string; loc?: Location };

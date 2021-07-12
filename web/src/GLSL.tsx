@@ -184,7 +184,7 @@ export default () => {
 
             const pp = fileToGlsl(
                 expressions,
-                { ...env, typeDefs: {} },
+                env,
                 oopts,
                 irOpts,
                 false,

@@ -26,9 +26,9 @@ Wrong type for arg 0:
 Found: T#:0
 but expected string#builtin : 36:30-36:32
 
-Type error!TypeMismatch
+expected string#builtin, found int#builtin
 
-Type error!TypeMismatch
+expected string#builtin, found int#builtin
 
 Wrong type for arg 0: 
 Found: int#builtin
@@ -36,7 +36,7 @@ but expected string#builtin : 46:18-46:19
 
 Value of const doesn't match type annotation.
 
-Type error!TypeMismatch
+expected string#builtin, found int#builtin
 
 Condition of if must be a boolean
 
