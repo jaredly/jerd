@@ -2,7 +2,13 @@
 
 import { Expression, Toplevel } from '../parsing/parser';
 import typeExpr, { showLocation } from '../typing/typeExpr';
-import { Env, getEffects, newLocal, Term, Type } from '../typing/types';
+import {
+    Env,
+    getEffects,
+    newLocal,
+    Term,
+    TypeError as TypeErrorTerm,
+} from '../typing/types';
 import { showType } from '../typing/unify';
 import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
@@ -17,6 +23,7 @@ import {
 
 import { presetEnv } from '../typing/preset';
 import { LocatedError, TypeError } from './errors';
+import { transform } from './transform';
 
 export function typeFile(
     parsed: Toplevel[],
@@ -118,6 +125,24 @@ export function typeFile(
                 let t;
                 try {
                     t = typeExpr(env, expr);
+
+                    const typeErrors: Array<TypeErrorTerm> = [];
+                    transform(t, {
+                        let: () => null,
+                        term: (term) => {
+                            if (term.type === 'TypeError') {
+                                typeErrors.push(term);
+                            }
+                            return null;
+                        },
+                    });
+                    if (typeErrors.length) {
+                        const message = `Found ${showType(
+                            env,
+                            typeErrors[0].inner.is,
+                        )}, expected ${showType(env, typeErrors[0].is)}`;
+                        throw new Error(message);
+                    }
                 } catch (err) {
                     const message =
                         err instanceof TypeError ? err.toString() : err.message;
@@ -131,14 +156,13 @@ export function typeFile(
                         ).wrap(err);
                     }
                 }
-                throw new Error(
+
+                throw new LocatedError(
+                    expr.location,
                     `Expected a type error, but got ${showType(
                         env,
                         t.is,
-                    )} at ${showLocation(expr.location)}\n${printToString(
-                        termToPretty(env, t),
-                        100,
-                    )}`,
+                    )}\n${printToString(termToPretty(env, t), 100)}`,
                 );
             } else {
                 if (

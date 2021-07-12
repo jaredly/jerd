@@ -197,7 +197,8 @@ const processErrors = (fname: string, builtins: { [key: string]: Type }) => {
                 return;
             }
             console.log(item);
-            throw new Error(
+            throw new LocatedError(
+                item.location,
                 `Expected a type error at ${showLocation(
                     item.location,
                 )} : ${printToString(termToPretty(env, term), 100)}`,
