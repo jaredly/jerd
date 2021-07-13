@@ -1,44 +1,379 @@
-const EPSILON = 0.0001
-
-const marchNormals = (sceneSDF: (GLSLEnv, Vec3) ={}> float): (
-    GLSLEnv,
-    Vec2,
-) ={}> Vec4 ={}> (env: GLSLEnv, coord: Vec2): Vec4 ={}> {
-    const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
-    const m = sceneSDF(env, eye);
-    if m > 100.0 - EPSILON {
-        vec4(1.0)
-    } else {
-        const n = sceneSDF(env, eye + 1.0);
-        vec4(n)
-    }
+@ffi("Vec2") type Vec2 = {
+    x: float,
+    y: float,
 }
 
-// START HERE PLEASE:
-// My optimization passes are quite unsatisfying.
-// I really should be running all of them until nothing changes.
-// But I'm sure there's a lot of redundant work going on.
-// Anyway, my "march normals" thing still isn't working right.
+@ffi("Vec2") type Vec2 = {
+    x: float,
+    y: float,
+}
 
-@main
-const unnamed = marchNormals(
-    (env: GLSLEnv, p: Vec3): float ={}> length(p) - 1.0,
+type MovingTo = {
+    pos: Vec2,
+    current: Vec2,
+}
+
+type At = {
+    pos: Vec2,
+}
+
+@ffi("Vec3") type Vec3 = {
+    ...Vec2,
+    z: float,
+}
+
+enum Target {
+    At,
+    MovingTo,
+}
+
+type ColorDist = {
+    dist: float,
+    color: Vec3,
+}
+
+@ffi("Vec4") type Vec4 = {
+    ...Vec3,
+    w: float,
+}
+
+type Mul<A, B, C> = {
+    "*": (A, B) ={}> C,
+}
+
+type AddSub<A, B, C> = {
+    "+": (A, B) ={}> C,
+    "-": (A, B) ={}> C,
+}
+
+@ffi("GLSLEnv") type GLSLEnv<T> = {
+    state: T,
+    time: float,
+    resolution: Vec2,
+    camera: Vec3,
+    mouse: Vec2,
+    mouseButton: int,
+}
+
+type State = {
+    pos: Vec2,
+    target: Target,
+}
+
+@ffi("GLSLScene") type GLSLScene<T> = {
+    initial: T,
+    step: (GLSLEnv<T>, GLSLEnv<T>) ={}> T,
+    render: (GLSLEnv<T>, Vec2) ={}> Vec4,
+}
+
+const lerp = (a: float, b: float, c: float): float ={}> c 
+        * (b - a) 
+    + a
+
+const mix = (a: Vec3, b: Vec3, c: float): Vec3 ={}> {
+    Vec3{
+        x: lerp(a: a.x, b: b.x, c),
+        y: lerp(a: a.y, b: b.y, c),
+        z: lerp(a: a.z, b: b.z, c),
+    };
+}
+
+const sminCubic = (a: float, b: float, k: float): float ={}> {
+    const h = max(k - abs(a - b), 0.0) / k;
+    const sixth = 1.0 / 6.0;
+    min(a, b) 
+        - h * h * h * k * sixth;
+}
+
+const vec4 = (
+    x: float,
+    y: float,
+    z: float,
+    w: float,
+): Vec4 ={}> Vec4{
+    z: z,
+    x: x,
+    y: y,
+    w: w,
+}
+
+const dot = (a: Vec2, b: Vec2): float ={}> {
+    a.x * b.x 
+        + a.y * b.y;
+}
+
+const fract = (v: float): float ={}> v - floor(v)
+
+const vec3 = (x: float): Vec3 ={}> Vec3{
+    x: x,
+    y: x,
+    z: x,
+}
+
+const vec4 = (v: Vec3, w: float): Vec4 ={}> Vec4{
+    ...v,
+    w: w,
+}
+
+const colorMin = (
+    one: ColorDist,
+    two: ColorDist,
+    between: float,
+): ColorDist ={}> {
+    if one.dist < 0.0 || two.dist < 0.0 {
+        if one.dist < two.dist {
+            one;
+        } else {
+            two;
+        };
+    } else if one.dist + two.dist < between {
+        ColorDist{
+            dist: sminCubic(
+                a: one.dist,
+                b: two.dist,
+                k: between,
+            ),
+            color: mix(
+                a: one.color,
+                b: two.color,
+                c: (one.dist + two.dist) / between,
+            ),
+        };
+    } else if one.dist < two.dist {
+        one;
+    } else {
+        two;
+    };
+}
+
+const mix = (a: Vec4, b: Vec4, c: float): Vec4 ={}> {
+    Vec4{
+        z: lerp(a: a.z, b: b.z, c),
+        x: lerp(a: a.x, b: b.x, c),
+        y: lerp(a: a.y, b: b.y, c),
+        w: lerp(a: a.w, b: b.w, c),
+    };
+}
+
+const green = vec4(x: 0.0, y: 1.0, z: 0.0, w: 1.0)
+
+const blue = vec4(x: 0.0, y: 0.0, z: 1.0, w: 1.0)
+
+const xyz = (v: Vec4): Vec3 ={}> Vec3{
+    x: v.x,
+    y: v.y,
+    z: v.z,
+}
+
+const vec2 = (x: float, y: float): Vec2 ={}> Vec2{
+    x: x,
+    y: y,
+}
+
+const ScaleVec2 = Mul<Vec2, Vec2, Vec2>{
+    "*": (v: Vec2, scale: Vec2): Vec2 ={}> Vec2{
+        x: v.x * scale.x,
+        y: v.y * scale.y,
+    },
+}
+
+const Vec2float = Mul<Vec2, float, Vec2>{
+    "*": (v: Vec2, scale: float): Vec2 ={}> Vec2{
+        x: v.x * scale,
+        y: v.y * scale,
+    },
+}
+
+const AddSubVec2_ = AddSub<Vec2, float, Vec2>{
+    "+": (one: Vec2, two: float): Vec2 ={}> Vec2{
+        x: one.x + two,
+        y: one.y + two,
+    },
+    "-": (one: Vec2, two: float): Vec2 ={}> Vec2{
+        x: one.x - two,
+        y: one.y - two,
+    },
+}
+
+const random = (seed: Vec2): float ={}> {
+    fract(
+        v: sin(
+                dot(
+                    a: seed,
+                    b: Vec2{x: 12.9898, y: 78.233},
+                ),
+            ) 
+            * 43758.5453123,
+    );
+}
+
+const AddSubVec2 = AddSub<Vec2, Vec2, Vec2>{
+    "+": (one: Vec2, two: Vec2): Vec2 ={}> Vec2{
+        x: one.x + two.x,
+        y: one.y + two.y,
+    },
+    "-": (one: Vec2, two: Vec2): Vec2 ={}> Vec2{
+        x: one.x - two.x,
+        y: one.y - two.y,
+    },
+}
+
+const length = (v: Vec2): float ={}> sqrt(
+    v.x * v.x 
+        + v.y * v.y,
 )
 
-const doIt = (env: GLSLEnv, p: Vec3): float ={}> length(p) - 1.0
+const mix = (a: Vec2, b: Vec2, c: float): Vec2 ={}> {
+    Vec2{
+        x: lerp(a: a.x, b: b.x, c),
+        y: lerp(a: a.y, b: b.y, c),
+    };
+}
 
-// @main
-const unnamed = {
-    const sceneSDF = doIt;
-    (env: GLSLEnv, coord: Vec2): Vec4 ={}> {
-        const eye = Vec3{x: 0.0, y: 0.0, z: 5.0};
-        const m = sceneSDF(env, eye);
-        if m > 100.0 - EPSILON {
-            vec4(1.0)
+const vec2 = (x: float): Vec2 ={}> Vec2{
+    x: x,
+    y: x,
+}
+
+const mydeal = GLSLScene<State>{
+    initial: State{
+        pos: vec2(x: 0.0) + 1.0,
+        target: Target:At{pos: vec2(x: 0.0)},
+    },
+    step: (
+        env: GLSLEnv<State>,
+        old: GLSLEnv<State>,
+    ): State ={}> {
+        const next = mix(
+            a: env.state.pos,
+            b: env.mouse,
+            c: 0.1,
+        );
+        switch env.state.target {
+            At{pos: target} => if length(
+                    v: next - target,
+                ) 
+                < 10.0 {
+                const x = random(
+                    seed: target + next 
+                        + env.time,
+                );
+                const y = random(seed: target + x);
+                State{
+                    pos: next,
+                    target: Target:MovingTo{
+                        pos: vec2(x, y) 
+                                * env.resolution 
+                            * 2.0,
+                        current: target,
+                    },
+                };
+            } else {
+                State{...env.state, pos: next};
+            },
+            MovingTo{pos: pos, current: current} => {
+                const target = mix(a: current, b: pos, c: 0.3);
+                const target = if length(v: target - pos) 
+                    < 0.54 {
+                    Target:At{pos: target};
+                } else {
+                    Target:MovingTo{
+                        pos: pos,
+                        current: target,
+                    };
+                };
+                State{pos: next, target: target};
+            },
+        };
+    },
+    render: (env: GLSLEnv<State>, pos: Vec2): Vec4 ={}> {
+        const user = ColorDist{
+            dist: length(
+                    v: pos - env.state.pos,
+                ) 
+                - 10.0,
+            color: xyz(v: blue),
+        };
+        const target = ColorDist{
+            dist: length(
+                    v: pos 
+                        - {
+                            switch env.state.target {
+                                At{pos: pos} => pos,
+                                MovingTo{current: current} => current,
+                            };
+                        },
+                ) 
+                - 20.0,
+            color: xyz(
+                v: switch env.state.target {
+                    At => green,
+                    MovingTo{current: current, pos: pos} => mix(
+                        a: green,
+                        b: vec4(x: 0.0, y: 0.5, z: 0.5, w: 1.0),
+                        c: min(
+                            1.0,
+                            length(v: current - pos) 
+                                / 10.0,
+                        ),
+                    ),
+                },
+            ),
+        };
+        const res = colorMin(one: user, two: target, between: 20.0);
+        vec4(
+            v: if res.dist < 0.0 {
+                res.color;
+            } else {
+                vec3(x: 1.0);
+            },
+            w: 1.0,
+        );
+    },
+}
+
+@main
+const x = (env: GLSLEnv<State>, pos: Vec2): Vec4 ={}> {
+    const user = ColorDist{
+        dist: length(
+                v: pos - env.state.pos,
+            ) 
+            - 10.0,
+        color: xyz(v: blue),
+    };
+    const target = ColorDist{
+        dist: length(
+                v: pos 
+                    - {
+                        switch env.state.target {
+                            At{pos: pos} => pos,
+                            MovingTo{current: current} => current,
+                        };
+                    },
+            ) 
+            - 20.0,
+        color: xyz(
+            v: switch env.state.target {
+                At => green,
+                MovingTo{current: current, pos: pos} => mix(
+                    a: green,
+                    b: vec4(x: 0.0, y: 0.5, z: 0.5, w: 1.0),
+                    c: min(
+                        1.0,
+                        length(v: current - pos) 
+                            / 10.0,
+                    ),
+                ),
+            },
+        ),
+    };
+    const res = colorMin(one: user, two: target, between: 20.0);
+    vec4(
+        v: if res.dist < 0.0 {
+            res.color;
         } else {
-            // const n = sceneSDF(env, eye + 1.0);
-            // vec4(n)
-            vec4(0.0)
-        }
-    }
+            vec3(x: 1.0);
+        },
+        w: 1.0,
+    );
 }

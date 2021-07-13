@@ -963,17 +963,24 @@ export const assembleItemsForFile = (
         try {
             const undefinedUses = uniquesReallyAreUnique(irTerm);
             if (undefinedUses.length > 0) {
-                throw new Error(`Undefined var!`);
+                throw new LocatedError(
+                    undefinedUses[0].loc,
+                    `Undefined vars ${undefinedUses[0].sym.name}:${undefinedUses[0].sym.unique}!`,
+                );
             }
         } catch (err) {
             const outer = new LocatedError(
                 term.location,
-                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+                `Failed while typing for glsl ${idRaw} : ${
+                    env.global.idNames[idRaw] || 'no name'
+                }`,
             ).wrap(err);
             throw outer;
         }
         // irTerm = explicitSpreads(senv, irOpts, irTerm);
         // irTerm = optimizeDefine(senv, irTerm, id, irTerms);
+
+        const preOpt = irTerm;
         irTerm = optimization(
             {
                 env: senv,
@@ -986,12 +993,65 @@ export const assembleItemsForFile = (
             irTerm,
         );
 
+        try {
+            const undefinedUses = uniquesReallyAreUnique(irTerm);
+            if (undefinedUses.length > 0) {
+                // console.log(printToString(debugExpr(env, preOpt), 100));
+                // console.log('Bad news');
+                // console.log(printToString(debugExpr(env, irTerm), 100));
+                throw new LocatedError(
+                    undefinedUses[0].loc,
+                    `Undefined vars ${undefinedUses[0].sym.name}:${undefinedUses[0].sym.unique}!`,
+                );
+            }
+        } catch (err) {
+            const ctx = {
+                env: senv,
+                opts: irOpts,
+                exprs: irTerms,
+                id,
+                types: env.typeDefs,
+                optimize: optimization,
+            };
+
+            let opt = preOpt;
+            let done = false;
+            while (!done) {
+                for (let optimize of glslOpts) {
+                    console.log(optimize);
+                    console.log(printToString(debugExpr(env, opt), 100));
+                    const next = optimize(ctx, opt);
+                    const undefinedUses = uniquesReallyAreUnique(next);
+                    if (undefinedUses.length > 0) {
+                        console.log(printToString(debugExpr(env, opt), 100));
+                        console.log('########################');
+                        console.log('Bad news', undefinedUses[0]);
+                        console.log('########################');
+                        console.log(optimize);
+                        console.log(printToString(debugExpr(env, next), 100));
+                        done = true;
+                        break;
+                    }
+                    opt = next;
+                }
+            }
+
+            const outer = new LocatedError(
+                term.location,
+                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+            ).wrap(err);
+            throw outer;
+        }
+
         irTerm = maybeAddRecordInlines(irTerms, id, irTerm);
 
         try {
             const undefinedUses = uniquesReallyAreUnique(irTerm);
             if (undefinedUses.length > 0) {
-                throw new Error(`Undefined var!`);
+                throw new LocatedError(
+                    undefinedUses[0].loc,
+                    `Undefined vars ${undefinedUses[0].sym.name}:${undefinedUses[0].sym.unique}!`,
+                );
             }
         } catch (err) {
             const outer = new LocatedError(
@@ -1702,15 +1762,6 @@ export const fileToGlsl = (
     }
 
     const mainId = idFromName(mains[0]);
-    const mainTerm: Term = {
-        type: 'ref',
-        ref: {
-            type: 'user',
-            id: mainId,
-        },
-        location: nullLocation,
-        is: env.global.terms[idName(mainId)].is,
-    };
 
     // What kinds of things do we want on here?
     // - @inline stuff, got to inline it

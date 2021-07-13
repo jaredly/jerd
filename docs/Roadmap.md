@@ -14,9 +14,16 @@
 
 - [x] show type error on hover
 - [ ] when updating a cell, check other cells and update them too folks
+  - [x] do it for terms
+  - [ ] ok but cells really need to keep track of history, so I can undo it too
+    - hmmmm but hmmm
+    - does it work to just use the workspace history log?
+      that way if I delete a cell, the history doesn't get lost, right? hmmmm
+  - [ ] do it for types 🤔 might need a TypeError for types? Like "this used to take a type variable, and doesn't any longer?" Yeah I think so.... also like I need an "empty" or "hole", for both types and values. I guess with an "empty" I can skip the TypeError for Types, right?
+
   - ok so what if there was like a "candidate" term type? or maybe not a term type, because I don't want it to impact the hash, right? or maybe it's fine? hmmmmmmmmm
     ok so maybe it's a thing that would be tracked in metadata? hmm but how. Or just in the cell info or something? 🤔. well it's something to keep in mind.
-- [ ] ok but cells really need to keep track of history, so I can undo it too
+- [ ] show deprecation with an underline
 
 ### Simplest case: a constant is updated, no type change
 if there's a type change, it just turns into a type error, right?

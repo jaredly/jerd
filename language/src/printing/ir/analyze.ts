@@ -9,7 +9,7 @@ import { handlerSym } from './utils';
 
 export const collectSymDeclarations = (expr: Expr) => {
     const defined: { [unique: number]: true } = {};
-    const undefinedUses: Array<Location> = [];
+    const undefinedUses: Array<{ sym: Symbol; loc: Location }> = [];
     const decls: Array<{ sym: Symbol; loc: Loc; type: string }> = [];
     transformExpr(expr, {
         ...defaultVisitor,
@@ -18,7 +18,7 @@ export const collectSymDeclarations = (expr: Expr) => {
                 // Oh wait, assign shouldn't count
                 case 'Assign':
                     if (!defined[stmt.sym.unique]) {
-                        undefinedUses.push(stmt.loc);
+                        undefinedUses.push({ sym: stmt.sym, loc: stmt.loc });
                     }
                     return null;
                 case 'Define':
@@ -41,7 +41,7 @@ export const collectSymDeclarations = (expr: Expr) => {
                 });
             }
             if (expr.type === 'var' && !defined[expr.sym.unique]) {
-                undefinedUses.push(expr.loc);
+                undefinedUses.push({ sym: expr.sym, loc: expr.loc });
             }
             return null;
         },

@@ -17,6 +17,8 @@ import {
     Type,
 } from '@jerd/language/src/typing/types';
 import * as React from 'react';
+import { LocatedError, TypeError } from '../../../language/src/typing/errors';
+import { showLocation } from '../../../language/src/typing/typeExpr';
 import { EvalEnv, RenderPlugins } from '../State';
 import { OpenGLCanvas } from './OpenGLCanvas';
 import { ShaderCPU } from './ShaderCPU';
@@ -180,6 +182,12 @@ const ShaderGLSLScene = <T,>({
     );
 
     if (error != null) {
+        let message = error.message;
+        if (error instanceof LocatedError && error.loc) {
+            message = `${error.toString()} at ${showLocation(error.loc)}`;
+        } else if (error instanceof TypeError) {
+            message = error.toString();
+        }
         return (
             <div>
                 <div
@@ -190,7 +198,7 @@ const ShaderGLSLScene = <T,>({
                         backgroundColor: '#300',
                     }}
                 >
-                    {error.message + '\n' + error.stack}
+                    {message + '\n' + error.stack}
                 </div>
                 {shaders != null ? (
                     <pre

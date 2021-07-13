@@ -232,7 +232,7 @@ export const optimize = (ctx: Context, expr: Expr): Expr => {
         // shortestDistanceToSurface
         fromSimpleOpt(flattenIffe),
         removeUnusedVariables,
-        fromSimpleOpt(removeNestedBlocksWithoutDefinesAndCodeAfterReturns),
+        removeNestedBlocksAndCodeAfterReturns,
         fromSimpleOpt(foldConstantTuples),
         fromSimpleOpt(removeSelfAssignments),
         foldConstantAssignments(false),
@@ -278,8 +278,8 @@ export const flattenNestedIfs = (env: Env, expr: Expr): Expr => {
     });
 };
 
-export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
-    env: Env,
+export const removeNestedBlocksAndCodeAfterReturns = (
+    ctx: Context,
     expr: Expr,
 ): Expr => {
     return transformRepeatedly(expr, {
@@ -309,10 +309,11 @@ export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
                     return;
                 }
                 if (
-                    item.type === 'Block' &&
+                    item.type === 'Block'
+                    //&&
                     // It's ok to have defines if it's the last item in the block
-                    (i === block.items.length - 1 ||
-                        !item.items.some((item) => item.type === 'Define'))
+                    // (i === block.items.length - 1 ||
+                    //     !item.items.some((item) => item.type === 'Define'))
                 ) {
                     changed = true;
                     items.push(...item.items);

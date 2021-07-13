@@ -1,7 +1,11 @@
 import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
-import { combineOpts, optimizeRepeatedly } from './optimize';
+import {
+    combineOpts,
+    optimizeRepeatedly,
+    removeNestedBlocksAndCodeAfterReturns,
+} from './optimize';
 import { runFixture, snapshotSerializer } from './optimizeTestUtils';
 import { removeUnusedVariables } from './removeUnusedVariables';
 
@@ -30,7 +34,7 @@ describe('flattenImmediateCalls2', () => {
                 combineOpts([flattenImmediateCalls2, foldSingleUseAssignments]),
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#🌽🤰🦞: int = (() => {
+            const expr0#🌽🤰🦞: int = ((): int => {
                 if true {
                     return 20;
                 } else {
@@ -50,7 +54,7 @@ describe('flattenImmediateCalls2', () => {
                 ]),
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#🏊‍♂️: int = (() => {
+            const expr0#🏊‍♂️: int = ((): int => {
                 if 11 > 2 {
                     const x#:0: int = 10;
                     if x#:0 > 1 {
@@ -82,7 +86,7 @@ describe('flattenImmediateCalls2', () => {
                 ]),
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#🍤⭐🧒: int = (() => {
+            const expr0#🍤⭐🧒: int = ((): int => {
                 const z#:2: int;
                 const continueBlock#:3: bool = true;
                 if 11 > 2 {
@@ -174,18 +178,83 @@ describe('flattenImmediateCalls2', () => {
         // Same story with arrays, I imagine.
 
         expect(result).toMatchInlineSnapshot(`
-            const expr0#🐻‍❄️: () => int = () => {
+            const expr0#🐻‍❄️: () => int = (): int => {
                 const v#:0: int = 10;
                 const result#:1: () => int;
                 const continueBlock#:2: bool = true;
                 if v#:0 > 10 {
-                    result#:1 = () => 20;
+                    result#:1 = (): int => 20;
                     continueBlock#:2 = false;
                 } else {
-                    result#:1 = () => 30;
+                    result#:1 = (): int => 30;
                     continueBlock#:2 = false;
                 };
                 return result#:1();
+            }
+        `);
+    });
+
+    it('should do more complex', () => {
+        const result = runFixture(
+            `
+            const length = (m: int) => m + 2
+            (n: int) => length(n - {
+                switch 5 {
+                    4 => 3,
+                    _ => 2
+                }
+            })`,
+            optimizeRepeatedly([
+                removeNestedBlocksAndCodeAfterReturns,
+                // flattenImmediateCalls2
+            ]),
+        );
+        expect(result).toMatchInlineSnapshot(`
+            const length#🥈: (int) => int = (m#:0: int): int => m#:0 + 2
+
+            const expr0#🕑: (int) => int = (n#:0: int): int => length#🥈(
+                n#:0 - ((): int => ((): int => {
+                    if 5 == 4 {
+                        return 3;
+                    };
+                    const _#:1: int = 5;
+                    return 2;
+                })())(),
+            )
+        `);
+    });
+
+    it('should do more complex', () => {
+        const result = runFixture(
+            `
+            const length = (m: int) => m + 2
+            (n: int) => length(n - {
+                switch 5 {
+                    4 => 3,
+                    _ => 2
+                }
+            })`,
+            optimizeRepeatedly([
+                removeNestedBlocksAndCodeAfterReturns,
+                flattenImmediateCalls2,
+            ]),
+        );
+        expect(result).toMatchInlineSnapshot(`
+            const length#🥈: (int) => int = (m#:0: int): int => m#:0 + 2
+
+            const expr0#🕑: (int) => int = (n#:0: int): int => {
+                const result#:3: int;
+                const continueBlock#:4: bool = true;
+                if 5 == 4 {
+                    result#:3 = 3;
+                    continueBlock#:4 = false;
+                };
+                if continueBlock#:4 {
+                    const _#:1: int = 5;
+                    result#:3 = 2;
+                    continueBlock#:4 = false;
+                };
+                return length#🥈(n#:0 - result#:3);
             }
         `);
     });

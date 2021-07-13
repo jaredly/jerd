@@ -977,7 +977,9 @@ export const fileToTypescript = (
         } catch (err) {
             const outer = new LocatedError(
                 term.location,
-                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+                `Failed while typing for js ${idRaw} : ${
+                    env.global.idNames[idRaw] || 'no name'
+                }`,
             ).wrap(err);
             //     .toString();
             // // console.error( outer);
