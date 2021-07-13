@@ -9,6 +9,9 @@
   - [x] explicit upgrading to enum (needed for glsl, but not for js interestingly)
     - [x] this is needed in the IR
   - [x] explicit downgrading from enum (if, as in glsl, it's needed)
+- [x] fix the bug with flatteninig immediate calls
+- [ ] um now um arrays?
+- [ ] also I really want a normal/node-selection mode, so I can do some rad refactorings like "extract this value into a variable" n stuff. all kinds of refactory options.
 
 ## Editor updating
 

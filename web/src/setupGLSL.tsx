@@ -361,12 +361,20 @@ export const getStateLocations = (
     } else if (refsEqual(type, Vec2.ref)) {
         const ustate = gl.getUniformLocation(program, prefix)!;
         return (newState: unknown) => {
+            if (!newState) {
+                console.warn(`No state`);
+                return;
+            }
             const state = newState as { type: 'Vec2'; x: number; y: number };
             gl.uniform2f(ustate, state.x, state.y);
         };
     } else if (refsEqual(type, Vec3.ref)) {
         const ustate = gl.getUniformLocation(program, prefix)!;
         return (newState: unknown) => {
+            if (!newState) {
+                console.warn(`No state`);
+                return;
+            }
             const state = newState as {
                 type: 'Vec3';
                 x: number;
@@ -378,6 +386,10 @@ export const getStateLocations = (
     } else if (refsEqual(type, Vec4.ref)) {
         const ustate = gl.getUniformLocation(program, prefix)!;
         return (newState: unknown) => {
+            if (!newState) {
+                console.warn(`No state`);
+                return;
+            }
             const state = newState as {
                 type: 'Vec4';
                 x: number;
@@ -455,8 +467,9 @@ export const getStateLocations = (
             console.log(constr);
             return (newState: unknown) => {
                 if (!newState) {
-                    console.log(newState);
-                    throw new Error(`Oh no`);
+                    console.warn('Empty state', newState);
+                    // throw new Error(`Oh no`);
+                    return;
                 }
                 const state = newState as { type: string } & {
                     [key: string]: unknown;

@@ -152,7 +152,7 @@ export const Workspace = ({ state, setState }: Props) => {
                     : workspace.pins
                 ).map((pin, i) => (
                     <div
-                        key={i}
+                        key={i + ' ' + idName(pin.id)}
                         css={{
                             position: 'relative',
                         }}

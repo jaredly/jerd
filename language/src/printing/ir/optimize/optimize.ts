@@ -242,6 +242,7 @@ export const optimize = (ctx: Context, expr: Expr): Expr => {
         foldConstantAssignments(false),
         removeUnusedVariables,
         fromSimpleOpt(flattenNestedIfs),
+        removeNestedBlocksAndCodeAfterReturns,
         flattenImmediateCalls2,
     ];
     transformers.forEach((t) => (expr = t(ctx, expr)));
@@ -505,6 +506,7 @@ ok we'll get to that when we need to.
 export const glslOptsNamed = {
     specializeFunctionsCalledWithLambdas,
     inlineCallsThatReturnFunctions,
+    removeNestedBlocksAndCodeAfterReturns,
     flattenImmediateCalls2,
     foldSingleUseAssignments,
     flattenImmediateAssigns,
@@ -524,6 +526,7 @@ export const glslOptsNamed = {
 export const glslOpts: Array<Optimizer2> = [
     specializeFunctionsCalledWithLambdas,
     inlineCallsThatReturnFunctions,
+    removeNestedBlocksAndCodeAfterReturns,
     flattenImmediateCalls2,
     foldSingleUseAssignments,
     foldConstantAssignments(true),
