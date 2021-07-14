@@ -12,6 +12,7 @@ import Cells, {
 
 import DrawablePlugins from './display/Drawable';
 import OpenGLPlugins from './display/OpenGL';
+import ColorPlugins from './display/Color';
 import StdioPlugins from './display/Stdio';
 import { runTerm } from './eval';
 import Library from './Library';
@@ -26,6 +27,7 @@ const defaultPlugins: RenderPlugins = {
     ...DrawablePlugins,
     ...StdioPlugins,
     ...OpenGLPlugins,
+    ...ColorPlugins,
 };
 
 export type Props = {
