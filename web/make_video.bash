@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -x
 tmp=$(mktemp -d)
 tar=$1
 tar -xf $tar -C $tmp

@@ -394,8 +394,11 @@ export const stmtToGlsl = (
             ]);
         case 'MatchFail':
             return atom('// match fail');
+        case 'Expression':
+            return atom('// no-op expression');
         default:
-            return atom(`nope_stmt_${stmt.type}`);
+            const _x: never = stmt;
+            return atom(`nope_stmt_${(_x as any).type}`);
     }
 };
 

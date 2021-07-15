@@ -188,6 +188,14 @@ const ShaderGLSLScene = <T,>({
         } else if (error instanceof TypeError) {
             message = error.toString();
         }
+        if (message === 'no shader') {
+            return (
+                <div>
+                    No shader, the browser probably throttled the opengl
+                    contexts.
+                </div>
+            );
+        }
         return (
             <div>
                 <div

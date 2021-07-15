@@ -564,7 +564,9 @@ export const OpenGLCanvas = ({
             {downloadUrl ? (
                 <a
                     href={downloadUrl}
-                    download={'animation_' + new Date().toISOString() + '.tar'}
+                    download={
+                        'animation_' + new Date().toISOString() + '.tar.jdanim'
+                    }
                 >
                     Download DataURIs
                 </a>
