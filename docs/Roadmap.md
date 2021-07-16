@@ -10,6 +10,7 @@
     - [x] this is needed in the IR
   - [x] explicit downgrading from enum (if, as in glsl, it's needed)
 - [x] fix the bug with flatteninig immediate calls
+- [x] get pipe working, ok I mean there's some errors
 - [x] combine the Define & Term content types, and just make name optional
   - [ ] then we can render them both the same too, but have an editable field at the top for changing the name or something. Also dropdownable, to indicate that there are multiple names.
     and we can display the metadata like "this supercedes this other one", or "is superceded by this other one"

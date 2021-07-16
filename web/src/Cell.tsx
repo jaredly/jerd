@@ -565,37 +565,7 @@ const cellTitle = (
                 </div>
             );
         }
-        // case 'expr': {
-        //     const term = env.global.terms[idName(cell.content.id)];
-        //     return (
-        //         <div
-        //             style={{
-        //                 fontFamily: '"Source Code Pro", monospace',
-        //                 whiteSpace: 'pre-wrap',
-        //             }}
-        //         >
-        //             <Icon
-        //                 name={
-        //                     term.is.type === 'lambda'
-        //                         ? 'icons_function'
-        //                         : 'icons_value'
-        //                 }
-        //             />
-        //             <span css={hashStyle}>#{idName(cell.content.id)}</span>
-        //             {renderAttributedText(
-        //                 env.global,
-        //                 printToAttributedText(
-        //                     typeToPretty(env, term.is),
-        //                     maxWidth,
-        //                 ),
-        //                 null,
-        //             )}{' '}
-        //         </div>
-        //     );
-        // }
         default:
             return cell.content.type;
     }
 };
-
-// const Hash = ({id}) =>

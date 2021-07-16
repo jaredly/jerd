@@ -129,8 +129,22 @@ const findOp = (
             if (tis.args.length !== 2) {
                 continue;
             }
-            const e1 = getTypeError(env, ltype, tis.args[0], location);
-            const e2 = getTypeError(env, rtype, tis.args[1], location);
+            const e1 = getTypeError(
+                env,
+                ltype,
+                tis.args[0],
+                location,
+                undefined,
+                true,
+            );
+            const e2 = getTypeError(
+                env,
+                rtype,
+                tis.args[1],
+                location,
+                undefined,
+                true,
+            );
             if (e1 || e2) {
                 continue;
             }
@@ -173,9 +187,6 @@ const typeNewOp = (
     rarg: Term,
     location: Location,
 ): Term | null => {
-    // const rarg =
-    //     right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
-
     let fn: Term;
     if (op.hash != null) {
         if (op.hash === '#builtin') {
@@ -227,36 +238,6 @@ const typeNewOp = (
             ref: { type: 'user', id },
             inferred: true,
         };
-        // } else if (id != null) {
-        //     const found = resolveIdentifier(env, id);
-        //     if (!found) {
-        //         throw new UnresolvedIdentifier(id, env);
-        //     }
-        //     if (found.is.type !== 'ref') {
-        //         throw new LocatedError(
-        //             id.location,
-        //             `Identifier isn't a ref ${showType(env, found.is)}`,
-        //         );
-        //     }
-        //     const idx = env.global.recordGroups[refName(found.is.ref)].indexOf(
-        //         op.text,
-        //     );
-        //     if (idx === -1) {
-        //         throw new LocatedError(
-        //             id.location,
-        //             `Record ${refName(found.is.ref)} has no member ${op}`,
-        //         );
-        //     }
-        //     const t = env.global.types[refName(found.is.ref)] as RecordDef;
-        //     fn = {
-        //         type: 'Attribute',
-        //         target: found,
-        //         idx: idx,
-        //         is: t.items[idx],
-        //         location: id.location,
-        //         ref: found.is.ref,
-        //         inferred: true,
-        //     };
     } else if (env.global.attributeNames[op.text]) {
         const found = findMatchingOp(env, op.text, left, rarg, location);
         if (found == null) {
@@ -274,7 +255,14 @@ const typeNewOp = (
         throw new Error(`${op} is not a binary function`);
     }
 
-    const firstErr = getTypeError(env, left.is, fn.is.args[0], left.location);
+    const firstErr = getTypeError(
+        env,
+        left.is,
+        fn.is.args[0],
+        left.location,
+        undefined,
+        true,
+    );
     if (firstErr != null) {
         left = {
             type: 'TypeError',
@@ -282,11 +270,16 @@ const typeNewOp = (
             location: left.location,
             inner: left,
         };
-        // throw firstErr;
     }
-    const secondErr = getTypeError(env, rarg.is, fn.is.args[1], rarg.location);
+    const secondErr = getTypeError(
+        env,
+        rarg.is,
+        fn.is.args[1],
+        rarg.location,
+        undefined,
+        true,
+    );
     if (secondErr != null) {
-        // throw secondErr;
         rarg = {
             type: 'TypeError',
             inner: rarg,
@@ -295,13 +288,16 @@ const typeNewOp = (
         };
     }
 
+    // STOPSHIP: type vbls not actually being really checked 😬
+    const typeVbls = fn.is.typeVbls.length ? [left.is, rarg.is] : [];
+
     return {
         type: 'apply',
         location: encompassingLoc(left.location, rarg.location),
         target: fn,
         hadAllVariableEffects: false,
         effectVbls: null,
-        typeVbls: [],
+        typeVbls: typeVbls,
         args: [left, rarg],
         is: fn.is.res,
     };
