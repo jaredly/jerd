@@ -110,7 +110,11 @@ export const Workspace = ({ state, setState }: Props) => {
                     maxWidth: 200,
                 }}
             > */}
-            <Library env={state.env} onOpen={onOpen} />
+            <Library
+                env={state.env}
+                onOpen={onOpen}
+                footer={<ImportExport state={state} setState={setState} />}
+            />
             {/* </div> */}
             <Cells
                 state={state}
@@ -245,7 +249,6 @@ export const Workspace = ({ state, setState }: Props) => {
                     </div>
                 ))}
             </div>
-            {/* <ImportExport state={state} setState={setState} /> */}
             {showMenu ? (
                 <QuickMenu
                     env={state.env}

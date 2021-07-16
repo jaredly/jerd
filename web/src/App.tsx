@@ -58,6 +58,7 @@ export type Indices = {
 };
 
 export type State = {
+    version: number;
     env: Env;
     // terms to terms
     // terms to types and types to types
@@ -83,7 +84,7 @@ export default ({ initial }: { initial: State }) => {
             .map((k) => {
                 const c =
                     state.workspaces[state.activeWorkspace].cells[k].content;
-                if (c.type !== 'raw' && c.type !== 'expr') {
+                if (c.type !== 'raw') {
                     const top = getToplevel(state.env, c);
                     return printToString(
                         toplevelToPretty(state.env, top),

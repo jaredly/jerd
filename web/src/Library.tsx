@@ -62,9 +62,11 @@ const typeContent = (env: Env, idRaw: string): Content => {
 const Library = ({
     env,
     onOpen,
+    footer,
 }: {
     env: Env;
     onOpen: (c: Content) => void;
+    footer: React.ReactChild;
 }) => {
     return (
         <div
@@ -171,6 +173,7 @@ const Library = ({
                         })}
                 </div>
             </div>
+            {footer}
         </div>
     );
 };

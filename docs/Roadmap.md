@@ -10,10 +10,11 @@
     - [x] this is needed in the IR
   - [x] explicit downgrading from enum (if, as in glsl, it's needed)
 - [x] fix the bug with flatteninig immediate calls
-- [ ] combine the Define & Term toplevel types, and just have one of them have a name.
-  - then we can render them both the same too, but have an editable field at the top for changing the name or something. Also dropdownable, to indicate that there are multiple names.
+- [x] combine the Define & Term content types, and just make name optional
+  - [ ] then we can render them both the same too, but have an editable field at the top for changing the name or something. Also dropdownable, to indicate that there are multiple names.
     and we can display the metadata like "this supercedes this other one", or "is superceded by this other one"
   - lol and then I can stop doing "unnamed" ones 🤦‍♂️
+- [ ] do the workspace history for real, and show it on a given cell, so you can see the cell's histort too
 - [ ] TEST CASES! Associated with the Term/Etc ID
 - [ ] um now um arrays?
 - [ ] also I really want a normal/node-selection mode, so I can do some rad refactorings like "extract this value into a variable" n stuff. all kinds of refactory options.

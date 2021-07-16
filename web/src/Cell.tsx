@@ -315,7 +315,7 @@ export const CellView = ({
 
     // const top = getToplevel(env, cell.content);
     const term =
-        cell.content.type === 'expr' || cell.content.type === 'term'
+        cell.content.type === 'term'
             ? env.global.terms[idName(cell.content.id)]
             : null;
 
@@ -413,15 +413,12 @@ export const CellView = ({
                                     }
                                   : null,
                           ]),
-                    cell.content.type === 'term' || cell.content.type === 'expr'
+                    cell.content.type === 'term'
                         ? {
                               name:
                                   'Export term & dependencies to tslike syntax',
                               action: () => {
-                                  if (
-                                      cell.content.type !== 'term' &&
-                                      cell.content.type !== 'expr'
-                                  ) {
+                                  if (cell.content.type !== 'term') {
                                       return;
                                   }
                                   const text = generateExport(
@@ -436,18 +433,14 @@ export const CellView = ({
             }}
         >
             {body}
-            {term &&
-            showSource &&
-            (cell.content.type === 'term' || cell.content.type === 'expr') ? (
+            {term && showSource && cell.content.type === 'term' ? (
                 <ViewSource
                     hash={idName(cell.content.id)}
                     env={env}
                     term={term}
                 />
             ) : null}
-            {term &&
-            showGLSL &&
-            (cell.content.type === 'term' || cell.content.type === 'expr') ? (
+            {term && showGLSL && cell.content.type === 'term' ? (
                 <ViewGLSL
                     hash={idName(cell.content.id)}
                     env={env}
@@ -696,34 +689,34 @@ const cellTitle = (
                 </div>
             );
         }
-        case 'expr': {
-            const term = env.global.terms[idName(cell.content.id)];
-            return (
-                <div
-                    style={{
-                        fontFamily: '"Source Code Pro", monospace',
-                        whiteSpace: 'pre-wrap',
-                    }}
-                >
-                    <Icon
-                        name={
-                            term.is.type === 'lambda'
-                                ? 'icons_function'
-                                : 'icons_value'
-                        }
-                    />
-                    <span css={hashStyle}>#{idName(cell.content.id)}</span>
-                    {renderAttributedText(
-                        env.global,
-                        printToAttributedText(
-                            typeToPretty(env, term.is),
-                            maxWidth,
-                        ),
-                        null,
-                    )}{' '}
-                </div>
-            );
-        }
+        // case 'expr': {
+        //     const term = env.global.terms[idName(cell.content.id)];
+        //     return (
+        //         <div
+        //             style={{
+        //                 fontFamily: '"Source Code Pro", monospace',
+        //                 whiteSpace: 'pre-wrap',
+        //             }}
+        //         >
+        //             <Icon
+        //                 name={
+        //                     term.is.type === 'lambda'
+        //                         ? 'icons_function'
+        //                         : 'icons_value'
+        //                 }
+        //             />
+        //             <span css={hashStyle}>#{idName(cell.content.id)}</span>
+        //             {renderAttributedText(
+        //                 env.global,
+        //                 printToAttributedText(
+        //                     typeToPretty(env, term.is),
+        //                     maxWidth,
+        //                 ),
+        //                 null,
+        //             )}{' '}
+        //         </div>
+        //     );
+        // }
         default:
             return cell.content.type;
     }

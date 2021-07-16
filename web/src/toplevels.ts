@@ -16,21 +16,22 @@ import { EnumDef, Env, nullLocation } from '@jerd/language/src/typing/types';
 import { Content } from './State';
 
 export const getToplevel = (env: Env, content: Content): ToplevelT => {
-    if (content.type === 'expr') {
-        return {
-            type: 'Expression',
-            term: env.global.terms[idName(content.id)],
-            location: nullLocation,
-        };
-    }
     if (content.type === 'term') {
-        return {
-            type: 'Define',
-            term: env.global.terms[idName(content.id)],
-            id: content.id,
-            location: nullLocation,
-            name: content.name,
-        };
+        if (content.name == null) {
+            return {
+                type: 'Expression',
+                term: env.global.terms[idName(content.id)],
+                location: nullLocation,
+            };
+        } else {
+            return {
+                type: 'Define',
+                name: content.name,
+                term: env.global.terms[idName(content.id)],
+                id: content.id,
+                location: nullLocation,
+            };
+        }
     }
     if (content.type === 'record') {
         const defn = env.global.types[idName(content.id)];
@@ -86,7 +87,7 @@ export const updateToplevel = (
         //     ? prevContent.id
         //     : null;
         let { id, env: nenv } = addExpr(env, term.term, pid);
-        return { content: { type: 'expr', id: id }, env: nenv };
+        return { content: { type: 'term', id: id, name: null }, env: nenv };
     } else if (term.type === 'Define') {
         const { id, env: nenv } = addDefine(env, term.name, term.term);
         return {

@@ -518,7 +518,7 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
     const w = state.workspaces[state.activeWorkspace];
     let evalEnv = state.evalEnv;
     if (cell.content !== w.cells[cell.id].content) {
-        if (cell.content.type === 'expr' || cell.content.type === 'term') {
+        if (cell.content.type === 'term') {
             evalEnv = updateEvalEnv(env, cell.content.id, state.evalEnv);
         }
     }
@@ -532,11 +532,7 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
     }))({ ...state, env, evalEnv });
 
     const prevCell = w.cells[cell.id];
-    if (
-        (prevCell.content.type === 'expr' ||
-            prevCell.content.type === 'term') &&
-        (cell.content.type === 'expr' || cell.content.type === 'term')
-    ) {
+    if (prevCell.content.type === 'term' && cell.content.type === 'term') {
         const prevId = prevCell.content.id;
         const prevTerm = env.global.terms[idName(prevId)];
         const newId = cell.content.id;
@@ -571,10 +567,7 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
                 return;
             }
             const other = w.cells[cid];
-            if (
-                other.content.type !== 'expr' &&
-                other.content.type !== 'term'
-            ) {
+            if (other.content.type !== 'term') {
                 return;
             }
             const oid = other.content.id;

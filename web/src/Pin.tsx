@@ -157,13 +157,9 @@ export const Pin = ({
 
 const contentForId = (env: Env, id: Id): Content => {
     const name = env.global.idNames[idName(id)];
-    if (name) {
-        return {
-            type: 'term',
-            id,
-            name,
-        };
-    } else {
-        return { type: 'expr', id };
-    }
+    return {
+        type: 'term',
+        id,
+        name,
+    };
 };

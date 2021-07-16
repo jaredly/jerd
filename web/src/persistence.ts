@@ -41,6 +41,8 @@ export const saveState = (state: State) => {
 // @ts-ignore
 window.importState = saveState;
 
+const CURRENT_VERSION = 1;
+
 export const initialState = async (): Promise<State> => {
     const oldSaved = window.localStorage.getItem(saveKey);
     let saved: string | null = '';
@@ -108,6 +110,17 @@ export const initialState = async (): Promise<State> => {
                         data.workspaces[k].cells[id].order = i * 10;
                     });
                 }
+
+                if (data.version == null || data.version < 1) {
+                    cells.forEach((id) => {
+                        const cell = data.workspaces[k].cells[id];
+                        if ((cell.content as any).type === 'expr') {
+                            cell.content.type = 'term';
+                            // @ts-ignore
+                            cell.content.name = null;
+                        }
+                    });
+                }
             });
 
             // STOPSHIP: Update the index when updating env 🤔 need a more structured way to do this.
@@ -162,6 +175,7 @@ export const initialState = async (): Promise<State> => {
             });
             return {
                 ...data,
+                version: CURRENT_VERSION,
                 env: {
                     ...data.env,
                     global: {
@@ -215,6 +229,7 @@ export const initialState = async (): Promise<State> => {
         }
     }
     return {
+        version: CURRENT_VERSION,
         env: newWithGlobal(env),
         activeWorkspace: 'default',
         index: {
