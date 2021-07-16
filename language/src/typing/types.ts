@@ -88,6 +88,7 @@ export type GlobalEnv = {
             author?: string;
             supersedes?: string;
             supersededBy?: string;
+            tests?: Array<Id>;
             // if superseedes is null, this might contain a source that
             // wasn't replaced.
             basedOn?: string;
