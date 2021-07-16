@@ -17,7 +17,8 @@ import { Content } from './State';
 
 export const getToplevel = (env: Env, content: Content): ToplevelT => {
     if (content.type === 'term') {
-        if (content.name == null) {
+        const name = env.global.idNames[idName(content.id)];
+        if (name == null) {
             return {
                 type: 'Expression',
                 term: env.global.terms[idName(content.id)],
@@ -26,7 +27,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
         } else {
             return {
                 type: 'Define',
-                name: content.name,
+                name: name,
                 term: env.global.terms[idName(content.id)],
                 id: content.id,
                 location: nullLocation,
@@ -34,6 +35,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
         }
     }
     if (content.type === 'record') {
+        const name = env.global.idNames[idName(content.id)];
         const defn = env.global.types[idName(content.id)];
         if (!defn) {
             throw new Error(`No type info!`);
@@ -44,17 +46,18 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
         return {
             type: 'RecordDef',
             def: defn,
-            name: content.name,
-            attrNames: content.attrs,
+            name: name,
+            attrNames: env.global.recordGroups[idName(content.id)],
             location: nullLocation,
             id: content.id,
         };
     }
     if (content.type === 'effect') {
+        const name = env.global.idNames[idName(content.id)];
         return {
             type: 'Effect',
             constrNames: env.global.effectConstrNames[idName(content.id)],
-            name: content.name,
+            name: name,
             location: nullLocation,
             id: content.id,
             effect: {
@@ -68,7 +71,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
         return {
             type: 'EnumDef',
             def: env.global.types[idName(content.id)] as EnumDef,
-            name: content.name,
+            name: env.global.idNames[idName(content.id)],
             location: nullLocation,
             id: content.id,
         };
@@ -87,11 +90,11 @@ export const updateToplevel = (
         //     ? prevContent.id
         //     : null;
         let { id, env: nenv } = addExpr(env, term.term, pid);
-        return { content: { type: 'term', id: id, name: null }, env: nenv };
+        return { content: { type: 'term', id: id }, env: nenv };
     } else if (term.type === 'Define') {
         const { id, env: nenv } = addDefine(env, term.name, term.term);
         return {
-            content: { type: 'term', id: id, name: term.name },
+            content: { type: 'term', id: id },
             env: nenv,
         };
     } else if (term.type === 'RecordDef') {
@@ -105,8 +108,6 @@ export const updateToplevel = (
             content: {
                 type: 'record',
                 id: id,
-                name: term.name,
-                attrs: term.attrNames,
             },
             env: nenv,
         };
@@ -116,7 +117,6 @@ export const updateToplevel = (
             content: {
                 type: 'enum',
                 id: id,
-                name: term.name,
             },
             env: nenv,
         };
@@ -131,8 +131,6 @@ export const updateToplevel = (
             content: {
                 type: 'effect',
                 id: id,
-                name: term.name,
-                constrNames: term.constrNames,
             },
             env: nenv,
         };

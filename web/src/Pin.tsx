@@ -160,6 +160,5 @@ const contentForId = (env: Env, id: Id): Content => {
     return {
         type: 'term',
         id,
-        name,
     };
 };

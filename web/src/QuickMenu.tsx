@@ -68,13 +68,12 @@ const optionForTerms = (
             onOpen({
                 type: 'term',
                 id: ids[0],
-                name,
             });
         },
         subOptions: ids.map((id, i) => ({
             title: '#' + idName(id),
             toplevel: tops[i],
-            onClick: () => onOpen({ type: 'term', id, name }),
+            onClick: () => onOpen({ type: 'term', id }),
             referent: { type: 'term' },
             subOptions: [],
         })),
@@ -108,8 +107,6 @@ const optionForTypes = (
                 onOpen({
                     type: 'record',
                     id: ids[0],
-                    name,
-                    attrs: tops[0].attrNames,
                 });
             }
         },
@@ -123,8 +120,6 @@ const optionForTypes = (
                     onOpen({
                         type: 'record',
                         id,
-                        name,
-                        attrs: t.attrNames,
                     });
                 }
             }, // onOpen({type: 'type', id, name})
@@ -165,8 +160,7 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                             return {
                                 title: name,
                                 subOptions: [],
-                                onClick: () =>
-                                    onOpen({ type: 'term', id, name }),
+                                onClick: () => onOpen({ type: 'term', id }),
                                 toplevel,
                             };
                         });
@@ -197,8 +191,7 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                             return {
                                 title: name,
                                 subOptions: [],
-                                onClick: () =>
-                                    onOpen({ type: 'term', id, name }),
+                                onClick: () => onOpen({ type: 'term', id }),
                                 toplevel,
                             };
                         });

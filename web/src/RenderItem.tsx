@@ -104,7 +104,6 @@ const onClick = (
             {
                 type: 'term',
                 id: idFromName(id),
-                name: env.global.idNames[id],
             },
             position,
         );
@@ -129,7 +128,6 @@ const onClick = (
             {
                 type: 'term',
                 id: idFromName(term),
-                name: env.global.idNames[term],
             },
             position,
         );
@@ -475,7 +473,6 @@ const enumContent = (env: Env, rawId: string): Content => {
     return {
         type: 'enum',
         id: idFromName(rawId),
-        name: env.global.idNames[rawId],
     };
 };
 
@@ -483,8 +480,6 @@ const recordContent = (env: Env, rawId: string): Content => {
     return {
         type: 'record',
         id: idFromName(rawId),
-        name: env.global.idNames[rawId],
-        attrs: env.global.recordGroups[rawId],
     };
 };
 

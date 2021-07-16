@@ -621,8 +621,10 @@ const cellTitle = (
         case 'raw':
             return <em>unevaluated</em>;
         case 'effect':
-            return `effect ${cell.content.name}`;
+            const name = env.global.idNames[idName(cell.content.id)];
+            return `effect ${name}`;
         case 'record': {
+            const name = env.global.idNames[idName(cell.content.id)];
             const type = env.global.types[idName(cell.content.id)];
             return (
                 <div
@@ -637,11 +639,7 @@ const cellTitle = (
                         env.global,
                         printToAttributedText(
                             items([
-                                id(
-                                    cell.content.name,
-                                    idName(cell.content.id),
-                                    'type',
-                                ),
+                                id(name, idName(cell.content.id), 'type'),
                                 typeVblDeclsToPretty(env, type.typeVbls),
                             ]),
                             maxWidth,
@@ -654,6 +652,7 @@ const cellTitle = (
         }
         case 'term': {
             const term = env.global.terms[idName(cell.content.id)];
+            const name = env.global.idNames[idName(cell.content.id)];
             return (
                 <div
                     style={{
@@ -672,15 +671,13 @@ const cellTitle = (
                     {renderAttributedText(
                         env.global,
                         printToAttributedText(
-                            items([
-                                id(
-                                    cell.content.name || 'unnamed',
-                                    idName(cell.content.id),
-                                    'term',
-                                ),
-                                atom(': '),
-                                typeToPretty(env, term.is),
-                            ]),
+                            name
+                                ? items([
+                                      id(name, idName(cell.content.id), 'term'),
+                                      atom(': '),
+                                      typeToPretty(env, term.is),
+                                  ])
+                                : typeToPretty(env, term.is),
                             maxWidth,
                         ),
                         // TODO onclick

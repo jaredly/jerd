@@ -49,13 +49,10 @@ const typeContent = (env: Env, idRaw: string): Content => {
         ? {
               type: 'enum',
               id: idFromName(idRaw),
-              name: env.global.idNames[idRaw] || 'unnamed',
           }
         : {
               type: 'record',
               id: idFromName(idRaw),
-              name: env.global.idNames[idRaw] || 'unnamed',
-              attrs: env.global.recordGroups[idRaw],
           };
 };
 
@@ -127,12 +124,7 @@ const Library = ({
                                     onClick={() =>
                                         onOpen({
                                             type: 'effect',
-                                            name,
                                             id: idFromName(idRaw),
-                                            constrNames:
-                                                env.global.effectConstrNames[
-                                                    idRaw
-                                                ],
                                         })
                                     }
                                 >
@@ -158,9 +150,6 @@ const Library = ({
                                         onOpen({
                                             type: 'term',
                                             id: idFromName(idRaw),
-                                            name:
-                                                env.global.idNames[idRaw] ||
-                                                'unnamed',
                                         });
                                     }}
                                     key={name}
