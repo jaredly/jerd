@@ -54,12 +54,12 @@ export type CellProps = {
     cell: Cell;
     env: Env;
     focused: number | null;
-    onDuplicate: () => void;
-    onFocus: () => void;
+    onDuplicate: (id: string) => void;
+    onFocus: (id: string) => void;
     onChange: (env: Env, cell: Cell) => void;
     onRun: (id: Id) => void;
-    onRemove: () => void;
-    onMove: (position: MovePosition) => void;
+    onRemove: (id: string) => void;
+    onMove: (id: string, position: MovePosition) => void;
     evalEnv: EvalEnv;
     addCell: (content: Content, position: Position) => void;
     plugins: { [id: string]: RenderPluginT };
@@ -120,7 +120,7 @@ const CellWrapper = ({
                     focused != null ? '#5d5dff' : 'transparent'
                 }`,
             }}
-            onClick={() => onFocus()}
+            onClick={onFocus}
         >
             <div
                 css={{
@@ -207,7 +207,7 @@ const CellWrapper = ({
     );
 };
 
-export const CellView = ({
+const CellView_ = ({
     cell,
     env,
     maxWidth,
@@ -244,7 +244,7 @@ export const CellView = ({
             }
             onClose={() => setEditing(false)}
             onChange={(rawOrToplevel) => {
-                onFocus();
+                onFocus(cell.id);
                 if (typeof rawOrToplevel === 'string') {
                     onChange(env, {
                         ...cell,
@@ -268,7 +268,7 @@ export const CellView = ({
         <div
             onClick={() => {
                 setEditing(true);
-                onFocus();
+                onFocus(cell.id);
             }}
             style={{
                 fontFamily: '"Source Code Pro", monospace',
@@ -304,7 +304,7 @@ export const CellView = ({
             content={cell.content}
             onEdit={() => {
                 setEditing(true);
-                onFocus();
+                onFocus(cell.id);
             }}
             addCell={addCell}
             env={env}
@@ -355,18 +355,24 @@ export const CellView = ({
     return (
         <CellWrapper
             title={cellTitle(env, cell, maxWidth, cell.collapsed)}
-            onRemove={onRemove}
+            onRemove={() => onRemove(cell.id)}
             focused={focused}
-            onFocus={onFocus}
+            onFocus={() => onFocus(cell.id)}
             collapsed={cell.collapsed || false}
             setCollapsed={setCollapsed}
             onToggleSource={() => setShowSource(!showSource)}
             menuItems={() => {
                 return [
-                    { name: 'Move up', action: () => onMove('up') },
-                    { name: 'Move down', action: () => onMove('down') },
+                    { name: 'Move up', action: () => onMove(cell.id, 'up') },
+                    {
+                        name: 'Move down',
+                        action: () => onMove(cell.id, 'down'),
+                    },
                     { name: 'Move to workspace', action: () => {} },
-                    { name: 'Duplicate cell', action: onDuplicate },
+                    {
+                        name: 'Duplicate cell',
+                        action: () => onDuplicate(cell.id),
+                    },
                     ...(cell.collapsed
                         ? [
                               {
@@ -450,6 +456,8 @@ export const CellView = ({
         </CellWrapper>
     );
 };
+
+export const CellView = React.memo(CellView_);
 
 const ViewGLSL = ({
     env,

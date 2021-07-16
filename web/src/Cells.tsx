@@ -186,6 +186,160 @@ const Cells = ({
 
     const sortedCellIds = Object.keys(work.cells).sort(sortCells(work.cells));
 
+    const onFocus = React.useCallback(
+        (id: string) =>
+            !focus || focus.id !== id ? setFocus({ id, tick: 0 }) : null,
+        [],
+    );
+
+    const onPin = React.useCallback((display, id) => {
+        setState(
+            modActiveWorkspace((workspace) => ({
+                ...workspace,
+                pins: workspace.pins.concat([{ display, id }]),
+            })),
+        );
+    }, []);
+
+    const onRemove = React.useCallback((id: string) => {
+        setState(
+            modActiveWorkspace((work) => {
+                const cells = { ...work.cells };
+                delete cells[id];
+                return { ...work, cells };
+            }),
+        );
+    }, []);
+
+    const onRun = React.useCallback(
+        (id) => {
+            // console.log(
+            //     'Running',
+            //     id,
+            //     state.env,
+            //     state.evalEnv,
+            // );
+            let results: { [key: string]: any };
+            try {
+                const term = state.env.global.terms[idName(id)];
+                if (!term) {
+                    throw new Error(`No term ${idName(id)}`);
+                }
+
+                results = runTerm(state.env, term, id, state.evalEnv);
+            } catch (err) {
+                console.log(`Failed to run!`);
+                console.log(err);
+                return;
+            }
+            setState((state) => ({
+                ...state,
+                evalEnv: {
+                    ...state.evalEnv,
+                    terms: {
+                        ...state.evalEnv.terms,
+                        ...results,
+                    },
+                },
+            }));
+        },
+        [state],
+    );
+
+    const addCell_ = React.useCallback(
+        (content, position: Position) => {
+            const work = activeWorkspace(state);
+            const matching = Object.keys(work.cells).find((id) =>
+                contentMatches(content, work.cells[id].content),
+            );
+            if (matching) {
+                if (focus && focus.id == matching) {
+                    setFocus({
+                        id: matching,
+                        tick: focus.tick + 1,
+                    });
+                } else {
+                    setFocus({ id: matching, tick: 0 });
+                }
+                return;
+            }
+            const id = genId();
+            setState(
+                modActiveWorkspace(
+                    addCell({ ...blankCell, id, content }, position),
+                ),
+            );
+            setFocus({ id, tick: 0 });
+        },
+        [state],
+    );
+
+    const onDuplicate = React.useCallback((id: string) => {
+        const pos: Position = { type: 'after', id };
+        const nid = genId();
+        setState(
+            modActiveWorkspace((w: Workspace) => {
+                const order = calculateOrder(w.cells, pos);
+                return {
+                    ...w,
+                    cells: {
+                        ...w.cells,
+                        [nid]: {
+                            ...w.cells[id],
+                            id: nid,
+                            order,
+                        },
+                    },
+                };
+            }),
+        );
+    }, []);
+
+    const onMove = React.useCallback((id: string, position: MovePosition) => {
+        if (typeof position !== 'string') {
+            return;
+        }
+        const idx = sortedCellIds.indexOf(id);
+        if (idx === 0 && position === 'up') {
+            return;
+        }
+        if (idx === sortedCellIds.length - 1 && position === 'down') {
+            return;
+        }
+        const pos: Position =
+            position === 'up'
+                ? {
+                      type: 'before',
+                      id: sortedCellIds[idx - 1],
+                  }
+                : {
+                      type: 'after',
+                      id: sortedCellIds[idx + 1],
+                  };
+        setState(
+            modActiveWorkspace((w: Workspace) => {
+                const order = calculateOrder(w.cells, pos);
+                return {
+                    ...w,
+                    cells: {
+                        ...w.cells,
+                        [id]: {
+                            ...w.cells[id],
+                            order,
+                        },
+                    },
+                };
+            }),
+        );
+    }, []);
+
+    const onChange = React.useCallback((env, cell) => {
+        console.log('Change', cell);
+        setState((state) => {
+            return onChangeCell(env, state, cell);
+        });
+    }, []);
+
     return (
         <div
             style={{
@@ -227,166 +381,19 @@ const Cells = ({
                     <CellView
                         key={id}
                         focused={focus && focus.id == id ? focus.tick : null}
-                        onFocus={() =>
-                            !focus || focus.id !== id
-                                ? setFocus({ id, tick: 0 })
-                                : null
-                        }
+                        onFocus={onFocus}
                         maxWidth={maxWidth}
                         env={state.env}
                         cell={work.cells[id]}
                         evalEnv={state.evalEnv}
                         plugins={plugins}
-                        onPin={(display, id) => {
-                            setState(
-                                modActiveWorkspace((workspace) => ({
-                                    ...workspace,
-                                    pins: workspace.pins.concat([
-                                        { display, id },
-                                    ]),
-                                })),
-                            );
-                        }}
-                        onRemove={() => {
-                            setState(
-                                modActiveWorkspace((work) => {
-                                    const cells = { ...work.cells };
-                                    delete cells[id];
-                                    return { ...work, cells };
-                                }),
-                            );
-                        }}
-                        onRun={(id) => {
-                            // console.log(
-                            //     'Running',
-                            //     id,
-                            //     state.env,
-                            //     state.evalEnv,
-                            // );
-                            let results: { [key: string]: any };
-                            try {
-                                const term = state.env.global.terms[idName(id)];
-                                if (!term) {
-                                    throw new Error(`No term ${idName(id)}`);
-                                }
-
-                                results = runTerm(
-                                    state.env,
-                                    term,
-                                    id,
-                                    state.evalEnv,
-                                );
-                            } catch (err) {
-                                console.log(`Failed to run!`);
-                                console.log(err);
-                                return;
-                            }
-                            setState((state) => ({
-                                ...state,
-                                evalEnv: {
-                                    ...state.evalEnv,
-                                    terms: {
-                                        ...state.evalEnv.terms,
-                                        ...results,
-                                    },
-                                },
-                            }));
-                        }}
-                        addCell={(content, position: Position) => {
-                            const work = activeWorkspace(state);
-                            const matching = Object.keys(
-                                work.cells,
-                            ).find((id) =>
-                                contentMatches(content, work.cells[id].content),
-                            );
-                            if (matching) {
-                                if (focus && focus.id == matching) {
-                                    setFocus({
-                                        id: matching,
-                                        tick: focus.tick + 1,
-                                    });
-                                } else {
-                                    setFocus({ id: matching, tick: 0 });
-                                }
-                                return;
-                            }
-                            const id = genId();
-                            setState(
-                                modActiveWorkspace(
-                                    addCell(
-                                        { ...blankCell, id, content },
-                                        position,
-                                    ),
-                                ),
-                            );
-                            setFocus({ id, tick: 0 });
-                        }}
-                        onDuplicate={() => {
-                            const pos: Position = { type: 'after', id };
-                            const nid = genId();
-                            setState(
-                                modActiveWorkspace((w: Workspace) => {
-                                    const order = calculateOrder(w.cells, pos);
-                                    return {
-                                        ...w,
-                                        cells: {
-                                            ...w.cells,
-                                            [nid]: {
-                                                ...w.cells[id],
-                                                id: nid,
-                                                order,
-                                            },
-                                        },
-                                    };
-                                }),
-                            );
-                        }}
-                        onMove={(position: MovePosition) => {
-                            if (typeof position !== 'string') {
-                                return;
-                            }
-                            const idx = sortedCellIds.indexOf(id);
-                            if (idx === 0 && position === 'up') {
-                                return;
-                            }
-                            if (
-                                idx === sortedCellIds.length - 1 &&
-                                position === 'down'
-                            ) {
-                                return;
-                            }
-                            const pos: Position =
-                                position === 'up'
-                                    ? {
-                                          type: 'before',
-                                          id: sortedCellIds[idx - 1],
-                                      }
-                                    : {
-                                          type: 'after',
-                                          id: sortedCellIds[idx + 1],
-                                      };
-                            setState(
-                                modActiveWorkspace((w: Workspace) => {
-                                    const order = calculateOrder(w.cells, pos);
-                                    return {
-                                        ...w,
-                                        cells: {
-                                            ...w.cells,
-                                            [id]: {
-                                                ...w.cells[id],
-                                                order,
-                                            },
-                                        },
-                                    };
-                                }),
-                            );
-                        }}
-                        onChange={(env, cell) => {
-                            console.log('Change', cell);
-                            setState((state) => {
-                                return onChangeCell(env, state, cell);
-                            });
-                        }}
+                        onPin={onPin}
+                        onRemove={onRemove}
+                        onRun={onRun}
+                        addCell={addCell_}
+                        onDuplicate={onDuplicate}
+                        onMove={onMove}
+                        onChange={onChange}
                     />
                 ))}
                 <button

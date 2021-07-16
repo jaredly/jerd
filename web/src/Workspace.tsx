@@ -57,38 +57,109 @@ export const Workspace = ({ state, setState }: Props) => {
         null as null | { id: string; tick: number },
     );
 
-    const onOpen = (content: Content) => {
-        if (
-            Object.keys(
-                state.workspaces[state.activeWorkspace].cells,
-            ).some((id) =>
-                contentMatches(
-                    content,
-                    state.workspaces[state.activeWorkspace].cells[id].content,
-                ),
-            )
-        ) {
-            return;
-        }
-        const id = genId();
-        setFocus({ id, tick: 0 });
-        setState((state) => {
-            const w = state.workspaces[state.activeWorkspace];
-            return {
-                ...state,
-                workspaces: {
-                    ...state.workspaces,
-                    [state.activeWorkspace]: {
-                        ...w,
-                        cells: {
-                            [id]: { ...blankCell, id, content },
-                            ...w.cells,
+    const onOpen = React.useCallback(
+        (content: Content) => {
+            if (
+                Object.keys(
+                    state.workspaces[state.activeWorkspace].cells,
+                ).some((id) =>
+                    contentMatches(
+                        content,
+                        state.workspaces[state.activeWorkspace].cells[id]
+                            .content,
+                    ),
+                )
+            ) {
+                return;
+            }
+            const id = genId();
+            setFocus({ id, tick: 0 });
+            setState((state) => {
+                const w = state.workspaces[state.activeWorkspace];
+                return {
+                    ...state,
+                    workspaces: {
+                        ...state.workspaces,
+                        [state.activeWorkspace]: {
+                            ...w,
+                            cells: {
+                                [id]: { ...blankCell, id, content },
+                                ...w.cells,
+                            },
                         },
                     },
+                };
+            });
+        },
+        [state.workspaces],
+    );
+
+    const onRemove = React.useCallback(
+        (pin: Pin) =>
+            setState(
+                modActiveWorkspace((workspace) => ({
+                    ...workspace,
+                    archivedPins: workspace.archivedPins.filter(
+                        (p) => p !== pin,
+                    ),
+                    pins: workspace.pins.filter((p) => p !== pin),
+                })),
+            ),
+        [],
+    );
+
+    const onArchive = React.useCallback(
+        (pin: Pin) =>
+            setState(
+                modActiveWorkspace((workspace) => {
+                    const isFrozen = workspace.archivedPins.includes(pin);
+                    if (isFrozen) {
+                        return {
+                            ...workspace,
+                            archivedPins: workspace.archivedPins.filter(
+                                (p) => p !== pin,
+                            ),
+                            pins: workspace.pins.concat([pin]),
+                        };
+                    }
+                    return {
+                        ...workspace,
+                        pins: workspace.pins.filter((p) => p !== pin),
+                        archivedPins: workspace.archivedPins.concat([pin]),
+                    };
+                }),
+            ),
+        [],
+    );
+
+    const onRun = React.useCallback(
+        (id: Id) => {
+            let results: { [key: string]: any };
+            try {
+                const term = state.env.global.terms[idName(id)];
+                if (!term) {
+                    throw new Error(`No term ${idName(id)}`);
+                }
+
+                results = runTerm(state.env, term, id, state.evalEnv);
+            } catch (err) {
+                console.log(`Failed to run!`);
+                console.log(err);
+                return;
+            }
+            setState((state) => ({
+                ...state,
+                evalEnv: {
+                    ...state.evalEnv,
+                    terms: {
+                        ...state.evalEnv.terms,
+                        ...results,
+                    },
                 },
-            };
-        });
-    };
+            }));
+        },
+        [state],
+    );
 
     return (
         <div
@@ -100,22 +171,11 @@ export const Workspace = ({ state, setState }: Props) => {
                 color: '#D4D4D4',
             }}
         >
-            {/* <div
-                style={{
-                    // position: 'absolute',
-                    // top: 0,
-                    // left: 0,
-                    // bottom: 0,
-                    // overflow: 'auto',
-                    maxWidth: 200,
-                }}
-            > */}
             <Library
                 env={state.env}
                 onOpen={onOpen}
                 footer={<ImportExport state={state} setState={setState} />}
             />
-            {/* </div> */}
             <Cells
                 state={state}
                 focus={focus}
@@ -125,13 +185,7 @@ export const Workspace = ({ state, setState }: Props) => {
             />
             <div
                 style={{
-                    // position: 'absolute',
-                    // width: 200,
-                    // top: 0,
-                    // right: 0,
-                    // bottom: 0,
                     overflow: 'auto',
-                    // color: 'white',
                     width: 200,
                     flexShrink: 0,
                 }}
@@ -170,81 +224,9 @@ export const Workspace = ({ state, setState }: Props) => {
                             plugins={defaultPlugins}
                             onOpen={onOpen}
                             isFrozen={workspace.archivedPins.includes(pin)}
-                            onArchive={() =>
-                                setState(
-                                    modActiveWorkspace((workspace) => {
-                                        const isFrozen = workspace.archivedPins.includes(
-                                            pin,
-                                        );
-                                        if (isFrozen) {
-                                            return {
-                                                ...workspace,
-                                                archivedPins: workspace.archivedPins.filter(
-                                                    (p) => p !== pin,
-                                                ),
-                                                pins: workspace.pins.concat([
-                                                    pin,
-                                                ]),
-                                            };
-                                        }
-                                        return {
-                                            ...workspace,
-                                            pins: workspace.pins.filter(
-                                                (p) => p !== pin,
-                                            ),
-                                            archivedPins: workspace.archivedPins.concat(
-                                                [pin],
-                                            ),
-                                        };
-                                    }),
-                                )
-                            }
-                            onRemove={() =>
-                                setState(
-                                    modActiveWorkspace((workspace) => ({
-                                        ...workspace,
-                                        archivedPins: workspace.archivedPins.filter(
-                                            (p) => p !== pin,
-                                        ),
-                                        pins: workspace.pins.filter(
-                                            (p) => p !== pin,
-                                        ),
-                                    })),
-                                )
-                            }
-                            onRun={(id: Id) => {
-                                let results: { [key: string]: any };
-                                try {
-                                    const term =
-                                        state.env.global.terms[idName(id)];
-                                    if (!term) {
-                                        throw new Error(
-                                            `No term ${idName(id)}`,
-                                        );
-                                    }
-
-                                    results = runTerm(
-                                        state.env,
-                                        term,
-                                        id,
-                                        state.evalEnv,
-                                    );
-                                } catch (err) {
-                                    console.log(`Failed to run!`);
-                                    console.log(err);
-                                    return;
-                                }
-                                setState((state) => ({
-                                    ...state,
-                                    evalEnv: {
-                                        ...state.evalEnv,
-                                        terms: {
-                                            ...state.evalEnv.terms,
-                                            ...results,
-                                        },
-                                    },
-                                }));
-                            }}
+                            onArchive={onArchive}
+                            onRemove={onRemove}
+                            onRun={onRun}
                         />
                     </div>
                 ))}

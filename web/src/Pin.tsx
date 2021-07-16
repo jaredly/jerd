@@ -16,7 +16,9 @@ import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { hashStyle } from './Cell';
 
-export const Pin = ({
+export type Pin = { id: Id; display: Display };
+
+const Pin_ = ({
     pin,
     env,
     evalEnv,
@@ -27,14 +29,14 @@ export const Pin = ({
     onOpen,
     isFrozen,
 }: {
-    pin: { id: Id; display: Display };
+    pin: Pin;
     env: Env;
     evalEnv: EvalEnv;
     plugins: RenderPlugins;
     isFrozen: boolean;
     onRun: (id: Id) => void;
-    onRemove: () => void;
-    onArchive: () => void;
+    onRemove: (pin: Pin) => void;
+    onArchive: (pin: Pin) => void;
     onOpen: (content: Content) => void;
 }) => {
     const hash = idName(pin.id);
@@ -129,7 +131,7 @@ export const Pin = ({
                                   color: '#ccc',
                               }),
                     }}
-                    onClick={onArchive}
+                    onClick={() => onArchive(pin)}
                     className="material-icons"
                 >
                     ac_unit
@@ -145,7 +147,7 @@ export const Pin = ({
                         marginLeft: 8,
                         marginRight: 4,
                     }}
-                    onClick={onRemove}
+                    onClick={() => onRemove(pin)}
                 >
                     ╳
                 </button>
@@ -154,6 +156,7 @@ export const Pin = ({
         </div>
     );
 };
+export const Pin = React.memo(Pin_);
 
 const contentForId = (env: Env, id: Id): Content => {
     const name = env.global.idNames[idName(id)];
