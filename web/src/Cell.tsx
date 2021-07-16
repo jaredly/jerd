@@ -226,6 +226,34 @@ const CellView_ = ({
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     const [showSource, setShowSource] = React.useState(false);
     const [showGLSL, setShowGLSL] = React.useState(false);
+
+    const onSetPlugin = React.useCallback(
+        (display) => {
+            onChange(env, { ...cell, display });
+        },
+        [env],
+    );
+
+    const onChange2 = React.useCallback(
+        (toplevel: ToplevelT) => {
+            const { env: nenv, content } = updateToplevel(
+                env,
+                toplevel,
+                cell.content,
+            );
+            onChange(nenv, {
+                ...cell,
+                content,
+            });
+        },
+        [env, cell],
+    );
+
+    const onEdit = React.useCallback(() => {
+        setEditing(true);
+        onFocus(cell.id);
+    }, [cell]);
+
     const body = editing ? (
         <Editor
             maxWidth={maxWidth}
@@ -234,9 +262,7 @@ const CellView_ = ({
             plugins={plugins}
             evalEnv={evalEnv}
             display={cell.display}
-            onSetPlugin={(display) => {
-                onChange(env, { ...cell, display });
-            }}
+            onSetPlugin={onSetPlugin}
             contents={
                 cell.content.type == 'raw'
                     ? cell.content.text
@@ -283,29 +309,14 @@ const CellView_ = ({
     ) : (
         <RenderItem
             maxWidth={maxWidth}
-            onSetPlugin={(display) => {
-                onChange(env, { ...cell, display });
-            }}
+            onSetPlugin={onSetPlugin}
             // onChange={}
-            onChange={(toplevel: ToplevelT) => {
-                const { env: nenv, content } = updateToplevel(
-                    env,
-                    toplevel,
-                    cell.content,
-                );
-                onChange(nenv, {
-                    ...cell,
-                    content,
-                });
-            }}
+            onChange={onChange2}
             onPin={onPin}
             cell={cell}
             plugins={plugins}
             content={cell.content}
-            onEdit={() => {
-                setEditing(true);
-                onFocus(cell.id);
-            }}
+            onEdit={onEdit}
             addCell={addCell}
             env={env}
             evalEnv={evalEnv}

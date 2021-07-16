@@ -236,7 +236,7 @@ export type Scrub = {
     // original: Float;
 };
 
-export const RenderItem = ({
+const RenderItem_ = ({
     env,
     cell,
     content,
@@ -353,6 +353,8 @@ const renderHover = (env: Env, hover: [Extra, HTMLDivElement]) => {
         </div>
     );
 };
+
+export const RenderItem = React.memo(RenderItem_);
 
 export const renderScrub = (
     env: Env,
