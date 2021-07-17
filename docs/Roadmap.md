@@ -15,10 +15,59 @@
   - [ ] then we can render them both the same too, but have an editable field at the top for changing the name or something. Also dropdownable, to indicate that there are multiple names.
     and we can display the metadata like "this supercedes this other one", or "is superceded by this other one"
   - lol and then I can stop doing "unnamed" ones 🤦‍♂️
-- [ ] do the workspace history for real, and show it on a given cell, so you can see the cell's histort too
+- [x] do the workspace history for real, and show it on a given cell, so you can see the cell's histort too
 - [ ] TEST CASES! Associated with the Term/Etc ID
 - [ ] um now um arrays?
+
 - [ ] also I really want a normal/node-selection mode, so I can do some rad refactorings like "extract this value into a variable" n stuff. all kinds of refactory options.
+
+#### Test Cases
+
+- meta for an item can list test cases
+- cells can opt in to showing test cases
+  - if there's a pending, it will also update the test cases accordingly, and pendingfy them 🤔
+  - they can also choose to only show a specific set of test cases
+- there should be a well-known TestCase type that has a render plugin, and also a render plugin for
+  an array of TestCases.
+
+#### NORMAL MODE
+
+Ok so I think what we need is:
+- node loc idx, which we already have
+- and then a cache that I build that does backlinks, right? and a mapping of "idx to term"
+  - termsByIdx: {[idx: number]: Term}
+  - idxTree: {[idx: number]: {parent: idx, children: Array<idx>}
+Right? And I just build that ... as I'm walking the attributedText bonanza? I mean that makes some sense as a way to do it .... although it's a little weird. like some incidental stuff.
+
+Anyway, I would have a "selection", which would indicate what idx is selected. Or multiple.
+
+Ok yeah let's just write a traversal dealio that makes the idx -> child terms mapping, so that I can know where to tweak things.
+
+- [ ] make clicks ... more explicit. So you can ctrl-click something to open it, or right click to maybe open a widget if its available...
+  This will pave the way for clicking to focus.
+  But maybe clicking outside goes to edit mode? hmmmm
+- [ ] build a mapping of ids -> child idxs
+    so that I can do tree navigation.
+    BUT we also want a mapping of lineno -> idx
+    so that we can use arrow keys to navigate between lines in a way that makes sense.
+- [ ] make a "selectedIdx" state dealio
+- [ ] then make a shortcut for "show refactors" or something. Maybe it's the cmd+shift+p menu? could be.
+
+
+#### Pending Terms
+
+When editing a term, the result should be in "pending", and it shouldn't "commit" until I say so
+- adding the new term to env
+- updating global.names
+- etc.
+- basically what addExpr does or whatever it is.
+- and have the term saved to "pending". So I guess I can just:
+  > when looking up the term to display, if there is a pending use that
+  > places I currently call addExpr, do "set pending"
+  > and then if there's a pending, have a button to make it the new one.
+
+- Maybe don't do pendings until I have test cases set up though? idk.
+
 
 ## Editor updating
 

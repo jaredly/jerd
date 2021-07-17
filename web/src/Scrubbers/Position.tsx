@@ -87,13 +87,12 @@ const calcBounds = ({ center, size }: { center: boolean; size: number }) => {
 
 export const PositionScrub = ({
     env,
-    fullScrub,
     term,
     x,
     y,
     width,
     height,
-    setScrub,
+    onUpdate,
 }: {
     env: Env;
     term: Term;
@@ -101,8 +100,7 @@ export const PositionScrub = ({
     y: FloatScrub;
     width: number;
     height: number;
-    setScrub: (s: Scrub) => void;
-    fullScrub: Scrub;
+    onUpdate: (term: Term, item: ScrubItem) => void;
 }) => {
     const [bounds, setBounds] = React.useState({
         center: false,
@@ -142,14 +140,10 @@ export const PositionScrub = ({
                 let: (l) => null,
             });
 
-            setScrub({
-                ...fullScrub,
-                term: newTerm,
-                item: {
-                    type: 'Vec2',
-                    x: { ...x, scrubbed: xn },
-                    y: { ...y, scrubbed: yn },
-                },
+            onUpdate(newTerm, {
+                type: 'Vec2',
+                x: { ...x, scrubbed: xn },
+                y: { ...y, scrubbed: yn },
             });
         };
         const off = () => {
@@ -161,7 +155,7 @@ export const PositionScrub = ({
             window.removeEventListener('mousemove', fn, true);
             window.removeEventListener('mouseup', off, true);
         };
-    }, [dragging, setScrub]);
+    }, [dragging, onUpdate]);
 
     // START HERE:
     // Add buttons for variable bounds.

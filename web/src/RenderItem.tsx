@@ -79,24 +79,6 @@ const onClick = (
                 return true;
             }
         }
-
-        // const parent = (evt.target as HTMLElement).offsetParent!;
-        // const box = parent.getBoundingClientRect();
-        // const thisBox = (evt.target as HTMLElement).getBoundingClientRect();
-
-        // const vec2 = detectVec2Scrub(kind, id, term, loc.idx);
-        // if (vec2) {
-        //     setScrub({
-        //         term,
-        //         returnValue: value,
-        //         item: vec2,
-        //         pos: {
-        //             left: thisBox.left - box.left,
-        //             top: thisBox.bottom - box.top,
-        //         },
-        //     });
-        //     return true;
-        // }
     }
 
     if (kind === 'term' || kind === 'as') {
@@ -364,11 +346,14 @@ export const renderScrub = (
     onChange: (c: ToplevelT) => void,
     evalEnv: EvalEnv,
 ) => {
-    const update = (term: Term, item: ScrubItem) => {
-        const id = idFromName(hashObject(term));
-        const value = runTerm(env, term, id, evalEnv);
-        setScrub({ ...scrub, term, item, returnValue: value[idName(id)] });
-    };
+    const update = React.useCallback(
+        (term: Term, item: ScrubItem) => {
+            const id = idFromName(hashObject(term));
+            const value = runTerm(env, term, id, evalEnv);
+            setScrub({ ...scrub, term, item, returnValue: value[idName(id)] });
+        },
+        [setScrub, scrub],
+    );
     let body = null;
     if (scrub.item.type === 'float') {
         body = (
@@ -384,13 +369,11 @@ export const renderScrub = (
     } else if (scrub.item.type === 'Vec2') {
         body = (
             <PositionScrub
-                fullScrub={scrub}
                 env={env}
                 term={scrub.term}
                 x={scrub.item.x}
                 y={scrub.item.y}
-                // onUpdate={update}
-                setScrub={setScrub}
+                onUpdate={update}
                 width={400}
                 height={400}
             />
@@ -405,8 +388,7 @@ export const renderScrub = (
                 g={scrub.item.g}
                 b={scrub.item.b}
                 a={scrub.item.a}
-                setScrub={setScrub}
-                // onUpdate={update}
+                onUpdate={update}
             />
         );
     } else if (scrub.item.type === 'color') {
@@ -418,8 +400,7 @@ export const renderScrub = (
                 r={scrub.item.r}
                 g={scrub.item.g}
                 b={scrub.item.b}
-                setScrub={setScrub}
-                // onUpdate={update}
+                onUpdate={update}
             />
         );
     }

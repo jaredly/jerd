@@ -115,15 +115,15 @@ export const ColorScrub = ({
     r,
     g,
     b,
-    setScrub,
+    onUpdate,
 }: {
     env: Env;
     term: Term;
     r: FloatScrub;
     g: FloatScrub;
     b: FloatScrub;
-    setScrub: (s: Scrub) => void;
     fullScrub: Scrub;
+    onUpdate: (term: Term, item: ScrubItem) => void;
 }) => {
     return (
         <RgbColorPicker
@@ -163,15 +163,11 @@ export const ColorScrub = ({
                     let: (l) => null,
                 });
 
-                setScrub({
-                    ...fullScrub,
-                    term: newTerm,
-                    item: {
-                        type: 'color',
-                        r: { ...r, scrubbed: rgb.r },
-                        g: { ...g, scrubbed: rgb.g },
-                        b: { ...b, scrubbed: rgb.b },
-                    },
+                onUpdate(newTerm, {
+                    type: 'color',
+                    r: { ...r, scrubbed: rgb.r },
+                    g: { ...g, scrubbed: rgb.g },
+                    b: { ...b, scrubbed: rgb.b },
                 });
             }}
         />
@@ -186,7 +182,8 @@ export const ColorScrub4 = ({
     g,
     b,
     a,
-    setScrub,
+    // setScrub,
+    onUpdate,
 }: {
     env: Env;
     term: Term;
@@ -194,7 +191,8 @@ export const ColorScrub4 = ({
     g: FloatScrub;
     b: FloatScrub;
     a: FloatScrub;
-    setScrub: (s: Scrub) => void;
+    // setScrub: (s: Scrub) => void;
+    onUpdate: (term: Term, item: ScrubItem) => void;
     fullScrub: Scrub;
 }) => {
     return (
@@ -242,16 +240,12 @@ export const ColorScrub4 = ({
                     let: (l) => null,
                 });
 
-                setScrub({
-                    ...fullScrub,
-                    term: newTerm,
-                    item: {
-                        type: 'color4',
-                        r: { ...r, scrubbed: rgb.r },
-                        g: { ...g, scrubbed: rgb.g },
-                        b: { ...b, scrubbed: rgb.b },
-                        a: { ...a, scrubbed: rgb.a },
-                    },
+                onUpdate(newTerm, {
+                    type: 'color4',
+                    r: { ...r, scrubbed: rgb.r },
+                    g: { ...g, scrubbed: rgb.g },
+                    b: { ...b, scrubbed: rgb.b },
+                    a: { ...a, scrubbed: rgb.a },
                 });
             }}
         />

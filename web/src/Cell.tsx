@@ -95,7 +95,7 @@ const CellView_ = ({
         [env],
     );
 
-    const onChange2 = React.useCallback(
+    const onSetToplevel = React.useCallback(
         (toplevel: ToplevelT) => {
             const { env: nenv, content } = updateToplevel(
                 env,
@@ -171,8 +171,7 @@ const CellView_ = ({
         <RenderItem
             maxWidth={maxWidth}
             onSetPlugin={onSetPlugin}
-            // onChange={}
-            onChange={onChange2}
+            onChange={onSetToplevel}
             onPin={onPin}
             cell={cell}
             plugins={plugins}
@@ -185,7 +184,6 @@ const CellView_ = ({
         />
     );
 
-    // const top = getToplevel(env, cell.content);
     const term =
         cell.content.type === 'term'
             ? env.global.terms[idName(cell.content.id)]
