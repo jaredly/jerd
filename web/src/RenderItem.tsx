@@ -5,25 +5,15 @@ import {
     printToAttributedText,
 } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
-import { idFromName, idName, ToplevelT } from '@jerd/language/src/typing/env';
-import {
-    Env,
-    Float,
-    Id,
-    Location,
-    Term,
-} from '@jerd/language/src/typing/types';
-// Ok
+import { idName, ToplevelT } from '@jerd/language/src/typing/env';
+import { Env, Id } from '@jerd/language/src/typing/types';
 import * as React from 'react';
 import { addLocationIndices } from '../../language/src/typing/analyze';
-import { walkTerm } from '../../language/src/typing/transform';
 import { showType } from '../../language/src/typing/unify';
 import { Position } from './Cells';
 import { renderAttributedText } from './Render';
 import { RenderResult } from './RenderResult';
-import { detectColor4Scrub, detectColorScrub } from './Scrubbers/Color';
-import { detectVec2Scrub } from './Scrubbers/Position';
-import { renderScrub, Scrub } from './Scrubbers/Scrub';
+import { onClick, renderScrub, Scrub } from './Scrubbers/Scrub';
 import {
     Cell,
     Content,
@@ -33,120 +23,6 @@ import {
     TopContent,
 } from './State';
 import { getToplevel } from './toplevels';
-
-const detectors = [detectVec2Scrub, detectColorScrub, detectColor4Scrub];
-
-const onClick = (
-    env: Env,
-    cell: Cell,
-    addCell: (c: Content, p: Position) => void,
-    setScrub: (s: Scrub) => void,
-    term: Term | null,
-    value: any,
-) => (evt: React.MouseEvent, id: string, kind: string, loc?: Location) => {
-    console.log(kind, id, loc);
-    const position: Position = { type: 'after', id: cell.id };
-
-    if (term != null && loc != null && loc.idx != null) {
-        for (let detector of detectors) {
-            const item = detector(kind, id, term, loc.idx);
-            if (item != null) {
-                const parent = (evt.target as HTMLElement).offsetParent!;
-                const box = parent.getBoundingClientRect();
-                const thisBox = (evt.target as HTMLElement).getBoundingClientRect();
-
-                setScrub({
-                    term,
-                    returnValue: value,
-                    item,
-                    pos: {
-                        left: thisBox.left - box.left,
-                        top: thisBox.bottom - box.top,
-                    },
-                });
-                return true;
-            }
-        }
-    }
-
-    if (kind === 'term' || kind === 'as') {
-        addCell(
-            {
-                type: 'term',
-                id: idFromName(id),
-            },
-            position,
-        );
-        return true;
-    } else if (kind === 'type') {
-        if (env.global.types[id].type === 'Record') {
-            addCell(recordContent(env, id), position);
-            return true;
-        } else {
-            addCell(enumContent(env, id), position);
-            return true;
-        }
-    } else if (kind === 'record') {
-        addCell(recordContent(env, id), position);
-        return true;
-    } else if (kind === 'custom-binop') {
-        const [term, type, idx] = id.split('#');
-        if (!env.global.terms[term]) {
-            return false;
-        }
-        addCell(
-            {
-                type: 'term',
-                id: idFromName(term),
-            },
-            position,
-        );
-        return true;
-    } else if (kind === 'float' && term != null && loc && loc.idx != null) {
-        const literal = findByIndex(term, loc.idx);
-        if (!literal) {
-            console.log('notfound by index');
-            return false;
-        }
-        if (literal.type !== 'float') {
-            console.error('found not a float');
-            return false;
-        }
-        const parent = (evt.target as HTMLElement).offsetParent!;
-        const box = parent.getBoundingClientRect();
-        const thisBox = (evt.target as HTMLElement).getBoundingClientRect();
-
-        setScrub({
-            term,
-            returnValue: value,
-            item: {
-                type: 'float',
-                x: {
-                    scrubbed: literal.value,
-                    original: literal,
-                    loc,
-                },
-            },
-            pos: {
-                left: thisBox.left - box.left,
-                top: thisBox.bottom - box.top,
-            },
-        });
-        return true;
-    }
-    return false;
-};
-
-const findByIndex = (term: Term, idx: number): Term | null => {
-    let found: null | Term = null;
-    walkTerm(term, (t) => {
-        if (t.type !== 'Let' && t.location.idx === idx) {
-            found = t;
-            return false;
-        }
-    });
-    return found;
-};
 
 export type Props = {
     env: Env;
@@ -282,20 +158,6 @@ const renderHover = (env: Env, hover: [Extra, HTMLDivElement]) => {
 };
 
 export const RenderItem = React.memo(RenderItem_);
-
-const enumContent = (env: Env, rawId: string): Content => {
-    return {
-        type: 'enum',
-        id: idFromName(rawId),
-    };
-};
-
-const recordContent = (env: Env, rawId: string): Content => {
-    return {
-        type: 'record',
-        id: idFromName(rawId),
-    };
-};
 
 const styles = {
     hash: {
