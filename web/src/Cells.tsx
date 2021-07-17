@@ -19,6 +19,7 @@ import {
 import { transform } from '../../language/src/typing/transform';
 import { getTypeError } from '../../language/src/typing/getTypeError';
 import { getToplevel, updateToplevel } from './toplevels';
+import { WorkspacePicker } from './WorkspacePicker';
 
 export const genId = () => Math.random().toString(36).slice(2);
 export const blankCell: Cell = {
@@ -32,113 +33,6 @@ export const contentMatches = (one: Content, two: Content) => {
         return false;
     }
     return one.type === two.type && idName(one.id) === idName(two.id);
-};
-
-const WorkspacePicker = ({
-    state,
-    setState,
-}: {
-    state: State;
-    setState: (fn: (current: State) => State) => void;
-}) => {
-    const [editing, setEditing] = React.useState(null as string | null);
-    let body;
-    if (editing != null) {
-        body = (
-            <React.Fragment>
-                <input
-                    value={editing}
-                    autoFocus
-                    onChange={(evt) => {
-                        setEditing(evt.target.value);
-                    }}
-                />
-                <button
-                    onClick={() => {
-                        setState(
-                            modActiveWorkspace((w) => ({
-                                ...w,
-                                name: editing,
-                            })),
-                        );
-                        setEditing(null);
-                    }}
-                >
-                    Ok
-                </button>
-                <button
-                    onClick={() => {
-                        setEditing(null);
-                    }}
-                >
-                    Cancel
-                </button>
-            </React.Fragment>
-        );
-    } else {
-        body = (
-            <React.Fragment>
-                <select
-                    value={state.activeWorkspace}
-                    onChange={(evt) => {
-                        const activeWorkspace = evt.target.value;
-                        console.log(evt.target.value);
-                        if (evt.target.value === '<new>') {
-                            const id = genId();
-                            setState((state) => ({
-                                ...state,
-                                activeWorkspace: id,
-                                workspaces: {
-                                    ...state.workspaces,
-                                    [id]: {
-                                        name: 'New Workspace',
-                                        pins: [],
-                                        cells: {},
-                                        history: [],
-                                        archivedPins: [],
-                                        currentPin: 0,
-                                        order: Object.keys(state.workspaces)
-                                            .length,
-                                    },
-                                },
-                            }));
-                        } else {
-                            setState((state) => ({
-                                ...state,
-                                activeWorkspace,
-                            }));
-                        }
-                    }}
-                >
-                    {Object.keys(state.workspaces).map((id) => (
-                        <option value={id} key={id}>
-                            {state.workspaces[id].name}
-                        </option>
-                    ))}
-                    <option value="<new>">Create new workspace</option>
-                </select>
-                <button
-                    onClick={() => {
-                        setEditing(
-                            state.workspaces[state.activeWorkspace].name,
-                        );
-                    }}
-                >
-                    Rename
-                </button>
-            </React.Fragment>
-        );
-    }
-    return (
-        <div
-            css={{
-                padding: '8px 16px',
-                fontSize: 16,
-            }}
-        >
-            Workspace: {body}
-        </div>
-    );
 };
 
 const Cells = ({
@@ -287,6 +181,7 @@ const Cells = ({
                 };
             }),
         );
+        setFocus({ id: nid, tick: 0 });
     }, []);
 
     const onMove = React.useCallback((id: string, position: MovePosition) => {
@@ -415,10 +310,17 @@ const Cells = ({
                                 ...workspace,
                                 cells: {
                                     ...workspace.cells,
-                                    [id]: { ...blankCell, id },
+                                    [id]: {
+                                        ...blankCell,
+                                        id,
+                                        order: calculateOrder(workspace.cells, {
+                                            type: 'last',
+                                        }),
+                                    },
                                 },
                             })),
                         );
+                        setFocus({ id, tick: 0 });
                     }}
                 >
                     New Cell
@@ -451,15 +353,6 @@ const sortCells = (cells: { [key: string]: Cell }) => (
     a: string,
     b: string,
 ) => {
-    // const oa =
-    //     cells[a].order != null
-    //         ? cells[a].order
-    //         : a.id;
-    // const ob =
-    //     cells[b].order != null
-    //         ? cells[b].order
-    //         : b.id;
-    // return oa < ob ? -1 : oa > ob ? 1 : 0;
     return cells[a].order - cells[b].order;
 };
 

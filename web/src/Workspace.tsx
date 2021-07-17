@@ -53,20 +53,6 @@ export const Workspace = ({ state, setState }: Props) => {
 
     const workspace = activeWorkspace(state);
 
-    // const historyByCell = React.useMemo(() => {
-    //     const byCell: { [cellId: string]: Array<HistoryUpdate> } = {};
-    //     workspace.history.forEach((item) => {
-    //         if (item.type === 'update') {
-    //             if (!byCell[item.cellId]) {
-    //                 byCell[item.cellId] = [item];
-    //             } else {
-    //                 byCell[item.cellId].push(item);
-    //             }
-    //         }
-    //     });
-    //     return byCell;
-    // }, [workspace.history]);
-
     const [focus, setFocus] = React.useState(
         null as null | { id: string; tick: number },
     );
@@ -88,22 +74,15 @@ export const Workspace = ({ state, setState }: Props) => {
             }
             const id = genId();
             setFocus({ id, tick: 0 });
-            setState((state) => {
-                const w = state.workspaces[state.activeWorkspace];
-                return {
-                    ...state,
-                    workspaces: {
-                        ...state.workspaces,
-                        [state.activeWorkspace]: {
-                            ...w,
-                            cells: {
-                                [id]: { ...blankCell, id, content },
-                                ...w.cells,
-                            },
-                        },
+            setState(
+                modActiveWorkspace((workspace) => ({
+                    ...workspace,
+                    cells: {
+                        [id]: { ...blankCell, id, content },
+                        ...workspace.cells,
                     },
-                };
-            });
+                })),
+            );
         },
         [state.workspaces],
     );
