@@ -244,6 +244,22 @@ export const Workspace = ({ state, setState }: Props) => {
                         />
                     </div>
                 ))}
+                <div
+                    css={{
+                        flex: 1,
+                    }}
+                >
+                    <div>Workspace History</div>
+                    {workspace.history.map((item, i) => (
+                        <div key={i}>
+                            {item.type === 'update'
+                                ? `Update ${idName(item.fromId)} -> ${idName(
+                                      item.toId,
+                                  )}`
+                                : `Pin ${item.id}`}
+                        </div>
+                    ))}
+                </div>
             </div>
             {showMenu ? (
                 <QuickMenu
