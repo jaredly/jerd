@@ -11,7 +11,7 @@ import {
     Term,
 } from '@jerd/language/src/typing/types';
 import { transform, walkTerm } from '../../../language/src/typing/transform';
-import { FloatScrub, Scrub, ScrubItem } from '../RenderItem';
+import { FloatScrub, Scrub, ScrubItem } from './Scrub';
 
 export const findApplyWithTarget = (term: Term, idx: number): Apply | null => {
     let found: null | Apply = null;

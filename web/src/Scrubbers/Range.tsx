@@ -5,7 +5,7 @@ import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { Env, Term } from '@jerd/language/src/typing/types';
 import { transform } from '../../../language/src/typing/transform';
-import { FloatScrub, Scrub, ScrubItem } from '../RenderItem';
+import { FloatScrub, Scrub, ScrubItem } from './Scrub';
 
 export const RangeScrub = ({
     env,
