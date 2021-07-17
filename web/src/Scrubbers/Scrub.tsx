@@ -86,8 +86,12 @@ export const onClick = (
     setScrub: (s: null | Scrub) => void,
     term: Term | null,
     value: any,
+    setIdx: (idx: number) => void,
 ) => (evt: React.MouseEvent, id: string, kind: string, loc?: Location) => {
     if (!evt.metaKey) {
+        if (loc && loc.idx) {
+            setIdx(loc.idx);
+        }
         // Just selection
         return true;
     }

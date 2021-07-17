@@ -119,7 +119,7 @@ const RenderItem_ = ({
                 {renderAttributedText(
                     env.global,
                     printToAttributedText(toplevelToPretty(env, top), maxWidth),
-                    onClick(env, cell, addCell, setScrub, term, value),
+                    onClick(env, cell, addCell, setScrub, term, value, setIdx),
                     undefined,
                     undefined,
                     (id, kind) =>
