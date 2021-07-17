@@ -270,6 +270,7 @@ export const renderAttributedText = (
                         idColors,
                         openable,
                         setHover,
+                        selection,
                     )}
                 </span>
             );

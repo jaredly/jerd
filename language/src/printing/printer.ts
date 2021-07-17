@@ -375,12 +375,12 @@ export const printToAttributedText = (
             //     res.push('\n' + white(current.indent));
             //     current.pos = current.indent;
             // }
-            if (pp.attributes) {
+            if (pp.attributes || pp.loc) {
                 return [
                     {
                         type: 'Group',
                         contents: res,
-                        attributes: pp.attributes,
+                        attributes: pp.attributes || [],
                         loc: pp.loc,
                     },
                 ];
@@ -392,12 +392,12 @@ export const printToAttributedText = (
         pp.items.forEach((item) => {
             res.push(...printToAttributedText(item, maxWidth, current));
         });
-        if (pp.attributes) {
+        if (pp.attributes || pp.loc) {
             return [
                 {
                     type: 'Group',
                     contents: res,
-                    attributes: pp.attributes,
+                    attributes: pp.attributes || [],
                     loc: pp.loc,
                 },
             ];

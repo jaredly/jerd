@@ -967,6 +967,7 @@ const showCustomBinOp = (env: Env, term: Term) => {
             '#' +
             term.idx.toString(),
         'custom-binop',
+        term.location,
     );
     // return items([
     //     termToPretty(env, term.target),
