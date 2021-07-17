@@ -163,6 +163,7 @@ export const renderAttributedText = (
     openable = (id: string, kind: string, loc?: Location) => false,
     setHover = (hover: Extra, target: HTMLDivElement | null) =>
         console.log('hover', hover, target),
+    selection: null | number = null,
 ) => {
     const colorMap: { [key: string]: string } = {};
     let colorAt = 0;
@@ -182,6 +183,10 @@ export const renderAttributedText = (
                     style={{
                         color: colorForId(item, colorMap),
                         cursor: onClick ? 'pointer' : 'inherit',
+                        backgroundColor:
+                            item.loc && item.loc.idx === selection
+                                ? 'rgba(255,255,255,0.2)'
+                                : undefined,
                     }}
                     data-location={
                         item.loc ? JSON.stringify(item.loc) : undefined
@@ -248,7 +253,13 @@ export const renderAttributedText = (
                               }
                             : undefined
                     }
-                    style={stylesForAttributes(item.attributes)}
+                    style={{
+                        ...stylesForAttributes(item.attributes),
+                        backgroundColor:
+                            item.loc && item.loc.idx === selection
+                                ? 'rgba(255,255,255,0.2)'
+                                : undefined,
+                    }}
                     key={i}
                 >
                     {renderAttributedText(

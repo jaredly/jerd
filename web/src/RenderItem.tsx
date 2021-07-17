@@ -86,6 +86,24 @@ const RenderItem_ = ({
         [setScrub, scrub],
     );
 
+    const [idx, setIdx] = React.useState(0);
+
+    React.useEffect(() => {
+        const fn = (evt: KeyboardEvent) => {
+            console.log(evt.key);
+            if (evt.key === 'ArrowRight') {
+                //
+                setIdx((idx) => idx + 1);
+            }
+            if (evt.key === 'ArrowLeft') {
+                //
+                setIdx((idx) => idx - 1);
+            }
+        };
+        window.addEventListener('keydown', fn);
+        return () => window.removeEventListener('keydown', fn);
+    }, []);
+
     return (
         <div>
             <div
@@ -120,6 +138,7 @@ const RenderItem_ = ({
                             setHover(null);
                         }
                     },
+                    idx,
                 )}
                 {scrub
                     ? renderScrub(
