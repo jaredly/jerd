@@ -41,24 +41,35 @@ import { RenderPlugin } from './RenderResult';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }
-    | { type: 'global'; name: string; id: Id; term: Term };
+    | { type: 'global'; name: string; id: Array<Id>; term: Term };
 
 const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
     const matchingNames: Array<AutoName> = Object.keys(env.local.localNames)
         .filter((n) => n.toLowerCase().startsWith(name.toLowerCase()))
-        .map((name) => ({
-            type: 'local',
-            name,
-            defn: env.local.locals[env.local.localNames[name]],
-        }));
-    Object.keys(env.global.names)
-        .filter((n) => n.toLowerCase().startsWith(name.toLowerCase()))
-        .map((name) => ({
-            type: 'global',
-            name,
-            id: env.global.names[name],
-            term: env.global.terms[idName(env.global.names[name][0])],
-        }));
+        .map(
+            (name) =>
+                ({
+                    type: 'local',
+                    name,
+                    defn: env.local.locals[env.local.localNames[name]],
+                } as AutoName),
+        )
+        .concat(
+            Object.keys(env.global.names)
+                .filter((n) => n.toLowerCase().startsWith(name.toLowerCase()))
+                .map(
+                    (name) =>
+                        ({
+                            type: 'global',
+                            name,
+                            id: env.global.names[name],
+                            term:
+                                env.global.terms[
+                                    idName(env.global.names[name][0])
+                                ],
+                        } as AutoName),
+                ),
+        );
     if (!matchingNames.length) {
         return <div>No defined names matching {name}</div>;
     }
@@ -67,11 +78,15 @@ const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
             <div>Did you mean...</div>
             {matchingNames.map((n, i) => (
                 <div
-                    key={n.type === 'global' ? idName(n.id) : n.defn.sym.unique}
+                    key={
+                        n.type === 'global'
+                            ? idName(n.id[0])
+                            : n.defn.sym.unique
+                    }
                 >
                     {n.name}#
                     {n.type === 'global'
-                        ? idName(n.id)
+                        ? idName(n.id[0])
                         : ':' + n.defn.sym.unique}
                     {/* {n}#{idName(env.global.names[n])} */}
                 </div>

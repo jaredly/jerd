@@ -7,7 +7,7 @@ import { idFromName, idName } from '@jerd/language/src/typing/env';
 import { CellView, MovePosition } from './Cell';
 import { Cell, Content, EvalEnv, RenderPlugins } from './State';
 import { runTerm } from './eval';
-import { State, Workspace } from './App';
+import { HistoryItem, HistoryUpdate, State, Workspace } from './App';
 import {
     Env,
     Id,
@@ -213,12 +213,6 @@ const Cells = ({
 
     const onRun = React.useCallback(
         (id) => {
-            // console.log(
-            //     'Running',
-            //     id,
-            //     state.env,
-            //     state.evalEnv,
-            // );
             let results: { [key: string]: any };
             try {
                 const term = state.env.global.terms[idName(id)];
@@ -306,6 +300,7 @@ const Cells = ({
         if (idx === sortedCellIds.length - 1 && position === 'down') {
             return;
         }
+
         const pos: Position =
             position === 'up'
                 ? {
@@ -316,6 +311,7 @@ const Cells = ({
                       type: 'after',
                       id: sortedCellIds[idx + 1],
                   };
+
         setState(
             modActiveWorkspace((w: Workspace) => {
                 const order = calculateOrder(w.cells, pos);
@@ -530,6 +526,8 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
         }
     }
 
+    let historyItem = null as null | HistoryItem;
+
     state = modActiveWorkspace((workspace) => ({
         ...workspace,
         cells: {
@@ -539,7 +537,11 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
     }))({ ...state, env, evalEnv });
 
     const prevCell = w.cells[cell.id];
-    if (prevCell.content.type === 'term' && cell.content.type === 'term') {
+    if (
+        prevCell.content.type === 'term' &&
+        cell.content.type === 'term' &&
+        prevCell.content.id !== cell.content.id
+    ) {
         const prevId = prevCell.content.id;
         const prevTerm = env.global.terms[idName(prevId)];
         const newId = cell.content.id;
@@ -550,6 +552,14 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
             prevTerm.is,
             newTerm.location,
         );
+
+        historyItem = {
+            type: 'update',
+            cellId: cell.id,
+            fromId: prevCell.content.id,
+            toId: cell.content.id,
+        };
+
         const replace = (location: Location): Term => {
             const newRef: Term = {
                 type: 'ref',
@@ -603,6 +613,13 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
                 state = onChangeCell(nenv, state, { ...other, content });
             }
         });
+    }
+
+    if (historyItem) {
+        state = modActiveWorkspace((workspace) => ({
+            ...workspace,
+            history: workspace.history.concat([historyItem!]),
+        }))(state);
     }
 
     return state;

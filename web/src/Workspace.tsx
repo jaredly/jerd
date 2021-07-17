@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react';
 import * as React from 'react';
-import { State } from './App';
+import { HistoryItem, HistoryUpdate, State } from './App';
 import Cells, {
     activeWorkspace,
     blankCell,
@@ -52,6 +52,20 @@ export const Workspace = ({ state, setState }: Props) => {
     }, []);
 
     const workspace = activeWorkspace(state);
+
+    // const historyByCell = React.useMemo(() => {
+    //     const byCell: { [cellId: string]: Array<HistoryUpdate> } = {};
+    //     workspace.history.forEach((item) => {
+    //         if (item.type === 'update') {
+    //             if (!byCell[item.cellId]) {
+    //                 byCell[item.cellId] = [item];
+    //             } else {
+    //                 byCell[item.cellId].push(item);
+    //             }
+    //         }
+    //     });
+    //     return byCell;
+    // }, [workspace.history]);
 
     const [focus, setFocus] = React.useState(
         null as null | { id: string; tick: number },

@@ -20,13 +20,14 @@ import { Workspace } from './Workspace';
 
 // Yea
 
+export type HistoryUpdate = {
+    type: 'update';
+    cellId: string;
+    fromId: Id;
+    toId: Id;
+};
 export type HistoryItem =
-    | {
-          type: 'update';
-          cellId: string;
-          fromHash: string;
-          toHash: string;
-      }
+    | HistoryUpdate
     | {
           type: 'pin';
           cellId: string;

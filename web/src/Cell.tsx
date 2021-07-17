@@ -45,6 +45,7 @@ import {
 import { envWithTerm, compileGLSL, getStateUniform } from './display/OpenGL';
 import { Position } from './Cells';
 import { CellWrapper, MenuItem } from './CellWrapper';
+import { HistoryUpdate } from './App';
 
 // const maxWidth = 80;
 
@@ -243,6 +244,10 @@ const CellView_ = ({
                     {
                         name: 'Duplicate cell',
                         action: () => onDuplicate(cell.id),
+                    },
+                    {
+                        name: 'History',
+                        action: () => console.log('Ok history I guess'),
                     },
                     ...(cell.collapsed
                         ? [
