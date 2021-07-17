@@ -5,15 +5,21 @@ import {
     printToAttributedText,
 } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
-import { idName, ToplevelT } from '@jerd/language/src/typing/env';
-import { Env, Id } from '@jerd/language/src/typing/types';
+import {
+    hashObject,
+    idFromName,
+    idName,
+    ToplevelT,
+} from '@jerd/language/src/typing/env';
+import { Env, Id, Term } from '@jerd/language/src/typing/types';
 import * as React from 'react';
 import { addLocationIndices } from '../../language/src/typing/analyze';
 import { showType } from '../../language/src/typing/unify';
 import { Position } from './Cells';
+import { runTerm } from './eval';
 import { renderAttributedText } from './Render';
 import { RenderResult } from './RenderResult';
-import { onClick, renderScrub, Scrub } from './Scrubbers/Scrub';
+import { onClick, renderScrub, Scrub, ScrubItem } from './Scrubbers/Scrub';
 import {
     Cell,
     Content,
@@ -68,6 +74,17 @@ const RenderItem_ = ({
     const [hover, setHover] = React.useState(
         null as null | [Extra, HTMLDivElement],
     );
+    const update = React.useCallback(
+        (term: Term, item: ScrubItem) => {
+            if (!scrub) {
+                return;
+            }
+            const id = idFromName(hashObject(term));
+            const value = runTerm(env, term, id, evalEnv);
+            setScrub({ ...scrub, term, item, returnValue: value[idName(id)] });
+        },
+        [setScrub, scrub],
+    );
 
     return (
         <div>
@@ -105,7 +122,15 @@ const RenderItem_ = ({
                     },
                 )}
                 {scrub
-                    ? renderScrub(env, top, scrub, setScrub, onChange, evalEnv)
+                    ? renderScrub(
+                          env,
+                          top,
+                          scrub,
+                          update,
+                          setScrub,
+                          onChange,
+                          evalEnv,
+                      )
                     : null}
                 {hover ? renderHover(env, hover) : null}
             </div>

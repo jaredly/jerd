@@ -83,10 +83,15 @@ export const onClick = (
     env: Env,
     cell: Cell,
     addCell: (c: Content, p: Position) => void,
-    setScrub: (s: Scrub) => void,
+    setScrub: (s: null | Scrub) => void,
     term: Term | null,
     value: any,
 ) => (evt: React.MouseEvent, id: string, kind: string, loc?: Location) => {
+    if (!evt.metaKey) {
+        // Just selection
+        return true;
+    }
+
     console.log(kind, id, loc);
     const position: Position = { type: 'after', id: cell.id };
 
@@ -209,18 +214,11 @@ export const renderScrub = (
     env: Env,
     top: ToplevelT,
     scrub: Scrub,
-    setScrub: (s: Scrub | null) => void,
+    update: (term: Term, item: ScrubItem) => void,
+    setScrub: (s: null | Scrub) => void,
     onChange: (c: ToplevelT) => void,
     evalEnv: EvalEnv,
 ) => {
-    const update = React.useCallback(
-        (term: Term, item: ScrubItem) => {
-            const id = idFromName(hashObject(term));
-            const value = runTerm(env, term, id, evalEnv);
-            setScrub({ ...scrub, term, item, returnValue: value[idName(id)] });
-        },
-        [setScrub, scrub],
-    );
     let body = null;
     if (scrub.item.type === 'float') {
         body = (
