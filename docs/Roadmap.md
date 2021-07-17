@@ -43,14 +43,12 @@ Anyway, I would have a "selection", which would indicate what idx is selected. O
 
 Ok yeah let's just write a traversal dealio that makes the idx -> child terms mapping, so that I can know where to tweak things.
 
-- [ ] make clicks ... more explicit. So you can ctrl-click something to open it, or right click to maybe open a widget if its available...
+- [x] make clicks ... more explicit. So you can ctrl-click something to open it, or right click to maybe open a widget if its available...
   This will pave the way for clicking to focus.
-  But maybe clicking outside goes to edit mode? hmmmm
-- [ ] build a mapping of ids -> child idxs
     so that I can do tree navigation.
     BUT we also want a mapping of lineno -> idx
     so that we can use arrow keys to navigate between lines in a way that makes sense.
-- [ ] make a "selectedIdx" state dealio
+- [x] make a "selectedIdx" state dealio
 - [ ] then make a shortcut for "show refactors" or something. Maybe it's the cmd+shift+p menu? could be.
 
 

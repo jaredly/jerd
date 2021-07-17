@@ -13,7 +13,10 @@ import {
 } from '@jerd/language/src/typing/env';
 import { Env, Id, Term } from '@jerd/language/src/typing/types';
 import * as React from 'react';
-import { addLocationIndices } from '../../language/src/typing/analyze';
+import {
+    addLocationIndices,
+    makeIdxTree,
+} from '../../language/src/typing/analyze';
 import { showType } from '../../language/src/typing/unify';
 import { Position } from './Cells';
 import { runTerm } from './eval';
@@ -37,6 +40,7 @@ export type Props = {
     plugins: RenderPlugins;
     content: TopContent;
     evalEnv: EvalEnv;
+    focused: boolean;
     onRun: (id: Id) => void;
     addCell: (content: Content, position: Position) => void;
     onEdit: () => void;
@@ -44,6 +48,8 @@ export type Props = {
     onPin: (display: Display, id: Id) => void;
     onChange: (toplevel: ToplevelT) => void;
 };
+
+// const;
 
 const RenderItem_ = ({
     env,
@@ -54,21 +60,23 @@ const RenderItem_ = ({
     onEdit,
     addCell,
     plugins,
+    focused,
     maxWidth,
 
     onSetPlugin,
     onChange,
     onPin,
 }: Props) => {
-    let [top, term] = React.useMemo(() => {
+    let [top, term, idxTree] = React.useMemo(() => {
         let top = getToplevel(env, content);
         top = addLocationIndices(top);
         const term =
             top.type === 'Define' || top.type === 'Expression'
                 ? top.term
                 : null;
-        return [top, term];
+        return [top, term, term ? makeIdxTree(term) : null];
     }, [env, content]);
+    console.log(term, idxTree);
     const [scrub, setScrub] = React.useState(null as null | Scrub);
     const value = evalEnv.terms[idName(content.id)];
     const [hover, setHover] = React.useState(
@@ -88,21 +96,91 @@ const RenderItem_ = ({
 
     const [idx, setIdx] = React.useState(0);
 
+    const cidxTree = React.useRef(idxTree);
+    cidxTree.current = idxTree;
+
     React.useEffect(() => {
+        if (!focused || !idxTree) {
+            return;
+        }
         const fn = (evt: KeyboardEvent) => {
+            const { locs, locLines, parents, children } = idxTree!;
+
+            /*
+            Ok what's my deal here
+            - hm maybe only show the atomic things
+            - but hm
+            */
             console.log(evt.key);
+            if (evt.key === 'ArrowUp') {
+                setIdx((idx) => {
+                    if (!locs[idx]) {
+                        console.log('wat', idx, locs);
+                        return idx;
+                    }
+                    const pos = locs[idx].loc;
+                    if (pos.start.line === 0) {
+                        return idx;
+                    }
+                    for (let lno = pos.start.line - 1; lno >= 0; lno--) {
+                        const line = locLines[lno];
+                        if (!line) {
+                            continue;
+                        }
+                        for (let i = 0; i < line.length; i++) {
+                            if (line[i].loc.start.column > pos.start.column) {
+                                return line[Math.max(0, i - 1)].loc.idx!;
+                            }
+                        }
+                        if (line.length > 0) {
+                            return line[0].loc.idx!;
+                        }
+                    }
+
+                    return idx;
+                });
+            }
+
+            if (evt.key === 'ArrowDown') {
+                setIdx((idx) => {
+                    const pchildren = children[idx];
+                    if (pchildren) {
+                        return pchildren[0];
+                    }
+                    return idx;
+                });
+            }
+
             if (evt.key === 'ArrowRight') {
-                //
-                setIdx((idx) => idx + 1);
+                setIdx((idx) => {
+                    const parent = parents[idx];
+                    if (parent) {
+                        const pchildren = children[parent];
+                        const i0 = pchildren.indexOf(idx);
+                        if (i0 < pchildren.length - 1) {
+                            return pchildren[i0 + 1];
+                        }
+                    }
+                    return idx;
+                });
             }
             if (evt.key === 'ArrowLeft') {
-                //
-                setIdx((idx) => idx - 1);
+                setIdx((idx) => {
+                    const parent = parents[idx];
+                    if (parent) {
+                        const pchildren = children[parent];
+                        const i0 = pchildren.indexOf(idx);
+                        if (i0 < pchildren.length - 1) {
+                            return pchildren[i0 + 1];
+                        }
+                    }
+                    return idx;
+                });
             }
         };
         window.addEventListener('keydown', fn);
         return () => window.removeEventListener('keydown', fn);
-    }, []);
+    }, [focused, idxTree]);
 
     return (
         <div>

@@ -213,6 +213,13 @@ export const renderAttributedText = (
                     key={i}
                     title={item.id + ' ' + item.kind}
                 >
+                    {item.loc ? (
+                        <span css={{ color: 'red', fontSize: '80%' }}>
+                            {item.loc.idx}
+                        </span>
+                    ) : (
+                        ''
+                    )}
                     {item.text}
                     {showHash ? (
                         <span

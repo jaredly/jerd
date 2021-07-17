@@ -1,5 +1,6 @@
+import { defaultVisitor } from '../printing/ir/transform';
 import { idFromName, idName, refName, ToplevelT } from './env';
-import { transformToplevel } from './transform';
+import { transform, transformToplevel } from './transform';
 import { applyTypeVariablesToRecord, getEnumReferences } from './typeExpr';
 import {
     Env,
@@ -9,8 +10,98 @@ import {
     Term,
     Type,
     UserReference,
+    Location,
     walkTerm,
 } from './types';
+
+const idxs = (terms: Array<Term | null>) =>
+    terms.filter((t) => !!t).map((t) => t!.location.idx!);
+
+type LocKind = Term['type'] | 'arg' | 'let';
+
+export const makeIdxTree = (term: Term) => {
+    const children: { [key: number]: Array<number> } = {};
+    const locs: { [key: number]: { kind: LocKind; loc: Location } } = {};
+    const addLoc = (loc: Location, kind: LocKind) => {
+        locs[loc.idx!] = { kind, loc };
+        return loc.idx!;
+    };
+    transform(term, {
+        let: (l) => {
+            // TODO: the sym needs a loc
+            children[l.location.idx!] = [l.value.location.idx!];
+            locs[l.location.idx!] = { kind: 'let', loc: l.location };
+            return null;
+        },
+        term: (term) => {
+            locs[term.location.idx!] = { kind: term.type, loc: term.location };
+            switch (term.type) {
+                case 'apply':
+                    children[term.location.idx!] = idxs(
+                        [term.target].concat(term.args),
+                    );
+                    break;
+                case 'if':
+                    children[term.location.idx!] = idxs([
+                        term.cond,
+                        term.yes,
+                        term.no,
+                    ]);
+                    break;
+                case 'lambda':
+                    // ok term.args really need locs
+                    // TODO: get locs for the args, and for the types
+                    children[term.location.idx!] = term.is.args
+                        .map((t) => addLoc(t.location, 'arg'))
+                        .concat([term.body.location.idx!]);
+                    break;
+                case 'sequence':
+                    children[term.location.idx!] = term.sts.map(
+                        (t) => t.location.idx!,
+                    );
+                    break;
+                case 'unary':
+                    // TODO: op should have a loc, please
+                    children[term.location.idx!] = [term.inner.location.idx!];
+                    break;
+                case 'var':
+                case 'float':
+                case 'int':
+                case 'boolean':
+                case 'string':
+                    break;
+            }
+            return null;
+        },
+    });
+    const parents: { [key: number]: number } = {};
+    Object.keys(children).forEach((parent: unknown) => {
+        children[parent as number].forEach(
+            (k: number) => (parents[k] = parent as number),
+        );
+    });
+    const locLines: Array<Array<{ kind: LocKind; loc: Location }>> = [];
+    Object.keys(locs).forEach((idx: unknown) => {
+        const loc = locs[idx as number];
+        if (!isAtomic(loc.kind)) {
+            console.log('skip', loc.kind);
+            return;
+        }
+        if (locLines[loc.loc.start.line]) {
+            locLines[loc.loc.start.line].push(loc);
+        } else {
+            locLines[loc.loc.start.line] = [loc];
+        }
+    });
+    locLines.forEach((line) =>
+        line.sort((a, b) => a.loc.start.column - b.loc.start.column),
+    );
+    return { parents, children, locs, locLines };
+};
+
+export const isAtomic = (kind: LocKind) => {
+    return ['float', 'boolean', 'string', 'var', 'ref'].includes(kind);
+};
 
 export const addLocationIndices = (toplevel: ToplevelT) => {
     let idx = 0;

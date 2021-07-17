@@ -172,6 +172,7 @@ const CellView_ = ({
             maxWidth={maxWidth}
             onSetPlugin={onSetPlugin}
             onChange={onSetToplevel}
+            focused={focused != null}
             onPin={onPin}
             cell={cell}
             plugins={plugins}
