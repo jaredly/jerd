@@ -967,7 +967,9 @@ const showCustomBinOp = (env: Env, term: Term) => {
             '#' +
             term.idx.toString(),
         'custom-binop',
-        term.location,
+        // Use the location of the base, which is an atomic
+        // term, as opposed to the attribute.
+        term.target.location,
     );
     // return items([
     //     termToPretty(env, term.target),

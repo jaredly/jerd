@@ -3,6 +3,8 @@ import { jsx } from '@emotion/react';
 import {
     Extra,
     printToAttributedText,
+    SourceItem,
+    SourceMap,
 } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import {
@@ -11,10 +13,12 @@ import {
     idName,
     ToplevelT,
 } from '@jerd/language/src/typing/env';
-import { Env, Id, Term } from '@jerd/language/src/typing/types';
+import { Env, Id, Location, Term } from '@jerd/language/src/typing/types';
 import * as React from 'react';
+// import { Location } from '../../language/src/parsing/parser';
 import {
     addLocationIndices,
+    isAtomic,
     makeIdxTree,
 } from '../../language/src/typing/analyze';
 import { showType } from '../../language/src/typing/unify';
@@ -67,16 +71,31 @@ const RenderItem_ = ({
     onChange,
     onPin,
 }: Props) => {
-    let [top, term, idxTree] = React.useMemo(() => {
+    let [top, term, idxTree, attributedText, sourceMap] = React.useMemo(() => {
         let top = getToplevel(env, content);
         top = addLocationIndices(top);
         const term =
             top.type === 'Define' || top.type === 'Expression'
                 ? top.term
                 : null;
-        return [top, term, term ? makeIdxTree(term) : null];
-    }, [env, content]);
-    console.log(term, idxTree);
+        const sourceMap: SourceMap = {};
+        const attributedText = printToAttributedText(
+            toplevelToPretty(env, top),
+            maxWidth,
+            undefined,
+            sourceMap,
+        );
+        return [
+            top,
+            term,
+            term ? makeIdxTree(term) : null,
+            attributedText,
+            sourceMap,
+        ];
+    }, [env, content, maxWidth]);
+
+    console.log(sourceMap);
+
     const [scrub, setScrub] = React.useState(null as null | Scrub);
     const value = evalEnv.terms[idName(content.id)];
     const [hover, setHover] = React.useState(
@@ -103,8 +122,39 @@ const RenderItem_ = ({
         if (!focused || !idxTree) {
             return;
         }
+
+        // const locLines: Array<Array<Location>> = [];
+        // Object.keys(sourceMap).forEach((name: unknown) => {
+        //     locLines[name as number]
+        // })
+
+        const locLines: Array<Array<SourceItem>> = [];
+        Object.keys(sourceMap).forEach((idx: unknown) => {
+            const loc = sourceMap[idx as number];
+            if (!isAtomic(idxTree!.locs[idx as number].kind)) {
+                console.log(
+                    'skip',
+                    idx,
+                    loc,
+                    idxTree!.locs[idx as number].kind,
+                );
+                return;
+            }
+            if (locLines[loc.start.line]) {
+                locLines[loc.start.line].push(loc);
+            } else {
+                locLines[loc.start.line] = [loc];
+            }
+        });
+        locLines.forEach((line) =>
+            line.sort((a, b) => a.start.column - b.start.column),
+        );
+        console.log('LINES');
+        console.log(locLines);
+        window.ddata = { locLines, idxTree };
+
         const fn = (evt: KeyboardEvent) => {
-            const { locs, locLines, parents, children } = idxTree!;
+            const { locs, parents, children } = idxTree!;
 
             /*
             Ok what's my deal here
@@ -118,7 +168,7 @@ const RenderItem_ = ({
                         console.log('wat', idx, locs);
                         return idx;
                     }
-                    const pos = locs[idx].loc;
+                    const pos = sourceMap[idx];
                     if (pos.start.line === 0) {
                         return idx;
                     }
@@ -128,12 +178,13 @@ const RenderItem_ = ({
                             continue;
                         }
                         for (let i = 0; i < line.length; i++) {
-                            if (line[i].loc.start.column > pos.start.column) {
-                                return line[Math.max(0, i - 1)].loc.idx!;
+                            if (line[i].start.column > pos.start.column) {
+                                console.log(line[i], line);
+                                return line[Math.max(0, i - 1)].idx;
                             }
                         }
                         if (line.length > 0) {
-                            return line[0].loc.idx!;
+                            return line[0].idx;
                         }
                     }
 
@@ -196,7 +247,7 @@ const RenderItem_ = ({
             >
                 {renderAttributedText(
                     env.global,
-                    printToAttributedText(toplevelToPretty(env, top), maxWidth),
+                    attributedText,
                     onClick(env, cell, addCell, setScrub, term, value, setIdx),
                     undefined,
                     undefined,

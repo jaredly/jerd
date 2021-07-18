@@ -214,7 +214,7 @@ export const renderAttributedText = (
                     title={item.id + ' ' + item.kind}
                 >
                     {item.loc ? (
-                        <span css={{ color: 'red', fontSize: '80%' }}>
+                        <span css={{ color: 'red', fontSize: '50%' }}>
                             {item.loc.idx}
                         </span>
                     ) : (

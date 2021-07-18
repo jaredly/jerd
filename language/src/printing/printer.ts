@@ -263,20 +263,46 @@ export type AttributedText =
       }
     | { id: string; text: string; kind: string; loc?: Location };
 
+export type SourceItem = {
+    start: { line: number; column: number };
+    end: { line: number; column: number };
+    idx: number;
+};
+export type SourceMap = {
+    [idx: number]: SourceItem;
+};
+
 export const printToAttributedText = (
     pp: PP,
     maxWidth: number,
-    current: { indent: number; pos: number } = { indent: 0, pos: 0 },
+    current: { indent: number; pos: number; line: number } = {
+        indent: 0,
+        pos: 0,
+        line: 0,
+    },
+    sourceMap: SourceMap = {},
 ): Array<AttributedText> => {
+    const start = { line: current.line, column: current.pos };
     if (pp.type === 'atom') {
         current.pos += pp.text.length;
+        current.line += pp.text.split(/\n/g).length - 1;
         return pp.attributes || pp.loc
             ? [{ text: pp.text, attributes: pp.attributes || [], loc: pp.loc }]
             : [pp.text];
     }
     if (pp.type === 'id') {
+        // ids really shouldn't contain newlines
+        if (pp.loc && pp.loc.idx) {
+            sourceMap[pp.loc.idx] = {
+                start,
+                end: {
+                    line: current.line,
+                    column: current.pos + pp.text.length,
+                },
+                idx: pp.loc.idx,
+            };
+        }
         current.pos += pp.text.length;
-        // return pp.text + '#' + pp.id;
         return [pp];
     }
     if (pp.type === 'block') {
@@ -289,15 +315,17 @@ export const printToAttributedText = (
         ];
         current.indent += 4;
         pp.contents.forEach((item) => {
+            current.line += 1;
             current.pos = current.indent;
             res.push(
                 '\n' + white(current.indent),
-                ...printToAttributedText(item, maxWidth, current),
+                ...printToAttributedText(item, maxWidth, current, sourceMap),
                 { text: pp.sep, attributes: ['semi'] },
             );
         });
         current.indent -= 4;
         if (res.length > 1) {
+            current.line += 1;
             res.push('\n' + white(current.indent));
             current.pos = current.indent;
         }
@@ -307,6 +335,13 @@ export const printToAttributedText = (
             attributes: ['brace'],
             loc: pp.loc ? locToEnd(pp.loc) : undefined,
         });
+        if (pp.loc) {
+            sourceMap[pp.loc.idx!] = {
+                start,
+                end: { line: current.line, column: current.pos },
+                idx: pp.loc.idx!,
+            };
+        }
         return res;
     }
     if (pp.type === 'args') {
@@ -322,7 +357,14 @@ export const printToAttributedText = (
                     res.push({ text: ', ', attributes: ['comma'] });
                     current.pos += 2;
                 }
-                res.push(...printToAttributedText(child, maxWidth, current));
+                res.push(
+                    ...printToAttributedText(
+                        child,
+                        maxWidth,
+                        current,
+                        sourceMap,
+                    ),
+                );
             });
             current.pos += 1;
             res.push({ text: pp.right, attributes: ['brace'] });
@@ -335,10 +377,11 @@ export const printToAttributedText = (
         current.pos += 1;
         current.indent += 4;
         pp.contents.forEach((item, i) => {
+            current.line += 1;
             current.pos = current.indent;
             res.push(
                 '\n' + white(current.indent),
-                ...printToAttributedText(item, maxWidth, current),
+                ...printToAttributedText(item, maxWidth, current, sourceMap),
             );
             if (pp.trailing || i < pp.contents.length - 1) {
                 res.push({ text: ',', attributes: ['comma'] });
@@ -346,6 +389,7 @@ export const printToAttributedText = (
         });
         current.indent -= 4;
         if (res.length > 1) {
+            current.line += 1;
             res.push('\n' + white(current.indent));
             current.pos = current.indent;
         }
@@ -363,18 +407,29 @@ export const printToAttributedText = (
             pp.items.forEach((item, i) => {
                 if (i > 0) {
                     current.pos = current.indent;
+                    current.line += 1;
                     res.push('\n' + white(current.indent));
                 }
-                res.push(...printToAttributedText(item, maxWidth, current));
+                res.push(
+                    ...printToAttributedText(
+                        item,
+                        maxWidth,
+                        current,
+                        sourceMap,
+                    ),
+                );
                 if (i == 0) {
                     current.indent += 4;
                 }
             });
             current.indent -= 4;
-            // if (res.length > 1) {
-            //     res.push('\n' + white(current.indent));
-            //     current.pos = current.indent;
-            // }
+            if (pp.loc) {
+                sourceMap[pp.loc.idx!] = {
+                    start,
+                    end: { column: current.pos, line: current.line },
+                    idx: pp.loc.idx!,
+                };
+            }
             if (pp.attributes || pp.loc) {
                 return [
                     {
@@ -390,8 +445,17 @@ export const printToAttributedText = (
 
         const res: Array<AttributedText> = [];
         pp.items.forEach((item) => {
-            res.push(...printToAttributedText(item, maxWidth, current));
+            res.push(
+                ...printToAttributedText(item, maxWidth, current, sourceMap),
+            );
         });
+        if (pp.loc) {
+            sourceMap[pp.loc.idx!] = {
+                start,
+                end: { column: current.pos, line: current.line },
+                idx: pp.loc.idx!,
+            };
+        }
         if (pp.attributes || pp.loc) {
             return [
                 {

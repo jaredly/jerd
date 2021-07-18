@@ -32,6 +32,8 @@
 
 #### NORMAL MODE
 
+- [ ] hmmm got to be honest about how long an `id` is going to be folks. I guess with hideIds it's fine...
+
 Ok so I think what we need is:
 - node loc idx, which we already have
 - and then a cache that I build that does backlinks, right? and a mapping of "idx to term"
