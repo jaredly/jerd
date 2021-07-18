@@ -32,6 +32,12 @@
 
 #### NORMAL MODE
 
+Questions:
+- should 'attributes' count as atomic? probably actually ... idk. let's try it.
+- also, when hmmm
+
+
+
 - [ ] hmmm got to be honest about how long an `id` is going to be folks. I guess with hideIds it's fine...
 
 Ok so I think what we need is:

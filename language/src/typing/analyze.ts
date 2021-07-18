@@ -19,7 +19,13 @@ const idxs = (terms: Array<Term | null>) =>
 
 type LocKind = Term['type'] | 'arg' | 'let';
 
-export const makeIdxTree = (term: Term) => {
+export type IdxTree = {
+    children: { [key: number]: Array<number> };
+    locs: { [key: number]: { kind: LocKind; loc: Location } };
+    parents: { [key: number]: number };
+};
+
+export const makeIdxTree = (term: Term): IdxTree => {
     const children: { [key: number]: Array<number> } = {};
     const locs: { [key: number]: { kind: LocKind; loc: Location } } = {};
     const addLoc = (loc: Location, kind: LocKind) => {
@@ -80,27 +86,27 @@ export const makeIdxTree = (term: Term) => {
             (k: number) => (parents[k] = parent as number),
         );
     });
-    const locLines: Array<Array<{ kind: LocKind; loc: Location }>> = [];
-    Object.keys(locs).forEach((idx: unknown) => {
-        const loc = locs[idx as number];
-        if (!isAtomic(loc.kind)) {
-            console.log('skip', loc.kind);
-            return;
-        }
-        if (locLines[loc.loc.start.line]) {
-            locLines[loc.loc.start.line].push(loc);
-        } else {
-            locLines[loc.loc.start.line] = [loc];
-        }
-    });
-    locLines.forEach((line) =>
-        line.sort((a, b) => a.loc.start.column - b.loc.start.column),
-    );
-    return { parents, children, locs, locLines };
+    // const locLines: Array<Array<{ kind: LocKind; loc: Location }>> = [];
+    // Object.keys(locs).forEach((idx: unknown) => {
+    //     const loc = locs[idx as number];
+    //     if (!isAtomic(loc.kind)) {
+    //         console.log('skip', loc.kind);
+    //         return;
+    //     }
+    //     if (locLines[loc.loc.start.line]) {
+    //         locLines[loc.loc.start.line].push(loc);
+    //     } else {
+    //         locLines[loc.loc.start.line] = [loc];
+    //     }
+    // });
+    // locLines.forEach((line) =>
+    //     line.sort((a, b) => a.loc.start.column - b.loc.start.column),
+    // );
+    return { parents, children, locs };
 };
 
 export const isAtomic = (kind: LocKind) => {
-    return ['float', 'boolean', 'string', 'var', 'ref'].includes(kind);
+    return ['float', 'int', 'boolean', 'string', 'var', 'ref'].includes(kind);
 };
 
 export const addLocationIndices = (toplevel: ToplevelT) => {
