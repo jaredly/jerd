@@ -1,12 +1,122 @@
 import { SourceItem, SourceMap } from '../../language/src/printing/printer';
 import { IdxTree, isAtomic } from '../../language/src/typing/analyze';
 
+export type LocLines = Array<Array<SourceItem>>;
+
+export const goLeft = (
+    idx: number,
+    sourceMap: SourceMap,
+    locLines: LocLines,
+): number => {
+    const pos = sourceMap[idx];
+    const line = locLines[pos.start.line];
+    const i = line.findIndex((p) => p.idx === idx);
+    if (i > 0) {
+        return line[i - 1].idx;
+    }
+    for (let lno = pos.start.line - 1; lno >= 0; lno--) {
+        const line = locLines[lno];
+        if (!line || !line.length) {
+            continue;
+        }
+        return line[line.length - 1].idx;
+    }
+
+    return idx;
+};
+
+export const goRight = (
+    idx: number,
+    sourceMap: SourceMap,
+    locLines: LocLines,
+): number => {
+    const pos = sourceMap[idx];
+    const line = locLines[pos.start.line];
+    const i = line.findIndex((p) => p.idx === idx);
+    if (i < line.length - 1) {
+        return line[i + 1].idx;
+    }
+    for (let lno = pos.start.line + 1; lno < locLines.length; lno++) {
+        const line = locLines[lno];
+        if (!line || !line.length) {
+            continue;
+        }
+        return line[0].idx;
+    }
+
+    return idx;
+};
+
+export const goDown = (
+    idx: number,
+    sourceMap: SourceMap,
+    locLines: LocLines,
+): number => {
+    const pos = sourceMap[idx];
+    if (pos.start.line === locLines.length - 1) {
+        return idx;
+    }
+    for (let lno = pos.start.line + 1; lno < locLines.length; lno++) {
+        const line = locLines[lno];
+        if (!line) {
+            continue;
+        }
+        for (let i = 0; i < line.length; i++) {
+            if (line[i].start.column > pos.start.column) {
+                // console.log(line[i], line);
+                return line[Math.max(0, i - 1)].idx;
+            }
+        }
+        if (line.length > 0) {
+            return line[line.length - 1].idx;
+        }
+    }
+
+    return idx;
+};
+
+export const goUp = (
+    idx: number,
+    sourceMap: SourceMap,
+    locLines: LocLines,
+): number => {
+    const pos = sourceMap[idx];
+    if (pos.start.line === 0) {
+        return idx;
+    }
+    console.log(locLines[pos.start.line - 1], pos);
+    for (let lno = pos.start.line - 1; lno >= 0; lno--) {
+        const line = locLines[lno];
+        if (!line) {
+            continue;
+        }
+        for (let i = 0; i < line.length; i++) {
+            if (line[i].start.column > pos.start.column) {
+                const ii = Math.max(0, i - 1);
+                console.log(
+                    ii,
+                    line[i].start.column,
+                    pos.start.column,
+                    line[ii],
+                );
+                // console.log(line[i], line);
+                return line[ii].idx;
+            }
+        }
+        if (line.length > 0) {
+            return line[line.length - 1].idx;
+        }
+    }
+
+    return idx;
+};
+
 export const bindKeys = (
     idxTree: IdxTree,
     sourceMap: SourceMap,
     setIdx: (fn: (idx: number) => number) => void,
 ) => {
-    const locLines: Array<Array<SourceItem>> = [];
+    const locLines: LocLines = [];
     Object.keys(sourceMap).forEach((idx: unknown) => {
         const loc = sourceMap[idx as number];
         if (!isAtomic(idxTree!.locs[idx as number].kind)) {
@@ -33,77 +143,34 @@ export const bindKeys = (
     return (evt: KeyboardEvent) => {
         const { locs, parents, children } = idxTree!;
 
+        if (evt.key === 'j') {
+            // down
+        }
+
         /*
             Ok what's my deal here
             - hm maybe only show the atomic things
             - but hm
             */
-        console.log(evt.key);
         if (evt.key === 'ArrowUp') {
-            setIdx((idx) => {
-                if (!locs[idx]) {
-                    console.log('wat', idx, locs);
-                    return idx;
-                }
-                const pos = sourceMap[idx];
-                if (pos.start.line === 0) {
-                    return idx;
-                }
-                for (let lno = pos.start.line - 1; lno >= 0; lno--) {
-                    const line = locLines[lno];
-                    if (!line) {
-                        continue;
-                    }
-                    for (let i = 0; i < line.length; i++) {
-                        if (line[i].start.column > pos.start.column) {
-                            console.log(line[i], line);
-                            return line[Math.max(0, i - 1)].idx;
-                        }
-                    }
-                    if (line.length > 0) {
-                        return line[0].idx;
-                    }
-                }
-
-                return idx;
-            });
+            setIdx((idx) => goUp(idx, sourceMap, locLines));
+            evt.preventDefault();
+            evt.stopPropagation();
+            return true;
         }
 
         if (evt.key === 'ArrowDown') {
-            setIdx((idx) => {
-                const pchildren = children[idx];
-                if (pchildren) {
-                    return pchildren[0];
-                }
-                return idx;
-            });
+            setIdx((idx) => goDown(idx, sourceMap, locLines));
+            evt.preventDefault();
+            evt.stopPropagation();
+            return true;
         }
 
         if (evt.key === 'ArrowRight') {
-            setIdx((idx) => {
-                const parent = parents[idx];
-                if (parent) {
-                    const pchildren = children[parent];
-                    const i0 = pchildren.indexOf(idx);
-                    if (i0 < pchildren.length - 1) {
-                        return pchildren[i0 + 1];
-                    }
-                }
-                return idx;
-            });
+            setIdx((idx) => goRight(idx, sourceMap, locLines));
         }
         if (evt.key === 'ArrowLeft') {
-            setIdx((idx) => {
-                const parent = parents[idx];
-                if (parent) {
-                    const pchildren = children[parent];
-                    const i0 = pchildren.indexOf(idx);
-                    if (i0 < pchildren.length - 1) {
-                        return pchildren[i0 + 1];
-                    }
-                }
-                return idx;
-            });
+            setIdx((idx) => goLeft(idx, sourceMap, locLines));
         }
     };
 };
