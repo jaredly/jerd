@@ -47,6 +47,12 @@ export const makeIdxTree = (term: Term): IdxTree => {
                         [term.target].concat(term.args),
                     );
                     break;
+                case 'Attribute':
+                    children[term.location.idx!] = [
+                        term.target.location.idx!,
+                        term.idLocation.idx!,
+                    ];
+                    break;
                 case 'Record': {
                     const kids: Array<number> = [];
                     if (term.base.spread) {
@@ -134,27 +140,29 @@ export const isAtomic = (kind: LocKind) => {
 
 export const addLocationIndices = (toplevel: ToplevelT) => {
     let idx = 0;
+    const addIdx = (l: Location) => ({ ...l, idx: idx++ });
+
     return transformToplevel(toplevel, {
         toplevel: (value) => ({
             ...value,
-            location: {
-                ...value.location,
-                idx: idx++,
-            },
+            location: addIdx(value.location),
         }),
-        term: (term) => ({
-            ...term,
-            location: {
-                ...term.location,
-                idx: idx++,
-            },
-        }),
+        term: (term) => {
+            if (term.type === 'Attribute') {
+                return {
+                    ...term,
+                    location: addIdx(term.location),
+                    idLocation: addIdx(term.idLocation),
+                };
+            }
+            return {
+                ...term,
+                location: addIdx(term.location),
+            };
+        },
         let: (l) => ({
             ...l,
-            location: {
-                ...l.location,
-                idx: idx++,
-            },
+            location: addIdx(l.location),
         }),
     });
 };

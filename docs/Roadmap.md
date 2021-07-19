@@ -40,7 +40,24 @@ Navigation:
 - [x] shift-up for navigating to parent
 - [ ] right should go for an item that starts after the current end
 - [ ] blocks/sequences don't have locations, and maybe don't have maps? idk
-- [ ] attributes don't have locs?
+- [x] attributes don't have locs?
+- [ ] hjkl pleeease
+
+Things that still need locs:
+- [x] X.attribute (the attribute id bit)
+- [ ] a record row `hello: 20.0,`
+- [ ] fn arg type annotations
+- [ ] fn arg syms
+- [ ] define syms
+
+Kinds of things that can be focusable
+- [ ] terms
+- [ ] type annotations
+- [ ] sym declarations
+
+Bugs:
+- [x] I should have non-atoms in the line lists
+- [x] shift-up on custom binops isn't working
 
 REFACTORS:
 - [ ] "pull this out to block-level variable

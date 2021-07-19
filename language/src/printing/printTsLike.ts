@@ -656,6 +656,7 @@ export const termToPretty = (env: Env, term: Term): PP => {
                         maybeQuoteAttrName(names[term.idx]),
                         refName(term.ref) + '#' + term.idx.toString(),
                         'attribute',
+                        term.idLocation,
                     ),
                 ],
                 undefined,
@@ -978,7 +979,7 @@ const showCustomBinOp = (env: Env, term: Term) => {
         'custom-binop',
         // Use the location of the base, which is an atomic
         // term, as opposed to the attribute.
-        term.target.location,
+        term.location,
     );
     // return items([
     //     termToPretty(env, term.target),

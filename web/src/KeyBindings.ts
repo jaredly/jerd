@@ -105,12 +105,12 @@ export const goUp = (
         for (let i = 0; i < line.length; i++) {
             if (line[i].start.column > pos.start.column) {
                 const ii = Math.max(0, i - 1);
-                console.log(
-                    ii,
-                    line[i].start.column,
-                    pos.start.column,
-                    line[ii],
-                );
+                // console.log(
+                //     ii,
+                //     line[i].start.column,
+                //     pos.start.column,
+                //     line[ii],
+                // );
                 // console.log(line[i], line);
                 return line[ii].idx;
             }
@@ -131,15 +131,15 @@ export const bindKeys = (
     const locLines: LocLines = [];
     Object.keys(sourceMap).forEach((idx: unknown) => {
         const loc = sourceMap[idx as number];
-        if (!isAtomic(idxTree!.locs[idx as number].kind)) {
-            // console.log(
-            //     'skip',
-            //     idx,
-            //     loc,
-            //     idxTree!.locs[idx as number].kind,
-            // );
-            return;
-        }
+        // if (!isAtomic(idxTree!.locs[idx as number].kind)) {
+        //     // console.log(
+        //     //     'skip',
+        //     //     idx,
+        //     //     loc,
+        //     //     idxTree!.locs[idx as number].kind,
+        //     // );
+        //     return;
+        // }
         if (locLines[loc.start.line]) {
             locLines[loc.start.line].push(loc);
         } else {
@@ -155,21 +155,17 @@ export const bindKeys = (
     return (evt: KeyboardEvent) => {
         const { locs, parents, children } = idxTree!;
 
-        if (evt.key === 'j') {
-            // down
-        }
-
         /*
             Ok what's my deal here
             - hm maybe only show the atomic things
             - but hm
             */
-        if (evt.key === 'ArrowUp') {
+        if (evt.key === 'ArrowUp' || evt.key === 'k' || evt.key === 'K') {
             if (evt.shiftKey) {
                 setIdx((idx) => {
                     const parent = parents[idx];
                     if (parent != null) {
-                        console.log(parent);
+                        // console.log(parent);
                         return parent;
                     }
                     return idx;
@@ -182,17 +178,17 @@ export const bindKeys = (
             return true;
         }
 
-        if (evt.key === 'ArrowDown') {
+        if (evt.key === 'ArrowDown' || evt.key === 'j') {
             setIdx((idx) => goDown(idx, sourceMap, locLines));
             evt.preventDefault();
             evt.stopPropagation();
             return true;
         }
 
-        if (evt.key === 'ArrowRight') {
+        if (evt.key === 'ArrowRight' || evt.key === 'l') {
             setIdx((idx) => goRight(idx, sourceMap, locLines));
         }
-        if (evt.key === 'ArrowLeft') {
+        if (evt.key === 'ArrowLeft' || evt.key === 'h') {
             setIdx((idx) => goLeft(idx, sourceMap, locLines));
         }
     };

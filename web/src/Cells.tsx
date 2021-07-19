@@ -433,7 +433,7 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
     if (
         prevCell.content.type === 'term' &&
         cell.content.type === 'term' &&
-        prevCell.content.id !== cell.content.id
+        !idsEqual(prevCell.content.id, cell.content.id)
     ) {
         const prevId = prevCell.content.id;
         const prevTerm = env.global.terms[idName(prevId)];

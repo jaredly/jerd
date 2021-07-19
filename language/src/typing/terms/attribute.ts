@@ -187,6 +187,7 @@ export const typeAttribute = (
         type: 'Attribute',
         target,
         location: suffix.location,
+        idLocation: suffix.id.location,
         inferred: false,
         idx,
         ref,

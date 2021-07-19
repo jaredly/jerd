@@ -555,6 +555,7 @@ export type Term =
           // Shouldn't impact hash
           inferred: boolean;
           location: Location;
+          idLocation: Location;
           is: Type;
       }
     | {
