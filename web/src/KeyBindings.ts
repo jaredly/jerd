@@ -7,16 +7,25 @@ export const goLeft = (
     idx: number,
     sourceMap: SourceMap,
     locLines: LocLines,
+    tree: IdxTree,
 ): number => {
     const pos = sourceMap[idx];
     if (!pos) {
         return idx;
     }
     const line = locLines[pos.start.line];
-    const i = line.findIndex((p) => p.idx === idx);
-    if (i > 0) {
-        return line[i - 1].idx;
+    for (let i = line.findIndex((p) => p.idx === idx) - 1; i >= 0; i--) {
+        if (
+            (line[i].end.line < pos.start.line ||
+                line[i].end.column < pos.start.column) &&
+            isAtomic(tree.locs[line[i].idx].kind)
+        ) {
+            return line[i].idx;
+        }
     }
+    // if (i > 0) {
+    //     return line[i - 1].idx;
+    // }
     for (let lno = pos.start.line - 1; lno >= 0; lno--) {
         const line = locLines[lno];
         if (!line || !line.length) {
@@ -32,16 +41,32 @@ export const goRight = (
     idx: number,
     sourceMap: SourceMap,
     locLines: LocLines,
+    tree: IdxTree,
 ): number => {
     const pos = sourceMap[idx];
     if (!pos) {
         return idx;
     }
-    const line = locLines[pos.start.line];
-    const i = line.findIndex((p) => p.idx === idx);
-    if (i < line.length - 1) {
-        return line[i + 1].idx;
+    const line = locLines[pos.end.line];
+
+    for (
+        let i = line.findIndex((p) => p.idx === idx) + 1;
+        i < line.length;
+        i++
+    ) {
+        if (
+            (line[i].start.line > pos.end.line ||
+                line[i].start.column > pos.end.column) &&
+            isAtomic(tree.locs[line[i].idx].kind)
+        ) {
+            return line[i].idx;
+        }
     }
+
+    // const i = line.findIndex((p) => p.idx === idx);
+    // if (i < line.length - 1) {
+    //     return line[i + 1].idx;
+    // }
     for (let lno = pos.start.line + 1; lno < locLines.length; lno++) {
         const line = locLines[lno];
         if (!line || !line.length) {
@@ -131,15 +156,6 @@ export const bindKeys = (
     const locLines: LocLines = [];
     Object.keys(sourceMap).forEach((idx: unknown) => {
         const loc = sourceMap[idx as number];
-        // if (!isAtomic(idxTree!.locs[idx as number].kind)) {
-        //     // console.log(
-        //     //     'skip',
-        //     //     idx,
-        //     //     loc,
-        //     //     idxTree!.locs[idx as number].kind,
-        //     // );
-        //     return;
-        // }
         if (locLines[loc.start.line]) {
             locLines[loc.start.line].push(loc);
         } else {
@@ -186,10 +202,10 @@ export const bindKeys = (
         }
 
         if (evt.key === 'ArrowRight' || evt.key === 'l') {
-            setIdx((idx) => goRight(idx, sourceMap, locLines));
+            setIdx((idx) => goRight(idx, sourceMap, locLines, idxTree));
         }
         if (evt.key === 'ArrowLeft' || evt.key === 'h') {
-            setIdx((idx) => goLeft(idx, sourceMap, locLines));
+            setIdx((idx) => goLeft(idx, sourceMap, locLines, idxTree));
         }
     };
 };

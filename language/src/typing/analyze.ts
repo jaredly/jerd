@@ -17,7 +17,7 @@ import {
 const idxs = (terms: Array<Term | null>) =>
     terms.filter((t) => !!t).map((t) => t!.location.idx!);
 
-type LocKind = Term['type'] | 'arg' | 'let';
+type LocKind = Term['type'] | 'arg' | 'let' | 'attribute-id';
 
 export type IdxTree = {
     children: { [key: number]: Array<number> };
@@ -50,7 +50,7 @@ export const makeIdxTree = (term: Term): IdxTree => {
                 case 'Attribute':
                     children[term.location.idx!] = [
                         term.target.location.idx!,
-                        term.idLocation.idx!,
+                        addLoc(term.idLocation, 'attribute-id'),
                     ];
                     break;
                 case 'Record': {
@@ -135,7 +135,15 @@ export const makeIdxTree = (term: Term): IdxTree => {
 };
 
 export const isAtomic = (kind: LocKind) => {
-    return ['float', 'int', 'boolean', 'string', 'var', 'ref'].includes(kind);
+    return [
+        'float',
+        'int',
+        'boolean',
+        'string',
+        'var',
+        'ref',
+        'attribute-id',
+    ].includes(kind);
 };
 
 export const addLocationIndices = (toplevel: ToplevelT) => {

@@ -173,7 +173,7 @@ export default ({
     maxWidth: number;
     onSetPlugin: (plugin: Display | null) => void;
     contents: ToplevelT | string;
-    onClose: () => void;
+    onClose: (term: ToplevelT | null) => void;
     onChange: (term: ToplevelT | string) => void;
     onPin: (display: Display, id: Id) => void;
     evalEnv: EvalEnv;
@@ -278,7 +278,7 @@ export default ({
                             onChange(typed == null ? text : typed);
                         }
                         if (evt.key === 'Escape') {
-                            onClose();
+                            onClose(typed);
                         }
                     }}
                 />
@@ -309,7 +309,7 @@ export default ({
                     </button>
 
                     <button
-                        onClick={onClose}
+                        onClick={() => onClose(null)}
                         css={{
                             padding: '4px 8px',
                             fontWeight: 200,

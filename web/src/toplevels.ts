@@ -21,14 +21,18 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
         if (name == null) {
             return {
                 type: 'Expression',
-                term: env.global.terms[idName(content.id)],
+                term: content.proposed
+                    ? content.proposed.term
+                    : env.global.terms[idName(content.id)],
                 location: nullLocation,
             };
         } else {
             return {
                 type: 'Define',
                 name: name,
-                term: env.global.terms[idName(content.id)],
+                term: content.proposed
+                    ? content.proposed.term
+                    : env.global.terms[idName(content.id)],
                 id: content.id,
                 location: nullLocation,
             };

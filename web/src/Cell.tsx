@@ -3,7 +3,12 @@ import { jsx } from '@emotion/react';
 // Ok
 
 import * as React from 'react';
-import { idName, idFromName, ToplevelT } from '@jerd/language/src/typing/env';
+import {
+    idName,
+    idFromName,
+    ToplevelT,
+    hashObject,
+} from '@jerd/language/src/typing/env';
 import {
     Env,
     Id,
@@ -129,7 +134,34 @@ const CellView_ = ({
                     ? cell.content.text
                     : getToplevel(env, cell.content)
             }
-            onClose={() => setEditing(false)}
+            onClose={(proposedToplevel) => {
+                if (cell.content.type === 'term') {
+                    if (
+                        proposedToplevel != null &&
+                        (proposedToplevel.type === 'Define' ||
+                            proposedToplevel?.type === 'Expression')
+                    ) {
+                        onChange(env, {
+                            ...cell,
+                            content: {
+                                ...cell.content,
+                                proposed: {
+                                    term: proposedToplevel.term,
+                                    id: idFromName(
+                                        hashObject(proposedToplevel.term),
+                                    ),
+                                },
+                            },
+                        });
+                    } else if (cell.content.proposed) {
+                        onChange(env, {
+                            ...cell,
+                            content: { ...cell.content, proposed: null },
+                        });
+                    }
+                }
+                setEditing(false);
+            }}
             onChange={(rawOrToplevel) => {
                 onFocus(cell.id);
                 if (typeof rawOrToplevel === 'string') {
@@ -173,6 +205,7 @@ const CellView_ = ({
             onSetPlugin={onSetPlugin}
             onChange={onSetToplevel}
             focused={focused != null}
+            onFocus={() => onFocus(cell.id)}
             onPin={onPin}
             cell={cell}
             plugins={plugins}
@@ -551,6 +584,14 @@ const cellTitle = (
                         }
                     />
                     <span css={hashStyle}>#{idName(cell.content.id)}</span>
+                    {cell.content.proposed ? (
+                        <span>
+                            {' <- '}
+                            <span css={hashStyle}>
+                                #{idName(cell.content.proposed.id)}
+                            </span>
+                        </span>
+                    ) : null}
                     {renderAttributedText(
                         env.global,
                         printToAttributedText(

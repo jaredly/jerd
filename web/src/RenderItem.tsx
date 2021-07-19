@@ -46,6 +46,7 @@ export type Props = {
     content: TopContent;
     evalEnv: EvalEnv;
     focused: boolean;
+    onFocus: () => void;
     onRun: (id: Id) => void;
     addCell: (content: Content, position: Position) => void;
     onEdit: () => void;
@@ -66,6 +67,7 @@ const RenderItem_ = ({
     addCell,
     plugins,
     focused,
+    onFocus,
     maxWidth,
 
     onSetPlugin,
@@ -114,7 +116,16 @@ const RenderItem_ = ({
         [setScrub, scrub],
     );
 
-    const [idx, setIdx] = React.useState(0);
+    const [idx, setIdx_] = React.useState(0);
+    const setIdx = React.useCallback(
+        (idx) => {
+            setIdx_(idx);
+            if (!focused) {
+                onFocus();
+            }
+        },
+        [setIdx_, onFocus, focused],
+    );
 
     const cidxTree = React.useRef(idxTree);
     cidxTree.current = idxTree;

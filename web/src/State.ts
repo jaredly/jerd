@@ -9,7 +9,12 @@ import { Traces } from './eval';
 // - show a couple
 
 export type TopContent =
-    | { type: 'term'; id: Id; proposed?: null | Term; tests?: true | Array<Id> }
+    | {
+          type: 'term';
+          id: Id;
+          proposed?: null | { term: Term; id: Id };
+          tests?: true | Array<Id>;
+      }
     | { type: 'record'; id: Id }
     | { type: 'enum'; id: Id }
     | { type: 'effect'; id: Id };
