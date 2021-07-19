@@ -341,6 +341,15 @@ export const printToAttributedText = (
                 end: { line: current.line, column: current.pos },
                 idx: pp.loc.idx!,
             };
+
+            return [
+                {
+                    type: 'Group',
+                    contents: res,
+                    attributes: [],
+                    loc: pp.loc,
+                },
+            ];
         }
         return res;
     }

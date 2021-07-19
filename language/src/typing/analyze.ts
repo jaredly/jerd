@@ -47,6 +47,29 @@ export const makeIdxTree = (term: Term): IdxTree => {
                         [term.target].concat(term.args),
                     );
                     break;
+                case 'Record': {
+                    const kids: Array<number> = [];
+                    if (term.base.spread) {
+                        kids.push(term.base.spread.location.idx!);
+                    }
+                    if (term.base.type === 'Concrete') {
+                        term.base.rows.forEach((r) =>
+                            r ? kids.push(r.location.idx!) : null,
+                        );
+                    }
+                    Object.keys(term.subTypes).forEach((s) => {
+                        const sub = term.subTypes[s];
+                        if (sub.spread != null) {
+                            kids.push(sub.spread.location.idx!);
+                        }
+                        sub.rows.forEach((r) =>
+                            r ? kids.push(r.location.idx!) : null,
+                        );
+                    });
+
+                    children[term.location.idx!] = kids;
+                    break;
+                }
                 case 'if':
                     children[term.location.idx!] = idxs([
                         term.cond,

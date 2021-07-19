@@ -331,12 +331,16 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
 export const termOrLetToPretty = (env: Env, term: Term | Let): PP => {
     switch (term.type) {
         case 'Let':
-            return items([
-                atom('const ', ['keyword']),
-                symToPretty(term.binding),
-                atom(' = '),
-                termToPretty(env, term.value),
-            ]);
+            return items(
+                [
+                    atom('const ', ['keyword']),
+                    symToPretty(term.binding),
+                    atom(' = '),
+                    termToPretty(env, term.value),
+                ],
+                undefined,
+                term.location,
+            );
         default:
             return termToPretty(env, term);
     }
@@ -452,7 +456,11 @@ export const termToPretty = (env: Env, term: Term): PP => {
                 );
             }
         case 'sequence':
-            return block(term.sts.map((t) => termOrLetToPretty(env, t)));
+            return block(
+                term.sts.map((t) => termOrLetToPretty(env, t)),
+                undefined,
+                term.location,
+            );
         case 'apply':
             const asInfo = getAsInfo(term);
             if (asInfo != null) {
