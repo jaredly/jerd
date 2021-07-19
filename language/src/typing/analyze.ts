@@ -175,6 +175,26 @@ export const addLocationIndices = (toplevel: ToplevelT) => {
     });
 };
 
+export const maxLocationIdx = (term: Term) => {
+    let idx = 0;
+
+    transform(term, {
+        term: (term) => {
+            if (term.type === 'Attribute') {
+                idx = Math.max(term.location.idx!, term.idLocation.idx!, idx);
+                return null;
+            }
+            idx = Math.max(term.location.idx!, idx);
+            return null;
+        },
+        let: (l) => {
+            idx = Math.max(l.location.idx!, idx);
+            return null;
+        },
+    });
+    return idx;
+};
+
 export const allLiteral = (env: Env, type: Type): boolean => {
     switch (type.type) {
         case 'var':

@@ -206,6 +206,20 @@ const CellView_ = ({
             onChange={onSetToplevel}
             focused={focused != null}
             onFocus={() => onFocus(cell.id)}
+            onPending={(pending) => {
+                if (cell.content.type === 'term') {
+                    onChange(env, {
+                        ...cell,
+                        content: {
+                            ...cell.content,
+                            proposed: {
+                                term: pending,
+                                id: idFromName(hashObject(pending)),
+                            },
+                        },
+                    });
+                }
+            }}
             onPin={onPin}
             cell={cell}
             plugins={plugins}
@@ -258,7 +272,14 @@ const CellView_ = ({
 
     return (
         <CellWrapper
-            title={cellTitle(env, cell, maxWidth, cell.collapsed)}
+            title={cellTitle(env, cell, maxWidth, cell.collapsed, () => {
+                if (cell.content.type === 'term') {
+                    onChange(env, {
+                        ...cell,
+                        content: { ...cell.content, proposed: undefined },
+                    });
+                }
+            })}
             onRemove={() => onRemove(cell.id)}
             focused={focused}
             onFocus={() => onFocus(cell.id)}
@@ -529,6 +550,7 @@ const cellTitle = (
     cell: Cell,
     maxWidth: number,
     collapsed?: boolean,
+    clearPending?: () => void,
 ) => {
     if (collapsed) {
         maxWidth = 10000;
@@ -583,7 +605,9 @@ const cellTitle = (
                                 : 'icons_value'
                         }
                     />
-                    <span css={hashStyle}>#{idName(cell.content.id)}</span>
+                    <span css={hashStyle} onClick={clearPending}>
+                        #{idName(cell.content.id)}
+                    </span>
                     {cell.content.proposed ? (
                         <span>
                             {' <- '}

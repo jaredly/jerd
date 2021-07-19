@@ -46,7 +46,8 @@ export const FilterMenu = ({
                 }
                 css={{
                     padding: 4,
-                    backgroundColor: 'transparent',
+                    backgroundColor: '#555',
+                    color: '#fff',
                 }}
             />
         </div>

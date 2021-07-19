@@ -55,6 +55,7 @@ export type Props = {
     onSetPlugin: (display: Display | null) => void;
     onPin: (display: Display, id: Id) => void;
     onChange: (toplevel: ToplevelT) => void;
+    onPending: (term: Term) => void;
 };
 
 // const;
@@ -74,6 +75,7 @@ const RenderItem_ = ({
 
     onSetPlugin,
     onChange,
+    onPending,
     onPin,
 }: Props) => {
     let [top, term, idxTree, attributedText, sourceMap] = React.useMemo(() => {
@@ -135,7 +137,7 @@ const RenderItem_ = ({
     cidxTree.current = idxTree;
 
     React.useEffect(() => {
-        if (!focused || !idxTree) {
+        if (!focused || !idxTree || !term) {
             return;
         }
 
@@ -146,10 +148,17 @@ const RenderItem_ = ({
         // console.log('LINES');
         // console.log(locLines);
 
-        const fn = bindKeys(idxTree, sourceMap, setIdx, setMenu);
-        window.addEventListener('keydown', fn);
-        return () => window.removeEventListener('keydown', fn);
-    }, [focused, idxTree]);
+        const fn = bindKeys(
+            idxTree,
+            sourceMap,
+            term,
+            setIdx,
+            setMenu,
+            onPending,
+        );
+        window.addEventListener('keydown', fn, true);
+        return () => window.removeEventListener('keydown', fn, true);
+    }, [focused, idxTree, term]);
 
     // console.log('IDX', idx);
 
@@ -223,7 +232,9 @@ const RenderItem_ = ({
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        backgroundColor: 'rgba(0,0,0,0.1)',
+                        padding: 4,
+                        borderRadius: 4,
+                        backgroundColor: 'rgba(0,0,0,0.8)',
                     }}
                 >
                     <FilterMenu items={menu} onClose={() => setMenu(null)} />

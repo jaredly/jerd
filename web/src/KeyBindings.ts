@@ -1,5 +1,11 @@
 import { SourceItem, SourceMap } from '../../language/src/printing/printer';
-import { IdxTree, isAtomic } from '../../language/src/typing/analyze';
+import {
+    IdxTree,
+    isAtomic,
+    maxLocationIdx,
+} from '../../language/src/typing/analyze';
+import { transform } from '../../language/src/typing/transform';
+import { Let, Sequence, Symbol, Term } from '../../language/src/typing/types';
 import { MenuItem } from './CellWrapper';
 
 export type LocLines = Array<Array<SourceItem>>;
@@ -152,8 +158,10 @@ export const goUp = (
 export const bindKeys = (
     idxTree: IdxTree,
     sourceMap: SourceMap,
+    term: Term,
     setIdx: (fn: (idx: number) => number) => void,
     setMenu: (items: Array<MenuItem>) => void,
+    setTerm: (term: Term) => void,
 ) => {
     const locLines: LocLines = [];
     Object.keys(sourceMap).forEach((idx: unknown) => {
@@ -172,6 +180,30 @@ export const bindKeys = (
 
     return (evt: KeyboardEvent) => {
         const { locs, parents, children } = idxTree!;
+
+        if (evt.key === 'Enter' || evt.key === 'Return') {
+            evt.stopPropagation();
+            evt.preventDefault();
+            const items: Array<MenuItem> = [];
+            items.push({ name: 'Hello', action: () => console.log('hi') });
+            setIdx((idx) => {
+                const focused = idxTree.locs[idx];
+                if (focused.kind !== 'attribute-id') {
+                    // expr lol
+                    items.push({
+                        name: 'Extract to variable',
+                        action: () => {
+                            // STOPSHIP: start here please
+                            setTerm(extractToVariable(term, idx));
+                        },
+                    });
+                }
+                setMenu(items);
+
+                return idx;
+            });
+            return true;
+        }
 
         /*
             Ok what's my deal here
@@ -210,4 +242,109 @@ export const bindKeys = (
             setIdx((idx) => goLeft(idx, sourceMap, locLines, idxTree));
         }
     };
+};
+
+// TODO: this doesn't account for type variables right?
+export const maxUnique = (term: Term) => {
+    let max = 0;
+    transform(term, {
+        let: (t) => {
+            max = Math.max(t.binding.unique, max);
+            return null;
+        },
+        term: (term) => {
+            if (term.type === 'var') {
+                max = Math.max(max, term.sym.unique);
+            }
+            if (term.type === 'lambda') {
+                term.args.forEach((arg) => {
+                    max = Math.max(max, arg.unique);
+                });
+            }
+            if (term.type === 'Switch') {
+                // ergggggggg handle this
+            }
+            return null;
+        },
+    });
+    return max;
+};
+
+export const extractToVariable = (term: Term, idx: number) => {
+    let maxIdx = maxLocationIdx(term) + 1;
+    const sym: Symbol = {
+        unique: maxUnique(term) + 1,
+        name: 'var',
+    };
+    let found: null | Term = null;
+    term = transform(term, {
+        let: (l) => null,
+        term: (t) => {
+            if (t.location.idx === idx) {
+                found = t;
+                return {
+                    type: 'var',
+                    sym,
+                    location: { ...t.location, idx: maxIdx++ },
+                    is: t.is,
+                };
+            }
+            return null;
+        },
+    });
+    if (!found) {
+        return term;
+    }
+    let bound = false;
+    return transform(term, {
+        let: (l) => null,
+        term: (t) => {
+            if (bound) {
+                return null;
+            }
+            if (t.type === 'lambda') {
+                bound = true;
+                let seq: Sequence =
+                    t.body.type === 'sequence'
+                        ? t.body
+                        : {
+                              type: 'sequence',
+                              is: t.body.is,
+                              sts: [t.body],
+                              location: { ...t.body.location, idx: maxIdx++ },
+                          };
+
+                return {
+                    ...t,
+                    body: {
+                        ...seq,
+                        sts: [
+                            {
+                                type: 'Let',
+                                binding: sym,
+                                value: found!,
+                                location: { ...t.body.location, idx: maxIdx++ },
+                                is: found!.is,
+                            } as Term | Let,
+                        ].concat(seq.sts),
+                    },
+                };
+            } else if (t.type === 'sequence') {
+                bound = true;
+                return {
+                    ...t,
+                    sts: [
+                        {
+                            type: 'Let',
+                            binding: sym,
+                            value: found!,
+                            location: { ...t.location, idx: maxIdx++ },
+                            is: found!.is,
+                        } as Let | Term,
+                    ].concat(t.sts),
+                };
+            }
+            return null;
+        },
+    });
 };
