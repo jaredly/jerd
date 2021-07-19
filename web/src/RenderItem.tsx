@@ -23,7 +23,9 @@ import {
 } from '../../language/src/typing/analyze';
 import { showType } from '../../language/src/typing/unify';
 import { Position } from './Cells';
+import { MenuItem } from './CellWrapper';
 import { runTerm } from './eval';
+import { FilterMenu } from './FilterMenu';
 import { bindKeys } from './KeyBindings';
 import { renderAttributedText } from './Render';
 import { RenderResult } from './RenderResult';
@@ -127,6 +129,8 @@ const RenderItem_ = ({
         [setIdx_, onFocus, focused],
     );
 
+    const [menu, setMenu] = React.useState(null as null | Array<MenuItem>);
+
     const cidxTree = React.useRef(idxTree);
     cidxTree.current = idxTree;
 
@@ -142,7 +146,7 @@ const RenderItem_ = ({
         // console.log('LINES');
         // console.log(locLines);
 
-        const fn = bindKeys(idxTree, sourceMap, setIdx);
+        const fn = bindKeys(idxTree, sourceMap, setIdx, setMenu);
         window.addEventListener('keydown', fn);
         return () => window.removeEventListener('keydown', fn);
     }, [focused, idxTree]);
@@ -150,7 +154,7 @@ const RenderItem_ = ({
     // console.log('IDX', idx);
 
     return (
-        <div>
+        <div css={{ position: 'relative' }}>
             <div
                 style={{
                     fontFamily: '"Source Code Pro", monospace',
@@ -211,6 +215,19 @@ const RenderItem_ = ({
                     evalEnv={evalEnv}
                     onRun={onRun}
                 />
+            ) : null}
+            {menu ? (
+                <div
+                    css={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        backgroundColor: 'rgba(0,0,0,0.1)',
+                    }}
+                >
+                    <FilterMenu items={menu} onClose={() => setMenu(null)} />
+                </div>
             ) : null}
         </div>
     );

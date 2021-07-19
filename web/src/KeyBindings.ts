@@ -1,5 +1,6 @@
 import { SourceItem, SourceMap } from '../../language/src/printing/printer';
 import { IdxTree, isAtomic } from '../../language/src/typing/analyze';
+import { MenuItem } from './CellWrapper';
 
 export type LocLines = Array<Array<SourceItem>>;
 
@@ -121,7 +122,7 @@ export const goUp = (
     if (pos.start.line === 0) {
         return idx;
     }
-    console.log(locLines[pos.start.line - 1], pos);
+    // console.log(locLines[pos.start.line - 1], pos);
     for (let lno = pos.start.line - 1; lno >= 0; lno--) {
         const line = locLines[lno];
         if (!line) {
@@ -152,6 +153,7 @@ export const bindKeys = (
     idxTree: IdxTree,
     sourceMap: SourceMap,
     setIdx: (fn: (idx: number) => number) => void,
+    setMenu: (items: Array<MenuItem>) => void,
 ) => {
     const locLines: LocLines = [];
     Object.keys(sourceMap).forEach((idx: unknown) => {
