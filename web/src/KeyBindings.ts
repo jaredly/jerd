@@ -9,6 +9,9 @@ export const goLeft = (
     locLines: LocLines,
 ): number => {
     const pos = sourceMap[idx];
+    if (!pos) {
+        return idx;
+    }
     const line = locLines[pos.start.line];
     const i = line.findIndex((p) => p.idx === idx);
     if (i > 0) {
@@ -31,6 +34,9 @@ export const goRight = (
     locLines: LocLines,
 ): number => {
     const pos = sourceMap[idx];
+    if (!pos) {
+        return idx;
+    }
     const line = locLines[pos.start.line];
     const i = line.findIndex((p) => p.idx === idx);
     if (i < line.length - 1) {
@@ -53,6 +59,9 @@ export const goDown = (
     locLines: LocLines,
 ): number => {
     const pos = sourceMap[idx];
+    if (!pos) {
+        return idx;
+    }
     if (pos.start.line === locLines.length - 1) {
         return idx;
     }
@@ -81,6 +90,9 @@ export const goUp = (
     locLines: LocLines,
 ): number => {
     const pos = sourceMap[idx];
+    if (!pos) {
+        return idx;
+    }
     if (pos.start.line === 0) {
         return idx;
     }
@@ -153,7 +165,18 @@ export const bindKeys = (
             - but hm
             */
         if (evt.key === 'ArrowUp') {
-            setIdx((idx) => goUp(idx, sourceMap, locLines));
+            if (evt.shiftKey) {
+                setIdx((idx) => {
+                    const parent = parents[idx];
+                    if (parent != null) {
+                        console.log(parent);
+                        return parent;
+                    }
+                    return idx;
+                });
+            } else {
+                setIdx((idx) => goUp(idx, sourceMap, locLines));
+            }
             evt.preventDefault();
             evt.stopPropagation();
             return true;

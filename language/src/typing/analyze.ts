@@ -83,7 +83,7 @@ export const makeIdxTree = (term: Term): IdxTree => {
     const parents: { [key: number]: number } = {};
     Object.keys(children).forEach((parent: unknown) => {
         children[parent as number].forEach(
-            (k: number) => (parents[k] = parent as number),
+            (k: number) => (parents[k] = +(parent as string)),
         );
     });
     // const locLines: Array<Array<{ kind: LocKind; loc: Location }>> = [];

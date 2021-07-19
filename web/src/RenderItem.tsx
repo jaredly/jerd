@@ -136,6 +136,8 @@ const RenderItem_ = ({
         return () => window.removeEventListener('keydown', fn);
     }, [focused, idxTree]);
 
+    console.log('IDX', idx);
+
     return (
         <div>
             <div

@@ -32,9 +32,21 @@
 
 #### NORMAL MODE
 
-Questions:
+Navigation:
 - should 'attributes' count as atomic? probably actually ... idk. let's try it.
 - also, when hmmm
+- [x] basic navigation, arrow keys
+- [ ] would be nice to maintain a "target column" for multiple-ups/downs
+- [x] shift-up for navigating to parent
+- [ ] right should go for an item that starts after the current end
+- [ ] blocks/sequences don't have locations, and maybe don't have maps? idk
+- [ ] attributes don't have locs?
+
+REFACTORS:
+- [ ] "pull this out to block-level variable
+- [ ] rename (should be a key binding folks)
+- [ ] move up a block (potentially as a function call if needed)
+- [ ] move out to the toplevel as a new function
 
 
 

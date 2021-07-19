@@ -188,6 +188,7 @@ export const renderAttributedText = (
                                 ? 'rgba(255,255,255,0.2)'
                                 : undefined,
                     }}
+                    data-kind={item.kind}
                     data-location={
                         item.loc ? JSON.stringify(item.loc) : undefined
                     }
@@ -213,13 +214,13 @@ export const renderAttributedText = (
                     key={i}
                     title={item.id + ' ' + item.kind}
                 >
-                    {item.loc ? (
+                    {/* {item.loc ? (
                         <span css={{ color: 'red', fontSize: '50%' }}>
                             {item.loc.idx}
                         </span>
                     ) : (
                         ''
-                    )}
+                    )} */}
                     {item.text}
                     {showHash ? (
                         <span
@@ -243,6 +244,7 @@ export const renderAttributedText = (
                     data-location={
                         item.loc ? JSON.stringify(item.loc) : undefined
                     }
+                    data-kind="group"
                     onMouseEnter={
                         first
                             ? (evt) => {
@@ -285,7 +287,15 @@ export const renderAttributedText = (
         return (
             <span
                 data-location={item.loc ? JSON.stringify(item.loc) : undefined}
-                style={stylesForAttributes(item.attributes)}
+                // style={stylesForAttributes(item.attributes)}
+                data-kind={'misc'}
+                style={{
+                    // ...stylesForAttributes(item.attributes),
+                    backgroundColor:
+                        item.loc && item.loc.idx === selection
+                            ? 'rgba(255,255,255,0.2)'
+                            : undefined,
+                }}
                 key={i}
             >
                 {(item as any).text}
