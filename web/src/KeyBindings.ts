@@ -1,5 +1,6 @@
 import { SourceItem, SourceMap } from '../../language/src/printing/printer';
 import {
+    ensureIdxUnique,
     IdxTree,
     insertAfterBindings,
     isAtomic,
@@ -57,6 +58,9 @@ export const goRight = (
         return idx;
     }
     const line = locLines[pos.end.line];
+    if (!line) {
+        return idx;
+    }
 
     for (
         let i = line.findIndex((p) => p.idx === idx) + 1;
@@ -196,7 +200,14 @@ export const bindKeys = (
                         name: 'Extract to variable',
                         action: () => {
                             // STOPSHIP: start here please
-                            setTerm(extractToVariable(term, idx));
+                            const newTerm = extractToVariable(term, idx);
+                            const duplicates = ensureIdxUnique(newTerm);
+                            if (duplicates.length) {
+                                console.error('DUPLICATES');
+                                console.log(duplicates);
+                                return;
+                            }
+                            setTerm(newTerm);
                         },
                     });
                 }
@@ -298,13 +309,18 @@ export const extractToVariable = (term: Term, idx: number) => {
         throw new Error(`Term not found`);
     }
     const unbound = usedLocalVariables(found);
-    return insertAfterBindings(term, unbound, {
-        type: 'Let',
-        location: { ...found.location, idx: maxIdx++ },
-        binding: sym,
-        value: found,
-        is: found.is,
-    });
+    return insertAfterBindings(
+        term,
+        unbound,
+        {
+            type: 'Let',
+            location: { ...found.location, idx: maxIdx++ },
+            binding: sym,
+            value: found,
+            is: found.is,
+        },
+        maxIdx,
+    );
 };
 
 export const extractToVariable_old = (term: Term, idx: number) => {

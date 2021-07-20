@@ -22,7 +22,7 @@ import {
 export type Visitor<Ctx> = {
     toplevel?: (value: ToplevelT, ctx: Ctx) => ToplevelT | null | false;
     term: (value: Term, ctx: Ctx) => Term | null | false | [Term | null, Ctx];
-    let?: (value: Let, ctx: Ctx) => Let | null | false | [Let | null, Ctx];
+    let?: (value: Let, ctx: Ctx) => Let | null | false | [Let | null, Ctx, Ctx];
     switchCase?: (
         value: SwitchCase,
         ctx: Ctx,
@@ -67,14 +67,16 @@ export const transformLet = <Ctx>(
     l: Let,
     visitor: Visitor<Ctx>,
     ctx: Ctx,
-): Let => {
+): [Let, Ctx] => {
     const transformed = visitor.let ? visitor.let(l, ctx) : null;
+    let nextCtx = ctx;
     if (transformed === false) {
-        return l;
+        return [l, nextCtx];
     }
     if (transformed != null) {
         if (Array.isArray(transformed)) {
             ctx = transformed[1];
+            nextCtx = transformed[2];
             if (transformed[0] != null) {
                 l = transformed[0];
             }
@@ -83,7 +85,7 @@ export const transformLet = <Ctx>(
         }
     }
     const value = transformWithCtx(l.value, visitor, ctx);
-    return value !== l.value ? { ...l, value } : l;
+    return [value !== l.value ? { ...l, value } : l, nextCtx];
 };
 
 export const transform = (term: Term, visitor: Visitor<null>) =>
@@ -146,10 +148,13 @@ export const transformWithCtx = <Ctx>(
         case 'sequence': {
             let changed = false;
             const sts = term.sts.map((t) => {
-                const tr =
-                    t.type === 'Let'
-                        ? transformLet(t, visitor, ctx)
-                        : transformWithCtx(t, visitor, ctx);
+                if (t.type === 'Let') {
+                    const [tr, nextCtx] = transformLet(t, visitor, ctx);
+                    ctx = nextCtx;
+                    changed = changed || tr !== t;
+                    return tr;
+                }
+                const tr = transformWithCtx(t, visitor, ctx);
                 changed = changed || tr !== t;
                 return tr;
             });

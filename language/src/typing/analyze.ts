@@ -157,37 +157,77 @@ export const isAtomic = (kind: LocKind) => {
     ].includes(kind);
 };
 
+export const transformLocations = (
+    mapper: (loc: Location) => Location,
+): Visitor<null> => {
+    return {
+        toplevel: (value) => {
+            const location = mapper(value.location);
+            return location !== value.location
+                ? {
+                      ...value,
+                      location,
+                  }
+                : null;
+        },
+        term: (term) => {
+            if (term.type === 'Attribute') {
+                const location = mapper(term.location);
+                const idLocation = mapper(term.idLocation);
+                return location !== term.location ||
+                    idLocation !== term.idLocation
+                    ? {
+                          ...term,
+                          location,
+                          idLocation,
+                      }
+                    : null;
+            }
+            const location = mapper(term.location);
+            return location !== term.location
+                ? {
+                      ...term,
+                      location,
+                  }
+                : term;
+        },
+        let: (l) => {
+            const location = mapper(l.location);
+            return location !== l.location
+                ? {
+                      ...l,
+                      location,
+                  }
+                : null;
+        },
+    };
+};
+
+export const ensureIdxUnique = (term: Term) => {
+    let idx = 0;
+    const addIdx = (l: Location) => ({ ...l, idx: idx++ });
+    const used: { [unique: number]: Location } = {};
+    const duplicates: Array<[Location, Location]> = [];
+
+    transform(
+        term,
+        transformLocations((loc) => {
+            if (used[loc.idx!] != null) {
+                duplicates.push([loc, used[loc.idx!]]);
+            }
+            used[loc.idx!] = loc;
+            return loc;
+        }),
+    );
+
+    return duplicates;
+};
+
 export const addLocationIndices = (toplevel: ToplevelT) => {
     let idx = 0;
     const addIdx = (l: Location) => ({ ...l, idx: idx++ });
 
-    return transformToplevel(
-        toplevel,
-        {
-            toplevel: (value) => ({
-                ...value,
-                location: addIdx(value.location),
-            }),
-            term: (term) => {
-                if (term.type === 'Attribute') {
-                    return {
-                        ...term,
-                        location: addIdx(term.location),
-                        idLocation: addIdx(term.idLocation),
-                    };
-                }
-                return {
-                    ...term,
-                    location: addIdx(term.location),
-                };
-            },
-            let: (l) => ({
-                ...l,
-                location: addIdx(l.location),
-            }),
-        },
-        null,
-    );
+    return transformToplevel(toplevel, transformLocations(addIdx), null);
 };
 
 export const maxLocationIdx = (term: Term) => {
@@ -524,6 +564,7 @@ export const insertAfterBindings = (
     term: Term,
     bindings: Array<number>,
     let_: Let,
+    maxIdx: number,
 ) => {
     // ctxxxx
     // so I ... want a local context var
@@ -537,6 +578,8 @@ export const insertAfterBindings = (
             if (found) {
                 return null;
             }
+            // So, if it's a "let" that puts us over the edge
+            // thennnn
             if (bindings.every((u) => ctx[u] != null)) {
                 found = true;
                 if (t.type === 'sequence') {
@@ -548,10 +591,33 @@ export const insertAfterBindings = (
                     return {
                         type: 'sequence',
                         // TODO: new idx!!
-                        location: t.location,
+                        location: { ...t.location, idx: maxIdx++ },
                         sts: [let_, t],
                         is: t.is,
                     };
+                }
+            }
+            if (t.type === 'sequence') {
+                ctx = { ...ctx };
+                let res: Array<Let | Term> = [];
+                t.sts.forEach((st) => {
+                    res.push(st);
+                    if (found) {
+                        return;
+                    }
+                    if (st.type === 'Let') {
+                        ctx[st.binding.unique] = {
+                            type: st.is,
+                            loc: st.location,
+                        };
+                        if (bindings.every((u) => ctx[u] != null)) {
+                            found = true;
+                            res.push(let_);
+                        }
+                    }
+                });
+                if (found) {
+                    return { ...t, sts: res };
                 }
             }
             return null;
@@ -614,6 +680,7 @@ export const transformWithBindings = (
             }
             return [
                 ll,
+                ctx,
                 { ...ctx, [l.binding.unique]: { loc: l.location, type: l.is } },
             ];
         },
