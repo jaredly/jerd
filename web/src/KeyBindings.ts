@@ -314,10 +314,11 @@ export const extractToVariable = (term: Term, idx: number) => {
         unbound,
         {
             type: 'Let',
-            location: { ...found.location, idx: maxIdx++ },
+            location: { ...(found as Term).location, idx: maxIdx++ },
+            idLocation: { ...(found as Term).location, idx: maxIdx++ },
             binding: sym,
             value: found,
-            is: found.is,
+            is: (found as Term).is,
         },
         maxIdx,
     );

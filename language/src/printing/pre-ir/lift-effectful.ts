@@ -23,6 +23,7 @@ const processArg = (
         binding: sym,
         is: arg.is,
         location: arg.location,
+        idLocation: arg.location,
         value: arg,
     });
     return {

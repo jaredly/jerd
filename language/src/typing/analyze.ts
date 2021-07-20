@@ -25,7 +25,7 @@ import {
 const idxs = (terms: Array<Term | null>) =>
     terms.filter((t) => !!t).map((t) => t!.location.idx!);
 
-type LocKind = Term['type'] | 'arg' | 'let' | 'attribute-id';
+type LocKind = Term['type'] | 'arg' | 'let' | 'attribute-id' | 'let-sym';
 
 export type IdxTree = {
     children: { [key: number]: Array<number> };
@@ -42,9 +42,15 @@ export const makeIdxTree = (term: Term): IdxTree => {
     };
     transform(term, {
         let: (l) => {
-            // TODO: the sym needs a loc
-            children[l.location.idx!] = [l.value.location.idx!];
+            if (!l.idLocation) {
+                l.idLocation = { ...l.location };
+            }
+            children[l.location.idx!] = [
+                l.idLocation.idx!,
+                l.value.location.idx!,
+            ];
             locs[l.location.idx!] = { kind: 'let', loc: l.location };
+            locs[l.idLocation.idx!] = { kind: 'let-sym', loc: l.idLocation };
             return null;
         },
         term: (term) => {
@@ -153,6 +159,7 @@ export const isAtomic = (kind: LocKind) => {
         'string',
         'var',
         'ref',
+        'let-sym',
         'attribute-id',
     ].includes(kind);
 };
@@ -193,10 +200,12 @@ export const transformLocations = (
         },
         let: (l) => {
             const location = mapper(l.location);
-            return location !== l.location
+            const idLocation = mapper(l.idLocation);
+            return location !== l.location || idLocation !== l.idLocation
                 ? {
                       ...l,
                       location,
+                      idLocation,
                   }
                 : null;
         },

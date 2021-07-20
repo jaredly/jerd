@@ -334,7 +334,7 @@ export const termOrLetToPretty = (env: Env, term: Term | Let): PP => {
             return items(
                 [
                     atom('const ', ['keyword']),
-                    symToPretty(term.binding),
+                    symToPretty(term.binding, term.idLocation),
                     atom(' = '),
                     termToPretty(env, term.value),
                 ],

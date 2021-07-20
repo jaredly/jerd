@@ -360,6 +360,7 @@ export const apply = (
 export type Let = {
     type: 'Let';
     location: Location;
+    idLocation: Location;
     binding: Symbol; // TODO patterns folks
     value: Term;
     is: Type;

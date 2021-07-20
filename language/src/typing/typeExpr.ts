@@ -342,6 +342,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                     inner.push({
                         type: 'Let',
                         location: item.location,
+                        idLocation: item.id.location,
                         binding: sym,
                         value,
                         is: type,

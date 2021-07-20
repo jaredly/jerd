@@ -91,6 +91,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         const l: Let = {
             type: 'Let',
             location: builtinLocation,
+            idLocation: builtinLocation,
             is: bool,
             binding: sym,
             value: term,
@@ -102,6 +103,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
     sts.push({
         type: 'Let',
         location: loc,
+        idLocation: loc,
         is: float,
         binding: sizeSym,
         value: applyBuiltin(
@@ -138,6 +140,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
     sts.push({
         type: 'Let',
         location: loc,
+        idLocation: loc,
         is: float,
         binding: rad,
         value: applyBuiltin(
