@@ -40,7 +40,10 @@ export const makeIdxTree = (term: Term): IdxTree => {
             return null;
         },
         term: (term) => {
-            locs[term.location.idx!] = { kind: term.type, loc: term.location };
+            locs[term.location.idx!] = {
+                kind: term.type,
+                loc: term.location,
+            };
             switch (term.type) {
                 case 'apply':
                     children[term.location.idx!] = idxs(
@@ -150,29 +153,33 @@ export const addLocationIndices = (toplevel: ToplevelT) => {
     let idx = 0;
     const addIdx = (l: Location) => ({ ...l, idx: idx++ });
 
-    return transformToplevel(toplevel, {
-        toplevel: (value) => ({
-            ...value,
-            location: addIdx(value.location),
-        }),
-        term: (term) => {
-            if (term.type === 'Attribute') {
+    return transformToplevel(
+        toplevel,
+        {
+            toplevel: (value) => ({
+                ...value,
+                location: addIdx(value.location),
+            }),
+            term: (term) => {
+                if (term.type === 'Attribute') {
+                    return {
+                        ...term,
+                        location: addIdx(term.location),
+                        idLocation: addIdx(term.idLocation),
+                    };
+                }
                 return {
                     ...term,
                     location: addIdx(term.location),
-                    idLocation: addIdx(term.idLocation),
                 };
-            }
-            return {
-                ...term,
-                location: addIdx(term.location),
-            };
+            },
+            let: (l) => ({
+                ...l,
+                location: addIdx(l.location),
+            }),
         },
-        let: (l) => ({
-            ...l,
-            location: addIdx(l.location),
-        }),
-    });
+        null,
+    );
 };
 
 export const maxLocationIdx = (term: Term) => {
@@ -499,3 +506,26 @@ export const topoSort = (mapping: { [source: string]: Array<string> }) => {
 //     return error   (graph has at least one cycle)
 // else
 //     return L   (a topologically sorted order)
+
+// TODO: Do we give symbols idxs?
+// I don't think so. Maybe we make a "binding" object?
+// although that would break hashes.....
+// I should probably switch to explicit hashing of terms and such
+// so that I can more easily change things
+export const insertAfterBindings = (
+    term: Term,
+    bindings: Array<number>,
+    sym: Symbol,
+    newTerm: Term,
+) => {
+    // ctxxxx
+    // so I ... want a local context var
+    //
+    return transform(term, {
+        let: (l) => null,
+        term: (t) => {
+            // okkkhfolks
+            return null;
+        },
+    });
+};

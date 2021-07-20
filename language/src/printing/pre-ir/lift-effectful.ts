@@ -59,7 +59,7 @@ const subSequence = (lets: Array<Let | Term>, modified: Term): Term => ({
  * the IR optimization pass.
  */
 export const liftEffects = (env: Env, term: Term) => {
-    const visitor: Visitor = {
+    const visitor: Visitor<null> = {
         term: (term: Term) => {
             switch (term.type) {
                 case 'Attribute':

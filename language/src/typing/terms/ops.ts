@@ -83,6 +83,7 @@ export const findUnaryOp = (
                 idx: idx,
                 is: t.items[idx],
                 location: location,
+                idLocation: location,
                 ref: { type: 'user', id },
                 inferred: true,
             };
@@ -154,6 +155,7 @@ const findOp = (
                 idx: idx,
                 is: t.items[idx],
                 location: location,
+                idLocation: location,
                 ref: { type: 'user', id },
                 inferred: true,
             };
@@ -235,6 +237,7 @@ const typeNewOp = (
             idx: idx,
             is: t.items[idx],
             location: op.location,
+            idLocation: op.location,
             ref: { type: 'user', id },
             inferred: true,
         };

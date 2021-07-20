@@ -103,6 +103,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
             idx: 0,
             ref: asRecord,
             location: target.location,
+            idLocation: target.location,
             inferred: true,
             is: pureFunction([stype], ttype),
         },

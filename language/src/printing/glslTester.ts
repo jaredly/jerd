@@ -111,6 +111,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
                     type: 'Attribute',
                     idx: env.global.attributeNames['x'][0].idx,
                     location: loc,
+                    idLocation: loc,
                     inferred: false,
                     is: float,
                     ref: { type: 'user', id: env.global.typeNames['Vec2'][0] },
@@ -119,6 +120,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
                         target: var_(envSym, refType(idName(GLSLEnvId)), loc),
                         idx: env.global.attributeNames['resolution'][0].idx,
                         location: loc,
+                        idLocation: loc,
                         inferred: false,
                         is: Vec2,
                         ref: {
