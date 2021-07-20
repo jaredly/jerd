@@ -1,8 +1,10 @@
 import { SourceItem, SourceMap } from '../../language/src/printing/printer';
 import {
     IdxTree,
+    insertAfterBindings,
     isAtomic,
     maxLocationIdx,
+    usedLocalVariables,
 } from '../../language/src/typing/analyze';
 import { transform } from '../../language/src/typing/transform';
 import { Let, Sequence, Symbol, Term } from '../../language/src/typing/types';
@@ -271,6 +273,41 @@ export const maxUnique = (term: Term) => {
 };
 
 export const extractToVariable = (term: Term, idx: number) => {
+    let maxIdx = maxLocationIdx(term) + 1;
+    const sym: Symbol = {
+        unique: maxUnique(term) + 1,
+        name: 'var',
+    };
+    let found: null | Term = null;
+    term = transform(term, {
+        let: (l) => null,
+        term: (t) => {
+            if (t.location.idx === idx) {
+                found = t;
+                return {
+                    type: 'var',
+                    sym,
+                    location: { ...t.location, idx: maxIdx++ },
+                    is: t.is,
+                };
+            }
+            return null;
+        },
+    });
+    if (found == null) {
+        throw new Error(`Term not found`);
+    }
+    const unbound = usedLocalVariables(found);
+    return insertAfterBindings(term, unbound, {
+        type: 'Let',
+        location: { ...found.location, idx: maxIdx++ },
+        binding: sym,
+        value: found,
+        is: found.is,
+    });
+};
+
+export const extractToVariable_old = (term: Term, idx: number) => {
     let maxIdx = maxLocationIdx(term) + 1;
     const sym: Symbol = {
         unique: maxUnique(term) + 1,

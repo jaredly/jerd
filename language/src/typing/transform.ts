@@ -13,6 +13,7 @@ import {
     LambdaType,
     Let,
     Pattern,
+    SwitchCase,
     Term,
     Type,
     Var,
@@ -20,8 +21,12 @@ import {
 
 export type Visitor<Ctx> = {
     toplevel?: (value: ToplevelT, ctx: Ctx) => ToplevelT | null | false;
-    term: (value: Term, ctx: Ctx) => Term | null | false | [Term, Ctx];
-    let?: (value: Let, ctx: Ctx) => Let | null | false | [Let, Ctx];
+    term: (value: Term, ctx: Ctx) => Term | null | false | [Term | null, Ctx];
+    let?: (value: Let, ctx: Ctx) => Let | null | false | [Let | null, Ctx];
+    switchCase?: (
+        value: SwitchCase,
+        ctx: Ctx,
+    ) => SwitchCase | null | false | [SwitchCase | null, Ctx];
 };
 
 // Ok so for the moment we're just doing terms, not types.
@@ -70,7 +75,9 @@ export const transformLet = <Ctx>(
     if (transformed != null) {
         if (Array.isArray(transformed)) {
             ctx = transformed[1];
-            l = transformed[0];
+            if (transformed[0] != null) {
+                l = transformed[0];
+            }
         } else {
             l = transformed;
         }
@@ -94,7 +101,9 @@ export const transformWithCtx = <Ctx>(
     if (transformed != null) {
         if (Array.isArray(transformed)) {
             ctx = transformed[1];
-            term = transformed[0];
+            if (transformed[0] != null) {
+                term = transformed[0];
+            }
         } else {
             term = transformed;
         }
@@ -213,7 +222,24 @@ export const transformWithCtx = <Ctx>(
             const t = transformWithCtx(term.term, visitor, ctx);
             let changed = false;
             const cases = term.cases.map((kase) => {
-                const body = transformWithCtx(kase.body, visitor, ctx);
+                let k2 = visitor.switchCase
+                    ? visitor.switchCase(kase, ctx)
+                    : null;
+                let ct2 = ctx;
+                if (k2 === false) {
+                    return kase;
+                }
+                if (k2 != null) {
+                    if (Array.isArray(k2)) {
+                        if (k2[0] != null) {
+                            kase = k2[0];
+                        }
+                        ct2 = k2[1];
+                    } else {
+                        kase = k2;
+                    }
+                }
+                const body = transformWithCtx(kase.body, visitor, ct2);
                 changed = changed || body !== kase.body;
                 return body !== kase.body ? { ...kase, body } : kase;
             });

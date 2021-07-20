@@ -1,6 +1,13 @@
 import { defaultVisitor } from '../printing/ir/transform';
 import { idFromName, idName, refName, ToplevelT } from './env';
-import { transform, transformToplevel } from './transform';
+import { void_ } from './preset';
+import {
+    transform,
+    transformToplevel,
+    transformWithCtx,
+    Visitor,
+    walkPattern,
+} from './transform';
 import { applyTypeVariablesToRecord, getEnumReferences } from './typeExpr';
 import {
     Env,
@@ -12,6 +19,7 @@ import {
     UserReference,
     Location,
     walkTerm,
+    Let,
 } from './types';
 
 const idxs = (terms: Array<Term | null>) =>
@@ -515,17 +523,147 @@ export const topoSort = (mapping: { [source: string]: Array<string> }) => {
 export const insertAfterBindings = (
     term: Term,
     bindings: Array<number>,
-    sym: Symbol,
-    newTerm: Term,
+    let_: Let,
 ) => {
     // ctxxxx
     // so I ... want a local context var
-    //
-    return transform(term, {
-        let: (l) => null,
-        term: (t) => {
-            // okkkhfolks
+    // yay I have one.
+    // ok, so as I go through, I want ... to know what parentage is?
+    // ctx.bindingParent?
+    type Bindings = {};
+    let found = false;
+    return transformWithBindings(term, {
+        term: (t, ctx) => {
+            if (found) {
+                return null;
+            }
+            if (bindings.every((u) => ctx[u] != null)) {
+                found = true;
+                if (t.type === 'sequence') {
+                    return {
+                        ...t,
+                        sts: [let_ as Let | Term].concat(t.sts),
+                    };
+                } else {
+                    return {
+                        type: 'sequence',
+                        // TODO: new idx!!
+                        location: t.location,
+                        sts: [let_, t],
+                        is: t.is,
+                    };
+                }
+            }
             return null;
         },
     });
+};
+
+export const usedLocalVariables = (term: Term) => {
+    const unbound: { [unique: number]: boolean } = {};
+    const bound: { [unique: number]: boolean } = {};
+    transform(term, {
+        let: (l) => {
+            bound[l.binding.unique] = true;
+            return null;
+        },
+        switchCase: (k) => {
+            walkPattern(k.pattern, (p) =>
+                p.type === 'Binding'
+                    ? ((bound[p.sym.unique] = true), undefined)
+                    : undefined,
+            );
+            return null;
+        },
+        term: (t) => {
+            if (t.type === 'lambda') {
+                t.args.forEach((s) => (bound[s.unique] = true));
+            }
+            if (t.type === 'var') {
+                if (bound[t.sym.unique] !== true) {
+                    unbound[t.sym.unique] = true;
+                }
+            }
+            return null;
+        },
+    });
+    return Object.keys(unbound).map((u) => +u);
+};
+
+export type Bindings = { [unique: number]: { loc: Location; type: Type } };
+
+export const transformWithBindings = (
+    term: Term,
+    visitor: Visitor<Bindings>,
+) => {
+    const vinner: Visitor<Bindings> = {
+        let: (l, ctx) => {
+            const res = visitor.let ? visitor.let(l, ctx) : null;
+            if (res === false) {
+                return false;
+            }
+            let ll = null;
+            if (res != null) {
+                if (Array.isArray(res)) {
+                    if (res[0] != null) {
+                        ll = res[0];
+                    }
+                } else {
+                    ll = res;
+                }
+            }
+            return [
+                ll,
+                { ...ctx, [l.binding.unique]: { loc: l.location, type: l.is } },
+            ];
+        },
+        switchCase: (kase, ctx) => {
+            let changed = false;
+            walkPattern(kase.pattern, (pat) => {
+                if (pat.type === 'Binding') {
+                    // hmm TODO it owuld be nice for pats to hang onto what type they are
+                    if (!changed) {
+                        ctx = { ...ctx };
+                        changed = true;
+                    }
+                    ctx[pat.sym.unique] = { loc: pat.location, type: void_ };
+                }
+            });
+            if (changed) {
+                return [null, ctx];
+            } else {
+                return null;
+            }
+        },
+        term: (t, ctx) => {
+            const res = visitor.term(t, ctx);
+            if (res === false) {
+                return false;
+            }
+            let ll = null;
+            if (res != null) {
+                if (Array.isArray(res)) {
+                    if (res[0] != null) {
+                        ll = res[0];
+                    }
+                    ctx = res[1];
+                } else {
+                    ll = res;
+                }
+            }
+            if (t.type === 'lambda') {
+                const c2 = { ...ctx };
+                t.args.forEach(
+                    (s, i) =>
+                        (c2[s.unique] = {
+                            loc: t.is.args[i].location,
+                            type: t.is.args[i],
+                        }),
+                );
+                return [ll, c2];
+            }
+            return res;
+        },
+    };
+    return transformWithCtx<Bindings>(term, vinner, {});
 };
