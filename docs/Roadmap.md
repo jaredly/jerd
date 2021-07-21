@@ -32,23 +32,40 @@
 
 #### NORMAL MODE
 
+Random bugs:
+- [ ] var definitions aren't colored?
+
 Navigation:
 - should 'attributes' count as atomic? probably actually ... idk. let's try it.
 - also, when hmmm
 - [x] basic navigation, arrow keys
 - [ ] would be nice to maintain a "target column" for multiple-ups/downs
 - [x] shift-up for navigating to parent
-- [ ] right should go for an item that starts after the current end
+- [x] right should go for an item that starts after the current end
+- [ ] up & down should respect atomic
+- [ ] shift-up should go to child if possible
 - [ ] blocks/sequences don't have locations, and maybe don't have maps? idk
 - [x] attributes don't have locs?
-- [ ] hjkl pleeease
+- [x] hjkl pleeease
+- [ ] after the extract refactor, the vbl name should be focused, so you can rename it.
+      it should probably even be focused w/ the menu up for renaming
 
 Things that still need locs:
 - [x] X.attribute (the attribute id bit)
 - [ ] a record row `hello: 20.0,`
 - [ ] fn arg type annotations
 - [ ] fn arg syms
-- [ ] define syms
+- [x] define syms
+
+Refactor actions!
+- [x] extract to a variable
+- [ ] rename a variable
+- [ ] inline a variable
+
+Editor actions
+- [ ] cut/copy/paste
+- [ ] UNDO/REDOOOOOO
+- [ ] move up/down a line, or into a function definition
 
 Kinds of things that can be focusable
 - [ ] terms

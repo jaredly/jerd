@@ -27,6 +27,9 @@ const idxs = (terms: Array<Term | null>) =>
 
 type LocKind = Term['type'] | 'arg' | 'let' | 'attribute-id' | 'let-sym';
 
+export const isTermLoc = (kind: LocKind) =>
+    !['arg', 'let', 'attribute-id', 'let-sym'].includes(kind);
+
 export type IdxTree = {
     children: { [key: number]: Array<number> };
     locs: { [key: number]: { kind: LocKind; loc: Location } };

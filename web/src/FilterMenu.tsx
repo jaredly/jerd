@@ -5,9 +5,14 @@ import { MenuItem } from './CellWrapper';
 
 export const FilterMenu = ({
     items,
+    setGetString,
     onClose,
 }: {
     items: Array<MenuItem>;
+    setGetString: (value: {
+        prompt: string;
+        action: (v: string) => void;
+    }) => void;
     onClose: () => void;
 }) => {
     const [state, setState] = React.useState({ text: '', selection: 0 });
@@ -23,7 +28,14 @@ export const FilterMenu = ({
                     key={i}
                     onClick={() => {
                         onClose();
-                        item.action();
+                        if (item.askString) {
+                            setGetString({
+                                prompt: item.askString,
+                                action: item.action,
+                            });
+                        } else {
+                            item.action('');
+                        }
                     }}
                 >
                     {item.name}
@@ -37,7 +49,15 @@ export const FilterMenu = ({
                     if (evt.key === 'Escape') {
                         onClose();
                     } else if (evt.key === 'Return' || evt.key === 'Enter') {
-                        results[state.selection].action();
+                        const item = results[state.selection];
+                        if (item.askString) {
+                            setGetString({
+                                prompt: item.askString,
+                                action: item.action,
+                            });
+                        } else {
+                            item.action('');
+                        }
                         onClose();
                     }
                 }}

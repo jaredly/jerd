@@ -5,7 +5,11 @@ import * as React from 'react';
 
 // const maxWidth = 80;
 
-export type MenuItem = { name: string; action: () => void };
+export type MenuItem = {
+    name: string;
+    action: (value: string) => void;
+    askString?: string;
+};
 
 export const CellWrapper = ({
     title,

@@ -4,6 +4,7 @@ import {
     IdxTree,
     insertAfterBindings,
     isAtomic,
+    isTermLoc,
     maxLocationIdx,
     usedLocalVariables,
 } from '../../language/src/typing/analyze';
@@ -185,17 +186,19 @@ export const bindKeys = (
     window.ddata = { locLines, idxTree };
 
     return (evt: KeyboardEvent) => {
+        if (evt.target !== document.body) {
+            return;
+        }
         const { locs, parents, children } = idxTree!;
 
         if (evt.key === 'Enter' || evt.key === 'Return') {
             evt.stopPropagation();
             evt.preventDefault();
-            const items: Array<MenuItem> = [];
-            items.push({ name: 'Hello', action: () => console.log('hi') });
             setIdx((idx) => {
+                const items: Array<MenuItem> = [];
+                items.push({ name: 'Hello', action: () => console.log('hi') });
                 const focused = idxTree.locs[idx];
-                if (focused.kind !== 'attribute-id') {
-                    // expr lol
+                if (isTermLoc(focused.kind)) {
                     items.push({
                         name: 'Extract to variable',
                         action: () => {
@@ -207,6 +210,30 @@ export const bindKeys = (
                                 console.log(duplicates);
                                 return;
                             }
+                            setTerm(newTerm);
+                        },
+                    });
+                }
+                if (focused.kind === 'let-sym') {
+                    items.push({
+                        name: 'Rename',
+                        askString: 'New name',
+                        action: (newName: string) => {
+                            const newTerm = transform(term, {
+                                let: (l) => {
+                                    if (l.idLocation.idx === idx) {
+                                        return {
+                                            ...l,
+                                            binding: {
+                                                ...l.binding,
+                                                name: newName,
+                                            },
+                                        };
+                                    }
+                                    return null;
+                                },
+                                term: (t) => null,
+                            });
                             setTerm(newTerm);
                         },
                     });

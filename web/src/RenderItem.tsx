@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { jsx } from '@emotion/react';
+import { Interpolation, jsx, Theme } from '@emotion/react';
 import {
     Extra,
     printToAttributedText,
@@ -132,6 +132,9 @@ const RenderItem_ = ({
     );
 
     const [menu, setMenu] = React.useState(null as null | Array<MenuItem>);
+    const [getString, setGetString] = React.useState(
+        null as null | { prompt: string; action: (v: string) => void },
+    );
 
     const cidxTree = React.useRef(idxTree);
     cidxTree.current = idxTree;
@@ -225,23 +228,69 @@ const RenderItem_ = ({
                     onRun={onRun}
                 />
             ) : null}
+            {getString ? (
+                <div css={menuOverlay}>
+                    <GetString
+                        getString={getString}
+                        onClose={() => setGetString(null)}
+                    />
+                </div>
+            ) : null}
             {menu ? (
-                <div
-                    css={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        padding: 4,
-                        borderRadius: 4,
-                        backgroundColor: 'rgba(0,0,0,0.8)',
-                    }}
-                >
-                    <FilterMenu items={menu} onClose={() => setMenu(null)} />
+                <div css={menuOverlay}>
+                    <FilterMenu
+                        items={menu}
+                        setGetString={setGetString}
+                        onClose={() => setMenu(null)}
+                    />
                 </div>
             ) : null}
         </div>
     );
+};
+
+export const GetString = ({
+    getString: { prompt, action },
+    onClose,
+}: {
+    getString: { prompt: string; action: (v: string) => void };
+    onClose: () => void;
+}) => {
+    const [text, setText] = React.useState('');
+    return (
+        <input
+            autoFocus
+            value={text}
+            onChange={(evt) => setText(evt.target.value)}
+            onKeyDown={(evt) => {
+                evt.stopPropagation();
+                if (evt.key === 'Enter') {
+                    if (text === '') {
+                        return onClose();
+                    }
+                    action(text);
+                }
+                if (evt.key === 'Escape') {
+                    onClose();
+                }
+            }}
+            css={{
+                padding: 4,
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                color: 'white',
+            }}
+        />
+    );
+};
+
+const menuOverlay: Interpolation<Theme> = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 4,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.8)',
 };
 
 const renderHover = (env: Env, hover: [Extra, HTMLDivElement]) => {
