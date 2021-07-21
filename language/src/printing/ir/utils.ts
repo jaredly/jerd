@@ -747,7 +747,7 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                 typeToPretty(env, type.returnValue),
             ]);
         case 'var':
-            return symToPretty(type.sym);
+            return symToPretty(env, type.sym);
         case 'effect-handler':
             if (type.ref.type === 'builtin') {
                 return atom(type.ref.name);

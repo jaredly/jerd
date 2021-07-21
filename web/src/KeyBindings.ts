@@ -196,7 +196,7 @@ export const bindKeys = (
             evt.preventDefault();
             setIdx((idx) => {
                 const items: Array<MenuItem> = [];
-                items.push({ name: 'Hello', action: () => console.log('hi') });
+                // items.push({ name: 'Hello', action: () => console.log('hi') });
                 const focused = idxTree.locs[idx];
                 if (isTermLoc(focused.kind)) {
                     items.push({

@@ -185,7 +185,7 @@ export const renderAttributedText = (
                         cursor: onClick ? 'pointer' : 'inherit',
                         backgroundColor:
                             item.loc && item.loc.idx === selection
-                                ? 'rgba(255,255,255,0.2)'
+                                ? hlColor
                                 : undefined,
                     }}
                     data-kind={item.kind}
@@ -266,7 +266,7 @@ export const renderAttributedText = (
                         ...stylesForAttributes(item.attributes),
                         backgroundColor:
                             item.loc && item.loc.idx === selection
-                                ? 'rgba(255,255,255,0.2)'
+                                ? hlColor
                                 : undefined,
                     }}
                     key={i}
@@ -293,7 +293,7 @@ export const renderAttributedText = (
                     // ...stylesForAttributes(item.attributes),
                     backgroundColor:
                         item.loc && item.loc.idx === selection
-                            ? 'rgba(255,255,255,0.2)'
+                            ? hlColor
                             : undefined,
                 }}
                 key={i}
@@ -303,3 +303,4 @@ export const renderAttributedText = (
         );
     });
 };
+const hlColor = 'rgba(255,255,255,0.1)';

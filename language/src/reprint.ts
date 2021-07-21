@@ -144,7 +144,7 @@ export const reprintToplevel = (
                             ...newLocal(),
                             self: hasSelf ? env.local.self : null,
                         },
-                        term: { nextTraceId: 0 },
+                        term: { nextTraceId: 0, localNames: {} },
                     },
                     (printed[0] as Define).expr,
                 ),
@@ -158,7 +158,7 @@ export const reprintToplevel = (
                     {
                         ...env,
                         local: newLocal(),
-                        term: { nextTraceId: 0 },
+                        term: { nextTraceId: 0, localNames: {} },
                     },
                     printed[0] as Expression,
                 ),

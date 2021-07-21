@@ -213,7 +213,7 @@ export const initialState = async (): Promise<State> => {
                     },
                     // Reset the local env
                     local: newLocal(),
-                    term: { nextTraceId: 0 },
+                    term: { nextTraceId: 0, localNames: {} },
                 },
                 evalEnv: {
                     builtins,

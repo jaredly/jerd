@@ -117,7 +117,7 @@ export const CellWrapper = ({
                                             },
                                         }}
                                         onClick={() => {
-                                            item.action();
+                                            item.action('');
                                             setMenu(false);
                                         }}
                                     >

@@ -109,4 +109,4 @@ export const typeLambda = (
 export const printEffectRef = (env: Env, e: EffectRef) =>
     e.type === 'ref'
         ? printToString(refToPretty(env, e.ref, 'effect'), 100)
-        : printToString(symToPretty(e.sym), 100);
+        : printToString(symToPretty(env, e.sym), 100);

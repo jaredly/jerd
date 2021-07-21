@@ -593,7 +593,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
         ...env,
         // local: { ...env.local, tmpTypeVbls },
         local: { ...newLocal(), tmpTypeVbls },
-        term: { nextTraceId: 0 },
+        term: { nextTraceId: 0, localNames: {} },
     };
 
     const self: Self | null = item.rec

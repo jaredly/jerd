@@ -159,13 +159,15 @@ export const idToPretty = (
     // return idPretty('ahaha', hash, kind, loc);
 };
 
-export const symToPretty = (sym: Symbol, loc?: Location) =>
-    idPretty(sym.name, ':' + sym.unique.toString(), 'sym', loc);
+export const symToPretty = (env: Env | null, sym: Symbol, loc?: Location) => {
+    const name = (env && env.term.localNames[sym.unique]) || sym.name;
+    return idPretty(name, ':' + sym.unique.toString(), 'sym', loc);
+};
 
 export const effToPretty = (env: Env | null, eff: EffectRef, loc?: Location) =>
     eff.type === 'ref'
         ? refToPretty(env, eff.ref, 'effect', loc)
-        : symToPretty(eff.sym, loc);
+        : symToPretty(env, eff.sym, loc);
 
 export const isRecursive = (term: Term) => {
     let found = false;
@@ -303,7 +305,7 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
                 type.effectVbls.length
                     ? args(
                           type.effectVbls.map((n) =>
-                              symToPretty({ name: 'e', unique: n }),
+                              symToPretty(env, { name: 'e', unique: n }),
                           ),
                           '{',
                           '}',
@@ -320,7 +322,7 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
                 typeToPretty(env, type.res),
             ]);
         case 'var':
-            return symToPretty(type.sym);
+            return symToPretty(env, type.sym);
         case 'Ambiguous':
             return atom('[ambiguous - error!]');
         default:
@@ -331,10 +333,11 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
 export const termOrLetToPretty = (env: Env, term: Term | Let): PP => {
     switch (term.type) {
         case 'Let':
+            env.term.localNames[term.binding.unique] = term.binding.name;
             return items(
                 [
                     atom('const ', ['keyword']),
-                    symToPretty(term.binding, term.idLocation),
+                    symToPretty(env, term.binding, term.idLocation),
                     atom(' = '),
                     termToPretty(env, term.value),
                 ],
@@ -418,7 +421,7 @@ export const termToPretty = (env: Env, term: Term): PP => {
                     term.is.effectVbls.length
                         ? args(
                               term.is.effectVbls.map((n) =>
-                                  symToPretty({ name: 'e', unique: n }),
+                                  symToPretty(env, { name: 'e', unique: n }),
                               ),
                               '{',
                               '}',
@@ -427,7 +430,7 @@ export const termToPretty = (env: Env, term: Term): PP => {
                     args(
                         term.args.map((arg, i) =>
                             items([
-                                symToPretty(arg),
+                                symToPretty(env, arg),
                                 atom(': '),
                                 typeToPretty(env, term.is.args[i]),
                             ]),
@@ -573,7 +576,7 @@ export const termToPretty = (env: Env, term: Term): PP => {
         case 'ref':
             return refToPretty(env, term.ref, 'term', term.location);
         case 'var':
-            return symToPretty(term.sym, term.location);
+            return symToPretty(env, term.sym, term.location);
         case 'Switch':
             return items(
                 [
@@ -609,7 +612,7 @@ export const termToPretty = (env: Env, term: Term): PP => {
                             .concat([
                                 items([
                                     atom('pure('),
-                                    symToPretty(term.pure.arg),
+                                    symToPretty(env, term.pure.arg),
                                     atom(') => '),
                                     termToPretty(env, term.pure.body),
                                 ]),
@@ -744,7 +747,7 @@ export const termToPretty = (env: Env, term: Term): PP => {
                     term.base.type === 'Concrete'
                         ? // TODO: the term.base should have a loc
                           refToPretty(env, term.base.ref, 'record')
-                        : symToPretty(term.base.var),
+                        : symToPretty(env, term.base.var),
                     typeVbls
                         ? args(
                               typeVbls.map((t) => typeToPretty(env, t)),
@@ -848,10 +851,10 @@ const patternToPretty = (env: Env, pattern: Pattern): PP => {
             return items([
                 patternToPretty(env, pattern.inner),
                 atom(' as '),
-                symToPretty(pattern.name),
+                symToPretty(env, pattern.name),
             ]);
         case 'Binding':
-            return symToPretty(pattern.sym);
+            return symToPretty(env, pattern.sym);
         case 'Enum':
             return refToPretty(env, pattern.ref.ref, 'enum');
         case 'Record':
@@ -925,9 +928,9 @@ const caseToPretty = (
         ),
         // atom(kase.constr.toString()),
         atom('('),
-        args(kase.args.map((arg) => symToPretty(arg.sym))),
+        args(kase.args.map((arg) => symToPretty(env, arg.sym))),
         atom(' => '),
-        symToPretty(kase.k.sym),
+        symToPretty(env, kase.k.sym),
         atom(') => '),
         termToPretty(env, kase.body),
     ]);
