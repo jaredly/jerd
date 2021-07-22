@@ -180,6 +180,7 @@ export const isRecursive = (term: Term) => {
 };
 
 export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
+    // hrmmmmmm how do I get an idLoc into this....
     return items([
         atom('const ', ['keyword']),
         isRecursive(term) ? atom('rec ', ['keyword']) : null,

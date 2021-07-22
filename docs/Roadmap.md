@@ -61,8 +61,16 @@ Navigation:
 - [ ] after the extract refactor, the vbl name should be focused, so you can rename it.
       it should probably even be focused w/ the menu up for renaming
 
+OK PLEASE
+- add locs to types n stuff
+
 Things that still need locs:
 - [x] X.attribute (the attribute id bit)
+- [ ] 🤔 hmmmm custom binops aren't working again
+  - ohhhh it's because I'm not counting them as atomic. hmmm
+  - but I'm selecting the "attribute" level so that parentage makes sense
+  - hrmmmmm what if I go "only select rendered things"? hmmm maybe the sourceMap dealio will get it done?
+  - yeah that might be the most ~robust way to go about it
 - [ ] a record row `hello: 20.0,`
 - [ ] fn arg type annotations
 - [ ] fn arg syms

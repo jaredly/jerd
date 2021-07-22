@@ -6,7 +6,10 @@ import {
     SourceItem,
     SourceMap,
 } from '@jerd/language/src/printing/printer';
-import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
+import {
+    toplevelToPretty,
+    typeToPretty,
+} from '@jerd/language/src/printing/printTsLike';
 import {
     addExpr,
     hashObject,
@@ -19,6 +22,7 @@ import * as React from 'react';
 // import { Location } from '../../language/src/parsing/parser';
 import {
     addLocationIndices,
+    getTermByIdx,
     isAtomic,
     makeIdxTree,
 } from '../../language/src/typing/analyze';
@@ -106,7 +110,7 @@ const RenderItem_ = ({
         ];
     }, [env, content, maxWidth]);
 
-    window.things = { term, idxTree, sourceMap };
+    // window.things = { term, idxTree, sourceMap };
     // console.log(sourceMap);
 
     const [scrub, setScrub] = React.useState(null as null | Scrub);
@@ -150,13 +154,6 @@ const RenderItem_ = ({
             return;
         }
 
-        // const locLines: Array<Array<Location>> = [];
-        // Object.keys(sourceMap).forEach((name: unknown) => {
-        //     locLines[name as number]
-        // })
-        // console.log('LINES');
-        // console.log(locLines);
-
         const fn = bindKeys(
             idxTree,
             sourceMap,
@@ -181,6 +178,8 @@ const RenderItem_ = ({
         window.addEventListener('keydown', fn, true);
         return () => window.removeEventListener('keydown', fn, true);
     }, [focused, idxTree, term]);
+
+    const selectedTerm = term ? getTermByIdx(term, idx) : null;
 
     // console.log('IDX', idx);
 
@@ -262,6 +261,17 @@ const RenderItem_ = ({
                         setGetString={setGetString}
                         onClose={() => setMenu(null)}
                     />
+                </div>
+            ) : null}
+            {selectedTerm ? (
+                <div>
+                    {renderAttributedText(
+                        env.global,
+                        printToAttributedText(
+                            typeToPretty(env, selectedTerm.is),
+                            maxWidth,
+                        ),
+                    )}
                 </div>
             ) : null}
         </div>

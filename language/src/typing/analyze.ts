@@ -115,6 +115,12 @@ export const makeIdxTree = (term: Term): IdxTree => {
                 case 'lambda':
                     // ok term.args really need locs
                     // TODO: get locs for the args, and for the types
+
+                    // OK WHAT IF
+                    // the locs map
+                    // had the actual nodes there too
+                    // then it would be easier to report on the current selection
+
                     children[term.location.idx!] = term.is.args
                         .map((t) => addLoc(t.location, 'arg-type'))
                         .concat(
@@ -614,6 +620,22 @@ export const topoSort = (mapping: { [source: string]: Array<string> }) => {
 //     return error   (graph has at least one cycle)
 // else
 //     return L   (a topologically sorted order)
+
+export const getTermByIdx = (term: Term, idx: number): Term | null => {
+    let found: Term | null = null;
+    transform(term, {
+        term: (t) => {
+            if (t.location.idx === idx) {
+                found = t;
+            }
+            if (found != null) {
+                return false;
+            }
+            return null;
+        },
+    });
+    return found;
+};
 
 // TODO: Do we give symbols idxs?
 // I don't think so. Maybe we make a "binding" object?
