@@ -3,7 +3,7 @@ import { jsx } from '@emotion/react';
 // The app
 
 import * as React from 'react';
-import { idFromName, idName } from '@jerd/language/src/typing/env';
+import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
 import { CellView, MovePosition } from './Cell';
 import { Cell, Content, EvalEnv, RenderPlugins } from './State';
 import { runTerm } from './eval';
@@ -484,8 +484,50 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
             if (other.content.type !== 'term') {
                 return;
             }
-            const oid = other.content.id;
-            const term = env.global.terms[idName(oid)];
+            // QQQQ: Do I update the proposed, and the currently accepted one?
+            // Or just the proposed?
+
+            // For now, we'll only update the proposed.
+            if (other.content.proposed) {
+                const term = other.content.proposed.term;
+                const newTerm = transform(term, {
+                    let: (_) => null,
+                    term: (term) => {
+                        if (
+                            term.type === 'ref' &&
+                            term.ref.type === 'user' &&
+                            idsEqual(term.ref.id, prevId)
+                        ) {
+                            return replace(term.location);
+                        }
+                        return null;
+                    },
+                });
+
+                if (newTerm !== term) {
+                    state = modActiveWorkspace((workspace) => ({
+                        ...workspace,
+                        cells: {
+                            ...workspace.cells,
+                            [other.id]: {
+                                ...other,
+                                content: {
+                                    ...other.content,
+                                    proposed: {
+                                        term: newTerm,
+                                        id: idFromName(hashObject(newTerm)),
+                                    },
+                                },
+                            },
+                        },
+                    }))({ ...state, env, evalEnv });
+                }
+                return state;
+            }
+
+            // const term = other.content.proposed
+            //     ? other.content.proposed.term
+            const term = env.global.terms[idName(other.content.id)];
             const newTerm = transform(term, {
                 let: (_) => null,
                 term: (term) => {

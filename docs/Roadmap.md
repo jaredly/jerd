@@ -33,7 +33,9 @@
 #### NORMAL MODE
 
 Random bugs:
-- [ ] var definitions aren't colored?
+- [x] var definitions aren't colored?
+- [ ] updating a block should update pending if possible
+- [ ] underline superceded things
 
 Navigation:
 - should 'attributes' count as atomic? probably actually ... idk. let's try it.
@@ -42,8 +44,8 @@ Navigation:
 - [ ] would be nice to maintain a "target column" for multiple-ups/downs
 - [x] shift-up for navigating to parent
 - [x] right should go for an item that starts after the current end
-- [ ] up & down should respect atomic
-- [ ] shift-up should go to child if possible
+- [x] up & down should respect atomic
+- [ ] shift-down should go to child if possible
 - [ ] blocks/sequences don't have locations, and maybe don't have maps? idk
 - [x] attributes don't have locs?
 - [x] hjkl pleeease

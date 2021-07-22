@@ -180,9 +180,9 @@ export const goUp = (
                 return line[i].idx;
             }
         }
-        if (line.length > 0) {
-            return line[line.length - 1].idx;
-        }
+        // if (line.length > 0) {
+        //     return line[line.length - 1].idx;
+        // }
     }
 
     return idx;
