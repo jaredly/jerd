@@ -50,7 +50,11 @@ export const goLeft = (
         if (!line || !line.length) {
             continue;
         }
-        return line[line.length - 1].idx;
+        for (let i = line.length - 1; i >= 0; i--) {
+            if (isAtomic(tree.locs[line[i].idx].kind)) {
+                return line[i].idx;
+            }
+        }
     }
 
     return idx;
@@ -85,16 +89,16 @@ export const goRight = (
         }
     }
 
-    // const i = line.findIndex((p) => p.idx === idx);
-    // if (i < line.length - 1) {
-    //     return line[i + 1].idx;
-    // }
     for (let lno = pos.start.line + 1; lno < locLines.length; lno++) {
         const line = locLines[lno];
         if (!line || !line.length) {
             continue;
         }
-        return line[0].idx;
+        for (let i = 0; i < line.length; i++) {
+            if (isAtomic(tree.locs[line[i].idx].kind)) {
+                return line[i].idx;
+            }
+        }
     }
 
     return idx;
@@ -104,6 +108,7 @@ export const goDown = (
     idx: number,
     sourceMap: SourceMap,
     locLines: LocLines,
+    tree: IdxTree,
 ): number => {
     const pos = sourceMap[idx];
     if (!pos) {
@@ -118,9 +123,15 @@ export const goDown = (
             continue;
         }
         for (let i = 0; i < line.length; i++) {
-            if (line[i].start.column > pos.start.column) {
+            if (!isAtomic(tree.locs[line[i].idx].kind)) {
+                continue;
+            }
+            if (
+                i === line.length - 1 ||
+                line[i + 1].start.column > pos.start.column
+            ) {
                 // console.log(line[i], line);
-                return line[Math.max(0, i - 1)].idx;
+                return line[i].idx;
             }
         }
         if (line.length > 0) {
@@ -135,6 +146,7 @@ export const goUp = (
     idx: number,
     sourceMap: SourceMap,
     locLines: LocLines,
+    tree: IdxTree,
 ): number => {
     const pos = sourceMap[idx];
     if (!pos) {
@@ -150,8 +162,14 @@ export const goUp = (
             continue;
         }
         for (let i = 0; i < line.length; i++) {
-            if (line[i].start.column > pos.start.column) {
-                const ii = Math.max(0, i - 1);
+            if (!isAtomic(tree.locs[line[i].idx].kind)) {
+                continue;
+            }
+            if (
+                i === line.length - 1 ||
+                line[i + 1].start.column > pos.start.column
+            ) {
+                // const ii = Math.max(0, i - 1);
                 // console.log(
                 //     ii,
                 //     line[i].start.column,
@@ -159,7 +177,7 @@ export const goUp = (
                 //     line[ii],
                 // );
                 // console.log(line[i], line);
-                return line[ii].idx;
+                return line[i].idx;
             }
         }
         if (line.length > 0) {
@@ -286,7 +304,7 @@ export const bindKeys = (
                     return idx;
                 });
             } else {
-                setIdx((idx) => goUp(idx, sourceMap, locLines));
+                setIdx((idx) => goUp(idx, sourceMap, locLines, idxTree));
             }
             evt.preventDefault();
             evt.stopPropagation();
@@ -294,7 +312,7 @@ export const bindKeys = (
         }
 
         if (evt.key === 'ArrowDown' || evt.key === 'j') {
-            setIdx((idx) => goDown(idx, sourceMap, locLines));
+            setIdx((idx) => goDown(idx, sourceMap, locLines, idxTree));
             evt.preventDefault();
             evt.stopPropagation();
             return true;
