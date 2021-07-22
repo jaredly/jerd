@@ -615,6 +615,7 @@ export type Lambda = {
     type: 'lambda';
     location: Location;
     args: Array<Symbol>;
+    idLocations: Array<Location>;
     body: Term;
     is: LambdaType;
     tags?: Array<string>;

@@ -25,10 +25,19 @@ import {
 const idxs = (terms: Array<Term | null>) =>
     terms.filter((t) => !!t).map((t) => t!.location.idx!);
 
-type LocKind = Term['type'] | 'arg' | 'let' | 'attribute-id' | 'let-sym';
+type LocKind =
+    | Term['type']
+    | 'arg'
+    | 'arg-type'
+    | 'res-type'
+    | 'let'
+    | 'attribute-id'
+    | 'let-sym';
 
 export const isTermLoc = (kind: LocKind) =>
-    !['arg', 'let', 'attribute-id', 'let-sym'].includes(kind);
+    !['arg', 'let', 'attribute-id', 'let-sym', 'arg-type', 'res-type'].includes(
+        kind,
+    );
 
 export type IdxTree = {
     children: { [key: number]: Array<number> };
@@ -107,8 +116,16 @@ export const makeIdxTree = (term: Term): IdxTree => {
                     // ok term.args really need locs
                     // TODO: get locs for the args, and for the types
                     children[term.location.idx!] = term.is.args
-                        .map((t) => addLoc(t.location, 'arg'))
-                        .concat([term.body.location.idx!]);
+                        .map((t) => addLoc(t.location, 'arg-type'))
+                        .concat(
+                            term.idLocations
+                                ? term.idLocations.map((l) => addLoc(l, 'arg'))
+                                : [],
+                        )
+                        .concat([
+                            addLoc(term.is.res.location, 'res-type'),
+                            term.body.location.idx!,
+                        ]);
                     break;
                 case 'sequence':
                     children[term.location.idx!] = term.sts.map(
@@ -163,6 +180,9 @@ export const isAtomic = (kind: LocKind) => {
         'var',
         'ref',
         'let-sym',
+        'arg',
+        'arg-type',
+        'res-type',
         'attribute-id',
     ].includes(kind);
 };
@@ -192,6 +212,37 @@ export const transformLocations = (
                           idLocation,
                       }
                     : null;
+            }
+            if (term.type === 'lambda') {
+                let changed = false;
+                const location = mapper(term.location);
+                const args = term.is.args.map((arg) => {
+                    const l = mapper(arg.location);
+                    changed = changed || l !== arg.location;
+                    return l !== arg.location ? { ...arg, location: l } : arg;
+                });
+                const res = mapper(term.is.res.location);
+                // TODO: map the lambda type pleeease
+                const is =
+                    changed || res !== term.is.res.location
+                        ? {
+                              ...term.is,
+                              args,
+                              res: { ...term.is.res, location: res },
+                          }
+                        : term.is;
+                const idLocations = term.idLocations
+                    ? term.idLocations.map((l) => {
+                          let lm = mapper(l);
+                          changed = changed || lm !== l;
+                          return lm;
+                      })
+                    : [];
+                return changed ||
+                    location !== term.location ||
+                    res !== term.is.res.location
+                    ? { ...term, location, idLocations, is }
+                    : term;
             }
             const location = mapper(term.location);
             return location !== term.location
@@ -244,21 +295,13 @@ export const addLocationIndices = (toplevel: ToplevelT) => {
 
 export const maxLocationIdx = (term: Term) => {
     let idx = 0;
-
-    transform(term, {
-        term: (term) => {
-            if (term.type === 'Attribute') {
-                idx = Math.max(term.location.idx!, term.idLocation.idx!, idx);
-                return null;
-            }
-            idx = Math.max(term.location.idx!, idx);
-            return null;
-        },
-        let: (l) => {
-            idx = Math.max(l.location.idx!, idx);
-            return null;
-        },
-    });
+    transform(
+        term,
+        transformLocations((l) => {
+            idx = Math.max(idx, l.idx!);
+            return l;
+        }),
+    );
     return idx;
 };
 

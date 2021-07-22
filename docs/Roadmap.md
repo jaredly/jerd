@@ -37,6 +37,8 @@ hmm so I want a widget that displays differently ... when rendering to react vs 
 with react, it can have a dropdowny thing
 but with editable, it should be spelled out as the full macro invocation.
 
+Ok but I can start with just the basic.
+
 #### NORMAL MODE
 
 Random bugs:
@@ -64,11 +66,14 @@ Things that still need locs:
 - [ ] a record row `hello: 20.0,`
 - [ ] fn arg type annotations
 - [ ] fn arg syms
+  - [ ] fn args should have a loc for the thing+ annotation...
 - [x] define syms
 
 Refactor actions!
 - [x] extract to a variable
-- [ ] rename a variable
+- [x] extract to a toplevel
+  - [x] handle locally-used variables correctly
+- [x] rename a variable
 - [ ] inline a variable
 
 Editor actions

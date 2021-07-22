@@ -533,6 +533,7 @@ export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
     return {
         type: 'lambda',
         args: args.map((a) => a.sym),
+        idLocations: args.map((a) => a.location),
         is: {
             ...arg.is,
             effects: t.effects,

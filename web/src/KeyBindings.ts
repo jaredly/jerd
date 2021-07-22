@@ -370,6 +370,7 @@ export const extractToToplevel = (term: Term, idx: number) => {
                 if (unbound.length) {
                     found = {
                         type: 'lambda',
+                        idLocations: unbound.map((u) => bindings[u].loc),
                         args: unbound.map((u) => ({
                             unique: u,
                             name: bindings[u].name,
@@ -404,7 +405,7 @@ export const extractToToplevel = (term: Term, idx: number) => {
                             type: 'ref',
                             ref: { type: 'user', id: id },
                             location: { ...t.location, idx: maxIdx++ },
-                            is: found.is,
+                            is: found!.is,
                         },
                         location: { ...t.location, idx: maxIdx++ },
                         is: t.is,

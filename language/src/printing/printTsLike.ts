@@ -289,40 +289,48 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
     switch (type.type) {
         case 'ref':
             if (type.typeVbls.length) {
-                return items([
-                    refToPretty(env, type.ref, 'type'),
-                    args(
-                        type.typeVbls.map((t) => typeToPretty(env, t)),
-                        '<',
-                        '>',
-                    ),
-                ]);
+                return items(
+                    [
+                        refToPretty(env, type.ref, 'type'),
+                        args(
+                            type.typeVbls.map((t) => typeToPretty(env, t)),
+                            '<',
+                            '>',
+                        ),
+                    ],
+                    undefined,
+                    type.location,
+                );
             }
-            return refToPretty(env, type.ref, 'type');
+            return refToPretty(env, type.ref, 'type', type.location);
         case 'lambda':
-            return items([
-                typeVblDeclsToPretty(env, type.typeVbls),
-                type.effectVbls.length
-                    ? args(
-                          type.effectVbls.map((n) =>
-                              symToPretty(env, { name: 'e', unique: n }),
-                          ),
-                          '{',
-                          '}',
-                      )
-                    : null,
-                args(type.args.map((t) => typeToPretty(env, t))),
-                atom(' ='),
-                args(
-                    type.effects.map((t) => effToPretty(env, t)),
-                    '{',
-                    '}',
-                ),
-                atom('> '),
-                typeToPretty(env, type.res),
-            ]);
+            return items(
+                [
+                    typeVblDeclsToPretty(env, type.typeVbls),
+                    type.effectVbls.length
+                        ? args(
+                              type.effectVbls.map((n) =>
+                                  symToPretty(env, { name: 'e', unique: n }),
+                              ),
+                              '{',
+                              '}',
+                          )
+                        : null,
+                    args(type.args.map((t) => typeToPretty(env, t))),
+                    atom(' ='),
+                    args(
+                        type.effects.map((t) => effToPretty(env, t)),
+                        '{',
+                        '}',
+                    ),
+                    atom('> '),
+                    typeToPretty(env, type.res),
+                ],
+                undefined,
+                type.location,
+            );
         case 'var':
-            return symToPretty(env, type.sym);
+            return symToPretty(env, type.sym, type.location);
         case 'Ambiguous':
             return atom('[ambiguous - error!]');
         default:
@@ -430,7 +438,13 @@ export const termToPretty = (env: Env, term: Term): PP => {
                     args(
                         term.args.map((arg, i) =>
                             items([
-                                symToPretty(env, arg),
+                                symToPretty(
+                                    env,
+                                    arg,
+                                    term.idLocations
+                                        ? term.idLocations[i]
+                                        : undefined,
+                                ),
                                 atom(': '),
                                 typeToPretty(env, term.is.args[i]),
                             ]),

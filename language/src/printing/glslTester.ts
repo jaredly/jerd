@@ -30,6 +30,7 @@ import {
     Let,
     Symbol,
     Type,
+    nullLocation,
 } from '../typing/types';
 import { GLSLEnvId } from './glslPrinter';
 
@@ -238,6 +239,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
     return {
         type: 'lambda',
         args: [envSym, fragCoord],
+        idLocations: [nullLocation, nullLocation],
         body: block,
         location: builtinLocation,
         is: pureFunction(

@@ -106,6 +106,7 @@ const RenderItem_ = ({
         ];
     }, [env, content, maxWidth]);
 
+    window.things = { term, idxTree, sourceMap };
     // console.log(sourceMap);
 
     const [scrub, setScrub] = React.useState(null as null | Scrub);

@@ -91,6 +91,7 @@ export const typeLambda = (
     return {
         type: 'lambda',
         args,
+        idLocations: expr.args.map((arg) => arg.id.location),
         body,
         location: expr.location,
         is: {
