@@ -63,12 +63,16 @@ export type CellProps = {
     focused: number | null;
     onDuplicate: (id: string) => void;
     onFocus: (id: string) => void;
-    onChange: (env: Env, cell: Cell) => void;
+    onChange: (env: Env | null, cell: Cell) => void;
     onRun: (id: Id) => void;
     onRemove: (id: string) => void;
     onMove: (id: string, position: MovePosition) => void;
     evalEnv: EvalEnv;
-    addCell: (content: Content, position: Position) => void;
+    addCell: (
+        content: Content,
+        position: Position,
+        updateEnv?: (e: Env) => Env,
+    ) => void;
     plugins: { [id: string]: RenderPluginT };
     onPin: (display: Display, id: Id) => void;
 };
@@ -95,9 +99,9 @@ const CellView_ = ({
 
     const onSetPlugin = React.useCallback(
         (display) => {
-            onChange(env, { ...cell, display });
+            onChange(null, { ...cell, display });
         },
-        [env],
+        [cell],
     );
 
     const onSetToplevel = React.useCallback(
@@ -141,7 +145,7 @@ const CellView_ = ({
                         (proposedToplevel.type === 'Define' ||
                             proposedToplevel?.type === 'Expression')
                     ) {
-                        onChange(env, {
+                        onChange(null, {
                             ...cell,
                             content: {
                                 ...cell.content,
@@ -154,7 +158,7 @@ const CellView_ = ({
                             },
                         });
                     } else if (cell.content.proposed) {
-                        onChange(env, {
+                        onChange(null, {
                             ...cell,
                             content: { ...cell.content, proposed: null },
                         });
@@ -165,7 +169,7 @@ const CellView_ = ({
             onChange={(rawOrToplevel) => {
                 onFocus(cell.id);
                 if (typeof rawOrToplevel === 'string') {
-                    onChange(env, {
+                    onChange(null, {
                         ...cell,
                         content: { type: 'raw', text: rawOrToplevel },
                     });
@@ -208,7 +212,7 @@ const CellView_ = ({
             onFocus={() => onFocus(cell.id)}
             onPending={(pending) => {
                 if (cell.content.type === 'term') {
-                    onChange(env, {
+                    onChange(null, {
                         ...cell,
                         content: {
                             ...cell.content,
@@ -272,14 +276,40 @@ const CellView_ = ({
 
     return (
         <CellWrapper
-            title={cellTitle(env, cell, maxWidth, cell.collapsed, () => {
-                if (cell.content.type === 'term') {
-                    onChange(env, {
-                        ...cell,
-                        content: { ...cell.content, proposed: undefined },
-                    });
-                }
-            })}
+            title={cellTitle(
+                env,
+                cell,
+                maxWidth,
+                cell.collapsed,
+                () => {
+                    if (cell.content.type === 'term') {
+                        onChange(env, {
+                            ...cell,
+                            content: { ...cell.content, proposed: undefined },
+                        });
+                    }
+                },
+                () => {
+                    if (cell.content.type === 'term' && cell.content.proposed) {
+                        const name =
+                            env.global.idNames[idName(cell.content.id)];
+                        const top: ToplevelT = name
+                            ? {
+                                  type: 'Define',
+                                  term: cell.content.proposed.term,
+                                  name,
+                                  id: cell.content.id,
+                                  location: nullLocation,
+                              }
+                            : {
+                                  type: 'Expression',
+                                  term: cell.content.proposed.term,
+                                  location: nullLocation,
+                              };
+                        onSetToplevel(top);
+                    }
+                },
+            )}
             onRemove={() => onRemove(cell.id)}
             focused={focused}
             onFocus={() => onFocus(cell.id)}
@@ -551,6 +581,7 @@ const cellTitle = (
     maxWidth: number,
     collapsed?: boolean,
     clearPending?: () => void,
+    acceptPending?: () => void,
 ) => {
     if (collapsed) {
         maxWidth = 10000;
@@ -605,13 +636,19 @@ const cellTitle = (
                                 : 'icons_value'
                         }
                     />
-                    <span css={hashStyle} onClick={clearPending}>
+                    <span
+                        css={{ ...hashStyle, cursor: 'pointer' }}
+                        onClick={clearPending}
+                    >
                         #{idName(cell.content.id)}
                     </span>
                     {cell.content.proposed ? (
                         <span>
                             {' <- '}
-                            <span css={hashStyle}>
+                            <span
+                                css={{ ...hashStyle, cursor: 'pointer' }}
+                                onClick={acceptPending}
+                            >
                                 #{idName(cell.content.proposed.id)}
                             </span>
                         </span>

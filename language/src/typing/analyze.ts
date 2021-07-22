@@ -539,6 +539,11 @@ export const topoSort = (mapping: { [source: string]: Array<string> }) => {
     while (noIncomingEdge.length) {
         const next = noIncomingEdge.shift()!;
         sorted.push(next);
+        if (!mapping[next]) {
+            throw new Error(
+                `Something was referenced that isn't in mapping: ${next}`,
+            );
+        }
         mapping[next].forEach((sink) => {
             reverseMapping[sink] = reverseMapping[sink].filter(
                 (k) => k !== next,

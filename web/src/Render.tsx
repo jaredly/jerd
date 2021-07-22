@@ -164,9 +164,12 @@ export const renderAttributedText = (
     setHover = (hover: Extra, target: HTMLDivElement | null) =>
         console.log('hover', hover, target),
     selection: null | number = null,
+    colorMap: { map: { [key: string]: string }; colorAt: number } = {
+        map: {},
+        colorAt: 0,
+    },
 ) => {
-    const colorMap: { [key: string]: string } = {};
-    let colorAt = 0;
+    // let colorAt = 0;
     return text.map((item, i) => {
         if (typeof item === 'string') {
             return <span key={i}>{item}</span>;
@@ -175,13 +178,15 @@ export const renderAttributedText = (
             const showHash =
                 item.id != '' &&
                 (allIds || shouldShowHash(env, item.id, item.kind, item.text));
-            if (item.kind === 'sym' && !colorMap[item.id]) {
-                colorMap[item.id] = idColors[colorAt++ % idColors.length];
+            if (item.kind === 'sym' && !colorMap.map[item.id]) {
+                colorMap.map[item.id] =
+                    idColors[colorMap.colorAt++ % idColors.length];
+                // console.log(colorMap);
             }
             return (
                 <span
                     style={{
-                        color: colorForId(item, colorMap),
+                        color: colorForId(item, colorMap.map),
                         cursor: onClick ? 'pointer' : 'inherit',
                         backgroundColor:
                             item.loc && item.loc.idx === selection
@@ -280,6 +285,7 @@ export const renderAttributedText = (
                         openable,
                         setHover,
                         selection,
+                        colorMap,
                     )}
                 </span>
             );

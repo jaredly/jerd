@@ -135,7 +135,7 @@ const Cells = ({
     );
 
     const addCell_ = React.useCallback(
-        (content, position: Position) => {
+        (content, position: Position, updateEnv?: (e: Env) => Env) => {
             const work = activeWorkspace(state);
             const matching = Object.keys(work.cells).find((id) =>
                 contentMatches(content, work.cells[id].content),
@@ -152,11 +152,15 @@ const Cells = ({
                 return;
             }
             const id = genId();
-            setState(
-                modActiveWorkspace(
+            setState((state) => {
+                if (updateEnv) {
+                    state = { ...state, env: updateEnv(state.env) };
+                }
+
+                return modActiveWorkspace(
                     addCell({ ...blankCell, id, content }, position),
-                ),
-            );
+                )(state);
+            });
             setFocus({ id, tick: 0 });
         },
         [state],
@@ -224,10 +228,10 @@ const Cells = ({
         );
     }, []);
 
-    const onChange = React.useCallback((env, cell) => {
+    const onChange = React.useCallback((env: Env | null, cell: Cell) => {
         console.log('Change', cell);
         setState((state) => {
-            return onChangeCell(env, state, cell);
+            return onChangeCell(env ? env : state.env, state, cell);
         });
     }, []);
 

@@ -6,10 +6,18 @@ import {
     isAtomic,
     isTermLoc,
     maxLocationIdx,
+    transformWithBindings,
     usedLocalVariables,
 } from '../../language/src/typing/analyze';
+import { hashObject, idFromName } from '../../language/src/typing/env';
 import { transform } from '../../language/src/typing/transform';
-import { Let, Sequence, Symbol, Term } from '../../language/src/typing/types';
+import {
+    Id,
+    Let,
+    Sequence,
+    Symbol,
+    Term,
+} from '../../language/src/typing/types';
 import { MenuItem } from './CellWrapper';
 
 export type LocLines = Array<Array<SourceItem>>;
@@ -168,6 +176,7 @@ export const bindKeys = (
     term: Term,
     setIdx: (fn: (idx: number) => number) => void,
     setMenu: (items: Array<MenuItem>) => void,
+    addTerm: (term: Term) => void,
     setTerm: (term: Term) => void,
 ) => {
     const locLines: LocLines = [];
@@ -202,7 +211,6 @@ export const bindKeys = (
                     items.push({
                         name: 'Extract to variable',
                         action: () => {
-                            // STOPSHIP: start here please
                             const newTerm = extractToVariable(term, idx);
                             const duplicates = ensureIdxUnique(newTerm);
                             if (duplicates.length) {
@@ -210,6 +218,23 @@ export const bindKeys = (
                                 console.log(duplicates);
                                 return;
                             }
+                            setTerm(newTerm);
+                        },
+                    });
+                    items.push({
+                        name: 'Extract to toplevel term',
+                        action: () => {
+                            const [newTerm, extractedTerm] = extractToToplevel(
+                                term,
+                                idx,
+                            );
+                            const duplicates = ensureIdxUnique(newTerm);
+                            if (duplicates.length) {
+                                console.error('DUPLICATES');
+                                console.log(duplicates);
+                                return;
+                            }
+                            addTerm(extractedTerm);
                             setTerm(newTerm);
                         },
                     });
@@ -308,6 +333,42 @@ export const maxUnique = (term: Term) => {
         },
     });
     return max;
+};
+
+export const extractToToplevel = (term: Term, idx: number) => {
+    let maxIdx = maxLocationIdx(term) + 1;
+    const sym: Symbol = {
+        unique: maxUnique(term) + 1,
+        name: 'var',
+    };
+    let found: null | Term = null;
+
+    term = transform(term, {
+        let: (l) => null,
+        term: (t) => {
+            if (t.location.idx === idx) {
+                const unbound = usedLocalVariables(t);
+                if (unbound.length) {
+                    throw new Error(`Uses local variables! Not yet supported`);
+                }
+                found = t;
+                const id = idFromName(hashObject(found));
+                console.log('New thing', id);
+                return {
+                    type: 'ref',
+                    ref: { type: 'user', id: id },
+                    location: { ...t.location, idx: maxIdx++ },
+                    is: t.is,
+                };
+            }
+            return null;
+        },
+    });
+
+    if (found == null) {
+        throw new Error(`Term not found`);
+    }
+    return [term, found];
 };
 
 export const extractToVariable = (term: Term, idx: number) => {

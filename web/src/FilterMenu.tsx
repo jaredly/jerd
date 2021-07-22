@@ -26,6 +26,18 @@ export const FilterMenu = ({
             {results.map((item, i) => (
                 <div
                     key={i}
+                    style={
+                        i === state.selection
+                            ? { textDecoration: 'underline' }
+                            : undefined
+                    }
+                    css={{
+                        padding: 8,
+                        cursor: 'pointer',
+                        ':hover': {
+                            backgroundColor: '#333',
+                        },
+                    }}
                     onClick={() => {
                         onClose();
                         if (item.askString) {
@@ -47,9 +59,14 @@ export const FilterMenu = ({
                 onKeyDown={(evt) => {
                     evt.stopPropagation();
                     if (evt.key === 'Escape') {
+                        evt.preventDefault();
                         onClose();
-                    } else if (evt.key === 'Return' || evt.key === 'Enter') {
+                    } else if (evt.key === 'Enter') {
+                        evt.preventDefault();
                         const item = results[state.selection];
+                        if (!item) {
+                            return onClose();
+                        }
                         if (item.askString) {
                             setGetString({
                                 prompt: item.askString,
@@ -59,6 +76,24 @@ export const FilterMenu = ({
                             item.action('');
                         }
                         onClose();
+                    } else if (evt.key === 'ArrowUp') {
+                        evt.preventDefault();
+                        setState((state) => ({
+                            ...state,
+                            selection:
+                                state.selection + 1 < results.length
+                                    ? state.selection + 1
+                                    : 0,
+                        }));
+                    } else if (evt.key === 'ArrowDown') {
+                        evt.preventDefault();
+                        setState((state) => ({
+                            ...state,
+                            selection:
+                                state.selection > 0
+                                    ? state.selection - 1
+                                    : results.length - 1,
+                        }));
                     }
                 }}
                 onChange={(evt) =>

@@ -8,6 +8,7 @@ import {
 } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import {
+    addExpr,
     hashObject,
     idFromName,
     idName,
@@ -50,7 +51,11 @@ export type Props = {
     focused: boolean;
     onFocus: () => void;
     onRun: (id: Id) => void;
-    addCell: (content: Content, position: Position) => void;
+    addCell: (
+        content: Content,
+        position: Position,
+        updateEnv?: (e: Env) => Env,
+    ) => void;
     onEdit: () => void;
     onSetPlugin: (display: Display | null) => void;
     onPin: (display: Display, id: Id) => void;
@@ -157,6 +162,19 @@ const RenderItem_ = ({
             term,
             setIdx,
             setMenu,
+            (newTerm: Term) =>
+                addCell(
+                    {
+                        type: 'term',
+                        id: idFromName(hashObject(newTerm)),
+                    },
+                    { type: 'after', id: cell.id },
+                    (env) => {
+                        const res = addExpr(env, newTerm, null);
+                        console.log('adding', res.id);
+                        return res.env;
+                    },
+                ),
             onPending,
         );
         window.addEventListener('keydown', fn, true);
@@ -208,7 +226,7 @@ const RenderItem_ = ({
                           scrub,
                           update,
                           setScrub,
-                          onChange,
+                          onPending,
                           evalEnv,
                       )
                     : null}
@@ -259,16 +277,17 @@ export const GetString = ({
     const [text, setText] = React.useState('');
     return (
         <input
+            placeholder={prompt}
             autoFocus
             value={text}
             onChange={(evt) => setText(evt.target.value)}
             onKeyDown={(evt) => {
                 evt.stopPropagation();
                 if (evt.key === 'Enter') {
-                    if (text === '') {
-                        return onClose();
+                    if (text !== '') {
+                        action(text);
                     }
-                    action(text);
+                    return onClose();
                 }
                 if (evt.key === 'Escape') {
                     onClose();
@@ -276,8 +295,8 @@ export const GetString = ({
             }}
             css={{
                 padding: 4,
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                color: 'white',
+                backgroundColor: '#555',
+                color: '#fff',
             }}
         />
     );

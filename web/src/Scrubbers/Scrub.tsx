@@ -220,7 +220,7 @@ export const renderScrub = (
     scrub: Scrub,
     update: (term: Term, item: ScrubItem) => void,
     setScrub: (s: null | Scrub) => void,
-    onChange: (c: ToplevelT) => void,
+    onPending: (c: Term) => void,
     evalEnv: EvalEnv,
 ) => {
     let body = null;
@@ -300,13 +300,7 @@ export const renderScrub = (
             <IconButton
                 icon="done"
                 onClick={() => {
-                    if (top.type !== 'Define' && top.type !== 'Expression') {
-                        return;
-                    }
-                    onChange({
-                        ...top,
-                        term: scrub.term,
-                    });
+                    onPending(scrub.term);
                     setScrub(null);
                     // change the term to be this term ...
                 }}
