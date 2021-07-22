@@ -12,6 +12,7 @@ import {
 import { hashObject, idFromName } from '../../language/src/typing/env';
 import { transform } from '../../language/src/typing/transform';
 import {
+    getEffects,
     Id,
     Let,
     Sequence,
@@ -361,13 +362,53 @@ export const extractToToplevel = (term: Term, idx: number) => {
     };
     let found: null | Term = null;
 
-    term = transform(term, {
+    term = transformWithBindings(term, {
         let: (l) => null,
-        term: (t) => {
+        term: (t, bindings) => {
             if (t.location.idx === idx) {
                 const unbound = usedLocalVariables(t);
                 if (unbound.length) {
-                    throw new Error(`Uses local variables! Not yet supported`);
+                    found = {
+                        type: 'lambda',
+                        args: unbound.map((u) => ({
+                            unique: u,
+                            name: bindings[u].name,
+                        })),
+                        body: t,
+                        location: { ...t.location, idx: maxIdx++ },
+                        is: {
+                            type: 'lambda',
+                            location: { ...t.location, idx: maxIdx++ },
+                            typeVbls: [],
+                            // 🤔
+                            effectVbls: [],
+                            effects: getEffects(t),
+                            args: unbound.map((u) => bindings[u].type),
+                            rest: null,
+                            res: t.is,
+                        },
+                    };
+                    const id = idFromName(hashObject(found));
+                    return {
+                        type: 'apply',
+                        // TODO?
+                        typeVbls: [],
+                        effectVbls: null,
+                        args: unbound.map((u) => ({
+                            type: 'var',
+                            sym: { unique: u, name: bindings[u].name },
+                            location: { ...t.location, idx: maxIdx++ },
+                            is: bindings[u].type,
+                        })),
+                        target: {
+                            type: 'ref',
+                            ref: { type: 'user', id: id },
+                            location: { ...t.location, idx: maxIdx++ },
+                            is: found.is,
+                        },
+                        location: { ...t.location, idx: maxIdx++ },
+                        is: t.is,
+                    };
                 }
                 found = t;
                 const id = idFromName(hashObject(found));

@@ -626,6 +626,7 @@ export const insertAfterBindings = (
                         ctx[st.binding.unique] = {
                             type: st.is,
                             loc: st.location,
+                            name: st.binding.name,
                         };
                         if (bindings.every((u) => ctx[u] != null)) {
                             found = true;
@@ -673,7 +674,9 @@ export const usedLocalVariables = (term: Term) => {
     return Object.keys(unbound).map((u) => +u);
 };
 
-export type Bindings = { [unique: number]: { loc: Location; type: Type } };
+export type Bindings = {
+    [unique: number]: { loc: Location; type: Type; name: string };
+};
 
 export const transformWithBindings = (
     term: Term,
@@ -698,7 +701,14 @@ export const transformWithBindings = (
             return [
                 ll,
                 ctx,
-                { ...ctx, [l.binding.unique]: { loc: l.location, type: l.is } },
+                {
+                    ...ctx,
+                    [l.binding.unique]: {
+                        loc: l.location,
+                        type: l.is,
+                        name: l.binding.name,
+                    },
+                },
             ];
         },
         switchCase: (kase, ctx) => {
@@ -710,7 +720,11 @@ export const transformWithBindings = (
                         ctx = { ...ctx };
                         changed = true;
                     }
-                    ctx[pat.sym.unique] = { loc: pat.location, type: void_ };
+                    ctx[pat.sym.unique] = {
+                        loc: pat.location,
+                        type: void_,
+                        name: pat.sym.name,
+                    };
                 }
             });
             if (changed) {
@@ -742,6 +756,7 @@ export const transformWithBindings = (
                         (c2[s.unique] = {
                             loc: t.is.args[i].location,
                             type: t.is.args[i],
+                            name: s.name,
                         }),
                 );
                 return [ll, c2];

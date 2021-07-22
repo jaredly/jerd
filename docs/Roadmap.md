@@ -30,11 +30,18 @@
 - there should be a well-known TestCase type that has a render plugin, and also a render plugin for
   an array of TestCases.
 
+#### Alternatives / Variants????
+I should wireframe this.
+
+hmm so I want a widget that displays differently ... when rendering to react vs to editable text.
+with react, it can have a dropdowny thing
+but with editable, it should be spelled out as the full macro invocation.
+
 #### NORMAL MODE
 
 Random bugs:
 - [x] var definitions aren't colored?
-- [ ] updating a block should update pending if possible
+- [x] updating a block should update pending if possible
 - [ ] underline superceded things
 
 Navigation:
