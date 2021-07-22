@@ -310,7 +310,7 @@ export const printToAttributedText = (
             {
                 text: '{',
                 attributes: ['brace'],
-                loc: pp.loc ? locToStart(pp.loc) : undefined,
+                // loc: pp.loc ? locToStart(pp.loc) : undefined,
             },
         ];
         current.indent += 4;
@@ -333,7 +333,7 @@ export const printToAttributedText = (
         res.push({
             text: '}',
             attributes: ['brace'],
-            loc: pp.loc ? locToEnd(pp.loc) : undefined,
+            // loc: pp.loc ? locToEnd(pp.loc) : undefined,
         });
         if (pp.loc) {
             sourceMap[pp.loc.idx!] = {

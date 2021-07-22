@@ -188,10 +188,14 @@ export const renderAttributedText = (
                     style={{
                         color: colorForId(item, colorMap.map),
                         cursor: onClick ? 'pointer' : 'inherit',
-                        backgroundColor:
-                            item.loc && item.loc.idx === selection
-                                ? hlColor
-                                : undefined,
+                        // borderBottom: '2px solid #fa0',
+                        ...(item.loc && item.loc.idx === selection
+                            ? hlStyle
+                            : undefined),
+                        // borderBottom:
+                        //     item.loc && item.loc.idx === selection
+                        //         ? hlBorder
+                        //         : undefined,
                     }}
                     data-kind={item.kind}
                     data-location={
@@ -269,10 +273,17 @@ export const renderAttributedText = (
                     }
                     style={{
                         ...stylesForAttributes(item.attributes),
-                        backgroundColor:
-                            item.loc && item.loc.idx === selection
-                                ? hlColor
-                                : undefined,
+                        ...(item.loc && item.loc.idx === selection
+                            ? hlStyle
+                            : undefined),
+                        // borderBottom:
+                        //     item.loc && item.loc.idx === selection
+                        //         ? hlBorder
+                        //         : undefined,
+                        // backgroundColor:
+                        //     item.loc && item.loc.idx === selection
+                        //         ? hlColor
+                        //         : undefined,
                     }}
                     key={i}
                 >
@@ -297,10 +308,13 @@ export const renderAttributedText = (
                 data-kind={'misc'}
                 style={{
                     // ...stylesForAttributes(item.attributes),
-                    backgroundColor:
-                        item.loc && item.loc.idx === selection
-                            ? hlColor
-                            : undefined,
+                    ...(item.loc && item.loc.idx === selection
+                        ? hlStyle
+                        : undefined),
+                    // borderBottom:
+                    //     item.loc && item.loc.idx === selection
+                    //         ? hlBorder
+                    //         : undefined,
                 }}
                 key={i}
             >
@@ -310,3 +324,10 @@ export const renderAttributedText = (
     });
 };
 const hlColor = 'rgba(255,255,255,0.1)';
+const hlBorder = '2px solid #fa0';
+const hlStyle = {
+    // backgroundColor: hlColor,
+    // borderLeft: hlBorder,
+    // borderRight: hlBorder,
+    outline: hlBorder,
+};

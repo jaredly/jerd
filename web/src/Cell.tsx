@@ -646,7 +646,12 @@ const cellTitle = (
                         <span>
                             {' <- '}
                             <span
-                                css={{ ...hashStyle, cursor: 'pointer' }}
+                                css={{
+                                    ...hashStyle,
+                                    cursor: 'pointer',
+                                    // backgroundColor: '#fa0',
+                                    border: '2px solid #fa0',
+                                }}
                                 onClick={acceptPending}
                             >
                                 #{idName(cell.content.proposed.id)}
