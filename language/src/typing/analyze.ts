@@ -28,6 +28,7 @@ const idxs = (terms: Array<Term | null>) =>
 type LocKind =
     | Term['type']
     | 'arg'
+    | 'switch-case'
     | 'arg-type'
     | 'res-type'
     | 'let'
@@ -35,9 +36,15 @@ type LocKind =
     | 'let-sym';
 
 export const isTermLoc = (kind: LocKind) =>
-    !['arg', 'let', 'attribute-id', 'let-sym', 'arg-type', 'res-type'].includes(
-        kind,
-    );
+    ![
+        'arg',
+        'let',
+        'attribute-id',
+        'let-sym',
+        'arg-type',
+        'switch-case',
+        'res-type',
+    ].includes(kind);
 
 export type IdxTree = {
     children: { [key: number]: Array<number> };
@@ -138,6 +145,17 @@ export const makeIdxTree = (term: Term): IdxTree => {
                         (t) => t.location.idx!,
                     );
                     break;
+                case 'Switch':
+                    children[term.location.idx!] = [
+                        term.term.location.idx!,
+                    ].concat(
+                        term.cases.map((k) => {
+                            children[k.location.idx!] = [k.body.location.idx!];
+                            return addLoc(k.location, 'switch-case');
+                        }),
+                    );
+                    break;
+                case 'Enum':
                 case 'unary':
                     // TODO: op should have a loc, please
                     children[term.location.idx!] = [term.inner.location.idx!];
@@ -207,6 +225,18 @@ export const transformLocations = (
                 : null;
         },
         term: (term) => {
+            if (term.type === 'Switch') {
+                const location = mapper(term.location);
+                let changed = false;
+                const cases = term.cases.map((k) => {
+                    const location = mapper(k.location);
+                    changed = changed || location !== k.location;
+                    return { ...k, location };
+                });
+                return changed || location !== term.location
+                    ? { ...term, location, cases }
+                    : term;
+            }
             if (term.type === 'Attribute') {
                 const location = mapper(term.location);
                 const idLocation = mapper(term.idLocation);
@@ -717,11 +747,14 @@ export const usedLocalVariables = (term: Term) => {
             return null;
         },
         switchCase: (k) => {
-            walkPattern(k.pattern, (p) =>
-                p.type === 'Binding'
-                    ? ((bound[p.sym.unique] = true), undefined)
-                    : undefined,
-            );
+            walkPattern(k.pattern, (p) => {
+                if (p.type === 'Binding') {
+                    bound[p.sym.unique] = true;
+                }
+                if (p.type === 'Alias') {
+                    bound[p.name.unique] = true;
+                }
+            });
             return null;
         },
         term: (t) => {

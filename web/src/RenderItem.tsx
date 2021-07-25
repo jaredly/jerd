@@ -101,13 +101,15 @@ const RenderItem_ = ({
             undefined,
             sourceMap,
         );
-        return [
-            top,
-            term,
-            term ? makeIdxTree(term) : null,
-            attributedText,
-            sourceMap,
-        ];
+        let idxTree = null;
+        if (term) {
+            try {
+                idxTree = makeIdxTree(term);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        return [top, term, term ? idxTree : null, attributedText, sourceMap];
     }, [env, content, maxWidth]);
 
     // window.things = { term, idxTree, sourceMap };

@@ -849,11 +849,15 @@ export const termToPretty = (env: Env, term: Term): PP => {
 };
 
 const switchCaseToPretty = (env: Env, kase: SwitchCase): PP =>
-    items([
-        patternToPretty(env, kase.pattern),
-        atom(' => '),
-        termToPretty(env, kase.body),
-    ]);
+    items(
+        [
+            patternToPretty(env, kase.pattern),
+            atom(' => '),
+            termToPretty(env, kase.body),
+        ],
+        undefined,
+        kase.location,
+    );
 
 const patternToPretty = (env: Env, pattern: Pattern): PP => {
     switch (pattern.type) {

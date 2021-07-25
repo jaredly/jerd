@@ -143,7 +143,11 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
     //     term.is.type === 'ref' && term.is.ref.type === 'user'
     //         ? term.is.ref.id.hash
     //         : undefined;
-    const cases: Array<{ pattern: Pattern; body: Term }> = [];
+    const cases: Array<{
+        pattern: Pattern;
+        body: Term;
+        location: Location;
+    }> = [];
     let is: Type | null = null;
     expr.cases.forEach((c) => {
         const inner = subEnv(env);
@@ -167,6 +171,7 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
             }
         }
         cases.push({
+            location: c.location,
             pattern,
             body,
         });

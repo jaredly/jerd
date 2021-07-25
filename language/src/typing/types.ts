@@ -445,6 +445,7 @@ export type Switch = {
 };
 
 export type SwitchCase = {
+    location: Location;
     pattern: Pattern;
     body: Term;
 };
