@@ -17,6 +17,7 @@ import {
     Type,
     nullLocation,
     Reference,
+    idsEqual,
 } from '@jerd/language/src/typing/types';
 import {
     toplevelToPretty,
@@ -145,18 +146,31 @@ const CellView_ = ({
                         (proposedToplevel.type === 'Define' ||
                             proposedToplevel?.type === 'Expression')
                     ) {
-                        onChange(null, {
-                            ...cell,
-                            content: {
-                                ...cell.content,
-                                proposed: {
-                                    term: proposedToplevel.term,
-                                    id: idFromName(
-                                        hashObject(proposedToplevel.term),
-                                    ),
+                        const id = idFromName(
+                            hashObject(proposedToplevel.term),
+                        );
+                        if (idsEqual(id, cell.content.id)) {
+                            if (cell.content.proposed) {
+                                onChange(null, {
+                                    ...cell,
+                                    content: {
+                                        ...cell.content,
+                                        proposed: null,
+                                    },
+                                });
+                            }
+                        } else {
+                            onChange(null, {
+                                ...cell,
+                                content: {
+                                    ...cell.content,
+                                    proposed: {
+                                        term: proposedToplevel.term,
+                                        id: id,
+                                    },
                                 },
-                            },
-                        });
+                            });
+                        }
                     } else if (cell.content.proposed) {
                         onChange(null, {
                             ...cell,
@@ -212,13 +226,23 @@ const CellView_ = ({
             onFocus={() => onFocus(cell.id)}
             onPending={(pending) => {
                 if (cell.content.type === 'term') {
+                    const id = idFromName(hashObject(pending));
+                    if (idsEqual(cell.content.id, id)) {
+                        if (cell.content.proposed) {
+                            onChange(null, {
+                                ...cell,
+                                content: { ...cell.content, proposed: null },
+                            });
+                        }
+                        return;
+                    }
                     onChange(null, {
                         ...cell,
                         content: {
                             ...cell.content,
                             proposed: {
                                 term: pending,
-                                id: idFromName(hashObject(pending)),
+                                id: id,
                             },
                         },
                     });
