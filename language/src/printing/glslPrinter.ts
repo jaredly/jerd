@@ -1188,7 +1188,7 @@ export const updateToplevel = (env: TermEnv, term: ToplevelT): TermEnv => {
 
 export const parseAndHashType = (rawText: string, env: TermEnv) => {
     const toplevels: Array<Toplevel> = parse(rawText);
-    let last: Id;
+    const ids: { [name: string]: Id } = {};
     toplevels.forEach((item) => {
         const top = typeToplevelT(env, item);
         if (top.type !== 'RecordDef') {
@@ -1196,37 +1196,51 @@ export const parseAndHashType = (rawText: string, env: TermEnv) => {
         }
         const res = updateToplevel(env, top);
         env = res;
-        last = top.id;
+        ids[top.name] = top.id;
     });
-    return last!;
+    return ids;
 };
 
-// export const GLSLEnvId = parseAndHashType(
-//     `
-// @ffi
-// type Vec2 = {
-//     x: float,
-//     y: float
-// }
+export const glslIds = parseAndHashType(
+    `
+@ffi
+type Vec2 = {
+    x: float,
+    y: float
+}
 
-// @ffi
-// type Vec3 = {
-//     ...Vec2,
-//     z: float
-// }
+@ffi
+type Vec3 = {
+    ...Vec2,
+    z: float
+}
 
-// @ffi
-// type GLSLEnv = {
-//     time: float,
-//     resolution: Vec2,
-//     camera: Vec3,
-//     mouse: Vec2,
-// }
-// `,
-//     preset.presetEnv({}),
-// );
+@ffi
+type Vec4 = {
+    ...Vec3,
+    w: float,
+}
 
-export const GLSLEnvId = idFromName('451d5252');
+@ffi
+type Mat4 = {
+    r1: Vec4,
+    r2: Vec4,
+    r3: Vec4,
+    r4: Vec4,
+}
+
+@ffi
+type GLSLEnv = {
+    time: float,
+    resolution: Vec2,
+    camera: Vec3,
+    mouse: Vec2,
+}
+`,
+    preset.presetEnv({}),
+);
+
+export const GLSLEnvId = glslIds['GLSLEnv'];
 
 const makeEnvRecord = (env: Env, id: Id, mainType?: ir.Type): Record => {
     let arg0: ir.Type | null = null;
