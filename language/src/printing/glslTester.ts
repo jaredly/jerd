@@ -2,7 +2,7 @@
 // and I can make this much simpler.
 
 import { Location } from '../parsing/parser';
-import { idName, newSym } from '../typing/env';
+import { idFromName, idName, newSym } from '../typing/env';
 import {
     and,
     applyBuiltin,
@@ -33,6 +33,7 @@ import {
     nullLocation,
 } from '../typing/types';
 import { GLSLEnvId } from './glslPrinter';
+import { GLSLEnv$1_id } from './prelude-types';
 
 const Vec2: Type = builtinType('vec2');
 const Vec3: Type = builtinType('vec3');
@@ -120,7 +121,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
                     ref: { type: 'user', id: env.global.typeNames['Vec2'][0] },
                     target: {
                         type: 'Attribute',
-                        target: var_(envSym, refType(idName(GLSLEnvId)), loc),
+                        target: var_(envSym, refType(GLSLEnvId), loc),
                         idx: env.global.attributeNames['resolution'][0].idx,
                         location: loc,
                         idLocation: loc,
@@ -242,10 +243,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         idLocations: [nullLocation, nullLocation],
         body: block,
         location: builtinLocation,
-        is: pureFunction(
-            [refType(idName(env.global.typeNames['GLSLEnv'][0])), Vec2],
-            Vec4,
-        ),
+        is: pureFunction([refType(idFromName(GLSLEnv$1_id)), Vec2], Vec4),
     };
 };
 

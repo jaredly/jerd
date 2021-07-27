@@ -78,6 +78,13 @@ import {
 } from './ir/utils';
 import { debugExpr } from './irDebugPrinter';
 import { liftEffects } from './pre-ir/lift-effectful';
+import {
+    GLSLEnv$1_id,
+    Mat4_id,
+    Vec2_id,
+    Vec3_id,
+    Vec4_id,
+} from './prelude-types';
 import * as pp from './printer';
 import { args, atom, block, items, PP, printToString } from './printer';
 import { declarationToPretty } from './printTsLike';
@@ -105,31 +112,31 @@ const builtinTypes: {
         args: Array<{ sub: string | null; idx: number }>;
     };
 } = {
-    '43802a16': {
+    [Vec2_id]: {
         name: 'vec2',
         args: [
             { idx: 0, sub: null },
             { idx: 1, sub: null },
         ],
     },
-    '9f1c0644': {
+    [Vec3_id]: {
         name: 'vec3',
         args: [
-            { idx: 0, sub: '43802a16' },
-            { idx: 1, sub: '43802a16' },
+            { idx: 0, sub: Vec2_id },
+            { idx: 1, sub: Vec2_id },
             { idx: 0, sub: null },
         ],
     },
-    '3b941378': {
+    [Vec4_id]: {
         name: 'vec4',
         args: [
-            { idx: 0, sub: '43802a16' },
-            { idx: 1, sub: '43802a16' },
-            { idx: 0, sub: '9f1c0644' },
+            { idx: 0, sub: Vec2_id },
+            { idx: 1, sub: Vec2_id },
+            { idx: 0, sub: Vec3_id },
             { idx: 0, sub: null },
         ],
     },
-    d92781e8: {
+    [Mat4_id]: {
         name: 'mat4',
         args: [
             { idx: 0, sub: null },
@@ -150,10 +157,10 @@ const refType = (idRaw: string): ir.Type => ({
     loc: nullLocation,
 });
 
-const Vec2: ir.Type = refType('629a8360');
-const Vec3: ir.Type = refType('14d8ae44');
-const Vec4: ir.Type = refType('5026f640');
-const Mat4: ir.Type = refType('d92781e8');
+const Vec2: ir.Type = refType(Vec2_id);
+const Vec3: ir.Type = refType(Vec3_id);
+const Vec4: ir.Type = refType(Vec4_id);
+const Mat4: ir.Type = refType(Mat4_id);
 
 const record = (idRaw: string, rows: Array<Expr>): Expr => {
     return {
@@ -183,6 +190,7 @@ One way is: replace the hash (e.g. )
 
 */
 const glslBuiltins: { [key: string]: Expr } = {
+    // grrr whats the deal here
     '6f186ad1': record('As', [builtinVal('float', pureFunction([int], float))]),
     '184a69ed': record('As', [builtinVal('int', pureFunction([float], int))]),
 };
@@ -1201,103 +1209,7 @@ export const parseAndHashType = (rawText: string, env: TermEnv) => {
     return ids;
 };
 
-export const glslIds = parseAndHashType(
-    `
-@ffi
-type Vec2 = {
-    x: float,
-    y: float
-}
-
-@ffi
-type Vec3 = {
-    ...Vec2,
-    z: float
-}
-
-@ffi
-type Vec4 = {
-    ...Vec3,
-    w: float,
-}
-
-@ffi
-type Mat4 = {
-    r1: Vec4,
-    r2: Vec4,
-    r3: Vec4,
-    r4: Vec4,
-}
-
-@ffi
-type GLSLEnv = {
-    time: float,
-    resolution: Vec2,
-    camera: Vec3,
-    mouse: Vec2,
-}
-
-@ffi("GLSLEnv")
-type GLSLEnvT<T> = {
-    state: T,
-    time: float,
-    resolution: Vec2,
-    camera: Vec3,
-    mouse: Vec2,
-    mouseButton: int,
-}
-
-@ffi("GLSLScene")
-type GLSLSceneOld<T> = {
-    initial: T,
-    step: (GLSLEnvT<T,>, GLSLEnvT<T,>) => T,
-    render: (GLSLEnvT<T>, Vec2) => Vec4,
-}
-
-@ffi
-type GLSLBuffer1 = {
-    fragment: (GLSLEnv, Vec2, sampler2D) => Vec4,
-    buffer0: (GLSLEnv, Vec2, sampler2D) => Vec4,
-}
-
-
-@ffi
-type KeyEvent = {
-    key: string,
-    press: bool,
-    ctrlKey: bool,
-    shiftKey: bool,
-    metaKey: bool
-}
-
-@ffi
-type MouseButton = {
-    button: int,
-    down: bool,
-    ctrlKey: bool,
-    shiftKey: bool,
-    metaKey: bool,
-}
-
-enum GLSLEvent {
-    KeyEvent,
-    MouseButton
-    // MouseMove maybe? idk
-}
-
-@ffi
-type GLSLScene<T> = {
-    initial: T,
-    step: (GLSLEnvT<T,>, GLSLEnvT<T,>, Array<GLSLEvent>) => T,
-    render: (GLSLEnvT<T>, Vec2) => Vec4,
-}
-
-
-`,
-    preset.presetEnv({}),
-);
-
-export const GLSLEnvId = glslIds['GLSLEnv'];
+export const GLSLEnvId = idFromName(GLSLEnv$1_id);
 
 const makeEnvRecord = (env: Env, id: Id, mainType?: ir.Type): Record => {
     let arg0: ir.Type | null = null;
