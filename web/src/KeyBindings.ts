@@ -147,8 +147,9 @@ export const goDown = (
                 return line[i].idx;
             }
         }
-        if (line.length > 0) {
-            return line[line.length - 1].idx;
+        const atomics = line.filter((l) => isAtomic(tree.locs[l.idx].kind));
+        if (atomics.length > 0) {
+            return atomics[atomics.length - 1].idx;
         }
     }
 
@@ -276,6 +277,46 @@ export const bindKeys = (
                         },
                     });
                 }
+                if (focused.kind === 'let' || focused.kind === 'let-sym') {
+                    items.push({
+                        name: 'Delete and inline',
+                        action: () => {
+                            // ok do it
+                            let found: null | Let = null;
+                            const newTerm = transform(term, {
+                                term: (t) => {
+                                    if (found != null) {
+                                        if (
+                                            t.type === 'var' &&
+                                            t.sym.unique ===
+                                                found.binding.unique
+                                        ) {
+                                            // STOPSHIP: re-idx this, we really need to!
+                                            return found.value;
+                                        }
+                                        return null;
+                                    }
+                                    if (t.type === 'sequence') {
+                                        const sts = t.sts.filter((l) => {
+                                            if (
+                                                l.type === 'Let' &&
+                                                (l.location.idx === idx ||
+                                                    l.idLocation.idx === idx)
+                                            ) {
+                                                found = l;
+                                                return false;
+                                            }
+                                            return true;
+                                        });
+                                        return found ? { ...t, sts } : null;
+                                    }
+                                    return null;
+                                },
+                            });
+                            setTerm(newTerm);
+                        },
+                    });
+                }
                 if (focused.kind === 'let-sym') {
                     items.push({
                         name: 'Rename',
@@ -330,8 +371,19 @@ export const bindKeys = (
             return true;
         }
 
-        if (evt.key === 'ArrowDown' || evt.key === 'j') {
-            setIdx((idx) => goDown(idx, sourceMap, locLines, idxTree));
+        if (evt.key === 'ArrowDown' || evt.key === 'j' || evt.key === 'J') {
+            if (evt.shiftKey) {
+                setIdx((idx) => {
+                    const kids = children[idx];
+                    if (kids != null && kids.length > 0) {
+                        // console.log(parent);
+                        return kids[0];
+                    }
+                    return idx;
+                });
+            } else {
+                setIdx((idx) => goDown(idx, sourceMap, locLines, idxTree));
+            }
             evt.preventDefault();
             evt.stopPropagation();
             return true;

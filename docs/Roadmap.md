@@ -3,15 +3,29 @@
 Make it so I can upgrade my term format, without things breaking terribly.
 Because right now, I can't even reparse.
 
+NEXT UP
+- [ ] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".
+  - which means I need some state for "marks"
+
+
+
 - [ ] get all explicit hashes out of the codebase
   - [x] ensure that @ffi types don't have a random unique
   - [x] export the prelude as typescript, and depend on that.
   - [ ] I'll want to have an autofixer or something that ensures we update the generated delio as needed.
 
 - [x] provide a name when extracting things
-- [ ] :inline variable:
-- [ ] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".
-  - which means I need some state for "marks"
+- [x] :inline variable:
+- [ ] escape to move up to the term level, then enter to
+  get into the syntax-level focus.
+  - [ ] shift-enter should get into raw text manipulation
+- [ ] give me autocomplete or give me sadness! It's ok to need to trigger it
+  - maybe if parsing fails, try inserting a semicolon after the cursor? or something.
+- [ ] rename the highlighted term (globally probably)
+- [ ] extract all instances of this term in this function ya know
+- [ ] _d_ to delete and inline a local
+- [ ] _c_ to change a local (variable to variable or literal maybe? idk)
+- [ ] _+_ to replace w/ a binop (and _-_ etc)
 
 
 Levels of this working
