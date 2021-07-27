@@ -229,14 +229,6 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         is: Vec4,
     };
 
-    // const text = `
-    // @main
-    // const main = (env: GLSLEnv, coord: Vec2) => {
-    //     int passing = ${};
-    //     if passing
-    //     int failing = ${};
-    // }
-    // `
     return {
         type: 'lambda',
         args: [envSym, fragCoord],
@@ -246,33 +238,3 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         is: pureFunction([refType(idFromName(GLSLEnv$1_id)), Vec2], Vec4),
     };
 };
-
-/*
-
-const t1 = int(....);
-const t2 = ....;
-
-const passed =
-    t1 * (length(fragCoord - t1pos) < circleSize)
-
-const passed = min(
-    t1 * (length(fragCoord - t1pos) - circleSize),
-    min(
-        t2 * (length(fragCoord - t2pos) - circleSize)
-        ...
-    )
-);
-
-// How do I "delete" something that is off vs on?
-// Or I could just have a ton of ifs.
-const failed = min(
-    t1 * (length(fragCoord - t1pos) - circleSize),
-    min(
-        t2 * (length(fragCoord - t2pos) - circleSize)
-        ...
-    )
-);
-
-
-
-*/

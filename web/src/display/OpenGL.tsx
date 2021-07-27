@@ -4,9 +4,8 @@ import { jsx } from '@emotion/react';
 import {
     generateSingleShader,
     GLSLEnvId,
-    glslIds,
 } from '@jerd/language/src/printing/glslPrinter';
-import { hashObject, idName } from '@jerd/language/src/typing/env';
+import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
 import {
     builtinType,
     pureFunction,
@@ -21,6 +20,13 @@ import {
     Type,
 } from '@jerd/language/src/typing/types';
 import * as React from 'react';
+import {
+    GLSLEnv_id,
+    GLSLSceneOld_id,
+    Vec2_id,
+    Vec3_id,
+    Vec4_id,
+} from '../../../language/src/printing/prelude-types';
 import { LocatedError, TypeError } from '../../../language/src/typing/errors';
 import { showLocation } from '../../../language/src/typing/typeExpr';
 import { EvalEnv, RenderPlugins } from '../State';
@@ -376,18 +382,18 @@ const ShaderGLSLBuffers = ({
     );
 };
 
-export const Vec4 = refType(glslIds['Vec4']);
-export const Vec3 = refType(glslIds['Vec3']);
-export const Vec2 = refType(glslIds['Vec2']);
+export const Vec4 = refType(idFromName(Vec4_id));
+export const Vec3 = refType(idFromName(Vec3_id));
+export const Vec2 = refType(idFromName(Vec2_id));
 const GLSLEnv = refType(GLSLEnvId);
-const GLSLEnvT = refType(glslIds['GLSLEnvT'], [
+const GLSLEnvT = refType(idFromName(GLSLEnv_id), [
     {
         type: 'var',
         sym: { name: 'T', unique: 0 },
         location: nullLocation,
     },
 ]);
-const GLSLSceneRef = refType(glslIds['GLSLSceneOld'], [
+const GLSLSceneRef = refType(idFromName(GLSLSceneOld_id), [
     {
         type: 'var',
         sym: { name: 'T', unique: 0 },
