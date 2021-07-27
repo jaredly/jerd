@@ -806,42 +806,61 @@ export const lambdaBodyToTs = (
 const printRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : ref.id.hash;
 
+const flat = <T>(v: Array<Array<T>>) => ([] as Array<T>).concat(...v);
+
 export const typeExports = (env: Env) => {
-    return ([] as Array<t.Statement>).concat(
-        ...Object.keys(env.global.typeNames).map((name) => {
-            return env.global.typeNames[name].map(
-                (id, i): t.Statement => {
-                    const decl = env.global.types[idName(id)];
-                    const args = decl.typeVbls.length
-                        ? decl.typeVbls.map((_, i) => 'T' + i)
-                        : null;
-                    return t.exportNamedDeclaration(
-                        t.tsTypeAliasDeclaration(
-                            t.identifier(name + (i === 0 ? '' : '$' + i)),
-                            args
-                                ? t.tsTypeParameterDeclaration(
-                                      args.map((n) =>
-                                          t.tSTypeParameter(null, null, n),
-                                      ),
-                                  )
-                                : null,
-                            t.tsTypeReference(
-                                t.identifier('t_' + idName(id)),
-                                args
-                                    ? t.tsTypeParameterInstantiation(
-                                          args.map((n) =>
-                                              t.tsTypeReference(
-                                                  t.identifier(n),
-                                              ),
-                                          ),
-                                      )
-                                    : null,
+    return flat(
+        flat(
+            Object.keys(env.global.typeNames).map((name) => {
+                return env.global.typeNames[name].map(
+                    (id, i): Array<t.Statement> => {
+                        const decl = env.global.types[idName(id)];
+                        const args = decl.typeVbls.length
+                            ? decl.typeVbls.map((_, i) => 'T' + i)
+                            : null;
+                        const suffixed = name + (i === 0 ? '' : '$' + i);
+                        return [
+                            t.exportNamedDeclaration(
+                                t.variableDeclaration('const', [
+                                    t.variableDeclarator(
+                                        t.identifier(suffixed + '_id'),
+                                        t.stringLiteral(idName(id)),
+                                    ),
+                                ]),
                             ),
-                        ),
-                    );
-                },
-            );
-        }),
+                            t.exportNamedDeclaration(
+                                t.tsTypeAliasDeclaration(
+                                    t.identifier(suffixed),
+                                    args
+                                        ? t.tsTypeParameterDeclaration(
+                                              args.map((n) =>
+                                                  t.tSTypeParameter(
+                                                      null,
+                                                      null,
+                                                      n,
+                                                  ),
+                                              ),
+                                          )
+                                        : null,
+                                    t.tsTypeReference(
+                                        t.identifier('t_' + idName(id)),
+                                        args
+                                            ? t.tsTypeParameterInstantiation(
+                                                  args.map((n) =>
+                                                      t.tsTypeReference(
+                                                          t.identifier(n),
+                                                      ),
+                                                  ),
+                                              )
+                                            : null,
+                                    ),
+                                ),
+                            ),
+                        ];
+                    },
+                );
+            }),
+        ),
     );
 };
 
