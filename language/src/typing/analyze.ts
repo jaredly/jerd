@@ -445,6 +445,14 @@ export const expressionDeps = (env: Env, terms: Array<Term>): Array<string> => {
     return sortAllDeps(allDeps);
 };
 
+export const sortedTypes = (env: Env) => {
+    const allDeps: { [key: string]: Array<Id> } = {};
+    Object.keys(env.global.types).forEach((id) =>
+        populateTypeDependencyMap(env, allDeps, idFromName(id)),
+    );
+    return sortAllDeps(allDeps);
+};
+
 export const expressionTypeDeps = (env: Env, terms: Array<Term>) => {
     const allDeps: { [key: string]: Array<Id> } = {};
     terms.forEach((term) =>
@@ -486,7 +494,8 @@ export const sortAllDepsPlain = (allDeps: {
 }): Array<string> => {
     const lastToFirst = topoSort(allDeps);
     lastToFirst.reverse();
-    return lastToFirst;
+    const seen: { [key: string]: boolean } = {};
+    return lastToFirst.filter((s) => (seen[s] ? false : (seen[s] = true)));
 };
 
 export const populateTypeDependencyMap = (

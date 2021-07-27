@@ -1044,8 +1044,9 @@ const multiSample#0ae0f98c = (fn#:0: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4
 */
 export const hash_0ae0f98c: (arg_0: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378) => (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = (fn: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378) => (env: t_451d5252, pos: t_43802a16) => hash_56d43c0e.h5ac12902_0(hash_0555d260.hb99b22d8_0(hash_0555d260.hb99b22d8_0(hash_0555d260.hb99b22d8_0(hash_0555d260.hb99b22d8_0(fn(env, pos), fn(env, hash_70bb2056.hb99b22d8_0(pos, hash_54a9f2ef(0.5, 0)))), fn(env, hash_70bb2056.hb99b22d8_0(pos, hash_54a9f2ef(-0.5, 0)))), fn(env, hash_70bb2056.hb99b22d8_0(pos, hash_54a9f2ef(0, 0.5)))), fn(env, hash_70bb2056.hb99b22d8_0(pos, hash_54a9f2ef(0, -0.5)))), 5);
 
-/*
-multiSample#0ae0f98c(
+/**
+```
+const ok#0cccfe1a = multiSample#0ae0f98c(
     fn: marchNormals#132bd797(
         sceneSDF: (env#:0: GLSLEnv#451d5252, pos#:1: Vec3#9f1c0644): float#builtin ={}> {
             const pos#:2 = rotate#6734d670(
@@ -1066,9 +1067,11 @@ multiSample#0ae0f98c(
         },
     ),
 )
+```
 */
-hash_0ae0f98c(hash_132bd797((env$0: t_451d5252, pos$1: t_9f1c0644) => {
+export const hash_0cccfe1a: (arg_0: t_451d5252, arg_1: t_43802a16) => t_3b941378 = hash_0ae0f98c(hash_132bd797((env$0: t_451d5252, pos$1: t_9f1c0644) => {
   let pos: t_9f1c0644 = hash_6734d670(pos$1, 0, env$0.time / 2, env$0.time);
   let period: number = 30 * (sin(env$0.time) + 1);
   return hash_63e16b7a(pos) - 0.5 - (sin(pos.x * period) + sin(pos.z * period) + sin(pos.y * period)) / ((sin(env$0.time / 2) + 1) * 60 + 1);
 }));
+export const ok = hash_0cccfe1a;

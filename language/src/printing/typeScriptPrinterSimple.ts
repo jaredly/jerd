@@ -806,18 +806,54 @@ export const lambdaBodyToTs = (
 const printRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : ref.id.hash;
 
-export const fileToTypescript = (
-    expressions: Array<Term>,
+export const typeExports = (env: Env) => {
+    return ([] as Array<t.Statement>).concat(
+        ...Object.keys(env.global.typeNames).map((name) => {
+            return env.global.typeNames[name].map(
+                (id, i): t.Statement => {
+                    const decl = env.global.types[idName(id)];
+                    const args = decl.typeVbls.length
+                        ? decl.typeVbls.map((_, i) => 'T' + i)
+                        : null;
+                    return t.exportNamedDeclaration(
+                        t.tsTypeAliasDeclaration(
+                            t.identifier(name + (i === 0 ? '' : '$' + i)),
+                            args
+                                ? t.tsTypeParameterDeclaration(
+                                      args.map((n) =>
+                                          t.tSTypeParameter(null, null, n),
+                                      ),
+                                  )
+                                : null,
+                            t.tsTypeReference(
+                                t.identifier('t_' + idName(id)),
+                                args
+                                    ? t.tsTypeParameterInstantiation(
+                                          args.map((n) =>
+                                              t.tsTypeReference(
+                                                  t.identifier(n),
+                                              ),
+                                          ),
+                                      )
+                                    : null,
+                            ),
+                        ),
+                    );
+                },
+            );
+        }),
+    );
+};
+
+export const typeDeclarations = (
     env: Env,
     opts: OutputOptions,
-    irOpts: IOutputOptions,
-    assert: boolean,
-    includeImport: boolean,
-    builtinNames: Array<string>,
+    effectIds: Array<string>,
+    allTypes: Array<string>,
 ) => {
-    const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
+    const items: Array<t.Statement> = [];
 
-    Object.keys(env.global.effects).forEach((r) => {
+    effectIds.forEach((r) => {
         const id = idFromName(r);
         const constrs = env.global.effects[r];
         items.push(
@@ -842,26 +878,6 @@ export const fileToTypescript = (
             ),
         );
     });
-
-    const orderedTerms = expressionDeps(
-        env,
-        expressions.concat(
-            Object.keys(env.global.exportedTerms).map((name) => ({
-                type: 'ref',
-                ref: {
-                    type: 'user',
-                    id: env.global.exportedTerms[name],
-                },
-                location: nullLocation,
-                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
-            })),
-        ),
-    );
-
-    const allTypes = expressionTypeDeps(
-        env,
-        orderedTerms.map((t) => env.global.terms[t]),
-    );
 
     allTypes.forEach((r) => {
         const constr = env.global.types[r];
@@ -952,6 +968,49 @@ export const fileToTypescript = (
             ),
         );
     });
+
+    return items;
+};
+
+export const fileToTypescript = (
+    expressions: Array<Term>,
+    env: Env,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    assert: boolean,
+    includeImport: boolean,
+    builtinNames: Array<string>,
+) => {
+    const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
+
+    const orderedTerms = expressionDeps(
+        env,
+        expressions.concat(
+            Object.keys(env.global.exportedTerms).map((name) => ({
+                type: 'ref',
+                ref: {
+                    type: 'user',
+                    id: env.global.exportedTerms[name],
+                },
+                location: nullLocation,
+                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
+            })),
+        ),
+    );
+
+    const allTypes = expressionTypeDeps(
+        env,
+        orderedTerms.map((t) => env.global.terms[t]),
+    );
+
+    items.push(
+        ...typeDeclarations(
+            env,
+            opts,
+            Object.keys(env.global.effects),
+            allTypes,
+        ),
+    );
 
     // const irOpts = {
     // limitExecutionTime: opts.limitExecutionTime,
