@@ -40,10 +40,10 @@ export const liftToTopLevel = (ctx: Context, lambda: LambdaExpr): Expr => {
     const hash = hashObject(lambda);
     const id: Id = { hash, size: 1, pos: 0 };
     let expr: LambdaExpr = ctx.optimize({ ...ctx, id }, lambda) as LambdaExpr;
-    const e = new Error();
-    expr.note = (expr.note || '') + '\nLifted to toplevel\n' + e.stack + '\n';
-    expr.note += printToString(debugExpr(ctx.env, expr), 100);
-    console.log(e);
+    // const e = new Error();
+    // expr.note = (expr.note || '') + '\nLifted to toplevel\n' + e.stack + '\n';
+    // expr.note += printToString(debugExpr(ctx.env, expr), 100);
+    // console.log(e);
     ctx.exprs[idName(id)] = {
         expr: expr,
         inline: false,
