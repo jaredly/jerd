@@ -1,7 +1,11 @@
 // This is the fake one?
 /* @jsx jsx */
 import { jsx } from '@emotion/react';
-import { generateSingleShader } from '@jerd/language/src/printing/glslPrinter';
+import {
+    generateSingleShader,
+    GLSLEnvId,
+    glslIds,
+} from '@jerd/language/src/printing/glslPrinter';
 import { hashObject, idName } from '@jerd/language/src/typing/env';
 import {
     builtinType,
@@ -372,18 +376,18 @@ const ShaderGLSLBuffers = ({
     );
 };
 
-export const Vec4 = refType('3b941378');
-export const Vec3 = refType('9f1c0644');
-export const Vec2 = refType('43802a16');
-const GLSLEnv = refType('451d5252');
-const GLSLEnvT = refType('d2ea39a0', [
+export const Vec4 = refType(glslIds['Vec4']);
+export const Vec3 = refType(glslIds['Vec3']);
+export const Vec2 = refType(glslIds['Vec2']);
+const GLSLEnv = refType(GLSLEnvId);
+const GLSLEnvT = refType(glslIds['GLSLEnvT'], [
     {
         type: 'var',
         sym: { name: 'T', unique: 0 },
         location: nullLocation,
     },
 ]);
-const GLSLSceneRef = refType('7eb87aa6', [
+const GLSLSceneRef = refType(glslIds['GLSLSceneOld'], [
     {
         type: 'var',
         sym: { name: 'T', unique: 0 },
@@ -495,10 +499,7 @@ const plugins: RenderPlugins = {
     opengl: {
         id: 'opengl',
         name: 'Shader GLSL',
-        type: pureFunction(
-            [refType('451d5252'), refType('43802a16')],
-            refType('3b941378'),
-        ),
+        type: pureFunction([GLSLEnv, Vec2], Vec4),
         render: (
             fn: OpenGLFn,
             evalEnv: EvalEnv,
@@ -521,10 +522,7 @@ const plugins: RenderPlugins = {
     'opengl-fake': {
         id: 'opengl-fake',
         name: 'Shader CPU',
-        type: pureFunction(
-            [refType('451d5252'), refType('43802a16')],
-            refType('3b941378'),
-        ),
+        type: pureFunction([GLSLEnv, Vec2], Vec4),
         render: (fn: OpenGLFn, evalEnv: EvalEnv) => {
             return <ShaderCPU fn={fn} evalEnv={evalEnv} />;
         },
