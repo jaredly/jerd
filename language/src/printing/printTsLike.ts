@@ -28,6 +28,7 @@ import {
     selfEnv,
     Apply,
     walkTerm,
+    newWithGlobal,
 } from '../typing/types';
 import {
     PP,
@@ -48,7 +49,8 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
 
             return declarationToPretty(
                 selfEnv(
-                    { ...env, global: glob },
+                    newWithGlobal(glob),
+                    // { ...env, global: glob },
                     {
                         type: 'Term',
                         name: toplevel.name,
@@ -60,7 +62,7 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
             );
         }
         case 'Expression':
-            return termToPretty(env, toplevel.term);
+            return termToPretty(newWithGlobal(env.global), toplevel.term);
         case 'RecordDef': {
             const glob = cloneGlobalEnv(env.global);
             glob.idNames[idName(toplevel.id)] = toplevel.name;
@@ -69,14 +71,19 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
                 console.log(toplevel);
             }
             return recordToPretty(
-                {
-                    ...selfEnv(env, {
-                        type: 'Type',
-                        name: idName(toplevel.id),
-                        vbls: toplevel.def.typeVbls,
-                    }),
-                    global: glob,
-                },
+                selfEnv(newWithGlobal(glob), {
+                    type: 'Type',
+                    name: idName(toplevel.id),
+                    vbls: toplevel.def.typeVbls,
+                }),
+                // {
+                //     ...selfEnv(env, {
+                //         type: 'Type',
+                //         name: idName(toplevel.id),
+                //         vbls: toplevel.def.typeVbls,
+                //     }),
+                //     global: glob,
+                // },
                 toplevel.id,
                 toplevel.def,
             );
@@ -85,14 +92,11 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
             const glob = cloneGlobalEnv(env.global);
             glob.idNames[idName(toplevel.id)] = toplevel.name;
             return enumToPretty(
-                {
-                    ...selfEnv(env, {
-                        type: 'Type',
-                        name: idName(toplevel.id),
-                        vbls: toplevel.def.typeVbls,
-                    }),
-                    global: glob,
-                },
+                selfEnv(newWithGlobal(glob), {
+                    type: 'Type',
+                    name: idName(toplevel.id),
+                    vbls: toplevel.def.typeVbls,
+                }),
                 toplevel.id,
                 toplevel.def,
             );
@@ -103,7 +107,7 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
             glob.effectConstrNames[idName(toplevel.id)] = toplevel.constrNames;
 
             return effectToPretty(
-                { ...env, global: glob },
+                newWithGlobal(glob),
                 toplevel.id,
                 toplevel.effect,
             );
