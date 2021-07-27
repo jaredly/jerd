@@ -1,13 +1,24 @@
 // Ok
 
 // import * as t from '@babel/types';
-import { Location } from '../parsing/parser';
+import { parse } from '../parsing/grammar';
+import { Location, Toplevel } from '../parsing/parser';
 import {
     expressionDeps,
     expressionTypeDeps,
     sortAllDepsPlain,
 } from '../typing/analyze';
-import { idFromName, idName } from '../typing/env';
+import {
+    addDefine,
+    addEffect,
+    addEnum,
+    addExpr,
+    addRecord,
+    idFromName,
+    idName,
+    ToplevelT,
+    typeToplevelT,
+} from '../typing/env';
 import { LocatedError } from '../typing/errors';
 import * as preset from '../typing/preset';
 import { applyTypeVariablesToRecord } from '../typing/typeExpr';
@@ -1139,6 +1150,81 @@ export const assembleItemsForFile = (
 
     return { inOrder, irTerms };
 };
+
+export const updateToplevel = (env: TermEnv, term: ToplevelT): TermEnv => {
+    if (term.type === 'Expression') {
+        const pid = null;
+        // prevContent.type === 'expr' || prevContent.type === 'term'
+        //     ? prevContent.id
+        //     : null;
+        let { id, env: nenv } = addExpr(env, term.term, pid);
+        return nenv;
+    } else if (term.type === 'Define') {
+        const { id, env: nenv } = addDefine(env, term.name, term.term);
+        return nenv;
+    } else if (term.type === 'RecordDef') {
+        const { id, env: nenv } = addRecord(
+            env,
+            term.name,
+            term.attrNames,
+            term.def,
+        );
+        return nenv;
+    } else if (term.type === 'EnumDef') {
+        const { id, env: nenv } = addEnum(env, term.name, term.def);
+        return nenv;
+    } else if (term.type === 'Effect') {
+        const { env: nenv, id } = addEffect(
+            env,
+            term.name,
+            term.constrNames,
+            term.effect,
+        );
+        return nenv;
+    } else {
+        throw new Error('toplevel type not yet supported');
+    }
+};
+
+export const parseAndHashType = (rawText: string, env: TermEnv) => {
+    const toplevels: Array<Toplevel> = parse(rawText);
+    let last: Id;
+    toplevels.forEach((item) => {
+        const top = typeToplevelT(env, item);
+        if (top.type !== 'RecordDef') {
+            throw new Error(`only records`);
+        }
+        const res = updateToplevel(env, top);
+        env = res;
+        last = top.id;
+    });
+    return last!;
+};
+
+// export const GLSLEnvId = parseAndHashType(
+//     `
+// @ffi
+// type Vec2 = {
+//     x: float,
+//     y: float
+// }
+
+// @ffi
+// type Vec3 = {
+//     ...Vec2,
+//     z: float
+// }
+
+// @ffi
+// type GLSLEnv = {
+//     time: float,
+//     resolution: Vec2,
+//     camera: Vec3,
+//     mouse: Vec2,
+// }
+// `,
+//     preset.presetEnv({}),
+// );
 
 export const GLSLEnvId = idFromName('451d5252');
 

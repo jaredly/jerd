@@ -385,6 +385,7 @@ export const resolveType = (env: Env, id: Identifier): Array<Id> => {
     return env.global.typeNames[id.text];
 };
 
+// ok so ffi records don't have a unique. That's what I want.
 export const typeRecordDefn = (
     env: Env,
     { decl: record, id, typeVbls: typeVblsRaw, location }: StructDef,

@@ -1,4 +1,29 @@
 
+## Ok probably first thing
+Make it so I can upgrade my term format, without things breaking terribly.
+Because right now, I can't even reparse.
+
+- [ ] get all explicit hashes out of the codebase
+  - [x] ensure that @ffi types don't have a random unique
+  - [ ] what if plugins specified the types as jerd syntax; parse & determine what it is
+  - [ ] 
+
+
+
+Levels of this working
+- make the term export do text as well
+- version the state dealio
+- if, when loading up, the state is old, say "stop, go back, export with strings"; give option to blow away state
+- import should see strings and reparse them
+
+> have a button to "tostring & reparse all terms". So I can have it defensively programmed first, and then remove that.
+> have a button to "export w/ strings" so I can import w/ strings, and like reparse
+> make hashing much more explicitly type safe n stuff, so I can specify exactly where and what is getting included.
+
+## Fancy Refactors!
+
+- [ ] turn this local variable into a fn argument for this term
+
 ## Next steps
 
 - [-] enums?
