@@ -22,9 +22,11 @@ describe('inlineCallsThatReturnFunctions', () => {
                 inlineCallsThatReturnFunctions,
             ),
         ).toMatchInlineSnapshot(`
-              const expr0#👨‍🦲🎿🎋😃: string = ((n#:1: string) => (
-                  m#:2: string,
-              ) => m#:2 + n#:1)("hi")("ho")
+            const expr0#👨‍🦲🎿🎋😃: string = ((n#:1: string): (
+                string,
+            ) => string => (m#:2: string): string => m#:2 + n#:1)(
+                "hi",
+            )("ho")
         `);
     });
 
@@ -38,13 +40,13 @@ describe('inlineCallsThatReturnFunctions', () => {
                 inlineCallsThatReturnFunctions,
             ),
         ).toMatchInlineSnapshot(`
-              const f#🏜️🦢💣😃: (string) => string = (
-                  n#:0: string,
-              ) => n#:0 + "hi"
+            const f#🏜️🦢💣😃: (string) => string = (
+                n#:0: string,
+            ): string => n#:0 + "hi"
 
-              const expr0#🏋️‍♂️🏃💇‍♂️: string = f#🏜️🦢💣😃(
-                  "ho",
-              )
+            const expr0#🏋️‍♂️🏃💇‍♂️: string = f#🏜️🦢💣😃(
+                "ho",
+            )
         `);
     });
 });

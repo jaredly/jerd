@@ -17,7 +17,7 @@ describe('removeUnusedVariables', () => {
             removeUnusedVariables,
         );
         expect(result).toMatchInlineSnapshot(`
-            const expr0#🥘: int = (() => {
+            const expr0#🥘: int = ((): int => {
                 const x#:0: int = 10;
                 return x#:0;
             })()
@@ -45,15 +45,15 @@ describe('removeUnusedVariables', () => {
             removeUnusedVariables,
         );
         expect(result).toMatchInlineSnapshot(`
-            const expr0#👏🍬💆‍♀️: int = (() => {
+            const expr0#👏🍬💆‍♀️: int = ((): int => {
                 const x#:0: int = 10;
                 const z#:2: int = 1;
-                const m#:4: () => int = () => 23 + z#:2;
-                return (() => {
+                const m#:4: () => int = (): int => 23 + z#:2;
+                return ((): int => {
                     if true {
-                        return (() => x#:0 + m#:4())();
+                        return ((): int => x#:0 + m#:4())();
                     } else {
-                        return (() => 23)();
+                        return ((): int => 23)();
                     };
                 })();
             })()

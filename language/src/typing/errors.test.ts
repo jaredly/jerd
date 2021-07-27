@@ -69,6 +69,10 @@ describe('with a type error, we should get an error term', () => {
 			const x = 10
 			const y = x + 1.0
 		`),
-        ).toMatchInlineSnapshot();
+        ).toMatchInlineSnapshot(`
+            const x#6e9352f2 = 10
+
+            const y#1ecd45b1 = x#6e9352f2 +#builtin 1.0
+        `);
     });
 });

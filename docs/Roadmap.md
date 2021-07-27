@@ -5,9 +5,13 @@ Because right now, I can't even reparse.
 
 - [ ] get all explicit hashes out of the codebase
   - [x] ensure that @ffi types don't have a random unique
-  - [ ] what if plugins specified the types as jerd syntax; parse & determine what it is
-  - [ ] 
+  - [x] export the prelude as typescript, and depend on that.
+  - [ ] I'll want to have an autofixer or something that ensures we update the generated delio as needed.
 
+- [x] provide a name when extracting things
+- [ ] :inline variable:
+- [ ] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".
+  - which means I need some state for "marks"
 
 
 Levels of this working
