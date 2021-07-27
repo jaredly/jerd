@@ -16,6 +16,7 @@ import {
     TypeVblDecl,
     Location,
     TypeReference,
+    Id,
 } from './types';
 
 export const builtinLocation: Location = {
@@ -34,12 +35,9 @@ export const builtinType = (
     // effectVbls: [],
 });
 
-export const refType = (
-    id: string,
-    typeVbls: Array<Type> = [],
-): TypeReference => ({
+export const refType = (id: Id, typeVbls: Array<Type> = []): TypeReference => ({
     type: 'ref',
-    ref: { type: 'user', id: idFromName(id) },
+    ref: { type: 'user', id },
     location: builtinLocation,
     typeVbls,
     // effectVbls: [],

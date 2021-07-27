@@ -1191,12 +1191,12 @@ export const parseAndHashType = (rawText: string, env: TermEnv) => {
     const ids: { [name: string]: Id } = {};
     toplevels.forEach((item) => {
         const top = typeToplevelT(env, item);
-        if (top.type !== 'RecordDef') {
-            throw new Error(`only records`);
+        env = updateToplevel(env, top);
+        if (top.type === 'RecordDef') {
+            ids[top.name] = top.id;
+        } else if (top.type === 'EnumDef') {
+            ids[top.name] = top.id;
         }
-        const res = updateToplevel(env, top);
-        env = res;
-        ids[top.name] = top.id;
     });
     return ids;
 };
@@ -1236,6 +1236,63 @@ type GLSLEnv = {
     camera: Vec3,
     mouse: Vec2,
 }
+
+@ffi("GLSLEnv")
+type GLSLEnvT<T> = {
+    state: T,
+    time: float,
+    resolution: Vec2,
+    camera: Vec3,
+    mouse: Vec2,
+    mouseButton: int,
+}
+
+@ffi("GLSLScene")
+type GLSLSceneOld<T> = {
+    initial: T,
+    step: (GLSLEnvT<T,>, GLSLEnvT<T,>) => T,
+    render: (GLSLEnvT<T>, Vec2) => Vec4,
+}
+
+@ffi
+type GLSLBuffer1 = {
+    fragment: (GLSLEnv, Vec2, sampler2D) => Vec4,
+    buffer0: (GLSLEnv, Vec2, sampler2D) => Vec4,
+}
+
+
+@ffi
+type KeyEvent = {
+    key: string,
+    press: bool,
+    ctrlKey: bool,
+    shiftKey: bool,
+    metaKey: bool
+}
+
+@ffi
+type MouseButton = {
+    button: int,
+    down: bool,
+    ctrlKey: bool,
+    shiftKey: bool,
+    metaKey: bool,
+}
+
+enum GLSLEvent {
+    KeyEvent,
+    MouseButton
+    // MouseMove maybe? idk
+}
+
+@ffi
+type GLSLScene<T> = {
+    initial: T,
+    step: (GLSLEnvT<T,>, GLSLEnvT<T,>, Array<GLSLEvent>) => T,
+    render: (GLSLEnvT<T>, Vec2) => Vec4,
+}
+
+
 `,
     preset.presetEnv({}),
 );
