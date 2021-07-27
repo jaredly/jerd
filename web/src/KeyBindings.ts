@@ -211,7 +211,7 @@ export const bindKeys = (
     term: Term,
     setIdx: (fn: (idx: number) => number) => void,
     setMenu: (items: Array<MenuItem>) => void,
-    addTerm: (term: Term) => void,
+    addTerm: (term: Term, name: string) => void,
     setTerm: (term: Term) => void,
 ) => {
     const locLines: LocLines = [];
@@ -245,8 +245,9 @@ export const bindKeys = (
                 if (isTermLoc(focused.kind)) {
                     items.push({
                         name: 'Extract to variable',
-                        action: () => {
-                            const newTerm = extractToVariable(term, idx);
+                        askString: 'name',
+                        action: (name: string) => {
+                            const newTerm = extractToVariable(term, idx, name);
                             const duplicates = ensureIdxUnique(newTerm);
                             if (duplicates.length) {
                                 console.error('DUPLICATES');
@@ -258,7 +259,8 @@ export const bindKeys = (
                     });
                     items.push({
                         name: 'Extract to toplevel term',
-                        action: () => {
+                        askString: 'Name',
+                        action: (name: string) => {
                             const [newTerm, extractedTerm] = extractToToplevel(
                                 term,
                                 idx,
@@ -269,7 +271,7 @@ export const bindKeys = (
                                 console.log(duplicates);
                                 return;
                             }
-                            addTerm(extractedTerm);
+                            addTerm(extractedTerm, name);
                             setTerm(newTerm);
                         },
                     });
@@ -447,11 +449,11 @@ export const extractToToplevel = (term: Term, idx: number) => {
     return [term, found];
 };
 
-export const extractToVariable = (term: Term, idx: number) => {
+export const extractToVariable = (term: Term, idx: number, name: string) => {
     let maxIdx = maxLocationIdx(term) + 1;
     const sym: Symbol = {
         unique: maxUnique(term) + 1,
-        name: 'var',
+        name,
     };
     let found: null | Term = null;
     term = transform(term, {

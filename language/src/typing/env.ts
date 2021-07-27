@@ -677,6 +677,7 @@ export const addDefine = (env: Env, name: string, term: Term) => {
     // }
     glob.idNames[idName(id)] = name;
     glob.terms[hash] = term;
+    // TODO: update metadata
     return { id, env: { ...env, global: glob } };
 };
 

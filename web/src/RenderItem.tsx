@@ -162,7 +162,7 @@ const RenderItem_ = ({
             term,
             setIdx,
             setMenu,
-            (newTerm: Term) =>
+            (newTerm: Term, newName: string) =>
                 addCell(
                     {
                         type: 'term',
@@ -172,7 +172,16 @@ const RenderItem_ = ({
                     (env) => {
                         const res = addExpr(env, newTerm, null);
                         console.log('adding', res.id);
-                        return res.env;
+                        return {
+                            ...res.env,
+                            global: {
+                                ...res.env.global,
+                                idNames: {
+                                    ...res.env.global.idNames,
+                                    [idName(res.id)]: newName,
+                                },
+                            },
+                        };
                     },
                 ),
             onPending,
