@@ -39,7 +39,7 @@ Anyway,
 
 */
 
-export const RenderResult = ({
+const RenderResult_ = ({
     plugins,
     cell,
     id,
@@ -286,3 +286,5 @@ const getMatchingPlugins = (
     }
     return null;
 };
+
+export const RenderResult = React.memo(RenderResult_);
