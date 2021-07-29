@@ -4,9 +4,17 @@ Make it so I can upgrade my term format, without things breaking terribly.
 Because right now, I can't even reparse.
 
 NEXT UP
+- [ ] inline
 - [ ] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".
   - which means I need some state for "marks"
 
+
+- IDX PRESERVATION
+  - when adding locs to a term
+    - first find the max idx
+    - then, go through, and /leave/ in place, any idxes that
+      haven't been seen yet.
+      if it has been, then use maxIdx++
 
 
 - [ ] get all explicit hashes out of the codebase

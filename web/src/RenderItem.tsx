@@ -173,6 +173,7 @@ const RenderItem_ = ({
         const fn = bindKeys(
             idxTree,
             sourceMap,
+            env,
             term,
             setIdx,
             setSelection_,
@@ -207,7 +208,7 @@ const RenderItem_ = ({
 
     const selectedTerm = term ? getTermByIdx(term, selection.idx) : null;
 
-    console.log('SEL', selection);
+    // console.log('SEL', selection);
 
     return (
         <div css={{ position: 'relative' }}>

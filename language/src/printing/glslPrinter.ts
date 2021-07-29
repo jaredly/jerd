@@ -997,6 +997,7 @@ export const assembleItemsForFile = (
                     env.global.idNames[idRaw] || 'no name'
                 }`,
             ).wrap(err);
+            console.log(outer.toString());
             throw outer;
         }
         // irTerm = explicitSpreads(senv, irOpts, irTerm);
@@ -1060,8 +1061,11 @@ export const assembleItemsForFile = (
 
             const outer = new LocatedError(
                 term.location,
-                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+                `Failed while typing ${idRaw} : ${
+                    env.global.idNames[idRaw] || 'no name'
+                }`,
             ).wrap(err);
+            console.log(outer.toString());
             throw outer;
         }
 
@@ -1078,8 +1082,11 @@ export const assembleItemsForFile = (
         } catch (err) {
             const outer = new LocatedError(
                 term.location,
-                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+                `Failed while typing ${idRaw} : ${
+                    env.global.idNames[idRaw] || 'no name'
+                }`,
             ).wrap(err);
+            console.log(outer.toString());
             throw outer;
         }
 
@@ -1349,7 +1356,6 @@ export const typeDefToGLSL = (
                 100,
             )}, contains type variables`,
         );
-        return null;
     }
     if (!constr.items.length) {
         return null;

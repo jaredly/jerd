@@ -402,22 +402,38 @@ const CellView_ = ({
                                     }
                                   : null,
                           ]),
-                    cell.content.type === 'term'
-                        ? {
-                              name:
-                                  'Export term & dependencies to tslike syntax',
-                              action: () => {
-                                  if (cell.content.type !== 'term') {
-                                      return;
-                                  }
-                                  const text = generateExport(
-                                      env,
-                                      cell.content.id,
-                                  );
-                                  navigator.clipboard.writeText(text);
+                    ...(cell.content.type === 'term'
+                        ? [
+                              {
+                                  name:
+                                      'Export term & dependencies to tslike syntax',
+                                  action: () => {
+                                      if (cell.content.type !== 'term') {
+                                          return;
+                                      }
+                                      const text = generateExport(
+                                          env,
+                                          cell.content.id,
+                                      );
+                                      navigator.clipboard.writeText(text);
+                                  },
                               },
-                          }
-                        : null,
+                              {
+                                  name: 'Export with IDs',
+                                  action: () => {
+                                      if (cell.content.type !== 'term') {
+                                          return;
+                                      }
+                                      const text = generateExport(
+                                          env,
+                                          cell.content.id,
+                                          false,
+                                      );
+                                      navigator.clipboard.writeText(text);
+                                  },
+                              },
+                          ]
+                        : []),
                 ].filter(Boolean) as Array<MenuItem>;
             }}
         >
@@ -531,7 +547,7 @@ const ViewSource = ({
     );
 };
 
-const generateExport = (env: Env, id: Id) => {
+const generateExport = (env: Env, id: Id, hideIds: boolean = true) => {
     const typesInOrder: Array<ToplevelT> = expressionTypeDeps(env, [
         env.global.terms[idName(id)],
     ]).map(
@@ -572,9 +588,7 @@ const generateExport = (env: Env, id: Id) => {
     const items = typesInOrder
         .concat(depsInOrder)
         .map((top) => toplevelToPretty(env, top));
-    return items
-        .map((pp) => printToString(pp, 100, { hideIds: true }))
-        .join('\n\n');
+    return items.map((pp) => printToString(pp, 100, { hideIds })).join('\n\n');
 };
 
 export const hashStyle = {

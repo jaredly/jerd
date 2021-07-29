@@ -307,7 +307,7 @@ export const renderAttributedText = (
         );
     });
 };
-const hlColor = 'rgba(255,255,255,0.1)';
+// const hlColor = 'rgba(255,255,255,0.1)';
 const hlBorder = '2px solid #fa0';
 const hlStyle = {
     // backgroundColor: hlColor,

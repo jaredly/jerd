@@ -1,3 +1,5 @@
+import { Location } from '../../language/src/parsing/parser';
+import { handlerSym } from '../../language/src/printing/ir/utils';
 import { SourceItem, SourceMap } from '../../language/src/printing/printer';
 import {
     ensureIdxUnique,
@@ -9,11 +11,13 @@ import {
     transformWithBindings,
     usedLocalVariables,
 } from '../../language/src/typing/analyze';
-import { hashObject, idFromName } from '../../language/src/typing/env';
+import { hashObject, idFromName, idName } from '../../language/src/typing/env';
 import { transform } from '../../language/src/typing/transform';
 import {
+    Env,
     getEffects,
     Id,
+    Lambda,
     Let,
     Sequence,
     Symbol,
@@ -210,6 +214,7 @@ export const goUp = (
 export const bindKeys = (
     idxTree: IdxTree,
     sourceMap: SourceMap,
+    env: Env,
     term: Term,
     setIdx: (fn: (idx: number) => number) => void,
     setSelection: (fn: (sel: Selection) => Selection) => void,
@@ -257,6 +262,26 @@ export const bindKeys = (
                 const items: Array<MenuItem> = [];
                 // items.push({ name: 'Hello', action: () => console.log('hi') });
                 const focused = idxTree.locs[idx];
+
+                if (focused.kind === 'ref') {
+                    items.push({
+                        name: 'Inline term',
+                        action: () => {
+                            // ok fine
+                            setTerm(inlineTerm(env, term, idx));
+                        },
+                    });
+                }
+
+                if (focused.kind === 'apply') {
+                    items.push({
+                        name: 'Inline function call',
+                        action: () => {
+                            setTerm(inlineFunctionCall(env, term, idx));
+                        },
+                    });
+                }
+
                 if (isTermLoc(focused.kind)) {
                     items.push({
                         name: 'Extract to variable',
@@ -291,6 +316,7 @@ export const bindKeys = (
                         },
                     });
                 }
+
                 if (focused.kind === 'let' || focused.kind === 'let-sym') {
                     items.push({
                         name: 'Delete and inline',
@@ -331,6 +357,7 @@ export const bindKeys = (
                         },
                     });
                 }
+
                 if (focused.kind === 'let-sym') {
                     items.push({
                         name: 'Rename',
@@ -515,7 +542,145 @@ export const extractToToplevel = (term: Term, idx: number) => {
     return [term, found];
 };
 
-export const extractToVariable = (term: Term, idx: number, name: string) => {
+export const reUnique = (
+    term: Term,
+    unique: { current: number },
+    extraSyms: Array<Symbol>,
+): { term: Term; mapping: { [key: number]: number } } => {
+    const mapping: { [orig: number]: number } = {};
+    const addSym = (sym: Symbol) => {
+        if (sym.unique === handlerSym.unique) {
+            mapping[sym.unique] = sym.unique;
+            return sym;
+        }
+        mapping[sym.unique] = unique.current++;
+        return { ...sym, unique: mapping[sym.unique] };
+    };
+    extraSyms.forEach(addSym);
+    const getSym = (sym: Symbol, loc: Location): Symbol => {
+        if (mapping[sym.unique] == null) {
+            // This is probably an upper-scope variable
+            return sym;
+        }
+        return {
+            ...sym,
+            unique: mapping[sym.unique],
+        };
+    };
+
+    // const max = maxUnique(term);
+    console.log('reUnique', unique);
+    const res = transform(term, {
+        let: (l) => {
+            return {
+                ...l,
+                binding: addSym(l.binding),
+            };
+        },
+        term: (t) => {
+            switch (t.type) {
+                case 'var':
+                    return {
+                        ...t,
+                        sym: getSym(t.sym, t.location),
+                    };
+                case 'lambda':
+                    return {
+                        ...t,
+                        args: t.args.map((arg) => getSym(arg, t.location)),
+                    };
+            }
+            // TODO: Handle; Switchhhhhh
+            return null;
+        },
+    });
+    console.log(unique, res, mapping);
+    return { term: res, mapping };
+};
+
+export const inlineFunctionCall = (env: Env, term: Term, idx: number): Term => {
+    return transform(term, {
+        term: (t) => {
+            if (t.location.idx === idx && t.type === 'apply') {
+                let lambda: Lambda | null = null;
+                if (t.target.type === 'ref' && t.target.ref.type === 'user') {
+                    lambda = env.global.terms[
+                        idName(t.target.ref.id)
+                    ] as Lambda;
+                } else if (t.target.type === 'lambda') {
+                    lambda = t.target;
+                }
+                if (lambda == null || lambda.type !== 'lambda') {
+                    return null;
+                }
+                const { term: body, mapping } = reUnique(
+                    lambda.body,
+                    {
+                        current: maxUnique(term) + 1,
+                    },
+                    lambda.args,
+                );
+                if (t.args.length === 0) {
+                    return body;
+                }
+                const args = lambda.args.map((arg) => ({
+                    ...arg,
+                    unique: mapping[arg.unique],
+                }));
+                console.log(args, mapping);
+                return {
+                    type: 'sequence',
+                    is: lambda.body.is,
+                    location: t.location,
+                    sts: t.args
+                        .map(
+                            (arg, i) =>
+                                ({
+                                    type: 'Let',
+                                    binding: args[i],
+                                    value: arg,
+                                    location: arg.location,
+                                    idLocation: arg.location,
+                                    is: arg.is,
+                                } as Let | Term),
+                        )
+                        .concat([body]),
+                };
+            }
+            return null;
+
+            // if (
+            //     t.location.idx === idx &&
+            //     t.type === 'ref' &&
+            //     t.ref.type === 'user'
+            // ) {
+            //     return env.global.terms[idName(t.ref.id)];
+            // }
+            // return null;
+        },
+    });
+};
+
+export const inlineTerm = (env: Env, term: Term, idx: number): Term => {
+    return transform(term, {
+        term: (t) => {
+            if (
+                t.location.idx === idx &&
+                t.type === 'ref' &&
+                t.ref.type === 'user'
+            ) {
+                return env.global.terms[idName(t.ref.id)];
+            }
+            return null;
+        },
+    });
+};
+
+export const extractToVariable = (
+    term: Term,
+    idx: number,
+    name: string,
+): Term => {
     let maxIdx = maxLocationIdx(term) + 1;
     const sym: Symbol = {
         unique: maxUnique(term) + 1,
@@ -523,7 +688,6 @@ export const extractToVariable = (term: Term, idx: number, name: string) => {
     };
     let found: null | Term = null;
     term = transform(term, {
-        let: (l) => null,
         term: (t) => {
             if (t.location.idx === idx) {
                 found = t;
@@ -554,83 +718,4 @@ export const extractToVariable = (term: Term, idx: number, name: string) => {
         },
         maxIdx,
     );
-};
-
-export const extractToVariable_old = (term: Term, idx: number) => {
-    let maxIdx = maxLocationIdx(term) + 1;
-    const sym: Symbol = {
-        unique: maxUnique(term) + 1,
-        name: 'var',
-    };
-    let found: null | Term = null;
-    term = transform(term, {
-        let: (l) => null,
-        term: (t) => {
-            if (t.location.idx === idx) {
-                found = t;
-                return {
-                    type: 'var',
-                    sym,
-                    location: { ...t.location, idx: maxIdx++ },
-                    is: t.is,
-                };
-            }
-            return null;
-        },
-    });
-    if (!found) {
-        return term;
-    }
-    let bound = false;
-    return transform(term, {
-        let: (l) => null,
-        term: (t) => {
-            if (bound) {
-                return null;
-            }
-            if (t.type === 'lambda') {
-                bound = true;
-                let seq: Sequence =
-                    t.body.type === 'sequence'
-                        ? t.body
-                        : {
-                              type: 'sequence',
-                              is: t.body.is,
-                              sts: [t.body],
-                              location: { ...t.body.location, idx: maxIdx++ },
-                          };
-
-                return {
-                    ...t,
-                    body: {
-                        ...seq,
-                        sts: [
-                            {
-                                type: 'Let',
-                                binding: sym,
-                                value: found!,
-                                location: { ...t.body.location, idx: maxIdx++ },
-                                is: found!.is,
-                            } as Term | Let,
-                        ].concat(seq.sts),
-                    },
-                };
-            } else if (t.type === 'sequence') {
-                bound = true;
-                return {
-                    ...t,
-                    sts: [
-                        {
-                            type: 'Let',
-                            binding: sym,
-                            value: found!,
-                            location: { ...t.location, idx: maxIdx++ },
-                            is: found!.is,
-                        } as Let | Term,
-                    ].concat(t.sts),
-                };
-            }
-            return null;
-        },
-    });
 };
