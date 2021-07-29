@@ -6,6 +6,7 @@ import { AttributedText, Extra } from '@jerd/language/src/printing/printer';
 import { idName } from '@jerd/language/src/typing/env';
 import { GlobalEnv, Location } from '@jerd/language/src/typing/types';
 import { css } from '@emotion/react';
+import { Selection } from './RenderItem';
 
 const kindColors: { [key: string]: string } = {
     string: '#ce9178',
@@ -163,12 +164,32 @@ export const renderAttributedText = (
     openable = (id: string, kind: string, loc?: Location) => false,
     setHover = (hover: Extra, target: HTMLDivElement | null) =>
         console.log('hover', hover, target),
-    selection: null | number = null,
+    selection: null | Selection = null,
     colorMap: { map: { [key: string]: string }; colorAt: number } = {
         map: {},
         colorAt: 0,
     },
 ) => {
+    const idx = selection ? selection.idx : null;
+    const marks = selection ? selection.marks : null;
+    // console.log(selection, 'SEL');
+    const locStyle = (loc: Location | null | undefined) => {
+        if (!loc || loc.idx == null) {
+            return null;
+        }
+        if (marks && marks.includes(loc.idx)) {
+            return markStyle;
+        }
+        return loc.idx === idx ? hlStyle : null;
+
+        // loc && loc.idx
+        //     ? loc.idx === idx
+        //         ? hlStyle
+        //         : marks && marks.includes(loc.idx)
+        //         ? markStyle
+        //         : undefined
+        //     : undefined;
+    };
     // let colorAt = 0;
     return text.map((item, i) => {
         if (typeof item === 'string') {
@@ -189,9 +210,7 @@ export const renderAttributedText = (
                         color: colorForId(item, colorMap.map),
                         cursor: onClick ? 'pointer' : 'inherit',
                         // borderBottom: '2px solid #fa0',
-                        ...(item.loc && item.loc.idx === selection
-                            ? hlStyle
-                            : undefined),
+                        ...locStyle(item.loc),
                         // borderBottom:
                         //     item.loc && item.loc.idx === selection
                         //         ? hlBorder
@@ -273,17 +292,10 @@ export const renderAttributedText = (
                     }
                     style={{
                         ...stylesForAttributes(item.attributes),
-                        ...(item.loc && item.loc.idx === selection
-                            ? hlStyle
-                            : undefined),
-                        // borderBottom:
-                        //     item.loc && item.loc.idx === selection
-                        //         ? hlBorder
-                        //         : undefined,
-                        // backgroundColor:
-                        //     item.loc && item.loc.idx === selection
-                        //         ? hlColor
-                        //         : undefined,
+                        ...locStyle(item.loc),
+                        // ...(item.loc && item.loc.idx === idx
+                        //     ? hlStyle
+                        //     : undefined),
                     }}
                     key={i}
                 >
@@ -304,17 +316,10 @@ export const renderAttributedText = (
         return (
             <span
                 data-location={item.loc ? JSON.stringify(item.loc) : undefined}
-                // style={stylesForAttributes(item.attributes)}
                 data-kind={'misc'}
                 style={{
-                    // ...stylesForAttributes(item.attributes),
-                    ...(item.loc && item.loc.idx === selection
-                        ? hlStyle
-                        : undefined),
-                    // borderBottom:
-                    //     item.loc && item.loc.idx === selection
-                    //         ? hlBorder
-                    //         : undefined,
+                    // ...(item.loc && item.loc.idx === idx ? hlStyle : undefined),
+                    ...locStyle(item.loc),
                 }}
                 key={i}
             >
@@ -330,4 +335,7 @@ const hlStyle = {
     // borderLeft: hlBorder,
     // borderRight: hlBorder,
     outline: hlBorder,
+};
+const markStyle = {
+    outline: '2px solid red',
 };

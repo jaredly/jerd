@@ -69,6 +69,8 @@ export type Props = {
 
 // const;
 
+export type Selection = { idx: number; marks: Array<number> };
+
 const RenderItem_ = ({
     env,
     cell,
@@ -132,16 +134,28 @@ const RenderItem_ = ({
         [setScrub, scrub],
     );
 
-    const [idx, setIdx_] = React.useState(0);
-    const setIdx = React.useCallback(
+    const [selection, setSelection_] = React.useState({
+        idx: 0,
+        marks: [],
+    } as Selection);
+    const setIdx: (
+        fn: number | ((idx: number) => number),
+    ) => void = React.useCallback(
         (idx) => {
-            setIdx_(idx);
+            setSelection_((sel) => ({
+                ...sel,
+                idx: typeof idx === 'number' ? idx : idx(sel.idx),
+            }));
             if (!focused) {
                 onFocus();
             }
         },
-        [setIdx_, onFocus, focused],
+        [setSelection_, onFocus, focused],
     );
+
+    // const setSelection = React.useCallback(marks => {
+    //     setSelection_(sel => ({...sel, marks}))
+    // })
 
     const [menu, setMenu] = React.useState(null as null | Array<MenuItem>);
     const [getString, setGetString] = React.useState(
@@ -161,6 +175,7 @@ const RenderItem_ = ({
             sourceMap,
             term,
             setIdx,
+            setSelection_,
             setMenu,
             (newTerm: Term, newName: string) =>
                 addCell(
@@ -190,9 +205,9 @@ const RenderItem_ = ({
         return () => window.removeEventListener('keydown', fn, true);
     }, [focused, idxTree, term]);
 
-    const selectedTerm = term ? getTermByIdx(term, idx) : null;
+    const selectedTerm = term ? getTermByIdx(term, selection.idx) : null;
 
-    // console.log('IDX', idx);
+    console.log('SEL', selection);
 
     return (
         <div css={{ position: 'relative' }}>
@@ -228,7 +243,7 @@ const RenderItem_ = ({
                             setHover(null);
                         }
                     },
-                    idx,
+                    selection,
                 )}
                 {scrub
                     ? renderScrub(

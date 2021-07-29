@@ -20,6 +20,7 @@ import {
     Term,
 } from '../../language/src/typing/types';
 import { MenuItem } from './CellWrapper';
+import { Selection } from './RenderItem';
 
 export type LocLines = Array<Array<SourceItem>>;
 
@@ -211,6 +212,7 @@ export const bindKeys = (
     sourceMap: SourceMap,
     term: Term,
     setIdx: (fn: (idx: number) => number) => void,
+    setSelection: (fn: (sel: Selection) => Selection) => void,
     setMenu: (items: Array<MenuItem>) => void,
     addTerm: (term: Term, name: string) => void,
     setTerm: (term: Term) => void,
@@ -235,6 +237,18 @@ export const bindKeys = (
             return;
         }
         const { locs, parents, children } = idxTree!;
+
+        if (evt.key === 'm') {
+            setSelection((sel) => ({
+                idx: sel.idx,
+                marks: sel.marks.includes(sel.idx)
+                    ? sel.marks.filter((i) => i !== sel.idx)
+                    : sel.marks.concat([sel.idx]),
+            }));
+        }
+        if (evt.key === 'M') {
+            setSelection((sel) => ({ idx: sel.idx, marks: [] }));
+        }
 
         if (evt.key === 'Enter' || evt.key === 'Return') {
             evt.stopPropagation();
