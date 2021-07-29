@@ -172,25 +172,16 @@ export const renderAttributedText = (
 ) => {
     const idx = selection ? selection.idx : null;
     const marks = selection ? selection.marks : null;
-    // console.log(selection, 'SEL');
     const locStyle = (loc: Location | null | undefined) => {
         if (!loc || loc.idx == null) {
-            return null;
+            return undefined;
         }
         if (marks && marks.includes(loc.idx)) {
             return markStyle;
         }
         return loc.idx === idx ? hlStyle : null;
-
-        // loc && loc.idx
-        //     ? loc.idx === idx
-        //         ? hlStyle
-        //         : marks && marks.includes(loc.idx)
-        //         ? markStyle
-        //         : undefined
-        //     : undefined;
     };
-    // let colorAt = 0;
+
     return text.map((item, i) => {
         if (typeof item === 'string') {
             return <span key={i}>{item}</span>;
@@ -202,19 +193,13 @@ export const renderAttributedText = (
             if (item.kind === 'sym' && !colorMap.map[item.id]) {
                 colorMap.map[item.id] =
                     idColors[colorMap.colorAt++ % idColors.length];
-                // console.log(colorMap);
             }
             return (
                 <span
                     style={{
                         color: colorForId(item, colorMap.map),
                         cursor: onClick ? 'pointer' : 'inherit',
-                        // borderBottom: '2px solid #fa0',
                         ...locStyle(item.loc),
-                        // borderBottom:
-                        //     item.loc && item.loc.idx === selection
-                        //         ? hlBorder
-                        //         : undefined,
                     }}
                     data-kind={item.kind}
                     data-location={
@@ -293,9 +278,6 @@ export const renderAttributedText = (
                     style={{
                         ...stylesForAttributes(item.attributes),
                         ...locStyle(item.loc),
-                        // ...(item.loc && item.loc.idx === idx
-                        //     ? hlStyle
-                        //     : undefined),
                     }}
                     key={i}
                 >
@@ -317,10 +299,7 @@ export const renderAttributedText = (
             <span
                 data-location={item.loc ? JSON.stringify(item.loc) : undefined}
                 data-kind={'misc'}
-                style={{
-                    // ...(item.loc && item.loc.idx === idx ? hlStyle : undefined),
-                    ...locStyle(item.loc),
-                }}
+                style={{ ...locStyle(item.loc) }}
                 key={i}
             >
                 {(item as any).text}
