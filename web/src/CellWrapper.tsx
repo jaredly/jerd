@@ -27,6 +27,7 @@ export const CellWrapper = ({
     collapsed,
     setCollapsed,
     getHistory,
+    onRevertToTerm,
 }: {
     title: React.ReactNode;
     focused: number | null;
@@ -38,6 +39,7 @@ export const CellWrapper = ({
     collapsed: boolean;
     setCollapsed: (c: boolean) => void;
     getHistory: () => { env: Env; items: Array<Id> };
+    onRevertToTerm: (id: Id) => void;
 }) => {
     const [history, setHistory] = React.useState(
         null as null | { env: Env; items: Array<Id>; selected: number },
@@ -169,6 +171,9 @@ export const CellWrapper = ({
                                                     i === history.selected
                                                         ? '#555'
                                                         : 'transparent',
+                                            }}
+                                            onClick={() => {
+                                                onRevertToTerm(id);
                                             }}
                                             onMouseEnter={(evt) => {
                                                 setHistory((h) =>

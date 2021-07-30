@@ -340,6 +340,9 @@ const CellView_ = ({
                     }
                 },
             )}
+            onRevertToTerm={(id: Id) => {
+                onChange(env, { ...cell, content: { type: 'term', id } });
+            }}
             onRemove={() => onRemove(cell.id)}
             focused={focused}
             onFocus={() => onFocus(cell.id)}
