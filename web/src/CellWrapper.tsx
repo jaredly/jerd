@@ -154,7 +154,7 @@ export const CellWrapper = ({
                                                     )
                                                 ],
                                             ),
-                                            130,
+                                            120,
                                         ),
                                     )}
                                 </div>
@@ -164,9 +164,10 @@ export const CellWrapper = ({
                                             key={idName(id) + '-' + i}
                                             css={{
                                                 padding: 8,
+                                                fontFamily: 'monospace',
                                                 backgroundColor:
                                                     i === history.selected
-                                                        ? '#aaa'
+                                                        ? '#555'
                                                         : 'transparent',
                                             }}
                                             onMouseEnter={(evt) => {

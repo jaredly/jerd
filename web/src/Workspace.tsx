@@ -230,9 +230,15 @@ export const Workspace = ({ state, setState }: Props) => {
                 >
                     <div>Workspace History</div>
                     {workspace.history.map((item, i) => (
-                        <div key={i}>
+                        <div
+                            key={i}
+                            css={{
+                                fontSize: '80%',
+                                fontFamily: 'monospace',
+                            }}
+                        >
                             {item.type === 'update'
-                                ? `Update ${idName(item.fromId)} -> ${idName(
+                                ? `#${idName(item.fromId)} -> #${idName(
                                       item.toId,
                                   )}`
                                 : `Pin ${item.id}`}
