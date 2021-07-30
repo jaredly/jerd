@@ -2,6 +2,11 @@
 import { jsx } from '@emotion/react';
 // Ok
 import * as React from 'react';
+import { printToAttributedText } from '../../language/src/printing/printer';
+import { termToPretty } from '../../language/src/printing/printTsLike';
+import { idName } from '../../language/src/typing/env';
+import { Env, Id } from '../../language/src/typing/types';
+import { renderAttributedText } from './Render';
 
 // const maxWidth = 80;
 
@@ -21,6 +26,7 @@ export const CellWrapper = ({
     onFocus,
     collapsed,
     setCollapsed,
+    getHistory,
 }: {
     title: React.ReactNode;
     focused: number | null;
@@ -31,7 +37,12 @@ export const CellWrapper = ({
     menuItems: () => Array<MenuItem>;
     collapsed: boolean;
     setCollapsed: (c: boolean) => void;
+    getHistory: () => { env: Env; items: Array<Id> };
 }) => {
+    const [history, setHistory] = React.useState(
+        null as null | { env: Env; items: Array<Id>; selected: number },
+    );
+
     const [menu, setMenu] = React.useState(false);
     const ref = React.useRef(null as null | HTMLElement);
     React.useEffect(() => {
@@ -42,6 +53,7 @@ export const CellWrapper = ({
             });
         }
     }, [focused]);
+
     return (
         <div
             ref={(node) => {
@@ -82,8 +94,99 @@ export const CellWrapper = ({
                     css={{
                         position: 'relative',
                         alignSelf: 'flex-start',
+                        display: 'flex',
+                        flexDirection: 'row',
                     }}
                 >
+                    <div
+                        css={{
+                            padding: '0 8px',
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            position: 'relative',
+                        }}
+                        onClick={() => {
+                            if (history) {
+                                setHistory(null);
+                            } else {
+                                const { env, items } = getHistory();
+                                setHistory({ env, items, selected: 0 });
+                            }
+                        }}
+                    >
+                        History
+                        {history ? (
+                            <div
+                                css={{
+                                    zIndex: 1000,
+                                    backgroundColor: 'rgb(30, 30, 30)',
+                                    border: '1px solid #aaa',
+                                    position: 'absolute',
+                                    right: 0,
+                                    top: '100%',
+                                    width: 700,
+                                    marginTop: 8,
+                                    borderRadius: 4,
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                }}
+                            >
+                                <div
+                                    css={{
+                                        flex: 1,
+                                        padding: 8,
+                                        whiteSpace: 'pre-wrap',
+                                        fontFamily:
+                                            '"Source Code Pro", monospace',
+                                    }}
+                                >
+                                    {renderAttributedText(
+                                        history.env.global,
+                                        printToAttributedText(
+                                            termToPretty(
+                                                history.env,
+                                                history.env.global.terms[
+                                                    idName(
+                                                        history.items[
+                                                            history.selected
+                                                        ],
+                                                    )
+                                                ],
+                                            ),
+                                            130,
+                                        ),
+                                    )}
+                                </div>
+                                <div>
+                                    {history.items.map((id, i) => (
+                                        <div
+                                            key={idName(id) + '-' + i}
+                                            css={{
+                                                padding: 8,
+                                                backgroundColor:
+                                                    i === history.selected
+                                                        ? '#aaa'
+                                                        : 'transparent',
+                                            }}
+                                            onMouseEnter={(evt) => {
+                                                setHistory((h) =>
+                                                    h
+                                                        ? {
+                                                              ...h,
+                                                              selected: i,
+                                                          }
+                                                        : null,
+                                                );
+                                            }}
+                                        >
+                                            #{idName(id)}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
                     <div
                         css={{
                             cursor: 'pointer',

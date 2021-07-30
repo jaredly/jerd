@@ -61,6 +61,7 @@ export type CellProps = {
     maxWidth: number;
     cell: Cell;
     env: Env;
+    getHistory: (id: string) => Array<Id>;
     focused: number | null;
     onDuplicate: (id: string) => void;
     onFocus: (id: string) => void;
@@ -93,6 +94,7 @@ const CellView_ = ({
     onPin,
     onMove,
     plugins,
+    getHistory,
 }: CellProps) => {
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     const [showSource, setShowSource] = React.useState(false);
@@ -300,6 +302,10 @@ const CellView_ = ({
 
     return (
         <CellWrapper
+            getHistory={() => ({
+                env,
+                items: getHistory(cell.id),
+            })}
             title={cellTitle(
                 env,
                 cell,

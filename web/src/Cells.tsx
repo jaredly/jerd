@@ -80,6 +80,16 @@ const Cells = ({
 
     const sortedCellIds = Object.keys(work.cells).sort(sortCells(work.cells));
 
+    const getHistory = React.useCallback(
+        (cellId: string) => {
+            const items = work.history.filter(
+                (item) => item.cellId === cellId && item.type === 'update',
+            ) as Array<HistoryUpdate>;
+            return items.map((item) => item.fromId);
+        },
+        [work.history],
+    );
+
     const onFocus = React.useCallback(
         (id: string) =>
             !focus || focus.id !== id ? setFocus({ id, tick: 0 }) : null,
@@ -275,6 +285,7 @@ const Cells = ({
                 {sortedCellIds.map((id) => (
                     <CellView
                         key={id}
+                        getHistory={getHistory}
                         focused={focus && focus.id == id ? focus.tick : null}
                         onFocus={onFocus}
                         maxWidth={maxWidth}
