@@ -14,6 +14,7 @@ z = x
 // So we need to ensure that ... "nothing that is used by
 // this thing gets reassigned"?
 export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
+    // console.log('#======[fold]======#');
     let usages: { [v: string]: number } = {};
     let subUses: { [v: string]: { [key: string]: boolean } } = {};
     transformExpr(expr, {
@@ -22,6 +23,7 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
             if (expr.type === 'var') {
                 const n = symName(expr.sym);
                 // console.log('hi', expr.sym, usages[n]);
+                // console.log(`[use] ${n}`, expr.loc, usages);
                 usages[n] = (usages[n] || 0) + 1;
             }
             return null;
@@ -34,6 +36,7 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
                 const en = symName(stmt.sym);
                 // hm ok, assign isnt strictly a use...
                 usages[en] = (usages[en] || 0) + 1;
+                // console.log('assign', usages, en);
 
                 // We're reassigning something! Anything that uses
                 // this variable, but that hasn't yet seen its first use,
@@ -86,6 +89,8 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
         return expr;
     }
     const defns: { [key: string]: Expr } = {};
+    // console.log('FOLSING SINGLE');
+    // console.log(singles, usages, subUses);
     return transformExpr(expr, {
         ...defaultVisitor,
         stmt: (stmt) => {
@@ -93,6 +98,7 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
                 if (stmt.value != null) {
                     defns[symName(stmt.sym)] = stmt.value;
                 }
+                // console.log('Removing', stmt.sym, stmt.value);
                 return [];
             }
             // if(stmt.type === 'Assign' && stmt.value.type === 'var')
@@ -110,8 +116,21 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
         },
         expr: (value) => {
             if (value.type === 'var') {
-                const v = defns[symName(value.sym)];
+                let v = defns[symName(value.sym)];
                 if (v != null) {
+                    /// ooooooooooooooooooooh
+                    /// hrm ok here's the bug, and I don't like it
+                    // The problem is, I return this value,
+                    // and the visitor doesn't re-visit it.
+                    // And in a lot of cases, if the thing has been
+                    // modified, then I don't care about re-visiting.
+                    // But in this case I do.
+                    // I wonder if there are subtle bugs hiding here.
+                    // BUT also, I wonder why I wasn't able to make a
+                    // test case that would trigger this issue.
+                    while (v.type === 'var' && defns[symName(v.sym)]) {
+                        v = defns[symName(v.sym)];
+                    }
                     return v;
                 }
             }

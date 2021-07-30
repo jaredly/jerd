@@ -1065,6 +1065,8 @@ export const assembleItemsForFile = (
                     env.global.idNames[idRaw] || 'no name'
                 }`,
             ).wrap(err);
+            console.log('hmmmmmm');
+            console.log(opt);
             console.log(outer.toString());
             throw outer;
         }
