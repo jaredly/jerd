@@ -244,6 +244,7 @@ export const bindKeys = (
         if (evt.target !== document.body) {
             return;
         }
+        // setSelection(selection => { })
         const { locs, parents, children } = idxTree!;
 
         if (evt.key === 'm') {

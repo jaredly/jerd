@@ -177,6 +177,9 @@ export const renderAttributedText = (
             return undefined;
         }
         if (marks && marks.includes(loc.idx)) {
+            if (loc.idx === idx) {
+                return markAndHlStyle;
+            }
             return markStyle;
         }
         if (selection && !selection.inner) {
@@ -323,6 +326,9 @@ const hlStyle = {
     // borderLeft: hlBorder,
     // borderRight: hlBorder,
     outline: hlBorder,
+};
+const markAndHlStyle = {
+    outline: '2px dashed red',
 };
 const markStyle = {
     outline: '2px solid red',

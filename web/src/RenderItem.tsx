@@ -171,6 +171,28 @@ const RenderItem_ = ({
             return;
         }
 
+        const addTerm = (newTerm: Term, newName: string) =>
+            addCell(
+                {
+                    type: 'term',
+                    id: idFromName(hashObject(newTerm)),
+                },
+                { type: 'after', id: cell.id },
+                (env) => {
+                    const res = addExpr(env, newTerm, null);
+                    return {
+                        ...res.env,
+                        global: {
+                            ...res.env.global,
+                            idNames: {
+                                ...res.env.global.idNames,
+                                [idName(res.id)]: newName,
+                            },
+                        },
+                    };
+                },
+            );
+
         const fn = bindKeys(
             idxTree,
             sourceMap,
@@ -179,28 +201,7 @@ const RenderItem_ = ({
             setIdx,
             setSelection_,
             setMenu,
-            (newTerm: Term, newName: string) =>
-                addCell(
-                    {
-                        type: 'term',
-                        id: idFromName(hashObject(newTerm)),
-                    },
-                    { type: 'after', id: cell.id },
-                    (env) => {
-                        const res = addExpr(env, newTerm, null);
-                        console.log('adding', res.id);
-                        return {
-                            ...res.env,
-                            global: {
-                                ...res.env.global,
-                                idNames: {
-                                    ...res.env.global.idNames,
-                                    [idName(res.id)]: newName,
-                                },
-                            },
-                        };
-                    },
-                ),
+            addTerm,
             onPending,
         );
         window.addEventListener('keydown', fn, true);
