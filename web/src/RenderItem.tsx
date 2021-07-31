@@ -69,7 +69,11 @@ export type Props = {
 
 // const;
 
-export type Selection = { idx: number; marks: Array<number> };
+export type Selection = {
+    inner: boolean;
+    idx: number;
+    marks: Array<number>;
+};
 
 const RenderItem_ = ({
     env,
@@ -135,6 +139,7 @@ const RenderItem_ = ({
     );
 
     const [selection, setSelection_] = React.useState({
+        inner: false,
         idx: 0,
         marks: [],
     } as Selection);
@@ -152,10 +157,6 @@ const RenderItem_ = ({
         },
         [setSelection_, onFocus, focused],
     );
-
-    // const setSelection = React.useCallback(marks => {
-    //     setSelection_(sel => ({...sel, marks}))
-    // })
 
     const [menu, setMenu] = React.useState(null as null | Array<MenuItem>);
     const [getString, setGetString] = React.useState(

@@ -179,6 +179,9 @@ export const renderAttributedText = (
         if (marks && marks.includes(loc.idx)) {
             return markStyle;
         }
+        if (selection && !selection.inner) {
+            return loc.idx === idx ? hlStyleLight : null;
+        }
         return loc.idx === idx ? hlStyle : null;
     };
 
@@ -309,6 +312,12 @@ export const renderAttributedText = (
 };
 // const hlColor = 'rgba(255,255,255,0.1)';
 const hlBorder = '2px solid #fa0';
+const hlStyleLight = {
+    // backgroundColor: hlColor,
+    // borderLeft: hlBorder,
+    // borderRight: hlBorder,
+    outline: '2px solid #a60',
+};
 const hlStyle = {
     // backgroundColor: hlColor,
     // borderLeft: hlBorder,

@@ -248,20 +248,39 @@ export const bindKeys = (
 
         if (evt.key === 'm') {
             setSelection((sel) => ({
-                idx: sel.idx,
+                ...sel,
                 marks: sel.marks.includes(sel.idx)
                     ? sel.marks.filter((i) => i !== sel.idx)
                     : sel.marks.concat([sel.idx]),
             }));
         }
         if (evt.key === 'M') {
-            setSelection((sel) => ({ idx: sel.idx, marks: [] }));
+            setSelection((sel) => ({ ...sel, marks: [] }));
+        }
+
+        if (evt.key === 'Escape') {
+            setSelection((sel) => ({ ...sel, inner: false }));
         }
 
         if (evt.key === 'Enter' || evt.key === 'Return') {
             evt.stopPropagation();
             evt.preventDefault();
-            setSelection(({ idx, marks }) => {
+            setSelection((selection) => {
+                if (!sourceMap[selection.idx]) {
+                    for (let i = 0; i < locLines.length; i++) {
+                        for (let x = 0; x < locLines[i].length; x++) {
+                            const idx = locLines[i][x].idx;
+                            if (sourceMap[idx]) {
+                                return { inner: true, idx, marks: [] };
+                            }
+                        }
+                    }
+                    return selection;
+                }
+                if (!selection.inner) {
+                    return { ...selection, inner: true };
+                }
+                const { idx, marks } = selection;
                 const items: Array<MenuItem> = [];
                 // items.push({ name: 'Hello', action: () => console.log('hi') });
                 const focused = idxTree.locs[idx];
@@ -441,7 +460,7 @@ export const bindKeys = (
                 }
                 setMenu(items);
 
-                return { idx, marks };
+                return selection;
             });
             return true;
         }
