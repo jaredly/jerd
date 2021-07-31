@@ -148,6 +148,18 @@ export const OpenGLCanvas = ({
     );
     const [showSettings, toggleSettings] = React.useState(false);
 
+    const lastStart = React.useRef(startPaused);
+    React.useEffect(() => {
+        if (startPaused !== lastStart.current) {
+            lastStart.current = startPaused;
+            if (playState === 'paused' && !startPaused) {
+                setPlayState('playing');
+            } else if (playState === 'playing' && startPaused) {
+                setPlayState('paused');
+            }
+        }
+    }, [startPaused, playState]);
+
     const [tracing, setTracing] = React.useState(false);
     const [transcodingProgress, setTranscodingProgress] = React.useState({
         start: 0.0,

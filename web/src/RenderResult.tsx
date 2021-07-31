@@ -50,7 +50,9 @@ const RenderResult_ = ({
     value,
     term,
     onPin,
+    focused,
 }: {
+    focused: boolean;
     onSetPlugin: (d: Display | null) => void;
     plugins: RenderPlugins;
     cell: Cell;
@@ -79,6 +81,7 @@ const RenderResult_ = ({
         term,
         value,
         evalEnv,
+        !focused,
     );
     if (renderPlugin != null) {
         return (
@@ -137,6 +140,7 @@ export const getPlugin = (
     // not the terms or builtins. It would be nice to
     // extract those out
     evalEnv: EvalEnv,
+    startPaused: boolean = true,
 ): (() => JSX.Element) | null => {
     if (!display || !plugins[display.type]) {
         return null;
@@ -151,7 +155,7 @@ export const getPlugin = (
         true,
     );
     if (err == null) {
-        return () => plugin.render(value, evalEnv, env, term, true);
+        return () => plugin.render(value, evalEnv, env, term, startPaused);
     }
     return null;
 };

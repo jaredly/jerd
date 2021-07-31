@@ -262,6 +262,7 @@ const RenderItem_ = ({
             {term ? (
                 <RenderResult
                     onSetPlugin={onSetPlugin}
+                    focused={focused}
                     onPin={onPin}
                     cell={cell}
                     term={scrub ? scrub.term : term}
