@@ -24,6 +24,7 @@ import {
     Sequence,
     Symbol,
     Term,
+    Type,
 } from '../../language/src/typing/types';
 import { MenuItem } from './CellWrapper';
 import { Selection } from './RenderItem';
@@ -260,7 +261,7 @@ export const bindKeys = (
         if (evt.key === 'Enter' || evt.key === 'Return') {
             evt.stopPropagation();
             evt.preventDefault();
-            setIdx((idx) => {
+            setSelection(({ idx, marks }) => {
                 const items: Array<MenuItem> = [];
                 // items.push({ name: 'Hello', action: () => console.log('hi') });
                 const focused = idxTree.locs[idx];
@@ -354,6 +355,7 @@ export const bindKeys = (
                             const [newTerm, extractedTerm] = extractToToplevel(
                                 term,
                                 idx,
+                                marks,
                             );
                             const duplicates = ensureIdxUnique(newTerm);
                             if (duplicates.length) {
@@ -398,7 +400,12 @@ export const bindKeys = (
                                             }
                                             return true;
                                         });
-                                        return found ? { ...t, sts } : null;
+                                        return found
+                                            ? sts.length === 1 &&
+                                              sts[0].type !== 'Let'
+                                                ? sts[0]
+                                                : { ...t, sts }
+                                            : null;
                                     }
                                     return null;
                                 },
@@ -434,7 +441,7 @@ export const bindKeys = (
                 }
                 setMenu(items);
 
-                return idx;
+                return { idx, marks };
             });
             return true;
         }
@@ -515,10 +522,15 @@ export const maxUnique = (term: Term) => {
     return max;
 };
 
-export const extractToToplevel = (term: Term, idx: number) => {
+export const extractToToplevel = (
+    term: Term,
+    idx: number,
+    marks: Array<number>,
+) => {
     let maxIdx = maxLocationIdx(term) + 1;
+    let unique = maxUnique(term) + 1;
     const sym: Symbol = {
-        unique: maxUnique(term) + 1,
+        unique: unique++,
         name: 'var',
     };
     let found: null | Term = null;
@@ -528,15 +540,44 @@ export const extractToToplevel = (term: Term, idx: number) => {
         term: (t, bindings) => {
             if (t.location.idx === idx) {
                 const unbound = usedLocalVariables(t);
-                if (unbound.length) {
+                if (unbound.length || marks.length) {
+                    const marked: Array<{ sym: Symbol; term: Term }> = [];
+                    const replaced = marks.length
+                        ? transform(t, {
+                              term: (t) => {
+                                  const at = marks.indexOf(t.location.idx!);
+                                  if (at === -1) {
+                                      return null;
+                                  }
+                                  const sym = {
+                                      unique: unique++, // TODO hmm what how
+                                      name: `arg${at}`,
+                                  };
+                                  marked[at] = {
+                                      sym: sym,
+                                      term: t,
+                                  };
+                                  return {
+                                      type: 'var',
+                                      sym,
+                                      location: t.location,
+                                      is: t.is,
+                                  };
+                              },
+                          })
+                        : t;
                     found = {
                         type: 'lambda',
-                        idLocations: unbound.map((u) => bindings[u].loc),
-                        args: unbound.map((u) => ({
-                            unique: u,
-                            name: bindings[u].name,
-                        })),
-                        body: t,
+                        idLocations: unbound
+                            .map((u) => bindings[u].loc)
+                            .concat(marked.map((m) => m.term.location)),
+                        args: unbound
+                            .map((u) => ({
+                                unique: u,
+                                name: bindings[u].name,
+                            }))
+                            .concat(marked.map((m) => m.sym)),
+                        body: replaced,
                         location: { ...t.location, idx: maxIdx++ },
                         is: {
                             type: 'lambda',
@@ -545,7 +586,9 @@ export const extractToToplevel = (term: Term, idx: number) => {
                             // 🤔
                             effectVbls: [],
                             effects: getEffects(t),
-                            args: unbound.map((u) => bindings[u].type),
+                            args: unbound
+                                .map((u) => bindings[u].type)
+                                .concat(marked.map((m) => m.term.is)),
                             rest: null,
                             res: t.is,
                         },
@@ -556,12 +599,23 @@ export const extractToToplevel = (term: Term, idx: number) => {
                         // TODO?
                         typeVbls: [],
                         effectVbls: null,
-                        args: unbound.map((u) => ({
-                            type: 'var',
-                            sym: { unique: u, name: bindings[u].name },
-                            location: { ...t.location, idx: maxIdx++ },
-                            is: bindings[u].type,
-                        })),
+                        args: unbound
+                            .map(
+                                (u) =>
+                                    ({
+                                        type: 'var',
+                                        sym: {
+                                            unique: u,
+                                            name: bindings[u].name,
+                                        },
+                                        location: {
+                                            ...t.location,
+                                            idx: maxIdx++,
+                                        },
+                                        is: bindings[u].type,
+                                    } as Term),
+                            )
+                            .concat(marked.map((m) => m.term)),
                         target: {
                             type: 'ref',
                             ref: { type: 'user', id: id },
