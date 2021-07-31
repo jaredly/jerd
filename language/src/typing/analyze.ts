@@ -660,6 +660,26 @@ export const topoSort = (mapping: { [source: string]: Array<string> }) => {
 // else
 //     return L   (a topologically sorted order)
 
+export const replaceAtIdx = (
+    term: Term,
+    idx: number,
+    fn: (t: Term) => Term | null,
+): Term => {
+    let replaced = false;
+    return transform(term, {
+        term: (t) => {
+            if (replaced) {
+                return false;
+            }
+            if (t.location.idx === idx) {
+                replaced = true;
+                return fn(t);
+            }
+            return null;
+        },
+    });
+};
+
 export const getTermByIdx = (term: Term, idx: number): Term | null => {
     let found: Term | null = null;
     transform(term, {

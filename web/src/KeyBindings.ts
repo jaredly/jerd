@@ -3,11 +3,13 @@ import { handlerSym } from '../../language/src/printing/ir/utils';
 import { SourceItem, SourceMap } from '../../language/src/printing/printer';
 import {
     ensureIdxUnique,
+    getTermByIdx,
     IdxTree,
     insertAfterBindings,
     isAtomic,
     isTermLoc,
     maxLocationIdx,
+    replaceAtIdx,
     transformWithBindings,
     usedLocalVariables,
 } from '../../language/src/typing/analyze';
@@ -263,6 +265,8 @@ export const bindKeys = (
                 // items.push({ name: 'Hello', action: () => console.log('hi') });
                 const focused = idxTree.locs[idx];
 
+                const focusedTerm = getTermByIdx(term, idx);
+
                 if (focused.kind === 'ref') {
                     items.push({
                         name: 'Inline term',
@@ -278,6 +282,52 @@ export const bindKeys = (
                         name: 'Inline function call',
                         action: () => {
                             setTerm(inlineFunctionCall(env, term, idx));
+                        },
+                    });
+                }
+
+                if (focusedTerm && focusedTerm.type !== 'sequence') {
+                    items.push({
+                        name: 'Surround in block',
+                        action: () => {
+                            setTerm(
+                                replaceAtIdx(term, idx, (t) => {
+                                    return {
+                                        type: 'sequence',
+                                        location: t.location,
+                                        sts: [t],
+                                        is: t.is,
+                                    };
+                                }),
+                            );
+                        },
+                    });
+                }
+
+                if (
+                    focusedTerm &&
+                    focusedTerm.type === 'sequence' &&
+                    focusedTerm.sts.length === 1 &&
+                    focusedTerm.sts[0].type !== 'Let'
+                ) {
+                    items.push({
+                        name: 'Collapse block',
+                        action: () => {
+                            setTerm(
+                                transform(term, {
+                                    term: (t) => {
+                                        if (
+                                            t.location.idx === idx &&
+                                            t.type === 'sequence' &&
+                                            t.sts.length === 1 &&
+                                            t.sts[0].type !== 'Let'
+                                        ) {
+                                            return t.sts[0];
+                                        }
+                                        return null;
+                                    },
+                                }),
+                            );
                         },
                     });
                 }

@@ -4,9 +4,11 @@ Make it so I can upgrade my term format, without things breaking terribly.
 Because right now, I can't even reparse.
 
 NEXT UP
-- [ ] inline
+- [x] inline
 - [ ] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".
   - which means I need some state for "marks"
+  - [x] support marks
+  - [ ] have the "extract" respect marks
 
 
 - IDX PRESERVATION
