@@ -5,10 +5,23 @@ Because right now, I can't even reparse.
 
 NEXT UP
 - [x] inline
-- [ ] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".
+- [x] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".
   - which means I need some state for "marks"
   - [x] support marks
-  - [ ] have the "extract" respect marks
+  - [x] have the "extract" respect marks
+  - [ ] clear marks after extraction?
+- [ ] preserve locs please?
+- [x] delete & inline var, if the outer thing is lefts as a sequence w/ single thing, then collapse it please.
+- [ ] shift-enter to enter text edit mode
+
+
+Can we only do one renderer? renderToReact and then use innerHTML to get it for contentEditable?
+- [x] try it
+  - oh we don't have `#something`, so it's not locked down
+- [ ] let's add `data-hash={hash}`, so that it can be locked down
+- [ ] when hovering something that has `data-hash`, show a hover dealio, that you can /remove/? or something... yeah
+- [ ] if you /paste/ with an #id, then we can detect that & insert cleverly.
+
 
 
 - IDX PRESERVATION

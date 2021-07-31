@@ -4,9 +4,10 @@ import { Toplevel } from '@jerd/language/src/parsing/parser';
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { typeToplevelT, ToplevelT } from '@jerd/language/src/typing/env';
-import { renderAttributedTextToHTML } from './Render';
+import { renderAttributedText, renderAttributedTextToHTML } from './Render';
 import { Env, newWithGlobal } from '@jerd/language/src/typing/types';
 import { addLocationIndices } from '../../language/src/typing/analyze';
+import { render, flushSync } from 'react-dom';
 
 const getOffset = (node: HTMLElement, offset: number) => {
     if (node.nodeName === '#text') {
@@ -239,11 +240,24 @@ export default ({
         // const chars = Math.floor(full.width / w.width);
         let parsed = maybeParse(env, value, contents);
         if (parsed) {
-            ref.current.innerHTML = renderAttributedTextToHTML(
-                env.global,
-                printToAttributedText(toplevelToPretty(env, parsed), maxWidth),
-                true,
+            const div = document.createElement('div');
+            render(
+                renderAttributedText(
+                    env,
+                    printToAttributedText(
+                        toplevelToPretty(env, parsed),
+                        maxWidth,
+                    ),
+                ),
+                div,
             );
+            ref.current.innerHTML = div.innerHTML;
+
+            // ref.current.innerHTML = renderAttributedTextToHTML(
+            //     env.global,
+            //     printToAttributedText(toplevelToPretty(env, parsed), maxWidth),
+            //     true,
+            // );
         } else {
             ref.current.innerText = value;
         }
@@ -266,14 +280,30 @@ export default ({
                     set.current = true;
                     const parsed = maybeParse(env, value, contents);
                     if (parsed) {
-                        node.innerHTML = renderAttributedTextToHTML(
-                            env.global,
-                            printToAttributedText(
-                                toplevelToPretty(env, parsed),
-                                maxWidth,
+                        const div = document.createElement('div');
+                        render(
+                            renderAttributedText(
+                                env,
+                                printToAttributedText(
+                                    toplevelToPretty(env, parsed),
+                                    maxWidth,
+                                ),
                             ),
-                            true,
+                            div,
+                            () => {
+                                console.log(div);
+                                node.innerHTML = div.innerHTML;
+                            },
                         );
+
+                        // node.innerHTML = renderAttributedTextToHTML(
+                        //     env.global,
+                        //     printToAttributedText(
+                        //         toplevelToPretty(env, parsed),
+                        //         maxWidth,
+                        //     ),
+                        //     true,
+                        // );
                     } else {
                         node.innerText = value;
                     }
