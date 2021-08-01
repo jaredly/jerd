@@ -412,7 +412,13 @@ export default ({
                         const root = evt.currentTarget;
                         handleTab(evt.shiftKey, root);
                     }
-                    if (' +-/*<>='.includes(evt.key)) {
+                    if (
+                        // TODO: Should I just say anything other
+                        // than alphanumeric?
+                        ' +-/*<>=()'.includes(evt.key) &&
+                        !evt.metaKey &&
+                        !evt.ctrlKey
+                    ) {
                         console.log('space');
                         const sel = document.getSelection();
                         if (sel && sel.focusNode) {
