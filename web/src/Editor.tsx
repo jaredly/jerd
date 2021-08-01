@@ -39,6 +39,7 @@ import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import ColorTextarea from './ColorTextarea';
 import { RenderPlugin } from './RenderResult';
 import { Selection } from './Cell';
+import { addLocationIndices } from '../../language/src/typing/analyze';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }
@@ -208,13 +209,15 @@ export default ({
                 ];
             }
             return [
-                typeToplevelT(
-                    newWithGlobal(env.global),
-                    parsed[0],
-                    typeof contents !== 'string' &&
-                        contents.type === 'RecordDef'
-                        ? contents.def.unique
-                        : null,
+                addLocationIndices(
+                    typeToplevelT(
+                        newWithGlobal(env.global),
+                        parsed[0],
+                        typeof contents !== 'string' &&
+                            contents.type === 'RecordDef'
+                            ? contents.def.unique
+                            : null,
+                    ),
                 ),
                 null,
             ];

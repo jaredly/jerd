@@ -5,7 +5,7 @@ import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { typeToplevelT, ToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedText, renderAttributedTextToHTML } from './Render';
-import { Env, newWithGlobal } from '@jerd/language/src/typing/types';
+import { Env, Location, newWithGlobal } from '@jerd/language/src/typing/types';
 import { addLocationIndices } from '../../language/src/typing/analyze';
 import { render, flushSync } from 'react-dom';
 import { Global } from '@emotion/react';
@@ -85,12 +85,14 @@ const maybeParse = (
         if (parsed.length > 1) {
             return null;
         }
-        return typeToplevelT(
-            newWithGlobal(env.global),
-            parsed[0],
-            typeof contents !== 'string' && contents.type === 'RecordDef'
-                ? contents.def.unique
-                : null,
+        return addLocationIndices(
+            typeToplevelT(
+                newWithGlobal(env.global),
+                parsed[0],
+                typeof contents !== 'string' && contents.type === 'RecordDef'
+                    ? contents.def.unique
+                    : null,
+            ),
         );
     } catch (err) {
         console.log('failed to parse', err);
@@ -227,6 +229,8 @@ export default ({
     onChange,
     onKeyDown,
     maxWidth,
+    selection,
+    setSelection,
 }: {
     env: Env;
     contents: any;
@@ -266,6 +270,16 @@ export default ({
             }
 
             node.classList.add('selected-id');
+            const loc = node.getAttribute('data-location');
+            if (loc) {
+                const location: Location = JSON.parse(loc);
+                console.log(location);
+                setSelection((s) => ({
+                    idx: location.idx!,
+                    marks: [],
+                    inner: true,
+                }));
+            }
         };
         document.addEventListener('selectionchange', fn);
         return () => document.removeEventListener('selectionchange', fn);
@@ -312,6 +326,24 @@ export default ({
                             () => {
                                 console.log(div);
                                 node.innerHTML = div.innerHTML;
+                                // Select it y'all
+                                const nodes = node.querySelectorAll(
+                                    '[data-location]',
+                                );
+                                for (let i = 0; i < nodes.length; i++) {
+                                    const l = JSON.parse(
+                                        nodes[i].getAttribute('data-location')!,
+                                    );
+                                    if (l.idx === selection.idx) {
+                                        nodes[i].classList.add('selected-id');
+                                        const sel = document.getSelection()!;
+                                        sel.removeAllRanges();
+                                        const r = document.createRange();
+                                        r.selectNode(nodes[i]);
+                                        sel.addRange(r);
+                                        return;
+                                    }
+                                }
                             },
                         );
 
