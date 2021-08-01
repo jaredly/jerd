@@ -78,7 +78,10 @@ const Cells = ({
         return () => window.removeEventListener('resize', fn);
     }, [tester.current, container.current]);
 
-    const sortedCellIds = Object.keys(work.cells).sort(sortCells(work.cells));
+    const sortedCellIds = React.useMemo(
+        () => Object.keys(work.cells).sort(sortCells(work.cells)),
+        [work],
+    );
 
     const getHistory = React.useCallback(
         (cellId: string) => {
@@ -198,45 +201,48 @@ const Cells = ({
         setFocus({ id: nid, tick: 0 });
     }, []);
 
-    const onMove = React.useCallback((id: string, position: MovePosition) => {
-        if (typeof position !== 'string') {
-            return;
-        }
-        const idx = sortedCellIds.indexOf(id);
-        if (idx === 0 && position === 'up') {
-            return;
-        }
-        if (idx === sortedCellIds.length - 1 && position === 'down') {
-            return;
-        }
+    const onMove = React.useCallback(
+        (id: string, position: MovePosition) => {
+            if (typeof position !== 'string') {
+                return;
+            }
+            const idx = sortedCellIds.indexOf(id);
+            if (idx === 0 && position === 'up') {
+                return;
+            }
+            if (idx === sortedCellIds.length - 1 && position === 'down') {
+                return;
+            }
 
-        const pos: Position =
-            position === 'up'
-                ? {
-                      type: 'before',
-                      id: sortedCellIds[idx - 1],
-                  }
-                : {
-                      type: 'after',
-                      id: sortedCellIds[idx + 1],
-                  };
+            const pos: Position =
+                position === 'up'
+                    ? {
+                          type: 'before',
+                          id: sortedCellIds[idx - 1],
+                      }
+                    : {
+                          type: 'after',
+                          id: sortedCellIds[idx + 1],
+                      };
 
-        setState(
-            modActiveWorkspace((w: Workspace) => {
-                const order = calculateOrder(w.cells, pos);
-                return {
-                    ...w,
-                    cells: {
-                        ...w.cells,
-                        [id]: {
-                            ...w.cells[id],
-                            order,
+            setState(
+                modActiveWorkspace((w: Workspace) => {
+                    const order = calculateOrder(w.cells, pos);
+                    return {
+                        ...w,
+                        cells: {
+                            ...w.cells,
+                            [id]: {
+                                ...w.cells[id],
+                                order,
+                            },
                         },
-                    },
-                };
-            }),
-        );
-    }, []);
+                    };
+                }),
+            );
+        },
+        [sortedCellIds],
+    );
 
     const onChange = React.useCallback((env: Env | null, cell: Cell) => {
         console.log('Change', cell);

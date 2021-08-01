@@ -51,11 +51,15 @@ import {
 import { envWithTerm, compileGLSL, getStateUniform } from './display/OpenGL';
 import { Position } from './Cells';
 import { CellWrapper, MenuItem } from './CellWrapper';
-import { HistoryUpdate } from './App';
 
 // const maxWidth = 80;
 
 export type MovePosition = 'up' | 'down' | { type: 'workspace'; idx: number };
+
+// lol this props list is the worst
+// should I just use redux or something
+// hmmmm
+// or just have a way to
 
 export type CellProps = {
     maxWidth: number;

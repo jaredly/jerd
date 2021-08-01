@@ -397,7 +397,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       body,
       location: location(),
   }};
-  const peg$c112 = function(id: any, type: any): any {return {id, type: type ? type[2] : null}};
+  const peg$c112 = function(id: any, type: any): any {return {id, type: type ? type[2] : null, location: location()}};
   const peg$c113 = function(id: any, subTypes: any): any {
       return {id, subTypes: subTypes ? subTypes : []}
   };

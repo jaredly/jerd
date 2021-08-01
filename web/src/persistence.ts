@@ -17,6 +17,7 @@ import {
 } from '@jerd/language/src/typing/types';
 import localForage from 'localforage';
 import { idFromName, idName } from '../../language/src/typing/env';
+import { EvalEnv } from './State';
 
 const saveKey = 'jd-repl-cache';
 
@@ -248,14 +249,16 @@ export const initialState = async (): Promise<State> => {
                 history: [],
             },
         },
-        evalEnv: {
-            builtins,
-            terms: {},
-            executionLimit: { ticks: 0, maxTime: 0, enabled: false },
-            traceObj: { traces: null },
-        },
+        evalEnv: newEvalEnv(builtins),
     };
 };
+
+export const newEvalEnv = (builtins: { [key: string]: any }): EvalEnv => ({
+    builtins,
+    terms: {},
+    executionLimit: { ticks: 0, maxTime: 0, enabled: false },
+    traceObj: { traces: null },
+});
 
 export const mergeNames = (
     a: { [key: string]: Array<Id> },

@@ -115,6 +115,14 @@ const getCode = (root: ChildNode) => {
             res += getCode(node);
         }
     });
+    const id = (root as HTMLElement).getAttribute('data-id');
+    if (id) {
+        let last = res.match(/\s*$/);
+        const ln = last ? last[0].length : 0;
+        res = res.slice(0, res.length - ln);
+        res += '#' + id;
+        res += last;
+    }
     return res;
 };
 
@@ -280,6 +288,7 @@ export default ({
                     set.current = true;
                     const parsed = maybeParse(env, value, contents);
                     if (parsed) {
+                        const sourceMap = {};
                         const div = document.createElement('div');
                         render(
                             renderAttributedText(
@@ -287,6 +296,8 @@ export default ({
                                 printToAttributedText(
                                     toplevelToPretty(env, parsed),
                                     maxWidth,
+                                    undefined,
+                                    sourceMap,
                                 ),
                             ),
                             div,
@@ -330,11 +341,11 @@ export default ({
                     const div = evt.target as HTMLDivElement;
                     const box = evt.currentTarget.getBoundingClientRect();
                     const nodePos = div.getBoundingClientRect();
-                    const hash = div.getAttribute('data-hash');
+                    const hash = div.getAttribute('data-id');
                     if (hash) {
                         setHover({
                             top: nodePos.bottom - box.top + 5,
-                            left: nodePos.left - box.left + 20,
+                            left: nodePos.left - box.left,
                             text: '#' + hash,
                             target: div,
                         });

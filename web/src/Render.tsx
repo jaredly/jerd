@@ -211,6 +211,7 @@ export const renderAttributedText = (
                     data-location={
                         item.loc ? JSON.stringify(item.loc) : undefined
                     }
+                    data-id={item.id}
                     css={
                         openable(item.id, item.kind, item.loc)
                             ? css({
@@ -231,7 +232,7 @@ export const renderAttributedText = (
                         }
                     }}
                     key={i}
-                    title={item.id + ' ' + item.kind}
+                    // title={item.id + ' ' + item.kind}
                 >
                     {/* {item.loc ? (
                         <span css={{ color: 'red', fontSize: '50%' }}>
