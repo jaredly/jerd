@@ -53,7 +53,7 @@ describe('Cell', () => {
             />,
         );
 
-        expect(screen.findAllByText('hello')).toBeTruthy();
-        expect(screen.findAllByText('helloz')).toBeTruthy();
+        userEvent(screen.findByText('hello')).click();
+        expect(screen.findByText('helloz')).toBeTruthy();
     });
 });
