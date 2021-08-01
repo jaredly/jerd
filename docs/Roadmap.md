@@ -3,6 +3,13 @@
 Make it so I can upgrade my term format, without things breaking terribly.
 Because right now, I can't even reparse.
 
+Better text mode
+- [x] don't have the hashes, that's not great. use data-id on the node
+- [x] also lets get at least one test happening.
+- [ ] when selection is inside a thing with an ID, show a hover,
+    that will allow you to change the ID, or remove it if you want.
+- [ ] ok and I want to preserve selections between the two views
+
 NEXT UP
 - [x] inline
 - [x] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".

@@ -8,6 +8,7 @@ import { renderAttributedText, renderAttributedTextToHTML } from './Render';
 import { Env, newWithGlobal } from '@jerd/language/src/typing/types';
 import { addLocationIndices } from '../../language/src/typing/analyze';
 import { render, flushSync } from 'react-dom';
+import { Global } from '@emotion/react';
 
 const getOffset = (node: HTMLElement, offset: number) => {
     if (node.nodeName === '#text') {
@@ -233,44 +234,72 @@ export default ({
         null as null | { top: number; left: number; text: string; target: any },
     );
 
-    React.useEffect(() => {
-        if (!ref.current || set.current) {
-            return;
-        }
-        // const c = ref.current;
-        set.current = true;
-        // ref.current.innerHTML = '';
-        // const s = document.createElement('span');
-        // s.textContent = 'M';
-        // ref.current.appendChild(s);
-        // const w = s.getBoundingClientRect();
-        // const full = ref.current.getBoundingClientRect();
-        // const chars = Math.floor(full.width / w.width);
-        let parsed = maybeParse(env, value, contents);
-        if (parsed) {
-            const div = document.createElement('div');
-            render(
-                renderAttributedText(
-                    env,
-                    printToAttributedText(
-                        toplevelToPretty(env, parsed),
-                        maxWidth,
-                    ),
-                ),
-                div,
-            );
-            ref.current.innerHTML = div.innerHTML;
+    // React.useEffect(() => {
+    //     if (!ref.current || set.current) {
+    //         return;
+    //     }
+    //     // const c = ref.current;
+    //     set.current = true;
+    //     // ref.current.innerHTML = '';
+    //     // const s = document.createElement('span');
+    //     // s.textContent = 'M';
+    //     // ref.current.appendChild(s);
+    //     // const w = s.getBoundingClientRect();
+    //     // const full = ref.current.getBoundingClientRect();
+    //     // const chars = Math.floor(full.width / w.width);
+    //     let parsed = maybeParse(env, value, contents);
+    //     if (parsed) {
+    //         const div = document.createElement('div');
+    //         render(
+    //             renderAttributedText(
+    //                 env,
+    //                 printToAttributedText(
+    //                     toplevelToPretty(env, parsed),
+    //                     maxWidth,
+    //                 ),
+    //             ),
+    //             div,
+    //         );
+    //         ref.current.innerHTML = div.innerHTML;
 
-            // ref.current.innerHTML = renderAttributedTextToHTML(
-            //     env.global,
-            //     printToAttributedText(toplevelToPretty(env, parsed), maxWidth),
-            //     true,
-            // );
-        } else {
-            ref.current.innerText = value;
-        }
-        ref.current.focus();
-    }, [ref.current]);
+    //         // ref.current.innerHTML = renderAttributedTextToHTML(
+    //         //     env.global,
+    //         //     printToAttributedText(toplevelToPretty(env, parsed), maxWidth),
+    //         //     true,
+    //         // );
+    //     } else {
+    //         ref.current.innerText = value;
+    //     }
+    //     ref.current.focus();
+    // }, [ref.current]);
+
+    React.useEffect(() => {
+        const fn = () => {
+            if (!ref.current || document.activeElement !== ref.current) {
+                return;
+            }
+            const sel = document.getSelection();
+            if (!sel || !sel.isCollapsed || !sel.focusNode) {
+                return;
+            }
+            let node = sel.focusNode as HTMLElement;
+            if (sel.focusNode.nodeName === '#text') {
+                node = node.parentElement!;
+            }
+            if (!node || !node.hasAttribute('data-id')) {
+                return;
+            }
+            const current = ref.current.getElementsByClassName('hello-world');
+            for (let i = 0; i < current.length; i++) {
+                current[i].classList.remove('hello-world');
+            }
+
+            node.classList.add('hello-world');
+        };
+        document.addEventListener('selectionchange', fn);
+        return () => document.removeEventListener('selectionchange', fn);
+    });
+
     return (
         <div
             style={{
@@ -280,11 +309,19 @@ export default ({
                 borderRadius: 4,
             }}
         >
+            <Global
+                styles={{
+                    '.hello-world': {
+                        textDecoration: 'underline',
+                    },
+                }}
+            />
             <div
                 ref={(node) => {
                     if (set.current || !node) {
                         return;
                     }
+                    ref.current = node;
                     set.current = true;
                     const parsed = maybeParse(env, value, contents);
                     if (parsed) {
@@ -344,7 +381,7 @@ export default ({
                     const hash = div.getAttribute('data-id');
                     if (hash) {
                         setHover({
-                            top: nodePos.bottom - box.top + 5,
+                            top: nodePos.bottom - box.top + 10,
                             left: nodePos.left - box.left,
                             text: '#' + hash,
                             target: div,
@@ -362,6 +399,9 @@ export default ({
                     fontFamily: '"Source Code Pro", monospace',
                     minHeight: '1em',
                 }}
+                // onSelectionChange={evt => {
+                //     console.log('ok')
+                // }}
                 onInput={(evt) => {
                     onChange(getCode(evt.currentTarget));
                 }}
@@ -372,6 +412,44 @@ export default ({
                         const root = evt.currentTarget;
                         handleTab(evt.shiftKey, root);
                     }
+                    if (' +-/*<>='.includes(evt.key)) {
+                        console.log('space');
+                        const sel = document.getSelection();
+                        if (sel && sel.focusNode) {
+                            const parent = sel.focusNode.parentElement!;
+                            if (parent.hasAttribute('data-id')) {
+                                // how do I ... make a new text dealio
+                                // after hthe current one?
+                                // ok, so if we say
+                                // that this is the last item
+                                const idx = [
+                                    ...(parent.childNodes as any),
+                                ].indexOf(sel.focusNode);
+                                if (idx === parent.childNodes.length - 1) {
+                                    console.log(idx);
+                                    if (
+                                        sel.focusOffset ===
+                                        sel.focusNode.nodeValue?.length
+                                    ) {
+                                        console.log('LAST');
+                                        const next = document.createElement(
+                                            'span',
+                                        );
+                                        parent.insertAdjacentElement(
+                                            'afterend',
+                                            next,
+                                        );
+                                        next.textContent = evt.key;
+                                        sel.collapse(next, 1);
+                                        // hrmmmm does this prevent calling the whatsit?
+                                        evt.preventDefault();
+                                        // sel.selectAllChildren(next);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     onKeyDown(evt);
                 }}
             />
