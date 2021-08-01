@@ -234,45 +234,6 @@ export default ({
         null as null | { top: number; left: number; text: string; target: any },
     );
 
-    // React.useEffect(() => {
-    //     if (!ref.current || set.current) {
-    //         return;
-    //     }
-    //     // const c = ref.current;
-    //     set.current = true;
-    //     // ref.current.innerHTML = '';
-    //     // const s = document.createElement('span');
-    //     // s.textContent = 'M';
-    //     // ref.current.appendChild(s);
-    //     // const w = s.getBoundingClientRect();
-    //     // const full = ref.current.getBoundingClientRect();
-    //     // const chars = Math.floor(full.width / w.width);
-    //     let parsed = maybeParse(env, value, contents);
-    //     if (parsed) {
-    //         const div = document.createElement('div');
-    //         render(
-    //             renderAttributedText(
-    //                 env,
-    //                 printToAttributedText(
-    //                     toplevelToPretty(env, parsed),
-    //                     maxWidth,
-    //                 ),
-    //             ),
-    //             div,
-    //         );
-    //         ref.current.innerHTML = div.innerHTML;
-
-    //         // ref.current.innerHTML = renderAttributedTextToHTML(
-    //         //     env.global,
-    //         //     printToAttributedText(toplevelToPretty(env, parsed), maxWidth),
-    //         //     true,
-    //         // );
-    //     } else {
-    //         ref.current.innerText = value;
-    //     }
-    //     ref.current.focus();
-    // }, [ref.current]);
-
     React.useEffect(() => {
         const fn = () => {
             if (!ref.current || document.activeElement !== ref.current) {
@@ -289,12 +250,12 @@ export default ({
             if (!node || !node.hasAttribute('data-id')) {
                 return;
             }
-            const current = ref.current.getElementsByClassName('hello-world');
+            const current = ref.current.getElementsByClassName('selected-id');
             for (let i = 0; i < current.length; i++) {
-                current[i].classList.remove('hello-world');
+                current[i].classList.remove('selected-id');
             }
 
-            node.classList.add('hello-world');
+            node.classList.add('selected-id');
         };
         document.addEventListener('selectionchange', fn);
         return () => document.removeEventListener('selectionchange', fn);
@@ -311,7 +272,7 @@ export default ({
         >
             <Global
                 styles={{
-                    '.hello-world': {
+                    '.selected-id': {
                         textDecoration: 'underline',
                     },
                 }}
