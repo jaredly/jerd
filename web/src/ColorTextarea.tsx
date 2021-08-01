@@ -425,7 +425,7 @@ export default ({
                     if (
                         // TODO: Should I just say anything other
                         // than alphanumeric?
-                        ' +-/*<>=()[]{}^%$#@!'.includes(evt.key) &&
+                        ' +-/*<>=()[]{}^%$#@!,.;:\'"'.includes(evt.key) &&
                         !evt.metaKey &&
                         !evt.ctrlKey
                     ) {
