@@ -27,7 +27,7 @@ import {
     Type,
 } from '../../language/src/typing/types';
 import { MenuItem } from './CellWrapper';
-import { Selection } from './RenderItem';
+import { Selection } from './Cell';
 
 export type LocLines = Array<Array<SourceItem>>;
 

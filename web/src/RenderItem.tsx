@@ -27,6 +27,7 @@ import {
     makeIdxTree,
 } from '../../language/src/typing/analyze';
 import { showType } from '../../language/src/typing/unify';
+import { Selection } from './Cell';
 import { Position } from './Cells';
 import { MenuItem } from './CellWrapper';
 import { runTerm } from './eval';
@@ -53,6 +54,8 @@ export type Props = {
     content: TopContent;
     evalEnv: EvalEnv;
     focused: boolean;
+    selection: Selection;
+    setSelection: (fn: (s: Selection) => Selection) => void;
     onFocus: () => void;
     onRun: (id: Id) => void;
     addCell: (
@@ -69,12 +72,6 @@ export type Props = {
 
 // const;
 
-export type Selection = {
-    inner: boolean;
-    idx: number;
-    marks: Array<number>;
-};
-
 const RenderItem_ = ({
     env,
     cell,
@@ -87,6 +84,8 @@ const RenderItem_ = ({
     focused,
     onFocus,
     maxWidth,
+    selection,
+    setSelection,
 
     onSetPlugin,
     onChange,
@@ -138,16 +137,11 @@ const RenderItem_ = ({
         [setScrub, scrub],
     );
 
-    const [selection, setSelection_] = React.useState({
-        inner: false,
-        idx: 0,
-        marks: [],
-    } as Selection);
     const setIdx: (
         fn: number | ((idx: number) => number),
     ) => void = React.useCallback(
         (idx) => {
-            setSelection_((sel) => ({
+            setSelection((sel) => ({
                 ...sel,
                 idx: typeof idx === 'number' ? idx : idx(sel.idx),
             }));
@@ -155,7 +149,7 @@ const RenderItem_ = ({
                 onFocus();
             }
         },
-        [setSelection_, onFocus, focused],
+        [setSelection, onFocus, focused],
     );
 
     const [menu, setMenu] = React.useState(null as null | Array<MenuItem>);
@@ -199,7 +193,7 @@ const RenderItem_ = ({
             env,
             term,
             setIdx,
-            setSelection_,
+            setSelection,
             setMenu,
             addTerm,
             onPending,
@@ -230,7 +224,7 @@ const RenderItem_ = ({
                     (evt, id, kind, loc) => {
                         if (!evt.metaKey) {
                             if (loc && loc.idx) {
-                                setSelection_((sel) => ({
+                                setSelection((sel) => ({
                                     idx: loc.idx!,
                                     marks: sel.marks,
                                     inner: true,

@@ -6,7 +6,7 @@ import { AttributedText, Extra } from '@jerd/language/src/printing/printer';
 import { idName } from '@jerd/language/src/typing/env';
 import { GlobalEnv, Location } from '@jerd/language/src/typing/types';
 import { css } from '@emotion/react';
-import { Selection } from './RenderItem';
+import { Selection } from './Cell';
 
 const kindColors: { [key: string]: string } = {
     string: '#ce9178',

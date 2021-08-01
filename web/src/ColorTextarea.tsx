@@ -9,6 +9,7 @@ import { Env, newWithGlobal } from '@jerd/language/src/typing/types';
 import { addLocationIndices } from '../../language/src/typing/analyze';
 import { render, flushSync } from 'react-dom';
 import { Global } from '@emotion/react';
+import { Selection } from './Cell';
 
 const getOffset = (node: HTMLElement, offset: number) => {
     if (node.nodeName === '#text') {
@@ -226,7 +227,16 @@ export default ({
     onChange,
     onKeyDown,
     maxWidth,
-}: any) => {
+}: {
+    env: Env;
+    contents: any;
+    value: any;
+    onChange: (value: string) => void;
+    onKeyDown: (evt: React.KeyboardEvent) => void;
+    maxWidth: number;
+    selection: Selection;
+    setSelection: (fn: (s: Selection) => Selection) => void;
+}) => {
     const ref = React.useRef(null as HTMLDivElement | null);
     const set = React.useRef(false);
 
@@ -290,7 +300,7 @@ export default ({
                         const div = document.createElement('div');
                         render(
                             renderAttributedText(
-                                env,
+                                env.global,
                                 printToAttributedText(
                                     toplevelToPretty(env, parsed),
                                     maxWidth,

@@ -83,6 +83,12 @@ export type CellProps = {
     onPin: (display: Display, id: Id) => void;
 };
 
+export type Selection = {
+    inner: boolean;
+    idx: number;
+    marks: Array<number>;
+};
+
 const CellView_ = ({
     cell,
     env,
@@ -103,6 +109,12 @@ const CellView_ = ({
     const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     const [showSource, setShowSource] = React.useState(false);
     const [showGLSL, setShowGLSL] = React.useState(false);
+
+    const [selection, setSelection] = React.useState({
+        inner: false,
+        idx: 0,
+        marks: [],
+    } as Selection);
 
     const onSetPlugin = React.useCallback(
         (display) => {
@@ -139,6 +151,8 @@ const CellView_ = ({
             plugins={plugins}
             evalEnv={evalEnv}
             display={cell.display}
+            selection={selection}
+            setSelection={setSelection}
             onSetPlugin={onSetPlugin}
             contents={
                 cell.content.type == 'raw'
@@ -228,6 +242,8 @@ const CellView_ = ({
             maxWidth={maxWidth}
             onSetPlugin={onSetPlugin}
             onChange={onSetToplevel}
+            selection={selection}
+            setSelection={setSelection}
             focused={focused != null}
             onFocus={() => onFocus(cell.id)}
             onPending={(pending) => {

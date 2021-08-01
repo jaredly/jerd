@@ -38,6 +38,7 @@ import { runTerm } from './eval';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import ColorTextarea from './ColorTextarea';
 import { RenderPlugin } from './RenderResult';
+import { Selection } from './Cell';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }
@@ -168,9 +169,13 @@ export default ({
     onPin,
     onSetPlugin,
     maxWidth,
+    selection,
+    setSelection,
 }: {
     env: Env;
     maxWidth: number;
+    selection: Selection;
+    setSelection: (fn: (s: Selection) => Selection) => void;
     onSetPlugin: (plugin: Display | null) => void;
     contents: ToplevelT | string;
     onClose: (term: ToplevelT | null) => void;
@@ -271,6 +276,8 @@ export default ({
                     env={env}
                     maxWidth={maxWidth}
                     contents={contents}
+                    selection={selection}
+                    setSelection={setSelection}
                     onChange={(text: string) => setText(text)}
                     onKeyDown={(evt: any) => {
                         if (evt.metaKey && evt.key === 'Enter') {
