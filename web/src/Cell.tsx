@@ -84,7 +84,7 @@ export type CellProps = {
 };
 
 export type Selection = {
-    inner: boolean;
+    level: 'outer' | 'inner' | 'text';
     idx: number;
     marks: Array<number>;
 };
@@ -106,12 +106,12 @@ const CellView_ = ({
     plugins,
     getHistory,
 }: CellProps) => {
-    const [editing, setEditing] = React.useState(cell.content.type == 'raw');
+    // const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     const [showSource, setShowSource] = React.useState(false);
     const [showGLSL, setShowGLSL] = React.useState(false);
 
     const [selection, setSelection] = React.useState({
-        inner: false,
+        level: cell.content.type === 'raw' ? 'text' : 'outer',
         idx: 0,
         marks: [],
     } as Selection);
@@ -139,37 +139,122 @@ const CellView_ = ({
     );
 
     const onEdit = React.useCallback(() => {
-        setEditing(true);
+        setSelection((s) => ({ ...s, level: 'text' }));
         onFocus(cell.id);
     }, [cell]);
 
-    const body = editing ? (
-        <Editor
-            maxWidth={maxWidth}
-            env={env}
-            onPin={onPin}
-            plugins={plugins}
-            evalEnv={evalEnv}
-            display={cell.display}
-            selection={selection}
-            setSelection={setSelection}
-            onSetPlugin={onSetPlugin}
-            contents={
-                cell.content.type == 'raw'
-                    ? cell.content.text
-                    : getToplevel(env, cell.content)
-            }
-            onClose={(proposedToplevel) => {
-                if (cell.content.type === 'term') {
-                    if (
-                        proposedToplevel != null &&
-                        (proposedToplevel.type === 'Define' ||
-                            proposedToplevel?.type === 'Expression')
-                    ) {
-                        const id = idFromName(
-                            hashObject(proposedToplevel.term),
+    const body =
+        selection.level === 'text' ? (
+            <Editor
+                maxWidth={maxWidth}
+                env={env}
+                onPin={onPin}
+                plugins={plugins}
+                evalEnv={evalEnv}
+                display={cell.display}
+                selection={selection}
+                setSelection={setSelection}
+                onSetPlugin={onSetPlugin}
+                contents={
+                    cell.content.type == 'raw'
+                        ? cell.content.text
+                        : getToplevel(env, cell.content)
+                }
+                onClose={(proposedToplevel) => {
+                    if (cell.content.type === 'term') {
+                        if (
+                            proposedToplevel != null &&
+                            (proposedToplevel.type === 'Define' ||
+                                proposedToplevel?.type === 'Expression')
+                        ) {
+                            const id = idFromName(
+                                hashObject(proposedToplevel.term),
+                            );
+                            if (idsEqual(id, cell.content.id)) {
+                                if (cell.content.proposed) {
+                                    onChange(null, {
+                                        ...cell,
+                                        content: {
+                                            ...cell.content,
+                                            proposed: null,
+                                        },
+                                    });
+                                }
+                            } else {
+                                onChange(null, {
+                                    ...cell,
+                                    content: {
+                                        ...cell.content,
+                                        proposed: {
+                                            term: proposedToplevel.term,
+                                            id: id,
+                                        },
+                                    },
+                                });
+                            }
+                        } else if (cell.content.proposed) {
+                            onChange(null, {
+                                ...cell,
+                                content: { ...cell.content, proposed: null },
+                            });
+                        }
+                    }
+                    setSelection((s) => ({ ...s, level: 'inner' }));
+                }}
+                onChange={(rawOrToplevel) => {
+                    onFocus(cell.id);
+                    if (typeof rawOrToplevel === 'string') {
+                        onChange(null, {
+                            ...cell,
+                            content: { type: 'raw', text: rawOrToplevel },
+                        });
+                    } else {
+                        const { env: nenv, content } = updateToplevel(
+                            env,
+                            rawOrToplevel,
+                            cell.content,
                         );
-                        if (idsEqual(id, cell.content.id)) {
+                        onChange(nenv, {
+                            ...cell,
+                            content,
+                        });
+                    }
+                    // setEditing(false);
+                    setSelection((s) => ({ ...s, level: 'inner' }));
+                }}
+            />
+        ) : cell.content.type === 'raw' ? (
+            <div
+                onClick={() => {
+                    // setEditing(true);
+                    setSelection((s) => ({ ...s, level: 'text' }));
+                    onFocus(cell.id);
+                }}
+                style={{
+                    fontFamily: '"Source Code Pro", monospace',
+                    whiteSpace: 'pre-wrap',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    padding: 8,
+                }}
+            >
+                {cell.content.text.trim() === ''
+                    ? '[empty]'
+                    : cell.content.text}
+            </div>
+        ) : (
+            <RenderItem
+                maxWidth={maxWidth}
+                onSetPlugin={onSetPlugin}
+                onChange={onSetToplevel}
+                selection={selection}
+                setSelection={setSelection}
+                focused={focused != null}
+                onFocus={() => onFocus(cell.id)}
+                onPending={(pending) => {
+                    if (cell.content.type === 'term') {
+                        const id = idFromName(hashObject(pending));
+                        if (idsEqual(cell.content.id, id)) {
                             if (cell.content.proposed) {
                                 onChange(null, {
                                     ...cell,
@@ -179,108 +264,31 @@ const CellView_ = ({
                                     },
                                 });
                             }
-                        } else {
-                            onChange(null, {
-                                ...cell,
-                                content: {
-                                    ...cell.content,
-                                    proposed: {
-                                        term: proposedToplevel.term,
-                                        id: id,
-                                    },
-                                },
-                            });
+                            return;
                         }
-                    } else if (cell.content.proposed) {
                         onChange(null, {
                             ...cell,
-                            content: { ...cell.content, proposed: null },
+                            content: {
+                                ...cell.content,
+                                proposed: {
+                                    term: pending,
+                                    id: id,
+                                },
+                            },
                         });
                     }
-                }
-                setEditing(false);
-            }}
-            onChange={(rawOrToplevel) => {
-                onFocus(cell.id);
-                if (typeof rawOrToplevel === 'string') {
-                    onChange(null, {
-                        ...cell,
-                        content: { type: 'raw', text: rawOrToplevel },
-                    });
-                } else {
-                    const { env: nenv, content } = updateToplevel(
-                        env,
-                        rawOrToplevel,
-                        cell.content,
-                    );
-                    onChange(nenv, {
-                        ...cell,
-                        content,
-                    });
-                }
-                setEditing(false);
-            }}
-        />
-    ) : cell.content.type === 'raw' ? (
-        <div
-            onClick={() => {
-                setEditing(true);
-                onFocus(cell.id);
-            }}
-            style={{
-                fontFamily: '"Source Code Pro", monospace',
-                whiteSpace: 'pre-wrap',
-                position: 'relative',
-                cursor: 'pointer',
-                padding: 8,
-            }}
-        >
-            {cell.content.text.trim() === '' ? '[empty]' : cell.content.text}
-        </div>
-    ) : (
-        <RenderItem
-            maxWidth={maxWidth}
-            onSetPlugin={onSetPlugin}
-            onChange={onSetToplevel}
-            selection={selection}
-            setSelection={setSelection}
-            focused={focused != null}
-            onFocus={() => onFocus(cell.id)}
-            onPending={(pending) => {
-                if (cell.content.type === 'term') {
-                    const id = idFromName(hashObject(pending));
-                    if (idsEqual(cell.content.id, id)) {
-                        if (cell.content.proposed) {
-                            onChange(null, {
-                                ...cell,
-                                content: { ...cell.content, proposed: null },
-                            });
-                        }
-                        return;
-                    }
-                    onChange(null, {
-                        ...cell,
-                        content: {
-                            ...cell.content,
-                            proposed: {
-                                term: pending,
-                                id: id,
-                            },
-                        },
-                    });
-                }
-            }}
-            onPin={onPin}
-            cell={cell}
-            plugins={plugins}
-            content={cell.content}
-            onEdit={onEdit}
-            addCell={addCell}
-            env={env}
-            evalEnv={evalEnv}
-            onRun={onRun}
-        />
-    );
+                }}
+                onPin={onPin}
+                cell={cell}
+                plugins={plugins}
+                content={cell.content}
+                onEdit={onEdit}
+                addCell={addCell}
+                env={env}
+                evalEnv={evalEnv}
+                onRun={onRun}
+            />
+        );
 
     const term =
         cell.content.type === 'term'
@@ -309,7 +317,7 @@ const CellView_ = ({
                     );
                 } else {
                     // um let's start editing? I don't have control over that just yet.
-                    setEditing(true);
+                    setSelection((s) => ({ ...s, level: 'text' }));
                 }
             }
         };

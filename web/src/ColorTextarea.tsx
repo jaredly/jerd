@@ -1,3 +1,5 @@
+/** @jsx jsx */
+import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { parse } from '@jerd/language/src/parsing/grammar';
 import { Toplevel } from '@jerd/language/src/parsing/parser';
@@ -277,7 +279,7 @@ export default ({
                 setSelection((s) => ({
                     idx: location.idx!,
                     marks: [],
-                    inner: true,
+                    level: 'text',
                 }));
             }
         };
@@ -291,13 +293,18 @@ export default ({
                 padding: 8,
                 position: 'relative',
                 backgroundColor: '#151515',
+
                 borderRadius: 4,
             }}
+            css={{}}
         >
             <Global
                 styles={{
                     '.selected-id': {
                         textDecoration: 'underline',
+                    },
+                    '::selection': {
+                        backgroundColor: 'rgb(50, 50, 50)',
                     },
                 }}
             />

@@ -260,26 +260,29 @@ export const bindKeys = (
         }
 
         if (evt.key === 'Escape') {
-            setSelection((sel) => ({ ...sel, inner: false }));
+            setSelection((sel) => ({ ...sel, level: 'outer' }));
         }
 
         if (evt.key === 'Enter' || evt.key === 'Return') {
             evt.stopPropagation();
             evt.preventDefault();
+            if (evt.shiftKey) {
+                return setSelection((s) => ({ ...s, level: 'text' }));
+            }
             setSelection((selection) => {
                 if (!sourceMap[selection.idx]) {
                     for (let i = 0; i < locLines.length; i++) {
                         for (let x = 0; x < locLines[i].length; x++) {
                             const idx = locLines[i][x].idx;
                             if (sourceMap[idx]) {
-                                return { inner: true, idx, marks: [] };
+                                return { level: 'inner', idx, marks: [] };
                             }
                         }
                     }
                     return selection;
                 }
-                if (!selection.inner) {
-                    return { ...selection, inner: true };
+                if (selection.level !== 'inner') {
+                    return { ...selection, level: 'inner' };
                 }
                 const { idx, marks } = selection;
                 const items: Array<MenuItem> = [];

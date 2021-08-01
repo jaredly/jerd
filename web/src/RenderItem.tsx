@@ -227,7 +227,7 @@ const RenderItem_ = ({
                                 setSelection((sel) => ({
                                     idx: loc.idx!,
                                     marks: sel.marks,
-                                    inner: true,
+                                    level: 'inner',
                                 }));
                                 onFocus();
                                 // setIdx(loc.idx);

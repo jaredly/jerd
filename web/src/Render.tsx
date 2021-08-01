@@ -182,7 +182,7 @@ export const renderAttributedText = (
             }
             return markStyle;
         }
-        if (selection && !selection.inner) {
+        if (selection && selection.level !== 'inner') {
             return loc.idx === idx ? hlStyleLight : null;
         }
         return loc.idx === idx ? hlStyle : null;
