@@ -339,8 +339,14 @@ const ShaderGLSLBuffers = ({
     );
 
     if (error != null) {
+        // TODO: Make this better.
+        // If we get an error, and then update things
+        // please clear this!!!
+        // yeah not totally sure how to do it 🤔
+        // openglcanvas tries to re-render where possible
         return (
             <div>
+                <button onClick={() => setError(null)}>Try again</button>
                 <div
                     style={{
                         padding: 4,

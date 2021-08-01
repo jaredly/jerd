@@ -88,15 +88,7 @@ export const onClick = (
     value: any,
     setIdx: (idx: number) => void,
 ) => (evt: React.MouseEvent, id: string, kind: string, loc?: Location) => {
-    if (!evt.metaKey) {
-        if (loc && loc.idx) {
-            setIdx(loc.idx);
-        }
-        // Just selection
-        return true;
-    }
-
-    console.log(kind, id, loc);
+    // console.log(kind, id, loc);
     const position: Position = { type: 'after', id: cell.id };
 
     if (term != null && loc != null && loc.idx != null) {

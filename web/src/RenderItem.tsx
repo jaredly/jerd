@@ -227,7 +227,31 @@ const RenderItem_ = ({
                 {renderAttributedText(
                     env.global,
                     attributedText,
-                    onClick(env, cell, addCell, setScrub, term, value, setIdx),
+                    (evt, id, kind, loc) => {
+                        if (!evt.metaKey) {
+                            if (loc && loc.idx) {
+                                setSelection_((sel) => ({
+                                    idx: loc.idx!,
+                                    marks: sel.marks,
+                                    inner: true,
+                                }));
+                                onFocus();
+                                // setIdx(loc.idx);
+                            }
+                            // Just selection
+                            return true;
+                        }
+
+                        return onClick(
+                            env,
+                            cell,
+                            addCell,
+                            setScrub,
+                            term,
+                            value,
+                            setIdx,
+                        )(evt, id, kind, loc);
+                    },
                     undefined,
                     undefined,
                     (id, kind) =>

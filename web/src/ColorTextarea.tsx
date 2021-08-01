@@ -415,7 +415,7 @@ export default ({
                     if (
                         // TODO: Should I just say anything other
                         // than alphanumeric?
-                        ' +-/*<>=()'.includes(evt.key) &&
+                        ' +-/*<>=()[]{}^%$#@!'.includes(evt.key) &&
                         !evt.metaKey &&
                         !evt.ctrlKey
                     ) {
@@ -451,10 +451,17 @@ export default ({
                                         // Does it auto-collapse, or some mess?
                                         // ZERO_WIDTH_SPACE FOLKS
                                         next.textContent = evt.key; // ZERO_WIDTH_SPACE; // evt.key;
-                                        // sel.collapse(next);
-                                        const r = sel.getRangeAt(0);
-                                        r.selectNode(next);
-                                        r.collapse(false);
+
+                                        sel.removeAllRanges();
+                                        const range = document.createRange();
+                                        range.selectNode(next);
+                                        range.collapse(false);
+                                        sel.addRange(range);
+
+                                        // const r = sel.getRangeAt(0);
+                                        // r.selectNode(next);
+                                        // r.collapse(false);
+
                                         // sel.collapse(next, 1);
                                         // hrmmmm does this prevent calling the whatsit?
                                         evt.preventDefault();

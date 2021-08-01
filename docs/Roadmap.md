@@ -1,4 +1,6 @@
 
+Erghhm should I switch to lezer for parser generating? Given that it supports error recovery....
+
 ## Ok probably first thing
 Make it so I can upgrade my term format, without things breaking terribly.
 Because right now, I can't even reparse.
@@ -9,6 +11,7 @@ Better text mode
 - [ ] when selection is inside a thing with an ID, show a hover,
     that will allow you to change the ID, or remove it if you want.
 - [ ] ok and I want to preserve selections between the two views
+- [ ] typing non-identifier characters should get you out of the identifier.
 
 NEXT UP
 - [x] inline
