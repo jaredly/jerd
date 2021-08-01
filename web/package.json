@@ -25,6 +25,9 @@
         "snapshotSerializers": [
             "jest-snapshot-serializer-raw"
         ],
+        "setupFilesAfterEnv": [
+            "<rootDir>/jest-setup.js"
+        ],
         "transform": {
             "\\.jd": "../language/jest-load-static.js",
             "\\.txt": "../language/jest-load-static.js",
@@ -38,6 +41,7 @@
         "@babel/preset-react": "^7.14.5",
         "@babel/preset-typescript": "^7.14.5",
         "@testing-library/dom": "^8.1.0",
+        "@testing-library/jest-dom": "^5.14.1",
         "@testing-library/react": "^12.0.0",
         "@testing-library/user-event": "^13.2.1",
         "@types/react": "^17.0.3",

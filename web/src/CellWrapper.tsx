@@ -48,7 +48,7 @@ export const CellWrapper = ({
     const [menu, setMenu] = React.useState(false);
     const ref = React.useRef(null as null | HTMLElement);
     React.useEffect(() => {
-        if (focused != null && ref.current) {
+        if (focused != null && ref.current && ref.current.scrollIntoView) {
             ref.current.scrollIntoView({
                 block: 'nearest',
                 behavior: 'smooth',
@@ -61,7 +61,7 @@ export const CellWrapper = ({
             ref={(node) => {
                 if (node != null) {
                     ref.current = node;
-                    if (focused != null) {
+                    if (focused != null && node.scrollIntoView) {
                         node.scrollIntoView({
                             block: 'nearest',
                             behavior: 'smooth',
