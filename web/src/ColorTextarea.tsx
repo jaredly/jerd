@@ -439,10 +439,28 @@ export default ({
                                             'afterend',
                                             next,
                                         );
-                                        next.textContent = evt.key;
-                                        sel.collapse(next, 1);
+                                        // oh ok, so I can fill it with dummy,
+                                        // and then the key event replaces it!
+                                        // But what's the issue with the space?
+                                        // Does it auto-collapse, or some mess?
+                                        // ZERO_WIDTH_SPACE FOLKS
+                                        next.textContent = evt.key; // ZERO_WIDTH_SPACE; // evt.key;
+                                        // sel.collapse(next);
+                                        const r = sel.getRangeAt(0);
+                                        r.selectNode(next);
+                                        r.collapse(false);
+                                        // sel.collapse(next, 1);
                                         // hrmmmm does this prevent calling the whatsit?
                                         evt.preventDefault();
+                                        evt.stopPropagation();
+
+                                        var event = new Event('input', {
+                                            bubbles: true,
+                                            cancelable: true,
+                                        });
+
+                                        evt.target.dispatchEvent(event);
+
                                         // sel.selectAllChildren(next);
                                     }
                                 }
