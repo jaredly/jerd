@@ -263,12 +263,13 @@ export default ({
             if (sel.focusNode.nodeName === '#text') {
                 node = node.parentElement!;
             }
-            if (!node || !node.hasAttribute('data-id')) {
-                return;
-            }
             const current = ref.current.getElementsByClassName('selected-id');
             for (let i = 0; i < current.length; i++) {
                 current[i].classList.remove('selected-id');
+            }
+
+            if (!node || !node.hasAttribute('data-id')) {
+                return;
             }
 
             node.classList.add('selected-id');
