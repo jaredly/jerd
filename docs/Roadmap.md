@@ -5,6 +5,15 @@ Erghhm should I switch to lezer for parser generating? Given that it supports er
 Make it so I can upgrade my term format, without things breaking terribly.
 Because right now, I can't even reparse.
 
+- [ ] neeeeed a way to delete ids my goodness
+
+- [ ] make the "enter" menu show up underneath the selection, not at the bottom of everything
+
+Handling Pastes:
+- one thing that happens is that syms don't line up right
+- so maybe, when pasting, I drop all (external) sym IDs?
+  And internal sym IDs should probably be translated to prevent conflicts.
+
 Better text mode
 - [x] don't have the hashes, that's not great. use data-id on the node
 - [x] also lets get at least one test happening.
@@ -18,6 +27,8 @@ Better text mode
   - [ ] let them go to cousins... if there's nothing to go to?
 - [x] cell-level jk for moving focus between cells
 
+- [ ] let's do a bunch of jest test for partial typing. like inline type errors.
+
 NEXT UP
 - [x] inline
 - [x] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".
@@ -26,16 +37,17 @@ NEXT UP
   - [x] have the "extract" respect marks
   - [ ] clear marks after extraction?
 - [ ] preserve locs please?
+  - I mean I kindof get away with not. but it would be good to do.
 - [x] delete & inline var, if the outer thing is lefts as a sequence w/ single thing, then collapse it please.
-- [ ] shift-enter to enter text edit mode
+- [x] shift-enter to enter text edit mode
 
 
 Can we only do one renderer? renderToReact and then use innerHTML to get it for contentEditable?
 - [x] try it
   - oh we don't have `#something`, so it's not locked down
 - [x] let's add `data-id={id}`, so that it can be locked down
-- [ ] when hovering something that has `data-id`, show a hover dealio, that you can /remove/? or something... yeah
-- [ ] if you /paste/ with an #id, then we can detect that & insert cleverly.
+- [ ] when the cursor is on something that has `data-id`, show a thing indicating that you can remove it.
+- [ ] if you /paste/ with an #id, then we can detect that & insert cleverly? maybe?
 
 
 

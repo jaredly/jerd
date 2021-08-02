@@ -8,7 +8,10 @@ import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { typeToplevelT, ToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedText, renderAttributedTextToHTML } from './Render';
 import { Env, Location, newWithGlobal } from '@jerd/language/src/typing/types';
-import { addLocationIndices } from '../../language/src/typing/analyze';
+import {
+    addLocationIndices,
+    getTermByIdx,
+} from '../../language/src/typing/analyze';
 import { render, flushSync } from 'react-dom';
 import { Global } from '@emotion/react';
 import { Selection } from './Cell';
@@ -224,6 +227,48 @@ const handleTab = (shiftTab: boolean, root: HTMLElement) => {
     return false;
 };
 
+const updateSelection = (
+    ref: { current: HTMLDivElement | null },
+    setSelection: (fn: (s: Selection) => Selection) => void,
+) => {
+    if (!ref.current || document.activeElement !== ref.current) {
+        console.log('Not active', ref.current, document.activeElement);
+        return;
+    }
+    const sel = document.getSelection();
+    if (!sel || !sel.focusNode || sel.focusNode !== sel.anchorNode) {
+        console.log('NOP', sel);
+        return;
+    }
+    let node = sel.focusNode as HTMLElement;
+    if (sel.focusNode.nodeName === '#text') {
+        node = node.parentElement!;
+    }
+    const current = ref.current.getElementsByClassName('selected-id');
+    for (let i = 0; i < current.length; i++) {
+        current[i].classList.remove('selected-id');
+    }
+
+    if (!node || !node.hasAttribute('data-id')) {
+        console.log('No nodez', node, sel);
+        setSelection((s) => ({ ...s, node: null }));
+        return;
+    }
+
+    node.classList.add('selected-id');
+    const loc = node.getAttribute('data-location');
+    if (loc) {
+        const location: Location = JSON.parse(loc);
+        console.log(location);
+        setSelection((s) => ({
+            idx: location.idx!,
+            marks: [],
+            level: 'text',
+            node,
+        }));
+    }
+};
+
 export default ({
     env,
     contents,
@@ -252,37 +297,7 @@ export default ({
 
     React.useEffect(() => {
         const fn = () => {
-            if (!ref.current || document.activeElement !== ref.current) {
-                return;
-            }
-            const sel = document.getSelection();
-            if (!sel || !sel.isCollapsed || !sel.focusNode) {
-                return;
-            }
-            let node = sel.focusNode as HTMLElement;
-            if (sel.focusNode.nodeName === '#text') {
-                node = node.parentElement!;
-            }
-            const current = ref.current.getElementsByClassName('selected-id');
-            for (let i = 0; i < current.length; i++) {
-                current[i].classList.remove('selected-id');
-            }
-
-            if (!node || !node.hasAttribute('data-id')) {
-                return;
-            }
-
-            node.classList.add('selected-id');
-            const loc = node.getAttribute('data-location');
-            if (loc) {
-                const location: Location = JSON.parse(loc);
-                console.log(location);
-                setSelection((s) => ({
-                    idx: location.idx!,
-                    marks: [],
-                    level: 'text',
-                }));
-            }
+            updateSelection(ref, setSelection);
         };
         document.addEventListener('selectionchange', fn);
         return () => document.removeEventListener('selectionchange', fn);
@@ -347,7 +362,7 @@ export default ({
                                         const sel = document.getSelection()!;
                                         sel.removeAllRanges();
                                         const r = document.createRange();
-                                        r.selectNode(nodes[i]);
+                                        r.selectNodeContents(nodes[i]);
                                         sel.addRange(r);
                                         return;
                                     }
@@ -495,7 +510,7 @@ export default ({
                     onKeyDown(evt);
                 }}
             />
-            {hover ? (
+            {/* {hover ? (
                 <div
                     style={{
                         pointerEvents: 'none',
@@ -510,17 +525,58 @@ export default ({
                 >
                     {hover.text}
                 </div>
-            ) : null}
+            ) : null} */}
+            <SelectionId selection={selection} setSelection={setSelection} />
         </div>
     );
 };
 
-const styles = {
-    hash: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        fontSize: '80%',
-        color: 'rgba(255,255,255,0.5)',
+const SelectionId = React.memo(
+    ({
+        selection,
+        setSelection,
+    }: {
+        selection: Selection;
+        setSelection: (fn: (s: Selection) => Selection) => void;
+    }) => {
+        // if (!term || (term.type !== 'Expression' && term.type !== 'Define')) {
+        //     return null;
+        // }
+
+        if (!selection.node || !selection.node.offsetParent) {
+            return null;
+        }
+        const id = selection.node.getAttribute('data-id');
+        if (!id) {
+            return null;
+        }
+
+        // const sel = getTermByIdx(term.term, selection.idx);
+        // if (!sel) {
+        //     return null;
+        // }
+        const box = selection.node.getBoundingClientRect();
+        const pbox = selection.node.offsetParent.getBoundingClientRect();
+        return (
+            <div
+                css={{
+                    top: box.bottom - pbox.top + 4,
+                    left: box.left - pbox.left,
+                    position: 'absolute',
+                    backgroundColor: 'black',
+                    padding: 4,
+                    boxShadow: '0 0 3px white',
+                    cursor: 'pointer',
+                }}
+                onClick={() => {
+                    selection.node.removeAttribute('data-id');
+                    selection.node.classList.remove('selected-id');
+                    selection.node.style.color = 'inherit';
+                    setSelection((s) => ({ ...s, node: null }));
+                }}
+            >
+                {id.startsWith(':') ? 'Symbol ' + id.slice(1) : '#' + id}
+            </div>
+        );
     },
-};
+);

@@ -16,11 +16,13 @@ import {
     Id,
     nullLocation,
     Reference,
+    refsEqual,
     Term,
     Type,
 } from '@jerd/language/src/typing/types';
 import * as React from 'react';
 import {
+    GLSLBuffer1_id,
     GLSLEnv_id,
     GLSLSceneOld_id,
     Vec2_id,
@@ -291,19 +293,30 @@ const ShaderGLSLBuffers = ({
         // I'd have to make tuple constant folding happen, but that doesn't sound too bad.
         // Also inlining of "anything that returns anything that contains a function",
         // instead of just "returns a function".
-        if (term.type !== 'Tuple') {
+        let items;
+        if (
+            term.type === 'Record' &&
+            term.is.type === 'ref' &&
+            refsEqual(term.is.ref, {
+                type: 'user',
+                id: idFromName(GLSLBuffer1_id),
+            })
+        ) {
+            if (term.base.type !== 'Concrete') {
+                throw new Error(`abstract recrod`);
+            }
+            items = term.base.rows.map((r) => r!);
+        } else if (term.type !== 'Tuple') {
             const err = new Error(`Expression must be a tuple literal`);
             console.error();
             setError(err);
             return null;
+        } else {
+            items = term.items;
         }
         try {
-            return term.items.map((item) =>
-                compileGLSL(
-                    item,
-                    envWithTerm(env, item),
-                    term.items.length - 1,
-                ),
+            return items.map((item) =>
+                compileGLSL(item, envWithTerm(env, item), items.length - 1),
             );
         } catch (err) {
             console.error(err);
@@ -463,6 +476,29 @@ const plugins: RenderPlugins = {
     openglBuffer1: {
         id: 'opengl1',
         name: 'Shader GLSL',
+        type: refType(idFromName(GLSLBuffer1_id)),
+        render: (
+            fn: OpenGLFn,
+            evalEnv: EvalEnv,
+            env: Env,
+            term: Term,
+            startPaused: boolean,
+        ) => {
+            return (
+                <ShaderGLSLBuffers
+                    fn={fn}
+                    env={env}
+                    evalEnv={evalEnv}
+                    term={term}
+                    startPaused={startPaused}
+                />
+            );
+        },
+    },
+
+    openglBuffer1_alt: {
+        id: 'opengl1',
+        name: 'Shader GLSL',
         type: builtinType('Tuple2', [shaderFunction(1), shaderFunction(1)]),
         render: (
             fn: OpenGLFn,
@@ -482,6 +518,7 @@ const plugins: RenderPlugins = {
             );
         },
     },
+
     openglBuffer2: {
         id: 'opengl2',
         name: 'Shader GLSL',

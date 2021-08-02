@@ -312,6 +312,19 @@ const max = (v: Vec2, n: float) => Vec2{
 }
 
 @glsl_builtin
+const max = (v: Vec3, n: Vec3) => Vec3{
+    x: max(v.x, n.x),
+    y: max(v.y, n.y),
+    z: max(v.z, n.z),
+}
+
+@glsl_builtin
+const max = (v: Vec2, n: Vec2) => Vec2{
+    x: max(v.x, n.x),
+    y: max(v.y, n.y),
+}
+
+@glsl_builtin
 const round = (v: Vec2) => Vec2{
     x: round(v.x),
     y: round(v.y),

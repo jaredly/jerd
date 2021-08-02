@@ -601,6 +601,9 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             if (expr.name === 'ln') {
                 return atom('log');
             }
+            if (expr.name === 'atan2') {
+                return atom('atan');
+            }
             return atom(expr.name);
         case 'attribute':
             // hrm special-case matrices I guess
