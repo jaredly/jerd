@@ -224,6 +224,7 @@ export const bindKeys = (
     setMenu: (items: Array<MenuItem>) => void,
     addTerm: (term: Term, name: string) => void,
     setTerm: (term: Term) => void,
+    onFocus: (direction?: 'up' | 'down') => void,
 ) => {
     const locLines: LocLines = [];
     Object.keys(sourceMap).forEach((idx: unknown) => {
@@ -475,45 +476,86 @@ export const bindKeys = (
             - but hm
             */
         if (evt.key === 'ArrowUp' || evt.key === 'k' || evt.key === 'K') {
-            if (evt.shiftKey) {
-                setIdx((idx) => {
-                    const parent = parents[idx];
+            setSelection((sel) => {
+                if (sel.level === 'outer') {
+                    onFocus('up');
+                    return sel;
+                }
+                if (evt.shiftKey) {
+                    const parent = parents[sel.idx];
                     if (parent != null) {
                         // console.log(parent);
-                        return parent;
+                        return { ...sel, idx: parent };
                     }
-                    return idx;
-                });
-            } else {
-                setIdx((idx) => goUp(idx, sourceMap, locLines, idxTree));
-            }
+                    return sel;
+                } else {
+                    return {
+                        ...sel,
+                        idx: goUp(sel.idx, sourceMap, locLines, idxTree),
+                    };
+                }
+            });
             evt.preventDefault();
             evt.stopPropagation();
             return true;
         }
 
         if (evt.key === 'ArrowDown' || evt.key === 'j' || evt.key === 'J') {
-            if (evt.shiftKey) {
-                setIdx((idx) => {
-                    const kids = children[idx];
+            setSelection((sel) => {
+                if (sel.level === 'outer') {
+                    onFocus('down');
+                    return sel;
+                }
+                if (evt.shiftKey) {
+                    const kids = children[sel.idx];
                     if (kids != null && kids.length > 0) {
                         // console.log(parent);
-                        return kids[0];
+                        return { ...sel, idx: kids[0] };
                     }
-                    return idx;
-                });
-            } else {
-                setIdx((idx) => goDown(idx, sourceMap, locLines, idxTree));
-            }
+                    return sel;
+                } else {
+                    return {
+                        ...sel,
+                        idx: goDown(sel.idx, sourceMap, locLines, idxTree),
+                    };
+                }
+            });
+
             evt.preventDefault();
             evt.stopPropagation();
             return true;
         }
 
-        if (evt.key === 'ArrowRight' || evt.key === 'l') {
+        if (evt.key === 'ArrowRight' || evt.key === 'l' || evt.key === 'L') {
+            if (evt.shiftKey) {
+                return setIdx((idx) => {
+                    const parent = idxTree.parents[idx];
+                    if (parent) {
+                        const children = idxTree.children[parent];
+                        const cidx = children.indexOf(idx);
+                        if (cidx !== -1 && cidx < children.length - 1) {
+                            return children[cidx + 1];
+                        }
+                    }
+                    return idx;
+                });
+            }
             setIdx((idx) => goRight(idx, sourceMap, locLines, idxTree));
         }
-        if (evt.key === 'ArrowLeft' || evt.key === 'h') {
+        if (evt.key === 'ArrowLeft' || evt.key === 'h' || evt.key === 'H') {
+            if (evt.shiftKey) {
+                return setIdx((idx) => {
+                    const parent = idxTree.parents[idx];
+                    if (parent) {
+                        const children = idxTree.children[parent];
+                        const cidx = children.indexOf(idx);
+                        if (cidx !== -1 && cidx > 0) {
+                            return children[cidx - 1];
+                        }
+                    }
+                    return idx;
+                });
+            }
             setIdx((idx) => goLeft(idx, sourceMap, locLines, idxTree));
         }
     };

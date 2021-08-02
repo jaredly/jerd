@@ -68,7 +68,7 @@ export type CellProps = {
     getHistory: (id: string) => Array<Id>;
     focused: number | null;
     onDuplicate: (id: string) => void;
-    onFocus: (id: string) => void;
+    onFocus: (id: string, direction?: 'up' | 'down') => void;
     onChange: (env: Env | null, cell: Cell) => void;
     onRun: (id: Id) => void;
     onRemove: (id: string) => void;
@@ -250,7 +250,9 @@ const CellView_ = ({
                 selection={selection}
                 setSelection={setSelection}
                 focused={focused != null}
-                onFocus={() => onFocus(cell.id)}
+                onFocus={(direction?: 'up' | 'down') => {
+                    onFocus(cell.id, direction);
+                }}
                 onPending={(pending) => {
                     if (cell.content.type === 'term') {
                         const id = idFromName(hashObject(pending));

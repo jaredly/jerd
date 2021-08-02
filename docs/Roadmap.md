@@ -10,8 +10,13 @@ Better text mode
 - [x] also lets get at least one test happening.
 - [ ] when selection is inside a thing with an ID, show a hover,
     that will allow you to change the ID, or remove it if you want.
-- [ ] ok and I want to preserve selections between the two views
-- [ ] typing non-identifier characters should get you out of the identifier.
+- [x] ok and I want to preserve selections between the two views
+- [x] typing non-identifier characters should get you out of the identifier.
+
+- [x] shift-h & l for sibling navigation
+  - [x] um weird bugs I think
+  - [ ] let them go to cousins... if there's nothing to go to?
+- [x] cell-level jk for moving focus between cells
 
 NEXT UP
 - [x] inline

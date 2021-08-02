@@ -56,7 +56,7 @@ export type Props = {
     focused: boolean;
     selection: Selection;
     setSelection: (fn: (s: Selection) => Selection) => void;
-    onFocus: () => void;
+    onFocus: (direction?: 'up' | 'down') => void;
     onRun: (id: Id) => void;
     addCell: (
         content: Content,
@@ -197,6 +197,7 @@ const RenderItem_ = ({
             setMenu,
             addTerm,
             onPending,
+            onFocus,
         );
         window.addEventListener('keydown', fn, true);
         return () => window.removeEventListener('keydown', fn, true);

@@ -94,9 +94,26 @@ const Cells = ({
     );
 
     const onFocus = React.useCallback(
-        (id: string) =>
-            !focus || focus.id !== id ? setFocus({ id, tick: 0 }) : null,
-        [],
+        (id: string, direction?: 'up' | 'down') => {
+            if (direction === 'up') {
+                const at = sortedCellIds.indexOf(id);
+                if (at > 0) {
+                    setFocus({ id: sortedCellIds[at - 1], tick: 0 });
+                }
+                return;
+            }
+            if (direction === 'down') {
+                const at = sortedCellIds.indexOf(id);
+                if (at < sortedCellIds.length - 1) {
+                    setFocus({ id: sortedCellIds[at + 1], tick: 0 });
+                }
+                return;
+            }
+            if (!focus || focus.id !== 'id') {
+                setFocus({ id, tick: 0 });
+            }
+        },
+        [sortedCellIds],
     );
 
     const onPin = React.useCallback((display, id) => {

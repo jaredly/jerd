@@ -145,6 +145,11 @@ export const makeIdxTree = (term: Term): IdxTree => {
                         (t) => t.location.idx!,
                     );
                     break;
+                case 'Tuple':
+                    children[term.location.idx!] = term.items.map(
+                        (t) => t.location.idx!,
+                    );
+                    break;
                 case 'Switch':
                     children[term.location.idx!] = [
                         term.term.location.idx!,
