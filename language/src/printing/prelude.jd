@@ -465,6 +465,9 @@ type Angle<State> = {step: float, update: (state: State, angle: float) => State}
 // like `step: float = 1.0`
 
 @ffi
+type Int<State> = {min: int, max: int, step: int, update: (state: State, value: int) => State}
+
+@ffi
 type Float<State> = {min: float, max: float, step: float, update: (state: State, value: float) => State}
 
 @ffi

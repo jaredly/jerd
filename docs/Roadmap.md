@@ -1,6 +1,29 @@
 
 Erghhm should I switch to lezer for parser generating? Given that it supports error recovery.... NOPEaNOPE it would be much harder to work with.
 
+
+## OKK new plan for widgets
+It's attributes, folks.
+But before I go messing around with the parser, I want to have a robust suite of tests for it. yes.
+
+Anyway, all terms will be allowed to have attributes.
+Attributes are *not* allowed to change the /semantics/ of the code in any way. (e.g. ffi changes the actual code generated, but nothing internal to jerd would be able to observe the difference).
+
+And then the GLSL generator plugin dealio, when collecting the dependency tree of terms, would let you mess with some sliders.
+And so the slider values would be saved as part of the "display" I believe. And those should be propagated to the PIN.
+errr and maybe there should be an undo menu for them? uh maybe at some point.
+Ok, so the plugin finds any widgets, renders them, and when you fiddle with them, it results in the whole shebang being recompiled, right?
+I could get fancy at some point and allow shortcutting, if the widgets evaluate to literals (so like the slider one, not the "switch between any of these code snippets" one)
+Yeah and the code snippets one would ... allow you to store alternatives, and switch the main selected one.
+Like it would be 
+`@alternatives([some_code, other_code]) main_code`
+lovely.
+
+Ok, but I don't yet syntatically support those things,
+and it would also change hashing I think....... hmm....... ugh there's so many hacks in the hashing right now. It's fine.
+
+
+
 ## How to make configurable sliders for my GLSL canvas dealio?
 
 So, you want to have some things be sliders
@@ -58,6 +81,16 @@ plugins were nestable.
 hmmmmmmm
 yeah idk, I'll probably just hardcode it for the moment.
 
+
+Ok, so thinking about workflow again.
+
+Aaaactually what I really want is:
+to have inline widgets
+that then become out-of-line
+like, this isn't about uniforms (although it could be at some point idk)
+
+So, I kinda think I want widgets represented in the AST.
+Would that be of the term?
 
 
 
