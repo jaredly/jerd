@@ -539,22 +539,15 @@ const SelectionId = React.memo(
         selection: Selection;
         setSelection: (fn: (s: Selection) => Selection) => void;
     }) => {
-        // if (!term || (term.type !== 'Expression' && term.type !== 'Define')) {
-        //     return null;
-        // }
-
         if (!selection.node || !selection.node.offsetParent) {
             return null;
         }
+        const node = selection.node;
         const id = selection.node.getAttribute('data-id');
         if (!id) {
             return null;
         }
 
-        // const sel = getTermByIdx(term.term, selection.idx);
-        // if (!sel) {
-        //     return null;
-        // }
         const box = selection.node.getBoundingClientRect();
         const pbox = selection.node.offsetParent.getBoundingClientRect();
         return (
@@ -569,9 +562,9 @@ const SelectionId = React.memo(
                     cursor: 'pointer',
                 }}
                 onClick={() => {
-                    selection.node.removeAttribute('data-id');
-                    selection.node.classList.remove('selected-id');
-                    selection.node.style.color = 'inherit';
+                    node.removeAttribute('data-id');
+                    node.classList.remove('selected-id');
+                    node.style.color = 'inherit';
                     setSelection((s) => ({ ...s, node: null }));
                 }}
             >

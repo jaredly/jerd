@@ -87,6 +87,7 @@ export type Selection = {
     level: 'outer' | 'inner' | 'text';
     idx: number;
     marks: Array<number>;
+    node?: HTMLElement | null;
 };
 
 const CellView_ = ({
