@@ -1,11 +1,80 @@
 
-Erghhm should I switch to lezer for parser generating? Given that it supports error recovery....
+Erghhm should I switch to lezer for parser generating? Given that it supports error recovery.... NOPEaNOPE it would be much harder to work with.
+
+## How to make configurable sliders for my GLSL canvas dealio?
+
+So, you want to have some things be sliders
+and you want to indicate, in code, what the parameters should be
+could also be nice to have categorical options
+Anyway, the GLSLEnv state variable looks like
+State {
+  itemRotate: float,
+  speed: float,
+  count: int,
+}
+and your initial state dealio is
+State{itemRotate: PI, speed: 1.0, count: 10}
+
+So where do you specify bounds and stuff?
+hm so when macros are involved, and individual "cell" might produce multiple toplevels. That should be fine, right?
+
+Ok, so I'm thinking:
+
+@GLSLBonanza
+type State = {
+  @initial(0.0)@angle
+  itemRotate: float,
+  @initial(1.0)@slider(0.1, 2.0)
+  speed: float,
+  @initial(5)@bounds(1, 20)
+  count: int,
+}
+
+// This would produce
+State { itemRotate: float, speed: float, count: int }
+initialState = State {itemRotate: 0.0, speed: 1.0, count: 5 }
+widgets = [
+  Widget{name: "itemRotate", config: Angle{update: (state, itemRotate) => State{...state, itemRotate}}},
+  Widgte{name: "speed", config: Float{min: 0.1, max: 2.0, update: (state, speed) => State{...state, speed}}},
+  Widget{name: "count", config: Int{min: 1, max: 20, update: (state, count) => State{...state, count}}}
+]
+
+Where
+type Widget<State> = {name: string, config: WidgetConfig<State>}
+type Angle<State> = {update: (state: State, angle: float) => State}
+// TODO: Should I have default values baked into here?
+// but then do I get weird behavior for subtyping? BUT I don't
+// have unexplicit subtyping. So it seems like it ought to be ok?
+type Float<State> = {min: float, max: float, step: float, update: (state: State, value: float) => State}
+enum WidgetConfig<State> {
+  Angle<State>,
+  Float<State>,
+  Int<State>,
+}
+
+
+OOooooh so what if
+plugins were nestable.
+hmmmmmmm
+yeah idk, I'll probably just hardcode it for the moment.
+
+
+
+
+
 
 ## Ok probably first thing
 Make it so I can upgrade my term format, without things breaking terribly.
 Because right now, I can't even reparse.
 
-- [ ] neeeeed a way to delete ids my goodness
+- [x] neeeeed a way to delete ids my goodness
+  - ok so the editing experience isn't terrible. I'm not using the normal mode much though, because there aren't any keyboard affordances, and jumping into it has a HUGE lag. So yeah the first most important thing is make it instantaneous.
+
+START HERE: IMPORTANT PERF FIX
+- [ ] Cell should render the output, not the Editor/RenderItem
+  - does this mean ... that cell owns the the temporary edit text? Yeah that sounds fine.
+
+- [ ] Updating some other thing, such that the something rerenders, shouldn't cause recording to start again
 
 - [ ] make the "enter" menu show up underneath the selection, not at the bottom of everything
 

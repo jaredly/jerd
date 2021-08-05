@@ -456,6 +456,38 @@ type GLSLEnv<T> = {
     mouseButton: int,
 }
 
+@ffi
+type Angle<State> = {step: float, update: (state: State, angle: float) => State}
+
+// TODO: Should I have default values baked into here?
+// but then do I get weird behavior for subtyping? BUT I don't
+// have unexplicit subtyping. So it seems like it ought to be ok?
+// like `step: float = 1.0`
+
+@ffi
+type Float<State> = {min: float, max: float, step: float, update: (state: State, value: float) => State}
+
+@ffi
+type Options<State> = {names: Array<string>, update: (state: State, idx: int) => State}
+
+@ffi
+type XY<State> = {min: Vec2, max: Vec2, update: (state: State, pos: Vec2) => State}
+
+// hmmmmmmmm what about a "anything goes?"
+// I don't yet have GADTs, so I can't hide an existential type variable.
+// otherwise that would be rad.
+
+enum WidgetConfig<State> {
+  Angle<State>,
+  Float<State>,
+  Int<State>,
+  Options<State>,
+  XY<State>,
+}
+
+@ffi
+type Widget<State> = {name: string, config: WidgetConfig<State>}
+
 @ffi("GLSLScene")
 type GLSLSceneOld<T> = {
     initial: T,
