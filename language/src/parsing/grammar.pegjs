@@ -1,5 +1,13 @@
 
-File = _ s:(DecoratedToplevel _)* finalLineComment? {return s.map((s: any) => s[0])}
+File = _ tops:Toplevels? _ finalLineComment? {
+    return tops || []
+}
+
+// TODO: Toplevels should end with a semicolon! Or at least be separated by them.
+// That would be much more consistent and sensical.
+Toplevels = first:DecoratedToplevel rest:(nonnewline newline _ DecoratedToplevel)* {
+    return [first].concat(rest.map((r: any) => r[3]))
+}
 
 DecoratedToplevel = decorators:(Decorator _)* top:Toplevel {
     return decorators.length > 0 ? {
@@ -384,6 +392,8 @@ SymHash = "#" ":" [0-9]+ {return text()}
 OpHash = ("#" [0-9a-zA-Z]+)+ {return text()}
 BuiltinHash = "#" "builtin" {return text()}
 
+newline = "\n"
+nonnewline = [ \t\r]*
 _ "whitespace"
   = [ \t\n\r]* (comment _)*
 __ "whitespace"

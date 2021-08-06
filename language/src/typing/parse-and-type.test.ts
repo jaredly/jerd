@@ -96,7 +96,12 @@ describe('It should all work', () => {
     it('unary', () =>
         expect(
             process(`
-            type 
+            const x = 10
+            -x
     `),
-        ));
+        ).toMatchInlineSnapshot(`
+            "const x#6e9352f2 = 10
+
+            -x#6e9352f2"
+        `));
 });
