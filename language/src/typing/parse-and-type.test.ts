@@ -75,14 +75,28 @@ describe('It should all work', () => {
         `));
 
     it('math', () =>
-        expect(process(`10 + 21 * 32 / 11 - 34`)).toMatchInlineSnapshot(
-            `"10 +#builtin 21 *#builtin 32 /#builtin 11 -#builtin 34"`,
+        expect(process(`10 + 21 * -(32 / 11) - 34`)).toMatchInlineSnapshot(
+            `"10 +#builtin 21 *#builtin -(32 /#builtin 11) -#builtin 34"`,
         ));
 
-    // it.each(['const x = y', 'const z = 10', 'if x > 0 { 2 } else {  3 }'])(
-    //     'Ok folks',
-    //     (raw) => {
-    //         expect(raw).toMatchInlineSnapshot();
-    //     },
-    // );
+    it('effect', () =>
+        expect(
+            process(`
+                effect SetGet {
+                    Get: () => string,
+                    Set: (string) => void, // TODO: Remove the need for this final comma
+                }`),
+        ).toMatchInlineSnapshot(`
+            "effect SetGet#1da337a2 {
+                Get: () => string#builtin,
+                Set: (string#builtin) => void#builtin,
+            }"
+        `));
+
+    it('unary', () =>
+        expect(
+            process(`
+            type 
+    `),
+        ));
 });

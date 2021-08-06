@@ -685,12 +685,17 @@ export const termToPretty = (env: Env, term: Term): PP => {
                 term.location,
             );
         }
-        case 'unary':
-            return items(
-                [atom(term.op), termToPretty(env, term.inner)],
-                undefined,
-                term.location,
-            );
+        case 'unary': {
+            let inner = termToPretty(env, term.inner);
+            if (
+                term.inner.type === 'apply' &&
+                isBinOp(env, term.inner.target)
+            ) {
+                inner = items([atom('('), inner, atom(')')]);
+            }
+
+            return items([atom(term.op), inner], undefined, term.location);
+        }
         case 'Enum':
             return items(
                 [

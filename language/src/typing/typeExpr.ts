@@ -21,7 +21,7 @@ import { Expression } from '../parsing/parser';
 import { subEnv, Location } from './types';
 import typeType, { walkType } from './typeType';
 import { showType } from './unify';
-import { void_, string, bool, float } from './preset';
+import { void_, string, bool, float, int } from './preset';
 import {
     hasSubType,
     idFromName,
@@ -601,6 +601,16 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                         inner,
                         location: expr.location,
                         is: float,
+                    };
+                }
+
+                if (expr.op === '-' && typesEqual(inner.is, int)) {
+                    return {
+                        type: 'unary',
+                        op: '-',
+                        inner,
+                        location: expr.location,
+                        is: int,
                     };
                 }
 
