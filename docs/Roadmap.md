@@ -1,7 +1,6 @@
 
 Erghhm should I switch to lezer for parser generating? Given that it supports error recovery.... NOPEaNOPE it would be much harder to work with.
 
-
 ## OKK new plan for widgets
 It's attributes, folks.
 But before I go messing around with the parser, I want to have a robust suite of tests for it. yes.

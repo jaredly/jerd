@@ -77,6 +77,27 @@ export type ToplevelT =
           attrNames: Array<string>;
       };
 
+export const addToplevelToEnv = (
+    env: Env,
+    top: ToplevelT,
+): { env: Env; id: Id } => {
+    switch (top.type) {
+        case 'Define':
+            return addDefine(env, top.name, top.term);
+        case 'Expression':
+            return addExpr(env, top.term, null);
+        case 'RecordDef':
+            return addRecord(env, top.name, top.attrNames, top.def);
+        case 'Effect':
+            return addEffect(env, top.name, top.constrNames, top.effect);
+        case 'EnumDef':
+            return addEnum(env, top.name, top.def);
+        default:
+            const _x: never = top;
+            throw new Error(`Unexpected toplevel type`);
+    }
+};
+
 export const typeToplevelT = (
     env: Env,
     item: Toplevel,

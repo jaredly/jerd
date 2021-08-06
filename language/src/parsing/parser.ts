@@ -1,4 +1,4 @@
-import { parse } from './grammar';
+import { parse as parseUntyped } from './grammar';
 
 export type Toplevel =
     | Define
@@ -366,7 +366,8 @@ export type Slice = {
     right: Expression | null;
 };
 
-export default (raw: string): Array<Toplevel> => parse(raw);
+export default (raw: string): Array<Toplevel> => parseUntyped(raw);
+export const parse = (raw: string): Array<Toplevel> => parseUntyped(raw);
 export const parseType = (raw: string): Type => {
     const parsed: Array<Toplevel> = parse(`const thing: ${raw} = 1`);
     if (parsed.length !== 1) {
