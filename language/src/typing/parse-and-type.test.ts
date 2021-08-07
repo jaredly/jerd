@@ -34,11 +34,17 @@ describe('It should all work', () => {
         expect(
             process(`
 				type X = {y: int, z: float}
+                @ffi
+                type M = {n: float}
 				type Z = {...X, a: int, b: string} `),
         ).toMatchInlineSnapshot(`
             "type X#450d3cd6 = {
                 y: int#builtin,
                 z: float#builtin,
+            };
+
+            @ffi(\\"M\\") type M#a68a0a20 = {
+                n: float#builtin,
             };
 
             type Z#39b05154 = {
