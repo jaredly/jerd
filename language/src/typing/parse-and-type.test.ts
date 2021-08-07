@@ -13,7 +13,7 @@ const process = (raw: string) => {
         env = addToplevelToEnv(env, top).env;
         result.push(printToString(toplevelToPretty(env, top), 100));
     });
-    return result.join('\n\n');
+    return result.join(';\n\n');
 };
 
 describe('It should all work', () => {
@@ -39,7 +39,7 @@ describe('It should all work', () => {
             "type X#450d3cd6 = {
                 y: int#builtin,
                 z: float#builtin,
-            }
+            };
 
             type Z#39b05154 = {
                 ...X#450d3cd6,
@@ -56,16 +56,16 @@ describe('It should all work', () => {
 				type Z = {...Y, age: int}
 				enum All { X, Y, Z }`),
         ).toMatchInlineSnapshot(`
-            "type X#f713161c = {}
+            "type X#f713161c = {};
 
             type Y#1de5e9d2 = {
                 name: string#builtin,
-            }
+            };
 
             type Z#ec09fc50 = {
                 ...Y#1de5e9d2,
                 age: int#builtin,
-            }
+            };
 
             enum All#635a2c46 {
                 X#f713161c,
@@ -96,11 +96,11 @@ describe('It should all work', () => {
     it('unary', () =>
         expect(
             process(`
-            const x = 10
+            const x = 10;
             -x
     `),
         ).toMatchInlineSnapshot(`
-            "const x#6e9352f2 = 10
+            "const x#6e9352f2 = 10;
 
             -x#6e9352f2"
         `));
