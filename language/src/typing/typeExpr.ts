@@ -669,7 +669,7 @@ export const tupleType = (
     // effectVbls: [],
 });
 
-const typeDef = (
+export const typeDef = (
     env: GlobalEnv,
     ref: Reference,
 ): RecordDef | EnumDef | null => {
@@ -781,7 +781,11 @@ export const getEnumReferences = (
         throw new Error(`Unknown type definition ${showType(env, enumRef)}`);
     }
     if (enumDef.type !== 'Enum') {
-        throw new Error(`Not an enum, it's a record ${showType(env, enumRef)}`);
+        if (enumRef.ref.type === 'user') {
+            return [enumRef as UserTypeReference];
+        } else {
+            throw new Error(`builtin record, cant do it`);
+        }
     }
     enumDef = applyTypeVariablesToEnum(
         env,

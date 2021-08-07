@@ -6,6 +6,7 @@ import {
     getEnumReferences,
     applyTypeVariablesToRecord,
     getEnumSuperTypes,
+    typeDef,
 } from './typeExpr';
 import {
     Env,
@@ -218,16 +219,21 @@ const typePattern = (
             if (expectedType.type !== 'ref') {
                 throw new Error(`Not a type`);
             }
-            const allReferences = getEnumReferences(env, expectedType);
             let found: TypeReference | null = null;
-            for (let ref of allReferences) {
-                if (refsEqual(ref.ref, { type: 'user', id })) {
-                    found = ref;
-                    break;
+            let enumDef = typeDef(env.global, expectedType.ref);
+            if (enumDef && enumDef.type === 'Record') {
+                found = expectedType;
+            } else {
+                const allReferences = getEnumReferences(env, expectedType);
+                for (let ref of allReferences) {
+                    if (refsEqual(ref.ref, { type: 'user', id })) {
+                        found = ref;
+                        break;
+                    }
                 }
-            }
-            if (!found) {
-                throw new Error(`Enum doesn't match`);
+                if (!found) {
+                    throw new Error(`Enum doesn't match`);
+                }
             }
 
             let t = env.global.types[idName(id)];

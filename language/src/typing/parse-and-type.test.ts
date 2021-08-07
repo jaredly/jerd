@@ -362,7 +362,28 @@ describe('expression types', () => {
                 _ => true
             }
     `),
-        ).toMatchInlineSnapshot(
-            `"switch 23 {1 => false, 2 => false, 23 => true, _#:0 => false}"`,
-        ));
+        ).toMatchInlineSnapshot(`
+            "const a#046caf0f = switch 23 {1 => false, 2 => false, 23 => true, _#:0 => false};
+            type Person#28ac4660 = {
+                name: string#builtin,
+                age: int#builtin,
+            };
+            type Company#9bf2090c = {
+                name: string#builtin,
+                people: Array#builtin<Person#28ac4660>,
+            };
+            enum Companies#38583fa6 {
+                Company#9bf2090c,
+            };
+            const b#0b36ed6a = (m#:0: Companies#38583fa6): bool#builtin ={}> switch m#:0 {
+                Company#9bf2090c{name: \\"hello\\"} => false,
+                Company#9bf2090c{name: \\"things\\", people: []} => true,
+                Company#9bf2090c{people: [Person#28ac4660{name: \\"yes\\"}, ..._#:1]} => true,
+                Company#9bf2090c{people: [..._#:2, Person#28ac4660{name: _#:3, age: 23}]} => false,
+                Company#9bf2090c{
+                    people: [Person#28ac4660{name: \\"start\\"}, ..._#:4, Person#28ac4660{name: \\"end\\"}],
+                } => true,
+                _#:5 => true,
+            }"
+        `));
 });

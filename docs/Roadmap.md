@@ -1,4 +1,11 @@
 
+# THings found during coverage for parser
+
+- ... should be a legal pattern spread, shorthand for ..._
+
+
+#
+
 Erghhm should I switch to lezer for parser generating? Given that it supports error recovery.... NOPEaNOPE it would be much harder to work with.
 
 ## OKK new plan for widgets
