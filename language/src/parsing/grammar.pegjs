@@ -5,7 +5,7 @@ File = _ tops:Toplevels? _ finalLineComment? {
 
 // TODO: Toplevels should end with a semicolon! Or at least be separated by them.
 // That would be much more consistent and sensical.
-Toplevels = first:DecoratedToplevel rest:(nonnewline ';'? nonnewline newline _ DecoratedToplevel)* {
+Toplevels = first:DecoratedToplevel rest:(nonnewline ';'? nonnewline newline _ DecoratedToplevel)* _ ";"? {
     return [first].concat(rest.map((r: any) => r[5]))
 }
 
