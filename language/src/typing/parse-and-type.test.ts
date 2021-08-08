@@ -410,3 +410,20 @@ describe('expression types', () => {
             }"
         `));
 });
+
+describe('Decorators', () => {
+    it('a bunch of them', () => {
+        expect(
+            process(`
+        type Person = {name: string, age: int}
+        const decorator = @some(
+            "hello",
+            : int,
+            ? Person{name: "hi", age: age}
+        ) 200;
+        const m = @something 10.0;
+        const n = 10;
+        `),
+        );
+    });
+});

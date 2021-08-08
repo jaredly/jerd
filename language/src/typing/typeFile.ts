@@ -78,42 +78,63 @@ export function typeFile(
                 const ffi = item.decorators.filter((d) => d.id.text === 'ffi');
                 let unum = undefined;
                 if (unique.length) {
+                    if (unique.length > 1) {
+                        throw new Error(`multiple uniques`);
+                    }
                     if (
                         unique[0].args.length !== 1 ||
-                        unique[0].args[0].type !== 'float'
+                        unique[0].args[0].type !== 'Expr' ||
+                        unique[0].args[0].expr.type !== 'float'
                     ) {
                         throw new LocatedError(
                             item.location,
                             `@unique must have a float argument`,
                         );
                     }
-                    unum = unique[0].args[0].value;
+                    unum = unique[0].args[0].expr.value;
                 }
                 let tag = undefined;
                 if (ffi.length) {
                     tag = item.wrapped.id.text;
                     if (ffi[0].args.length === 1) {
-                        if (ffi[0].args[0].type !== 'string') {
+                        if (
+                            ffi[0].args[0].type !== 'Expr' ||
+                            ffi[0].args[0].expr.type !== 'string'
+                        ) {
                             throw new LocatedError(
                                 item.location,
                                 `ffi arg must be a string`,
                             );
                         }
-                        tag = ffi[0].args[0].text;
+                        tag = ffi[0].args[0].expr.text;
                     }
                 }
                 env = typeTypeDefn(env, item.wrapped, tag, unum);
             } else if (item.decorators[0].id.text === 'typeError') {
-                const args = item.decorators[0].args.map((expr) =>
-                    typeExpr(env, expr),
-                );
-                if (args.length !== 1 || args[0].type !== 'string') {
+                const args = item.decorators[0].args;
+                // if(item)
+                // const args = item.decorators[0].args
+                // .map((expr) => {
+                //     if (expr.type !== 'Expr') {
+                //         throw new Error(`nope`)
+                //     }
+                //     typeExpr(env, expr)
+                // }
+                // );
+                if (
+                    !(
+                        args.length === 1 &&
+                        args[0].type === 'Expr' &&
+                        args[0].expr.type === 'string'
+                    )
+                ) {
                     throw new Error(
-                        `Expected one string arg to @typeExpr ${showLocation(
+                        `Expected one string arg to @typeError ${showLocation(
                             item.location,
                         )}`,
                     );
                 }
+                const str = args[0].expr.text;
                 const expr = toplevelExpr(item.wrapped);
                 if (expr == null) {
                     throw new Error(
@@ -146,13 +167,13 @@ export function typeFile(
                 } catch (err) {
                     const message =
                         err instanceof TypeError ? err.toString() : err.message;
-                    if (message.includes(args[0].text)) {
+                    if (message.includes(str)) {
                         continue; // success
                     } else {
                         console.log(err.stack);
                         throw new LocatedError(
                             item.location,
-                            `Type error doesn't match expectation: "${message}" vs "${args[0].text}"`,
+                            `Type error doesn't match expectation: "${message}" vs "${str}"`,
                         ).wrap(err);
                     }
                 }

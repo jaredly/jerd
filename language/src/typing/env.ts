@@ -143,8 +143,9 @@ export const typeToplevelT = (
                 throw new Error(`@ffi can only be applied to RecordDef`);
             }
             const tag =
-                item.decorators[0].args.length === 1
-                    ? typeExpr(env, item.decorators[0].args[0])
+                item.decorators[0].args.length === 1 &&
+                item.decorators[0].args[0].type === 'Expr'
+                    ? typeExpr(env, item.decorators[0].args[0].expr)
                     : null;
             if (tag && tag.type !== 'string') {
                 throw new Error(`ffi tag must be a string literal`);

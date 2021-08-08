@@ -120,6 +120,16 @@ export type GlobalEnv = {
             ret: Type;
         }>;
     };
+
+    decoratorNames: { [humanName: string]: Array<Id> };
+    decorators: {
+        [idName: string]: {
+            arguments: Array<{
+                // hmm
+            }>;
+            targetType: string;
+        };
+    };
 };
 
 export type Self =
@@ -174,6 +184,9 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
         effectConstructors: {},
         effectConstrNames: {},
         effects: {},
+
+        decorators: {},
+        decoratorNames: {},
     },
     term: {
         nextTraceId: 0,
@@ -229,6 +242,8 @@ export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
         effectConstructors: { ...env.effectConstructors },
         effectConstrNames: { ...env.effectConstrNames },
         effects: { ...env.effects },
+        decoratorNames: { ...env.decoratorNames },
+        decorators: { ...env.decorators },
     };
 };
 
@@ -559,7 +574,7 @@ export type ErrorTerm = Ambiguous | TypeError;
 // : some-type
 // = some-pattern
 export type Decorator = {
-    name: string;
+    name: { id: Id; location: Location };
     location: Location;
     args: Array<DecoratorArg>;
 };

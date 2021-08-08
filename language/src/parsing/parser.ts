@@ -25,8 +25,17 @@ export type DecoratedExpression = {
 export type Decorator = {
     type: 'Decorator';
     id: Identifier;
-    args: Array<Expression>;
+    args: Array<DecoratorArg>;
+    location: Location;
 };
+export type DecoratorArg =
+    | {
+          type: 'Expr';
+          expr: Expression;
+          location: Location;
+      }
+    | { type: 'Pattern'; pattern: Pattern; location: Location }
+    | { type: 'Type'; contnets: Type; location: Location };
 
 export type Effect = {
     type: 'effect';

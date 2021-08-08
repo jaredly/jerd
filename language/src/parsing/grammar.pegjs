@@ -27,9 +27,17 @@ Statement = Define / Expression
 // Decorators! For doing macro-y things probably?
 // Also for some builtin magics
 
-Decorator = "@" id:Identifier args:("(" _ CommaExpr _ ")")? {
-    return {type: 'Decorator', id, args: args ? args[2] : [], location: location()}
+Decorator = "@" id:Identifier args:("(" _ CommaDecoratorArg? _ ")")? {
+    return {type: 'Decorator', id, args: args ? (args[2] || []) : [], location: location()}
 }
+DecoratorArg = DecType / DecPat / DecExpr
+CommaDecoratorArg = first:DecoratorArg rest:(_ "," _ DecoratorArg)* _ ","? {
+    return [first].concat(rest.map((r: any) => r[3]))
+}
+
+DecType = ":" __ type:Type {return {type: 'Type', contents: type, location: location()}}
+DecPat = "?" __ pattern:Pattern {return {type: 'Pattern', pattern, location: location()}}
+DecExpr = expr:Expression {return {type: 'Expr', expr, location: location()}}
 
 
 

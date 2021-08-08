@@ -93,8 +93,9 @@ export const reprintToplevel = (
             printed[0].wrapped.type === 'StructDef'
         ) {
             const tag =
-                printed[0].decorators[0].args.length === 1
-                    ? typeExpr(env, printed[0].decorators[0].args[0])
+                printed[0].decorators[0].args.length === 1 &&
+                printed[0].decorators[0].args[0].type === 'Expr'
+                    ? typeExpr(env, printed[0].decorators[0].args[0].expr)
                     : null;
             if (tag && tag.type !== 'string') {
                 throw new Error(`ffi tag must be a string literal`);

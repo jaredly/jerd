@@ -44,6 +44,7 @@ import { typeArray } from './terms/array';
 import { Loc } from '../printing/ir/types';
 import { enumToPretty } from '../printing/printTsLike';
 import { printToString } from '../printing/printer';
+import { typeDecorators } from './terms/decorators';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -586,9 +587,8 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
             const inner = typeExpr(env, expr.wrapped);
             if (inner.type === 'lambda') {
                 inner.tags = expr.decorators.map((d) => d.id.text);
-            } else {
-                throw new Error(`Only lambdas can be decorated right now`);
             }
+            inner.decorators = typeDecorators(env, expr.decorators, inner);
             return inner;
         }
         case 'Unary': {
