@@ -342,6 +342,19 @@ assertCall(hash_9275f914.h553b4b8e_0, hash_16e40f74(({
 } as t_45258310<number>), 20), 3);
 
 /*
+switch None#2449af94 {None#2449af94 => true}
+*/
+assert((() => {
+  if (({
+    type: "2449af94"
+  } as t_2449af94).type === "2449af94") {
+    return true;
+  }
+
+  throw "Math failed";
+})());
+
+/*
 isTen#5768cc58(n: 10) ==#builtin true
 */
 assertEqual(hash_5768cc58(10), true);

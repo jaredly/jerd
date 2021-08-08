@@ -80,6 +80,6 @@ Wrong number of arguments (string#builtin) ={}> string#builtin, 1 vs 0
 
 expected <T#:0>(T#:0) ={}> string#builtin, found <T#:0>() ={}> string#builtin
 
-expected <T#:0>(T#:0) ={}> T#:0, found <T#:0>(T#:0) ={}> string#builtin
+expected <T#:0>(T#:0) ={}> T#:0, found <T#:0>(input: T#:0) ={}> string#builtin
 
 Expected a subtype of 06e495ea

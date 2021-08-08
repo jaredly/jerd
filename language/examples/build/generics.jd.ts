@@ -29,7 +29,7 @@ export const hash_777bf1fc: <T_0>(arg_0: (arg_0: T_0) => T_0, arg_1: T_0) => T_0
 
 /**
 ```
-const scopeIt#36626a20 = (x#:0: int#builtin): (int#builtin) ={}> int#builtin ={}> (
+const scopeIt#36626a20 = (x#:0: int#builtin): (y: int#builtin) ={}> int#builtin ={}> (
     y#:1: int#builtin,
 ): int#builtin ={}> x#:0 +#builtin y#:1
 ```

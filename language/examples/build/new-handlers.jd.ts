@@ -87,7 +87,7 @@ export const hash_19effbea:
 /**
 ```
 const rec respondWith#59070068 = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
-    () ={Stdio#1da337a2, e#:0}> T#:0,
+    fn: () ={Stdio#1da337a2, e#:0}> T#:0,
 ) ={Log#35f4b478, e#:0}> T#:0 ={}> <T#:0>{e#:0}(fn#:1: () ={Stdio#1da337a2, e#:0}> T#:0): T#:0 ={
     Log#35f4b478,
     e#:0,

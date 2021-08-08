@@ -833,8 +833,8 @@ export const hash_6734d670: (arg_0: t_9f1c0644, arg_1: number, arg_2: number, ar
 /**
 ```
 const marchNormals#132bd797 = (sceneSDF#:0: (GLSLEnv#451d5252, Vec3#9f1c0644) ={}> float#builtin): (
-    GLSLEnv#451d5252,
-    Vec2#43802a16,
+    env: GLSLEnv#451d5252,
+    coord: Vec2#43802a16,
 ) ={}> Vec4#3b941378 ={}> (env#:1: GLSLEnv#451d5252, coord#:2: Vec2#43802a16): Vec4#3b941378 ={}> {
     const eye#:3 = Vec3#9f1c0644{x#43802a16#0: 0.0, y#43802a16#1: 0.0, z#9f1c0644#0: 5.0};
     const worldDir#:4 = getWorldDir#92052fca(
@@ -883,8 +883,8 @@ export const hash_132bd797: (arg_0: (arg_0: t_451d5252, arg_1: t_9f1c0644) => nu
 /**
 ```
 const multiSample#0ae0f98c = (fn#:0: (GLSLEnv#451d5252, Vec2#43802a16) ={}> Vec4#3b941378): (
-    GLSLEnv#451d5252,
-    Vec2#43802a16,
+    env: GLSLEnv#451d5252,
+    pos: Vec2#43802a16,
 ) ={}> Vec4#3b941378 ={}> (env#:1: GLSLEnv#451d5252, pos#:2: Vec2#43802a16): Vec4#3b941378 ={}> {
     const total#:3 = fn#:0(env#:1, pos#:2) 
                     +#0555d260#b99b22d8#0 fn#:0(

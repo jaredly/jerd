@@ -17,7 +17,7 @@ type t_553b4b8e<T_0> = {
 /**
 ```
 const rec provideString#1d302ade = (responseValue#:0: string#builtin): (
-    () ={GetString#22024b72}> string#builtin,
+    fn: () ={GetString#22024b72}> string#builtin,
 ) ={}> string#builtin ={}> (fn#:1: () ={GetString#22024b72}> string#builtin): string#builtin ={}> {
     handle! fn#:1 {
         GetString.get#0(() => k#:3) => 1d302ade#self(responseValue#:0 ++#builtin ".")(
@@ -56,8 +56,8 @@ export const hash_38ab4eac: () => string = () => "yes";
 /**
 ```
 const provideStringWithArg#8366c3ec = (responseValue#:0: string#builtin): (
-    string#builtin,
-    (string#builtin) ={GetString#22024b72}> string#builtin,
+    passIn: string#builtin,
+    fn: (string#builtin) ={GetString#22024b72}> string#builtin,
 ) ={}> string#builtin ={}> (
     passIn#:1: string#builtin,
     fn#:2: (string#builtin) ={GetString#22024b72}> string#builtin,
