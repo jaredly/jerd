@@ -211,7 +211,7 @@ export const typeEffectInner = (env: Env, item: Effect): EffectDef => {
         constrs: item.constrs.map(({ type }) => {
             return {
                 args: type.args
-                    ? type.args.map((a) => typeType(innerEnv, a))
+                    ? type.args.map((a) => typeType(innerEnv, a.type))
                     : [],
                 ret: typeType(innerEnv, type.res),
             };
@@ -561,7 +561,8 @@ export const withoutLocations = <T>(obj: T): T => {
             if (
                 key === 'location' ||
                 key === 'idLocation' ||
-                key === 'idLocations'
+                key === 'idLocations' ||
+                key === 'argNames'
             ) {
                 return;
             }
@@ -598,6 +599,10 @@ export const getToplevelAnnotation = (env: Env, item: Define): Type => {
         return {
             type: 'lambda',
             args: item.expr.args.map((arg) => typeType(typeInner, arg.type)),
+            argNames: item.expr.args.map((arg) => ({
+                text: arg.id.text,
+                location: arg.id.location,
+            })),
             res: typeType(typeInner, item.expr.rettype) || void_,
             location: item.expr.location,
             typeVbls,

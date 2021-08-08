@@ -313,7 +313,7 @@ export type TypeRef = {
 };
 export type LambdaType = {
     type: 'lambda';
-    args: Array<Type>;
+    args: Array<{ type: Type; id: Identifier | null; location: Location }>;
     effects: Array<Identifier>;
     effvbls: Array<Identifier>;
     typevbls: Array<TypeVbl>;

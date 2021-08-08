@@ -42,6 +42,7 @@ export const walkType = (
                 effectVbls: term.effectVbls.slice(),
                 location: term.location,
                 args: newArgs,
+                argNames: term.argNames.slice(),
                 effects: term.effects, // STOPSHIP bring them in
                 res: newres || term.res,
                 rest: null, // STOPSHIP handle rest
@@ -225,7 +226,8 @@ const typeType = (
 
             return {
                 type: 'lambda',
-                args: type.args.map((a) => typeType(typeInner, a)),
+                args: type.args.map((a) => typeType(typeInner, a.type)),
+                argNames: type.args.map((a) => a.id),
                 typeVbls,
                 effectVbls,
                 location: type.location,

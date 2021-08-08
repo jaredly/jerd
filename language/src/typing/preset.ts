@@ -74,6 +74,7 @@ export const pureFunction = (
         type: 'lambda',
         typeVbls,
         effectVbls: [],
+        argNames: args.map((arg) => null),
         args,
         effects: [],
         rest: null,

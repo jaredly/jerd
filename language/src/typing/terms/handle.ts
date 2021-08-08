@@ -80,6 +80,9 @@ export const typeHandle = (env: Env, expr: Handle): Term => {
             typeVbls: [],
             effectVbls: [],
             args: isVoid(constr.ret) ? [] : [constr.ret],
+            argNames: isVoid(constr.ret)
+                ? []
+                : [{ text: 'returnValue', location: kase.location }],
             effects: kEffects,
             rest: null,
             res: targetReturn,

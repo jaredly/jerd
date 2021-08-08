@@ -347,8 +347,13 @@ CommaType = first:Type rest:(_ "," _ Type)* ","? {return [first, ...rest.map((r:
 TypeVblsApply = "<" _ inner:CommaType _ ">" {return inner}
 EffectVblsApply = "{" _ inner:CommaEffects? _ "}" {return inner || []}
 
-CommaTypeIgnoringNames = (Identifier ":" _)? first:Type rest:(_ "," _ (Identifier ":" _)? Type)* ","? {return [first, ...rest.map((r: any) => r[4])]}
-LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaTypeIgnoringNames? _ ")" _ "="
+TypeWithOptionalName = id:(IdentifierWithoutHash _ ":" _)? type:Type {
+    return {type, id: id ? id[0] : null, location: location()}
+}
+CommaTypeWithNames = first:TypeWithOptionalName rest:(_ "," _ TypeWithOptionalName)* ","? {
+    return [first, ...rest.map((r: any) => r[3])]
+}
+LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaTypeWithNames? _ ")" _ "="
     effects:("{" _ CommaEffects? _ "}")?
 ">" _ res:Type { return {
     type: 'lambda',
@@ -387,6 +392,8 @@ Float "float"
 Int "int"
 	= _ "-"? [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
+IdentifierWithoutHash = text:IdText {
+    return {type: "id", text, location: location(), }}
 Identifier = text:IdText hash:IdHash? {
     return {type: "id", text, location: location(), hash}}
 MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {

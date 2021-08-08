@@ -100,6 +100,10 @@ export const typeLambda = (
             typeVbls,
             effectVbls,
             effects: dedupEffects(effects),
+            argNames: expr.args.map((arg) => ({
+                text: arg.id.text,
+                location: arg.id.location,
+            })),
             args: argst,
             rest: null,
             res: body.is,
