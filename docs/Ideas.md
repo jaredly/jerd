@@ -1,5 +1,13 @@
 # Making things
 
+https://twitter.com/sjpalmer1994
+
+ooh https://twitter.com/BlueAquilae/status/1168095910754160640
+but also all of https://twitter.com/BlueAquilae
+lots of https://twitter.com/creativemaybeno
+this https://twitter.com/redblobgames/status/1401354148239400960
+
+
 https://twitter.com/beesandbombs/status/1394736791954116610
 
 Can I do "shrinking circle pixels"
