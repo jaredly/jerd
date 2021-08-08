@@ -61,6 +61,73 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
                 toplevel.term,
             );
         }
+        case 'Decorator': {
+            return items(
+                [
+                    atom('decorator '),
+                    id(
+                        toplevel.name,
+                        idName(toplevel.id),
+                        'decorator-defn',
+                        toplevel.location,
+                    ),
+                    toplevel.defn.arguments.length ||
+                    (toplevel.defn.restArg && toplevel.defn.restArg.type)
+                        ? args(
+                              toplevel.defn.arguments.map((arg) => {
+                                  return items(
+                                      [
+                                          id(
+                                              arg.argName,
+                                              '',
+                                              'decorator-arg',
+                                              arg.argLocation,
+                                          ),
+                                          ...(arg.type
+                                              ? [
+                                                    atom(': '),
+                                                    typeToPretty(env, arg.type),
+                                                ]
+                                              : []),
+                                      ],
+                                      undefined,
+                                      arg.location,
+                                  );
+                              }),
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              toplevel.defn.restArg
+                                  ? items([
+                                        id(
+                                            toplevel.defn.restArg.argName,
+                                            '',
+                                            'decorator-arg',
+                                            toplevel.defn.restArg.argLocation,
+                                        ),
+                                        ...(toplevel.defn.restArg.type
+                                            ? [
+                                                  atom(': '),
+                                                  typeToPretty(
+                                                      env,
+                                                      toplevel.defn.restArg
+                                                          .type,
+                                                  ),
+                                              ]
+                                            : []),
+                                    ])
+                                  : undefined,
+                          )
+                        : null,
+                    toplevel.defn.targetType
+                        ? typeToPretty(env, toplevel.defn.targetType)
+                        : null,
+                ],
+                undefined,
+                toplevel.location,
+            );
+        }
         case 'Expression':
             return termToPretty(newWithGlobal(env.global), toplevel.term);
         case 'RecordDef': {
@@ -381,6 +448,59 @@ export const termOrLetToPretty = (env: Env, term: Term | Let): PP => {
 };
 
 export const termToPretty = (env: Env, term: Term): PP => {
+    if (term.decorators) {
+        return items(
+            term.decorators
+                .map((decorator) => {
+                    const hash = idName(decorator.name.id);
+                    const defn = env.global.decorators[hash];
+                    const name = env.global.idNames[hash];
+                    const dargs = decorator.args.length
+                        ? args(
+                              decorator.args.map((arg, i) => {
+                                  const name =
+                                      i < defn.arguments.length
+                                          ? id(
+                                                defn.arguments[i].argName,
+                                                '',
+                                                'decorator-arg',
+                                                defn.arguments[i].argLocation,
+                                            )
+                                          : null;
+                                  const t =
+                                      arg.type === 'Term'
+                                          ? termToPretty(env, arg.term)
+                                          : atom('NOT SUPPORTED');
+                                  return name
+                                      ? items([name, atom(': '), t])
+                                      : t;
+                              }),
+                          )
+                        : null;
+                    return items(
+                        [
+                            atom('@'),
+                            id(
+                                name,
+                                hash,
+                                'decorator',
+                                decorator.name.location,
+                            ),
+                            dargs,
+                            atom(' '),
+                        ],
+                        undefined,
+                        decorator.location,
+                    );
+                })
+                .concat([_termToPretty(env, term)]),
+        );
+    }
+
+    return _termToPretty(env, term);
+};
+
+export const _termToPretty = (env: Env, term: Term): PP => {
     switch (term.type) {
         case 'boolean':
             return atom(
@@ -446,7 +566,7 @@ export const termToPretty = (env: Env, term: Term): PP => {
             return items(
                 [
                     term.tags
-                        ? items(term.tags.map((t) => atom(`@${t}`)))
+                        ? items(term.tags.map((t) => atom(`@${t} `)))
                         : null,
                     typeVblDeclsToPretty(env, term.is.typeVbls),
                     term.is.effectVbls.length

@@ -6,7 +6,7 @@
 import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
-import { hashObject, idName } from './typing/env';
+import { hashObject, idName, typeDecoratorDef } from './typing/env';
 import parse, { Toplevel } from './parsing/parser';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
@@ -167,6 +167,8 @@ const processErrors = (fname: string, builtins: { [key: string]: Type }) => {
             env = typeTypeDefn(env, item);
         } else if (item.type === 'EnumDef') {
             env = typeEnumDefn(env, item).env;
+        } else if (item.type === 'DecoratorDef') {
+            env = typeDecoratorDef(env, item).env;
         } else if (item.type === 'Decorated') {
             throw new Error(`Unexpected decorator`);
         } else {

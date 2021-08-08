@@ -19,6 +19,7 @@ import {
     typeEffect,
     idName,
     typeToplevelT,
+    typeDecoratorDef,
 } from '../typing/env';
 
 import { presetEnv } from '../typing/preset';
@@ -57,6 +58,8 @@ export function typeFile(
             env = typeTypeDefn(env, item);
         } else if (item.type === 'EnumDef') {
             env = typeEnumDefn(env, item).env;
+        } else if (item.type === 'DecoratorDef') {
+            env = typeDecoratorDef(env, item).env;
         } else if (item.type === 'Decorated') {
             if (item.wrapped.type === 'define') {
                 const { term, env: nenv, id } = typeDefine(env, item.wrapped);
@@ -70,6 +73,10 @@ export function typeFile(
                     env.global.exportedTerms[item.wrapped.id.text] = id;
                 }
                 continue;
+            }
+
+            if (item.wrapped.type === 'DecoratorDef') {
+                throw new Error(`TODO: Can't decorator decorators just now`);
             }
             if (item.wrapped.type === 'StructDef') {
                 const unique = item.decorators.filter(
@@ -230,6 +237,7 @@ const toplevelExpr = (item: Toplevel): Expression | null => {
         case 'StructDef':
         case 'EnumDef':
         case 'Decorated':
+        case 'DecoratorDef':
             return null;
         default:
             return item;

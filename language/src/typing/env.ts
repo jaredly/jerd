@@ -2,6 +2,7 @@
 
 import hashObjectSum from 'hash-sum';
 import {
+    DecoratorDef,
     Define,
     Effect,
     EnumDef,
@@ -19,6 +20,7 @@ import {
     EffectRef,
     Env,
     getAllSubTypes,
+    DecoratorDef as TypedDecoratorDef,
     getEffects,
     GlobalEnv,
     Id,
@@ -37,6 +39,8 @@ import {
     selfEnv,
     newLocal,
     UserTypeReference,
+    newWithGlobal,
+    nullLocation,
 } from './types';
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
@@ -51,6 +55,13 @@ export type ToplevelT =
           location: Location;
           name: string;
           constrNames: Array<string>;
+      }
+    | {
+          type: 'Decorator';
+          id: Id;
+          name: string;
+          location: Location;
+          defn: TypedDecoratorDef;
       }
     | { type: 'Expression'; term: Term; location: Location }
     | {
@@ -92,6 +103,8 @@ export const addToplevelToEnv = (
             return addEffect(env, top.name, top.constrNames, top.effect);
         case 'EnumDef':
             return addEnum(env, top.name, top.def);
+        case 'Decorator':
+            return addDecoratorToEnv(env, top.name, top.defn);
         default:
             const _x: never = top;
             throw new Error(`Unexpected toplevel type`);
@@ -191,6 +204,16 @@ export const typeToplevelT = (
                 constrNames: item.constrs.map((c) => c.id.text),
             };
         }
+        case 'DecoratorDef':
+            const defn = typeDecoratorInner(env, item);
+            const hash = hashObject(defn);
+            return {
+                type: 'Decorator',
+                defn,
+                id: idFromName(hash),
+                location: item.location,
+                name: item.id.text,
+            };
         default:
             const term = typeExpr(env, item as Expression);
             return {
@@ -274,7 +297,7 @@ export const addEffect = (
     const glob = cloneGlobalEnv(env.global);
     // addToMap(glob.effectNames, name, id);
     if (glob.effectNames[name]) {
-        glob.effectNames[name].unshift(idName(id));
+        // glob.effectNames[name].unshift(idName(id));
         glob.effectNames[name] = [idName(id)].concat(glob.effectNames[name]);
     } else {
         glob.effectNames[name] = [idName(id)];
@@ -289,6 +312,50 @@ export const addEffect = (
     });
     glob.effects[hash] = defn.constrs;
     return { env: { ...env, global: glob }, id };
+};
+
+export const addDecoratorToEnv = (
+    env: Env,
+    name: string,
+    defn: TypedDecoratorDef,
+): { id: Id; env: Env } => {
+    env = newWithGlobal(env.global);
+    const hash = hashObject(defn);
+
+    const id = idFromName(hash);
+    if (env.global.decoratorNames[name]) {
+        env.global.decoratorNames[name] = [id].concat(
+            env.global.decoratorNames[name],
+        );
+    } else {
+        env.global.decoratorNames[name] = [id];
+    }
+    env.global.decorators[idName(id)] = defn;
+    env.global.idNames[idName(id)] = name;
+    return { env, id };
+};
+
+export const typeDecoratorInner = (env: Env, item: DecoratorDef) => {
+    const d: TypedDecoratorDef = {
+        location: item.location,
+        targetType: null, // TODO validate!
+        arguments: [], // TODO all of this!
+        restArg: {
+            argLocation: nullLocation,
+            argName: 'args',
+            location: nullLocation,
+            type: null,
+        },
+    };
+
+    return d;
+};
+
+export const typeDecoratorDef = (
+    env: Env,
+    item: DecoratorDef,
+): { id: Id; env: Env } => {
+    return addDecoratorToEnv(env, item.id.text, typeDecoratorInner(env, item));
 };
 
 export const typeTypeDefn = (
@@ -563,6 +630,8 @@ export const withoutLocations = <T>(obj: T): T => {
                 key === 'location' ||
                 key === 'idLocation' ||
                 key === 'idLocations' ||
+                key === 'argLocation' ||
+                key === 'argName' ||
                 key === 'argNames'
             ) {
                 return;

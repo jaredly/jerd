@@ -31,7 +31,10 @@ export const typeDecorators = (
             }
             id = ids[0];
             const decl = env.global.decorators[idName(id)];
-            if (decl.arguments) {
+            if (
+                decl.arguments.length ||
+                (decl.restArg && decl.restArg.type !== null)
+            ) {
                 throw new Error(`arg validation not there yet`);
             }
             if (decl.targetType) {

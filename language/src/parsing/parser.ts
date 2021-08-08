@@ -6,6 +6,7 @@ export type Toplevel =
     | Expression
     | StructDef
     | EnumDef
+    | DecoratorDef
     | Decorated;
 
 export type Decorated = {
@@ -51,6 +52,14 @@ export type StructDef = {
     id: Identifier;
     typeVbls: Array<TypeVbl>;
     decl: TypeDecl;
+};
+
+export type DecoratorDef = {
+    type: 'DecoratorDef';
+    id: Identifier;
+    args: Array<Type>;
+    targetType: Type | null;
+    location: Location;
 };
 
 export type EnumDef = {

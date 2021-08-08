@@ -49,6 +49,7 @@ export const transformToplevel = <Ctx>(
         // TODO when I add types, I'll need to handle this
         case 'EnumDef':
         case 'RecordDef':
+        case 'Decorator':
         case 'Effect': {
             return t;
         }

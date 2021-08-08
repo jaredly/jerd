@@ -18,7 +18,7 @@ DecoratedToplevel = decorators:(Decorator _)* top:Toplevel {
     } : top
 }
 
-Toplevel = StructDef / EnumDef / Effect / Statement
+Toplevel = StructDef / EnumDef / Effect / DecoratorDef / Statement
 
 Statement = Define / Expression
 
@@ -91,7 +91,25 @@ RecordSpread = "..." constr:Identifier {return {type: 'Spread', constr}}
 RecordItem = id:IdTextOrString _ ":" _ type:Type {return {type: 'Row', id: id.type === 'string' ? id.text : id, rtype: type}}
 
 
+DecoratorDef = "decorator " id:Identifier args:("("
+    DecDefArgs?
+")")? targetType:(__ Type)? {
+    return {
+        type: 'DecoratorDef',
+        id,
+        args,
+        targetType,
+        location: location(),
+    }
+}
 
+DecDefArgs = first:DecDefArg rest:(_ "," _ DecDefArg)* {
+    return [first].concat(rest.map((r: any) => r[3]))
+}
+
+DecDefArg = id:IdentifierWithoutHash _ ":" _ type:Type {
+    return {id, type, location: location()}
+}
 
 
 // ===== Expressions ======
@@ -115,7 +133,7 @@ WithUnary = op:UnaryOp? inner:WithSuffix {
 }
 UnaryOp = "-" / "!"
 // Apply / Attribute access
-WithSuffix = decorators:(Decorator _)* sub:Apsub suffixes:Suffix* {
+WithSuffix = decorators:(Decorator __)* sub:Apsub suffixes:Suffix* {
 	const main = suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
     if (decorators.length) {
         return {type: 'Decorated', wrapped: main, decorators: decorators.map((d: any) => d[0])}

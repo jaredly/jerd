@@ -25,6 +25,7 @@ export const args = (
     right = ')',
     trailing = true,
     loc?: Location,
+    rest?: PP,
 ): PP => ({
     type: 'args',
     contents,
@@ -32,6 +33,7 @@ export const args = (
     right,
     trailing,
     loc,
+    rest,
 });
 export const block = (
     contents: Array<PP>,
@@ -87,6 +89,7 @@ export type PP =
           right: string;
           trailing: boolean;
           loc?: Location;
+          rest?: PP;
       } // surrounded by ()
     | {
           type: 'items';

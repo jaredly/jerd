@@ -85,6 +85,9 @@ export type GlobalEnv = {
     exportedTerms: { [humanName: string]: Id };
     metaData: {
         [idName: string]: {
+            /**
+             * @deprecated this attribute is deprecated
+             */
             tags: Array<string>;
             author?: string;
             supersedes?: string;
@@ -123,13 +126,25 @@ export type GlobalEnv = {
 
     decoratorNames: { [humanName: string]: Array<Id> };
     decorators: {
-        [idName: string]: {
-            arguments: Array<{
-                // hmm
-            }>;
-            targetType: string;
-        };
+        [idName: string]: DecoratorDef;
     };
+};
+
+export type DecoratorDef = {
+    arguments: Array<{
+        argLocation: Location;
+        argName: string;
+        location: Location;
+        type: Type | null;
+    }>;
+    restArg: {
+        argLocation: Location;
+        argName: string;
+        location: Location;
+        type: Type | null;
+    } | null;
+    targetType: Type | null;
+    location: Location;
 };
 
 export type Self =
@@ -701,6 +716,9 @@ export type Lambda = {
     idLocations: Array<Location>;
     body: Term;
     is: LambdaType;
+    /**
+     * @deprecated this field is deprecated
+     */
     tags?: Array<string>;
     decorators?: Decorators;
 };

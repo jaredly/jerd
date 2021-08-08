@@ -585,11 +585,11 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
         }
         case 'Decorated': {
             const inner = typeExpr(env, expr.wrapped);
-            if (inner.type === 'lambda') {
-                inner.tags = expr.decorators.map((d) => d.id.text);
-            } else {
-                inner.decorators = typeDecorators(env, expr.decorators, inner);
-            }
+            // if (inner.type === 'lambda') {
+            //     inner.tags = expr.decorators.map((d) => d.id.text);
+            // } else {
+            inner.decorators = typeDecorators(env, expr.decorators, inner);
+            // }
             return inner;
         }
         case 'Unary': {

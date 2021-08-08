@@ -596,7 +596,12 @@ const rec reduce = <T, R>(items: Array<T>, initial: R, fn: (current: R, item: T)
 // decorator hsl Constant#builtin<Vec3>
 // decorator hsla Constant#builtin<Vec4>
 
+// decorator buffer(num: Constant#builtin<int>) (env: GLSLEnv, pos: Vec2, ...buffer: sampler2d) => Vec4
+// decorator main (env: GLSLEnv, pos: Vec2, ...buffer: sampler2d) => Vec4
+
 // ok I really need to figure out how to parse namespacing thoughhhh
 // should I take a point from ocaml?
 // idk
 
+// @buffer(0)
+// @main

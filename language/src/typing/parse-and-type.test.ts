@@ -139,13 +139,14 @@ describe('expression types', () => {
         ));
 
     it('decorator', () =>
-        // what the heck
-        // what the heck
         expect(
-            process(`const res = (2 + @what () => 20)`),
-        ).toMatchInlineSnapshot(
-            `"const res#351a0a77 = 2 +#builtin @what(): int#builtin ={}> 20"`,
-        ));
+            process(`
+            decorator what;
+            const res = (2 + @what () => 20)`),
+        ).toMatchInlineSnapshot(`
+            "decorator what#4973c66d;
+            const res#37185e50 = 2 +#builtin @what#4973c66d (): int#builtin ={}> 20"
+        `));
 
     it('apply suffix', () =>
         expect(
@@ -415,6 +416,33 @@ describe('Decorators', () => {
     it('a bunch of them', () => {
         expect(
             process(`
+            // ooh fun we can do type checking! That is cool
+            // like yeah why not
+            // ok
+            // but you can also do like "anything its fine"
+            // ok yeah backing up
+            // What will a macro have access to?
+            // - arguments are fully typed, part of the typed tree, not the ast
+            // - but it could be a Term
+            // it'll be literally the type DecArg I think
+            // ok but when I have macros, I'll need a full method
+            // to verify a typedtree, make sure nothing got weird.
+            // hmmmmmmm it might be nice to be able to specify
+            // the kind of thing that the decorator should decorate
+            // like RecordAttribute or Expr
+            // hmm
+
+        decorator alternates<T>(options: Array<(Constant#builtin<string>, T)>) T;
+        decorator slider(min: Constant#builtin<int>, max: Constant#builtin<int>, step: Constant#builtin<int>) Constant#builtin<int>
+        decorator slider(min: Constant#builtin<float>, max: Constant#builtin<float>, step: Constant#builtin<float>) Constant#builtin<float>
+        decorator slider(min: Constant#builtin<Vec2>, max: Constant#builtin<Vec2>) Constant#builtin<Vec2>
+        decorator rgb Constant#builtin<Vec3>
+        decorator rgba Constant#builtin<Vec4>
+        decorator hsl Constant#builtin<Vec3>
+        decorator hsla Constant#builtin<Vec4>
+
+        decorator some(string, :, ?) int;
+        decorator something _; // or #expr or #pattern or #type or #attribute-name or something
         type Person = {name: string, age: int}
         const decorator = @some(
             "hello",
