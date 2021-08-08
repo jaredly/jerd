@@ -68,6 +68,7 @@ export type Props = {
     onPin: (display: Display, id: Id) => void;
     onChange: (toplevel: ToplevelT) => void;
     onPending: (term: Term) => void;
+    onClick: () => void;
 };
 
 // const;
@@ -86,6 +87,7 @@ const RenderItem_ = ({
     maxWidth,
     selection,
     setSelection,
+    onClick: onClick_,
 
     onSetPlugin,
     onChange,
@@ -208,7 +210,7 @@ const RenderItem_ = ({
     // console.log('SEL', selection);
 
     return (
-        <div css={{ position: 'relative' }}>
+        <div css={{ position: 'relative' }} onClick={() => onClick_()}>
             <div
                 style={{
                     fontFamily: '"Source Code Pro", monospace',

@@ -254,6 +254,10 @@ const CellView_ = ({
                 onFocus={(direction?: 'up' | 'down') => {
                     onFocus(cell.id, direction);
                 }}
+                onClick={() => {
+                    setSelection((s) => ({ ...s, level: 'outer' }));
+                    onFocus(cell.id);
+                }}
                 onPending={(pending) => {
                     if (cell.content.type === 'term') {
                         const id = idFromName(hashObject(pending));

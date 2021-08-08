@@ -445,14 +445,7 @@ export const OpenGLCanvas = ({
     }, [updateFn, playState, restartCount]);
 
     return (
-        <div
-            onMouseDown={(evt) => {
-                evt.stopPropagation();
-            }}
-            onClick={(evt) => {
-                evt.stopPropagation();
-            }}
-        >
+        <div>
             <div
                 css={{
                     position: 'relative',

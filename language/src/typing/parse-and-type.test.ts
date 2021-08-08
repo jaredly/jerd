@@ -112,10 +112,10 @@ describe('type descriptions', () => {
             }
         `),
         ).toMatchInlineSnapshot(`
-            "type Something#bdf2c414<T#:0, T#:1> = {
+            "type Something#bdf2c414<A#:0, B#:1> = {
                 one: A#:0,
                 two: B#:1,
-                three: <T#:2, T#:3>(name: C#:2, age: D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
+                three: <C#:2, D#:3>(name: C#:2, age: D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
             }"
         `);
     });
