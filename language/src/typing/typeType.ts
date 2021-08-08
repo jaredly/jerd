@@ -12,6 +12,7 @@ import { Env, Symbol, subEnv, Type, Id, nullLocation } from './types';
 import { showLocation } from './typeExpr';
 import { idFromName, idName, resolveEffect, symPrefix } from './env';
 import { LocatedError } from './errors';
+import { args } from '../printing/printer';
 
 export const walkType = (
     term: Type,
@@ -42,7 +43,9 @@ export const walkType = (
                 effectVbls: term.effectVbls.slice(),
                 location: term.location,
                 args: newArgs,
-                argNames: term.argNames.slice(),
+                argNames: term.argNames
+                    ? term.argNames.slice()
+                    : newArgs.map((_) => null),
                 effects: term.effects, // STOPSHIP bring them in
                 res: newres || term.res,
                 rest: null, // STOPSHIP handle rest

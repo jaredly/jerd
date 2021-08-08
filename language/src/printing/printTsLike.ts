@@ -324,7 +324,7 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
                     args(
                         type.args.map((t, i) => {
                             const res = typeToPretty(env, t);
-                            const arg = type.argNames[i];
+                            const arg = type.argNames ? type.argNames[i] : null;
                             if (arg) {
                                 return items([
                                     id(arg.text, '', 'argName', arg.location),

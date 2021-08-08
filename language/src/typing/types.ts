@@ -852,7 +852,7 @@ export type LambdaType = {
     // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
     // TODO modular implicits!
-    argNames: Array<null | { text: string; location: Location }>;
+    argNames?: Array<null | { text: string; location: Location }>;
     args: Array<Type>;
     effects: Array<EffectRef>;
     rest: Type | null;
