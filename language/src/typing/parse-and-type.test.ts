@@ -202,6 +202,7 @@ describe('expression types', () => {
                 m / 1
             };
             const c = (a: int, b: float) => (a, b);
+            const m = (fn: (one: int, two: float) => string) => 10;
     `),
         ).toMatchInlineSnapshot(`
             "const a#9dacbedc = (): int#builtin ={}> 23;
@@ -212,7 +213,8 @@ describe('expression types', () => {
             const c#bdfd33b0 = (a#:0: int#builtin, b#:1: float#builtin): Tuple2#builtin<
                 int#builtin,
                 float#builtin,
-            > ={}> (a#:0, b#:1)"
+            > ={}> (a#:0, b#:1);
+            const m#4fb5f0cc = (fn#:0: (int#builtin, float#builtin) ={}> string#builtin): int#builtin ={}> 10"
         `));
 
     it('blocks', () =>
