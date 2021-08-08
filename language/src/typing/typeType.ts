@@ -1,6 +1,7 @@
 import {
     Identifier,
     LambdaType,
+    Location,
     Type as ParseType,
     TypeVbl,
 } from '../parsing/parser';
@@ -272,7 +273,12 @@ export const newEnvWithTypeAndEffectVbls = (
     // });
 
     const typeInner = subEnv(env);
-    const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
+    const typeVbls: Array<{
+        unique: number;
+        subTypes: Array<Id>;
+        name: string;
+        location: Location;
+    }> = [];
     typevbls.forEach(({ id, subTypes }) => {
         // console.log(id.hash);
         const unique = parseUnique(
@@ -295,7 +301,12 @@ export const newEnvWithTypeAndEffectVbls = (
         });
         typeInner.local.typeVbls[sym.unique] = { subTypes: st };
         typeInner.local.typeVblNames[id.text] = sym;
-        typeVbls.push({ unique: sym.unique, subTypes: st });
+        typeVbls.push({
+            unique: sym.unique,
+            subTypes: st,
+            name: id.text,
+            location: id.location,
+        });
     });
     const effectVbls: Array<number> = [];
     effvbls.forEach((id) => {

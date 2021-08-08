@@ -840,7 +840,13 @@ export type Kind =
     | { type: 'concrete' }
     | { type: 'lambda'; arg: Kind; reult: Kind };
 
-export type TypeVblDecl = { subTypes: Array<Id>; unique: number };
+export type TypeVblDecl = {
+    subTypes: Array<Id>;
+    unique: number;
+    // TODO: make these required
+    name?: string;
+    location?: Location;
+};
 
 export type LambdaType = {
     type: 'lambda';
@@ -849,7 +855,6 @@ export type LambdaType = {
     // we don't have to be order dependent here.
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
-    // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
     // TODO modular implicits!
     // TODO: Make this required, this is just for backwards compat

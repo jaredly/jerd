@@ -268,9 +268,14 @@ export const typeVblDeclsToPretty = (
         return null;
     }
     return args(
-        typeVbls.map((v) =>
+        typeVbls.map((v, i) =>
             items([
-                idPretty('T', ':' + v.unique.toString(), 'sym'),
+                idPretty(
+                    v.name || `T${i}`,
+                    ':' + v.unique.toString(),
+                    'sym',
+                    v.location,
+                ),
                 // atom('T_' + v.unique.toString()),
                 v.subTypes.length
                     ? items([

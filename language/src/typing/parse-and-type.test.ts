@@ -108,9 +108,16 @@ describe('type descriptions', () => {
             type Something<A, B> = {
                 one: A,
                 two: B,
+                three: <C, D>(name: C, age: D) => (C, D)
             }
         `),
-        ).toMatchInlineSnapshot();
+        ).toMatchInlineSnapshot(`
+            "type Something#bdf2c414<T#:0, T#:1> = {
+                one: A#:0,
+                two: B#:1,
+                three: <T#:2, T#:3>(name: C#:2, age: D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
+            }"
+        `);
     });
 });
 
