@@ -214,7 +214,7 @@ describe('expression types', () => {
                 int#builtin,
                 float#builtin,
             > ={}> (a#:0, b#:1);
-            const m#4fb5f0cc = (fn#:0: (int#builtin, float#builtin) ={}> string#builtin): int#builtin ={}> 10"
+            const m#4fb5f0cc = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10"
         `));
 
     it('blocks', () =>
@@ -281,8 +281,8 @@ describe('expression types', () => {
                 write: (string#builtin) => void#builtin,
             };
             const respondWith#1fb7cba0 = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
-                T#:0,
-                () ={Stdio#1da337a2, e#:0}> T#:0,
+                default: T#:0,
+                fn: () ={Stdio#1da337a2, e#:0}> T#:0,
             ) ={e#:0}> T#:0 ={}> <T#:0>{e#:0}(default#:1: T#:0, fn#:2: () ={Stdio#1da337a2, e#:0}> T#:0): T#:0 ={
                 e#:0,
             }> {

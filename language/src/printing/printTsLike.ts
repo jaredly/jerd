@@ -321,7 +321,20 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
                               '}',
                           )
                         : null,
-                    args(type.args.map((t) => typeToPretty(env, t))),
+                    args(
+                        type.args.map((t, i) => {
+                            const res = typeToPretty(env, t);
+                            const arg = type.argNames[i];
+                            if (arg) {
+                                return items([
+                                    id(arg.text, '', 'argName', arg.location),
+                                    atom(': '),
+                                    res,
+                                ]);
+                            }
+                            return res;
+                        }),
+                    ),
                     atom(' ='),
                     args(
                         type.effects.map((t) => effToPretty(env, t)),
