@@ -408,7 +408,7 @@ OpHash = ("#" [0-9a-zA-Z]+)+ {return text()}
 BuiltinHash = "#" "builtin" {return text()}
 
 newline = "\n"
-nonnewline = [ \t\r]*
+nonnewline = [ \t\r]* (comment [ \t\r]*)*
 _ "whitespace"
   = [ \t\n\r]* (comment _)*
 __ "whitespace"

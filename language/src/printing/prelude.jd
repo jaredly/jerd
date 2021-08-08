@@ -371,7 +371,7 @@ const random = (st: Vec2) => {
     fract(sin(dot(st, Vec2{x: 12.9898, y: 78.233})) * 43758.5453123);
 }
 
-const PHI = 1.61803398874989484820459  // Φ = Golden Ratio   
+const PHI = 1.61803398874989484820459;  // Φ = Golden Ratio   
 
 const random3 = (xy: Vec2, seed: float) => {
     fract(tan(distance(xy * PHI, xy) * seed) * xy.x);

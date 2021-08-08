@@ -852,6 +852,7 @@ export type LambdaType = {
     // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
     // TODO modular implicits!
+    // TODO: Make this required, this is just for backwards compat
     argNames?: Array<null | { text: string; location: Location }>;
     args: Array<Type>;
     effects: Array<EffectRef>;

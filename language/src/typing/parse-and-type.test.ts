@@ -101,6 +101,19 @@ describe('basic toplevels', () => {
         `));
 });
 
+describe('type descriptions', () => {
+    it('type variables', () => {
+        expect(
+            process(`
+            type Something<A, B> = {
+                one: A,
+                two: B,
+            }
+        `),
+        ).toMatchInlineSnapshot();
+    });
+});
+
 describe('expression types', () => {
     it('unary expr', () =>
         expect(
