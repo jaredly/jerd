@@ -351,10 +351,10 @@ describe('expression types', () => {
                 _ => false
             };
             type Person = {name: string, age: int};
-            type Company = {name: string, people: Array<Person>};
+            type Company = {name: string, people: Array<Person>, ages: (int, float)};
             enum Companies { Company }
             const b = (m: Companies) => switch m {
-                Company{name: "hello"} => false,
+                Company{name: "hello", ages: (_, 23.0)} => false,
                 Company{name: "things", people: []} => true,
                 Company{people: [Person{name: "yes"}, ..._]} => true,
                 Company{people: [..._, Person{name: _, age: 23}]} => false,
@@ -368,22 +368,23 @@ describe('expression types', () => {
                 name: string#builtin,
                 age: int#builtin,
             };
-            type Company#9bf2090c = {
+            type Company#33117eac = {
                 name: string#builtin,
                 people: Array#builtin<Person#28ac4660>,
+                ages: Tuple2#builtin<int#builtin, float#builtin>,
             };
-            enum Companies#38583fa6 {
-                Company#9bf2090c,
+            enum Companies#5e7cafb2 {
+                Company#33117eac,
             };
-            const b#0b36ed6a = (m#:0: Companies#38583fa6): bool#builtin ={}> switch m#:0 {
-                Company#9bf2090c{name: \\"hello\\"} => false,
-                Company#9bf2090c{name: \\"things\\", people: []} => true,
-                Company#9bf2090c{people: [Person#28ac4660{name: \\"yes\\"}, ..._#:1]} => true,
-                Company#9bf2090c{people: [..._#:2, Person#28ac4660{name: _#:3, age: 23}]} => false,
-                Company#9bf2090c{
-                    people: [Person#28ac4660{name: \\"start\\"}, ..._#:4, Person#28ac4660{name: \\"end\\"}],
+            const b#36e0d6ad = (m#:0: Companies#5e7cafb2): bool#builtin ={}> switch m#:0 {
+                Company#33117eac{name: \\"hello\\", ages: (_#:1, 23.0)} => false,
+                Company#33117eac{name: \\"things\\", people: []} => true,
+                Company#33117eac{people: [Person#28ac4660{name: \\"yes\\"}, ..._#:2]} => true,
+                Company#33117eac{people: [..._#:3, Person#28ac4660{name: _#:4, age: 23}]} => false,
+                Company#33117eac{
+                    people: [Person#28ac4660{name: \\"start\\"}, ..._#:5, Person#28ac4660{name: \\"end\\"}],
                 } => true,
-                _#:5 => true,
+                _#:6 => true,
             }"
         `));
 });

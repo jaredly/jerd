@@ -71,6 +71,14 @@ const typeType = (
         return expectedType ? expectedType : newTypeVbl(env);
     }
     switch (type.type) {
+        case 'tuple': {
+            return {
+                type: 'ref',
+                ref: { type: 'builtin', name: `Tuple${type.items.length}` },
+                typeVbls: type.items.map((t) => typeType(env, t)),
+                location: type.location,
+            };
+        }
         case 'TypeRef': {
             const typeVbls = type.typeVbls
                 ? type.typeVbls.map((t) => typeType(env, t))
@@ -226,6 +234,9 @@ const typeType = (
                 rest: null,
             };
         }
+        default:
+            const _x: never = type;
+            throw new Error(`Unexpected Type ${(type as any).type}`);
     }
 };
 

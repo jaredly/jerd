@@ -298,7 +298,12 @@ export type Lambda = {
     rettype: Type | null;
     body: Expression;
 };
-export type Type = TypeRef | LambdaType;
+export type Type = TypeRef | LambdaType | TupleType;
+export type TupleType = {
+    type: 'tuple';
+    items: Array<Type>;
+    location: Location;
+};
 export type TypeRef = {
     type: 'TypeRef';
     id: Identifier;
