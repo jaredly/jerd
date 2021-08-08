@@ -279,6 +279,7 @@ export type Case = {
     args: Array<{ sym: Symbol; type: Type }>;
     k: { sym: Symbol; type: Type };
     body: Term;
+    decorators?: Decorators;
 };
 
 export type EffectReference = {
@@ -303,6 +304,7 @@ export type Handle = {
     // this is the type of the bodies of the cases
     // also of the pure, which is maybe simplest
     is: Type;
+    decorators?: Decorators;
 };
 export type Raise = {
     type: 'raise';
@@ -311,6 +313,7 @@ export type Raise = {
     idx: number;
     args: Array<Term>;
     is: Type;
+    decorators?: Decorators;
 };
 
 export type CPSAble =
@@ -323,6 +326,7 @@ export type CPSAble =
           yes: Term;
           no: Term | null;
           is: Type;
+          decorators?: Decorators;
       }
     | Sequence
     | Apply;
@@ -331,6 +335,7 @@ export type Sequence = {
     location: Location;
     sts: Array<Term | Let>;
     is: Type;
+    decorators?: Decorators;
 };
 export type Apply = {
     type: 'apply';
@@ -341,6 +346,7 @@ export type Apply = {
     hadAllVariableEffects?: boolean;
     args: Array<Term>;
     is: Type; // this matches the return type of target
+    decorators?: Decorators;
 };
 
 // This doesn't do type checking
@@ -366,6 +372,7 @@ export type Let = {
     binding: Symbol; // TODO patterns folks
     value: Term;
     is: Type;
+    decorators?: Decorators;
 };
 
 export type Var = {
@@ -373,6 +380,7 @@ export type Var = {
     location: Location;
     sym: Symbol;
     is: Type;
+    decorators?: Decorators;
 };
 
 export const getAllSubTypes = (
@@ -413,6 +421,7 @@ export type Record = {
         };
     };
     location: Location;
+    decorators?: Decorators;
 };
 
 export type ArrayLiteral = {
@@ -420,12 +429,14 @@ export type ArrayLiteral = {
     location: Location;
     items: Array<Term | ArraySpread>;
     is: TypeReference;
+    decorators?: Decorators;
 };
 
 export type ArraySpread = {
     type: 'ArraySpread';
     value: Term;
     location: Location;
+    decorators?: Decorators;
 };
 
 // This is basically a type coersion? well not when we have to deal with unions explicitly
@@ -434,6 +445,7 @@ export type Enum = {
     inner: Term;
     is: TypeReference;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type Switch = {
@@ -442,12 +454,14 @@ export type Switch = {
     cases: Array<SwitchCase>;
     is: Type;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type SwitchCase = {
     location: Location;
     pattern: Pattern;
     body: Term;
+    decorators?: Decorators;
 };
 
 export type Pattern =
@@ -462,23 +476,27 @@ export type Binding = {
     type: 'Binding';
     sym: Symbol;
     location: Location;
+    decorators?: Decorators;
 };
 export type AliasPattern = {
     type: 'Alias';
     name: Symbol;
     inner: Pattern;
     location: Location;
+    decorators?: Decorators;
 };
 export type EnumPattern = {
     type: 'Enum';
     ref: TypeReference;
     location: Location;
+    decorators?: Decorators;
 };
 export type RecordPattern = {
     type: 'Record';
     ref: TypeReference;
     items: Array<RecordPatternItem>;
     location: Location;
+    decorators?: Decorators;
 };
 export type RecordPatternItem = {
     // sym: Symbol;
@@ -487,6 +505,7 @@ export type RecordPatternItem = {
     location: Location;
     pattern: Pattern;
     is: Type;
+    decorators?: Decorators;
 };
 export type ArrayPattern = {
     type: 'Array';
@@ -500,11 +519,13 @@ export type ArrayPattern = {
     postItems: Array<Pattern>;
     location: Location;
     is: Type;
+    decorators?: Decorators;
 };
 export type TuplePattern = {
     type: 'Tuple';
     items: Array<Pattern>;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type Unary = {
@@ -513,6 +534,7 @@ export type Unary = {
     inner: Term;
     location: Location;
     is: Type;
+    decorators?: Decorators;
 };
 
 export type TypeError = {
@@ -520,6 +542,7 @@ export type TypeError = {
     is: Type; // this is the type that was needed
     inner: Term; // this has the type that was found
     location: Location;
+    decorators?: Decorators;
 };
 
 export type Ambiguous = {
@@ -527,15 +550,47 @@ export type Ambiguous = {
     options: Array<Term>;
     is: AmbiguousType;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type ErrorTerm = Ambiguous | TypeError;
+
+// some-term
+// : some-type
+// = some-pattern
+export type Decorator = {
+    name: string;
+    location: Location;
+    args: Array<DecoratorArg>;
+};
+export type DecoratorArg =
+    | {
+          type: 'Term';
+          term: Term;
+      }
+    | { type: 'Type'; contents: Type }
+    | { type: 'Pattern'; pattern: Pattern };
+
+export type Decorators = Array<Decorator>;
+
+// Term assertions
+(t: Term, p: Pattern, y: Type) => {
+    let tl: Location = t.location;
+    let tt: Type = t.is;
+    let td: undefined | Decorators = t.decorators;
+
+    let p_: Location = p.location;
+    let pd: undefined | Decorators = p.decorators;
+
+    let yl: Location = y.location;
+    let yd: undefined | Decorators = y.decorators;
+};
 
 export type Term =
     | ErrorTerm
     | CPSAble
     | Unary
-    | { type: 'self'; is: Type; location: Location }
+    | { type: 'self'; is: Type; location: Location; decorators?: Decorators }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
     | Record
@@ -547,36 +602,43 @@ export type Term =
           args: Array<Term>;
           is: Type;
           location: Location;
+          decorators?: Decorators;
       }
     | ArrayLiteral
     | TupleLiteral
     | TupleAccess
-    | {
-          type: 'Attribute';
-          target: Term;
-          ref: Reference;
-          idx: number;
-          // Shouldn't impact hash
-          inferred: boolean;
-          location: Location;
-          idLocation: Location;
-          is: Type;
-      }
-    | {
-          type: 'ref';
-          location: Location;
-          ref: Reference;
-          is: Type;
-      }
+    | Attribute
+    | Ref
     | Var
     | Literal
     | Lambda;
+
+export type Ref = {
+    type: 'ref';
+    location: Location;
+    ref: Reference;
+    is: Type;
+    decorators?: Decorators;
+};
+export type Attribute = {
+    type: 'Attribute';
+    target: Term;
+    ref: Reference;
+    idx: number;
+    // Shouldn't impact hash
+    inferred: boolean;
+    location: Location;
+    idLocation: Location;
+    is: Type;
+    decorators?: Decorators;
+};
 
 export type TupleLiteral = {
     type: 'Tuple';
     is: TypeReference;
     items: Array<Term>;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type TupleAccess = {
@@ -585,6 +647,7 @@ export type TupleAccess = {
     target: Term;
     idx: number;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type Literal = String | Float | Int | Boolean;
@@ -593,24 +656,28 @@ export type Float = {
     location: Location;
     value: number;
     is: Type;
+    decorators?: Decorators;
 };
 export type Int = {
     type: 'int';
     location: Location;
     value: number;
     is: Type;
+    decorators?: Decorators;
 };
 export type String = {
     type: 'string';
     text: string;
     is: Type;
     location: Location;
+    decorators?: Decorators;
 };
 export type Boolean = {
     type: 'boolean';
     value: boolean;
     is: Type;
     location: Location;
+    decorators?: Decorators;
 };
 export type Lambda = {
     type: 'lambda';
@@ -620,6 +687,7 @@ export type Lambda = {
     body: Term;
     is: LambdaType;
     tags?: Array<string>;
+    decorators?: Decorators;
 };
 
 // from thih
@@ -655,6 +723,7 @@ export type EnumDef = {
     effectVbls: Array<number>;
     extends: Array<UserTypeReference>;
     items: Array<UserTypeReference>;
+    decorators?: Decorators;
 };
 
 export type TypeDef = RecordDef | EnumDef;
@@ -667,6 +736,7 @@ export type RecordDef = {
     extends: Array<Id>;
     items: Array<Type>;
     ffi: { tag: string; names: Array<string> } | null;
+    decorators?: Decorators;
 };
 
 // | {
@@ -812,6 +882,7 @@ export type UserTypeReference = {
     ref: UserReference;
     location: Location;
     typeVbls: Array<Type>;
+    decorators?: Decorators;
     // effectVbls: Array<EffectRef>;
 };
 export type TypeReference = {
@@ -819,6 +890,7 @@ export type TypeReference = {
     ref: Reference;
     location: Location;
     typeVbls: Array<Type>;
+    decorators?: Decorators;
     // effectVbls: Array<EffectRef>;
 };
 export type TypeRef = UserTypeReference | TypeReference | TypeVar; // will also support vbls at some point I guess
@@ -827,9 +899,14 @@ export type TypeVar = {
     type: 'var';
     sym: Symbol;
     location: Location;
+    decorators?: Decorators;
 };
 
-export type AmbiguousType = { type: 'Ambiguous'; location: Location };
+export type AmbiguousType = {
+    type: 'Ambiguous';
+    location: Location;
+    decorators?: Decorators;
+};
 export type Type = TypeRef | LambdaType | AmbiguousType;
 
 // Here's the basics folks
@@ -846,6 +923,7 @@ export type TypeVblDecl = {
     // TODO: make these required
     name?: string;
     location?: Location;
+    decorators?: Decorators;
 };
 
 export type LambdaType = {
@@ -863,17 +941,20 @@ export type LambdaType = {
     effects: Array<EffectRef>;
     rest: Type | null;
     res: Type;
+    decorators?: Decorators;
 };
 
 export type RecordRow = {
     id: Identifier;
     type: Type;
+    decorators?: Decorators;
 };
 
 export type RecordType = {
     type: 'Record';
     items: Array<RecordRow>;
     extends: Array<Reference>;
+    decorators?: Decorators;
 };
 
 export type TypeConstraint =
@@ -887,6 +968,7 @@ export type EffectDef = {
     type: 'EffectDef';
     constrs: Array<{ args: Array<Type>; ret: Type }>;
     location: Location;
+    decorators?: Decorators;
 };
 
 const emptyEffects: Array<EffectRef> = [];
