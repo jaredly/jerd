@@ -121,7 +121,10 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
                           )
                         : null,
                     toplevel.defn.targetType
-                        ? typeToPretty(env, toplevel.defn.targetType)
+                        ? items([
+                              atom(' '),
+                              typeToPretty(env, toplevel.defn.targetType),
+                          ])
                         : null,
                 ],
                 undefined,

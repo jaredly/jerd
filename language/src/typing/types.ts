@@ -130,13 +130,15 @@ export type GlobalEnv = {
     };
 };
 
+export type DecoratorDefArg = {
+    argLocation: Location;
+    argName: string;
+    location: Location;
+    type: Type | null;
+};
 export type DecoratorDef = {
-    arguments: Array<{
-        argLocation: Location;
-        argName: string;
-        location: Location;
-        type: Type | null;
-    }>;
+    arguments: Array<DecoratorDefArg>;
+    typeArgs: Array<{ sym: Symbol; location: Location }>;
     restArg: {
         argLocation: Location;
         argName: string;

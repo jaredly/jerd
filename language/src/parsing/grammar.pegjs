@@ -97,8 +97,8 @@ DecoratorDef = "decorator " id:Identifier args:("("
     return {
         type: 'DecoratorDef',
         id,
-        args,
-        targetType,
+        args: args ? args[1] || [] : null,
+        targetType: targetType ? targetType[1] : null,
         location: location(),
     }
 }

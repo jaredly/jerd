@@ -13,6 +13,7 @@ import {
     RecordSpread,
     StructDef,
     Toplevel,
+    Type as ParseType,
 } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newEnvWithTypeAndEffectVbls, newTypeVbl } from './typeType';
@@ -41,6 +42,7 @@ import {
     UserTypeReference,
     newWithGlobal,
     nullLocation,
+    DecoratorDefArg,
 } from './types';
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
@@ -335,17 +337,53 @@ export const addDecoratorToEnv = (
     return { env, id };
 };
 
-export const typeDecoratorInner = (env: Env, item: DecoratorDef) => {
-    const d: TypedDecoratorDef = {
-        location: item.location,
-        targetType: null, // TODO validate!
-        arguments: [], // TODO all of this!
-        restArg: {
+export const typeMaybeConstantType = (env: Env, type: ParseType): Type => {
+    if (
+        type.type === 'TypeRef' &&
+        type.id.hash === '#builtin' &&
+        type.id.text === 'Constant' &&
+        type.typeVbls &&
+        type.typeVbls.length === 1
+    ) {
+        return {
+            type: 'ref',
+            ref: { type: 'builtin', name: 'Constant' },
+            typeVbls: [typeType(env, type.typeVbls[0])],
+            location: type.location,
+        };
+    }
+    return typeType(env, type);
+};
+
+export const typeDecoratorInner = (
+    env: Env,
+    item: DecoratorDef,
+): TypedDecoratorDef => {
+    let restArg: null | any = null;
+    let args: Array<DecoratorDefArg> = [];
+    if (item.args) {
+        args = item.args.map((arg) => ({
+            argLocation: arg.id.location,
+            argName: arg.id.text,
+            location: arg.location,
+            type: typeMaybeConstantType(env, arg.type),
+        }));
+    } else {
+        restArg = {
             argLocation: nullLocation,
             argName: 'args',
             location: nullLocation,
             type: null,
-        },
+        };
+    }
+    const d: TypedDecoratorDef = {
+        typeArgs: [],
+        location: item.location,
+        targetType: item.targetType
+            ? typeMaybeConstantType(env, item.targetType)
+            : null,
+        arguments: args,
+        restArg: restArg,
     };
 
     return d;

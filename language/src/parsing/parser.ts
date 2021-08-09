@@ -57,7 +57,7 @@ export type StructDef = {
 export type DecoratorDef = {
     type: 'DecoratorDef';
     id: Identifier;
-    args: Array<Type>;
+    args: Array<{ id: Identifier; type: Type; location: Location }>;
     targetType: Type | null;
     location: Location;
 };

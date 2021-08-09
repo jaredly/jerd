@@ -257,8 +257,8 @@ function peg$parse(input: string, options?: IParseOptions) {
       return {
           type: 'DecoratorDef',
           id,
-          args,
-          targetType,
+          args: args ? args[1] || [] : null,
+          targetType: targetType ? targetType[1] : null,
           location: location(),
       }
   };
