@@ -437,9 +437,9 @@ describe('Decorators', () => {
         type Vec4 = {...Vec3, w: float};
 
         // decorator alternates<T>(options: Array<(Constant#builtin<string>, T)>) T;
+        decorator slider(min: Constant#builtin<Vec2>, max: Constant#builtin<Vec2>) Constant#builtin<Vec2>
         decorator slider(min: Constant#builtin<int>, max: Constant#builtin<int>, step: Constant#builtin<int>) Constant#builtin<int>
         decorator slider(min: Constant#builtin<float>, max: Constant#builtin<float>, step: Constant#builtin<float>) Constant#builtin<float>
-        decorator slider(min: Constant#builtin<Vec2>, max: Constant#builtin<Vec2>) Constant#builtin<Vec2>
         decorator rgb Constant#builtin<Vec3>
         decorator rgba Constant#builtin<Vec4>
         decorator hsl Constant#builtin<Vec3>
@@ -457,6 +457,10 @@ describe('Decorators', () => {
         // ) 200;
         const m = @something 10.0;
         const n = @hello Person{name: "hi", age: 10};
+
+        const goForIt = (pos: Vec2) => {
+            pos.x * @slider(0.0, 10.0, 0.1) 2.3
+        }
         `),
         ).toMatchInlineSnapshot(`
             "type Vec2#34115300 = {
