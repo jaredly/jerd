@@ -144,8 +144,8 @@ describe('expression types', () => {
             decorator what;
             const res = (2 + @what () => 20)`),
         ).toMatchInlineSnapshot(`
-            "decorator what#4973c66d;
-            const res#37185e50 = 2 +#builtin @what#4973c66d (): int#builtin ={}> 20"
+            "decorator what#278a99f3;
+            const res#61cd7569 = 2 +#builtin @what#278a99f3 (): int#builtin ={}> 20"
         `));
 
     it('apply suffix', () =>
@@ -459,20 +459,45 @@ describe('Decorators', () => {
         const n = @hello Person{name: "hi", age: 10};
         `),
         ).toMatchInlineSnapshot(`
-            "decorator slider#4973c66d;
-            decorator slider#4973c66d;
-            decorator slider#4973c66d;
-            decorator rgb#4973c66d;
-            decorator rgba#4973c66d;
-            decorator hsl#4973c66d;
-            decorator hsla#4973c66d;
-            decorator something#4973c66d;
-            type Person#28ac4660 = {
+            "type Vec2#34115300 = {
+                x: float#builtin,
+                y: float#builtin,
+            };
+            type Vec3#1277eca0 = {
+                x: float#builtin,
+                y: float#builtin,
+                z: float#builtin,
+            };
+            type Vec4#ad52e0c4 = {
+                ...Vec3#1277eca0,
+                w: float#builtin,
+            };
+            decorator slider#3436c37f(
+                min: Constant#builtin<int#builtin>,
+                max: Constant#builtin<int#builtin>,
+                step: Constant#builtin<int#builtin>,
+            ) Constant#builtin<int#builtin>;
+            decorator slider#a8d63d48(
+                min: Constant#builtin<float#builtin>,
+                max: Constant#builtin<float#builtin>,
+                step: Constant#builtin<float#builtin>,
+            ) Constant#builtin<float#builtin>;
+            decorator slider#2ebbd9ae(
+                min: Constant#builtin<Vec2#34115300>,
+                max: Constant#builtin<Vec2#34115300>,
+            ) Constant#builtin<Vec2#34115300>;
+            decorator rgb#041dfbf0 Constant#builtin<Vec3#1277eca0>;
+            decorator rgba#ce9542d8 Constant#builtin<Vec4#ad52e0c4>;
+            decorator hsl#041dfbf0 Constant#builtin<Vec3#1277eca0>;
+            decorator hsla#ce9542d8 Constant#builtin<Vec4#ad52e0c4>;
+            decorator something#278a99f3;
+            decorator hello#278a99f3;
+            type Person#522b71da = {
                 name: string#builtin,
                 age: int#builtin,
             };
-            const m#17299d78 = @something#4973c66d 10.0;
-            const n#6e9352f2 = 10"
+            const m#2609a0ef = @hello#278a99f3 10.0;
+            const n#2c0261e8 = @hello#278a99f3 Person#522b71da{name#522b71da#0: \\"hi\\", age#522b71da#1: 10}"
         `);
     });
 });
