@@ -437,9 +437,9 @@ describe('Decorators', () => {
         type Vec4 = {...Vec3, w: float};
 
         // decorator alternates<T>(options: Array<(Constant#builtin<string>, T)>) T;
-        decorator slider(min: Constant#builtin<Vec2>, max: Constant#builtin<Vec2>) Constant#builtin<Vec2>
-        decorator slider(min: Constant#builtin<int>, max: Constant#builtin<int>, step: Constant#builtin<int>) Constant#builtin<int>
         decorator slider(min: Constant#builtin<float>, max: Constant#builtin<float>, step: Constant#builtin<float>) Constant#builtin<float>
+        decorator slider(min: Constant#builtin<int>, max: Constant#builtin<int>, step: Constant#builtin<int>) Constant#builtin<int>
+        decorator slider(min: Constant#builtin<Vec2>, max: Constant#builtin<Vec2>) Constant#builtin<Vec2>
         decorator rgb Constant#builtin<Vec3>
         decorator rgba Constant#builtin<Vec4>
         decorator hsl Constant#builtin<Vec3>
@@ -476,16 +476,16 @@ describe('Decorators', () => {
                 ...Vec3#1277eca0,
                 w: float#builtin,
             };
-            decorator slider#3436c37f(
-                min: Constant#builtin<int#builtin>,
-                max: Constant#builtin<int#builtin>,
-                step: Constant#builtin<int#builtin>,
-            ) Constant#builtin<int#builtin>;
             decorator slider#a8d63d48(
                 min: Constant#builtin<float#builtin>,
                 max: Constant#builtin<float#builtin>,
                 step: Constant#builtin<float#builtin>,
             ) Constant#builtin<float#builtin>;
+            decorator slider#3436c37f(
+                min: Constant#builtin<int#builtin>,
+                max: Constant#builtin<int#builtin>,
+                step: Constant#builtin<int#builtin>,
+            ) Constant#builtin<int#builtin>;
             decorator slider#2ebbd9ae(
                 min: Constant#builtin<Vec2#34115300>,
                 max: Constant#builtin<Vec2#34115300>,
@@ -501,7 +501,10 @@ describe('Decorators', () => {
                 age: int#builtin,
             };
             const m#2609a0ef = @hello#278a99f3 10.0;
-            const n#2c0261e8 = @hello#278a99f3 Person#522b71da{name#522b71da#0: \\"hi\\", age#522b71da#1: 10}"
+            const n#2c0261e8 = @hello#278a99f3 Person#522b71da{name#522b71da#0: \\"hi\\", age#522b71da#1: 10};
+            const goForIt#f115ac4a = (pos#:0: Vec2#34115300): float#builtin ={}> {
+                pos#:0.x#34115300#0 *#builtin @slider#a8d63d48(min: 0.0, max: 10.0, step: 0.1) 2.3;
+            }"
         `);
     });
 });

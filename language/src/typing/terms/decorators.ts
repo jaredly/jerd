@@ -1,10 +1,11 @@
-import { Decorator, Type } from '../../parsing/parser';
+import { Decorator, Location, Type } from '../../parsing/parser';
 import { idFromName, idName } from '../env';
 import { LocatedError } from '../errors';
 import { getTypeError } from '../getTypeError';
 import typeExpr from '../typeExpr';
 import {
     DecoratorArg,
+    DecoratorDef,
     Env,
     Id,
     Term,
@@ -49,66 +50,94 @@ export const typeDecorators = (
         // ok so maybe macros will get registered, and also maybe
         // declare what attributes they care about
         // ok but it might be nice to have `@something#hash.raw-text`
-        let args: Array<DecoratorArg> = [];
-        let id: Id;
+        let args: Array<DecoratorArg> = dec.args.map((arg, i) => {
+            if (arg.type === 'Expr') {
+                const term = typeExpr(env, arg.expr, undefined);
+                return { type: 'Term', term: term };
+            }
+            throw new Error(`Only exprs right now`);
+        });
+
         if (dec.id.hash) {
-            id = idFromName(dec.id.hash);
+            const id = idFromName(dec.id.hash);
+            const decl = env.global.decorators[idName(id)];
+            const err = checkDecorator(env, inner, args, decl, dec.location);
+            if (err) {
+                throw err;
+            }
+            return {
+                name: { id, location: dec.id.location },
+                location: dec.location,
+                args,
+            };
         } else {
             const ids = env.global.decoratorNames[dec.id.text];
             if (!ids) {
                 throw new Error(`No decorators named ${dec.id.text}`);
             }
-            // TODO TODO: Select based on types, not just thiseree
-            id = ids[0];
-            const decl = env.global.decorators[idName(id)];
-            if (decl.arguments.length != null) {
-                if (decl.arguments.length > dec.args.length) {
-                    throw new LocatedError(dec.location, `Too few arguments`);
+            let id: Id | null = null;
+            let lastErr = null;
+            for (let i of ids) {
+                const decl = env.global.decorators[idName(i)];
+                const err = checkDecorator(
+                    env,
+                    inner,
+                    args,
+                    decl,
+                    dec.location,
+                );
+                if (!err) {
+                    id = i;
+                    break;
                 }
-                if (!decl.restArg && dec.args.length > decl.arguments.length) {
-                    throw new LocatedError(dec.location, `Too many arguments`);
-                }
-                args = dec.args.map((arg, i) => {
-                    if (arg.type === 'Expr') {
-                        const expected = decl.arguments[i].type;
-                        const term = typeExpr(
-                            env,
-                            arg.expr,
-                            expected || undefined,
-                        );
-                        if (expected && !checkType(env, term, expected)) {
-                            throw new LocatedError(
-                                arg.location,
-                                `Wrong type for decorator argument`,
-                            );
-                        }
-                        return { type: 'Term', term: term };
-                    }
-                    throw new Error(`Only exprs right now`);
-                });
+                lastErr = err;
             }
-            // if (
-            //     decl.arguments.length ||
-            //     (decl.restArg && decl.restArg.type !== null)
-            // ) {
-            //     dec.args;
-            //     throw new Error(`arg validation not there yet`);
-            // }
-            if (decl.targetType) {
-                if (!checkType(env, inner, decl.targetType)) {
-                    throw new LocatedError(
-                        decl.location,
-                        `Decorator applied to wrong type of thing`,
-                    );
-                }
+            if (id === null) {
+                throw lastErr;
             }
-            // TODO: some validation I think
+            return {
+                name: { id: id!, location: dec.id.location },
+                location: dec.location,
+                args,
+            };
         }
-        return {
-            // RESOLVE IT FOLKS
-            name: { id, location: dec.id.location },
-            location: dec.location,
-            args,
-        };
     });
+};
+
+export const checkDecorator = (
+    env: Env,
+    inner: Term,
+    args: Array<DecoratorArg>,
+    decl: DecoratorDef,
+    location: Location,
+) => {
+    if (decl.arguments.length != null) {
+        if (decl.arguments.length > args.length) {
+            return new LocatedError(location, `Too few arguments`);
+        }
+        if (!decl.restArg && args.length > decl.arguments.length) {
+            return new LocatedError(location, `Too many arguments`);
+        }
+        for (let i = 0; i < args.length; i++) {
+            const arg = args[i];
+            if (arg.type !== 'Term') {
+                return new Error(`Decorator arg not a term, cant validate`);
+            }
+            const expected = decl.arguments[i].type;
+            if (expected && !checkType(env, arg.term, expected)) {
+                return new LocatedError(
+                    arg.term.location,
+                    `Wrong type for decorator argument`,
+                );
+            }
+        }
+    }
+    if (decl.targetType) {
+        if (!checkType(env, inner, decl.targetType)) {
+            return new LocatedError(
+                decl.location,
+                `Decorator applied to wrong type of thing`,
+            );
+        }
+    }
 };
