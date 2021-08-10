@@ -155,7 +155,9 @@ export const goDown = (
                 return line[i].idx;
             }
         }
-        const atomics = line.filter((l) => isAtomic(tree.locs[l.idx].kind));
+        const atomics = line.filter(
+            (l) => tree.locs[l.idx] && isAtomic(tree.locs[l.idx].kind),
+        );
         if (atomics.length > 0) {
             return atomics[atomics.length - 1].idx;
         }

@@ -33,7 +33,9 @@ type LocKind =
     | 'res-type'
     | 'let'
     | 'attribute-id'
-    | 'let-sym';
+    | 'let-sym'
+    | 'decorator'
+    | 'decorator-name';
 
 export const isTermLoc = (kind: LocKind) =>
     ![
@@ -44,6 +46,8 @@ export const isTermLoc = (kind: LocKind) =>
         'arg-type',
         'switch-case',
         'res-type',
+        'decorator',
+        'decorator-name',
     ].includes(kind);
 
 export type IdxTree = {
@@ -175,7 +179,12 @@ export const makeIdxTree = (term: Term): IdxTree => {
             if (term.decorators) {
                 const current = children[term.location.idx!] || [];
                 children[term.location.idx!] = term.decorators
-                    .map((d) => d.location.idx!)
+                    .map((d) => {
+                        children[d.location.idx!] = [
+                            addLoc(d.name.location, 'decorator-name'),
+                        ];
+                        return addLoc(d.location, 'decorator');
+                    })
                     .concat(current);
             }
             return null;
@@ -219,6 +228,7 @@ export const isAtomic = (kind: LocKind) => {
         'arg-type',
         'res-type',
         'attribute-id',
+        'decorator-name',
     ].includes(kind);
 };
 
@@ -241,8 +251,15 @@ export const transformLocations = (
                 const decorators = term.decorators.map((decorator) => {
                     const location = mapper(decorator.location);
                     changed = changed || location !== decorator.location;
-                    return location !== decorator.location
-                        ? { ...decorator, location }
+                    const id = mapper(decorator.name.location);
+                    changed = changed || id !== decorator.name.location;
+                    return location !== decorator.location ||
+                        id !== decorator.name.location
+                        ? {
+                              ...decorator,
+                              location,
+                              name: { ...decorator.name, location: id },
+                          }
                         : decorator;
                 });
                 if (changed) {
