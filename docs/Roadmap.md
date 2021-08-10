@@ -4,6 +4,15 @@
 - ... should be a legal pattern spread, shorthand for ..._
 
 
+# Widgets the great and terrible
+
+so, using decorators, love it
+one thing I want, is to ... add optional titles to things
+oh hey, I could add another decorator
+yeah, I was thinking "should I add an optional argument or something,
+but I don't yet have support for optional arguments.
+But I could just add another decorator, love it!
+
 #
 
 Erghhm should I switch to lezer for parser generating? Given that it supports error recovery.... NOPEaNOPE it would be much harder to work with.

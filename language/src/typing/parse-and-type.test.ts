@@ -461,7 +461,7 @@ describe('Decorators', () => {
         const goForIt = (pos: Vec2) => {
             pos.x * @slider(0.0, 10.0, 0.1) 2.3
         }
-        const oneThing = @alternates<int>([("hello", 2), ("sadness", -2)]) 23;
+        const oneThing = @alternates<int>(options: [("hello", 2), ("sadness", -2)]) 23;
         const oneThing = @alternates<float>([("hello", 2.0), ("sadness", -2.0)]) 23.0;
         `),
         ).toMatchInlineSnapshot(`

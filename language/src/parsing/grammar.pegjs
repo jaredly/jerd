@@ -31,7 +31,8 @@ Decorator = "@" id:Identifier typeVbls:TypeVblsApply?  args:("(" _ CommaDecorato
     return {type: 'Decorator', id, typeVbls: typeVbls || [], args: args ? (args[2] || []) : [], location: location()}
 }
 DecoratorArg = DecType / DecPat / DecExpr
-CommaDecoratorArg = first:DecoratorArg rest:(_ "," _ DecoratorArg)* _ ","? {
+LabeledDecoratorArg = (IdentifierWithoutHash ":" __)? arg:DecoratorArg { return arg }
+CommaDecoratorArg = first:LabeledDecoratorArg rest:(_ "," _ LabeledDecoratorArg)* _ ","? {
     return [first].concat(rest.map((r: any) => r[3]))
 }
 

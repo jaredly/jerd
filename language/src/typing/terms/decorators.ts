@@ -15,6 +15,7 @@ import {
 } from '../types';
 import { Decorator as TypedDecorator } from '../types';
 import typeType from '../typeType';
+import { showType } from '../unify';
 
 export const checkType = (env: Env, term: Term, type: TermType) => {
     if (
@@ -26,9 +27,14 @@ export const checkType = (env: Env, term: Term, type: TermType) => {
         if (!typesEqual(term.is, inner)) {
             return false;
         }
-        return ['string', 'int', 'float', 'boolean', 'ref', 'Array'].includes(
-            term.type,
-        );
+        return [
+            'string',
+            'int',
+            'float',
+            'boolean',
+            'Record',
+            'Array',
+        ].includes(term.type);
     } else {
         return typesEqual(term.is, type);
     }
@@ -65,7 +71,7 @@ export const typeDecorators = (
         );
 
         if (dec.id.hash) {
-            const id = idFromName(dec.id.hash);
+            const id = idFromName(dec.id.hash.slice(1));
             const decl = getDecorator(env, id, typeVbls);
             const err = checkDecorator(env, inner, args, decl, dec.location);
             if (err) {
@@ -113,6 +119,9 @@ export const typeDecorators = (
 export const getDecorator = (env: Env, id: Id, typeVbls: Array<TermType>) => {
     const hash = idName(id);
     const decl = env.global.decorators[hash];
+    if (!decl) {
+        throw new Error(`No decorator for hash ${hash}`);
+    }
     if (typeVbls.length) {
         return applyTypeVariablesToDecoratorDef(
             env,
@@ -157,7 +166,10 @@ export const checkDecorator = (
         if (!checkType(env, inner, decl.targetType)) {
             return new LocatedError(
                 decl.location,
-                `Decorator applied to wrong type of thing`,
+                `Decorator applied to wrong type of thing - ${showType(
+                    env,
+                    decl.targetType,
+                )} vs ${showType(env, inner.is)}`,
             );
         }
     }

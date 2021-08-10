@@ -189,6 +189,14 @@ export const initialState = async (): Promise<State> => {
                             ...env.recordGroups,
                             ...data.env.global.recordGroups,
                         },
+                        decoratorNames: {
+                            ...env.decoratorNames,
+                            ...data.env.global.decoratorNames,
+                        },
+                        decorators: {
+                            ...env.decorators,
+                            ...data.env.global.decorators,
+                        },
                         attributeNames: {
                             ...env.attributeNames,
                             ...data.env.global.attributeNames,
