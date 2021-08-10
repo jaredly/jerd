@@ -172,6 +172,12 @@ export const makeIdxTree = (term: Term): IdxTree => {
                 case 'string':
                     break;
             }
+            if (term.decorators) {
+                const current = children[term.location.idx!] || [];
+                children[term.location.idx!] = term.decorators
+                    .map((d) => d.location.idx!)
+                    .concat(current);
+            }
             return null;
         },
     });
@@ -230,6 +236,19 @@ export const transformLocations = (
                 : null;
         },
         term: (term) => {
+            if (term.decorators) {
+                let changed = false;
+                const decorators = term.decorators.map((decorator) => {
+                    const location = mapper(decorator.location);
+                    changed = changed || location !== decorator.location;
+                    return location !== decorator.location
+                        ? { ...decorator, location }
+                        : decorator;
+                });
+                if (changed) {
+                    term = { ...term, decorators };
+                }
+            }
             if (term.type === 'Switch') {
                 const location = mapper(term.location);
                 let changed = false;

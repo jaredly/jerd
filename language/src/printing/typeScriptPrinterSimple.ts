@@ -808,6 +808,62 @@ const printRef = (ref: Reference) =>
 
 const flat = <T>(v: Array<Array<T>>) => ([] as Array<T>).concat(...v);
 
+export const decoratorExports = (env: Env) => {
+    return flat(
+        flat(
+            Object.keys(env.global.decoratorNames).map((name) => {
+                return env.global.decoratorNames[name].map(
+                    (id, i): Array<t.Statement> => {
+                        const decl = env.global.decorators[idName(id)];
+                        const args = decl.typeVbls.length
+                            ? decl.typeVbls.map((_, i) => 'T' + i)
+                            : null;
+                        const suffixed = name + (i === 0 ? '' : '$' + i);
+                        return [
+                            t.exportNamedDeclaration(
+                                t.variableDeclaration('const', [
+                                    t.variableDeclarator(
+                                        t.identifier(suffixed + '_id'),
+                                        t.stringLiteral(idName(id)),
+                                    ),
+                                ]),
+                            ),
+                            // t.exportNamedDeclaration(
+                            //     t.tsTypeAliasDeclaration(
+                            //         t.identifier(suffixed),
+                            //         args
+                            //             ? t.tsTypeParameterDeclaration(
+                            //                   args.map((n) =>
+                            //                       t.tSTypeParameter(
+                            //                           null,
+                            //                           null,
+                            //                           n,
+                            //                       ),
+                            //                   ),
+                            //               )
+                            //             : null,
+                            //         t.tsTypeReference(
+                            //             t.identifier('t_' + idName(id)),
+                            //             args
+                            //                 ? t.tsTypeParameterInstantiation(
+                            //                       args.map((n) =>
+                            //                           t.tsTypeReference(
+                            //                               t.identifier(n),
+                            //                           ),
+                            //                       ),
+                            //                   )
+                            //                 : null,
+                            //         ),
+                            //     ),
+                            // ),
+                        ];
+                    },
+                );
+            }),
+        ),
+    );
+};
+
 export const typeExports = (env: Env) => {
     return flat(
         flat(

@@ -408,6 +408,7 @@ import { processFile } from './processFile';
 import { transform } from './typing/transform';
 import { showType } from './typing/unify';
 import {
+    decoratorExports,
     typeDeclarations,
     typeExports,
 } from './printing/typeScriptPrinterSimple';
@@ -528,6 +529,7 @@ const commands: { [key: string]: (args: Array<string>) => void } = {
             sortedTypes(env),
         );
         items.push(...typeExports(env));
+        items.push(...decoratorExports(env));
         const ast = t.file(t.program(items, [], 'script'));
         const { code } = generate(ast, {
             sourceMaps: false,

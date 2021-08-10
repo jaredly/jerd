@@ -12,8 +12,10 @@ import {
     refType,
 } from '@jerd/language/src/typing/preset';
 import {
+    Decorator,
     Env,
     Id,
+    Location,
     nullLocation,
     Reference,
     refsEqual,
@@ -25,12 +27,21 @@ import {
     GLSLBuffer1_id,
     GLSLEnv_id,
     GLSLSceneOld_id,
+    hsla_id,
+    hsl_id,
+    rgba_id,
+    rgb_id,
+    slider$1_id,
+    slider$2_id,
+    slider_id,
     Vec2_id,
     Vec3_id,
     Vec4_id,
 } from '../../../language/src/printing/prelude-types';
 import { LocatedError, TypeError } from '../../../language/src/typing/errors';
+import { transform } from '../../../language/src/typing/transform';
 import { showLocation } from '../../../language/src/typing/typeExpr';
+import { refName } from '../../../language/src/typing/typePattern';
 import { EvalEnv, RenderPlugins } from '../State';
 import { OpenGLCanvas } from './OpenGLCanvas';
 import { ShaderCPU } from './ShaderCPU';
@@ -271,6 +282,52 @@ const ShaderGLSLBuffers = ({
     startPaused: boolean;
 }) => {
     const [error, setError] = React.useState(null as any | null);
+
+    const sliders = React.useMemo(() => {
+        const found: {
+            [idx: number]: {
+                id: Id;
+                decorator: Decorator;
+                loc: Location;
+            };
+        } = {};
+        const crawlTerm = (term: Term, id: Id) => {
+            transform(term, {
+                term: (t) => {
+                    if (t.decorators) {
+                        t.decorators.forEach((decorator) => {
+                            if (
+                                [
+                                    slider$2_id,
+                                    slider$1_id,
+                                    slider_id,
+                                    rgba_id,
+                                    rgb_id,
+                                    hsl_id,
+                                    hsla_id,
+                                ].includes(idName(decorator.name.id))
+                            ) {
+                                console.log('YES');
+                                found[decorator.location.idx!] = {
+                                    loc: t.location,
+                                    decorator,
+                                    id,
+                                };
+                            }
+                        });
+                    }
+                    if (t.type === 'ref' && t.ref.type === 'user') {
+                        crawlTerm(env.global.terms[idName(t.ref.id)], t.ref.id);
+                    }
+
+                    return null;
+                },
+            });
+        };
+        crawlTerm(term, { hash: '-', size: 1, pos: 0 });
+        console.log('found', found);
+        return found;
+    }, [term]);
 
     const shaders = React.useMemo(() => {
         if (term.is.type === 'lambda') {
@@ -556,7 +613,6 @@ const plugins: RenderPlugins = {
             term: Term,
             startPaused: boolean,
         ) => {
-            // return <div>Ok folks</div>;
             return (
                 <ShaderGLSLBuffers
                     fn={fn}
