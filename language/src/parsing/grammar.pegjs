@@ -27,8 +27,8 @@ Statement = Define / Expression
 // Decorators! For doing macro-y things probably?
 // Also for some builtin magics
 
-Decorator = "@" id:Identifier args:("(" _ CommaDecoratorArg? _ ")")? {
-    return {type: 'Decorator', id, args: args ? (args[2] || []) : [], location: location()}
+Decorator = "@" id:Identifier typeVbls:TypeVblsApply?  args:("(" _ CommaDecoratorArg? _ ")")? {
+    return {type: 'Decorator', id, typeVbls: typeVbls || [], args: args ? (args[2] || []) : [], location: location()}
 }
 DecoratorArg = DecType / DecPat / DecExpr
 CommaDecoratorArg = first:DecoratorArg rest:(_ "," _ DecoratorArg)* _ ","? {

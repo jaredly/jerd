@@ -144,8 +144,8 @@ describe('expression types', () => {
             decorator what;
             const res = (2 + @what () => 20)`),
         ).toMatchInlineSnapshot(`
-            "decorator what#278a99f3;
-            const res#61cd7569 = 2 +#builtin @what#278a99f3 (): int#builtin ={}> 20"
+            "decorator what#6f08788e;
+            const res#6c004d82 = 2 +#builtin @what#6f08788e (): int#builtin ={}> 20"
         `));
 
     it('apply suffix', () =>
@@ -461,6 +461,8 @@ describe('Decorators', () => {
         const goForIt = (pos: Vec2) => {
             pos.x * @slider(0.0, 10.0, 0.1) 2.3
         }
+        const oneThing = @alternates<int>([("hello", 2), ("sadness", -2)]) 23;
+        const oneThing = @alternates<float>([("hello", 2.0), ("sadness", -2.0)]) 23.0;
         `),
         ).toMatchInlineSnapshot(`
             "type Vec2#34115300 = {
@@ -476,35 +478,44 @@ describe('Decorators', () => {
                 ...Vec3#1277eca0,
                 w: float#builtin,
             };
-            decorator slider#a8d63d48(
+            decorator alternates#2d1ef174<T#:0>(
+                options: Constant#builtin<Array#builtin<Tuple2#builtin<string#builtin, T#:0>>>,
+            ) T#:0;
+            decorator slider#1d9fcfd2(
                 min: Constant#builtin<float#builtin>,
                 max: Constant#builtin<float#builtin>,
                 step: Constant#builtin<float#builtin>,
             ) Constant#builtin<float#builtin>;
-            decorator slider#3436c37f(
+            decorator slider#4e421b50(
                 min: Constant#builtin<int#builtin>,
                 max: Constant#builtin<int#builtin>,
                 step: Constant#builtin<int#builtin>,
             ) Constant#builtin<int#builtin>;
-            decorator slider#2ebbd9ae(
+            decorator slider#4f79a358(
                 min: Constant#builtin<Vec2#34115300>,
                 max: Constant#builtin<Vec2#34115300>,
             ) Constant#builtin<Vec2#34115300>;
-            decorator rgb#041dfbf0 Constant#builtin<Vec3#1277eca0>;
-            decorator rgba#ce9542d8 Constant#builtin<Vec4#ad52e0c4>;
-            decorator hsl#041dfbf0 Constant#builtin<Vec3#1277eca0>;
-            decorator hsla#ce9542d8 Constant#builtin<Vec4#ad52e0c4>;
-            decorator something#278a99f3;
-            decorator hello#278a99f3;
-            type Person#522b71da = {
+            decorator rgb#763b6944 Constant#builtin<Vec3#1277eca0>;
+            decorator rgba#720c39c6 Constant#builtin<Vec4#ad52e0c4>;
+            decorator hsl#4dd1b658 Constant#builtin<Vec3#1277eca0>;
+            decorator hsla#5eb3a0e1 Constant#builtin<Vec4#ad52e0c4>;
+            decorator something#bee55956;
+            decorator hello#677e1867;
+            type Person#29fd27e6 = {
                 name: string#builtin,
                 age: int#builtin,
             };
-            const m#2609a0ef = @hello#278a99f3 10.0;
-            const n#2c0261e8 = @hello#278a99f3 Person#522b71da{name#522b71da#0: \\"hi\\", age#522b71da#1: 10};
-            const goForIt#f115ac4a = (pos#:0: Vec2#34115300): float#builtin ={}> {
-                pos#:0.x#34115300#0 *#builtin @slider#a8d63d48(min: 0.0, max: 10.0, step: 0.1) 2.3;
-            }"
+            const m#2629f072 = @something#bee55956 10.0;
+            const n#eaec2cc8 = @hello#677e1867 Person#29fd27e6{name#29fd27e6#0: \\"hi\\", age#29fd27e6#1: 10};
+            const goForIt#29feb29c = (pos#:0: Vec2#34115300): float#builtin ={}> {
+                pos#:0.x#34115300#0 *#builtin @slider#1d9fcfd2(min: 0.0, max: 10.0, step: 0.1) 2.3;
+            };
+            const oneThing#b1904fe4 = @alternates#2d1ef174(
+                options: <Tuple2#builtin<string#builtin, int#builtin>>[(\\"hello\\", 2), (\\"sadness\\", -2)],
+            ) 23;
+            const oneThing#243d9adb = @alternates#2d1ef174(
+                options: <Tuple2#builtin<string#builtin, float#builtin>>[(\\"hello\\", 2.0), (\\"sadness\\", -2.0)],
+            ) 23.0"
         `);
     });
 });

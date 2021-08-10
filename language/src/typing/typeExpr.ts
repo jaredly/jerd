@@ -16,6 +16,7 @@ import {
     typesEqual,
     nullLocation,
     UserTypeReference,
+    DecoratorDef,
 } from './types';
 import { Expression } from '../parsing/parser';
 import { subEnv, Location } from './types';
@@ -43,7 +44,7 @@ import { typeAttribute } from './terms/attribute';
 import { typeArray } from './terms/array';
 import { Loc } from '../printing/ir/types';
 import { enumToPretty } from '../printing/printTsLike';
-import { printToString } from '../printing/printer';
+import { args, printToString } from '../printing/printer';
 import { typeDecorators } from './terms/decorators';
 
 const expandEffectVars = (
@@ -201,6 +202,43 @@ export const applyEffectVariables = (
     }
     // should I go full-on whatsit? maybe not yet.
     throw new Error(`Can't apply variables to non-lambdas just yet`);
+};
+
+export const applyTypeVariablesToDecoratorDef = (
+    env: Env,
+    defn: DecoratorDef,
+    vbls: Array<Type>,
+    location: Location | null,
+    selfHash: string,
+): DecoratorDef => {
+    if (defn.typeVbls.length !== vbls.length) {
+        throw new LocatedError(
+            location,
+            `Expected ${defn.typeVbls.length} at ${showLocation(
+                location,
+            )}, found ${vbls.length}`,
+        );
+    }
+    const mapping = createTypeVblMapping(env, defn.typeVbls, vbls);
+    return {
+        ...defn,
+        typeVbls: [],
+        arguments: defn.arguments.map((arg) =>
+            arg.type
+                ? { ...arg, type: subtTypeVars(arg.type, mapping, selfHash) }
+                : arg,
+        ),
+        restArg:
+            defn.restArg && defn.restArg.type
+                ? {
+                      ...defn.restArg,
+                      type: subtTypeVars(defn.restArg.type, mapping, selfHash),
+                  }
+                : defn.restArg,
+        targetType: defn.targetType
+            ? subtTypeVars(defn.targetType, mapping, selfHash)
+            : defn.targetType,
+    };
 };
 
 export const applyTypeVariablesToRecord = (

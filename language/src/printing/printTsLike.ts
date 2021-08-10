@@ -71,6 +71,7 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
                         'decorator-defn',
                         toplevel.location,
                     ),
+                    typeVblDeclsToPretty(env, toplevel.defn.typeVbls),
                     toplevel.defn.arguments.length ||
                     (toplevel.defn.restArg && toplevel.defn.restArg.type)
                         ? args(

@@ -2,17 +2,19 @@ import { Decorator, Location, Type } from '../../parsing/parser';
 import { idFromName, idName } from '../env';
 import { LocatedError } from '../errors';
 import { getTypeError } from '../getTypeError';
-import typeExpr from '../typeExpr';
+import typeExpr, { applyTypeVariablesToDecoratorDef } from '../typeExpr';
 import {
     DecoratorArg,
     DecoratorDef,
     Env,
+    GlobalEnv,
     Id,
     Term,
     Type as TermType,
     typesEqual,
 } from '../types';
 import { Decorator as TypedDecorator } from '../types';
+import typeType from '../typeType';
 
 export const checkType = (env: Env, term: Term, type: TermType) => {
     if (
@@ -58,9 +60,13 @@ export const typeDecorators = (
             throw new Error(`Only exprs right now`);
         });
 
+        const typeVbls: Array<TermType> = dec.typeVbls.map((t) =>
+            typeType(env, t),
+        );
+
         if (dec.id.hash) {
             const id = idFromName(dec.id.hash);
-            const decl = env.global.decorators[idName(id)];
+            const decl = getDecorator(env, id, typeVbls);
             const err = checkDecorator(env, inner, args, decl, dec.location);
             if (err) {
                 throw err;
@@ -78,7 +84,7 @@ export const typeDecorators = (
             let id: Id | null = null;
             let lastErr = null;
             for (let i of ids) {
-                const decl = env.global.decorators[idName(i)];
+                const decl = getDecorator(env, i, typeVbls);
                 const err = checkDecorator(
                     env,
                     inner,
@@ -102,6 +108,21 @@ export const typeDecorators = (
             };
         }
     });
+};
+
+export const getDecorator = (env: Env, id: Id, typeVbls: Array<TermType>) => {
+    const hash = idName(id);
+    const decl = env.global.decorators[hash];
+    if (typeVbls.length) {
+        return applyTypeVariablesToDecoratorDef(
+            env,
+            decl,
+            typeVbls,
+            null,
+            hash,
+        );
+    }
+    return decl;
 };
 
 export const checkDecorator = (

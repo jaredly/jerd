@@ -361,12 +361,17 @@ export const typeDecoratorInner = (
 ): TypedDecoratorDef => {
     let restArg: null | any = null;
     let args: Array<DecoratorDefArg> = [];
+    const { typeInner, typeVbls } = newEnvWithTypeAndEffectVbls(
+        env,
+        item.typeVbls || [],
+        [],
+    );
     if (item.args) {
         args = item.args.map((arg) => ({
             argLocation: arg.id.location,
             argName: arg.id.text,
             location: arg.location,
-            type: typeMaybeConstantType(env, arg.type),
+            type: typeMaybeConstantType(typeInner, arg.type),
         }));
     } else {
         restArg = {
@@ -377,10 +382,12 @@ export const typeDecoratorInner = (
         };
     }
     const d: TypedDecoratorDef = {
+        unique: typeInner.global.rng(),
         typeArgs: [],
+        typeVbls,
         location: item.location,
         targetType: item.targetType
-            ? typeMaybeConstantType(env, item.targetType)
+            ? typeMaybeConstantType(typeInner, item.targetType)
             : null,
         arguments: args,
         restArg: restArg,

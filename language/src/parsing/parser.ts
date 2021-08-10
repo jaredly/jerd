@@ -26,6 +26,7 @@ export type DecoratedExpression = {
 export type Decorator = {
     type: 'Decorator';
     id: Identifier;
+    typeVbls: Array<Type>;
     args: Array<DecoratorArg>;
     location: Location;
 };
@@ -57,6 +58,7 @@ export type StructDef = {
 export type DecoratorDef = {
     type: 'DecoratorDef';
     id: Identifier;
+    typeVbls: Array<TypeVbl> | null;
     args: Array<{ id: Identifier; type: Type; location: Location }>;
     targetType: Type | null;
     location: Location;
