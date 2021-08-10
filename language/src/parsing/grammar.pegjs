@@ -91,12 +91,15 @@ RecordSpread = "..." constr:Identifier {return {type: 'Spread', constr}}
 RecordItem = id:IdTextOrString _ ":" _ type:Type {return {type: 'Row', id: id.type === 'string' ? id.text : id, rtype: type}}
 
 
-DecoratorDef = "decorator " id:Identifier args:("("
+DecoratorDef = "decorator " id:Identifier
+    typeVbls:TypeVbls?
+    args:("("
     DecDefArgs?
 ")")? targetType:(__ Type)? {
     return {
         type: 'DecoratorDef',
         id,
+        typeVbls,
         args: args ? args[1] || [] : null,
         targetType: targetType ? targetType[1] : null,
         location: location(),

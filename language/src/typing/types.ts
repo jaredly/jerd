@@ -137,6 +137,7 @@ export type DecoratorDefArg = {
     type: Type | null;
 };
 export type DecoratorDef = {
+    unique: Float;
     arguments: Array<DecoratorDefArg>;
     typeArgs: Array<{ sym: Symbol; location: Location }>;
     restArg: {

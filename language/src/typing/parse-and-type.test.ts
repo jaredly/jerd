@@ -436,7 +436,7 @@ describe('Decorators', () => {
         type Vec3 = {x: float, y: float, z: float};
         type Vec4 = {...Vec3, w: float};
 
-        // decorator alternates<T>(options: Array<(Constant#builtin<string>, T)>) T;
+        decorator alternates<T>(options: Constant#builtin<Array<(string, T)>>) T;
         decorator slider(min: Constant#builtin<float>, max: Constant#builtin<float>, step: Constant#builtin<float>) Constant#builtin<float>
         decorator slider(min: Constant#builtin<int>, max: Constant#builtin<int>, step: Constant#builtin<int>) Constant#builtin<int>
         decorator slider(min: Constant#builtin<Vec2>, max: Constant#builtin<Vec2>) Constant#builtin<Vec2>
