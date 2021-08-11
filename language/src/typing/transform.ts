@@ -97,6 +97,9 @@ export const transformWithCtx = <Ctx>(
     visitor: Visitor<Ctx>,
     ctx: Ctx,
 ): Term => {
+    if (!term) {
+        throw new Error(`No term provided!!`);
+    }
     const transformed = visitor.term(term, ctx);
     if (transformed === false) {
         return term;
