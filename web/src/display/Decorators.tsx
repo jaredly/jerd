@@ -147,7 +147,7 @@ export const widgetForDecorator = (
                 }
                 const box = ref.current.getBoundingClientRect();
                 const x = cx - box.left;
-                const y = cy - box.top;
+                const y = fullHeight - (cy - box.top);
                 const fx = (x / fullWidth) * width + mins[0];
                 const fy = (y / fullHeight) * height + mins[1];
 
@@ -209,8 +209,8 @@ export const widgetForDecorator = (
                 >
                     <div
                         style={{
-                            top: y * fullWidth,
-                            left: x * fullHeight,
+                            top: fullHeight - y * fullHeight,
+                            left: x * fullWidth,
                             position: 'absolute',
                             width: 4,
                             height: 4,

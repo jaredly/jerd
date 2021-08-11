@@ -12,6 +12,7 @@ const kindColors: { [key: string]: string } = {
     string: '#ce9178',
     int: '#b5cea8',
     float: '#b5cea8',
+    decorator: '#66f779',
     type: '#4EC9B0',
 };
 
