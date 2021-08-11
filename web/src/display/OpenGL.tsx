@@ -287,154 +287,6 @@ const ShaderGLSLBuffers = ({
 }) => {
     const [error, setError] = React.useState(null as any | null);
 
-    const [sliderState, setSliderState] = React.useState(
-        {} as {
-            [term: string]: {
-                [idx: number]: { options: any; replacement: Term };
-            };
-        },
-    );
-
-    const sliderData = React.useMemo(() => {
-        const termDeps: { [source: string]: Array<string> } = {};
-        const found: {
-            [termId: string]: {
-                [idx: number]: {
-                    title: string | null;
-                    widget: React.FunctionComponent<{
-                        data: any;
-                        onUpdate: (term: Term, data: any) => void;
-                    }>;
-                    loc: Location;
-                };
-            };
-        } = {};
-        const crawlTerm = (term: Term, id: Id) => {
-            const hash = idName(id);
-            if (found[hash]) {
-                return; // already traversed
-            }
-            found[hash] = {};
-            termDeps[hash] = [];
-            transform(term, {
-                term: (t) => {
-                    if (t.decorators) {
-                        const widgetIds = [
-                            slider$2_id,
-                            slider$1_id,
-                            slider_id,
-                            rgba_id,
-                            rgb_id,
-                            hsl_id,
-                            hsla_id,
-                        ];
-                        const widget = t.decorators.filter((d) =>
-                            widgetIds.includes(idName(d.name.id)),
-                        );
-                        if (widget.length > 1) {
-                            console.error(`Too many widgets on a term`);
-                            console.error(widget);
-                            return null;
-                        }
-                        const titleDec = t.decorators.filter(
-                            (d) => idName(d.name.id) === title_id,
-                        );
-                        const title = titleDec.length
-                            ? (titleDec[0].args[0] as any).term.text
-                            : null;
-                        // console.log(title, widget);
-                        if (widget.length) {
-                            const decorator = widget[0];
-                            const w = widgetForDecorator(decorator, t);
-                            if (w) {
-                                found[hash][t.location.idx!] = {
-                                    title,
-                                    loc: t.location,
-                                    widget: w,
-                                };
-                            }
-                        }
-                    }
-                    if (t.type === 'ref' && t.ref.type === 'user') {
-                        const otherHash = idName(t.ref.id);
-                        if (!termDeps[hash].includes(otherHash)) {
-                            termDeps[hash].push(otherHash);
-                        }
-                        crawlTerm(env.global.terms[otherHash], t.ref.id);
-                    }
-
-                    return null;
-                },
-            });
-        };
-        const topId = idFromName(hashObject(term));
-        crawlTerm(term, topId);
-        // console.log('found', found);
-        return { sliders: found, termsInOrder: sortAllDepsPlain(termDeps) };
-    }, [term]);
-
-    const termAndEnvWithSliders = React.useMemo(() => {
-        // Basic strategy:
-        // - go through sliders ... maybe have sliders grouped by term, yeah that's a good idea
-        // - anyway, for each term, make a replacement term
-        // - then go through and substitute references to the unslid terms for references to the slid ones. Right?
-        // uhhh hm but wait we need to do this in topological order
-        // ok so we now have a mapping of dependencies.
-        // if we can just go in reverse dependency order, remapping as we go, it should work just fine, right?
-        const { sliders, termsInOrder } = sliderData;
-        const slidEnv = envWithTerm(newWithGlobal(env.global), term);
-        const mapping: { [hash: string]: Id } = {};
-        const newTerms = termsInOrder.map((hash) => {
-            const newTerm = transform(slidEnv.global.terms[hash], {
-                term: (term) => {
-                    if (
-                        sliderState[hash] &&
-                        sliderState[hash][term.location.idx!]
-                    ) {
-                        return sliderState[hash][term.location.idx!]
-                            .replacement;
-                    }
-                    if (term.type === 'ref' && term.ref.type === 'user') {
-                        const name = idName(term.ref.id);
-                        if (mapping[name]) {
-                            // console.log('MAPPED', name);
-                            return {
-                                ...term,
-                                ref: { ...term.ref, id: mapping[name] },
-                            };
-                        }
-                    }
-                    return null;
-                },
-            });
-            const newHash = hashObject(newTerm);
-            if (newHash === hash) {
-                return newTerm;
-            }
-            // if (newTerm === slidEnv.global.terms[hash]) {
-            //     console.log('DIFF', hash, newHash);
-            //     throw new Error(`hash is different?`);
-            // }
-            // console.log(
-            //     'DIFFERENT',
-            //     hash,
-            //     newHash,
-            //     newTerm,
-            //     hashObject(slidEnv.global.terms[hash]),
-            // );
-            const newId = idFromName(newHash);
-            mapping[hash] = newId;
-            slidEnv.global.terms[newHash] = newTerm;
-            slidEnv.global.idNames[newHash] = slidEnv.global.idNames[hash];
-            return newTerm;
-        });
-        // console.log(mapping, newTerms);
-        return {
-            env: slidEnv,
-            term: newTerms[newTerms.length - 1],
-        };
-    }, [term, sliderData, sliderState]);
-
     // START HERE:
     // Render out the widgets! Should be quite simple. Use sliderState.
     // THEN
@@ -444,7 +296,7 @@ const ShaderGLSLBuffers = ({
     // yeah should be pretty straightforward.
 
     const shaders = React.useMemo(() => {
-        const { env, term } = termAndEnvWithSliders;
+        // const { env, term } = termAndEnvWithSliders;
         if (term.is.type === 'lambda') {
             try {
                 return [compileGLSL(term, envWithTerm(env, term), 0)];
@@ -495,11 +347,11 @@ const ShaderGLSLBuffers = ({
             setError(err);
             return null;
         }
-    }, [termAndEnvWithSliders]);
+    }, [term, env]);
 
     const onTrace = React.useCallback(
         (mousePos, time, canvas) => {
-            const { env, term } = termAndEnvWithSliders;
+            // const { env, term } = termAndEnvWithSliders;
             const hash = hashObject(term);
             const id: Id = { hash, size: 1, pos: 0 };
             // const fn = evalEnv.terms[idName(id)];
@@ -521,7 +373,7 @@ const ShaderGLSLBuffers = ({
             evalEnv.traceObj.traces = old;
             return { color, traces };
         },
-        [termAndEnvWithSliders],
+        [term, env],
     );
 
     if (error != null) {
@@ -569,75 +421,9 @@ const ShaderGLSLBuffers = ({
                 startPaused={startPaused}
                 onError={setError}
                 renderTrace={(traceValue, mousePos) => (
-                    <ShowTrace
-                        trace={traceValue}
-                        env={termAndEnvWithSliders.env}
-                        pos={mousePos}
-                    />
+                    <ShowTrace trace={traceValue} env={env} pos={mousePos} />
                 )}
             />
-            <div style={{ display: 'flex', flexDirection: 'row' }}>
-                {Object.keys(sliderData.sliders).map((hash) => {
-                    const idxs = Object.keys(sliderData.sliders[hash]);
-                    if (!idxs.length) {
-                        return;
-                    }
-                    return (
-                        <div key={hash} style={{ padding: 4 }}>
-                            <h4>
-                                {termAndEnvWithSliders.env.global.idNames[
-                                    hash
-                                ] || hash}
-                            </h4>
-                            <div style={{ display: 'flex' }}>
-                                {idxs.map((idx) => {
-                                    const config =
-                                        sliderData.sliders[hash][parseInt(idx)];
-                                    const Widget = config.widget;
-                                    return (
-                                        <div key={idx} style={{ padding: 4 }}>
-                                            {config.title ? (
-                                                <div
-                                                    style={{
-                                                        marginBottom: 16,
-                                                        textAlign: 'center',
-                                                        padding: 4,
-                                                        backgroundColor: '#555',
-                                                    }}
-                                                >
-                                                    {config.title}
-                                                </div>
-                                            ) : null}
-                                            <Widget
-                                                data={
-                                                    sliderState[hash] &&
-                                                    sliderState[hash][+idx]
-                                                        ? sliderState[hash][
-                                                              +idx
-                                                          ].options
-                                                        : null
-                                                }
-                                                onUpdate={(newTerm, data) => {
-                                                    setSliderState((state) => ({
-                                                        ...state,
-                                                        [hash]: {
-                                                            ...state[hash],
-                                                            [idx]: {
-                                                                options: data,
-                                                                replacement: newTerm,
-                                                            },
-                                                        },
-                                                    }));
-                                                }}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
         </div>
     );
 };
