@@ -13,6 +13,7 @@ import {
     Type,
     typesEqual,
     Location,
+    idsEqual,
 } from '@jerd/language/src/typing/types';
 import {
     GLSLBuffer1_id,
@@ -45,6 +46,7 @@ import { envWithTerm } from './display/OpenGL';
 import { sortAllDepsPlain } from '../../language/src/typing/analyze';
 import { widgetForDecorator } from './display/Decorators';
 import { transform } from '../../language/src/typing/transform';
+import { runTerm } from './eval';
 
 /*
 
@@ -238,9 +240,62 @@ const RenderResult_ = ({
         return {
             env: slidEnv,
             term: newTerms[newTerms.length - 1],
+            id: idFromName(hashObject(newTerms[newTerms.length - 1])),
         };
     }, [term, sliderData, sliderState]);
 
+    // value = evalEnv.terms[idName(termAndEnvWithSliders.id)];
+
+    const evaled = React.useMemo(() => {
+        if (idsEqual(termAndEnvWithSliders.id, id)) {
+            // console.log('NO CHANGE');
+            return evalEnv;
+        }
+
+        const hash = idName(termAndEnvWithSliders.id);
+        if (evalEnv.terms[hash] !== undefined) {
+            // console.log('Already there folks');
+            return evalEnv;
+        }
+
+        let results: { [key: string]: any };
+        try {
+            const term = termAndEnvWithSliders.term;
+            if (!term) {
+                throw new Error(`No term ${idName(id)}`);
+            }
+
+            results = runTerm(
+                termAndEnvWithSliders.env,
+                term,
+                termAndEnvWithSliders.id,
+                evalEnv,
+            );
+        } catch (err) {
+            console.log(`Failed to run!`);
+            console.log(err);
+            return evalEnv;
+        }
+
+        // console.log('evaled thangs', results);
+        return { ...evalEnv, terms: { ...evalEnv.terms, ...results } };
+    }, [termAndEnvWithSliders, evalEnv]);
+
+    value = evaled.terms[idName(termAndEnvWithSliders.id)];
+
+    // Ohhh we want to share runs, right? like if we haven't slid why not do onRun?
+    React.useEffect(() => {
+        if (value == null) {
+            onRun(id);
+        }
+    }, [value == null]);
+
+    const hash = idName(termAndEnvWithSliders.id);
+    // value = value == null && evaled ? evaled.terms[hash] : value;
+
+    // if (evaled == null || evaled.terms[hash] === undefined) {
+    //     return <span>Unevaluated</span>;
+    // }
     if (value == null) {
         return <span>Unevaluated</span>;
     }
@@ -254,126 +309,123 @@ const RenderResult_ = ({
         evalEnv,
         !focused,
     );
+    let body;
     if (renderPlugin != null) {
-        return (
-            <div>
-                <RenderPlugin
-                    display={cell.display}
-                    plugins={plugins}
-                    onSetPlugin={onSetPlugin}
-                    onPin={() => onPin(cell.display!, id)}
-                >
-                    {renderPlugin()}
-                </RenderPlugin>
-                <div style={{ display: 'flex', flexDirection: 'row' }}>
-                    {Object.keys(sliderData.sliders).map((hash) => {
-                        const idxs = Object.keys(sliderData.sliders[hash]);
-                        if (!idxs.length) {
-                            return;
-                        }
-                        return (
-                            <div key={hash} style={{ padding: 4 }}>
-                                <h4>
-                                    {termAndEnvWithSliders.env.global.idNames[
-                                        hash
-                                    ] || hash}
-                                </h4>
-                                <div style={{ display: 'flex' }}>
-                                    {idxs.map((idx) => {
-                                        const config =
-                                            sliderData.sliders[hash][
-                                                parseInt(idx)
-                                            ];
-                                        const Widget = config.widget;
-                                        return (
-                                            <div
-                                                key={idx}
-                                                style={{ padding: 4 }}
-                                            >
-                                                {config.title ? (
-                                                    <div
-                                                        style={{
-                                                            marginBottom: 16,
-                                                            textAlign: 'center',
-                                                            padding: 4,
-                                                            backgroundColor:
-                                                                '#555',
-                                                        }}
-                                                    >
-                                                        {config.title}
-                                                    </div>
-                                                ) : null}
-                                                <Widget
-                                                    data={
-                                                        sliderState[hash] &&
-                                                        sliderState[hash][+idx]
-                                                            ? sliderState[hash][
-                                                                  +idx
-                                                              ].options
-                                                            : null
-                                                    }
-                                                    onUpdate={(
-                                                        newTerm,
-                                                        data,
-                                                    ) => {
-                                                        setSliderState(
-                                                            (state) => ({
-                                                                ...state,
-                                                                [hash]: {
-                                                                    ...state[
-                                                                        hash
-                                                                    ],
-                                                                    [idx]: {
-                                                                        options: data,
-                                                                        replacement: newTerm,
-                                                                    },
-                                                                },
-                                                            }),
-                                                        );
-                                                    }}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+        body = (
+            <RenderPlugin
+                display={cell.display}
+                plugins={plugins}
+                onSetPlugin={onSetPlugin}
+                onPin={() => onPin(cell.display!, id)}
+            >
+                {renderPlugin()}
+            </RenderPlugin>
+        );
+    } else {
+        const matching = getMatchingPlugins(
+            plugins,
+            env,
+            cell.display,
+            term.is,
+        );
+
+        body = (
+            <div
+                style={{
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: 'monospace',
+                    position: 'relative',
+                    padding: 8,
+                }}
+            >
+                {typeof value === 'function'
+                    ? null
+                    : JSON.stringify(value, null, 2)}
+                {matching && matching.length ? (
+                    <div>
+                        <h4>Available render plugins</h4>
+
+                        {matching.map((k) => (
+                            <button
+                                key={k}
+                                onClick={() => {
+                                    onSetPlugin({ type: k, opts: {} });
+                                }}
+                            >
+                                {plugins[k].name}
+                            </button>
+                        ))}
+                    </div>
+                ) : null}
             </div>
         );
     }
 
-    const matching = getMatchingPlugins(plugins, env, cell.display, term.is);
-
     return (
-        <div
-            style={{
-                whiteSpace: 'pre-wrap',
-                fontFamily: 'monospace',
-                position: 'relative',
-                padding: 8,
-            }}
-        >
-            {typeof value === 'function'
-                ? null
-                : JSON.stringify(value, null, 2)}
-            {matching && matching.length ? (
-                <div>
-                    <h4>Available render plugins</h4>
-
-                    {matching.map((k) => (
-                        <button
-                            key={k}
-                            onClick={() => {
-                                onSetPlugin({ type: k, opts: {} });
-                            }}
-                        >
-                            {plugins[k].name}
-                        </button>
-                    ))}
-                </div>
-            ) : null}
+        <div>
+            {body}
+            <div style={{ display: 'flex', flexDirection: 'row' }}>
+                {Object.keys(sliderData.sliders).map((hash) => {
+                    const idxs = Object.keys(sliderData.sliders[hash]);
+                    if (!idxs.length) {
+                        return;
+                    }
+                    return (
+                        <div key={hash} style={{ padding: 4 }}>
+                            <h4>
+                                {termAndEnvWithSliders.env.global.idNames[
+                                    hash
+                                ] || hash}
+                            </h4>
+                            <div style={{ display: 'flex' }}>
+                                {idxs.map((idx) => {
+                                    const config =
+                                        sliderData.sliders[hash][parseInt(idx)];
+                                    const Widget = config.widget;
+                                    return (
+                                        <div key={idx} style={{ padding: 4 }}>
+                                            {config.title ? (
+                                                <div
+                                                    style={{
+                                                        marginBottom: 16,
+                                                        textAlign: 'center',
+                                                        padding: 4,
+                                                        backgroundColor: '#555',
+                                                    }}
+                                                >
+                                                    {config.title}
+                                                </div>
+                                            ) : null}
+                                            <Widget
+                                                data={
+                                                    sliderState[hash] &&
+                                                    sliderState[hash][+idx]
+                                                        ? sliderState[hash][
+                                                              +idx
+                                                          ].options
+                                                        : null
+                                                }
+                                                onUpdate={(newTerm, data) => {
+                                                    setSliderState((state) => ({
+                                                        ...state,
+                                                        [hash]: {
+                                                            ...state[hash],
+                                                            [idx]: {
+                                                                options: data,
+                                                                replacement: newTerm,
+                                                            },
+                                                        },
+                                                    }));
+                                                }}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 };

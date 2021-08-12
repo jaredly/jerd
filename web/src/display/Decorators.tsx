@@ -13,6 +13,7 @@ import { idFromName, idName } from '../../../language/src/typing/env';
 import {
     float,
     floatLiteral,
+    int,
     refType,
 } from '../../../language/src/typing/preset';
 import {
@@ -42,6 +43,16 @@ export const recordValues = (term: Record): Array<Term> | null => {
 };
 
 // export const record = ()
+
+export const intValue = (term: Term) => {
+    if (term.type === 'int') {
+        return term.value;
+    }
+    if (term.type === 'unary' && term.op === '-' && term.inner.type === 'int') {
+        return -term.inner.value;
+    }
+    return null;
+};
 
 export const floatValue = (term: Term) => {
     if (term.type === 'float') {
@@ -80,6 +91,48 @@ export const widgetForDecorator = (
     onUpdate: (term: Term, data: any) => void;
 }> => {
     const hash = idName(dec.name.id);
+
+    if (hash === slider$2_id) {
+        const asInt = intValue(term);
+        if (asInt == null || dec.args.length !== 3) {
+            return null;
+        }
+        const min =
+            dec.args[0].type === 'Term' ? intValue(dec.args[0].term) : null;
+        const max =
+            dec.args[1].type === 'Term' ? intValue(dec.args[1].term) : null;
+        const step =
+            dec.args[2].type === 'Term' ? intValue(dec.args[2].term) : null;
+        if (min == null || max == null || step == null) {
+            return null;
+        }
+
+        return ({ data, onUpdate }) => {
+            return (
+                <React.Fragment>
+                    <input
+                        type="range"
+                        min={min}
+                        max={max}
+                        step={step}
+                        value={data == null ? asInt : data}
+                        onChange={(evt) => {
+                            const value = parseInt(evt.target.value);
+                            const term: Term = {
+                                type: 'int',
+                                value,
+                                is: int,
+                                location: nullLocation,
+                            };
+                            onUpdate(term, value);
+                        }}
+                    />
+                    {data == null ? asInt : data}
+                </React.Fragment>
+            );
+        };
+    }
+
     if (hash === slider$1_id) {
         const asFloat = floatValue(term);
         if (asFloat == null || dec.args.length !== 3) {
@@ -120,6 +173,7 @@ export const widgetForDecorator = (
             );
         };
     }
+
     if (hash === slider_id) {
         const asFloats = recordFloats(term);
         if (!asFloats || dec.args.length !== 2) {

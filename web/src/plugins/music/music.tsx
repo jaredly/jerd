@@ -30,15 +30,20 @@ export const AudioGenerator = <T,>({
     const [recordLength, setRecordLength] = React.useState(10);
     const [notes, setNotes] = React.useState([] as Array<Note | Note$1>);
     const [url, setUrl] = React.useState('');
+    const current = React.useRef(value);
+    React.useEffect(() => {
+        current.current = value;
+    });
+
     React.useEffect(() => {
         if (!playState) {
             return;
         }
         const synth = new Tone.Synth().toDestination();
-        let state = value.initial;
+        let state = current.current.initial;
         let tid = null as null | NodeJS.Timeout;
         const run = () => {
-            const res = value.generate(state);
+            const res = current.current.generate(state);
             state = res.next;
             setNotes(res.notes);
             res.notes.forEach((note) => {
