@@ -75,12 +75,15 @@ if (window.location.search) {
                 } catch (err) {
                     return render(
                         <div>
-                            Invalid gist. The first file must be a json
-                            stringification of the glsl.
+                            Invalid gist. The first file must be in json format.
                         </div>,
                         document.getElementById('root'),
                     );
                 }
+
+                // TODO: Make this into a general "this can display a pin" thing!
+                // would be cool to also render all of the code
+
                 let shaders: Array<string> = [];
                 let size = 500;
                 let zoom = 0.5;
