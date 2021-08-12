@@ -232,12 +232,12 @@ const updateSelection = (
     setSelection: (fn: (s: Selection) => Selection) => void,
 ) => {
     if (!ref.current || document.activeElement !== ref.current) {
-        console.log('Not active', ref.current, document.activeElement);
+        // console.log('Not active', ref.current, document.activeElement);
         return;
     }
     const sel = document.getSelection();
     if (!sel || !sel.focusNode || sel.focusNode !== sel.anchorNode) {
-        console.log('NOP', sel);
+        // console.log('NOP', sel);
         return;
     }
     let node = sel.focusNode as HTMLElement;
@@ -250,7 +250,7 @@ const updateSelection = (
     }
 
     if (!node || !node.hasAttribute('data-id')) {
-        console.log('No nodez', node, sel);
+        // console.log('No nodez', node, sel);
         setSelection((s) => ({ ...s, node: null }));
         return;
     }

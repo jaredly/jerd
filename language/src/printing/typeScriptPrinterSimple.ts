@@ -7,7 +7,7 @@ import {
     sortTerms,
 } from '../typing/analyze';
 import { hashObject, idFromName, idName, refName } from '../typing/env';
-import { binOps, bool } from '../typing/preset';
+import { binOps, bool, int } from '../typing/preset';
 import {
     EffectRef,
     Env,
@@ -263,7 +263,7 @@ export const _termToTs = (
                         termToTs(env, opts, term.args[1]),
                     );
                 }
-                return t.binaryExpression(
+                const exp = t.binaryExpression(
                     // @ts-ignore
                     term.target.name === '++' ? '+' : term.target.name,
                     termToTs(env, opts, term.args[0]),
@@ -271,6 +271,16 @@ export const _termToTs = (
                     // termToTs(env, opts, term.target),
                     // term.args.map((arg) => termToTs(env, opts, arg)),
                 );
+                const a0 = term.args[0].is;
+                if (
+                    a0.type === 'ref' &&
+                    a0.ref.type === 'builtin' &&
+                    a0.ref.name === 'int' &&
+                    '/' === term.target.name
+                ) {
+                    return t.binaryExpression('|', exp, t.numericLiteral(0));
+                }
+                return exp;
             }
             return maybeWithComment(
                 t.callExpression(

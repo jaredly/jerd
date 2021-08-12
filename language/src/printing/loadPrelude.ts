@@ -8,17 +8,11 @@ import { loadBuiltins } from './loadBuiltins';
 // @ts-ignore
 import preludeRaw from './prelude.jd';
 
-export const loadPrelude = (builtins: { [key: string]: Type }): GlobalEnv => {
-    // console.log('preludeRaw', preludeRaw.slice(0, 100));
-    const parsed = parse(preludeRaw);
-    // const typedBuiltins: { [key: string]: Type } = {};
-    // const builtins = loadBuiltins();
-    // Object.keys(builtins).forEach((k) => {
-    //     const t = builtins[k];
-    //     if (t != null) {
-    //         typedBuiltins[k] = t;
-    //     }
-    // });
+export const loadPrelude = (
+    builtins: { [key: string]: Type },
+    raw?: string,
+): GlobalEnv => {
+    const parsed = parse(raw || preludeRaw);
     return typeFile(parsed, presetEnv(builtins), 'prelude.jd').env.global;
 };
 
@@ -28,7 +22,7 @@ export type Init = {
     builtinNames: Array<string>;
 };
 
-export const loadInit = (): Init => {
+export const loadInit = (raw?: string): Init => {
     const tsBuiltins = loadBuiltins();
     console.log('loaded builtins');
     const typedBuiltins: { [key: string]: Type } = {};
@@ -39,7 +33,7 @@ export const loadInit = (): Init => {
         }
     });
     const builtinNames = Object.keys(tsBuiltins);
-    const initialEnv = loadPrelude(typedBuiltins);
+    const initialEnv = loadPrelude(typedBuiltins, raw);
     console.log('loaded prelude');
 
     return { typedBuiltins, initialEnv, builtinNames };

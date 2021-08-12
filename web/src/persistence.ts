@@ -19,6 +19,10 @@ import localForage from 'localforage';
 import { idFromName, idName } from '../../language/src/typing/env';
 import { EvalEnv } from './State';
 
+import rawMusic from './plugins/music/music.jd';
+import { typeFile } from '../../language/src/typing/typeFile';
+import { parse } from '../../language/src/parsing/parser';
+
 const saveKey = 'jd-repl-cache';
 
 export const stateToString = (state: State) => {
@@ -62,7 +66,8 @@ export const initialState = async (): Promise<State> => {
             typedBuiltins[b] = v;
         }
     });
-    const env = loadPrelude(typedBuiltins);
+    let env = loadPrelude(typedBuiltins);
+    env = typeFile(parse(rawMusic), newWithGlobal(env), 'music.jd').env.global;
     console.log('initial env', env);
     if (saved) {
         try {

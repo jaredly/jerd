@@ -14,6 +14,7 @@ import DrawablePlugins from './display/Drawable';
 import OpenGLPlugins from './display/OpenGL';
 import ColorPlugins from './display/Color';
 import StdioPlugins from './display/Stdio';
+import MusicPlugins from './plugins/music/music';
 import { runTerm } from './eval';
 import Library from './Library';
 import { Content, RenderPlugins } from './State';
@@ -28,6 +29,7 @@ const defaultPlugins: RenderPlugins = {
     ...StdioPlugins,
     ...OpenGLPlugins,
     ...ColorPlugins,
+    ...MusicPlugins,
 };
 
 export type Props = {

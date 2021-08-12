@@ -1,0 +1,45 @@
+
+@ffi
+type Note = {
+	pitch: string, // TODO more exact please
+	// In seconds
+	start: float,
+	// Also seconds
+	duration: float,
+}
+
+@ffi
+type AudioGenResponse<State> = {
+	notes: Array<Note>,
+	next: State,
+	wait: float,
+}
+
+@ffi
+type AudioGen<State> = {
+	initial: State,
+	generate: (state: State) => AudioGenResponse<State>,
+}
+
+@ffi
+type Note = {
+	pitch: string, // TODO more exact please
+	// In seconds
+	start: float,
+	// Also seconds
+	duration: float,
+	text: string,
+}
+
+@ffi
+type AudioGenResponse<State> = {
+	notes: Array<Note>,
+	next: State,
+	wait: float,
+}
+
+@ffi
+type AudioGen<State> = {
+	initial: State,
+	generate: (state: State) => AudioGenResponse<State>,
+}

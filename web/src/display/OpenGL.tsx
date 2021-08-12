@@ -1,4 +1,3 @@
-// This is the fake one?
 /* @jsx jsx */
 import { jsx } from '@emotion/react';
 import {
@@ -12,11 +11,8 @@ import {
     refType,
 } from '@jerd/language/src/typing/preset';
 import {
-    Decorator,
     Env,
     Id,
-    Location,
-    newWithGlobal,
     nullLocation,
     Reference,
     refsEqual,
@@ -28,25 +24,13 @@ import {
     GLSLBuffer1_id,
     GLSLEnv_id,
     GLSLSceneOld_id,
-    hsla_id,
-    hsl_id,
-    rgba_id,
-    rgb_id,
-    slider$1_id,
-    slider$2_id,
-    slider_id,
-    title_id,
     Vec2_id,
     Vec3_id,
     Vec4_id,
 } from '../../../language/src/printing/prelude-types';
-import { sortAllDepsPlain } from '../../../language/src/typing/analyze';
 import { LocatedError, TypeError } from '../../../language/src/typing/errors';
-import { transform } from '../../../language/src/typing/transform';
 import { showLocation } from '../../../language/src/typing/typeExpr';
-import { refName } from '../../../language/src/typing/typePattern';
 import { EvalEnv, RenderPlugins } from '../State';
-import { widgetForDecorator } from './Decorators';
 import { OpenGLCanvas } from './OpenGLCanvas';
 import { ShaderCPU } from './ShaderCPU';
 import { ShowTrace } from './ShowTrace';

@@ -520,7 +520,7 @@ const getMatchingPlugins = (
         !plugins[display.type] ||
         !typesEqual(plugins[display.type].type, type)
     ) {
-        // console.log('ok', plugins, type);
+        console.log('ok', plugins, type);
         return Object.keys(plugins).filter((k) => {
             if (
                 getTypeError(

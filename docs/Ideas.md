@@ -18,3 +18,9 @@ with another shader?
 it would be ... mod/fract to get the local center
 ... then find the distance to that center
 ... yeah that seems fine actually
+
+
+## Listen to the Collatz conjecture
+
+So a display that expects a function that takes a state and returns a list of notes and a new state
+and then it plays those notes, and when it gets to the end it calls the function again.
