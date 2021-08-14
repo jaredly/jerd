@@ -1622,7 +1622,7 @@ export const shaderAllButMains = (
     const invalidLocs: Array<Location> = [];
 
     inOrder.forEach((name) => {
-        const loc = hasInvalidGLSL(irTerms[name].expr);
+        const loc = hasInvalidGLSL(irTerms[name].expr, name);
         if (loc) {
             invalidLocs.push(loc);
         }
@@ -2058,7 +2058,7 @@ export const fileToGlsl = (
     );
 };
 
-export const hasInvalidGLSL = (expr: Expr) => {
+export const hasInvalidGLSL = (expr: Expr, selfHash?: string) => {
     let found: Loc | null = null;
     // Toplevel record not allowed
     if (
@@ -2074,6 +2074,7 @@ export const hasInvalidGLSL = (expr: Expr) => {
             return expr.loc;
         }
     }
+    // Functions can't return a lambda
     if (
         expr.type === 'lambda' &&
         expr.is.type === 'lambda' &&
@@ -2081,6 +2082,7 @@ export const hasInvalidGLSL = (expr: Expr) => {
     ) {
         return expr.loc;
     }
+    // Can't refer to a lambda
     if (expr.is.type === 'lambda' && expr.type !== 'lambda') {
         return expr.loc;
     }
@@ -2088,6 +2090,7 @@ export const hasInvalidGLSL = (expr: Expr) => {
     transformExpr(expr, {
         ...defaultVisitor,
         stmt: (stmt) => {
+            // Can't define a lambda
             if (stmt.type === 'Define' && stmt.is.type === 'lambda') {
                 found = stmt.loc;
             }
@@ -2097,9 +2100,18 @@ export const hasInvalidGLSL = (expr: Expr) => {
             if (expr === top) {
                 return null;
             }
+            // Can't be a lambda
             if (expr.type === 'lambda') {
                 found = expr.loc;
             }
+            // Can't have a self reference
+            if (selfHash && expr.type === 'term' && expr.id.hash === selfHash) {
+                found = expr.loc;
+            }
+            // TODO: enable this one
+            // if (expr.type !== 'term' && expr.is.type === 'lambda') {
+            //     found = expr.loc;
+            // }
             return null;
         },
     });

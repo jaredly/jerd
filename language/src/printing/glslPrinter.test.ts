@@ -75,7 +75,7 @@ const processOne = (raw: string) => {
     const typeDefs = {};
 
     inOrder.forEach((name) => {
-        const loc = hasInvalidGLSL(irTerms[name].expr);
+        const loc = hasInvalidGLSL(irTerms[name].expr, name);
         if (loc) {
             throw new LocatedError(loc, `Invalid GLSL at ${showLocation(loc)}`);
         }
@@ -144,6 +144,22 @@ describe('glslPrinter', () => {
                     return vec4(basic_specialization_bd1520d0());
                 }"
             `);
+        });
+
+        it('cant do recursion', () => {
+            expect(() =>
+                processOne(`const rec awesome = (n: int): int => {
+				if n <= 1 { 1 } else {
+					if modInt(n, 2) == 0 {
+						awesome(n / 2) + 1
+					} else {
+						awesome(n * 3 + 1) + 1
+					}
+				}
+			};
+			(env: GLSLEnv, pos: Vec2) => vec4(awesome(3) as float)
+			`),
+            ).toThrowErrorMatchingInlineSnapshot(`"Invalid GLSL at 6:7-6:14"`);
         });
     });
 
