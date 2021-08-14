@@ -77,9 +77,9 @@ export const processFile = (
             env,
             { includeCanonicalNames: true },
             irOpts,
-            assert,
-            true,
-            builtinNames,
+            // assert,
+            // true,
+            // builtinNames,
         );
 
         const glslDest = path.join(buildDir, path.basename(fname) + '.glsl');

@@ -187,9 +187,9 @@ export default () => {
                 env,
                 oopts,
                 irOpts,
-                false,
-                true,
-                builtinNames,
+                // false,
+                // true,
+                // builtinNames,
             );
             setOutput(pp.text);
             // @ts-ignore

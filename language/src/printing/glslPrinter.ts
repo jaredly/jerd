@@ -1304,35 +1304,11 @@ const shaderTop = (buffers: number) => {
         pp.items([atom('const float PI = 3.14159;')]),
         // atom('uniform sampler2D u_buffer0;'),
         ...b,
-        pp.items([
-            atom('uniform '),
-            atom('float'),
-            atom(' '),
-            atom('u_time'),
-            atom(';'),
-        ]),
-        pp.items([
-            atom('uniform '),
-            atom('vec2'),
-            atom(' '),
-            atom('u_mouse'),
-            atom(';'),
-        ]),
+        pp.items([atom('uniform float u_time;')]),
+        pp.items([atom('uniform vec2 u_mouse;')]),
         pp.atom('uniform int u_mousebutton;'),
-        pp.items([
-            atom('uniform '),
-            atom('vec3'),
-            atom(' '),
-            atom('u_camera'),
-            atom(';'),
-        ]),
-        pp.items([
-            atom('uniform '),
-            atom('vec2'),
-            atom(' '),
-            atom('u_resolution'),
-            atom(';'),
-        ]),
+        pp.items([atom('uniform vec3 u_camera;')]),
+        pp.items([atom('uniform vec2 u_resolution;')]),
     ];
 };
 
@@ -1358,7 +1334,7 @@ export const typeDefToGLSL = (
         return atom(
             `// skipping ${printToString(
                 idToGlsl(env, opts, id, true),
-                100,
+                1000,
             )}, contains type variables`,
         );
     }
@@ -1619,8 +1595,6 @@ export const shaderAllButMains = (
         const printed = typeDefToGLSL(env, opts, irOpts, r);
         if (printed) {
             items.push(printed);
-        } else {
-            // console.log('NO', r);
         }
     });
     Object.keys(env.typeDefs).forEach((id) => {
@@ -1632,7 +1606,6 @@ export const shaderAllButMains = (
             idFromName(id),
         );
         items.push(printed);
-        // typeDefToGLSL(env, opts, irOpts, typeDefs[id].typeDef);
     });
 
     if (stateUniform) {
@@ -1640,7 +1613,7 @@ export const shaderAllButMains = (
             atom(
                 `uniform ${printToString(
                     refToGlsl(env, opts, stateUniform, true),
-                    100,
+                    1000,
                 )} u_state;`,
             ),
         );
@@ -1711,7 +1684,7 @@ export const generateSingleShader = (
 
     return {
         invalidLocs,
-        text: items.map((item) => printToString(item, 100)).join('\n\n'),
+        text: items.map((item) => printToString(item, 200)).join('\n'),
     };
 };
 
@@ -1750,7 +1723,7 @@ export const generateShader = (
 
     return {
         invalidLocs,
-        text: items.map((item) => printToString(item, 100)).join('\n\n'),
+        text: items.map((item) => printToString(item, 200)).join('\n'),
     };
 };
 
@@ -1780,13 +1753,14 @@ const glslMain = (
 };
 
 export const fileToGlsl = (
+    // If no @main is found, these expressions will be used as test cases
     expressions: Array<Term>,
     env: TermEnv,
     opts: OutputOptions,
     irOpts: IOutputOptions,
-    assert: boolean,
-    includeImport: boolean,
-    builtinNames: Array<string>,
+    // assert: boolean,
+    // includeImport: boolean,
+    // builtinNames: Array<string>,
 ): { text: string; invalidLocs: Array<Location> } => {
     const buffers: Array<string> = [];
     Object.keys(env.global.metaData).forEach((k) => {
