@@ -175,6 +175,78 @@ describe('glslPrinter', () => {
 			`),
             ).toThrowErrorMatchingInlineSnapshot(`"Invalid GLSL at 4:18-4:23"`);
         });
+
+        it('can turn recursion into loop', () => {
+            expect(
+                processOne(
+                    `
+				const rec reduceRange = <T>(
+					start: int,
+					end: int,
+					init: T,
+					fn: (T, int) ={}> T,
+				): T ={}> {
+					if start >= end {
+						init;
+					} else {
+						reduceRange#self<T>(start + 1, end, fn(init, start), fn);
+					};
+				}
+
+				(env: GLSLEnv, pos: Vec2): Vec4 ={}> {
+					vec4(reduceRange<float>(
+						start: 0,
+						end: 5,
+						init: 1000.0,
+						fn: (dist: float, i: int): float ={}> min(
+							dist,
+							length(
+								v: pos 
+									- vec2(
+										x: i as float * 30.0 
+											+ sin(env.time),
+										y: i as float * 30.0,
+									),
+							) 
+								- 10.0,
+						),
+					))
+				}
+				`,
+                ),
+            ).toMatchInlineSnapshot(`
+                "/* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const start#:4: int = 0;
+                    const init#:6: float = 1000;
+                    const result#:8: float;
+                    const continueBlock#:9: bool = true;
+                    for (; start#:4 < 5; start#:4 = start#:4 + 1) {
+                        init#:6 = min(init#:6, length(pos#:1 - vec2(float(start#:4) * 30 + sin(env#:0.#GLSLEnv#🕷️⚓😣😃#0), float(start#:4) * 30)) - 10);
+                        continue;
+                    };
+                    if continueBlock#:9 {
+                        result#:8 = init#:6;
+                        continueBlock#:9 = false;
+                    };
+                    return vec4(result#:8);
+                } */
+                vec4 V5b7993c4(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    int start = 0;
+                    float init = 1000.0;
+                    float result;
+                    bool continueBlock = true;
+                    for (; start < 5; start = (start + 1)) {
+                        init = min(init, (length((pos_1 - vec2(((float(start) * 30.0) + sin(env_0.time)), (float(start) * 30.0)))) - 10.0));
+                        continue;
+                    };
+                    if (continueBlock) {
+                        result = init;
+                        continueBlock = false;
+                    };
+                    return vec4(result);
+                }"
+            `);
+        });
     });
 
     it.skip('can print to opengl2', () => {
