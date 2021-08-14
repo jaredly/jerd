@@ -1,14 +1,32 @@
 // This is for testing things that we can print to typescript
 
 import { parse } from '../parsing/parser';
-import { printToString } from './printer';
+import { PP, printToString } from './printer';
 import { toplevelToPretty } from './printTsLike';
-import { fileToGlsl } from './glslPrinter';
-import { addToplevelToEnv, typeToplevelT } from '../typing/env';
+import {
+    assembleItemsForFile,
+    declarationToGlsl,
+    defaultOptimizer,
+    fileToGlsl,
+    generateShader,
+    hasInvalidGLSL,
+    makeTermExpr,
+    populateBuiltins,
+    shaderAllButMains,
+} from './glslPrinter';
+import {
+    addToplevelToEnv,
+    hashObject,
+    idFromName,
+    idName,
+    typeToplevelT,
+} from '../typing/env';
 import { presetEnv } from '../typing/preset';
-import { newWithGlobal, Term } from '../typing/types';
+import { newWithGlobal, selfEnv, Term } from '../typing/types';
 import { loadInit } from './loadPrelude';
 import { typeFile } from '../typing/typeFile';
+import { LocatedError } from '../typing/errors';
+import { showLocation } from '../typing/typeExpr';
 
 const init = loadInit();
 const process = (raw: string) => {
@@ -21,21 +39,92 @@ const process = (raw: string) => {
         throw err;
     }
     const { expressions, env } = typeFile(toplevels, initialEnv, 'test');
-    // const result: Array<string> = [];
-    // const expressions: Array<Term> = [];
-    // toplevels.forEach((rawTop) => {
-    //     const top = typeToplevelT(env, rawTop);
-    //     const res = addToplevelToEnv(env, top);
-    //     env = res.env;
-    //     if (top.type === 'Expression') {
-    //         expressions.push(top.term);
-    //     }
-    // });
     return fileToGlsl(expressions, env, { includeCanonicalNames: true }, {})
         .text;
 };
 
+const processOne = (raw: string) => {
+    let initialEnv = newWithGlobal(init.initialEnv);
+    let toplevels;
+    try {
+        toplevels = parse(raw);
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+    const { expressions, env } = typeFile(toplevels, initialEnv, 'test');
+    const last = expressions[expressions.length - 1];
+    const mainId = idFromName(hashObject(last));
+    env.global.terms[idName(mainId)] = last;
+
+    const required = [mainId].map((id) => makeTermExpr(id, env));
+
+    const builtins = populateBuiltins(env);
+
+    const { inOrder, irTerms } = assembleItemsForFile(
+        { ...env, typeDefs: {} },
+        required,
+        [mainId].map(idName),
+        {},
+        builtins,
+        defaultOptimizer,
+    );
+    const items: Array<PP> = [];
+    const opts = {};
+
+    const typeDefs = {};
+
+    inOrder.forEach((name) => {
+        const loc = hasInvalidGLSL(irTerms[name].expr);
+        if (loc) {
+            throw new LocatedError(loc, `Invalid GLSL at ${showLocation(loc)}`);
+        }
+
+        const senv = env.global.terms[name]
+            ? selfEnv(env, {
+                  type: 'Term',
+                  name,
+                  ann: env.global.terms[name].is,
+              })
+            : env;
+        items.push(
+            declarationToGlsl(
+                // Empty out the localNames
+                // { ...senv, local: { ...senv.local, localNames: {} } },
+                { ...senv, typeDefs },
+                opts,
+                name,
+                irTerms[name].expr,
+                null,
+            ),
+        );
+    });
+
+    return items.map((item) => printToString(item, 200)).join('\n');
+};
+
 describe('glslPrinter', () => {
+    describe('things that glsl should be able to handle', () => {
+        it('basic thing', () => {
+            expect(
+                processOne(
+                    `
+					const thing = (n: int) => (n * 2) as float;
+					(env: GLSLEnv, pos: Vec2) => vec4(vec3(pos, thing(23)), 1.0)`,
+                ),
+            ).toMatchInlineSnapshot(`
+                "/* (n#:0: int): float => float(n#:0 * 2) */
+                float Vac9c267c(int n_0) {
+                    return float((n_0 * 2));
+                }
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(vec3(pos#:1, thing#🍅(23)), 1) */
+                vec4 V48febf40(T451d5252 env_0, vec2 pos_1) {
+                    return vec4(vec3(pos_1, Vac9c267c(23)), 1.0);
+                }"
+            `);
+        });
+    });
+
     it.skip('can print to opengl2', () => {
         throw new Error('nope it cant');
     });
@@ -70,9 +159,10 @@ describe('glslPrinter', () => {
             )
             \`\`\`
             */
-            /*(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(
+            /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(
                 1,
-            )*/vec4 res_498ef43c(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+            ) */
+            vec4 res_498ef43c(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                 return vec4(1.0);
             }
             void main() {

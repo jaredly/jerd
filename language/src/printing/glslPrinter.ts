@@ -292,7 +292,7 @@ export const declarationToGlsl = (
             comment ? atom('/*' + comment + '*/\n') : null,
             term.note
                 ? atom(`/* ${term.note} */\n`)
-                : items([atom('/*'), debugExpr(env, term), atom('*/')]),
+                : items([atom('/* '), debugExpr(env, term), atom(' */\n')]),
             typeToGlsl(env, opts, term.res),
             atom(' '),
             idToGlsl(env, opts, idFromName(idRaw), false),
