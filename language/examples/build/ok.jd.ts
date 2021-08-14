@@ -232,7 +232,7 @@ export const hash_4ffa1f88: <T_0>(arg_0: string, arg_1: number, arg_2:
 const ArrayStringEq#0d35c408 = ArrayEq#bef2134a<string#builtin>(eq: StringEq#606c7034)
 ```
 */
-export const hash_0d35c408: t_553b4b8e<Array<string>> = hash_bef2134a(hash_606c7034);
+export const hash_0d35c408: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_606c7034);
 
 /**
 ```

@@ -3,14 +3,14 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-type Addable#01b93b73<T#:0> = {
+type Addable#5cfbbc08<T#:0> = {
     "+": (T#:0, T#:0) ={}> T#:0,
 }
 ```
 */
-type t_01b93b73<T_0> = {
-  type: "01b93b73";
-  h01b93b73_0: (arg_0: T_0, arg_1: T_0) => T_0;
+type t_5cfbbc08<T_0> = {
+  type: "5cfbbc08";
+  h5cfbbc08_0: (arg_0: T_0, arg_1: T_0) => T_0;
 };
 
 /**
@@ -132,7 +132,7 @@ export const hash_c41f7386: t_553b4b8e<number> = ({
 const ArrayIntEq#4419935c = ArrayEq#bef2134a<int#builtin>(eq: IntEq#9275f914)
 ```
 */
-export const hash_4419935c: t_553b4b8e<Array<number>> = hash_bef2134a(hash_9275f914);
+export const hash_4419935c: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_9275f914);
 
 /**
 ```
@@ -143,22 +143,22 @@ export const hash_a4c2a3f0: (arg_0: [number, number]) => number = (t: [number, n
 
 /**
 ```
-const IntArrayAddable#997bf914 = Addable#01b93b73<Array#builtin<int#builtin>>{
-    "+"#01b93b73#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
+const IntArrayAddable#e591f086 = Addable#5cfbbc08<Array#builtin<int#builtin>>{
+    "+"#5cfbbc08#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
         int#builtin,
     > ={}> concat#builtin<int#builtin>(a#:0, b#:1),
 }
 ```
 */
-export const hash_997bf914: t_01b93b73<Array<number>> = ({
-  type: "01b93b73",
-  h01b93b73_0: (a: Array<number>, b: Array<number>) => concat(a, b)
-} as t_01b93b73<Array<number>>);
+export const hash_e591f086: t_5cfbbc08<Array<number>> = ({
+  type: "5cfbbc08",
+  h5cfbbc08_0: (a: Array<number>, b: Array<number>) => concat(a, b)
+} as t_5cfbbc08<Array<number>>);
 
 /*
-<int#builtin>[1] +#997bf914#01b93b73#0 <int#builtin>[2, 3]
+<int#builtin>[1] +#e591f086#5cfbbc08#0 <int#builtin>[2, 3]
 */
-hash_997bf914.h01b93b73_0([1], [2, 3]);
+hash_e591f086.h5cfbbc08_0([1], [2, 3]);
 
 /*
 goToTown#a4c2a3f0(t: (2, 3)) ==#9275f914#553b4b8e#0 2

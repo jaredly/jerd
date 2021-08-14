@@ -2113,10 +2113,14 @@ export const hasInvalidGLSL = (expr: Expr, selfHash?: string) => {
             if (expr.is.type === 'ref' && expr.is.typeVbls.length) {
                 found = expr.loc;
             }
-            // TODO: enable this one
-            // if (expr.type !== 'term' && expr.is.type === 'lambda') {
-            //     found = expr.loc;
-            // }
+            if (expr.is.type === 'Array') {
+                if (
+                    expr.is.inferredSize == null ||
+                    expr.is.inferredSize.type !== 'exactly'
+                ) {
+                    found = expr.loc;
+                }
+            }
             return null;
         },
     });

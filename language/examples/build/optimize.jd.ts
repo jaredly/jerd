@@ -128,7 +128,7 @@ export const hash_b92dd000: number = (() => {
 const ArrayIntEq#4419935c = ArrayEq#bef2134a<int#builtin>(eq: IntEq#9275f914)
 ```
 */
-export const hash_4419935c: t_553b4b8e<Array<number>> = hash_bef2134a(hash_9275f914);
+export const hash_4419935c: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_9275f914);
 
 /*
 <int#builtin>[1, 2] ==#4419935c#553b4b8e#0 <int#builtin>[1, 2]

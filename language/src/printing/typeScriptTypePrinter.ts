@@ -111,6 +111,15 @@ export const typeToAst = (
             );
         case 'effectful-or-direct':
             return t.tsAnyKeyword();
+        case 'Array':
+            // TODO: If inferred size is an exactly, we could potentially
+            // spell out the tuple type.
+            return t.tsTypeReference(
+                t.identifier('Array'),
+                t.tsTypeParameterInstantiation([
+                    typeToAst(env, opts, type.inner),
+                ]),
+            );
         case 'ref':
             const tvars = type.typeVbls.length
                 ? t.tsTypeParameterInstantiation(

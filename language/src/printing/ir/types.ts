@@ -66,6 +66,33 @@ export type TypeReference = {
     loc: Loc;
     typeVbls: Array<Type>;
 };
+
+export type InferredSize =
+    | {
+          type: 'exactly';
+          size: number;
+      }
+    | {
+          type: 'multiple';
+          sizes: Array<InferredSize>;
+      }
+    | {
+          type: 'relative';
+          to: InferredSize;
+          offset: number;
+      }
+    | {
+          type: 'expr';
+          expr: Expr;
+      };
+
+export type ArrayType = {
+    type: 'Array';
+    loc: Loc;
+    inner: Type;
+    inferredSize: null | InferredSize;
+};
+
 export type Type =
     | {
           type: 'var';
@@ -73,6 +100,7 @@ export type Type =
           loc: Loc;
       }
     | TypeReference
+    | ArrayType
     | LambdaType
     | CPSLambdaType
     | DoneLambdaType

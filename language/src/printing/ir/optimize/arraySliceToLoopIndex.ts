@@ -23,12 +23,7 @@ export const arraySliceLoopToIndex = (ctx: Context, expr: Expr): Expr => {
         // console.log('not a block', expr.body.type);
         return expr;
     }
-    const arrayArgs = expr.args.filter(
-        (arg) =>
-            arg.type.type === 'ref' &&
-            arg.type.ref.type === 'builtin' &&
-            arg.type.ref.name === 'Array',
-    );
+    const arrayArgs = expr.args.filter((arg) => arg.type.type === 'Array');
     if (!arrayArgs.length) {
         // console.log('no arrays');
         return expr;

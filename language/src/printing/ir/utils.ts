@@ -247,6 +247,14 @@ export const typeFromTermType = (
 ): Type => {
     switch (type.type) {
         case 'ref':
+            if (type.ref.type === 'builtin' && type.ref.name === 'Array') {
+                return {
+                    type: 'Array',
+                    inner: typeFromTermType(env, opts, type.typeVbls[0]),
+                    loc: type.location,
+                    inferredSize: null,
+                };
+            }
             return {
                 type: 'ref',
                 ref: type.ref,
