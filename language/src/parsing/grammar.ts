@@ -4788,6 +4788,9 @@ function peg$parse(input: string, options?: IParseOptions) {
     }
     if (s1 !== peg$FAILED) {
       s2 = peg$parsePattern();
+      if (s2 === peg$FAILED) {
+        s2 = null;
+      }
       if (s2 !== peg$FAILED) {
         peg$savedPos = s0;
         s1 = peg$c107(s2);

@@ -271,7 +271,7 @@ export type ArrayPattern = {
 };
 export type ArrayPatternSpread = {
     type: 'Spread';
-    inner: Pattern;
+    inner: Pattern | null;
     location: Location;
 };
 

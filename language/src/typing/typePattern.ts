@@ -384,7 +384,25 @@ const typePattern = (
                             `Cannot have multiple spreads in the same array pattern`,
                         );
                     }
-                    spread = typePattern(env, item.inner, expectedType);
+                    if (item.inner) {
+                        spread = typePattern(env, item.inner, expectedType);
+                    } else {
+                        const sym = makeLocal(
+                            env,
+                            {
+                                text: '_',
+                                hash: null,
+                                location: item.location,
+                                type: 'id',
+                            },
+                            expectedType,
+                        );
+                        spread = {
+                            type: 'Binding',
+                            sym,
+                            location: item.location,
+                        };
+                    }
                 } else if (spread == null) {
                     preItems.push(typePattern(env, item, expectedElement));
                 } else {

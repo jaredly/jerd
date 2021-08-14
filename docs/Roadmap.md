@@ -1,8 +1,26 @@
 
+# Deep immutable updates!
+
+What if a.b[c].d = 10
+returned you a copy of `a` with the deep update applied?
+that would be very cool.
+also, it would be interesting if there could be userland implementations of datastructures
+that allowed for [] indexing, and could define a []= operator
+so basically
+
+a.b[c].d = 10
+
+expands to
+
+a.b = ((a.b)[c] = ((a.b[c]).d = 10))
+
+Oh btw I bet decorators on things that have suffixes aren't rendering right.
+
+yeah that's cool
+
 # THings found during coverage for parser
 
 - ... should be a legal pattern spread, shorthand for ..._
-
 
 # Widgets the great and terrible
 
@@ -12,6 +30,54 @@ oh hey, I could add another decorator
 yeah, I was thinking "should I add an optional argument or something,
 but I don't yet have support for optional arguments.
 But I could just add another decorator, love it!
+
+Going so well!!!!
+
+- [ ] the decorator widget state should be persisted in the cell, probably. Actually, let's have it persist when pressing a button? Yeah that's fine. Like "set the defaults". And it woudl save it to "display", so it would be carried through to the "pin". So I'll need to make pins respect that.
+- [ ] make the showcase be able to show any arbitrary pin. This will mean /export as much of the env is needed to render it/, and then have the showcase render the sliders too, so fun.
+- [ ] sliders should allow you to input an arbitrary number too
+- [ ] make the alternates dealio!!
+- [ ] ok and then really integrate these decorators into normal mode. Render them with a little icon that opens a popup. And have a command to add a decorator to whatever thing, that autocompletes with things that fit. yessss
+
+# It would be very showy to be able to generate a swift app for my opengl shader bonanzas.
+
+#### Ok but really, to do anything interesting, I really need a Known-Length Array type
+
+It's fine for it to be different from array, we can figure out magic later if we want.
+
+ArrayN<int, 4>
+
+Ok, and things like switches ... should also work, right?
+
+And <A, N>[a, b] does ArrayN, not Array
+
+Ok what's the most basic?
+fixedArray.0 should work fine
+oh ok so how should I do updates?
+I mean, syntactically. Do I just use maps for everything? Sure why not.
+
+Ok, so instantiate an array, map over it (meaning switches need to work), and that's it, right?
+
+
+## Um so counterpoint
+can't I just infer all of that?
+can't I automagically track ... whether a function is called with a certain length array?
+Like I would need to add annotations places
+and stuff
+to be like "this value ... hm type ... um has an indeterminate length or something"
+
+Places to track it...
+
+hrmmmmm ok so the reason I want this is for the bridge between js and jerd
+so I'd need to do the inference in js, and be able to know the way things work
+
+Ok so let's look at a single small example, see if I can manage to infer it.
+What I want is: to do a boids simulation.
+and do magical shader things to it.
+
+Ok so I think I'll do all of this at the IR layer. I can have a separate type in the IR for array w/ inferred length, without changing the public types.
+
+
 
 #
 
