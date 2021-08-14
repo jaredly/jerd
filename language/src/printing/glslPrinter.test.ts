@@ -161,6 +161,20 @@ describe('glslPrinter', () => {
 			`),
             ).toThrowErrorMatchingInlineSnapshot(`"Invalid GLSL at 6:7-6:14"`);
         });
+
+        it('cant do arrays', () => {
+            expect(() =>
+                processOne(`
+				(env: GLSLEnv, pos: Vec2) => {
+					const items = [1, 2, 3];
+					vec4(switch items {
+						[] => 2.0,
+						[n, ...] => n as float
+					})
+				}
+			`),
+            ).toThrowErrorMatchingInlineSnapshot(`"Invalid GLSL at 4:18-4:23"`);
+        });
     });
 
     it.skip('can print to opengl2', () => {

@@ -2108,6 +2108,11 @@ export const hasInvalidGLSL = (expr: Expr, selfHash?: string) => {
             if (selfHash && expr.type === 'term' && expr.id.hash === selfHash) {
                 found = expr.loc;
             }
+
+            // No type variables allowed
+            if (expr.is.type === 'ref' && expr.is.typeVbls.length) {
+                found = expr.loc;
+            }
             // TODO: enable this one
             // if (expr.type !== 'term' && expr.is.type === 'lambda') {
             //     found = expr.loc;
