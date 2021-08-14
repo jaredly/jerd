@@ -259,6 +259,19 @@ export const typeToGlsl = (
         case 'var':
             // return atom(JSON.stringify(type));
             return atom(`invalid_var_${symToGlsl(env, opts, type.sym)}`);
+        case 'Array':
+            if (
+                type.inferredSize != null &&
+                type.inferredSize.type === 'exactly'
+            ) {
+                return items([
+                    typeToGlsl(env, opts, type.inner),
+                    atom('['),
+                    atom(type.inferredSize.size.toString()),
+                    atom(']'),
+                ]);
+            }
+            return atom(`invalid_array_${JSON.stringify(type.inferredSize)}`);
         default:
             return atom(`invalid_${type.type.replace(/-/g, '_')}`);
     }
@@ -813,6 +826,30 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 return atom('nope_enum_upgrade');
             }
         }
+        case 'array':
+            const elems = expr.items.filter(
+                (s) => s.type !== 'Spread',
+            ) as Array<Expr>;
+            if (elems.length < expr.items.length) {
+                throw new Error(`Array spread not supported in glsl`);
+            }
+            return items([
+                typeToGlsl(env, opts, expr.is.inner),
+                atom('[]'),
+                args(elems.map((item) => termToGlsl(env, opts, item))),
+            ]);
+        case 'arrayIndex':
+            return items([
+                termToGlsl(env, opts, expr.value),
+                atom('['),
+                termToGlsl(env, opts, expr.idx),
+                atom(']'),
+            ]);
+        case 'arrayLen':
+            return items([
+                termToGlsl(env, opts, expr.value),
+                atom('.length()'),
+            ]);
         default:
             return atom('nope_term_' + expr.type);
     }

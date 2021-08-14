@@ -33,7 +33,7 @@ import {
     showLocation,
 } from '../../typing/typeExpr';
 import { idFromName, idName } from '../../typing/env';
-import { LambdaType as ILambdaType, TypeReference } from './types';
+import { ArrayType, LambdaType as ILambdaType, TypeReference } from './types';
 
 import { Loc, Expr, Stmt, OutputOptions, Type } from './types';
 import { callExpression, pureFunction, typeFromTermType } from './utils';
@@ -388,7 +388,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 ),
                 loc: term.location,
                 elType: mapType(elType),
-                is: mapType(term.is),
+                is: mapType(term.is) as ArrayType,
             };
         }
         case 'Switch': {

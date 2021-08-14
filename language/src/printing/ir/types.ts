@@ -347,7 +347,7 @@ export type Expr =
           items: Array<Expr | { type: 'Spread'; value: Expr }>;
           elType: Type;
           loc: Loc;
-          is: Type;
+          is: ArrayType;
       }
     | Record
     | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc; is: Type }

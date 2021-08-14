@@ -239,13 +239,12 @@ describe('glslPrinter', () => {
 			`),
             ).toMatchInlineSnapshot(`
                 INVALID GLSL:
-                - Invalid GLSL at 3:20-3:29: Array length not inferrable
                 - Invalid GLSL at 4:18-4:23: Array length not inferrable
                 - Invalid GLSL at 4:18-4:23: Array length not inferrable
                 - Invalid GLSL at 4:18-4:23: Array length not inferrable
 
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:2: nope type: Array = [1, 2, 3];
+                    const items#:2: Array<int, {"type":"exactly","size":3}> = [1, 2, 3];
                     const result#:6: float;
                     const continueBlock#:7: bool = true;
                     if len(items#:2) == 0 {
@@ -264,16 +263,16 @@ describe('glslPrinter', () => {
                     return vec4(result#:6);
                 } */
                 vec4 V50d7a7d8(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    invalid_Array items = nope_term_array;
+                    int[3] items = int[](1, 2, 3);
                     float result;
                     bool continueBlock = true;
-                    if ((nope_term_arrayLen == 0)) {
+                    if ((items.length() == 0)) {
                         result = 2.0;
                         continueBlock = false;
                     };
                     if (continueBlock) {
-                        if ((nope_term_arrayLen >= 1)) {
-                            result = float(nope_term_arrayIndex);
+                        if ((items.length() >= 1)) {
+                            result = float(items[0]);
                             continueBlock = false;
                         };
                         if (continueBlock) {

@@ -368,6 +368,15 @@ export const debugType = (env: Env, type: ir.Type): PP => {
                 undefined,
                 type.loc,
             );
+        case 'Array':
+            return items([
+                atom('Array<'),
+                debugType(env, type.inner),
+                type.inferredSize
+                    ? atom(', ' + JSON.stringify(type.inferredSize))
+                    : null,
+                atom('>'),
+            ]);
     }
     return atom('nope type: ' + type.type, undefined, type.loc);
 };
