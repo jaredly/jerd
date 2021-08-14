@@ -365,7 +365,6 @@ const opRepLim = ( p: Vec3, c: float, l: Vec3) => {
 const fract = (v: float) => v - floor(v)
 @glsl_builtin
 const fract = (v: Vec3) => Vec3{x: fract(v.x), y: fract(v.y), z: fract(v.z)}
-const abs3 = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 
 const random = (st: Vec2) => {
     fract(sin(dot(st, Vec2{x: 12.9898, y: 78.233})) * 43758.5453123);
@@ -529,23 +528,13 @@ type GLSLScene<T> = {
     render: (GLSLEnv<T>, Vec2) => Vec4,
 }
 
-const rec reduce = <T, R>(
+const rec reduce = <T, R,>(
     items: Array<T>,
-    init: R,
-    fn: (R, T) ={}> R,
-): R ={}> switch items {
-    [] => init,
-    [item, ...rest] => reduce#self<T, R>(rest, fn(init, item), fn),
-}
-
-
-// const reduce = <T, R>(items: Array<T>, initial: R, fn: (current: R, item: T) => R) => switch items {
-//     [] => initial,
-//     [value, ...rest] => reduce<T, R>(rest, fn(initial, value), fn)
-// }
-const rec reduce = <T, R>(items: Array<T>, initial: R, fn: (current: R, item: T) => R): R => switch items {
+    initial: R,
+    fn: (current: R, item: T) => R,
+): R => switch items {
     [] => initial,
-    [value, ...rest] => reduce<T, R>(rest, fn(initial, value), fn)
+    [value, ...rest] => reduce#self<T, R>(rest, fn(initial, value), fn)
 }
 
 // type ResultsState = {

@@ -36,7 +36,11 @@ const process = (raw: string) => {
 };
 
 describe('glslPrinter', () => {
-    it('works', () => {
+    it.skip('can print to opengl2', () => {
+        throw new Error('nope it cant');
+    });
+
+    it('full shader output works', () => {
         expect(
             process(`
 		@ffi

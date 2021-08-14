@@ -24,7 +24,6 @@ export type Init = {
 
 export const loadInit = (raw?: string): Init => {
     const tsBuiltins = loadBuiltins();
-    console.log('loaded builtins');
     const typedBuiltins: { [key: string]: Type } = {};
     Object.keys(tsBuiltins).forEach((b) => {
         const v = tsBuiltins[b];
@@ -34,7 +33,6 @@ export const loadInit = (raw?: string): Init => {
     });
     const builtinNames = Object.keys(tsBuiltins);
     const initialEnv = loadPrelude(typedBuiltins, raw);
-    console.log('loaded prelude');
 
     return { typedBuiltins, initialEnv, builtinNames };
 };
