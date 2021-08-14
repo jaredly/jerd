@@ -127,10 +127,27 @@ export const printToStringInner = (
     pp: PP,
     maxWidth: number,
     options: StringOptions,
-    current: { indent: number; pos: number } = { indent: 0, pos: 0 },
+    sourceMap: SourceMap,
+    current: { indent: number; pos: number; line: number } = {
+        indent: 0,
+        pos: 0,
+        line: 0,
+    },
 ): string => {
+    const start = { line: current.line, column: current.pos };
     if (pp.type === 'atom') {
         current.pos += pp.text.length;
+        current.line += pp.text.split(/\n/g).length - 1;
+        if (pp.loc && pp.loc.idx) {
+            sourceMap[pp.loc.idx] = {
+                start,
+                end: {
+                    line: current.line,
+                    column: current.pos,
+                },
+                idx: pp.loc.idx,
+            };
+        }
         return pp.text;
     }
     if (pp.type === 'id') {
@@ -146,7 +163,24 @@ export const printToStringInner = (
             return `anon#${pp.id}`;
         }
 
-        current.pos += pp.text.length + 1 + pp.id.length;
+        if (options.hideIds || !pp.id) {
+            current.pos += pp.text.length;
+        } else {
+            current.pos += pp.text.length + 1 + pp.id.length;
+        }
+        current.line += pp.text.split(/\n/g).length - 1;
+
+        if (pp.loc && pp.loc.idx) {
+            sourceMap[pp.loc.idx] = {
+                start,
+                end: {
+                    line: current.line,
+                    column: current.pos,
+                },
+                idx: pp.loc.idx,
+            };
+        }
+
         if (options.hideIds || !pp.id) {
             return pp.text;
         }
@@ -158,10 +192,17 @@ export const printToStringInner = (
         current.indent += 4;
         pp.contents.forEach((item) => {
             current.pos = current.indent;
+            current.line += 1;
             res +=
                 '\n' +
                 white(current.indent) +
-                printToStringInner(item, maxWidth, options, current) +
+                printToStringInner(
+                    item,
+                    maxWidth,
+                    options,
+                    sourceMap,
+                    current,
+                ) +
                 pp.sep;
         });
         current.indent -= 4;
@@ -171,6 +212,18 @@ export const printToStringInner = (
         }
         current.pos += 1;
         res += '}';
+
+        if (pp.loc && pp.loc.idx) {
+            sourceMap[pp.loc.idx] = {
+                start,
+                end: {
+                    line: current.line,
+                    column: current.pos,
+                },
+                idx: pp.loc.idx,
+            };
+        }
+
         return res;
     }
     // Sometimes breaks
@@ -189,12 +242,25 @@ export const printToStringInner = (
                     child,
                     maxWidth,
                     options,
+                    sourceMap,
                     current,
                 );
                 // current.pos += ctext.length;
                 res += ctext;
             });
             current.pos += 1;
+
+            if (pp.loc && pp.loc.idx) {
+                sourceMap[pp.loc.idx] = {
+                    start,
+                    end: {
+                        line: current.line,
+                        column: current.pos,
+                    },
+                    idx: pp.loc.idx,
+                };
+            }
+
             return res + pp.right;
         }
 
@@ -203,21 +269,35 @@ export const printToStringInner = (
         current.indent += 4;
         pp.contents.forEach((item, i) => {
             current.pos = current.indent;
+            current.line += 1;
             res +=
                 '\n' +
                 white(current.indent) +
-                printToStringInner(item, maxWidth, options, current);
+                printToStringInner(item, maxWidth, options, sourceMap, current);
             if (pp.trailing || i < pp.contents.length - 1) {
                 res += ',';
             }
         });
         current.indent -= 4;
         if (res.length > 1) {
+            current.line += 1;
             res += '\n' + white(current.indent);
             current.pos = current.indent;
         }
         current.pos += 1;
         res += pp.right;
+
+        if (pp.loc && pp.loc.idx) {
+            sourceMap[pp.loc.idx] = {
+                start,
+                end: {
+                    line: current.line,
+                    column: current.pos,
+                },
+                idx: pp.loc.idx,
+            };
+        }
+
         return res;
     }
     if (pp.type === 'items') {
@@ -227,21 +307,56 @@ export const printToStringInner = (
             pp.items.forEach((item, i) => {
                 if (i > 0) {
                     current.pos = current.indent;
+                    current.line += 1;
                     res += '\n' + white(current.indent);
                 }
-                res += printToStringInner(item, maxWidth, options, current);
+                res += printToStringInner(
+                    item,
+                    maxWidth,
+                    options,
+                    sourceMap,
+                    current,
+                );
             });
             current.indent -= 4;
             // if (res.length > 1) {
             //     res += '\n' + white(current.indent);
             //     current.pos = current.indent;
             // }
+
+            if (pp.loc && pp.loc.idx) {
+                sourceMap[pp.loc.idx] = {
+                    start,
+                    end: {
+                        line: current.line,
+                        column: current.pos,
+                    },
+                    idx: pp.loc.idx,
+                };
+            }
             return res;
         }
         let res = '';
         pp.items.forEach((item) => {
-            res += printToStringInner(item, maxWidth, options, current);
+            res += printToStringInner(
+                item,
+                maxWidth,
+                options,
+                sourceMap,
+                current,
+            );
         });
+
+        if (pp.loc && pp.loc.idx) {
+            sourceMap[pp.loc.idx] = {
+                start,
+                end: {
+                    line: current.line,
+                    column: current.pos,
+                },
+                idx: pp.loc.idx,
+            };
+        }
         return res;
     }
     throw new Error(`unexpected pp type ${JSON.stringify(pp)}`);
@@ -251,8 +366,13 @@ export const printToString = (
     pp: PP,
     maxWidth: number,
     options: StringOptions = { hideIds: false, hideNames: false },
+    sourceMap: SourceMap = {},
 ): string => {
-    return printToStringInner(pp, maxWidth, options, { indent: 0, pos: 0 });
+    return printToStringInner(pp, maxWidth, options, sourceMap, {
+        indent: 0,
+        pos: 0,
+        line: 0,
+    });
 };
 
 export type AttributedText =

@@ -1,6 +1,6 @@
 // This is for testing things that we can print to typescript
 
-import { parse } from '../parsing/parser';
+import { Loc, Location, parse } from '../parsing/parser';
 import { PP, printToString } from './printer';
 import { toplevelToPretty } from './printTsLike';
 import {
@@ -9,6 +9,7 @@ import {
     defaultOptimizer,
     fileToGlsl,
     generateShader,
+    getInvalidLocs,
     hasInvalidGLSL,
     makeTermExpr,
     populateBuiltins,
@@ -27,6 +28,17 @@ import { loadInit } from './loadPrelude';
 import { typeFile } from '../typing/typeFile';
 import { LocatedError } from '../typing/errors';
 import { showLocation } from '../typing/typeExpr';
+
+export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
+    test(value) {
+        return value && typeof value === 'string';
+    },
+    print(value, _, __) {
+        return value as string;
+    },
+};
+
+expect.addSnapshotSerializer(snapshotSerializer);
 
 const init = loadInit();
 const process = (raw: string) => {
@@ -69,16 +81,16 @@ const processOne = (raw: string) => {
         builtins,
         defaultOptimizer,
     );
-    const items: Array<PP> = [];
+    const items: Array<{
+        text: PP;
+        locs: Array<{ loc: Location; reason: string }>;
+    }> = [];
     const opts = {};
 
     const typeDefs = {};
 
     inOrder.forEach((name) => {
-        const loc = hasInvalidGLSL(irTerms[name].expr, name);
-        if (loc) {
-            throw new LocatedError(loc, `Invalid GLSL at ${showLocation(loc)}`);
-        }
+        const locs = getInvalidLocs(irTerms[name].expr, name);
 
         const senv = env.global.terms[name]
             ? selfEnv(env, {
@@ -87,8 +99,8 @@ const processOne = (raw: string) => {
                   ann: env.global.terms[name].is,
               })
             : env;
-        items.push(
-            declarationToGlsl(
+        items.push({
+            text: declarationToGlsl(
                 // Empty out the localNames
                 // { ...senv, local: { ...senv.local, localNames: {} } },
                 { ...senv, typeDefs },
@@ -97,10 +109,31 @@ const processOne = (raw: string) => {
                 irTerms[name].expr,
                 null,
             ),
-        );
+            locs,
+        });
     });
 
-    return items.map((item) => printToString(item, 200)).join('\n');
+    return items
+        .map((item) => {
+            const sourceMap = {};
+            let text = printToString(item.text, 200, undefined, sourceMap);
+            if (item.locs.length) {
+                text =
+                    `INVALID GLSL:\n` +
+                    item.locs
+                        .map(
+                            (l) =>
+                                `- Invalid GLSL at ${showLocation(l.loc)}: ${
+                                    l.reason
+                                }`,
+                        )
+                        .join('\n') +
+                    '\n\n' +
+                    text;
+            }
+            return text;
+        })
+        .join('\n');
 };
 
 describe('glslPrinter', () => {
@@ -113,14 +146,14 @@ describe('glslPrinter', () => {
 					(env: GLSLEnv, pos: Vec2) => vec4(vec3(pos, thing(23)), 1.0)`,
                 ),
             ).toMatchInlineSnapshot(`
-                "/* (n#:0: int): float => float(n#:0 * 2) */
+                /* (n#:0: int): float => float(n#:0 * 2) */
                 float thing_ac9c267c(int n_0) {
                     return float((n_0 * 2));
                 }
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(vec3(pos#:1, thing#🍅(23)), 1) */
                 vec4 V48febf40(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     return vec4(vec3(pos_1, thing_ac9c267c(23)), 1.0);
-                }"
+                }
             `);
         });
 
@@ -131,7 +164,7 @@ describe('glslPrinter', () => {
 				(env: GLSLEnv, pos: Vec2) => vec4(basic((n: int) => n as float + 1.2))`,
                 ),
             ).toMatchInlineSnapshot(`
-                "/* (n#:0: int): float => float(n#:0) + 1.2 */
+                /* (n#:0: int): float => float(n#:0) + 1.2 */
                 float undefined_lambda_c60cffd8(int n_0) {
                     return (float(n_0) + 1.20);
                 }
@@ -142,12 +175,12 @@ describe('glslPrinter', () => {
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(basic_specialization#👨‍🦳()) */
                 vec4 V0d60a1fc(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     return vec4(basic_specialization_bd1520d0());
-                }"
+                }
             `);
         });
 
         it('cant do recursion', () => {
-            expect(() =>
+            expect(
                 processOne(`const rec awesome = (n: int): int => {
 				if n <= 1 { 1 } else {
 					if modInt(n, 2) == 0 {
@@ -159,11 +192,42 @@ describe('glslPrinter', () => {
 			};
 			(env: GLSLEnv, pos: Vec2) => vec4(awesome(3) as float)
 			`),
-            ).toThrowErrorMatchingInlineSnapshot(`"Invalid GLSL at 6:7-6:14"`);
+            ).toMatchInlineSnapshot(`
+                INVALID GLSL:
+                - Invalid GLSL at 4:7-4:14: Can't have recursion
+                - Invalid GLSL at 6:7-6:14: Can't have recursion
+
+                /* (n#:0: int): int => {
+                    if n#:0 <= 1 {
+                        return 1;
+                    } else {
+                        if (n#:0 modInt 2) == (0) {
+                            return awesome#👸🥞🍖😃(n#:0 / 2) + 1;
+                        } else {
+                            return awesome#👸🥞🍖😃(n#:0 * 3 + 1) + 1;
+                        };
+                    };
+                } */
+                int awesome_694a453b(int n_0) {
+                    if ((n_0 <= 1)) {
+                        return 1;
+                    } else {
+                        if (((n_0 % 2) == 0)) {
+                            return (awesome_694a453b((n_0 / 2)) + 1);
+                        } else {
+                            return (awesome_694a453b(((n_0 * 3) + 1)) + 1);
+                        };
+                    };
+                }
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(awesome#👸🥞🍖😃(3))) */
+                vec4 V664a1263(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    return vec4(float(awesome_694a453b(3)));
+                }
+            `);
         });
 
         it('cant do arrays', () => {
-            expect(() =>
+            expect(
                 processOne(`
 				(env: GLSLEnv, pos: Vec2) => {
 					const items = [1, 2, 3];
@@ -173,7 +237,52 @@ describe('glslPrinter', () => {
 					})
 				}
 			`),
-            ).toThrowErrorMatchingInlineSnapshot(`"Invalid GLSL at 4:18-4:23"`);
+            ).toMatchInlineSnapshot(`
+                INVALID GLSL:
+                - Invalid GLSL at 3:20-3:29: Array length not inferrable
+                - Invalid GLSL at 4:18-4:23: Array length not inferrable
+                - Invalid GLSL at 4:18-4:23: Array length not inferrable
+                - Invalid GLSL at 4:18-4:23: Array length not inferrable
+
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:2: nope type: Array = [1, 2, 3];
+                    const result#:6: float;
+                    const continueBlock#:7: bool = true;
+                    if len(items#:2) == 0 {
+                        result#:6 = 2;
+                        continueBlock#:7 = false;
+                    };
+                    if continueBlock#:7 {
+                        if len(items#:2) >= 1 {
+                            result#:6 = float(items#:2[0]);
+                            continueBlock#:7 = false;
+                        };
+                        if continueBlock#:7 {
+                            match_fail!();
+                        };
+                    };
+                    return vec4(result#:6);
+                } */
+                vec4 V50d7a7d8(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    invalid_Array items = nope_term_array;
+                    float result;
+                    bool continueBlock = true;
+                    if ((nope_term_arrayLen == 0)) {
+                        result = 2.0;
+                        continueBlock = false;
+                    };
+                    if (continueBlock) {
+                        if ((nope_term_arrayLen >= 1)) {
+                            result = float(nope_term_arrayIndex);
+                            continueBlock = false;
+                        };
+                        if (continueBlock) {
+                            // match fail;
+                        };
+                    };
+                    return vec4(result);
+                }
+            `);
         });
 
         it('can turn recursion into loop', () => {
@@ -215,7 +324,7 @@ describe('glslPrinter', () => {
 				`,
                 ),
             ).toMatchInlineSnapshot(`
-                "/* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const start#:4: int = 0;
                     const init#:6: float = 1000;
                     const result#:8: float;
@@ -244,7 +353,7 @@ describe('glslPrinter', () => {
                         continueBlock = false;
                     };
                     return vec4(result);
-                }"
+                }
             `);
         });
     });
@@ -261,7 +370,7 @@ describe('glslPrinter', () => {
 		const res = (env: GLSLEnv, pos: Vec2) => vec4(1.0)
 		`),
         ).toMatchInlineSnapshot(`
-            "#version 300 es
+            #version 300 es
             precision mediump float;
             out vec4 fragColor;
             const float PI = 3.14159;
@@ -291,7 +400,7 @@ describe('glslPrinter', () => {
             }
             void main() {
                 fragColor = res_498ef43c(GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse), gl_FragCoord.xy);
-            }"
+            }
         `);
         // yes
     });

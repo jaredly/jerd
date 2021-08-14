@@ -2059,19 +2059,33 @@ export const fileToGlsl = (
 };
 
 export const hasInvalidGLSL = (expr: Expr, selfHash?: string) => {
-    let found: Loc | null = null;
+    const locs = getInvalidLocs(expr, selfHash);
+    if (locs.length) {
+        return locs[0].loc;
+    }
+    return null;
+};
+
+export const getInvalidLocs = (expr: Expr, selfHash?: string) => {
+    let found: Array<{ loc: Loc; reason: string }> = [];
     // Toplevel record not allowed
     if (
         expr.type === 'record' &&
         expr.base.type === 'Concrete' &&
         !builtinTypes[idName(expr.base.ref.id)]
     ) {
-        return expr.loc;
+        found.push({
+            loc: expr.loc,
+            reason: 'Toplevel (constant) records not allowed',
+        });
     }
     // Functions can't have a lambda as an argument
     if (expr.type === 'lambda') {
         if (expr.args.some((arg) => arg.type.type === 'lambda')) {
-            return expr.loc;
+            found.push({
+                loc: expr.loc,
+                reason: `Functions can't have lambdas as an argument`,
+            });
         }
     }
     // Functions can't return a lambda
@@ -2080,11 +2094,17 @@ export const hasInvalidGLSL = (expr: Expr, selfHash?: string) => {
         expr.is.type === 'lambda' &&
         expr.is.res.type === 'lambda'
     ) {
-        return expr.loc;
+        found.push({
+            loc: expr.loc,
+            reason: `Functions can't return a lambda`,
+        });
     }
     // Can't refer to a lambda
     if (expr.is.type === 'lambda' && expr.type !== 'lambda') {
-        return expr.loc;
+        found.push({
+            loc: expr.loc,
+            reason: `Toplevel (constants) that are references to lambdas are not allowed.`,
+        });
     }
     const top = expr;
     transformExpr(expr, {
@@ -2092,7 +2112,7 @@ export const hasInvalidGLSL = (expr: Expr, selfHash?: string) => {
         stmt: (stmt) => {
             // Can't define a lambda
             if (stmt.type === 'Define' && stmt.is.type === 'lambda') {
-                found = stmt.loc;
+                found.push({ loc: stmt.loc, reason: `Can't define a lambda` });
             }
             return null;
         },
@@ -2102,23 +2122,32 @@ export const hasInvalidGLSL = (expr: Expr, selfHash?: string) => {
             }
             // Can't be a lambda
             if (expr.type === 'lambda') {
-                found = expr.loc;
+                found.push({
+                    loc: expr.loc,
+                    reason: `Variables can't be lambdas`,
+                });
             }
             // Can't have a self reference
             if (selfHash && expr.type === 'term' && expr.id.hash === selfHash) {
-                found = expr.loc;
+                found.push({ loc: expr.loc, reason: `Can't have recursion` });
             }
 
             // No type variables allowed
             if (expr.is.type === 'ref' && expr.is.typeVbls.length) {
-                found = expr.loc;
+                found.push({
+                    loc: expr.loc,
+                    reason: `No un-monomorphized type variables allowed`,
+                });
             }
             if (expr.is.type === 'Array') {
                 if (
                     expr.is.inferredSize == null ||
                     expr.is.inferredSize.type !== 'exactly'
                 ) {
-                    found = expr.loc;
+                    found.push({
+                        loc: expr.loc,
+                        reason: `Array length not inferrable`,
+                    });
                 }
             }
             return null;
