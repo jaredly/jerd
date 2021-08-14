@@ -5,7 +5,7 @@ const kxyz = Vec3{x: 1.0, y: 2.0 / 3.0, z: 1.0 / 3.0}
 const hsv2rgb = (c: Vec3) => {
   const K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
   const xxx = Vec3{x: c.x, y: c.x, z: c.x};
-  const p = abs3(fract(xxx + kxyz) * 6.0 - 3.0);
+  const p = abs(fract(xxx + kxyz) * 6.0 - 3.0);
   const kxxx = Vec3{x: 1.0, y: 1.0, z: 1.0};
   c.z * mix(kxxx, clamp(p - kxxx, Vec3{x: 0.0, y: 0.0, z: 0.0}, Vec3{x: 1.0, y: 1.0, z: 1.0}), c.y);
 }
