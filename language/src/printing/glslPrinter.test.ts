@@ -92,7 +92,7 @@ const processOne = (raw: string) => {
                 // Empty out the localNames
                 // { ...senv, local: { ...senv.local, localNames: {} } },
                 { ...senv, typeDefs },
-                opts,
+                { includeCanonicalNames: true },
                 name,
                 irTerms[name].expr,
                 null,
@@ -114,12 +114,34 @@ describe('glslPrinter', () => {
                 ),
             ).toMatchInlineSnapshot(`
                 "/* (n#:0: int): float => float(n#:0 * 2) */
-                float Vac9c267c(int n_0) {
+                float thing_ac9c267c(int n_0) {
                     return float((n_0 * 2));
                 }
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(vec3(pos#:1, thing#🍅(23)), 1) */
-                vec4 V48febf40(T451d5252 env_0, vec2 pos_1) {
-                    return vec4(vec3(pos_1, Vac9c267c(23)), 1.0);
+                vec4 V48febf40(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    return vec4(vec3(pos_1, thing_ac9c267c(23)), 1.0);
+                }"
+            `);
+        });
+
+        it('passed-in function', () => {
+            expect(
+                processOne(
+                    `const basic = (f: (int) => float) => f(2) + 2.3;
+				(env: GLSLEnv, pos: Vec2) => vec4(basic((n: int) => n as float + 1.2))`,
+                ),
+            ).toMatchInlineSnapshot(`
+                "/* (n#:0: int): float => float(n#:0) + 1.2 */
+                float undefined_lambda_c60cffd8(int n_0) {
+                    return (float(n_0) + 1.20);
+                }
+                /* (): float => undefined_lambda#🏐(2) + 2.3 */
+                float basic_specialization_bd1520d0() {
+                    return (undefined_lambda_c60cffd8(2) + 2.30);
+                }
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(basic_specialization#👨‍🦳()) */
+                vec4 V0d60a1fc(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    return vec4(basic_specialization_bd1520d0());
                 }"
             `);
         });
