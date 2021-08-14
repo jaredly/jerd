@@ -1,46 +1,34 @@
 #version 300 es
-
 precision mediump float;
-
 out vec4 fragColor;
-
 const float PI = 3.14159;
-
 uniform sampler2D u_buffer0;
-
 uniform float u_time;
-
 uniform vec2 u_mouse;
-
+uniform int u_mousebutton;
 uniform vec3 u_camera;
-
 uniform vec2 u_resolution;
-
 // skipping Eq_553b4b8e, contains type variables
-
 struct GLSLEnv_451d5252{
     float time;
     vec2 resolution;
     vec3 camera;
     vec2 mouse;
 };
-
 // skipping Div_5ac12902, contains type variables
-
 // skipping AddSub_b99b22d8, contains type variables
-
 /**
 ```
 const isLive#5df4f34f = (color#:0: Vec4#3b941378): bool#builtin ={}> color#:0.x#43802a16#0 
     >#builtin 0.5
 ```
 */
+/* (color#:0: Vec4#🕒🧑‍🏫🎃): bool => color#:0.#Vec2#🐭😉😵😃#0 > 0.5 */
 bool isLive_5df4f34f(
     vec4 color_0
 ) {
     return (color_0.x > 0.50);
 }
-
 /**
 ```
 const neighbor#821c67e8 = (
@@ -58,19 +46,25 @@ const neighbor#821c67e8 = (
 }
 ```
 */
-int neighbor_821c67e8(
-    vec2 offset_0,
-    vec2 coord_1,
-    vec2 res_2,
-    sampler2D buffer_3
-) {
+/* (
+    offset#:0: Vec2#🐭😉😵😃,
+    coord#:1: Vec2#🐭😉😵😃,
+    res#:2: Vec2#🐭😉😵😃,
+    buffer#:3: sampler2D,
+): int => {
+    if isLive#🚨👳👨‍👦‍👦😃(texture(buffer#:3, (coord#:1 + offset#:0) / (res#:2))) {
+        return 1;
+    } else {
+        return 0;
+    };
+} */
+int neighbor_821c67e8(vec2 offset_0, vec2 coord_1, vec2 res_2, sampler2D buffer_3) {
     if (isLive_5df4f34f(texture(buffer_3, ((coord_1 + offset_0) / res_2)))) {
         return 1;
     } else {
         return 0;
     };
 }
-
 /**
 ```
 const countNeighbors#77a447bc = (
@@ -129,34 +123,38 @@ const countNeighbors#77a447bc = (
 }
 ```
 */
+/* (
+    coord#:0: Vec2#🐭😉😵😃,
+    res#:1: Vec2#🐭😉😵😃,
+    buffer#:2: sampler2D,
+): int => neighbor#⛸️(Vec2#🐭😉😵😃{TODO SPREADs}{x: -1, y: 0}, coord#:0, res#:1, buffer#:2) + neighbor#⛸️(Vec2#🐭😉😵😃{TODO SPREADs}{x: -1, y: 1}, coord#:0, res#:1, buffer#:2) + neighbor#⛸️(
+    Vec2#🐭😉😵😃{TODO SPREADs}{x: -1, y: -1},
+    coord#:0,
+    res#:1,
+    buffer#:2,
+) + neighbor#⛸️(Vec2#🐭😉😵😃{TODO SPREADs}{x: 1, y: 0}, coord#:0, res#:1, buffer#:2) + neighbor#⛸️(Vec2#🐭😉😵😃{TODO SPREADs}{x: 1, y: 1}, coord#:0, res#:1, buffer#:2) + neighbor#⛸️(
+    Vec2#🐭😉😵😃{TODO SPREADs}{x: 1, y: -1},
+    coord#:0,
+    res#:1,
+    buffer#:2,
+) + neighbor#⛸️(Vec2#🐭😉😵😃{TODO SPREADs}{x: 0, y: 1}, coord#:0, res#:1, buffer#:2) + neighbor#⛸️(Vec2#🐭😉😵😃{TODO SPREADs}{x: 0, y: -1}, coord#:0, res#:1, buffer#:2) */
 int countNeighbors_77a447bc(
     vec2 coord_0,
     vec2 res_1,
     sampler2D buffer_2
 ) {
-    return (((((((neighbor_821c67e8(vec2(-1.0, 0.0), coord_0, res_1, buffer_2) + neighbor_821c67e8(
-        vec2(-1.0, 1.0),
+    return (((((((neighbor_821c67e8(vec2(-1.0, 0.0), coord_0, res_1, buffer_2) + neighbor_821c67e8(vec2(-1.0, 1.0), coord_0, res_1, buffer_2)) + neighbor_821c67e8(
+        vec2(-1.0, -1.0),
         coord_0,
         res_1,
         buffer_2
-    )) + neighbor_821c67e8(vec2(-1.0, -1.0), coord_0, res_1, buffer_2)) + neighbor_821c67e8(
-        vec2(1.0, 0.0),
+    )) + neighbor_821c67e8(vec2(1.0, 0.0), coord_0, res_1, buffer_2)) + neighbor_821c67e8(vec2(1.0, 1.0), coord_0, res_1, buffer_2)) + neighbor_821c67e8(vec2(1.0, -1.0), coord_0, res_1, buffer_2)) + neighbor_821c67e8(
+        vec2(0.0, 1.0),
         coord_0,
         res_1,
         buffer_2
-    )) + neighbor_821c67e8(vec2(1.0, 1.0), coord_0, res_1, buffer_2)) + neighbor_821c67e8(
-        vec2(1.0, -1.0),
-        coord_0,
-        res_1,
-        buffer_2
-    )) + neighbor_821c67e8(vec2(0.0, 1.0), coord_0, res_1, buffer_2)) + neighbor_821c67e8(
-        vec2(0.0, -1.0),
-        coord_0,
-        res_1,
-        buffer_2
-    ));
+    )) + neighbor_821c67e8(vec2(0.0, -1.0), coord_0, res_1, buffer_2));
 }
-
 /**
 ```
 const random#347089ef = (st#:0: Vec2#43802a16): float#builtin ={}> {
@@ -172,12 +170,12 @@ const random#347089ef = (st#:0: Vec2#43802a16): float#builtin ={}> {
 }
 ```
 */
-float random_347089ef(
-    vec2 st_0
-) {
+/* (
+    st#:0: Vec2#🐭😉😵😃,
+): float => fract(sin(dot(st#:0, Vec2#🐭😉😵😃{TODO SPREADs}{x: 12.9898, y: 78.233})) * 43758.5453123) */
+float random_347089ef(vec2 st_0) {
     return fract((sin(dot(st_0, vec2(12.98980, 78.2330))) * 43758.54531));
 }
-
 /**
 ```
 const drawToBuffer#5af2137f = (
@@ -214,11 +212,27 @@ const drawToBuffer#5af2137f = (
 }
 ```
 */
-vec4 drawToBuffer_5af2137f(
-    GLSLEnv_451d5252 env_0,
-    vec2 fragCoord_1,
-    sampler2D buffer_2
-) {
+/* (
+    env#:0: GLSLEnv#🕷️⚓😣😃,
+    fragCoord#:1: Vec2#🐭😉😵😃,
+    buffer#:2: sampler2D,
+): Vec4#🕒🧑‍🏫🎃 => {
+    if env#:0.#GLSLEnv#🕷️⚓😣😃#0 < 0.01 {
+        if random#🦧😐🚲(fragCoord#:1 / env#:0.#GLSLEnv#🕷️⚓😣😃#1) > 0.95 {
+            return Vec4#🕒🧑‍🏫🎃{TODO SPREADs}{w: 1, z: 1};
+        } else {
+            return Vec4#🕒🧑‍🏫🎃{TODO SPREADs}{w: 1, z: 0};
+        };
+    } else {
+        const neighbors#:4: int = countNeighbors#🎇👨‍🔧🕓😃(fragCoord#:1, env#:0.#GLSLEnv#🕷️⚓😣😃#1, buffer#:2);
+        if (isLive#🚨👳👨‍👦‍👦😃(texture(buffer#:2, fragCoord#:1 / env#:0.#GLSLEnv#🕷️⚓😣😃#1)) && neighbors#:4 == 2) || (neighbors#:4 == 3) {
+            return Vec4#🕒🧑‍🏫🎃{TODO SPREADs}{w: 1, z: 1};
+        } else {
+            return Vec4#🕒🧑‍🏫🎃{TODO SPREADs}{w: 1, z: 0};
+        };
+    };
+} */
+vec4 drawToBuffer_5af2137f(GLSLEnv_451d5252 env_0, vec2 fragCoord_1, sampler2D buffer_2) {
     if ((env_0.time < 0.010)) {
         if ((random_347089ef((fragCoord_1 / env_0.resolution)) > 0.950)) {
             return vec4(1.0, 0.60, 1.0, 1.0);
@@ -234,7 +248,6 @@ vec4 drawToBuffer_5af2137f(
         };
     };
 }
-
 /**
 ```
 const drawToScreen#5349442c = (
@@ -253,11 +266,19 @@ const drawToScreen#5349442c = (
 }
 ```
 */
-vec4 drawToScreen_5349442c(
-    GLSLEnv_451d5252 env_0,
-    vec2 fragCoord_1,
-    sampler2D buffer0_2
-) {
+/* (
+    env#:0: GLSLEnv#🕷️⚓😣😃,
+    fragCoord#:1: Vec2#🐭😉😵😃,
+    buffer0#:2: sampler2D,
+): Vec4#🕒🧑‍🏫🎃 => {
+    const diff#:3: Vec2#🐭😉😵😃 = env#:0.#GLSLEnv#🕷️⚓😣😃#3 - fragCoord#:1;
+    if length(diff#:3) < 250 {
+        return texture(buffer0#:2, (env#:0.#GLSLEnv#🕷️⚓😣😃#3 - diff#:3 / 4) / (env#:0.#GLSLEnv#🕷️⚓😣😃#1));
+    } else {
+        return texture(buffer0#:2, fragCoord#:1 / env#:0.#GLSLEnv#🕷️⚓😣😃#1);
+    };
+} */
+vec4 drawToScreen_5349442c(GLSLEnv_451d5252 env_0, vec2 fragCoord_1, sampler2D buffer0_2) {
     vec2 diff = (env_0.mouse - fragCoord_1);
     if ((length(diff) < 250.0)) {
         return texture(buffer0_2, ((env_0.mouse - (diff / 4.0)) / env_0.resolution));
@@ -265,25 +286,12 @@ vec4 drawToScreen_5349442c(
         return texture(buffer0_2, (fragCoord_1 / env_0.resolution));
     };
 }
-
 #if defined(BUFFER_0)
-
 void main() {
-    fragColor = drawToBuffer_5af2137f(
-        GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
-        gl_FragCoord.xy,
-        u_buffer0
-    );
+    fragColor = drawToBuffer_5af2137f(GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse), gl_FragCoord.xy, u_buffer0);
 }
-
 #else
-
 void main() {
-    fragColor = drawToScreen_5349442c(
-        GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse),
-        gl_FragCoord.xy,
-        u_buffer0
-    );
+    fragColor = drawToScreen_5349442c(GLSLEnv_451d5252(u_time, u_resolution, u_camera, u_mouse), gl_FragCoord.xy, u_buffer0);
 }
-
 #endif

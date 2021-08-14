@@ -131,7 +131,7 @@ export const subtTypeVars = (
 };
 
 export const showLocation = (loc: Location | null, startOnly?: boolean) => {
-    if (!loc) {
+    if (!loc || !loc.start) {
         return `<no location>`;
     }
     if (startOnly) {
