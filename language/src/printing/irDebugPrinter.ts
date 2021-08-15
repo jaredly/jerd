@@ -125,9 +125,8 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
         case 'tupleAccess':
             return items([
                 debugExpr(env, expr.target),
-                atom('['),
+                atom('.'),
                 atom(expr.idx + ''),
-                atom(']'),
             ]);
         case 'tuple':
             return args(expr.items.map((e) => debugExpr(env, e)));
@@ -142,6 +141,10 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
                 throw new Error('not yet impl');
             }
             const base = expr.base;
+            const id = expr.base.ref.id;
+            if (!env.global.types[idName(id)]) {
+                return atom('RECORDNOTFOUND');
+            }
             const rows = allRecordMembers(env, expr.base.ref.id);
             return items(
                 [

@@ -1,20 +1,4 @@
 
-// const boxes = (samplePoint: Vec3, center: Vec3, count: int, dims: Vec3, spacing: float) => {
-//     if count <= 1 {
-//         max(abs(p1)) - dims
-//     }
-// }
-
-// START HERE
-// STOPSHIP
-// THIS IS BREAKING
-// I need to do another ordering of things I think
-// once we've gone and generated stuff.
-// I need to reorder everything
-// so that things get output in dependency order.
-// because right now they're getting messed up if this function
-// is defined.
-// Which is very perplexing.
 const sceneBall = (iTime: float, samplePoint: Vec3) => {
     length(samplePoint) - 1.0
 }

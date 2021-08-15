@@ -397,8 +397,6 @@ const random2 = (co: Vec2) => {
     fract(sin(sn) * c);
 }
 
-// START HERE: need to resolve ambiguity between
-// [self] and a [term]
 @glsl_builtin
 const abs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 @glsl_builtin
@@ -595,3 +593,21 @@ decorator title(title: string);
 
 // @buffer(0)
 // @main
+
+// @unique(0)
+// type Tuple2<A, B> = {
+//     v0: A,
+//     v1: B,
+// };
+
+// @unique(0)
+// type Tuple3<A, B, C> = {
+//     ...Tuple2<A, B>,
+//     v2: C,
+// };
+
+// @unique(0)
+// type Tuple4<A, B, C, D> = {
+//     ...Tuple3<A, B, C>,
+//     v3: D,
+// }

@@ -60,6 +60,13 @@ export type OutputOptions = {
 // And then would I have these things be parameterized by the `Type`?
 // rggggggggggggg yeah I mean I guess so?
 
+export type UserTypeReference = {
+    type: 'ref';
+    ref: UserReference;
+    loc: Loc;
+    typeVbls: Array<Type>;
+};
+
 export type TypeReference = {
     type: 'ref';
     ref: Reference;

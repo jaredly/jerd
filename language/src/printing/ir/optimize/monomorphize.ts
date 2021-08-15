@@ -2,9 +2,17 @@
 // ugh nvm that's complicated.
 
 import { hashObject, idFromName, idName } from '../../../typing/env';
-import { Env } from '../../../typing/types';
+import { Env, Id, Location, UserReference } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
-import { Expr, LambdaExpr, LambdaType, Type } from '../types';
+import {
+    Expr,
+    LambdaExpr,
+    LambdaType,
+    OutputOptions,
+    RecordDef,
+    Type,
+    UserTypeReference,
+} from '../types';
 import {
     applyTypeVariables,
     applyTypeVariablesToRecord,
@@ -14,7 +22,46 @@ import {
     typeFromTermType,
 } from '../utils';
 // import { maxUnique } from './inline';
-import { Context, Exprs } from './optimize';
+import { Context, TypeDefs } from './optimize';
+
+export const specializeType = (
+    env: Env,
+    opts: OutputOptions,
+    t: UserTypeReference,
+    // ref: UserReference,
+    // typeVbls: Array<Type>,
+    loc: Location,
+    types: TypeDefs,
+) => {
+    const defn = env.global.types[idName(t.ref.id)];
+    if (defn.type !== 'Record') {
+        return null;
+    }
+    const def = recordDefFromTermType(env, opts, defn);
+    const ndef = applyTypeVariablesToRecord(
+        env,
+        def,
+        t.typeVbls,
+        loc,
+        idName(t.ref.id),
+    );
+    const hash = hashObject(ndef);
+    types[hash] = {
+        typeDef: ndef,
+        source: t.ref.id,
+    };
+    const nid = idFromName(hash);
+    const newType: UserTypeReference = {
+        ...t,
+        typeVbls: [],
+        ref: {
+            ...t.ref,
+            id: nid,
+        },
+    };
+    // symsToUpdate[arg.sym.unique] = newType;
+    return newType;
+};
 
 export const monomorphizeTypes = (
     { env, exprs, types, opts }: Context,
@@ -25,18 +72,56 @@ export const monomorphizeTypes = (
         ...defaultVisitor,
         expr: (expr) => {
             switch (expr.type) {
-                case 'var':
-                    if (symsToUpdate[expr.sym.unique]) {
-                        return { ...expr, is: symsToUpdate[expr.sym.unique] };
+                case 'record': {
+                    if (expr.base.type === 'Variable') {
+                        return null;
                     }
                     if (expr.is.type === 'ref' && expr.is.typeVbls.length > 0) {
                         // Do the replacing folks
                         // START HERE:
                         // - both for exprs, and for .. other things ..
                         // Oh, and then tupleAccess needs to be changed to account for what happened.
-                        // But that should be fine...
+                        // But that should be simple to figure out
+
+                        // Ok so currently tuples are these builtin types ... but do they really need to be?
+                        // Can't they just be "brought into existence on demand, but normal otherwise"?
+                        // So this would mean, as soon as you /use/ a tuple, it gets added to the global
+                        // env.
+
+                        // hmmmmmm
+                        if (expr.is.ref.type === 'builtin') {
+                            if (expr.is.ref.name.startsWith('Tuple')) {
+                            }
+                            // Ok we have a tuple
+                        } else {
+                            const spec = specializeType(
+                                env,
+                                opts,
+                                expr.is as UserTypeReference,
+                                expr.loc,
+                                types,
+                            );
+                            if (!spec) {
+                                return null;
+                            }
+                            return {
+                                ...expr,
+                                base: {
+                                    ...expr.base,
+                                    ref: spec.ref,
+                                },
+                                is: spec,
+                            };
+                        }
                     }
                     return null;
+                }
+                case 'var': {
+                    if (symsToUpdate[expr.sym.unique]) {
+                        return { ...expr, is: symsToUpdate[expr.sym.unique] };
+                    }
+                    return null;
+                }
                 case 'lambda': {
                     let changed = false;
                     // TOOO DOOOOOO
@@ -51,43 +136,19 @@ export const monomorphizeTypes = (
                             arg.type.ref.type === 'user' &&
                             arg.type.typeVbls.length > 0
                         ) {
-                            const defn =
-                                env.global.types[idName(arg.type.ref.id)];
-                            if (defn.type === 'Record') {
-                                const def = recordDefFromTermType(
-                                    env,
-                                    opts,
-                                    defn,
-                                );
-                                // oooh hm got to go back I guess
-                                // ooh wait so type variables
-                                // we don't have an IR version of type declarations
-                                // and maybe we need one?
-                                const ndef = applyTypeVariablesToRecord(
-                                    env,
-                                    def,
-                                    arg.type.typeVbls,
-                                    expr.loc,
-                                    idName(arg.type.ref.id),
-                                );
-                                const hash = hashObject(ndef);
-                                const nid = idFromName(hash);
-                                types[hash] = {
-                                    typeDef: ndef,
-                                    source: arg.type.ref.id,
-                                };
-                                changed = true;
-                                const newType = {
-                                    ...arg.type,
-                                    typeVbls: [],
-                                    ref: { ...arg.type.ref, id: nid },
-                                };
-                                symsToUpdate[arg.sym.unique] = newType;
-                                return {
-                                    ...arg,
-                                    type: newType,
-                                };
+                            const spec = specializeType(
+                                env,
+                                opts,
+                                arg.type as UserTypeReference,
+                                expr.loc,
+                                types,
+                            );
+                            if (!spec) {
+                                return arg;
                             }
+                            changed = true;
+                            symsToUpdate[arg.sym.unique] = spec;
+                            return { ...arg, type: spec };
                         }
                         return arg;
                     });

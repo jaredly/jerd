@@ -20,6 +20,7 @@ import {
     doneLambdaToLambda,
     typeFromTermType,
 } from './ir/utils';
+import { TypeDefs } from './ir/optimize/optimize';
 
 // Can I... misuse babel's AST to produce go?
 // what would get in my way?
@@ -260,14 +261,16 @@ export const recordMemberSignature = (
 };
 
 export const allRecordMembers = (env: Env, id: Id) => {
-    const constr = env.global.types[idName(id)] as RecordDef;
+    const name = idName(id);
+    const constr = env.global.types[name] as RecordDef;
     if (constr.type !== 'Record') {
         throw new Error(`Not a record`);
     }
     return constr.items
-        .map((item, i) => ({ id, item, i }))
+        .map((item, i: number) => ({ id, item, i }))
         .concat(
             ...constr.extends.map((id) =>
+                // um shouldn't this be recursive?
                 (env.global.types[idName(id)] as RecordDef).items.map(
                     (item, i) => ({
                         id,
