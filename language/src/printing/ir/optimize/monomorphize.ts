@@ -72,6 +72,23 @@ export const monomorphizeTypes = (
         ...defaultVisitor,
         expr: (expr) => {
             switch (expr.type) {
+                case 'attribute': {
+                    // hmmmmmmmmmmmmmmmmmmmmmmmmm
+                    // so here ... we really need ... hmm ....... .. .....
+                    // yeah I'm not totally sure how to do this .. given that
+                    // ... hm ........... we don't track ... the .. hmm ............
+                    // yeah this is more complicated.
+                    // I mean, maybe we just need the `attribute` ref to carry the type variables as well?
+                    // like that might be enough? then we could do the transformation here too, and it's fine.
+                    // oh wait,
+                    // we can detect that the expr.target has type variables, right?
+                    // and then monomorphize these.
+                    // But like more fundamentally, it does seem like it would be a .. better strategy
+                    // to denormalize this. Would that make copy/paste more complicated? I don't think so?
+                    // I'm not printing this stuff out anyway.
+                    // if (expr.)
+                    return null;
+                }
                 case 'record': {
                     if (expr.base.type === 'Variable') {
                         return null;
@@ -167,6 +184,18 @@ export const monomorphizeTypes = (
             return null;
         },
         stmt: (stmt) => {
+            if (stmt.type === 'Define') {
+                if (
+                    stmt.is.type === 'ref' &&
+                    stmt.is.typeVbls.length > 0 &&
+                    stmt.value &&
+                    stmt.value.is.type === 'ref' &&
+                    stmt.value.is.typeVbls.length === 0
+                ) {
+                    symsToUpdate[stmt.sym.unique] = stmt.value.is;
+                    return { ...stmt, is: stmt.value.is };
+                }
+            }
             // TODO: define and maybe assign idk
             return null;
         },

@@ -136,7 +136,7 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
             return atom(JSON.stringify(expr.value));
         case 'slice':
             return atom('nop');
-        case 'record':
+        case 'record': {
             if (expr.base.type === 'Variable') {
                 throw new Error('not yet impl');
             }
@@ -184,6 +184,7 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
                 undefined,
                 expr.loc,
             );
+        }
         case 'raise':
             return atom('TODO raise');
         case 'lambda':

@@ -366,17 +366,12 @@ describe('glslPrinter', () => {
 				`,
                 ),
             ).toMatchInlineSnapshot(`
-                INVALID GLSL:
-                - Invalid GLSL at 5:26-5:27: No un-monomorphized type variables allowed
-                - Invalid GLSL at 5:43-5:44: No un-monomorphized type variables allowed
-                - Invalid GLSL at 5:59-5:60: No un-monomorphized type variables allowed
-
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const m#:2: X#😐👩‍👦‍👦🥓😃 = RECORDNOTFOUND;
+                    const m#:2: unnamed#🎽🤦🎃 = RECORDNOTFOUND;
                     return vec4(float(m#:2.#X#😐👩‍👦‍👦🥓😃#0), float(m#:2.#X#😐👩‍👦‍👦🥓😃#1), float(m#:2.#X#😐👩‍👦‍👦🥓😃#0), 2.3);
                 } */
                 vec4 V5f2dace0(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    X_69779022[int] m = T3b93e3eb((10 + (2 / 23)), 2);
+                    T3b93e3eb m = T3b93e3eb((10 + (2 / 23)), 2);
                     return vec4(float(m.h69779022_0), float(m.h69779022_1), float(m.h69779022_0), 2.30);
                 }
             `);
