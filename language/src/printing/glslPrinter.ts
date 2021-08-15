@@ -715,10 +715,11 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                             termToGlsl(env, opts, {
                                 type: 'attribute',
                                 target: expr.inner,
-                                // STOPSHPI: pass opts here
+                                // STOPSHIP: pass opts here
                                 is: typeFromTermType(env, {}, item),
                                 loc: expr.loc,
                                 ref: { type: 'user', id },
+                                refTypeVbls: [],
                                 idx: i,
                             }),
                         ),
@@ -806,6 +807,7 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                                               type: 'attribute',
                                               target: expr.inner,
                                               ref: { type: 'user', id },
+                                              refTypeVbls: [],
                                               idx: i,
                                               loc: expr.inner.loc,
                                               is: item,

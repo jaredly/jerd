@@ -426,6 +426,7 @@ export const attribute = (
     opts: OutputOptions,
     target: Expr,
     ref: Reference,
+    refTypeVbls: Array<Type>,
     idx: number,
     loc: Loc,
 ): Expr => {
@@ -434,6 +435,7 @@ export const attribute = (
         type: 'attribute',
         target,
         ref,
+        refTypeVbls,
         idx,
         loc,
         is: typeFromTermType(env, opts, decl.items[idx]),

@@ -73,6 +73,29 @@ export const monomorphizeTypes = (
         expr: (expr) => {
             switch (expr.type) {
                 case 'attribute': {
+                    if (expr.refTypeVbls.length && expr.ref.type === 'user') {
+                        const spec = specializeType(
+                            env,
+                            opts,
+                            {
+                                type: 'ref',
+                                ref: expr.ref,
+                                typeVbls: expr.refTypeVbls,
+                                loc: expr.loc,
+                            },
+                            expr.loc,
+                            types,
+                        );
+                        if (!spec) {
+                            return null;
+                        }
+                        return {
+                            ...expr,
+                            ref: spec.ref,
+                            refTypeVbls: [],
+                        };
+                    }
+                    // expr.refTypeVbls
                     // hmmmmmmmmmmmmmmmmmmmmmmmmm
                     // so here ... we really need ... hmm ....... .. .....
                     // yeah I'm not totally sure how to do this .. given that

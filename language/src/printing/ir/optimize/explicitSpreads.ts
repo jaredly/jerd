@@ -60,6 +60,7 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                                   ctx.opts,
                                   v!,
                                   b.ref,
+                                  [],
                                   i,
                                   expr.loc,
                               ),
@@ -80,6 +81,7 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                                 opts,
                                 v,
                                 { type: 'user', id: sub },
+                                [],
                                 i,
                                 expr.loc,
                             );
@@ -114,6 +116,7 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                                       opts,
                                       v!,
                                       { type: 'user', id: idFromName(t) },
+                                      [],
                                       i,
                                       expr.loc,
                                   ),
@@ -130,6 +133,7 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                                         opts,
                                         v!,
                                         { type: 'user', id: sub },
+                                        [],
                                         i,
                                         expr.loc,
                                     );

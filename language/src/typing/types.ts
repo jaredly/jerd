@@ -664,6 +664,7 @@ export type Attribute = {
     type: 'Attribute';
     target: Term;
     ref: Reference;
+    refTypeVbls?: Array<Type>;
     idx: number;
     // Shouldn't impact hash
     inferred: boolean;

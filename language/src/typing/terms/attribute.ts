@@ -70,6 +70,7 @@ export const typeAttribute = (
                 }
             }
         } else if (target.is.type === 'var') {
+            throw new Error(`Ref what`);
             // TOOD FIX
         } else {
             throw new LocatedError(
@@ -170,15 +171,18 @@ export const typeAttribute = (
     if (t.type !== 'Record') {
         throw new Error(`Not a record ${idName(ref.id)}`);
     }
-    if (target.is.type === 'ref') {
-        t = applyTypeVariablesToRecord(
-            env,
-            t,
-            target.is.typeVbls,
-            target.is.location,
-            ref.id.hash,
+    if (target.is.type !== 'ref') {
+        throw new Error(
+            'Yeah just not supporting non-ref target type at the moment',
         );
     }
+    t = applyTypeVariablesToRecord(
+        env,
+        t,
+        target.is.typeVbls,
+        target.is.location,
+        ref.id.hash,
+    );
     if (t.type !== 'Record') {
         throw new Error(`${idName(ref.id)} is not a record type`);
     }
@@ -191,6 +195,7 @@ export const typeAttribute = (
         inferred: false,
         idx,
         ref,
+        refTypeVbls: target.is.typeVbls.length ? target.is.typeVbls : undefined,
         is: t.items[idx],
     };
 };

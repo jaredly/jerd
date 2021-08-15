@@ -163,16 +163,16 @@ describe('glslPrinter', () => {
                 ),
             ).toMatchInlineSnapshot(`
                 /* (n#:0: int): float => float(n#:0) + 1.2 */
-                float undefined_lambda_c60cffd8(int n_0) {
+                float undefined_lambda_6d47897a(int n_0) {
                     return (float(n_0) + 1.20);
                 }
-                /* (): float => undefined_lambda#🏐(2) + 2.3 */
-                float basic_specialization_bd1520d0() {
-                    return (undefined_lambda_c60cffd8(2) + 2.30);
+                /* (): float => undefined_lambda#🧑‍🦯👨‍👧‍👧🍶😃(2) + 2.3 */
+                float basic_specialization_befc7844() {
+                    return (undefined_lambda_6d47897a(2) + 2.30);
                 }
-                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(basic_specialization#👨‍🦳()) */
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(basic_specialization#😯()) */
                 vec4 V0d60a1fc(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    return vec4(basic_specialization_bd1520d0());
+                    return vec4(basic_specialization_befc7844());
                 }
             `);
         });
@@ -336,7 +336,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(result#:8);
                 } */
-                vec4 V5b7993c4(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 V0a089f74(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     int start = 0;
                     float init = 1000.0;
                     float result;
@@ -368,11 +368,11 @@ describe('glslPrinter', () => {
             ).toMatchInlineSnapshot(`
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const m#:2: unnamed#🎽🤦🎃 = RECORDNOTFOUND;
-                    return vec4(float(m#:2.#X#😐👩‍👦‍👦🥓😃#0), float(m#:2.#X#😐👩‍👦‍👦🥓😃#1), float(m#:2.#X#😐👩‍👦‍👦🥓😃#0), 2.3);
+                    return vec4(float(m#:2.#unnamed#🎽🤦🎃#0), float(m#:2.#unnamed#🎽🤦🎃#1), float(m#:2.#unnamed#🎽🤦🎃#0), 2.3);
                 } */
-                vec4 V5f2dace0(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 Va5e41384(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     T3b93e3eb m = T3b93e3eb((10 + (2 / 23)), 2);
-                    return vec4(float(m.h69779022_0), float(m.h69779022_1), float(m.h69779022_0), 2.30);
+                    return vec4(float(m.h3b93e3eb_0), float(m.h3b93e3eb_1), float(m.h3b93e3eb_0), 2.30);
                 }
             `);
         });

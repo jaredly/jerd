@@ -363,6 +363,7 @@ export type Expr =
           type: 'attribute';
           target: Expr;
           ref: Reference;
+          refTypeVbls: Array<Type>;
           idx: number;
           loc: Loc;
           is: Type;

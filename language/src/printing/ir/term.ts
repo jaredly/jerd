@@ -351,6 +351,9 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 type: 'attribute',
                 target: printTerm(env, opts, term.target),
                 ref: term.ref,
+                refTypeVbls: term.refTypeVbls
+                    ? term.refTypeVbls.map(mapType)
+                    : [],
                 idx: term.idx,
                 loc: term.location,
                 is: mapType(term.is),

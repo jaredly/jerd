@@ -150,6 +150,8 @@ export const printPattern = (
                     type: 'attribute',
                     target: value,
                     ref: item.ref,
+                    // TODO: hmmmmm
+                    refTypeVbls: [],
                     idx: item.idx,
                     loc: item.location,
                     is: mapType(item.is),
