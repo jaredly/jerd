@@ -4,7 +4,7 @@
 import { hashObject, idFromName, idName } from '../../../typing/env';
 import { Env } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
-import { Expr, LambdaExpr, LambdaType } from '../types';
+import { Expr, LambdaExpr, LambdaType, Type } from '../types';
 import {
     applyTypeVariables,
     applyTypeVariablesToRecord,
@@ -20,12 +20,31 @@ export const monomorphizeTypes = (
     { env, exprs, types, opts }: Context,
     expr: Expr,
 ): Expr => {
+    const symsToUpdate: { [unique: number]: Type } = {};
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
             switch (expr.type) {
+                case 'var':
+                    if (symsToUpdate[expr.sym.unique]) {
+                        return { ...expr, is: symsToUpdate[expr.sym.unique] };
+                    }
+                    if (expr.is.type === 'ref' && expr.is.typeVbls.length > 0) {
+                        // Do the replacing folks
+                        // START HERE:
+                        // - both for exprs, and for .. other things ..
+                        // Oh, and then tupleAccess needs to be changed to account for what happened.
+                        // But that should be fine...
+                    }
+                    return null;
                 case 'lambda': {
                     let changed = false;
+                    // TOOO DOOOOOO
+                    // This type change doesn't get propagated, and it super needs to
+                    // 🤔 hmmmmm
+                    // yeah so any references to this sym need to be updated.
+                    // Which is a thing I know how to do!
+                    // I think that should do it?
                     const args = expr.args.map((arg) => {
                         if (
                             arg.type.type === 'ref' &&
@@ -58,13 +77,15 @@ export const monomorphizeTypes = (
                                     source: arg.type.ref.id,
                                 };
                                 changed = true;
+                                const newType = {
+                                    ...arg.type,
+                                    typeVbls: [],
+                                    ref: { ...arg.type.ref, id: nid },
+                                };
+                                symsToUpdate[arg.sym.unique] = newType;
                                 return {
                                     ...arg,
-                                    type: {
-                                        ...arg.type,
-                                        typeVbls: [],
-                                        ref: { ...arg.type.ref, id: nid },
-                                    },
+                                    type: newType,
                                 };
                             }
                         }

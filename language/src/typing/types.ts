@@ -505,7 +505,13 @@ export type Pattern =
     | TuplePattern
     | ArrayPattern
     | EnumPattern
+    | Ignore
     | Binding;
+export type Ignore = {
+    type: 'Ignore';
+    location: Location;
+    decorators?: Decorators;
+};
 export type Binding = {
     type: 'Binding';
     sym: Symbol;

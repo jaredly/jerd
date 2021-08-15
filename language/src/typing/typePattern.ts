@@ -30,6 +30,7 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
     switch (pattern.type) {
         case 'Alias':
             return patternIs(pattern.inner, expected);
+        case 'Ignore':
         case 'Binding':
             return expected;
         case 'string':
@@ -103,7 +104,9 @@ const typePattern = (
                 location: pattern.location,
             };
         case 'id': {
-            if (env.global.typeNames[pattern.text]) {
+            if (pattern.text === '_' && pattern.hash == null) {
+                return { type: 'Ignore', location: pattern.location };
+            } else if (env.global.typeNames[pattern.text]) {
                 // We're interpreting this as a type!
                 // it's a little weird to do it this way
                 // but syntax is dumb
@@ -387,19 +390,8 @@ const typePattern = (
                     if (item.inner) {
                         spread = typePattern(env, item.inner, expectedType);
                     } else {
-                        const sym = makeLocal(
-                            env,
-                            {
-                                text: '_',
-                                hash: null,
-                                location: item.location,
-                                type: 'id',
-                            },
-                            expectedType,
-                        );
                         spread = {
-                            type: 'Binding',
-                            sym,
+                            type: 'Ignore',
                             location: item.location,
                         };
                     }

@@ -1078,6 +1078,8 @@ const patternToPretty = (env: Env, pattern: Pattern): PP => {
                 '[',
                 ']',
             );
+        case 'Ignore':
+            return atom('_', [], pattern.location);
         default:
             let _x: never = pattern;
             throw new Error(`Unknown pattern ${(pattern as any).type}`);

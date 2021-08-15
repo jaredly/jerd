@@ -340,6 +340,7 @@ export const walkPattern = (
         case 'float':
         case 'int':
         case 'boolean':
+        case 'Ignore':
             return;
         case 'Alias':
             walkPattern(pattern.inner, handle);

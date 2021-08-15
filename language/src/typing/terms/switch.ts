@@ -50,6 +50,7 @@ const patternToExPattern = (
         case 'boolean':
             return constructor(pattern.value.toString(), 'boolean', []);
         case 'Binding':
+        case 'Ignore':
             return anything;
         case 'Enum': {
             if (type.type !== 'ref') {
@@ -108,6 +109,7 @@ const patternToExPattern = (
             return tupleToExPattern(type, pattern, groups, env);
         }
         default:
+            const _x: never = pattern;
             throw new Error(`Unhandled pattern ${(pattern as any).type}`);
     }
 };

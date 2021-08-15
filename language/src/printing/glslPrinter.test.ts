@@ -245,24 +245,24 @@ describe('glslPrinter', () => {
 
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const items#:2: Array<int, {"type":"exactly","size":3}> = [1, 2, 3];
-                    const result#:6: float;
-                    const continueBlock#:7: bool = true;
+                    const result#:5: float;
+                    const continueBlock#:6: bool = true;
                     if len(items#:2) == 0 {
-                        result#:6 = 2;
-                        continueBlock#:7 = false;
+                        result#:5 = 2;
+                        continueBlock#:6 = false;
                     };
-                    if continueBlock#:7 {
+                    if continueBlock#:6 {
                         if len(items#:2) >= 1 {
-                            result#:6 = float(items#:2[0]);
-                            continueBlock#:7 = false;
+                            result#:5 = float(items#:2[0]);
+                            continueBlock#:6 = false;
                         };
-                        if continueBlock#:7 {
+                        if continueBlock#:6 {
                             match_fail!();
                         };
                     };
-                    return vec4(result#:6);
+                    return vec4(result#:5);
                 } */
-                vec4 V50d7a7d8(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 V404e7e22(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     int[3] items = int[](1, 2, 3);
                     float result;
                     bool continueBlock = true;
@@ -352,6 +352,27 @@ describe('glslPrinter', () => {
                         continueBlock = false;
                     };
                     return vec4(result);
+                }
+            `);
+        });
+
+        it('can handle tuples and such', () => {
+            expect(
+                processOne(
+                    `
+				(env: GLSLEnv, pos: Vec2): Vec4 ={}> {
+                    const m = (1, 2.0);
+                    vec4(m.0 as float)
+				}
+				`,
+                ),
+            ).toMatchInlineSnapshot(`
+                INVALID GLSL:
+                - Invalid GLSL at 3:31-3:39: No un-monomorphized type variables allowed
+
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float((1, 2)[0])) */
+                vec4 Vf85fe002(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    return vec4(float(tuples_not_supported[0]));
                 }
             `);
         });

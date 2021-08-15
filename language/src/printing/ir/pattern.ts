@@ -49,6 +49,8 @@ export const printPattern = (
             ],
             pattern.location,
         );
+    } else if (pattern.type === 'Ignore') {
+        return success;
     } else if (pattern.type === 'Enum') {
         const allReferences = getEnumReferences(env, pattern.ref);
         let tests: Array<Expr> = allReferences.map((ref) => ({
