@@ -361,7 +361,16 @@ export const debugType = (env: Env, type: ir.Type): PP => {
         case 'var':
             return items([atom(`[var]`), debugSym(type.sym, type.loc)]);
         case 'ref':
-            return refToDebug(env, type.ref, true, type.loc);
+            return items([
+                refToDebug(env, type.ref, true, type.loc),
+                type.typeVbls.length
+                    ? args(
+                          type.typeVbls.map((t) => debugType(env, t)),
+                          '<',
+                          '>',
+                      )
+                    : null,
+            ]);
         case 'lambda':
             return items(
                 [

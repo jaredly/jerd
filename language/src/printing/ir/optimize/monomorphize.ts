@@ -1,6 +1,7 @@
 // Well first pass, we can just monomorphize types, like people usually do.
 // ugh nvm that's complicated.
 
+import { type } from 'os';
 import { hashObject, idFromName, idName } from '../../../typing/env';
 import { Env, Id, Location, UserReference } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
@@ -24,12 +25,38 @@ import {
 // import { maxUnique } from './inline';
 import { Context, TypeDefs } from './optimize';
 
+export const specializeTuple = (
+    env: Env,
+    types: TypeDefs,
+    vbls: Array<Type>,
+    loc: Location,
+): UserTypeReference => {
+    const recordDef: RecordDef = {
+        type: 'Record',
+        extends: [],
+        items: vbls,
+        location: loc,
+        typeVbls: [],
+        unique: 0,
+        ffi: null,
+    };
+    const hash = hashObject(recordDef);
+    types[hash] = {
+        typeDef: recordDef,
+        source: { hash: '*tuple*', size: 1, pos: 0 },
+    };
+    return {
+        type: 'ref',
+        ref: { type: 'user', id: idFromName(hash) },
+        loc,
+        typeVbls: [],
+    };
+};
+
 export const specializeType = (
     env: Env,
     opts: OutputOptions,
     t: UserTypeReference,
-    // ref: UserReference,
-    // typeVbls: Array<Type>,
     loc: Location,
     types: TypeDefs,
 ) => {
@@ -59,7 +86,6 @@ export const specializeType = (
             id: nid,
         },
     };
-    // symsToUpdate[arg.sym.unique] = newType;
     return newType;
 };
 
@@ -68,10 +94,69 @@ export const monomorphizeTypes = (
     expr: Expr,
 ): Expr => {
     const symsToUpdate: { [unique: number]: Type } = {};
+    // So how to do it:
+    // - map ... types ... hmm ...... yeah I think we want a "transformExprTypes"
     return transformExpr(expr, {
         ...defaultVisitor,
+        type: (type) => {
+            if (
+                type.type === 'ref' &&
+                type.ref.type === 'builtin' &&
+                type.ref.name.startsWith('Tuple')
+            ) {
+                return specializeTuple(env, types, type.typeVbls, type.loc);
+            }
+            return null;
+        },
         expr: (expr) => {
             switch (expr.type) {
+                case 'tupleAccess': {
+                    // ugh how do I think about this. ... like,
+                    // I thought all I needed to know was the idx
+                    if (expr.target.is.type !== 'ref') {
+                        return null;
+                    }
+                    // We've already monomorphized
+                    if (expr.target.is.ref.type === 'user') {
+                        return {
+                            type: 'attribute',
+                            idx: expr.idx,
+                            is: expr.is,
+                            loc: expr.loc,
+                            ref: expr.target.is.ref,
+                            refTypeVbls: [],
+                            target: expr.target,
+                        };
+                    }
+                    return null;
+                }
+                case 'tuple': {
+                    if (
+                        expr.is.type !== 'ref' ||
+                        expr.is.ref.type !== 'builtin' ||
+                        !expr.is.ref.name.startsWith('Tuple')
+                    ) {
+                        throw new Error(`Tuple thats not a tuple!`);
+                    }
+                    const type = specializeTuple(
+                        env,
+                        types,
+                        expr.is.typeVbls,
+                        expr.loc,
+                    );
+                    return {
+                        type: 'record',
+                        is: type,
+                        base: {
+                            type: 'Concrete',
+                            spread: null,
+                            rows: expr.items,
+                            ref: type.ref,
+                        },
+                        loc: expr.loc,
+                        subTypes: {},
+                    };
+                }
                 case 'attribute': {
                     if (expr.refTypeVbls.length && expr.ref.type === 'user') {
                         const spec = specializeType(
@@ -95,21 +180,6 @@ export const monomorphizeTypes = (
                             refTypeVbls: [],
                         };
                     }
-                    // expr.refTypeVbls
-                    // hmmmmmmmmmmmmmmmmmmmmmmmmm
-                    // so here ... we really need ... hmm ....... .. .....
-                    // yeah I'm not totally sure how to do this .. given that
-                    // ... hm ........... we don't track ... the .. hmm ............
-                    // yeah this is more complicated.
-                    // I mean, maybe we just need the `attribute` ref to carry the type variables as well?
-                    // like that might be enough? then we could do the transformation here too, and it's fine.
-                    // oh wait,
-                    // we can detect that the expr.target has type variables, right?
-                    // and then monomorphize these.
-                    // But like more fundamentally, it does seem like it would be a .. better strategy
-                    // to denormalize this. Would that make copy/paste more complicated? I don't think so?
-                    // I'm not printing this stuff out anyway.
-                    // if (expr.)
                     return null;
                 }
                 case 'record': {

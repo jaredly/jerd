@@ -10,6 +10,7 @@ import {
     LoopBounds,
     RecordSubType,
     Stmt,
+    Type,
 } from './types';
 
 // export const transformExpr = (expr: Expr, )
@@ -22,6 +23,7 @@ export type ExprVisitor = (
 export type Visitor = {
     expr: ExprVisitor;
     block: (value: Block) => Block | null | false;
+    type?: (type: Type) => Type | null;
     stmt: (
         value: Stmt,
         visitor: Visitor,
@@ -39,6 +41,8 @@ export const defaultVisitor: Visitor = {
     stmt: (stmt) => null,
 };
 
+// export const transformExprTypes = (expr: Expr, )
+
 export const transformExpr = (
     expr: Expr,
     visitor: Visitor,
@@ -54,6 +58,12 @@ export const transformExpr = (
     }
     if (transformed != null) {
         expr = transformed;
+    }
+    if (visitor.type) {
+        const is = visitor.type(expr.is);
+        if (is && is !== expr.is) {
+            expr = { ...expr, is: is as any };
+        }
     }
     level += 1;
     switch (expr.type) {
@@ -254,7 +264,20 @@ export const transformLambdaExpr = (
     level: number,
 ): LambdaExpr => {
     const body = transformLambdaBody(expr.body, visitor, level + 1);
-    return body !== expr.body ? { ...expr, body } : expr;
+    const res = visitor.type ? visitor.type(expr.res) : expr.res;
+    let changed = false;
+    // const args = visitor.type
+    //     ? expr.args.map((arg) => {
+    //           const res = visitor.type!(arg.type);
+    //           changed = changed || res !== arg.type;
+    //           return res != null && res !== arg.type
+    //               ? { ...arg, type: res }
+    //               : arg;
+    //       })
+    //     : expr.args;
+    return body !== expr.body || (res != null && res !== expr.res) || changed
+        ? { ...expr, body, res: res != null ? res : expr.res }
+        : expr;
 };
 
 export const transformLambdaBody = (
