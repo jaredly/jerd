@@ -403,25 +403,25 @@ describe('glslPrinter', () => {
             expect(
                 processOne(
                     `
-                    const makeIt = (n: int) => (n, n as float);
+                    const makeIt = (n: int, m: (int, float)) => (n + m.1 as int, (n + m.0) as float);
                     (env: GLSLEnv, pos: Vec2): Vec4 ={}> {
-                        const m = makeIt(2);
+                        const m = makeIt(2, (1, 4.0));
                         vec4(m.0 as float + m.1)
                     }
 				`,
                 ),
             ).toMatchInlineSnapshot(`
-                /* (n#:0: int): unnamed#👆 => RECORDNOTFOUND */
-                Ta162e8a4 makeIt_6cdbbac0(int n_0) {
-                    return Ta162e8a4(n_0, float(n_0));
+                /* (n#:0: int, m#:1: unnamed#🥑🛵🐅😃): unnamed#🌯👱‍♂️🍸 => RECORDNOTFOUND */
+                T2d73729e makeIt_4c8c66ea(int n_0, T5fdd0e7e m_1) {
+                    return T2d73729e((n_0 + int(m_1.h5fdd0e7e_1)), float((n_0 + m_1.h5fdd0e7e_0)));
                 }
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const m#:2: unnamed#👆 = makeIt#🦑🏔️🍭😃(2);
-                    return vec4(float(m#:2.#unnamed#👆#0) + m#:2.#unnamed#👆#1);
+                    const m#:2: unnamed#🌯👱‍♂️🍸 = makeIt#🌐🏙️👦😃(2, RECORDNOTFOUND);
+                    return vec4(float(m#:2.#unnamed#🌯👱‍♂️🍸#0) + m#:2.#unnamed#🌯👱‍♂️🍸#1);
                 } */
-                vec4 V519559ca(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    Ta162e8a4 m = makeIt_6cdbbac0(2);
-                    return vec4((float(m.ha162e8a4_0) + m.ha162e8a4_1));
+                vec4 V21439752(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    T2d73729e m = makeIt_4c8c66ea(2, T58122424(1, 4.0));
+                    return vec4((float(m.h2d73729e_0) + m.h2d73729e_1));
                 }
             `);
         });

@@ -266,17 +266,18 @@ export const transformLambdaExpr = (
     const body = transformLambdaBody(expr.body, visitor, level + 1);
     const res = visitor.type ? visitor.type(expr.res) : expr.res;
     let changed = false;
-    // const args = visitor.type
-    //     ? expr.args.map((arg) => {
-    //           const res = visitor.type!(arg.type);
-    //           changed = changed || res !== arg.type;
-    //           return res != null && res !== arg.type
-    //               ? { ...arg, type: res }
-    //               : arg;
-    //       })
-    //     : expr.args;
+    const args = visitor.type
+        ? expr.args.map((arg) => {
+              const res = visitor.type!(arg.type);
+              if (res == null || res === arg.type) {
+                  return arg;
+              }
+              changed = true;
+              return { ...arg, type: res };
+          })
+        : expr.args;
     return body !== expr.body || (res != null && res !== expr.res) || changed
-        ? { ...expr, body, res: res != null ? res : expr.res }
+        ? { ...expr, body, res: res != null ? res : expr.res, args }
         : expr;
 };
 

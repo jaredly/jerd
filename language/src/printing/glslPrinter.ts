@@ -2148,6 +2148,15 @@ export const getInvalidLocs = (expr: Expr, selfHash?: string) => {
     const top = expr;
     transformExpr(expr, {
         ...defaultVisitor,
+        type: (type) => {
+            if (type.type === 'ref' && type.typeVbls.length > 0) {
+                found.push({
+                    loc: type.loc,
+                    reason: `No type variables allowed`,
+                });
+            }
+            return null;
+        },
         stmt: (stmt) => {
             // Can't define a lambda
             if (stmt.type === 'Define' && stmt.is.type === 'lambda') {
