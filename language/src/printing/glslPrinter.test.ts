@@ -224,57 +224,195 @@ describe('glslPrinter', () => {
             `);
         });
 
-        it('cant do arrays', () => {
+        it.skip('cant handle array spread oops', () => {
+            expect(
+                processOne(`
+                (env: GLSLEnv, pos: Vec2) => {
+                    const items = [1,2,3];
+                    const more = [...items, 3, 4];
+                    switch more {
+                        [] => 1,
+                        [..., m] => m,
+                        _ => 3
+                    }
+                }
+            `),
+            ).toMatchInlineSnapshot();
+        });
+
+        it('can figure out the length of a range', () => {
+            expect(
+                processOne(`
+                // So for this, things would be simpler if we new that collect
+                // starts as []. Right?
+                // Like if we knew we could inline this into the 'range' dealio.
+                // sooo I mean actually, we do know that we need to monoconstant
+                // any functions that take an array as the argument, right?
+                // eh, I dunno if there's a way to do this in a principled fashion.
+                // should I just have range be a builtin? And have it be like the only
+                // way that these things are done? And then have map be a builtin as well?
+                // Like that would be a quick & easy way to do it ...
+                // range(n) -> array of ints
+                // map()    -> transform an array, easy to do
+                // hmmmmmmm 
+                const rec rangeInner = (n: int, collect: Array<int>): Array<int> => {
+                    if n > 0 {
+                        rangeInner(n - 1, <int>[...collect, n - 1])
+                    } else {
+                        collect
+                    }
+                };
+                // Ok, so
+                // maybe I'm distracted. Can I turn this ^
+                // into
+
+                // int[NULL] rangeInner_0aaff2a7(int n_0, int[NULL] collect_1) {
+                //     for (; n_0 > 0; n_0 = (n_0 - 1)) {
+                //         collect_1 = <array with spreads>;
+                //         continue;
+                //     };
+                //     return collect_1;
+                // }
+
+                // int[N + n_0] rangeInner_0aaff2a7(int n_0, int[N] collect_1) {
+                //     int[N + n_0] collect_2;
+                //     arrayCopy(collect_1, collect_2, 0); // this could be an ir term, expands to the for loop
+                //     for (; n_0 > 0; n_0 = (n_0 - 1)) {
+                //         collect_2[n_0 + N] = n_0 - 1;
+                //         continue;
+                //     };
+                //     return collect_2;
+                // }
+
+                // And then we monoconstant the n_0 and the N
+                // And the arrayCopy goes away because collect_1 is empty
+                // and then we're all set?
+
+                // Ok, so we would detect:
+                // x = [...x, other]
+                // in a loop, right?
+                // and we could say "we need a new plan"
+                // that is x with length that is more than the loop
+                // As long as there's only one x spread in the loop.
+                // orrrrrrr
+                // I guess we could technically account for any code paths.
+                // hmmm like I think I need a transform function that does what
+                // go does, where it will give you statements in blocks with
+                // continuation indications.
+                // so that you could follow the contents of the loop, separately
+                // tracking the incremental increase in size for one or the other.
+
+                // ok but what about loop unrolling?
+                // so it would be great to detect that the loop contents are trivial, and so we
+                // can unroll the loop. yeah that would be rad.
+
+                const range = (n: int) => rangeInner(n, <int>[]);
+
+                // Could I ... in some kind of good way ...
+                // figure out that we're recursively building an array ...
+                // and reduce this down to an imperative "push" kind of situation?
+                // and then in glsl, we could .. hm . prefill the array,
+                // and have the range be instead setting the values?
+                const rec rangeOne = (n: int): Array<int> => {
+                    if n > 0 {
+                        [...rangeOne(n - 1), n - 1]
+                    } else {
+                        <int>[]
+                    }
+                };
+
+                (env: GLSLEnv, pos: Vec2) => {
+                    const items = range(10);
+                    vec4(len<int>(items) as float)
+                }
+            `),
+            ).toMatchInlineSnapshot(`
+                INVALID GLSL:
+                - Invalid GLSL at 16:43-16:67: Spreads not supported in arrays
+                - Invalid GLSL at 16:43-16:67: Array length not inferrable
+                - Invalid GLSL at 16:52-16:59: Array length not inferrable
+                - Invalid GLSL at 18:25-18:32: Array length not inferrable
+
+                /* (n#:0: int, collect#:1: Array<int>): Array<int> => {
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        collect#:1 = [...collect#:1, n#:0 - 1];
+                        continue;
+                    };
+                    return collect#:1;
+                } */
+                int[NULL] rangeInner_0aaff2a7(int n_0, int[NULL] collect_1) {
+                    for (; n_0 > 0; n_0 = (n_0 - 1)) {
+                        collect_1 = <array with spreads>;
+                        continue;
+                    };
+                    return collect_1;
+                }
+                INVALID GLSL:
+                - Invalid GLSL at 65:43-65:53: Array length not inferrable
+
+                /* (n#:0: int): Array<int> => rangeInner#🥗♥️✊(n#:0, []) */
+                int[NULL] range_6cecd922(int n_0) {
+                    return rangeInner_0aaff2a7(n_0, int[]());
+                }
+                INVALID GLSL:
+                - Invalid GLSL at 81:35-81:40: Array length not inferrable
+
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(len(range#🧑‍🎨🚒🍮😃(10)))) */
+                vec4 V63549a30(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    return vec4(float(len(range_6cecd922(10))));
+                }
+            `);
+        });
+
+        it('can do some arrays', () => {
             expect(
                 processOne(`
 				(env: GLSLEnv, pos: Vec2) => {
 					const items = [1, 2, 3];
 					vec4(switch items {
 						[] => 2.0,
-						[n, ...] => n as float
+						[n, m, ...] => n as float + m as float,
+                        _ => 1.0
 					})
 				}
 			`),
             ).toMatchInlineSnapshot(`
-                INVALID GLSL:
-                - Invalid GLSL at 4:18-4:23: Array length not inferrable
-                - Invalid GLSL at 4:18-4:23: Array length not inferrable
-                - Invalid GLSL at 4:18-4:23: Array length not inferrable
-
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const items#:2: Array<int, {"type":"exactly","size":3}> = [1, 2, 3];
-                    const result#:5: float;
-                    const continueBlock#:6: bool = true;
-                    if len(items#:2) == 0 {
-                        result#:5 = 2;
-                        continueBlock#:6 = false;
+                    const result#:6: float;
+                    const continueBlock#:7: bool = true;
+                    if 3 == 0 {
+                        result#:6 = 2;
+                        continueBlock#:7 = false;
                     };
-                    if continueBlock#:6 {
-                        if len(items#:2) >= 1 {
-                            result#:5 = float(items#:2[0]);
-                            continueBlock#:6 = false;
+                    if continueBlock#:7 {
+                        if 3 >= 2 {
+                            result#:6 = float(items#:2[0]) + float(items#:2[1]);
+                            continueBlock#:7 = false;
                         };
-                        if continueBlock#:6 {
-                            match_fail!();
+                        if continueBlock#:7 {
+                            result#:6 = 1;
+                            continueBlock#:7 = false;
                         };
                     };
-                    return vec4(result#:5);
+                    return vec4(result#:6);
                 } */
-                vec4 V404e7e22(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 V49b7324c(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     int[3] items = int[](1, 2, 3);
                     float result;
                     bool continueBlock = true;
-                    if ((items.length() == 0)) {
+                    if ((3 == 0)) {
                         result = 2.0;
                         continueBlock = false;
                     };
                     if (continueBlock) {
-                        if ((items.length() >= 1)) {
-                            result = float(items[0]);
+                        if ((3 >= 2)) {
+                            result = (float(items[0]) + float(items[1]));
                             continueBlock = false;
                         };
                         if (continueBlock) {
-                            // match fail;
+                            result = 1.0;
+                            continueBlock = false;
                         };
                     };
                     return vec4(result);

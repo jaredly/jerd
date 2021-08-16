@@ -271,6 +271,14 @@ export const typeToGlsl = (
                     atom(']'),
                 ]);
             }
+            if (type.inferredSize === null) {
+                return items([
+                    typeToGlsl(env, opts, type.inner),
+                    atom('['),
+                    atom('NULL'),
+                    atom(']'),
+                ]);
+            }
             return atom(`invalid_array_${JSON.stringify(type.inferredSize)}`);
         default:
             return atom(`invalid_${type.type.replace(/-/g, '_')}`);
@@ -833,7 +841,8 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 (s) => s.type !== 'Spread',
             ) as Array<Expr>;
             if (elems.length < expr.items.length) {
-                throw new Error(`Array spread not supported in glsl`);
+                return atom('<array with spreads>');
+                // throw new Error(`Array spread not supported in glsl`);
             }
             return items([
                 typeToGlsl(env, opts, expr.is.inner),
@@ -2178,6 +2187,15 @@ export const getInvalidLocs = (expr: Expr, selfHash?: string) => {
             // Can't have a self reference
             if (selfHash && expr.type === 'term' && expr.id.hash === selfHash) {
                 found.push({ loc: expr.loc, reason: `Can't have recursion` });
+            }
+
+            if (expr.type === 'array') {
+                if (expr.items.some((s) => s.type === 'Spread')) {
+                    found.push({
+                        loc: expr.loc,
+                        reason: `Spreads not supported in arrays`,
+                    });
+                }
             }
 
             // No type variables allowed

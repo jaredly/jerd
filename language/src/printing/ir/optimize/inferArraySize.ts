@@ -11,13 +11,44 @@
 // Seems like a ton of work
 
 import { defaultVisitor, transformExpr } from '../transform';
-import { Expr } from '../types';
+import { Expr, InferredSize, Type } from '../types';
+import { int } from '../utils';
 import { Context, Optimizer2 } from './optimize';
 
 export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
+    const updatedSyms: { [key: number]: InferredSize } = {};
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
+            if (
+                expr.type === 'arrayIndex' &&
+                expr.value.type === 'array' &&
+                expr.idx.type === 'int'
+            ) {
+                const items = expr.value.items.filter(
+                    (e) => e.type !== 'Spread',
+                ) as Array<Expr>;
+                if (
+                    items.length === expr.value.items.length &&
+                    expr.idx.value < items.length
+                ) {
+                    return items[expr.idx.value];
+                }
+                return null;
+            }
+            if (
+                expr.type === 'arrayLen' &&
+                expr.value.is.type === 'Array' &&
+                expr.value.is.inferredSize &&
+                expr.value.is.inferredSize.type === 'exactly'
+            ) {
+                return {
+                    type: 'int',
+                    value: expr.value.is.inferredSize.size,
+                    loc: expr.loc,
+                    is: int,
+                };
+            }
             if (
                 expr.type === 'array' &&
                 expr.is.type === 'Array' &&
@@ -37,6 +68,19 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                     };
                 }
             }
+            if (
+                expr.type === 'var' &&
+                expr.is.type === 'Array' &&
+                updatedSyms[expr.sym.unique]
+            ) {
+                return {
+                    ...expr,
+                    is: {
+                        ...expr.is,
+                        inferredSize: updatedSyms[expr.sym.unique],
+                    },
+                };
+            }
             return null;
         },
         stmt: (stmt) => {
@@ -48,6 +92,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                 stmt.value.is.type === 'Array' &&
                 stmt.value.is.inferredSize != null
             ) {
+                updatedSyms[stmt.sym.unique] = stmt.value.is.inferredSize;
                 return {
                     ...stmt,
                     is: {
