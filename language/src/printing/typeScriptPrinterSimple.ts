@@ -781,6 +781,8 @@ export const stmtToTs = (
                 ),
                 stmt.loc,
             );
+        default:
+            throw new Error(`Unahdneld stmt type`);
     }
 };
 

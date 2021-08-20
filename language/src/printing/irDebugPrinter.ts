@@ -14,6 +14,7 @@ import {
     Symbol,
 } from '../typing/types';
 import { emojis } from './emojis';
+import { symToGlsl } from './glslPrinter';
 // import { isBinop } from './glslPrinter';
 import * as ir from './ir/intermediateRepresentation';
 import { Expr } from './ir/types';
@@ -480,6 +481,20 @@ export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
                 undefined,
                 stmt.loc,
             );
+        case 'ArraySet':
+            return items(
+                [
+                    debugSym(stmt.sym, nullLocation),
+                    atom('['),
+                    debugExpr(env, stmt.idx),
+                    atom('] = '),
+                    debugExpr(env, stmt.value),
+                ],
+                undefined,
+                stmt.loc,
+            );
+        default:
+            throw new Error('Unhandled stmt');
     }
 };
 

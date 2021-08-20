@@ -328,24 +328,27 @@ describe('glslPrinter', () => {
             `),
             ).toMatchInlineSnapshot(`
                 INVALID GLSL:
-                - Invalid GLSL at 16:43-16:67: Spreads not supported in arrays
-                - Invalid GLSL at 16:43-16:67: Array length not inferrable
-                - Invalid GLSL at 16:52-16:59: Array length not inferrable
                 - Invalid GLSL at 18:25-18:32: Array length not inferrable
 
                 /* (n#:0: int, collect#:1: Array<int>): Array<int> => {
+                    const newArray#:4: Array<int>;
+                    const idx#:5: int = 0;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        collect#:1 = [...collect#:1, n#:0 - 1];
+                        newArray#:4[idx#:5] = n#:0 - 1;
+                        idx#:5 = idx#:5 + 1;
                         continue;
                     };
-                    return collect#:1;
+                    return newArray#:4;
                 } */
                 int[NULL] rangeInner_0aaff2a7(int n_0, int[NULL] collect_1) {
+                    int[NULL] newArray;
+                    int idx = 0;
                     for (; n_0 > 0; n_0 = (n_0 - 1)) {
-                        collect_1 = <array with spreads>;
+                        newArray[idx] = (n_0 - 1);
+                        idx = (idx + 1);
                         continue;
                     };
-                    return collect_1;
+                    return newArray;
                 }
                 INVALID GLSL:
                 - Invalid GLSL at 65:43-65:53: Array length not inferrable

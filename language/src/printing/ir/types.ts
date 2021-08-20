@@ -79,6 +79,7 @@ export type InferredSize =
           type: 'exactly';
           size: number;
       }
+    | { type: 'variable' }
     | {
           type: 'multiple';
           sizes: Array<InferredSize>;
@@ -198,8 +199,16 @@ export type LoopBounds = {
     sym: Symbol;
 };
 
+export type Loop = {
+    type: 'Loop';
+    body: Block;
+    loc: Loc;
+    bounds?: LoopBounds;
+};
+
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
+    | { type: 'ArraySet'; sym: Symbol; idx: Expr; value: Expr; loc: Loc }
     | Define
     | Assign
     | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
@@ -211,12 +220,7 @@ export type Stmt =
     // or I could just have Array.forEach
     // Ok but also: optional :somethingsomething: "Bounds"?
     //
-    | {
-          type: 'Loop';
-          body: Block;
-          loc: Loc;
-          bounds?: LoopBounds;
-      }
+    | Loop
     | { type: 'Continue'; loc: Loc }
     | { type: 'Break'; loc: Loc }
     | Block;
@@ -237,6 +241,7 @@ export const returnTypeForStmt = (stmt: Stmt): Type | null => {
         case 'Expression':
         case 'Define':
         case 'Break':
+        case 'ArraySet':
             return null;
         case 'Return':
             return stmt.value.is;
@@ -294,6 +299,14 @@ export type SpecializeEnum = {
     loc: Location;
 };
 
+export type ArrayExpr = {
+    type: 'array';
+    items: Array<Expr | { type: 'Spread'; value: Expr }>;
+    elType: Type;
+    loc: Loc;
+    is: ArrayType;
+};
+
 export type Expr =
     | Literal
     | Enum
@@ -349,13 +362,7 @@ export type Expr =
           is: Type;
       }
     | Tuple
-    | {
-          type: 'array';
-          items: Array<Expr | { type: 'Spread'; value: Expr }>;
-          elType: Type;
-          loc: Loc;
-          is: ArrayType;
-      }
+    | ArrayExpr
     | Record
     | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc; is: Type }
     | { type: 'Trace'; args: Array<Expr>; is: Type; idx: number; loc: Loc }

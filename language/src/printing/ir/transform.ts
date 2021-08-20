@@ -402,6 +402,13 @@ export const transformOneStmt = (
         case 'MatchFail':
         case 'Break':
             return stmt;
+        case 'ArraySet': {
+            const idx = transformExpr(stmt.idx, visitor, level);
+            const value = transformExpr(stmt.value, visitor, level);
+            return idx !== stmt.idx || value !== stmt.value
+                ? { ...stmt, idx, value }
+                : stmt;
+        }
         case 'if': {
             const cond = transformExpr(stmt.cond, visitor, level);
             const yes = transformBlock(stmt.yes, visitor, level);

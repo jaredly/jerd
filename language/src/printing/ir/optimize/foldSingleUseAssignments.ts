@@ -32,6 +32,9 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
             if (stmt.type === 'Loop' && stmt.bounds != null) {
                 usages[symName(stmt.bounds.sym)] = 2;
             }
+            if (stmt.type === 'ArraySet') {
+                usages[symName(stmt.sym)] = 2;
+            }
             if (stmt.type === 'Assign') {
                 const en = symName(stmt.sym);
                 // hm ok, assign isnt strictly a use...

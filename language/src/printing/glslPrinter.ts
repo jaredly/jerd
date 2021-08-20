@@ -436,6 +436,14 @@ export const stmtToGlsl = (
             return atom('// match fail');
         case 'Expression':
             return atom('// no-op expression');
+        case 'ArraySet':
+            return items([
+                symToGlsl(env, opts, stmt.sym),
+                atom('['),
+                termToGlsl(env, opts, stmt.idx),
+                atom('] = '),
+                termToGlsl(env, opts, stmt.value),
+            ]);
         default:
             const _x: never = stmt;
             return atom(`nope_stmt_${(_x as any).type}`);
@@ -841,7 +849,26 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 (s) => s.type !== 'Spread',
             ) as Array<Expr>;
             if (elems.length < expr.items.length) {
-                return atom('<array with spreads>');
+                return items([
+                    atom('ArrayWithSpreads'),
+                    args(
+                        [atom(JSON.stringify(expr.is.inferredSize))],
+                        '<',
+                        '>',
+                    ),
+                    args(
+                        expr.items.map((i) =>
+                            i.type === 'Spread'
+                                ? items([
+                                      atom('...'),
+                                      termToGlsl(env, opts, i.value),
+                                  ])
+                                : termToGlsl(env, opts, i),
+                        ),
+                        '[',
+                        ']',
+                    ),
+                ]);
                 // throw new Error(`Array spread not supported in glsl`);
             }
             return items([

@@ -23,7 +23,7 @@ import { flattenRecordSpreads } from './flattenRecordSpread';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldImmediateAttributeAccess } from './foldImmediateAttributeAccess';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
-import { inferArraySize } from './inferArraySize';
+import { inferArraySize, loopSpreadToArraySet } from './inferArraySize';
 import { inlineFunctionsCalledWithCapturingLambdas, inlint } from './inline';
 import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
 import {
@@ -547,4 +547,5 @@ export const glslOpts: Array<Optimizer2> = [
     // monoconstant,
     optimize,
     inferArraySize,
+    loopSpreadToArraySet,
 ];
