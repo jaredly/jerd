@@ -330,7 +330,8 @@ describe('glslPrinter', () => {
                 INVALID GLSL:
                 - Invalid GLSL at 18:25-18:32: Array length not inferrable
 
-                /* (n#:0: int, collect#:1: Array<int, {"type":"variable","sym":{"name":"size","unique":4}}>): Array<int, {"type":"relative","offset":{"type":"constant","sym":{"name":"n","unique":0}},"to":{"type":"variable","sym":{"name":"size","unique":4}}}> => {
+                /* (): Array<int, {"type":"relative","offset":{"type":"constant","sym":{"name":"n","unique":0}},"to":{"type":"variable","sym":{"name":"size","unique":4}}}> => {
+                    const n#:0: int = 10;
                     const newArray#:5: Array<int, {"type":"relative","offset":{"type":"constant","sym":{"name":"n","unique":0}},"to":{"type":"variable","sym":{"name":"size","unique":4}}}>;
                     const idx#:6: int = 0;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
@@ -340,11 +341,12 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 } */
-                int[size_4 + n_0] rangeInner_0aaff2a7(int n_0, int[size_4] collect_1) {
-                    int[size_4 + n_0] newArray;
+                int[size_4 + n_0] rangeInner_specialization_e92ff9f0() {
+                    int n = 10;
+                    int[size_4 + n] newArray;
                     int idx = 0;
-                    for (; n_0 > 0; n_0 = (n_0 - 1)) {
-                        newArray[idx] = (n_0 - 1);
+                    for (; n > 0; n = (n - 1)) {
+                        newArray[idx] = (n - 1);
                         idx = (idx + 1);
                         continue;
                     };
@@ -353,16 +355,16 @@ describe('glslPrinter', () => {
                 INVALID GLSL:
                 - Invalid GLSL at 65:43-65:53: Array length not inferrable
 
-                /* (n#:0: int): Array<int> => rangeInner#🥗♥️✊(n#:0, []) */
-                int[NULL] range_6cecd922(int n_0) {
-                    return rangeInner_0aaff2a7(n_0, int[]());
+                /* (): Array<int> => rangeInner_specialization#🐶() */
+                int[NULL] range_specialization_4cc76096() {
+                    return rangeInner_specialization_e92ff9f0();
                 }
                 INVALID GLSL:
                 - Invalid GLSL at 81:35-81:40: Array length not inferrable
 
-                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(len(range#🧑‍🎨🚒🍮😃(10)))) */
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(len(range_specialization#👋👨‍👨‍👧‍👧👨😃()))) */
                 vec4 V63549a30(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    return vec4(float(len(range_6cecd922(10))));
+                    return vec4(float(len(range_specialization_4cc76096())));
                 }
             `);
         });

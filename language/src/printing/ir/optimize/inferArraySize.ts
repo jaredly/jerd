@@ -10,7 +10,7 @@
 // Like :find a Define that is an array, where the right side has been determined. Synchronize them:
 // Seems like a ton of work
 
-import { newSym } from '../../../typing/env';
+import { idName, newSym } from '../../../typing/env';
 import { nullLocation } from '../../../typing/types';
 import { debugExpr } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
@@ -36,6 +36,8 @@ import {
     intLiteral,
     pureFunction,
 } from '../utils';
+import { specializeFunction } from './monoconstant';
+import { monomorphize } from './monomorphize';
 import { Context, Optimizer2 } from './optimize';
 
 const isAppendOrPrepend = (array: ArrayExpr) => {
@@ -231,6 +233,32 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
+            if (
+                expr.type === 'apply' &&
+                expr.target.type === 'term' &&
+                expr.is.type === 'Array' &&
+                expr.is.inferredSize == null &&
+                expr.args.length > 0 &&
+                !expr.args.some((e) => e.type !== 'int' && e.type !== 'array')
+            ) {
+                const term = context.exprs[idName(expr.target.id)];
+                if (
+                    !term ||
+                    term.expr.type !== 'lambda' ||
+                    term.expr.res.type !== 'Array'
+                    // term.expr.res.inferredSize == null
+                ) {
+                    console.error('NOO', term.expr.is);
+                    return null;
+                }
+                console.error('YAAA');
+                const newExpr = specializeFunction(
+                    context,
+                    expr,
+                    expr.args.map((arg, i) => ({ i, arg })),
+                );
+                return newExpr;
+            }
             if (expr.type === 'lambda') {
                 let changed = false;
                 const args = expr.args.map((arg) => {
