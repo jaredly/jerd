@@ -260,10 +260,15 @@ export const typeToGlsl = (
             // return atom(JSON.stringify(type));
             return atom(`invalid_var_${symToGlsl(env, opts, type.sym)}`);
         case 'Array':
-            if (
-                type.inferredSize != null &&
-                type.inferredSize.type === 'exactly'
-            ) {
+            if (type.inferredSize === null) {
+                return items([
+                    typeToGlsl(env, opts, type.inner),
+                    atom('['),
+                    atom('NULL'),
+                    atom(']'),
+                ]);
+            }
+            if (type.inferredSize.type === 'exactly') {
                 return items([
                     typeToGlsl(env, opts, type.inner),
                     atom('['),
@@ -271,11 +276,11 @@ export const typeToGlsl = (
                     atom(']'),
                 ]);
             }
-            if (type.inferredSize === null) {
+            if (type.inferredSize.type === 'variable') {
                 return items([
                     typeToGlsl(env, opts, type.inner),
                     atom('['),
-                    atom('NULL'),
+                    symToGlsl(env, opts, type.inferredSize.sym),
                     atom(']'),
                 ]);
             }

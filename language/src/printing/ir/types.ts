@@ -79,7 +79,9 @@ export type InferredSize =
           type: 'exactly';
           size: number;
       }
-    | { type: 'variable' }
+    // If it's in a lambda arg, then this is a ~declaration
+    // otherwise, it's a reference
+    | { type: 'variable'; sym: Symbol }
     | {
           type: 'multiple';
           sizes: Array<InferredSize>;

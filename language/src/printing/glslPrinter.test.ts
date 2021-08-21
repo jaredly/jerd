@@ -330,17 +330,17 @@ describe('glslPrinter', () => {
                 INVALID GLSL:
                 - Invalid GLSL at 18:25-18:32: Array length not inferrable
 
-                /* (n#:0: int, collect#:1: Array<int>): Array<int> => {
-                    const newArray#:4: Array<int>;
-                    const idx#:5: int = 0;
+                /* (n#:0: int, collect#:1: Array<int, {"type":"variable","sym":{"name":"size","unique":4}}>): Array<int> => {
+                    const newArray#:5: Array<int>;
+                    const idx#:6: int = 0;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        newArray#:4[idx#:5] = n#:0 - 1;
-                        idx#:5 = idx#:5 + 1;
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 + 1;
                         continue;
                     };
-                    return newArray#:4;
+                    return newArray#:5;
                 } */
-                int[NULL] rangeInner_0aaff2a7(int n_0, int[NULL] collect_1) {
+                int[NULL] rangeInner_0aaff2a7(int n_0, int[size_4] collect_1) {
                     int[NULL] newArray;
                     int idx = 0;
                     for (; n_0 > 0; n_0 = (n_0 - 1)) {

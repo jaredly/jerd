@@ -21,6 +21,7 @@ import {
     Assign,
     Expr,
     InferredSize,
+    LambdaType,
     Loop,
     LoopBounds,
     Stmt,
@@ -89,11 +90,16 @@ export const loopSpreadToArraySet: Optimizer2 = (
             if (!respread) {
                 return null;
             }
-            const sym = newSym(context.env, 'newArray');
-            const idxSym = newSym(context.env, 'idx');
             const arg = arrayArgs.find(
                 (arg) => arg.sym.unique === respread.sym.unique,
             );
+            const at = arg!.type as ArrayType;
+            // This needs to have been inferred already
+            if (at.inferredSize === null) {
+                return null;
+            }
+            const sym = newSym(context.env, 'newArray');
+            const idxSym = newSym(context.env, 'idx');
             const newType: ArrayType = {
                 type: 'Array',
                 inferredSize: null,
@@ -213,6 +219,34 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
+            if (expr.type === 'lambda') {
+                let changed = false;
+                const args = expr.args.map((arg) => {
+                    if (
+                        arg.type.type === 'Array' &&
+                        arg.type.inferredSize === null
+                    ) {
+                        changed = true;
+                        const t: ArrayType = {
+                            ...arg.type,
+                            inferredSize: {
+                                type: 'variable',
+                                sym: newSym(context.env, 'size'),
+                            },
+                        };
+                        return { ...arg, type: t };
+                    }
+                    return arg;
+                });
+                const is = expr.is as LambdaType;
+                return changed
+                    ? {
+                          ...expr,
+                          args,
+                          is: { ...is, args: args.map((a) => a.type) },
+                      }
+                    : null;
+            }
             if (
                 expr.type === 'arrayIndex' &&
                 expr.value.type === 'array' &&
