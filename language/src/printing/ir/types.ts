@@ -18,7 +18,9 @@ import {
     EffectReference,
     EffectRef,
     Location,
+    nullLocation,
 } from '../../typing/types';
+import { int } from './utils';
 
 export type Loc = Location;
 
@@ -81,6 +83,7 @@ export type InferredSize =
       }
     // If it's in a lambda arg, then this is a ~declaration
     // otherwise, it's a reference
+    // Oh also it might be an actual variable? no I think that would be the expr
     | { type: 'variable'; sym: Symbol }
     | {
           type: 'multiple';
@@ -89,11 +92,11 @@ export type InferredSize =
     | {
           type: 'relative';
           to: InferredSize;
-          offset: number;
+          offset: InferredSize;
       }
     | {
-          type: 'expr';
-          expr: Expr;
+          type: 'constant';
+          sym: Symbol;
       };
 
 export type ArrayType = {
@@ -194,11 +197,52 @@ export type Assign = {
 };
 export type ReturnStmt = { type: 'Return'; value: Expr; loc: Loc };
 
+// Ok, so how to calculate the size of the loop?
+// I think the guarentee that we have is that the sym isn't mutated inside of the loop
+// so we have (loop initial value) -> (step) -> (end)
+// Hmmm it might be nice to have a separate loop variable? idk
+// hmmm
+// So for this loop
 export type LoopBounds = {
     end: Expr;
     op: '<=' | '<' | '>' | '>=';
     step: Apply;
     sym: Symbol;
+};
+
+export const stepSize = (step: Apply): null | number => {
+    if (step.target.type !== 'builtin') {
+        return null;
+    }
+    if (step.args.length !== 2) {
+        return null;
+    }
+    if (step.target.name === '+') {
+        if (step.args[0].type === 'int') {
+            return step.args[0].value;
+        } else if (step.args[1].type == 'int') {
+            return step.args[1].value;
+        }
+        return null;
+    }
+    if (step.target.name === '-') {
+        if (step.args[1].type == 'int') {
+            return -step.args[1].value;
+        }
+    }
+    return null;
+};
+
+// Hmmm it would be nice to have a subset of expr that we could use for stuff like this
+export const loopCount = (bounds: LoopBounds): null | InferredSize => {
+    const step = stepSize(bounds.step);
+    if (step == null) {
+        return null;
+    }
+    if (step === -1 && bounds.end.type === 'int' && bounds.end.value === 0) {
+        return { type: 'constant', sym: bounds.sym };
+    }
+    return null;
 };
 
 export type Loop = {

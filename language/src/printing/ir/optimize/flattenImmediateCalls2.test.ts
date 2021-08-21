@@ -210,18 +210,17 @@ describe('flattenImmediateCalls2', () => {
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-            const length#🥈: (int) => int = (m#:0: int): int => m#:0 + 2
+const length#🥈: (int) => int = (m#:0: int): int => m#:0 + 2
 
-            const expr0#🕑: (int) => int = (n#:0: int): int => length#🥈(
-                n#:0 - ((): int => ((): int => {
-                    if 5 == 4 {
-                        return 3;
-                    };
-                    const _#:1: int = 5;
-                    return 2;
-                })())(),
-            )
-        `);
+const expr0#🐣: (int) => int = (n#:0: int): int => length#🥈(
+    n#:0 - ((): int => ((): int => {
+        if 5 == 4 {
+            return 3;
+        };
+        return 2;
+    })())(),
+)
+`);
     });
 
     it('should do more complex', () => {
@@ -240,22 +239,21 @@ describe('flattenImmediateCalls2', () => {
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-            const length#🥈: (int) => int = (m#:0: int): int => m#:0 + 2
+const length#🥈: (int) => int = (m#:0: int): int => m#:0 + 2
 
-            const expr0#🕑: (int) => int = (n#:0: int): int => {
-                const result#:3: int;
-                const continueBlock#:4: bool = true;
-                if 5 == 4 {
-                    result#:3 = 3;
-                    continueBlock#:4 = false;
-                };
-                if continueBlock#:4 {
-                    const _#:1: int = 5;
-                    result#:3 = 2;
-                    continueBlock#:4 = false;
-                };
-                return length#🥈(n#:0 - result#:3);
-            }
-        `);
+const expr0#🐣: (int) => int = (n#:0: int): int => {
+    const result#:2: int;
+    const continueBlock#:3: bool = true;
+    if 5 == 4 {
+        result#:2 = 3;
+        continueBlock#:3 = false;
+    };
+    if continueBlock#:3 {
+        result#:2 = 2;
+        continueBlock#:3 = false;
+    };
+    return length#🥈(n#:0 - result#:2);
+}
+`);
     });
 });

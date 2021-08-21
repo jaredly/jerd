@@ -5,6 +5,11 @@
   - this will mean monomorphizing all tuple types, which is fine.
 - [ ] 
 
+- [ ] working on turning reduce into something that's valid
+  - [ ] make variables
+  - [ ] propagate them please
+- [ ] 
+
 # THings found during coverage for parser
 
 - ... should be a legal pattern spread, shorthand for ..._

@@ -170,7 +170,7 @@ describe('expression types', () => {
                 name: string#builtin,
                 age: int#builtin,
             };
-            const m#a0bf5b6c = (p#:0: Person#28ac4660): Tuple2#builtin<string#builtin, int#builtin> ={}> (
+            const m#4fcd6fab = (p#:0: Person#28ac4660): Tuple2#builtin<string#builtin, int#builtin> ={}> (
                 p#:0.name#28ac4660#0,
                 p#:0.age#28ac4660#1,
             )"
@@ -386,7 +386,7 @@ describe('expression types', () => {
             }
     `),
         ).toMatchInlineSnapshot(`
-            "const a#046caf0f = switch 23 {1 => false, 2 => false, 23 => true, _#:0 => false};
+            "const a#007742f3 = switch 23 {1 => false, 2 => false, 23 => true, _ => false};
             type Person#28ac4660 = {
                 name: string#builtin,
                 age: int#builtin,
@@ -399,15 +399,13 @@ describe('expression types', () => {
             enum Companies#5e7cafb2 {
                 Company#33117eac,
             };
-            const b#36e0d6ad = (m#:0: Companies#5e7cafb2): bool#builtin ={}> switch m#:0 {
-                Company#33117eac{name: \\"hello\\", ages: (_#:1, 23.0)} => false,
+            const b#2d49bf8c = (m#:0: Companies#5e7cafb2): bool#builtin ={}> switch m#:0 {
+                Company#33117eac{name: \\"hello\\", ages: (_, 23.0)} => false,
                 Company#33117eac{name: \\"things\\", people: []} => true,
-                Company#33117eac{people: [Person#28ac4660{name: \\"yes\\"}, ..._#:2]} => true,
-                Company#33117eac{people: [..._#:3, Person#28ac4660{name: _#:4, age: 23}]} => false,
-                Company#33117eac{
-                    people: [Person#28ac4660{name: \\"start\\"}, ..._#:5, Person#28ac4660{name: \\"end\\"}],
-                } => true,
-                _#:6 => true,
+                Company#33117eac{people: [Person#28ac4660{name: \\"yes\\"}, ..._]} => true,
+                Company#33117eac{people: [..._, Person#28ac4660{name: _, age: 23}]} => false,
+                Company#33117eac{people: [Person#28ac4660{name: \\"start\\"}, ..._, Person#28ac4660{name: \\"end\\"}]} => true,
+                _ => true,
             }"
         `));
 });
@@ -507,7 +505,7 @@ describe('Decorators', () => {
             };
             const m#2629f072 = @something#bee55956 10.0;
             const n#eaec2cc8 = @hello#677e1867 Person#29fd27e6{name#29fd27e6#0: \\"hi\\", age#29fd27e6#1: 10};
-            const goForIt#29feb29c = (pos#:0: Vec2#34115300): float#builtin ={}> {
+            const goForIt#4ce36b4b = (pos#:0: Vec2#34115300): float#builtin ={}> {
                 pos#:0.x#34115300#0 *#builtin @slider#1d9fcfd2(min: 0.0, max: 10.0, step: 0.1) 2.3;
             };
             const oneThing#b1904fe4 = @alternates#2d1ef174(

@@ -60,6 +60,7 @@ import { defaultVisitor, transformExpr } from './ir/transform';
 import {
     Apply,
     Expr,
+    InferredSize,
     Loc,
     OutputOptions as IOutputOptions,
     Record,
@@ -276,18 +277,39 @@ export const typeToGlsl = (
                     atom(']'),
                 ]);
             }
-            if (type.inferredSize.type === 'variable') {
-                return items([
-                    typeToGlsl(env, opts, type.inner),
-                    atom('['),
-                    symToGlsl(env, opts, type.inferredSize.sym),
-                    atom(']'),
-                ]);
-            }
-            return atom(`invalid_array_${JSON.stringify(type.inferredSize)}`);
+            return items([
+                typeToGlsl(env, opts, type.inner),
+                atom('['),
+                debugInferredSize(env, opts, type.inferredSize),
+                atom(']'),
+            ]);
         default:
             return atom(`invalid_${type.type.replace(/-/g, '_')}`);
     }
+};
+
+export const debugInferredSize = (
+    env: Env,
+    opts: OutputOptions,
+    inf: InferredSize,
+): PP => {
+    if (inf.type === 'variable') {
+        return symToGlsl(env, opts, inf.sym);
+    }
+    if (inf.type === 'relative') {
+        return items([
+            debugInferredSize(env, opts, inf.to),
+            atom(' + '),
+            debugInferredSize(env, opts, inf.offset),
+        ]);
+    }
+    if (inf.type === 'exactly') {
+        return atom(inf.size.toString());
+    }
+    if (inf.type === 'constant') {
+        return symToGlsl(env, opts, inf.sym);
+    }
+    return atom('invalid_inferred_' + JSON.stringify(inf));
 };
 
 export const symToGlsl = (env: Env, opts: OutputOptions, sym: Symbol) => {

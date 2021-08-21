@@ -24,6 +24,8 @@ import {
     LambdaType,
     Loop,
     LoopBounds,
+    loopCount,
+    returnTypeForStmt,
     Stmt,
     Type,
 } from '../types';
@@ -65,7 +67,7 @@ export const loopSpreadToArraySet: Optimizer2 = (
             const arrayArgs = expr.args.filter((a) => a.type.type === 'Array');
             // let foundSym = null
             const loop = expr.body.items.find((t) => t.type === 'Loop') as Loop;
-            if (!loop) {
+            if (!loop || !loop.bounds) {
                 return null;
             }
             const respread = loop.body.items.find(
@@ -86,7 +88,6 @@ export const loopSpreadToArraySet: Optimizer2 = (
 
             // STOPSHIP: Assert that the variable isn't reassigned anywhere else!
 
-            // console.log('YES', respread);
             if (!respread) {
                 return null;
             }
@@ -100,9 +101,20 @@ export const loopSpreadToArraySet: Optimizer2 = (
             }
             const sym = newSym(context.env, 'newArray');
             const idxSym = newSym(context.env, 'idx');
+
+            // ok so we need to calculate the size of the loop
+            const loopSize = loopCount(loop.bounds);
+            if (!loopSize) {
+                return null;
+            }
+
             const newType: ArrayType = {
                 type: 'Array',
-                inferredSize: null,
+                inferredSize: {
+                    type: 'relative',
+                    offset: loopSize,
+                    to: at.inferredSize,
+                },
                 inner: (arg!.type as ArrayType).inner,
                 loc: expr.loc,
             };
@@ -227,22 +239,39 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                         arg.type.inferredSize === null
                     ) {
                         changed = true;
+                        const size: InferredSize = {
+                            type: 'variable',
+                            sym: newSym(context.env, 'size'),
+                        };
                         const t: ArrayType = {
                             ...arg.type,
-                            inferredSize: {
-                                type: 'variable',
-                                sym: newSym(context.env, 'size'),
-                            },
+                            inferredSize: size,
                         };
+                        updatedSyms[arg.sym.unique] = size;
                         return { ...arg, type: t };
                     }
                     return arg;
                 });
+                let res = expr.res;
+                if (
+                    expr.res.type === 'Array' &&
+                    expr.res.inferredSize == null
+                ) {
+                    const newRes = returnTypeForStmt(expr.body);
+                    if (
+                        newRes &&
+                        newRes.type === 'Array' &&
+                        newRes.inferredSize != null
+                    ) {
+                        res = newRes;
+                    }
+                }
                 const is = expr.is as LambdaType;
-                return changed
+                return changed || res !== expr.res
                     ? {
                           ...expr,
                           args,
+                          res,
                           is: { ...is, args: args.map((a) => a.type) },
                       }
                     : null;
