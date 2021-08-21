@@ -228,6 +228,11 @@ export const loopSpreadToArraySet: Optimizer2 = (
     return res;
 };
 
+// START HERE:
+// - when specializing a function for array size,
+//   we have to check all inferredSizes of all array types in the function,
+//   substituting: Array literals {type: 'variable'}, and int literals {type: 'constant'}
+
 export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
     const updatedSyms: { [key: number]: InferredSize } = {};
     return transformExpr(expr, {
@@ -239,7 +244,18 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                 expr.is.type === 'Array' &&
                 expr.is.inferredSize == null &&
                 expr.args.length > 0 &&
+                // TODO: Should I do this incrementally? idk.
+                // I think I only want to substitute once I can /know/ that the
+                // resulting things will all be 'exact'.
+                // So this is the simple way, but doing the second route would probably
+                // also work, and would be more flexible. And it also wouldn't give spurious
+                // results.
+                // So yeah, I think I want: any args that are used in the `.res` array.
+                // But what if the array use is strictly localized? I'd still need to track that.
+                // So really, it's any arg that's used in the body at all. Which would result in
+                // maybe too much duplicate computation. Should I memoize the "looking for arrays"?
                 !expr.args.some((e) => e.type !== 'int' && e.type !== 'array')
+                // expr.args.some((e) => e.type === 'int' || e.type === 'array')
             ) {
                 const term = context.exprs[idName(expr.target.id)];
                 if (
@@ -255,7 +271,13 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                 const newExpr = specializeFunction(
                     context,
                     expr,
-                    expr.args.map((arg, i) => ({ i, arg })),
+                    expr.args
+                        .map((arg, i) => ({ i, arg }))
+                        .filter(
+                            (arg) =>
+                                arg.arg.type === 'int' ||
+                                arg.arg.type === 'array',
+                        ),
                 );
                 return newExpr;
             }
