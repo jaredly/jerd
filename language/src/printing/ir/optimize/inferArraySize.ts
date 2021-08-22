@@ -328,7 +328,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                           ...expr,
                           args,
                           res,
-                          is: { ...is, args: args.map((a) => a.type) },
+                          is: { ...is, args: args.map((a) => a.type), res },
                       }
                     : null;
             }
@@ -347,6 +347,22 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                     return items[expr.idx.value];
                 }
                 return null;
+            }
+            if (
+                expr.type === 'apply' &&
+                expr.target.type === 'builtin' &&
+                expr.target.name === 'len' &&
+                expr.args.length === 1 &&
+                expr.args[0].is.type === 'Array' &&
+                expr.args[0].is.inferredSize &&
+                expr.args[0].is.inferredSize.type === 'exactly'
+            ) {
+                return {
+                    type: 'int',
+                    value: expr.args[0].is.inferredSize.size,
+                    loc: expr.loc,
+                    is: int,
+                };
             }
             if (
                 expr.type === 'arrayLen' &&

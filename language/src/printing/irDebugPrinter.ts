@@ -109,6 +109,11 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
     switch (expr.type) {
         case 'var':
             return debugSym(expr.sym, expr.loc);
+        // return items([
+        //     debugSym(expr.sym, expr.loc),
+        //     atom(': '),
+        //     debugType(env, expr.is),
+        // ]);
         case 'SpecializeEnum':
             return items([
                 debugType(env, expr.is),
@@ -387,7 +392,12 @@ export const debugType = (env: Env, type: ir.Type): PP => {
                 atom('Array<'),
                 debugType(env, type.inner),
                 type.inferredSize
-                    ? atom(', ' + JSON.stringify(type.inferredSize))
+                    ? atom(
+                          '; ' +
+                              (type.inferredSize.type === 'exactly'
+                                  ? type.inferredSize.size
+                                  : JSON.stringify(type.inferredSize)),
+                      )
                     : null,
                 atom('>'),
             ]);

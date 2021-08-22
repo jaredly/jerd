@@ -258,26 +258,35 @@ export const transformExpr = (
     }
 };
 
+export const transformType = (type: Type, visitor: Visitor, level: number) => {
+    const t = visitor.type ? visitor.type(type) : null;
+    if (t != null) {
+        return t;
+    }
+    // TODO recurse into it
+    return type;
+};
+
 export const transformLambdaExpr = (
     expr: LambdaExpr,
     visitor: Visitor,
     level: number,
 ): LambdaExpr => {
     const body = transformLambdaBody(expr.body, visitor, level + 1);
-    const res = visitor.type ? visitor.type(expr.res) : expr.res;
+    const res = transformType(expr.res, visitor, level + 1);
     let changed = false;
     const args = visitor.type
         ? expr.args.map((arg) => {
-              const res = visitor.type!(arg.type);
-              if (res == null || res === arg.type) {
+              const res = transformType(arg.type, visitor, level + 1);
+              if (res === arg.type) {
                   return arg;
               }
               changed = true;
               return { ...arg, type: res };
           })
         : expr.args;
-    return body !== expr.body || (res != null && res !== expr.res) || changed
-        ? { ...expr, body, res: res != null ? res : expr.res, args }
+    return body !== expr.body || res !== expr.res || changed
+        ? { ...expr, body, res, args }
         : expr;
 };
 
@@ -383,6 +392,8 @@ export const transformOneStmt = (
                 ? transformExpr(stmt.value, visitor, level)
                 : stmt.value;
             const is = visitor.type ? visitor.type(stmt.is) : stmt.is;
+            // Hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+            // so do we just ... hmm ....
             return value !== stmt.value || (is != null && is !== stmt.is)
                 ? { ...stmt, is: is != null ? is : stmt.is, value }
                 : stmt;

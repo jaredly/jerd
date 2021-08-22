@@ -323,16 +323,17 @@ describe('glslPrinter', () => {
 
                 (env: GLSLEnv, pos: Vec2) => {
                     const items = range(10);
-                    vec4(len<int>(items) as float)
+                    const first = switch items {
+                        [one, ...] => one,
+                        _ => 10
+                    };
+                    vec4(len<int>(items) as float + first as float)
                 }
             `),
             ).toMatchInlineSnapshot(`
-                INVALID GLSL:
-                - Invalid GLSL at 18:25-18:32: Array length not inferrable
-
-                /* (): Array<int, {"type":"relative","offset":{"type":"constant","sym":{"name":"n","unique":0}},"to":{"type":"variable","sym":{"name":"size","unique":4}}}> => {
+                /* (): Array<int; 10> => {
                     const n#:0: int = 10;
-                    const newArray#:5: Array<int, {"type":"relative","offset":{"type":"constant","sym":{"name":"n","unique":0}},"to":{"type":"exactly","size":0}}>;
+                    const newArray#:5: Array<int; 10>;
                     const idx#:6: int = 0;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
                         newArray#:5[idx#:6] = n#:0 - 1;
@@ -341,9 +342,9 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 } */
-                int[size_4 + n_0] rangeInner_specialization_e92ff9f0() {
+                int[10] rangeInner_specialization_e92ff9f0() {
                     int n = 10;
-                    int[0 + n] newArray;
+                    int[10] newArray;
                     int idx = 0;
                     for (; n > 0; n = (n - 1)) {
                         newArray[idx] = (n - 1);
@@ -352,19 +353,35 @@ describe('glslPrinter', () => {
                     };
                     return newArray;
                 }
-                INVALID GLSL:
-                - Invalid GLSL at 65:43-65:53: Array length not inferrable
-
-                /* (): Array<int> => rangeInner_specialization#🐶() */
-                int[NULL] range_specialization_4cc76096() {
+                /* (): Array<int; 10> => rangeInner_specialization#🐶() */
+                int[10] range_specialization_4cc76096() {
                     return rangeInner_specialization_e92ff9f0();
                 }
-                INVALID GLSL:
-                - Invalid GLSL at 81:35-81:40: Array length not inferrable
-
-                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(len(range_specialization#👋👨‍👨‍👧‍👧👨😃()))) */
-                vec4 V63549a30(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    return vec4(float(len(range_specialization_4cc76096())));
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const first#:4: int;
+                    const continueBlock#:6: bool = true;
+                    if 10 >= 1 {
+                        first#:4 = range_specialization#👋👨‍👨‍👧‍👧👨😃()[0];
+                        continueBlock#:6 = false;
+                    };
+                    if continueBlock#:6 {
+                        first#:4 = 10;
+                        continueBlock#:6 = false;
+                    };
+                    return vec4(float(10) + float(first#:4));
+                } */
+                vec4 Vfdb1f564(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    int first;
+                    bool continueBlock = true;
+                    if ((10 >= 1)) {
+                        first = range_specialization_4cc76096()[0];
+                        continueBlock = false;
+                    };
+                    if (continueBlock) {
+                        first = 10;
+                        continueBlock = false;
+                    };
+                    return vec4((float(10) + float(first)));
                 }
             `);
         });
@@ -383,7 +400,7 @@ describe('glslPrinter', () => {
 			`),
             ).toMatchInlineSnapshot(`
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:2: Array<int, {"type":"exactly","size":3}> = [1, 2, 3];
+                    const items#:2: Array<int; 3> = [1, 2, 3];
                     const result#:6: float;
                     const continueBlock#:7: bool = true;
                     if 3 == 0 {
