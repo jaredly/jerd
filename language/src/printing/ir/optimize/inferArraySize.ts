@@ -254,7 +254,13 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                 // But what if the array use is strictly localized? I'd still need to track that.
                 // So really, it's any arg that's used in the body at all. Which would result in
                 // maybe too much duplicate computation. Should I memoize the "looking for arrays"?
-                !expr.args.some((e) => e.type !== 'int' && e.type !== 'array')
+                !expr.args.some(
+                    (e) =>
+                        e.type !== 'int' &&
+                        (e.type !== 'array' ||
+                            !e.is.inferredSize ||
+                            e.is.inferredSize.type !== 'exactly'),
+                )
                 // expr.args.some((e) => e.type === 'int' || e.type === 'array')
             ) {
                 const term = context.exprs[idName(expr.target.id)];
@@ -264,10 +270,10 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                     term.expr.res.type !== 'Array'
                     // term.expr.res.inferredSize == null
                 ) {
-                    console.error('NOO', term.expr.is);
+                    // console.error('NOO', term.expr.is);
                     return null;
                 }
-                console.error('YAAA');
+                // console.error('YAAA');
                 const newExpr = specializeFunction(
                     context,
                     expr,

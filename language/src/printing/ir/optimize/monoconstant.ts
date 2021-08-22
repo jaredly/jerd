@@ -2,8 +2,8 @@
 // ugh nvm that's complicated.
 
 import { hashObject, idName } from '../../../typing/env';
-import { defaultVisitor, transformExpr } from '../transform';
-import { Apply, Block, Expr, LambdaExpr, Stmt } from '../types';
+import { defaultVisitor, transformBlock, transformExpr } from '../transform';
+import { Apply, Block, Expr, InferredSize, LambdaExpr, Stmt } from '../types';
 import {
     findCapturedVariables,
     liftLambdas,
@@ -147,8 +147,53 @@ export const specializeFunction = (
         (arg) => (vblMapping[l.args[arg.i].sym.unique] = arg.arg),
     );
 
+    const knownSizes: { [unique: number]: number } = {};
+    argsToInline.forEach((arg) => {
+        let larg = l.args[arg.i];
+        if (
+            larg.type.type === 'Array' &&
+            larg.type.inferredSize &&
+            larg.type.inferredSize.type === 'variable' &&
+            arg.arg.type === 'array' &&
+            arg.arg.is.inferredSize &&
+            arg.arg.is.inferredSize.type === 'exactly'
+        ) {
+            knownSizes[larg.type.inferredSize.sym.unique] =
+                arg.arg.is.inferredSize.size;
+        }
+    });
+    console.log('KNON', knownSizes);
+
     const body = wrapBlock(
-        l.body,
+        transformBlock(l.body, {
+            ...defaultVisitor,
+            type: (type) => {
+                if (type.type === 'Array' && type.inferredSize != null) {
+                    const transformed = transformInferredSize(
+                        type.inferredSize,
+                        (iz) => {
+                            console.log('check', iz);
+                            if (
+                                iz.type === 'variable' &&
+                                knownSizes[iz.sym.unique] != null
+                            ) {
+                                console.log('YAA');
+                                return {
+                                    type: 'exactly',
+                                    size: knownSizes[iz.sym.unique],
+                                };
+                            }
+                            return iz;
+                        },
+                    );
+                    if (transformed !== type.inferredSize) {
+                        console.log('CHANGED');
+                        return { ...type, inferredSize: transformed };
+                    }
+                }
+                return null;
+            },
+        }),
         argsToInline.map((arg) => ({
             type: 'Define',
             sym: l.args[arg.i].sym,
@@ -159,7 +204,7 @@ export const specializeFunction = (
     );
 
     let newTerm: Expr = { ...l, is, args, body };
-    // const newHash = hashObject(newTerm);
+
     const id = { hash: newHash, size: 1, pos: 0 };
     newTerm = ctx.optimize({ ...ctx, id }, newTerm);
 
@@ -181,6 +226,35 @@ export const specializeFunction = (
         },
         args: expr.args.filter((_, i) => !indices[i]),
     };
+};
+
+export const transformInferredSize = (
+    iz: InferredSize,
+    fn: (iz: InferredSize) => InferredSize,
+): InferredSize => {
+    const t = fn(iz);
+    if (t !== iz) {
+        return t;
+    }
+    switch (iz.type) {
+        case 'multiple': {
+            let changed = false;
+            const sizes = iz.sizes.map((size) => {
+                const t = fn(size);
+                changed = changed || t !== size;
+                return t;
+            });
+            return changed ? { ...iz, sizes } : iz;
+        }
+        case 'relative': {
+            const to = fn(iz.to);
+            const offset = fn(iz.offset);
+            return to !== iz.to || offset !== iz.offset
+                ? { ...iz, to, offset }
+                : iz;
+        }
+    }
+    return iz;
 };
 
 export const monoconstant = (ctx: Context, expr: Expr): Expr => {
