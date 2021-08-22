@@ -332,7 +332,7 @@ describe('glslPrinter', () => {
 
                 /* (): Array<int, {"type":"relative","offset":{"type":"constant","sym":{"name":"n","unique":0}},"to":{"type":"variable","sym":{"name":"size","unique":4}}}> => {
                     const n#:0: int = 10;
-                    const newArray#:5: Array<int, {"type":"relative","offset":{"type":"constant","sym":{"name":"n","unique":0}},"to":{"type":"variable","sym":{"name":"size","unique":4}}}>;
+                    const newArray#:5: Array<int, {"type":"relative","offset":{"type":"constant","sym":{"name":"n","unique":0}},"to":{"type":"exactly","size":0}}>;
                     const idx#:6: int = 0;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
                         newArray#:5[idx#:6] = n#:0 - 1;
@@ -343,7 +343,7 @@ describe('glslPrinter', () => {
                 } */
                 int[size_4 + n_0] rangeInner_specialization_e92ff9f0() {
                     int n = 10;
-                    int[size_4 + n] newArray;
+                    int[0 + n] newArray;
                     int idx = 0;
                     for (; n > 0; n = (n - 1)) {
                         newArray[idx] = (n - 1);

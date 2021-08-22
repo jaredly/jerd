@@ -382,7 +382,10 @@ export const transformOneStmt = (
             const value: Expr | null = stmt.value
                 ? transformExpr(stmt.value, visitor, level)
                 : stmt.value;
-            return value !== stmt.value ? { ...stmt, value } : stmt;
+            const is = visitor.type ? visitor.type(stmt.is) : stmt.is;
+            return value !== stmt.value || (is != null && is !== stmt.is)
+                ? { ...stmt, is: is != null ? is : stmt.is, value }
+                : stmt;
         }
         case 'Return':
         case 'Assign': {
