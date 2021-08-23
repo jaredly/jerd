@@ -7,6 +7,7 @@ import {
     Block,
     Expr,
     LambdaExpr,
+    LambdaType,
     LoopBounds,
     RecordSubType,
     Stmt,
@@ -286,7 +287,17 @@ export const transformLambdaExpr = (
           })
         : expr.args;
     return body !== expr.body || res !== expr.res || changed
-        ? { ...expr, body, res, args }
+        ? {
+              ...expr,
+              body,
+              res,
+              args,
+              is: {
+                  ...(expr.is as LambdaType),
+                  args: args.map((a) => a.type),
+                  res,
+              },
+          }
         : expr;
 };
 
