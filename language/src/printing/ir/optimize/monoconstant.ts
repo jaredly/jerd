@@ -176,7 +176,6 @@ export const specializeFunction = (
             knownSizes[larg.sym.unique] = arg.arg.value;
         }
     });
-    console.log('KNON', knownSizes);
 
     const transform: Visitor = {
         ...defaultVisitor,
@@ -217,7 +216,6 @@ export const specializeFunction = (
                     },
                 );
                 if (transformed !== type.inferredSize) {
-                    console.log('CHANGED');
                     return { ...type, inferredSize: transformed };
                 }
             }
@@ -241,7 +239,6 @@ export const specializeFunction = (
         args: l.is.args.filter((_, i) => !indices[i]),
         res: transformType(lis.res, transform, 0),
     };
-    console.log('NEW IS', is.res, lis.res);
 
     let newTerm: LambdaExpr = {
         ...l,

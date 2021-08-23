@@ -17,7 +17,7 @@ import { emojis } from './emojis';
 import { symToGlsl } from './glslPrinter';
 // import { isBinop } from './glslPrinter';
 import * as ir from './ir/intermediateRepresentation';
-import { Expr } from './ir/types';
+import { Expr, InferredSize } from './ir/types';
 import { float } from './ir/utils';
 import * as pp from './printer';
 import { args, atom, block, id, items, PP } from './printer';
@@ -141,7 +141,7 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
         case 'string':
             return atom(JSON.stringify(expr.value));
         case 'slice':
-            return atom('nop');
+            return atom('[slice]');
         case 'record': {
             if (expr.base.type === 'Variable') {
                 throw new Error('not yet impl');
@@ -205,6 +205,15 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
             }
             return items(
                 [
+                    expr.is.typeVbls.length
+                        ? args(
+                              expr.is.typeVbls.map((v, i) =>
+                                  atom(v.name || `T${i}`),
+                              ),
+                              '<',
+                              '>',
+                          )
+                        : null,
                     args(
                         expr.args.map((arg) =>
                             items([
@@ -315,7 +324,17 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
                 );
             }
             return items(
-                [inner, args(expr.args.map((arg) => debugExpr(env, arg)))],
+                [
+                    inner,
+                    expr.typeVbls.length
+                        ? args(
+                              expr.typeVbls.map((t) => debugType(env, t)),
+                              '<',
+                              '>',
+                          )
+                        : null,
+                    args(expr.args.map((arg) => debugExpr(env, arg))),
+                ],
                 undefined,
                 expr.loc,
             );
@@ -392,17 +411,31 @@ export const debugType = (env: Env, type: ir.Type): PP => {
                 atom('Array<'),
                 debugType(env, type.inner),
                 type.inferredSize
-                    ? atom(
-                          '; ' +
-                              (type.inferredSize.type === 'exactly'
-                                  ? type.inferredSize.size
-                                  : JSON.stringify(type.inferredSize)),
-                      )
+                    ? items([atom('; '), debugInferredSize(type.inferredSize)])
                     : null,
                 atom('>'),
             ]);
     }
     return atom('nope type: ' + type.type, undefined, type.loc);
+};
+
+export const debugInferredSize = (iz: InferredSize): PP => {
+    switch (iz.type) {
+        case 'exactly':
+            return atom(iz.size.toString());
+        case 'variable':
+            return debugSym(iz.sym, nullLocation);
+        case 'constant':
+            return debugSym(iz.sym, nullLocation);
+        case 'relative':
+            return items([
+                debugInferredSize(iz.to),
+                atom(' + '),
+                debugInferredSize(iz.offset),
+            ]);
+        default:
+            return atom(JSON.stringify(iz));
+    }
 };
 
 export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {

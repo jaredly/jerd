@@ -476,6 +476,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
             if (term != null) {
                 return term;
             }
+            console.log(expr);
             throw new UnresolvedIdentifier(expr, env);
         }
         case 'lambda':

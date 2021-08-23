@@ -298,6 +298,7 @@ export const returnTypeForStmt = (stmt: Stmt): Type | null => {
             if (types.length > 1) {
                 for (let i = 1; i < types.length; i++) {
                     if (!typesEqual(types[i], types[0])) {
+                        console.log(types[i], types[0]);
                         throw new Error(
                             `Return types don't agree. This is a compiler error.`,
                         );
@@ -525,9 +526,11 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
         if (two.type === 'ref' && two.ref.type === 'builtin') {
             return one.type === 'ref' && refsEqual(two.ref, one.ref);
         }
-        // STOPSHIP: resolve type references
-        // throw new Error(`Need to lookup types sorry`);
         return false;
+    }
+    if (one.type === 'Array') {
+        // STOPSHIP: Check inferred size too
+        return two.type === 'Array' && typesEqual(one.inner, two.inner);
     }
     if (one.type === 'var') {
         return two.type === 'var' && symbolsEqual(one.sym, two.sym);

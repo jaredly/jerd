@@ -26,6 +26,10 @@ import { newWithGlobal, selfEnv } from '../typing/types';
 import { loadInit } from './loadPrelude';
 import { typeFile } from '../typing/typeFile';
 import { showLocation } from '../typing/typeExpr';
+import { glslOpts, nameForOpt, Optimizer2 } from './ir/optimize/optimize';
+import { Context } from 'vm';
+import { Expr } from './ir/types';
+import { debugExpr } from './irDebugPrinter';
 
 export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
     test(value) {
@@ -53,7 +57,7 @@ const process = (raw: string) => {
         .text;
 };
 
-const processOne = (raw: string) => {
+const processOne = (raw: string, optimizer: Optimizer2 = defaultOptimizer) => {
     let initialEnv = newWithGlobal(init.initialEnv);
     let toplevels;
     try {
@@ -77,7 +81,7 @@ const processOne = (raw: string) => {
         [mainId].map(idName),
         {},
         builtins,
-        defaultOptimizer,
+        optimizer,
     );
     const items: Array<{
         text: PP;
@@ -239,6 +243,860 @@ describe('glslPrinter', () => {
             `),
             ).toMatchInlineSnapshot();
         });
+
+        // OK so TODO what I want is
+        // - run the actual post-ir code as javascript, and also run the pre-ir version,
+        //   and assert that they produce the same value.
+        // - and also keep track of the snapshot, that's nice too.
+        // But so how do I handle the "array declaration" dealio 🤔
+        // I mean, in javascript, we might end up with wasted allocations if this is just a
+        // "we're defining this, and then overwriting it in a second", right?
+        // Maybe I really should have a separate Stmt type for "declare an array of x length"
+        // Because does it apply to other things? I don't think so.
+
+        const spyingOptimizer = (spy: Array<string>): Optimizer2 => (
+            ctx,
+            expr: Expr,
+        ) => {
+            spy.push('--- [ start new opt ] ---');
+            for (let i = 0; i < 100; i++) {
+                let start = expr;
+                glslOpts.forEach((opt) => {
+                    const post = opt(ctx, expr);
+                    if (post !== expr) {
+                        spy.push(
+                            `${nameForOpt(opt)}\n\n${printToString(
+                                debugExpr(ctx.env, post),
+                                100,
+                            )}`,
+                        );
+                    }
+                    expr = post;
+                });
+                if (expr === start) {
+                    return expr;
+                }
+            }
+            throw new Error(`Optimize failed to converge`);
+        };
+
+        it('can reduce also', () => {
+            const listened: Array<string> = [];
+            expect(
+                processOne(
+                    `
+                const rec rangeInner = (n: int, collect: Array<int>): Array<int> => {
+                    if n > 0 {
+                        rangeInner(n - 1, <int>[n - 1, ...collect])
+                    } else {
+                        collect
+                    }
+                };
+                const range = (n: int) => rangeInner(n, <int>[]);
+                const rec reduce = <T, R>(
+                    items: Array<T>,
+                    init: R,
+                    fn: (R, T) ={}> R,
+                ): R ={}> switch items {
+                    [] => init,
+                    [item, ...rest] => reduce#self<T, R>(rest, fn(init, item), fn),
+                };
+                // const rec map = <T, R>(
+                //     values: Array<T>,
+                //     fn: (value: T) ={}> R,
+                //     collect: Array<R>,
+                // ): Array<R> ={}> {
+                //     switch values {
+                //         [] => collect,
+                //         [one, ...rest] => map#self<T, R>(
+                //             rest,
+                //             fn,
+                //             <R>[...collect, fn(one)],
+                //         ),
+                //     };
+                // }
+                (env: GLSLEnv, pos: Vec2) => {
+                    const mv = reduce<int, float>(range(10), 1000.0, (current: float, i: int) => {
+                        const at = env.resolution / 10.0 * (i as float);
+                        min(current, length(pos - at) - (i as float * 10.0))
+                    });
+
+                    // const circles = map<int, float>(range(10), (i: int) => {
+                    //     const at = env.resolution / 10.0 * (i as float);
+                    //     length(pos - at) - (i as float * 10.0)
+                    // }, <float>[]);
+                    // const mv = reduce<float, float>(circles, 1000.0, (one: float, two: float) => min(one, two));
+
+                    if mv < 0.0 {
+                        vec4(1.0)
+                    } else {
+                        vec4(0.0)
+                    }
+                }
+                `,
+                    spyingOptimizer(listened),
+                ),
+            ).toMatchInlineSnapshot(`
+                /* (): Array<int; 10> => {
+                    const n#:0: int = 10;
+                    const newArray#:5: Array<int; 10>;
+                    const idx#:6: int = 10 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                } */
+                int[10] rangeInner_specialization_38bc5e18() {
+                    int n = 10;
+                    int[10] newArray;
+                    int idx = (10 - 1);
+                    for (; n > 0; n--) {
+                        newArray[idx] = (n - 1);
+                        idx--;
+                        continue;
+                    };
+                    return newArray;
+                }
+                /* (): Array<int; 10> => rangeInner_specialization#🐀🌁🌒() */
+                int[10] range_specialization_e70c1f38() {
+                    return rangeInner_specialization_38bc5e18();
+                }
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if 10 - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if 10 - items_i#:9 >= 1 {
+                            const i#:3: [var]T#:0 = range_specialization#🚔()[0 + items_i#:9];
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = min(init#:7, length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10);
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                } */
+                vec4 V3ea457a2(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    float init = 1000.0;
+                    float result;
+                    int items_i = 0;
+                    for (int i=0; i<10000; i++) {
+                        if (((10 - items_i) == 0)) {
+                            result = init;
+                            break;
+                        };
+                        if (((10 - items_i) >= 1)) {
+                            invalid_var_[object Object] i = range_specialization_e70c1f38()[(0 + items_i)];
+                            items_i++;
+                            init = min(init, (length((pos_1 - ((env_0.resolution / 10.0) * float(i)))) - (float(i) * 10.0)));
+                            continue;
+                        };
+                        // match fail;
+                    };
+                    if ((result < 0.0)) {
+                        return vec4(1.0);
+                    } else {
+                        return vec4(0.0);
+                    };
+                }
+            `);
+
+            expect(listened.join('\n\n')).toMatchInlineSnapshot(`
+                --- [ start new opt ] ---
+
+                flattenImmediateCalls2
+
+                (n#:0: int, collect#:1: Array<int>): Array<int> => {
+                    if n#:0 > 0 {
+                        return rangeInner#🍁(n#:0 - 1, [n#:0 - 1, ...collect#:1]);
+                    } else {
+                        return collect#:1;
+                    };
+                }
+
+                optimizeTailCalls
+
+                (n#:0: int, collect#:1: Array<int>): Array<int> => {
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        const recur#:2: int = n#:0 - 1;
+                        const recur#:3: Array<int> = [n#:0 - 1, ...collect#:1];
+                        collect#:1 = recur#:3;
+                        continue;
+                    };
+                    return collect#:1;
+                }
+
+                optimize
+
+                (n#:0: int, collect#:1: Array<int>): Array<int> => {
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        collect#:1 = [n#:0 - 1, ...collect#:1];
+                        continue;
+                    };
+                    return collect#:1;
+                }
+
+                inferArraySize
+
+                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        collect#:1 = [n#:0 - 1, ...collect#:1];
+                        continue;
+                    };
+                    return collect#:1;
+                }
+
+                loopSpreadToArraySet
+
+                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
+                    const newArray#:5: Array<int; size#:4 + n#:0>;
+                    const idx#:6: int = n#:0 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        {
+                            newArray#:5[idx#:6] = n#:0 - 1;
+                            idx#:6 = idx#:6 - 1;
+                        };
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+
+                removeNestedBlocksAndCodeAfterReturns
+
+                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
+                    const newArray#:5: Array<int; size#:4 + n#:0>;
+                    const idx#:6: int = n#:0 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+
+                inferArraySize
+
+                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int; size#:4 + n#:0> => {
+                    const newArray#:5: Array<int; size#:4 + n#:0>;
+                    const idx#:6: int = n#:0 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+
+                --- [ start new opt ] ---
+
+                inferArraySize
+
+                (n#:0: int): Array<int> => rangeInner#🍁(n#:0, [])
+
+                --- [ start new opt ] ---
+
+                removeNestedBlocksAndCodeAfterReturns
+
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => ((): [var]R#:1 => {
+                    if len(items#:0) == 0 {
+                        return init#:1;
+                    };
+                    if len(items#:0) >= 1 {
+                        const item#:3: [var]T#:0 = items#:0[0];
+                        const rest#:4: Array<[var]T#:0> = [slice];
+                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
+                    };
+                    match_fail!();
+                })()
+
+                flattenImmediateCalls2
+
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+                    if len(items#:0) == 0 {
+                        return init#:1;
+                    };
+                    if len(items#:0) >= 1 {
+                        const item#:3: [var]T#:0 = items#:0[0];
+                        const rest#:4: Array<[var]T#:0> = [slice];
+                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
+                    };
+                    match_fail!();
+                }
+
+                foldSingleUseAssignments
+
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+                    if len(items#:0) == 0 {
+                        return init#:1;
+                    };
+                    if len(items#:0) >= 1 {
+                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>([slice], fn#:2(init#:1, items#:0[0]), fn#:2);
+                    };
+                    match_fail!();
+                }
+
+                optimizeTailCalls
+
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+                    loop {
+                        if len(items#:0) == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) >= 1 {
+                            const recur#:6: Array<[var]T#:0> = [slice];
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
+                            const recur#:8: ([var]R#:1, [var]T#:0) => [var]R#:1 = fn#:2;
+                            items#:0 = recur#:6;
+                            init#:1 = recur#:7;
+                            fn#:2 = recur#:8;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+
+                optimize
+
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+                    loop {
+                        if len(items#:0) == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) >= 1 {
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
+                            items#:0 = [slice];
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+
+                arraySliceLoopToIndex
+
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:0) - items_i#:9 == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) - items_i#:9 >= 1 {
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:9]);
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+
+                inferArraySize
+
+                <T, R>(
+                    items#:0: Array<[var]T#:0; size#:10>,
+                    init#:1: [var]R#:1,
+                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
+                ): [var]R#:1 => {
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:0) - items_i#:9 == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) - items_i#:9 >= 1 {
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:9]);
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+
+                --- [ start new opt ] ---
+
+                flattenImmediateCalls2
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const mv#:5: float = reduce#🌓🏛️😹😃<int, float>(
+                        range#🖐️✍️👌😃(10),
+                        1000,
+                        (current#:2: float, i#:3: int): float => {
+                            const at#:4: Vec2#🐭😉😵😃 = Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                                ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                                IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
+                            );
+                            return min(
+                                current#:2,
+                                length#😦(AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(pos#:1, at#:4)) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(
+                                    i#:3,
+                                ) * 10,
+                            );
+                        },
+                    );
+                    if mv#:5 < 0 {
+                        return vec4#🤽🚇🚞😃(1);
+                    } else {
+                        return vec4#🤽🚇🚞😃(0);
+                    };
+                }
+
+                foldSingleUseAssignments
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    if reduce#🌓🏛️😹😃<int, float>(
+                        range#🖐️✍️👌😃(10),
+                        1000,
+                        (current#:2: float, i#:3: int): float => min(
+                            current#:2,
+                            length#😦(
+                                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
+                                    pos#:1,
+                                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
+                                    ),
+                                ),
+                            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
+                        ),
+                    ) < 0 {
+                        return vec4#🤽🚇🚞😃(1);
+                    } else {
+                        return vec4#🤽🚇🚞😃(0);
+                    };
+                }
+
+                inlineFunctionsCalledWithCapturingLambdas
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    if (<T, R>(
+                        items#:6: Array<[var]T#:0; size#:10>,
+                        init#:7: [var]R#:1,
+                        fn#:8: ([var]R#:1, [var]T#:0) => [var]R#:1,
+                    ): [var]R#:1 => {
+                        const items_i#:9: int = 0;
+                        loop {
+                            if len(items#:6) - items_i#:9 == 0 {
+                                return init#:7;
+                            };
+                            if len(items#:6) - items_i#:9 >= 1 {
+                                const recur#:10: [var]R#:1 = fn#:8(init#:7, items#:6[0 + items_i#:9]);
+                                items_i#:9 = items_i#:9 + 1;
+                                init#:7 = recur#:10;
+                                continue;
+                            };
+                            match_fail!();
+                        };
+                    })<int, float>(
+                        range#🖐️✍️👌😃(10),
+                        1000,
+                        (current#:2: float, i#:3: int): float => min(
+                            current#:2,
+                            length#😦(
+                                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
+                                    pos#:1,
+                                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
+                                    ),
+                                ),
+                            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
+                        ),
+                    ) < 0 {
+                        return vec4#🤽🚇🚞😃(1);
+                    } else {
+                        return vec4#🤽🚇🚞😃(0);
+                    };
+                }
+
+                optimize
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int> = range#🖐️✍️👌😃(10);
+                    const init#:7: float = 1000;
+                    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
+                        current#:2,
+                        length#😦(
+                            AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
+                                pos#:1,
+                                Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                                    ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                                    IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
+                                ),
+                            ),
+                        ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
+                    );
+                    const result#:11: float;
+                    const continueBlock#:12: bool = true;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:6) - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            continueBlock#:12 = false;
+                            break;
+                        };
+                        if len(items#:6) - items_i#:9 >= 1 {
+                            const recur#:10: [var]R#:1 = fn#:8(init#:7, items#:6[0 + items_i#:9]);
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = recur#:10;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4#🤽🚇🚞😃(1);
+                    } else {
+                        return vec4#🤽🚇🚞😃(0);
+                    };
+                }
+
+                optimize
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int> = range#🖐️✍️👌😃(10);
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:6) - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if len(items#:6) - items_i#:9 >= 1 {
+                            const recur#:10: [var]R#:1;
+                            const current#:2: [var]R#:1 = init#:7;
+                            const i#:3: [var]T#:0 = items#:6[0 + items_i#:9];
+                            recur#:10 = min(
+                                current#:2,
+                                length#😦(
+                                    AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
+                                        pos#:1,
+                                        Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                                            ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(
+                                                env#:0.#GLSLEnv#🕷️⚓😣😃#1,
+                                                10,
+                                            ),
+                                            IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
+                                        ),
+                                    ),
+                                ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
+                            );
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = recur#:10;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4#🤽🚇🚞😃(1);
+                    } else {
+                        return vec4#🤽🚇🚞😃(0);
+                    };
+                }
+
+                inlint
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int> = range#🖐️✍️👌😃(10);
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:6) - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if len(items#:6) - items_i#:9 >= 1 {
+                            const recur#:10: [var]R#:1;
+                            const current#:2: [var]R#:1 = init#:7;
+                            const i#:3: [var]T#:0 = items#:6[0 + items_i#:9];
+                            recur#:10 = min(
+                                current#:2,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                            );
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = recur#:10;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+
+                optimize
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int> = range#🖐️✍️👌😃(10);
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:6) - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if len(items#:6) - items_i#:9 >= 1 {
+                            const recur#:10: [var]R#:1;
+                            const i#:3: [var]T#:0 = items#:6[0 + items_i#:9];
+                            recur#:10 = min(
+                                init#:7,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                            );
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = recur#:10;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+
+                --- [ start new opt ] ---
+
+                foldSingleUseAssignments
+
+                (): Array<int> => rangeInner#🍁(10, [])
+
+                --- [ start new opt ] ---
+
+                foldConstantsAndLambdas
+
+                (): Array<int; 10> => {
+                    const n#:0: int = 10;
+                    const collect#:1: Array<int; 0> = [];
+                    const newArray#:5: Array<int; 10>;
+                    const idx#:6: int = 10 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+
+                removeUnusedVariables
+
+                (): Array<int; 10> => {
+                    const n#:0: int = 10;
+                    const newArray#:5: Array<int; 10>;
+                    const idx#:6: int = 10 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+
+                inferArraySize
+
+                (): Array<int> => unnamed#🐀🌁🌒()
+
+                inferArraySize
+
+                (): Array<int; 10> => unnamed#🐀🌁🌒()
+
+                inferArraySize
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int> = unnamed#🚔();
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:6) - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if len(items#:6) - items_i#:9 >= 1 {
+                            const recur#:10: [var]R#:1;
+                            const i#:3: [var]T#:0 = items#:6[0 + items_i#:9];
+                            recur#:10 = min(
+                                init#:7,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                            );
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = recur#:10;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+
+                flattenImmediateAssigns
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int> = unnamed#🚔();
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:6) - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if len(items#:6) - items_i#:9 >= 1 {
+                            const i#:3: [var]T#:0 = items#:6[0 + items_i#:9];
+                            const recur#:10: [var]R#:1 = min(
+                                init#:7,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                            );
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = recur#:10;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+
+                optimize
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int> = unnamed#🚔();
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:6) - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if len(items#:6) - items_i#:9 >= 1 {
+                            const i#:3: [var]T#:0 = items#:6[0 + items_i#:9];
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = min(
+                                init#:7,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                            );
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+
+                inferArraySize
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int; 10> = unnamed#🚔();
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if len(items#:6) - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if len(items#:6) - items_i#:9 >= 1 {
+                            const i#:3: [var]T#:0 = items#:6[0 + items_i#:9];
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = min(
+                                init#:7,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                            );
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+
+                inferArraySize
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int; 10> = unnamed#🚔();
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if 10 - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if 10 - items_i#:9 >= 1 {
+                            const i#:3: [var]T#:0 = items#:6[0 + items_i#:9];
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = min(
+                                init#:7,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                            );
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+
+                foldSingleUseAssignments
+
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const init#:7: float = 1000;
+                    const result#:11: float;
+                    const items_i#:9: int = 0;
+                    loop {
+                        if 10 - items_i#:9 == 0 {
+                            result#:11 = init#:7;
+                            break;
+                        };
+                        if 10 - items_i#:9 >= 1 {
+                            const i#:3: [var]T#:0 = unnamed#🚔()[0 + items_i#:9];
+                            items_i#:9 = items_i#:9 + 1;
+                            init#:7 = min(
+                                init#:7,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                            );
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if result#:11 < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+            `);
+        });
+
         it('can do a forward range', () => {
             expect(
                 processOne(`

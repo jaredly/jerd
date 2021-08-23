@@ -504,24 +504,80 @@ ok we'll get to that when we need to.
 
 */
 
+const foldConstantsAndLambdas = foldConstantAssignments(true);
+
 export const glslOptsNamed = {
+    // specializeFunctionsCalledWithLambdas,
+    // inlineCallsThatReturnFunctions,
+    // removeNestedBlocksAndCodeAfterReturns,
+    // flattenImmediateCalls2,
+    // foldSingleUseAssignments,
+    // flattenImmediateAssigns,
+    // // flattenImmediateCalls,
+    // removeUnusedVariables,
+
+    // inlineFunctionsCalledWithCapturingLambdas,
+    // ensureToplevelFunctionsAreLambdas,
+    // explicitSpreads,
+    // optimizeTailCalls,
+    // optimize,
+    // arraySliceLoopToIndex,
+    // inlint,
+    // monomorphize,
+    foldConstantsAndLambdas,
     specializeFunctionsCalledWithLambdas,
     inlineCallsThatReturnFunctions,
     removeNestedBlocksAndCodeAfterReturns,
     flattenImmediateCalls2,
     foldSingleUseAssignments,
+    // foldConstantAssignments(true),
     flattenImmediateAssigns,
     // flattenImmediateCalls,
     removeUnusedVariables,
 
     inlineFunctionsCalledWithCapturingLambdas,
     ensureToplevelFunctionsAreLambdas,
+    // inlineCallsThatReturnFunctions,
     explicitSpreads,
     optimizeTailCalls,
+    // ...javascriptOpts,
     optimize,
+
+    // // fromSimpleOpt(flattenIffe),
+    // removeUnusedVariables,
+    // removeNestedBlocksAndCodeAfterReturns,
+    // // fromSimpleOpt(foldConstantTuples),
+    // // fromSimpleOpt(removeSelfAssignments),
+    // // foldConstantAssignments(false),
+    // foldSingleUseAssignments,
+    // // fromSimpleOpt(flattenNestedIfs),
+    // // fromSimpleOpt(arraySlices),
+    // // foldConstantAssignments(false),
+    // removeUnusedVariables,
+    // // fromSimpleOpt(flattenNestedIfs),
+    // removeNestedBlocksAndCodeAfterReturns,
+    // flattenImmediateCalls2,
+
+    // optimizeTailCalls,
+    // optimize,
     arraySliceLoopToIndex,
+    foldImmediateAttributeAccess,
     inlint,
     monomorphize,
+    monomorphizeTypes,
+    // monoconstant,
+    // optimize,
+    inferArraySize,
+    loopSpreadToArraySet,
+};
+
+export const nameForOpt = (fn: Function) => {
+    for (let k of Object.keys(glslOptsNamed)) {
+        if ((glslOptsNamed as any)[k] === fn) {
+            return k;
+        }
+    }
+    return fn.name;
 };
 
 export const glslOpts: Array<Optimizer2> = [
@@ -530,7 +586,7 @@ export const glslOpts: Array<Optimizer2> = [
     removeNestedBlocksAndCodeAfterReturns,
     flattenImmediateCalls2,
     foldSingleUseAssignments,
-    foldConstantAssignments(true),
+    foldConstantsAndLambdas,
     flattenImmediateAssigns,
     // flattenImmediateCalls,
     removeUnusedVariables,
@@ -546,6 +602,22 @@ export const glslOpts: Array<Optimizer2> = [
     monomorphizeTypes,
     // monoconstant,
     optimize,
+
+    // fromSimpleOpt(flattenIffe),
+    // removeUnusedVariables,
+    // removeNestedBlocksAndCodeAfterReturns,
+    // fromSimpleOpt(foldConstantTuples),
+    // fromSimpleOpt(removeSelfAssignments),
+    // foldConstantAssignments(false),
+    // foldSingleUseAssignments,
+    // fromSimpleOpt(flattenNestedIfs),
+    // fromSimpleOpt(arraySlices),
+    // foldConstantAssignments(false),
+    // removeUnusedVariables,
+    // fromSimpleOpt(flattenNestedIfs),
+    // removeNestedBlocksAndCodeAfterReturns,
+    // flattenImmediateCalls2,
+
     inferArraySize,
     loopSpreadToArraySet,
 ];

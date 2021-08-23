@@ -5,10 +5,11 @@
   - this will mean monomorphizing all tuple types, which is fine.
 - [ ] 
 
-- [ ] working on turning reduce into something that's valid
-  - [ ] make variables
-  - [ ] propagate them please
-- [ ] 
+- [x] working on turning reduce into something that's valid
+  - [x] make variables
+  - [x] propagate them please
+- [ ] get reduce working too thankss
+- [ ] maybe do loop inlining? Shouldn't be too bad if the value of the loop vbl is known 🤔
 
 # THings found during coverage for parser
 
