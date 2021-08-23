@@ -109,7 +109,7 @@ const Cells = ({
                 }
                 return;
             }
-            if (!focus || focus.id !== 'id') {
+            if (!focusRef.current || focusRef.current.id !== id) {
                 setFocus({ id, tick: 0 });
             }
         },
@@ -514,16 +514,16 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
             if (cid === cell.id) {
                 return;
             }
-            const other = w.cells[cid];
-            if (other.content.type !== 'term') {
+            const otherCell = w.cells[cid];
+            if (otherCell.content.type !== 'term') {
                 return;
             }
             // QQQQ: Do I update the proposed, and the currently accepted one?
             // Or just the proposed?
 
             // For now, we'll only update the proposed.
-            if (other.content.proposed) {
-                const term = other.content.proposed.term;
+            if (otherCell.content.proposed) {
+                const term = otherCell.content.proposed.term;
                 const newTerm = transform(term, {
                     let: (_) => null,
                     term: (term) => {
@@ -543,10 +543,10 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
                         ...workspace,
                         cells: {
                             ...workspace.cells,
-                            [other.id]: {
-                                ...other,
+                            [otherCell.id]: {
+                                ...otherCell,
                                 content: {
-                                    ...other.content,
+                                    ...otherCell.content,
                                     proposed: {
                                         term: newTerm,
                                         id: idFromName(hashObject(newTerm)),
@@ -561,7 +561,15 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
 
             // const term = other.content.proposed
             //     ? other.content.proposed.term
-            const term = env.global.terms[idName(other.content.id)];
+            const term = env.global.terms[idName(otherCell.content.id)];
+            if (!term) {
+                console.error(
+                    `No term ${idName(otherCell.content.id)} from cell ${
+                        otherCell.id
+                    } 🤔`,
+                );
+                return;
+            }
             const newTerm = transform(term, {
                 let: (_) => null,
                 term: (term) => {
@@ -577,13 +585,13 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
             });
 
             if (newTerm !== term) {
-                const top = getToplevel(env, other.content);
+                const top = getToplevel(env, otherCell.content);
                 const { env: nenv, content } = updateToplevel(
                     env,
                     { ...(top as any), term: newTerm },
                     cell.content,
                 );
-                state = onChangeCell(nenv, state, { ...other, content });
+                state = onChangeCell(nenv, state, { ...otherCell, content });
             }
         });
     }

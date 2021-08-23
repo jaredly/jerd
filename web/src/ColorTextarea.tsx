@@ -259,7 +259,6 @@ const updateSelection = (
     const loc = node.getAttribute('data-location');
     if (loc) {
         const location: Location = JSON.parse(loc);
-        console.log(location);
         setSelection((s) => ({
             idx: location.idx!,
             marks: [],
@@ -347,7 +346,6 @@ export default ({
                             ),
                             div,
                             () => {
-                                console.log(div);
                                 node.innerHTML = div.innerHTML;
                                 // Select it y'all
                                 const nodes = node.querySelectorAll(

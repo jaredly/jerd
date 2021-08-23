@@ -119,9 +119,6 @@ const RenderItem_ = ({
         return [top, term, term ? idxTree : null, attributedText, sourceMap];
     }, [env, content, maxWidth]);
 
-    // window.things = { term, idxTree, sourceMap };
-    // console.log(sourceMap);
-
     const [scrub, setScrub] = React.useState(null as null | Scrub);
     const value = evalEnv.terms[idName(content.id)];
     const [hover, setHover] = React.useState(
@@ -207,8 +204,6 @@ const RenderItem_ = ({
 
     const selectedTerm = term ? getTermByIdx(term, selection.idx) : null;
 
-    // console.log('SEL', selection);
-
     return (
         <div css={{ position: 'relative' }} onClick={() => onClick_()}>
             <div
@@ -219,7 +214,10 @@ const RenderItem_ = ({
                     cursor: 'pointer',
                     padding: 8,
                 }}
-                onClick={() => onEdit()}
+                onClick={(evt) => {
+                    evt.stopPropagation();
+                    onEdit();
+                }}
             >
                 {renderAttributedText(
                     env.global,

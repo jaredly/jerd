@@ -215,6 +215,28 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
             return options || [];
         }
 
+        if (state.input.startsWith('#')) {
+            const needle = state.input.slice(1);
+            return Object.keys(env.global.terms)
+                .filter((id) => id.startsWith(needle))
+                .map(
+                    (id) =>
+                        ({
+                            title: '#' + id,
+                            toplevel: {
+                                type: 'Expression',
+                                term: env.global.terms[id],
+                                location: env.global.terms[id].location,
+                                id: idFromName(id),
+                            },
+                            onClick: () => {
+                                onOpen({ type: 'term', id: idFromName(id) });
+                            },
+                            subOptions: [],
+                        } as Option),
+                );
+        }
+
         const names = Object.keys(env.global.names);
         const typeNames = Object.keys(env.global.typeNames);
         const needle = state.input.toLowerCase();

@@ -140,8 +140,8 @@ const CellView_ = ({
     );
 
     const onEdit = React.useCallback(() => {
-        setSelection((s) => ({ ...s, level: 'text' }));
         onFocus(cell.id);
+        setSelection((s) => ({ ...s, level: 'text' }));
     }, [cell]);
 
     const body =
