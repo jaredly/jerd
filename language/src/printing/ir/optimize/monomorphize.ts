@@ -295,6 +295,45 @@ export const monomorphizeTypes = (
     });
 };
 
+export const replaceTypeVariablesInLambda = (
+    expr: LambdaExpr,
+    typeVbls: Array<Type>,
+): LambdaExpr => {
+    if (expr.is.typeVbls.length !== typeVbls.length) {
+        throw new Error(`Wrong number of type vbls`);
+    }
+    const mapping = makeTypeVblMapping(expr.is.typeVbls, typeVbls);
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        type: (type) => {
+            const sub = subtTypeVars(type, mapping, undefined);
+            // if (type.type === 'var' && mapping[type.sym.unique] != null) {
+            //     return mapping[type.sym.unique]
+            // }
+            return sub !== type ? sub : null;
+        },
+        expr: (expr) => {
+            const is = subtTypeVars(expr.is, mapping, undefined);
+            if (expr.type === 'lambda') {
+                const res = subtTypeVars(expr.res, mapping, undefined);
+                let changed = false;
+                const args = expr.args.map((arg) => {
+                    const n = subtTypeVars(arg.type, mapping, undefined);
+                    if (n !== arg.type) {
+                        changed = true;
+                        return { ...arg, type: n };
+                    }
+                    return arg;
+                });
+                return changed || res !== expr.res || is !== expr.is
+                    ? ({ ...expr, is, res, args } as LambdaExpr)
+                    : expr;
+            }
+            return is !== expr.is ? ({ ...expr, is } as Expr) : expr;
+        },
+    }) as LambdaExpr;
+};
+
 export const monomorphize = ({ env, exprs }: Context, expr: Expr): Expr => {
     // let outerMax = maxUnique(expr);
     return transformExpr(expr, {
@@ -320,41 +359,9 @@ export const monomorphize = ({ env, exprs }: Context, expr: Expr): Expr => {
             const newType = applyTypeVariables(env, l.is, expr.typeVbls);
             env.global.idNames[newHash] =
                 env.global.idNames[idName(expr.target.id)];
-            const mapping = makeTypeVblMapping(l.is.typeVbls, expr.typeVbls);
             exprs[newHash] = {
                 inline: false,
-                expr: transformExpr(l, {
-                    ...defaultVisitor,
-                    expr: (expr) => {
-                        const is = subtTypeVars(expr.is, mapping, undefined);
-                        if (expr.type === 'lambda') {
-                            const res = subtTypeVars(
-                                expr.res,
-                                mapping,
-                                undefined,
-                            );
-                            let changed = false;
-                            const args = expr.args.map((arg) => {
-                                const n = subtTypeVars(
-                                    arg.type,
-                                    mapping,
-                                    undefined,
-                                );
-                                if (n !== arg.type) {
-                                    changed = true;
-                                    return { ...arg, type: n };
-                                }
-                                return arg;
-                            });
-                            return changed || res !== expr.res || is !== expr.is
-                                ? ({ ...expr, is, res, args } as LambdaExpr)
-                                : expr;
-                        }
-                        return is !== expr.is
-                            ? ({ ...expr, is } as Expr)
-                            : expr;
-                    },
-                }),
+                expr: replaceTypeVariablesInLambda(l, expr.typeVbls),
             };
             return {
                 ...expr,
