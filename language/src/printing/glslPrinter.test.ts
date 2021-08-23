@@ -270,8 +270,6 @@ describe('glslPrinter', () => {
                                 100,
                             )}`,
                         );
-                    } else {
-                        spy.push(`(${nameForOpt(opt)})`);
                     }
                     expr = post;
                 });
@@ -371,7 +369,7 @@ describe('glslPrinter', () => {
                     const items#:6: Array<int; 10> = range_specialization#🚔();
                     const init#:7: float = 1000;
                     const items_i#:9: int = 0;
-                    loop(unbounded) {
+                    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
                         const i#:14: int = items#:6[0 + items_i#:9];
                         items_i#:9 = items_i#:9 + 1;
                         init#:7 = min(init#:7, length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10);
@@ -387,7 +385,7 @@ describe('glslPrinter', () => {
                     int[10] items = range_specialization_e70c1f38();
                     float init = 1000.0;
                     int items_i = 0;
-                    for (int i=0; i<10000; i++) {
+                    for (; items_i <= -(0 - 10); items_i++) {
                         int i = items[(0 + items_i)];
                         items_i++;
                         init = min(init, (length((pos_1 - ((env_0.resolution / 10.0) * float(i)))) - (float(i) * 10.0)));
@@ -402,2008 +400,904 @@ describe('glslPrinter', () => {
             `);
 
             expect(listened.join('\n\n')).toMatchInlineSnapshot(`
-                --- [ start new opt ] ---
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                flattenImmediateCalls2
-
-                (n#:0: int, collect#:1: Array<int>): Array<int> => {
-                    if n#:0 > 0 {
-                        return rangeInner#🍁(n#:0 - 1, [n#:0 - 1, ...collect#:1]);
-                    } else {
-                        return collect#:1;
-                    };
-                }
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                optimizeTailCalls
-
-                (n#:0: int, collect#:1: Array<int>): Array<int> => {
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        const recur#:2: int = n#:0 - 1;
-                        const recur#:3: Array<int> = [n#:0 - 1, ...collect#:1];
-                        collect#:1 = recur#:3;
-                        continue;
-                    };
-                    return collect#:1;
-                }
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                removeUnusedVariables
-
-                (n#:0: int, collect#:1: Array<int>): Array<int> => {
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        const recur#:3: Array<int> = [n#:0 - 1, ...collect#:1];
-                        collect#:1 = recur#:3;
-                        continue;
-                    };
-                    return collect#:1;
-                }
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                foldSingleUseAssignments
-
-                (n#:0: int, collect#:1: Array<int>): Array<int> => {
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        collect#:1 = [n#:0 - 1, ...collect#:1];
-                        continue;
-                    };
-                    return collect#:1;
-                }
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                inferArraySize
-
-                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        collect#:1 = [n#:0 - 1, ...collect#:1];
-                        continue;
-                    };
-                    return collect#:1;
-                }
-
-                loopSpreadToArraySet
-
-                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
-                    const newArray#:5: Array<int; size#:4 + n#:0>;
-                    const idx#:6: int = n#:0 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        {
-                            newArray#:5[idx#:6] = n#:0 - 1;
-                            idx#:6 = idx#:6 - 1;
-                        };
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                removeNestedBlocksAndCodeAfterReturns
-
-                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
-                    const newArray#:5: Array<int; size#:4 + n#:0>;
-                    const idx#:6: int = n#:0 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        newArray#:5[idx#:6] = n#:0 - 1;
-                        idx#:6 = idx#:6 - 1;
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                inferArraySize
-
-                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int; size#:4 + n#:0> => {
-                    const newArray#:5: Array<int; size#:4 + n#:0>;
-                    const idx#:6: int = n#:0 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        newArray#:5[idx#:6] = n#:0 - 1;
-                        idx#:6 = idx#:6 - 1;
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (inferArraySize)
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                --- [ start new opt ] ---
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                inferArraySize
-
-                (n#:0: int): Array<int> => rangeInner#🍁(n#:0, [])
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (inferArraySize)
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                --- [ start new opt ] ---
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                removeNestedBlocksAndCodeAfterReturns
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => ((): [var]R#:1 => {
-                    if len(items#:0) == 0 {
-                        return init#:1;
-                    };
-                    if len(items#:0) >= 1 {
-                        const item#:3: [var]T#:0 = items#:0[0];
-                        const rest#:4: Array<[var]T#:0> = [slice];
-                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
-                    };
-                    match_fail!();
-                })()
-
-                flattenImmediateCalls2
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-                    if len(items#:0) == 0 {
-                        return init#:1;
-                    };
-                    if len(items#:0) >= 1 {
-                        const item#:3: [var]T#:0 = items#:0[0];
-                        const rest#:4: Array<[var]T#:0> = [slice];
-                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
-                    };
-                    match_fail!();
-                }
-
-                foldSingleUseAssignments
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-                    if len(items#:0) == 0 {
-                        return init#:1;
-                    };
-                    if len(items#:0) >= 1 {
-                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>([slice], fn#:2(init#:1, items#:0[0]), fn#:2);
-                    };
-                    match_fail!();
-                }
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                optimizeTailCalls
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-                    loop(unbounded) {
-                        if len(items#:0) == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) >= 1 {
-                            const recur#:6: Array<[var]T#:0> = [slice];
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
-                            const recur#:8: ([var]R#:1, [var]T#:0) => [var]R#:1 = fn#:2;
-                            items#:0 = recur#:6;
-                            init#:1 = recur#:7;
-                            fn#:2 = recur#:8;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                foldSingleUseAssignments
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-                    loop(unbounded) {
-                        if len(items#:0) == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) >= 1 {
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
-                            items#:0 = [slice];
-                            init#:1 = recur#:7;
-                            fn#:2 = fn#:2;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                inferArraySize
-
-                <T, R>(
-                    items#:0: Array<[var]T#:0; size#:9>,
-                    init#:1: [var]R#:1,
-                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                ): [var]R#:1 => {
-                    loop(unbounded) {
-                        if len(items#:0) == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) >= 1 {
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
-                            items#:0 = [slice];
-                            init#:1 = recur#:7;
-                            fn#:2 = fn#:2;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                arraySliceLoopToIndex
-
-                <T, R>(
-                    items#:0: Array<[var]T#:0; size#:9>,
-                    init#:1: [var]R#:1,
-                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                ): [var]R#:1 => {
-                    const items_i#:10: int = 0;
-                    loop(unbounded) {
-                        if len(items#:0) - items_i#:10 == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) - items_i#:10 >= 1 {
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:10]);
-                            items_i#:10 = items_i#:10 + 1;
-                            init#:1 = recur#:7;
-                            fn#:2 = fn#:2;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-
-
-                <T, R>(
-                    items#:0: Array<[var]T#:0; size#:9>,
-                    init#:1: [var]R#:1,
-                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                ): [var]R#:1 => {
-                    const items_i#:10: int = 0;
-                    loop(unbounded) {
-                        if len(items#:0) - items_i#:10 == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) - items_i#:10 >= 1 {
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:10]);
-                            items_i#:10 = items_i#:10 + 1;
-                            init#:1 = recur#:7;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (inferArraySize)
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (inferArraySize)
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                --- [ start new opt ] ---
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                flattenImmediateCalls2
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const mv#:5: float = reduce#🌓🏛️😹😃<int, float>(
-                        range#🖐️✍️👌😃(10),
-                        1000,
-                        (current#:2: float, i#:3: int): float => {
-                            const at#:4: Vec2#🐭😉😵😃 = Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
-                                ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
-                                IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
-                            );
-                            return min(
-                                current#:2,
-                                length#😦(AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(pos#:1, at#:4)) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(
-                                    i#:3,
-                                ) * 10,
-                            );
-                        },
-                    );
-                    if mv#:5 < 0 {
-                        return vec4#🤽🚇🚞😃(1);
-                    } else {
-                        return vec4#🤽🚇🚞😃(0);
-                    };
-                }
-
-                foldSingleUseAssignments
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    if reduce#🌓🏛️😹😃<int, float>(
-                        range#🖐️✍️👌😃(10),
-                        1000,
-                        (current#:2: float, i#:3: int): float => min(
-                            current#:2,
-                            length#😦(
-                                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
-                                    pos#:1,
-                                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
-                                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
-                                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
-                                    ),
-                                ),
-                            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
-                        ),
-                    ) < 0 {
-                        return vec4#🤽🚇🚞😃(1);
-                    } else {
-                        return vec4#🤽🚇🚞😃(0);
-                    };
-                }
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                inlineFunctionsCalledWithCapturingLambdas
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    if (<T, R>(
-                        items#:6: Array<[var]T#:0; size#:9>,
-                        init#:7: [var]R#:1,
-                        fn#:8: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                    ): [var]R#:1 => {
-                        const items_i#:9: int = 0;
-                        loop(unbounded) {
-                            if len(items#:6) - items_i#:9 == 0 {
-                                return init#:7;
-                            };
-                            if len(items#:6) - items_i#:9 >= 1 {
-                                const recur#:10: [var]R#:1 = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                                items_i#:9 = items_i#:9 + 1;
-                                init#:7 = recur#:10;
-                                continue;
-                            };
-                            match_fail!();
-                        };
-                    })<int, float>(
-                        range#🖐️✍️👌😃(10),
-                        1000,
-                        (current#:2: float, i#:3: int): float => min(
-                            current#:2,
-                            length#😦(
-                                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
-                                    pos#:1,
-                                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
-                                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
-                                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
-                                    ),
-                                ),
-                            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
-                        ),
-                    ) < 0 {
-                        return vec4#🤽🚇🚞😃(1);
-                    } else {
-                        return vec4#🤽🚇🚞😃(0);
-                    };
-                }
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                inlint
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    if (<T, R>(
-                        items#:6: Array<[var]T#:0; size#:9>,
-                        init#:7: [var]R#:1,
-                        fn#:8: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                    ): [var]R#:1 => {
-                        const items_i#:9: int = 0;
-                        loop(unbounded) {
-                            if len(items#:6) - items_i#:9 == 0 {
-                                return init#:7;
-                            };
-                            if len(items#:6) - items_i#:9 >= 1 {
-                                const recur#:10: [var]R#:1 = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                                items_i#:9 = items_i#:9 + 1;
-                                init#:7 = recur#:10;
-                                continue;
-                            };
-                            match_fail!();
-                        };
-                    })<int, float>(
-                        range#🖐️✍️👌😃(10),
-                        1000,
-                        (current#:2: float, i#:3: int): float => min(
-                            current#:2,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                        ),
-                    ) < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                flattenImmediateCalls2
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = range#🖐️✍️👌😃(10);
-                    const init#:7: float = 1000;
-                    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
-                        current#:2,
-                        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                    );
-                    const result#:11: float;
-                    const continueBlock#:12: bool = true;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            continueBlock#:12 = false;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                --- [ start new opt ] ---
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                foldSingleUseAssignments
-
-                (): Array<int> => rangeInner#🍁(10, [])
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                --- [ start new opt ] ---
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                foldConstantsAndLambdas
-
-                (): Array<int; 10> => {
-                    const n#:0: int = 10;
-                    const collect#:1: Array<int; 0> = [];
-                    const newArray#:5: Array<int; 10>;
-                    const idx#:6: int = 10 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        newArray#:5[idx#:6] = n#:0 - 1;
-                        idx#:6 = idx#:6 - 1;
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                (flattenImmediateAssigns)
-
-                removeUnusedVariables
-
-                (): Array<int; 10> => {
-                    const n#:0: int = 10;
-                    const newArray#:5: Array<int; 10>;
-                    const idx#:6: int = 10 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        newArray#:5[idx#:6] = n#:0 - 1;
-                        idx#:6 = idx#:6 - 1;
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (inferArraySize)
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (inferArraySize)
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                inferArraySize
-
-                (): Array<int> => unnamed#🐀🌁🌒()
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                inferArraySize
-
-                (): Array<int; 10> => unnamed#🐀🌁🌒()
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (inferArraySize)
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                inferArraySize
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
-                        current#:2,
-                        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                    );
-                    const result#:11: float;
-                    const continueBlock#:12: bool = true;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            continueBlock#:12 = false;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                foldSingleUseAssignments
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
-                        current#:2,
-                        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                    );
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            continueBlock#:12 = false;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                foldConstantsAndLambdas
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
-                        current#:2,
-                        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                    );
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            continueBlock#:12 = false;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = ((current#:13: float, i#:14: int): float => min(
-                                current#:13,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            ))(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (flattenImmediateAssigns)
-
-                removeUnusedVariables
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = ((current#:13: float, i#:14: int): float => min(
-                                current#:13,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            ))(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                flattenImmediateCalls2
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float;
-                            const current#:13: float = init#:7;
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            recur#:10 = min(
-                                current#:13,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                inferArraySize
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float;
-                            const current#:13: float = init#:7;
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            recur#:10 = min(
-                                current#:13,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                foldSingleUseAssignments
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float;
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            recur#:10 = min(
-                                init#:7,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (foldConstantsAndLambdas)
-
-                flattenImmediateAssigns
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            const recur#:10: float = min(
-                                init#:7,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                foldSingleUseAssignments
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = min(
-                                init#:7,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                inferArraySize
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if 10 - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if 10 - items_i#:9 >= 1 {
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = min(
-                                init#:7,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (loopSpreadToArraySet)
-
-                inferLoopBounds
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        {
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = min(
-                                init#:7,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            continue;
-                        };
-                    };
-                    {
-                        result#:11 = init#:7;
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                removeNestedBlocksAndCodeAfterReturns
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
-                        items_i#:9 = items_i#:9 + 1;
-                        init#:7 = min(
-                            init#:7,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                        );
-                        continue;
-                    };
-                    result#:11 = init#:7;
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                foldConstantsAndLambdas
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
-                        items_i#:9 = items_i#:9 + 1;
-                        init#:7 = min(
-                            init#:7,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                        );
-                        continue;
-                    };
-                    result#:11 = init#:7;
-                    if init#:7 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                flattenImmediateAssigns
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
-                        items_i#:9 = items_i#:9 + 1;
-                        init#:7 = min(
-                            init#:7,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                        );
-                        continue;
-                    };
-                    const result#:11: float = init#:7;
-                    if init#:7 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                removeUnusedVariables
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
-                        items_i#:9 = items_i#:9 + 1;
-                        init#:7 = min(
-                            init#:7,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                        );
-                        continue;
-                    };
-                    if init#:7 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (inferArraySize)
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-
-                (specializeFunctionsCalledWithLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (foldSingleUseAssignments)
-
-                (foldConstantsAndLambdas)
-
-                (flattenImmediateAssigns)
-
-                (removeUnusedVariables)
-
-                (inlineFunctionsCalledWithCapturingLambdas)
-
-                (ensureToplevelFunctionsAreLambdas)
-
-                (inlineCallsThatReturnFunctions)
-
-                (explicitSpreads)
-
-                (optimizeTailCalls)
-
-                (arraySliceLoopToIndex)
-
-                (foldImmediateAttributeAccess)
-
-                (inlint)
-
-                (monomorphize)
-
-                (monomorphizeTypes)
-
-                ()
-
-                (removeUnusedVariables)
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                ()
-
-                ()
-
-                (foldSingleUseAssignments)
-
-                ()
-
-                ()
-
-                (removeUnusedVariables)
-
-                ()
-
-                (removeNestedBlocksAndCodeAfterReturns)
-
-                (flattenImmediateCalls2)
-
-                (inferArraySize)
-
-                (loopSpreadToArraySet)
-
-                (inferLoopBounds)
-            `);
+--- [ start new opt ] ---
+
+flattenImmediateCalls2
+
+(n#:0: int, collect#:1: Array<int>): Array<int> => {
+    if n#:0 > 0 {
+        return rangeInner#🍁(n#:0 - 1, [n#:0 - 1, ...collect#:1]);
+    } else {
+        return collect#:1;
+    };
+}
+
+optimizeTailCalls
+
+(n#:0: int, collect#:1: Array<int>): Array<int> => {
+    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+        const recur#:2: int = n#:0 - 1;
+        const recur#:3: Array<int> = [n#:0 - 1, ...collect#:1];
+        collect#:1 = recur#:3;
+        continue;
+    };
+    return collect#:1;
+}
+
+removeUnusedVariables
+
+(n#:0: int, collect#:1: Array<int>): Array<int> => {
+    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+        const recur#:3: Array<int> = [n#:0 - 1, ...collect#:1];
+        collect#:1 = recur#:3;
+        continue;
+    };
+    return collect#:1;
+}
+
+foldSingleUseAssignments
+
+(n#:0: int, collect#:1: Array<int>): Array<int> => {
+    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+        collect#:1 = [n#:0 - 1, ...collect#:1];
+        continue;
+    };
+    return collect#:1;
+}
+
+inferArraySize
+
+(n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
+    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+        collect#:1 = [n#:0 - 1, ...collect#:1];
+        continue;
+    };
+    return collect#:1;
+}
+
+loopSpreadToArraySet
+
+(n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
+    const newArray#:5: Array<int; size#:4 + n#:0>;
+    const idx#:6: int = n#:0 - 1;
+    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+        {
+            newArray#:5[idx#:6] = n#:0 - 1;
+            idx#:6 = idx#:6 - 1;
+        };
+        continue;
+    };
+    return newArray#:5;
+}
+
+removeNestedBlocksAndCodeAfterReturns
+
+(n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
+    const newArray#:5: Array<int; size#:4 + n#:0>;
+    const idx#:6: int = n#:0 - 1;
+    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+        newArray#:5[idx#:6] = n#:0 - 1;
+        idx#:6 = idx#:6 - 1;
+        continue;
+    };
+    return newArray#:5;
+}
+
+inferArraySize
+
+(n#:0: int, collect#:1: Array<int; size#:4>): Array<int; size#:4 + n#:0> => {
+    const newArray#:5: Array<int; size#:4 + n#:0>;
+    const idx#:6: int = n#:0 - 1;
+    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+        newArray#:5[idx#:6] = n#:0 - 1;
+        idx#:6 = idx#:6 - 1;
+        continue;
+    };
+    return newArray#:5;
+}
+
+--- [ start new opt ] ---
+
+inferArraySize
+
+(n#:0: int): Array<int> => rangeInner#🍁(n#:0, [])
+
+--- [ start new opt ] ---
+
+removeNestedBlocksAndCodeAfterReturns
+
+<T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => ((): [var]R#:1 => {
+    if len(items#:0) == 0 {
+        return init#:1;
+    };
+    if len(items#:0) >= 1 {
+        const item#:3: [var]T#:0 = items#:0[0];
+        const rest#:4: Array<[var]T#:0> = [slice];
+        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
+    };
+    match_fail!();
+})()
+
+flattenImmediateCalls2
+
+<T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+    if len(items#:0) == 0 {
+        return init#:1;
+    };
+    if len(items#:0) >= 1 {
+        const item#:3: [var]T#:0 = items#:0[0];
+        const rest#:4: Array<[var]T#:0> = [slice];
+        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
+    };
+    match_fail!();
+}
+
+foldSingleUseAssignments
+
+<T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+    if len(items#:0) == 0 {
+        return init#:1;
+    };
+    if len(items#:0) >= 1 {
+        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>([slice], fn#:2(init#:1, items#:0[0]), fn#:2);
+    };
+    match_fail!();
+}
+
+optimizeTailCalls
+
+<T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+    loop(unbounded) {
+        if len(items#:0) == 0 {
+            return init#:1;
+        };
+        if len(items#:0) >= 1 {
+            const recur#:6: Array<[var]T#:0> = [slice];
+            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
+            const recur#:8: ([var]R#:1, [var]T#:0) => [var]R#:1 = fn#:2;
+            items#:0 = recur#:6;
+            init#:1 = recur#:7;
+            fn#:2 = recur#:8;
+            continue;
+        };
+        match_fail!();
+    };
+}
+
+foldSingleUseAssignments
+
+<T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+    loop(unbounded) {
+        if len(items#:0) == 0 {
+            return init#:1;
+        };
+        if len(items#:0) >= 1 {
+            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
+            items#:0 = [slice];
+            init#:1 = recur#:7;
+            fn#:2 = fn#:2;
+            continue;
+        };
+        match_fail!();
+    };
+}
+
+inferArraySize
+
+<T, R>(
+    items#:0: Array<[var]T#:0; size#:9>,
+    init#:1: [var]R#:1,
+    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
+): [var]R#:1 => {
+    loop(unbounded) {
+        if len(items#:0) == 0 {
+            return init#:1;
+        };
+        if len(items#:0) >= 1 {
+            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
+            items#:0 = [slice];
+            init#:1 = recur#:7;
+            fn#:2 = fn#:2;
+            continue;
+        };
+        match_fail!();
+    };
+}
+
+arraySliceLoopToIndex
+
+<T, R>(
+    items#:0: Array<[var]T#:0; size#:9>,
+    init#:1: [var]R#:1,
+    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
+): [var]R#:1 => {
+    const items_i#:10: int = 0;
+    loop(unbounded) {
+        if len(items#:0) - items_i#:10 == 0 {
+            return init#:1;
+        };
+        if len(items#:0) - items_i#:10 >= 1 {
+            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:10]);
+            items_i#:10 = items_i#:10 + 1;
+            init#:1 = recur#:7;
+            fn#:2 = fn#:2;
+            continue;
+        };
+        match_fail!();
+    };
+}
+
+
+
+<T, R>(
+    items#:0: Array<[var]T#:0; size#:9>,
+    init#:1: [var]R#:1,
+    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
+): [var]R#:1 => {
+    const items_i#:10: int = 0;
+    loop(unbounded) {
+        if len(items#:0) - items_i#:10 == 0 {
+            return init#:1;
+        };
+        if len(items#:0) - items_i#:10 >= 1 {
+            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:10]);
+            items_i#:10 = items_i#:10 + 1;
+            init#:1 = recur#:7;
+            continue;
+        };
+        match_fail!();
+    };
+}
+
+--- [ start new opt ] ---
+
+flattenImmediateCalls2
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const mv#:5: float = reduce#🌓🏛️😹😃<int, float>(
+        range#🖐️✍️👌😃(10),
+        1000,
+        (current#:2: float, i#:3: int): float => {
+            const at#:4: Vec2#🐭😉😵😃 = Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
+            );
+            return min(
+                current#:2,
+                length#😦(AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(pos#:1, at#:4)) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(
+                    i#:3,
+                ) * 10,
+            );
+        },
+    );
+    if mv#:5 < 0 {
+        return vec4#🤽🚇🚞😃(1);
+    } else {
+        return vec4#🤽🚇🚞😃(0);
+    };
+}
+
+foldSingleUseAssignments
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    if reduce#🌓🏛️😹😃<int, float>(
+        range#🖐️✍️👌😃(10),
+        1000,
+        (current#:2: float, i#:3: int): float => min(
+            current#:2,
+            length#😦(
+                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
+                    pos#:1,
+                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
+                    ),
+                ),
+            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
+        ),
+    ) < 0 {
+        return vec4#🤽🚇🚞😃(1);
+    } else {
+        return vec4#🤽🚇🚞😃(0);
+    };
+}
+
+inlineFunctionsCalledWithCapturingLambdas
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    if (<T, R>(
+        items#:6: Array<[var]T#:0; size#:9>,
+        init#:7: [var]R#:1,
+        fn#:8: ([var]R#:1, [var]T#:0) => [var]R#:1,
+    ): [var]R#:1 => {
+        const items_i#:9: int = 0;
+        loop(unbounded) {
+            if len(items#:6) - items_i#:9 == 0 {
+                return init#:7;
+            };
+            if len(items#:6) - items_i#:9 >= 1 {
+                const recur#:10: [var]R#:1 = fn#:8(init#:7, items#:6[0 + items_i#:9]);
+                items_i#:9 = items_i#:9 + 1;
+                init#:7 = recur#:10;
+                continue;
+            };
+            match_fail!();
+        };
+    })<int, float>(
+        range#🖐️✍️👌😃(10),
+        1000,
+        (current#:2: float, i#:3: int): float => min(
+            current#:2,
+            length#😦(
+                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
+                    pos#:1,
+                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
+                    ),
+                ),
+            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
+        ),
+    ) < 0 {
+        return vec4#🤽🚇🚞😃(1);
+    } else {
+        return vec4#🤽🚇🚞😃(0);
+    };
+}
+
+inlint
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    if (<T, R>(
+        items#:6: Array<[var]T#:0; size#:9>,
+        init#:7: [var]R#:1,
+        fn#:8: ([var]R#:1, [var]T#:0) => [var]R#:1,
+    ): [var]R#:1 => {
+        const items_i#:9: int = 0;
+        loop(unbounded) {
+            if len(items#:6) - items_i#:9 == 0 {
+                return init#:7;
+            };
+            if len(items#:6) - items_i#:9 >= 1 {
+                const recur#:10: [var]R#:1 = fn#:8(init#:7, items#:6[0 + items_i#:9]);
+                items_i#:9 = items_i#:9 + 1;
+                init#:7 = recur#:10;
+                continue;
+            };
+            match_fail!();
+        };
+    })<int, float>(
+        range#🖐️✍️👌😃(10),
+        1000,
+        (current#:2: float, i#:3: int): float => min(
+            current#:2,
+            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+        ),
+    ) < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+flattenImmediateCalls2
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int> = range#🖐️✍️👌😃(10);
+    const init#:7: float = 1000;
+    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
+        current#:2,
+        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+    );
+    const result#:11: float;
+    const continueBlock#:12: bool = true;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            continueBlock#:12 = false;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+--- [ start new opt ] ---
+
+foldSingleUseAssignments
+
+(): Array<int> => rangeInner#🍁(10, [])
+
+--- [ start new opt ] ---
+
+foldConstantsAndLambdas
+
+(): Array<int; 10> => {
+    const n#:0: int = 10;
+    const collect#:1: Array<int; 0> = [];
+    const newArray#:5: Array<int; 10>;
+    const idx#:6: int = 10 - 1;
+    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+        newArray#:5[idx#:6] = n#:0 - 1;
+        idx#:6 = idx#:6 - 1;
+        continue;
+    };
+    return newArray#:5;
+}
+
+removeUnusedVariables
+
+(): Array<int; 10> => {
+    const n#:0: int = 10;
+    const newArray#:5: Array<int; 10>;
+    const idx#:6: int = 10 - 1;
+    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+        newArray#:5[idx#:6] = n#:0 - 1;
+        idx#:6 = idx#:6 - 1;
+        continue;
+    };
+    return newArray#:5;
+}
+
+inferArraySize
+
+(): Array<int> => unnamed#🐀🌁🌒()
+
+inferArraySize
+
+(): Array<int; 10> => unnamed#🐀🌁🌒()
+
+inferArraySize
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
+        current#:2,
+        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+    );
+    const result#:11: float;
+    const continueBlock#:12: bool = true;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            continueBlock#:12 = false;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+foldSingleUseAssignments
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
+        current#:2,
+        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+    );
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            continueBlock#:12 = false;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+foldConstantsAndLambdas
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
+        current#:2,
+        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+    );
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            continueBlock#:12 = false;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const recur#:10: float = ((current#:13: float, i#:14: int): float => min(
+                current#:13,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+            ))(init#:7, items#:6[0 + items_i#:9]);
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+removeUnusedVariables
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const recur#:10: float = ((current#:13: float, i#:14: int): float => min(
+                current#:13,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+            ))(init#:7, items#:6[0 + items_i#:9]);
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+flattenImmediateCalls2
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const recur#:10: float;
+            const current#:13: float = init#:7;
+            const i#:14: int = items#:6[0 + items_i#:9];
+            recur#:10 = min(
+                current#:13,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+            );
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+inferArraySize
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const recur#:10: float;
+            const current#:13: float = init#:7;
+            const i#:14: int = items#:6[0 + items_i#:9];
+            recur#:10 = min(
+                current#:13,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+            );
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+foldSingleUseAssignments
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const recur#:10: float;
+            const i#:14: int = items#:6[0 + items_i#:9];
+            recur#:10 = min(
+                init#:7,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+            );
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+flattenImmediateAssigns
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const i#:14: int = items#:6[0 + items_i#:9];
+            const recur#:10: float = min(
+                init#:7,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+            );
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+foldSingleUseAssignments
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const i#:14: int = items#:6[0 + items_i#:9];
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = min(
+                init#:7,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+            );
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+inferArraySize
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if 10 - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            break;
+        };
+        if 10 - items_i#:9 >= 1 {
+            const i#:14: int = items#:6[0 + items_i#:9];
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = min(
+                init#:7,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+            );
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+inferLoopBounds
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
+        {
+            const i#:14: int = items#:6[0 + items_i#:9];
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = min(
+                init#:7,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+            );
+            continue;
+        };
+    };
+    {
+        result#:11 = init#:7;
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+removeNestedBlocksAndCodeAfterReturns
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
+        const i#:14: int = items#:6[0 + items_i#:9];
+        items_i#:9 = items_i#:9 + 1;
+        init#:7 = min(
+            init#:7,
+            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+        );
+        continue;
+    };
+    result#:11 = init#:7;
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+foldConstantsAndLambdas
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
+        const i#:14: int = items#:6[0 + items_i#:9];
+        items_i#:9 = items_i#:9 + 1;
+        init#:7 = min(
+            init#:7,
+            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+        );
+        continue;
+    };
+    result#:11 = init#:7;
+    if init#:7 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+flattenImmediateAssigns
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const items_i#:9: int = 0;
+    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
+        const i#:14: int = items#:6[0 + items_i#:9];
+        items_i#:9 = items_i#:9 + 1;
+        init#:7 = min(
+            init#:7,
+            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+        );
+        continue;
+    };
+    const result#:11: float = init#:7;
+    if init#:7 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+removeUnusedVariables
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int; 10> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const items_i#:9: int = 0;
+    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
+        const i#:14: int = items#:6[0 + items_i#:9];
+        items_i#:9 = items_i#:9 + 1;
+        init#:7 = min(
+            init#:7,
+            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
+        );
+        continue;
+    };
+    if init#:7 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+`);
         });
 
         it('can do a forward range', () => {

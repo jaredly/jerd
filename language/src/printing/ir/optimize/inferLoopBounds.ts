@@ -1,38 +1,20 @@
 import { newSym } from '../../../typing/env';
-import { Symbol } from '../../../typing/types';
+import { Env, Symbol } from '../../../typing/types';
 import { debugExpr, debugStmt } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
 import { Expr, Stmt } from '../intermediateRepresentation';
 import { defaultVisitor, transformExpr, transformStmt } from '../transform';
 import { Apply, Assign, IfStmt, LoopBounds } from '../types';
-import { builtin, callExpression, int, intLiteral, var_ } from '../utils';
-import { plus } from './arraySlices';
+import {
+    builtin,
+    callExpression,
+    int,
+    intLiteral,
+    pureFunction,
+    var_,
+} from '../utils';
+import { minus, plus } from './arraySlices';
 import { Context, Optimizer2 } from './optimize';
-
-// export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
-//     return transformExpr(expr, {
-//         ...defaultVisitor,
-//         stmt: (stmt) => {
-//             if (stmt.type === 'Loop' && stmt.bounds == null) {
-//                 return {
-//                     ...stmt,
-//                     bounds: {
-//                         end: intLiteral(10, stmt.loc),
-//                         op: '<',
-//                         step: plus(
-//                             ctx.env,
-//                             intLiteral(10, stmt.loc),
-//                             intLiteral(3, stmt.loc),
-//                             stmt.loc,
-//                         ),
-//                         sym: newSym(ctx.env, 'YES'),
-//                     },
-//                 };
-//             }
-//             return null;
-//         },
-//     });
-// };
 
 export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
     // Ok, so I find a loop that's unbounded
@@ -188,6 +170,7 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                 console.log('UES');
 
                 const bounds = condToBound(
+                    ctx.env,
                     constants[cond.unique],
                     bif.cond as Apply,
                     cond,
@@ -227,9 +210,59 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
     });
 };
 
+const negate = (env: Env, expr: Expr) => {
+    return callExpression(
+        env,
+        builtin('-', expr.loc, pureFunction([int], int)),
+        [expr],
+        expr.loc,
+    );
+};
+
+const dig = (
+    env: Env,
+    expr: Expr,
+    sym: Symbol,
+    other: Expr,
+    negated: boolean,
+): null | { var: Expr; other: Expr; negated: boolean } => {
+    if (expr.type === 'var' && expr.sym.unique === sym.unique) {
+        return { var: expr, other, negated };
+    }
+    if (
+        expr.type === 'apply' &&
+        expr.target.type === 'builtin' &&
+        ['+', '-'].includes(expr.target.name)
+    ) {
+        const [leftArg, rightArg] = expr.args;
+        const left = dig(
+            env,
+            leftArg,
+            sym,
+            expr.target.name === '+'
+                ? minus(env, other, rightArg, expr.loc)
+                : plus(env, other, rightArg, expr.loc),
+            negated,
+        );
+        if (left) {
+            return left;
+        }
+        let otherRight;
+        if (expr.target.name === '+') {
+            otherRight = minus(env, other, leftArg, expr.loc);
+        } else {
+            otherRight = negate(env, minus(env, other, leftArg, expr.loc));
+            negated = !negated;
+        }
+        return dig(env, rightArg, sym, otherRight, negated);
+    }
+    return null;
+};
+
 // START HERE PLEASE:
 // - do the mathematical whatsit to isolate the var on one side.
 const juggle = (
+    env: Env,
     args: [Expr, Expr],
     name: string,
     sym: Symbol,
@@ -237,12 +270,27 @@ const juggle = (
 ): null | { expr: Expr; op: any } => {
     // um
     // x + 10 == 0
-    if (args[1].type === 'int') {
+    const left = dig(env, args[0], sym, args[1], false);
+    const right = dig(env, args[1], sym, args[0], false);
+    if (name === '==') {
+        if (left) {
+            if (left.negated) {
+                increasing = !increasing;
+            }
+            return { expr: left.other, op: increasing ? '>=' : '<=' };
+        }
+        if (right) {
+            if (right.negated) {
+                increasing = !increasing;
+            }
+            return { expr: right.other, op: increasing ? '>=' : '<=' };
+        }
     }
     return null;
 };
 
 const condToBound = (
+    env: Env,
     initial: number,
     cond: Apply,
     sym: Symbol,
@@ -257,6 +305,7 @@ const condToBound = (
     }
 
     const res = juggle(
+        env,
         cond.args as [Expr, Expr],
         cond.target.name,
         sym,
