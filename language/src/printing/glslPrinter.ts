@@ -398,9 +398,16 @@ export const stmtToGlsl = (
                         atom(' '),
                         termToGlsl(env, opts, stmt.bounds.end),
                         atom('; '),
-                        symToGlsl(env, opts, stmt.bounds.sym),
-                        atom(' = '),
-                        termToGlsl(env, opts, stmt.bounds.step),
+                        stmtToGlsl(env, opts, {
+                            type: 'Assign',
+                            sym: stmt.bounds.sym,
+                            is: int,
+                            loc: stmt.loc,
+                            value: stmt.bounds.step,
+                        }),
+                        // symToGlsl(env, opts, stmt.bounds.sym),
+                        // atom(' = '),
+                        // termToGlsl(env, opts, stmt.bounds.step),
                         atom(')'),
                     ]),
                     atom(' '),
@@ -453,12 +460,38 @@ export const stmtToGlsl = (
                 atom(' = '),
                 termToGlsl(env, opts, stmt.value),
             ]);
-        case 'Assign':
+        case 'Assign': {
+            if (
+                stmt.value.type === 'apply' &&
+                stmt.value.target.type === 'builtin' &&
+                ['+', '-'].includes(stmt.value.target.name) &&
+                stmt.value.args.length === 2 &&
+                stmt.value.args[0].type === 'var' &&
+                stmt.value.args[0].sym.unique === stmt.sym.unique
+            ) {
+                const op = stmt.value.target.name;
+                if (
+                    stmt.value.args[1].type === 'int' &&
+                    stmt.value.args[1].value === 1
+                ) {
+                    return items([
+                        symToGlsl(env, opts, stmt.sym),
+                        atom(`${op}${op}`),
+                    ]);
+                }
+                return items([
+                    symToGlsl(env, opts, stmt.sym),
+                    atom(` ${op}= `),
+                    termToGlsl(env, opts, stmt.value.args[1]),
+                ]);
+            }
+
             return items([
                 symToGlsl(env, opts, stmt.sym),
                 atom(' = '),
                 termToGlsl(env, opts, stmt.value),
             ]);
+        }
         case 'MatchFail':
             return atom('// match fail');
         case 'Expression':

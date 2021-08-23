@@ -275,9 +275,9 @@ describe('glslPrinter', () => {
                     int n = 10;
                     int[10] newArray;
                     int idx = (10 - 1);
-                    for (; n > 0; n = (n - 1)) {
+                    for (; n > 0; n--) {
                         newArray[idx] = (n - 1);
-                        idx = (idx - 1);
+                        idx--;
                         continue;
                     };
                     return newArray;
@@ -421,9 +421,9 @@ describe('glslPrinter', () => {
                     int n = 10;
                     int[10] newArray;
                     int idx = 0;
-                    for (; n > 0; n = (n - 1)) {
+                    for (; n > 0; n--) {
                         newArray[idx] = (n - 1);
-                        idx = (idx + 1);
+                        idx++;
                         continue;
                     };
                     return newArray;
@@ -576,7 +576,7 @@ describe('glslPrinter', () => {
                     float init = 1000.0;
                     float result;
                     bool continueBlock = true;
-                    for (; start < 5; start = (start + 1)) {
+                    for (; start < 5; start++) {
                         init = min(init, (length((pos_1 - vec2(((float(start) * 30.0) + sin(env_0.time)), (float(start) * 30.0)))) - 10.0));
                         continue;
                     };
