@@ -1169,6 +1169,7 @@ export const assembleItemsForFile = (
                 id,
                 types: env.typeDefs,
                 optimize: optimization,
+                notes: null,
             },
             irTerm,
         );
@@ -1192,6 +1193,7 @@ export const assembleItemsForFile = (
                 id,
                 types: env.typeDefs,
                 optimize: optimization,
+                notes: null,
             };
 
             let opt = preOpt;

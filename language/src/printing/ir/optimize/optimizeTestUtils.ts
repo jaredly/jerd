@@ -41,6 +41,7 @@ export const runOpt = (env: Env, expr: Expr, opt: Optimizer2) =>
             opts: {},
             optimize: opt,
             id: { hash: 'nope', size: 1, pos: 0 },
+            notes: null,
         },
         expr,
     );

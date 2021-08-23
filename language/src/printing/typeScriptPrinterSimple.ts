@@ -1158,6 +1158,7 @@ export const fileToTypescript = (
                     id,
                     optimize: opt,
                     opts: {},
+                    notes: null,
                 },
                 irTerm,
             );
@@ -1199,6 +1200,7 @@ export const fileToTypescript = (
                                 id: idFromName(hashObject(term)),
                                 opts: {},
                                 optimize: optimize,
+                                notes: null,
                             },
                             irTerm,
                         ),

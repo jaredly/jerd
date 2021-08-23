@@ -44,6 +44,7 @@ export type Context = {
     types: TypeDefs;
     opts: OutputOptions;
     optimize: Optimizer2;
+    notes: Array<string> | null;
 };
 
 export type TypeDefs = {
@@ -68,7 +69,11 @@ export const toOldOptimize = (opt: Optimizer2): Optimizer => (
     exprs: Exprs,
     expr: Expr,
     id: Id,
-) => opt({ exprs, env, opts: irOpts, id, optimize: opt, types: {} }, expr);
+) =>
+    opt(
+        { exprs, env, opts: irOpts, id, optimize: opt, types: {}, notes: null },
+        expr,
+    );
 
 export type Optimizer2 = (ctx: Context, expr: Expr) => Expr;
 
@@ -132,6 +137,7 @@ export const optimizeDefineNew_ = (
         opts: {},
         types: {},
         optimize: opt,
+        notes: null,
     };
 
     try {
@@ -174,6 +180,7 @@ export const optimizeDefineNew_ = (
             types: {},
             opts: {},
             optimize: opt,
+            notes: null,
         };
         expr = opt(ctx, orig);
     }

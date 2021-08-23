@@ -235,13 +235,30 @@ export const stepSize = (step: Apply): null | number => {
 };
 
 // Hmmm it would be nice to have a subset of expr that we could use for stuff like this
-export const loopCount = (bounds: LoopBounds): null | InferredSize => {
+export const loopCount = (
+    bounds: LoopBounds,
+    constants: { [unique: number]: number },
+): null | InferredSize => {
     const step = stepSize(bounds.step);
     if (step == null) {
         return null;
     }
     if (step === -1 && bounds.end.type === 'int' && bounds.end.value === 0) {
         return { type: 'constant', sym: bounds.sym };
+    }
+    if (step === 1 && bounds.end.type === 'int') {
+        if (constants[bounds.sym.unique] != null) {
+            return {
+                type: 'exactly',
+                size: bounds.end.value - constants[bounds.sym.unique],
+            };
+        }
+        // NOTE: This is false actually
+        // return {
+        //     type: 'relative',
+        //     to: { type: 'constant', sym: bounds.sym },
+        //     offset: { type: 'exactly', size: bounds.end.value },
+        // };
     }
     return null;
 };

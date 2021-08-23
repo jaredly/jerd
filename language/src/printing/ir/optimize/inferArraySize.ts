@@ -51,58 +51,51 @@ const isAppendOrPrepend = (array: ArrayExpr) => {
 };
 
 export const spreadToSet = (
-    i: Assign,
+    assign: Assign,
     idxSym: Symbol,
     context: Context,
     sym: Symbol,
 ): Stmt => {
-    const value = i.value as ArrayExpr;
+    const value = assign.value as ArrayExpr;
     if (value.items.length !== 2) {
         throw new Error(`Only length 2 arrays supported just now`);
     }
-    const idxVar: Expr = {
-        type: 'var',
-        sym: idxSym,
-        is: int,
-        loc: i.loc,
-    };
+    const idxVar: Expr = { type: 'var', sym: idxSym, is: int, loc: assign.loc };
     let valueToAdd;
     let updateIdx;
     if (value.items[0].type === 'Spread' && value.items[1].type !== 'Spread') {
         valueToAdd = value.items[1];
-        updateIdx = plus(context.env, idxVar, intLiteral(1, i.loc), i.loc);
+        updateIdx = plus(
+            context.env,
+            idxVar,
+            intLiteral(1, assign.loc),
+            assign.loc,
+        );
     } else if (
         value.items[1].type === 'Spread' &&
         value.items[0].type !== 'Spread'
     ) {
         valueToAdd = value.items[0];
-        updateIdx = minus(context.env, idxVar, intLiteral(1, i.loc), i.loc);
+        updateIdx = minus(
+            context.env,
+            idxVar,
+            intLiteral(1, assign.loc),
+            assign.loc,
+        );
     } else {
-        return i;
+        return assign;
     }
 
-    // if (
-    //     value.items[0].type ===
-    //         'Spread' &&
-    //     value.items[1].type !==
-    //         'Spread'
-    // ) {
-    // We're appending, great
     const arraySet: Stmt = {
         type: 'ArraySet',
-        idx: {
-            type: 'var',
-            sym: idxSym,
-            is: int,
-            loc: i.loc,
-        },
+        idx: { type: 'var', sym: idxSym, is: int, loc: assign.loc },
         sym,
-        loc: i.loc,
+        loc: assign.loc,
         value: valueToAdd,
     };
     const update: Stmt = {
         type: 'Assign',
-        loc: i.loc,
+        loc: assign.loc,
         sym: idxSym,
         value: updateIdx,
         is: int,
@@ -110,14 +103,23 @@ export const spreadToSet = (
     return {
         type: 'Block',
         items: [arraySet, update],
-        loc: i.loc,
+        loc: assign.loc,
     };
+};
+
+export const addIz = (one: InferredSize, two: InferredSize): InferredSize => {
+    if (one.type === 'exactly' && two.type === 'exactly') {
+        return { type: 'exactly', size: one.size + two.size };
+    }
+    return { type: 'relative', to: one, offset: two };
 };
 
 export const loopSpreadToArraySet: Optimizer2 = (
     context: Context,
     expr: Expr,
 ) => {
+    const note = (text: string) =>
+        context.notes ? context.notes.push(text) : null;
     let replacement: null | [number, Expr] = null;
     const res = transformExpr(expr, {
         ...defaultVisitor,
@@ -132,18 +134,39 @@ export const loopSpreadToArraySet: Optimizer2 = (
             if (expr.type !== 'lambda') {
                 return null;
             }
-            const arrayArgs = expr.args.filter((a) => a.type.type === 'Array');
             // let foundSym = null
             const loop = expr.body.items.find((t) => t.type === 'Loop') as Loop;
             if (!loop || !loop.bounds) {
                 return null;
             }
+
+            const constants: { [unique: number]: number } = {};
+            expr.body.items.forEach((v) => {
+                if (v.type === 'Define' && v.value && v.value.type === 'int') {
+                    constants[v.sym.unique] = v.value.value;
+                }
+                if (v.type === 'Assign' && constants[v.sym.unique] != null) {
+                    delete constants[v.sym.unique];
+                }
+            });
+
+            const emptyDefines = expr.body.items.filter(
+                (item) =>
+                    item.type === 'Define' &&
+                    item.value &&
+                    item.value.type === 'array' &&
+                    item.value.items.length === 0,
+            ) as Array<Assign>;
+            const arrayArgs = expr.args.filter((a) => a.type.type === 'Array');
             const respread = loop.body.items.find(
                 (item) =>
                     item.type === 'Assign' &&
-                    arrayArgs.find(
+                    (arrayArgs.find(
                         (arg) => arg.sym.unique === item.sym.unique,
-                    ) &&
+                    ) ||
+                        emptyDefines.find(
+                            (arg) => arg.sym.unique === item.sym.unique,
+                        )) &&
                     item.value.type === 'array' &&
                     item.value.items.find(
                         (m) =>
@@ -157,33 +180,52 @@ export const loopSpreadToArraySet: Optimizer2 = (
             // STOPSHIP: Assert that the variable isn't reassigned anywhere else!
 
             if (!respread) {
+                note(`no respread ${arrayArgs.length} ${emptyDefines.length}`);
                 return null;
             }
+
+            // Ok, so we EITHER need:
+            // - an arg with an inferred size
+            // - a constant declaration with an empty array
+
+            let arrayType;
+
             const arg = arrayArgs.find(
                 (arg) => arg.sym.unique === respread.sym.unique,
             );
-            const at = arg!.type as ArrayType;
+
+            if (arg) {
+                arrayType = arg!.type as ArrayType;
+            } else {
+                const assign = emptyDefines.find(
+                    (st) => st.sym.unique === respread.sym.unique,
+                );
+                if (!assign || assign.value.is.type !== 'Array') {
+                    // Can't find
+                    return null;
+                }
+                arrayType = assign.value.is;
+            }
+
             // This needs to have been inferred already
-            if (at.inferredSize === null) {
+            if (arrayType.inferredSize === null) {
+                note('not inferred yet');
                 return null;
             }
             const sym = newSym(context.env, 'newArray');
             const idxSym = newSym(context.env, 'idx');
 
             // ok so we need to calculate the size of the loop
-            const loopSize = loopCount(loop.bounds);
+            const loopSize = loopCount(loop.bounds, constants);
             if (!loopSize) {
+                note(`no loop size`);
                 return null;
             }
 
             const newType: ArrayType = {
                 type: 'Array',
-                inferredSize: {
-                    type: 'relative',
-                    offset: loopSize,
-                    to: at.inferredSize,
-                },
-                inner: (arg!.type as ArrayType).inner,
+                inferredSize: addIz(loopSize, arrayType.inferredSize),
+                inner: arrayType.inner,
                 loc: expr.loc,
             };
             replacement = [
@@ -191,10 +233,12 @@ export const loopSpreadToArraySet: Optimizer2 = (
                 { type: 'var', sym, loc: expr.loc, is: newType },
             ];
             let startingIndex: Expr;
+
             // Append
             if ((respread.value as ArrayExpr).items[0].type === 'Spread') {
                 startingIndex = intLiteral(0, expr.loc);
             } else {
+                // Prepend
                 let sizeAsExpr;
                 // TODO: This needs to be -1, right?
                 switch (loopSize.type) {
@@ -205,6 +249,7 @@ export const loopSpreadToArraySet: Optimizer2 = (
                         sizeAsExpr = var_(loopSize.sym, expr.loc, int);
                         break;
                     default:
+                        note('bad loop prepend');
                         return null;
                 }
                 startingIndex = minus(
@@ -215,16 +260,13 @@ export const loopSpreadToArraySet: Optimizer2 = (
                 );
                 // startingIndex = loop.bounds.
             }
+
             return {
                 ...expr,
                 body: {
                     ...expr.body,
                     items: ([
-                        {
-                            type: 'Define',
-                            is: newType,
-                            sym,
-                        },
+                        { type: 'Define', is: newType, sym },
                         {
                             type: 'Define',
                             sym: idxSym,

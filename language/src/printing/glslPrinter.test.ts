@@ -196,37 +196,37 @@ describe('glslPrinter', () => {
 			`),
             ).toMatchInlineSnapshot(`
 
-                                INVALID GLSL:
-                                - Invalid GLSL at 4:7-4:14: Can't have recursion
-                                - Invalid GLSL at 6:7-6:14: Can't have recursion
+                                                                                INVALID GLSL:
+                                                                                - Invalid GLSL at 4:7-4:14: Can't have recursion
+                                                                                - Invalid GLSL at 6:7-6:14: Can't have recursion
 
-                                /* (n#:0: int): int => {
-                                    if n#:0 <= 1 {
-                                        return 1;
-                                    } else {
-                                        if (n#:0 modInt 2) == (0) {
-                                            return awesome#👸🥞🍖😃(n#:0 / 2) + 1;
-                                        } else {
-                                            return awesome#👸🥞🍖😃(n#:0 * 3 + 1) + 1;
-                                        };
-                                    };
-                                } */
-                                int awesome_694a453b(int n_0) {
-                                    if ((n_0 <= 1)) {
-                                        return 1;
-                                    } else {
-                                        if (((n_0 % 2) == 0)) {
-                                            return (awesome_694a453b((n_0 / 2)) + 1);
-                                        } else {
-                                            return (awesome_694a453b(((n_0 * 3) + 1)) + 1);
-                                        };
-                                    };
-                                }
-                                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(awesome#👸🥞🍖😃(3))) */
-                                vec4 V664a1263(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                                    return vec4(float(awesome_694a453b(3)));
-                                }
-                        `);
+                                                                                /* (n#:0: int): int => {
+                                                                                    if n#:0 <= 1 {
+                                                                                        return 1;
+                                                                                    } else {
+                                                                                        if (n#:0 modInt 2) == (0) {
+                                                                                            return awesome#👸🥞🍖😃(n#:0 / 2) + 1;
+                                                                                        } else {
+                                                                                            return awesome#👸🥞🍖😃(n#:0 * 3 + 1) + 1;
+                                                                                        };
+                                                                                    };
+                                                                                } */
+                                                                                int awesome_694a453b(int n_0) {
+                                                                                    if ((n_0 <= 1)) {
+                                                                                        return 1;
+                                                                                    } else {
+                                                                                        if (((n_0 % 2) == 0)) {
+                                                                                            return (awesome_694a453b((n_0 / 2)) + 1);
+                                                                                        } else {
+                                                                                            return (awesome_694a453b(((n_0 * 3) + 1)) + 1);
+                                                                                        };
+                                                                                    };
+                                                                                }
+                                                                                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(awesome#👸🥞🍖😃(3))) */
+                                                                                vec4 V664a1263(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                                                                                    return vec4(float(awesome_694a453b(3)));
+                                                                                }
+                                                            `);
         });
 
         it.skip('cant handle array spread oops', () => {
@@ -264,6 +264,7 @@ describe('glslPrinter', () => {
             for (let i = 0; i < 100; i++) {
                 let start = expr;
                 glslOpts.forEach((opt) => {
+                    ctx.notes = [];
                     const post = opt(ctx, expr);
                     if (post !== expr) {
                         spy.push(
@@ -272,7 +273,14 @@ describe('glslPrinter', () => {
                                 100,
                             )}`,
                         );
+                    } else if (ctx.notes.length) {
+                        spy.push(
+                            `# [${nameForOpt(opt)}]\n - ${ctx.notes.join(
+                                '\n - ',
+                            )}`,
+                        );
                     }
+                    ctx.notes = null;
                     expr = post;
                 });
                 if (expr === start) {
@@ -387,38 +395,35 @@ describe('glslPrinter', () => {
                 int[10] range_specialization_9ca6a6d8() {
                     return rangeInner_specialization_5ca3dee8();
                 }
-
-                INVALID GLSL:
-                - Invalid GLSL at 14:68-14:92: Spreads not supported in arrays
-                - Invalid GLSL at 14:68-14:92: Array length not inferrable
-                - Invalid GLSL at 14:75-14:82: Array length not inferrable
-                - Invalid GLSL at 13:31-13:38: Array length not inferrable
-
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
                     const values#:10: Array<int; 10> = range_specialization#🍹();
-                    const collect#:12: Array<float> = [];
                     const values_i#:13: int = 0;
                     for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
                         const i#:17: int = values#:10[values_i#:13];
-                        collect#:12 = [...collect#:12, length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10;
+                        idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#🧿⛷️👐😃(collect#:12, 1000) < 0 {
+                    if unnamed#🧿⛷️👐😃(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
                     };
                 } */
                 vec4 V4cb0c816(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    float[10] newArray_20;
+                    int idx_21 = 0;
                     int[10] values = range_specialization_9ca6a6d8();
-                    float[NULL] collect = float[]();
                     int values_i = 0;
                     for (; values_i <= 10; values_i++) {
                         int i = values[values_i];
-                        collect = ArrayWithSpreads<null>[...collect, (length((pos_1 - ((env_0.resolution / 10.0) * float(i)))) - (float(i) * 10.0))];
+                        newArray_20[idx_21] = (length((pos_1 - ((env_0.resolution / 10.0) * float(i)))) - (float(i) * 10.0));
+                        idx_21++;
                         continue;
                     };
-                    if ((V4b0653f4(collect, 1000.0) < 0.0)) {
+                    if ((V4b0653f4(newArray_20, 1000.0) < 0.0)) {
                         return vec4(1.0);
                     } else {
                         return vec4(0.0);
@@ -480,7 +485,7 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                 (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
-                    const newArray#:5: Array<int; size#:4 + n#:0>;
+                    const newArray#:5: Array<int; n#:0 + size#:4>;
                     const idx#:6: int = n#:0 - 1;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
                         {
@@ -493,7 +498,7 @@ describe('glslPrinter', () => {
                 }
                 # [removeNestedBlocksAndCodeAfterReturns]
                 (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
-                    const newArray#:5: Array<int; size#:4 + n#:0>;
+                    const newArray#:5: Array<int; n#:0 + size#:4>;
                     const idx#:6: int = n#:0 - 1;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
                         newArray#:5[idx#:6] = n#:0 - 1;
@@ -503,8 +508,8 @@ describe('glslPrinter', () => {
                     return newArray#:5;
                 }
                 # [inferArraySize]
-                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int; size#:4 + n#:0> => {
-                    const newArray#:5: Array<int; size#:4 + n#:0>;
+                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int; n#:0 + size#:4> => {
+                    const newArray#:5: Array<int; n#:0 + size#:4>;
                     const idx#:6: int = n#:0 - 1;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
                         newArray#:5[idx#:6] = n#:0 - 1;
@@ -513,6 +518,10 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 }
+                # [loopSpreadToArraySet]
+                 - no respread 1 0
+                # [loopSpreadToArraySet]
+                 - no respread 1 0
                 ####### [ start new opt ] #######
                 <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => ((): [var]R#:1 => {
                     {
@@ -1243,6 +1252,10 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
                 # [inferArraySize]
                 (): Array<int> => unnamed#🌎🙇‍♀️💑😃()
                 # [inferArraySize]
@@ -1607,6 +1620,8 @@ describe('glslPrinter', () => {
                         return vec4(0);
                     };
                 }
+                # [loopSpreadToArraySet]
+                 - no loop size
                 # [foldSimpleMath]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const values#:10: Array<int; 10> = unnamed#🍹();
@@ -1626,6 +1641,74 @@ describe('glslPrinter', () => {
                         return vec4(0);
                     };
                 }
+                # [loopSpreadToArraySet]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float> = [];
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        {
+                            newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                                i#:17,
+                            ) * 10;
+                            idx#:21 = idx#:21 + 1;
+                        };
+                        continue;
+                    };
+                    if unnamed#🧿⛷️👐😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [removeNestedBlocksAndCodeAfterReturns]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float> = [];
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#🧿⛷️👐😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [removeUnusedVariables]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#🧿⛷️👐😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
             `);
         });
 
