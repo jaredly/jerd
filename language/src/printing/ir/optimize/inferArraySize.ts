@@ -523,7 +523,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                     }>;
                     // WOOOOPS
                     if (matching.length) {
-                        const newExpr = specializeForArrayWhatsits(
+                        let newExpr = specializeForArrayWhatsits(
                             context,
                             target.expr,
                             matching,
@@ -533,6 +533,14 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                             size: 1,
                             pos: 0,
                         };
+                        newExpr = context.optimize(
+                            {
+                                ...context,
+                                id,
+                                notes: null,
+                            },
+                            newExpr,
+                        ) as LambdaExpr;
 
                         context.exprs[id.hash] = {
                             inline: false,

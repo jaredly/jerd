@@ -197,37 +197,37 @@ describe('glslPrinter', () => {
 			`),
             ).toMatchInlineSnapshot(`
 
-                INVALID GLSL:
-                - Invalid GLSL at 4:7-4:14: Can't have recursion
-                - Invalid GLSL at 6:7-6:14: Can't have recursion
+                                                                INVALID GLSL:
+                                                                - Invalid GLSL at 4:7-4:14: Can't have recursion
+                                                                - Invalid GLSL at 6:7-6:14: Can't have recursion
 
-                /* (n#:0: int): int => {
-                    if n#:0 <= 1 {
-                        return 1;
-                    } else {
-                        if (n#:0 modInt 2) == (0) {
-                            return awesome#👸🥞🍖😃(n#:0 / 2) + 1;
-                        } else {
-                            return awesome#👸🥞🍖😃(n#:0 * 3 + 1) + 1;
-                        };
-                    };
-                } */
-                int awesome_694a453b(int n_0) {
-                    if ((n_0 <= 1)) {
-                        return 1;
-                    } else {
-                        if (((n_0 % 2) == 0)) {
-                            return (awesome_694a453b((n_0 / 2)) + 1);
-                        } else {
-                            return (awesome_694a453b(((n_0 * 3) + 1)) + 1);
-                        };
-                    };
-                }
-                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(awesome#👸🥞🍖😃(3))) */
-                vec4 toplevel_664a1263(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    return vec4(float(awesome_694a453b(3)));
-                }
-            `);
+                                                                /* (n#:0: int): int => {
+                                                                    if n#:0 <= 1 {
+                                                                        return 1;
+                                                                    } else {
+                                                                        if (n#:0 modInt 2) == (0) {
+                                                                            return awesome#👸🥞🍖😃(n#:0 / 2) + 1;
+                                                                        } else {
+                                                                            return awesome#👸🥞🍖😃(n#:0 * 3 + 1) + 1;
+                                                                        };
+                                                                    };
+                                                                } */
+                                                                int awesome_694a453b(int n_0) {
+                                                                    if ((n_0 <= 1)) {
+                                                                        return 1;
+                                                                    } else {
+                                                                        if (((n_0 % 2) == 0)) {
+                                                                            return (awesome_694a453b((n_0 / 2)) + 1);
+                                                                        } else {
+                                                                            return (awesome_694a453b(((n_0 * 3) + 1)) + 1);
+                                                                        };
+                                                                    };
+                                                                }
+                                                                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(awesome#👸🥞🍖😃(3))) */
+                                                                vec4 toplevel_664a1263(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                                                                    return vec4(float(awesome_694a453b(3)));
+                                                                }
+                                                `);
         });
 
         it.skip('cant handle array spread oops', () => {
@@ -373,10 +373,10 @@ describe('glslPrinter', () => {
                 /* (items#:0: Array<float; 10>, init#:1: float): float => {
                     const items_i#:10: int = 0;
                     loop(unbounded) {
-                        if len(items#:0) - items_i#:10 == 0 {
+                        if 10 - items_i#:10 == 0 {
                             return init#:1;
                         };
-                        if len(items#:0) - items_i#:10 >= 1 {
+                        if 10 - items_i#:10 >= 1 {
                             const recur#:7: float = toplevel_lambda#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
                             items_i#:10 = items_i#:10 + 1;
                             init#:1 = recur#:7;
@@ -385,13 +385,13 @@ describe('glslPrinter', () => {
                         match_fail!();
                     };
                 } */
-                float undefined_specialization_54d7442e(float[10] items_0, float init_1) {
+                float undefined_specialization_1ab2c1d0(float[10] items_0, float init_1) {
                     int items_i = 0;
                     for (int i=0; i<10000; i++) {
-                        if (((items_0.length() - items_i) == 0)) {
+                        if (((10 - items_i) == 0)) {
                             return init_1;
                         };
-                        if (((items_0.length() - items_i) >= 1)) {
+                        if (((10 - items_i) >= 1)) {
                             float recur = toplevel_lambda_420d731c(init_1, items_0[items_i]);
                             items_i++;
                             init_1 = recur;
@@ -415,7 +415,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if undefined_specialization#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if undefined_specialization#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -432,7 +432,7 @@ describe('glslPrinter', () => {
                         idx_21++;
                         continue;
                     };
-                    if ((undefined_specialization_54d7442e(newArray_20, 1000.0) < 0.0)) {
+                    if ((undefined_specialization_1ab2c1d0(newArray_20, 1000.0) < 0.0)) {
                         return vec4(1.0);
                     } else {
                         return vec4(0.0);
@@ -1714,6 +1714,38 @@ describe('glslPrinter', () => {
                         return vec4(0);
                     };
                 }
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if len(items#:0) - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [foldSimpleMath]
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1736,6 +1768,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1750,7 +1798,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1758,6 +1806,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1772,7 +1836,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1780,6 +1844,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1794,7 +1874,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1802,6 +1882,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1816,7 +1912,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1824,6 +1920,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1838,7 +1950,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1846,6 +1958,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1860,7 +1988,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1868,6 +1996,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1882,7 +2026,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1890,6 +2034,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1904,7 +2064,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1912,6 +2072,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1926,7 +2102,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1934,6 +2110,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1948,7 +2140,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1956,6 +2148,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1970,7 +2178,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -1978,6 +2186,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -1992,7 +2216,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2000,6 +2224,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2014,7 +2254,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2022,6 +2262,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2036,7 +2292,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2044,6 +2300,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2058,7 +2330,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2066,6 +2338,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2080,7 +2368,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2088,6 +2376,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2102,7 +2406,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2110,6 +2414,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2124,7 +2444,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2132,6 +2452,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2146,7 +2482,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2154,6 +2490,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2168,7 +2520,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2176,6 +2528,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2190,7 +2558,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2198,6 +2566,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2212,7 +2596,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2220,6 +2604,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2234,7 +2634,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2242,6 +2642,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2256,7 +2672,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2264,6 +2680,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2278,7 +2710,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2286,6 +2718,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2300,7 +2748,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2308,6 +2756,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2322,7 +2786,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2330,6 +2794,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2344,7 +2824,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2352,6 +2832,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2366,7 +2862,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2374,6 +2870,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2388,7 +2900,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2396,6 +2908,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2410,7 +2938,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2418,6 +2946,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2432,7 +2976,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2440,6 +2984,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2454,7 +3014,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2462,6 +3022,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2476,7 +3052,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2484,6 +3060,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2498,7 +3090,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2506,6 +3098,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2520,7 +3128,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2528,6 +3136,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2542,7 +3166,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2550,6 +3174,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2564,7 +3204,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2572,6 +3212,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2586,7 +3242,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2594,6 +3250,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2608,7 +3280,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2616,6 +3288,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2630,7 +3318,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2638,6 +3326,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2652,7 +3356,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2660,6 +3364,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2674,7 +3394,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2682,6 +3402,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2696,7 +3432,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2704,6 +3440,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2718,7 +3470,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2726,6 +3478,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2740,7 +3508,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2748,6 +3516,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2762,7 +3546,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2770,6 +3554,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2784,7 +3584,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2792,6 +3592,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2806,7 +3622,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2814,6 +3630,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2828,7 +3660,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2836,6 +3668,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2850,7 +3698,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2858,6 +3706,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2872,7 +3736,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2880,6 +3744,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2894,7 +3774,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2902,6 +3782,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2916,7 +3812,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2924,6 +3820,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2938,7 +3850,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2946,6 +3858,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2960,7 +3888,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2968,6 +3896,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -2982,7 +3926,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -2990,6 +3934,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3004,7 +3964,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3012,6 +3972,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3026,7 +4002,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3034,6 +4010,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3048,7 +4040,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3056,6 +4048,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3070,7 +4078,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3078,6 +4086,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3092,7 +4116,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3100,6 +4124,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3114,7 +4154,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3122,6 +4162,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3136,7 +4192,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3144,6 +4200,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3158,7 +4230,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3166,6 +4238,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3180,7 +4268,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3188,6 +4276,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3202,7 +4306,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3210,6 +4314,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3224,7 +4344,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3232,6 +4352,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3246,7 +4382,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3254,6 +4390,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3268,7 +4420,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3276,6 +4428,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3290,7 +4458,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3298,6 +4466,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3312,7 +4496,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3320,6 +4504,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3334,7 +4534,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3342,6 +4542,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3356,7 +4572,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3364,6 +4580,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3378,7 +4610,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3386,6 +4618,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3400,7 +4648,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3408,6 +4656,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3422,7 +4686,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3430,6 +4694,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3444,7 +4724,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3452,6 +4732,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3466,7 +4762,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3474,6 +4770,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3488,7 +4800,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3496,6 +4808,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3510,7 +4838,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3518,6 +4846,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3532,7 +4876,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3540,6 +4884,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3554,7 +4914,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3562,6 +4922,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3576,7 +4952,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3584,6 +4960,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3598,7 +4990,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3606,6 +4998,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3620,7 +5028,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3628,6 +5036,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3642,7 +5066,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3650,6 +5074,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3664,7 +5104,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3672,6 +5112,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3686,7 +5142,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3694,6 +5150,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3708,7 +5180,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3716,6 +5188,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3730,7 +5218,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3738,6 +5226,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3752,7 +5256,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3760,6 +5264,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3774,7 +5294,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3782,6 +5302,22 @@ describe('glslPrinter', () => {
                 }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                ####### [ start new opt ] #######
+                (items#:0: Array<float; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 # [inferArraySize]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const newArray#:20: Array<float; 10>;
@@ -3796,7 +5332,7 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                    if unnamed#👨‍👩‍👧👐🚵(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
@@ -3805,6 +5341,95 @@ describe('glslPrinter', () => {
                 # [loopSpreadToArraySet]
                  - no respread 0 0
                 !!!! OPTMIZE FAILED TO CONVERGE !!!!
+            `);
+        });
+
+        it('should be able to reduce with a bounded loop', () => {
+            const listened: Array<string> = [];
+            expect(
+                processOne(
+                    `
+                const rec rangeInner = (n: int, collect: Array<int>): Array<int> => {
+                    if n > 0 { rangeInner(n - 1, <int>[n - 1, ...collect]) } else { collect }
+                };
+                const range = (n: int) => rangeInner(n, <int>[]);
+                const rec reduce = <T, R>(
+                    items: Array<T>,
+                    init: R,
+                    fn: (R, T) ={}> R,
+                ): R ={}> switch items {
+                    [] => init,
+                    [item, ...rest] => reduce#self<T, R>(rest, fn(init, item), fn),
+                };
+                () => reduce<int, float>(range(10), 0.0, (v: float, i: int) => v + i as float)
+            `,
+                    spyingOptimizer(listened),
+                ),
+            ).toMatchInlineSnapshot(`
+                /* (): Array<int; 10> => {
+                    const n#:0: int = 10;
+                    const newArray#:5: Array<int; 10>;
+                    const idx#:6: int = 9;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                } */
+                int[10] rangeInner_specialization_80b982ec() {
+                    int n = 10;
+                    int[10] newArray;
+                    int idx = 9;
+                    for (; n > 0; n--) {
+                        newArray[idx] = (n - 1);
+                        idx--;
+                        continue;
+                    };
+                    return newArray;
+                }
+                /* (v#:0: float, i#:1: int): float => v#:0 + float(i#:1) */
+                float toplevel_lambda_37bb2f9a(float v_0, int i_1) {
+                    return (v_0 + float(i_1));
+                }
+                /* (): Array<int; 10> => rangeInner_specialization#🗾() */
+                int[10] range_specialization_63d57eb0() {
+                    return rangeInner_specialization_80b982ec();
+                }
+                /* (items#:0: Array<int; 10>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if 10 - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if 10 - items_i#:10 >= 1 {
+                            const recur#:7: float = toplevel_lambda#🪐🍫🕟(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                } */
+                float undefined_specialization_5c1ca85c(int[10] items_0, float init_1) {
+                    int items_i = 0;
+                    for (int i=0; i<10000; i++) {
+                        if (((10 - items_i) == 0)) {
+                            return init_1;
+                        };
+                        if (((10 - items_i) >= 1)) {
+                            float recur = toplevel_lambda_37bb2f9a(init_1, items_0[items_i]);
+                            items_i++;
+                            init_1 = recur;
+                            continue;
+                        };
+                        // match fail;
+                    };
+                }
+                /* (): float => undefined_specialization#👿🚇🛌😃(range_specialization#🍛🧜🐍😃(), 0) */
+                float toplevel_0da41120() {
+                    return undefined_specialization_5c1ca85c(range_specialization_63d57eb0(), 0.0);
+                }
             `);
         });
 
@@ -3824,31 +5449,11 @@ describe('glslPrinter', () => {
                     [] => init,
                     [item, ...rest] => reduce#self<T, R>(rest, fn(init, item), fn),
                 };
-                // const rec map = <T, R>(
-                //     values: Array<T>,
-                //     fn: (value: T) ={}> R,
-                //     collect: Array<R>,
-                // ): Array<R> ={}> {
-                //     switch values {
-                //         [] => collect,
-                //         [one, ...rest] => map#self<T, R>(
-                //             rest,
-                //             fn,
-                //             <R>[...collect, fn(one)],
-                //         ),
-                //     };
-                // }
                 (env: GLSLEnv, pos: Vec2) => {
                     const mv = reduce<int, float>(range(10), 1000.0, (current: float, i: int) => {
                         const at = env.resolution / 10.0 * (i as float);
                         min(current, length(pos - at) - (i as float * 10.0))
                     });
-
-                    // const circles = map<int, float>(range(10), (i: int) => {
-                    //     const at = env.resolution / 10.0 * (i as float);
-                    //     length(pos - at) - (i as float * 10.0)
-                    // }, <float>[]);
-                    // const mv = reduce<float, float>(circles, 1000.0, (one: float, two: float) => min(one, two));
 
                     if mv < 0.0 {
                         vec4(1.0)
@@ -3870,7 +5475,7 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 } */
-                int[10] rangeInner_specialization_bbd6f930() {
+                int[10] rangeInner_specialization_43fd0030() {
                     int n = 10;
                     int[10] newArray;
                     int idx = 9;
@@ -3881,12 +5486,12 @@ describe('glslPrinter', () => {
                     };
                     return newArray;
                 }
-                /* (): Array<int; 10> => rangeInner_specialization#👮‍♀️() */
-                int[10] range_specialization_3a3457dc() {
-                    return rangeInner_specialization_bbd6f930();
+                /* (): Array<int; 10> => rangeInner_specialization#🤒🚜😕😃() */
+                int[10] range_specialization_be693ca0() {
+                    return rangeInner_specialization_43fd0030();
                 }
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = range_specialization#🥏👩‍🏭🌥️();
+                    const items#:6: Array<int; 10> = range_specialization#🤘();
                     const init#:7: float = 1000;
                     const items_i#:9: int = 0;
                     for (; items_i#:9 <= 10; items_i#:9 = items_i#:9 + 1) {
@@ -3901,7 +5506,7 @@ describe('glslPrinter', () => {
                     };
                 } */
                 vec4 toplevel_3ea457a2(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    int[10] items = range_specialization_3a3457dc();
+                    int[10] items = range_specialization_be693ca0();
                     float init = 1000.0;
                     int items_i = 0;
                     for (; items_i <= 10; items_i++) {
