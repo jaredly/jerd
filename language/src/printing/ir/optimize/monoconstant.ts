@@ -60,65 +60,6 @@ export const specializeFunctionsCalledWithLambdas = (
             }
             const lambdaArgs: Array<{ arg: Expr; i: number }> = largs;
 
-            // const indices: { [key: number]: true } = {};
-            // lambdaArgs.forEach((arg) => (indices[arg.i] = true));
-            // const newHash = hashObject({
-            //     base: expr.target.id,
-            //     lambdaArgs: lambdaArgs,
-            // });
-            // const target = ctx.exprs[idName(expr.target.id)];
-            // if (!target) {
-            //     console.error('no target?', expr.target.id);
-            //     return null;
-            // }
-            // const l = target.expr as LambdaExpr;
-
-            // // MODIFY:
-            // // types
-            // // args
-            // const args = l.args.filter((_, i) => !indices[i]);
-            // const is = {
-            //     ...l.is,
-            //     args: l.is.args.filter((_, i) => !indices[i]),
-            // };
-
-            // const vblMapping: { [unique: number]: Expr } = {};
-            // lambdaArgs.forEach(
-            //     (arg) => (vblMapping[l.args[arg.i].sym.unique] = arg.arg),
-            // );
-
-            // const body = wrapBlock(
-            //     l.body,
-            //     lambdaArgs.map((arg) => ({
-            //         type: 'Define',
-            //         sym: l.args[arg.i].sym,
-            //         loc: l.args[arg.i].loc,
-            //         value: arg.arg,
-            //         is: arg.arg.is,
-            //     })),
-            // );
-
-            // let newTerm: Expr = { ...l, is, args, body };
-            // const id = { hash: newHash, size: 1, pos: 0 };
-            // newTerm = ctx.optimize({ ...ctx, id }, newTerm);
-
-            // // TODO: Sources could just be part of Exprs
-            // ctx.exprs[newHash] = {
-            //     inline: false,
-            //     expr: newTerm,
-            //     source: {
-            //         id: expr.target.id,
-            //         kind: 'specialization',
-            //     },
-            // };
-            // return {
-            //     ...expr,
-            //     target: {
-            //         ...expr.target,
-            //         id: id,
-            //     },
-            //     args: expr.args.filter((_, i) => !indices[i]),
-            // };
             return specializeFunction(ctx, expr, lambdaArgs);
         },
     });

@@ -32,7 +32,6 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                 constants[stmt.sym.unique] = stmt.value.value;
             }
             if (stmt.type == 'Loop' && stmt.bounds == null) {
-                console.log('um');
                 // Ok, so we look for: What is the break condition?
                 const breaks = stmt.body.items.filter(
                     (item) =>
@@ -167,7 +166,6 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                     console.log('updated after folks');
                     return null;
                 }
-                console.log('UES');
 
                 const bounds = condToBound(
                     ctx.env,

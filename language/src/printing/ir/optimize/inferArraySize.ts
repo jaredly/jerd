@@ -10,36 +10,25 @@
 // Like :find a Define that is an array, where the right side has been determined. Synchronize them:
 // Seems like a ton of work
 
-import { idName, newSym } from '../../../typing/env';
+import { hashObject, idName, newSym } from '../../../typing/env';
 import { Symbol } from '../../../typing/types';
-import { debugExpr } from '../../irDebugPrinter';
-import { printToString } from '../../printer';
-import { defaultVisitor, transformExpr } from '../transform';
+import { defaultVisitor, transformExpr, Visitor } from '../transform';
 import {
     ArrayExpr,
     ArrayType,
     Assign,
     Expr,
     InferredSize,
+    LambdaExpr,
     LambdaType,
     Loop,
-    LoopBounds,
     loopCount,
     returnTypeForStmt,
     Stmt,
-    Type,
 } from '../types';
-import {
-    builtin,
-    callExpression,
-    int,
-    intLiteral,
-    pureFunction,
-    var_,
-} from '../utils';
+import { int, intLiteral, var_ } from '../utils';
 import { minus, plus } from './arraySlices';
-import { specializeFunction } from './monoconstant';
-import { monomorphize } from './monomorphize';
+import { specializeFunction, transformInferredSize } from './monoconstant';
 import { Context, Optimizer2 } from './optimize';
 
 const isAppendOrPrepend = (array: ArrayExpr) => {
@@ -361,12 +350,9 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                     !term ||
                     term.expr.type !== 'lambda' ||
                     term.expr.res.type !== 'Array'
-                    // term.expr.res.inferredSize == null
                 ) {
-                    // console.error('NOO', term.expr.is);
                     return null;
                 }
-                // console.error('YAAA');
                 const newExpr = specializeFunction(
                     context,
                     expr,
@@ -381,6 +367,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                 );
                 return newExpr;
             }
+
             if (expr.type === 'lambda') {
                 let changed = false;
                 const args = expr.args.map((arg) => {
@@ -426,6 +413,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                       }
                     : null;
             }
+
             if (
                 expr.type === 'arrayIndex' &&
                 expr.value.type === 'array' &&
@@ -503,6 +491,72 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                     },
                 };
             }
+
+            if (expr.type === 'apply' && expr.target.type === 'term') {
+                const target = context.exprs[idName(expr.target.id)];
+                if (target && target.expr.type === 'lambda') {
+                    const targs = target.expr.args;
+                    const matching = target.expr.is.args
+                        .map((arg, i) => {
+                            const earg = expr.args[i];
+
+                            if (
+                                arg.type === 'Array' &&
+                                arg.inferredSize &&
+                                arg.inferredSize.type === 'variable' &&
+                                earg.is.type === 'Array' &&
+                                earg.is.inferredSize &&
+                                earg.is.inferredSize.type === 'exactly'
+                            ) {
+                                return {
+                                    i,
+                                    size: earg.is.inferredSize.size,
+                                    sym: targs[i].sym,
+                                };
+                            }
+                        })
+                        .filter(Boolean) as Array<{
+                        i: number;
+                        size: number;
+                        sym: Symbol;
+                    }>;
+                    // WOOOOPS
+                    if (matching.length && 1 != 1) {
+                        const newExpr = specializeForArrayWhatsits(
+                            context,
+                            target.expr,
+                            matching,
+                        );
+                        const id = {
+                            hash: hashObject(newExpr),
+                            size: 1,
+                            pos: 0,
+                        };
+
+                        context.exprs[id.hash] = {
+                            inline: false,
+                            expr: newExpr,
+                            source: {
+                                id: expr.target.id,
+                                kind: 'specialization',
+                            },
+                        };
+
+                        return {
+                            ...expr,
+                            target: {
+                                ...expr.target,
+                                is: newExpr.is,
+                                id: id,
+                            },
+                            is: newExpr.res,
+                        };
+
+                        // Here's the gold!
+                    }
+                }
+            }
+
             return null;
         },
         stmt: (stmt) => {
@@ -527,4 +581,60 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
             return null;
         },
     });
+};
+
+export const specializeForArrayWhatsits = (
+    context: Context,
+    expr: LambdaExpr,
+    matching: Array<{ i: number; sym: Symbol; size: number }>,
+): LambdaExpr => {
+    const knownSizes: { [unique: number]: number } = {};
+    matching.map((arg) => (knownSizes[arg.sym.unique] = arg.size));
+    const transform: Visitor = {
+        ...defaultVisitor,
+        type: (type) => {
+            if (type.type === 'Array' && type.inferredSize != null) {
+                const transformed = transformInferredSize(
+                    type.inferredSize,
+                    (iz) => {
+                        if (
+                            iz.type === 'relative' &&
+                            iz.offset.type === 'exactly' &&
+                            iz.to.type === 'exactly'
+                        ) {
+                            return {
+                                type: 'exactly',
+                                size: iz.offset.size + iz.to.size,
+                            };
+                        }
+                        if (
+                            iz.type === 'variable' &&
+                            knownSizes[iz.sym.unique] != null
+                        ) {
+                            return {
+                                type: 'exactly',
+                                size: knownSizes[iz.sym.unique],
+                            };
+                        }
+                        if (
+                            iz.type === 'constant' &&
+                            knownSizes[iz.sym.unique] != null
+                        ) {
+                            return {
+                                type: 'exactly',
+                                size: knownSizes[iz.sym.unique],
+                            };
+                        }
+                        return iz;
+                    },
+                );
+                if (transformed !== type.inferredSize) {
+                    return { ...type, inferredSize: transformed };
+                }
+            }
+            return null;
+        },
+    };
+
+    return transformExpr(expr, transform) as LambdaExpr;
 };

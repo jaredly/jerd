@@ -1,6 +1,12 @@
 
 ## Arrayssssss
 
+- [ ] lambda types should have arraySizeVbls, let's be honest. Then I'll be able to do monomorphizing when I see a function call that ... has the array argument corresponding to that size ... although propagating array size things might become more complicated. hmm so maybe not?
+
+
+
+
+
 - [ ] get tuple types together, for reals its very nice to have
   - this will mean monomorphizing all tuple types, which is fine.
 - [ ] 
