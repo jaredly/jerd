@@ -259,7 +259,10 @@ export const typeToGlsl = (
             return refToGlsl(env, opts, type.ref, true);
         case 'var':
             // return atom(JSON.stringify(type));
-            return atom(`invalid_var_${symToGlsl(env, opts, type.sym)}`);
+            return items([
+                atom('invalid_var:'),
+                symToGlsl(env, opts, type.sym),
+            ]);
         case 'Array':
             if (type.inferredSize === null) {
                 return items([
@@ -344,6 +347,15 @@ export const declarationToGlsl = (
             typeToGlsl(env, opts, term.res),
             atom(' '),
             idToGlsl(env, opts, idFromName(idRaw), false),
+            term.is.typeVbls.length
+                ? args(
+                      term.is.typeVbls.map((t) =>
+                          atom(t.name ? t.name : `T${t.unique}`),
+                      ),
+                      '<',
+                      '>',
+                  )
+                : null,
             args(
                 term.args.map((arg) =>
                     items([

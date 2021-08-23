@@ -265,7 +265,7 @@ describe('glslPrinter', () => {
                     const post = opt(ctx, expr);
                     if (post !== expr) {
                         spy.push(
-                            `${nameForOpt(opt)}\n\n${printToString(
+                            `# [${nameForOpt(opt)}]\n${printToString(
                                 debugExpr(ctx.env, post),
                                 100,
                             )}`,
@@ -282,17 +282,1154 @@ describe('glslPrinter', () => {
             return expr;
         };
 
-        it('can reduce also', () => {
+        it('can range, map, and reduce', () => {
             const listened: Array<string> = [];
+
             expect(
                 processOne(
                     `
                 const rec rangeInner = (n: int, collect: Array<int>): Array<int> => {
-                    if n > 0 {
-                        rangeInner(n - 1, <int>[n - 1, ...collect])
+                    if n > 0 { rangeInner(n - 1, <int>[n - 1, ...collect]) } else { collect }
+                };
+                const range = (n: int) => rangeInner(n, <int>[]);
+                const rec reduce = <T, R>(items: Array<T>, init: R, fn: (R, T) ={}> R): R ={}> 
+                    switch items {
+                        [] => init,
+                        [item, ...rest] => reduce#self<T, R>(rest, fn(init, item), fn),
+                    };
+                const rec map = <T, R>(values: Array<T>, fn: (value: T) ={}> R, collect: Array<R>): Array<R> ={}>
+                    switch values {
+                        [] => collect,
+                        [one, ...rest] => map#self<T, R>(rest, fn, <R>[...collect, fn(one)]),
+                    };
+                (env: GLSLEnv, pos: Vec2) => {
+                    const circles = map<int, float>(range(10), (i: int) => {
+                        const at = env.resolution / 10.0 * (i as float);
+                        length(pos - at) - (i as float * 10.0)
+                    }, <float>[]);
+                    const mv = reduce<float, float>(circles, 1000.0, (one: float, two: float) => min(one, two));
+
+                    if mv < 0.0 {
+                        vec4(1.0)
                     } else {
-                        collect
+                        vec4(0.0)
                     }
+                }
+                    `,
+                    spyingOptimizer(listened),
+                ),
+            ).toMatchInlineSnapshot(`
+                /* (one#:0: float, two#:1: float): float => min(one#:0, two#:1) */
+                float undefined_lambda_420d731c(float one_0, float two_1) {
+                    return min(one_0, two_1);
+                }
+                /* (): Array<int; 10> => {
+                    const n#:0: int = 10;
+                    const newArray#:5: Array<int; 10>;
+                    const idx#:6: int = 10 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                } */
+                int[10] rangeInner_specialization_5ca3dee8() {
+                    int n = 10;
+                    int[10] newArray;
+                    int idx = (10 - 1);
+                    for (; n > 0; n--) {
+                        newArray[idx] = (n - 1);
+                        idx--;
+                        continue;
+                    };
+                    return newArray;
+                }
+                INVALID GLSL:
+                - Invalid GLSL at 7:28-7:33: Array length not inferrable
+                - Invalid GLSL at 7:28-7:33: Array length not inferrable
+                - Invalid GLSL at 7:28-7:33: Array length not inferrable
+
+                /* <T, R>(items#:0: Array<[var]T#:0; size#:9>, init#:1: float): float => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if len(items#:0) - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) - items_i#:10 >= 1 {
+                            const recur#:7: float = undefined_lambda#🌆✈️🤐😃(init#:1, items#:0[0 + items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                } */
+                float V4b0653f4<T, R>(invalid_var:T_0[size_9] items_0, float init_1) {
+                    int items_i = 0;
+                    for (int i=0; i<10000; i++) {
+                        if (((items_0.length() - items_i) == 0)) {
+                            return init_1;
+                        };
+                        if (((items_0.length() - items_i) >= 1)) {
+                            float recur = undefined_lambda_420d731c(init_1, items_0[(0 + items_i)]);
+                            items_i++;
+                            init_1 = recur;
+                            continue;
+                        };
+                        // match fail;
+                    };
+                }
+                /* (): Array<int; 10> => rangeInner_specialization#🌎🙇‍♀️💑😃() */
+                int[10] range_specialization_9ca6a6d8() {
+                    return rangeInner_specialization_5ca3dee8();
+                }
+                INVALID GLSL:
+                - Invalid GLSL at 14:68-14:92: Spreads not supported in arrays
+                - Invalid GLSL at 14:68-14:92: Array length not inferrable
+
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int; 10> = range_specialization#🍹();
+                    const collect#:12: Array<float; 0> = [];
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[0 + values_i#:13];
+                        collect#:12 = [...collect#:12, length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10];
+                        continue;
+                    };
+                    if unnamed#🧿⛷️👐😃(collect#:12, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                } */
+                vec4 V4cb0c816(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    int[10] values = range_specialization_9ca6a6d8();
+                    float[0] collect = float[]();
+                    int values_i = 0;
+                    for (; values_i <= -(0 - 10); values_i++) {
+                        int i = values[(0 + values_i)];
+                        collect = ArrayWithSpreads<null>[...collect, (length((pos_1 - ((env_0.resolution / 10.0) * float(i)))) - (float(i) * 10.0))];
+                        continue;
+                    };
+                    if ((V4b0653f4(collect, 1000.0) < 0.0)) {
+                        return vec4(1.0);
+                    } else {
+                        return vec4(0.0);
+                    };
+                }
+            `);
+
+            expect(listened.join('\n')).toMatchInlineSnapshot(`
+                --- [ start new opt ] ---
+                # [flattenImmediateCalls2]
+                (n#:0: int, collect#:1: Array<int>): Array<int> => {
+                    if n#:0 > 0 {
+                        return rangeInner#🍁(n#:0 - 1, [n#:0 - 1, ...collect#:1]);
+                    } else {
+                        return collect#:1;
+                    };
+                }
+                # [optimizeTailCalls]
+                (n#:0: int, collect#:1: Array<int>): Array<int> => {
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        const recur#:2: int = n#:0 - 1;
+                        const recur#:3: Array<int> = [n#:0 - 1, ...collect#:1];
+                        collect#:1 = recur#:3;
+                        continue;
+                    };
+                    return collect#:1;
+                }
+                # [removeUnusedVariables]
+                (n#:0: int, collect#:1: Array<int>): Array<int> => {
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        const recur#:3: Array<int> = [n#:0 - 1, ...collect#:1];
+                        collect#:1 = recur#:3;
+                        continue;
+                    };
+                    return collect#:1;
+                }
+                # [foldSingleUseAssignments]
+                (n#:0: int, collect#:1: Array<int>): Array<int> => {
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        collect#:1 = [n#:0 - 1, ...collect#:1];
+                        continue;
+                    };
+                    return collect#:1;
+                }
+                # [inferArraySize]
+                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        collect#:1 = [n#:0 - 1, ...collect#:1];
+                        continue;
+                    };
+                    return collect#:1;
+                }
+                # [loopSpreadToArraySet]
+                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
+                    const newArray#:5: Array<int; size#:4 + n#:0>;
+                    const idx#:6: int = n#:0 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        {
+                            newArray#:5[idx#:6] = n#:0 - 1;
+                            idx#:6 = idx#:6 - 1;
+                        };
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+                # [removeNestedBlocksAndCodeAfterReturns]
+                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
+                    const newArray#:5: Array<int; size#:4 + n#:0>;
+                    const idx#:6: int = n#:0 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+                # [inferArraySize]
+                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int; size#:4 + n#:0> => {
+                    const newArray#:5: Array<int; size#:4 + n#:0>;
+                    const idx#:6: int = n#:0 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+                --- [ start new opt ] ---
+                # [removeNestedBlocksAndCodeAfterReturns]
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => ((): [var]R#:1 => {
+                    if len(items#:0) == 0 {
+                        return init#:1;
+                    };
+                    if len(items#:0) >= 1 {
+                        const item#:3: [var]T#:0 = items#:0[0];
+                        const rest#:4: Array<[var]T#:0> = [slice];
+                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
+                    };
+                    match_fail!();
+                })()
+                # [flattenImmediateCalls2]
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+                    if len(items#:0) == 0 {
+                        return init#:1;
+                    };
+                    if len(items#:0) >= 1 {
+                        const item#:3: [var]T#:0 = items#:0[0];
+                        const rest#:4: Array<[var]T#:0> = [slice];
+                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
+                    };
+                    match_fail!();
+                }
+                # [foldSingleUseAssignments]
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+                    if len(items#:0) == 0 {
+                        return init#:1;
+                    };
+                    if len(items#:0) >= 1 {
+                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>([slice], fn#:2(init#:1, items#:0[0]), fn#:2);
+                    };
+                    match_fail!();
+                }
+                # [optimizeTailCalls]
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+                    loop(unbounded) {
+                        if len(items#:0) == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) >= 1 {
+                            const recur#:6: Array<[var]T#:0> = [slice];
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
+                            const recur#:8: ([var]R#:1, [var]T#:0) => [var]R#:1 = fn#:2;
+                            items#:0 = recur#:6;
+                            init#:1 = recur#:7;
+                            fn#:2 = recur#:8;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [foldSingleUseAssignments]
+                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
+                    loop(unbounded) {
+                        if len(items#:0) == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) >= 1 {
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
+                            items#:0 = [slice];
+                            init#:1 = recur#:7;
+                            fn#:2 = fn#:2;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [inferArraySize]
+                <T, R>(
+                    items#:0: Array<[var]T#:0; size#:9>,
+                    init#:1: [var]R#:1,
+                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
+                ): [var]R#:1 => {
+                    loop(unbounded) {
+                        if len(items#:0) == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) >= 1 {
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
+                            items#:0 = [slice];
+                            init#:1 = recur#:7;
+                            fn#:2 = fn#:2;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [arraySliceLoopToIndex]
+                <T, R>(
+                    items#:0: Array<[var]T#:0; size#:9>,
+                    init#:1: [var]R#:1,
+                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
+                ): [var]R#:1 => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if len(items#:0) - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) - items_i#:10 >= 1 {
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            fn#:2 = fn#:2;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # []
+                <T, R>(
+                    items#:0: Array<[var]T#:0; size#:9>,
+                    init#:1: [var]R#:1,
+                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
+                ): [var]R#:1 => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if len(items#:0) - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) - items_i#:10 >= 1 {
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                --- [ start new opt ] ---
+                # [inferArraySize]
+                (n#:0: int): Array<int> => rangeInner#🍁(n#:0, [])
+                --- [ start new opt ] ---
+                # [removeNestedBlocksAndCodeAfterReturns]
+                <T, R>(values#:0: Array<[var]T#:0>, fn#:1: ([var]T#:0) => [var]R#:1, collect#:2: Array<[var]R#:1>): Array<[var]R#:1> => ((): Array<[var]R#:1> => {
+                    if len(values#:0) == 0 {
+                        return collect#:2;
+                    };
+                    if len(values#:0) >= 1 {
+                        const one#:3: [var]T#:0 = values#:0[0];
+                        const rest#:4: Array<[var]T#:0> = [slice];
+                        return map#🥏<[var]T#:0, [var]R#:1>(rest#:4, fn#:1, [...collect#:2, fn#:1(one#:3)]);
+                    };
+                    match_fail!();
+                })()
+                # [flattenImmediateCalls2]
+                <T, R>(values#:0: Array<[var]T#:0>, fn#:1: ([var]T#:0) => [var]R#:1, collect#:2: Array<[var]R#:1>): Array<[var]R#:1> => {
+                    if len(values#:0) == 0 {
+                        return collect#:2;
+                    };
+                    if len(values#:0) >= 1 {
+                        const one#:3: [var]T#:0 = values#:0[0];
+                        const rest#:4: Array<[var]T#:0> = [slice];
+                        return map#🥏<[var]T#:0, [var]R#:1>(rest#:4, fn#:1, [...collect#:2, fn#:1(one#:3)]);
+                    };
+                    match_fail!();
+                }
+                # [foldSingleUseAssignments]
+                <T, R>(values#:0: Array<[var]T#:0>, fn#:1: ([var]T#:0) => [var]R#:1, collect#:2: Array<[var]R#:1>): Array<[var]R#:1> => {
+                    if len(values#:0) == 0 {
+                        return collect#:2;
+                    };
+                    if len(values#:0) >= 1 {
+                        return map#🥏<[var]T#:0, [var]R#:1>([slice], fn#:1, [...collect#:2, fn#:1(values#:0[0])]);
+                    };
+                    match_fail!();
+                }
+                # [optimizeTailCalls]
+                <T, R>(values#:0: Array<[var]T#:0>, fn#:1: ([var]T#:0) => [var]R#:1, collect#:2: Array<[var]R#:1>): Array<[var]R#:1> => {
+                    loop(unbounded) {
+                        if len(values#:0) == 0 {
+                            return collect#:2;
+                        };
+                        if len(values#:0) >= 1 {
+                            const recur#:6: Array<[var]T#:0> = [slice];
+                            const recur#:7: ([var]T#:0) => [var]R#:1 = fn#:1;
+                            const recur#:8: Array<[var]R#:1> = [...collect#:2, fn#:1(values#:0[0])];
+                            values#:0 = recur#:6;
+                            fn#:1 = recur#:7;
+                            collect#:2 = recur#:8;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [foldSingleUseAssignments]
+                <T, R>(values#:0: Array<[var]T#:0>, fn#:1: ([var]T#:0) => [var]R#:1, collect#:2: Array<[var]R#:1>): Array<[var]R#:1> => {
+                    loop(unbounded) {
+                        if len(values#:0) == 0 {
+                            return collect#:2;
+                        };
+                        if len(values#:0) >= 1 {
+                            const recur#:8: Array<[var]R#:1> = [...collect#:2, fn#:1(values#:0[0])];
+                            values#:0 = [slice];
+                            fn#:1 = fn#:1;
+                            collect#:2 = recur#:8;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [inferArraySize]
+                <T, R>(
+                    values#:0: Array<[var]T#:0; size#:9>,
+                    fn#:1: ([var]T#:0) => [var]R#:1,
+                    collect#:2: Array<[var]R#:1; size#:10>,
+                ): Array<[var]R#:1> => {
+                    loop(unbounded) {
+                        if len(values#:0) == 0 {
+                            return collect#:2;
+                        };
+                        if len(values#:0) >= 1 {
+                            const recur#:8: Array<[var]R#:1> = [...collect#:2, fn#:1(values#:0[0])];
+                            values#:0 = [slice];
+                            fn#:1 = fn#:1;
+                            collect#:2 = recur#:8;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [arraySliceLoopToIndex]
+                <T, R>(
+                    values#:0: Array<[var]T#:0; size#:9>,
+                    fn#:1: ([var]T#:0) => [var]R#:1,
+                    collect#:2: Array<[var]R#:1; size#:10>,
+                ): Array<[var]R#:1> => {
+                    const values_i#:11: int = 0;
+                    loop(unbounded) {
+                        if len(values#:0) - values_i#:11 == 0 {
+                            return collect#:2;
+                        };
+                        if len(values#:0) - values_i#:11 >= 1 {
+                            const recur#:8: Array<[var]R#:1> = [...collect#:2, fn#:1(values#:0[0 + values_i#:11])];
+                            values_i#:11 = values_i#:11 + 1;
+                            fn#:1 = fn#:1;
+                            collect#:2 = recur#:8;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # []
+                <T, R>(
+                    values#:0: Array<[var]T#:0; size#:9>,
+                    fn#:1: ([var]T#:0) => [var]R#:1,
+                    collect#:2: Array<[var]R#:1; size#:10>,
+                ): Array<[var]R#:1> => {
+                    const values_i#:11: int = 0;
+                    loop(unbounded) {
+                        if len(values#:0) - values_i#:11 == 0 {
+                            return collect#:2;
+                        };
+                        if len(values#:0) - values_i#:11 >= 1 {
+                            const recur#:8: Array<[var]R#:1> = [...collect#:2, fn#:1(values#:0[0 + values_i#:11])];
+                            values_i#:11 = values_i#:11 + 1;
+                            collect#:2 = recur#:8;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [inferArraySize]
+                <T, R>(
+                    values#:0: Array<[var]T#:0; size#:9>,
+                    fn#:1: ([var]T#:0) => [var]R#:1,
+                    collect#:2: Array<[var]R#:1; size#:10>,
+                ): Array<[var]R#:1; size#:10> => {
+                    const values_i#:11: int = 0;
+                    loop(unbounded) {
+                        if len(values#:0) - values_i#:11 == 0 {
+                            return collect#:2;
+                        };
+                        if len(values#:0) - values_i#:11 >= 1 {
+                            const recur#:8: Array<[var]R#:1> = [...collect#:2, fn#:1(values#:0[0 + values_i#:11])];
+                            values_i#:11 = values_i#:11 + 1;
+                            collect#:2 = recur#:8;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                --- [ start new opt ] ---
+                --- [ start new opt ] ---
+                --- [ start new opt ] ---
+                # [foldConstantsAndLambdas]
+                <T, R>(items#:0: Array<[var]T#:0; size#:9>, init#:1: [var]R#:1): [var]R#:1 => {
+                    const fn#:2: (float, float) => float = unnamed#🌆✈️🤐😃;
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if len(items#:0) - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) - items_i#:10 >= 1 {
+                            const recur#:7: [var]R#:1 = unnamed#🌆✈️🤐😃(init#:1, items#:0[0 + items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [removeUnusedVariables]
+                <T, R>(items#:0: Array<[var]T#:0; size#:9>, init#:1: [var]R#:1): [var]R#:1 => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if len(items#:0) - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) - items_i#:10 >= 1 {
+                            const recur#:7: [var]R#:1 = unnamed#🌆✈️🤐😃(init#:1, items#:0[0 + items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
+                # [specializeFunctionsCalledWithLambdas]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const circles#:4: Array<float> = map#🥏<int, float>(
+                        range#🖐️✍️👌😃(10),
+                        (i#:2: int): float => {
+                            const at#:3: Vec2#🐭😉😵😃 = Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                                ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                                IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:2),
+                            );
+                            return length#😦(AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(pos#:1, at#:3)) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(
+                                i#:2,
+                            ) * 10;
+                        },
+                        [],
+                    );
+                    const mv#:7: float = unnamed#🐰⛳🍤😃<float, float>(circles#:4, 1000);
+                    return ((): Vec4#🕒🧑‍🏫🎃 => {
+                        if mv#:7 < 0 {
+                            return ((): Vec4#🕒🧑‍🏫🎃 => vec4#🤽🚇🚞😃(1))();
+                        } else {
+                            return ((): Vec4#🕒🧑‍🏫🎃 => vec4#🤽🚇🚞😃(0))();
+                        };
+                    })();
+                }
+                # [flattenImmediateCalls2]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const circles#:4: Array<float> = map#🥏<int, float>(
+                        range#🖐️✍️👌😃(10),
+                        (i#:2: int): float => {
+                            const at#:3: Vec2#🐭😉😵😃 = Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                                ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                                IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:2),
+                            );
+                            return length#😦(AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(pos#:1, at#:3)) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(
+                                i#:2,
+                            ) * 10;
+                        },
+                        [],
+                    );
+                    const mv#:7: float = unnamed#🐰⛳🍤😃<float, float>(circles#:4, 1000);
+                    if mv#:7 < 0 {
+                        return vec4#🤽🚇🚞😃(1);
+                    } else {
+                        return vec4#🤽🚇🚞😃(0);
+                    };
+                }
+                # [foldSingleUseAssignments]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    if unnamed#🐰⛳🍤😃<float, float>(
+                        map#🥏<int, float>(
+                            range#🖐️✍️👌😃(10),
+                            (i#:2: int): float => length#😦(
+                                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
+                                    pos#:1,
+                                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:2),
+                                    ),
+                                ),
+                            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:2) * 10,
+                            [],
+                        ),
+                        1000,
+                    ) < 0 {
+                        return vec4#🤽🚇🚞😃(1);
+                    } else {
+                        return vec4#🤽🚇🚞😃(0);
+                    };
+                }
+                # [inlineFunctionsCalledWithCapturingLambdas]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    if unnamed#🐰⛳🍤😃<float, float>(
+                        (<T, R>(
+                            values#:10: Array<[var]T#:0; size#:9>,
+                            fn#:11: ([var]T#:0) => [var]R#:1,
+                            collect#:12: Array<[var]R#:1; size#:10>,
+                        ): Array<[var]R#:1; size#:10> => {
+                            const values_i#:13: int = 0;
+                            loop(unbounded) {
+                                if len(values#:10) - values_i#:13 == 0 {
+                                    return collect#:12;
+                                };
+                                if len(values#:10) - values_i#:13 >= 1 {
+                                    const recur#:14: Array<[var]R#:1> = [
+                                        ...collect#:12,
+                                        fn#:11(values#:10[0 + values_i#:13]),
+                                    ];
+                                    values_i#:13 = values_i#:13 + 1;
+                                    collect#:12 = recur#:14;
+                                    continue;
+                                };
+                                match_fail!();
+                            };
+                        })<int, float>(
+                            range#🖐️✍️👌😃(10),
+                            (i#:2: int): float => length#😦(
+                                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
+                                    pos#:1,
+                                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
+                                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
+                                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:2),
+                                    ),
+                                ),
+                            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:2) * 10,
+                            [],
+                        ),
+                        1000,
+                    ) < 0 {
+                        return vec4#🤽🚇🚞😃(1);
+                    } else {
+                        return vec4#🤽🚇🚞😃(0);
+                    };
+                }
+                # [inlint]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    if unnamed#🐰⛳🍤😃<float, float>(
+                        (<T, R>(
+                            values#:10: Array<[var]T#:0; size#:9>,
+                            fn#:11: ([var]T#:0) => [var]R#:1,
+                            collect#:12: Array<[var]R#:1; size#:10>,
+                        ): Array<[var]R#:1; size#:10> => {
+                            const values_i#:13: int = 0;
+                            loop(unbounded) {
+                                if len(values#:10) - values_i#:13 == 0 {
+                                    return collect#:12;
+                                };
+                                if len(values#:10) - values_i#:13 >= 1 {
+                                    const recur#:14: Array<[var]R#:1> = [
+                                        ...collect#:12,
+                                        fn#:11(values#:10[0 + values_i#:13]),
+                                    ];
+                                    values_i#:13 = values_i#:13 + 1;
+                                    collect#:12 = recur#:14;
+                                    continue;
+                                };
+                                match_fail!();
+                            };
+                        })<int, float>(
+                            range#🖐️✍️👌😃(10),
+                            (i#:2: int): float => length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:2)) - float(
+                                i#:2,
+                            ) * 10,
+                            [],
+                        ),
+                        1000,
+                    ) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [monomorphize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    if unnamed#🧿⛷️👐😃(
+                        (<T, R>(
+                            values#:10: Array<[var]T#:0; size#:9>,
+                            fn#:11: ([var]T#:0) => [var]R#:1,
+                            collect#:12: Array<[var]R#:1; size#:10>,
+                        ): Array<[var]R#:1; size#:10> => {
+                            const values_i#:13: int = 0;
+                            loop(unbounded) {
+                                if len(values#:10) - values_i#:13 == 0 {
+                                    return collect#:12;
+                                };
+                                if len(values#:10) - values_i#:13 >= 1 {
+                                    const recur#:14: Array<[var]R#:1> = [
+                                        ...collect#:12,
+                                        fn#:11(values#:10[0 + values_i#:13]),
+                                    ];
+                                    values_i#:13 = values_i#:13 + 1;
+                                    collect#:12 = recur#:14;
+                                    continue;
+                                };
+                                match_fail!();
+                            };
+                        })<int, float>(
+                            range#🖐️✍️👌😃(10),
+                            (i#:2: int): float => length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:2)) - float(
+                                i#:2,
+                            ) * 10,
+                            [],
+                        ),
+                        1000,
+                    ) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [flattenImmediateCalls2]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int> = range#🖐️✍️👌😃(10);
+                    const fn#:11: (int) => float = (i#:2: int): float => length(
+                        pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:2),
+                    ) - float(i#:2) * 10;
+                    const collect#:12: Array<float> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const continueBlock#:16: bool = true;
+                    const values_i#:13: int = 0;
+                    loop(unbounded) {
+                        if len(values#:10) - values_i#:13 == 0 {
+                            result#:15 = collect#:12;
+                            continueBlock#:16 = false;
+                            break;
+                        };
+                        if len(values#:10) - values_i#:13 >= 1 {
+                            const recur#:14: Array<[var]R#:1> = [
+                                ...collect#:12,
+                                fn#:11(values#:10[0 + values_i#:13]),
+                            ];
+                            values_i#:13 = values_i#:13 + 1;
+                            collect#:12 = recur#:14;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                --- [ start new opt ] ---
+                # [foldSingleUseAssignments]
+                (): Array<int> => rangeInner#🍁(10, [])
+                --- [ start new opt ] ---
+                # [foldConstantsAndLambdas]
+                (): Array<int; 10> => {
+                    const n#:0: int = 10;
+                    const collect#:1: Array<int; 0> = [];
+                    const newArray#:5: Array<int; 10>;
+                    const idx#:6: int = 10 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+                # [removeUnusedVariables]
+                (): Array<int; 10> => {
+                    const n#:0: int = 10;
+                    const newArray#:5: Array<int; 10>;
+                    const idx#:6: int = 10 - 1;
+                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
+                        newArray#:5[idx#:6] = n#:0 - 1;
+                        idx#:6 = idx#:6 - 1;
+                        continue;
+                    };
+                    return newArray#:5;
+                }
+                # [inferArraySize]
+                (): Array<int> => unnamed#🌎🙇‍♀️💑😃()
+                # [inferArraySize]
+                (): Array<int; 10> => unnamed#🌎🙇‍♀️💑😃()
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int> = unnamed#🍹();
+                    const fn#:11: (int) => float = (i#:2: int): float => length(
+                        pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:2),
+                    ) - float(i#:2) * 10;
+                    const collect#:12: Array<float> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const continueBlock#:16: bool = true;
+                    const values_i#:13: int = 0;
+                    loop(unbounded) {
+                        if len(values#:10) - values_i#:13 == 0 {
+                            result#:15 = collect#:12;
+                            continueBlock#:16 = false;
+                            break;
+                        };
+                        if len(values#:10) - values_i#:13 >= 1 {
+                            const recur#:14: Array<[var]R#:1> = [
+                                ...collect#:12,
+                                fn#:11(values#:10[0 + values_i#:13]),
+                            ];
+                            values_i#:13 = values_i#:13 + 1;
+                            collect#:12 = recur#:14;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [foldSingleUseAssignments]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int> = unnamed#🍹();
+                    const fn#:11: (int) => float = (i#:2: int): float => length(
+                        pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:2),
+                    ) - float(i#:2) * 10;
+                    const collect#:12: Array<float> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    loop(unbounded) {
+                        if len(values#:10) - values_i#:13 == 0 {
+                            result#:15 = collect#:12;
+                            continueBlock#:16 = false;
+                            break;
+                        };
+                        if len(values#:10) - values_i#:13 >= 1 {
+                            const recur#:14: Array<[var]R#:1> = [
+                                ...collect#:12,
+                                fn#:11(values#:10[0 + values_i#:13]),
+                            ];
+                            values_i#:13 = values_i#:13 + 1;
+                            collect#:12 = recur#:14;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [foldConstantsAndLambdas]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int> = unnamed#🍹();
+                    const fn#:11: (int) => float = (i#:2: int): float => length(
+                        pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:2),
+                    ) - float(i#:2) * 10;
+                    const collect#:12: Array<float> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    loop(unbounded) {
+                        if len(values#:10) - values_i#:13 == 0 {
+                            result#:15 = collect#:12;
+                            continueBlock#:16 = false;
+                            break;
+                        };
+                        if len(values#:10) - values_i#:13 >= 1 {
+                            const recur#:14: Array<[var]R#:1> = [
+                                ...collect#:12,
+                                ((i#:17: int): float => length(
+                                    pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17),
+                                ) - float(i#:17) * 10)(values#:10[0 + values_i#:13]),
+                            ];
+                            values_i#:13 = values_i#:13 + 1;
+                            collect#:12 = recur#:14;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [removeUnusedVariables]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int> = unnamed#🍹();
+                    const collect#:12: Array<float> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    loop(unbounded) {
+                        if len(values#:10) - values_i#:13 == 0 {
+                            result#:15 = collect#:12;
+                            break;
+                        };
+                        if len(values#:10) - values_i#:13 >= 1 {
+                            const recur#:14: Array<[var]R#:1> = [
+                                ...collect#:12,
+                                ((i#:17: int): float => length(
+                                    pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17),
+                                ) - float(i#:17) * 10)(values#:10[0 + values_i#:13]),
+                            ];
+                            values_i#:13 = values_i#:13 + 1;
+                            collect#:12 = recur#:14;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [flattenImmediateCalls2]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int> = unnamed#🍹();
+                    const collect#:12: Array<float> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    loop(unbounded) {
+                        if len(values#:10) - values_i#:13 == 0 {
+                            result#:15 = collect#:12;
+                            break;
+                        };
+                        if len(values#:10) - values_i#:13 >= 1 {
+                            const i#:17: int = values#:10[0 + values_i#:13];
+                            const recur#:14: Array<[var]R#:1> = [
+                                ...collect#:12,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
+                            ];
+                            values_i#:13 = values_i#:13 + 1;
+                            collect#:12 = recur#:14;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float; 0> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    loop(unbounded) {
+                        if len(values#:10) - values_i#:13 == 0 {
+                            result#:15 = collect#:12;
+                            break;
+                        };
+                        if len(values#:10) - values_i#:13 >= 1 {
+                            const i#:17: int = values#:10[0 + values_i#:13];
+                            const recur#:14: Array<[var]R#:1> = [
+                                ...collect#:12,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
+                            ];
+                            values_i#:13 = values_i#:13 + 1;
+                            collect#:12 = recur#:14;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [foldSingleUseAssignments]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float; 0> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    loop(unbounded) {
+                        if len(values#:10) - values_i#:13 == 0 {
+                            result#:15 = collect#:12;
+                            break;
+                        };
+                        if len(values#:10) - values_i#:13 >= 1 {
+                            const i#:17: int = values#:10[0 + values_i#:13];
+                            values_i#:13 = values_i#:13 + 1;
+                            collect#:12 = [
+                                ...collect#:12,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
+                            ];
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float; 0> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    loop(unbounded) {
+                        if 10 - values_i#:13 == 0 {
+                            result#:15 = collect#:12;
+                            break;
+                        };
+                        if 10 - values_i#:13 >= 1 {
+                            const i#:17: int = values#:10[0 + values_i#:13];
+                            values_i#:13 = values_i#:13 + 1;
+                            collect#:12 = [
+                                ...collect#:12,
+                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
+                            ];
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [inferLoopBounds]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float; 0> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[0 + values_i#:13];
+                        collect#:12 = [
+                            ...collect#:12,
+                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
+                        ];
+                        continue;
+                    };
+                    {
+                        result#:15 = collect#:12;
+                    };
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [removeNestedBlocksAndCodeAfterReturns]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float; 0> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[0 + values_i#:13];
+                        collect#:12 = [
+                            ...collect#:12,
+                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
+                        ];
+                        continue;
+                    };
+                    result#:15 = collect#:12;
+                    if unnamed#🧿⛷️👐😃(result#:15, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [foldConstantsAndLambdas]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float; 0> = [];
+                    const result#:15: Array<[var]R#:1>;
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[0 + values_i#:13];
+                        collect#:12 = [
+                            ...collect#:12,
+                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
+                        ];
+                        continue;
+                    };
+                    result#:15 = collect#:12;
+                    if unnamed#🧿⛷️👐😃(collect#:12, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [flattenImmediateAssigns]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float; 0> = [];
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[0 + values_i#:13];
+                        collect#:12 = [
+                            ...collect#:12,
+                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
+                        ];
+                        continue;
+                    };
+                    const result#:15: Array<[var]R#:1> = collect#:12;
+                    if unnamed#🧿⛷️👐😃(collect#:12, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [removeUnusedVariables]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const collect#:12: Array<float; 0> = [];
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[0 + values_i#:13];
+                        collect#:12 = [
+                            ...collect#:12,
+                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
+                        ];
+                        continue;
+                    };
+                    if unnamed#🧿⛷️👐😃(collect#:12, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+            `);
+        });
+
+        it('can reduce also', () => {
+            expect(
+                processOne(
+                    `
+                const rec rangeInner = (n: int, collect: Array<int>): Array<int> => {
+                    if n > 0 { rangeInner(n - 1, <int>[n - 1, ...collect]) } else { collect }
                 };
                 const range = (n: int) => rangeInner(n, <int>[]);
                 const rec reduce = <T, R>(
@@ -336,7 +1473,6 @@ describe('glslPrinter', () => {
                     }
                 }
                 `,
-                    spyingOptimizer(listened),
                 ),
             ).toMatchInlineSnapshot(`
                 /* (): Array<int; 10> => {
@@ -350,7 +1486,7 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 } */
-                int[10] rangeInner_specialization_38bc5e18() {
+                int[10] rangeInner_specialization_bbd6f930() {
                     int n = 10;
                     int[10] newArray;
                     int idx = (10 - 1);
@@ -361,12 +1497,12 @@ describe('glslPrinter', () => {
                     };
                     return newArray;
                 }
-                /* (): Array<int; 10> => rangeInner_specialization#🐀🌁🌒() */
-                int[10] range_specialization_e70c1f38() {
-                    return rangeInner_specialization_38bc5e18();
+                /* (): Array<int; 10> => rangeInner_specialization#👮‍♀️() */
+                int[10] range_specialization_3a3457dc() {
+                    return rangeInner_specialization_bbd6f930();
                 }
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = range_specialization#🚔();
+                    const items#:6: Array<int; 10> = range_specialization#🥏👩‍🏭🌥️();
                     const init#:7: float = 1000;
                     const items_i#:9: int = 0;
                     for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
@@ -381,7 +1517,7 @@ describe('glslPrinter', () => {
                     };
                 } */
                 vec4 V3ea457a2(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    int[10] items = range_specialization_e70c1f38();
+                    int[10] items = range_specialization_3a3457dc();
                     float init = 1000.0;
                     int items_i = 0;
                     for (; items_i <= -(0 - 10); items_i++) {
@@ -393,899 +1529,6 @@ describe('glslPrinter', () => {
                         return vec4(1.0);
                     } else {
                         return vec4(0.0);
-                    };
-                }
-            `);
-
-            expect(listened.join('\n\n')).toMatchInlineSnapshot(`
-                --- [ start new opt ] ---
-
-                flattenImmediateCalls2
-
-                (n#:0: int, collect#:1: Array<int>): Array<int> => {
-                    if n#:0 > 0 {
-                        return rangeInner#🍁(n#:0 - 1, [n#:0 - 1, ...collect#:1]);
-                    } else {
-                        return collect#:1;
-                    };
-                }
-
-                optimizeTailCalls
-
-                (n#:0: int, collect#:1: Array<int>): Array<int> => {
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        const recur#:2: int = n#:0 - 1;
-                        const recur#:3: Array<int> = [n#:0 - 1, ...collect#:1];
-                        collect#:1 = recur#:3;
-                        continue;
-                    };
-                    return collect#:1;
-                }
-
-                removeUnusedVariables
-
-                (n#:0: int, collect#:1: Array<int>): Array<int> => {
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        const recur#:3: Array<int> = [n#:0 - 1, ...collect#:1];
-                        collect#:1 = recur#:3;
-                        continue;
-                    };
-                    return collect#:1;
-                }
-
-                foldSingleUseAssignments
-
-                (n#:0: int, collect#:1: Array<int>): Array<int> => {
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        collect#:1 = [n#:0 - 1, ...collect#:1];
-                        continue;
-                    };
-                    return collect#:1;
-                }
-
-                inferArraySize
-
-                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        collect#:1 = [n#:0 - 1, ...collect#:1];
-                        continue;
-                    };
-                    return collect#:1;
-                }
-
-                loopSpreadToArraySet
-
-                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
-                    const newArray#:5: Array<int; size#:4 + n#:0>;
-                    const idx#:6: int = n#:0 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        {
-                            newArray#:5[idx#:6] = n#:0 - 1;
-                            idx#:6 = idx#:6 - 1;
-                        };
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                removeNestedBlocksAndCodeAfterReturns
-
-                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
-                    const newArray#:5: Array<int; size#:4 + n#:0>;
-                    const idx#:6: int = n#:0 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        newArray#:5[idx#:6] = n#:0 - 1;
-                        idx#:6 = idx#:6 - 1;
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                inferArraySize
-
-                (n#:0: int, collect#:1: Array<int; size#:4>): Array<int; size#:4 + n#:0> => {
-                    const newArray#:5: Array<int; size#:4 + n#:0>;
-                    const idx#:6: int = n#:0 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        newArray#:5[idx#:6] = n#:0 - 1;
-                        idx#:6 = idx#:6 - 1;
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                --- [ start new opt ] ---
-
-                inferArraySize
-
-                (n#:0: int): Array<int> => rangeInner#🍁(n#:0, [])
-
-                --- [ start new opt ] ---
-
-                removeNestedBlocksAndCodeAfterReturns
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => ((): [var]R#:1 => {
-                    if len(items#:0) == 0 {
-                        return init#:1;
-                    };
-                    if len(items#:0) >= 1 {
-                        const item#:3: [var]T#:0 = items#:0[0];
-                        const rest#:4: Array<[var]T#:0> = [slice];
-                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
-                    };
-                    match_fail!();
-                })()
-
-                flattenImmediateCalls2
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-                    if len(items#:0) == 0 {
-                        return init#:1;
-                    };
-                    if len(items#:0) >= 1 {
-                        const item#:3: [var]T#:0 = items#:0[0];
-                        const rest#:4: Array<[var]T#:0> = [slice];
-                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>(rest#:4, fn#:2(init#:1, item#:3), fn#:2);
-                    };
-                    match_fail!();
-                }
-
-                foldSingleUseAssignments
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-                    if len(items#:0) == 0 {
-                        return init#:1;
-                    };
-                    if len(items#:0) >= 1 {
-                        return reduce#🌓🏛️😹😃<[var]T#:0, [var]R#:1>([slice], fn#:2(init#:1, items#:0[0]), fn#:2);
-                    };
-                    match_fail!();
-                }
-
-                optimizeTailCalls
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-                    loop(unbounded) {
-                        if len(items#:0) == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) >= 1 {
-                            const recur#:6: Array<[var]T#:0> = [slice];
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
-                            const recur#:8: ([var]R#:1, [var]T#:0) => [var]R#:1 = fn#:2;
-                            items#:0 = recur#:6;
-                            init#:1 = recur#:7;
-                            fn#:2 = recur#:8;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-                foldSingleUseAssignments
-
-                <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-                    loop(unbounded) {
-                        if len(items#:0) == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) >= 1 {
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
-                            items#:0 = [slice];
-                            init#:1 = recur#:7;
-                            fn#:2 = fn#:2;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-                inferArraySize
-
-                <T, R>(
-                    items#:0: Array<[var]T#:0; size#:9>,
-                    init#:1: [var]R#:1,
-                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                ): [var]R#:1 => {
-                    loop(unbounded) {
-                        if len(items#:0) == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) >= 1 {
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0]);
-                            items#:0 = [slice];
-                            init#:1 = recur#:7;
-                            fn#:2 = fn#:2;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-                arraySliceLoopToIndex
-
-                <T, R>(
-                    items#:0: Array<[var]T#:0; size#:9>,
-                    init#:1: [var]R#:1,
-                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                ): [var]R#:1 => {
-                    const items_i#:10: int = 0;
-                    loop(unbounded) {
-                        if len(items#:0) - items_i#:10 == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) - items_i#:10 >= 1 {
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:10]);
-                            items_i#:10 = items_i#:10 + 1;
-                            init#:1 = recur#:7;
-                            fn#:2 = fn#:2;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-
-
-                <T, R>(
-                    items#:0: Array<[var]T#:0; size#:9>,
-                    init#:1: [var]R#:1,
-                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                ): [var]R#:1 => {
-                    const items_i#:10: int = 0;
-                    loop(unbounded) {
-                        if len(items#:0) - items_i#:10 == 0 {
-                            return init#:1;
-                        };
-                        if len(items#:0) - items_i#:10 >= 1 {
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:10]);
-                            items_i#:10 = items_i#:10 + 1;
-                            init#:1 = recur#:7;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                }
-
-                --- [ start new opt ] ---
-
-                flattenImmediateCalls2
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const mv#:5: float = reduce#🌓🏛️😹😃<int, float>(
-                        range#🖐️✍️👌😃(10),
-                        1000,
-                        (current#:2: float, i#:3: int): float => {
-                            const at#:4: Vec2#🐭😉😵😃 = Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
-                                ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
-                                IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
-                            );
-                            return min(
-                                current#:2,
-                                length#😦(AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(pos#:1, at#:4)) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(
-                                    i#:3,
-                                ) * 10,
-                            );
-                        },
-                    );
-                    if mv#:5 < 0 {
-                        return vec4#🤽🚇🚞😃(1);
-                    } else {
-                        return vec4#🤽🚇🚞😃(0);
-                    };
-                }
-
-                foldSingleUseAssignments
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    if reduce#🌓🏛️😹😃<int, float>(
-                        range#🖐️✍️👌😃(10),
-                        1000,
-                        (current#:2: float, i#:3: int): float => min(
-                            current#:2,
-                            length#😦(
-                                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
-                                    pos#:1,
-                                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
-                                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
-                                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
-                                    ),
-                                ),
-                            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
-                        ),
-                    ) < 0 {
-                        return vec4#🤽🚇🚞😃(1);
-                    } else {
-                        return vec4#🤽🚇🚞😃(0);
-                    };
-                }
-
-                inlineFunctionsCalledWithCapturingLambdas
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    if (<T, R>(
-                        items#:6: Array<[var]T#:0; size#:9>,
-                        init#:7: [var]R#:1,
-                        fn#:8: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                    ): [var]R#:1 => {
-                        const items_i#:9: int = 0;
-                        loop(unbounded) {
-                            if len(items#:6) - items_i#:9 == 0 {
-                                return init#:7;
-                            };
-                            if len(items#:6) - items_i#:9 >= 1 {
-                                const recur#:10: [var]R#:1 = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                                items_i#:9 = items_i#:9 + 1;
-                                init#:7 = recur#:10;
-                                continue;
-                            };
-                            match_fail!();
-                        };
-                    })<int, float>(
-                        range#🖐️✍️👌😃(10),
-                        1000,
-                        (current#:2: float, i#:3: int): float => min(
-                            current#:2,
-                            length#😦(
-                                AddSubVec2#🧑‍🔧🚍🐅😃.#AddSub#🍹#1(
-                                    pos#:1,
-                                    Vec2float#🛴🎳🧇😃.#Mul#🦷👷‍♀️👨‍👦#0(
-                                        ScaleVec2Rev#🎠🧩🛸.#Div#👨‍🎓😨🚵‍♂️😃#0(env#:0.#GLSLEnv#🕷️⚓😣😃#1, 10),
-                                        IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3),
-                                    ),
-                                ),
-                            ) - IntAsFloat#🥛🐰🗻😃.#As#😉#0(i#:3) * 10,
-                        ),
-                    ) < 0 {
-                        return vec4#🤽🚇🚞😃(1);
-                    } else {
-                        return vec4#🤽🚇🚞😃(0);
-                    };
-                }
-
-                inlint
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    if (<T, R>(
-                        items#:6: Array<[var]T#:0; size#:9>,
-                        init#:7: [var]R#:1,
-                        fn#:8: ([var]R#:1, [var]T#:0) => [var]R#:1,
-                    ): [var]R#:1 => {
-                        const items_i#:9: int = 0;
-                        loop(unbounded) {
-                            if len(items#:6) - items_i#:9 == 0 {
-                                return init#:7;
-                            };
-                            if len(items#:6) - items_i#:9 >= 1 {
-                                const recur#:10: [var]R#:1 = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                                items_i#:9 = items_i#:9 + 1;
-                                init#:7 = recur#:10;
-                                continue;
-                            };
-                            match_fail!();
-                        };
-                    })<int, float>(
-                        range#🖐️✍️👌😃(10),
-                        1000,
-                        (current#:2: float, i#:3: int): float => min(
-                            current#:2,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                        ),
-                    ) < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                flattenImmediateCalls2
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = range#🖐️✍️👌😃(10);
-                    const init#:7: float = 1000;
-                    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
-                        current#:2,
-                        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                    );
-                    const result#:11: float;
-                    const continueBlock#:12: bool = true;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            continueBlock#:12 = false;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                --- [ start new opt ] ---
-
-                foldSingleUseAssignments
-
-                (): Array<int> => rangeInner#🍁(10, [])
-
-                --- [ start new opt ] ---
-
-                foldConstantsAndLambdas
-
-                (): Array<int; 10> => {
-                    const n#:0: int = 10;
-                    const collect#:1: Array<int; 0> = [];
-                    const newArray#:5: Array<int; 10>;
-                    const idx#:6: int = 10 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        newArray#:5[idx#:6] = n#:0 - 1;
-                        idx#:6 = idx#:6 - 1;
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                removeUnusedVariables
-
-                (): Array<int; 10> => {
-                    const n#:0: int = 10;
-                    const newArray#:5: Array<int; 10>;
-                    const idx#:6: int = 10 - 1;
-                    for (; n#:0 > 0; n#:0 = n#:0 - 1) {
-                        newArray#:5[idx#:6] = n#:0 - 1;
-                        idx#:6 = idx#:6 - 1;
-                        continue;
-                    };
-                    return newArray#:5;
-                }
-
-                inferArraySize
-
-                (): Array<int> => unnamed#🐀🌁🌒()
-
-                inferArraySize
-
-                (): Array<int; 10> => unnamed#🐀🌁🌒()
-
-                inferArraySize
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
-                        current#:2,
-                        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                    );
-                    const result#:11: float;
-                    const continueBlock#:12: bool = true;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            continueBlock#:12 = false;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                foldSingleUseAssignments
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
-                        current#:2,
-                        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                    );
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            continueBlock#:12 = false;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                foldConstantsAndLambdas
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
-                        current#:2,
-                        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-                    );
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            continueBlock#:12 = false;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = ((current#:13: float, i#:14: int): float => min(
-                                current#:13,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            ))(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                removeUnusedVariables
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float = ((current#:13: float, i#:14: int): float => min(
-                                current#:13,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            ))(init#:7, items#:6[0 + items_i#:9]);
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                flattenImmediateCalls2
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float;
-                            const current#:13: float = init#:7;
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            recur#:10 = min(
-                                current#:13,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                inferArraySize
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float;
-                            const current#:13: float = init#:7;
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            recur#:10 = min(
-                                current#:13,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                foldSingleUseAssignments
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const recur#:10: float;
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            recur#:10 = min(
-                                init#:7,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                flattenImmediateAssigns
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            const recur#:10: float = min(
-                                init#:7,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = recur#:10;
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                foldSingleUseAssignments
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if len(items#:6) - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if len(items#:6) - items_i#:9 >= 1 {
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = min(
-                                init#:7,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                inferArraySize
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    loop(unbounded) {
-                        if 10 - items_i#:9 == 0 {
-                            result#:11 = init#:7;
-                            break;
-                        };
-                        if 10 - items_i#:9 >= 1 {
-                            const i#:14: int = items#:6[0 + items_i#:9];
-                            items_i#:9 = items_i#:9 + 1;
-                            init#:7 = min(
-                                init#:7,
-                                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                            );
-                            continue;
-                        };
-                        match_fail!();
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                inferLoopBounds
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
-                        init#:7 = min(
-                            init#:7,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                        );
-                        continue;
-                    };
-                    {
-                        result#:11 = init#:7;
-                    };
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                removeNestedBlocksAndCodeAfterReturns
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
-                        init#:7 = min(
-                            init#:7,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                        );
-                        continue;
-                    };
-                    result#:11 = init#:7;
-                    if result#:11 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                foldConstantsAndLambdas
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const result#:11: float;
-                    const items_i#:9: int = 0;
-                    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
-                        init#:7 = min(
-                            init#:7,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                        );
-                        continue;
-                    };
-                    result#:11 = init#:7;
-                    if init#:7 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                flattenImmediateAssigns
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const items_i#:9: int = 0;
-                    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
-                        init#:7 = min(
-                            init#:7,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                        );
-                        continue;
-                    };
-                    const result#:11: float = init#:7;
-                    if init#:7 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
-                    };
-                }
-
-                removeUnusedVariables
-
-                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-                    const items#:6: Array<int; 10> = unnamed#🚔();
-                    const init#:7: float = 1000;
-                    const items_i#:9: int = 0;
-                    for (; items_i#:9 <= -(0 - 10); items_i#:9 = items_i#:9 + 1) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
-                        init#:7 = min(
-                            init#:7,
-                            length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
-                        );
-                        continue;
-                    };
-                    if init#:7 < 0 {
-                        return vec4(1);
-                    } else {
-                        return vec4(0);
                     };
                 }
             `);
