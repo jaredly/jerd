@@ -24,6 +24,8 @@ import { args, atom, block, id, items, PP } from './printer';
 import { recordAttributeName } from './typeScriptPrinterSimple';
 import { allRecordMembers } from './typeScriptTypePrinter';
 
+const SHOW_TYPES = false as false | 'all' | 'var';
+
 export const binops = [
     // 'mod',
     'modInt',
@@ -97,23 +99,29 @@ export const debugSym = (sym: Symbol, loc: Location) => {
 // Seems like it would be nice to have the option
 // um anyway, uncomment this code to show all type annotations.
 export const debugExpr = (env: Env, expr: Expr): PP => {
-    return _debugExpr(env, expr);
-    // return items([
-    //     _debugExpr(env, expr),
-    //     atom(' {'),
-    //     debugType(env, expr.is),
-    //     atom('}'),
-    // ]);
+    if (SHOW_TYPES === 'all') {
+        return items([
+            _debugExpr(env, expr),
+            atom(' {'),
+            debugType(env, expr.is),
+            atom('}'),
+        ]);
+    } else {
+        return _debugExpr(env, expr);
+    }
 };
 export const _debugExpr = (env: Env, expr: Expr): PP => {
     switch (expr.type) {
         case 'var':
-            return debugSym(expr.sym, expr.loc);
-        // return items([
-        //     debugSym(expr.sym, expr.loc),
-        //     atom(': '),
-        //     debugType(env, expr.is),
-        // ]);
+            if (SHOW_TYPES === 'var') {
+                return items([
+                    debugSym(expr.sym, expr.loc),
+                    atom(': '),
+                    debugType(env, expr.is),
+                ]);
+            } else {
+                return debugSym(expr.sym, expr.loc);
+            }
         case 'SpecializeEnum':
             return items([
                 debugType(env, expr.is),

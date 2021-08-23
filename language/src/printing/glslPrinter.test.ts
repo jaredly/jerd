@@ -246,6 +246,20 @@ describe('glslPrinter', () => {
             ).toMatchInlineSnapshot();
         });
 
+        it('should be able to collapse array len', () => {
+            expect(
+                processOne(`(a: int) => {
+                const v = <int>[1,2,3];
+                len<int>(v) + a
+            }`),
+            ).toMatchInlineSnapshot(`
+                /* (a#:0: int): int => 3 + a#:0 */
+                int toplevel_dd1dbf5c(int a_0) {
+                    return (3 + a_0);
+                }
+            `);
+        });
+
         // OK so TODO what I want is
         // - run the actual post-ir code as javascript, and also run the pre-ir version,
         //   and assert that they produce the same value.
@@ -374,10 +388,10 @@ describe('glslPrinter', () => {
                 float undefined_specialization_54d7442e(float[10] items_0, float init_1) {
                     int items_i = 0;
                     for (int i=0; i<10000; i++) {
-                        if (((10 - items_i) == 0)) {
+                        if (((items_0.length() - items_i) == 0)) {
                             return init_1;
                         };
-                        if (((10 - items_i) >= 1)) {
+                        if (((items_0.length() - items_i) >= 1)) {
                             float recur = toplevel_lambda_420d731c(init_1, items_0[items_i]);
                             items_i++;
                             init_1 = recur;

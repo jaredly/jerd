@@ -956,13 +956,13 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 atom(']'),
             ]);
         case 'arrayLen':
-            if (
-                expr.value.is.type === 'Array' &&
-                expr.value.is.inferredSize &&
-                expr.value.is.inferredSize.type === 'exactly'
-            ) {
-                return atom(expr.value.is.inferredSize.size.toString());
-            }
+            // if (
+            //     expr.value.is.type === 'Array' &&
+            //     expr.value.is.inferredSize &&
+            //     expr.value.is.inferredSize.type === 'exactly'
+            // ) {
+            //     return atom(expr.value.is.inferredSize.size.toString());
+            // }
             return items([
                 termToGlsl(env, opts, expr.value),
                 atom('.length()'),

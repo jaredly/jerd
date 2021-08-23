@@ -9,17 +9,17 @@ export const foldSimpleMath = (ctx: Context, expr: Expr) => {
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
-            if (
-                expr.type === 'apply' &&
-                expr.target.type === 'builtin' &&
-                expr.target.name === 'len' &&
-                expr.args.length === 1 &&
-                expr.args[0].is.type === 'Array' &&
-                expr.args[0].is.inferredSize &&
-                expr.args[0].is.inferredSize.type === 'exactly'
-            ) {
-                return intLiteral(expr.args[0].is.inferredSize.size, expr.loc);
-            }
+            // if (
+            //     expr.type === 'apply' &&
+            //     expr.target.type === 'builtin' &&
+            //     expr.target.name === 'len' &&
+            //     expr.args.length === 1 &&
+            //     expr.args[0].is.type === 'Array' &&
+            //     expr.args[0].is.inferredSize &&
+            //     expr.args[0].is.inferredSize.type === 'exactly'
+            // ) {
+            //     return intLiteral(expr.args[0].is.inferredSize.size, expr.loc);
+            // }
             if (
                 expr.type === 'arrayLen' &&
                 expr.value.is.type === 'Array' &&
