@@ -4,6 +4,24 @@ import { Expr } from '../types';
 import { builtin, callExpression, int, pureFunction } from '../utils';
 import { symName } from './optimize';
 
+export const plus = (env: Env, one: Expr, two: Expr, loc: Location): Expr => {
+    return callExpression(
+        env,
+        builtin('+', loc, pureFunction([int, int], int)),
+        [one, two],
+        loc,
+    );
+};
+
+export const minus = (env: Env, one: Expr, two: Expr, loc: Location): Expr => {
+    return callExpression(
+        env,
+        builtin('-', loc, pureFunction([int, int], int)),
+        [one, two],
+        loc,
+    );
+};
+
 export const arraySlices = (env: Env, expr: Expr): Expr => {
     const arrayInfos: {
         [key: string]: {
@@ -30,12 +48,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
         const nxt = resolve(arrayInfos[n].src, loc);
         if (nxt != null) {
             src = nxt.src;
-            start = callExpression(
-                env,
-                builtin('+', expr.loc, pureFunction([int, int], int)),
-                [start, nxt.start],
-                expr.loc,
-            );
+            start = plus(env, start, nxt.start, expr.loc);
         }
         return { src, start };
     };
@@ -53,16 +66,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                         return {
                             ...expr,
                             value: { ...expr.value, sym: res.src },
-                            start: callExpression(
-                                env,
-                                builtin(
-                                    '+',
-                                    expr.loc,
-                                    pureFunction([int, int], int),
-                                ),
-                                [expr.start, res.start],
-                                expr.loc,
-                            ),
+                            start: plus(env, expr.start, res.start, expr.loc),
                         };
                     }
                     return null;
@@ -75,16 +79,7 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                         return {
                             ...expr,
                             value: { ...expr.value, sym: res.src },
-                            idx: callExpression(
-                                env,
-                                builtin(
-                                    '+',
-                                    expr.loc,
-                                    pureFunction([int, int], int),
-                                ),
-                                [expr.idx, res.start],
-                                expr.loc,
-                            ),
+                            idx: plus(env, expr.idx, res.start, expr.loc),
                         };
                     }
                     return null;
@@ -94,20 +89,13 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                         if (res == null) {
                             return null;
                         }
-                        return callExpression(
+                        return minus(
                             env,
-                            builtin(
-                                '-',
-                                expr.loc,
-                                pureFunction([int, int], int),
-                            ),
-                            [
-                                {
-                                    ...expr,
-                                    value: { ...expr.value, sym: res.src },
-                                },
-                                res.start,
-                            ],
+                            {
+                                ...expr,
+                                value: { ...expr.value, sym: res.src },
+                            },
+                            res.start,
                             expr.loc,
                         );
                     }

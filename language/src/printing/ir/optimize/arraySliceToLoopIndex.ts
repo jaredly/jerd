@@ -7,6 +7,7 @@ import {
 } from '../transform';
 import { Expr, Stmt, Type } from '../types';
 import { builtin, callExpression, int, pureFunction } from '../utils';
+import { minus, plus } from './arraySlices';
 import { Context, symName } from './optimize';
 
 export const arraySliceLoopToIndex = (ctx: Context, expr: Expr): Expr => {
@@ -143,22 +144,15 @@ export const arraySliceLoopToIndex = (ctx: Context, expr: Expr): Expr => {
                         if (argMap[n] === true) {
                             return {
                                 ...expr,
-                                idx: callExpression(
+                                idx: plus(
                                     ctx.env,
-                                    builtin(
-                                        '+',
-                                        expr.loc,
-                                        pureFunction([int, int], int),
-                                    ),
-                                    [
-                                        expr.idx,
-                                        {
-                                            type: 'var',
-                                            loc: expr.loc,
-                                            sym: indexForSym[n].sym,
-                                            is: indexForSym[n].type,
-                                        },
-                                    ],
+                                    expr.idx,
+                                    {
+                                        type: 'var',
+                                        loc: expr.loc,
+                                        sym: indexForSym[n].sym,
+                                        is: indexForSym[n].type,
+                                    },
                                     expr.loc,
                                 ),
                             };
@@ -174,22 +168,15 @@ export const arraySliceLoopToIndex = (ctx: Context, expr: Expr): Expr => {
                         const n = symName(expr.value.sym);
                         if (argMap[n] === true) {
                             modified.push(expr);
-                            return callExpression(
+                            return minus(
                                 ctx.env,
-                                builtin(
-                                    '-',
-                                    expr.loc,
-                                    pureFunction([int, int], int),
-                                ),
-                                [
-                                    expr,
-                                    {
-                                        type: 'var',
-                                        loc: expr.loc,
-                                        sym: indexForSym[n].sym,
-                                        is: indexForSym[n].type,
-                                    },
-                                ],
+                                expr,
+                                {
+                                    type: 'var',
+                                    loc: expr.loc,
+                                    sym: indexForSym[n].sym,
+                                    is: indexForSym[n].type,
+                                },
                                 expr.loc,
                             );
                         }

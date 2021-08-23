@@ -37,6 +37,7 @@ import {
     pureFunction,
     var_,
 } from '../utils';
+import { minus, plus } from './arraySlices';
 import { specializeFunction } from './monoconstant';
 import { monomorphize } from './monomorphize';
 import { Context, Optimizer2 } from './optimize';
@@ -174,8 +175,14 @@ export const loopSpreadToArraySet: Optimizer2 = (
                                                         `Only length 2 arrays supported just now`,
                                                     );
                                                 }
+                                                const idxVar: Expr = {
+                                                    type: 'var',
+                                                    sym: idxSym,
+                                                    is: int,
+                                                    loc: i.loc,
+                                                };
                                                 let valueToAdd;
-                                                let offset;
+                                                let updateIdx;
                                                 if (
                                                     value.items[0].type ===
                                                         'Spread' &&
@@ -183,8 +190,10 @@ export const loopSpreadToArraySet: Optimizer2 = (
                                                         'Spread'
                                                 ) {
                                                     valueToAdd = value.items[1];
-                                                    offset = intLiteral(
-                                                        1,
+                                                    updateIdx = plus(
+                                                        context.env,
+                                                        idxVar,
+                                                        intLiteral(1, i.loc),
                                                         i.loc,
                                                     );
                                                 } else if (
@@ -194,8 +203,10 @@ export const loopSpreadToArraySet: Optimizer2 = (
                                                         'Spread'
                                                 ) {
                                                     valueToAdd = value.items[0];
-                                                    offset = intLiteral(
-                                                        -1,
+                                                    updateIdx = minus(
+                                                        context.env,
+                                                        idxVar,
+                                                        intLiteral(1, i.loc),
                                                         i.loc,
                                                     );
                                                 } else {
@@ -225,27 +236,7 @@ export const loopSpreadToArraySet: Optimizer2 = (
                                                     type: 'Assign',
                                                     loc: i.loc,
                                                     sym: idxSym,
-                                                    value: callExpression(
-                                                        context.env,
-                                                        builtin(
-                                                            '+',
-                                                            i.loc,
-                                                            pureFunction(
-                                                                [int, int],
-                                                                int,
-                                                            ),
-                                                        ),
-                                                        [
-                                                            {
-                                                                type: 'var',
-                                                                sym: idxSym,
-                                                                is: int,
-                                                                loc: i.loc,
-                                                            },
-                                                            offset,
-                                                        ],
-                                                        i.loc,
-                                                    ),
+                                                    value: updateIdx,
                                                     is: int,
                                                 };
                                                 return {

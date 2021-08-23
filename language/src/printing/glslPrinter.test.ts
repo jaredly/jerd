@@ -266,7 +266,7 @@ describe('glslPrinter', () => {
                     const idx#:6: int = 10;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
                         newArray#:5[idx#:6] = n#:0 - 1;
-                        idx#:6 = idx#:6 + -1;
+                        idx#:6 = idx#:6 - 1;
                         continue;
                     };
                     return newArray#:5;
@@ -277,7 +277,7 @@ describe('glslPrinter', () => {
                     int idx = 10;
                     for (; n > 0; n = (n - 1)) {
                         newArray[idx] = (n - 1);
-                        idx = (idx + -1);
+                        idx = (idx - 1);
                         continue;
                     };
                     return newArray;
