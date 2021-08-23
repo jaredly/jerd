@@ -349,6 +349,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                 !expr.args.some(
                     (e) =>
                         e.type !== 'int' &&
+                        e.type !== 'float' &&
                         (e.type !== 'array' ||
                             !e.is.inferredSize ||
                             e.is.inferredSize.type !== 'exactly'),
@@ -374,6 +375,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                         .filter(
                             (arg) =>
                                 arg.arg.type === 'int' ||
+                                arg.arg.type === 'float' ||
                                 arg.arg.type === 'array',
                         ),
                 );
