@@ -53,11 +53,11 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                 );
 
                 if (others.length) {
-                    const showStmt = (stmt: Stmt) =>
-                        printToString(debugStmt(ctx.env, stmt), 100);
-                    console.log('OTHERS', breaks.map(showStmt).join('\n'));
-                    console.log(goes.map(showStmt).join('\n'));
-                    console.log(others.map(showStmt).join('\n'));
+                    // const showStmt = (stmt: Stmt) =>
+                    //     printToString(debugStmt(ctx.env, stmt), 100);
+                    // console.log('OTHERS', breaks.map(showStmt).join('\n'));
+                    // console.log(goes.map(showStmt).join('\n'));
+                    // console.log(others.map(showStmt).join('\n'));
                     return null;
                 }
                 if (
@@ -65,7 +65,7 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                     goes.length !== 1 ||
                     breaks[0] === goes[0]
                 ) {
-                    console.log('WRONG', breaks, goes, others);
+                    // console.log('WRONG', breaks, goes, others);
                     return null;
                 }
                 // Ok so we have one arm each, it's good
@@ -81,15 +81,11 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                     },
                 });
                 if (vars.length !== 1) {
-                    console.log('NO VARS', vars);
-                    console.log(
-                        printToString(debugExpr(ctx.env, bif.cond), 100),
-                    );
                     return null;
                 }
                 const cond = vars[0];
                 if (constants[cond.unique] == null) {
-                    console.log('cond not const');
+                    // console.log('cond not const');
                     return null;
                 }
                 const gif = goes[0] as IfStmt;

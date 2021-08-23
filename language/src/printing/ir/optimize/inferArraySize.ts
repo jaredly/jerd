@@ -504,6 +504,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                                 arg.type === 'Array' &&
                                 arg.inferredSize &&
                                 arg.inferredSize.type === 'variable' &&
+                                earg.type !== 'array' &&
                                 earg.is.type === 'Array' &&
                                 earg.is.inferredSize &&
                                 earg.is.inferredSize.type === 'exactly'
@@ -511,7 +512,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                                 return {
                                     i,
                                     size: earg.is.inferredSize.size,
-                                    sym: targs[i].sym,
+                                    sym: arg.inferredSize.sym,
                                 };
                             }
                         })
@@ -521,7 +522,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                         sym: Symbol;
                     }>;
                     // WOOOOPS
-                    if (matching.length && 1 != 1) {
+                    if (matching.length) {
                         const newExpr = specializeForArrayWhatsits(
                             context,
                             target.expr,
@@ -590,6 +591,7 @@ export const specializeForArrayWhatsits = (
 ): LambdaExpr => {
     const knownSizes: { [unique: number]: number } = {};
     matching.map((arg) => (knownSizes[arg.sym.unique] = arg.size));
+    console.log('SPEC', knownSizes, matching);
     const transform: Visitor = {
         ...defaultVisitor,
         type: (type) => {

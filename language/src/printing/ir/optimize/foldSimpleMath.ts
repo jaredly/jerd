@@ -12,6 +12,25 @@ export const foldSimpleMath = (ctx: Context, expr: Expr) => {
             if (
                 expr.type === 'apply' &&
                 expr.target.type === 'builtin' &&
+                expr.target.name === 'len' &&
+                expr.args.length === 1 &&
+                expr.args[0].is.type === 'Array' &&
+                expr.args[0].is.inferredSize &&
+                expr.args[0].is.inferredSize.type === 'exactly'
+            ) {
+                return intLiteral(expr.args[0].is.inferredSize.size, expr.loc);
+            }
+            if (
+                expr.type === 'arrayLen' &&
+                expr.value.is.type === 'Array' &&
+                expr.value.is.inferredSize &&
+                expr.value.is.inferredSize.type === 'exactly'
+            ) {
+                return intLiteral(expr.value.is.inferredSize.size, expr.loc);
+            }
+            if (
+                expr.type === 'apply' &&
+                expr.target.type === 'builtin' &&
                 mathOps.includes(expr.target.name) &&
                 expr.args.every(
                     (arg) => arg.type === 'int' || arg.type === 'float',

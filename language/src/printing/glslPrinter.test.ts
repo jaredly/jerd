@@ -70,6 +70,7 @@ const processOne = (raw: string, optimizer: Optimizer2 = defaultOptimizer) => {
     const last = expressions[expressions.length - 1];
     const mainId = idFromName(hashObject(last));
     env.global.terms[idName(mainId)] = last;
+    env.global.idNames[idName(mainId)] = 'toplevel';
 
     const required = [mainId].map((id) => makeTermExpr(id, env));
 
@@ -153,7 +154,7 @@ describe('glslPrinter', () => {
                     return float((n_0 * 2));
                 }
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(vec3(pos#:1, thing#🍅(23)), 1) */
-                vec4 V48febf40(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_48febf40(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     return vec4(vec3(pos_1, thing_ac9c267c(23)), 1.0);
                 }
             `);
@@ -167,15 +168,15 @@ describe('glslPrinter', () => {
                 ),
             ).toMatchInlineSnapshot(`
                 /* (n#:0: int): float => float(n#:0) + 1.2 */
-                float undefined_lambda_6d47897a(int n_0) {
+                float toplevel_lambda_6d47897a(int n_0) {
                     return (float(n_0) + 1.20);
                 }
-                /* (): float => undefined_lambda#🧑‍🦯👨‍👧‍👧🍶😃(2) + 2.3 */
+                /* (): float => toplevel_lambda#🧑‍🦯👨‍👧‍👧🍶😃(2) + 2.3 */
                 float basic_specialization_befc7844() {
-                    return (undefined_lambda_6d47897a(2) + 2.30);
+                    return (toplevel_lambda_6d47897a(2) + 2.30);
                 }
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(basic_specialization#😯()) */
-                vec4 V0d60a1fc(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_0d60a1fc(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     return vec4(basic_specialization_befc7844());
                 }
             `);
@@ -196,37 +197,37 @@ describe('glslPrinter', () => {
 			`),
             ).toMatchInlineSnapshot(`
 
-                                                                                                                INVALID GLSL:
-                                                                                                                - Invalid GLSL at 4:7-4:14: Can't have recursion
-                                                                                                                - Invalid GLSL at 6:7-6:14: Can't have recursion
+                INVALID GLSL:
+                - Invalid GLSL at 4:7-4:14: Can't have recursion
+                - Invalid GLSL at 6:7-6:14: Can't have recursion
 
-                                                                                                                /* (n#:0: int): int => {
-                                                                                                                    if n#:0 <= 1 {
-                                                                                                                        return 1;
-                                                                                                                    } else {
-                                                                                                                        if (n#:0 modInt 2) == (0) {
-                                                                                                                            return awesome#👸🥞🍖😃(n#:0 / 2) + 1;
-                                                                                                                        } else {
-                                                                                                                            return awesome#👸🥞🍖😃(n#:0 * 3 + 1) + 1;
-                                                                                                                        };
-                                                                                                                    };
-                                                                                                                } */
-                                                                                                                int awesome_694a453b(int n_0) {
-                                                                                                                    if ((n_0 <= 1)) {
-                                                                                                                        return 1;
-                                                                                                                    } else {
-                                                                                                                        if (((n_0 % 2) == 0)) {
-                                                                                                                            return (awesome_694a453b((n_0 / 2)) + 1);
-                                                                                                                        } else {
-                                                                                                                            return (awesome_694a453b(((n_0 * 3) + 1)) + 1);
-                                                                                                                        };
-                                                                                                                    };
-                                                                                                                }
-                                                                                                                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(awesome#👸🥞🍖😃(3))) */
-                                                                                                                vec4 V664a1263(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                                                                                                                    return vec4(float(awesome_694a453b(3)));
-                                                                                                                }
-                                                                                    `);
+                /* (n#:0: int): int => {
+                    if n#:0 <= 1 {
+                        return 1;
+                    } else {
+                        if (n#:0 modInt 2) == (0) {
+                            return awesome#👸🥞🍖😃(n#:0 / 2) + 1;
+                        } else {
+                            return awesome#👸🥞🍖😃(n#:0 * 3 + 1) + 1;
+                        };
+                    };
+                } */
+                int awesome_694a453b(int n_0) {
+                    if ((n_0 <= 1)) {
+                        return 1;
+                    } else {
+                        if (((n_0 % 2) == 0)) {
+                            return (awesome_694a453b((n_0 / 2)) + 1);
+                        } else {
+                            return (awesome_694a453b(((n_0 * 3) + 1)) + 1);
+                        };
+                    };
+                }
+                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(awesome#👸🥞🍖😃(3))) */
+                vec4 toplevel_664a1263(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    return vec4(float(awesome_694a453b(3)));
+                }
+            `);
         });
 
         it.skip('cant handle array spread oops', () => {
@@ -330,7 +331,7 @@ describe('glslPrinter', () => {
                 ),
             ).toMatchInlineSnapshot(`
                 /* (one#:0: float, two#:1: float): float => min(one#:0, two#:1) */
-                float undefined_lambda_420d731c(float one_0, float two_1) {
+                float toplevel_lambda_420d731c(float one_0, float two_1) {
                     return min(one_0, two_1);
                 }
                 /* (): Array<int; 10> => {
@@ -355,20 +356,14 @@ describe('glslPrinter', () => {
                     };
                     return newArray;
                 }
-
-                INVALID GLSL:
-                - Invalid GLSL at 7:28-7:33: Array length not inferrable
-                - Invalid GLSL at 7:28-7:33: Array length not inferrable
-                - Invalid GLSL at 7:28-7:33: Array length not inferrable
-
-                /* (items#:0: Array<float; size#:9>, init#:1: float): float => {
+                /* (items#:0: Array<float; 10>, init#:1: float): float => {
                     const items_i#:10: int = 0;
                     loop(unbounded) {
                         if len(items#:0) - items_i#:10 == 0 {
                             return init#:1;
                         };
                         if len(items#:0) - items_i#:10 >= 1 {
-                            const recur#:7: float = undefined_lambda#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
+                            const recur#:7: float = toplevel_lambda#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
                             items_i#:10 = items_i#:10 + 1;
                             init#:1 = recur#:7;
                             continue;
@@ -376,14 +371,14 @@ describe('glslPrinter', () => {
                         match_fail!();
                     };
                 } */
-                float V4b0653f4(float[size_9] items_0, float init_1) {
+                float undefined_specialization_54d7442e(float[10] items_0, float init_1) {
                     int items_i = 0;
                     for (int i=0; i<10000; i++) {
-                        if (((items_0.length() - items_i) == 0)) {
+                        if (((10 - items_i) == 0)) {
                             return init_1;
                         };
-                        if (((items_0.length() - items_i) >= 1)) {
-                            float recur = undefined_lambda_420d731c(init_1, items_0[items_i]);
+                        if (((10 - items_i) >= 1)) {
+                            float recur = toplevel_lambda_420d731c(init_1, items_0[items_i]);
                             items_i++;
                             init_1 = recur;
                             continue;
@@ -406,13 +401,13 @@ describe('glslPrinter', () => {
                         idx#:21 = idx#:21 + 1;
                         continue;
                     };
-                    if unnamed#🧿⛷️👐😃(newArray#:20, 1000) < 0 {
+                    if undefined_specialization#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
                     };
                 } */
-                vec4 V4cb0c816(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_4cb0c816(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     float[10] newArray_20;
                     int idx_21 = 0;
                     int[10] values = range_specialization_9ca6a6d8();
@@ -423,7 +418,7 @@ describe('glslPrinter', () => {
                         idx_21++;
                         continue;
                     };
-                    if ((V4b0653f4(newArray_20, 1000.0) < 0.0)) {
+                    if ((undefined_specialization_54d7442e(newArray_20, 1000.0) < 0.0)) {
                         return vec4(1.0);
                     } else {
                         return vec4(0.0);
@@ -1469,7 +1464,7 @@ describe('glslPrinter', () => {
                         return vec4(0);
                     };
                 }
-                # [inferArraySize]
+                # [foldSimpleMath]
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const values#:10: Array<int; 10> = unnamed#🍹();
                     const collect#:12: Array<float> = [];
@@ -1705,10 +1700,2097 @@ describe('glslPrinter', () => {
                         return vec4(0);
                     };
                 }
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
                 # [loopSpreadToArraySet]
                  - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                # [inferArraySize]
+                (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const newArray#:20: Array<float; 10>;
+                    const idx#:21: int = 0;
+                    const values#:10: Array<int; 10> = unnamed#🍹();
+                    const values_i#:13: int = 0;
+                    for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
+                        const i#:17: int = values#:10[values_i#:13];
+                        newArray#:20[idx#:21] = length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(
+                            i#:17,
+                        ) * 10;
+                        idx#:21 = idx#:21 + 1;
+                        continue;
+                    };
+                    if unnamed#😴👨‍👩‍👧‍👦🎅😃(newArray#:20, 1000) < 0 {
+                        return vec4(1);
+                    } else {
+                        return vec4(0);
+                    };
+                }
+                # [loopSpreadToArraySet]
+                 - no respread 0 0
+                !!!! OPTMIZE FAILED TO CONVERGE !!!!
             `);
         });
 
@@ -1804,7 +3886,7 @@ describe('glslPrinter', () => {
                         return vec4(0);
                     };
                 } */
-                vec4 V3ea457a2(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_3ea457a2(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     int[10] items = range_specialization_3a3457dc();
                     float init = 1000.0;
                     int items_i = 0;
@@ -1882,7 +3964,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(float(10) + float(first#:4));
                 } */
-                vec4 V04ff7fdb(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_04ff7fdb(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     int first;
                     bool continueBlock = true;
                     if ((10 >= 1)) {
@@ -2028,7 +4110,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(float(10) + float(first#:4));
                 } */
-                vec4 Vfdb1f564(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_fdb1f564(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     int first;
                     bool continueBlock = true;
                     if ((10 >= 1)) {
@@ -2077,7 +4159,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(result#:6);
                 } */
-                vec4 V49b7324c(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_49b7324c(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     int[3] items = int[](1, 2, 3);
                     float result;
                     bool continueBlock = true;
@@ -2154,7 +4236,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(result#:8);
                 } */
-                vec4 V0a089f74(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_0a089f74(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     int start = 0;
                     float init = 1000.0;
                     float result;
@@ -2188,7 +4270,7 @@ describe('glslPrinter', () => {
                     const m#:2: unnamed#🎽🤦🎃 = RECORDNOTFOUND;
                     return vec4(float(m#:2.#unnamed#🎽🤦🎃#0), float(m#:2.#unnamed#🎽🤦🎃#1), float(m#:2.#unnamed#🎽🤦🎃#0), 2.3);
                 } */
-                vec4 Va5e41384(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_a5e41384(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     T3b93e3eb m = T3b93e3eb(10, 2);
                     return vec4(float(m.h3b93e3eb_0), float(m.h3b93e3eb_1), float(m.h3b93e3eb_0), 2.30);
                 }
@@ -2210,7 +4292,7 @@ describe('glslPrinter', () => {
                     const m#:2: unnamed#⛱️👶🥬 = RECORDNOTFOUND;
                     return vec4(float(m#:2.#unnamed#⛱️👶🥬#0) + float(m#:2.#unnamed#⛱️👶🥬#0));
                 } */
-                vec4 V21d793a2(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_21d793a2(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     T28531bb0 m = T28531bb0(3, 2.0);
                     return vec4((float(m.h28531bb0_0) + float(m.h28531bb0_0)));
                 }
@@ -2237,7 +4319,7 @@ describe('glslPrinter', () => {
                     const m#:2: unnamed#🌯👱‍♂️🍸 = makeIt#🌐🏙️👦😃(2, RECORDNOTFOUND);
                     return vec4(float(m#:2.#unnamed#🌯👱‍♂️🍸#0) + m#:2.#unnamed#🌯👱‍♂️🍸#1);
                 } */
-                vec4 V21439752(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                vec4 toplevel_21439752(GLSLEnv_451d5252 env_0, vec2 pos_1) {
                     T2d73729e m = makeIt_4c8c66ea(2, T58122424(1, 4.0));
                     return vec4((float(m.h2d73729e_0) + m.h2d73729e_1));
                 }
