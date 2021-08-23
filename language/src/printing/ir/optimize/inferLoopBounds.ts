@@ -195,7 +195,9 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                         // },
                         body: {
                             ...stmt.body,
-                            items: [gif.yes],
+                            items: gif.yes.items.filter(
+                                (s) => s !== updates[0],
+                            ),
                         },
                     },
                     {
