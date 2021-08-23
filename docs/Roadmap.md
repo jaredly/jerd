@@ -9,7 +9,14 @@
   - [x] make variables
   - [x] propagate them please
 - [ ] get reduce working too thankss
-- [ ] maybe do loop inlining? Shouldn't be too bad if the value of the loop vbl is known 🤔
+  - [ ] ok infer the bound as well! Would be super nice
+  - [ ] write bunch more tests for different incarnations
+  - [ ] figure out why inferring arrays goes so poorly if I do it too early (probably that I'm propagating things I shouldn't).
+    - really, when I set the type of an arg to have a variable size, I need to ensure that
+      the return type has a consistent size ... or else it's bad news. I think.
+  - [ ] get boids going please!!! So will need to infer the length of the js array we're passing in I believe.
+
+- [ ] maybe do loop unwrapping? Shouldn't be too bad if the value of the loop vbl is known 🤔
 
 # THings found during coverage for parser
 

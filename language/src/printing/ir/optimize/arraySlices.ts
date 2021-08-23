@@ -1,10 +1,10 @@
 import { Env, Location, Symbol } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
-import { Expr } from '../types';
+import { Apply, Expr } from '../types';
 import { builtin, callExpression, int, pureFunction } from '../utils';
 import { symName } from './optimize';
 
-export const plus = (env: Env, one: Expr, two: Expr, loc: Location): Expr => {
+export const plus = (env: Env, one: Expr, two: Expr, loc: Location): Apply => {
     return callExpression(
         env,
         builtin('+', loc, pureFunction([int, int], int)),
@@ -13,7 +13,7 @@ export const plus = (env: Env, one: Expr, two: Expr, loc: Location): Expr => {
     );
 };
 
-export const minus = (env: Env, one: Expr, two: Expr, loc: Location): Expr => {
+export const minus = (env: Env, one: Expr, two: Expr, loc: Location): Apply => {
     return callExpression(
         env,
         builtin('-', loc, pureFunction([int, int], int)),

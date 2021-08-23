@@ -24,6 +24,7 @@ import { refToPretty, symToPretty } from '../printTsLike';
 import { handleArgsForEffects, handlerTypesForEffects } from './cps';
 import { defaultVisitor, transformExpr } from './transform';
 import {
+    Apply,
     Arg,
     Assign,
     Block,
@@ -631,7 +632,7 @@ export const callExpression = (
     args: Array<Expr>,
     loc: Loc,
     typeVbls?: Array<Type>,
-): Expr => {
+): Apply => {
     if (target.is.type === 'cps-lambda') {
         return {
             type: 'apply',

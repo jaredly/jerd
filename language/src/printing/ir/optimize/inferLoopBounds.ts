@@ -1,19 +1,45 @@
+import { newSym } from '../../../typing/env';
 import { Symbol } from '../../../typing/types';
 import { debugExpr, debugStmt } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
 import { Expr, Stmt } from '../intermediateRepresentation';
 import { defaultVisitor, transformExpr, transformStmt } from '../transform';
-import { IfStmt } from '../types';
-import { int, intLiteral, var_ } from '../utils';
+import { Apply, Assign, IfStmt, LoopBounds } from '../types';
+import { builtin, callExpression, int, intLiteral, var_ } from '../utils';
 import { plus } from './arraySlices';
 import { Context, Optimizer2 } from './optimize';
+
+// export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
+//     return transformExpr(expr, {
+//         ...defaultVisitor,
+//         stmt: (stmt) => {
+//             if (stmt.type === 'Loop' && stmt.bounds == null) {
+//                 return {
+//                     ...stmt,
+//                     bounds: {
+//                         end: intLiteral(10, stmt.loc),
+//                         op: '<',
+//                         step: plus(
+//                             ctx.env,
+//                             intLiteral(10, stmt.loc),
+//                             intLiteral(3, stmt.loc),
+//                             stmt.loc,
+//                         ),
+//                         sym: newSym(ctx.env, 'YES'),
+//                     },
+//                 };
+//             }
+//             return null;
+//         },
+//     });
+// };
 
 export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
     // Ok, so I find a loop that's unbounded
     // and by the way I'm collecting constants
     const constants: { [unique: number]: number } = {};
     // console.log('check loop');
-    transformExpr(expr, {
+    return transformExpr(expr, {
         ...defaultVisitor,
         stmt: (stmt) => {
             if (
@@ -30,9 +56,7 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                     (item) =>
                         item.type === 'if' &&
                         !item.no &&
-                        item.yes.items.find(
-                            (s) => s.type === 'Break' || s.type === 'Return',
-                        ),
+                        item.yes.items.find((s) => s.type === 'Break'),
                 );
                 const goes = stmt.body.items.filter(
                     (item) =>
@@ -46,10 +70,6 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                         !goes.includes(k) &&
                         k.type !== 'MatchFail',
                 );
-
-                if (goes.length) {
-                    return goes[0];
-                }
 
                 if (others.length) {
                     const showStmt = (stmt: Stmt) =>
@@ -87,6 +107,10 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                     return null;
                 }
                 const cond = vars[0];
+                if (constants[cond.unique] == null) {
+                    console.log('cond not const');
+                    return null;
+                }
                 const gif = goes[0] as IfStmt;
                 // if (1 == 1) {
                 //     return [
@@ -118,12 +142,12 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                                 value.args[0].type === 'int'))
                     );
                 };
-                const updates = gif.yes.items.filter(
+                const updates: Array<Assign> = gif.yes.items.filter(
                     (s) =>
                         s.type === 'Assign' &&
                         s.sym.unique === cond.unique &&
                         isIncOrDec(s.value, cond),
-                );
+                ) as Array<Assign>;
                 if (updates.length !== 1) {
                     console.log('NO UPDA');
                     return null;
@@ -163,36 +187,105 @@ export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
                 }
                 console.log('UES');
 
-                // And what we do is:
-                // - remove the increment
-                // - set the bound
-                // - maybe remove the break? or maybe just put the break stuffs after...
-                // return [
-                //     {
-                //         ...stmt,
-                //         // type: 'Loop',
-                //         bounds: {
-                //             sym: cond,
-                //             end: intLiteral(10, stmt.loc),
-                //             op: '>=',
-                //             step: plus(
-                //                 ctx.env,
-                //                 var_(cond, stmt.loc, int),
-                //                 intLiteral(10, stmt.loc),
-                //                 stmt.loc,
-                //             ),
-                //         },
-                //         body: {
-                //             ...stmt.body,
-                //             items: [gif.yes],
-                //         },
-                //     },
-                //     bif.yes,
-                // ];
-                return gif;
+                const bounds = condToBound(
+                    constants[cond.unique],
+                    bif.cond as Apply,
+                    cond,
+                    updates[0].value as Apply,
+                );
+
+                // // And what we do is:
+                // // - remove the increment
+                // // - set the bound
+                // // - maybe remove the break? or maybe just put the break stuffs after...
+                return [
+                    {
+                        ...stmt,
+                        // type: 'Loop',
+                        bounds,
+
+                        // {
+                        //     sym: cond,
+                        //     end: intLiteral(10, stmt.loc),
+                        //     op: '<',
+                        //     step: updates[0].value,
+                        // },
+                        body: {
+                            ...stmt.body,
+                            items: [gif.yes],
+                        },
+                    },
+                    {
+                        ...bif.yes,
+                        items: bif.yes.items.filter((s) => s.type !== 'Break'),
+                    },
+                ];
+                // return gif;
             }
             return null;
         },
     });
-    return expr;
+};
+
+// START HERE PLEASE:
+// - do the mathematical whatsit to isolate the var on one side.
+const juggle = (
+    args: [Expr, Expr],
+    name: string,
+    sym: Symbol,
+    increasing: boolean,
+): null | { expr: Expr; op: any } => {
+    // um
+    // x + 10 == 0
+    if (args[1].type === 'int') {
+    }
+    return null;
+};
+
+const condToBound = (
+    initial: number,
+    cond: Apply,
+    sym: Symbol,
+    step: Apply,
+): undefined | LoopBounds => {
+    if (
+        cond.type !== 'apply' ||
+        cond.target.type !== 'builtin' ||
+        !['<', '>', '<=', '>=', '=='].includes(cond.target.name)
+    ) {
+        return;
+    }
+
+    const res = juggle(
+        cond.args as [Expr, Expr],
+        cond.target.name,
+        sym,
+        isIncreasing(step),
+    );
+    if (!res) {
+        return;
+    }
+
+    return {
+        end: res.expr,
+        op: res.op,
+        step,
+        sym,
+    };
+};
+
+const isIncreasing = (step: Apply) => {
+    if (step.target.type !== 'builtin') {
+        return false;
+    }
+    if (step.target.name === '-') {
+        return false;
+    }
+    if (step.args[0].type === 'int') {
+        return step.args[0].value > 0;
+    }
+    if (step.args[1].type === 'int') {
+        return step.args[1].value > 0;
+    }
+    return false;
 };
