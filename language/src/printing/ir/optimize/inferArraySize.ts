@@ -11,7 +11,6 @@
 // Seems like a ton of work
 
 import { idName, newSym } from '../../../typing/env';
-import { nullLocation } from '../../../typing/types';
 import { debugExpr } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
 import { defaultVisitor, transformExpr } from '../transform';
@@ -124,24 +123,31 @@ export const loopSpreadToArraySet: Optimizer2 = (
             };
             replacement = [
                 respread.sym.unique,
-                { type: 'var', sym, loc: nullLocation, is: newType },
+                { type: 'var', sym, loc: expr.loc, is: newType },
             ];
             let startingIndex: Expr;
             // Append
             if ((respread.value as ArrayExpr).items[0].type === 'Spread') {
                 startingIndex = intLiteral(0, expr.loc);
             } else {
+                let sizeAsExpr;
                 // TODO: This needs to be -1, right?
                 switch (loopSize.type) {
                     case 'exactly':
-                        startingIndex = intLiteral(loopSize.size, expr.loc);
+                        sizeAsExpr = intLiteral(loopSize.size, expr.loc);
                         break;
                     case 'constant':
-                        startingIndex = var_(loopSize.sym, expr.loc, int);
+                        sizeAsExpr = var_(loopSize.sym, expr.loc, int);
                         break;
                     default:
                         return null;
                 }
+                startingIndex = minus(
+                    context.env,
+                    sizeAsExpr,
+                    intLiteral(1, expr.loc),
+                    expr.loc,
+                );
                 // startingIndex = loop.bounds.
             }
             return {
@@ -244,16 +250,6 @@ export const loopSpreadToArraySet: Optimizer2 = (
                                                     items: [arraySet, update],
                                                     loc: i.loc,
                                                 };
-                                                // } else if (
-                                                //     value.items[1].type ===
-                                                //         'Spread' &&
-                                                //     value.items[0].type !==
-                                                //         'Spread'
-
-                                                // ) {
-                                                //     return i;
-                                                // }
-                                                // return i
                                             } else {
                                                 return i;
                                             }

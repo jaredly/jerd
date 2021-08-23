@@ -263,7 +263,7 @@ describe('glslPrinter', () => {
                 /* (): Array<int; 10> => {
                     const n#:0: int = 10;
                     const newArray#:5: Array<int; 10>;
-                    const idx#:6: int = 10;
+                    const idx#:6: int = 10 - 1;
                     for (; n#:0 > 0; n#:0 = n#:0 - 1) {
                         newArray#:5[idx#:6] = n#:0 - 1;
                         idx#:6 = idx#:6 - 1;
@@ -274,7 +274,7 @@ describe('glslPrinter', () => {
                 int[10] rangeInner_specialization_665f8f04() {
                     int n = 10;
                     int[10] newArray;
-                    int idx = 10;
+                    int idx = (10 - 1);
                     for (; n > 0; n = (n - 1)) {
                         newArray[idx] = (n - 1);
                         idx = (idx - 1);
