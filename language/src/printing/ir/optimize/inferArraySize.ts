@@ -11,6 +11,7 @@
 // Seems like a ton of work
 
 import { idName, newSym } from '../../../typing/env';
+import { Symbol } from '../../../typing/types';
 import { debugExpr } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
 import { defaultVisitor, transformExpr } from '../transform';
@@ -47,6 +48,70 @@ const isAppendOrPrepend = (array: ArrayExpr) => {
         array.items[0].type !== array.items[1].type &&
         (array.items[0].type === 'Spread' || array.items[1].type === 'Spread')
     );
+};
+
+export const spreadToSet = (
+    i: Assign,
+    idxSym: Symbol,
+    context: Context,
+    sym: Symbol,
+): Stmt => {
+    const value = i.value as ArrayExpr;
+    if (value.items.length !== 2) {
+        throw new Error(`Only length 2 arrays supported just now`);
+    }
+    const idxVar: Expr = {
+        type: 'var',
+        sym: idxSym,
+        is: int,
+        loc: i.loc,
+    };
+    let valueToAdd;
+    let updateIdx;
+    if (value.items[0].type === 'Spread' && value.items[1].type !== 'Spread') {
+        valueToAdd = value.items[1];
+        updateIdx = plus(context.env, idxVar, intLiteral(1, i.loc), i.loc);
+    } else if (
+        value.items[1].type === 'Spread' &&
+        value.items[0].type !== 'Spread'
+    ) {
+        valueToAdd = value.items[0];
+        updateIdx = minus(context.env, idxVar, intLiteral(1, i.loc), i.loc);
+    } else {
+        return i;
+    }
+
+    // if (
+    //     value.items[0].type ===
+    //         'Spread' &&
+    //     value.items[1].type !==
+    //         'Spread'
+    // ) {
+    // We're appending, great
+    const arraySet: Stmt = {
+        type: 'ArraySet',
+        idx: {
+            type: 'var',
+            sym: idxSym,
+            is: int,
+            loc: i.loc,
+        },
+        sym,
+        loc: i.loc,
+        value: valueToAdd,
+    };
+    const update: Stmt = {
+        type: 'Assign',
+        loc: i.loc,
+        sym: idxSym,
+        value: updateIdx,
+        is: int,
+    };
+    return {
+        type: 'Block',
+        items: [arraySet, update],
+        loc: i.loc,
+    };
 };
 
 export const loopSpreadToArraySet: Optimizer2 = (
@@ -175,81 +240,12 @@ export const loopSpreadToArraySet: Optimizer2 = (
                                         ...loop.body,
                                         items: loop.body.items.map((i) => {
                                             if (i === respread) {
-                                                const value = i.value as ArrayExpr;
-                                                if (value.items.length !== 2) {
-                                                    throw new Error(
-                                                        `Only length 2 arrays supported just now`,
-                                                    );
-                                                }
-                                                const idxVar: Expr = {
-                                                    type: 'var',
-                                                    sym: idxSym,
-                                                    is: int,
-                                                    loc: i.loc,
-                                                };
-                                                let valueToAdd;
-                                                let updateIdx;
-                                                if (
-                                                    value.items[0].type ===
-                                                        'Spread' &&
-                                                    value.items[1].type !==
-                                                        'Spread'
-                                                ) {
-                                                    valueToAdd = value.items[1];
-                                                    updateIdx = plus(
-                                                        context.env,
-                                                        idxVar,
-                                                        intLiteral(1, i.loc),
-                                                        i.loc,
-                                                    );
-                                                } else if (
-                                                    value.items[1].type ===
-                                                        'Spread' &&
-                                                    value.items[0].type !==
-                                                        'Spread'
-                                                ) {
-                                                    valueToAdd = value.items[0];
-                                                    updateIdx = minus(
-                                                        context.env,
-                                                        idxVar,
-                                                        intLiteral(1, i.loc),
-                                                        i.loc,
-                                                    );
-                                                } else {
-                                                    return i;
-                                                }
-
-                                                // if (
-                                                //     value.items[0].type ===
-                                                //         'Spread' &&
-                                                //     value.items[1].type !==
-                                                //         'Spread'
-                                                // ) {
-                                                // We're appending, great
-                                                const arraySet: Stmt = {
-                                                    type: 'ArraySet',
-                                                    idx: {
-                                                        type: 'var',
-                                                        sym: idxSym,
-                                                        is: int,
-                                                        loc: i.loc,
-                                                    },
+                                                return spreadToSet(
+                                                    i,
+                                                    idxSym,
+                                                    context,
                                                     sym,
-                                                    loc: i.loc,
-                                                    value: valueToAdd,
-                                                };
-                                                const update: Stmt = {
-                                                    type: 'Assign',
-                                                    loc: i.loc,
-                                                    sym: idxSym,
-                                                    value: updateIdx,
-                                                    is: int,
-                                                };
-                                                return {
-                                                    type: 'Block',
-                                                    items: [arraySet, update],
-                                                    loc: i.loc,
-                                                };
+                                                );
                                             } else {
                                                 return i;
                                             }

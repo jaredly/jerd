@@ -196,37 +196,37 @@ describe('glslPrinter', () => {
 			`),
             ).toMatchInlineSnapshot(`
 
-                INVALID GLSL:
-                - Invalid GLSL at 4:7-4:14: Can't have recursion
-                - Invalid GLSL at 6:7-6:14: Can't have recursion
+                                INVALID GLSL:
+                                - Invalid GLSL at 4:7-4:14: Can't have recursion
+                                - Invalid GLSL at 6:7-6:14: Can't have recursion
 
-                /* (n#:0: int): int => {
-                    if n#:0 <= 1 {
-                        return 1;
-                    } else {
-                        if (n#:0 modInt 2) == (0) {
-                            return awesome#👸🥞🍖😃(n#:0 / 2) + 1;
-                        } else {
-                            return awesome#👸🥞🍖😃(n#:0 * 3 + 1) + 1;
-                        };
-                    };
-                } */
-                int awesome_694a453b(int n_0) {
-                    if ((n_0 <= 1)) {
-                        return 1;
-                    } else {
-                        if (((n_0 % 2) == 0)) {
-                            return (awesome_694a453b((n_0 / 2)) + 1);
-                        } else {
-                            return (awesome_694a453b(((n_0 * 3) + 1)) + 1);
-                        };
-                    };
-                }
-                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(awesome#👸🥞🍖😃(3))) */
-                vec4 V664a1263(GLSLEnv_451d5252 env_0, vec2 pos_1) {
-                    return vec4(float(awesome_694a453b(3)));
-                }
-            `);
+                                /* (n#:0: int): int => {
+                                    if n#:0 <= 1 {
+                                        return 1;
+                                    } else {
+                                        if (n#:0 modInt 2) == (0) {
+                                            return awesome#👸🥞🍖😃(n#:0 / 2) + 1;
+                                        } else {
+                                            return awesome#👸🥞🍖😃(n#:0 * 3 + 1) + 1;
+                                        };
+                                    };
+                                } */
+                                int awesome_694a453b(int n_0) {
+                                    if ((n_0 <= 1)) {
+                                        return 1;
+                                    } else {
+                                        if (((n_0 % 2) == 0)) {
+                                            return (awesome_694a453b((n_0 / 2)) + 1);
+                                        } else {
+                                            return (awesome_694a453b(((n_0 * 3) + 1)) + 1);
+                                        };
+                                    };
+                                }
+                                /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => vec4(float(awesome#👸🥞🍖😃(3))) */
+                                vec4 V664a1263(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                                    return vec4(float(awesome_694a453b(3)));
+                                }
+                        `);
         });
 
         it.skip('cant handle array spread oops', () => {
@@ -360,7 +360,7 @@ describe('glslPrinter', () => {
                             return init#:1;
                         };
                         if len(items#:0) - items_i#:10 >= 1 {
-                            const recur#:7: float = undefined_lambda#🌆✈️🤐😃(init#:1, items#:0[0 + items_i#:10]);
+                            const recur#:7: float = undefined_lambda#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
                             items_i#:10 = items_i#:10 + 1;
                             init#:1 = recur#:7;
                             continue;
@@ -375,7 +375,7 @@ describe('glslPrinter', () => {
                             return init_1;
                         };
                         if (((items_0.length() - items_i) >= 1)) {
-                            float recur = undefined_lambda_420d731c(init_1, items_0[(0 + items_i)]);
+                            float recur = undefined_lambda_420d731c(init_1, items_0[items_i]);
                             items_i++;
                             init_1 = recur;
                             continue;
@@ -399,7 +399,7 @@ describe('glslPrinter', () => {
                     const collect#:12: Array<float> = [];
                     const values_i#:13: int = 0;
                     for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
-                        const i#:17: int = values#:10[0 + values_i#:13];
+                        const i#:17: int = values#:10[values_i#:13];
                         collect#:12 = [...collect#:12, length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10];
                         continue;
                     };
@@ -414,7 +414,7 @@ describe('glslPrinter', () => {
                     float[NULL] collect = float[]();
                     int values_i = 0;
                     for (; values_i <= 10; values_i++) {
-                        int i = values[(0 + values_i)];
+                        int i = values[values_i];
                         collect = ArrayWithSpreads<null>[...collect, (length((pos_1 - ((env_0.resolution / 10.0) * float(i)))) - (float(i) * 10.0))];
                         continue;
                     };
@@ -668,6 +668,26 @@ describe('glslPrinter', () => {
                         match_fail!();
                     };
                 }
+                # [foldSimpleMath]
+                <T, R>(
+                    items#:0: Array<[var]T#:0; size#:9>,
+                    init#:1: [var]R#:1,
+                    fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
+                ): [var]R#:1 => {
+                    const items_i#:10: int = 0;
+                    loop(unbounded) {
+                        if len(items#:0) - items_i#:10 == 0 {
+                            return init#:1;
+                        };
+                        if len(items#:0) - items_i#:10 >= 1 {
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[items_i#:10]);
+                            items_i#:10 = items_i#:10 + 1;
+                            init#:1 = recur#:7;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 ####### [ start new opt ] #######
                 (n#:0: int): Array<int> => rangeInner#🍁(n#:0, [])
                 # [inferArraySize]
@@ -847,6 +867,26 @@ describe('glslPrinter', () => {
                         match_fail!();
                     };
                 }
+                # [foldSimpleMath]
+                <T, R>(
+                    values#:0: Array<[var]T#:0; size#:9>,
+                    fn#:1: ([var]T#:0) => [var]R#:1,
+                    collect#:2: Array<[var]R#:1; size#:10>,
+                ): Array<[var]R#:1; size#:10> => {
+                    const values_i#:11: int = 0;
+                    loop(unbounded) {
+                        if len(values#:0) - values_i#:11 == 0 {
+                            return collect#:2;
+                        };
+                        if len(values#:0) - values_i#:11 >= 1 {
+                            const recur#:8: Array<[var]R#:1> = [...collect#:2, fn#:1(values#:0[values_i#:11])];
+                            values_i#:11 = values_i#:11 + 1;
+                            collect#:2 = recur#:8;
+                            continue;
+                        };
+                        match_fail!();
+                    };
+                }
                 ####### [ start new opt ] #######
                 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
                     const circles#:4: Array<float> = map#🥏<int, float>(
@@ -886,7 +926,7 @@ describe('glslPrinter', () => {
                             return init#:1;
                         };
                         if len(items#:0) - items_i#:10 >= 1 {
-                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[0 + items_i#:10]);
+                            const recur#:7: [var]R#:1 = fn#:2(init#:1, items#:0[items_i#:10]);
                             items_i#:10 = items_i#:10 + 1;
                             init#:1 = recur#:7;
                             continue;
@@ -903,7 +943,7 @@ describe('glslPrinter', () => {
                             return init#:1;
                         };
                         if len(items#:0) - items_i#:10 >= 1 {
-                            const recur#:7: [var]R#:1 = unnamed#🌆✈️🤐😃(init#:1, items#:0[0 + items_i#:10]);
+                            const recur#:7: [var]R#:1 = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
                             items_i#:10 = items_i#:10 + 1;
                             init#:1 = recur#:7;
                             continue;
@@ -919,7 +959,7 @@ describe('glslPrinter', () => {
                             return init#:1;
                         };
                         if len(items#:0) - items_i#:10 >= 1 {
-                            const recur#:7: [var]R#:1 = unnamed#🌆✈️🤐😃(init#:1, items#:0[0 + items_i#:10]);
+                            const recur#:7: [var]R#:1 = unnamed#🌆✈️🤐😃(init#:1, items#:0[items_i#:10]);
                             items_i#:10 = items_i#:10 + 1;
                             init#:1 = recur#:7;
                             continue;
@@ -1012,7 +1052,7 @@ describe('glslPrinter', () => {
                                 if len(values#:10) - values_i#:13 >= 1 {
                                     const recur#:14: Array<[var]R#:1> = [
                                         ...collect#:12,
-                                        fn#:11(values#:10[0 + values_i#:13]),
+                                        fn#:11(values#:10[values_i#:13]),
                                     ];
                                     values_i#:13 = values_i#:13 + 1;
                                     collect#:12 = recur#:14;
@@ -1056,7 +1096,7 @@ describe('glslPrinter', () => {
                                 if len(values#:10) - values_i#:13 >= 1 {
                                     const recur#:14: Array<[var]R#:1> = [
                                         ...collect#:12,
-                                        fn#:11(values#:10[0 + values_i#:13]),
+                                        fn#:11(values#:10[values_i#:13]),
                                     ];
                                     values_i#:13 = values_i#:13 + 1;
                                     collect#:12 = recur#:14;
@@ -1094,7 +1134,7 @@ describe('glslPrinter', () => {
                                 if len(values#:10) - values_i#:13 >= 1 {
                                     const recur#:14: Array<[var]R#:1> = [
                                         ...collect#:12,
-                                        fn#:11(values#:10[0 + values_i#:13]),
+                                        fn#:11(values#:10[values_i#:13]),
                                     ];
                                     values_i#:13 = values_i#:13 + 1;
                                     collect#:12 = recur#:14;
@@ -1133,7 +1173,7 @@ describe('glslPrinter', () => {
                             break;
                         };
                         if len(values#:10) - values_i#:13 >= 1 {
-                            const recur#:14: Array<float> = [...collect#:12, fn#:11(values#:10[0 + values_i#:13])];
+                            const recur#:14: Array<float> = [...collect#:12, fn#:11(values#:10[values_i#:13])];
                             values_i#:13 = values_i#:13 + 1;
                             collect#:12 = recur#:14;
                             continue;
@@ -1224,7 +1264,7 @@ describe('glslPrinter', () => {
                             break;
                         };
                         if len(values#:10) - values_i#:13 >= 1 {
-                            const recur#:14: Array<float> = [...collect#:12, fn#:11(values#:10[0 + values_i#:13])];
+                            const recur#:14: Array<float> = [...collect#:12, fn#:11(values#:10[values_i#:13])];
                             values_i#:13 = values_i#:13 + 1;
                             collect#:12 = recur#:14;
                             continue;
@@ -1253,7 +1293,7 @@ describe('glslPrinter', () => {
                             break;
                         };
                         if len(values#:10) - values_i#:13 >= 1 {
-                            const recur#:14: Array<float> = [...collect#:12, fn#:11(values#:10[0 + values_i#:13])];
+                            const recur#:14: Array<float> = [...collect#:12, fn#:11(values#:10[values_i#:13])];
                             values_i#:13 = values_i#:13 + 1;
                             collect#:12 = recur#:14;
                             continue;
@@ -1286,7 +1326,7 @@ describe('glslPrinter', () => {
                                 ...collect#:12,
                                 ((i#:17: int): float => length(
                                     pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17),
-                                ) - float(i#:17) * 10)(values#:10[0 + values_i#:13]),
+                                ) - float(i#:17) * 10)(values#:10[values_i#:13]),
                             ];
                             values_i#:13 = values_i#:13 + 1;
                             collect#:12 = recur#:14;
@@ -1316,7 +1356,7 @@ describe('glslPrinter', () => {
                                 ...collect#:12,
                                 ((i#:17: int): float => length(
                                     pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17),
-                                ) - float(i#:17) * 10)(values#:10[0 + values_i#:13]),
+                                ) - float(i#:17) * 10)(values#:10[values_i#:13]),
                             ];
                             values_i#:13 = values_i#:13 + 1;
                             collect#:12 = recur#:14;
@@ -1342,7 +1382,7 @@ describe('glslPrinter', () => {
                             break;
                         };
                         if len(values#:10) - values_i#:13 >= 1 {
-                            const i#:17: int = values#:10[0 + values_i#:13];
+                            const i#:17: int = values#:10[values_i#:13];
                             const recur#:14: Array<float> = [
                                 ...collect#:12,
                                 length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
@@ -1371,7 +1411,7 @@ describe('glslPrinter', () => {
                             break;
                         };
                         if len(values#:10) - values_i#:13 >= 1 {
-                            const i#:17: int = values#:10[0 + values_i#:13];
+                            const i#:17: int = values#:10[values_i#:13];
                             const recur#:14: Array<float> = [
                                 ...collect#:12,
                                 length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
@@ -1400,7 +1440,7 @@ describe('glslPrinter', () => {
                             break;
                         };
                         if len(values#:10) - values_i#:13 >= 1 {
-                            const i#:17: int = values#:10[0 + values_i#:13];
+                            const i#:17: int = values#:10[values_i#:13];
                             values_i#:13 = values_i#:13 + 1;
                             collect#:12 = [
                                 ...collect#:12,
@@ -1428,7 +1468,7 @@ describe('glslPrinter', () => {
                             break;
                         };
                         if 10 - values_i#:13 >= 1 {
-                            const i#:17: int = values#:10[0 + values_i#:13];
+                            const i#:17: int = values#:10[values_i#:13];
                             values_i#:13 = values_i#:13 + 1;
                             collect#:12 = [
                                 ...collect#:12,
@@ -1451,7 +1491,7 @@ describe('glslPrinter', () => {
                     const result#:15: Array<float>;
                     const values_i#:13: int = 0;
                     for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
-                        const i#:17: int = values#:10[0 + values_i#:13];
+                        const i#:17: int = values#:10[values_i#:13];
                         collect#:12 = [
                             ...collect#:12,
                             length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
@@ -1474,7 +1514,7 @@ describe('glslPrinter', () => {
                     const result#:15: Array<float>;
                     const values_i#:13: int = 0;
                     for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
-                        const i#:17: int = values#:10[0 + values_i#:13];
+                        const i#:17: int = values#:10[values_i#:13];
                         collect#:12 = [
                             ...collect#:12,
                             length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
@@ -1495,7 +1535,7 @@ describe('glslPrinter', () => {
                     const result#:15: Array<float>;
                     const values_i#:13: int = 0;
                     for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
-                        const i#:17: int = values#:10[0 + values_i#:13];
+                        const i#:17: int = values#:10[values_i#:13];
                         collect#:12 = [
                             ...collect#:12,
                             length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
@@ -1515,7 +1555,7 @@ describe('glslPrinter', () => {
                     const collect#:12: Array<float> = [];
                     const values_i#:13: int = 0;
                     for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
-                        const i#:17: int = values#:10[0 + values_i#:13];
+                        const i#:17: int = values#:10[values_i#:13];
                         collect#:12 = [
                             ...collect#:12,
                             length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
@@ -1535,7 +1575,7 @@ describe('glslPrinter', () => {
                     const collect#:12: Array<float> = [];
                     const values_i#:13: int = 0;
                     for (; values_i#:13 <= -(0 - 10); values_i#:13 = values_i#:13 + 1) {
-                        const i#:17: int = values#:10[0 + values_i#:13];
+                        const i#:17: int = values#:10[values_i#:13];
                         collect#:12 = [
                             ...collect#:12,
                             length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
@@ -1554,7 +1594,7 @@ describe('glslPrinter', () => {
                     const collect#:12: Array<float> = [];
                     const values_i#:13: int = 0;
                     for (; values_i#:13 <= -(-10); values_i#:13 = values_i#:13 + 1) {
-                        const i#:17: int = values#:10[0 + values_i#:13];
+                        const i#:17: int = values#:10[values_i#:13];
                         collect#:12 = [
                             ...collect#:12,
                             length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
@@ -1573,7 +1613,7 @@ describe('glslPrinter', () => {
                     const collect#:12: Array<float> = [];
                     const values_i#:13: int = 0;
                     for (; values_i#:13 <= 10; values_i#:13 = values_i#:13 + 1) {
-                        const i#:17: int = values#:10[0 + values_i#:13];
+                        const i#:17: int = values#:10[values_i#:13];
                         collect#:12 = [
                             ...collect#:12,
                             length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:17)) - float(i#:17) * 10,
@@ -1671,7 +1711,7 @@ describe('glslPrinter', () => {
                     const init#:7: float = 1000;
                     const items_i#:9: int = 0;
                     for (; items_i#:9 <= 10; items_i#:9 = items_i#:9 + 1) {
-                        const i#:14: int = items#:6[0 + items_i#:9];
+                        const i#:14: int = items#:6[items_i#:9];
                         init#:7 = min(init#:7, length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10);
                         continue;
                     };
@@ -1686,7 +1726,7 @@ describe('glslPrinter', () => {
                     float init = 1000.0;
                     int items_i = 0;
                     for (; items_i <= 10; items_i++) {
-                        int i = items[(0 + items_i)];
+                        int i = items[items_i];
                         init = min(init, (length((pos_1 - ((env_0.resolution / 10.0) * float(i)))) - (float(i) * 10.0)));
                         continue;
                     };

@@ -72,6 +72,34 @@ export const foldSimpleMath = (ctx: Context, expr: Expr) => {
                     }
                 }
             }
+            // Remove +/- 0
+            if (
+                expr.type === 'apply' &&
+                expr.target.type === 'builtin' &&
+                expr.args.length === 2 &&
+                expr.target.name === '+' &&
+                expr.args.some(
+                    (a) =>
+                        (a.type === 'int' || a.type === 'float') &&
+                        a.value === 0,
+                )
+            ) {
+                const other = expr.args.filter(
+                    (a) =>
+                        !(
+                            (a.type === 'int' || a.type === 'float') &&
+                            a.value === 0
+                        ),
+                );
+                // Both zero?
+                if (!other.length) {
+                    return expr.args[0];
+                }
+                if (other.length !== 1) {
+                    return null;
+                }
+                return other[0];
+            }
             return null;
         },
     });
