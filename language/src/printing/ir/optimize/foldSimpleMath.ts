@@ -1,0 +1,78 @@
+import { Expr } from '../intermediateRepresentation';
+import { defaultVisitor, transformExpr } from '../transform';
+import { floatLiteral, intLiteral } from '../utils';
+import { Context } from './optimize';
+
+const mathOps = ['+', '-', '*', '/'];
+
+export const foldSimpleMath = (ctx: Context, expr: Expr) => {
+    return transformExpr(expr, {
+        ...defaultVisitor,
+        expr: (expr) => {
+            if (
+                expr.type === 'apply' &&
+                expr.target.type === 'builtin' &&
+                mathOps.includes(expr.target.name) &&
+                expr.args.every(
+                    (arg) => arg.type === 'int' || arg.type === 'float',
+                )
+            ) {
+                const values = expr.args.map((a) =>
+                    a.type === 'int'
+                        ? a.value
+                        : a.type === 'float'
+                        ? a.value
+                        : null,
+                ) as Array<number>;
+                if (values.some((v) => v === null)) {
+                    throw new Error(`Invariant`);
+                }
+                if (expr.args[0].type === 'int') {
+                    if (expr.target.name === '*') {
+                        return intLiteral(values[0] * values[1], expr.loc);
+                    }
+                    if (expr.target.name === '/') {
+                        return intLiteral(
+                            Math.floor(values[0] / values[1]),
+                            expr.loc,
+                        );
+                    }
+                    if (expr.target.name === '+') {
+                        return intLiteral(values[0] + values[1], expr.loc);
+                    }
+                    if (expr.target.name === '-') {
+                        if (values.length === 2) {
+                            return intLiteral(values[0] - values[1], expr.loc);
+                        } else {
+                            return intLiteral(-values[0], expr.loc);
+                        }
+                    }
+                } else {
+                    if (expr.target.name === '*') {
+                        return floatLiteral(values[0] * values[1], expr.loc);
+                    }
+                    if (expr.target.name === '/') {
+                        return floatLiteral(
+                            Math.floor(values[0] / values[1]),
+                            expr.loc,
+                        );
+                    }
+                    if (expr.target.name === '+') {
+                        return floatLiteral(values[0] + values[1], expr.loc);
+                    }
+                    if (expr.target.name === '-') {
+                        if (values.length === 2) {
+                            return floatLiteral(
+                                values[0] - values[1],
+                                expr.loc,
+                            );
+                        } else {
+                            return floatLiteral(-values[0], expr.loc);
+                        }
+                    }
+                }
+            }
+            return null;
+        },
+    });
+};

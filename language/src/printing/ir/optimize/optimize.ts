@@ -22,6 +22,7 @@ import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { flattenRecordSpreads } from './flattenRecordSpread';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldImmediateAttributeAccess } from './foldImmediateAttributeAccess';
+import { foldSimpleMath } from './foldSimpleMath';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inferArraySize, loopSpreadToArraySet } from './inferArraySize';
 import { inferLoopBounds } from './inferLoopBounds';
@@ -544,6 +545,7 @@ export const glslOptsNamed = {
     // ...javascriptOpts,
     optimize,
 
+    foldSimpleMath,
     // // fromSimpleOpt(flattenIffe),
     // removeUnusedVariables,
     // removeNestedBlocksAndCodeAfterReturns,
@@ -591,6 +593,8 @@ export const glslOpts: Array<Optimizer2> = [
     flattenImmediateAssigns,
     // flattenImmediateCalls,
     removeUnusedVariables,
+
+    foldSimpleMath,
 
     inlineFunctionsCalledWithCapturingLambdas,
     ensureToplevelFunctionsAreLambdas,

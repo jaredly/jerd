@@ -279,6 +279,16 @@ export const loopSpreadToArraySet: Optimizer2 = (
 
 export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
     const updatedSyms: { [key: number]: InferredSize } = {};
+    const reassignedSyms: { [key: number]: true } = {};
+    transformExpr(expr, {
+        ...defaultVisitor,
+        stmt: (stmt) => {
+            if (stmt.type === 'Assign') {
+                reassignedSyms[stmt.sym.unique] = true;
+            }
+            return null;
+        },
+    });
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
@@ -460,6 +470,7 @@ export const inferArraySize: Optimizer2 = (context: Context, expr: Expr) => {
                 stmt.type === 'Define' &&
                 stmt.is.type === 'Array' &&
                 stmt.is.inferredSize == null &&
+                !reassignedSyms[stmt.sym.unique] &&
                 stmt.value &&
                 stmt.value.is.type === 'Array' &&
                 stmt.value.is.inferredSize != null

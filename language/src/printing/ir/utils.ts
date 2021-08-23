@@ -477,6 +477,13 @@ export const intLiteral = (value: number, loc: Location): Expr => ({
     is: int,
 });
 
+export const floatLiteral = (value: number, loc: Location): Expr => ({
+    type: 'float',
+    value,
+    loc,
+    is: float,
+});
+
 export const ifStatement = (
     cond: Expr,
     yes: Expr | Block,
