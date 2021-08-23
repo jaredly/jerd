@@ -81,7 +81,7 @@ export type InferredSize =
           type: 'exactly';
           size: number;
       }
-    | { type: 'expanding' }
+    // | { type: 'expanding' }
     // If it's in a lambda arg, then this is a ~declaration
     // otherwise, it's a reference
     // Oh also it might be an actual variable? no I think that would be the expr

@@ -326,7 +326,12 @@ export const replaceTypeVariablesInLambda = (
                     return arg;
                 });
                 return changed || res !== expr.res || is !== expr.is
-                    ? ({ ...expr, is, res, args } as LambdaExpr)
+                    ? ({
+                          ...expr,
+                          is: { ...is, typeVbls: [] },
+                          res,
+                          args,
+                      } as LambdaExpr)
                     : expr;
             }
             return is !== expr.is ? ({ ...expr, is } as Expr) : expr;

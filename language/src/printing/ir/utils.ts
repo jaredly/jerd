@@ -941,6 +941,13 @@ export const walkType = (
     if (changed) {
         return changed;
     }
+    if (term.type === 'Array') {
+        const inner = walkType(term.inner, handle);
+        if (inner != null) {
+            return { ...term, inner };
+        }
+        return null;
+    }
     if (term.type === 'lambda') {
         const newArgs = term.args.slice();
         let changed = false;
