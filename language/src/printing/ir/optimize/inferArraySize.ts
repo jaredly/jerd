@@ -35,6 +35,7 @@ import {
     int,
     intLiteral,
     pureFunction,
+    var_,
 } from '../utils';
 import { specializeFunction } from './monoconstant';
 import { monomorphize } from './monomorphize';
@@ -124,6 +125,24 @@ export const loopSpreadToArraySet: Optimizer2 = (
                 respread.sym.unique,
                 { type: 'var', sym, loc: nullLocation, is: newType },
             ];
+            let startingIndex: Expr;
+            // Append
+            if ((respread.value as ArrayExpr).items[0].type === 'Spread') {
+                startingIndex = intLiteral(0, expr.loc);
+            } else {
+                // TODO: This needs to be -1, right?
+                switch (loopSize.type) {
+                    case 'exactly':
+                        startingIndex = intLiteral(loopSize.size, expr.loc);
+                        break;
+                    case 'constant':
+                        startingIndex = var_(loopSize.sym, expr.loc, int);
+                        break;
+                    default:
+                        return null;
+                }
+                // startingIndex = loop.bounds.
+            }
             return {
                 ...expr,
                 body: {
@@ -138,7 +157,7 @@ export const loopSpreadToArraySet: Optimizer2 = (
                             type: 'Define',
                             sym: idxSym,
                             is: int,
-                            value: intLiteral(0, expr.loc),
+                            value: startingIndex,
                         },
                     ] as Array<Stmt>).concat(
                         expr.body.items.map((i) => {
@@ -150,8 +169,47 @@ export const loopSpreadToArraySet: Optimizer2 = (
                                         items: loop.body.items.map((i) => {
                                             if (i === respread) {
                                                 const value = i.value as ArrayExpr;
+                                                if (value.items.length !== 2) {
+                                                    throw new Error(
+                                                        `Only length 2 arrays supported just now`,
+                                                    );
+                                                }
+                                                let valueToAdd;
+                                                let offset;
+                                                if (
+                                                    value.items[0].type ===
+                                                        'Spread' &&
+                                                    value.items[1].type !==
+                                                        'Spread'
+                                                ) {
+                                                    valueToAdd = value.items[1];
+                                                    offset = intLiteral(
+                                                        1,
+                                                        i.loc,
+                                                    );
+                                                } else if (
+                                                    value.items[1].type ===
+                                                        'Spread' &&
+                                                    value.items[0].type !==
+                                                        'Spread'
+                                                ) {
+                                                    valueToAdd = value.items[0];
+                                                    offset = intLiteral(
+                                                        -1,
+                                                        i.loc,
+                                                    );
+                                                } else {
+                                                    return i;
+                                                }
+
+                                                // if (
+                                                //     value.items[0].type ===
+                                                //         'Spread' &&
+                                                //     value.items[1].type !==
+                                                //         'Spread'
+                                                // ) {
                                                 // We're appending, great
-                                                const m: Stmt = {
+                                                const arraySet: Stmt = {
                                                     type: 'ArraySet',
                                                     idx: {
                                                         type: 'var',
@@ -161,51 +219,50 @@ export const loopSpreadToArraySet: Optimizer2 = (
                                                     },
                                                     sym,
                                                     loc: i.loc,
-                                                    value: value
-                                                        .items[1] as Expr,
+                                                    value: valueToAdd,
+                                                };
+                                                const update: Stmt = {
+                                                    type: 'Assign',
+                                                    loc: i.loc,
+                                                    sym: idxSym,
+                                                    value: callExpression(
+                                                        context.env,
+                                                        builtin(
+                                                            '+',
+                                                            i.loc,
+                                                            pureFunction(
+                                                                [int, int],
+                                                                int,
+                                                            ),
+                                                        ),
+                                                        [
+                                                            {
+                                                                type: 'var',
+                                                                sym: idxSym,
+                                                                is: int,
+                                                                loc: i.loc,
+                                                            },
+                                                            offset,
+                                                        ],
+                                                        i.loc,
+                                                    ),
+                                                    is: int,
                                                 };
                                                 return {
                                                     type: 'Block',
-                                                    items: [
-                                                        m,
-                                                        {
-                                                            type: 'Assign',
-                                                            loc: i.loc,
-                                                            sym: idxSym,
-                                                            value: callExpression(
-                                                                context.env,
-                                                                builtin(
-                                                                    '+',
-                                                                    i.loc,
-                                                                    pureFunction(
-                                                                        [
-                                                                            int,
-                                                                            int,
-                                                                        ],
-                                                                        int,
-                                                                    ),
-                                                                ),
-                                                                [
-                                                                    {
-                                                                        type:
-                                                                            'var',
-                                                                        sym: idxSym,
-                                                                        is: int,
-                                                                        loc:
-                                                                            i.loc,
-                                                                    },
-                                                                    intLiteral(
-                                                                        1,
-                                                                        i.loc,
-                                                                    ),
-                                                                ],
-                                                                i.loc,
-                                                            ),
-                                                            is: int,
-                                                        },
-                                                    ],
+                                                    items: [arraySet, update],
                                                     loc: i.loc,
                                                 };
+                                                // } else if (
+                                                //     value.items[1].type ===
+                                                //         'Spread' &&
+                                                //     value.items[0].type !==
+                                                //         'Spread'
+
+                                                // ) {
+                                                //     return i;
+                                                // }
+                                                // return i
                                             } else {
                                                 return i;
                                             }
