@@ -1,5 +1,14 @@
 import { Env, symbolsEqual } from '../../../typing/types';
-import { defaultVisitor, transformExpr } from '../transform';
+import {
+    collectSymDeclarations,
+    collectSymDeclarationsVisitor,
+} from '../analyze';
+import {
+    defaultVisitor,
+    transformBlock,
+    transformExpr,
+    transformStmt,
+} from '../transform';
 import { Expr, Stmt } from '../types';
 import { Context, symName } from './optimize';
 
@@ -31,6 +40,29 @@ export const foldSingleUseAssignments = (ctx: Context, expr: Expr): Expr => {
         stmt: (stmt) => {
             if (stmt.type === 'Loop' && stmt.bounds != null) {
                 usages[symName(stmt.bounds.sym)] = 2;
+            }
+            if (stmt.type === 'Loop') {
+                // const defined = collectSymDeclarations()
+                const {
+                    // decls,
+                    // undefinedUses,
+                    defined,
+                    visitor,
+                } = collectSymDeclarationsVisitor();
+                transformStmt(stmt, visitor);
+
+                // Invalidate anything accessed in here
+                transformBlock(stmt.body, {
+                    ...defaultVisitor,
+                    expr: (expr) => {
+                        if (expr.type === 'var' && !defined[expr.sym.unique]) {
+                            usages[symName(expr.sym)] = 2;
+                        }
+                        return null;
+                    },
+                });
+                // Don't go into the loop
+                // return false;
             }
             if (stmt.type === 'ArraySet') {
                 usages[symName(stmt.sym)] = 2;

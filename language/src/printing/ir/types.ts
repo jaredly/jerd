@@ -251,13 +251,20 @@ export type Loop = {
     loc: Loc;
     bounds?: LoopBounds;
 };
+export type IfStmt = {
+    type: 'if';
+    cond: Expr;
+    yes: Block;
+    no: Block | null;
+    loc: Loc;
+};
 
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
     | { type: 'ArraySet'; sym: Symbol; idx: Expr; value: Expr; loc: Loc }
     | Define
     | Assign
-    | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
+    | IfStmt
     | { type: 'MatchFail'; loc: Loc }
     | ReturnStmt
     // Do I also want a "for-in" or a "for-range" stmt type?

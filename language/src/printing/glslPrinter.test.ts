@@ -270,6 +270,8 @@ describe('glslPrinter', () => {
                                 100,
                             )}`,
                         );
+                    } else {
+                        spy.push(`(${nameForOpt(opt)})`);
                     }
                     expr = post;
                 });
@@ -277,7 +279,9 @@ describe('glslPrinter', () => {
                     return expr;
                 }
             }
-            throw new Error(`Optimize failed to converge`);
+            spy.push('!!!! OPTMIZE FAILED TO CONVERGE !!!!');
+            // throw new Error(`Optimize failed to converge`);
+            return expr;
         };
 
         it('can reduce also', () => {
@@ -364,18 +368,19 @@ describe('glslPrinter', () => {
                     return rangeInner_specialization_38bc5e18();
                 }
                 /* (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+                    const items#:6: Array<int; 10> = range_specialization#🚔();
                     const init#:7: float = 1000;
                     const result#:11: float;
                     const items_i#:9: int = 0;
-                    loop {
+                    loop(unbounded) {
                         if 10 - items_i#:9 == 0 {
                             result#:11 = init#:7;
                             break;
                         };
                         if 10 - items_i#:9 >= 1 {
-                            const i#:3: int = range_specialization#🚔()[0 + items_i#:9];
+                            const i#:14: int = items#:6[0 + items_i#:9];
                             items_i#:9 = items_i#:9 + 1;
-                            init#:7 = min(init#:7, length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10);
+                            init#:7 = min(init#:7, length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10);
                             continue;
                         };
                         match_fail!();
@@ -387,6 +392,7 @@ describe('glslPrinter', () => {
                     };
                 } */
                 vec4 V3ea457a2(GLSLEnv_451d5252 env_0, vec2 pos_1) {
+                    int[10] items = range_specialization_e70c1f38();
                     float init = 1000.0;
                     float result;
                     int items_i = 0;
@@ -396,7 +402,7 @@ describe('glslPrinter', () => {
                             break;
                         };
                         if (((10 - items_i) >= 1)) {
-                            int i = range_specialization_e70c1f38()[(0 + items_i)];
+                            int i = items[(0 + items_i)];
                             items_i++;
                             init = min(init, (length((pos_1 - ((env_0.resolution / 10.0) * float(i)))) - (float(i) * 10.0)));
                             continue;
@@ -414,6 +420,12 @@ describe('glslPrinter', () => {
             expect(listened.join('\n\n')).toMatchInlineSnapshot(`
 --- [ start new opt ] ---
 
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
 flattenImmediateCalls2
 
 (n#:0: int, collect#:1: Array<int>): Array<int> => {
@@ -423,6 +435,22 @@ flattenImmediateCalls2
         return collect#:1;
     };
 }
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
 
 optimizeTailCalls
 
@@ -436,6 +464,18 @@ optimizeTailCalls
     return collect#:1;
 }
 
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
 removeUnusedVariables
 
 (n#:0: int, collect#:1: Array<int>): Array<int> => {
@@ -447,6 +487,12 @@ removeUnusedVariables
     return collect#:1;
 }
 
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
 foldSingleUseAssignments
 
 (n#:0: int, collect#:1: Array<int>): Array<int> => {
@@ -456,6 +502,18 @@ foldSingleUseAssignments
     };
     return collect#:1;
 }
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
 
 inferArraySize
 
@@ -482,6 +540,12 @@ loopSpreadToArraySet
     return newArray#:5;
 }
 
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
 removeNestedBlocksAndCodeAfterReturns
 
 (n#:0: int, collect#:1: Array<int; size#:4>): Array<int> => {
@@ -494,6 +558,60 @@ removeNestedBlocksAndCodeAfterReturns
     };
     return newArray#:5;
 }
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
 
 inferArraySize
 
@@ -508,13 +626,217 @@ inferArraySize
     return newArray#:5;
 }
 
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(inferArraySize)
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
 --- [ start new opt ] ---
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
 
 inferArraySize
 
 (n#:0: int): Array<int> => rangeInner#🍁(n#:0, [])
 
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(inferArraySize)
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
 --- [ start new opt ] ---
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
 
 removeNestedBlocksAndCodeAfterReturns
 
@@ -556,10 +878,24 @@ foldSingleUseAssignments
     match_fail!();
 }
 
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
 optimizeTailCalls
 
 <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-    loop {
+    loop(unbounded) {
         if len(items#:0) == 0 {
             return init#:1;
         };
@@ -576,10 +912,30 @@ optimizeTailCalls
     };
 }
 
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
 foldSingleUseAssignments
 
 <T, R>(items#:0: Array<[var]T#:0>, init#:1: [var]R#:1, fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1): [var]R#:1 => {
-    loop {
+    loop(unbounded) {
         if len(items#:0) == 0 {
             return init#:1;
         };
@@ -593,6 +949,18 @@ foldSingleUseAssignments
         match_fail!();
     };
 }
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
 
 inferArraySize
 
@@ -601,7 +969,7 @@ inferArraySize
     init#:1: [var]R#:1,
     fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
 ): [var]R#:1 => {
-    loop {
+    loop(unbounded) {
         if len(items#:0) == 0 {
             return init#:1;
         };
@@ -615,6 +983,36 @@ inferArraySize
         match_fail!();
     };
 }
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
 
 arraySliceLoopToIndex
 
@@ -624,7 +1022,7 @@ arraySliceLoopToIndex
     fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
 ): [var]R#:1 => {
     const items_i#:10: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:0) - items_i#:10 == 0 {
             return init#:1;
         };
@@ -639,6 +1037,22 @@ arraySliceLoopToIndex
     };
 }
 
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
 
 
 <T, R>(
@@ -647,7 +1061,7 @@ arraySliceLoopToIndex
     fn#:2: ([var]R#:1, [var]T#:0) => [var]R#:1,
 ): [var]R#:1 => {
     const items_i#:10: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:0) - items_i#:10 == 0 {
             return init#:1;
         };
@@ -661,7 +1075,99 @@ arraySliceLoopToIndex
     };
 }
 
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(inferArraySize)
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(inferArraySize)
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
 --- [ start new opt ] ---
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
 
 flattenImmediateCalls2
 
@@ -714,6 +1220,12 @@ foldSingleUseAssignments
     };
 }
 
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
 inlineFunctionsCalledWithCapturingLambdas
 
 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
@@ -723,7 +1235,7 @@ inlineFunctionsCalledWithCapturingLambdas
         fn#:8: ([var]R#:1, [var]T#:0) => [var]R#:1,
     ): [var]R#:1 => {
         const items_i#:9: int = 0;
-        loop {
+        loop(unbounded) {
             if len(items#:6) - items_i#:9 == 0 {
                 return init#:7;
             };
@@ -757,6 +1269,18 @@ inlineFunctionsCalledWithCapturingLambdas
     };
 }
 
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
 inlint
 
 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
@@ -766,7 +1290,7 @@ inlint
         fn#:8: ([var]R#:1, [var]T#:0) => [var]R#:1,
     ): [var]R#:1 => {
         const items_i#:9: int = 0;
-        loop {
+        loop(unbounded) {
             if len(items#:6) - items_i#:9 == 0 {
                 return init#:7;
             };
@@ -792,6 +1316,32 @@ inlint
     };
 }
 
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
 flattenImmediateCalls2
 
 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
@@ -804,7 +1354,7 @@ flattenImmediateCalls2
     const result#:11: float;
     const continueBlock#:12: bool = true;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:6) - items_i#:9 == 0 {
             result#:11 = init#:7;
             continueBlock#:12 = false;
@@ -827,11 +1377,79 @@ flattenImmediateCalls2
 
 --- [ start new opt ] ---
 
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
 foldSingleUseAssignments
 
 (): Array<int> => rangeInner#🍁(10, [])
 
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
 --- [ start new opt ] ---
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
 
 foldConstantsAndLambdas
 
@@ -848,6 +1466,8 @@ foldConstantsAndLambdas
     return newArray#:5;
 }
 
+(flattenImmediateAssigns)
+
 removeUnusedVariables
 
 (): Array<int; 10> => {
@@ -862,13 +1482,263 @@ removeUnusedVariables
     return newArray#:5;
 }
 
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(inferArraySize)
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(inferArraySize)
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
 inferArraySize
 
 (): Array<int> => unnamed#🐀🌁🌒()
 
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
 inferArraySize
 
 (): Array<int; 10> => unnamed#🐀🌁🌒()
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(inferArraySize)
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
 
 inferArraySize
 
@@ -882,7 +1752,7 @@ inferArraySize
     const result#:11: float;
     const continueBlock#:12: bool = true;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:6) - items_i#:9 == 0 {
             result#:11 = init#:7;
             continueBlock#:12 = false;
@@ -903,23 +1773,71 @@ inferArraySize
     };
 }
 
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
 foldSingleUseAssignments
 
 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
     const items#:6: Array<int> = unnamed#🚔();
     const init#:7: float = 1000;
+    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
+        current#:2,
+        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+    );
     const result#:11: float;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:6) - items_i#:9 == 0 {
             result#:11 = init#:7;
             continueBlock#:12 = false;
             break;
         };
         if len(items#:6) - items_i#:9 >= 1 {
-            const recur#:10: float = ((current#:2: float, i#:3: int): float => min(
-                current#:2,
-                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+            const recur#:10: float = fn#:8(init#:7, items#:6[0 + items_i#:9]);
+            items_i#:9 = items_i#:9 + 1;
+            init#:7 = recur#:10;
+            continue;
+        };
+        match_fail!();
+    };
+    if result#:11 < 0 {
+        return vec4(1);
+    } else {
+        return vec4(0);
+    };
+}
+
+foldConstantsAndLambdas
+
+(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
+    const items#:6: Array<int> = unnamed#🚔();
+    const init#:7: float = 1000;
+    const fn#:8: (float, int) => float = (current#:2: float, i#:3: int): float => min(
+        current#:2,
+        length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+    );
+    const result#:11: float;
+    const items_i#:9: int = 0;
+    loop(unbounded) {
+        if len(items#:6) - items_i#:9 == 0 {
+            result#:11 = init#:7;
+            continueBlock#:12 = false;
+            break;
+        };
+        if len(items#:6) - items_i#:9 >= 1 {
+            const recur#:10: float = ((current#:13: float, i#:14: int): float => min(
+                current#:13,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
             ))(init#:7, items#:6[0 + items_i#:9]);
             items_i#:9 = items_i#:9 + 1;
             init#:7 = recur#:10;
@@ -933,6 +1851,8 @@ foldSingleUseAssignments
         return vec4(0);
     };
 }
+
+(flattenImmediateAssigns)
 
 removeUnusedVariables
 
@@ -941,15 +1861,15 @@ removeUnusedVariables
     const init#:7: float = 1000;
     const result#:11: float;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:6) - items_i#:9 == 0 {
             result#:11 = init#:7;
             break;
         };
         if len(items#:6) - items_i#:9 >= 1 {
-            const recur#:10: float = ((current#:2: float, i#:3: int): float => min(
-                current#:2,
-                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+            const recur#:10: float = ((current#:13: float, i#:14: int): float => min(
+                current#:13,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
             ))(init#:7, items#:6[0 + items_i#:9]);
             items_i#:9 = items_i#:9 + 1;
             init#:7 = recur#:10;
@@ -964,6 +1884,48 @@ removeUnusedVariables
     };
 }
 
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
 flattenImmediateCalls2
 
 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
@@ -971,18 +1933,18 @@ flattenImmediateCalls2
     const init#:7: float = 1000;
     const result#:11: float;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:6) - items_i#:9 == 0 {
             result#:11 = init#:7;
             break;
         };
         if len(items#:6) - items_i#:9 >= 1 {
             const recur#:10: float;
-            const current#:2: float = init#:7;
-            const i#:3: int = items#:6[0 + items_i#:9];
+            const current#:13: float = init#:7;
+            const i#:14: int = items#:6[0 + items_i#:9];
             recur#:10 = min(
-                current#:2,
-                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                current#:13,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
             );
             items_i#:9 = items_i#:9 + 1;
             init#:7 = recur#:10;
@@ -1004,18 +1966,18 @@ inferArraySize
     const init#:7: float = 1000;
     const result#:11: float;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:6) - items_i#:9 == 0 {
             result#:11 = init#:7;
             break;
         };
         if len(items#:6) - items_i#:9 >= 1 {
             const recur#:10: float;
-            const current#:2: float = init#:7;
-            const i#:3: int = items#:6[0 + items_i#:9];
+            const current#:13: float = init#:7;
+            const i#:14: int = items#:6[0 + items_i#:9];
             recur#:10 = min(
-                current#:2,
-                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                current#:13,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
             );
             items_i#:9 = items_i#:9 + 1;
             init#:7 = recur#:10;
@@ -1029,6 +1991,18 @@ inferArraySize
         return vec4(0);
     };
 }
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
 
 foldSingleUseAssignments
 
@@ -1037,17 +2011,17 @@ foldSingleUseAssignments
     const init#:7: float = 1000;
     const result#:11: float;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:6) - items_i#:9 == 0 {
             result#:11 = init#:7;
             break;
         };
         if len(items#:6) - items_i#:9 >= 1 {
             const recur#:10: float;
-            const i#:3: int = items#:6[0 + items_i#:9];
+            const i#:14: int = items#:6[0 + items_i#:9];
             recur#:10 = min(
                 init#:7,
-                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
             );
             items_i#:9 = items_i#:9 + 1;
             init#:7 = recur#:10;
@@ -1061,6 +2035,8 @@ foldSingleUseAssignments
         return vec4(0);
     };
 }
+
+(foldConstantsAndLambdas)
 
 flattenImmediateAssigns
 
@@ -1069,16 +2045,16 @@ flattenImmediateAssigns
     const init#:7: float = 1000;
     const result#:11: float;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:6) - items_i#:9 == 0 {
             result#:11 = init#:7;
             break;
         };
         if len(items#:6) - items_i#:9 >= 1 {
-            const i#:3: int = items#:6[0 + items_i#:9];
+            const i#:14: int = items#:6[0 + items_i#:9];
             const recur#:10: float = min(
                 init#:7,
-                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
             );
             items_i#:9 = items_i#:9 + 1;
             init#:7 = recur#:10;
@@ -1093,6 +2069,38 @@ flattenImmediateAssigns
     };
 }
 
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
 foldSingleUseAssignments
 
 (env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
@@ -1100,17 +2108,17 @@ foldSingleUseAssignments
     const init#:7: float = 1000;
     const result#:11: float;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if len(items#:6) - items_i#:9 == 0 {
             result#:11 = init#:7;
             break;
         };
         if len(items#:6) - items_i#:9 >= 1 {
-            const i#:3: int = items#:6[0 + items_i#:9];
+            const i#:14: int = items#:6[0 + items_i#:9];
             items_i#:9 = items_i#:9 + 1;
             init#:7 = min(
                 init#:7,
-                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
             );
             continue;
         };
@@ -1122,6 +2130,18 @@ foldSingleUseAssignments
         return vec4(0);
     };
 }
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
 
 inferArraySize
 
@@ -1130,17 +2150,17 @@ inferArraySize
     const init#:7: float = 1000;
     const result#:11: float;
     const items_i#:9: int = 0;
-    loop {
+    loop(unbounded) {
         if 10 - items_i#:9 == 0 {
             result#:11 = init#:7;
             break;
         };
         if 10 - items_i#:9 >= 1 {
-            const i#:3: int = items#:6[0 + items_i#:9];
+            const i#:14: int = items#:6[0 + items_i#:9];
             items_i#:9 = items_i#:9 + 1;
             init#:7 = min(
                 init#:7,
-                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
+                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:14)) - float(i#:14) * 10,
             );
             continue;
         };
@@ -1153,34 +2173,75 @@ inferArraySize
     };
 }
 
-foldSingleUseAssignments
+(loopSpreadToArraySet)
 
-(env#:0: GLSLEnv#🕷️⚓😣😃, pos#:1: Vec2#🐭😉😵😃): Vec4#🕒🧑‍🏫🎃 => {
-    const init#:7: float = 1000;
-    const result#:11: float;
-    const items_i#:9: int = 0;
-    loop {
-        if 10 - items_i#:9 == 0 {
-            result#:11 = init#:7;
-            break;
-        };
-        if 10 - items_i#:9 >= 1 {
-            const i#:3: int = unnamed#🚔()[0 + items_i#:9];
-            items_i#:9 = items_i#:9 + 1;
-            init#:7 = min(
-                init#:7,
-                length(pos#:1 - env#:0.#GLSLEnv#🕷️⚓😣😃#1 / 10 * float(i#:3)) - float(i#:3) * 10,
-            );
-            continue;
-        };
-        match_fail!();
-    };
-    if result#:11 < 0 {
-        return vec4(1);
-    } else {
-        return vec4(0);
-    };
-}
+(inferLoopBounds)
+
+(specializeFunctionsCalledWithLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(foldSingleUseAssignments)
+
+(foldConstantsAndLambdas)
+
+(flattenImmediateAssigns)
+
+(removeUnusedVariables)
+
+(inlineFunctionsCalledWithCapturingLambdas)
+
+(ensureToplevelFunctionsAreLambdas)
+
+(inlineCallsThatReturnFunctions)
+
+(explicitSpreads)
+
+(optimizeTailCalls)
+
+(arraySliceLoopToIndex)
+
+(foldImmediateAttributeAccess)
+
+(inlint)
+
+(monomorphize)
+
+(monomorphizeTypes)
+
+()
+
+(removeUnusedVariables)
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+()
+
+()
+
+(foldSingleUseAssignments)
+
+()
+
+()
+
+(removeUnusedVariables)
+
+()
+
+(removeNestedBlocksAndCodeAfterReturns)
+
+(flattenImmediateCalls2)
+
+(inferArraySize)
+
+(loopSpreadToArraySet)
+
+(inferLoopBounds)
 `);
         });
 

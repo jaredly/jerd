@@ -3,15 +3,15 @@
 import { Location } from '../../parsing/parser';
 import { LocatedError, UniqueError } from '../../typing/errors';
 import { Symbol } from '../../typing/types';
-import { defaultVisitor, transformExpr } from './transform';
+import { defaultVisitor, transformExpr, Visitor } from './transform';
 import { Expr, Loc } from './types';
 import { handlerSym } from './utils';
 
-export const collectSymDeclarations = (expr: Expr) => {
+export const collectSymDeclarationsVisitor = () => {
     const defined: { [unique: number]: true } = {};
     const undefinedUses: Array<{ sym: Symbol; loc: Location }> = [];
     const decls: Array<{ sym: Symbol; loc: Loc; type: string }> = [];
-    transformExpr(expr, {
+    const visitor: Visitor = {
         ...defaultVisitor,
         stmt: (stmt) => {
             switch (stmt.type) {
@@ -45,8 +45,19 @@ export const collectSymDeclarations = (expr: Expr) => {
             }
             return null;
         },
-    });
-    return { decls, undefinedUses };
+    };
+    return { decls, undefinedUses, defined, visitor };
+};
+
+export const collectSymDeclarations = (expr: Expr) => {
+    const {
+        decls,
+        undefinedUses,
+        defined,
+        visitor,
+    } = collectSymDeclarationsVisitor();
+    transformExpr(expr, visitor);
+    return { decls, undefinedUses, defined };
 };
 
 export const uniquesReallyAreUnique = (expr: Expr) => {

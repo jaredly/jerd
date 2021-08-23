@@ -24,6 +24,7 @@ import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldImmediateAttributeAccess } from './foldImmediateAttributeAccess';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inferArraySize, loopSpreadToArraySet } from './inferArraySize';
+import { inferLoopBounds } from './inferLoopBounds';
 import { inlineFunctionsCalledWithCapturingLambdas, inlint } from './inline';
 import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
 import {
@@ -595,6 +596,7 @@ export const glslOpts: Array<Optimizer2> = [
     ensureToplevelFunctionsAreLambdas,
     inlineCallsThatReturnFunctions,
     explicitSpreads,
+    // inferArraySize,
     optimizeTailCalls,
     // ...javascriptOpts,
 
@@ -626,4 +628,6 @@ export const glslOpts: Array<Optimizer2> = [
 
     inferArraySize,
     loopSpreadToArraySet,
+
+    inferLoopBounds,
 ];

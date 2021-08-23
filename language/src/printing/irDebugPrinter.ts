@@ -498,7 +498,7 @@ export const debugStmt = (env: Env, stmt: ir.Stmt): PP => {
                 );
             }
             return items(
-                [atom('loop '), debugBody(env, stmt.body)],
+                [atom('loop(unbounded) '), debugBody(env, stmt.body)],
                 undefined,
                 stmt.loc,
             );
