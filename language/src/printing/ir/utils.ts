@@ -664,6 +664,9 @@ export const callExpression = (
                 loc,
             ) as LambdaType;
         } catch (err) {
+            // console.log(target.is);
+            // console.log(typeVbls);
+            // debugger;
             throw new LocatedError(
                 loc,
                 `Um Failed to apply type variables.`,
@@ -733,6 +736,13 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                 ]);
             }
             return refToPretty(env, type.ref, 'type');
+        case 'Array':
+            return items([
+                atom('Array'),
+                atom('<'),
+                typeToPretty(env, type.inner),
+                atom('>'),
+            ]);
         case 'lambda':
             return items([
                 type.note ? atom('[' + type.note + ']') : null,
@@ -774,6 +784,7 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                 // throw new Error(`effect handler wanted`);
             }
         default:
+            let _x: never = type;
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);
     }
 };

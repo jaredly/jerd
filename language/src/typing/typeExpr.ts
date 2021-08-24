@@ -305,7 +305,9 @@ export const applyTypeVariables = (
         };
     }
     // should I go full-on whatsit? maybe not yet.
-    throw new Error(`Can't apply variables to non-lambdas just yet`);
+    throw new Error(
+        `Can't apply variables to non-lambdas just yet ${type.type}`,
+    );
 };
 
 const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {

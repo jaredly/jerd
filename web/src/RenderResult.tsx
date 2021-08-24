@@ -47,6 +47,7 @@ import { sortAllDepsPlain } from '../../language/src/typing/analyze';
 import { widgetForDecorator } from './display/Decorators';
 import { transform } from '../../language/src/typing/transform';
 import { runTerm } from './eval';
+import { LocatedError } from '../../language/src/typing/errors';
 
 /*
 
@@ -274,6 +275,9 @@ const RenderResult_ = ({
         } catch (err) {
             console.log(`Failed to run!`);
             console.log(err);
+            if (err instanceof LocatedError) {
+                console.log(err.toString());
+            }
             return evalEnv;
         }
 
