@@ -1,39 +1,25 @@
 // Print a type to typescript
 
+import generate from '@babel/generator';
+import * as t from '@babel/types';
+import { idName, refName } from '../typing/env';
 import {
-    Env,
-    Symbol,
-    Type as TermType,
-    Reference,
     EffectRef,
+    Env,
     Id,
     RecordDef,
+    Reference,
+    Symbol,
+    Type as TermType,
     TypeVblDecl,
 } from '../typing/types';
-import * as t from '@babel/types';
-import generate from '@babel/generator';
-import { idName, refName } from '../typing/env';
-import { recordAttributeName } from './typeScriptPrinterSimple';
 import { Type } from './ir/types';
 import {
     cpsLambdaToLambda,
     doneLambdaToLambda,
     typeFromTermType,
 } from './ir/utils';
-import { TypeDefs } from './ir/optimize/optimize';
-
-// Can I... misuse babel's AST to produce go?
-// what would get in my way?
-// hm the fact that typescript type annotations might not do the trick?
-// I mean, for go it might be fine.
-// not sure about swift or something like that.
-// can cross that bridge when we want to.
-
-// TODO: I want to abstract this out
-// Into a file that generates an intermediate representation
-// that can then be turned into TypeScript, or Go, or Swift or something.
-// And then the specific "turn it into typescript" bit can be much simpler.
-// But for now I should probably flesh out the language a bit more.
+import { recordAttributeName } from './typeScriptPrinterSimple';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 
