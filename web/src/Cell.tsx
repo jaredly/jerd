@@ -1,56 +1,32 @@
 /** @jsx jsx */
-import { jsx } from '@emotion/react';
-// Ok
-
-import * as React from 'react';
+import { Interpolation, jsx, Theme } from '@emotion/react';
 import {
-    idName,
-    idFromName,
-    ToplevelT,
     hashObject,
+    idFromName,
+    idName,
+    ToplevelT,
 } from '@jerd/language/src/typing/env';
 import {
     Env,
     Id,
-    selfEnv,
-    Term,
-    Type,
+    idsEqual,
     nullLocation,
     Reference,
-    idsEqual,
+    selfEnv,
+    Term,
 } from '@jerd/language/src/typing/types';
-import {
-    toplevelToPretty,
-    typeToPretty,
-    typeVblDeclsToPretty,
-} from '@jerd/language/src/printing/printTsLike';
-import {
-    atom,
-    id,
-    items,
-    printToAttributedText,
-    printToString,
-} from '@jerd/language/src/printing/printer';
+// Ok
+import * as React from 'react';
+import { Position } from './Cells';
+import { cellTitle } from './cellTitle';
+import { CellWrapper } from './CellWrapper';
+import { compileGLSL, envWithTerm, getStateUniform } from './display/OpenGL';
 import Editor from './Editor';
 import { termToJS } from './eval';
-import { renderAttributedText } from './Render';
-import {
-    Cell,
-    Content,
-    Display,
-    EvalEnv,
-    RenderPluginT,
-    TopContent,
-} from './State';
-import { getToplevel, updateToplevel } from './toplevels';
+import { getMenuItems } from './getMenuItems';
 import { RenderItem } from './RenderItem';
-import {
-    expressionDeps,
-    expressionTypeDeps,
-} from '@jerd/language/src/typing/analyze';
-import { envWithTerm, compileGLSL, getStateUniform } from './display/OpenGL';
-import { Position } from './Cells';
-import { CellWrapper, MenuItem } from './CellWrapper';
+import { Cell, Content, Display, EvalEnv, RenderPluginT } from './State';
+import { getToplevel, updateToplevel } from './toplevels';
 
 // const maxWidth = 80;
 
@@ -161,47 +137,7 @@ const CellView_ = ({
                         ? cell.content.text
                         : getToplevel(env, cell.content)
                 }
-                onClose={(proposedToplevel) => {
-                    if (cell.content.type === 'term') {
-                        if (
-                            proposedToplevel != null &&
-                            (proposedToplevel.type === 'Define' ||
-                                proposedToplevel?.type === 'Expression')
-                        ) {
-                            const id = idFromName(
-                                hashObject(proposedToplevel.term),
-                            );
-                            if (idsEqual(id, cell.content.id)) {
-                                if (cell.content.proposed) {
-                                    onChange(null, {
-                                        ...cell,
-                                        content: {
-                                            ...cell.content,
-                                            proposed: null,
-                                        },
-                                    });
-                                }
-                            } else {
-                                onChange(null, {
-                                    ...cell,
-                                    content: {
-                                        ...cell.content,
-                                        proposed: {
-                                            term: proposedToplevel.term,
-                                            id: id,
-                                        },
-                                    },
-                                });
-                            }
-                        } else if (cell.content.proposed) {
-                            onChange(null, {
-                                ...cell,
-                                content: { ...cell.content, proposed: null },
-                            });
-                        }
-                    }
-                    setSelection((s) => ({ ...s, level: 'inner' }));
-                }}
+                onClose={updateProposed(cell, onChange, setSelection)}
                 onChange={(rawOrToplevel) => {
                     onFocus(cell.id);
                     if (typeof rawOrToplevel === 'string') {
@@ -258,33 +194,7 @@ const CellView_ = ({
                     setSelection((s) => ({ ...s, level: 'outer' }));
                     onFocus(cell.id);
                 }}
-                onPending={(pending) => {
-                    if (cell.content.type === 'term') {
-                        const id = idFromName(hashObject(pending));
-                        if (idsEqual(cell.content.id, id)) {
-                            if (cell.content.proposed) {
-                                onChange(null, {
-                                    ...cell,
-                                    content: {
-                                        ...cell.content,
-                                        proposed: null,
-                                    },
-                                });
-                            }
-                            return;
-                        }
-                        onChange(null, {
-                            ...cell,
-                            content: {
-                                ...cell.content,
-                                proposed: {
-                                    term: pending,
-                                    id: id,
-                                },
-                            },
-                        });
-                    }
-                }}
+                onPending={updatePending(cell, onChange)}
                 onPin={onPin}
                 cell={cell}
                 plugins={plugins}
@@ -346,34 +256,8 @@ const CellView_ = ({
                 cell,
                 maxWidth,
                 cell.collapsed,
-                () => {
-                    if (cell.content.type === 'term') {
-                        onChange(env, {
-                            ...cell,
-                            content: { ...cell.content, proposed: undefined },
-                        });
-                    }
-                },
-                () => {
-                    if (cell.content.type === 'term' && cell.content.proposed) {
-                        const name =
-                            env.global.idNames[idName(cell.content.id)];
-                        const top: ToplevelT = name
-                            ? {
-                                  type: 'Define',
-                                  term: cell.content.proposed.term,
-                                  name,
-                                  id: cell.content.id,
-                                  location: nullLocation,
-                              }
-                            : {
-                                  type: 'Expression',
-                                  term: cell.content.proposed.term,
-                                  location: nullLocation,
-                              };
-                        onSetToplevel(top);
-                    }
-                },
+                rejectProposed(cell, onChange, env),
+                acceptProposed(cell, env, onSetToplevel),
             )}
             onRevertToTerm={(id: Id) => {
                 onChange(env, { ...cell, content: { type: 'term', id } });
@@ -384,102 +268,18 @@ const CellView_ = ({
             collapsed={cell.collapsed || false}
             setCollapsed={setCollapsed}
             onToggleSource={() => setShowSource(!showSource)}
-            menuItems={() => {
-                return [
-                    { name: 'Move up', action: () => onMove(cell.id, 'up') },
-                    {
-                        name: 'Move down',
-                        action: () => onMove(cell.id, 'down'),
-                    },
-                    { name: 'Move to workspace', action: () => {} },
-                    {
-                        name: 'Duplicate cell',
-                        action: () => onDuplicate(cell.id),
-                    },
-                    {
-                        name: 'History',
-                        action: () => console.log('Ok history I guess'),
-                    },
-                    ...(cell.collapsed
-                        ? [
-                              {
-                                  name: 'Expand',
-                                  action: () => setCollapsed(false),
-                              },
-                          ]
-                        : [
-                              {
-                                  name: 'Collapse',
-                                  action: () => setCollapsed(true),
-                              },
-                              term
-                                  ? showSource
-                                      ? {
-                                            name: 'Hide generated javascript',
-                                            action: () => setShowSource(false),
-                                        }
-                                      : {
-                                            name: 'Show generated javascript',
-                                            action: () => setShowSource(true),
-                                        }
-                                  : null,
-                              term
-                                  ? showGLSL
-                                      ? {
-                                            name: 'Hide generated GLSL',
-                                            action: () => setShowGLSL(false),
-                                        }
-                                      : {
-                                            name: 'Show generated GLSL',
-                                            action: () => setShowGLSL(true),
-                                        }
-                                  : null,
-                              term
-                                  ? {
-                                        name: 'Debug GLSL',
-                                        action: () =>
-                                            (window.location.search =
-                                                '?debug-glsl=' +
-                                                idName(
-                                                    (cell.content as any).id,
-                                                )),
-                                    }
-                                  : null,
-                          ]),
-                    ...(cell.content.type === 'term'
-                        ? [
-                              {
-                                  name:
-                                      'Export term & dependencies to tslike syntax',
-                                  action: () => {
-                                      if (cell.content.type !== 'term') {
-                                          return;
-                                      }
-                                      const text = generateExport(
-                                          env,
-                                          cell.content.id,
-                                      );
-                                      navigator.clipboard.writeText(text);
-                                  },
-                              },
-                              {
-                                  name: 'Export with IDs',
-                                  action: () => {
-                                      if (cell.content.type !== 'term') {
-                                          return;
-                                      }
-                                      const text = generateExport(
-                                          env,
-                                          cell.content.id,
-                                          false,
-                                      );
-                                      navigator.clipboard.writeText(text);
-                                  },
-                              },
-                          ]
-                        : []),
-                ].filter(Boolean) as Array<MenuItem>;
-            }}
+            menuItems={getMenuItems({
+                onMove,
+                onDuplicate,
+                setCollapsed,
+                setShowSource,
+                term,
+                showSource,
+                showGLSL,
+                cell,
+                env,
+                setShowGLSL,
+            })}
         >
             {body}
             {term && showSource && cell.content.type === 'term' ? (
@@ -534,22 +334,18 @@ const ViewGLSL = ({
             stateUniform,
         ).text;
     }, [env, term]);
-    return (
-        <div
-            css={{
-                whiteSpace: 'pre-wrap',
-                fontFamily: 'monospace',
-                lineHeight: 1.4,
-                color: '#bbb',
-                textShadow: '1px 1px 2px #000',
-                padding: '8px 12px',
-                background: '#333',
-                borderRadius: '4px',
-            }}
-        >
-            {source}
-        </div>
-    );
+    return <div css={sourceStyle}>{source}</div>;
+};
+
+const sourceStyle: Interpolation<Theme> = {
+    whiteSpace: 'pre-wrap',
+    fontFamily: 'monospace',
+    lineHeight: 1.4,
+    color: '#bbb',
+    textShadow: '1px 1px 2px #000',
+    padding: '8px 12px',
+    background: '#333',
+    borderRadius: '4px',
 };
 
 const ViewSource = ({
@@ -573,66 +369,7 @@ const ViewSource = ({
             {},
         );
     }, [env, term]);
-    return (
-        <div
-            css={{
-                whiteSpace: 'pre-wrap',
-                fontFamily: 'monospace',
-                lineHeight: 1.4,
-                color: '#bbb',
-                textShadow: '1px 1px 2px #000',
-                padding: '8px 12px',
-                background: '#333',
-                borderRadius: '4px',
-            }}
-        >
-            {source}
-        </div>
-    );
-};
-
-const generateExport = (env: Env, id: Id, hideIds: boolean = true) => {
-    const typesInOrder: Array<ToplevelT> = expressionTypeDeps(env, [
-        env.global.terms[idName(id)],
-    ]).map(
-        (idRaw): ToplevelT => {
-            const defn = env.global.types[idRaw];
-            const name = env.global.idNames[idRaw];
-            if (defn.type === 'Record') {
-                return {
-                    type: 'RecordDef',
-                    attrNames: env.global.recordGroups[idRaw],
-                    def: defn,
-                    id: idFromName(idRaw),
-                    location: nullLocation,
-                    name,
-                };
-            } else {
-                return {
-                    type: 'EnumDef',
-                    def: defn,
-                    id: idFromName(idRaw),
-                    location: nullLocation,
-                    name,
-                };
-            }
-        },
-    );
-    const depsInOrder: Array<ToplevelT> = expressionDeps(env, [
-        env.global.terms[idName(id)],
-    ])
-        .concat([idName(id)])
-        .map((idRaw) => ({
-            type: 'Define',
-            id: idFromName(idRaw),
-            term: env.global.terms[idRaw],
-            location: nullLocation,
-            name: env.global.idNames[idRaw],
-        }));
-    const items = typesInOrder
-        .concat(depsInOrder)
-        .map((top) => toplevelToPretty(env, top));
-    return items.map((pp) => printToString(pp, 100, { hideIds })).join('\n\n');
+    return <div css={sourceStyle}>{source}</div>;
 };
 
 export const hashStyle = {
@@ -644,121 +381,122 @@ export const hashStyle = {
     borderRadius: 4,
 };
 
-const Icon = ({ name }: { name: string }) => (
-    <img
-        src={`/imgs/${name}.svg`}
-        css={{
-            width: 16,
-            height: 16,
-            color: 'inherit',
-            marginBottom: -4,
-            marginRight: 8,
-        }}
-    />
-);
-
-const cellTitle = (
-    env: Env,
+const updateProposed = (
     cell: Cell,
-    maxWidth: number,
-    collapsed?: boolean,
-    clearPending?: () => void,
-    acceptPending?: () => void,
-) => {
-    if (collapsed) {
-        maxWidth = 10000;
-    }
-    switch (cell.content.type) {
-        case 'raw':
-            return <em>unevaluated</em>;
-        case 'effect':
-            const name = env.global.idNames[idName(cell.content.id)];
-            return `effect ${name}`;
-        case 'record': {
-            const name = env.global.idNames[idName(cell.content.id)];
-            const type = env.global.types[idName(cell.content.id)];
-            return (
-                <div
-                    style={{
-                        fontFamily: '"Source Code Pro", monospace',
-                        whiteSpace: 'pre-wrap',
-                    }}
-                >
-                    <Icon name="icons_type" />
-                    <span css={hashStyle}>#{idName(cell.content.id)}</span>
-                    {renderAttributedText(
-                        env.global,
-                        printToAttributedText(
-                            items([
-                                id(name, idName(cell.content.id), 'type'),
-                                typeVblDeclsToPretty(env, type.typeVbls),
-                            ]),
-                            maxWidth,
-                        ),
-                        // TODO onclick
-                        null,
-                    )}{' '}
-                </div>
-            );
+    onChange: (env: Env | null, cell: Cell) => void,
+    setSelection: React.Dispatch<React.SetStateAction<Selection>>,
+): ((term: ToplevelT | null) => void) => {
+    return (proposedToplevel) => {
+        if (cell.content.type === 'term') {
+            if (
+                proposedToplevel != null &&
+                (proposedToplevel.type === 'Define' ||
+                    proposedToplevel?.type === 'Expression')
+            ) {
+                const id = idFromName(hashObject(proposedToplevel.term));
+                if (idsEqual(id, cell.content.id)) {
+                    if (cell.content.proposed) {
+                        onChange(null, {
+                            ...cell,
+                            content: {
+                                ...cell.content,
+                                proposed: null,
+                            },
+                        });
+                    }
+                } else {
+                    onChange(null, {
+                        ...cell,
+                        content: {
+                            ...cell.content,
+                            proposed: {
+                                term: proposedToplevel.term,
+                                id: id,
+                            },
+                        },
+                    });
+                }
+            } else if (cell.content.proposed) {
+                onChange(null, {
+                    ...cell,
+                    content: { ...cell.content, proposed: null },
+                });
+            }
         }
-        case 'term': {
-            const term = env.global.terms[idName(cell.content.id)];
-            const name = env.global.idNames[idName(cell.content.id)];
-            return (
-                <div
-                    style={{
-                        fontFamily: '"Source Code Pro", monospace',
-                        whiteSpace: 'pre-wrap',
-                    }}
-                >
-                    <Icon
-                        name={
-                            term.is.type === 'lambda'
-                                ? 'icons_function'
-                                : 'icons_value'
-                        }
-                    />
-                    <span
-                        css={{ ...hashStyle, cursor: 'pointer' }}
-                        onClick={clearPending}
-                    >
-                        #{idName(cell.content.id)}
-                    </span>
-                    {cell.content.proposed ? (
-                        <span>
-                            {' <- '}
-                            <span
-                                css={{
-                                    ...hashStyle,
-                                    cursor: 'pointer',
-                                    // backgroundColor: '#fa0',
-                                    border: '2px solid #fa0',
-                                }}
-                                onClick={acceptPending}
-                            >
-                                #{idName(cell.content.proposed.id)}
-                            </span>
-                        </span>
-                    ) : null}
-                    {renderAttributedText(
-                        env.global,
-                        printToAttributedText(
-                            name
-                                ? items([
-                                      id(name, idName(cell.content.id), 'term'),
-                                      atom(': '),
-                                      typeToPretty(env, term.is),
-                                  ])
-                                : typeToPretty(env, term.is),
-                            maxWidth,
-                        ),
-                        // TODO onclick
-                        null,
-                    )}{' '}
-                </div>
-            );
-        }
-        default:
-            return cell.content.type;
-    }
+        setSelection((s) => ({ ...s, level: 'inner' }));
+    };
 };
+
+function rejectProposed(
+    cell: Cell,
+    onChange: (env: Env | null, cell: Cell) => void,
+    env: Env,
+): (() => void) | undefined {
+    return () => {
+        if (cell.content.type === 'term') {
+            onChange(env, {
+                ...cell,
+                content: { ...cell.content, proposed: undefined },
+            });
+        }
+    };
+}
+
+function acceptProposed(
+    cell: Cell,
+    env: Env,
+    onSetToplevel: (toplevel: ToplevelT) => void,
+): (() => void) | undefined {
+    return () => {
+        if (cell.content.type === 'term' && cell.content.proposed) {
+            const name = env.global.idNames[idName(cell.content.id)];
+            const top: ToplevelT = name
+                ? {
+                      type: 'Define',
+                      term: cell.content.proposed.term,
+                      name,
+                      id: cell.content.id,
+                      location: nullLocation,
+                  }
+                : {
+                      type: 'Expression',
+                      term: cell.content.proposed.term,
+                      location: nullLocation,
+                  };
+            onSetToplevel(top);
+        }
+    };
+}
+
+function updatePending(
+    cell: Cell,
+    onChange: (env: Env | null, cell: Cell) => void,
+): (term: Term) => void {
+    return (pending) => {
+        if (cell.content.type === 'term') {
+            const id = idFromName(hashObject(pending));
+            if (idsEqual(cell.content.id, id)) {
+                if (cell.content.proposed) {
+                    onChange(null, {
+                        ...cell,
+                        content: {
+                            ...cell.content,
+                            proposed: null,
+                        },
+                    });
+                }
+                return;
+            }
+            onChange(null, {
+                ...cell,
+                content: {
+                    ...cell.content,
+                    proposed: {
+                        term: pending,
+                        id: id,
+                    },
+                },
+            });
+        }
+    };
+}
