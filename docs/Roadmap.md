@@ -1,4 +1,19 @@
 
+
+Ok I think arrays are doing ~ok. But I need the editor to be a lot more usable so that I can make more fun things.
+So
+- PERF
+- a i c A I
+  - a = cursor at end of selection
+  - i = cursor at start of selection
+  - A = make a new ~thing after this one...
+    - might be a new arg in the current fn
+    - uhh maybe that's it? and maybe that's fine? idk
+  - O o = new stmt in the closest block
+  - ( and [ could be used to enclose the current thing
+  - '+ - * /' could all be "make a binop with the selection as the first arg". Although it would be great to also have a way to 
+
+
 ## Arrayssssss
 
 - [ ] lambda types should have arraySizeVbls, let's be honest. Then I'll be able to do monomorphizing when I see a function call that ... has the array argument corresponding to that size ... although propagating array size things might become more complicated. hmm so maybe not?

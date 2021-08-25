@@ -785,8 +785,6 @@ export const typeToPretty = (env: Env, type: Type): PP => {
             }
         case 'done-lambda':
             return atom('DONE_LAMBDA');
-        case 'cps-lambda':
-            return atom('CPS_LAMBDA');
         case 'effectful-or-direct':
             return atom('EF_OR_DIRECT');
         default:

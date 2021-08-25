@@ -40,7 +40,15 @@ export const termToJS = (
     );
     const opt = optimizeRepeatedly(javascriptOpts);
     irTerm = opt(
-        { env, exprs: irTerms, types: {}, id, optimize: opt, opts: {} },
+        {
+            env,
+            exprs: irTerms,
+            types: {},
+            id,
+            optimize: opt,
+            opts: {},
+            notes: null,
+        },
         irTerm,
     );
     // then pop over to glslPrinter and start making things work.
