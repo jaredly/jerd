@@ -126,13 +126,13 @@ export const hash_32879bc4: (arg_0: t_3ad4fd70<number>) => boolean = (y1: t_3ad4
 
 /**
 ```
-const isAs#0a884a00 = (y#:0: Option#0bfc15ce<int#builtin>): bool#builtin ={}> switch y#:0 {
+const isAs#40af7fcc = (y#:0: Option#0bfc15ce<int#builtin>): bool#builtin ={}> switch y#:0 {
     Some#62b2859e as x#:1 => x#:1.value#62b2859e#0 ==#9275f914#553b4b8e#0 2,
     None#3183a2ff => true,
 }
 ```
 */
-export const hash_0a884a00: (arg_0: t_0bfc15ce<number>) => boolean = (y: t_0bfc15ce<number>) => {
+export const hash_40af7fcc: (arg_0: t_0bfc15ce<number>) => boolean = (y: t_0bfc15ce<number>) => {
   if (y.type === "62b2859e") {
     return hash_9275f914.h553b4b8e_0(y.h62b2859e_0, 2);
   }
@@ -146,13 +146,13 @@ export const hash_0a884a00: (arg_0: t_0bfc15ce<number>) => boolean = (y: t_0bfc1
 
 /**
 ```
-const isNotFalse#7caa41a0 = (n#:0: bool#builtin): bool#builtin ={}> switch n#:0 {
+const isNotFalse#28f05e73 = (n#:0: bool#builtin): bool#builtin ={}> switch n#:0 {
     false => false,
-    _#:1 => true,
+    _ => true,
 }
 ```
 */
-export const hash_7caa41a0: (arg_0: boolean) => boolean = (n: boolean) => {
+export const hash_28f05e73: (arg_0: boolean) => boolean = (n: boolean) => {
   if (n === false) {
     return false;
   }
@@ -162,14 +162,14 @@ export const hash_7caa41a0: (arg_0: boolean) => boolean = (n: boolean) => {
 
 /**
 ```
-const isSomeYes#b807ee9c = (v#:0: Option#0bfc15ce<string#builtin>): bool#builtin ={}> switch v#:0 {
+const isSomeYes#6373eee0 = (v#:0: Option#0bfc15ce<string#builtin>): bool#builtin ={}> switch v#:0 {
     Some#62b2859e{value: "no"} => false,
     None#3183a2ff => false,
     Some#62b2859e{value: v#:1} => v#:1 ==#606c7034#553b4b8e#0 "yes",
 }
 ```
 */
-export const hash_b807ee9c: (arg_0: t_0bfc15ce<string>) => boolean = (v: t_0bfc15ce<string>) => {
+export const hash_6373eee0: (arg_0: t_0bfc15ce<string>) => boolean = (v: t_0bfc15ce<string>) => {
   if (v.type === "62b2859e" && v.h62b2859e_0 === "no") {
     return false;
   }
@@ -187,14 +187,14 @@ export const hash_b807ee9c: (arg_0: t_0bfc15ce<string>) => boolean = (v: t_0bfc1
 
 /**
 ```
-const isTen#5768cc58 = (n#:0: int#builtin): bool#builtin ={}> switch n#:0 {
+const isTen#1dfd6720 = (n#:0: int#builtin): bool#builtin ={}> switch n#:0 {
     4 => false,
     10 => true,
-    _#:1 => false,
+    _ => false,
 }
 ```
 */
-export const hash_5768cc58: (arg_0: number) => boolean = (n: number) => {
+export const hash_1dfd6720: (arg_0: number) => boolean = (n: number) => {
   if (n === 4) {
     return false;
   }
@@ -253,14 +253,14 @@ export const hash_6d8ca0c4: t_3ad4fd70<number> = hash_737d344c;
 
 /**
 ```
-const y1t#7e65f612 = (y1#:0: OptionOrTwice#3ad4fd70<int#builtin>): int#builtin ={}> switch y1#:0 {
+const y1t#3c690c4b = (y1#:0: OptionOrTwice#3ad4fd70<int#builtin>): int#builtin ={}> switch y1#:0 {
     Twice#1d60b725{one: one#:1, two: two#:2} => one#:1 +#builtin two#:2,
     None#3183a2ff => 2,
-    _#:3 => 0,
+    _ => 0,
 }
 ```
 */
-export const hash_7e65f612: (arg_0: t_3ad4fd70<number>) => number = (y1: t_3ad4fd70<number>) => {
+export const hash_3c690c4b: (arg_0: t_3ad4fd70<number>) => number = (y1: t_3ad4fd70<number>) => {
   if (y1.type === "1d60b725") {
     return y1.h1d60b725_0 + y1.h1d60b725_1;
   }
@@ -287,7 +287,7 @@ export const hash_3a219bee: t_3ad4fd70<number> = ({
 } as t_3ad4fd70<number>);
 
 /*
-switch y2#3a219bee {Twice#1d60b725{one: one#:0, two: two#:1} => one#:0 +#builtin two#:1, _#:2 => 0} 
+switch y2#3a219bee {Twice#1d60b725{one: one#:0, two: two#:1} => one#:0 +#builtin two#:1, _ => 0} 
     ==#9275f914#553b4b8e#0 13
 */
 assertCall(hash_9275f914.h553b4b8e_0, (() => {
@@ -299,9 +299,9 @@ assertCall(hash_9275f914.h553b4b8e_0, (() => {
 })(), 13);
 
 /*
-y1t#7e65f612(y1#6d8ca0c4) ==#9275f914#553b4b8e#0 2
+y1t#3c690c4b(y1#6d8ca0c4) ==#9275f914#553b4b8e#0 2
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_7e65f612(hash_6d8ca0c4), 2);
+assertCall(hash_9275f914.h553b4b8e_0, hash_3c690c4b(hash_6d8ca0c4), 2);
 
 /*
 isPresent#f7321534<int#builtin>(
@@ -355,30 +355,30 @@ assert((() => {
 })());
 
 /*
-isTen#5768cc58(n: 10) ==#builtin true
+isTen#1dfd6720(n: 10) ==#builtin true
 */
-assertEqual(hash_5768cc58(10), true);
+assertEqual(hash_1dfd6720(10), true);
 
 /*
-isSomeYes#b807ee9c(
+isSomeYes#6373eee0(
         v: Option#0bfc15ce<string#builtin>:Some#62b2859e<string#builtin>{value#62b2859e#0: "yes"},
     ) 
     ==#builtin true
 */
-assertEqual(hash_b807ee9c(({
+assertEqual(hash_6373eee0(({
   type: "62b2859e",
   h62b2859e_0: "yes"
 } as t_0bfc15ce<string>)), true);
 
 /*
-isNotFalse#7caa41a0(n: true) ==#builtin true
+isNotFalse#28f05e73(n: true) ==#builtin true
 */
-assertEqual(hash_7caa41a0(true), true);
+assertEqual(hash_28f05e73(true), true);
 
 /*
-isAs#0a884a00(y#737d344c)
+isAs#40af7fcc(y#737d344c)
 */
-assertCall(hash_0a884a00, hash_737d344c);
+assertCall(hash_40af7fcc, hash_737d344c);
 
 /*
 check#32879bc4(y1#6d8ca0c4)

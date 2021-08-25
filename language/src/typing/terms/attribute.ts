@@ -195,7 +195,7 @@ export const typeAttribute = (
         inferred: false,
         idx,
         ref,
-        refTypeVbls: target.is.typeVbls.length ? target.is.typeVbls : undefined,
+        refTypeVbls: target.is.typeVbls.length ? target.is.typeVbls : [],
         is: t.items[idx],
     };
 };

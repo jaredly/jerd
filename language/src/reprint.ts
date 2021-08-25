@@ -5,6 +5,7 @@ import {
     typeRecordDefn,
     withoutLocations,
     ToplevelT,
+    idFromName,
 } from './typing/env';
 import parse, {
     Define,
@@ -55,7 +56,7 @@ export const reprintToplevel = (
           )
         : '<no original text>';
     const reraw = printToString(toplevelToPretty(env, toplevel), 100, {
-        hideNames: true,
+        hideNames: false,
     });
     let printed: Array<Toplevel>;
     try {
@@ -134,21 +135,22 @@ export const reprintToplevel = (
         } else if (toplevel.type === 'Define' && printed[0].type === 'define') {
             const hasSelf = findSelfReference(toplevel.term);
             // console.log('um going again', toplevel.name);
+            const newTerm = typeExpr(
+                {
+                    ...env,
+                    local: {
+                        ...newLocal(),
+                        self: hasSelf ? env.local.self : null,
+                    },
+                    term: { nextTraceId: 0, localNames: {} },
+                },
+                (printed[0] as Define).expr,
+            );
             retyped = {
                 ...toplevel,
                 type: 'Define',
-                id: toplevel.id,
-                term: typeExpr(
-                    {
-                        ...env,
-                        local: {
-                            ...newLocal(),
-                            self: hasSelf ? env.local.self : null,
-                        },
-                        term: { nextTraceId: 0, localNames: {} },
-                    },
-                    (printed[0] as Define).expr,
-                ),
+                id: idFromName(hashObject(newTerm)),
+                term: newTerm,
             };
             nhash = hashObject(retyped.term);
         } else {

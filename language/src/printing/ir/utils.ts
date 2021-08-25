@@ -783,6 +783,12 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                 return id('handler', refName(type.ref), 'effect-handler');
                 // throw new Error(`effect handler wanted`);
             }
+        case 'done-lambda':
+            return atom('DONE_LAMBDA');
+        case 'cps-lambda':
+            return atom('CPS_LAMBDA');
+        case 'effectful-or-direct':
+            return atom('EF_OR_DIRECT');
         default:
             let _x: never = type;
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);

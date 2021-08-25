@@ -39,7 +39,7 @@ const farther#dd523212 = (name#:0: string#builtin): string#builtin ={Stdio#1da33
 */
 export const hash_dd523212:
 /*from cps lambda*/
-(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void = (name: string, handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
+(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void, arg_3: Handlers, arg_4: (arg_0: Handlers, arg_1: string) => void) => void = (name: string, handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
   hash_eccbfbca("yes please " + name, handlers, (handlers: Handlers) => {
     raise(handlers, "1da337a2", 0, null, (handlers, value) => done(handlers, value));
   });
@@ -62,7 +62,7 @@ const inner#19effbea = (name#:0: string#builtin): void#builtin ={Stdio#1da337a2,
 */
 export const hash_19effbea:
 /*from cps lambda*/
-(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers) => void) => void = (name: string, handlers: Handlers, done$9: (arg_0: Handlers) => void) => {
+(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers) => void, arg_3: Handlers, arg_4: (arg_0: Handlers) => void) => void = (name: string, handlers: Handlers, done$9: (arg_0: Handlers) => void) => {
   hash_dd523212("Folks", handlers, (handlers: Handlers, returnValue: string) => {
     hash_eccbfbca(returnValue + " from farther", handlers, (handlers: Handlers) => {
       hash_eccbfbca("getting", handlers, (handlers: Handlers) => {

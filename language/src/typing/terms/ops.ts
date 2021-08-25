@@ -84,6 +84,10 @@ export const findUnaryOp = (
                 is: t.items[idx],
                 location: location,
                 idLocation: location,
+                refTypeVbls:
+                    found.is.type === 'ref' && found.is.typeVbls.length
+                        ? found.is.typeVbls
+                        : undefined,
                 ref: { type: 'user', id },
                 inferred: true,
             };
@@ -156,6 +160,10 @@ const findOp = (
                 is: t.items[idx],
                 location: location,
                 idLocation: location,
+                refTypeVbls:
+                    found.is.type === 'ref' && found.is.typeVbls.length
+                        ? found.is.typeVbls
+                        : undefined,
                 ref: { type: 'user', id },
                 inferred: true,
             };
@@ -238,6 +246,10 @@ const typeNewOp = (
             is: t.items[idx],
             location: op.location,
             idLocation: op.location,
+            refTypeVbls:
+                target.is.type === 'ref' && target.is.typeVbls.length
+                    ? target.is.typeVbls
+                    : undefined,
             ref: { type: 'user', id },
             inferred: true,
         };

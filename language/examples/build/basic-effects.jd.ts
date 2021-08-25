@@ -49,7 +49,7 @@ const farther#dd523212 = (name#:0: string#builtin): string#builtin ={Stdio#1da33
 */
 export const hash_dd523212:
 /*from cps lambda*/
-(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void = (name: string, handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
+(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void, arg_3: Handlers, arg_4: (arg_0: Handlers, arg_1: string) => void) => void = (name: string, handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
   hash_eccbfbca("yes please " + name, handlers, (handlers: Handlers) => {
     raise(handlers, "1da337a2", 0, null, (handlers, value) => done(handlers, value));
   });
@@ -97,7 +97,7 @@ const letBind#12c25e9b = (): void#builtin ={Stdio#1da337a2, Log#35f4b478}> {
 */
 export const hash_12c25e9b:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done: (arg_0: Handlers) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers) => void, arg_2: Handlers, arg_3: (arg_0: Handlers) => void) => void = (handlers: Handlers, done: (arg_0: Handlers) => void) => {
   raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, x: string) => {
     hash_eccbfbca(x + "Hello", handlers, (handlers: Handlers) => done(handlers));
   })(handlers, value));
@@ -154,7 +154,7 @@ export const hash_59070068: (arg_0: string) =>
 
 /**
 ```
-const raiseIf#fce40b70 = (check#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
+const raiseIf#7d00c214 = (check#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
     if raise!(Stdio#1da337a2.read()) ==#606c7034#553b4b8e#0 check#:0 {
         raise!(Stdio#1da337a2.read());
     } else {
@@ -163,9 +163,9 @@ const raiseIf#fce40b70 = (check#:0: string#builtin): string#builtin ={Stdio#1da3
 }
 ```
 */
-export const hash_fce40b70:
+export const hash_7d00c214:
 /*from cps lambda*/
-(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void = (check: string, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
+(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void, arg_3: Handlers, arg_4: (arg_0: Handlers, arg_1: string) => void) => void = (check: string, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0: string) => {
     if (hash_606c7034.h553b4b8e_0(arg_lift_0, check)) {
       raise(handlers, "1da337a2", 0, null, (handlers, value) => done$3(handlers, value));
@@ -213,7 +213,7 @@ const inner#19effbea = (name#:0: string#builtin): void#builtin ={Stdio#1da337a2,
 */
 export const hash_19effbea:
 /*from cps lambda*/
-(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers) => void) => void = (name: string, handlers: Handlers, done$9: (arg_0: Handlers) => void) => {
+(arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers) => void, arg_3: Handlers, arg_4: (arg_0: Handlers) => void) => void = (name: string, handlers: Handlers, done$9: (arg_0: Handlers) => void) => {
   hash_dd523212("Folks", handlers, (handlers: Handlers, returnValue$17: string) => {
     hash_eccbfbca(returnValue$17 + " from farther", handlers, (handlers: Handlers) => {
       hash_eccbfbca("getting", handlers, (handlers: Handlers) => {
@@ -263,20 +263,20 @@ export const hash_60ecb87c:
 
 /**
 ```
-const test3#1e213df0 = (): void#builtin ={Log#35f4b478}> {
+const test3#66f19b18 = (): void#builtin ={Log#35f4b478}> {
     log#eccbfbca(
         k: respondWith#59070068(responseValue: "<read>")<string#builtin>{Log#35f4b478}(
-            (): string#builtin ={Stdio#1da337a2, Log#35f4b478}> raiseIf#fce40b70(check: "<read>"),
+            (): string#builtin ={Stdio#1da337a2, Log#35f4b478}> raiseIf#7d00c214(check: "<read>"),
         ),
     );
 }
 ```
 */
-export const hash_1e213df0:
+export const hash_66f19b18:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers) => void, arg_2: Handlers, arg_3: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
   hash_59070068("<read>")((handlers: Handlers, done$5: (arg_0: Handlers, arg_1: string) => void) => {
-    hash_fce40b70("<read>", handlers, (handlers: Handlers, returnValue$7: string) => done$5(handlers, returnValue$7));
+    hash_7d00c214("<read>", handlers, (handlers: Handlers, returnValue$7: string) => done$5(handlers, returnValue$7));
   }, handlers, (handlers: Handlers, returnValue: T_0) => {
     hash_eccbfbca(returnValue, handlers, (handlers: Handlers) => done$2(handlers));
   });
@@ -296,7 +296,7 @@ const test2#a145008c = (): void#builtin ={Log#35f4b478}> {
 */
 export const hash_a145008c:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers) => void, arg_2: Handlers, arg_3: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
   hash_59070068("<read>")((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
     hash_42c8a590(true, handlers, (handlers: Handlers, returnValue$11: string) => {
       hash_42c8a590(false, handlers, (handlers: Handlers, returnValue$9: string) => {
@@ -418,9 +418,9 @@ collect#2ce3943a{}(fn: test2#a145008c) ==#606c7034#553b4b8e#0 "<read>didn't rais
 assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_a145008c), "<read>didn't raise\nend");
 
 /*
-collect#2ce3943a{}(fn: test3#1e213df0) ==#606c7034#553b4b8e#0 "<read>.\nend"
+collect#2ce3943a{}(fn: test3#66f19b18) ==#606c7034#553b4b8e#0 "<read>.\nend"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_1e213df0), "<read>.\nend");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct(hash_66f19b18), "<read>.\nend");
 
 /*
 collect#2ce3943a{}(fn: test4#60ecb87c) ==#606c7034#553b4b8e#0 "<read>Hello\nend"

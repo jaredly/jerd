@@ -82,7 +82,7 @@ const rec chooseInt#54cbbab4 = (m#:0: int#builtin, n#:1: int#builtin): int#built
 */
 export const hash_54cbbab4:
 /*from cps lambda*/
-(arg_0: number, arg_1: number, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: number) => void) => void = (m: number, n: number, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: number) => void) => {
+(arg_0: number, arg_1: number, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: number) => void, arg_4: Handlers, arg_5: (arg_0: Handlers, arg_1: number) => void) => void = (m: number, n: number, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: number) => void) => {
   if (m > n) {
     hash_0620e972(handlers, (handlers: Handlers, returnValue: number) => {
       done$3(handlers, 10);
@@ -111,7 +111,7 @@ export const hash_5334ea40:
 
 /**
 ```
-const pythagorean#0cdd5ff0 = (m#:0: int#builtin, n#:1: int#builtin): string#builtin ={
+const pythagorean#4f66ecc8 = (m#:0: int#builtin, n#:1: int#builtin): string#builtin ={
     DecideOrFail#7214565c,
 }> {
     const a#:2 = chooseInt#54cbbab4(m#:0, n: n#:1 -#builtin 1);
@@ -131,9 +131,9 @@ const pythagorean#0cdd5ff0 = (m#:0: int#builtin, n#:1: int#builtin): string#buil
 }
 ```
 */
-export const hash_0cdd5ff0:
+export const hash_4f66ecc8:
 /*from cps lambda*/
-(arg_0: number, arg_1: number, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: string) => void) => void = (m: number, n: number, handlers: Handlers, done$6: (arg_0: Handlers, arg_1: string) => void) => {
+(arg_0: number, arg_1: number, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: string) => void, arg_4: Handlers, arg_5: (arg_0: Handlers, arg_1: string) => void) => void = (m: number, n: number, handlers: Handlers, done$6: (arg_0: Handlers, arg_1: string) => void) => {
   hash_54cbbab4(m, n - 1, handlers, (handlers: Handlers, returnValue$12: number) => {
     hash_54cbbab4(returnValue$12 + 1, n, handlers, (handlers: Handlers, returnValue$10: number) => {
       if (isSquare(returnValue$12 * returnValue$12 + returnValue$10 * returnValue$10)) {
@@ -256,7 +256,7 @@ const choose#437fecbe = <T#:0>(x#:0: T#:0, y#:1: T#:0): T#:0 ={Decide#086e3532}>
 */
 export const hash_437fecbe:
 /*from cps lambda*/
-<T_0>(arg_0: T_0, arg_1: T_0, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: T_0) => void) => void = <T_0>(x: T_0, y: T_0, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: T_0) => void) => {
+<T_0>(arg_0: T_0, arg_1: T_0, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: T_0) => void, arg_4: Handlers, arg_5: (arg_0: Handlers, arg_1: T_0) => void) => void = <T_0>(x: T_0, y: T_0, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: T_0) => void) => {
   hash_5334ea40(handlers, (handlers: Handlers, returnValue: boolean) => {
     let result$6: T_0;
 
@@ -312,7 +312,7 @@ const getAndSet#463fdaf6 = (): string#builtin ={Store#7b45d75e}> {
 */
 export const hash_463fdaf6:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void) => void = (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: string) => void) => void = (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "7b45d75e", 0, null, (handlers, value) => ((handlers: Handlers, x: number) => {
     raise(handlers, "7b45d75e", 1, x + 4, (handlers, value) => ((handlers: Handlers) => {
       raise(handlers, "7b45d75e", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0: number) => {
@@ -363,30 +363,30 @@ export const hash_478ee9c0: <T_0>(arg_0: number, arg_1:
 
 /**
 ```
-const backtrackPythagReverse#5f048050 = (m#:0: int#builtin, n#:1: int#builtin): string#builtin ={}> backtrackReverse#70ad2630<
+const backtrackPythagReverse#54eb51c7 = (m#:0: int#builtin, n#:1: int#builtin): string#builtin ={}> backtrackReverse#70ad2630<
     string#builtin,
 >(
-    fn: (): string#builtin ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1),
+    fn: (): string#builtin ={DecideOrFail#7214565c}> pythagorean#4f66ecc8(m#:0, n#:1),
     orElse: (): string#builtin ={}> "No solution found",
 )
 ```
 */
-export const hash_5f048050: (arg_0: number, arg_1: number) => string = (m: number, n: number) => hash_70ad2630((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_0cdd5ff0(m, n, handlers, (handlers: Handlers, returnValue$4: string) => done$2(handlers, returnValue$4));
+export const hash_54eb51c7: (arg_0: number, arg_1: number) => string = (m: number, n: number) => hash_70ad2630((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_4f66ecc8(m, n, handlers, (handlers: Handlers, returnValue$4: string) => done$2(handlers, returnValue$4));
 }, () => "No solution found");
 
 /**
 ```
-const backtrackPythag#db67c018 = (m#:0: int#builtin, n#:1: int#builtin): string#builtin ={}> backtrack#1603c390<
+const backtrackPythag#3ab668a0 = (m#:0: int#builtin, n#:1: int#builtin): string#builtin ={}> backtrack#1603c390<
     string#builtin,
 >(
-    fn: (): string#builtin ={DecideOrFail#7214565c}> pythagorean#0cdd5ff0(m#:0, n#:1),
+    fn: (): string#builtin ={DecideOrFail#7214565c}> pythagorean#4f66ecc8(m#:0, n#:1),
     orElse: (): string#builtin ={}> "No solution found",
 )
 ```
 */
-export const hash_db67c018: (arg_0: number, arg_1: number) => string = (m: number, n: number) => hash_1603c390((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_0cdd5ff0(m, n, handlers, (handlers: Handlers, returnValue$4: string) => done$2(handlers, returnValue$4));
+export const hash_3ab668a0: (arg_0: number, arg_1: number) => string = (m: number, n: number) => hash_1603c390((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_4f66ecc8(m, n, handlers, (handlers: Handlers, returnValue$4: string) => done$2(handlers, returnValue$4));
 }, () => "No solution found");
 
 /**
@@ -446,7 +446,7 @@ const chooseDiff#61f16268 = (): int#builtin ={Decide#086e3532}> {
 */
 export const hash_61f16268:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: number) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: number) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: number) => void, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: number) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: number) => void) => {
   hash_437fecbe(15, 30, handlers, (handlers: Handlers, returnValue$6: T_0) => {
     hash_437fecbe(5, 10, handlers, (handlers: Handlers, returnValue$4: T_0) => {
       done$2(handlers, returnValue$6 - returnValue$4);
@@ -509,7 +509,7 @@ export const hash_f201f930:
 /*from cps lambda*/
 (arg_0:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void, arg_1: Handlers, arg_2: (arg_0: Handlers) => void) => void = (fn:
+(arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void, arg_1: Handlers, arg_2: (arg_0: Handlers) => void, arg_3: Handlers, arg_4: (arg_0: Handlers) => void) => void = (fn:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void, handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
   handleSimpleShallow2<any, any, any>("35f4b478", fn, [(handlers, v$2: string, k$3:
@@ -536,7 +536,7 @@ const printFullName#ea51ddfc = (): void#builtin ={Read#22024b72, Write#35f4b478}
 */
 export const hash_ea51ddfc:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers) => void, arg_2: Handlers, arg_3: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
   hash_eccbfbca("What is your forename?", handlers, (handlers: Handlers) => {
     raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, foreName: string) => {
       hash_eccbfbca("What is your surname?", handlers, (handlers: Handlers) => {
@@ -909,19 +909,19 @@ pickMax#998219d8(fn: chooseDiff#61f16268) ==#9275f914#553b4b8e#0 25
 assertCall(hash_9275f914.h553b4b8e_0, hash_998219d8(hash_61f16268), 25);
 
 /*
-backtrackPythag#db67c018(m: 4, n: 15) ==#606c7034#553b4b8e#0 "5:12"
+backtrackPythag#3ab668a0(m: 4, n: 15) ==#606c7034#553b4b8e#0 "5:12"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_db67c018(4, 15), "5:12");
+assertCall(hash_606c7034.h553b4b8e_0, hash_3ab668a0(4, 15), "5:12");
 
 /*
-backtrackPythag#db67c018(m: 7, n: 10) ==#606c7034#553b4b8e#0 "No solution found"
+backtrackPythag#3ab668a0(m: 7, n: 10) ==#606c7034#553b4b8e#0 "No solution found"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_db67c018(7, 10), "No solution found");
+assertCall(hash_606c7034.h553b4b8e_0, hash_3ab668a0(7, 10), "No solution found");
 
 /*
-backtrackPythagReverse#5f048050(m: 4, n: 15) ==#606c7034#553b4b8e#0 "9:12"
+backtrackPythagReverse#54eb51c7(m: 4, n: 15) ==#606c7034#553b4b8e#0 "9:12"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_5f048050(4, 15), "9:12");
+assertCall(hash_606c7034.h553b4b8e_0, hash_54eb51c7(4, 15), "9:12");
 
 /*
 10

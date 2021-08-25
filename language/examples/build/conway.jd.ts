@@ -104,7 +104,7 @@ type t_5ac12902<T_0, T_1, T_2> = {
 
 /**
 ```
-const MulVec2#090f77e7 = Div#5ac12902<Vec2#43802a16, Vec2#43802a16, Vec2#43802a16>{
+const MulVec2#1899d36e = Div#5ac12902<Vec2#43802a16, Vec2#43802a16, Vec2#43802a16>{
     "/"#5ac12902#0: (v#:0: Vec2#43802a16, scale#:1: Vec2#43802a16): Vec2#43802a16 ={}> Vec2#43802a16{
         x#43802a16#0: v#:0.x#43802a16#0 /#builtin scale#:1.x#43802a16#0,
         y#43802a16#1: v#:0.y#43802a16#1 /#builtin scale#:1.y#43802a16#1,
@@ -112,7 +112,7 @@ const MulVec2#090f77e7 = Div#5ac12902<Vec2#43802a16, Vec2#43802a16, Vec2#43802a1
 }
 ```
 */
-export const hash_090f77e7: t_5ac12902<t_43802a16, t_43802a16, t_43802a16> = ({
+export const hash_1899d36e: t_5ac12902<t_43802a16, t_43802a16, t_43802a16> = ({
   type: "5ac12902",
   h5ac12902_0: (v: t_43802a16, scale: t_43802a16) => ({
     type: "Vec2",
@@ -123,15 +123,15 @@ export const hash_090f77e7: t_5ac12902<t_43802a16, t_43802a16, t_43802a16> = ({
 
 /**
 ```
-const isLive#5df4f34f = (color#:0: Vec4#3b941378): bool#builtin ={}> color#:0.x#43802a16#0 
+const isLive#c7d259ec = (color#:0: Vec4#3b941378): bool#builtin ={}> color#:0.x#43802a16#0 
     >#builtin 0.5
 ```
 */
-export const hash_5df4f34f: (arg_0: t_3b941378) => boolean = (color: t_3b941378) => color.x > 0.5;
+export const hash_c7d259ec: (arg_0: t_3b941378) => boolean = (color: t_3b941378) => color.x > 0.5;
 
 /**
 ```
-const AddSubVec2#70bb2056 = AddSub#b99b22d8<Vec2#43802a16, Vec2#43802a16, Vec2#43802a16>{
+const AddSubVec2#057d15c6 = AddSub#b99b22d8<Vec2#43802a16, Vec2#43802a16, Vec2#43802a16>{
     "+"#b99b22d8#0: (one#:0: Vec2#43802a16, two#:1: Vec2#43802a16): Vec2#43802a16 ={}> Vec2#43802a16{
         x#43802a16#0: one#:0.x#43802a16#0 +#builtin two#:1.x#43802a16#0,
         y#43802a16#1: one#:0.y#43802a16#1 +#builtin two#:1.y#43802a16#1,
@@ -143,7 +143,7 @@ const AddSubVec2#70bb2056 = AddSub#b99b22d8<Vec2#43802a16, Vec2#43802a16, Vec2#4
 }
 ```
 */
-export const hash_70bb2056: t_b99b22d8<t_43802a16, t_43802a16, t_43802a16> = ({
+export const hash_057d15c6: t_b99b22d8<t_43802a16, t_43802a16, t_43802a16> = ({
   type: "b99b22d8",
   hb99b22d8_0: (one: t_43802a16, two: t_43802a16) => ({
     type: "Vec2",
@@ -159,14 +159,14 @@ export const hash_70bb2056: t_b99b22d8<t_43802a16, t_43802a16, t_43802a16> = ({
 
 /**
 ```
-const neighbor#821c67e8 = (
+const neighbor#63c57bb8 = (
     offset#:0: Vec2#43802a16,
     coord#:1: Vec2#43802a16,
     res#:2: Vec2#43802a16,
     buffer#:3: sampler2D#builtin,
 ): int#builtin ={}> {
-    const coord#:4 = coord#:1 +#70bb2056#b99b22d8#0 offset#:0;
-    if isLive#5df4f34f(color: texture#builtin(buffer#:3, coord#:4 /#090f77e7#5ac12902#0 res#:2)) {
+    const coord#:4 = coord#:1 +#057d15c6#b99b22d8#0 offset#:0;
+    if isLive#c7d259ec(color: texture#builtin(buffer#:3, coord#:4 /#1899d36e#5ac12902#0 res#:2)) {
         1;
     } else {
         0;
@@ -174,8 +174,8 @@ const neighbor#821c67e8 = (
 }
 ```
 */
-export const hash_821c67e8: (arg_0: t_43802a16, arg_1: t_43802a16, arg_2: t_43802a16, arg_3: sampler2D) => number = (offset: t_43802a16, coord: t_43802a16, res: t_43802a16, buffer: sampler2D) => {
-  if (hash_5df4f34f(texture(buffer, hash_090f77e7.h5ac12902_0(hash_70bb2056.hb99b22d8_0(coord, offset), res)))) {
+export const hash_63c57bb8: (arg_0: t_43802a16, arg_1: t_43802a16, arg_2: t_43802a16, arg_3: sampler2D) => number = (offset: t_43802a16, coord: t_43802a16, res: t_43802a16, buffer: sampler2D) => {
+  if (hash_c7d259ec(texture(buffer, hash_1899d36e.h5ac12902_0(hash_057d15c6.hb99b22d8_0(coord, offset), res)))) {
     return 1;
   } else {
     return 0;
@@ -184,13 +184,13 @@ export const hash_821c67e8: (arg_0: t_43802a16, arg_1: t_43802a16, arg_2: t_4380
 
 /**
 ```
-const dot#369652bb = (a#:0: Vec2#43802a16, b#:1: Vec2#43802a16): float#builtin ={}> {
+const dot#f921b900 = (a#:0: Vec2#43802a16, b#:1: Vec2#43802a16): float#builtin ={}> {
     a#:0.x#43802a16#0 *#builtin b#:1.x#43802a16#0 
         +#builtin a#:0.y#43802a16#1 *#builtin b#:1.y#43802a16#1;
 }
 ```
 */
-export const hash_369652bb: (arg_0: t_43802a16, arg_1: t_43802a16) => number = (a: t_43802a16, b: t_43802a16) => a.x * b.x + a.y * b.y;
+export const hash_f921b900: (arg_0: t_43802a16, arg_1: t_43802a16) => number = (a: t_43802a16, b: t_43802a16) => a.x * b.x + a.y * b.y;
 
 /**
 ```
@@ -201,7 +201,7 @@ export const hash_495c4d22: (arg_0: number) => number = (v: number) => v - floor
 
 /**
 ```
-const ScaleVec2Rev#afc24bbe = Div#5ac12902<Vec2#43802a16, float#builtin, Vec2#43802a16>{
+const ScaleVec2Rev#5e752e2e = Div#5ac12902<Vec2#43802a16, float#builtin, Vec2#43802a16>{
     "/"#5ac12902#0: (v#:0: Vec2#43802a16, scale#:1: float#builtin): Vec2#43802a16 ={}> Vec2#43802a16{
         x#43802a16#0: v#:0.x#43802a16#0 /#builtin scale#:1,
         y#43802a16#1: v#:0.y#43802a16#1 /#builtin scale#:1,
@@ -209,7 +209,7 @@ const ScaleVec2Rev#afc24bbe = Div#5ac12902<Vec2#43802a16, float#builtin, Vec2#43
 }
 ```
 */
-export const hash_afc24bbe: t_5ac12902<t_43802a16, number, t_43802a16> = ({
+export const hash_5e752e2e: t_5ac12902<t_43802a16, number, t_43802a16> = ({
   type: "5ac12902",
   h5ac12902_0: (v: t_43802a16, scale: number) => ({
     type: "Vec2",
@@ -220,13 +220,13 @@ export const hash_afc24bbe: t_5ac12902<t_43802a16, number, t_43802a16> = ({
 
 /**
 ```
-const length#c2805852 = (v#:0: Vec2#43802a16): float#builtin ={}> sqrt#builtin(
+const length#1ac89968 = (v#:0: Vec2#43802a16): float#builtin ={}> sqrt#builtin(
     v#:0.x#43802a16#0 *#builtin v#:0.x#43802a16#0 
         +#builtin v#:0.y#43802a16#1 *#builtin v#:0.y#43802a16#1,
 )
 ```
 */
-export const hash_c2805852: (arg_0: t_43802a16) => number = (v: t_43802a16) => sqrt(v.x * v.x + v.y * v.y);
+export const hash_1ac89968: (arg_0: t_43802a16) => number = (v: t_43802a16) => sqrt(v.x * v.x + v.y * v.y);
 
 /**
 ```
@@ -240,54 +240,54 @@ export const hash_9275f914: t_553b4b8e<number> = ({
 
 /**
 ```
-const countNeighbors#77a447bc = (
+const countNeighbors#6a39f360 = (
     coord#:0: Vec2#43802a16,
     res#:1: Vec2#43802a16,
     buffer#:2: sampler2D#builtin,
 ): int#builtin ={}> {
-    neighbor#821c67e8(
+    neighbor#63c57bb8(
                                     offset: Vec2#43802a16{x#43802a16#0: -1.0, y#43802a16#1: 0.0},
                                     coord#:0,
                                     res#:1,
                                     buffer#:2,
                                 ) 
-                                +#builtin neighbor#821c67e8(
+                                +#builtin neighbor#63c57bb8(
                                     offset: Vec2#43802a16{x#43802a16#0: -1.0, y#43802a16#1: 1.0},
                                     coord#:0,
                                     res#:1,
                                     buffer#:2,
                                 ) 
-                            +#builtin neighbor#821c67e8(
+                            +#builtin neighbor#63c57bb8(
                                 offset: Vec2#43802a16{x#43802a16#0: -1.0, y#43802a16#1: -1.0},
                                 coord#:0,
                                 res#:1,
                                 buffer#:2,
                             ) 
-                        +#builtin neighbor#821c67e8(
+                        +#builtin neighbor#63c57bb8(
                             offset: Vec2#43802a16{x#43802a16#0: 1.0, y#43802a16#1: 0.0},
                             coord#:0,
                             res#:1,
                             buffer#:2,
                         ) 
-                    +#builtin neighbor#821c67e8(
+                    +#builtin neighbor#63c57bb8(
                         offset: Vec2#43802a16{x#43802a16#0: 1.0, y#43802a16#1: 1.0},
                         coord#:0,
                         res#:1,
                         buffer#:2,
                     ) 
-                +#builtin neighbor#821c67e8(
+                +#builtin neighbor#63c57bb8(
                     offset: Vec2#43802a16{x#43802a16#0: 1.0, y#43802a16#1: -1.0},
                     coord#:0,
                     res#:1,
                     buffer#:2,
                 ) 
-            +#builtin neighbor#821c67e8(
+            +#builtin neighbor#63c57bb8(
                 offset: Vec2#43802a16{x#43802a16#0: 0.0, y#43802a16#1: 1.0},
                 coord#:0,
                 res#:1,
                 buffer#:2,
             ) 
-        +#builtin neighbor#821c67e8(
+        +#builtin neighbor#63c57bb8(
             offset: Vec2#43802a16{x#43802a16#0: 0.0, y#43802a16#1: -1.0},
             coord#:0,
             res#:1,
@@ -296,35 +296,35 @@ const countNeighbors#77a447bc = (
 }
 ```
 */
-export const hash_77a447bc: (arg_0: t_43802a16, arg_1: t_43802a16, arg_2: sampler2D) => number = (coord$0: t_43802a16, res$1: t_43802a16, buffer$2: sampler2D) => hash_821c67e8(({
+export const hash_6a39f360: (arg_0: t_43802a16, arg_1: t_43802a16, arg_2: sampler2D) => number = (coord$0: t_43802a16, res$1: t_43802a16, buffer$2: sampler2D) => hash_63c57bb8(({
   type: "Vec2",
   x: -1,
   y: 0
-} as t_43802a16), coord$0, res$1, buffer$2) + hash_821c67e8(({
+} as t_43802a16), coord$0, res$1, buffer$2) + hash_63c57bb8(({
   type: "Vec2",
   x: -1,
   y: 1
-} as t_43802a16), coord$0, res$1, buffer$2) + hash_821c67e8(({
+} as t_43802a16), coord$0, res$1, buffer$2) + hash_63c57bb8(({
   type: "Vec2",
   x: -1,
   y: -1
-} as t_43802a16), coord$0, res$1, buffer$2) + hash_821c67e8(({
+} as t_43802a16), coord$0, res$1, buffer$2) + hash_63c57bb8(({
   type: "Vec2",
   x: 1,
   y: 0
-} as t_43802a16), coord$0, res$1, buffer$2) + hash_821c67e8(({
+} as t_43802a16), coord$0, res$1, buffer$2) + hash_63c57bb8(({
   type: "Vec2",
   x: 1,
   y: 1
-} as t_43802a16), coord$0, res$1, buffer$2) + hash_821c67e8(({
+} as t_43802a16), coord$0, res$1, buffer$2) + hash_63c57bb8(({
   type: "Vec2",
   x: 1,
   y: -1
-} as t_43802a16), coord$0, res$1, buffer$2) + hash_821c67e8(({
+} as t_43802a16), coord$0, res$1, buffer$2) + hash_63c57bb8(({
   type: "Vec2",
   x: 0,
   y: 1
-} as t_43802a16), coord$0, res$1, buffer$2) + hash_821c67e8(({
+} as t_43802a16), coord$0, res$1, buffer$2) + hash_63c57bb8(({
   type: "Vec2",
   x: 0,
   y: -1
@@ -368,10 +368,10 @@ export const hash_59488bde: t_3b941378 = ({
 
 /**
 ```
-const random#347089ef = (st#:0: Vec2#43802a16): float#builtin ={}> {
+const random#549aecf7 = (st#:0: Vec2#43802a16): float#builtin ={}> {
     fract#495c4d22(
         v: sin#builtin(
-                dot#369652bb(
+                dot#f921b900(
                     a: st#:0,
                     b: Vec2#43802a16{x#43802a16#0: 12.9898, y#43802a16#1: 78.233},
                 ),
@@ -381,7 +381,7 @@ const random#347089ef = (st#:0: Vec2#43802a16): float#builtin ={}> {
 }
 ```
 */
-export const hash_347089ef: (arg_0: t_43802a16) => number = (st: t_43802a16) => hash_495c4d22(sin(hash_369652bb(st, ({
+export const hash_549aecf7: (arg_0: t_43802a16) => number = (st: t_43802a16) => hash_495c4d22(sin(hash_f921b900(st, ({
   type: "Vec2",
   x: 12.9898,
   y: 78.233
@@ -389,54 +389,54 @@ export const hash_347089ef: (arg_0: t_43802a16) => number = (st: t_43802a16) => 
 
 /**
 ```
-const drawToScreen#5349442c = (
+const drawToScreen#9450a558 = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
     buffer0#:2: sampler2D#builtin,
 ): Vec4#3b941378 ={}> {
-    const diff#:3 = env#:0.mouse#451d5252#3 -#70bb2056#b99b22d8#1 fragCoord#:1;
-    if length#c2805852(v: diff#:3) <#builtin 250.0 {
+    const diff#:3 = env#:0.mouse#451d5252#3 -#057d15c6#b99b22d8#1 fragCoord#:1;
+    if length#1ac89968(v: diff#:3) <#builtin 250.0 {
         const newCoord#:4 = env#:0.mouse#451d5252#3 
-            -#70bb2056#b99b22d8#1 diff#:3 /#afc24bbe#5ac12902#0 4.0;
-        texture#builtin(buffer0#:2, newCoord#:4 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1);
+            -#057d15c6#b99b22d8#1 diff#:3 /#5e752e2e#5ac12902#0 4.0;
+        texture#builtin(buffer0#:2, newCoord#:4 /#1899d36e#5ac12902#0 env#:0.resolution#451d5252#1);
     } else {
-        texture#builtin(buffer0#:2, fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1);
+        texture#builtin(buffer0#:2, fragCoord#:1 /#1899d36e#5ac12902#0 env#:0.resolution#451d5252#1);
     };
 }
 ```
 */
-export const hash_5349442c: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sampler2D) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16, buffer0: sampler2D) => {
-  let diff: t_43802a16 = hash_70bb2056.hb99b22d8_1(env.mouse, fragCoord);
+export const hash_9450a558: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sampler2D) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16, buffer0: sampler2D) => {
+  let diff: t_43802a16 = hash_057d15c6.hb99b22d8_1(env.mouse, fragCoord);
 
-  if (hash_c2805852(diff) < 250) {
-    return texture(buffer0, hash_090f77e7.h5ac12902_0(hash_70bb2056.hb99b22d8_1(env.mouse, hash_afc24bbe.h5ac12902_0(diff, 4)), env.resolution));
+  if (hash_1ac89968(diff) < 250) {
+    return texture(buffer0, hash_1899d36e.h5ac12902_0(hash_057d15c6.hb99b22d8_1(env.mouse, hash_5e752e2e.h5ac12902_0(diff, 4)), env.resolution));
   } else {
-    return texture(buffer0, hash_090f77e7.h5ac12902_0(fragCoord, env.resolution));
+    return texture(buffer0, hash_1899d36e.h5ac12902_0(fragCoord, env.resolution));
   }
 };
 
 /**
 ```
-const drawToBuffer#5af2137f = (
+const drawToBuffer#0941dd6a = (
     env#:0: GLSLEnv#451d5252,
     fragCoord#:1: Vec2#43802a16,
     buffer#:2: sampler2D#builtin,
 ): Vec4#3b941378 ={}> {
     if env#:0.time#451d5252#0 <#builtin 0.01 {
-        if random#347089ef(st: fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1) 
+        if random#549aecf7(st: fragCoord#:1 /#1899d36e#5ac12902#0 env#:0.resolution#451d5252#1) 
             >#builtin 0.95 {
             live#59488bde;
         } else {
             dead#b12c041e;
         };
     } else {
-        const self#:3 = isLive#5df4f34f(
+        const self#:3 = isLive#c7d259ec(
             color: texture#builtin(
                 buffer#:2,
-                fragCoord#:1 /#090f77e7#5ac12902#0 env#:0.resolution#451d5252#1,
+                fragCoord#:1 /#1899d36e#5ac12902#0 env#:0.resolution#451d5252#1,
             ),
         );
-        const neighbors#:4 = countNeighbors#77a447bc(
+        const neighbors#:4 = countNeighbors#6a39f360(
             coord: fragCoord#:1,
             res: env#:0.resolution#451d5252#1,
             buffer#:2,
@@ -451,22 +451,22 @@ const drawToBuffer#5af2137f = (
 }
 ```
 */
-export const hash_5af2137f: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sampler2D) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16, buffer$2: sampler2D) => {
+export const hash_0941dd6a: (arg_0: t_451d5252, arg_1: t_43802a16, arg_2: sampler2D) => t_3b941378 = (env: t_451d5252, fragCoord: t_43802a16, buffer$2: sampler2D) => {
   if (env.time < 0.01) {
-    if (hash_347089ef(hash_090f77e7.h5ac12902_0(fragCoord, env.resolution)) > 0.95) {
+    if (hash_549aecf7(hash_1899d36e.h5ac12902_0(fragCoord, env.resolution)) > 0.95) {
       return hash_59488bde;
     } else {
       return hash_b12c041e;
     }
   } else {
-    let neighbors: number = hash_77a447bc(fragCoord, env.resolution, buffer$2);
+    let neighbors: number = hash_6a39f360(fragCoord, env.resolution, buffer$2);
 
-    if (hash_5df4f34f(texture(buffer$2, hash_090f77e7.h5ac12902_0(fragCoord, env.resolution))) && hash_9275f914.h553b4b8e_0(neighbors, 2) || hash_9275f914.h553b4b8e_0(neighbors, 3)) {
+    if (hash_c7d259ec(texture(buffer$2, hash_1899d36e.h5ac12902_0(fragCoord, env.resolution))) && hash_9275f914.h553b4b8e_0(neighbors, 2) || hash_9275f914.h553b4b8e_0(neighbors, 3)) {
       return hash_59488bde;
     } else {
       return hash_b12c041e;
     }
   }
 };
-export const drawToBuffer = hash_5af2137f;
-export const drawToScreen = hash_5349442c;
+export const drawToBuffer = hash_0941dd6a;
+export const drawToScreen = hash_9450a558;

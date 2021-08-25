@@ -42,16 +42,16 @@ export const hash_b022715c: () => number = () => {
 
 /**
 ```
-const z#526b8b52 = (n#:0: int#builtin): int#builtin ={}> {
-    const m#:3 = {
+const z#b1f9e632 = (n#:0: int#builtin): int#builtin ={}> {
+    const m#:2 = {
         const z#:1 = n#:0 +#builtin 2;
-        switch z#:1 {3 => 3, 4 => 4, 5 => 10, _#:2 => 11};
+        switch z#:1 {3 => 3, 4 => 4, 5 => 10, _ => 11};
     };
-    m#:3 +#builtin m#:3 *#builtin 2;
+    m#:2 +#builtin m#:2 *#builtin 2;
 }
 ```
 */
-export const hash_526b8b52: (arg_0: number) => number = (n: number) => {
+export const hash_b1f9e632: (arg_0: number) => number = (n: number) => {
   let m: number;
   let continueBlock: boolean = true;
   let z: number = n + 2;
@@ -123,9 +123,9 @@ x#0992c290 ==#9275f914#553b4b8e#0 6
 assertCall(hash_9275f914.h553b4b8e_0, hash_0992c290, 6);
 
 /*
-z#526b8b52(n: 2) ==#9275f914#553b4b8e#0 12
+z#b1f9e632(n: 2) ==#9275f914#553b4b8e#0 12
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_526b8b52(2), 12);
+assertCall(hash_9275f914.h553b4b8e_0, hash_b1f9e632(2), 12);
 
 /*
 x2#b022715c() ==#9275f914#553b4b8e#0 6

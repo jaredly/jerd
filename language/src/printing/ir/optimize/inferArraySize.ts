@@ -599,7 +599,6 @@ export const specializeForArrayWhatsits = (
 ): LambdaExpr => {
     const knownSizes: { [unique: number]: number } = {};
     matching.map((arg) => (knownSizes[arg.sym.unique] = arg.size));
-    console.log('SPEC', knownSizes, matching);
     const transform: Visitor = {
         ...defaultVisitor,
         type: (type) => {

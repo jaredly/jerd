@@ -23,7 +23,7 @@ const a#707b8ca0 = <string#builtin>[...z#6b583f49, "Yes"]
 export const hash_707b8ca0: Array<string> = [...hash_6b583f49, "Yes"];
 
 /*
-switch a#707b8ca0 {[] => false, [..._#:0, "Yes"] => true, _#:1 => false}
+switch a#707b8ca0 {[] => false, [..._, "Yes"] => true, _ => false}
 */
 assert((() => {
   if (hash_707b8ca0.length == 0) {
@@ -55,7 +55,7 @@ assert((() => {
 })());
 
 /*
-switch a#707b8ca0 {[] => false, [..._#:0, "Yes"] => true, _#:1 => false}
+switch a#707b8ca0 {[] => false, [..._, "Yes"] => true, _ => false}
 */
 assert((() => {
   if (hash_707b8ca0.length == 0) {
@@ -73,10 +73,10 @@ assert((() => {
 switch b#05ebca85 {
     [] => false,
     ["Bad"] => false,
-    ["Bad", ..._#:0] => false,
-    ["Good", ..._#:1, "Bad"] => false,
-    ["Good", ..._#:2, "uhuh"] => true,
-    _#:3 => false,
+    ["Bad", ..._] => false,
+    ["Good", ..._, "Bad"] => false,
+    ["Good", ..._, "uhuh"] => true,
+    _ => false,
 }
 */
 assert((() => {
