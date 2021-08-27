@@ -17,7 +17,7 @@ import { emojis } from './emojis';
 import { symToGlsl } from './glslPrinter';
 // import { isBinop } from './glslPrinter';
 import * as ir from './ir/intermediateRepresentation';
-import { Expr, InferredSize } from './ir/types';
+import { Expr, InferredSize, RecordDef } from './ir/types';
 import { float } from './ir/utils';
 import * as pp from './printer';
 import { args, atom, block, id, items, PP } from './printer';
@@ -387,6 +387,36 @@ const maybeParen = (name: string | null, v: PP, mine: number): PP => {
         return items([atom('('), v, atom(')')]);
     }
     return v;
+};
+
+export const debugTypeDef = (env: Env, id: Id, constr: RecordDef): PP => {
+    return items([
+        atom('struct '),
+        idToDebug(env, id, true, constr.location),
+        atom(' '),
+        block(
+            constr.extends
+                .map((id) =>
+                    items([
+                        atom('...'),
+                        idToDebug(env, id, true, constr.location),
+                    ]),
+                )
+                .concat(
+                    constr.items.map((t, i) =>
+                        items([
+                            atom(
+                                env.global.recordGroups[idName(id)]
+                                    ? env.global.recordGroups[idName(id)][i]
+                                    : '[no names]',
+                            ),
+                            atom(': '),
+                            debugType(env, t),
+                        ]),
+                    ),
+                ),
+        ),
+    ]);
 };
 
 export const debugType = (env: Env, type: ir.Type): PP => {

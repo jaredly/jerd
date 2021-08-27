@@ -78,7 +78,7 @@ import {
     typeFromTermType,
     void_,
 } from './ir/utils';
-import { debugExpr } from './irDebugPrinter';
+import { debugExpr, debugType, debugTypeDef } from './irDebugPrinter';
 import { liftEffects } from './pre-ir/lift-effectful';
 import {
     GLSLEnv$1_id,
@@ -1501,13 +1501,11 @@ export const typeDefToGLSL = (
     if (builtinTypes[key]) {
         return null;
     }
-    return recordToGLSL(
-        env,
-        recordDefFromTermType(env, irOpts, constr),
-        opts,
-        irOpts,
-        id,
-    );
+    const irConstr = recordDefFromTermType(env, irOpts, constr);
+    return items([
+        atom(`/* ${printToString(debugTypeDef(env, id, irConstr), 100)} */\n`),
+        recordToGLSL(env, irConstr, opts, irOpts, id),
+    ]);
 };
 
 export const allEnumAttributes = (
@@ -1765,9 +1763,28 @@ export const shaderAllButMains = (
         const printed = typeDefToGLSL(env, opts, irOpts, r);
         if (printed) {
             items.push(printed);
+            // } else if (env.typeDefs[r]) {
+            //     const printed = recordToGLSL(
+            //         env,
+            //         env.typeDefs[r].typeDef,
+            //         opts,
+            //         irOpts,
+            //         idFromName(r),
+            //     );
+            //     items.push(printed);
         }
     });
+
+    // ARGGhhhh whyy do I do this to myself? hmmm um hmmm
     Object.keys(env.typeDefs).forEach((id) => {
+        items.push(
+            atom(
+                `/* ${printToString(
+                    debugTypeDef(env, idFromName(id), env.typeDefs[id].typeDef),
+                    100,
+                )} */\n`,
+            ),
+        );
         const printed = recordToGLSL(
             env,
             env.typeDefs[id].typeDef,
