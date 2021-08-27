@@ -1,3 +1,4 @@
+import { TypeDefs } from '../printing/ir/optimize/optimize';
 import { defaultVisitor } from '../printing/ir/transform';
 import { idFromName, idName, refName, ToplevelT } from './env';
 import { void_ } from './preset';
@@ -543,6 +544,7 @@ export const populateTypeDependencyMap = (
     env: Env,
     allDeps: { [key: string]: Array<Id> },
     id: Id,
+    types?: TypeDefs,
 ) => {
     let toCheck = [id];
     while (toCheck.length) {
@@ -552,29 +554,40 @@ export const populateTypeDependencyMap = (
             continue;
         }
         const typeDef = env.global.types[k];
-        if (!typeDef) {
-            console.warn(`Type dependency not found ${k}`);
-            continue;
-        }
         const tDeps: Array<Id> = [];
-        if (typeDef.type === 'Record') {
-            tDeps.push(...typeDef.extends);
-            typeDef.items.forEach((item) => {
+        if (!typeDef) {
+            if (!types || !types[k]) {
+                console.warn(`Type dependency not found ${k}`);
+                continue;
+            }
+            // ir.RecordDef
+            const d = types[k];
+            tDeps.push(...d.typeDef.extends);
+            d.typeDef.items.forEach((item) => {
                 if (item.type === 'ref' && item.ref.type === 'user') {
                     tDeps.push(item.ref.id);
                 }
             });
         } else {
-            typeDef.extends.forEach((ref) => {
-                if (ref.ref.type === 'user') {
-                    tDeps.push(ref.ref.id);
-                }
-            });
-            typeDef.items.forEach((ref) => {
-                if (ref.ref.type === 'user') {
-                    tDeps.push(ref.ref.id);
-                }
-            });
+            if (typeDef.type === 'Record') {
+                tDeps.push(...typeDef.extends);
+                typeDef.items.forEach((item) => {
+                    if (item.type === 'ref' && item.ref.type === 'user') {
+                        tDeps.push(item.ref.id);
+                    }
+                });
+            } else {
+                typeDef.extends.forEach((ref) => {
+                    if (ref.ref.type === 'user') {
+                        tDeps.push(ref.ref.id);
+                    }
+                });
+                typeDef.items.forEach((ref) => {
+                    if (ref.ref.type === 'user') {
+                        tDeps.push(ref.ref.id);
+                    }
+                });
+            }
         }
 
         allDeps[k] = tDeps;

@@ -47,6 +47,7 @@ export type Context = {
     notes: Array<string> | null;
 };
 
+// So these are ... monomorphized types I think?
 export type TypeDefs = {
     [idName: string]: {
         typeDef: RecordDef;

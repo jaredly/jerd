@@ -1503,7 +1503,12 @@ export const typeDefToGLSL = (
     }
     const irConstr = recordDefFromTermType(env, irOpts, constr);
     return items([
-        atom(`/* ${printToString(debugTypeDef(env, id, irConstr), 100)} */\n`),
+        atom(
+            `/* ${printToString(
+                debugTypeDef(env, id, irConstr, env.typeDefs),
+                100,
+            )} */\n`,
+        ),
         recordToGLSL(env, irConstr, opts, irOpts, id),
     ]);
 };
@@ -1717,7 +1722,7 @@ export const expressionTypeDeps = (env: Env, terms: Array<Expr>) => {
     const allDeps: { [key: string]: Array<Id> } = {};
     terms.forEach((term) =>
         getTypeDependencies(term).forEach((ref) =>
-            populateTypeDependencyMap(env, allDeps, ref.id),
+            populateTypeDependencyMap(env, allDeps, ref.id, env.typeDefs),
         ),
     );
 
@@ -1760,40 +1765,61 @@ export const shaderAllButMains = (
     );
 
     allTypes.forEach((r) => {
-        const printed = typeDefToGLSL(env, opts, irOpts, r);
-        if (printed) {
+        if (env.global.types[r]) {
+            const printed = typeDefToGLSL(env, opts, irOpts, r);
+            if (printed) {
+                items.push(printed);
+            }
+        } else if (env.typeDefs[r]) {
+            const printed = recordToGLSL(
+                env,
+                env.typeDefs[r].typeDef,
+                opts,
+                irOpts,
+                idFromName(r),
+            );
             items.push(printed);
-            // } else if (env.typeDefs[r]) {
-            //     const printed = recordToGLSL(
-            //         env,
-            //         env.typeDefs[r].typeDef,
-            //         opts,
-            //         irOpts,
-            //         idFromName(r),
-            //     );
-            //     items.push(printed);
         }
     });
 
+    // const usedMonoTypes = {};
+    // inOrder
+    //     .map((t) => (irTerms[t] ? irTerms[t].expr : null))
+    //     .forEach((expr: Expr | null) => {
+    //         if(expr) {
+    //             transformExpr(expr, {
+    //                 ...defaultVisitor,
+    //                 expr: expr => {
+    //                     if (expr.type === 'genTerm')
+    //             }
+    //         })
+    //     }
+    // })
+
     // ARGGhhhh whyy do I do this to myself? hmmm um hmmm
-    Object.keys(env.typeDefs).forEach((id) => {
-        items.push(
-            atom(
-                `/* ${printToString(
-                    debugTypeDef(env, idFromName(id), env.typeDefs[id].typeDef),
-                    100,
-                )} */\n`,
-            ),
-        );
-        const printed = recordToGLSL(
-            env,
-            env.typeDefs[id].typeDef,
-            opts,
-            irOpts,
-            idFromName(id),
-        );
-        items.push(printed);
-    });
+    // Object.keys(env.typeDefs).forEach((id) => {
+    //     items.push(
+    //         atom(
+    //             `/* ${printToString(
+    //                 debugTypeDef(
+    //                     env,
+    //                     idFromName(id),
+    //                     env.typeDefs[id].typeDef,
+    //                     env.typeDefs,
+    //                 ),
+    //                 100,
+    //             )} */\n`,
+    //         ),
+    //     );
+    //     const printed = recordToGLSL(
+    //         env,
+    //         env.typeDefs[id].typeDef,
+    //         opts,
+    //         irOpts,
+    //         idFromName(id),
+    //     );
+    //     items.push(printed);
+    // });
 
     if (stateUniform) {
         items.push(
