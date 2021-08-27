@@ -347,13 +347,20 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             };
         }
         case 'Attribute': {
+            // HACK backfilling for when we didn't track this right 🙃
+            let rtv = term.refTypeVbls || [];
+            if (
+                term.refTypeVbls == null &&
+                term.target.is.type === 'ref' &&
+                term.target.is.typeVbls.length
+            ) {
+                rtv = term.target.is.typeVbls;
+            }
             return {
                 type: 'attribute',
                 target: printTerm(env, opts, term.target),
                 ref: term.ref,
-                refTypeVbls: term.refTypeVbls
-                    ? term.refTypeVbls.map(mapType)
-                    : [],
+                refTypeVbls: rtv.map(mapType),
                 idx: term.idx,
                 loc: term.location,
                 is: mapType(term.is),

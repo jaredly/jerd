@@ -24,8 +24,6 @@ export const foldImmediateAttributeAccess = (ctx: Context, expr: Expr) =>
                 // TODO: support this too
                 return null;
             }
-            // erggggggh mmmm maybe I need to reorder things
-            // if (expr.refTypeVbls)
             if (refsEqual(expr.ref, target.base.ref)) {
                 const row = target.base.rows[expr.idx];
                 if (row) {
@@ -44,12 +42,9 @@ export const foldImmediateAttributeAccess = (ctx: Context, expr: Expr) =>
             }
             const sub = target.subTypes[idName(expr.ref.id)];
             if (!sub) {
-                console.log(`UNEXPECTED`);
-                console.log(target);
-                console.log(expr);
-                console.log(ctx.env.global.types[idName(expr.ref.id)]);
-                console.log(ctx.env.global.types[idName(target.base.ref.id)]);
-                return null;
+                throw new Error(
+                    `UNEXPECTED ${expr.ref.id.hash} attribute of ${target.base.ref.id.hash}`,
+                );
             }
             if (sub.rows[expr.idx]) {
                 return sub.rows[expr.idx];

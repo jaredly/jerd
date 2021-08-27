@@ -78,6 +78,7 @@ export const specializeType = (
         source: t.ref.id,
     };
     const nid = idFromName(hash);
+    // console.log(`Specialize ${hash} from ${t.ref.id.hash}`);
     const newType: UserTypeReference = {
         ...t,
         typeVbls: [],
