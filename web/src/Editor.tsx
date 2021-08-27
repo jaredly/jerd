@@ -172,6 +172,11 @@ export default ({
     maxWidth,
     selection,
     setSelection,
+    text,
+    evaled,
+    typed,
+    setText,
+    err,
 }: {
     env: Env;
     maxWidth: number;
@@ -185,83 +190,18 @@ export default ({
     evalEnv: EvalEnv;
     display: Display | null | undefined;
     plugins: RenderPlugins;
+    text: string;
+    evaled: any;
+    typed: ToplevelT | null;
+    setText: (text: string) => void;
+    err: Error | null;
 }) => {
-    const evalCache = React.useRef({} as { [key: string]: any });
-
-    const [traces, setTraces] = React.useState({} as Traces);
-
-    const [text, setText] = React.useState(() => {
-        return typeof contents === 'string'
-            ? contents
-            : printToString(toplevelToPretty(env, contents), 50);
-    });
-
-    const [typed, err]: [ToplevelT | null, Error | null] = React.useMemo(() => {
-        if (text.trim().length === 0) {
-            return [null, null];
-        }
-        try {
-            const parsed: Array<Toplevel> = parse(text);
-            if (parsed.length > 1) {
-                return [
-                    null,
-                    { type: 'error', message: 'multiple toplevel items' },
-                ];
-            }
-            return [
-                addLocationIndices(
-                    typeToplevelT(
-                        newWithGlobal(env.global),
-                        parsed[0],
-                        typeof contents !== 'string' &&
-                            contents.type === 'RecordDef'
-                            ? contents.def.unique
-                            : null,
-                    ),
-                ),
-                null,
-            ];
-        } catch (err) {
-            return [null, err];
-        }
-    }, [text]);
-
-    // TODO: cache these intermediate
-
-    const evaled = React.useMemo(() => {
-        if (typed && (typed.type === 'Expression' || typed.type === 'Define')) {
-            const id =
-                typed.type === 'Expression'
-                    ? { hash: hashObject(typed.term), size: 1, pos: 0 }
-                    : typed.id;
-            const already = evalEnv.terms[idName(id)];
-            // oooh hm should the traces be part of the evalCache? it might want to be...
-            // because we cache these things...
-            // anyway, let's leave this for the moment. it doesn't actually matter just yet
-            if (already) {
-                return already;
-            } else if (evalCache.current[idName(id)] != null) {
-                return evalCache.current[idName(id)];
-            } else {
-                try {
-                    setTraces({});
-                    const v = runTerm(env, typed.term, id, evalEnv)[idName(id)];
-                    evalCache.current[idName(id)] = v;
-                    return v;
-                } catch (err) {
-                    console.log('Failure while evaling', err);
-                    //
-                }
-            }
-        }
-        return null;
-    }, [typed]);
-
     const lastValidResult = React.useRef(null as null | [ToplevelT, any]);
     if (typed != null && evaled != null) {
         lastValidResult.current = [typed, evaled];
     }
 
+    // START HERE: Move this up to Cell.tsx
     const renderPlugin = getRenderPlugin(
         plugins,
         env,

@@ -5,11 +5,13 @@ import {
     idFromName,
     idName,
     ToplevelT,
+    typeToplevelT,
 } from '@jerd/language/src/typing/env';
 import {
     Env,
     Id,
     idsEqual,
+    newWithGlobal,
     nullLocation,
     Reference,
     selfEnv,
@@ -17,12 +19,16 @@ import {
 } from '@jerd/language/src/typing/types';
 // Ok
 import * as React from 'react';
+import { parse, Toplevel } from '../../language/src/parsing/parser';
+import { printToString } from '../../language/src/printing/printer';
+import { toplevelToPretty } from '../../language/src/printing/printTsLike';
+import { addLocationIndices } from '../../language/src/typing/analyze';
 import { Position } from './Cells';
 import { cellTitle } from './cellTitle';
 import { CellWrapper } from './CellWrapper';
 import { compileGLSL, envWithTerm, getStateUniform } from './display/OpenGL';
-import Editor from './Editor';
-import { termToJS } from './eval';
+import Editor, { Traces } from './Editor';
+import { runTerm, termToJS } from './eval';
 import { getMenuItems } from './getMenuItems';
 import { RenderItem } from './RenderItem';
 import { Cell, Content, Display, EvalEnv, RenderPluginT } from './State';
@@ -120,9 +126,96 @@ const CellView_ = ({
         setSelection((s) => ({ ...s, level: 'text' }));
     }, [cell]);
 
+    const contents =
+        cell.content.type == 'raw'
+            ? cell.content.text
+            : getToplevel(env, cell.content);
+
+    const evalCache = React.useRef({} as { [key: string]: any });
+
+    const [traces, setTraces] = React.useState({} as Traces);
+
+    const [text, setText] = React.useState(() => {
+        return typeof contents === 'string'
+            ? contents
+            : printToString(toplevelToPretty(env, contents), 50);
+    });
+
+    const [typed, err]: [ToplevelT | null, Error | null] = React.useMemo(() => {
+        if (text.trim().length === 0) {
+            return [null, null];
+        }
+        try {
+            const parsed: Array<Toplevel> = parse(text);
+            if (parsed.length > 1) {
+                return [
+                    null,
+                    { type: 'error', message: 'multiple toplevel items' },
+                ];
+            }
+            return [
+                addLocationIndices(
+                    typeToplevelT(
+                        newWithGlobal(env.global),
+                        parsed[0],
+                        typeof contents !== 'string' &&
+                            contents.type === 'RecordDef'
+                            ? contents.def.unique
+                            : null,
+                    ),
+                ),
+                null,
+            ];
+        } catch (err) {
+            return [null, err];
+        }
+    }, [text]);
+
+    // TODO: cache these intermediate
+
+    const evaled = React.useMemo(() => {
+        if (typed && (typed.type === 'Expression' || typed.type === 'Define')) {
+            const id =
+                typed.type === 'Expression'
+                    ? { hash: hashObject(typed.term), size: 1, pos: 0 }
+                    : typed.id;
+            const already = evalEnv.terms[idName(id)];
+            // oooh hm should the traces be part of the evalCache? it might want to be...
+            // because we cache these things...
+            // anyway, let's leave this for the moment. it doesn't actually matter just yet
+            if (already) {
+                return already;
+            } else if (evalCache.current[idName(id)] != null) {
+                return evalCache.current[idName(id)];
+            } else {
+                try {
+                    setTraces({});
+                    const v = runTerm(env, typed.term, id, evalEnv)[idName(id)];
+                    evalCache.current[idName(id)] = v;
+                    return v;
+                } catch (err) {
+                    console.log('Failure while evaling', err);
+                    //
+                }
+            }
+        }
+        return null;
+    }, [typed]);
+
+    // START HERE PLEASE:
+    // bring the RenderItem dealios out here
+    // - when editing text, we're not going to update the propsed
+    //   all the time... but when switching we probably do, right?
+    //   also out here we can manage simple undo/redo, right? I think?
+    //   but not right at the moment.
     const body =
         selection.level === 'text' ? (
             <Editor
+                text={text}
+                evaled={evaled}
+                typed={typed}
+                setText={setText}
+                err={err}
                 maxWidth={maxWidth}
                 env={env}
                 onPin={onPin}
