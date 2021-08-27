@@ -5,7 +5,8 @@ import { parse } from '../parsing/grammar';
 import { Location, Toplevel } from '../parsing/parser';
 import {
     expressionDeps,
-    expressionTypeDeps,
+    populateTypeDependencyMap,
+    sortAllDeps,
     sortAllDepsPlain,
 } from '../typing/analyze';
 import {
@@ -43,7 +44,7 @@ import {
     EnumDef,
 } from '../typing/types';
 import { glslTester } from './glslTester';
-import { uniquesReallyAreUnique } from './ir/analyze';
+import { getTypeDependencies, uniquesReallyAreUnique } from './ir/analyze';
 import * as ir from './ir/intermediateRepresentation';
 import { toplevelRecordAttribute } from './ir/optimize/inline';
 import {
@@ -1714,6 +1715,17 @@ export const makeTermExpr = (id: Id, env: TermEnv): Term => ({
     is: env.global.terms[idName(id)].is,
 });
 
+export const expressionTypeDeps = (env: Env, terms: Array<Expr>) => {
+    const allDeps: { [key: string]: Array<Id> } = {};
+    terms.forEach((term) =>
+        getTypeDependencies(term).forEach((ref) =>
+            populateTypeDependencyMap(env, allDeps, ref.id),
+        ),
+    );
+
+    return sortAllDeps(allDeps);
+};
+
 export const shaderAllButMains = (
     env: Env,
     opts: OutputOptions,
@@ -1744,7 +1756,9 @@ export const shaderAllButMains = (
 
     const allTypes = expressionTypeDeps(
         env,
-        inOrder.map((t) => env.global.terms[t]).filter(Boolean),
+        inOrder
+            .map((t) => (irTerms[t] ? irTerms[t].expr : null))
+            .filter(Boolean) as Array<Expr>,
     );
 
     allTypes.forEach((r) => {

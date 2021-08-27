@@ -173,7 +173,7 @@ export const typeAttribute = (
     }
     if (target.is.type !== 'ref') {
         throw new Error(
-            'Yeah just not supporting non-ref target type at the moment',
+            `Yeah just not supporting non-ref target type at the moment ${target.is.type}`,
         );
     }
     t = applyTypeVariablesToRecord(

@@ -1,10 +1,11 @@
 // Let's ensure some invariants are met!
 
 import { Location } from '../../parsing/parser';
+import { idName, refName } from '../../typing/env';
 import { LocatedError, UniqueError } from '../../typing/errors';
-import { Symbol } from '../../typing/types';
+import { Symbol, UserReference } from '../../typing/types';
 import { defaultVisitor, transformExpr, Visitor } from './transform';
-import { Expr, Loc } from './types';
+import { Expr, Loc, UserTypeReference } from './types';
 import { handlerSym } from './utils';
 
 export const collectSymDeclarationsVisitor = () => {
@@ -93,4 +94,33 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
     //     throw new LocatedError(undefinedUses[0], `Undefined unique usage!`);
     // }
     return undefinedUses;
+};
+
+export const getTypeDependencies = (expr: Expr): Array<UserReference> => {
+    const deps: { [key: string]: UserReference } = {};
+    transformExpr(expr, {
+        ...defaultVisitor,
+        type: (t) => {
+            if (t.type === 'ref' && t.ref.type === 'user') {
+                deps[idName(t.ref.id)] = t.ref;
+            }
+            return null;
+        },
+        // expr: (expr) => {
+        // if (expr.is.type === 'ref' && expr.is.ref.type === 'user') {
+        //     deps[idName(expr.is.ref.id)] = expr.is.ref;
+        // }
+        // if (expr.is.type === 'lambda') {
+        //     expr.is.args.forEach((arg) => {
+        //         if (arg.type === 'ref' && arg.ref.type === 'user') {
+        //             deps[idName(arg.ref.id)] = arg.ref;
+        //         }
+        //     });
+        //     if (expr.is.res.type === 'ref') {
+        //         deps[idName(expr.is.res.ref.)] = expr.is.res.ref;
+        //     }
+        // }
+        // }
+    });
+    return Object.keys(deps).map((k) => deps[k]);
 };

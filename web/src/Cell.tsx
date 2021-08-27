@@ -223,7 +223,6 @@ const CellView_ = ({
             ) {
                 return;
             }
-            // console.log('key', evt.key);
             if (evt.key === 'Enter') {
                 evt.preventDefault();
                 evt.stopPropagation();

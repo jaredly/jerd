@@ -2,7 +2,8 @@ import { idName } from '@jerd/language/src/typing/env';
 import { Env, Term } from '@jerd/language/src/typing/types';
 import { Cell } from './State';
 import { MenuItem } from './CellWrapper';
-import { MovePosition, generateExport } from './Cell';
+import { MovePosition } from './Cell';
+import { generateExport } from './generateExport';
 
 export const getMenuItems = ({
     onMove,
