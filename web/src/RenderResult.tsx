@@ -48,6 +48,7 @@ import { widgetForDecorator } from './display/Decorators';
 import { transform } from '../../language/src/typing/transform';
 import { runTerm } from './eval';
 import { LocatedError } from '../../language/src/typing/errors';
+import { Action } from './Cells';
 
 /*
 
@@ -71,11 +72,12 @@ const RenderResult_ = ({
     id,
     env,
     evalEnv,
-    onRun,
+    // onRun,
     onSetPlugin,
     value,
     term,
-    onPin,
+    // onPin,
+    dispatch,
     focused,
 }: {
     focused: boolean;
@@ -87,14 +89,15 @@ const RenderResult_ = ({
     evalEnv: EvalEnv;
     value: any;
     term: Term;
-    onRun: (id: Id) => void;
-    onPin: (display: Display, id: Id) => void;
+    // onRun: (id: Id) => void;
+    // onPin: (display: Display, id: Id) => void;
+    dispatch: (action: Action) => void;
 }) => {
-    React.useEffect(() => {
-        if (value == null) {
-            onRun(id);
-        }
-    }, [value == null]);
+    // React.useEffect(() => {
+    //     if (value == null) {
+    //         dispatch({type: 'run', id});
+    //     }
+    // }, [value == null]);
 
     const [sliderState, setSliderState] = React.useState(
         {} as {
@@ -290,7 +293,7 @@ const RenderResult_ = ({
     // Ohhh we want to share runs, right? like if we haven't slid why not do onRun?
     React.useEffect(() => {
         if (value == null) {
-            onRun(id);
+            dispatch({ type: 'run', id });
         }
     }, [value == null]);
 
@@ -320,7 +323,9 @@ const RenderResult_ = ({
                 display={cell.display}
                 plugins={plugins}
                 onSetPlugin={onSetPlugin}
-                onPin={() => onPin(cell.display!, id)}
+                onPin={() =>
+                    dispatch({ type: 'pin', display: cell.display!, id })
+                }
             >
                 {renderPlugin()}
             </RenderPlugin>

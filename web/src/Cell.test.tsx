@@ -39,18 +39,19 @@ const renderCell = (raw: string) => {
             env={env}
             getHistory={() => []}
             focused={1}
-            onDuplicate={() => {}}
-            onFocus={() => {
-                console.log('hello!');
-            }}
-            onChange={() => {}}
-            onRun={() => {}}
-            onRemove={() => {}}
-            onMove={() => {}}
+            // onDuplicate={() => {}}
+            // onFocus={() => {
+            //     console.log('hello!');
+            // }}
+            // onChange={() => {}}
+            // onRun={() => {}}
+            // onRemove={() => {}}
+            // onMove={() => {}}
             evalEnv={newEvalEnv({})}
-            addCell={() => {}}
+            // addCell={() => {}}
             plugins={{}}
-            onPin={() => {}}
+            // onPin={() => {}}
+            dispatch={(_) => {}}
         />,
     );
 };

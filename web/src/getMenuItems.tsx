@@ -4,10 +4,12 @@ import { Cell } from './State';
 import { MenuItem } from './CellWrapper';
 import { MovePosition } from './Cell';
 import { generateExport } from './generateExport';
+import { Action } from './Cells';
 
 export const getMenuItems = ({
-    onMove,
-    onDuplicate,
+    // onMove,
+    // onDuplicate,
+    dispatch,
     setCollapsed,
     setShowSource,
     term,
@@ -17,8 +19,9 @@ export const getMenuItems = ({
     env,
     setShowGLSL,
 }: {
-    onMove: (id: string, dir: MovePosition) => void;
-    onDuplicate: (id: string) => void;
+    // onMove: (id: string, dir: MovePosition) => void;
+    // onDuplicate: (id: string) => void;
+    dispatch: (action: Action) => void;
     setCollapsed: (c: boolean) => void;
     setShowSource: (show: boolean) => void;
     term: Term | null;
@@ -29,15 +32,20 @@ export const getMenuItems = ({
     setShowGLSL: (show: boolean) => void;
 }) => () => {
     return [
-        { name: 'Move up', action: () => onMove(cell.id, 'up') },
+        {
+            name: 'Move up',
+            action: () =>
+                dispatch({ type: 'move', id: cell.id, position: 'up' }),
+        },
         {
             name: 'Move down',
-            action: () => onMove(cell.id, 'down'),
+            action: () =>
+                dispatch({ type: 'move', id: cell.id, position: 'down' }),
         },
         { name: 'Move to workspace', action: () => {} },
         {
             name: 'Duplicate cell',
-            action: () => onDuplicate(cell.id),
+            action: () => dispatch({ type: 'duplicate', id: cell.id }),
         },
         {
             name: 'History',

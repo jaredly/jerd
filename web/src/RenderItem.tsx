@@ -28,7 +28,7 @@ import {
 } from '../../language/src/typing/analyze';
 import { showType } from '../../language/src/typing/unify';
 import { Selection } from './Cell';
-import { Position } from './Cells';
+import { Action, Position } from './Cells';
 import { MenuItem } from './CellWrapper';
 import { runTerm } from './eval';
 import { FilterMenu } from './FilterMenu';
@@ -55,17 +55,18 @@ export type Props = {
     evalEnv: EvalEnv;
     focused: boolean;
     selection: Selection;
+    dispatch: (action: Action) => void;
     setSelection: (fn: (s: Selection) => Selection) => void;
     onFocus: (direction?: 'up' | 'down') => void;
-    onRun: (id: Id) => void;
-    addCell: (
-        content: Content,
-        position: Position,
-        updateEnv?: (e: Env) => Env,
-    ) => void;
+    // onRun: (id: Id) => void;
+    // addCell: (
+    //     content: Content,
+    //     position: Position,
+    //     updateEnv?: (e: Env) => Env,
+    // ) => void;
     onEdit: () => void;
     onSetPlugin: (display: Display | null) => void;
-    onPin: (display: Display, id: Id) => void;
+    // onPin: (display: Display, id: Id) => void;
     onChange: (toplevel: ToplevelT) => void;
     onPending: (term: Term) => void;
     onClick: () => void;
@@ -78,9 +79,9 @@ const RenderItem_ = ({
     cell,
     content,
     evalEnv,
-    onRun,
+    // onRun,
     onEdit,
-    addCell,
+    // addCell,
     plugins,
     focused,
     onFocus,
@@ -92,8 +93,9 @@ const RenderItem_ = ({
     onSetPlugin,
     onChange,
     onPending,
-    onPin,
-}: Props) => {
+    dispatch,
+}: // onPin,
+Props) => {
     let [top, term, idxTree, attributedText, sourceMap] = React.useMemo(() => {
         let top = getToplevel(env, content);
         top = addLocationIndices(top);
@@ -165,13 +167,14 @@ const RenderItem_ = ({
         }
 
         const addTerm = (newTerm: Term, newName: string) =>
-            addCell(
-                {
+            dispatch({
+                type: 'add',
+                content: {
                     type: 'term',
                     id: idFromName(hashObject(newTerm)),
                 },
-                { type: 'after', id: cell.id },
-                (env) => {
+                position: { type: 'after', id: cell.id },
+                updateEnv: (env) => {
                     const res = addExpr(env, newTerm, null);
                     return {
                         ...res.env,
@@ -184,7 +187,7 @@ const RenderItem_ = ({
                         },
                     };
                 },
-            );
+            });
 
         const fn = bindKeys(
             idxTree,
@@ -240,7 +243,12 @@ const RenderItem_ = ({
                         return onClick(
                             env,
                             cell,
-                            addCell,
+                            (c: Content, p: Position) =>
+                                dispatch({
+                                    type: 'add',
+                                    content: c,
+                                    position: p,
+                                }),
                             setScrub,
                             term,
                             value,
@@ -284,7 +292,7 @@ const RenderItem_ = ({
                 <RenderResult
                     onSetPlugin={onSetPlugin}
                     focused={focused}
-                    onPin={onPin}
+                    // onPin={onPin}
                     cell={cell}
                     term={scrub ? scrub.term : term}
                     value={scrub ? scrub.returnValue : value}
@@ -292,7 +300,7 @@ const RenderItem_ = ({
                     id={content.id}
                     env={env}
                     evalEnv={evalEnv}
-                    onRun={onRun}
+                    dispatch={dispatch}
                 />
             ) : null}
             {getString ? (

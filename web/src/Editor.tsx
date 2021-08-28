@@ -40,6 +40,7 @@ import ColorTextarea from './ColorTextarea';
 import { RenderPlugin } from './RenderResult';
 import { Selection } from './Cell';
 import { addLocationIndices } from '../../language/src/typing/analyze';
+import { Action } from './Cells';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }
@@ -167,7 +168,8 @@ export default ({
     evalEnv,
     display,
     plugins,
-    onPin,
+    dispatch,
+    // onPin,
     onSetPlugin,
     maxWidth,
     selection,
@@ -186,7 +188,8 @@ export default ({
     contents: ToplevelT | string;
     onClose: (term: ToplevelT | null) => void;
     onChange: (term: ToplevelT | string) => void;
-    onPin: (display: Display, id: Id) => void;
+    // onPin: (display: Display, id: Id) => void;
+    dispatch: (action: Action) => void;
     evalEnv: EvalEnv;
     display: Display | null | undefined;
     plugins: RenderPlugins;
@@ -281,7 +284,13 @@ export default ({
             {renderPlugin != null ? (
                 <RenderPlugin
                     // onPin={null}
-                    onPin={() => onPin(display!, getId(typed!))}
+                    onPin={() =>
+                        dispatch({
+                            type: 'pin',
+                            display: display!,
+                            id: getId(typed!),
+                        })
+                    }
                     display={display}
                     plugins={plugins}
                     onSetPlugin={onSetPlugin}

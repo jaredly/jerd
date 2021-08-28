@@ -5,7 +5,7 @@ import { jsx } from '@emotion/react';
 import * as React from 'react';
 import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
 import { CellView, MovePosition } from './Cell';
-import { Cell, Content, EvalEnv, RenderPlugins } from './State';
+import { Cell, Content, Display, EvalEnv, RenderPlugins } from './State';
 import { runTerm } from './eval';
 import { HistoryItem, HistoryUpdate, State, Workspace } from './App';
 import {
@@ -33,6 +33,27 @@ export const contentMatches = (one: Content, two: Content) => {
         return false;
     }
     return one.type === two.type && idName(one.id) === idName(two.id);
+};
+
+export type Action =
+    | { type: 'duplicate'; id: string }
+    | { type: 'focus'; id: string; direction?: 'up' | 'down' }
+    | { type: 'change'; env?: Env | null; cell: Cell }
+    | { type: 'run'; id: Id }
+    | { type: 'remove'; id: string }
+    | { type: 'move'; id: string; position: MovePosition }
+    | {
+          type: 'add';
+          content: Content;
+          position: Position;
+          updateEnv?: (e: Env) => Env;
+      }
+    | { type: 'pin'; display: Display; id: Id };
+
+const useUpdated = <T,>(value: T) => {
+    const ref = React.useRef(value);
+    ref.current = value;
+    return ref;
 };
 
 const Cells = ({
@@ -93,179 +114,183 @@ const Cells = ({
         [work.history],
     );
 
-    const onFocus = React.useCallback(
-        (id: string, direction?: 'up' | 'down') => {
-            if (direction === 'up') {
-                const at = sortedCellIds.indexOf(id);
-                if (at > 0) {
-                    setFocus({ id: sortedCellIds[at - 1], tick: 0 });
+    const sortedCellIds$ = useUpdated(sortedCellIds);
+    const state$ = useUpdated(state);
+
+    const processAction = React.useCallback((action: Action) => {
+        const state = state$.current;
+
+        switch (action.type) {
+            case 'focus': {
+                const { id, direction } = action;
+                if (direction === 'up') {
+                    const at = sortedCellIds.indexOf(id);
+                    if (at > 0) {
+                        setFocus({ id: sortedCellIds[at - 1], tick: 0 });
+                    }
+                    return;
+                }
+                if (direction === 'down') {
+                    const at = sortedCellIds.indexOf(id);
+                    if (at < sortedCellIds.length - 1) {
+                        setFocus({ id: sortedCellIds[at + 1], tick: 0 });
+                    }
+                    return;
+                }
+                if (!focusRef.current || focusRef.current.id !== id) {
+                    setFocus({ id, tick: 0 });
                 }
                 return;
             }
-            if (direction === 'down') {
-                const at = sortedCellIds.indexOf(id);
-                if (at < sortedCellIds.length - 1) {
-                    setFocus({ id: sortedCellIds[at + 1], tick: 0 });
+            case 'remove': {
+                return setState(
+                    modActiveWorkspace((work) => {
+                        const cells = { ...work.cells };
+                        delete cells[action.id];
+                        return { ...work, cells };
+                    }),
+                );
+            }
+            case 'run': {
+                const { id } = action;
+                let results: { [key: string]: any };
+                try {
+                    const term = state.env.global.terms[idName(id)];
+                    if (!term) {
+                        throw new Error(`No term ${idName(id)}`);
+                    }
+
+                    results = runTerm(state.env, term, id, state.evalEnv);
+                } catch (err) {
+                    console.log(`Failed to run!`);
+                    console.log(err);
+                    return;
                 }
+                setState((state) => ({
+                    ...state,
+                    evalEnv: {
+                        ...state.evalEnv,
+                        terms: {
+                            ...state.evalEnv.terms,
+                            ...results,
+                        },
+                    },
+                }));
                 return;
             }
-            if (!focusRef.current || focusRef.current.id !== id) {
+            case 'add': {
+                const { content, position, updateEnv } = action;
+                const work = activeWorkspace(state);
+                const matching = Object.keys(work.cells).find((id) =>
+                    contentMatches(content, work.cells[id].content),
+                );
+                if (matching) {
+                    if (focus && focus.id == matching) {
+                        setFocus({
+                            id: matching,
+                            tick: focus.tick + 1,
+                        });
+                    } else {
+                        setFocus({ id: matching, tick: 0 });
+                    }
+                    return;
+                }
+                const id = genId();
+                setState((state) => {
+                    if (updateEnv) {
+                        state = { ...state, env: updateEnv(state.env) };
+                    }
+
+                    return modActiveWorkspace(
+                        addCell({ ...blankCell, id, content }, position),
+                    )(state);
+                });
                 setFocus({ id, tick: 0 });
-            }
-        },
-        [sortedCellIds],
-    );
-
-    const onPin = React.useCallback((display, id) => {
-        setState(
-            modActiveWorkspace((workspace) => ({
-                ...workspace,
-                pins: workspace.pins.concat([{ display, id }]),
-            })),
-        );
-    }, []);
-
-    const onRemove = React.useCallback((id: string) => {
-        setState(
-            modActiveWorkspace((work) => {
-                const cells = { ...work.cells };
-                delete cells[id];
-                return { ...work, cells };
-            }),
-        );
-    }, []);
-
-    const onRun = React.useCallback(
-        (id) => {
-            let results: { [key: string]: any };
-            try {
-                const term = state.env.global.terms[idName(id)];
-                if (!term) {
-                    throw new Error(`No term ${idName(id)}`);
-                }
-
-                results = runTerm(state.env, term, id, state.evalEnv);
-            } catch (err) {
-                console.log(`Failed to run!`);
-                console.log(err);
                 return;
             }
-            setState((state) => ({
-                ...state,
-                evalEnv: {
-                    ...state.evalEnv,
-                    terms: {
-                        ...state.evalEnv.terms,
-                        ...results,
-                    },
-                },
-            }));
-        },
-        [state],
-    );
-
-    const addCell_ = React.useCallback(
-        (content, position: Position, updateEnv?: (e: Env) => Env) => {
-            const work = activeWorkspace(state);
-            const matching = Object.keys(work.cells).find((id) =>
-                contentMatches(content, work.cells[id].content),
-            );
-            if (matching) {
-                if (focus && focus.id == matching) {
-                    setFocus({
-                        id: matching,
-                        tick: focus.tick + 1,
-                    });
-                } else {
-                    setFocus({ id: matching, tick: 0 });
-                }
-                return;
-            }
-            const id = genId();
-            setState((state) => {
-                if (updateEnv) {
-                    state = { ...state, env: updateEnv(state.env) };
-                }
-
-                return modActiveWorkspace(
-                    addCell({ ...blankCell, id, content }, position),
-                )(state);
-            });
-            setFocus({ id, tick: 0 });
-        },
-        [state],
-    );
-
-    const onDuplicate = React.useCallback((id: string) => {
-        const pos: Position = { type: 'after', id };
-        const nid = genId();
-        setState(
-            modActiveWorkspace((w: Workspace) => {
-                const order = calculateOrder(w.cells, pos);
-                return {
-                    ...w,
-                    cells: {
-                        ...w.cells,
-                        [nid]: {
-                            ...w.cells[id],
-                            id: nid,
-                            order,
-                        },
-                    },
-                };
-            }),
-        );
-        setFocus({ id: nid, tick: 0 });
-    }, []);
-
-    const onMove = React.useCallback(
-        (id: string, position: MovePosition) => {
-            if (typeof position !== 'string') {
-                return;
-            }
-            const idx = sortedCellIds.indexOf(id);
-            if (idx === 0 && position === 'up') {
-                return;
-            }
-            if (idx === sortedCellIds.length - 1 && position === 'down') {
-                return;
-            }
-
-            const pos: Position =
-                position === 'up'
-                    ? {
-                          type: 'before',
-                          id: sortedCellIds[idx - 1],
-                      }
-                    : {
-                          type: 'after',
-                          id: sortedCellIds[idx + 1],
-                      };
-
-            setState(
-                modActiveWorkspace((w: Workspace) => {
-                    const order = calculateOrder(w.cells, pos);
-                    return {
-                        ...w,
-                        cells: {
-                            ...w.cells,
-                            [id]: {
-                                ...w.cells[id],
-                                order,
+            case 'duplicate': {
+                const { id } = action;
+                const pos: Position = { type: 'after', id };
+                const nid = genId();
+                setState(
+                    modActiveWorkspace((w: Workspace) => {
+                        const order = calculateOrder(w.cells, pos);
+                        return {
+                            ...w,
+                            cells: {
+                                ...w.cells,
+                                [nid]: {
+                                    ...w.cells[id],
+                                    id: nid,
+                                    order,
+                                },
                             },
-                        },
-                    };
-                }),
-            );
-        },
-        [sortedCellIds],
-    );
+                        };
+                    }),
+                );
+                setFocus({ id: nid, tick: 0 });
+                return;
+            }
+            case 'move': {
+                const { position, id } = action;
+                if (typeof position !== 'string') {
+                    return;
+                }
+                const idx = sortedCellIds.indexOf(id);
+                if (idx === 0 && position === 'up') {
+                    return;
+                }
+                if (idx === sortedCellIds.length - 1 && position === 'down') {
+                    return;
+                }
 
-    const onChange = React.useCallback((env: Env | null, cell: Cell) => {
-        console.log('Change', cell);
-        setState((state) => {
-            return onChangeCell(env ? env : state.env, state, cell);
-        });
+                const pos: Position =
+                    position === 'up'
+                        ? {
+                              type: 'before',
+                              id: sortedCellIds[idx - 1],
+                          }
+                        : {
+                              type: 'after',
+                              id: sortedCellIds[idx + 1],
+                          };
+
+                setState(
+                    modActiveWorkspace((w: Workspace) => {
+                        const order = calculateOrder(w.cells, pos);
+                        return {
+                            ...w,
+                            cells: {
+                                ...w.cells,
+                                [id]: {
+                                    ...w.cells[id],
+                                    order,
+                                },
+                            },
+                        };
+                    }),
+                );
+                return;
+            }
+            case 'change': {
+                return setState((state) => {
+                    return onChangeCell(
+                        action.env ? action.env : state.env,
+                        state,
+                        action.cell,
+                    );
+                });
+            }
+            case 'pin': {
+                const { display, id } = action;
+                return setState(
+                    modActiveWorkspace((workspace) => ({
+                        ...workspace,
+                        pins: workspace.pins.concat([{ display, id }]),
+                    })),
+                );
+            }
+        }
     }, []);
 
     return (
@@ -310,19 +335,20 @@ const Cells = ({
                         key={id}
                         getHistory={getHistory}
                         focused={focus && focus.id == id ? focus.tick : null}
-                        onFocus={onFocus}
                         maxWidth={maxWidth}
                         env={state.env}
                         cell={work.cells[id]}
                         evalEnv={state.evalEnv}
                         plugins={plugins}
-                        onPin={onPin}
-                        onRemove={onRemove}
-                        onRun={onRun}
-                        addCell={addCell_}
-                        onDuplicate={onDuplicate}
-                        onMove={onMove}
-                        onChange={onChange}
+                        // onFocus={onFocus}
+                        // onPin={onPin}
+                        // onRemove={onRemove}
+                        // onRun={onRun}
+                        // addCell={addCell_}
+                        // onDuplicate={onDuplicate}
+                        // onMove={onMove}
+                        // onChange={onChange}
+                        dispatch={processAction}
                     />
                 ))}
                 <button

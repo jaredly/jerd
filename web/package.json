@@ -23,6 +23,7 @@
     },
     "jest": {
         "verbose": true,
+        "testEnvironment": "jsdom",
         "snapshotSerializers": [
             "jest-snapshot-serializer-raw"
         ],

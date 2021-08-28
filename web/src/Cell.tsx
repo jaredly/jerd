@@ -23,7 +23,7 @@ import { parse, Toplevel } from '../../language/src/parsing/parser';
 import { printToString } from '../../language/src/printing/printer';
 import { toplevelToPretty } from '../../language/src/printing/printTsLike';
 import { addLocationIndices } from '../../language/src/typing/analyze';
-import { Position } from './Cells';
+import { Action, Position } from './Cells';
 import { cellTitle } from './cellTitle';
 import { CellWrapper } from './CellWrapper';
 import { compileGLSL, envWithTerm, getStateUniform } from './display/OpenGL';
@@ -49,20 +49,21 @@ export type CellProps = {
     env: Env;
     getHistory: (id: string) => Array<Id>;
     focused: number | null;
-    onDuplicate: (id: string) => void;
-    onFocus: (id: string, direction?: 'up' | 'down') => void;
-    onChange: (env: Env | null, cell: Cell) => void;
-    onRun: (id: Id) => void;
-    onRemove: (id: string) => void;
-    onMove: (id: string, position: MovePosition) => void;
-    evalEnv: EvalEnv;
-    addCell: (
-        content: Content,
-        position: Position,
-        updateEnv?: (e: Env) => Env,
-    ) => void;
     plugins: { [id: string]: RenderPluginT };
-    onPin: (display: Display, id: Id) => void;
+    evalEnv: EvalEnv;
+    // onDuplicate: (id: string) => void;
+    // onFocus: (id: string, direction?: 'up' | 'down') => void;
+    // onChange: (env: Env | null, cell: Cell) => void;
+    // onRun: (id: Id) => void;
+    // onRemove: (id: string) => void;
+    // onMove: (id: string, position: MovePosition) => void;
+    // addCell: (
+    //     content: Content,
+    //     position: Position,
+    //     updateEnv?: (e: Env) => Env,
+    // ) => void;
+    // onPin: (display: Display, id: Id) => void;
+    dispatch: (action: Action) => void;
 };
 
 export type Selection = {
@@ -76,16 +77,17 @@ const CellView_ = ({
     cell,
     env,
     maxWidth,
-    onChange,
-    onRemove,
-    onDuplicate,
-    onRun,
-    onFocus,
     focused,
     evalEnv,
-    addCell,
-    onPin,
-    onMove,
+    // onChange,
+    // onRemove,
+    // onDuplicate,
+    // onRun,
+    // onFocus,
+    // addCell,
+    // onPin,
+    // onMove,
+    dispatch,
     plugins,
     getHistory,
 }: CellProps) => {
@@ -101,7 +103,7 @@ const CellView_ = ({
 
     const onSetPlugin = React.useCallback(
         (display) => {
-            onChange(null, { ...cell, display });
+            dispatch({ type: 'change', cell: { ...cell, display } });
         },
         [cell],
     );
@@ -113,16 +115,13 @@ const CellView_ = ({
                 toplevel,
                 cell.content,
             );
-            onChange(nenv, {
-                ...cell,
-                content,
-            });
+            dispatch({ type: 'change', env: nenv, cell: { ...cell, content } });
         },
         [env, cell],
     );
 
     const onEdit = React.useCallback(() => {
-        onFocus(cell.id);
+        dispatch({ type: 'focus', id: cell.id });
         setSelection((s) => ({ ...s, level: 'text' }));
     }, [cell]);
 
@@ -218,7 +217,7 @@ const CellView_ = ({
                 err={err}
                 maxWidth={maxWidth}
                 env={env}
-                onPin={onPin}
+                dispatch={dispatch}
                 plugins={plugins}
                 evalEnv={evalEnv}
                 display={cell.display}
@@ -230,13 +229,16 @@ const CellView_ = ({
                         ? cell.content.text
                         : getToplevel(env, cell.content)
                 }
-                onClose={updateProposed(cell, onChange, setSelection)}
+                onClose={updateProposed(cell, dispatch, setSelection)}
                 onChange={(rawOrToplevel) => {
-                    onFocus(cell.id);
+                    dispatch({ type: 'focus', id: cell.id });
                     if (typeof rawOrToplevel === 'string') {
-                        onChange(null, {
-                            ...cell,
-                            content: { type: 'raw', text: rawOrToplevel },
+                        dispatch({
+                            type: 'change',
+                            cell: {
+                                ...cell,
+                                content: { type: 'raw', text: rawOrToplevel },
+                            },
                         });
                     } else {
                         const { env: nenv, content } = updateToplevel(
@@ -244,9 +246,13 @@ const CellView_ = ({
                             rawOrToplevel,
                             cell.content,
                         );
-                        onChange(nenv, {
-                            ...cell,
-                            content,
+                        dispatch({
+                            type: 'change',
+                            env: nenv,
+                            cell: {
+                                ...cell,
+                                content,
+                            },
                         });
                     }
                     // setEditing(false);
@@ -258,7 +264,7 @@ const CellView_ = ({
                 onClick={() => {
                     // setEditing(true);
                     setSelection((s) => ({ ...s, level: 'text' }));
-                    onFocus(cell.id);
+                    dispatch({ type: 'focus', id: cell.id });
                 }}
                 style={{
                     fontFamily: '"Source Code Pro", monospace',
@@ -281,22 +287,23 @@ const CellView_ = ({
                 setSelection={setSelection}
                 focused={focused != null}
                 onFocus={(direction?: 'up' | 'down') => {
-                    onFocus(cell.id, direction);
+                    dispatch({ type: 'focus', id: cell.id, direction });
                 }}
                 onClick={() => {
                     setSelection((s) => ({ ...s, level: 'outer' }));
-                    onFocus(cell.id);
+                    dispatch({ type: 'focus', id: cell.id });
                 }}
-                onPending={updatePending(cell, onChange)}
-                onPin={onPin}
+                onPending={updatePending(cell, dispatch)}
+                dispatch={dispatch}
+                // onPin={onPin}
                 cell={cell}
                 plugins={plugins}
                 content={cell.content}
                 onEdit={onEdit}
-                addCell={addCell}
+                // addCell={addCell}
                 env={env}
                 evalEnv={evalEnv}
-                onRun={onRun}
+                // onRun={onRun}
             />
         );
 
@@ -320,10 +327,11 @@ const CellView_ = ({
                 evt.preventDefault();
                 evt.stopPropagation();
                 if (evt.shiftKey) {
-                    addCell(
-                        { type: 'raw', text: '' },
-                        { type: 'after', id: cell.id },
-                    );
+                    dispatch({
+                        type: 'add',
+                        content: { type: 'raw', text: '' },
+                        position: { type: 'after', id: cell.id },
+                    });
                 } else {
                     // um let's start editing? I don't have control over that just yet.
                     setSelection((s) => ({ ...s, level: 'text' }));
@@ -335,7 +343,7 @@ const CellView_ = ({
     }, [focused != null]);
 
     const setCollapsed = (collapsed: boolean) =>
-        onChange(env, { ...cell, collapsed });
+        dispatch({ type: 'change', cell: { ...cell, collapsed } });
 
     return (
         <CellWrapper
@@ -348,21 +356,25 @@ const CellView_ = ({
                 cell,
                 maxWidth,
                 cell.collapsed,
-                rejectProposed(cell, onChange, env),
+                rejectProposed(cell, dispatch, env),
                 acceptProposed(cell, env, onSetToplevel),
             )}
             onRevertToTerm={(id: Id) => {
-                onChange(env, { ...cell, content: { type: 'term', id } });
+                dispatch({
+                    type: 'change',
+                    cell: { ...cell, content: { type: 'term', id } },
+                });
             }}
-            onRemove={() => onRemove(cell.id)}
+            onRemove={() => dispatch({ type: 'remove', id: cell.id })}
             focused={focused}
-            onFocus={() => onFocus(cell.id)}
+            onFocus={() => dispatch({ type: 'focus', id: cell.id })}
             collapsed={cell.collapsed || false}
             setCollapsed={setCollapsed}
             onToggleSource={() => setShowSource(!showSource)}
             menuItems={getMenuItems({
-                onMove,
-                onDuplicate,
+                dispatch,
+                // onMove,
+                // onDuplicate,
                 setCollapsed,
                 setShowSource,
                 term,
@@ -475,7 +487,8 @@ export const hashStyle = {
 
 const updateProposed = (
     cell: Cell,
-    onChange: (env: Env | null, cell: Cell) => void,
+    dispatch: (action: Action) => void,
+    // onChange: (env: Env | null, cell: Cell) => void,
     setSelection: React.Dispatch<React.SetStateAction<Selection>>,
 ): ((term: ToplevelT | null) => void) => {
     return (proposedToplevel) => {
@@ -488,30 +501,39 @@ const updateProposed = (
                 const id = idFromName(hashObject(proposedToplevel.term));
                 if (idsEqual(id, cell.content.id)) {
                     if (cell.content.proposed) {
-                        onChange(null, {
-                            ...cell,
-                            content: {
-                                ...cell.content,
-                                proposed: null,
+                        dispatch({
+                            type: 'change',
+                            cell: {
+                                ...cell,
+                                content: {
+                                    ...cell.content,
+                                    proposed: null,
+                                },
                             },
                         });
                     }
                 } else {
-                    onChange(null, {
-                        ...cell,
-                        content: {
-                            ...cell.content,
-                            proposed: {
-                                term: proposedToplevel.term,
-                                id: id,
+                    dispatch({
+                        type: 'change',
+                        cell: {
+                            ...cell,
+                            content: {
+                                ...cell.content,
+                                proposed: {
+                                    term: proposedToplevel.term,
+                                    id: id,
+                                },
                             },
                         },
                     });
                 }
             } else if (cell.content.proposed) {
-                onChange(null, {
-                    ...cell,
-                    content: { ...cell.content, proposed: null },
+                dispatch({
+                    type: 'change',
+                    cell: {
+                        ...cell,
+                        content: { ...cell.content, proposed: null },
+                    },
                 });
             }
         }
@@ -521,14 +543,19 @@ const updateProposed = (
 
 function rejectProposed(
     cell: Cell,
-    onChange: (env: Env | null, cell: Cell) => void,
+    dispatch: (action: Action) => void,
+    // onChange: (env: Env | null, cell: Cell) => void,
     env: Env,
 ): (() => void) | undefined {
     return () => {
         if (cell.content.type === 'term') {
-            onChange(env, {
-                ...cell,
-                content: { ...cell.content, proposed: undefined },
+            dispatch({
+                type: 'change',
+                env,
+                cell: {
+                    ...cell,
+                    content: { ...cell.content, proposed: undefined },
+                },
             });
         }
     };
@@ -562,30 +589,37 @@ function acceptProposed(
 
 function updatePending(
     cell: Cell,
-    onChange: (env: Env | null, cell: Cell) => void,
+    dispatch: (action: Action) => void,
+    // onChange: (env: Env | null, cell: Cell) => void,
 ): (term: Term) => void {
     return (pending) => {
         if (cell.content.type === 'term') {
             const id = idFromName(hashObject(pending));
             if (idsEqual(cell.content.id, id)) {
                 if (cell.content.proposed) {
-                    onChange(null, {
-                        ...cell,
-                        content: {
-                            ...cell.content,
-                            proposed: null,
+                    dispatch({
+                        type: 'change',
+                        cell: {
+                            ...cell,
+                            content: {
+                                ...cell.content,
+                                proposed: null,
+                            },
                         },
                     });
                 }
                 return;
             }
-            onChange(null, {
-                ...cell,
-                content: {
-                    ...cell.content,
-                    proposed: {
-                        term: pending,
-                        id: id,
+            dispatch({
+                type: 'change',
+                cell: {
+                    ...cell,
+                    content: {
+                        ...cell.content,
+                        proposed: {
+                            term: pending,
+                            id: id,
+                        },
                     },
                 },
             });
