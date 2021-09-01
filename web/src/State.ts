@@ -1,6 +1,12 @@
 // Type definitions for state
 
 import { Env, Id, Term, Type } from '@jerd/language/src/typing/types';
+import {
+    ToplevelEffect,
+    ToplevelEnum,
+    ToplevelExpression,
+    ToplevelRecord,
+} from '../../language/src/typing/env';
 import { Traces } from './eval';
 
 // hmm so I want
@@ -12,12 +18,12 @@ export type TopContent =
     | {
           type: 'term';
           id: Id;
-          proposed?: null | { term: Term; id: Id };
+          proposed?: null | ToplevelExpression;
           tests?: true | Array<Id>;
       }
-    | { type: 'record'; id: Id }
-    | { type: 'enum'; id: Id }
-    | { type: 'effect'; id: Id };
+    | { type: 'record'; id: Id; proposed?: null | ToplevelRecord }
+    | { type: 'enum'; id: Id; proposed?: null | ToplevelEnum }
+    | { type: 'effect'; id: Id; proposed?: null | ToplevelEffect };
 
 export type Content = TopContent | { type: 'raw'; text: string };
 

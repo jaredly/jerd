@@ -273,7 +273,7 @@ export default ({
     onChange: (value: string) => void;
     onKeyDown: (evt: React.KeyboardEvent) => void;
     maxWidth: number;
-    selection: { idx: number; node: HTMLElement } | null;
+    selection: { idx: number; node: HTMLElement | null | undefined } | null;
     // setSelection: (fn: (s: Selection) => Selection) => void;
     updateSelection: (
         newSel: null | { idx: number; node: HTMLElement },

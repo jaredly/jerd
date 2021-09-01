@@ -233,6 +233,7 @@ export const bindKeys = (
     addTerm: (term: Term, name: string) => void,
     setTerm: (term: Term) => void,
     onFocus: (active: boolean, direction?: 'up' | 'down') => void,
+    onEdit: () => void,
 ) => {
     const locLines: LocLines = [];
     Object.keys(sourceMap).forEach((idx: unknown) => {
@@ -280,9 +281,9 @@ export const bindKeys = (
             evt.stopPropagation();
             evt.preventDefault();
             if (evt.shiftKey) {
+                onEdit();
+                // onFocus(true);
                 return;
-
-                // return setSelection((s) => ({ ...s, level: 'text' }));
             }
             if (!sourceMap[selection.idx]) {
                 for (let i = 0; i < locLines.length; i++) {

@@ -185,6 +185,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
                 {
                     type: 'Expression',
                     term: expr,
+                    id: idFromName(hashObject(expr)),
                     location: expr.location!,
                 },
                 hashObject(expr),

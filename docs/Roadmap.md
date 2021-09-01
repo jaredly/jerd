@@ -1,4 +1,13 @@
 
+## Perf improvements
+I'm rewriting Cell, and refactoring a bunch of stuff.
+
+It seems like non-term things should maybe have the "Proposed" stage as well.
+Ok, so I made the type-level changes. but there's other things to be doing after that.
+
+ohh also I really need to preserve comments at some point.
+
+
 
 Ok I think arrays are doing ~ok. But I need the editor to be a lot more usable so that I can make more fun things.
 So

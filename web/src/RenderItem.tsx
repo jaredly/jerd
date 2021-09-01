@@ -204,6 +204,7 @@ Props) => {
             addTerm,
             onPending,
             onFocus,
+            onEdit,
         );
         window.addEventListener('keydown', fn, true);
         return () => window.removeEventListener('keydown', fn, true);

@@ -111,8 +111,11 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
                                 content: {
                                     ...otherCell.content,
                                     proposed: {
+                                        type: 'Expression',
+                                        // @ts-ignore // TODO: Update proposed for all kinds of things
                                         term: newTerm,
                                         id: idFromName(hashObject(newTerm)),
+                                        location: newTerm.location,
                                     },
                                 },
                             },

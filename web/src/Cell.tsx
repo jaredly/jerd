@@ -519,6 +519,8 @@ export const updateProposed = (
                         content: {
                             ...cell.content,
                             proposed: {
+                                type: 'Expression',
+                                location: proposedToplevel.location,
                                 term: proposedToplevel.term,
                                 id: id,
                             },
@@ -576,6 +578,7 @@ export function acceptProposed(
                   }
                 : {
                       type: 'Expression',
+                      id: cell.content.proposed.id,
                       term: cell.content.proposed.term,
                       location: nullLocation,
                   };
@@ -614,7 +617,9 @@ function updatePending(
                     content: {
                         ...cell.content,
                         proposed: {
+                            type: 'Expression',
                             term: pending,
+                            location: nullLocation,
                             id: id,
                         },
                     },

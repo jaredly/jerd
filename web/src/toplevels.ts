@@ -21,6 +21,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
         if (name == null) {
             return {
                 type: 'Expression',
+                id: content.proposed ? content.proposed.id : content.id,
                 term: content.proposed
                     ? content.proposed.term
                     : env.global.terms[idName(content.id)],

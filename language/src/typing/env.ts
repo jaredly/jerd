@@ -49,46 +49,57 @@ import { LocatedError, TypeError } from './errors';
 import { getTypeError } from './getTypeError';
 import { env } from 'process';
 
+export type ToplevelEffect = {
+    type: 'Effect';
+    id: Id;
+    effect: EffectDef;
+    location: Location;
+    name: string;
+    constrNames: Array<string>;
+};
+export type ToplevelDefine = {
+    type: 'Define';
+    id: Id;
+    term: Term;
+    location: Location;
+    name: string;
+    tags?: Array<string>;
+};
+export type ToplevelRecord = {
+    type: 'RecordDef';
+    def: RecordDef;
+    id: Id;
+    location: Location;
+    name: string;
+    attrNames: Array<string>;
+};
+export type ToplevelExpression = {
+    type: 'Expression';
+    id: Id;
+    term: Term;
+    location: Location;
+};
+export type ToplevelEnum = {
+    type: 'EnumDef';
+    def: TypeEnumDef;
+    id: Id;
+    location: Location;
+    name: string;
+};
+export type ToplevelDecorator = {
+    type: 'Decorator';
+    id: Id;
+    name: string;
+    location: Location;
+    defn: TypedDecoratorDef;
+};
 export type ToplevelT =
-    | {
-          type: 'Effect';
-          id: Id;
-          effect: EffectDef;
-          location: Location;
-          name: string;
-          constrNames: Array<string>;
-      }
-    | {
-          type: 'Decorator';
-          id: Id;
-          name: string;
-          location: Location;
-          defn: TypedDecoratorDef;
-      }
-    | { type: 'Expression'; term: Term; location: Location }
-    | {
-          type: 'Define';
-          id: Id;
-          term: Term;
-          location: Location;
-          name: string;
-          tags?: Array<string>;
-      }
-    | {
-          type: 'EnumDef';
-          def: TypeEnumDef;
-          id: Id;
-          location: Location;
-          name: string;
-      }
-    | {
-          type: 'RecordDef';
-          def: RecordDef;
-          id: Id;
-          location: Location;
-          name: string;
-          attrNames: Array<string>;
-      };
+    | ToplevelEffect
+    | ToplevelDecorator
+    | ToplevelExpression
+    | ToplevelDefine
+    | ToplevelEnum
+    | ToplevelRecord;
 
 export const addToplevelToEnv = (
     env: Env,
@@ -219,6 +230,7 @@ export const typeToplevelT = (
         default:
             const term = typeExpr(env, item as Expression);
             return {
+                id: idFromName(hashObject(term)),
                 type: 'Expression',
                 term,
                 location: item.location,

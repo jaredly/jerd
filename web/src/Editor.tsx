@@ -226,11 +226,7 @@ export default ({
                             ? contents.def.unique
                             : null
                     }
-                    selection={
-                        selection.node
-                            ? { idx: selection.idx, node: selection.node }
-                            : null
-                    }
+                    selection={{ idx: selection.idx, node: selection.node }}
                     updateSelection={(newSel) =>
                         setSelection((s) =>
                             newSel
