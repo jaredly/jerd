@@ -7,6 +7,10 @@ Ok, so I made the type-level changes. but there's other things to be doing after
 
 ohh also I really need to preserve comments at some point.
 
+- [ ] We need a better initial focus point.
+- [ ] And if the focus point isn't sourcemapped, just pick a random one it's fine. (when pressing hjkl)
+- [ ] if we receive the active, and we're in normal mode, get outttt. although maybe it's fine? like we just don't get in there? idk
+- [ ] umm what next. oh yeah 
 
 
 Ok I think arrays are doing ~ok. But I need the editor to be a lot more usable so that I can make more fun things.

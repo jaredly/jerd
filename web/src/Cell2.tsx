@@ -225,7 +225,7 @@ const CellView_ = ({
     );
 
     const body =
-        state.type === 'text' ? (
+        state.type === 'text' && focused?.active ? (
             <ColorTextarea
                 value={state.raw}
                 env={env}
@@ -270,6 +270,11 @@ const CellView_ = ({
                                     },
                                 });
                             }
+                            updateLocal({
+                                type: 'raw:close',
+                                // TODO: Come up with a better default "selected idx" if there isn't one
+                                idx: state.idx || 0,
+                            });
                         } else {
                             dispatch({
                                 type: 'change',
@@ -278,19 +283,20 @@ const CellView_ = ({
                                     content: { type: 'raw', text: state.raw },
                                 },
                             });
+                            // Relinquish active focus, there's no normal mode for raw content.
+                            dispatch({
+                                type: 'focus',
+                                active: false,
+                                id: cell.id,
+                            });
                         }
 
                         // // onClose(typed);
                         // updateProposed(cell, dispatch, toplevel);
-                        updateLocal({
-                            type: 'raw:close',
-                            // TODO: Come up with a better default "selected idx" if there isn't one
-                            idx: state.idx || 0,
-                        });
                     }
                 }}
             />
-        ) : cell.content.type === 'raw' ? (
+        ) : state.type === 'text' || cell.content.type === 'raw' ? (
             <div
                 onClick={() => {
                     // setEditing(true);
@@ -309,7 +315,9 @@ const CellView_ = ({
                     padding: 8,
                 }}
             >
-                {cell.content.text.trim() === ''
+                {state.type === 'text'
+                    ? state.raw
+                    : cell.content.text.trim() === ''
                     ? '[empty]'
                     : cell.content.text}
             </div>

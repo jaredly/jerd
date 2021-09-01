@@ -391,6 +391,9 @@ export type SourceItem = {
     end: { line: number; column: number };
     idx: number;
 };
+/** So technically this is more of a RenderMap, it tracks
+ * where the nodes ended up getting printed to.
+ */
 export type SourceMap = {
     [idx: number]: SourceItem;
 };

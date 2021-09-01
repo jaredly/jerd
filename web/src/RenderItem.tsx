@@ -141,6 +141,45 @@ Props) => {
 
     const selection$ = useUpdated(selection);
 
+    // If we end up at a selection that's not rendered, reset to the start of things
+    React.useEffect(() => {
+        if (!idxTree || idxTree.locs[selection.idx]) {
+            return;
+        }
+        // ookf how did we get an undefined here folks
+        const ordered = Object.keys(sourceMap)
+            .map((k) => +k)
+            .filter((k) => !isNaN(k))
+            .sort((a: number, b: number) => {
+                const sa = sourceMap[a];
+                const sb = sourceMap[b];
+                const dl = sa.start.line - sb.start.line;
+                const ln =
+                    sa.end.line - sa.start.line - (sb.end.line - sb.start.line);
+                if (ln == 0) {
+                    if (dl === 0) {
+                        const cl = sa.start.column - sb.start.column;
+                        if (cl === 0) {
+                            if (sa.end.line - sa.start.line === 0) {
+                                return (
+                                    sa.end.column -
+                                    sa.start.column -
+                                    (sb.end.column - sb.start.column)
+                                );
+                            }
+                            return ln;
+                        }
+                        return cl;
+                    }
+                    return dl;
+                }
+                return ln;
+            });
+        if (ordered.length) {
+            setSelection(ordered[0]);
+        }
+    }, [selection, idxTree]);
+
     // const setIdx: (
     //     fn: number | ((idx: number) => number),
     // ) => void = React.useCallback(

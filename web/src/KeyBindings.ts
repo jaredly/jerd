@@ -70,6 +70,8 @@ export const goLeft = (
         }
     }
 
+    // If we get here, and the thing has some inner items, go to the first one.
+
     return idx;
 };
 
@@ -254,6 +256,9 @@ export const bindKeys = (
         if (evt.target !== document.body) {
             return;
         }
+        if (!active$.current) {
+            return;
+        }
         const selection = selection$.current;
         const { idx, marks } = selection;
         // setSelection(selection => { })
@@ -297,10 +302,10 @@ export const bindKeys = (
                 return;
             }
             // if (!focused)
-            if (!active$.current) {
-                onFocus(true);
-                return;
-            }
+            // if (!active$.current) {
+            //     onFocus(true);
+            //     return;
+            // }
             const { idx, marks } = selection;
             const items: Array<MenuItem> = [];
             const focused = idxTree.locs[idx];

@@ -326,7 +326,7 @@ const hlStyleLight = {
     // backgroundColor: hlColor,
     // borderLeft: hlBorder,
     // borderRight: hlBorder,
-    outline: '2px solid #a60',
+    outline: '2px solid rgba(200, 100, 0, 0.1)',
 };
 const hlStyle = {
     // backgroundColor: hlColor,

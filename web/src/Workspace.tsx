@@ -83,8 +83,22 @@ export const Workspace = ({ state, setState }: Props) => {
 
     useCommandP(setShowMenu);
 
+    const work: WorkspaceT = activeWorkspace(state);
+    const sortedCellIds = React.useMemo(
+        () => Object.keys(work.cells).sort(sortCells(work.cells)),
+        [work],
+    );
+
+    const sortedCellIds$ = useUpdated(sortedCellIds);
+
     const [focus, setFocus] = React.useState(
-        null as null | { id: string; tick: number; active: boolean },
+        (sortedCellIds.length
+            ? {
+                  id: sortedCellIds[0],
+                  tick: 0,
+                  active: false,
+              }
+            : null) as null | { id: string; tick: number; active: boolean },
     );
 
     const onOpen = React.useCallback(
@@ -184,17 +198,44 @@ export const Workspace = ({ state, setState }: Props) => {
         [state],
     );
 
-    const work: WorkspaceT = activeWorkspace(state);
-
-    const sortedCellIds = React.useMemo(
-        () => Object.keys(work.cells).sort(sortCells(work.cells)),
-        [work],
-    );
-
-    const sortedCellIds$ = useUpdated(sortedCellIds);
     const state$ = useUpdated(state);
-
     const focus$ = useUpdated(focus);
+
+    React.useEffect(() => {
+        const fn = (evt: KeyboardEvent) => {
+            if (evt.target !== document.body) {
+                return;
+            }
+            const focus = focus$.current;
+            if (!focus || focus.active) {
+                return;
+            }
+            if (evt.key === 'k' || evt.key === 'ArrowUp') {
+                const up = focusUp(sortedCellIds$.current, focus.id, false);
+                if (up) {
+                    setFocus(up);
+                }
+                evt.preventDefault();
+                evt.stopPropagation();
+                return;
+            }
+            if (evt.key === 'j' || evt.key === 'ArrowDown') {
+                const down = focusDown(sortedCellIds$.current, focus.id, false);
+                if (down) {
+                    setFocus(down);
+                }
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            if (evt.key === 'Enter') {
+                evt.preventDefault();
+                evt.stopPropagation();
+                setFocus({ ...focus, active: true });
+            }
+        };
+        window.addEventListener('keydown', fn);
+        return () => window.removeEventListener('keydown', fn);
+    }, []);
 
     const processAction = React.useCallback(
         makeReducer(state$, sortedCellIds$, setFocus, focus$, setState),
@@ -367,6 +408,32 @@ export const ImportExport = ({
     );
 };
 
+const focusDown = (
+    sortedCellIds: Array<string>,
+    id: string,
+    active: boolean,
+) => {
+    const at = sortedCellIds.indexOf(id);
+    if (at < sortedCellIds.length - 1) {
+        return {
+            id: sortedCellIds[at + 1],
+            tick: 0,
+            active,
+        };
+    }
+};
+
+const focusUp = (sortedCellIds: Array<string>, id: string, active: boolean) => {
+    const at = sortedCellIds.indexOf(id);
+    return at > 0
+        ? {
+              id: sortedCellIds[at - 1],
+              tick: 0,
+              active,
+          }
+        : null;
+};
+
 export function makeReducer(
     state$: React.MutableRefObject<State>,
     sortedCellIds$: { current: string[] },
@@ -387,24 +454,16 @@ export function makeReducer(
             case 'focus': {
                 const { id, direction, active } = action;
                 if (direction === 'up') {
-                    const at = sortedCellIds.indexOf(id);
-                    if (at > 0) {
-                        setFocus({
-                            id: sortedCellIds[at - 1],
-                            tick: 0,
-                            active,
-                        });
+                    const up = focusUp(sortedCellIds, id, active);
+                    if (up) {
+                        setFocus(up);
                     }
                     return;
                 }
                 if (direction === 'down') {
-                    const at = sortedCellIds.indexOf(id);
-                    if (at < sortedCellIds.length - 1) {
-                        setFocus({
-                            id: sortedCellIds[at + 1],
-                            tick: 0,
-                            active,
-                        });
+                    const down = focusDown(sortedCellIds, id, active);
+                    if (down) {
+                        setFocus(down);
                     }
                     return;
                 }
