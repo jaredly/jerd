@@ -3,14 +3,14 @@ import { jsx } from '@emotion/react';
 // The app
 import * as React from 'react';
 import { State } from './App';
-import { genId, modActiveWorkspace } from './Cells';
+import { Action, genId, modActiveWorkspace } from './Cells';
 
 export const WorkspacePicker = ({
     state,
-    setState,
+    processAction,
 }: {
     state: State;
-    setState: (fn: (current: State) => State) => void;
+    processAction: (action: Action) => void;
 }) => {
     const [editing, setEditing] = React.useState(null as string | null);
     let body;
@@ -26,12 +26,10 @@ export const WorkspacePicker = ({
                 />
                 <button
                     onClick={() => {
-                        setState(
-                            modActiveWorkspace((w) => ({
-                                ...w,
-                                name: editing,
-                            })),
-                        );
+                        processAction({
+                            type: 'workspace:rename',
+                            name: editing,
+                        });
                         setEditing(null);
                     }}
                 >
@@ -55,29 +53,12 @@ export const WorkspacePicker = ({
                         const activeWorkspace = evt.target.value;
                         console.log(evt.target.value);
                         if (evt.target.value === '<new>') {
-                            const id = genId();
-                            setState((state) => ({
-                                ...state,
-                                activeWorkspace: id,
-                                workspaces: {
-                                    ...state.workspaces,
-                                    [id]: {
-                                        name: 'New Workspace',
-                                        pins: [],
-                                        cells: {},
-                                        history: [],
-                                        archivedPins: [],
-                                        currentPin: 0,
-                                        order: Object.keys(state.workspaces)
-                                            .length,
-                                    },
-                                },
-                            }));
+                            processAction({ type: 'workspace:new' });
                         } else {
-                            setState((state) => ({
-                                ...state,
-                                activeWorkspace,
-                            }));
+                            processAction({
+                                type: 'workspace:focus',
+                                id: activeWorkspace,
+                            });
                         }
                     }}
                 >

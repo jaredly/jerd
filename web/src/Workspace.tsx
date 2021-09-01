@@ -221,9 +221,7 @@ export const Workspace = ({ state, setState }: Props) => {
                 processAction={processAction}
                 state={state}
                 focus={focus}
-                setFocus={setFocus}
                 plugins={defaultPlugins}
-                setState={setState}
             />
             <div
                 style={{
@@ -548,6 +546,40 @@ export function makeReducer(
                     modActiveWorkspace((workspace) => ({
                         ...workspace,
                         pins: workspace.pins.concat([{ display, id }]),
+                    })),
+                );
+            }
+
+            case 'workspace:new': {
+                const id = genId();
+                return setState((state) => ({
+                    ...state,
+                    activeWorkspace: id,
+                    workspaces: {
+                        ...state.workspaces,
+                        [id]: {
+                            name: 'New Workspace',
+                            pins: [],
+                            cells: {},
+                            history: [],
+                            archivedPins: [],
+                            currentPin: 0,
+                            order: Object.keys(state.workspaces).length,
+                        },
+                    },
+                }));
+            }
+            case 'workspace:focus': {
+                return setState((state) => ({
+                    ...state,
+                    activeWorkspace: action.id,
+                }));
+            }
+            case 'workspace:rename': {
+                setState(
+                    modActiveWorkspace((w) => ({
+                        ...w,
+                        name: action.name,
                     })),
                 );
             }

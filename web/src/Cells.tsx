@@ -49,22 +49,21 @@ export type Action =
           position: Position;
           updateEnv?: (e: Env) => Env;
       }
-    | { type: 'pin'; display: Display; id: Id };
+    | { type: 'pin'; display: Display; id: Id }
+    | { type: 'workspace:new' }
+    | { type: 'workspace:rename'; name: string }
+    | { type: 'workspace:focus'; id: string };
 
 const Cells = ({
     state,
     plugins,
-    setState,
     focus,
-    setFocus,
     sortedCellIds,
     processAction,
 }: {
     state: State;
     focus: { id: string; tick: number } | null;
-    setFocus: (f: { id: string; tick: number } | null) => void;
     plugins: RenderPlugins;
-    setState: (fn: (s: State) => State) => void;
     sortedCellIds: Array<string>;
     processAction: (action: Action) => void;
 }) => {
@@ -117,7 +116,7 @@ const Cells = ({
                 alignItems: 'center',
             }}
         >
-            <WorkspacePicker state={state} setState={setState} />
+            <WorkspacePicker state={state} processAction={processAction} />
             <div
                 style={{
                     flex: 1,
@@ -153,14 +152,6 @@ const Cells = ({
                         cell={work.cells[id]}
                         evalEnv={state.evalEnv}
                         plugins={plugins}
-                        // onFocus={onFocus}
-                        // onPin={onPin}
-                        // onRemove={onRemove}
-                        // onRun={onRun}
-                        // addCell={addCell_}
-                        // onDuplicate={onDuplicate}
-                        // onMove={onMove}
-                        // onChange={onChange}
                         dispatch={processAction}
                     />
                 ))}
@@ -181,23 +172,11 @@ const Cells = ({
                         },
                     }}
                     onClick={() => {
-                        const id = genId();
-                        setState(
-                            modActiveWorkspace((workspace) => ({
-                                ...workspace,
-                                cells: {
-                                    ...workspace.cells,
-                                    [id]: {
-                                        ...blankCell,
-                                        id,
-                                        order: calculateOrder(workspace.cells, {
-                                            type: 'last',
-                                        }),
-                                    },
-                                },
-                            })),
-                        );
-                        setFocus({ id, tick: 0 });
+                        processAction({
+                            type: 'add',
+                            content: blankCell.content,
+                            position: { type: 'last' },
+                        });
                     }}
                 >
                     New Cell
