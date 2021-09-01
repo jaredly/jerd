@@ -55,7 +55,7 @@ export type CellProps = {
 };
 
 export type Selection = {
-    level: 'outer' | 'inner' | 'text';
+    level: 'normal' | 'text';
     idx: number;
     marks: Array<number>;
     node?: HTMLElement | null;
@@ -75,7 +75,7 @@ const CellView_ = ({
     const [showGLSL, setShowGLSL] = React.useState(false);
 
     const [selection, setSelection] = React.useState({
-        level: cell.content.type === 'raw' ? 'text' : 'outer',
+        level: cell.content.type === 'raw' ? 'text' : 'normal',
         idx: 0,
         marks: [],
     } as Selection);
@@ -235,7 +235,7 @@ const CellView_ = ({
                         });
                     }
                     // setEditing(false);
-                    setSelection((s) => ({ ...s, level: 'inner' }));
+                    setSelection((s) => ({ ...s, level: 'normal' }));
                 }}
             />
         ) : cell.content.type === 'raw' ? (
@@ -265,30 +265,30 @@ const CellView_ = ({
                 selection={{
                     idx: selection.idx,
                     marks: selection.marks,
-                    active: selection.level === 'inner',
+                    active: focused ? focused.active : false,
                 }}
                 setSelection={(idx, marks) => {
                     setSelection((sel) => ({
                         idx,
                         marks: marks != null ? marks : sel.marks,
-                        level: 'inner',
+                        level: 'normal',
                         node: null,
                     }));
-                    // if (!focused) {
-                    //     dispatch({ type: 'focus', id: cell.id});
-                    // }
+                    if (!focused || !focused.active) {
+                        dispatch({ type: 'focus', id: cell.id, active: true });
+                    }
                 }}
-                focused={focused != null}
-                onFocus={(direction?: 'up' | 'down') => {
+                focused={focused != null ? focused.active : null}
+                onFocus={(active: boolean, direction?: 'up' | 'down') => {
                     dispatch({
                         type: 'focus',
                         id: cell.id,
                         direction,
-                        active: !direction,
+                        active,
                     });
                 }}
                 onClick={() => {
-                    setSelection((s) => ({ ...s, level: 'outer' }));
+                    // setSelection((s) => ({ ...s, level: 'outer' }));
                     dispatch({ type: 'focus', id: cell.id, active: false });
                 }}
                 onPending={updatePending(cell, dispatch)}
@@ -363,7 +363,7 @@ const CellView_ = ({
             onRemove={() => dispatch({ type: 'remove', id: cell.id })}
             focused={focused ? focused.tick : null}
             onFocus={() =>
-                dispatch({ type: 'focus', id: cell.id, active: true })
+                dispatch({ type: 'focus', id: cell.id, active: false })
             }
             collapsed={cell.collapsed || false}
             setCollapsed={setCollapsed}
@@ -534,7 +534,7 @@ const updateProposed = (
                 });
             }
         }
-        setSelection((s) => ({ ...s, level: 'inner' }));
+        setSelection((s) => ({ ...s, level: 'normal' }));
     };
 };
 

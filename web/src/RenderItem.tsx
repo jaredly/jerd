@@ -54,11 +54,11 @@ export type Props = {
     plugins: RenderPlugins;
     content: TopContent;
     evalEnv: EvalEnv;
-    focused: boolean;
+    focused: null | boolean;
     selection: { idx: number; marks: Array<number>; active: boolean };
     dispatch: (action: Action) => void;
     setSelection: (idx: number, marks?: Array<number>) => void;
-    onFocus: (direction?: 'up' | 'down') => void;
+    onFocus: (active: boolean, direction?: 'up' | 'down') => void;
     // onRun: (id: Id) => void;
     // addCell: (
     //     content: Content,
@@ -161,8 +161,10 @@ Props) => {
     const cidxTree = React.useRef(idxTree);
     cidxTree.current = idxTree;
 
+    const active$ = useUpdated(focused === true);
+
     React.useEffect(() => {
-        if (!focused || !idxTree || !term) {
+        if (focused == null || !idxTree || !term) {
             return;
         }
 
@@ -194,6 +196,7 @@ Props) => {
             sourceMap,
             env,
             term,
+            active$,
             selection$,
             // setIdx,
             setSelection,
@@ -230,7 +233,7 @@ Props) => {
                         if (!evt.metaKey) {
                             if (loc && loc.idx) {
                                 setSelection(loc.idx, selection$.current.marks);
-                                onFocus();
+                                onFocus(true);
                                 // setIdx(loc.idx);
                             }
                             // Just selection
@@ -288,7 +291,7 @@ Props) => {
             {term ? (
                 <RenderResult
                     onSetPlugin={onSetPlugin}
-                    focused={focused}
+                    focused={focused != null}
                     // onPin={onPin}
                     cell={cell}
                     term={scrub ? scrub.term : term}

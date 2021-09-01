@@ -39,18 +39,8 @@ const renderCell = (raw: string) => {
             env={env}
             getHistory={() => []}
             focused={{ tick: 1, active: false }}
-            // onDuplicate={() => {}}
-            // onFocus={() => {
-            //     console.log('hello!');
-            // }}
-            // onChange={() => {}}
-            // onRun={() => {}}
-            // onRemove={() => {}}
-            // onMove={() => {}}
             evalEnv={newEvalEnv({})}
-            // addCell={() => {}}
             plugins={{}}
-            // onPin={() => {}}
             dispatch={(_) => {}}
         />,
     );

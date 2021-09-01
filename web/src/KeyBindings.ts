@@ -226,12 +226,13 @@ export const bindKeys = (
     env: Env,
     term: Term,
     // setIdx: (fn: (idx: number) => number) => void,
+    active$: { current: boolean },
     selection$: { current: { idx: number; marks: Array<number> } },
     setSelection: (idx: number, marks?: Array<number>) => void,
     setMenu: (items: Array<MenuItem>) => void,
     addTerm: (term: Term, name: string) => void,
     setTerm: (term: Term) => void,
-    onFocus: (direction?: 'up' | 'down') => void,
+    onFocus: (active: boolean, direction?: 'up' | 'down') => void,
 ) => {
     const locLines: LocLines = [];
     Object.keys(sourceMap).forEach((idx: unknown) => {
@@ -270,6 +271,7 @@ export const bindKeys = (
         }
 
         if (evt.key === 'Escape') {
+            onFocus(false);
             // TODO: handle 'active' at the cells level!
             // setSelection((sel) => ({ ...sel, level: 'outer' }));
         }
@@ -293,12 +295,13 @@ export const bindKeys = (
                 }
                 return;
             }
-            // if (selection.level !== 'inner') {
-            //     return { ...selection, level: 'inner' };
-            // }
+            // if (!focused)
+            if (!active$.current) {
+                onFocus(true);
+                return;
+            }
             const { idx, marks } = selection;
             const items: Array<MenuItem> = [];
-            // items.push({ name: 'Hello', action: () => console.log('hi') });
             const focused = idxTree.locs[idx];
 
             const focusedTerm = getTermByIdx(term, idx);
@@ -486,6 +489,10 @@ export const bindKeys = (
             */
         if (evt.key === 'ArrowUp' || evt.key === 'k' || evt.key === 'K') {
             // STOPSHIP:
+            if (!active$.current) {
+                onFocus(false, 'up');
+                return;
+            }
             // if (sel.level === 'outer') {
             //     onFocus('up');
             //     return;
@@ -507,6 +514,10 @@ export const bindKeys = (
 
         if (evt.key === 'ArrowDown' || evt.key === 'j' || evt.key === 'J') {
             // STOPSHIP:
+            if (!active$.current) {
+                onFocus(false, 'down');
+                return;
+            }
             // if (sel.level === 'outer') {
             //     onFocus('down');
             // }

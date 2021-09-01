@@ -371,7 +371,11 @@ export function makeReducer(
     state$: React.MutableRefObject<State>,
     sortedCellIds$: { current: string[] },
     setFocus: (f: { id: string; tick: number; active: boolean } | null) => void,
-    focusRef: React.MutableRefObject<{ id: string; tick: number } | null>,
+    focusRef: React.MutableRefObject<{
+        id: string;
+        tick: number;
+        active: boolean;
+    } | null>,
     setState: (fn: (s: State) => State) => void,
 ): (action: Action) => void {
     return (action: Action) => {
@@ -404,7 +408,7 @@ export function makeReducer(
                     }
                     return;
                 }
-                if (!focusRef.current || focusRef.current.id !== id) {
+                if (!focus || focus.id !== id || active !== focus.active) {
                     setFocus({ id, tick: 0, active });
                 }
                 return;
