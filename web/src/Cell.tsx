@@ -587,7 +587,7 @@ export function acceptProposed(
     };
 }
 
-function updatePending(
+export function updatePending(
     cell: Cell,
     dispatch: (action: Action) => void,
     // onChange: (env: Env | null, cell: Cell) => void,

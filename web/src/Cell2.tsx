@@ -15,6 +15,7 @@ import {
     MovePosition,
     rejectProposed,
     Selection,
+    updatePending,
     updateProposed,
 } from './Cell';
 import { Cell, Content, Display, EvalEnv, RenderPlugins } from './State';
@@ -37,6 +38,7 @@ import { CellWrapper } from './CellWrapper';
 import { cellTitle } from './cellTitle';
 import { getMenuItems } from './getMenuItems';
 import ColorTextarea from './ColorTextarea';
+import { RenderItem } from './RenderItem';
 
 // hrmmmm can I move the selection dealio up a level? Should I? hmm I do like each cell managing its own cursor, tbh.
 
@@ -60,6 +62,7 @@ export type State =
 type Action =
     | { type: 'raw'; text: string }
     | { type: 'raw:close'; idx: number }
+    | { type: 'selection'; idx: number; marks?: Array<number> }
     // | {type: 'edit-raw'}
     | {
           type: 'raw:selection';
@@ -92,6 +95,14 @@ const reducer = (state: State, action: Action): State => {
                       ...state,
                       idx: action.newSel ? action.newSel.idx : state.idx,
                       node: action.newSel ? action.newSel.node : null,
+                  };
+        case 'selection':
+            return state.type !== 'normal'
+                ? state
+                : {
+                      ...state,
+                      idx: action.idx,
+                      marks: action.marks ?? state.marks,
                   };
     }
 };
@@ -195,6 +206,13 @@ const CellView_ = ({
     const setCollapsed = (collapsed: boolean) =>
         dispatch({ type: 'change', cell: { ...cell, collapsed } });
 
+    const onSetPlugin = React.useCallback(
+        (display) => {
+            dispatch({ type: 'change', cell: { ...cell, display } });
+        },
+        [cell],
+    );
+
     const body =
         state.type === 'text' ? (
             <ColorTextarea
@@ -216,11 +234,9 @@ const CellView_ = ({
                 }
                 onChange={(text: string) => updateLocal({ type: 'raw', text })}
                 onKeyDown={(evt: any) => {
-                    // if (evt.metaKey && evt.key === 'Enter') {
-                    //     console.log('run it');
-                    //     // onChange(typed == null ? text : typed);
-                    // }
-                    if (evt.key === 'Escape') {
+                    // TODO: /should/ I allow 'raw's anymore?
+                    // I mean with this setup, you can't really save a raw.
+                    if (evt.key === 'Escape' && toplevel) {
                         // onClose(typed);
                         updateProposed(cell, dispatch, toplevel);
                         updateLocal({
@@ -231,7 +247,52 @@ const CellView_ = ({
                     }
                 }}
             />
-        ) : null;
+        ) : toplevel ? null : (
+            // <RenderItem
+            //     maxWidth={maxWidth}
+            //     onSetPlugin={onSetPlugin}
+            //     onChange={onSetToplevel}
+            //     selection={{
+            //         idx: state.idx,
+            //         marks: state.marks,
+            //         active: focused ? focused.active : false,
+            //     }}
+            //     setSelection={(idx, marks) => {
+            //         updateLocal({ type: 'selection', idx, marks });
+            //         // setSelection((sel) => ({
+            //         //     idx,
+            //         //     marks: marks != null ? marks : sel.marks,
+            //         //     level: 'normal',
+            //         //     node: null,
+            //         // }));
+            //         if (!focused || !focused.active) {
+            //             dispatch({ type: 'focus', id: cell.id, active: true });
+            //         }
+            //     }}
+            //     focused={focused != null ? focused.active : null}
+            //     onFocus={(active: boolean, direction?: 'up' | 'down') => {
+            //         dispatch({
+            //             type: 'focus',
+            //             id: cell.id,
+            //             direction,
+            //             active,
+            //         });
+            //     }}
+            //     onClick={() => {
+            //         // setSelection((s) => ({ ...s, level: 'outer' }));
+            //         dispatch({ type: 'focus', id: cell.id, active: false });
+            //     }}
+            //     onPending={updatePending(cell, dispatch)}
+            //     dispatch={dispatch}
+            //     cell={cell}
+            //     plugins={plugins}
+            //     content={cell.content}
+            //     onEdit={onEdit}
+            //     env={env}
+            //     evalEnv={evalEnv}
+            // />
+            <div>No toplevel?</div>
+        );
 
     return (
         <CellWrapper
