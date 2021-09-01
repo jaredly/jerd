@@ -1,13 +1,23 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react';
 import * as React from 'react';
-import { HistoryItem, HistoryUpdate, State } from './App';
+import {
+    HistoryItem,
+    HistoryUpdate,
+    State,
+    Workspace as WorkspaceT,
+} from './App';
 import Cells, {
+    Action,
     activeWorkspace,
+    addCell,
     blankCell,
+    calculateOrder,
     contentMatches,
     genId,
     modActiveWorkspace,
+    onChangeCell,
+    Position,
 } from './Cells';
 
 import DrawablePlugins from './display/Drawable';
@@ -17,7 +27,7 @@ import StdioPlugins from './display/Stdio';
 import MusicPlugins from './plugins/music/music';
 import { runTerm } from './eval';
 import Library from './Library';
-import { Content, RenderPlugins } from './State';
+import { Cell, Content, RenderPlugins } from './State';
 import { Pin } from './Pin';
 import { QuickMenu } from './QuickMenu';
 import { idName } from '../../language/src/typing/env';
@@ -37,14 +47,25 @@ export type Props = {
     setState: ((fn: (s: State) => State) => void) & ((s: State) => void);
 };
 
-export const Workspace = ({ state, setState }: Props) => {
-    const [showMenu, setShowMenu] = React.useState(false);
-    const [showFrozen, setShowFrozen] = React.useState(false);
+export const sortCells = (cells: { [key: string]: Cell }) => (
+    a: string,
+    b: string,
+) => {
+    return cells[a].order - cells[b].order;
+};
 
+const useUpdated = <T,>(value: T) => {
+    const ref = React.useRef(value);
+    ref.current = value;
+    return ref;
+};
+
+const useCommandP = (setShowMenu: (show: boolean) => void) => {
     React.useEffect(() => {
         const fn = (evt: KeyboardEvent) => {
             if (evt.key === 'p' && (evt.metaKey || evt.ctrlKey)) {
                 evt.preventDefault();
+                evt.stopPropagation();
                 setShowMenu(true);
                 return;
             }
@@ -52,8 +73,15 @@ export const Workspace = ({ state, setState }: Props) => {
         window.addEventListener('keydown', fn);
         return () => window.removeEventListener('keydown', fn);
     }, []);
+};
+
+export const Workspace = ({ state, setState }: Props) => {
+    const [showMenu, setShowMenu] = React.useState(false);
+    const [showFrozen, setShowFrozen] = React.useState(false);
 
     const workspace = activeWorkspace(state);
+
+    useCommandP(setShowMenu);
 
     const [focus, setFocus] = React.useState(
         null as null | { id: string; tick: number },
@@ -156,6 +184,23 @@ export const Workspace = ({ state, setState }: Props) => {
         [state],
     );
 
+    const work: WorkspaceT = activeWorkspace(state);
+
+    const sortedCellIds = React.useMemo(
+        () => Object.keys(work.cells).sort(sortCells(work.cells)),
+        [work],
+    );
+
+    const sortedCellIds$ = useUpdated(sortedCellIds);
+    const state$ = useUpdated(state);
+
+    const focus$ = useUpdated(focus);
+
+    const processAction = React.useCallback(
+        makeReducer(state$, sortedCellIds$, setFocus, focus$, setState),
+        [],
+    );
+
     return (
         <div
             style={{
@@ -172,6 +217,8 @@ export const Workspace = ({ state, setState }: Props) => {
                 footer={<ImportExport state={state} setState={setState} />}
             />
             <Cells
+                sortedCellIds={sortedCellIds}
+                processAction={processAction}
                 state={state}
                 focus={focus}
                 setFocus={setFocus}
@@ -321,3 +368,189 @@ export const ImportExport = ({
         </div>
     );
 };
+
+export function makeReducer(
+    state$: React.MutableRefObject<State>,
+    sortedCellIds$: { current: string[] },
+    setFocus: (f: { id: string; tick: number } | null) => void,
+    focusRef: React.MutableRefObject<{ id: string; tick: number } | null>,
+    setState: (fn: (s: State) => State) => void,
+): (action: Action) => void {
+    return (action: Action) => {
+        const focus = focusRef.current;
+        const sortedCellIds = sortedCellIds$.current;
+        const state = state$.current;
+
+        switch (action.type) {
+            case 'focus': {
+                const { id, direction } = action;
+                if (direction === 'up') {
+                    const at = sortedCellIds.indexOf(id);
+                    if (at > 0) {
+                        setFocus({ id: sortedCellIds[at - 1], tick: 0 });
+                    }
+                    return;
+                }
+                if (direction === 'down') {
+                    const at = sortedCellIds.indexOf(id);
+                    if (at < sortedCellIds.length - 1) {
+                        setFocus({ id: sortedCellIds[at + 1], tick: 0 });
+                    }
+                    return;
+                }
+                if (!focusRef.current || focusRef.current.id !== id) {
+                    setFocus({ id, tick: 0 });
+                }
+                return;
+            }
+            case 'remove': {
+                return setState(
+                    modActiveWorkspace((work) => {
+                        const cells = { ...work.cells };
+                        delete cells[action.id];
+                        return { ...work, cells };
+                    }),
+                );
+            }
+            case 'run': {
+                const { id } = action;
+                let results: { [key: string]: any };
+                try {
+                    const term = state.env.global.terms[idName(id)];
+                    if (!term) {
+                        throw new Error(`No term ${idName(id)}`);
+                    }
+
+                    results = runTerm(state.env, term, id, state.evalEnv);
+                } catch (err) {
+                    console.log(`Failed to run!`);
+                    console.log(err);
+                    return;
+                }
+                setState((state) => ({
+                    ...state,
+                    evalEnv: {
+                        ...state.evalEnv,
+                        terms: {
+                            ...state.evalEnv.terms,
+                            ...results,
+                        },
+                    },
+                }));
+                return;
+            }
+            case 'add': {
+                const { content, position, updateEnv } = action;
+                const work = activeWorkspace(state);
+                const matching = Object.keys(work.cells).find((id) =>
+                    contentMatches(content, work.cells[id].content),
+                );
+                if (matching) {
+                    if (focus && focus.id == matching) {
+                        setFocus({
+                            id: matching,
+                            tick: focus.tick + 1,
+                        });
+                    } else {
+                        setFocus({ id: matching, tick: 0 });
+                    }
+                    return;
+                }
+                const id = genId();
+                setState((state) => {
+                    if (updateEnv) {
+                        state = { ...state, env: updateEnv(state.env) };
+                    }
+
+                    return modActiveWorkspace(
+                        addCell({ ...blankCell, id, content }, position),
+                    )(state);
+                });
+                setFocus({ id, tick: 0 });
+                return;
+            }
+            case 'duplicate': {
+                const { id } = action;
+                const pos: Position = { type: 'after', id };
+                const nid = genId();
+                setState(
+                    modActiveWorkspace((w: WorkspaceT) => {
+                        const order = calculateOrder(w.cells, pos);
+                        return {
+                            ...w,
+                            cells: {
+                                ...w.cells,
+                                [nid]: {
+                                    ...w.cells[id],
+                                    id: nid,
+                                    order,
+                                },
+                            },
+                        };
+                    }),
+                );
+                setFocus({ id: nid, tick: 0 });
+                return;
+            }
+            case 'move': {
+                const { position, id } = action;
+                if (typeof position !== 'string') {
+                    return;
+                }
+                const idx = sortedCellIds.indexOf(id);
+                if (idx === 0 && position === 'up') {
+                    return;
+                }
+                if (idx === sortedCellIds.length - 1 && position === 'down') {
+                    return;
+                }
+
+                const pos: Position =
+                    position === 'up'
+                        ? {
+                              type: 'before',
+                              id: sortedCellIds[idx - 1],
+                          }
+                        : {
+                              type: 'after',
+                              id: sortedCellIds[idx + 1],
+                          };
+
+                setState(
+                    modActiveWorkspace((w: WorkspaceT) => {
+                        const order = calculateOrder(w.cells, pos);
+                        return {
+                            ...w,
+                            cells: {
+                                ...w.cells,
+                                [id]: {
+                                    ...w.cells[id],
+                                    order,
+                                },
+                            },
+                        };
+                    }),
+                );
+                return;
+            }
+            case 'change': {
+                return setState((state) => {
+                    return onChangeCell(
+                        action.env ? action.env : state.env,
+                        state,
+                        action.cell,
+                    );
+                });
+            }
+            case 'pin': {
+                const { display, id } = action;
+                return setState(
+                    modActiveWorkspace((workspace) => ({
+                        ...workspace,
+                        pins: workspace.pins.concat([{ display, id }]),
+                    })),
+                );
+            }
+        }
+    };
+}
