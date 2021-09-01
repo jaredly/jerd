@@ -46,17 +46,19 @@ export type State =
           raw: string;
           node: HTMLElement | null;
           // May or may not have worked
-          toplevel: ToplevelT | null;
+          //   toplevel: ToplevelT | null;
       }
     | {
           type: 'normal';
           idx: number;
           marks: Array<number>;
-          //   toplevel: ToplevelT;
+          // TODO: "active"?
+          // like, what?
       };
 
 type Action =
     | { type: 'raw'; text: string }
+    // | {type: 'edit-raw'}
     | {
           type: 'raw:selection';
           newSel: { idx: number; node: HTMLElement } | null;
@@ -64,15 +66,16 @@ type Action =
 
 const reducer = (state: State, action: Action): State => {
     switch (action.type) {
-        case 'raw':
-            // TODO: parse I guess
+        case 'raw': {
+            // const parsed =
             return {
                 type: 'text',
                 raw: action.text,
-                toplevel: null,
+                // toplevel: null,
                 idx: null,
                 node: null,
             };
+        }
         case 'raw:selection':
             return state.type === 'normal'
                 ? state
@@ -121,7 +124,7 @@ const CellView_ = ({
                       raw: cell.content.text,
                       idx: null,
                       node: null,
-                      toplevel: parseRaw(cell.content.text, env.global),
+                      //   toplevel: parseRaw(cell.content.text, env.global),
                   }
                 : {
                       type: 'normal',
@@ -132,8 +135,11 @@ const CellView_ = ({
 
     const evalCache = React.useRef({} as { [key: string]: any });
 
-    const toplevel =
-        state.type === 'text' ? state.toplevel : getToplevel(env, cell.content);
+    const toplevel = React.useMemo(() => {
+        return state.type === 'text'
+            ? parseRaw(state.raw, env.global)
+            : getToplevel(env, cell.content);
+    }, [state.type === 'text' ? state.raw : cell.content]);
 
     const evaled = React.useMemo(() => {
         if (
@@ -187,7 +193,12 @@ const CellView_ = ({
                 value={state.raw}
                 env={env}
                 maxWidth={maxWidth}
-                contents={state.toplevel}
+                unique={
+                    toplevel && toplevel.type === 'RecordDef'
+                        ? toplevel.def.unique
+                        : null
+                }
+                // contents={state.toplevel}
                 selection={
                     state.idx && state.node
                         ? { idx: state.idx, node: state.node }

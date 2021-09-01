@@ -221,7 +221,11 @@ export default ({
                     value={text}
                     env={env}
                     maxWidth={maxWidth}
-                    contents={contents}
+                    unique={
+                        contents && contents.type === 'RecordDef'
+                            ? contents.def.unique
+                            : null
+                    }
                     selection={
                         selection.node
                             ? { idx: selection.idx, node: selection.node }

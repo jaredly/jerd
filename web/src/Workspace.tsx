@@ -54,7 +54,7 @@ export const sortCells = (cells: { [key: string]: Cell }) => (
     return cells[a].order - cells[b].order;
 };
 
-const useUpdated = <T,>(value: T) => {
+export const useUpdated = <T,>(value: T) => {
     const ref = React.useRef(value);
     ref.current = value;
     return ref;

@@ -262,8 +262,22 @@ const CellView_ = ({
                 maxWidth={maxWidth}
                 onSetPlugin={onSetPlugin}
                 onChange={onSetToplevel}
-                selection={selection}
-                setSelection={setSelection}
+                selection={{
+                    idx: selection.idx,
+                    marks: selection.marks,
+                    active: selection.level === 'inner',
+                }}
+                setSelection={(idx, marks) => {
+                    setSelection((sel) => ({
+                        idx,
+                        marks: marks != null ? marks : sel.marks,
+                        level: 'inner',
+                        node: null,
+                    }));
+                    // if (!focused) {
+                    //     dispatch({ type: 'focus', id: cell.id});
+                    // }
+                }}
                 focused={focused != null}
                 onFocus={(direction?: 'up' | 'down') => {
                     dispatch({ type: 'focus', id: cell.id, direction });

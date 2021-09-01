@@ -86,7 +86,7 @@ export const onClick = (
     setScrub: (s: null | Scrub) => void,
     term: Term | null,
     value: any,
-    setIdx: (idx: number) => void,
+    // setIdx: (idx: number) => void,
 ) => (evt: React.MouseEvent, id: string, kind: string, loc?: Location) => {
     // console.log(kind, id, loc);
     const position: Position = { type: 'after', id: cell.id };

@@ -80,10 +80,10 @@ const selectPosition = (
     // return null
 };
 
-const maybeParse = (
+export const maybeParse = (
     env: Env,
     value: string,
-    contents: null | ToplevelT,
+    unique: null | number,
 ): ToplevelT | null => {
     try {
         const parsed: Array<Toplevel> = parse(value);
@@ -91,13 +91,7 @@ const maybeParse = (
             return null;
         }
         return addLocationIndices(
-            typeToplevelT(
-                newWithGlobal(env.global),
-                parsed[0],
-                contents && contents.type === 'RecordDef'
-                    ? contents.def.unique
-                    : null,
-            ),
+            typeToplevelT(newWithGlobal(env.global), parsed[0], unique),
         );
     } catch (err) {
         console.log('failed to parse', err);
@@ -264,7 +258,7 @@ const updateSelectionFromHTML = (
 
 export default ({
     env,
-    contents,
+    unique,
     value,
     onChange,
     onKeyDown,
@@ -274,7 +268,7 @@ export default ({
     updateSelection,
 }: {
     env: Env;
-    contents: ToplevelT | null;
+    unique: number | null;
     value: any;
     onChange: (value: string) => void;
     onKeyDown: (evt: React.KeyboardEvent) => void;
@@ -328,7 +322,7 @@ export default ({
                     }
                     ref.current = node;
                     set.current = true;
-                    const parsed = maybeParse(env, value, contents);
+                    const parsed = maybeParse(env, value, unique);
                     if (parsed) {
                         const sourceMap = {};
                         const div = document.createElement('div');

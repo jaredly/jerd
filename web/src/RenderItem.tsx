@@ -45,6 +45,7 @@ import {
     TopContent,
 } from './State';
 import { getToplevel } from './toplevels';
+import { useUpdated } from './Workspace';
 
 export type Props = {
     env: Env;
@@ -54,9 +55,9 @@ export type Props = {
     content: TopContent;
     evalEnv: EvalEnv;
     focused: boolean;
-    selection: Selection;
+    selection: { idx: number; marks: Array<number>; active: boolean };
     dispatch: (action: Action) => void;
-    setSelection: (fn: (s: Selection) => Selection) => void;
+    setSelection: (idx: number, marks?: Array<number>) => void;
     onFocus: (direction?: 'up' | 'down') => void;
     // onRun: (id: Id) => void;
     // addCell: (
@@ -138,20 +139,19 @@ Props) => {
         [setScrub, scrub],
     );
 
-    const setIdx: (
-        fn: number | ((idx: number) => number),
-    ) => void = React.useCallback(
-        (idx) => {
-            setSelection((sel) => ({
-                ...sel,
-                idx: typeof idx === 'number' ? idx : idx(sel.idx),
-            }));
-            if (!focused) {
-                onFocus();
-            }
-        },
-        [setSelection, onFocus, focused],
-    );
+    const selection$ = useUpdated(selection);
+
+    // const setIdx: (
+    //     fn: number | ((idx: number) => number),
+    // ) => void = React.useCallback(
+    //     (idx) => {
+    //         setSelection(typeof idx === 'number' ? idx : idx(selection$.current.idx))
+    //         if (!focused) {
+    //             onFocus();
+    //         }
+    //     },
+    //     [setSelection, onFocus, focused],
+    // );
 
     const [menu, setMenu] = React.useState(null as null | Array<MenuItem>);
     const [getString, setGetString] = React.useState(
@@ -194,7 +194,8 @@ Props) => {
             sourceMap,
             env,
             term,
-            setIdx,
+            selection$,
+            // setIdx,
             setSelection,
             setMenu,
             addTerm,
@@ -228,11 +229,7 @@ Props) => {
                     (evt, id, kind, loc) => {
                         if (!evt.metaKey) {
                             if (loc && loc.idx) {
-                                setSelection((sel) => ({
-                                    idx: loc.idx!,
-                                    marks: sel.marks,
-                                    level: 'inner',
-                                }));
+                                setSelection(loc.idx, selection$.current.marks);
                                 onFocus();
                                 // setIdx(loc.idx);
                             }
@@ -252,7 +249,7 @@ Props) => {
                             setScrub,
                             term,
                             value,
-                            setIdx,
+                            // setIdx,
                         )(evt, id, kind, loc);
                     },
                     undefined,
@@ -273,13 +270,7 @@ Props) => {
                             setHover(null);
                         }
                     },
-                    selection
-                        ? {
-                              idx: selection.idx,
-                              marks: selection.marks,
-                              active: selection.level === 'inner',
-                          }
-                        : null,
+                    selection,
                 )}
                 {scrub
                     ? renderScrub(

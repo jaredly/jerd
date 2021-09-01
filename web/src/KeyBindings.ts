@@ -216,13 +216,18 @@ export const goUp = (
     return idx;
 };
 
+// Ok, so things I need to figure out:
+// - how to manage "active" vs not
+// - when setting raw from non, do I pass in... yeah I sure do.
+
 export const bindKeys = (
     idxTree: IdxTree,
     sourceMap: SourceMap,
     env: Env,
     term: Term,
-    setIdx: (fn: (idx: number) => number) => void,
-    setSelection: (fn: (sel: Selection) => Selection) => void,
+    // setIdx: (fn: (idx: number) => number) => void,
+    selection$: { current: { idx: number; marks: Array<number> } },
+    setSelection: (idx: number, marks?: Array<number>) => void,
     setMenu: (items: Array<MenuItem>) => void,
     addTerm: (term: Term, name: string) => void,
     setTerm: (term: Term) => void,
@@ -247,228 +252,230 @@ export const bindKeys = (
         if (evt.target !== document.body) {
             return;
         }
+        const selection = selection$.current;
+        const { idx, marks } = selection;
         // setSelection(selection => { })
         const { locs, parents, children } = idxTree!;
 
         if (evt.key === 'm') {
-            setSelection((sel) => ({
-                ...sel,
-                marks: sel.marks.includes(sel.idx)
-                    ? sel.marks.filter((i) => i !== sel.idx)
-                    : sel.marks.concat([sel.idx]),
-            }));
+            setSelection(
+                idx,
+                marks.includes(idx)
+                    ? marks.filter((i) => i !== idx)
+                    : marks.concat([idx]),
+            );
         }
         if (evt.key === 'M') {
-            setSelection((sel) => ({ ...sel, marks: [] }));
+            setSelection(idx, []);
         }
 
         if (evt.key === 'Escape') {
-            setSelection((sel) => ({ ...sel, level: 'outer' }));
+            // TODO: handle 'active' at the cells level!
+            // setSelection((sel) => ({ ...sel, level: 'outer' }));
         }
 
         if (evt.key === 'Enter' || evt.key === 'Return') {
             evt.stopPropagation();
             evt.preventDefault();
             if (evt.shiftKey) {
-                return setSelection((s) => ({ ...s, level: 'text' }));
+                return;
+
+                // return setSelection((s) => ({ ...s, level: 'text' }));
             }
-            setSelection((selection) => {
-                if (!sourceMap[selection.idx]) {
-                    for (let i = 0; i < locLines.length; i++) {
-                        for (let x = 0; x < locLines[i].length; x++) {
-                            const idx = locLines[i][x].idx;
-                            if (sourceMap[idx]) {
-                                return { level: 'inner', idx, marks: [] };
-                            }
+            if (!sourceMap[selection.idx]) {
+                for (let i = 0; i < locLines.length; i++) {
+                    for (let x = 0; x < locLines[i].length; x++) {
+                        const idx = locLines[i][x].idx;
+                        if (sourceMap[idx]) {
+                            return setSelection(idx, []);
                         }
                     }
-                    return selection;
                 }
-                if (selection.level !== 'inner') {
-                    return { ...selection, level: 'inner' };
-                }
-                const { idx, marks } = selection;
-                const items: Array<MenuItem> = [];
-                // items.push({ name: 'Hello', action: () => console.log('hi') });
-                const focused = idxTree.locs[idx];
+                return;
+            }
+            // if (selection.level !== 'inner') {
+            //     return { ...selection, level: 'inner' };
+            // }
+            const { idx, marks } = selection;
+            const items: Array<MenuItem> = [];
+            // items.push({ name: 'Hello', action: () => console.log('hi') });
+            const focused = idxTree.locs[idx];
 
-                const focusedTerm = getTermByIdx(term, idx);
+            const focusedTerm = getTermByIdx(term, idx);
 
-                if (focused.kind === 'ref') {
-                    items.push({
-                        name: 'Inline term',
-                        action: () => {
-                            // ok fine
-                            setTerm(inlineTerm(env, term, idx));
-                        },
-                    });
-                }
+            if (focused.kind === 'ref') {
+                items.push({
+                    name: 'Inline term',
+                    action: () => {
+                        // ok fine
+                        setTerm(inlineTerm(env, term, idx));
+                    },
+                });
+            }
 
-                if (focused.kind === 'apply') {
-                    items.push({
-                        name: 'Inline function call',
-                        action: () => {
-                            setTerm(inlineFunctionCall(env, term, idx));
-                        },
-                    });
-                }
+            if (focused.kind === 'apply') {
+                items.push({
+                    name: 'Inline function call',
+                    action: () => {
+                        setTerm(inlineFunctionCall(env, term, idx));
+                    },
+                });
+            }
 
-                if (focusedTerm && focusedTerm.type !== 'sequence') {
-                    items.push({
-                        name: 'Surround in block',
-                        action: () => {
-                            setTerm(
-                                replaceAtIdx(term, idx, (t) => {
-                                    return {
-                                        type: 'sequence',
-                                        location: t.location,
-                                        sts: [t],
-                                        is: t.is,
-                                    };
-                                }),
-                            );
-                        },
-                    });
-                }
+            if (focusedTerm && focusedTerm.type !== 'sequence') {
+                items.push({
+                    name: 'Surround in block',
+                    action: () => {
+                        setTerm(
+                            replaceAtIdx(term, idx, (t) => {
+                                return {
+                                    type: 'sequence',
+                                    location: t.location,
+                                    sts: [t],
+                                    is: t.is,
+                                };
+                            }),
+                        );
+                    },
+                });
+            }
 
-                if (
-                    focusedTerm &&
-                    focusedTerm.type === 'sequence' &&
-                    focusedTerm.sts.length === 1 &&
-                    focusedTerm.sts[0].type !== 'Let'
-                ) {
-                    items.push({
-                        name: 'Collapse block',
-                        action: () => {
-                            setTerm(
-                                transform(term, {
-                                    term: (t) => {
-                                        if (
-                                            t.location.idx === idx &&
-                                            t.type === 'sequence' &&
-                                            t.sts.length === 1 &&
-                                            t.sts[0].type !== 'Let'
-                                        ) {
-                                            return t.sts[0];
-                                        }
-                                        return null;
-                                    },
-                                }),
-                            );
-                        },
-                    });
-                }
-
-                if (isTermLoc(focused.kind)) {
-                    items.push({
-                        name: 'Extract to variable',
-                        askString: 'name',
-                        action: (name: string) => {
-                            const newTerm = extractToVariable(term, idx, name);
-                            const duplicates = ensureIdxUnique(newTerm);
-                            if (duplicates.length) {
-                                console.error('DUPLICATES');
-                                console.log(duplicates);
-                                return;
-                            }
-                            setTerm(newTerm);
-                        },
-                    });
-                    items.push({
-                        name: 'Extract to toplevel term',
-                        askString: 'Name',
-                        action: (name: string) => {
-                            const [newTerm, extractedTerm] = extractToToplevel(
-                                term,
-                                idx,
-                                marks,
-                            );
-                            const duplicates = ensureIdxUnique(newTerm);
-                            if (duplicates.length) {
-                                console.error('DUPLICATES');
-                                console.log(duplicates);
-                                return;
-                            }
-                            addTerm(extractedTerm, name);
-                            setTerm(newTerm);
-                        },
-                    });
-                }
-
-                if (focused.kind === 'let' || focused.kind === 'let-sym') {
-                    items.push({
-                        name: 'Delete and inline',
-                        action: () => {
-                            // ok do it
-                            let found: null | Let = null;
-                            const newTerm = transform(term, {
+            if (
+                focusedTerm &&
+                focusedTerm.type === 'sequence' &&
+                focusedTerm.sts.length === 1 &&
+                focusedTerm.sts[0].type !== 'Let'
+            ) {
+                items.push({
+                    name: 'Collapse block',
+                    action: () => {
+                        setTerm(
+                            transform(term, {
                                 term: (t) => {
-                                    if (found != null) {
+                                    if (
+                                        t.location.idx === idx &&
+                                        t.type === 'sequence' &&
+                                        t.sts.length === 1 &&
+                                        t.sts[0].type !== 'Let'
+                                    ) {
+                                        return t.sts[0];
+                                    }
+                                    return null;
+                                },
+                            }),
+                        );
+                    },
+                });
+            }
+
+            if (isTermLoc(focused.kind)) {
+                items.push({
+                    name: 'Extract to variable',
+                    askString: 'name',
+                    action: (name: string) => {
+                        const newTerm = extractToVariable(term, idx, name);
+                        const duplicates = ensureIdxUnique(newTerm);
+                        if (duplicates.length) {
+                            console.error('DUPLICATES');
+                            console.log(duplicates);
+                            return;
+                        }
+                        setTerm(newTerm);
+                    },
+                });
+                items.push({
+                    name: 'Extract to toplevel term',
+                    askString: 'Name',
+                    action: (name: string) => {
+                        const [newTerm, extractedTerm] = extractToToplevel(
+                            term,
+                            idx,
+                            marks,
+                        );
+                        const duplicates = ensureIdxUnique(newTerm);
+                        if (duplicates.length) {
+                            console.error('DUPLICATES');
+                            console.log(duplicates);
+                            return;
+                        }
+                        addTerm(extractedTerm, name);
+                        setTerm(newTerm);
+                    },
+                });
+            }
+
+            if (focused.kind === 'let' || focused.kind === 'let-sym') {
+                items.push({
+                    name: 'Delete and inline',
+                    action: () => {
+                        // ok do it
+                        let found: null | Let = null;
+                        const newTerm = transform(term, {
+                            term: (t) => {
+                                if (found != null) {
+                                    if (
+                                        t.type === 'var' &&
+                                        t.sym.unique === found.binding.unique
+                                    ) {
+                                        // STOPSHIP: re-idx this, we really need to!
+                                        return found.value;
+                                    }
+                                    return null;
+                                }
+                                if (t.type === 'sequence') {
+                                    const sts = t.sts.filter((l) => {
                                         if (
-                                            t.type === 'var' &&
-                                            t.sym.unique ===
-                                                found.binding.unique
+                                            l.type === 'Let' &&
+                                            (l.location.idx === idx ||
+                                                l.idLocation.idx === idx)
                                         ) {
-                                            // STOPSHIP: re-idx this, we really need to!
-                                            return found.value;
+                                            found = l;
+                                            return false;
                                         }
-                                        return null;
-                                    }
-                                    if (t.type === 'sequence') {
-                                        const sts = t.sts.filter((l) => {
-                                            if (
-                                                l.type === 'Let' &&
-                                                (l.location.idx === idx ||
-                                                    l.idLocation.idx === idx)
-                                            ) {
-                                                found = l;
-                                                return false;
-                                            }
-                                            return true;
-                                        });
-                                        return found
-                                            ? sts.length === 1 &&
-                                              sts[0].type !== 'Let'
-                                                ? sts[0]
-                                                : { ...t, sts }
-                                            : null;
-                                    }
-                                    return null;
-                                },
-                            });
-                            setTerm(newTerm);
-                        },
-                    });
-                }
+                                        return true;
+                                    });
+                                    return found
+                                        ? sts.length === 1 &&
+                                          sts[0].type !== 'Let'
+                                            ? sts[0]
+                                            : { ...t, sts }
+                                        : null;
+                                }
+                                return null;
+                            },
+                        });
+                        setTerm(newTerm);
+                    },
+                });
+            }
 
-                if (focused.kind === 'let-sym') {
-                    items.push({
-                        name: 'Rename',
-                        askString: 'New name',
-                        action: (newName: string) => {
-                            const newTerm = transform(term, {
-                                let: (l) => {
-                                    if (l.idLocation.idx === idx) {
-                                        return {
-                                            ...l,
-                                            binding: {
-                                                ...l.binding,
-                                                name: newName,
-                                            },
-                                        };
-                                    }
-                                    return null;
-                                },
-                                term: (t) => null,
-                            });
-                            setTerm(newTerm);
-                        },
-                    });
-                }
-                setMenu(items);
+            if (focused.kind === 'let-sym') {
+                items.push({
+                    name: 'Rename',
+                    askString: 'New name',
+                    action: (newName: string) => {
+                        const newTerm = transform(term, {
+                            let: (l) => {
+                                if (l.idLocation.idx === idx) {
+                                    return {
+                                        ...l,
+                                        binding: {
+                                            ...l.binding,
+                                            name: newName,
+                                        },
+                                    };
+                                }
+                                return null;
+                            },
+                            term: (t) => null,
+                        });
+                        setTerm(newTerm);
+                    },
+                });
+            }
+            setMenu(items);
 
-                return selection;
-            });
+            // return selection;
             return true;
         }
 
@@ -478,50 +485,40 @@ export const bindKeys = (
             - but hm
             */
         if (evt.key === 'ArrowUp' || evt.key === 'k' || evt.key === 'K') {
-            setSelection((sel) => {
-                if (sel.level === 'outer') {
-                    onFocus('up');
-                    return sel;
+            // STOPSHIP:
+            // if (sel.level === 'outer') {
+            //     onFocus('up');
+            //     return;
+            // }
+            if (evt.shiftKey) {
+                const parent = parents[idx];
+                if (parent != null) {
+                    // console.log(parent);
+                    setSelection(parent);
                 }
-                if (evt.shiftKey) {
-                    const parent = parents[sel.idx];
-                    if (parent != null) {
-                        // console.log(parent);
-                        return { ...sel, idx: parent };
-                    }
-                    return sel;
-                } else {
-                    return {
-                        ...sel,
-                        idx: goUp(sel.idx, sourceMap, locLines, idxTree),
-                    };
-                }
-            });
+            } else {
+                setSelection(goUp(idx, sourceMap, locLines, idxTree));
+            }
+            // });
             evt.preventDefault();
             evt.stopPropagation();
             return true;
         }
 
         if (evt.key === 'ArrowDown' || evt.key === 'j' || evt.key === 'J') {
-            setSelection((sel) => {
-                if (sel.level === 'outer') {
-                    onFocus('down');
-                    return sel;
+            // STOPSHIP:
+            // if (sel.level === 'outer') {
+            //     onFocus('down');
+            // }
+            if (evt.shiftKey) {
+                const kids = children[idx];
+                if (kids != null && kids.length > 0) {
+                    // console.log(parent);
+                    setSelection(kids[0]);
                 }
-                if (evt.shiftKey) {
-                    const kids = children[sel.idx];
-                    if (kids != null && kids.length > 0) {
-                        // console.log(parent);
-                        return { ...sel, idx: kids[0] };
-                    }
-                    return sel;
-                } else {
-                    return {
-                        ...sel,
-                        idx: goDown(sel.idx, sourceMap, locLines, idxTree),
-                    };
-                }
-            });
+            } else {
+                setSelection(goDown(idx, sourceMap, locLines, idxTree));
+            }
 
             evt.preventDefault();
             evt.stopPropagation();
@@ -530,35 +527,30 @@ export const bindKeys = (
 
         if (evt.key === 'ArrowRight' || evt.key === 'l' || evt.key === 'L') {
             if (evt.shiftKey) {
-                return setIdx((idx) => {
-                    const parent = idxTree.parents[idx];
-                    if (parent) {
-                        const children = idxTree.children[parent];
-                        const cidx = children.indexOf(idx);
-                        if (cidx !== -1 && cidx < children.length - 1) {
-                            return children[cidx + 1];
-                        }
+                const parent = idxTree.parents[idx];
+                if (parent) {
+                    const children = idxTree.children[parent];
+                    const cidx = children.indexOf(idx);
+                    if (cidx !== -1 && cidx < children.length - 1) {
+                        setSelection(children[cidx + 1]);
                     }
-                    return idx;
-                });
+                }
             }
-            setIdx((idx) => goRight(idx, sourceMap, locLines, idxTree));
+            setSelection(goRight(idx, sourceMap, locLines, idxTree));
         }
         if (evt.key === 'ArrowLeft' || evt.key === 'h' || evt.key === 'H') {
             if (evt.shiftKey) {
-                return setIdx((idx) => {
-                    const parent = idxTree.parents[idx];
-                    if (parent) {
-                        const children = idxTree.children[parent];
-                        const cidx = children.indexOf(idx);
-                        if (cidx !== -1 && cidx > 0) {
-                            return children[cidx - 1];
-                        }
+                const parent = idxTree.parents[idx];
+                if (parent) {
+                    const children = idxTree.children[parent];
+                    const cidx = children.indexOf(idx);
+                    if (cidx !== -1 && cidx > 0) {
+                        setSelection(children[cidx - 1]);
                     }
-                    return idx;
-                });
+                }
+            } else {
+                setSelection(goLeft(idx, sourceMap, locLines, idxTree));
             }
-            setIdx((idx) => goLeft(idx, sourceMap, locLines, idxTree));
         }
     };
 };
