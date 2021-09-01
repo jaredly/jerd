@@ -165,12 +165,17 @@ export const renderAttributedText = (
     openable = (id: string, kind: string, loc?: Location) => false,
     setHover = (hover: Extra, target: HTMLDivElement | null) =>
         console.log('hover', hover, target),
-    selection: null | Selection = null,
+    selection: null | {
+        idx: number;
+        marks: Array<number>;
+        active: boolean;
+    } = null,
     colorMap: { map: { [key: string]: string }; colorAt: number } = {
         map: {},
         colorAt: 0,
     },
 ) => {
+    // TODO: one single selection check should be enough
     const idx = selection ? selection.idx : null;
     const marks = selection ? selection.marks : null;
     const locStyle = (loc: Location | null | undefined) => {
@@ -183,7 +188,7 @@ export const renderAttributedText = (
             }
             return markStyle;
         }
-        if (selection && selection.level !== 'inner') {
+        if (selection && !selection.active) {
             return loc.idx === idx ? hlStyleLight : null;
         }
         return loc.idx === idx ? hlStyle : null;

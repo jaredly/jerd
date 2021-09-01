@@ -273,7 +273,13 @@ Props) => {
                             setHover(null);
                         }
                     },
-                    selection,
+                    selection
+                        ? {
+                              idx: selection.idx,
+                              marks: selection.marks,
+                              active: selection.level === 'inner',
+                          }
+                        : null,
                 )}
                 {scrub
                     ? renderScrub(

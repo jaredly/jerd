@@ -227,7 +227,18 @@ export default ({
                             ? { idx: selection.idx, node: selection.node }
                             : null
                     }
-                    setSelection={setSelection}
+                    updateSelection={(newSel) =>
+                        setSelection((s) =>
+                            newSel
+                                ? {
+                                      idx: newSel.idx,
+                                      marks: [],
+                                      node: newSel.node,
+                                      level: 'text',
+                                  }
+                                : { ...s, node: null },
+                        )
+                    }
                     onChange={(text: string) => setText(text)}
                     onKeyDown={(evt: any) => {
                         if (evt.metaKey && evt.key === 'Enter') {

@@ -35,6 +35,7 @@ import { getToplevel, updateToplevel } from './toplevels';
 import { CellWrapper } from './CellWrapper';
 import { cellTitle } from './cellTitle';
 import { getMenuItems } from './getMenuItems';
+import ColorTextarea from './ColorTextarea';
 
 // hrmmmm can I move the selection dealio up a level? Should I? hmm I do like each cell managing its own cursor, tbh.
 
@@ -43,6 +44,7 @@ export type State =
           type: 'text';
           idx: number | null;
           raw: string;
+          node: HTMLElement | null;
           // May or may not have worked
           toplevel: ToplevelT | null;
       }
@@ -50,13 +52,36 @@ export type State =
           type: 'normal';
           idx: number;
           marks: Array<number>;
-          toplevel: ToplevelT;
+          //   toplevel: ToplevelT;
       };
 
-type Action = {};
+type Action =
+    | { type: 'raw'; text: string }
+    | {
+          type: 'raw:selection';
+          newSel: { idx: number; node: HTMLElement } | null;
+      };
 
-const reducer = (prevState: State, action: Action): State => {
-    return prevState;
+const reducer = (state: State, action: Action): State => {
+    switch (action.type) {
+        case 'raw':
+            // TODO: parse I guess
+            return {
+                type: 'text',
+                raw: action.text,
+                toplevel: null,
+                idx: null,
+                node: null,
+            };
+        case 'raw:selection':
+            return state.type === 'normal'
+                ? state
+                : {
+                      ...state,
+                      idx: action.newSel ? action.newSel.idx : state.idx,
+                      node: action.newSel ? action.newSel.node : null,
+                  };
+    }
 };
 
 export const termForToplevel = (t: ToplevelT | null) =>
@@ -89,34 +114,36 @@ const CellView_ = ({
     const [state, updateLocal] = React.useReducer(
         reducer,
         {},
-        (initial): State =>
+        (_): State =>
             cell.content.type === 'raw'
                 ? {
                       type: 'text',
                       raw: cell.content.text,
                       idx: null,
+                      node: null,
                       toplevel: parseRaw(cell.content.text, env.global),
                   }
                 : {
                       type: 'normal',
                       idx: 0,
                       marks: [],
-                      toplevel: getToplevel(env, cell.content),
                   },
     );
 
     const evalCache = React.useRef({} as { [key: string]: any });
 
+    const toplevel =
+        state.type === 'text' ? state.toplevel : getToplevel(env, cell.content);
+
     const evaled = React.useMemo(() => {
         if (
-            state.toplevel &&
-            (state.toplevel.type === 'Expression' ||
-                state.toplevel.type === 'Define')
+            toplevel &&
+            (toplevel.type === 'Expression' || toplevel.type === 'Define')
         ) {
             const id =
-                state.toplevel.type === 'Expression'
-                    ? { hash: hashObject(state.toplevel.term), size: 1, pos: 0 }
-                    : state.toplevel.id;
+                toplevel.type === 'Expression'
+                    ? { hash: hashObject(toplevel.term), size: 1, pos: 0 }
+                    : toplevel.id;
             const already = evalEnv.terms[idName(id)];
 
             if (already) {
@@ -125,7 +152,7 @@ const CellView_ = ({
                 return evalCache.current[idName(id)];
             } else {
                 try {
-                    const v = runTerm(env, state.toplevel.term, id, evalEnv)[
+                    const v = runTerm(env, toplevel.term, id, evalEnv)[
                         idName(id)
                     ];
                     evalCache.current[idName(id)] = v;
@@ -136,7 +163,7 @@ const CellView_ = ({
             }
         }
         return null;
-    }, [state.toplevel]);
+    }, [toplevel]);
 
     const onSetToplevel = React.useCallback(
         (toplevel: ToplevelT) => {
@@ -152,6 +179,35 @@ const CellView_ = ({
 
     const setCollapsed = (collapsed: boolean) =>
         dispatch({ type: 'change', cell: { ...cell, collapsed } });
+
+    const body =
+        state.type === 'text' ? (
+            <ColorTextarea
+                // NOTE: this is ~uncontrolled at the moment.
+                value={state.raw}
+                env={env}
+                maxWidth={maxWidth}
+                contents={state.toplevel}
+                selection={
+                    state.idx && state.node
+                        ? { idx: state.idx, node: state.node }
+                        : null
+                }
+                updateSelection={(newSel) =>
+                    updateLocal({ type: 'raw:selection', newSel })
+                }
+                onChange={(text: string) => updateLocal({ type: 'raw', text })}
+                onKeyDown={(evt: any) => {
+                    if (evt.metaKey && evt.key === 'Enter') {
+                        console.log('run it');
+                        // onChange(typed == null ? text : typed);
+                    }
+                    if (evt.key === 'Escape') {
+                        // onClose(typed);
+                    }
+                }}
+            />
+        ) : null;
 
     return (
         <CellWrapper
@@ -185,7 +241,7 @@ const CellView_ = ({
                 // onDuplicate,
                 setCollapsed,
                 setShowSource: () => 'todo show source',
-                term: termForToplevel(state.toplevel),
+                term: termForToplevel(toplevel),
                 showSource: false,
                 showGLSL: false,
                 cell,
@@ -193,23 +249,7 @@ const CellView_ = ({
                 setShowGLSL: () => 'todo',
             })}
         >
-            START HERE: Make a body, with Editor and RenderItem, and then with
-            plugins beneath it. Hello all
-            {/* {body} */}
-            {/* {term && showSource && cell.content.type === 'term' ? (
-                <ViewSource
-                    hash={idName(cell.content.id)}
-                    env={env}
-                    term={term}
-                />
-            ) : null}
-            {term && showGLSL && cell.content.type === 'term' ? (
-                <ViewGLSL
-                    hash={idName(cell.content.id)}
-                    env={env}
-                    term={term}
-                />
-            ) : null} */}
+            {body}
         </CellWrapper>
     );
 };

@@ -227,7 +227,7 @@ const handleTab = (shiftTab: boolean, root: HTMLElement) => {
     return false;
 };
 
-const updateSelection = (
+const updateSelectionFromHTML = (
     ref: { current: HTMLDivElement | null },
     updateSelection: (
         selection: null | { idx: number; node: HTMLElement },
@@ -270,7 +270,8 @@ export default ({
     onKeyDown,
     maxWidth,
     selection,
-    setSelection,
+    // setSelection,
+    updateSelection,
 }: {
     env: Env;
     contents: ToplevelT | null;
@@ -279,7 +280,10 @@ export default ({
     onKeyDown: (evt: React.KeyboardEvent) => void;
     maxWidth: number;
     selection: { idx: number; node: HTMLElement } | null;
-    setSelection: (fn: (s: Selection) => Selection) => void;
+    // setSelection: (fn: (s: Selection) => Selection) => void;
+    updateSelection: (
+        newSel: null | { idx: number; node: HTMLElement },
+    ) => void;
 }) => {
     const ref = React.useRef(null as HTMLDivElement | null);
     const set = React.useRef(false);
@@ -290,18 +294,7 @@ export default ({
 
     React.useEffect(() => {
         const fn = () => {
-            updateSelection(ref, (newSel) =>
-                setSelection((s) =>
-                    newSel
-                        ? {
-                              idx: newSel.idx,
-                              marks: [],
-                              node: newSel.node,
-                              level: 'text',
-                          }
-                        : { ...s, node: null },
-                ),
-            );
+            updateSelectionFromHTML(ref, updateSelection);
         };
         document.addEventListener('selectionchange', fn);
         return () => document.removeEventListener('selectionchange', fn);
@@ -532,9 +525,7 @@ export default ({
             {selection ? (
                 <SelectionId
                     selection={selection.node}
-                    clearNode={() =>
-                        setSelection((s) => ({ ...s, node: null }))
-                    }
+                    clearNode={() => updateSelection(null)}
                 />
             ) : null}
         </div>
