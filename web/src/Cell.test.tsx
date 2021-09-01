@@ -38,7 +38,7 @@ const renderCell = (raw: string) => {
             }}
             env={env}
             getHistory={() => []}
-            focused={1}
+            focused={{ tick: 1, active: false }}
             // onDuplicate={() => {}}
             // onFocus={() => {
             //     console.log('hello!');

@@ -84,7 +84,7 @@ export const Workspace = ({ state, setState }: Props) => {
     useCommandP(setShowMenu);
 
     const [focus, setFocus] = React.useState(
-        null as null | { id: string; tick: number },
+        null as null | { id: string; tick: number; active: boolean },
     );
 
     const onOpen = React.useCallback(
@@ -103,7 +103,7 @@ export const Workspace = ({ state, setState }: Props) => {
                 return;
             }
             const id = genId();
-            setFocus({ id, tick: 0 });
+            setFocus({ id, tick: 0, active: false });
             setState(
                 modActiveWorkspace((workspace) => ({
                     ...workspace,
@@ -370,7 +370,7 @@ export const ImportExport = ({
 export function makeReducer(
     state$: React.MutableRefObject<State>,
     sortedCellIds$: { current: string[] },
-    setFocus: (f: { id: string; tick: number } | null) => void,
+    setFocus: (f: { id: string; tick: number; active: boolean } | null) => void,
     focusRef: React.MutableRefObject<{ id: string; tick: number } | null>,
     setState: (fn: (s: State) => State) => void,
 ): (action: Action) => void {
@@ -381,23 +381,31 @@ export function makeReducer(
 
         switch (action.type) {
             case 'focus': {
-                const { id, direction } = action;
+                const { id, direction, active } = action;
                 if (direction === 'up') {
                     const at = sortedCellIds.indexOf(id);
                     if (at > 0) {
-                        setFocus({ id: sortedCellIds[at - 1], tick: 0 });
+                        setFocus({
+                            id: sortedCellIds[at - 1],
+                            tick: 0,
+                            active,
+                        });
                     }
                     return;
                 }
                 if (direction === 'down') {
                     const at = sortedCellIds.indexOf(id);
                     if (at < sortedCellIds.length - 1) {
-                        setFocus({ id: sortedCellIds[at + 1], tick: 0 });
+                        setFocus({
+                            id: sortedCellIds[at + 1],
+                            tick: 0,
+                            active,
+                        });
                     }
                     return;
                 }
                 if (!focusRef.current || focusRef.current.id !== id) {
-                    setFocus({ id, tick: 0 });
+                    setFocus({ id, tick: 0, active });
                 }
                 return;
             }
@@ -448,9 +456,10 @@ export function makeReducer(
                         setFocus({
                             id: matching,
                             tick: focus.tick + 1,
+                            active: false,
                         });
                     } else {
-                        setFocus({ id: matching, tick: 0 });
+                        setFocus({ id: matching, tick: 0, active: false });
                     }
                     return;
                 }
@@ -464,7 +473,7 @@ export function makeReducer(
                         addCell({ ...blankCell, id, content }, position),
                     )(state);
                 });
-                setFocus({ id, tick: 0 });
+                setFocus({ id, tick: 0, active: false });
                 return;
             }
             case 'duplicate': {
@@ -487,7 +496,7 @@ export function makeReducer(
                         };
                     }),
                 );
-                setFocus({ id: nid, tick: 0 });
+                setFocus({ id: nid, tick: 0, active: false });
                 return;
             }
             case 'move': {

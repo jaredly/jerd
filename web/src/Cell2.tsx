@@ -241,8 +241,10 @@ const CellView_ = ({
                 });
             }}
             onRemove={() => dispatch({ type: 'remove', id: cell.id })}
-            focused={focused}
-            onFocus={() => dispatch({ type: 'focus', id: cell.id })}
+            focused={focused ? focused.tick : null}
+            onFocus={() =>
+                dispatch({ type: 'focus', id: cell.id, active: true })
+            }
             collapsed={cell.collapsed || false}
             setCollapsed={setCollapsed}
             onToggleSource={() => 'todo'}

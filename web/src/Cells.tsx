@@ -28,7 +28,7 @@ export const contentMatches = (one: Content, two: Content) => {
 
 export type Action =
     | { type: 'duplicate'; id: string }
-    | { type: 'focus'; id: string; direction?: 'up' | 'down' }
+    | { type: 'focus'; id: string; active: boolean; direction?: 'up' | 'down' }
     | { type: 'change'; env?: Env | null; cell: Cell }
     | { type: 'run'; id: Id }
     | { type: 'remove'; id: string }
@@ -52,7 +52,7 @@ const Cells = ({
     processAction,
 }: {
     state: State;
-    focus: { id: string; tick: number } | null;
+    focus: { id: string; tick: number; active: boolean } | null;
     plugins: RenderPlugins;
     sortedCellIds: Array<string>;
     processAction: (action: Action) => void;
@@ -136,7 +136,7 @@ const Cells = ({
                     <CellView
                         key={id}
                         getHistory={getHistory}
-                        focused={focus && focus.id == id ? focus.tick : null}
+                        focused={focus && focus.id == id ? focus : null}
                         maxWidth={maxWidth}
                         env={state.env}
                         cell={work.cells[id]}

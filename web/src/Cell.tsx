@@ -48,7 +48,7 @@ export type CellProps = {
     cell: Cell;
     env: Env;
     getHistory: (id: string) => Array<Id>;
-    focused: number | null;
+    focused: { tick: number; active: boolean } | null;
     plugins: { [id: string]: RenderPluginT };
     evalEnv: EvalEnv;
     dispatch: (action: Action) => void;
@@ -100,7 +100,7 @@ const CellView_ = ({
     );
 
     const onEdit = React.useCallback(() => {
-        dispatch({ type: 'focus', id: cell.id });
+        dispatch({ type: 'focus', id: cell.id, active: true });
         setSelection((s) => ({ ...s, level: 'text' }));
     }, [cell]);
 
@@ -210,7 +210,7 @@ const CellView_ = ({
                 }
                 onClose={updateProposed(cell, dispatch, setSelection)}
                 onChange={(rawOrToplevel) => {
-                    dispatch({ type: 'focus', id: cell.id });
+                    dispatch({ type: 'focus', id: cell.id, active: true });
                     if (typeof rawOrToplevel === 'string') {
                         dispatch({
                             type: 'change',
@@ -243,7 +243,7 @@ const CellView_ = ({
                 onClick={() => {
                     // setEditing(true);
                     setSelection((s) => ({ ...s, level: 'text' }));
-                    dispatch({ type: 'focus', id: cell.id });
+                    dispatch({ type: 'focus', id: cell.id, active: true });
                 }}
                 style={{
                     fontFamily: '"Source Code Pro", monospace',
@@ -280,11 +280,16 @@ const CellView_ = ({
                 }}
                 focused={focused != null}
                 onFocus={(direction?: 'up' | 'down') => {
-                    dispatch({ type: 'focus', id: cell.id, direction });
+                    dispatch({
+                        type: 'focus',
+                        id: cell.id,
+                        direction,
+                        active: !direction,
+                    });
                 }}
                 onClick={() => {
                     setSelection((s) => ({ ...s, level: 'outer' }));
-                    dispatch({ type: 'focus', id: cell.id });
+                    dispatch({ type: 'focus', id: cell.id, active: false });
                 }}
                 onPending={updatePending(cell, dispatch)}
                 dispatch={dispatch}
@@ -356,8 +361,10 @@ const CellView_ = ({
                 });
             }}
             onRemove={() => dispatch({ type: 'remove', id: cell.id })}
-            focused={focused}
-            onFocus={() => dispatch({ type: 'focus', id: cell.id })}
+            focused={focused ? focused.tick : null}
+            onFocus={() =>
+                dispatch({ type: 'focus', id: cell.id, active: true })
+            }
             collapsed={cell.collapsed || false}
             setCollapsed={setCollapsed}
             onToggleSource={() => setShowSource(!showSource)}
