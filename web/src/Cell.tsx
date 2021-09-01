@@ -51,18 +51,6 @@ export type CellProps = {
     focused: number | null;
     plugins: { [id: string]: RenderPluginT };
     evalEnv: EvalEnv;
-    // onDuplicate: (id: string) => void;
-    // onFocus: (id: string, direction?: 'up' | 'down') => void;
-    // onChange: (env: Env | null, cell: Cell) => void;
-    // onRun: (id: Id) => void;
-    // onRemove: (id: string) => void;
-    // onMove: (id: string, position: MovePosition) => void;
-    // addCell: (
-    //     content: Content,
-    //     position: Position,
-    //     updateEnv?: (e: Env) => Env,
-    // ) => void;
-    // onPin: (display: Display, id: Id) => void;
     dispatch: (action: Action) => void;
 };
 
@@ -79,19 +67,10 @@ const CellView_ = ({
     maxWidth,
     focused,
     evalEnv,
-    // onChange,
-    // onRemove,
-    // onDuplicate,
-    // onRun,
-    // onFocus,
-    // addCell,
-    // onPin,
-    // onMove,
     dispatch,
     plugins,
     getHistory,
 }: CellProps) => {
-    // const [editing, setEditing] = React.useState(cell.content.type == 'raw');
     const [showSource, setShowSource] = React.useState(false);
     const [showGLSL, setShowGLSL] = React.useState(false);
 
@@ -295,15 +274,12 @@ const CellView_ = ({
                 }}
                 onPending={updatePending(cell, dispatch)}
                 dispatch={dispatch}
-                // onPin={onPin}
                 cell={cell}
                 plugins={plugins}
                 content={cell.content}
                 onEdit={onEdit}
-                // addCell={addCell}
                 env={env}
                 evalEnv={evalEnv}
-                // onRun={onRun}
             />
         );
 
