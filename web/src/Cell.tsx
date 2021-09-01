@@ -23,7 +23,7 @@ import { parse, Toplevel } from '../../language/src/parsing/parser';
 import { printToString } from '../../language/src/printing/printer';
 import { toplevelToPretty } from '../../language/src/printing/printTsLike';
 import { addLocationIndices } from '../../language/src/typing/analyze';
-import { Action, Position } from './Cells';
+import { Action } from './Cells';
 import { cellTitle } from './cellTitle';
 import { CellWrapper } from './CellWrapper';
 import { compileGLSL, envWithTerm, getStateUniform } from './display/OpenGL';
@@ -31,7 +31,7 @@ import Editor, { Traces } from './Editor';
 import { runTerm, termToJS } from './eval';
 import { getMenuItems } from './getMenuItems';
 import { RenderItem } from './RenderItem';
-import { Cell, Content, Display, EvalEnv, RenderPluginT } from './State';
+import { Cell, EvalEnv, RenderPluginT } from './State';
 import { getToplevel, updateToplevel } from './toplevels';
 
 // const maxWidth = 80;
@@ -517,7 +517,7 @@ const updateProposed = (
     };
 };
 
-function rejectProposed(
+export function rejectProposed(
     cell: Cell,
     dispatch: (action: Action) => void,
     // onChange: (env: Env | null, cell: Cell) => void,
@@ -537,7 +537,7 @@ function rejectProposed(
     };
 }
 
-function acceptProposed(
+export function acceptProposed(
     cell: Cell,
     env: Env,
     onSetToplevel: (toplevel: ToplevelT) => void,

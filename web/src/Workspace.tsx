@@ -16,9 +16,9 @@ import Cells, {
     contentMatches,
     genId,
     modActiveWorkspace,
-    onChangeCell,
     Position,
 } from './Cells';
+import { onChangeCell } from './onChangeCell';
 
 import DrawablePlugins from './display/Drawable';
 import OpenGLPlugins from './display/OpenGL';
