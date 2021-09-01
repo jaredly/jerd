@@ -208,7 +208,10 @@ const CellView_ = ({
                         ? null
                         : getToplevel(env, cell.content)
                 }
-                onClose={updateProposed(cell, dispatch, setSelection)}
+                onClose={(term: ToplevelT | null) => {
+                    updateProposed(cell, dispatch, term);
+                    setSelection((s) => ({ ...s, level: 'normal' }));
+                }}
                 onChange={(rawOrToplevel) => {
                     dispatch({ type: 'focus', id: cell.id, active: true });
                     if (typeof rawOrToplevel === 'string') {
@@ -482,60 +485,57 @@ export const hashStyle = {
     borderRadius: 4,
 };
 
-const updateProposed = (
+export const updateProposed = (
     cell: Cell,
     dispatch: (action: Action) => void,
     // onChange: (env: Env | null, cell: Cell) => void,
-    setSelection: React.Dispatch<React.SetStateAction<Selection>>,
-): ((term: ToplevelT | null) => void) => {
-    return (proposedToplevel) => {
-        if (cell.content.type === 'term') {
-            if (
-                proposedToplevel != null &&
-                (proposedToplevel.type === 'Define' ||
-                    proposedToplevel?.type === 'Expression')
-            ) {
-                const id = idFromName(hashObject(proposedToplevel.term));
-                if (idsEqual(id, cell.content.id)) {
-                    if (cell.content.proposed) {
-                        dispatch({
-                            type: 'change',
-                            cell: {
-                                ...cell,
-                                content: {
-                                    ...cell.content,
-                                    proposed: null,
-                                },
-                            },
-                        });
-                    }
-                } else {
+    proposedToplevel: ToplevelT | null,
+) => {
+    if (cell.content.type === 'term') {
+        if (
+            proposedToplevel != null &&
+            (proposedToplevel.type === 'Define' ||
+                proposedToplevel?.type === 'Expression')
+        ) {
+            const id = idFromName(hashObject(proposedToplevel.term));
+            if (idsEqual(id, cell.content.id)) {
+                if (cell.content.proposed) {
                     dispatch({
                         type: 'change',
                         cell: {
                             ...cell,
                             content: {
                                 ...cell.content,
-                                proposed: {
-                                    term: proposedToplevel.term,
-                                    id: id,
-                                },
+                                proposed: null,
                             },
                         },
                     });
                 }
-            } else if (cell.content.proposed) {
+            } else {
                 dispatch({
                     type: 'change',
                     cell: {
                         ...cell,
-                        content: { ...cell.content, proposed: null },
+                        content: {
+                            ...cell.content,
+                            proposed: {
+                                term: proposedToplevel.term,
+                                id: id,
+                            },
+                        },
                     },
                 });
             }
+        } else if (cell.content.proposed) {
+            dispatch({
+                type: 'change',
+                cell: {
+                    ...cell,
+                    content: { ...cell.content, proposed: null },
+                },
+            });
         }
-        setSelection((s) => ({ ...s, level: 'normal' }));
-    };
+    }
 };
 
 export function rejectProposed(

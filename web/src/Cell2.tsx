@@ -15,6 +15,7 @@ import {
     MovePosition,
     rejectProposed,
     Selection,
+    updateProposed,
 } from './Cell';
 import { Cell, Content, Display, EvalEnv, RenderPlugins } from './State';
 import { runTerm } from './eval';
@@ -58,6 +59,7 @@ export type State =
 
 type Action =
     | { type: 'raw'; text: string }
+    | { type: 'raw:close'; idx: number }
     // | {type: 'edit-raw'}
     | {
           type: 'raw:selection';
@@ -66,6 +68,13 @@ type Action =
 
 const reducer = (state: State, action: Action): State => {
     switch (action.type) {
+        case 'raw:close': {
+            return {
+                type: 'normal',
+                idx: action.idx,
+                marks: [],
+            };
+        }
         case 'raw': {
             // const parsed =
             return {
@@ -189,7 +198,6 @@ const CellView_ = ({
     const body =
         state.type === 'text' ? (
             <ColorTextarea
-                // NOTE: this is ~uncontrolled at the moment.
                 value={state.raw}
                 env={env}
                 maxWidth={maxWidth}
@@ -198,7 +206,6 @@ const CellView_ = ({
                         ? toplevel.def.unique
                         : null
                 }
-                // contents={state.toplevel}
                 selection={
                     state.idx && state.node
                         ? { idx: state.idx, node: state.node }
@@ -209,12 +216,18 @@ const CellView_ = ({
                 }
                 onChange={(text: string) => updateLocal({ type: 'raw', text })}
                 onKeyDown={(evt: any) => {
-                    if (evt.metaKey && evt.key === 'Enter') {
-                        console.log('run it');
-                        // onChange(typed == null ? text : typed);
-                    }
+                    // if (evt.metaKey && evt.key === 'Enter') {
+                    //     console.log('run it');
+                    //     // onChange(typed == null ? text : typed);
+                    // }
                     if (evt.key === 'Escape') {
                         // onClose(typed);
+                        updateProposed(cell, dispatch, toplevel);
+                        updateLocal({
+                            type: 'raw:close',
+                            // TODO: Come up with a better default "selected idx" if there isn't one
+                            idx: state.idx || 0,
+                        });
                     }
                 }}
             />
