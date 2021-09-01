@@ -185,7 +185,7 @@ export default ({
     selection: Selection;
     setSelection: (fn: (s: Selection) => Selection) => void;
     onSetPlugin: (plugin: Display | null) => void;
-    contents: ToplevelT | string;
+    contents: ToplevelT | null;
     onClose: (term: ToplevelT | null) => void;
     onChange: (term: ToplevelT | string) => void;
     // onPin: (display: Display, id: Id) => void;
@@ -222,7 +222,11 @@ export default ({
                     env={env}
                     maxWidth={maxWidth}
                     contents={contents}
-                    selection={selection}
+                    selection={
+                        selection.node
+                            ? { idx: selection.idx, node: selection.node }
+                            : null
+                    }
                     setSelection={setSelection}
                     onChange={(text: string) => setText(text)}
                     onKeyDown={(evt: any) => {

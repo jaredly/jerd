@@ -83,7 +83,7 @@ const selectPosition = (
 const maybeParse = (
     env: Env,
     value: string,
-    contents: ToplevelT | string,
+    contents: null | ToplevelT,
 ): ToplevelT | null => {
     try {
         const parsed: Array<Toplevel> = parse(value);
@@ -94,7 +94,7 @@ const maybeParse = (
             typeToplevelT(
                 newWithGlobal(env.global),
                 parsed[0],
-                typeof contents !== 'string' && contents.type === 'RecordDef'
+                contents && contents.type === 'RecordDef'
                     ? contents.def.unique
                     : null,
             ),
@@ -229,15 +229,15 @@ const handleTab = (shiftTab: boolean, root: HTMLElement) => {
 
 const updateSelection = (
     ref: { current: HTMLDivElement | null },
-    setSelection: (fn: (s: Selection) => Selection) => void,
+    updateSelection: (
+        selection: null | { idx: number; node: HTMLElement },
+    ) => void,
 ) => {
     if (!ref.current || document.activeElement !== ref.current) {
-        // console.log('Not active', ref.current, document.activeElement);
         return;
     }
     const sel = document.getSelection();
     if (!sel || !sel.focusNode || sel.focusNode !== sel.anchorNode) {
-        // console.log('NOP', sel);
         return;
     }
     let node = sel.focusNode as HTMLElement;
@@ -250,8 +250,7 @@ const updateSelection = (
     }
 
     if (!node || !node.hasAttribute('data-id')) {
-        // console.log('No nodez', node, sel);
-        setSelection((s) => ({ ...s, node: null }));
+        updateSelection(null);
         return;
     }
 
@@ -259,12 +258,7 @@ const updateSelection = (
     const loc = node.getAttribute('data-location');
     if (loc) {
         const location: Location = JSON.parse(loc);
-        setSelection((s) => ({
-            idx: location.idx!,
-            marks: [],
-            level: 'text',
-            node,
-        }));
+        updateSelection({ idx: location.idx!, node });
     }
 };
 
@@ -279,12 +273,12 @@ export default ({
     setSelection,
 }: {
     env: Env;
-    contents: any;
+    contents: ToplevelT | null;
     value: any;
     onChange: (value: string) => void;
     onKeyDown: (evt: React.KeyboardEvent) => void;
     maxWidth: number;
-    selection: Selection;
+    selection: { idx: number; node: HTMLElement } | null;
     setSelection: (fn: (s: Selection) => Selection) => void;
 }) => {
     const ref = React.useRef(null as HTMLDivElement | null);
@@ -296,7 +290,18 @@ export default ({
 
     React.useEffect(() => {
         const fn = () => {
-            updateSelection(ref, setSelection);
+            updateSelection(ref, (newSel) =>
+                setSelection((s) =>
+                    newSel
+                        ? {
+                              idx: newSel.idx,
+                              marks: [],
+                              node: newSel.node,
+                              level: 'text',
+                          }
+                        : { ...s, node: null },
+                ),
+            );
         };
         document.addEventListener('selectionchange', fn);
         return () => document.removeEventListener('selectionchange', fn);
@@ -355,7 +360,7 @@ export default ({
                                     const l = JSON.parse(
                                         nodes[i].getAttribute('data-location')!,
                                     );
-                                    if (l.idx === selection.idx) {
+                                    if (selection && l.idx === selection.idx) {
                                         nodes[i].classList.add('selected-id');
                                         const sel = document.getSelection()!;
                                         sel.removeAllRanges();
@@ -524,7 +529,14 @@ export default ({
                     {hover.text}
                 </div>
             ) : null} */}
-            <SelectionId selection={selection} setSelection={setSelection} />
+            {selection ? (
+                <SelectionId
+                    selection={selection.node}
+                    clearNode={() =>
+                        setSelection((s) => ({ ...s, node: null }))
+                    }
+                />
+            ) : null}
         </div>
     );
 };
@@ -532,22 +544,21 @@ export default ({
 const SelectionId = React.memo(
     ({
         selection,
-        setSelection,
+        clearNode,
     }: {
-        selection: Selection;
-        setSelection: (fn: (s: Selection) => Selection) => void;
+        selection: HTMLElement | null | undefined;
+        clearNode: () => void;
     }) => {
-        if (!selection.node || !selection.node.offsetParent) {
+        if (!selection || !selection.offsetParent) {
             return null;
         }
-        const node = selection.node;
-        const id = selection.node.getAttribute('data-id');
+        const id = selection.getAttribute('data-id');
         if (!id) {
             return null;
         }
 
-        const box = selection.node.getBoundingClientRect();
-        const pbox = selection.node.offsetParent.getBoundingClientRect();
+        const box = selection.getBoundingClientRect();
+        const pbox = selection.offsetParent.getBoundingClientRect();
         return (
             <div
                 css={{
@@ -560,10 +571,10 @@ const SelectionId = React.memo(
                     cursor: 'pointer',
                 }}
                 onClick={() => {
-                    node.removeAttribute('data-id');
-                    node.classList.remove('selected-id');
-                    node.style.color = 'inherit';
-                    setSelection((s) => ({ ...s, node: null }));
+                    selection.removeAttribute('data-id');
+                    selection.classList.remove('selected-id');
+                    selection.style.color = 'inherit';
+                    clearNode();
                 }}
             >
                 {id.startsWith(':') ? 'Symbol ' + id.slice(1) : '#' + id}

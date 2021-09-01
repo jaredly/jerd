@@ -205,7 +205,7 @@ const CellView_ = ({
                 onSetPlugin={onSetPlugin}
                 contents={
                     cell.content.type == 'raw'
-                        ? cell.content.text
+                        ? null
                         : getToplevel(env, cell.content)
                 }
                 onClose={updateProposed(cell, dispatch, setSelection)}
