@@ -18,7 +18,14 @@ import {
     updatePending,
     updateProposed,
 } from './Cell';
-import { Cell, Content, Display, EvalEnv, RenderPlugins } from './State';
+import {
+    Cell,
+    Content,
+    Display,
+    EvalEnv,
+    RenderPlugins,
+    TopContent,
+} from './State';
 import { runTerm } from './eval';
 import { HistoryUpdate, Workspace } from './App';
 import {
@@ -39,6 +46,8 @@ import { cellTitle } from './cellTitle';
 import { getMenuItems } from './getMenuItems';
 import ColorTextarea from './ColorTextarea';
 import { RenderItem } from './RenderItem';
+import { printToString } from '../../language/src/printing/printer';
+import { toplevelToPretty } from '../../language/src/printing/printTsLike';
 
 // hrmmmm can I move the selection dealio up a level? Should I? hmm I do like each cell managing its own cursor, tbh.
 
@@ -158,6 +167,8 @@ const CellView_ = ({
     const toplevel = React.useMemo(() => {
         return state.type === 'text'
             ? parseRaw(state.raw, env.global)
+            : cell.content.type === 'raw'
+            ? parseRaw(cell.content.text, env.global)
             : getToplevel(env, cell.content);
     }, [state.type === 'text' ? state.raw : cell.content]);
 
@@ -236,9 +247,41 @@ const CellView_ = ({
                 onKeyDown={(evt: any) => {
                     // TODO: /should/ I allow 'raw's anymore?
                     // I mean with this setup, you can't really save a raw.
-                    if (evt.key === 'Escape' && toplevel) {
-                        // onClose(typed);
-                        updateProposed(cell, dispatch, toplevel);
+                    if (evt.key === 'Escape') {
+                        if (toplevel) {
+                            if (
+                                (toplevel.type === 'Define' ||
+                                    toplevel.type === 'Expression') &&
+                                cell.content.type === 'term'
+                            ) {
+                                updateProposed(cell, dispatch, toplevel);
+                            } else {
+                                const { env: nenv, content } = updateToplevel(
+                                    env,
+                                    toplevel,
+                                    cell.content,
+                                );
+                                dispatch({
+                                    type: 'change',
+                                    env: nenv,
+                                    cell: {
+                                        ...cell,
+                                        content,
+                                    },
+                                });
+                            }
+                        } else {
+                            dispatch({
+                                type: 'change',
+                                cell: {
+                                    ...cell,
+                                    content: { type: 'raw', text: state.raw },
+                                },
+                            });
+                        }
+
+                        // // onClose(typed);
+                        // updateProposed(cell, dispatch, toplevel);
                         updateLocal({
                             type: 'raw:close',
                             // TODO: Come up with a better default "selected idx" if there isn't one
@@ -247,51 +290,88 @@ const CellView_ = ({
                     }
                 }}
             />
-        ) : toplevel ? null : (
-            // <RenderItem
-            //     maxWidth={maxWidth}
-            //     onSetPlugin={onSetPlugin}
-            //     onChange={onSetToplevel}
-            //     selection={{
-            //         idx: state.idx,
-            //         marks: state.marks,
-            //         active: focused ? focused.active : false,
-            //     }}
-            //     setSelection={(idx, marks) => {
-            //         updateLocal({ type: 'selection', idx, marks });
-            //         // setSelection((sel) => ({
-            //         //     idx,
-            //         //     marks: marks != null ? marks : sel.marks,
-            //         //     level: 'normal',
-            //         //     node: null,
-            //         // }));
-            //         if (!focused || !focused.active) {
-            //             dispatch({ type: 'focus', id: cell.id, active: true });
-            //         }
-            //     }}
-            //     focused={focused != null ? focused.active : null}
-            //     onFocus={(active: boolean, direction?: 'up' | 'down') => {
-            //         dispatch({
-            //             type: 'focus',
-            //             id: cell.id,
-            //             direction,
-            //             active,
-            //         });
-            //     }}
-            //     onClick={() => {
-            //         // setSelection((s) => ({ ...s, level: 'outer' }));
-            //         dispatch({ type: 'focus', id: cell.id, active: false });
-            //     }}
-            //     onPending={updatePending(cell, dispatch)}
-            //     dispatch={dispatch}
-            //     cell={cell}
-            //     plugins={plugins}
-            //     content={cell.content}
-            //     onEdit={onEdit}
-            //     env={env}
-            //     evalEnv={evalEnv}
-            // />
-            <div>No toplevel?</div>
+        ) : cell.content.type === 'raw' ? (
+            <div
+                onClick={() => {
+                    // setEditing(true);
+                    if (cell.content.type === 'raw') {
+                        updateLocal({
+                            type: 'raw',
+                            text: cell.content.text,
+                        });
+                    }
+                }}
+                style={{
+                    fontFamily: '"Source Code Pro", monospace',
+                    whiteSpace: 'pre-wrap',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    padding: 8,
+                }}
+            >
+                {cell.content.text.trim() === ''
+                    ? '[empty]'
+                    : cell.content.text}
+            </div>
+        ) : (
+            <RenderItem
+                maxWidth={maxWidth}
+                onSetPlugin={onSetPlugin}
+                onChange={onSetToplevel}
+                selection={{
+                    idx: state.idx,
+                    marks: state.marks,
+                    active: focused ? focused.active : false,
+                }}
+                setSelection={(idx, marks) => {
+                    updateLocal({ type: 'selection', idx, marks });
+                    // setSelection((sel) => ({
+                    //     idx,
+                    //     marks: marks != null ? marks : sel.marks,
+                    //     level: 'normal',
+                    //     node: null,
+                    // }));
+                    if (!focused || !focused.active) {
+                        dispatch({ type: 'focus', id: cell.id, active: true });
+                    }
+                }}
+                focused={focused != null ? focused.active : null}
+                onFocus={(active: boolean, direction?: 'up' | 'down') => {
+                    dispatch({
+                        type: 'focus',
+                        id: cell.id,
+                        direction,
+                        active,
+                    });
+                }}
+                onClick={() => {
+                    // setSelection((s) => ({ ...s, level: 'outer' }));
+                    dispatch({ type: 'focus', id: cell.id, active: false });
+                }}
+                onPending={updatePending(cell, dispatch)}
+                dispatch={dispatch}
+                cell={cell}
+                plugins={plugins}
+                content={cell.content}
+                onEdit={() =>
+                    updateLocal({
+                        type: 'raw',
+                        // So.... it's weird to me that we're dealing with
+                        // raw text here ... but maybe it's fine? yeah I guess
+                        // this is fine.
+                        text: printToString(
+                            toplevelToPretty(
+                                env,
+                                getToplevel(env, cell.content as TopContent),
+                            ),
+                            50,
+                        ),
+                    })
+                }
+                env={env}
+                evalEnv={evalEnv}
+            />
+            // <div>No toplevel?</div>
         );
 
     return (
@@ -315,7 +395,7 @@ const CellView_ = ({
                 });
             }}
             onRemove={() => dispatch({ type: 'remove', id: cell.id })}
-            focused={focused ? focused.tick : null}
+            focused={focused}
             onFocus={() =>
                 dispatch({ type: 'focus', id: cell.id, active: true })
             }
@@ -341,4 +421,4 @@ const CellView_ = ({
     );
 };
 
-export const CellView = React.memo(CellView_);
+export const Cell2 = React.memo(CellView_);

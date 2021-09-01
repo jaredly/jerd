@@ -11,6 +11,7 @@ import { HistoryUpdate, State, Workspace } from './App';
 import { Env, Id, nullLocation } from '../../language/src/typing/types';
 import { WorkspacePicker } from './WorkspacePicker';
 import { sortCells } from './Workspace';
+import { Cell2 } from './Cell2';
 
 export const genId = () => Math.random().toString(36).slice(2);
 export const blankCell: Cell = {
@@ -133,7 +134,7 @@ const Cells = ({
                     M
                 </span>
                 {sortedCellIds.map((id) => (
-                    <CellView
+                    <Cell2
                         key={id}
                         getHistory={getHistory}
                         focused={focus && focus.id == id ? focus : null}

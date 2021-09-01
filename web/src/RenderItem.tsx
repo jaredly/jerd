@@ -289,7 +289,7 @@ Props) => {
                     : null}
                 {hover ? renderHover(env, hover) : null}
             </div>
-            {term ? (
+            {/* {term ? (
                 <RenderResult
                     onSetPlugin={onSetPlugin}
                     focused={focused != null}
@@ -303,7 +303,7 @@ Props) => {
                     evalEnv={evalEnv}
                     dispatch={dispatch}
                 />
-            ) : null}
+            ) : null} */}
             {getString ? (
                 <div css={menuOverlay}>
                     <GetString

@@ -364,7 +364,7 @@ const CellView_ = ({
                 });
             }}
             onRemove={() => dispatch({ type: 'remove', id: cell.id })}
-            focused={focused ? focused.tick : null}
+            focused={focused}
             onFocus={() =>
                 dispatch({ type: 'focus', id: cell.id, active: false })
             }

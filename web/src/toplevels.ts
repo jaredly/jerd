@@ -13,9 +13,9 @@ import {
     ToplevelT,
 } from '@jerd/language/src/typing/env';
 import { EnumDef, Env, nullLocation } from '@jerd/language/src/typing/types';
-import { Content } from './State';
+import { Content, TopContent } from './State';
 
-export const getToplevel = (env: Env, content: Content): ToplevelT => {
+export const getToplevel = (env: Env, content: TopContent): ToplevelT => {
     if (content.type === 'term') {
         const name = env.global.idNames[idName(content.id)];
         if (name == null) {
@@ -81,6 +81,7 @@ export const getToplevel = (env: Env, content: Content): ToplevelT => {
             id: content.id,
         };
     }
+    console.log(content);
     throw new Error(`unsupported toplevel`);
 };
 

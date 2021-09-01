@@ -242,7 +242,7 @@ export default ({
                     onChange={(text: string) => setText(text)}
                     onKeyDown={(evt: any) => {
                         if (evt.metaKey && evt.key === 'Enter') {
-                            console.log('run it');
+                            console.log('apply and stuff');
                             onChange(typed == null ? text : typed);
                         }
                         if (evt.key === 'Escape') {

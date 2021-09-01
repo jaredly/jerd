@@ -30,7 +30,7 @@ export const CellWrapper = ({
     onRevertToTerm,
 }: {
     title: React.ReactNode;
-    focused: number | null;
+    focused: { tick: number; active: boolean } | null;
     onFocus: () => void;
     children: React.ReactNode;
     onRemove: () => void;
@@ -81,7 +81,11 @@ export const CellWrapper = ({
                 borderBottom: '2px dashed #ababab',
                 marginBottom: 8,
                 border: `2px solid ${
-                    focused != null ? '#5d5dff' : 'transparent'
+                    focused != null
+                        ? focused.active
+                            ? 'magenta'
+                            : '#5d5dff'
+                        : 'transparent'
                 }`,
             }}
             onClick={onFocus}
