@@ -582,6 +582,7 @@ export type TypeError = {
     is: Type; // this is the type that was needed
     inner: Term; // this has the type that was found
     location: Location;
+    message?: string;
     decorators?: Decorators;
 };
 
