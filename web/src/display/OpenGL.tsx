@@ -360,6 +360,10 @@ const ShaderGLSLBuffers = ({
         [term, env],
     );
 
+    const shaderText = React.useMemo(() => shaders?.map((s) => s.text), [
+        shaders,
+    ]);
+
     if (error != null) {
         // TODO: Make this better.
         // If we get an error, and then update things
@@ -401,7 +405,7 @@ const ShaderGLSLBuffers = ({
         <div>
             <OpenGLCanvas
                 onTrace={onTrace}
-                shaders={shaders.map((shader) => shader.text)}
+                shaders={shaderText!}
                 startPaused={startPaused}
                 onError={setError}
                 renderTrace={(traceValue, mousePos) => (

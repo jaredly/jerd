@@ -119,7 +119,8 @@ export const cellTitle = (
             );
         }
         default:
-            return cell.content.type;
+            const _x: never = cell.content;
+            return `Unknown cell type ${(cell.content as any).type}`;
     }
 };
 
