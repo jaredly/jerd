@@ -1,4 +1,20 @@
 
+Recreate this! https://twitter.com/matthen2/status/1249611168265547776
+
+- [ ] ugh ok fix the currently failing tests.
+
+- enums needs to be able to declare inline records, pleeease
+- I want records to be able to supply /defaults/ for any of the attributes. These defaults ... get inlined at the /ir/ translation level? yeah that sounds fine. so ... in the editing UI they wouldn't be auto-applied, which I like, so that you can add the attribute later if you want. Yeah. 
+  - ok what does the data type look like? this is part of the RecordDef, right? And it'll be an optional attribute
+  - do I want you to be able to supply default values for subTypes? Probably, right? Seems like it could be handy.
+
+- should I do the same thing for function arguments? kinda like why not, right? again, they could be eliminated by the time you get to IR ... same with rest args tbh. yeah that's kinda fun.
+
+
+
+
+
+
 - [x] improve perf, make it super cheap to switch between
 - [ ] why is it selecting the last one? I don't like it
 - [ ] add nice keyboard shortcuts to normal mode

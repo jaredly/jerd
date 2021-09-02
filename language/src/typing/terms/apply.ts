@@ -160,7 +160,7 @@ export const typeApply = (
         //     is: applied,
         // };
     } else if (target.is.type == 'lambda' && target.is.typeVbls.length) {
-        throw new Error('type variables not provided');
+        throw new LocatedError(target.location, 'type variables not provided');
     }
 
     const prevEffects = target.is.type === 'lambda' ? target.is.effects : [];

@@ -164,13 +164,13 @@ export const hash_46912fa3:
 
 /**
 ```
-const getPersonName#d67cea3c = (): string#builtin ={Read#22024b72}> Person#d5247f28{
+const getPersonName#6b77216f = (): string#builtin ={Read#22024b72}> Person#d5247f28{
     name#d5247f28#0: getString#64605d94(),
     age#d5247f28#1: 5,
 }.name#d5247f28#0
 ```
 */
-export const hash_d67cea3c:
+export const hash_6b77216f:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void, arg_2: Handlers, arg_3: (arg_0: Handlers, arg_1: string) => void) => void = (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => {
@@ -558,7 +558,7 @@ assertCall(hash_f05f1704.h553b4b8e_0, hash_1a4431b3("Hi", 0, (handlers: Handlers
 };
 
 /*
-provideStringPlain#2dbf3eae<string#builtin>(v: "ok", fn: getPersonName#d67cea3c) 
+provideStringPlain#2dbf3eae<string#builtin>(v: "ok", fn: getPersonName#6b77216f) 
     ==#606c7034#553b4b8e#0 "ok"
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("ok", hash_d67cea3c), "ok");
+assertCall(hash_606c7034.h553b4b8e_0, hash_2dbf3eae("ok", hash_6b77216f), "ok");

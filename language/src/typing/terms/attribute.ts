@@ -9,6 +9,7 @@ import {
     isRecord,
     refsEqual,
     Term,
+    Type,
     UserReference,
 } from '../types';
 import { showType } from '../unify';
@@ -171,20 +172,29 @@ export const typeAttribute = (
     if (t.type !== 'Record') {
         throw new Error(`Not a record ${idName(ref.id)}`);
     }
-    if (target.is.type !== 'ref') {
-        throw new Error(
-            `Yeah just not supporting non-ref target type at the moment ${target.is.type}`,
+    let refTypeVbls: undefined | Array<Type> = undefined;
+    if (target.is.type === 'ref') {
+        // throw new LocatedError(
+        //     suffix.location,
+        //     `Yeah just not supporting non-ref target type at the moment ${target.is.type}`,
+        // );
+        t = applyTypeVariablesToRecord(
+            env,
+            t,
+            target.is.typeVbls,
+            target.is.location,
+            ref.id.hash,
         );
+        refTypeVbls = target.is.typeVbls.length
+            ? target.is.typeVbls
+            : undefined;
     }
-    t = applyTypeVariablesToRecord(
-        env,
-        t,
-        target.is.typeVbls,
-        target.is.location,
-        ref.id.hash,
-    );
+
     if (t.type !== 'Record') {
-        throw new Error(`${idName(ref.id)} is not a record type`);
+        throw new LocatedError(
+            suffix.location,
+            `${idName(ref.id)} is not a record type`,
+        );
     }
 
     return {
@@ -195,7 +205,7 @@ export const typeAttribute = (
         inferred: false,
         idx,
         ref,
-        refTypeVbls: target.is.typeVbls.length ? target.is.typeVbls : undefined,
+        refTypeVbls,
         is: t.items[idx],
     };
 };

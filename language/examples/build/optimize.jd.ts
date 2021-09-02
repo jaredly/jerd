@@ -15,7 +15,7 @@ type t_553b4b8e<T_0> = {
 
 /**
 ```
-const rec arrayEq#7825e3a8 = <T#:0>(
+const rec arrayEq#61a0a67a = <T#:0>(
     one#:0: Array#builtin<T#:0>,
     two#:1: Array#builtin<T#:0>,
     eq#:2: Eq#553b4b8e<T#:0>,
@@ -23,16 +23,16 @@ const rec arrayEq#7825e3a8 = <T#:0>(
     switch (one#:0, two#:1) {
         ([], []) => true,
         ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#553b4b8e#0(one#:3, two#:5) {
-            7825e3a8#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
+            61a0a67a#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
         } else {
             false;
         },
-        _#:7 => false,
+        _ => false,
     };
 }
 ```
 */
-export const hash_7825e3a8: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_553b4b8e<T_0>) => boolean = <T_0>(one: Array<T_0>, two: Array<T_0>, eq: t_553b4b8e<T_0>) => {
+export const hash_61a0a67a: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_553b4b8e<T_0>) => boolean = <T_0>(one: Array<T_0>, two: Array<T_0>, eq: t_553b4b8e<T_0>) => {
   let one_i: number = 0;
   let two_i: number = 0;
 
@@ -86,20 +86,20 @@ export const hash_3306c09c: (arg_0: number) => number = (n: number) => {
 
 /**
 ```
-const ArrayEq#bef2134a = <T#:0>(eq#:0: Eq#553b4b8e<T#:0>): Eq#553b4b8e<Array#builtin<T#:0>> ={}> Eq#553b4b8e<
+const ArrayEq#5c78f7e8 = <T#:0>(eq#:0: Eq#553b4b8e<T#:0>): Eq#553b4b8e<Array#builtin<T#:0>> ={}> Eq#553b4b8e<
     Array#builtin<T#:0>,
 >{
     "=="#553b4b8e#0: (one#:1: Array#builtin<T#:0>, two#:2: Array#builtin<T#:0>): bool#builtin ={}> len#builtin<
                 T#:0,
             >(one#:1) 
             ==#9275f914#553b4b8e#0 len#builtin<T#:0>(two#:2) 
-        &&#builtin arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0),
+        &&#builtin arrayEq#61a0a67a<T#:0>(one#:1, two#:2, eq#:0),
 }
 ```
 */
-export const hash_bef2134a: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_0>> = <T_0>(eq$0: t_553b4b8e<T_0>) => ({
+export const hash_5c78f7e8: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_0>> = <T_0>(eq$0: t_553b4b8e<T_0>) => ({
   type: "553b4b8e",
-  h553b4b8e_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_9275f914.h553b4b8e_0(len(one$1), len(two$2)) && hash_7825e3a8(one$1, two$2, eq$0)
+  h553b4b8e_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_9275f914.h553b4b8e_0(len(one$1), len(two$2)) && hash_61a0a67a(one$1, two$2, eq$0)
 } as t_553b4b8e<Array<T_0>>);
 
 /**
@@ -125,15 +125,15 @@ export const hash_b92dd000: number = (() => {
 
 /**
 ```
-const ArrayIntEq#4419935c = ArrayEq#bef2134a<int#builtin>(eq: IntEq#9275f914)
+const ArrayIntEq#5a856a34 = ArrayEq#5c78f7e8<int#builtin>(eq: IntEq#9275f914)
 ```
 */
-export const hash_4419935c: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_9275f914);
+export const hash_5a856a34: t_553b4b8e<Array<number>> = hash_5c78f7e8(hash_9275f914);
 
 /*
-<int#builtin>[1, 2] ==#4419935c#553b4b8e#0 <int#builtin>[1, 2]
+<int#builtin>[1, 2] ==#5a856a34#553b4b8e#0 <int#builtin>[1, 2]
 */
-assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
+assertCall(hash_5a856a34.h553b4b8e_0, [1, 2], [1, 2]);
 
 /*
 {
@@ -143,11 +143,11 @@ assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
             [b#:3, ...c#:4] => switch c#:4 {
                 [c#:5] => a#:1 ==#9275f914#553b4b8e#0 1 &&#builtin b#:3 ==#9275f914#553b4b8e#0 2 
                     &&#builtin c#:5 ==#9275f914#553b4b8e#0 3,
-                _#:6 => false,
+                _ => false,
             },
-            _#:7 => false,
+            _ => false,
         },
-        _#:8 => false,
+        _ => false,
     };
 }
 */
