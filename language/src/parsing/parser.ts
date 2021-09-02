@@ -96,12 +96,17 @@ export type RecordDecl = {
     items: Array<RecordItem>;
 };
 export type RecordItem = RecordRow | RecordSpread;
-export type RecordSpread = { type: 'Spread'; constr: Identifier };
+export type RecordSpread = {
+    type: 'Spread';
+    constr: Identifier;
+    defaults: Array<{ id: Identifier; value: Expression }>;
+};
 export type RecordRow = {
     type: 'Row';
     // null if this is being treated as a tuple
     id: string;
     rtype: Type;
+    value?: Expression;
 };
 
 export type Loc = { offset: number; line: number; column: number };

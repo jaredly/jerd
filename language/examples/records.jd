@@ -248,3 +248,27 @@ const OkMonad = <Err,>Monad{}<Result<_, Err>>{
 }
 
 */
+
+type SomethingWithDefaults = {
+    name: string,
+    age: int,
+    hasGlasses: bool = false,
+};
+
+SomethingWithDefaults{name: "Me", age: 4}.hasGlasses == false
+SomethingWithDefaults{name: "Me", age: 4, hasGlasses: true}.hasGlasses == true
+
+
+type SubitemWithDefaults = {
+    ...SomethingWithDefaults{
+        name: "Hello",
+        age: 10,
+    },
+};
+
+SubitemWithDefaults{name: "Stephen"}.hasGlasses == false
+SubitemWithDefaults{name: "Stephen"}.name == "Stephen"
+
+SubitemWithDefaults.name == "Hello"
+SubitemWithDefaults.hasGlasses == false
+SubitemWithDefaults.age == 10

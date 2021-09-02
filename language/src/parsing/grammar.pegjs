@@ -89,8 +89,17 @@ RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items:
 // TODO: spreads much come first, then rows
 RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 RecordLine = RecordSpread / RecordItem
-RecordSpread = "..." constr:Identifier {return {type: 'Spread', constr}}
-RecordItem = id:IdTextOrString _ ":" _ type:Type {return {type: 'Row', id: id.type === 'string' ? id.text : id, rtype: type}}
+RecordSpread = "..." constr:Identifier defaults:(
+    _ "{" _ SpreadDefaults? _ "}"
+)? {return {type: 'Spread', constr, defaults: defaults ? defaults[3] : null}}
+SpreadDefaults = first:SpreadDefault rest:(_ "," _ SpreadDefault)+ _ ","? {
+    return [first].concat(rest.map((r: any) => r[3]))
+}
+// TODO: allow string
+SpreadDefault = id:MaybeQuotedIdentifier _ ":" _ value:Expression {return {id, value}}
+RecordItem = id:IdTextOrString _ ":" _ type:Type value:(_ "=" _ Expression)? {return {
+    type: 'Row', id: id.type === 'string' ? id.text : id, rtype: type, value: value ? value[3] : null,
+}}
 
 
 DecoratorDef = "decorator " id:Identifier
