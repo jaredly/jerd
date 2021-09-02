@@ -73,7 +73,7 @@ export type State =
       };
 
 type Action =
-    | { type: 'raw'; text: string }
+    | { type: 'raw'; text: string; selectionPos?: SelectionPos }
     | { type: 'raw:close'; idx: number }
     | { type: 'selection'; idx: number; marks?: Array<number> }
     // | {type: 'edit-raw'}
@@ -92,13 +92,11 @@ const reducer = (state: State, action: Action): State => {
             };
         }
         case 'raw': {
-            // const parsed =
             return {
                 type: 'text',
                 raw: action.text,
-                selectionPos: 'change',
-                // toplevel: null,
-                idx: null,
+                selectionPos: action.selectionPos ?? 'change',
+                idx: state.idx,
                 node: null,
             };
         }
@@ -242,8 +240,12 @@ const CellView_ = ({
                         : null
                 }
                 selection={
-                    state.idx && state.node
-                        ? { idx: state.idx, node: state.node }
+                    state.idx != null
+                        ? {
+                              idx: state.idx,
+                              node: state.node,
+                              pos: state.selectionPos,
+                          }
                         : null
                 }
                 updateSelection={(newSel) =>
@@ -367,9 +369,10 @@ const CellView_ = ({
                 cell={cell}
                 plugins={plugins}
                 content={cell.content}
-                onEdit={() =>
+                onEdit={(selectionPos?: SelectionPos) =>
                     updateLocal({
                         type: 'raw',
+                        selectionPos,
                         // So.... it's weird to me that we're dealing with
                         // raw text here ... but maybe it's fine? yeah I guess
                         // this is fine.

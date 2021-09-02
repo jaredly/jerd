@@ -28,6 +28,7 @@ import {
 } from '../../language/src/typing/types';
 import { MenuItem } from './CellWrapper';
 import { Selection } from './Cell';
+import { SelectionPos } from './Cell2';
 
 export type LocLines = Array<Array<SourceItem>>;
 
@@ -235,7 +236,7 @@ export const bindKeys = (
     addTerm: (term: Term, name: string) => void,
     setTerm: (term: Term) => void,
     onFocus: (active: boolean, direction?: 'up' | 'down') => void,
-    onEdit: () => void,
+    onEdit: (selectionPos?: SelectionPos) => void,
 ) => {
     const locLines: LocLines = [];
     Object.keys(sourceMap).forEach((idx: unknown) => {
@@ -280,6 +281,22 @@ export const bindKeys = (
             onFocus(false);
             // TODO: handle 'active' at the cells level!
             // setSelection((sel) => ({ ...sel, level: 'outer' }));
+        }
+
+        if (evt.key === 'a') {
+            evt.stopPropagation();
+            evt.preventDefault();
+            onEdit('end');
+        }
+        if (evt.key === 'i') {
+            evt.stopPropagation();
+            evt.preventDefault();
+            onEdit('start');
+        }
+        if (evt.key === 'c') {
+            evt.stopPropagation();
+            evt.preventDefault();
+            onEdit('change');
         }
 
         if (evt.key === 'Enter' || evt.key === 'Return') {

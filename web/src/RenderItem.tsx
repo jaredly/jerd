@@ -28,6 +28,7 @@ import {
 } from '../../language/src/typing/analyze';
 import { showType } from '../../language/src/typing/unify';
 import { Selection } from './Cell';
+import { SelectionPos } from './Cell2';
 import { Action, Position } from './Cells';
 import { MenuItem } from './CellWrapper';
 import { runTerm } from './eval';
@@ -65,7 +66,7 @@ export type Props = {
     //     position: Position,
     //     updateEnv?: (e: Env) => Env,
     // ) => void;
-    onEdit: () => void;
+    onEdit: (selectionPos?: SelectionPos) => void;
     onSetPlugin: (display: Display | null) => void;
     // onPin: (display: Display, id: Id) => void;
     onChange: (toplevel: ToplevelT) => void;

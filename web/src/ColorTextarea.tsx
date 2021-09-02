@@ -15,6 +15,7 @@ import {
 import { render, flushSync } from 'react-dom';
 import { Global } from '@emotion/react';
 import { Selection } from './Cell';
+import { SelectionPos } from './Cell2';
 
 const getOffset = (node: HTMLElement, offset: number) => {
     if (node.nodeName === '#text') {
@@ -273,7 +274,11 @@ export default ({
     onChange: (value: string) => void;
     onKeyDown: (evt: React.KeyboardEvent) => void;
     maxWidth: number;
-    selection: { idx: number; node: HTMLElement | null | undefined } | null;
+    selection: {
+        idx: number;
+        node: HTMLElement | null | undefined;
+        pos: SelectionPos;
+    } | null;
     // setSelection: (fn: (s: Selection) => Selection) => void;
     updateSelection: (
         newSel: null | { idx: number; node: HTMLElement },
@@ -343,19 +348,40 @@ export default ({
                                 const nodes = node.querySelectorAll(
                                     '[data-location]',
                                 );
-                                for (let i = 0; i < nodes.length; i++) {
-                                    const l = JSON.parse(
-                                        nodes[i].getAttribute('data-location')!,
+                                if (selection) {
+                                    console.log(
+                                        `Looking for selection ${JSON.stringify(
+                                            selection,
+                                        )}`,
                                     );
-                                    if (selection && l.idx === selection.idx) {
-                                        nodes[i].classList.add('selected-id');
-                                        const sel = document.getSelection()!;
-                                        sel.removeAllRanges();
-                                        const r = document.createRange();
-                                        r.selectNodeContents(nodes[i]);
-                                        sel.addRange(r);
-                                        return;
+
+                                    for (let i = 0; i < nodes.length; i++) {
+                                        const l = JSON.parse(
+                                            nodes[i].getAttribute(
+                                                'data-location',
+                                            )!,
+                                        );
+                                        if (l.idx === selection.idx) {
+                                            nodes[i].classList.add(
+                                                'selected-id',
+                                            );
+                                            const sel = document.getSelection()!;
+                                            sel.removeAllRanges();
+                                            const r = document.createRange();
+                                            r.selectNodeContents(nodes[i]);
+                                            if (selection.pos === 'end') {
+                                                r.collapse(false);
+                                            } else if (
+                                                selection.pos === 'start'
+                                            ) {
+                                                r.collapse(true);
+                                            }
+                                            sel.addRange(r);
+                                            return;
+                                        }
                                     }
+                                } else {
+                                    console.log(`No sleection?`);
                                 }
                             },
                         );

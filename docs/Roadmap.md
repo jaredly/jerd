@@ -1,5 +1,6 @@
 
 - [x] improve perf, make it super cheap to switch between
+- [ ] why is it selecting the last one? I don't like it
 - [ ] add nice keyboard shortcuts to normal mode
 - [ ] get boids working hackily; like with a hardcoded length of 10
 
