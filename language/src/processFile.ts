@@ -254,6 +254,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
                 def: t,
                 location: t.location!,
                 name: env.global.idNames[idName(id)],
+                inner: [],
             };
         }
         if (reprintToplevel(env, raw, top, tid) === false) {

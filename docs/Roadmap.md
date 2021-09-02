@@ -1,7 +1,7 @@
 
 Recreate this! https://twitter.com/matthen2/status/1249611168265547776
 
-- [ ] ugh ok fix the currently failing tests.
+- [x] ugh ok fix the currently failing tests.
 
 - enums needs to be able to declare inline records, pleeease
 - I want records to be able to supply /defaults/ for any of the attributes. These defaults ... get inlined at the /ir/ translation level? yeah that sounds fine. so ... in the editing UI they wouldn't be auto-applied, which I like, so that you can add the attribute later if you want. Yeah. 

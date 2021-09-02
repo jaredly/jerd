@@ -38,7 +38,15 @@ type Twice<T> = {
 enum OptionOrTwice<T> {
     ...Option<T>,
     Twice<T>
-}
+};
+
+enum Cards {
+    Hearts{},
+    Clubs{count: int},
+    None,
+};
+
+const card = Cards:Clubs{count: 10}
 
 const x = Option<int>:Some<int>{_: 10}
 const y = Option<int>:None

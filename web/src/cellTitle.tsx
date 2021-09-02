@@ -33,6 +33,7 @@ export const cellTitle = (
         case 'effect':
             const name = env.global.idNames[idName(cell.content.id)];
             return `effect ${name}`;
+        case 'enum':
         case 'record': {
             const name = env.global.idNames[idName(cell.content.id)];
             const type = env.global.types[idName(cell.content.id)];

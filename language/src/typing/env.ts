@@ -6,6 +6,9 @@ import {
     Define,
     Effect,
     EnumDef,
+    EnumExternal,
+    EnumInternal,
+    EnumSpread,
     Expression,
     Identifier,
     Location,
@@ -43,6 +46,7 @@ import {
     newWithGlobal,
     nullLocation,
     DecoratorDefArg,
+    UserReference,
 } from './types';
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
@@ -85,6 +89,7 @@ export type ToplevelEnum = {
     id: Id;
     location: Location;
     name: string;
+    inner: Array<ToplevelRecord>;
 };
 export type ToplevelDecorator = {
     type: 'Decorator';
@@ -199,10 +204,20 @@ export const typeToplevelT = (
             const hash = hashObject(defn);
             return {
                 type: 'EnumDef',
-                def: defn,
+                def: defn.defn,
                 id: { hash, size: 1, pos: 0 },
                 location: item.location!,
                 name: item.id.text,
+                inner: defn.inline.map(
+                    (inner): ToplevelRecord => ({
+                        type: 'RecordDef',
+                        attrNames: inner.rows,
+                        name: inner.name,
+                        def: inner.defn,
+                        id: idFromName(hashObject(inner.defn)),
+                        location: inner.defn.location,
+                    }),
+                ),
             };
         }
         case 'effect': {
@@ -431,7 +446,7 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
         [], // TODO effect vbls
     );
 
-    const typeInnerWithSelf = selfEnv(typeInner, {
+    let typeInnerWithSelf = selfEnv(typeInner, {
         type: 'Type',
         vbls: typeVbls,
         name: defn.id.text,
@@ -439,30 +454,56 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
     // console.log('Type Enum');
     // console.log(defn.items);
 
-    const items = defn.items
-        .filter((x) => x.type === 'External')
-        .map((x) => {
-            const row = typeType(typeInnerWithSelf, x.ref);
-            if (row.type !== 'ref') {
-                throw new Error(`Cannot have a ${row.type} as an enum item.`);
-            }
-            if (row.ref.type !== 'user') {
-                throw new Error(`Cannot have a builtin as an enum item.`);
-            }
-            const t = env.global.types[idName(row.ref.id)];
-            if (t.type !== 'Record') {
-                throw new Error(
-                    `${idName(row.ref.id)} is an enum. use ...spread syntax.`,
-                );
-            }
-            return row as UserTypeReference;
-        });
-    const extend = defn.items
-        .filter((x) => x.type === 'Spread')
-        .map((x) => {
-            const sub = typeType(typeInnerWithSelf, x.ref) as UserTypeReference;
-            return sub;
-        });
+    const addedTypes: Array<{
+        name: string;
+        rows: Array<string>;
+        defn: RecordDef;
+    }> = [];
+
+    const items: Array<UserTypeReference> = (defn.items.filter(
+        (x) => x.type !== 'Spread',
+    ) as Array<EnumExternal | EnumInternal>).map((x) => {
+        if (x.type === 'Internal') {
+            const defn = typeRecordDefn(typeInnerWithSelf, {
+                type: 'StructDef',
+                id: x.id,
+                decl: x.decl,
+                typeVbls: [],
+                location: x.location,
+            });
+            const rowNames = (x.decl.items.filter(
+                (r) => r.type === 'Row',
+            ) as Array<RecordRow>).map((row) => row.id);
+            addedTypes.push({ name: x.id.text, rows: rowNames, defn });
+            // typeInnerWithSelf = nenv;
+            return {
+                type: 'ref',
+                ref: { type: 'user', id: idFromName(hashObject(defn)) },
+                typeVbls: [],
+                location: x.location,
+            };
+        }
+        const row = typeType(typeInnerWithSelf, x.ref);
+        if (row.type !== 'ref') {
+            throw new Error(`Cannot have a ${row.type} as an enum item.`);
+        }
+        if (row.ref.type !== 'user') {
+            throw new Error(`Cannot have a builtin as an enum item.`);
+        }
+        const t = env.global.types[idName(row.ref.id)];
+        if (t.type !== 'Record') {
+            throw new Error(
+                `${idName(row.ref.id)} is an enum. use ...spread syntax.`,
+            );
+        }
+        return row as UserTypeReference;
+    });
+    const extend = (defn.items.filter(
+        (x) => x.type === 'Spread',
+    ) as Array<EnumSpread>).map((x) => {
+        const sub = typeType(typeInnerWithSelf, x.ref) as UserTypeReference;
+        return sub;
+    });
     // console.log(items.length, extend.length);
     const d: TypeEnumDef = {
         type: 'Enum',
@@ -473,12 +514,15 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
         items,
     };
 
-    return d;
+    return { inline: addedTypes, defn: d };
 };
 
 export const typeEnumDefn = (env: Env, defn: EnumDef) => {
     const d = typeEnumInner(env, defn);
-    return addEnum(env, defn.id.text, d);
+    d.inline.forEach((inner) => {
+        ({ env } = addRecord(env, inner.name, inner.rows, inner.defn));
+    });
+    return addEnum(env, defn.id.text, d.defn);
 };
 
 export const addEnum = (

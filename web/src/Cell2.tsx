@@ -467,16 +467,16 @@ const CellView_ = ({
 };
 
 const getTermAndValue = (toplevel: ToplevelT | null, evalEnv: EvalEnv) => {
-    if (
+    const top =
         toplevel &&
         (toplevel.type === 'Expression' || toplevel.type === 'Define')
-    ) {
-        const name = idName(toplevel.id);
-        const tid = React.useMemo(() => {
-            return [toplevel.term, toplevel.id];
-        }, [name]);
-        return [tid, evalEnv.terms[idName(toplevel.id)]];
-    }
+            ? toplevel
+            : null;
+    // const memoed =
+    const tid = React.useMemo(() => {
+        return top ? [top.term, top.id] : null;
+    }, [top ? idName(top.id) : null]);
+    return top ? [tid!, evalEnv.terms[idName(top.id)]] : null;
 };
 
 export const Cell2 = React.memo(CellView_);

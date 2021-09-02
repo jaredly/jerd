@@ -71,7 +71,13 @@ export type EnumDef = {
     typeVbls: Array<TypeVbl>;
     items: Array<EnumItem>;
 };
-export type EnumItem = EnumExternal | EnumSpread;
+export type EnumItem = EnumExternal | EnumSpread | EnumInternal;
+export type EnumInternal = {
+    type: 'Internal';
+    id: Identifier;
+    location: Location;
+    decl: RecordDecl;
+};
 export type EnumExternal = {
     type: 'External';
     ref: TypeRef;

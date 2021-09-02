@@ -79,6 +79,7 @@ export const getToplevel = (env: Env, content: TopContent): ToplevelT => {
             name: env.global.idNames[idName(content.id)],
             location: nullLocation,
             id: content.id,
+            inner: [],
         };
     }
     console.log(content);
@@ -118,6 +119,14 @@ export const updateToplevel = (
             env: nenv,
         };
     } else if (term.type === 'EnumDef') {
+        term.inner.forEach((record) => {
+            ({ env } = addRecord(
+                env,
+                record.name,
+                record.attrNames,
+                record.def,
+            ));
+        });
         const { id, env: nenv } = addEnum(env, term.name, term.def);
         return {
             content: {

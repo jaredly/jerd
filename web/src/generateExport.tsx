@@ -29,6 +29,7 @@ export const generateExport = (env: Env, id: Id, hideIds: boolean = true) => {
                     def: defn,
                     id: idFromName(idRaw),
                     location: nullLocation,
+                    inner: [],
                     name,
                 };
             }

@@ -6,6 +6,7 @@ import {
     withoutLocations,
     ToplevelT,
     idFromName,
+    ToplevelRecord,
 } from './typing/env';
 import parse, {
     Define,
@@ -125,12 +126,22 @@ export const reprintToplevel = (
             if (!defn) {
                 throw new Error(`No enum defn`);
             }
-            nhash = hashObject(defn);
+            nhash = hashObject(defn.defn);
             retyped = {
                 ...toplevel,
                 type: 'EnumDef',
-                def: defn,
+                def: defn.defn,
                 id: { hash: nhash, size: 1, pos: 0 },
+                inner: defn.inline.map(
+                    (inner): ToplevelRecord => ({
+                        type: 'RecordDef',
+                        attrNames: inner.rows,
+                        name: inner.name,
+                        def: inner.defn,
+                        id: idFromName(hashObject(inner.defn)),
+                        location: inner.defn.location,
+                    }),
+                ),
             };
         } else if (toplevel.type === 'Define' && printed[0].type === 'define') {
             const hasSelf = findSelfReference(toplevel.term);

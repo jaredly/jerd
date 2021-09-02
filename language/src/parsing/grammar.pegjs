@@ -70,16 +70,17 @@ EnumDef = "enum" __ id:Identifier _ typeVbls:TypeVbls? _ "{" _ items:EnumItems _
 EnumItems = first:EnumItem rest:(_ "," _ EnumItem)* ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
-EnumItem = EnumSpread / EnumExternal
+EnumItem = EnumSpread / EnumInternal / EnumExternal
 EnumExternal = ref:TypeRef {
     return {type: 'External', ref}
 }
 EnumSpread = "..." ref:TypeRef {
     return {type: 'Spread', ref, location: location()}
 }
-// EnumInternal = id:Identifier decl:RecordDecl? {
-//     return {type: 'Internal', id, decl, location: location()}
-// }
+// TODO: maybe allow type variable here? Not sure
+EnumInternal = id:Identifier decl:RecordDecl {
+    return {type: 'Internal', id, decl, location: location()}
+}
 
 StructDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:RecordDecl {
     return {type: 'StructDef', id, decl, typeVbls: typeVbls || [], location: location()}}
