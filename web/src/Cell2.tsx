@@ -23,6 +23,7 @@ import {
     Content,
     Display,
     EvalEnv,
+    RawContent,
     RenderPlugins,
     TopContent,
 } from './State';
@@ -52,10 +53,12 @@ import { RenderResult } from './RenderResult';
 
 // hrmmmm can I move the selection dealio up a level? Should I? hmm I do like each cell managing its own cursor, tbh.
 
+export type SelectionPos = 'start' | 'end' | 'change';
 export type State =
     | {
           type: 'text';
           idx: number | null;
+          selectionPos: SelectionPos;
           raw: string;
           node: HTMLElement | null;
           // May or may not have worked
@@ -93,6 +96,7 @@ const reducer = (state: State, action: Action): State => {
             return {
                 type: 'text',
                 raw: action.text,
+                selectionPos: 'change',
                 // toplevel: null,
                 idx: null,
                 node: null,
@@ -152,6 +156,7 @@ const CellView_ = ({
                 ? {
                       type: 'text',
                       raw: cell.content.text,
+                      selectionPos: 'change',
                       idx: null,
                       node: null,
                       //   toplevel: parseRaw(cell.content.text, env.global),
@@ -318,9 +323,9 @@ const CellView_ = ({
             >
                 {state.type === 'text'
                     ? state.raw
-                    : cell.content.text.trim() === ''
+                    : (cell.content as RawContent).text.trim() === ''
                     ? '[empty]'
-                    : cell.content.text}
+                    : (cell.content as RawContent).text}
             </div>
         ) : (
             <RenderItem

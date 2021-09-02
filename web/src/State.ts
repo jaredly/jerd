@@ -25,7 +25,8 @@ export type TopContent =
     | { type: 'enum'; id: Id; proposed?: null | ToplevelEnum }
     | { type: 'effect'; id: Id; proposed?: null | ToplevelEffect };
 
-export type Content = TopContent | { type: 'raw'; text: string };
+export type Content = TopContent | RawContent;
+export type RawContent = { type: 'raw'; text: string };
 
 export type Cell = {
     id: string;
