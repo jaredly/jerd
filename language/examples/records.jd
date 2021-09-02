@@ -258,6 +258,19 @@ type SomethingWithDefaults = {
 SomethingWithDefaults{name: "Me", age: 4}.hasGlasses == false
 SomethingWithDefaults{name: "Me", age: 4, hasGlasses: true}.hasGlasses == true
 
+type One = {name: string = "One", last: string = "Last"};
+type Two = {...One{name: "Two"}, age: int = 2};
+type Three = {...Two{name: "Three", age: 3}, size: int = 3}
+
+One.name == "One"
+Two.name == "Two"
+Two.age == 2
+Two.last == "Last"
+Three.name == "Three"
+Three.age == 3
+Three.size == 3
+Three.last == "Last"
+
 
 type SubitemWithDefaults = {
     ...SomethingWithDefaults{

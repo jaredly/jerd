@@ -92,7 +92,7 @@ RecordLine = RecordSpread / RecordItem
 RecordSpread = "..." constr:Identifier defaults:(
     _ "{" _ SpreadDefaults? _ "}"
 )? {return {type: 'Spread', constr, defaults: defaults ? defaults[3] : null}}
-SpreadDefaults = first:SpreadDefault rest:(_ "," _ SpreadDefault)+ _ ","? {
+SpreadDefaults = first:SpreadDefault rest:(_ "," _ SpreadDefault)* _ ","? {
     return [first].concat(rest.map((r: any) => r[3]))
 }
 // TODO: allow string
