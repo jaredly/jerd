@@ -29,6 +29,7 @@ import {
     Apply,
     walkTerm,
     newWithGlobal,
+    idsEqual,
 } from '../typing/types';
 import {
     PP,
@@ -267,6 +268,14 @@ export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
 
 export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
     const names = env.global.recordGroups[idName(id)];
+    const baseDefaults: { [idx: number]: Term } = {};
+    if (recordDef.defaults) {
+        recordDef.defaults.forEach((item) => {
+            if (item.id === null) {
+                baseDefaults[item.idx] = item.value;
+            }
+        });
+    }
     return items([
         recordDef.ffi
             ? items([
@@ -281,15 +290,47 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
         atom(' = '),
         block(
             recordDef.extends
-                .map((ex) =>
-                    items([atom('...'), idToPretty(env, ex, 'record')]),
-                )
+                .map((ex) => {
+                    const defaults = recordDef.defaults
+                        ? recordDef.defaults.filter(
+                              (item) => item.id && idsEqual(ex, item.id),
+                          )
+                        : [];
+                    const names = env.global.recordGroups[idName(ex)];
+                    return items([
+                        atom('...'),
+                        idToPretty(env, ex, 'record'),
+                        defaults.length
+                            ? args(
+                                  defaults.map((item) =>
+                                      items([
+                                          idPretty(
+                                              names[item.idx],
+                                              `${idName(ex)}#${item.idx}`,
+                                              'attribute',
+                                          ),
+                                          atom(': '),
+                                          termToPretty(env, item.value),
+                                      ]),
+                                  ),
+                                  '{',
+                                  '}',
+                              )
+                            : null,
+                    ]);
+                })
                 .concat(
                     recordDef.items.map((ex, i) =>
                         items([
                             atom(maybeQuoteAttrName(names[i])),
                             atom(': '),
                             typeToPretty(env, ex),
+                            baseDefaults[i]
+                                ? items([
+                                      atom(' = '),
+                                      termToPretty(env, baseDefaults[i]),
+                                  ])
+                                : null,
                         ]),
                     ),
                 ),

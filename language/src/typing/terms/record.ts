@@ -13,6 +13,7 @@ import {
     RecordDef,
     RecordBase,
     isRecord,
+    idsEqual,
 } from '../types';
 import { Record } from '../../parsing/parser';
 import { showType } from '../unify';
@@ -273,16 +274,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 is: rowsToMod[i].type,
                 inner: v,
                 location: v.location,
+                message: err.getMessage(),
             };
-            // throw new LocatedError(
-            //     row.value.location,
-            //     `Invalid type for attribute ${row.id.text} at ${showLocation(
-            //         row.value.location,
-            //     )}. Expected ${showType(
-            //         env,
-            //         recordType.items[i],
-            //     )}, got ${showType(env, v.is)}`,
-            // ).wrap(err);
         }
         rowsToMod[i].value = v;
     });
@@ -290,15 +283,26 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     // of course, `rows` will also need to be more clever.
     if (base.type === 'Concrete' && base.spread == null) {
         const r = base.ref;
+        const def = env.global.types[idName(r.id)] as RecordDef;
         base.rows.forEach((row, i) => {
-            if (row.value == null) {
-                throw new LocatedError(
-                    expr.location,
-                    `Record missing attribute "${
-                        env.global.recordGroups[idName(r.id)][i]
-                    }" at ${showLocation(expr.location)}`,
-                );
+            if (row.value != null) {
+                return;
             }
+            if (def.defaults) {
+                const found = def.defaults.find(
+                    (item) => i === item.idx && item.id === null,
+                );
+                if (found != null) {
+                    row.value = found.value;
+                    return;
+                }
+            }
+            throw new LocatedError(
+                expr.location,
+                `Record missing attribute "${
+                    env.global.recordGroups[idName(r.id)][i]
+                }" at ${showLocation(expr.location)}`,
+            );
         });
     } else if (base.type === 'Variable' && base.spread == null) {
         throw new Error(`Cannot create a new record of a variable type.`);

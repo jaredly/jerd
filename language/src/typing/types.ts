@@ -782,6 +782,12 @@ export type RecordDef = {
     items: Array<Type>;
     ffi: { tag: string; names: Array<string> } | null;
     decorators?: Decorators;
+    defaults?: Array<{
+        // Null for the toplevel record
+        id: null | Id;
+        idx: number;
+        value: Term;
+    }>;
 };
 
 // | {

@@ -17,6 +17,7 @@ import {
     StructDef,
     Toplevel,
     Type as ParseType,
+    TypeDecl,
 } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newEnvWithTypeAndEffectVbls, newTypeVbl } from './typeType';
@@ -603,6 +604,8 @@ export const typeRecordDefn = (
           }
         : null;
 
+    const defaults: Array<{ id: Id | null; idx: number; value: Term }> = [];
+
     return {
         type: 'Record',
         unique: ffiTag ? 0 : unique != null ? unique : env.global.rng(),
@@ -610,19 +613,52 @@ export const typeRecordDefn = (
         location,
         effectVbls,
         ffi,
-        extends: record.items
-            .filter((r) => r.type === 'Spread')
+        extends: (record.items.filter(
+            (r) => r.type === 'Spread',
+        ) as Array<RecordSpread>)
             // TODO: only allow ffi to spread into ffi, etc.
-            .map(
-                (r) =>
-                    resolveType(
-                        typeInnerWithSelf,
-                        (r as RecordSpread).constr,
-                    )[0],
-            ),
-        items: record.items
-            .filter((r) => r.type === 'Row')
-            .map((r) => typeType(typeInnerWithSelf, (r as RecordRow).rtype)),
+            .map((r) => {
+                const t = resolveType(typeInnerWithSelf, r.constr)[0];
+                const subTypes = getAllSubTypes(env.global, [t]);
+                if (r.defaults && r.defaults.length) {
+                    r.defaults.forEach(({ id, value }) => {
+                        // TODO: recognize hashes
+                        for (let st of subTypes) {
+                            const names = env.global.recordGroups[idName(st)];
+                            const idx = names.indexOf(id.text);
+                            if (idx !== -1) {
+                                defaults.push({
+                                    id: st,
+                                    idx,
+                                    value: typeExpr(env, value),
+                                });
+                                return;
+                            }
+                        }
+                        throw new LocatedError(
+                            id.location,
+                            `Unknown attribute name, doesn't match ${idName(
+                                t,
+                            )} or any subtypes`,
+                        );
+                    });
+                }
+                return t;
+            }),
+        items: (record.items.filter(
+            (r) => r.type === 'Row',
+        ) as Array<RecordRow>).map((r, i) => {
+            const res = typeType(typeInnerWithSelf, r.rtype);
+            if (r.value) {
+                defaults.push({
+                    id: null,
+                    idx: i,
+                    value: typeExpr(env, r.value),
+                });
+            }
+            return res;
+        }),
+        defaults: defaults.length ? defaults : undefined,
     };
 };
 

@@ -6,8 +6,10 @@ Recreate this! https://twitter.com/matthen2/status/1249611168265547776
 
 - [ ] Records with Defaults! Let's goooo
   - [x] example syntax & tests
-  - [ ] get it to parse
-  - [ ] get the non-extended version to type check & pass
+  - [x] get it to parse
+  - [x] process the defn
+  - [x] get reprint working
+  - [x] process the record constructors
   - [ ] get the extended version to type check & pass
 
 - I want records to be able to supply /defaults/ for any of the attributes. These defaults ... get inlined at the /ir/ translation level? yeah that sounds fine. so ... in the editing UI they wouldn't be auto-applied, which I like, so that you can add the attribute later if you want. Yeah. 

@@ -99,7 +99,7 @@ export type RecordItem = RecordRow | RecordSpread;
 export type RecordSpread = {
     type: 'Spread';
     constr: Identifier;
-    defaults: Array<{ id: Identifier; value: Expression }>;
+    defaults?: Array<{ id: Identifier; value: Expression }>;
 };
 export type RecordRow = {
     type: 'Row';
