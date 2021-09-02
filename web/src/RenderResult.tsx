@@ -373,68 +373,14 @@ const RenderResult_ = ({
     return (
         <div>
             {body}
-            <div style={{ display: 'flex', flexDirection: 'row' }}>
-                {Object.keys(sliderData.sliders).map((hash) => {
-                    const idxs = Object.keys(sliderData.sliders[hash]);
-                    if (!idxs.length) {
-                        return;
-                    }
-                    return (
-                        <div key={hash} style={{ padding: 4 }}>
-                            <h4>
-                                {termAndEnvWithSliders.env.global.idNames[
-                                    hash
-                                ] || hash}
-                            </h4>
-                            <div style={{ display: 'flex' }}>
-                                {idxs.map((idx) => {
-                                    const config =
-                                        sliderData.sliders[hash][parseInt(idx)];
-                                    const Widget = config.widget;
-                                    return (
-                                        <div key={idx} style={{ padding: 4 }}>
-                                            {config.title ? (
-                                                <div
-                                                    style={{
-                                                        marginBottom: 16,
-                                                        textAlign: 'center',
-                                                        padding: 4,
-                                                        backgroundColor: '#555',
-                                                    }}
-                                                >
-                                                    {config.title}
-                                                </div>
-                                            ) : null}
-                                            <Widget
-                                                data={
-                                                    sliderState[hash] &&
-                                                    sliderState[hash][+idx]
-                                                        ? sliderState[hash][
-                                                              +idx
-                                                          ].options
-                                                        : null
-                                                }
-                                                onUpdate={(newTerm, data) => {
-                                                    setSliderState((state) => ({
-                                                        ...state,
-                                                        [hash]: {
-                                                            ...state[hash],
-                                                            [idx]: {
-                                                                options: data,
-                                                                replacement: newTerm,
-                                                            },
-                                                        },
-                                                    }));
-                                                }}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+            {renderPlugin || typeof value !== 'function'
+                ? renderSliders(
+                      sliderData,
+                      termAndEnvWithSliders,
+                      sliderState,
+                      setSliderState,
+                  )
+                : null}
         </div>
     );
 };
@@ -600,3 +546,144 @@ const getMatchingPlugins = (
 };
 
 export const RenderResult = React.memo(RenderResult_);
+function renderSliders(
+    sliderData: {
+        sliders: {
+            [termId: string]: {
+                [idx: number]: {
+                    title: string | null;
+                    widget: React.FunctionComponent<{
+                        data: any;
+                        onUpdate: (term: Term, data: any) => void;
+                    }>;
+                    loc: Location;
+                };
+            };
+        };
+        termsInOrder: string[];
+    },
+    termAndEnvWithSliders: {
+        env: {
+            global: {
+                terms: { [x: string]: Term };
+                rng: () => number;
+                names: { [humanName: string]: Id[] };
+                idNames: { [idName: string]: string };
+                exportedTerms: { [humanName: string]: Id };
+                metaData: {
+                    [idName: string]: {
+                        tags: string[];
+                        author?: string | undefined;
+                        supersedes?: string | undefined;
+                        supersededBy?: string | undefined;
+                        tests?: Id[] | undefined;
+                        basedOn?: string | undefined;
+                        createdMs: number;
+                    };
+                };
+                builtins: { [key: string]: Type };
+                builtinTypes: { [key: string]: number };
+                typeNames: { [humanName: string]: Id[] };
+                types: {
+                    [
+                        idName: string
+                    ]: import('/Users/jared/clone/exploration/jerd/language/src/typing/types').TypeDef;
+                };
+                recordGroups: { [key: string]: string[] };
+                attributeNames: {
+                    [humanName: string]: { id: Id; idx: number }[];
+                };
+                effectNames: { [humanName: string]: string[] };
+                effectConstructors: {
+                    [humanName: string]: { idName: string; idx: number };
+                };
+                effectConstrNames: { [idName: string]: string[] };
+                effects: { [key: string]: { args: Type[]; ret: Type }[] };
+                decoratorNames: { [humanName: string]: Id[] };
+                decorators: {
+                    [
+                        idName: string
+                    ]: import('/Users/jared/clone/exploration/jerd/language/src/typing/types').DecoratorDef;
+                };
+            };
+            local: import('/Users/jared/clone/exploration/jerd/language/src/typing/types').LocalEnv;
+            term: import('/Users/jared/clone/exploration/jerd/language/src/typing/types').TermEnv;
+            depth: number; //     }
+        };
+        term: Term;
+        id: { hash: string; size: number; pos: number };
+    },
+    sliderState: {
+        [term: string]: { [idx: number]: { options: any; replacement: Term } };
+    },
+    setSliderState: React.Dispatch<
+        React.SetStateAction<{
+            [term: string]: {
+                [idx: number]: { options: any; replacement: Term };
+            };
+        }>
+    >,
+) {
+    return (
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+            {Object.keys(sliderData.sliders).map((hash) => {
+                const idxs = Object.keys(sliderData.sliders[hash]);
+                if (!idxs.length) {
+                    return;
+                }
+                return (
+                    <div key={hash} style={{ padding: 4 }}>
+                        <h4>
+                            {termAndEnvWithSliders.env.global.idNames[hash] ||
+                                hash}
+                        </h4>
+                        <div style={{ display: 'flex' }}>
+                            {idxs.map((idx) => {
+                                const config =
+                                    sliderData.sliders[hash][parseInt(idx)];
+                                const Widget = config.widget;
+                                return (
+                                    <div key={idx} style={{ padding: 4 }}>
+                                        {config.title ? (
+                                            <div
+                                                style={{
+                                                    marginBottom: 16,
+                                                    textAlign: 'center',
+                                                    padding: 4,
+                                                    backgroundColor: '#555',
+                                                }}
+                                            >
+                                                {config.title}
+                                            </div>
+                                        ) : null}
+                                        <Widget
+                                            data={
+                                                sliderState[hash] &&
+                                                sliderState[hash][+idx]
+                                                    ? sliderState[hash][+idx]
+                                                          .options
+                                                    : null
+                                            }
+                                            onUpdate={(newTerm, data) => {
+                                                setSliderState((state) => ({
+                                                    ...state,
+                                                    [hash]: {
+                                                        ...state[hash],
+                                                        [idx]: {
+                                                            options: data,
+                                                            replacement: newTerm,
+                                                        },
+                                                    },
+                                                }));
+                                            }}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}

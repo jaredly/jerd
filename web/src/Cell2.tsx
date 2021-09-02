@@ -48,6 +48,7 @@ import ColorTextarea from './ColorTextarea';
 import { RenderItem } from './RenderItem';
 import { printToString } from '../../language/src/printing/printer';
 import { toplevelToPretty } from '../../language/src/printing/printTsLike';
+import { RenderResult } from './RenderResult';
 
 // hrmmmm can I move the selection dealio up a level? Should I? hmm I do like each cell managing its own cursor, tbh.
 
@@ -382,6 +383,19 @@ const CellView_ = ({
             // <div>No toplevel?</div>
         );
 
+    const termAndValue = getTermAndValue(toplevel, evalEnv);
+    // const term =
+    //     toplevel &&
+    //     (toplevel.type === 'Define' || toplevel.type === 'Expression')
+    //         ? toplevel.term
+    //         : null;
+    // const id = cell.content.type === 'term' ? cell.content.id : null;
+    // const value = id ? evalEnv.terms[idName(id)] : null;
+
+    // const memoTerm = React.useMemo(() => term, [
+    //     term ? hashObject(term) : null,
+    // ]);
+
     return (
         <CellWrapper
             getHistory={() => ({
@@ -425,8 +439,36 @@ const CellView_ = ({
             })}
         >
             {body}
+            {termAndValue ? (
+                <RenderResult
+                    onSetPlugin={onSetPlugin}
+                    focused={focused != null}
+                    // onPin={onPin}
+                    cell={cell}
+                    term={termAndValue[0][0]}
+                    value={termAndValue[1]}
+                    plugins={plugins}
+                    id={termAndValue[0][1]!}
+                    env={env}
+                    evalEnv={evalEnv}
+                    dispatch={dispatch}
+                />
+            ) : null}
         </CellWrapper>
     );
+};
+
+const getTermAndValue = (toplevel: ToplevelT | null, evalEnv: EvalEnv) => {
+    if (
+        toplevel &&
+        (toplevel.type === 'Expression' || toplevel.type === 'Define')
+    ) {
+        const name = idName(toplevel.id);
+        const tid = React.useMemo(() => {
+            return [toplevel.term, toplevel.id];
+        }, [name]);
+        return [tid, evalEnv.terms[idName(toplevel.id)]];
+    }
 };
 
 export const Cell2 = React.memo(CellView_);

@@ -1,5 +1,21 @@
 
-## Perf improvements
+- [x] improve perf, make it super cheap to switch between
+- [ ] add nice keyboard shortcuts to normal mode
+- [ ] get boids working hackily; like with a hardcoded length of 10
+
+
+
+- [ ] let's have decorators be an @ symbol with contenteditable=false, so they're deleted as a unit ... and then when you click on one, it ... could expand to be the full text? or just havethe same popoup dialog that you would get in normal mode. yeah I think that's fine? idk.
+What kinds of things are we likely to want to decorate?
+- orrr do I just collapse them, and you can expand them by clicking and it becomes editable? actually that sounds hard to do right.
+
+
+boiiiiids
+So basically I want to do aggressive opt on the whole GLSLScene,
+and then take the function for render and generate glsl, and the function for step and generate javascript. That sonds doable? I think?
+
+
+## [x] Perf improvements
 I'm rewriting Cell, and refactoring a bunch of stuff.
 
 It seems like non-term things should maybe have the "Proposed" stage as well.
@@ -7,10 +23,13 @@ Ok, so I made the type-level changes. but there's other things to be doing after
 
 ohh also I really need to preserve comments at some point.
 
-- [ ] We need a better initial focus point.
-- [ ] And if the focus point isn't sourcemapped, just pick a random one it's fine. (when pressing hjkl)
+- [x] We need a better initial focus point.
 - [ ] if we receive the active, and we're in normal mode, get outttt. although maybe it's fine? like we just don't get in there? idk
 - [ ] umm what next. oh yeah 
+- [ ] now we show the rendered stuff again?
+
+OK so now for perf:
+- [ ] when switching between text & not, the term should be the same... I could do useMemo based on the hash? Might be a bit more work, ... hmmm but maybe that's fine? idk
 
 
 Ok I think arrays are doing ~ok. But I need the editor to be a lot more usable so that I can make more fun things.
@@ -35,15 +54,14 @@ So
 
 
 
-- [ ] get tuple types together, for reals its very nice to have
+- [x] get tuple types together, for reals its very nice to have
   - this will mean monomorphizing all tuple types, which is fine.
-- [ ] 
 
 - [x] working on turning reduce into something that's valid
   - [x] make variables
   - [x] propagate them please
-- [ ] get reduce working too thankss
-  - [ ] ok infer the bound as well! Would be super nice
+- [x] get reduce working too thankss
+  - [x] ok infer the bound as well! Would be super nice
   - [ ] write bunch more tests for different incarnations
   - [ ] figure out why inferring arrays goes so poorly if I do it too early (probably that I'm propagating things I shouldn't).
     - really, when I set the type of an arg to have a variable size, I need to ensure that
