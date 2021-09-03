@@ -412,11 +412,7 @@ assertCall(hash_da00b310.h51ea2a36_0, ({ ...hash_01797ad2,
 } as t_23c23c80).h4878c6fa_0, "wolrf");
 
 /*
-SomethingWithDefaults#039f0aae{
-        name#039f0aae#0: "Me",
-        age#039f0aae#1: 4,
-        hasGlasses#039f0aae#2: false,
-    }.hasGlasses#039f0aae#2 
+SomethingWithDefaults#039f0aae{name#039f0aae#0: "Me", age#039f0aae#1: 4}.hasGlasses#039f0aae#2 
     ==#builtin false
 */
 assertEqual(({

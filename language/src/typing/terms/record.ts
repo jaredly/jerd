@@ -293,7 +293,10 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     (item) => i === item.idx && item.id === null,
                 );
                 if (found != null) {
-                    row.value = found.value;
+                    // Ok so there is a value, but we don't
+                    // pop it in here just yet.
+                    // That will happen when translating to IR
+                    // row.value = found.value;
                     return;
                 }
             }
@@ -334,13 +337,19 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
 
         if (!subTypes[id].covered) {
             subTypes[id].rows.forEach((row, i) => {
-                if (row.value == null) {
-                    throw new Error(
-                        `Record missing attribute from subtype ${id} "${
-                            env.global.recordGroups[id][i]
-                        }" at ${showLocation(expr.location)}`,
-                    );
+                if (row.value != null) {
+                    return;
                 }
+                // Ok, so either:
+                // - the subtype record has a default for it, orrr
+                // - the ... hmm ... we might have to go down the line
+                // of inheritance, checking each. Yeah, I think that's right.
+                // const d =
+                throw new Error(
+                    `Record missing attribute from subtype ${id} "${
+                        env.global.recordGroups[id][i]
+                    }" at ${showLocation(expr.location)}`,
+                );
             });
         }
     });

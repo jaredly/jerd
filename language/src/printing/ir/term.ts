@@ -15,6 +15,8 @@ import {
     walkTerm,
     Pattern,
     UserReference,
+    RecordDef,
+    ConcreteBase,
 } from '../../typing/types';
 import {
     binOps,
@@ -286,6 +288,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 term.location,
             );
         }
+        // const ref = term.base.ref
         case 'Record': {
             return {
                 type: 'record',
@@ -299,9 +302,37 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         : {
                               type: 'Concrete',
                               ref: term.base.ref,
-                              rows: term.base.rows.map((r) =>
-                                  r ? printTerm(env, opts, r) : null,
-                              ),
+                              rows: term.base.rows.map((r, i) => {
+                                  if (r) {
+                                      return printTerm(env, opts, r);
+                                  }
+                                  if (term.base.spread) {
+                                      return null;
+                                  }
+                                  const base = term.base as ConcreteBase<Term>;
+                                  const defn = env.global.types[
+                                      idName(base.ref.id)
+                                  ] as RecordDef;
+                                  if (defn.defaults) {
+                                      const found = defn.defaults.find(
+                                          (item) =>
+                                              i === item.idx &&
+                                              item.id === null,
+                                      );
+                                      if (found) {
+                                          return printTerm(
+                                              env,
+                                              opts,
+                                              found.value,
+                                          );
+                                      }
+                                  }
+                                  throw new Error(
+                                      `Unspecified element ${i} of Record literal.`,
+                                  );
+
+                                  //   r ? printTerm(env, opts, r) : null,
+                              }),
                               spread: term.base.spread
                                   ? printTerm(env, opts, term.base.spread)
                                   : null,

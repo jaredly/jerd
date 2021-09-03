@@ -627,10 +627,17 @@ export const typeRecordDefn = (
                             const names = env.global.recordGroups[idName(st)];
                             const idx = names.indexOf(id.text);
                             if (idx !== -1) {
+                                const term = typeExpr(env, value);
+                                if (getEffects(term).length) {
+                                    throw new LocatedError(
+                                        id.location,
+                                        `Record defaults can't be effectful`,
+                                    );
+                                }
                                 defaults.push({
                                     id: st,
                                     idx,
-                                    value: typeExpr(env, value),
+                                    value: term,
                                 });
                                 return;
                             }
@@ -650,10 +657,17 @@ export const typeRecordDefn = (
         ) as Array<RecordRow>).map((r, i) => {
             const res = typeType(typeInnerWithSelf, r.rtype);
             if (r.value) {
+                const term = typeExpr(env, r.value);
+                if (getEffects(term).length) {
+                    throw new LocatedError(
+                        id.location,
+                        `Record defaults can't be effectful`,
+                    );
+                }
                 defaults.push({
                     id: null,
                     idx: i,
-                    value: typeExpr(env, r.value),
+                    value: term,
                 });
             }
             return res;
