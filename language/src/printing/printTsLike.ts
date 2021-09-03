@@ -963,8 +963,13 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                 [
                     term.base.type === 'Concrete'
                         ? // TODO: the term.base should have a loc
-                          refToPretty(env, term.base.ref, 'record')
-                        : symToPretty(env, term.base.var),
+                          refToPretty(
+                              env,
+                              term.base.ref,
+                              'record',
+                              term.base.location,
+                          )
+                        : symToPretty(env, term.base.var, term.base.location),
                     typeVbls
                         ? args(
                               typeVbls.map((t) => typeToPretty(env, t)),

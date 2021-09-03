@@ -257,7 +257,13 @@ const typePattern = (
                 (name, i) => (names[name] = { i, id: null }),
             );
             const ref: Reference = { type: 'user', id };
-            base = { rows: [], ref, type: 'Concrete', spread: null };
+            base = {
+                rows: [],
+                ref,
+                type: 'Concrete',
+                spread: null,
+                location: pattern.id.location,
+            };
             // }
 
             subTypeIds.forEach((id) => {

@@ -437,11 +437,12 @@ export type ConcreteBase<Contents> = {
     type: 'Concrete';
     ref: UserReference;
     rows: Array<Contents>;
+    location: Location;
     spread: Term | null; // only one spread per type makes sense
 };
 export type RecordBase<Contents> =
     | ConcreteBase<Contents>
-    | { type: 'Variable'; var: Symbol; spread: Term };
+    | { type: 'Variable'; var: Symbol; spread: Term; location: Location };
 
 export type Record = {
     type: 'Record';

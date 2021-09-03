@@ -1384,6 +1384,7 @@ const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
             type: 'Concrete',
             ref: { type: 'user', id },
             rows: t.items.map((_) => null),
+            location: location,
             spread: null,
         },
         location,

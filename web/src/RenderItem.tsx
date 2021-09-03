@@ -144,7 +144,7 @@ Props) => {
 
     // If we end up at a selection that's not rendered, reset to the start of things
     React.useEffect(() => {
-        if (!idxTree || idxTree.locs[selection.idx]) {
+        if (sourceMap[selection.idx]) {
             return;
         }
         // ookf how did we get an undefined here folks
@@ -179,7 +179,7 @@ Props) => {
         if (ordered.length) {
             setSelection(ordered[0]);
         }
-    }, [selection, idxTree]);
+    }, [sourceMap, selection]);
 
     // const setIdx: (
     //     fn: number | ((idx: number) => number),

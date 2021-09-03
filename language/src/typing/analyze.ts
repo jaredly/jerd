@@ -28,6 +28,7 @@ const idxs = (terms: Array<Term | null>) =>
 
 type LocKind =
     | Term['type']
+    | 'record-id'
     | 'arg'
     | 'switch-case'
     | 'arg-type'
@@ -47,6 +48,7 @@ export const isTermLoc = (kind: LocKind) =>
         'arg-type',
         'switch-case',
         'res-type',
+        'record-id',
         'decorator',
         'decorator-name',
     ].includes(kind);
@@ -88,6 +90,28 @@ export const makeIdxTree = (term: Term): IdxTree => {
                         [term.target].concat(term.args),
                     );
                     break;
+                case 'Record': {
+                    const allChildren =
+                        term.base.type === 'Concrete'
+                            ? idxs(term.base.rows)
+                            : [];
+                    if (term.base.spread) {
+                        allChildren.push(...idxs([term.base.spread]));
+                    }
+                    Object.keys(term.subTypes).forEach((k) => {
+                        if (term.subTypes[k].spread) {
+                            allChildren.push(
+                                ...idxs([term.subTypes[k].spread]),
+                            );
+                        }
+                        allChildren.push(...idxs(term.subTypes[k].rows));
+                    });
+                    console.log('record literal', allChildren);
+                    children[term.location.idx!] = [
+                        addLoc(term.base.location, 'record-id'),
+                    ].concat(allChildren);
+                    break;
+                }
                 case 'Attribute':
                     children[term.location.idx!] = [
                         term.target.location.idx!,
@@ -225,6 +249,7 @@ export const isAtomic = (kind: LocKind) => {
         'var',
         'ref',
         'let-sym',
+        'record-id',
         'arg',
         'arg-type',
         'res-type',
@@ -266,6 +291,21 @@ export const transformLocations = (
                 if (changed) {
                     term = { ...term, decorators };
                 }
+            }
+            if (term.type === 'Record') {
+                const location = mapper(term.location);
+                const blocation = mapper(term.base.location);
+                if (
+                    location !== term.location ||
+                    blocation !== term.base.location
+                ) {
+                    return {
+                        ...term,
+                        location,
+                        base: { ...term.base, location: blocation },
+                    };
+                }
+                return term;
             }
             if (term.type === 'Switch') {
                 const location = mapper(term.location);

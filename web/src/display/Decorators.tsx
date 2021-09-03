@@ -210,6 +210,7 @@ export const widgetForDecorator = (
                     base: {
                         type: 'Concrete',
                         ref: { type: 'user', id: idFromName(Vec2_id) },
+                        location: nullLocation,
                         rows: [
                             floatLiteral(fx, nullLocation),
                             floatLiteral(fy, nullLocation),
@@ -346,6 +347,7 @@ export const widgetForDecorator = (
                             type: 'Concrete',
                             ref: { type: 'user', id: idFromName(Vec4_id) },
                             rows: [floatLiteral(smaller.a, nullLocation)],
+                            location: nullLocation,
                             spread: null,
                         },
                         subTypes: {

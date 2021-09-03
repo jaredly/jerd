@@ -52,6 +52,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             type: 'Variable',
             var: sym,
             spread: null as any,
+            location: expr.id.location,
         };
         subTypeIds = [];
         t.subTypes.forEach((id) => {
@@ -113,7 +114,13 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
 
         // So we can detect missing items
         // rows.fill(null);
-        base = { rows, ref, type: 'Concrete', spread: null };
+        base = {
+            rows,
+            ref,
+            type: 'Concrete',
+            spread: null,
+            location: expr.id.location,
+        };
         env.global.recordGroups[idName(id)].forEach(
             (name, i) => (names[name] = { i, id: null }),
         );
