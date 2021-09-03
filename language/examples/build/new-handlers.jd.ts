@@ -403,16 +403,16 @@ collectNew#4465c66a(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     collectNew#🍁🚶😳😃(
-        (handlers#:15000: nope type: effect-handler, done#:6: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             TODO raise;
         },
     ),
     "Hello\nFolks\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_4465c66a((handlers: Handlers, done$6: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_4465c66a((handlers: Handlers, done: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "Hello", (handlers, value) => ((handlers: Handlers) => {
-    raise(handlers, "35f4b478", 0, "Folks", (handlers, value) => done$6(handlers, value));
+    raise(handlers, "35f4b478", 0, "Folks", (handlers, value) => done(handlers, value));
   })(handlers, value));
 }), "Hello\nFolks\nend");
 
@@ -428,7 +428,7 @@ assertCall(
         "Hello",
         (
             handlers#:15000: nope type: effect-handler,
-            done#:7: (nope type: effect-handler, string) => void,
+            done#:1: (nope type: effect-handler, string) => void,
         ): void => {
             TODO raise;
         },
@@ -436,8 +436,8 @@ assertCall(
     "Hello",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_5c316d50("Hello", (handlers: Handlers, done$7: (arg_0: Handlers, arg_1: string) => void) => {
-  raise(handlers, "22024b72", 0, null, (handlers, value) => done$7(handlers, value));
+assertCall(hash_da00b310.h51ea2a36_0, hash_5c316d50("Hello", (handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
+  raise(handlers, "22024b72", 0, null, (handlers, value) => done(handlers, value));
 }), "Hello");
 
 /*
@@ -453,7 +453,7 @@ assertCall(
         "Hello",
         (
             handlers#:15000: nope type: effect-handler,
-            done#:10: (nope type: effect-handler, string) => void,
+            done#:3: (nope type: effect-handler, string) => void,
         ): void => {
             TODO raise;
         },
@@ -461,10 +461,10 @@ assertCall(
     "Hello<Hello>",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_5c316d50("Hello", (handlers: Handlers, done$10: (arg_0: Handlers, arg_1: string) => void) => {
-  raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$8: string) => {
-    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$9: string) => {
-      done$10(handlers, arg_lift_0$8 + arg_lift_1$9);
+assertCall(hash_da00b310.h51ea2a36_0, hash_5c316d50("Hello", (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
+  raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$1: string) => {
+    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$2: string) => {
+      done$3(handlers, arg_lift_0$1 + arg_lift_1$2);
     })(handlers, value));
   })(handlers, value));
 }), "Hello<Hello>");
@@ -483,7 +483,7 @@ assertCall(
     appendLog#🏯🤠🙆‍♂️(
         (
             handlers#:15000: nope type: effect-handler,
-            done#:11: (nope type: effect-handler, string) => void,
+            done#:1: (nope type: effect-handler, string) => void,
         ): void => {
             TODO raise;
         },
@@ -491,10 +491,10 @@ assertCall(
     "Hello\nFolks\nFinal value",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_0ea0eb0a((handlers: Handlers, done$11: (arg_0: Handlers, arg_1: string) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_0ea0eb0a((handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "35f4b478", 0, "Hello", (handlers, value) => ((handlers: Handlers) => {
     raise(handlers, "35f4b478", 0, "Folks", (handlers, value) => ((handlers: Handlers) => {
-      done$11(handlers, "Final value");
+      done(handlers, "Final value");
     })(handlers, value));
   })(handlers, value));
 }), "Hello\nFolks\nFinal value");
@@ -505,15 +505,15 @@ collect#2ce3943a{}(fn: (): void#builtin ={Log#35f4b478}> raise!(Log#35f4b478.log
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:12: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             TODO raise;
         },
     ),
     "Good news\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$12: (arg_0: Handlers) => void) => {
-  raise(handlers, "35f4b478", 0, "Good news", (handlers, value) => done$12(handlers, value));
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+  raise(handlers, "35f4b478", 0, "Good news", (handlers, value) => done(handlers, value));
 }), "Good news\nend");
 
 /*
@@ -532,19 +532,19 @@ assertCall(
         "Folks",
         (
             handlers#:15000: nope type: effect-handler,
-            done#:15: (nope type: effect-handler, string) => void,
+            done#:3: (nope type: effect-handler, string) => void,
         ): void => {
             get effectful or direct TODO(
                 (
                     handlers#:15000: nope type: effect-handler,
-                    done#:17: (nope type: effect-handler) => void,
+                    done#:5: (nope type: effect-handler) => void,
                 ): void => {
                     TODO raise;
                 },
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:18: string): void => done#:15(
+                (handlers#:15000: nope type: effect-handler, returnValue#:6: string): void => done#:3(
                     handlers#:15000,
-                    returnValue#:18,
+                    returnValue#:6,
                 ),
             );
         },
@@ -552,12 +552,12 @@ assertCall(
     "Good news Folks\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_5c316d50("Folks", (handlers: Handlers, done$15: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_2ce3943a.effectful((handlers: Handlers, done$17: (arg_0: Handlers) => void) => {
-    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$14: string) => {
-      raise(handlers, "35f4b478", 0, "Good news " + arg_lift_1$14, (handlers, value) => done$17(handlers, value));
+assertCall(hash_da00b310.h51ea2a36_0, hash_5c316d50("Folks", (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_2ce3943a.effectful((handlers: Handlers, done$5: (arg_0: Handlers) => void) => {
+    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$2: string) => {
+      raise(handlers, "35f4b478", 0, "Good news " + arg_lift_1$2, (handlers, value) => done$5(handlers, value));
     })(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$18: string) => done$15(handlers, returnValue$18));
+  }, handlers, (handlers: Handlers, returnValue$6: string) => done$3(handlers, returnValue$6));
 }), "Good news Folks\nend");
 
 /*

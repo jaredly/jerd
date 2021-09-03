@@ -907,19 +907,19 @@ collect#2ce3943a{}(fn: (): void#builtin ={Write#35f4b478}> {
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:2: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             print#🎁(
                 "HI",
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler): void => done#:2(handlers#:15000),
+                (handlers#:15000: nope type: effect-handler): void => done#:1(handlers#:15000),
             );
         },
     ),
     "HI\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
-  hash_eccbfbca("HI", handlers, (handlers: Handlers) => done$2(handlers));
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+  hash_eccbfbca("HI", handlers, (handlers: Handlers) => done(handlers));
 }), "HI\nend");
 
 /*
@@ -933,7 +933,7 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:4: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             print#🎁(
                 "HI",
                 handlers#:15000,
@@ -941,7 +941,7 @@ assertCall(
                     print#🎁(
                         "HO",
                         handlers#:15000,
-                        (handlers#:15000: nope type: effect-handler): void => done#:4(
+                        (handlers#:15000: nope type: effect-handler): void => done#:1(
                             handlers#:15000,
                         ),
                     );
@@ -952,9 +952,9 @@ assertCall(
     "HI\nHO\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
   hash_eccbfbca("HI", handlers, (handlers: Handlers) => {
-    hash_eccbfbca("HO", handlers, (handlers: Handlers) => done$4(handlers));
+    hash_eccbfbca("HO", handlers, (handlers: Handlers) => done(handlers));
   });
 }), "HI\nHO\nend");
 
@@ -969,16 +969,16 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:7: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             TODO raise;
         },
     ),
     "HI\nHO\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$7: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "HI", (handlers, value) => ((handlers: Handlers) => {
-    raise(handlers, "35f4b478", 0, "HO", (handlers, value) => done$7(handlers, value));
+    raise(handlers, "35f4b478", 0, "HO", (handlers, value) => done(handlers, value));
   })(handlers, value));
 }), "HI\nHO\nend");
 
@@ -996,17 +996,17 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:12: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:5: (nope type: effect-handler) => void): void => {
             get effectful or direct TODO<void>(
                 "hi",
                 (
                     handlers#:15000: nope type: effect-handler,
-                    done#:14: (nope type: effect-handler) => void,
+                    done#:7: (nope type: effect-handler) => void,
                 ): void => {
                     TODO raise;
                 },
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:16: [var]T#:0): void => done#:12(
+                (handlers#:15000: nope type: effect-handler, returnValue#:9: [var]T#:0): void => done#:5(
                     handlers#:15000,
                 ),
             );
@@ -1015,14 +1015,14 @@ assertCall(
     "hi and hi\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$12: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("hi", (handlers: Handlers, done$14: (arg_0: Handlers) => void) => {
-    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$11: string) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$5: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("hi", (handlers: Handlers, done$7: (arg_0: Handlers) => void) => {
+    raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$4: string) => {
       raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1: string) => {
-        hash_eccbfbca(arg_lift_0$11 + " and " + arg_lift_1, handlers, (handlers: Handlers) => done$14(handlers));
+        hash_eccbfbca(arg_lift_0$4 + " and " + arg_lift_1, handlers, (handlers: Handlers) => done$7(handlers));
       })(handlers, value));
     })(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$16: T_0) => done$12(handlers));
+  }, handlers, (handlers: Handlers, returnValue$9: T_0) => done$5(handlers));
 }), "hi and hi\nend");
 
 /*
@@ -1036,7 +1036,7 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:17: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             print#🎁(
                 "A",
                 handlers#:15000,
@@ -1044,7 +1044,7 @@ assertCall(
                     print#🎁(
                         "B",
                         handlers#:15000,
-                        (handlers#:15000: nope type: effect-handler): void => done#:17(
+                        (handlers#:15000: nope type: effect-handler): void => done#:1(
                             handlers#:15000,
                         ),
                     );
@@ -1055,9 +1055,9 @@ assertCall(
     "A\nB\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$17: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
   hash_eccbfbca("A", handlers, (handlers: Handlers) => {
-    hash_eccbfbca("B", handlers, (handlers: Handlers) => done$17(handlers));
+    hash_eccbfbca("B", handlers, (handlers: Handlers) => done(handlers));
   });
 }), "A\nB\nend");
 
@@ -1077,18 +1077,18 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:22: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:3: (nope type: effect-handler) => void): void => {
             get effectful or direct TODO<void>(
                 "hi",
                 (
                     handlers#:15000: nope type: effect-handler,
-                    done#:24: (nope type: effect-handler) => void,
+                    done#:5: (nope type: effect-handler) => void,
                 ): void => {
                     read#⛷️😛🐠😃(
                         handlers#:15000,
-                        (handlers#:15000: nope type: effect-handler, returnValue#:32: string): void => {
+                        (handlers#:15000: nope type: effect-handler, returnValue#:13: string): void => {
                             print#🎁(
-                                returnValue#:32,
+                                returnValue#:13,
                                 handlers#:15000,
                                 (handlers#:15000: nope type: effect-handler): void => {
                                     print#🎁(
@@ -1099,10 +1099,10 @@ assertCall(
                                                 handlers#:15000,
                                                 (
                                                     handlers#:15000: nope type: effect-handler,
-                                                    returnValue#:28: string,
+                                                    returnValue#:9: string,
                                                 ): void => {
                                                     print#🎁(
-                                                        returnValue#:28,
+                                                        returnValue#:9,
                                                         handlers#:15000,
                                                         (handlers#:15000: nope type: effect-handler): void => {
                                                             print#🎁(
@@ -1110,7 +1110,7 @@ assertCall(
                                                                 handlers#:15000,
                                                                 (
                                                                     handlers#:15000: nope type: effect-handler,
-                                                                ): void => done#:24(handlers#:15000),
+                                                                ): void => done#:5(handlers#:15000),
                                                             );
                                                         },
                                                     );
@@ -1124,7 +1124,7 @@ assertCall(
                     );
                 },
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:33: [var]T#:0): void => done#:22(
+                (handlers#:15000: nope type: effect-handler, returnValue#:14: [var]T#:0): void => done#:3(
                     handlers#:15000,
                 ),
             );
@@ -1133,20 +1133,20 @@ assertCall(
     "hi\nYA\nhi\nB\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$22: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("hi", (handlers: Handlers, done$24: (arg_0: Handlers) => void) => {
-    hash_64605d94(handlers, (handlers: Handlers, returnValue$32: string) => {
-      hash_eccbfbca(returnValue$32, handlers, (handlers: Handlers) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$3: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("hi", (handlers: Handlers, done$5: (arg_0: Handlers) => void) => {
+    hash_64605d94(handlers, (handlers: Handlers, returnValue$13: string) => {
+      hash_eccbfbca(returnValue$13, handlers, (handlers: Handlers) => {
         hash_eccbfbca("YA", handlers, (handlers: Handlers) => {
-          hash_64605d94(handlers, (handlers: Handlers, returnValue$28: string) => {
-            hash_eccbfbca(returnValue$28, handlers, (handlers: Handlers) => {
-              hash_eccbfbca("B", handlers, (handlers: Handlers) => done$24(handlers));
+          hash_64605d94(handlers, (handlers: Handlers, returnValue$9: string) => {
+            hash_eccbfbca(returnValue$9, handlers, (handlers: Handlers) => {
+              hash_eccbfbca("B", handlers, (handlers: Handlers) => done$5(handlers));
             });
           });
         });
       });
     });
-  }, handlers, (handlers: Handlers, returnValue$33: T_0) => done$22(handlers));
+  }, handlers, (handlers: Handlers, returnValue$14: T_0) => done$3(handlers));
 }), "hi\nYA\nhi\nB\nend");
 
 /*
@@ -1164,17 +1164,17 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:34: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             get effectful or direct TODO<void>(
                 "hi",
                 (
                     handlers#:15000: nope type: effect-handler,
-                    done#:36: (nope type: effect-handler) => void,
+                    done#:3: (nope type: effect-handler) => void,
                 ): void => {
                     TODO raise;
                 },
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:37: [var]T#:0): void => done#:34(
+                (handlers#:15000: nope type: effect-handler, returnValue#:4: [var]T#:0): void => done#:1(
                     handlers#:15000,
                 ),
             );
@@ -1183,14 +1183,14 @@ assertCall(
     "A\nB\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$34: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("hi", (handlers: Handlers, done$36: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("hi", (handlers: Handlers, done$3: (arg_0: Handlers) => void) => {
     raise(handlers, "35f4b478", 0, "A", (handlers, value) => ((handlers: Handlers) => {
       raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, x: string) => {
-        raise(handlers, "35f4b478", 0, "B", (handlers, value) => done$36(handlers, value));
+        raise(handlers, "35f4b478", 0, "B", (handlers, value) => done$3(handlers, value));
       })(handlers, value));
     })(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$37: T_0) => done$34(handlers));
+  }, handlers, (handlers: Handlers, returnValue$4: T_0) => done(handlers));
 }), "A\nB\nend");
 
 /*
@@ -1207,17 +1207,17 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:38: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             get effectful or direct TODO<void>(
                 "hi",
                 (
                     handlers#:15000: nope type: effect-handler,
-                    done#:40: (nope type: effect-handler) => void,
+                    done#:3: (nope type: effect-handler) => void,
                 ): void => {
                     TODO raise;
                 },
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:41: [var]T#:0): void => done#:38(
+                (handlers#:15000: nope type: effect-handler, returnValue#:4: [var]T#:0): void => done#:1(
                     handlers#:15000,
                 ),
             );
@@ -1226,12 +1226,12 @@ assertCall(
     "B\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$38: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("hi", (handlers: Handlers, done$40: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("hi", (handlers: Handlers, done$3: (arg_0: Handlers) => void) => {
     raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, x: string) => {
-      raise(handlers, "35f4b478", 0, "B", (handlers, value) => done$40(handlers, value));
+      raise(handlers, "35f4b478", 0, "B", (handlers, value) => done$3(handlers, value));
     })(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$41: T_0) => done$38(handlers));
+  }, handlers, (handlers: Handlers, returnValue$4: T_0) => done(handlers));
 }), "B\nend");
 
 /*
@@ -1247,12 +1247,12 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:42: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             get effectful or direct TODO<void>(
                 "Me",
                 printFullName#🐯,
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:44: [var]T#:0): void => done#:42(
+                (handlers#:15000: nope type: effect-handler, returnValue#:3: [var]T#:0): void => done#:1(
                     handlers#:15000,
                 ),
             );
@@ -1261,8 +1261,8 @@ assertCall(
     "What is your forename?\nWhat is your surname?\nMe Me\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$42: (arg_0: Handlers) => void) => {
-  hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$44: T_0) => done$42(handlers));
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+  hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$3: T_0) => done(handlers));
 }), "What is your forename?\nWhat is your surname?\nMe Me\nend");
 
 /*
@@ -1278,11 +1278,11 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:45: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             reverse#👮‍♀️(
                 (
                     handlers#:15000: nope type: effect-handler,
-                    done#:47: (nope type: effect-handler) => void,
+                    done#:3: (nope type: effect-handler) => void,
                 ): void => {
                     print#🎁(
                         "A",
@@ -1291,7 +1291,7 @@ assertCall(
                             print#🎁(
                                 "B",
                                 handlers#:15000,
-                                (handlers#:15000: nope type: effect-handler): void => done#:47(
+                                (handlers#:15000: nope type: effect-handler): void => done#:3(
                                     handlers#:15000,
                                 ),
                             );
@@ -1299,19 +1299,19 @@ assertCall(
                     );
                 },
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler): void => done#:45(handlers#:15000),
+                (handlers#:15000: nope type: effect-handler): void => done#:1(handlers#:15000),
             );
         },
     ),
     "B\nA\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$45: (arg_0: Handlers) => void) => {
-  hash_f201f930((handlers: Handlers, done$47: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+  hash_f201f930((handlers: Handlers, done$3: (arg_0: Handlers) => void) => {
     hash_eccbfbca("A", handlers, (handlers: Handlers) => {
-      hash_eccbfbca("B", handlers, (handlers: Handlers) => done$47(handlers));
+      hash_eccbfbca("B", handlers, (handlers: Handlers) => done$3(handlers));
     });
-  }, handlers, (handlers: Handlers) => done$45(handlers));
+  }, handlers, (handlers: Handlers) => done(handlers));
 }), "B\nA\nend");
 
 /*
@@ -1331,33 +1331,33 @@ collect#2ce3943a{}(
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
     get effectful or direct TODO(
-        (handlers#:15000: nope type: effect-handler, done#:50: (nope type: effect-handler) => void): void => {
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             reverse#👮‍♀️(
                 (
                     handlers#:15000: nope type: effect-handler,
-                    done#:52: (nope type: effect-handler) => void,
+                    done#:3: (nope type: effect-handler) => void,
                 ): void => {
                     get effectful or direct TODO<void>(
                         "Me",
                         printFullName#🐯,
                         handlers#:15000,
-                        (handlers#:15000: nope type: effect-handler, returnValue#:54: [var]T#:0): void => done#:52(
+                        (handlers#:15000: nope type: effect-handler, returnValue#:5: [var]T#:0): void => done#:3(
                             handlers#:15000,
                         ),
                     );
                 },
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler): void => done#:50(handlers#:15000),
+                (handlers#:15000: nope type: effect-handler): void => done#:1(handlers#:15000),
             );
         },
     ),
     "Me Me\nWhat is your surname?\nWhat is your forename?\nend",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$50: (arg_0: Handlers) => void) => {
-  hash_f201f930((handlers: Handlers, done$52: (arg_0: Handlers) => void) => {
-    hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$54: T_0) => done$52(handlers));
-  }, handlers, (handlers: Handlers) => done$50(handlers));
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+  hash_f201f930((handlers: Handlers, done$3: (arg_0: Handlers) => void) => {
+    hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue: T_0) => done$3(handlers));
+  }, handlers, (handlers: Handlers) => done(handlers));
 }), "Me Me\nWhat is your surname?\nWhat is your forename?\nend");
 
 /*
@@ -1421,19 +1421,19 @@ assertCall(
         4,
         (
             handlers#:15000: nope type: effect-handler,
-            done#:55: (nope type: effect-handler, int) => void,
+            done#:1: (nope type: effect-handler, int) => void,
         ): void => {
             get effectful or direct TODO(
                 (
                     handlers#:15000: nope type: effect-handler,
-                    done#:57: (nope type: effect-handler, int) => void,
+                    done#:3: (nope type: effect-handler, int) => void,
                 ): void => {
                     TODO raise;
                 },
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:58: int): void => done#:55(
+                (handlers#:15000: nope type: effect-handler, returnValue#:4: int): void => done#:1(
                     handlers#:15000,
-                    returnValue#:58,
+                    returnValue#:4,
                 ),
             );
         },
@@ -1441,10 +1441,10 @@ assertCall(
     9,
 )
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_478ee9c0(4, (handlers: Handlers, done$55: (arg_0: Handlers, arg_1: number) => void) => {
-  hash_1d5e1778.effectful((handlers: Handlers, done$57: (arg_0: Handlers, arg_1: number) => void) => {
-    raise(handlers, "7b45d75e", 0, null, (handlers, value) => done$57(handlers, value));
-  }, handlers, (handlers: Handlers, returnValue$58: number) => done$55(handlers, returnValue$58));
+assertCall(hash_ec95f154.h51ea2a36_0, hash_478ee9c0(4, (handlers: Handlers, done: (arg_0: Handlers, arg_1: number) => void) => {
+  hash_1d5e1778.effectful((handlers: Handlers, done$3: (arg_0: Handlers, arg_1: number) => void) => {
+    raise(handlers, "7b45d75e", 0, null, (handlers, value) => done$3(handlers, value));
+  }, handlers, (handlers: Handlers, returnValue$4: number) => done(handlers, returnValue$4));
 }), 9);
 
 /*

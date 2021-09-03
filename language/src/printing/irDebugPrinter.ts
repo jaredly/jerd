@@ -95,6 +95,8 @@ export const debugSym = (sym: Symbol, loc: Location) => {
     return id(sym.name, ':' + sym.unique, 'sym', loc);
 };
 
+// export const debugDefine = (env: Env, name)
+
 // TODO: Should I wrap /everything/ in a type annotation?
 // for being explicit?
 // Seems like it would be nice to have the option
@@ -150,7 +152,13 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
         case 'string':
             return atom(JSON.stringify(expr.value));
         case 'slice':
-            return atom('[slice]');
+            return items([
+                debugExpr(env, expr.value),
+                atom('['),
+                debugExpr(env, expr.start),
+                expr.end ? items([atom(':'), debugExpr(env, expr.end)]) : null,
+                atom(']'),
+            ]);
         case 'record': {
             if (expr.base.type === 'Variable') {
                 throw new Error('not yet impl');

@@ -89,16 +89,19 @@ export type Optimizer = (
 export const optimizeRepeatedly = (
     opt: Optimizer2 | Array<Optimizer2>,
 ): Optimizer2 => (ctx: Context, expr: Expr) => {
-    if (Array.isArray(opt)) {
-        opt = combineOpts(opt);
+    if (!Array.isArray(opt)) {
+        opt = [opt];
     }
     for (let i = 0; i < 100; i++) {
-        const newExpr = opt(ctx, expr);
-        if (newExpr === expr) {
+        const start = expr;
+        for (let one of opt) {
+            expr = one(ctx, expr);
+            // console.log(nameForOpt(one));
+            uniquesReallyAreUnique(expr, ctx.env);
+        }
+        if (start === expr) {
             return expr;
         }
-        expr = newExpr;
-        uniquesReallyAreUnique(expr);
     }
     throw new Error(`Optimize failed to converge`);
 };
@@ -143,7 +146,7 @@ export const optimizeDefineNew_ = (
 
     try {
         expr = opt(ctx, expr);
-        uniquesReallyAreUnique(expr);
+        uniquesReallyAreUnique(expr, ctx.env);
     } catch (err) {
         // TODO: extract this out
         console.log('-- oops --');
@@ -163,7 +166,7 @@ export const optimizeDefineNew_ = (
                 // }
                 try {
                     expr = fn(ctx, expr);
-                    uniquesReallyAreUnique(expr);
+                    uniquesReallyAreUnique(expr, ctx.env);
                 } catch (err) {
                     console.log('Offending optimizer');
                     console.log(fn);

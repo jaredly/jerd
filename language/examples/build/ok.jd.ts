@@ -611,14 +611,14 @@ assertCall(
         "Yes",
         (
             handlers#:15000: nope type: effect-handler,
-            done#:6: (nope type: effect-handler, string) => void,
+            done#:1: (nope type: effect-handler, string) => void,
         ): void => {
             sideBar#🌝(
                 5,
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:8: string): void => done#:6(
+                (handlers#:15000: nope type: effect-handler, returnValue#:3: string): void => done#:1(
                     handlers#:15000,
-                    returnValue#:8,
+                    returnValue#:3,
                 ),
             );
         },
@@ -626,14 +626,14 @@ assertCall(
         "Yes?",
         (
             handlers#:15000: nope type: effect-handler,
-            done#:9: (nope type: effect-handler, string) => void,
+            done#:4: (nope type: effect-handler, string) => void,
         ): void => {
             sideBar#🌝(
                 4,
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:11: string): void => done#:9(
+                (handlers#:15000: nope type: effect-handler, returnValue#:6: string): void => done#:4(
                     handlers#:15000,
-                    returnValue#:11,
+                    returnValue#:6,
                 ),
             );
         },
@@ -641,10 +641,10 @@ assertCall(
     "Yes:wot",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2dbf3eae("Yes", (handlers: Handlers, done$6: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_81192b98(5, handlers, (handlers: Handlers, returnValue$8: string) => done$6(handlers, returnValue$8));
-}) + ":" + hash_2dbf3eae("Yes?", (handlers: Handlers, done$9: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_81192b98(4, handlers, (handlers: Handlers, returnValue$11: string) => done$9(handlers, returnValue$11));
+assertCall(hash_da00b310.h51ea2a36_0, hash_2dbf3eae("Yes", (handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_81192b98(5, handlers, (handlers: Handlers, returnValue$3: string) => done(handlers, returnValue$3));
+}) + ":" + hash_2dbf3eae("Yes?", (handlers: Handlers, done$4: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_81192b98(4, handlers, (handlers: Handlers, returnValue$6: string) => done$4(handlers, returnValue$6));
 }), "Yes:wot");
 
 /*
@@ -659,12 +659,12 @@ assertCall(
         "what",
         (
             handlers#:15000: nope type: effect-handler,
-            done#:13: (nope type: effect-handler, string) => void,
+            done#:2: (nope type: effect-handler, string) => void,
         ): void => {
             callAgain#🤱(
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:15: () => string): void => {
-                    done#:13(handlers#:15000, returnValue#:15());
+                (handlers#:15000: nope type: effect-handler, returnValue#:4: () => string): void => {
+                    done#:2(handlers#:15000, returnValue#:4());
                 },
             );
         },
@@ -672,9 +672,9 @@ assertCall(
     "what",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_2dbf3eae("what", (handlers: Handlers, done$13: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_a8135548(handlers, (handlers: Handlers, returnValue$15: () => string) => {
-    done$13(handlers, returnValue$15());
+assertCall(hash_da00b310.h51ea2a36_0, hash_2dbf3eae("what", (handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_a8135548(handlers, (handlers: Handlers, returnValue: () => string) => {
+    done$2(handlers, returnValue());
   });
 }), "what");
 
@@ -717,15 +717,15 @@ assertCall(
         0,
         (
             handlers#:15000: nope type: effect-handler,
-            done#:18: (nope type: effect-handler, Array<string>) => void,
+            done#:3: (nope type: effect-handler, Array<string>) => void,
         ): void => {
             getString#⛷️😛🐠😃(
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:22: string): void => {
+                (handlers#:15000: nope type: effect-handler, returnValue#:7: string): void => {
                     getString#⛷️😛🐠😃(
                         handlers#:15000,
-                        (handlers#:15000: nope type: effect-handler, returnValue#:20: string): void => {
-                            done#:18(handlers#:15000, [returnValue#:22, returnValue#:20]);
+                        (handlers#:15000: nope type: effect-handler, returnValue#:5: string): void => {
+                            done#:3(handlers#:15000, [returnValue#:7, returnValue#:5]);
                         },
                     );
                 },
@@ -735,10 +735,10 @@ assertCall(
     ["Hi0", "Hi1"],
 )
 */
-assertCall(hash_63b7a1be.h51ea2a36_0, hash_1a4431b3("Hi", 0, (handlers: Handlers, done$18: (arg_0: Handlers, arg_1: Array<string>) => void) => {
-  hash_64605d94(handlers, (handlers: Handlers, returnValue$22: string) => {
-    hash_64605d94(handlers, (handlers: Handlers, returnValue$20: string) => {
-      done$18(handlers, [returnValue$22, returnValue$20]);
+assertCall(hash_63b7a1be.h51ea2a36_0, hash_1a4431b3("Hi", 0, (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: Array<string>) => void) => {
+  hash_64605d94(handlers, (handlers: Handlers, returnValue$7: string) => {
+    hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => {
+      done$3(handlers, [returnValue$7, returnValue$5]);
     });
   });
 }), ["Hi0", "Hi1"]);
@@ -760,15 +760,15 @@ assertCall(
         0,
         (
             handlers#:15000: nope type: effect-handler,
-            done#:25: (nope type: effect-handler, Array<string>) => void,
+            done#:3: (nope type: effect-handler, Array<string>) => void,
         ): void => {
             getStringArr#🧖⏱️🎈(
                 handlers#:15000,
-                (handlers#:15000: nope type: effect-handler, returnValue#:29: Array<string>): void => {
+                (handlers#:15000: nope type: effect-handler, returnValue#:7: Array<string>): void => {
                     getString#⛷️😛🐠😃(
                         handlers#:15000,
-                        (handlers#:15000: nope type: effect-handler, returnValue#:27: string): void => {
-                            done#:25(handlers#:15000, [...returnValue#:29, returnValue#:27]);
+                        (handlers#:15000: nope type: effect-handler, returnValue#:5: string): void => {
+                            done#:3(handlers#:15000, [...returnValue#:7, returnValue#:5]);
                         },
                     );
                 },
@@ -778,10 +778,10 @@ assertCall(
     ["Hi0", "Hi1"],
 )
 */
-assertCall(hash_63b7a1be.h51ea2a36_0, hash_1a4431b3("Hi", 0, (handlers: Handlers, done$25: (arg_0: Handlers, arg_1: Array<string>) => void) => {
-  hash_3bfdbd8c(handlers, (handlers: Handlers, returnValue$29: Array<string>) => {
-    hash_64605d94(handlers, (handlers: Handlers, returnValue$27: string) => {
-      done$25(handlers, [...returnValue$29, returnValue$27]);
+assertCall(hash_63b7a1be.h51ea2a36_0, hash_1a4431b3("Hi", 0, (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: Array<string>) => void) => {
+  hash_3bfdbd8c(handlers, (handlers: Handlers, returnValue$7: Array<string>) => {
+    hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => {
+      done$3(handlers, [...returnValue$7, returnValue$5]);
     });
   });
 }), ["Hi0", "Hi1"]);
@@ -791,30 +791,30 @@ assertCall(hash_63b7a1be.h51ea2a36_0, hash_1a4431b3("Hi", 0, (handlers: Handlers
     raise!(Write#35f4b478.write("hello"));
     getString#64605d94();
 }
-(handlers#:15000: nope type: effect-handler, done#:30: (nope type: effect-handler, string) => void): void => {
+(handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler, string) => void): void => {
     TODO raise;
 }
 */
-(handlers: Handlers, done$30: (arg_0: Handlers, arg_1: string) => void) => {
+(handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "35f4b478", 0, "hello", (handlers, value) => ((handlers: Handlers) => {
-    hash_64605d94(handlers, (handlers: Handlers, returnValue$32: string) => done$30(handlers, returnValue$32));
+    hash_64605d94(handlers, (handlers: Handlers, returnValue$3: string) => done(handlers, returnValue$3));
   })(handlers, value));
 };
 
 /*
 (): string#builtin ={Read#22024b72}> (getString#64605d94(), 1.0).0
-(handlers#:15000: nope type: effect-handler, done#:35: (nope type: effect-handler, string) => void): void => {
+(handlers#:15000: nope type: effect-handler, done#:3: (nope type: effect-handler, string) => void): void => {
     getString#⛷️😛🐠😃(
         handlers#:15000,
-        (handlers#:15000: nope type: effect-handler, returnValue#:37: string): void => {
-            done#:35(handlers#:15000, returnValue#:37);
+        (handlers#:15000: nope type: effect-handler, returnValue#:5: string): void => {
+            done#:3(handlers#:15000, returnValue#:5);
         },
     );
 }
 */
-(handlers: Handlers, done$35: (arg_0: Handlers, arg_1: string) => void) => {
-  hash_64605d94(handlers, (handlers: Handlers, returnValue$37: string) => {
-    done$35(handlers, returnValue$37);
+(handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
+  hash_64605d94(handlers, (handlers: Handlers, returnValue$5: string) => {
+    done$3(handlers, returnValue$5);
   });
 };
 

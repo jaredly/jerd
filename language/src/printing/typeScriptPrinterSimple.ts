@@ -1184,18 +1184,24 @@ export const fileToTypescript = (
     });
 
     expressions.forEach((term) => {
-        let comment = printToString(termToPretty(env, term), 100);
+        const idRaw = hashObject(term);
+        const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
+        // let comment = printToString(declarationToPretty(senv, id, term), 100);
+        senv.local.unique.current = maxUnique(term) + 1;
+
+        let comment = printToString(termToPretty(senv, term), 100);
         if (assert && typesEqual(term.is, bool)) {
             term = wrapWithAssert(term);
         }
-        term = liftEffects(env, term);
-        let irTerm = ir.printTerm(env, irOpts, term);
+        term = liftEffects(senv, term);
+        let irTerm = ir.printTerm(senv, irOpts, term);
+        uniquesReallyAreUnique(irTerm);
 
         if (opts.optimize) {
             const opt = optimizeRepeatedly(javascriptOpts);
             irTerm = opt(
                 {
-                    env,
+                    env: senv,
                     exprs: irTerms,
                     types: {},
                     id: idFromName(hashObject(term)),
@@ -1210,17 +1216,17 @@ export const fileToTypescript = (
 
         // then pop over to glslPrinter and start making things work.
         uniquesReallyAreUnique(irTerm);
-        comment += '\n' + printToString(debugExpr(env, irTerm), 100);
+        comment += '\n' + printToString(debugExpr(senv, irTerm), 100);
 
         items.push(
             t.addComment(
                 t.expressionStatement(
                     termToTs(
-                        env,
+                        senv,
                         opts,
                         optimize(
                             {
-                                env,
+                                env: senv,
                                 exprs: {},
                                 types: {},
                                 id: idFromName(hashObject(term)),

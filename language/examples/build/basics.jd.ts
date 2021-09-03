@@ -286,16 +286,16 @@ assertCall(
     provideString#🧃😉👨‍👩‍👧‍👧("hi")(
         (
             handlers#:15000: nope type: effect-handler,
-            done#:2: (nope type: effect-handler, string) => void,
+            done#:1: (nope type: effect-handler, string) => void,
         ): void => {
-            done#:2(handlers#:15000, pure#🐊👩🚚());
+            done#:1(handlers#:15000, pure#🐊👩🚚());
         },
     ),
     "AA",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_1d302ade("hi")((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
-  done$2(handlers, hash_33e34a3a());
+assertCall(hash_da00b310.h51ea2a36_0, hash_1d302ade("hi")((handlers: Handlers, done$1: (arg_0: Handlers, arg_1: string) => void) => {
+  done$1(handlers, hash_33e34a3a());
 }), "AA");
 
 /*
@@ -306,16 +306,16 @@ assertCall(
     provideString#🧃😉👨‍👩‍👧‍👧("hi")(
         (
             handlers#:15000: nope type: effect-handler,
-            done#:3: (nope type: effect-handler, string) => void,
+            done#:1: (nope type: effect-handler, string) => void,
         ): void => {
-            done#:3(handlers#:15000, "m");
+            done#:1(handlers#:15000, "m");
         },
     ),
     "m",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_1d302ade("hi")((handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
-  done$3(handlers, "m");
+assertCall(hash_da00b310.h51ea2a36_0, hash_1d302ade("hi")((handlers: Handlers, done$1: (arg_0: Handlers, arg_1: string) => void) => {
+  done$1(handlers, "m");
 }), "m");
 
 /*
@@ -331,14 +331,14 @@ assertCall(
         (
             arg#:0: string,
             handlers#:15000: nope type: effect-handler,
-            done#:4: (nope type: effect-handler, string) => void,
+            done#:1: (nope type: effect-handler, string) => void,
         ): void => {
-            done#:4(handlers#:15000, ++(arg#:0, "-m"));
+            done#:1(handlers#:15000, ++(arg#:0, "-m"));
         },
     ),
     "Passed in-m",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_8366c3ec("hi")("Passed in", (arg: string, handlers: Handlers, done$4: (arg_0: Handlers, arg_1: string) => void) => {
-  done$4(handlers, arg + "-m");
+assertCall(hash_da00b310.h51ea2a36_0, hash_8366c3ec("hi")("Passed in", (arg: string, handlers: Handlers, done$1: (arg_0: Handlers, arg_1: string) => void) => {
+  done$1(handlers, arg + "-m");
 }), "Passed in-m");

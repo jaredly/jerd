@@ -3,7 +3,10 @@
 import { Location } from '../../parsing/parser';
 import { idName, refName } from '../../typing/env';
 import { LocatedError, UniqueError } from '../../typing/errors';
-import { Symbol, UserReference } from '../../typing/types';
+import { Env, Symbol, UserReference } from '../../typing/types';
+import { debugExpr } from '../irDebugPrinter';
+import { printToString } from '../printer';
+import { maxUnique } from './optimize/inline';
 import { defaultVisitor, transformExpr, Visitor } from './transform';
 import { Expr, Loc, UserTypeReference } from './types';
 import { handlerSym } from './utils';
@@ -61,7 +64,13 @@ export const collectSymDeclarations = (expr: Expr) => {
     return { decls, undefinedUses, defined };
 };
 
-export const uniquesReallyAreUnique = (expr: Expr) => {
+export const uniquesReallyAreUnique = (expr: Expr, env?: Env) => {
+    const max = maxUnique(expr);
+    if (env && max > env.local.unique.current) {
+        throw new Error(
+            `The max unique is bigger than the current ${max} ${env.local.unique.current}`,
+        );
+    }
     const { decls, undefinedUses } = collectSymDeclarations(expr);
     const seen: { [key: string]: Array<{ sym: Symbol; loc: Loc }> } = {};
     const duplicates = [];
@@ -83,6 +92,9 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
         }
     });
     if (failed.length > 0) {
+        if (env) {
+            console.log(printToString(debugExpr(env, expr), 100));
+        }
         throw new UniqueError(
             seen[failed[0]][1].loc,
             expr,

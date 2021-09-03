@@ -13,6 +13,8 @@ BUGS
 - [x] let's get fps going!
 - [ ] fix pinning. make it work with proposed and sliders and such.
 
+- [ ] ok so somewhere we're not handling unique++ right.
+
 - [x] ugh ok fix the currently failing tests.
 - [x] enums needs to be able to declare inline records, pleeease
 

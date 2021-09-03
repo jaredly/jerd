@@ -1,4 +1,7 @@
 import { Env, Location, Symbol } from '../../../typing/types';
+import { debugExpr } from '../../irDebugPrinter';
+import { printToString } from '../../printer';
+import { collectSymDeclarations } from '../analyze';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Apply, Expr } from '../types';
 import { builtin, callExpression, int, pureFunction } from '../utils';
@@ -112,9 +115,10 @@ export const arraySlices = (env: Env, expr: Expr): Expr => {
                 stmt.value.end == null &&
                 stmt.value.value.type === 'var'
             ) {
+                const unique = env.local.unique.current++;
                 const sym = {
                     name: stmt.sym.name + '_i',
-                    unique: env.local.unique.current++,
+                    unique: unique,
                 };
                 arrayInfos[symName(stmt.sym)] = {
                     start: sym,
