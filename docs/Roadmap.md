@@ -3,7 +3,10 @@ Recreate this! https://twitter.com/matthen2/status/1249611168265547776
 
 BUGS
 - [x] show errors below please! Need to know why it's not working.
-- [ ] uhhh why is glsl not using native types anymore??? I should have been keeping track of this...
+- [x] uhhh why is glsl not using native types anymore??? I should have been keeping track of this... oh it was prelude-types needing to be regenerated.
+- [ ] ok why can't I add vec2s
+  - yeah this isn't great. looks like `persistence` isn't loading binops correctly somehow?
+  - I should really split things up, make a `mergeEnvs` functio nthat lives in language, and knows how to do things.
 
 - [x] if there's a pending, the plugin doesn't show. Maybe I'm not evaluating it?
 - [ ] if the thing doesn't evaluate for a second, the plugin view goes away. I should retain the last valid thing.

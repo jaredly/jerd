@@ -326,7 +326,7 @@ const RenderResult_ = ({
                 onPin={() => {
                     // TODO: What's the big id?
                     // Need to save it I think.
-                    // dispatch({ type: 'pin', display: cell.display!, id })
+                    dispatch({ type: 'pin', display: cell.display!, id: id! });
                 }}
             >
                 {renderPlugin()}

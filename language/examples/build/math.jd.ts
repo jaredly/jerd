@@ -3,25 +3,26 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-type Eq#553b4b8e<T#:0> = {
+type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_553b4b8e<T_0> = {
-  type: "553b4b8e";
-  h553b4b8e_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_51ea2a36<T_0> = {
+  type: "51ea2a36";
+  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
 ```
-const IntEq#9275f914 = Eq#553b4b8e<int#builtin>{"=="#553b4b8e#0: intEq#builtin}
+const IntEq#ec95f154 = Eq#51ea2a36<int#builtin>{"=="#51ea2a36#0: intEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: intEq}
 ```
 */
-export const hash_9275f914: t_553b4b8e<number> = ({
-  type: "553b4b8e",
-  h553b4b8e_0: intEq
-} as t_553b4b8e<number>);
+export const hash_ec95f154: t_51ea2a36<number> = ({
+  type: "51ea2a36",
+  h51ea2a36_0: intEq
+} as t_51ea2a36<number>);
 
 /**
 ```
@@ -36,6 +37,13 @@ const within#004be9c0 = (
         false;
     };
 }
+(found#:0: float, expected#:1: float, margin#:2: float): bool => {
+    if found#:0 - margin#:2 < expected#:1 {
+        return found#:0 + margin#:2 > expected#:1;
+    } else {
+        return false;
+    };
+}
 ```
 */
 export const hash_004be9c0: (arg_0: number, arg_1: number, arg_2: number) => boolean = (found: number, expected: number, margin: number) => {
@@ -48,30 +56,35 @@ export const hash_004be9c0: (arg_0: number, arg_1: number, arg_2: number) => boo
 
 /**
 ```
-const FloatEq#c41f7386 = Eq#553b4b8e<float#builtin>{"=="#553b4b8e#0: floatEq#builtin}
+const FloatEq#9ca984ce = Eq#51ea2a36<float#builtin>{"=="#51ea2a36#0: floatEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: floatEq}
 ```
 */
-export const hash_c41f7386: t_553b4b8e<number> = ({
-  type: "553b4b8e",
-  h553b4b8e_0: floatEq
-} as t_553b4b8e<number>);
+export const hash_9ca984ce: t_51ea2a36<number> = ({
+  type: "51ea2a36",
+  h51ea2a36_0: floatEq
+} as t_51ea2a36<number>);
 
 /*
-sqrt#builtin(4.0) ==#c41f7386#553b4b8e#0 2.0
+sqrt#builtin(4.0) ==#9ca984ce#51ea2a36#0 2.0
+assertCall(FloatEq#👨‍🦰.#Eq#🦩🥜👩‍💻😃#0, sqrt(4), 2)
 */
-assertCall(hash_c41f7386.h553b4b8e_0, sqrt(4), 2);
+assertCall(hash_9ca984ce.h51ea2a36_0, sqrt(4), 2);
 
 /*
 within#004be9c0(found: sin#builtin(PI#builtin), expected: 0.0, margin: 0.0001)
+assertCall(within#🛀🧱😆, sin(PI), 0, 0.0001)
 */
 assertCall(hash_004be9c0, sin(PI), 0, 0.0001);
 
 /*
-floatToInt#builtin(2.3) ==#9275f914#553b4b8e#0 2
+floatToInt#builtin(2.3) ==#ec95f154#51ea2a36#0 2
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, floatToInt(2.3), 2)
 */
-assertCall(hash_9275f914.h553b4b8e_0, floatToInt(2.3), 2);
+assertCall(hash_ec95f154.h51ea2a36_0, floatToInt(2.3), 2);
 
 /*
 concat#builtin<int#builtin>(<int#builtin>[1], <int#builtin>[2, 3])
+concat<int>([1], [2, 3])
 */
 concat([1], [2, 3]);

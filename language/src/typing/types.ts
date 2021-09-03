@@ -130,6 +130,70 @@ export type GlobalEnv = {
     };
 };
 
+export const mergeGlobalEnvs = (
+    old: GlobalEnv,
+    newEnv: GlobalEnv,
+): GlobalEnv => ({
+    ...newEnv,
+    builtins: old.builtins,
+    builtinTypes: old.builtinTypes,
+    metaData: { ...old.metaData, ...newEnv.metaData },
+    rng: newEnv.rng,
+    recordGroups: {
+        ...old.recordGroups,
+        ...newEnv.recordGroups,
+    },
+    decoratorNames: mergeNames(
+        old.decoratorNames,
+        newEnv.decoratorNames,
+        idName,
+    ),
+    decorators: {
+        ...old.decorators,
+        ...newEnv.decorators,
+    },
+    attributeNames: mergeNames(
+        old.attributeNames,
+        newEnv.attributeNames,
+        (m) => idName(m.id) + ':' + m.idx,
+    ),
+    typeNames: mergeNames(old.typeNames, newEnv.typeNames, idName),
+    idNames: {
+        ...old.idNames,
+        ...newEnv.idNames,
+    },
+    types: {
+        ...old.types,
+        ...newEnv.types,
+    },
+    names: mergeNames(old.names, newEnv.names, idName),
+    terms: {
+        // In case we added newEnv global terms
+        ...old.terms,
+        ...newEnv.terms,
+    },
+});
+
+export const mergeNames = <T>(
+    a: { [key: string]: Array<T> },
+    b: { [key: string]: Array<T> },
+    toString: (id: T) => string,
+) => {
+    const names = { ...a };
+    Object.keys(b).forEach((name) => {
+        if (!names[name]) {
+            names[name] = b[name];
+            return;
+        }
+        const got: { [key: string]: true } = {};
+        names[name].forEach((k) => (got[toString(k)] = true));
+        names[name] = names[name].concat(
+            b[name].filter((n) => !got[toString(n)]),
+        );
+    });
+    return names;
+};
+
 export type DecoratorDefArg = {
     argLocation: Location;
     argName: string;

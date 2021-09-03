@@ -179,9 +179,8 @@ const findMatchingOp = (
     rarg: Term,
     location: Location,
 ) => {
-    for (let { idx, id } of env.global.attributeNames[op]) {
-        // const { idx, id } = env.global.attributeNames[op][0];
-        // console.log(op, idx, id, 'OP');
+    const ops = env.global.attributeNames[op];
+    for (let { idx, id } of ops) {
         const found = findOp(env, id, idx, left.is, rarg.is, location);
         if (found != null) {
             return found;

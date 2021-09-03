@@ -4,6 +4,7 @@ import { Handlers } from "./prelude.mjs";
 /**
 ```
 const z#6b583f49 = <string#builtin>["hi", "ho"]
+["hi", "ho"]
 ```
 */
 export const hash_6b583f49: Array<string> = ["hi", "ho"];
@@ -11,6 +12,7 @@ export const hash_6b583f49: Array<string> = ["hi", "ho"];
 /**
 ```
 const b#05ebca85 = <string#builtin>["Good", ...z#6b583f49, "uhuh"]
+["Good", ...z#🛹🐪🍣😃, "uhuh"]
 ```
 */
 export const hash_05ebca85: Array<string> = ["Good", ...hash_6b583f49, "uhuh"];
@@ -18,12 +20,24 @@ export const hash_05ebca85: Array<string> = ["Good", ...hash_6b583f49, "uhuh"];
 /**
 ```
 const a#707b8ca0 = <string#builtin>[...z#6b583f49, "Yes"]
+[...z#🛹🐪🍣😃, "Yes"]
 ```
 */
 export const hash_707b8ca0: Array<string> = [...hash_6b583f49, "Yes"];
 
 /*
 switch a#707b8ca0 {[] => false, [..._, "Yes"] => true, _ => false}
+assert(
+    ((): bool => {
+        if len(a#🤘🍴🏫😃) == 0 {
+            return false;
+        };
+        if len(a#🤘🍴🏫😃) >= 1 && a#🤘🍴🏫😃[len(a#🤘🍴🏫😃) - 1] == "Yes" {
+            return true;
+        };
+        return false;
+    })(),
+)
 */
 assert((() => {
   if (hash_707b8ca0.length == 0) {
@@ -39,6 +53,18 @@ assert((() => {
 
 /*
 switch <void#builtin>[] {[one#:0, ...rest#:1] => false, [] => true}
+assert(
+    ((): bool => {
+        const discriminant#:2: Array<void> = [];
+        if len(discriminant#:2) >= 1 {
+            return false;
+        };
+        if len(discriminant#:2) == 0 {
+            return true;
+        };
+        match_fail!();
+    })(),
+)
 */
 assert((() => {
   let discriminant: Array<void> = [];
@@ -56,6 +82,17 @@ assert((() => {
 
 /*
 switch a#707b8ca0 {[] => false, [..._, "Yes"] => true, _ => false}
+assert(
+    ((): bool => {
+        if len(a#🤘🍴🏫😃) == 0 {
+            return false;
+        };
+        if len(a#🤘🍴🏫😃) >= 1 && a#🤘🍴🏫😃[len(a#🤘🍴🏫😃) - 1] == "Yes" {
+            return true;
+        };
+        return false;
+    })(),
+)
 */
 assert((() => {
   if (hash_707b8ca0.length == 0) {
@@ -78,6 +115,26 @@ switch b#05ebca85 {
     ["Good", ..._, "uhuh"] => true,
     _ => false,
 }
+assert(
+    ((): bool => {
+        if len(b#🥬🏕️☠️) == 0 {
+            return false;
+        };
+        if len(b#🥬🏕️☠️) == 1 && b#🥬🏕️☠️[0] == "Bad" {
+            return false;
+        };
+        if len(b#🥬🏕️☠️) >= 1 && b#🥬🏕️☠️[0] == "Bad" {
+            return false;
+        };
+        if len(b#🥬🏕️☠️) >= 2 && b#🥬🏕️☠️[0] == "Good" && b#🥬🏕️☠️[len(b#🥬🏕️☠️) - 1] == "Bad" {
+            return false;
+        };
+        if len(b#🥬🏕️☠️) >= 2 && b#🥬🏕️☠️[0] == "Good" && b#🥬🏕️☠️[len(b#🥬🏕️☠️) - 1] == "uhuh" {
+            return true;
+        };
+        return false;
+    })(),
+)
 */
 assert((() => {
   if (hash_05ebca85.length == 0) {
@@ -105,6 +162,17 @@ assert((() => {
 
 /*
 switch a#707b8ca0 {[one#:0, ...rest#:1] => true, [] => false}
+assert(
+    ((): bool => {
+        if len(a#🤘🍴🏫😃) >= 1 {
+            return true;
+        };
+        if len(a#🤘🍴🏫😃) == 0 {
+            return false;
+        };
+        match_fail!();
+    })(),
+)
 */
 assert((() => {
   if (hash_707b8ca0.length >= 1) {

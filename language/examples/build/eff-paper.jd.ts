@@ -8,14 +8,14 @@ type handle7b45d75e = [(arg_0: (arg_0: handle7b45d75e, arg_1: number) => void) =
 
 /**
 ```
-type Eq#553b4b8e<T#:0> = {
+type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_553b4b8e<T_0> = {
-  type: "553b4b8e";
-  h553b4b8e_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_51ea2a36<T_0> = {
+  type: "51ea2a36";
+  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
@@ -35,6 +35,9 @@ type t_As<T_10000, T_10001> = {
 const decide#6ab06b22 = (): bool#builtin ={DecideOrFail#7214565c}> raise!(
     DecideOrFail#7214565c.decide(),
 )
+(handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler, bool) => void): void => {
+    TODO raise;
+}
 ```
 */
 export const hash_6ab06b22:
@@ -46,6 +49,9 @@ export const hash_6ab06b22:
 /**
 ```
 const fail#0620e972 = (): int#builtin ={DecideOrFail#7214565c}> raise!(DecideOrFail#7214565c.fail())
+(handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler, int) => void): void => {
+    TODO raise;
+}
 ```
 */
 export const hash_0620e972:
@@ -57,6 +63,7 @@ export const hash_0620e972:
 /**
 ```
 const IntAsString#1175499e = As#As<int#builtin, string#builtin>{as#As#0: intToString#builtin}
+As#😉{TODO SPREADs}{hAs_0: intToString}
 ```
 */
 export const hash_1175499e: t_As<number, string> = ({
@@ -76,6 +83,40 @@ const rec chooseInt#54cbbab4 = (m#:0: int#builtin, n#:1: int#builtin): int#built
         m#:0;
     } else {
         54cbbab4#self(m#:0 +#builtin 1, n#:1);
+    };
+}
+(
+    m#:0: int,
+    n#:1: int,
+    handlers#:15000: nope type: effect-handler,
+    done#:3: (nope type: effect-handler, int) => void,
+): void => {
+    if m#:0 > n#:1 {
+        fail#🚶‍♂️🤠👺(
+            handlers#:15000,
+            (handlers#:15000: nope type: effect-handler, returnValue#:5: int): void => {
+                done#:3(handlers#:15000, 10);
+            },
+        );
+    } else {
+        decide#🎢😝🥫😃(
+            handlers#:15000,
+            (handlers#:15000: nope type: effect-handler, returnValue#:9: bool): void => {
+                if returnValue#:9 {
+                    done#:3(handlers#:15000, m#:0);
+                } else {
+                    chooseInt#🍢🏔️👼😃(
+                        m#:0 + 1,
+                        n#:1,
+                        handlers#:15000,
+                        (handlers#:15000: nope type: effect-handler, returnValue#:7: int): void => done#:3(
+                            handlers#:15000,
+                            returnValue#:7,
+                        ),
+                    );
+                };
+            },
+        );
     };
 }
 ```
@@ -101,6 +142,9 @@ export const hash_54cbbab4:
 /**
 ```
 const decide#5334ea40 = (): bool#builtin ={Decide#086e3532}> raise!(Decide#086e3532.decide())
+(handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler, bool) => void): void => {
+    TODO raise;
+}
 ```
 */
 export const hash_5334ea40:
@@ -128,6 +172,42 @@ const pythagorean#4f66ecc8 = (m#:0: int#builtin, n#:1: int#builtin): string#buil
         fail#0620e972();
         "??? how did this return";
     };
+}
+(
+    m#:0: int,
+    n#:1: int,
+    handlers#:15000: nope type: effect-handler,
+    done#:6: (nope type: effect-handler, string) => void,
+): void => {
+    chooseInt#🍢🏔️👼😃(
+        m#:0,
+        n#:1 - 1,
+        handlers#:15000,
+        (handlers#:15000: nope type: effect-handler, returnValue#:12: int): void => {
+            chooseInt#🍢🏔️👼😃(
+                returnValue#:12 + 1,
+                n#:1,
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler, returnValue#:10: int): void => {
+                    if isSquare(
+                        returnValue#:12 * returnValue#:12 + returnValue#:10 * returnValue#:10,
+                    ) {
+                        done#:6(
+                            handlers#:15000,
+                            ++(++(intToString(returnValue#:12), ":"), intToString(returnValue#:10)),
+                        );
+                    } else {
+                        fail#🚶‍♂️🤠👺(
+                            handlers#:15000,
+                            (handlers#:15000: nope type: effect-handler, returnValue#:8: int): void => {
+                                done#:6(handlers#:15000, "??? how did this return");
+                            },
+                        );
+                    };
+                },
+            );
+        },
+    );
 }
 ```
 */
@@ -168,6 +248,11 @@ const rec backtrackReverse#70ad2630 = <T#:0>(
         },
         pure(x#:2) => x#:2,
     };
+}
+<T>(fn#:0: nope type: cps-lambda, orElse#:1: () => [var]T#:0): [var]T#:0 => {
+    const result#:4: [var]T#:0;
+    TODO Handle;
+    return result#:4;
 }
 ```
 */
@@ -217,6 +302,11 @@ const rec backtrack#1603c390 = <T#:0>(
         pure(x#:2) => x#:2,
     };
 }
+<T>(fn#:0: nope type: cps-lambda, orElse#:1: () => [var]T#:0): [var]T#:0 => {
+    const result#:4: [var]T#:0;
+    TODO Handle;
+    return result#:4;
+}
 ```
 */
 export const hash_1603c390: <T_0>(arg_0:
@@ -252,6 +342,25 @@ const choose#437fecbe = <T#:0>(x#:0: T#:0, y#:1: T#:0): T#:0 ={Decide#086e3532}>
         y#:1;
     };
 }
+<T>(
+    x#:0: [var]T#:0,
+    y#:1: [var]T#:0,
+    handlers#:15000: nope type: effect-handler,
+    done#:3: (nope type: effect-handler, [var]T#:0) => void,
+): void => {
+    decide#🦕🤴🕵️‍♀️😃(
+        handlers#:15000,
+        (handlers#:15000: nope type: effect-handler, returnValue#:5: bool): void => {
+            const result#:6: [var]T#:0;
+            if returnValue#:5 {
+                result#:6 = x#:0;
+            } else {
+                result#:6 = y#:1;
+            };
+            done#:3(handlers#:15000, result#:6);
+        },
+    );
+}
 ```
 */
 export const hash_437fecbe:
@@ -275,6 +384,13 @@ export const hash_437fecbe:
 const print#eccbfbca = (x#:0: string#builtin): void#builtin ={Write#35f4b478}> raise!(
     Write#35f4b478.write(x#:0),
 )
+(
+    x#:0: string,
+    handlers#:15000: nope type: effect-handler,
+    done#:1: (nope type: effect-handler) => void,
+): void => {
+    TODO raise;
+}
 ```
 */
 export const hash_eccbfbca:
@@ -287,6 +403,7 @@ export const hash_eccbfbca:
 ```
 const callPlus5#1d5e1778 = {e#:0}(x#:0: () ={e#:0}> int#builtin): int#builtin ={e#:0}> x#:0() 
     +#builtin 5
+TODO effectful or direct lambda
 ```
 */
 export const hash_1d5e1778: any = {
@@ -307,6 +424,9 @@ const getAndSet#463fdaf6 = (): string#builtin ={Store#7b45d75e}> {
     raise!(Store#7b45d75e.set(x#:0 +#builtin 4));
     intToString#builtin(x#:0) ++#builtin ":" 
         ++#builtin intToString#builtin(raise!(Store#7b45d75e.get()));
+}
+(handlers#:15000: nope type: effect-handler, done#:3: (nope type: effect-handler, string) => void): void => {
+    TODO raise;
 }
 ```
 */
@@ -336,6 +456,11 @@ const rec withInitialValue#478ee9c0 = <T#:0>(
         Store.set#1((newValue#:4) => k#:5) => 478ee9c0#self<T#:0>(newValue#:4, k#:5),
         pure(x#:2) => x#:2,
     };
+}
+<T>(value#:0: int, fn#:1: nope type: cps-lambda): [var]T#:0 => {
+    const result#:6: [var]T#:0;
+    TODO Handle;
+    return result#:6;
 }
 ```
 */
@@ -369,6 +494,23 @@ const backtrackPythagReverse#54eb51c7 = (m#:0: int#builtin, n#:1: int#builtin): 
     fn: (): string#builtin ={DecideOrFail#7214565c}> pythagorean#4f66ecc8(m#:0, n#:1),
     orElse: (): string#builtin ={}> "No solution found",
 )
+(m#:0: int, n#:1: int): string => backtrackReverse#🐧🛹🏯😃<string>(
+    (
+        handlers#:15000: nope type: effect-handler,
+        done#:2: (nope type: effect-handler, string) => void,
+    ): void => {
+        pythagorean#👦🤹‍♂️🙇‍♂️😃(
+            m#:0,
+            n#:1,
+            handlers#:15000,
+            (handlers#:15000: nope type: effect-handler, returnValue#:4: string): void => done#:2(
+                handlers#:15000,
+                returnValue#:4,
+            ),
+        );
+    },
+    (): string => "No solution found",
+)
 ```
 */
 export const hash_54eb51c7: (arg_0: number, arg_1: number) => string = (m: number, n: number) => hash_70ad2630((handlers: Handlers, done$2: (arg_0: Handlers, arg_1: string) => void) => {
@@ -382,6 +524,23 @@ const backtrackPythag#3ab668a0 = (m#:0: int#builtin, n#:1: int#builtin): string#
 >(
     fn: (): string#builtin ={DecideOrFail#7214565c}> pythagorean#4f66ecc8(m#:0, n#:1),
     orElse: (): string#builtin ={}> "No solution found",
+)
+(m#:0: int, n#:1: int): string => backtrack#🌗🙋‍♂️🧜‍♂️<string>(
+    (
+        handlers#:15000: nope type: effect-handler,
+        done#:2: (nope type: effect-handler, string) => void,
+    ): void => {
+        pythagorean#👦🤹‍♂️🙇‍♂️😃(
+            m#:0,
+            n#:1,
+            handlers#:15000,
+            (handlers#:15000: nope type: effect-handler, returnValue#:4: string): void => done#:2(
+                handlers#:15000,
+                returnValue#:4,
+            ),
+        );
+    },
+    (): string => "No solution found",
 )
 ```
 */
@@ -402,6 +561,11 @@ const rec pickMax#998219d8 = (fn#:0: () ={Decide#086e3532}> int#builtin): int#bu
         };
     },
     pure(x#:1) => x#:1,
+}
+(fn#:0: nope type: cps-lambda): int => {
+    const result#:5: int;
+    TODO Handle;
+    return result#:5;
 }
 ```
 */
@@ -442,6 +606,23 @@ const chooseDiff#61f16268 = (): int#builtin ={Decide#086e3532}> {
     const x2#:1 = choose#437fecbe<int#builtin>(x: 5, y: 10);
     x1#:0 -#builtin x2#:1;
 }
+(handlers#:15000: nope type: effect-handler, done#:2: (nope type: effect-handler, int) => void): void => {
+    choose#👃♠️🥴😃<int>(
+        15,
+        30,
+        handlers#:15000,
+        (handlers#:15000: nope type: effect-handler, returnValue#:6: [var]T#:0): void => {
+            choose#👃♠️🥴😃<int>(
+                5,
+                10,
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler, returnValue#:4: [var]T#:0): void => {
+                    done#:2(handlers#:15000, returnValue#:6 - returnValue#:4);
+                },
+            );
+        },
+    );
+}
 ```
 */
 export const hash_61f16268:
@@ -459,6 +640,11 @@ export const hash_61f16268:
 const rec pickTrue#268d3ca7 = <T#:0>(fn#:0: () ={Decide#086e3532}> T#:0): T#:0 ={}> handle! fn#:0 {
     Decide.decide#0(() => k#:2) => 268d3ca7#self<T#:0>((): T#:0 ={Decide#086e3532}> k#:2(true)),
     pure(x#:1) => x#:1,
+}
+<T>(fn#:0: nope type: cps-lambda): [var]T#:0 => {
+    const result#:3: [var]T#:0;
+    TODO Handle;
+    return result#:3;
 }
 ```
 */
@@ -482,13 +668,14 @@ export const hash_268d3ca7: <T_0>(arg_0:
 
 /**
 ```
-const IntEq#9275f914 = Eq#553b4b8e<int#builtin>{"=="#553b4b8e#0: intEq#builtin}
+const IntEq#ec95f154 = Eq#51ea2a36<int#builtin>{"=="#51ea2a36#0: intEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: intEq}
 ```
 */
-export const hash_9275f914: t_553b4b8e<number> = ({
-  type: "553b4b8e",
-  h553b4b8e_0: intEq
-} as t_553b4b8e<number>);
+export const hash_ec95f154: t_51ea2a36<number> = ({
+  type: "51ea2a36",
+  h51ea2a36_0: intEq
+} as t_51ea2a36<number>);
 
 /**
 ```
@@ -502,6 +689,13 @@ const rec reverse#f201f930 = (fn#:0: () ={Write#35f4b478}> void#builtin): void#b
         },
         pure(a#:1) => a#:1,
     };
+}
+(
+    fn#:0: nope type: cps-lambda,
+    handlers#:15000: nope type: effect-handler,
+    done#:4: (nope type: effect-handler) => void,
+): void => {
+    TODO Handle;
 }
 ```
 */
@@ -532,6 +726,15 @@ const printFullName#ea51ddfc = (): void#builtin ={Read#22024b72, Write#35f4b478}
     const surName#:1 = raise!(Read#22024b72.read());
     print#eccbfbca(x: foreName#:0 ++#builtin " " ++#builtin surName#:1);
 }
+(handlers#:15000: nope type: effect-handler, done#:2: (nope type: effect-handler) => void): void => {
+    print#🎁(
+        "What is your forename?",
+        handlers#:15000,
+        (handlers#:15000: nope type: effect-handler): void => {
+            TODO raise;
+        },
+    );
+}
 ```
 */
 export const hash_ea51ddfc:
@@ -551,6 +754,9 @@ export const hash_ea51ddfc:
 /**
 ```
 const read#64605d94 = (): string#builtin ={Read#22024b72}> raise!(Read#22024b72.read())
+(handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler, string) => void): void => {
+    TODO raise;
+}
 ```
 */
 export const hash_64605d94:
@@ -572,6 +778,7 @@ const rec alwaysRead#1762d528 = <T#:0>{e#:0}(
         pure(a#:2) => a#:2,
     };
 }
+TODO effectful or direct lambda
 ```
 */
 export const hash_1762d528: any = {
@@ -618,6 +825,7 @@ const rec collect#2ce3943a = {e#:0}(fn#:0: () ={Write#35f4b478, e#:0}> void#buil
         pure(a#:1) => "end",
     };
 }
+TODO effectful or direct lambda
 ```
 */
 export const hash_2ce3943a: any = {
@@ -655,13 +863,14 @@ export const hash_2ce3943a: any = {
 
 /**
 ```
-const StringEq#606c7034 = Eq#553b4b8e<string#builtin>{"=="#553b4b8e#0: stringEq#builtin}
+const StringEq#da00b310 = Eq#51ea2a36<string#builtin>{"=="#51ea2a36#0: stringEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: stringEq}
 ```
 */
-export const hash_606c7034: t_553b4b8e<string> = ({
-  type: "553b4b8e",
-  h553b4b8e_0: stringEq
-} as t_553b4b8e<string>);
+export const hash_da00b310: t_51ea2a36<string> = ({
+  type: "51ea2a36",
+  h51ea2a36_0: stringEq
+} as t_51ea2a36<string>);
 
 /*
 collect#2ce3943a{}(
@@ -671,9 +880,18 @@ collect#2ce3943a{}(
             raise!(Write#35f4b478.write("three"));
         },
     ) 
-    ==#606c7034#553b4b8e#0 "one\ntwo\nthree\nend"
+    ==#da00b310#51ea2a36#0 "one\ntwo\nthree\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
+            TODO raise;
+        },
+    ),
+    "one\ntwo\nthree\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "one", (handlers, value) => ((handlers: Handlers) => {
     raise(handlers, "35f4b478", 0, "two", (handlers, value) => ((handlers: Handlers) => {
       raise(handlers, "35f4b478", 0, "three", (handlers, value) => done(handlers, value));
@@ -685,9 +903,22 @@ assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, 
 collect#2ce3943a{}(fn: (): void#builtin ={Write#35f4b478}> {
         print#eccbfbca(x: "HI");
     }) 
-    ==#606c7034#553b4b8e#0 "HI\nend"
+    ==#da00b310#51ea2a36#0 "HI\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:2: (nope type: effect-handler) => void): void => {
+            print#🎁(
+                "HI",
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler): void => done#:2(handlers#:15000),
+            );
+        },
+    ),
+    "HI\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
   hash_eccbfbca("HI", handlers, (handlers: Handlers) => done$2(handlers));
 }), "HI\nend");
 
@@ -698,9 +929,30 @@ collect#2ce3943a{}(
             print#eccbfbca(x: "HO");
         },
     ) 
-    ==#606c7034#553b4b8e#0 "HI\nHO\nend"
+    ==#da00b310#51ea2a36#0 "HI\nHO\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:4: (nope type: effect-handler) => void): void => {
+            print#🎁(
+                "HI",
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler): void => {
+                    print#🎁(
+                        "HO",
+                        handlers#:15000,
+                        (handlers#:15000: nope type: effect-handler): void => done#:4(
+                            handlers#:15000,
+                        ),
+                    );
+                },
+            );
+        },
+    ),
+    "HI\nHO\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$4: (arg_0: Handlers) => void) => {
   hash_eccbfbca("HI", handlers, (handlers: Handlers) => {
     hash_eccbfbca("HO", handlers, (handlers: Handlers) => done$4(handlers));
   });
@@ -713,9 +965,18 @@ collect#2ce3943a{}(
             raise!(Write#35f4b478.write("HO"));
         },
     ) 
-    ==#606c7034#553b4b8e#0 "HI\nHO\nend"
+    ==#da00b310#51ea2a36#0 "HI\nHO\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:7: (nope type: effect-handler) => void): void => {
+            TODO raise;
+        },
+    ),
+    "HI\nHO\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$7: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$7: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "HI", (handlers, value) => ((handlers: Handlers) => {
     raise(handlers, "35f4b478", 0, "HO", (handlers, value) => done$7(handlers, value));
   })(handlers, value));
@@ -731,20 +992,35 @@ collect#2ce3943a{}(
             ),
         ),
     ) 
-    ==#606c7034#553b4b8e#0 "hi and hi\nend"
+    ==#da00b310#51ea2a36#0 "hi and hi\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:12: (nope type: effect-handler) => void): void => {
+            get effectful or direct TODO<void>(
+                "hi",
+                (
+                    handlers#:15000: nope type: effect-handler,
+                    done#:14: (nope type: effect-handler) => void,
+                ): void => {
+                    TODO raise;
+                },
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler, returnValue#:16: [var]T#:0): void => done#:12(
+                    handlers#:15000,
+                ),
+            );
+        },
+    ),
+    "hi and hi\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$12: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$12: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$14: (arg_0: Handlers) => void) => {
     raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$11: string) => {
-      (() => {
-        let arg_lift_0$9: string = arg_lift_0$11 + " and ";
-        raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1: string) => {
-          (() => {
-            let arg_lift_0$8: string = arg_lift_0$9 + arg_lift_1;
-            hash_eccbfbca(arg_lift_0$8, handlers, (handlers: Handlers) => done$14(handlers));
-          })();
-        })(handlers, value));
-      })();
+      raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1: string) => {
+        hash_eccbfbca(arg_lift_0$11 + " and " + arg_lift_1, handlers, (handlers: Handlers) => done$14(handlers));
+      })(handlers, value));
     })(handlers, value));
   }, handlers, (handlers: Handlers, returnValue$16: T_0) => done$12(handlers));
 }), "hi and hi\nend");
@@ -756,9 +1032,30 @@ collect#2ce3943a{}(
             print#eccbfbca(x: "B");
         },
     ) 
-    ==#606c7034#553b4b8e#0 "A\nB\nend"
+    ==#da00b310#51ea2a36#0 "A\nB\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:17: (nope type: effect-handler) => void): void => {
+            print#🎁(
+                "A",
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler): void => {
+                    print#🎁(
+                        "B",
+                        handlers#:15000,
+                        (handlers#:15000: nope type: effect-handler): void => done#:17(
+                            handlers#:15000,
+                        ),
+                    );
+                },
+            );
+        },
+    ),
+    "A\nB\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$17: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$17: (arg_0: Handlers) => void) => {
   hash_eccbfbca("A", handlers, (handlers: Handlers) => {
     hash_eccbfbca("B", handlers, (handlers: Handlers) => done$17(handlers));
   });
@@ -776,26 +1073,78 @@ collect#2ce3943a{}(
             },
         ),
     ) 
-    ==#606c7034#553b4b8e#0 "hi\nYA\nhi\nB\nend"
+    ==#da00b310#51ea2a36#0 "hi\nYA\nhi\nB\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:22: (nope type: effect-handler) => void): void => {
+            get effectful or direct TODO<void>(
+                "hi",
+                (
+                    handlers#:15000: nope type: effect-handler,
+                    done#:24: (nope type: effect-handler) => void,
+                ): void => {
+                    read#⛷️😛🐠😃(
+                        handlers#:15000,
+                        (handlers#:15000: nope type: effect-handler, returnValue#:32: string): void => {
+                            print#🎁(
+                                returnValue#:32,
+                                handlers#:15000,
+                                (handlers#:15000: nope type: effect-handler): void => {
+                                    print#🎁(
+                                        "YA",
+                                        handlers#:15000,
+                                        (handlers#:15000: nope type: effect-handler): void => {
+                                            read#⛷️😛🐠😃(
+                                                handlers#:15000,
+                                                (
+                                                    handlers#:15000: nope type: effect-handler,
+                                                    returnValue#:28: string,
+                                                ): void => {
+                                                    print#🎁(
+                                                        returnValue#:28,
+                                                        handlers#:15000,
+                                                        (handlers#:15000: nope type: effect-handler): void => {
+                                                            print#🎁(
+                                                                "B",
+                                                                handlers#:15000,
+                                                                (
+                                                                    handlers#:15000: nope type: effect-handler,
+                                                                ): void => done#:24(handlers#:15000),
+                                                            );
+                                                        },
+                                                    );
+                                                },
+                                            );
+                                        },
+                                    );
+                                },
+                            );
+                        },
+                    );
+                },
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler, returnValue#:33: [var]T#:0): void => done#:22(
+                    handlers#:15000,
+                ),
+            );
+        },
+    ),
+    "hi\nYA\nhi\nB\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$22: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$22: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$24: (arg_0: Handlers) => void) => {
     hash_64605d94(handlers, (handlers: Handlers, returnValue$32: string) => {
-      let arg_lift_0$20: string = returnValue$32;
-      return (() => {
-        hash_eccbfbca(arg_lift_0$20, handlers, (handlers: Handlers) => {
-          hash_eccbfbca("YA", handlers, (handlers: Handlers) => {
-            hash_64605d94(handlers, (handlers: Handlers, returnValue$28: string) => {
-              let arg_lift_0$21: string = returnValue$28;
-              return (() => {
-                hash_eccbfbca(arg_lift_0$21, handlers, (handlers: Handlers) => {
-                  hash_eccbfbca("B", handlers, (handlers: Handlers) => done$24(handlers));
-                });
-              })();
+      hash_eccbfbca(returnValue$32, handlers, (handlers: Handlers) => {
+        hash_eccbfbca("YA", handlers, (handlers: Handlers) => {
+          hash_64605d94(handlers, (handlers: Handlers, returnValue$28: string) => {
+            hash_eccbfbca(returnValue$28, handlers, (handlers: Handlers) => {
+              hash_eccbfbca("B", handlers, (handlers: Handlers) => done$24(handlers));
             });
           });
         });
-      })();
+      });
     });
   }, handlers, (handlers: Handlers, returnValue$33: T_0) => done$22(handlers));
 }), "hi\nYA\nhi\nB\nend");
@@ -811,9 +1160,30 @@ collect#2ce3943a{}(
             },
         ),
     ) 
-    ==#606c7034#553b4b8e#0 "A\nB\nend"
+    ==#da00b310#51ea2a36#0 "A\nB\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:34: (nope type: effect-handler) => void): void => {
+            get effectful or direct TODO<void>(
+                "hi",
+                (
+                    handlers#:15000: nope type: effect-handler,
+                    done#:36: (nope type: effect-handler) => void,
+                ): void => {
+                    TODO raise;
+                },
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler, returnValue#:37: [var]T#:0): void => done#:34(
+                    handlers#:15000,
+                ),
+            );
+        },
+    ),
+    "A\nB\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$34: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$34: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$36: (arg_0: Handlers) => void) => {
     raise(handlers, "35f4b478", 0, "A", (handlers, value) => ((handlers: Handlers) => {
       raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, x: string) => {
@@ -833,9 +1203,30 @@ collect#2ce3943a{}(
             },
         ),
     ) 
-    ==#606c7034#553b4b8e#0 "B\nend"
+    ==#da00b310#51ea2a36#0 "B\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:38: (nope type: effect-handler) => void): void => {
+            get effectful or direct TODO<void>(
+                "hi",
+                (
+                    handlers#:15000: nope type: effect-handler,
+                    done#:40: (nope type: effect-handler) => void,
+                ): void => {
+                    TODO raise;
+                },
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler, returnValue#:41: [var]T#:0): void => done#:38(
+                    handlers#:15000,
+                ),
+            );
+        },
+    ),
+    "B\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$38: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$38: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("hi", (handlers: Handlers, done$40: (arg_0: Handlers) => void) => {
     raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, x: string) => {
       raise(handlers, "35f4b478", 0, "B", (handlers, value) => done$40(handlers, value));
@@ -852,9 +1243,25 @@ collect#2ce3943a{}(
             );
         },
     ) 
-    ==#606c7034#553b4b8e#0 "What is your forename?\nWhat is your surname?\nMe Me\nend"
+    ==#da00b310#51ea2a36#0 "What is your forename?\nWhat is your surname?\nMe Me\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:42: (nope type: effect-handler) => void): void => {
+            get effectful or direct TODO<void>(
+                "Me",
+                printFullName#🐯,
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler, returnValue#:44: [var]T#:0): void => done#:42(
+                    handlers#:15000,
+                ),
+            );
+        },
+    ),
+    "What is your forename?\nWhat is your surname?\nMe Me\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$42: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$42: (arg_0: Handlers) => void) => {
   hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$44: T_0) => done$42(handlers));
 }), "What is your forename?\nWhat is your surname?\nMe Me\nend");
 
@@ -867,9 +1274,39 @@ collect#2ce3943a{}(
             },
         ),
     ) 
-    ==#606c7034#553b4b8e#0 "B\nA\nend"
+    ==#da00b310#51ea2a36#0 "B\nA\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:45: (nope type: effect-handler) => void): void => {
+            reverse#👮‍♀️(
+                (
+                    handlers#:15000: nope type: effect-handler,
+                    done#:47: (nope type: effect-handler) => void,
+                ): void => {
+                    print#🎁(
+                        "A",
+                        handlers#:15000,
+                        (handlers#:15000: nope type: effect-handler): void => {
+                            print#🎁(
+                                "B",
+                                handlers#:15000,
+                                (handlers#:15000: nope type: effect-handler): void => done#:47(
+                                    handlers#:15000,
+                                ),
+                            );
+                        },
+                    );
+                },
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler): void => done#:45(handlers#:15000),
+            );
+        },
+    ),
+    "B\nA\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$45: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$45: (arg_0: Handlers) => void) => {
   hash_f201f930((handlers: Handlers, done$47: (arg_0: Handlers) => void) => {
     hash_eccbfbca("A", handlers, (handlers: Handlers) => {
       hash_eccbfbca("B", handlers, (handlers: Handlers) => done$47(handlers));
@@ -890,49 +1327,85 @@ collect#2ce3943a{}(
             );
         },
     ) 
-    ==#606c7034#553b4b8e#0 "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
+    ==#da00b310#51ea2a36#0 "Me Me\nWhat is your surname?\nWhat is your forename?\nend"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    get effectful or direct TODO(
+        (handlers#:15000: nope type: effect-handler, done#:50: (nope type: effect-handler) => void): void => {
+            reverse#👮‍♀️(
+                (
+                    handlers#:15000: nope type: effect-handler,
+                    done#:52: (nope type: effect-handler) => void,
+                ): void => {
+                    get effectful or direct TODO<void>(
+                        "Me",
+                        printFullName#🐯,
+                        handlers#:15000,
+                        (handlers#:15000: nope type: effect-handler, returnValue#:54: [var]T#:0): void => done#:52(
+                            handlers#:15000,
+                        ),
+                    );
+                },
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler): void => done#:50(handlers#:15000),
+            );
+        },
+    ),
+    "Me Me\nWhat is your surname?\nWhat is your forename?\nend",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_2ce3943a.direct((handlers: Handlers, done$50: (arg_0: Handlers) => void) => {
+assertCall(hash_da00b310.h51ea2a36_0, hash_2ce3943a.direct((handlers: Handlers, done$50: (arg_0: Handlers) => void) => {
   hash_f201f930((handlers: Handlers, done$52: (arg_0: Handlers) => void) => {
     hash_1762d528.effectful("Me", hash_ea51ddfc, handlers, (handlers: Handlers, returnValue$54: T_0) => done$52(handlers));
   }, handlers, (handlers: Handlers) => done$50(handlers));
 }), "Me Me\nWhat is your surname?\nWhat is your forename?\nend");
 
 /*
-pickTrue#268d3ca7<int#builtin>(fn: chooseDiff#61f16268) ==#9275f914#553b4b8e#0 10
+pickTrue#268d3ca7<int#builtin>(fn: chooseDiff#61f16268) ==#ec95f154#51ea2a36#0 10
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, pickTrue#☝️🚨☘️<int>(chooseDiff#☘️😡🐻😃), 10)
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_268d3ca7(hash_61f16268), 10);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_268d3ca7(hash_61f16268), 10);
 
 /*
-pickMax#998219d8(fn: chooseDiff#61f16268) ==#9275f914#553b4b8e#0 25
+pickMax#998219d8(fn: chooseDiff#61f16268) ==#ec95f154#51ea2a36#0 25
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, pickMax#👨‍👨‍👧‍👧(chooseDiff#☘️😡🐻😃), 25)
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_998219d8(hash_61f16268), 25);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_998219d8(hash_61f16268), 25);
 
 /*
-backtrackPythag#3ab668a0(m: 4, n: 15) ==#606c7034#553b4b8e#0 "5:12"
+backtrackPythag#3ab668a0(m: 4, n: 15) ==#da00b310#51ea2a36#0 "5:12"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, backtrackPythag#🤘🏄‍♂️🌀(4, 15), "5:12")
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_3ab668a0(4, 15), "5:12");
+assertCall(hash_da00b310.h51ea2a36_0, hash_3ab668a0(4, 15), "5:12");
 
 /*
-backtrackPythag#3ab668a0(m: 7, n: 10) ==#606c7034#553b4b8e#0 "No solution found"
+backtrackPythag#3ab668a0(m: 7, n: 10) ==#da00b310#51ea2a36#0 "No solution found"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, backtrackPythag#🤘🏄‍♂️🌀(7, 10), "No solution found")
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_3ab668a0(7, 10), "No solution found");
+assertCall(hash_da00b310.h51ea2a36_0, hash_3ab668a0(7, 10), "No solution found");
 
 /*
-backtrackPythagReverse#54eb51c7(m: 4, n: 15) ==#606c7034#553b4b8e#0 "9:12"
+backtrackPythagReverse#54eb51c7(m: 4, n: 15) ==#da00b310#51ea2a36#0 "9:12"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, backtrackPythagReverse#👩‍❤️‍💋‍👨🍶🤶😃(4, 15), "9:12")
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_54eb51c7(4, 15), "9:12");
+assertCall(hash_da00b310.h51ea2a36_0, hash_54eb51c7(4, 15), "9:12");
 
 /*
+10
 10
 */
 10;
 
 /*
 withInitialValue#478ee9c0<string#builtin>(value: 10, fn: getAndSet#463fdaf6) 
-    ==#606c7034#553b4b8e#0 "10:14"
+    ==#da00b310#51ea2a36#0 "10:14"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    withInitialValue#🛀🎄💗😃<string>(10, getAndSet#🏞️🕹️👻😃),
+    "10:14",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_478ee9c0(10, hash_463fdaf6), "10:14");
+assertCall(hash_da00b310.h51ea2a36_0, hash_478ee9c0(10, hash_463fdaf6), "10:14");
 
 /*
 withInitialValue#478ee9c0<int#builtin>(
@@ -941,15 +1414,41 @@ withInitialValue#478ee9c0<int#builtin>(
             x: (): int#builtin ={Store#7b45d75e}> raise!(Store#7b45d75e.get()),
         ),
     ) 
-    ==#9275f914#553b4b8e#0 9
+    ==#ec95f154#51ea2a36#0 9
+assertCall(
+    IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0,
+    withInitialValue#🛀🎄💗😃<int>(
+        4,
+        (
+            handlers#:15000: nope type: effect-handler,
+            done#:55: (nope type: effect-handler, int) => void,
+        ): void => {
+            get effectful or direct TODO(
+                (
+                    handlers#:15000: nope type: effect-handler,
+                    done#:57: (nope type: effect-handler, int) => void,
+                ): void => {
+                    TODO raise;
+                },
+                handlers#:15000,
+                (handlers#:15000: nope type: effect-handler, returnValue#:58: int): void => done#:55(
+                    handlers#:15000,
+                    returnValue#:58,
+                ),
+            );
+        },
+    ),
+    9,
+)
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_478ee9c0(4, (handlers: Handlers, done$55: (arg_0: Handlers, arg_1: number) => void) => {
+assertCall(hash_ec95f154.h51ea2a36_0, hash_478ee9c0(4, (handlers: Handlers, done$55: (arg_0: Handlers, arg_1: number) => void) => {
   hash_1d5e1778.effectful((handlers: Handlers, done$57: (arg_0: Handlers, arg_1: number) => void) => {
     raise(handlers, "7b45d75e", 0, null, (handlers, value) => done$57(handlers, value));
   }, handlers, (handlers: Handlers, returnValue$58: number) => done$55(handlers, returnValue$58));
 }), 9);
 
 /*
-callPlus5#1d5e1778{}(x: (): int#builtin ={}> 4) ==#9275f914#553b4b8e#0 9
+callPlus5#1d5e1778{}(x: (): int#builtin ={}> 4) ==#ec95f154#51ea2a36#0 9
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, get effectful or direct TODO((): int => 4), 9)
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_1d5e1778.direct(() => 4), 9);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_1d5e1778.direct(() => 4), 9);

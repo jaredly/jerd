@@ -148,6 +148,14 @@ describe('glslPrinter', () => {
         );
     });
 
+    it('should be able to add vec2s', () => {
+        expect(
+            processOne(`vec2(2.0, 2.0) + vec2(3.0, 1.0)`),
+        ).toMatchInlineSnapshot(
+            `/*vec2(2, 2) + vec2(3, 1)*/const vec2 toplevel_0f823a8e = (vec2(2.0, 2.0) + vec2(3.0, 1.0));`,
+        );
+    });
+
     describe('things that glsl should be able to handle', () => {
         it('basic thing', () => {
             expect(
@@ -205,37 +213,37 @@ describe('glslPrinter', () => {
 			`),
             ).toMatchInlineSnapshot(`
 
-                INVALID GLSL:
-                - Invalid GLSL at 4:7-4:14: Can't have recursion
-                - Invalid GLSL at 6:7-6:14: Can't have recursion
+                                INVALID GLSL:
+                                - Invalid GLSL at 4:7-4:14: Can't have recursion
+                                - Invalid GLSL at 6:7-6:14: Can't have recursion
 
-                /* (n#:0: int): int => {
-                    if n#:0 <= 1 {
-                        return 1;
-                    } else {
-                        if (n#:0 modInt 2) == (0) {
-                            return awesome#🪂(n#:0 / 2) + 1;
-                        } else {
-                            return awesome#🪂(n#:0 * 3 + 1) + 1;
-                        };
-                    };
-                } */
-                int awesome_85445760(int n_0) {
-                    if ((n_0 <= 1)) {
-                        return 1;
-                    } else {
-                        if (((n_0 % 2) == 0)) {
-                            return (awesome_85445760((n_0 / 2)) + 1);
-                        } else {
-                            return (awesome_85445760(((n_0 * 3) + 1)) + 1);
-                        };
-                    };
-                }
-                /* (env#:0: GLSLEnv#💜, pos#:1: Vec2#🍱🐶💣): Vec4#✨🤶👨‍🔬😃 => vec4(float(awesome#🪂(3))) */
-                vec4 toplevel_0166ae6c(GLSLEnv_88074884 env_0, vec2 pos_1) {
-                    return vec4(float(awesome_85445760(3)));
-                }
-            `);
+                                /* (n#:0: int): int => {
+                                    if n#:0 <= 1 {
+                                        return 1;
+                                    } else {
+                                        if (n#:0 modInt 2) == (0) {
+                                            return awesome#🪂(n#:0 / 2) + 1;
+                                        } else {
+                                            return awesome#🪂(n#:0 * 3 + 1) + 1;
+                                        };
+                                    };
+                                } */
+                                int awesome_85445760(int n_0) {
+                                    if ((n_0 <= 1)) {
+                                        return 1;
+                                    } else {
+                                        if (((n_0 % 2) == 0)) {
+                                            return (awesome_85445760((n_0 / 2)) + 1);
+                                        } else {
+                                            return (awesome_85445760(((n_0 * 3) + 1)) + 1);
+                                        };
+                                    };
+                                }
+                                /* (env#:0: GLSLEnv#💜, pos#:1: Vec2#🍱🐶💣): Vec4#✨🤶👨‍🔬😃 => vec4(float(awesome#🪂(3))) */
+                                vec4 toplevel_0166ae6c(GLSLEnv_88074884 env_0, vec2 pos_1) {
+                                    return vec4(float(awesome_85445760(3)));
+                                }
+                        `);
         });
 
         it.skip('cant handle array spread oops', () => {

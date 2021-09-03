@@ -281,6 +281,10 @@ export const transformLocations = (
                   }
                 : null;
         },
+        type: (type) => {
+            const location = mapper(type.location);
+            return location !== type.location ? { ...type, location } : null;
+        },
         term: (term) => {
             if (term.decorators) {
                 let changed = false;

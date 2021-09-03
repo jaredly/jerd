@@ -22,6 +22,7 @@ import {
 export type Visitor<Ctx> = {
     toplevel?: (value: ToplevelT, ctx: Ctx) => ToplevelT | null | false;
     term: (value: Term, ctx: Ctx) => Term | null | false | [Term | null, Ctx];
+    type?: (value: Type, ctx: Ctx) => Type | null | false;
     let?: (value: Let, ctx: Ctx) => Let | null | false | [Let | null, Ctx, Ctx];
     switchCase?: (
         value: SwitchCase,
@@ -92,6 +93,45 @@ export const transformLet = <Ctx>(
 export const transform = (term: Term, visitor: Visitor<null>) =>
     transformWithCtx(term, visitor, null);
 
+export const transformTypeWithCtx = <Ctx>(
+    type: Type,
+    visitor: Visitor<Ctx>,
+    ctx: Ctx,
+): Type => {
+    if (!visitor.type) {
+        return type;
+    }
+    const is = visitor.type(type, ctx);
+    if (is === false) {
+        return type;
+    }
+    if (is != null) {
+        type = is;
+    }
+    switch (type.type) {
+        case 'lambda': {
+            const res = transformTypeWithCtx(type.res, visitor, ctx);
+            let changed = false;
+            const args = type.args.map((arg) => {
+                const na = transformTypeWithCtx(arg, visitor, ctx);
+                changed = changed || na !== arg;
+                return na;
+            });
+            return res !== type.res || changed ? { ...type, args, res } : type;
+        }
+        case 'ref': {
+            let changed = false;
+            const typeVbls = type.typeVbls.map((vbl) => {
+                const nw = transformTypeWithCtx(vbl, visitor, ctx);
+                changed = changed || nw !== vbl;
+                return nw;
+            });
+            return changed ? { ...type, typeVbls } : type;
+        }
+    }
+    return type;
+};
+
 export const transformWithCtx = <Ctx>(
     term: Term,
     visitor: Visitor<Ctx>,
@@ -113,6 +153,10 @@ export const transformWithCtx = <Ctx>(
         } else {
             term = transformed;
         }
+    }
+    const is = transformTypeWithCtx(term.is, visitor, ctx);
+    if (is !== term.is) {
+        term = { ...term, is: is as any };
     }
     switch (term.type) {
         case 'raise': {

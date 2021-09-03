@@ -11,6 +11,7 @@ import * as builtins from '@jerd/language/src/printing/builtins';
 import {
     GlobalEnv,
     Id,
+    mergeGlobalEnvs,
     newLocal,
     newWithGlobal,
     Type,
@@ -188,45 +189,8 @@ export const initialState = async (): Promise<State> => {
                 env: {
                     ...data.env,
                     global: {
-                        ...data.env.global,
-                        builtins: env.builtins,
-                        builtinTypes: env.builtinTypes,
+                        ...mergeGlobalEnvs(data.env.global, env),
                         metaData,
-                        rng: env.rng,
-                        recordGroups: {
-                            ...env.recordGroups,
-                            ...data.env.global.recordGroups,
-                        },
-                        decoratorNames: {
-                            ...env.decoratorNames,
-                            ...data.env.global.decoratorNames,
-                        },
-                        decorators: {
-                            ...env.decorators,
-                            ...data.env.global.decorators,
-                        },
-                        attributeNames: {
-                            ...env.attributeNames,
-                            ...data.env.global.attributeNames,
-                        },
-                        typeNames: mergeNames(
-                            env.typeNames,
-                            data.env.global.typeNames,
-                        ),
-                        idNames: {
-                            ...env.idNames,
-                            ...data.env.global.idNames,
-                        },
-                        types: {
-                            ...env.types,
-                            ...data.env.global.types,
-                        },
-                        names: mergeNames(env.names, data.env.global.names),
-                        terms: {
-                            // In case we added new global terms
-                            ...env.terms,
-                            ...data.env.global.terms,
-                        },
                     },
                     // Reset the local env
                     local: newLocal(),
@@ -275,25 +239,6 @@ export const newEvalEnv = (builtins: { [key: string]: any }): EvalEnv => ({
     executionLimit: { ticks: 0, maxTime: 0, enabled: false },
     traceObj: { traces: null },
 });
-
-export const mergeNames = (
-    a: { [key: string]: Array<Id> },
-    b: { [key: string]: Array<Id> },
-) => {
-    const names = { ...a };
-    Object.keys(b).forEach((name) => {
-        if (!names[name]) {
-            names[name] = b[name];
-            return;
-        }
-        const got: { [key: string]: true } = {};
-        names[name].forEach((k) => (got[idName(k)] = true));
-        names[name] = names[name].concat(
-            b[name].filter((n) => !got[idName(n)]),
-        );
-    });
-    return names;
-};
 
 export const buildIndex = (env: GlobalEnv): Indices => {
     const termsToTerms: Index = { from: {}, to: {} };
