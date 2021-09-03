@@ -2,8 +2,12 @@
 Recreate this! https://twitter.com/matthen2/status/1249611168265547776
 
 BUGS
-- [ ] if there's a pending, the plugin doesn't show. Maybe I'm not evaluating it?
-- [ ] let's get fps going!
+- [x] show errors below please! Need to know why it's not working.
+- [ ] uhhh why is glsl not using native types anymore??? I should have been keeping track of this...
+
+- [x] if there's a pending, the plugin doesn't show. Maybe I'm not evaluating it?
+- [ ] if the thing doesn't evaluate for a second, the plugin view goes away. I should retain the last valid thing.
+- [x] let's get fps going!
 - [ ] fix pinning. make it work with proposed and sliders and such.
 
 - [x] ugh ok fix the currently failing tests.

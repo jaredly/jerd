@@ -464,7 +464,6 @@ export default ({
                         !evt.metaKey &&
                         !evt.ctrlKey
                     ) {
-                        console.log('space');
                         const sel = document.getSelection();
                         if (sel && sel.focusNode) {
                             const parent = sel.focusNode.parentElement!;

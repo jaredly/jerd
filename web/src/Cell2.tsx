@@ -122,19 +122,27 @@ const reducer = (state: State, action: Action): State => {
 export const termForToplevel = (t: ToplevelT | null) =>
     t && (t.type === 'Expression' || t.type === 'Define') ? t.term : null;
 
-const parseRaw = (raw: string, global: GlobalEnv) => {
+const parseRaw = (raw: string, global: GlobalEnv): TypeResult => {
     try {
         const parsed: Array<Toplevel> = parse(raw);
         if (parsed.length > 1) {
-            return null;
+            return { type: 'multiple' };
         }
-        return addLocationIndices(
-            typeToplevelT(newWithGlobal(global), parsed[0], null),
-        );
+        return {
+            type: 'success',
+            toplevel: addLocationIndices(
+                typeToplevelT(newWithGlobal(global), parsed[0], null),
+            ),
+        };
     } catch (err) {
-        return null;
+        return { type: 'error', err };
     }
 };
+
+type TypeResult =
+    | { type: 'error'; err: Error }
+    | { type: 'success'; toplevel: ToplevelT }
+    | { type: 'multiple' };
 
 const CellView_ = ({
     cell,
@@ -168,13 +176,14 @@ const CellView_ = ({
 
     const evalCache = React.useRef({} as { [key: string]: any });
 
-    const toplevel = React.useMemo(() => {
+    const typeResult = React.useMemo((): TypeResult => {
         return state.type === 'text'
             ? parseRaw(state.raw, env.global)
             : cell.content.type === 'raw'
             ? parseRaw(cell.content.text, env.global)
-            : getToplevel(env, cell.content);
+            : { type: 'success', toplevel: getToplevel(env, cell.content) };
     }, [state.type === 'text' ? state.raw : cell.content]);
+    const toplevel = typeResult.type === 'success' ? typeResult.toplevel : null;
 
     const evaled = React.useMemo(() => {
         if (
@@ -447,6 +456,9 @@ const CellView_ = ({
             })}
         >
             {body}
+            {typeResult.type === 'error' ? (
+                <div>{typeResult.err.message}</div>
+            ) : null}
             {termAndValue ? (
                 <RenderResult
                     onSetPlugin={onSetPlugin}
@@ -465,6 +477,8 @@ const CellView_ = ({
         </CellWrapper>
     );
 };
+
+// const contentId =
 
 const getTermAndValue = (
     toplevel: ToplevelT | null,
