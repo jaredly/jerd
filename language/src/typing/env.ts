@@ -606,7 +606,68 @@ export const typeRecordDefn = (
 
     // STOPSHIP: Need to prevent people supplying two defaults
     // for the same row.
-    const defaults: Array<{ id: Id | null; idx: number; value: Term }> = [];
+    const defaults: {
+        [key: string]: { id: Id | null; idx: number; value: Term };
+    } = {};
+    const items = (record.items.filter(
+        (r) => r.type === 'Row',
+    ) as Array<RecordRow>).map((r, i) => {
+        const res = typeType(typeInnerWithSelf, r.rtype);
+        if (r.value) {
+            const term = typeExpr(env, r.value);
+            if (getEffects(term).length) {
+                throw new LocatedError(
+                    id.location,
+                    `Record defaults can't be effectful`,
+                );
+            }
+            defaults[`${i}`] = {
+                id: null,
+                idx: i,
+                value: term,
+            };
+        }
+        return res;
+    });
+    const extenders = (record.items.filter(
+        (r) => r.type === 'Spread',
+    ) as Array<RecordSpread>)
+        // TODO: only allow ffi to spread into ffi, etc.
+        .map((r) => {
+            const t = resolveType(typeInnerWithSelf, r.constr)[0];
+            const subTypes = getAllSubTypes(env.global, [t]);
+            if (r.defaults && r.defaults.length) {
+                r.defaults.forEach(({ id, value }) => {
+                    // TODO: recognize hashes
+                    for (let st of subTypes) {
+                        const names = env.global.recordGroups[idName(st)];
+                        const idx = names.indexOf(id.text);
+                        if (idx !== -1) {
+                            const term = typeExpr(env, value);
+                            if (getEffects(term).length) {
+                                throw new LocatedError(
+                                    id.location,
+                                    `Record defaults can't be effectful`,
+                                );
+                            }
+                            defaults[`${idName(st)}#${idx}`] = {
+                                id: st,
+                                idx,
+                                value: term,
+                            };
+                            return;
+                        }
+                    }
+                    throw new LocatedError(
+                        id.location,
+                        `Unknown attribute name, doesn't match ${idName(
+                            t,
+                        )} or any subtypes`,
+                    );
+                });
+            }
+            return t;
+        });
     // const defa
 
     return {
@@ -616,81 +677,9 @@ export const typeRecordDefn = (
         location,
         effectVbls,
         ffi,
-        extends: (record.items.filter(
-            (r) => r.type === 'Spread',
-        ) as Array<RecordSpread>)
-            // TODO: only allow ffi to spread into ffi, etc.
-            .map((r) => {
-                const t = resolveType(typeInnerWithSelf, r.constr)[0];
-                const subTypes = getAllSubTypes(env.global, [t]);
-                if (r.defaults && r.defaults.length) {
-                    r.defaults.forEach(({ id, value }) => {
-                        // TODO: recognize hashes
-                        for (let st of subTypes) {
-                            const names = env.global.recordGroups[idName(st)];
-                            const idx = names.indexOf(id.text);
-                            if (idx !== -1) {
-                                const term = typeExpr(env, value);
-                                if (getEffects(term).length) {
-                                    throw new LocatedError(
-                                        id.location,
-                                        `Record defaults can't be effectful`,
-                                    );
-                                }
-                                defaults.push({
-                                    id: st,
-                                    idx,
-                                    value: term,
-                                });
-                                return;
-                            }
-                        }
-                        throw new LocatedError(
-                            id.location,
-                            `Unknown attribute name, doesn't match ${idName(
-                                t,
-                            )} or any subtypes`,
-                        );
-                    });
-                }
-                return t;
-            }),
-        items: (record.items.filter(
-            (r) => r.type === 'Row',
-        ) as Array<RecordRow>).map((r, i) => {
-            const res = typeType(typeInnerWithSelf, r.rtype);
-            if (r.value) {
-                const term = typeExpr(env, r.value);
-                if (getEffects(term).length) {
-                    throw new LocatedError(
-                        id.location,
-                        `Record defaults can't be effectful`,
-                    );
-                }
-                defaults.push({
-                    id: null,
-                    idx: i,
-                    value: term,
-                });
-            }
-            return res;
-        }),
-        defaults: defaults.length
-            ? defaults.sort((a, b) => {
-                  const ida = a.id ? idName(a.id) : null;
-                  const idb = b.id ? idName(b.id) : null;
-                  if (ida === idb) {
-                      return a.idx - b.idx;
-                  }
-                  if (ida == null) {
-                      return -1;
-                  }
-                  if (idb == null) {
-                      return 1;
-                  }
-                  return ida < idb ? -1 : 1;
-              })
-            : undefined,
+        extends: extenders,
+        items: items,
+        defaults: Object.keys(defaults).length ? defaults : undefined,
     };
 };
 
@@ -1194,11 +1183,7 @@ export const resolveIdentifier = (
             if (env.global.types[first]) {
                 const id = idFromName(first);
                 const t = env.global.types[idName(id)];
-                if (
-                    t.type === 'Record' &&
-                    t.items.length === 0 &&
-                    t.extends.length === 0
-                ) {
+                if (t.type === 'Record' && !hasRequiredItems(env.global, t)) {
                     return plainRecord(id, location);
                 }
             }
@@ -1304,15 +1289,35 @@ export const resolveIdentifier = (
     if (env.global.typeNames[text]) {
         const id = env.global.typeNames[text][0];
         const t = env.global.types[idName(id)];
-        if (
-            t.type === 'Record' &&
-            t.items.length === 0 &&
-            t.extends.length === 0
-        ) {
+        if (t.type === 'Record') {
+            // Ok, so we want to cehck the number of required items
+        }
+        if (t.type === 'Record' && !hasRequiredItems(env.global, t)) {
             return plainRecord(id, location);
         }
     }
     return null;
+};
+
+// NEXT HERE
+const hasRequiredItems = (env: GlobalEnv, defn: RecordDef): boolean => {
+    if (defn.items.length === 0 && defn.extends.length === 0) {
+        return false;
+    }
+    const defaults = defn.defaults;
+    if (!defaults) {
+        return true;
+    }
+    const own = defn.items.some((_, i) => !defaults[`${i}`]);
+    if (own) {
+        return true;
+    }
+    const allSubTypes = getAllSubTypes(env, defn.extends);
+    return allSubTypes.some((id) =>
+        env.types[idName(id)].items.some(
+            (_, i) => !defaults[`${idName(id)}#${i}`],
+        ),
+    );
 };
 
 const plainRecord = (id: Id, location: Location): Term => ({

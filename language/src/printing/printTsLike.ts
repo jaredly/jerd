@@ -271,8 +271,9 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
     const names = env.global.recordGroups[idName(id)];
     const baseDefaults: { [idx: number]: Term } = {};
     if (recordDef.defaults) {
-        recordDef.defaults.forEach((item) => {
-            if (item.id === null) {
+        Object.keys(recordDef.defaults).forEach((k) => {
+            const item = recordDef.defaults![k];
+            if (item.id == null) {
                 baseDefaults[item.idx] = item.value;
             }
         });
@@ -294,11 +295,15 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
                 .map((ex) => {
                     const subTyeps = getAllSubTypes(env.global, [ex]);
                     const defaults = recordDef.defaults
-                        ? recordDef.defaults.filter(
-                              (item) =>
-                                  item.id &&
-                                  subTyeps.find((id) => idsEqual(id, item.id!)),
-                          )
+                        ? Object.keys(recordDef.defaults)
+                              .map((k) => recordDef.defaults![k])
+                              .filter(
+                                  (item) =>
+                                      item.id &&
+                                      subTyeps.find((id) =>
+                                          idsEqual(id, item.id!),
+                                      ),
+                              )
                         : [];
                     return items([
                         atom('...'),

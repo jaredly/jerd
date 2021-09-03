@@ -289,9 +289,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 return;
             }
             if (def.defaults) {
-                const found = def.defaults.find(
-                    (item) => i === item.idx && item.id === null,
-                );
+                const found = def.defaults[i + ''];
                 if (found != null) {
                     // Ok so there is a value, but we don't
                     // pop it in here just yet.

@@ -412,27 +412,34 @@ assertCall(hash_da00b310.h51ea2a36_0, ({ ...hash_01797ad2,
 } as t_23c23c80).h4878c6fa_0, "wolrf");
 
 /*
-SomethingWithDefaults#039f0aae{name#039f0aae#0: "Me", age#039f0aae#1: 4}.hasGlasses#039f0aae#2 
+SomethingWithDefaults#6e4345e8{name#6e4345e8#0: "Me", age#6e4345e8#1: 4}.hasGlasses#6e4345e8#2 
     ==#builtin false
 */
 assertEqual(({
-  type: "039f0aae",
-  h039f0aae_0: "Me",
-  h039f0aae_1: 4,
-  h039f0aae_2: false
-} as t_039f0aae).h039f0aae_2, false);
+  type: "6e4345e8",
+  h6e4345e8_0: "Me",
+  h6e4345e8_1: 4,
+  h6e4345e8_2: false
+} as t_6e4345e8).h6e4345e8_2, false);
 
 /*
-SomethingWithDefaults#039f0aae{
-        name#039f0aae#0: "Me",
-        age#039f0aae#1: 4,
-        hasGlasses#039f0aae#2: true,
-    }.hasGlasses#039f0aae#2 
+SomethingWithDefaults#6e4345e8{
+        name#6e4345e8#0: "Me",
+        age#6e4345e8#1: 4,
+        hasGlasses#6e4345e8#2: true,
+    }.hasGlasses#6e4345e8#2 
     ==#builtin true
 */
 assertEqual(({
-  type: "039f0aae",
-  h039f0aae_0: "Me",
-  h039f0aae_1: 4,
-  h039f0aae_2: true
-} as t_039f0aae).h039f0aae_2, true);
+  type: "6e4345e8",
+  h6e4345e8_0: "Me",
+  h6e4345e8_1: 4,
+  h6e4345e8_2: true
+} as t_6e4345e8).h6e4345e8_2, true);
+
+/*
+One#1f93c514.name#1f93c514#0 ==#da00b310#51ea2a36#0 "One"
+*/
+assertCall(hash_da00b310.h51ea2a36_0, ({
+  type: "1f93c514"
+} as t_1f93c514).h1f93c514_0, "One");

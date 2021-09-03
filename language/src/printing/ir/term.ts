@@ -314,11 +314,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                       idName(base.ref.id)
                                   ] as RecordDef;
                                   if (defn.defaults) {
-                                      const found = defn.defaults.find(
-                                          (item) =>
-                                              i === item.idx &&
-                                              item.id === null,
-                                      );
+                                      const found = defn.defaults[`${i}`];
                                       if (found) {
                                           return printTerm(
                                               env,
