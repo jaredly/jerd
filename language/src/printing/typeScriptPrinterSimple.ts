@@ -62,6 +62,7 @@ import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
 import { Location } from '../parsing/parser';
 import { showViolation, validate } from './ir/validate';
+import { debugExpr } from './irDebugPrinter';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -1112,7 +1113,7 @@ export const fileToTypescript = (
 
         const id = idFromName(idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
-        const comment = printToString(declarationToPretty(senv, id, term), 100);
+        let comment = printToString(declarationToPretty(senv, id, term), 100);
         senv.local.unique.current = maxUnique(term) + 1;
         term = liftEffects(senv, term);
         // TODO: This is too easy to miss. Bake it in somewhere.
@@ -1168,6 +1169,9 @@ export const fileToTypescript = (
         uniquesReallyAreUnique(irTerm);
         // console.log('otho');
         irTerms[idRaw] = { expr: irTerm, inline: false };
+
+        comment += '\n' + printToString(debugExpr(senv, irTerm), 100);
+
         items.push(
             declarationToTs(
                 senv,
@@ -1180,12 +1184,33 @@ export const fileToTypescript = (
     });
 
     expressions.forEach((term) => {
-        const comment = printToString(termToPretty(env, term), 100);
+        let comment = printToString(termToPretty(env, term), 100);
         if (assert && typesEqual(term.is, bool)) {
             term = wrapWithAssert(term);
         }
         term = liftEffects(env, term);
-        const irTerm = ir.printTerm(env, irOpts, term);
+        let irTerm = ir.printTerm(env, irOpts, term);
+
+        if (opts.optimize) {
+            const opt = optimizeRepeatedly(javascriptOpts);
+            irTerm = opt(
+                {
+                    env,
+                    exprs: irTerms,
+                    types: {},
+                    id: idFromName(hashObject(term)),
+                    optimize: opt,
+                    opts: {},
+                    notes: null,
+                },
+                irTerm,
+            );
+            // irTerm = optimizeDefineNew(senv, irTerm, id, null);
+        }
+        // then pop over to glslPrinter and start making things work.
+        uniquesReallyAreUnique(irTerm);
+        comment += '\n' + printToString(debugExpr(env, irTerm), 100);
+
         items.push(
             t.addComment(
                 t.expressionStatement(

@@ -128,6 +128,7 @@ const me#2224fa6e = Person#3a86a2c5{
     age#a0d405a6#0: 10,
     what#3a86a2c5#0: 3,
 }
+Person#🍩🚴🌪️{TODO SPREADs}{h3a86a2c5_0: 3, h4878c6fa_0: "June", ha0d405a6_0: 10}
 ```
 */
 export const hash_2224fa6e: t_3a86a2c5 = ({
@@ -144,6 +145,7 @@ const aPerson#01797ad2 = Person#3a86a2c5{
     age#a0d405a6#0: 23,
     what#3a86a2c5#0: 2,
 }
+Person#🍩🚴🌪️{TODO SPREADs}{h3a86a2c5_0: 2, h4878c6fa_0: "ralf", ha0d405a6_0: 23}
 ```
 */
 export const hash_01797ad2: t_3a86a2c5 = ({
@@ -156,6 +158,7 @@ export const hash_01797ad2: t_3a86a2c5 = ({
 /**
 ```
 const aDog#04323944 = Animal#79fbcdfe{name#4878c6fa#0: "wolrf", furColor#79fbcdfe#0: "red"}
+Animal#🐆🏖️☁️😃{TODO SPREADs}{h79fbcdfe_0: "red", h4878c6fa_0: "wolrf"}
 ```
 */
 export const hash_04323944: t_79fbcdfe = ({
@@ -167,6 +170,7 @@ export const hash_04323944: t_79fbcdfe = ({
 /**
 ```
 const gotit#9781cfa0 = Some#Some<int#builtin>{contents#Some#0: 5}
+Some{TODO SPREADs}{hSome_0: 5}
 ```
 */
 export const hash_9781cfa0: t_Some<number> = ({
@@ -179,6 +183,10 @@ export const hash_9781cfa0: t_Some<number> = ({
 const countNamed#459f59d0 = Counter#d5979c30<<T#:0: HasName#4878c6fa>(T#:0) ={}> string#builtin>{
     item#d5979c30#0: <T#:0: HasName#4878c6fa>(input#:0: T#:0): string#builtin ={}> input#:0.name#4878c6fa#0,
     count#d5979c30#1: 10,
+}
+Counter#🤒{TODO SPREADs}{
+    hd5979c30_0: <T>(input#:0: [var]T#:0): string => input#:0.#HasName#🧱🕊️🤍😃#0,
+    hd5979c30_1: 10,
 }
 ```
 */
@@ -200,6 +208,7 @@ const countAny#c50a3a34 = Counter#d5979c30<<T#:0>(T#:0) ={}> string#builtin>{
     item#d5979c30#0: <T#:0>(input#:0: T#:0): string#builtin ={}> "hi",
     count#d5979c30#1: 10,
 }
+Counter#🤒{TODO SPREADs}{hd5979c30_0: <T>(input#:0: [var]T#:0): string => "hi", hd5979c30_1: 10}
 ```
 */
 export const hash_c50a3a34: t_d5979c30<<T_0>(arg_0: T_0) => string> = ({
@@ -214,6 +223,7 @@ const countMe#7aa85621 = Counter#d5979c30<int#builtin>{
     item#d5979c30#0: 10,
     count#d5979c30#1: 4000,
 }
+Counter#🤒{TODO SPREADs}{hd5979c30_0: 10, hd5979c30_1: 4000}
 ```
 */
 export const hash_7aa85621: t_d5979c30<number> = ({
@@ -225,6 +235,7 @@ export const hash_7aa85621: t_d5979c30<number> = ({
 /**
 ```
 const here#3f7695a4 = House#5917dff8{occupant#5917dff8#0: me#2224fa6e}
+House#🎲🦝🧗‍♀️😃{TODO SPREADs}{h5917dff8_0: me#🍈👳‍♀️🐼}
 ```
 */
 export const hash_3f7695a4: t_5917dff8 = ({
@@ -235,6 +246,7 @@ export const hash_3f7695a4: t_5917dff8 = ({
 /**
 ```
 const getName#c389f018 = <T#:0: Person#3a86a2c5>(m#:0: T#:0): string#builtin ={}> m#:0.name#4878c6fa#0
+<T>(m#:0: [var]T#:0): string => m#:0.#HasName#🧱🕊️🤍😃#0
 ```
 */
 export const hash_c389f018: <T_0 extends {
@@ -255,6 +267,7 @@ const them#7b60b106 = Employee#3acb06b1{
     age#a0d405a6#0: 100,
     address#3acb06b1#0: "No",
 }
+Employee#🍜🦪🌈{TODO SPREADs}{h3acb06b1_0: "No", h3a86a2c5_0: 3}
 ```
 */
 export const hash_7b60b106: t_3acb06b1 = ({
@@ -268,6 +281,7 @@ export const hash_7b60b106: t_3acb06b1 = ({
 /**
 ```
 const you#4a74e12c = Employee#3acb06b1{...me#2224fa6e, address#3acb06b1#0: "Yes"}
+Employee#🍜🦪🌈{TODO SPREADs}{h3acb06b1_0: "Yes", h3a86a2c5_0: _#:0}
 ```
 */
 export const hash_4a74e12c: t_3acb06b1 = ({ ...hash_2224fa6e,
@@ -278,6 +292,7 @@ export const hash_4a74e12c: t_3acb06b1 = ({ ...hash_2224fa6e,
 /**
 ```
 const alsoMe#2c44fe3e = Person#3a86a2c5{...me#2224fa6e, what#3a86a2c5#0: 11}
+Person#🍩🚴🌪️{TODO SPREADs}{h3a86a2c5_0: 11, h4878c6fa_0: _#:0, ha0d405a6_0: _#:0}
 ```
 */
 export const hash_2c44fe3e: t_3a86a2c5 = ({ ...hash_2224fa6e,
@@ -288,6 +303,7 @@ export const hash_2c44fe3e: t_3a86a2c5 = ({ ...hash_2224fa6e,
 /**
 ```
 const IntEq#ec95f154 = Eq#51ea2a36<int#builtin>{"=="#51ea2a36#0: intEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: intEq}
 ```
 */
 export const hash_ec95f154: t_51ea2a36<number> = ({
@@ -298,6 +314,7 @@ export const hash_ec95f154: t_51ea2a36<number> = ({
 /**
 ```
 const StringEq#da00b310 = Eq#51ea2a36<string#builtin>{"=="#51ea2a36#0: stringEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: stringEq}
 ```
 */
 export const hash_da00b310: t_51ea2a36<string> = ({
@@ -307,56 +324,71 @@ export const hash_da00b310: t_51ea2a36<string> = ({
 
 /*
 me#2224fa6e.name#4878c6fa#0 ==#da00b310#51ea2a36#0 "June"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, me#🍈👳‍♀️🐼.#HasName#🧱🕊️🤍😃#0, "June")
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_2224fa6e.h4878c6fa_0, "June");
 
 /*
 me#2224fa6e.age#a0d405a6#0 ==#ec95f154#51ea2a36#0 10
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, me#🍈👳‍♀️🐼.#HasAge#🏋️‍♂️#0, 10)
 */
 assertCall(hash_ec95f154.h51ea2a36_0, hash_2224fa6e.ha0d405a6_0, 10);
 
 /*
 alsoMe#2c44fe3e.name#4878c6fa#0 ==#da00b310#51ea2a36#0 "June"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, alsoMe#🐲👲🍨.#HasName#🧱🕊️🤍😃#0, "June")
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_2c44fe3e.h4878c6fa_0, "June");
 
 /*
 alsoMe#2c44fe3e.what#3a86a2c5#0 ==#ec95f154#51ea2a36#0 11
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, alsoMe#🐲👲🍨.#Person#🍩🚴🌪️#0, 11)
 */
 assertCall(hash_ec95f154.h51ea2a36_0, hash_2c44fe3e.h3a86a2c5_0, 11);
 
 /*
 you#4a74e12c.name#4878c6fa#0 ==#da00b310#51ea2a36#0 "June"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, you#👨‍🚒👷‍♂️☝️😃.#HasName#🧱🕊️🤍😃#0, "June")
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_4a74e12c.h4878c6fa_0, "June");
 
 /*
 them#7b60b106.name#4878c6fa#0 ==#da00b310#51ea2a36#0 "You"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, them#👩‍🏫😪🔥😃.#HasName#🧱🕊️🤍😃#0, "You")
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_7b60b106.h4878c6fa_0, "You");
 
 /*
 them#7b60b106.address#3acb06b1#0 ==#da00b310#51ea2a36#0 "No"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, them#👩‍🏫😪🔥😃.#Employee#🍜🦪🌈#0, "No")
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_7b60b106.h3acb06b1_0, "No");
 
 /*
 getName#c389f018<Person#3a86a2c5>(m: me#2224fa6e) ==#da00b310#51ea2a36#0 "June"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, getName#😜<Person#🍩🚴🌪️>(me#🍈👳‍♀️🐼), "June")
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_c389f018(hash_2224fa6e), "June");
 
 /*
 getName#c389f018<Employee#3acb06b1>(m: them#7b60b106) ==#da00b310#51ea2a36#0 "You"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, getName#😜<Employee#🍜🦪🌈>(them#👩‍🏫😪🔥😃), "You")
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_c389f018(hash_7b60b106), "You");
 
 /*
 here#3f7695a4.occupant#5917dff8#0.name#4878c6fa#0 ==#da00b310#51ea2a36#0 "June"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    here#⛹️‍♀️🏋️🎰.#House#🎲🦝🧗‍♀️😃#0.#HasName#🧱🕊️🤍😃#0,
+    "June",
+)
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_3f7695a4.h5917dff8_0.h4878c6fa_0, "June");
 
 /*
 countMe#7aa85621.item#d5979c30#0 ==#ec95f154#51ea2a36#0 10
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, countMe#🐨🦛🌬️😃.#Counter#🤒#0, 10)
 */
 assertCall(hash_ec95f154.h51ea2a36_0, hash_7aa85621.hd5979c30_0, 10);
 
@@ -366,36 +398,46 @@ Counter#d5979c30<() ={}> string#builtin>{
         count#d5979c30#1: 10,
     }.item#d5979c30#0() 
     ==#da00b310#51ea2a36#0 "hi"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "hi", "hi")
 */
-assertCall(hash_da00b310.h51ea2a36_0, ({
-  type: "d5979c30",
-  hd5979c30_0: () => "hi",
-  hd5979c30_1: 10
-} as t_d5979c30<() => string>).hd5979c30_0(), "hi");
+assertCall(hash_da00b310.h51ea2a36_0, "hi", "hi");
 
 /*
 countAny#c50a3a34.item#d5979c30#0<string#builtin>("String") ==#da00b310#51ea2a36#0 "hi"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, countAny#🦢.#Counter#🤒#0<string>("String"), "hi")
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_c50a3a34.hd5979c30_0("String"), "hi");
 
 /*
 countAny#c50a3a34.item#d5979c30#0<int#builtin>(10) ==#da00b310#51ea2a36#0 "hi"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, countAny#🦢.#Counter#🤒#0<int>(10), "hi")
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_c50a3a34.hd5979c30_0(10), "hi");
 
 /*
 countNamed#459f59d0.item#d5979c30#0<Person#3a86a2c5>(me#2224fa6e) ==#da00b310#51ea2a36#0 "June"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    countNamed#👨‍👩‍👧🥎😠😃.#Counter#🤒#0<Person#🍩🚴🌪️>(me#🍈👳‍♀️🐼),
+    "June",
+)
 */
 assertCall(hash_da00b310.h51ea2a36_0, hash_459f59d0.hd5979c30_0(hash_2224fa6e), "June");
 
 /*
 gotit#9781cfa0.contents#Some#0 ==#ec95f154#51ea2a36#0 5
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, gotit#⛅.#Some#0, 5)
 */
 assertCall(hash_ec95f154.h51ea2a36_0, hash_9781cfa0.hSome_0, 5);
 
 /*
 WereWolf#23c23c80{...aDog#04323944, ...aPerson#01797ad2}.name#4878c6fa#0 
     ==#da00b310#51ea2a36#0 "ralf"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    WereWolf#🧡💣🦎{TODO SPREADs}{h79fbcdfe_0: _#:0, h3a86a2c5_0: _#:0}.#HasName#🧱🕊️🤍😃#0,
+    "ralf",
+)
 */
 assertCall(hash_da00b310.h51ea2a36_0, ({ ...hash_04323944,
   ...hash_01797ad2,
@@ -405,6 +447,11 @@ assertCall(hash_da00b310.h51ea2a36_0, ({ ...hash_04323944,
 /*
 WereWolf#23c23c80{...aPerson#01797ad2, ...aDog#04323944}.name#4878c6fa#0 
     ==#da00b310#51ea2a36#0 "wolrf"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    WereWolf#🧡💣🦎{TODO SPREADs}{h79fbcdfe_0: _#:0, h3a86a2c5_0: _#:0}.#HasName#🧱🕊️🤍😃#0,
+    "wolrf",
+)
 */
 assertCall(hash_da00b310.h51ea2a36_0, ({ ...hash_01797ad2,
   ...hash_04323944,
@@ -414,13 +461,9 @@ assertCall(hash_da00b310.h51ea2a36_0, ({ ...hash_01797ad2,
 /*
 SomethingWithDefaults#6e4345e8{name#6e4345e8#0: "Me", age#6e4345e8#1: 4}.hasGlasses#6e4345e8#2 
     ==#builtin false
+assertEqual(false, false)
 */
-assertEqual(({
-  type: "6e4345e8",
-  h6e4345e8_0: "Me",
-  h6e4345e8_1: 4,
-  h6e4345e8_2: false
-} as t_6e4345e8).h6e4345e8_2, false);
+assertEqual(false, false);
 
 /*
 SomethingWithDefaults#6e4345e8{
@@ -429,17 +472,12 @@ SomethingWithDefaults#6e4345e8{
         hasGlasses#6e4345e8#2: true,
     }.hasGlasses#6e4345e8#2 
     ==#builtin true
+assertEqual(true, true)
 */
-assertEqual(({
-  type: "6e4345e8",
-  h6e4345e8_0: "Me",
-  h6e4345e8_1: 4,
-  h6e4345e8_2: true
-} as t_6e4345e8).h6e4345e8_2, true);
+assertEqual(true, true);
 
 /*
 One#1f93c514.name#1f93c514#0 ==#da00b310#51ea2a36#0 "One"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "One", "One")
 */
-assertCall(hash_da00b310.h51ea2a36_0, ({
-  type: "1f93c514"
-} as t_1f93c514).h1f93c514_0, "One");
+assertCall(hash_da00b310.h51ea2a36_0, "One", "One");

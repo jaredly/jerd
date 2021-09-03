@@ -290,6 +290,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         }
         // const ref = term.base.ref
         case 'Record': {
+            // console.log('MAKING RECORD', term.location, term.base.rows);
             return {
                 type: 'record',
                 base:
@@ -339,9 +340,18 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         spread: subType.spread
                             ? printTerm(env, opts, subType.spread)
                             : null,
-                        rows: subType.rows.map((r) =>
-                            r ? printTerm(env, opts, r) : null,
-                        ),
+                        rows: subType.rows.map((r) => {
+                            if (r) {
+                                return printTerm(env, opts, r);
+                            }
+                            if (subType.spread) {
+                                return null;
+                            }
+                            // if ()
+
+                            // return r ?  : null,
+                            return null;
+                        }),
                     };
                     return obj;
                 }, {}),

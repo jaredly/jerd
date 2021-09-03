@@ -1184,7 +1184,7 @@ export const resolveIdentifier = (
                 const id = idFromName(first);
                 const t = env.global.types[idName(id)];
                 if (t.type === 'Record' && !hasRequiredItems(env.global, t)) {
-                    return plainRecord(id, location);
+                    return plainRecord(env.global, id, location);
                 }
             }
 
@@ -1293,7 +1293,7 @@ export const resolveIdentifier = (
             // Ok, so we want to cehck the number of required items
         }
         if (t.type === 'Record' && !hasRequiredItems(env.global, t)) {
-            return plainRecord(id, location);
+            return plainRecord(env.global, id, location);
         }
     }
     return null;
@@ -1320,24 +1320,42 @@ const hasRequiredItems = (env: GlobalEnv, defn: RecordDef): boolean => {
     );
 };
 
-const plainRecord = (id: Id, location: Location): Term => ({
-    type: 'Record',
-    base: {
-        type: 'Concrete',
-        ref: { type: 'user', id },
-        rows: [],
-        spread: null,
-    },
-    location,
-    is: {
-        type: 'ref',
-        ref: { type: 'user', id },
+const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
+    const t = env.types[idName(id)] as RecordDef;
+    const subTypes: {
+        [key: string]: {
+            spread: Term | null;
+            covered: boolean;
+            rows: Array<Term | null>;
+        };
+    } = {};
+    getAllSubTypes(env, t.extends).forEach((id) => {
+        const t = env.types[idName(id)] as RecordDef;
+        subTypes[idName(id)] = {
+            spread: null,
+            rows: t.items.map((_) => null),
+            covered: true,
+        };
+    });
+    return {
+        type: 'Record',
+        base: {
+            type: 'Concrete',
+            ref: { type: 'user', id },
+            rows: t.items.map((_) => null),
+            spread: null,
+        },
         location,
-        typeVbls: [],
-        // effectVbls: [],
-    },
-    subTypes: {},
-});
+        is: {
+            type: 'ref',
+            ref: { type: 'user', id },
+            location,
+            typeVbls: [],
+            // effectVbls: [],
+        },
+        subTypes,
+    };
+};
 
 export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (type.type === 'var') {
