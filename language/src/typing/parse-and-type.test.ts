@@ -74,7 +74,7 @@ describe('basic toplevels', () => {
                 ...Y#1de5e9d2,
                 age: int#builtin,
             };
-            enum All#635a2c46 {
+            enum All#4cc8cb39 {
                 X#f713161c,
                 Y#1de5e9d2,
                 Z#ec09fc50,
@@ -196,7 +196,7 @@ describe('expression types', () => {
             "const IntAsFloat#16da6c1c = As#As<int#builtin, float#builtin>{
                 as#As#0: (v#:0: int#builtin): float#builtin ={}> 1.0,
             };
-            const m#49bbeeec = 1 as#16da6c1c float#builtin"
+            const m#7364b376 = 1 as#16da6c1c float#builtin"
         `));
 
     it('literals', () =>
@@ -396,7 +396,7 @@ describe('expression types', () => {
                 people: Array#builtin<Person#28ac4660>,
                 ages: Tuple2#builtin<int#builtin, float#builtin>,
             };
-            enum Companies#5e7cafb2 {
+            enum Companies#091dc906 {
                 Company#33117eac,
             };
             const b#2d49bf8c = (m#:0: Companies#5e7cafb2): bool#builtin ={}> switch m#:0 {
