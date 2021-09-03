@@ -127,6 +127,9 @@ const getCode = (root: ChildNode) => {
         res += '#' + id;
         res += last;
     }
+    if (root.nodeName === 'DIV') {
+        res += '\n';
+    }
     return res;
 };
 

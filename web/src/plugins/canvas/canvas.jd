@@ -43,7 +43,7 @@ type Ellipse = {
 	rotation: float = 0.0,
 };
 
-const circle = (pos: Vec2, r: float) => Ellipse{pos: pos, radius: vec2(r, r)};
+const circle = (pos: Vec2, r: float) => Ellipse{pos: pos, radius: Vec2{x: r, y: r}};
 
 @ffi
 type Line = {

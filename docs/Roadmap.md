@@ -1,6 +1,11 @@
 
 Recreate this! https://twitter.com/matthen2/status/1249611168265547776
 
+BUGS
+- [ ] if there's a pending, the plugin doesn't show. Maybe I'm not evaluating it?
+- [ ] let's get fps going!
+- [ ] fix pinning. make it work with proposed and sliders and such.
+
 - [x] ugh ok fix the currently failing tests.
 - [x] enums needs to be able to declare inline records, pleeease
 
@@ -28,7 +33,7 @@ Recreate this! https://twitter.com/matthen2/status/1249611168265547776
 
 - [x] improve perf, make it super cheap to switch between
 - [ ] why is it selecting the last one? I don't like it
-- [ ] add nice keyboard shortcuts to normal mode
+- [x] add nice keyboard shortcuts to normal mode
 - [ ] get boids working hackily; like with a hardcoded length of 10
 
 

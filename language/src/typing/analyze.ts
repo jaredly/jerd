@@ -90,36 +90,46 @@ export const makeIdxTree = (term: Term): IdxTree => {
                         [term.target].concat(term.args),
                     );
                     break;
-                case 'Record': {
-                    const allChildren =
-                        term.base.type === 'Concrete'
-                            ? idxs(term.base.rows)
-                            : [];
-                    if (term.base.spread) {
-                        allChildren.push(...idxs([term.base.spread]));
-                    }
-                    Object.keys(term.subTypes).forEach((k) => {
-                        if (term.subTypes[k].spread) {
-                            allChildren.push(
-                                ...idxs([term.subTypes[k].spread]),
-                            );
-                        }
-                        allChildren.push(...idxs(term.subTypes[k].rows));
-                    });
-                    console.log('record literal', allChildren);
-                    children[term.location.idx!] = [
-                        addLoc(term.base.location, 'record-id'),
-                    ].concat(allChildren);
-                    break;
-                }
+                // case 'Record': {
+                //     const allChildren =
+                //         term.base.type === 'Concrete'
+                //             ? idxs(term.base.rows)
+                //             : [];
+                //     if (term.base.spread) {
+                //         allChildren.push(...idxs([term.base.spread]));
+                //     }
+                //     Object.keys(term.subTypes).forEach((k) => {
+                //         if (term.subTypes[k].spread) {
+                //             allChildren.push(
+                //                 ...idxs([term.subTypes[k].spread]),
+                //             );
+                //         }
+                //         allChildren.push(...idxs(term.subTypes[k].rows));
+                //     });
+                //     console.log('record literal', allChildren);
+                //     children[term.location.idx!] = [
+                //         addLoc(term.base.location, 'record-id'),
+                //     ].concat(allChildren);
+                //     break;
+                // }
                 case 'Attribute':
                     children[term.location.idx!] = [
                         term.target.location.idx!,
                         addLoc(term.idLocation, 'attribute-id'),
                     ];
                     break;
+                case 'Array': {
+                    children[term.location.idx!] = idxs(
+                        term.items.map((t) =>
+                            t.type === 'ArraySpread' ? t.value : t,
+                        ),
+                    );
+                    break;
+                }
                 case 'Record': {
-                    const kids: Array<number> = [];
+                    const kids: Array<number> = [
+                        addLoc(term.base.location, 'record-id'),
+                    ];
                     if (term.base.spread) {
                         kids.push(term.base.spread.location.idx!);
                     }

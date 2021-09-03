@@ -20,6 +20,22 @@ export const geomPath = (ctx: CanvasRenderingContext2D, geom: Geom) => {
             ctx.moveTo(geom.p1.x, geom.p1.y);
             ctx.lineTo(geom.p2.x, geom.p2.y);
             return;
+        case 'Polygon':
+            if (!geom.points.length) {
+                return;
+            }
+            ctx.moveTo(geom.points[0].x, geom.points[0].y);
+            if (geom.points.length === 1) {
+                ctx.lineTo(geom.points[0].x, geom.points[0].y);
+                return;
+            }
+            for (let i = 1; i < geom.points.length; i++) {
+                ctx.lineTo(geom.points[i].x, geom.points[i].y);
+            }
+            if (geom.closed && geom.points.length > 2) {
+                ctx.lineTo(geom.points[0].x, geom.points[0].y);
+            }
+            return;
         case 'Ellipse': {
             ctx.ellipse(
                 geom.pos.x,
@@ -33,7 +49,7 @@ export const geomPath = (ctx: CanvasRenderingContext2D, geom: Geom) => {
             return;
         }
         default:
-            console.warn(`not drawing yet`);
+            console.warn(`not drawing yet ${geom.type}`);
     }
 };
 
@@ -92,7 +108,12 @@ export const CanvasSceneView = <T,>({
     startPaused: boolean;
 }) => {
     const canvas = React.useRef(null as null | HTMLCanvasElement);
-    const start = React.useCallback(() => {
+    const [loaded, setLoaded] = React.useState(false);
+    const state = React.useRef(value.initial);
+    React.useEffect(() => {
+        if (startPaused || !loaded) {
+            return;
+        }
         if (!canvas.current) {
             return;
         }
@@ -100,15 +121,31 @@ export const CanvasSceneView = <T,>({
         if (!ctx) {
             return;
         }
-        drawShapes(ctx, value.draw(value.initial));
-    }, [value]);
+        // let state = value.initial;
+        let now = Date.now();
+        const fn = () => {
+            if (value.clear) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            }
+            drawShapes(ctx, value.draw(state.current));
+            tid = requestAnimationFrame(fn);
+
+            let nww = Date.now();
+            state.current = value.update(state.current, nww - now);
+            now = nww;
+        };
+        let tid = requestAnimationFrame(fn);
+
+        return () => cancelAnimationFrame(tid);
+    }, [startPaused, value, loaded]);
+
     return (
         <div>
             <canvas
                 ref={(node) => {
                     if (node) {
                         canvas.current = node;
-                        start();
+                        setLoaded(true);
                     }
                 }}
             />

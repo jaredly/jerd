@@ -84,7 +84,7 @@ const RenderResult_ = ({
     onSetPlugin: (d: Display | null) => void;
     plugins: RenderPlugins;
     cell: Cell;
-    id: Id;
+    id: Id | null;
     env: Env;
     evalEnv: EvalEnv;
     value: any;
@@ -251,14 +251,14 @@ const RenderResult_ = ({
     // value = evalEnv.terms[idName(termAndEnvWithSliders.id)];
 
     const evaled = React.useMemo(() => {
-        if (idsEqual(termAndEnvWithSliders.id, id)) {
-            // console.log('NO CHANGE');
+        if (id && idsEqual(termAndEnvWithSliders.id, id)) {
+            console.log('NO CHANGE');
             return evalEnv;
         }
 
         const hash = idName(termAndEnvWithSliders.id);
         if (evalEnv.terms[hash] !== undefined) {
-            // console.log('Already there folks');
+            console.log('Already there folks');
             return evalEnv;
         }
 
@@ -266,7 +266,7 @@ const RenderResult_ = ({
         try {
             const term = termAndEnvWithSliders.term;
             if (!term) {
-                throw new Error(`No term ${idName(id)}`);
+                throw new Error(`No term ${id ? idName(id) : 'no id'}`);
             }
 
             results = runTerm(
@@ -292,7 +292,7 @@ const RenderResult_ = ({
 
     // Ohhh we want to share runs, right? like if we haven't slid why not do onRun?
     React.useEffect(() => {
-        if (value == null) {
+        if (value == null && id) {
             dispatch({ type: 'run', id });
         }
     }, [value == null]);
@@ -323,9 +323,11 @@ const RenderResult_ = ({
                 display={cell.display}
                 plugins={plugins}
                 onSetPlugin={onSetPlugin}
-                onPin={() =>
-                    dispatch({ type: 'pin', display: cell.display!, id })
-                }
+                onPin={() => {
+                    // TODO: What's the big id?
+                    // Need to save it I think.
+                    // dispatch({ type: 'pin', display: cell.display!, id })
+                }}
             >
                 {renderPlugin()}
             </RenderPlugin>

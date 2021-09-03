@@ -391,7 +391,7 @@ const CellView_ = ({
             // <div>No toplevel?</div>
         );
 
-    const termAndValue = getTermAndValue(toplevel, evalEnv);
+    const termAndValue = getTermAndValue(toplevel, evalEnv, evaled);
     // const term =
     //     toplevel &&
     //     (toplevel.type === 'Define' || toplevel.type === 'Expression')
@@ -456,7 +456,7 @@ const CellView_ = ({
                     term={termAndValue[0][0]}
                     value={termAndValue[1]}
                     plugins={plugins}
-                    id={termAndValue[0][1]!}
+                    id={cell.content.id}
                     env={env}
                     evalEnv={evalEnv}
                     dispatch={dispatch}
@@ -466,7 +466,11 @@ const CellView_ = ({
     );
 };
 
-const getTermAndValue = (toplevel: ToplevelT | null, evalEnv: EvalEnv) => {
+const getTermAndValue = (
+    toplevel: ToplevelT | null,
+    evalEnv: EvalEnv,
+    evaled: any,
+) => {
     const top =
         toplevel &&
         (toplevel.type === 'Expression' || toplevel.type === 'Define')
@@ -476,7 +480,7 @@ const getTermAndValue = (toplevel: ToplevelT | null, evalEnv: EvalEnv) => {
     const tid = React.useMemo(() => {
         return top ? [top.term, top.id] : null;
     }, [top ? idName(top.id) : null]);
-    return top ? [tid!, evalEnv.terms[idName(top.id)]] : null;
+    return top ? [tid!, evaled] : null;
 };
 
 export const Cell2 = React.memo(CellView_);

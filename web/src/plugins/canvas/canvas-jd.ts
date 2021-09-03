@@ -365,17 +365,17 @@ type t_5c0c4fd8 = {
 
 /**
 ```
-@ffi("CanvasScene") type CanvasScene#7c9e2d1c<State#:0> = {
+@ffi("CanvasScene") type CanvasScene#1e1c730c<State#:0> = {
     initial: State#:0,
     update: (state: State#:0, dt: float#builtin) ={}> State#:0,
     draw: (state: State#:0) ={}> Array#builtin<Drawable#56de3b71>,
     clear: bool#builtin = true,
     fps: float#builtin = 60.0,
-    size: Vec2#08f7c2ac = Vec2#08f7c2ac{x#08f7c2ac#0: 200, y#08f7c2ac#1: 200},
+    size: Vec2#08f7c2ac = Vec2#08f7c2ac{x#08f7c2ac#0: 200.0, y#08f7c2ac#1: 200.0},
 }
 ```
 */
-type t_7c9e2d1c<T_0> = {
+type t_1e1c730c<T_0> = {
   type: "CanvasScene";
   initial: T_0;
   update: (arg_0: T_0, arg_1: number) => T_0;
@@ -500,5 +500,5 @@ export const Text_id = "d86ebaa8";
 export type Text = t_d86ebaa8;
 export const Drawable_id = "56de3b71";
 export type Drawable = t_56de3b71;
-export const CanvasScene_id = "7c9e2d1c";
-export type CanvasScene<T0> = t_7c9e2d1c<T0>;
+export const CanvasScene_id = "1e1c730c";
+export type CanvasScene<T0> = t_1e1c730c<T0>;
