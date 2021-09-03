@@ -30,6 +30,7 @@ import {
     walkTerm,
     newWithGlobal,
     idsEqual,
+    getAllSubTypes,
 } from '../typing/types';
 import {
     PP,
@@ -291,12 +292,14 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
         block(
             recordDef.extends
                 .map((ex) => {
+                    const subTyeps = getAllSubTypes(env.global, [ex]);
                     const defaults = recordDef.defaults
                         ? recordDef.defaults.filter(
-                              (item) => item.id && idsEqual(ex, item.id),
+                              (item) =>
+                                  item.id &&
+                                  subTyeps.find((id) => idsEqual(id, item.id!)),
                           )
                         : [];
-                    const names = env.global.recordGroups[idName(ex)];
                     return items([
                         atom('...'),
                         idToPretty(env, ex, 'record'),
@@ -305,8 +308,10 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
                                   defaults.map((item) =>
                                       items([
                                           idPretty(
-                                              names[item.idx],
-                                              `${idName(ex)}#${item.idx}`,
+                                              env.global.recordGroups[
+                                                  idName(item.id!)
+                                              ][item.idx],
+                                              `${idName(item.id!)}#${item.idx}`,
                                               'attribute',
                                           ),
                                           atom(': '),

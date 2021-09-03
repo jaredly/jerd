@@ -604,7 +604,10 @@ export const typeRecordDefn = (
           }
         : null;
 
+    // STOPSHIP: Need to prevent people supplying two defaults
+    // for the same row.
     const defaults: Array<{ id: Id | null; idx: number; value: Term }> = [];
+    // const defa
 
     return {
         type: 'Record',
