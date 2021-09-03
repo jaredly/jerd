@@ -263,25 +263,25 @@ type Two = {...One{name: "Two"}, age: int = 2};
 type Three = {...Two{name: "Three", age: 3}, size: int = 3}
 
 One.name == "One"
-// Two.name == "Two"
-// Two.age == 2
-// Two.last == "Last"
-// Three.name == "Three"
-// Three.age == 3
-// Three.size == 3
-// Three.last == "Last"
+Two.name == "Two"
+Two.age == 2
+Two.last == "Last"
+Three.name == "Three"
+Three.age == 3
+Three.size == 3
+Three.last == "Last"
 
 
-// type SubitemWithDefaults = {
-//     ...SomethingWithDefaults{
-//         name: "Hello",
-//         age: 10,
-//     },
-// };
+type SubitemWithDefaults = {
+    ...SomethingWithDefaults{
+        name: "Hello",
+        age: 10,
+    },
+};
 
-// SubitemWithDefaults{name: "Stephen"}.hasGlasses == false
-// SubitemWithDefaults{name: "Stephen"}.name == "Stephen"
+SubitemWithDefaults{name: "Stephen"}.hasGlasses == false
+SubitemWithDefaults{name: "Stephen"}.name == "Stephen"
 
-// SubitemWithDefaults.name == "Hello"
-// SubitemWithDefaults.hasGlasses == false
-// SubitemWithDefaults.age == 10
+SubitemWithDefaults.name == "Hello"
+SubitemWithDefaults.hasGlasses == false
+SubitemWithDefaults.age == 10

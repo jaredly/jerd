@@ -17,7 +17,7 @@ import {
 } from '../types';
 import { Record } from '../../parsing/parser';
 import { showType } from '../unify';
-import { idFromName, idName } from '../env';
+import { allDefaults, idFromName, idName } from '../env';
 import typeExpr, {
     applyTypeVariablesToRecord,
     showLocation,
@@ -327,6 +327,14 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         };
     });
 
+    const defaults =
+        base.type === 'Concrete'
+            ? allDefaults(
+                  env.global,
+                  env.global.types[idName(base.ref.id)] as RecordDef,
+              )
+            : null;
+
     Object.keys(subTypes).forEach((id) => {
         finishedSubTypes[id] = {
             ...subTypes[id],
@@ -336,6 +344,9 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         if (!subTypes[id].covered) {
             subTypes[id].rows.forEach((row, i) => {
                 if (row.value != null) {
+                    return;
+                }
+                if (defaults && defaults[`${id}#${i}`]) {
                     return;
                 }
                 // Ok, so either:

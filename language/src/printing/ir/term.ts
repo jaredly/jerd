@@ -34,7 +34,7 @@ import {
     getEnumReferences,
     showLocation,
 } from '../../typing/typeExpr';
-import { idFromName, idName } from '../../typing/env';
+import { allDefaults, idFromName, idName } from '../../typing/env';
 import { ArrayType, LambdaType as ILambdaType, TypeReference } from './types';
 
 import { Loc, Expr, Stmt, OutputOptions, Type } from './types';
@@ -291,6 +291,15 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         // const ref = term.base.ref
         case 'Record': {
             // console.log('MAKING RECORD', term.location, term.base.rows);
+            const defaults =
+                term.base.type === 'Concrete'
+                    ? allDefaults(
+                          env.global,
+                          env.global.types[
+                              idName(term.base.ref.id)
+                          ] as RecordDef,
+                      )
+                    : null;
             return {
                 type: 'record',
                 base:
@@ -334,27 +343,57 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                                   ? printTerm(env, opts, term.base.spread)
                                   : null,
                           },
-                subTypes: Object.keys(term.subTypes).reduce((obj: any, k) => {
-                    const subType = term.subTypes[k];
-                    obj[k] = {
-                        spread: subType.spread
-                            ? printTerm(env, opts, subType.spread)
-                            : null,
-                        rows: subType.rows.map((r) => {
-                            if (r) {
-                                return printTerm(env, opts, r);
-                            }
-                            if (subType.spread) {
+                subTypes: Object.keys(term.subTypes).reduce(
+                    (
+                        obj: {
+                            [key: string]: {
+                                spread: Expr | null;
+                                rows: Array<Expr | null>;
+                            };
+                        },
+                        k,
+                    ) => {
+                        const subType = term.subTypes[k];
+                        obj[k] = {
+                            spread: subType.spread
+                                ? printTerm(env, opts, subType.spread)
+                                : null,
+                            rows: subType.rows.map((r, i) => {
+                                if (r) {
+                                    return printTerm(env, opts, r);
+                                }
+                                if (
+                                    subType.spread ||
+                                    term.base.spread ||
+                                    subType.covered
+                                ) {
+                                    return null;
+                                }
+                                if (defaults) {
+                                    const key = `${k}#${i}`;
+                                    if (defaults[key]) {
+                                        return printTerm(
+                                            env,
+                                            opts,
+                                            defaults[key].value,
+                                        );
+                                    }
+                                    console.log(defaults, key);
+                                }
+                                // Hmmm it's ok, it might be covered by a spread?
+                                // Hmmmmm but in that case, I might get things wrong.
+                                // STOPSHIP write a test that covers.
                                 return null;
-                            }
-                            // if ()
-
-                            // return r ?  : null,
-                            return null;
-                        }),
-                    };
-                    return obj;
-                }, {}),
+                                // throw new LocatedError(
+                                //     term.location,
+                                //     `No value provided for subtype ${k} index ${i}`,
+                                // );
+                            }),
+                        };
+                        return obj;
+                    },
+                    {},
+                ),
                 is: mapType(term.is),
                 loc: term.location,
             };

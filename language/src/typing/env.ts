@@ -1299,7 +1299,6 @@ export const resolveIdentifier = (
     return null;
 };
 
-// NEXT HERE
 const hasRequiredItems = (env: GlobalEnv, defn: RecordDef): boolean => {
     if (defn.items.length === 0 && defn.extends.length === 0) {
         return false;
@@ -1312,12 +1311,49 @@ const hasRequiredItems = (env: GlobalEnv, defn: RecordDef): boolean => {
     if (own) {
         return true;
     }
+    if (!defn.extends.length) {
+        return false;
+    }
     const allSubTypes = getAllSubTypes(env, defn.extends);
+    const together = allDefaults(env, defn, allSubTypes);
     return allSubTypes.some((id) =>
         env.types[idName(id)].items.some(
-            (_, i) => !defaults[`${idName(id)}#${i}`],
+            (_, i) => !together[`${idName(id)}#${i}`],
         ),
     );
+};
+
+export const allDefaults = (
+    env: GlobalEnv,
+    defn: RecordDef,
+    allSubTypes?: Array<Id>,
+) => {
+    const together = { ...defn.defaults };
+    if (!allSubTypes) {
+        allSubTypes = getAllSubTypes(env, defn.extends);
+    }
+    allSubTypes.forEach((id) => {
+        const t = env.types[idName(id)] as RecordDef;
+        const inner = t.defaults;
+        if (inner) {
+            Object.keys(inner).forEach((k) => {
+                if (inner[k].id) {
+                    if (!together[k]) {
+                        together[k] = inner[k];
+                    }
+                } else {
+                    const key = `${idName(id)}#${inner[k].idx}`;
+                    if (!together[key]) {
+                        together[key] = {
+                            ...inner[k],
+                            id,
+                        };
+                    }
+                }
+            });
+        }
+    });
+    return together;
 };
 
 const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
@@ -1334,7 +1370,7 @@ const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
         subTypes[idName(id)] = {
             spread: null,
             rows: t.items.map((_) => null),
-            covered: true,
+            covered: false,
         };
     });
     return {

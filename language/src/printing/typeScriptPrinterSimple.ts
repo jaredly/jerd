@@ -1207,6 +1207,7 @@ export const fileToTypescript = (
             );
             // irTerm = optimizeDefineNew(senv, irTerm, id, null);
         }
+
         // then pop over to glslPrinter and start making things work.
         uniquesReallyAreUnique(irTerm);
         comment += '\n' + printToString(debugExpr(env, irTerm), 100);

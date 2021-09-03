@@ -481,3 +481,76 @@ One#1f93c514.name#1f93c514#0 ==#da00b310#51ea2a36#0 "One"
 assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "One", "One")
 */
 assertCall(hash_da00b310.h51ea2a36_0, "One", "One");
+
+/*
+Two#a22d669c.name#1f93c514#0 ==#da00b310#51ea2a36#0 "Two"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "Two", "Two")
+*/
+assertCall(hash_da00b310.h51ea2a36_0, "Two", "Two");
+
+/*
+Two#a22d669c.age#a22d669c#0 ==#ec95f154#51ea2a36#0 2
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, 2, 2)
+*/
+assertCall(hash_ec95f154.h51ea2a36_0, 2, 2);
+
+/*
+Two#a22d669c.last#1f93c514#1 ==#da00b310#51ea2a36#0 "Last"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "Last", "Last")
+*/
+assertCall(hash_da00b310.h51ea2a36_0, "Last", "Last");
+
+/*
+Three#2038fd8e.name#1f93c514#0 ==#da00b310#51ea2a36#0 "Three"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "Three", "Three")
+*/
+assertCall(hash_da00b310.h51ea2a36_0, "Three", "Three");
+
+/*
+Three#2038fd8e.age#a22d669c#0 ==#ec95f154#51ea2a36#0 3
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, 3, 3)
+*/
+assertCall(hash_ec95f154.h51ea2a36_0, 3, 3);
+
+/*
+Three#2038fd8e.size#2038fd8e#0 ==#ec95f154#51ea2a36#0 3
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, 3, 3)
+*/
+assertCall(hash_ec95f154.h51ea2a36_0, 3, 3);
+
+/*
+Three#2038fd8e.last#1f93c514#1 ==#da00b310#51ea2a36#0 "Last"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "Last", "Last")
+*/
+assertCall(hash_da00b310.h51ea2a36_0, "Last", "Last");
+
+/*
+SubitemWithDefaults#7b758470{name#6e4345e8#0: "Stephen"}.hasGlasses#6e4345e8#2 ==#builtin false
+assertEqual(false, false)
+*/
+assertEqual(false, false);
+
+/*
+SubitemWithDefaults#7b758470{name#6e4345e8#0: "Stephen"}.name#6e4345e8#0 
+    ==#da00b310#51ea2a36#0 "Stephen"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "Stephen", "Stephen")
+*/
+assertCall(hash_da00b310.h51ea2a36_0, "Stephen", "Stephen");
+
+/*
+SubitemWithDefaults#7b758470.name#6e4345e8#0 ==#da00b310#51ea2a36#0 "Hello"
+assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "Hello", "Hello")
+*/
+assertCall(hash_da00b310.h51ea2a36_0, "Hello", "Hello");
+
+/*
+SubitemWithDefaults#7b758470.hasGlasses#6e4345e8#2 ==#builtin false
+assertEqual(false, false)
+*/
+assertEqual(false, false);
+
+/*
+SubitemWithDefaults#7b758470.age#6e4345e8#1 ==#ec95f154#51ea2a36#0 10
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, 10, 10)
+*/
+assertCall(hash_ec95f154.h51ea2a36_0, 10, 10);
