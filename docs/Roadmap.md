@@ -11,9 +11,9 @@ Recreate this! https://twitter.com/matthen2/status/1249611168265547776
   - [x] get reprint working
   - [x] process the record constructors
     - [x] ensure that the values aren't effectful
-  - [ ] oh wait I wanted to do the translation at th IR level,
+  - [x] oh wait I wanted to do the translation at th IR level,
         not when type checking.
-  - [ ] get the extended version to type check & pass
+  - [x] get the extended version to type check & pass
 
 - I want records to be able to supply /defaults/ for any of the attributes. These defaults ... get inlined at the /ir/ translation level? yeah that sounds fine. so ... in the editing UI they wouldn't be auto-applied, which I like, so that you can add the attribute later if you want. Yeah. 
   - ok what does the data type look like? this is part of the RecordDef, right? And it'll be an optional attribute
