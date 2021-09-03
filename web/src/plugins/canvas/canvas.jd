@@ -1,0 +1,106 @@
+
+type Arc = {
+	center: Vec2,
+	startAngle: float,
+	endAngle: float,
+	counterClockwise: bool = false,
+};
+
+enum Color {
+	CSS{value: string},
+	Rgba{r: float, g: float, b: float, a: float = 1.0},
+};
+
+enum PathPart {
+	Vec2,
+	Quadratic{control: Vec2, end: Vec2},
+	Bezier{c1: Vec2, c2: Vec2, c3: Vec2, c4: Vec2, end: Vec2},
+	Rounded{c1: Vec2, c2: Vec2, radius: float},
+	Arc,
+	EllipsePath{...Arc, radius: Vec2, rotation: float},
+};
+
+type Path = {
+	start: Vec2,
+	closed: bool = false,
+	parts: Array<PathPart>
+}
+
+type Ellipse = {
+	pos: Vec2,
+	radius: Vec2,
+	rotation: float = 0.0,
+};
+
+type Line = {
+	p1: Vec2,
+	p2: Vec2,
+};
+
+type Polygon = {
+	points: Array<Vec2>,
+	closed: bool = true,
+};
+
+type Rect = {
+	pos: Vec2,
+	size: Vec2,
+	rotation: float = 0.0,
+};
+
+enum Geom {
+	Ellipse,
+	Line,
+	Polygon,
+	Rect,
+	Path,
+}
+
+type Fill = {
+	geom: Geom,
+	color: Color,
+};
+
+enum LineCap {
+	Butt{},
+	Round{},
+	Square{}
+};
+
+type Stroke = {
+	geom: Geom,
+	color: Color,
+	width: float = 1.0,
+	lineCaps: LineCap = LineCap:Round
+};
+
+enum TextAlign {
+	Left{},
+	Right{},
+	Center{},
+	Start{},
+	End{},
+}
+
+type Text = {
+	text: string,
+	color: Color,
+	pos: Vec2,
+	// 0 for fill, anything else for stroke
+	stroke: float = 0.0,
+	font: string = "",
+	textAlign: TextAlign = TextAlign:Start,
+}
+
+enum Drawable {
+	Fill,
+	Stroke,
+	Text,
+}
+
+type CanvasScene<State> = {
+	initial: State,
+	update: (state: State) => State,
+	draw: (state: State) => Array<Drawable>,
+	clear: bool = true,
+}

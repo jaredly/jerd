@@ -20,6 +20,7 @@ import { idFromName, idName } from '../../language/src/typing/env';
 import { EvalEnv } from './State';
 
 import rawMusic from './plugins/music/music.jd';
+import rawCanvas from './plugins/canvas/canvas.jd';
 import { typeFile } from '../../language/src/typing/typeFile';
 import { parse } from '../../language/src/parsing/parser';
 
@@ -68,6 +69,8 @@ export const initialState = async (): Promise<State> => {
     });
     let env = loadPrelude(typedBuiltins);
     env = typeFile(parse(rawMusic), newWithGlobal(env), 'music.jd').env.global;
+    env = typeFile(parse(rawCanvas), newWithGlobal(env), 'canvas.jd').env
+        .global;
     console.log('initial env', env);
     if (saved) {
         try {
