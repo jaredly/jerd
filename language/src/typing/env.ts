@@ -672,7 +672,22 @@ export const typeRecordDefn = (
             }
             return res;
         }),
-        defaults: defaults.length ? defaults : undefined,
+        defaults: defaults.length
+            ? defaults.sort((a, b) => {
+                  const ida = a.id ? idName(a.id) : null;
+                  const idb = b.id ? idName(b.id) : null;
+                  if (ida === idb) {
+                      return a.idx - b.idx;
+                  }
+                  if (ida == null) {
+                      return -1;
+                  }
+                  if (idb == null) {
+                      return 1;
+                  }
+                  return ida < idb ? -1 : 1;
+              })
+            : undefined,
     };
 };
 
