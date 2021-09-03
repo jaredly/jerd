@@ -1,6 +1,7 @@
 // For comiling & running main.js
 const { execSync } = require('child_process');
 const fs = require('fs');
+process.chdir(__dirname);
 const stat = fs.statSync('./main.js');
 const contents = fs.readFileSync('./main.js', 'utf8');
 

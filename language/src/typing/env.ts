@@ -440,7 +440,7 @@ export const typeTypeDefn = (
     return typeRecord(env, defn, ffiTag, unum).env;
 };
 
-export const typeEnumInner = (env: Env, defn: EnumDef) => {
+export const typeEnumInner = (env: Env, defn: EnumDef, ffi?: boolean) => {
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         defn.typeVbls,
@@ -465,13 +465,18 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
         (x) => x.type !== 'Spread',
     ) as Array<EnumExternal | EnumInternal>).map((x) => {
         if (x.type === 'Internal') {
-            const defn = typeRecordDefn(typeInnerWithSelf, {
-                type: 'StructDef',
-                id: x.id,
-                decl: x.decl,
-                typeVbls: [],
-                location: x.location,
-            });
+            const defn = typeRecordDefn(
+                typeInnerWithSelf,
+                {
+                    type: 'StructDef',
+                    id: x.id,
+                    decl: x.decl,
+                    typeVbls: [],
+                    location: x.location,
+                },
+                undefined,
+                ffi ? x.id.text : undefined,
+            );
             const rowNames = (x.decl.items.filter(
                 (r) => r.type === 'Row',
             ) as Array<RecordRow>).map((row) => row.id);
@@ -518,8 +523,8 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
     return { inline: addedTypes, defn: d };
 };
 
-export const typeEnumDefn = (env: Env, defn: EnumDef) => {
-    const d = typeEnumInner(env, defn);
+export const typeEnumDefn = (env: Env, defn: EnumDef, ffi?: boolean) => {
+    const d = typeEnumInner(env, defn, ffi);
     d.inline.forEach((inner) => {
         ({ env } = addRecord(env, inner.name, inner.rows, inner.defn));
     });

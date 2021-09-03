@@ -1,4 +1,11 @@
 
+@ffi
+type Vec2 = {
+    x: float,
+    y: float
+}
+
+@ffi
 type Arc = {
 	center: Vec2,
 	startAngle: float,
@@ -6,11 +13,13 @@ type Arc = {
 	counterClockwise: bool = false,
 };
 
+@ffi
 enum Color {
 	CSS{value: string},
 	Rgba{r: float, g: float, b: float, a: float = 1.0},
 };
 
+@ffi
 enum PathPart {
 	Vec2,
 	Quadratic{control: Vec2, end: Vec2},
@@ -20,34 +29,42 @@ enum PathPart {
 	EllipsePath{...Arc, radius: Vec2, rotation: float},
 };
 
+@ffi
 type Path = {
 	start: Vec2,
 	closed: bool = false,
 	parts: Array<PathPart>
 }
 
+@ffi
 type Ellipse = {
 	pos: Vec2,
 	radius: Vec2,
 	rotation: float = 0.0,
 };
 
+const circle = (pos: Vec2, r: float) => Ellipse{pos: pos, radius: vec2(r, r)};
+
+@ffi
 type Line = {
 	p1: Vec2,
 	p2: Vec2,
 };
 
+@ffi
 type Polygon = {
 	points: Array<Vec2>,
 	closed: bool = true,
 };
 
+@ffi
 type Rect = {
 	pos: Vec2,
 	size: Vec2,
 	rotation: float = 0.0,
 };
 
+@ffi
 enum Geom {
 	Ellipse,
 	Line,
@@ -56,17 +73,20 @@ enum Geom {
 	Path,
 }
 
+@ffi
 type Fill = {
 	geom: Geom,
 	color: Color,
 };
 
+@ffi
 enum LineCap {
 	Butt{},
 	Round{},
 	Square{}
 };
 
+@ffi
 type Stroke = {
 	geom: Geom,
 	color: Color,
@@ -74,6 +94,7 @@ type Stroke = {
 	lineCaps: LineCap = LineCap:Round
 };
 
+@ffi
 enum TextAlign {
 	Left{},
 	Right{},
@@ -82,6 +103,7 @@ enum TextAlign {
 	End{},
 }
 
+@ffi
 type Text = {
 	text: string,
 	color: Color,
@@ -98,9 +120,12 @@ enum Drawable {
 	Text,
 }
 
+@ffi
 type CanvasScene<State> = {
 	initial: State,
-	update: (state: State) => State,
+	update: (state: State, dt: float) => State,
 	draw: (state: State) => Array<Drawable>,
 	clear: bool = true,
+	fps: float = 60.0,
+	size: Vec2 = Vec2{x: 200.0, y: 200.0},
 }

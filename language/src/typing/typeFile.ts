@@ -192,9 +192,18 @@ export function typeFile(
                         t.is,
                     )}\n${printToString(termToPretty(env, t), 100)}`,
                 );
+            } else if (item.wrapped.type === 'EnumDef') {
+                const ffi = item.decorators.filter((d) => d.id.text === 'ffi');
+                if (ffi.length) {
+                    env = typeEnumDefn(env, item.wrapped, true).env;
+                } else {
+                    throw new LocatedError(
+                        item.location,
+                        `Unexpected decorator on enum definition`,
+                    );
+                }
             } else {
                 if (
-                    item.wrapped.type === 'EnumDef' ||
                     item.wrapped.type === 'effect' ||
                     item.wrapped.type === 'Decorated'
                 ) {

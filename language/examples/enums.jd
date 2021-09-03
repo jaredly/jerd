@@ -40,6 +40,7 @@ enum OptionOrTwice<T> {
     Twice<T>
 };
 
+@ffi
 enum Cards {
     Hearts{},
     Clubs{count: int},
