@@ -262,7 +262,7 @@ type One = {name: string = "One", last: string = "Last"};
 type Two = {...One{name: "Two"}, age: int = 2};
 type Three = {...Two{name: "Three", age: 3}, size: int = 3}
 
-// One.name == "One"
+One.name == "One"
 // Two.name == "Two"
 // Two.age == 2
 // Two.last == "Last"
