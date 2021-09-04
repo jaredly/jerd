@@ -64,6 +64,9 @@ export const cellTitle = (
         case 'term': {
             const term = env.global.terms[idName(cell.content.id)];
             const name = env.global.idNames[idName(cell.content.id)];
+            if (!term) {
+                return <div>Unknown term</div>;
+            }
             return (
                 <div
                     style={{

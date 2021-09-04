@@ -112,8 +112,26 @@ export const CanvasSceneView = <T,>({
     const canvas = React.useRef(null as null | HTMLCanvasElement);
     const [loaded, setLoaded] = React.useState(false);
     const state = React.useRef(value.initial);
+
+    const [paused, setPaused] = React.useState(startPaused);
+
+    // const startPaused$ = React.useRef(startPaused)
+    const paused$ = React.useRef(paused);
+    paused$.current = paused;
     React.useEffect(() => {
-        if (startPaused || !loaded) {
+        // if (startPaused$.current === startPaused) {
+        // 	return
+        // }
+        if (startPaused && !paused$.current) {
+            setPaused(true);
+        }
+        if (!startPaused && paused$.current) {
+            setPaused(false);
+        }
+    }, [startPaused]);
+
+    React.useEffect(() => {
+        if (paused || !loaded) {
             return;
         }
         if (!canvas.current) {
@@ -123,23 +141,31 @@ export const CanvasSceneView = <T,>({
         if (!ctx) {
             return;
         }
+        const fps = value.fps;
         // let state = value.initial;
         let now = Date.now();
+        let tid: number;
         const fn = () => {
             if (value.clear) {
                 ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             }
             drawShapes(ctx, value.draw(state.current));
-            tid = requestAnimationFrame(fn);
+            if (fps >= 60.0) {
+                tid = requestAnimationFrame(fn);
+            } else {
+                tid = (setTimeout(fn, 1000 / fps) as unknown) as number;
+            }
 
             let nww = Date.now();
             state.current = value.update(state.current, nww - now);
             now = nww;
         };
-        let tid = requestAnimationFrame(fn);
+        fn();
 
-        return () => cancelAnimationFrame(tid);
-    }, [startPaused, value, loaded]);
+        return () => {
+            fps >= 60.0 ? cancelAnimationFrame(tid) : clearTimeout(tid);
+        };
+    }, [paused, value, loaded]);
 
     return (
         <div>
@@ -153,6 +179,29 @@ export const CanvasSceneView = <T,>({
                     }
                 }}
             />
+            <div>
+                <button
+                    onClick={() => {
+                        setPaused(!paused);
+                    }}
+                >
+                    {paused ? 'Start' : 'Pause'}
+                </button>
+                <button
+                    onClick={() => {
+                        state.current = value.initial;
+                        const ctx = canvas.current?.getContext('2d');
+                        ctx?.clearRect(
+                            0,
+                            0,
+                            ctx.canvas.width,
+                            ctx.canvas.height,
+                        );
+                    }}
+                >
+                    Restart
+                </button>
+            </div>
         </div>
     );
 };
