@@ -20,29 +20,15 @@ import Cells, {
 } from './Cells';
 import { onChangeCell } from './onChangeCell';
 
-import DrawablePlugins from './display/Drawable';
-import OpenGLPlugins from './display/OpenGL';
-import ColorPlugins from './display/Color';
-import StdioPlugins from './display/Stdio';
-import MusicPlugins from './plugins/music/music';
-import CanvasPlugins from './plugins/canvas/canvas';
 import { runTerm } from './eval';
 import Library from './Library';
-import { Cell, Content, RenderPlugins } from './State';
+import { Cell, Content } from './State';
 import { Pin } from './Pin';
 import { QuickMenu } from './QuickMenu';
 import { idName } from '../../language/src/typing/env';
 import { Id } from '../../language/src/typing/types';
 import { stateToString } from './persistence';
-
-const defaultPlugins: RenderPlugins = {
-    ...DrawablePlugins,
-    ...StdioPlugins,
-    ...OpenGLPlugins,
-    ...ColorPlugins,
-    ...MusicPlugins,
-    ...CanvasPlugins,
-};
+import { defaultPlugins } from './defaultPlugins';
 
 export type Props = {
     state: State;

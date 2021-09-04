@@ -6,7 +6,9 @@ Let's get some test cases going though.
 Do they live in metaData? I think so.
 
 - [x] yayy so much goodness. I mean the editing experience leaves a lot to be desired
-- [ ] export a pinnable thing, the full dependent env, right?
+- [x] export a pinnable thing, the full dependent env, right?
+  yassssss so good
+- [ ] umm now I really want to be able to persist the slider valuessssss
 
 
 

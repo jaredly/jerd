@@ -22,6 +22,7 @@ import {
     Record,
     Term,
 } from '../../../language/src/typing/types';
+import { useUpdated } from '../Workspace';
 
 export const recordValues = (term: Record): Array<Term> | null => {
     const { base } = term;
@@ -83,6 +84,57 @@ export const recordFloats = (term: Term) => {
     return asFloatsRaw as Array<number>;
 };
 
+export const ClickableNumber = ({
+    value,
+    int,
+    onChange,
+}: {
+    value: number;
+    int: boolean;
+    onChange: (v: number) => void;
+}) => {
+    const [editing, setEditing] = React.useState(null as null | string);
+    const editing$ = useUpdated(editing);
+    // React.useEffect(() => {
+    //     if (editing$.current)
+    // }, [value])
+    if (editing == null) {
+        return (
+            <span onClick={() => setEditing(value.toString())}>{value}</span>
+        );
+    }
+    return (
+        <input
+            style={{ width: 20 }}
+            autoFocus
+            value={editing}
+            onKeyDown={(evt) => {
+                if (evt.key === 'Escape') {
+                    setEditing(null);
+                }
+                if (evt.key === 'Enter') {
+                    setEditing(null);
+                }
+            }}
+            onChange={(evt) => {
+                setEditing(evt.target.value);
+                if (int) {
+                    const v = parseInt(evt.target.value);
+                    if (!isNaN(v) && v !== value) {
+                        onChange(v);
+                    }
+                } else {
+                    const v = parseFloat(evt.target.value);
+                    if (!isNaN(v) && v !== value) {
+                        onChange(v);
+                    }
+                }
+            }}
+            onBlur={() => setEditing(null)}
+        />
+    );
+};
+
 export const widgetForDecorator = (
     dec: Decorator,
     term: Term,
@@ -127,7 +179,19 @@ export const widgetForDecorator = (
                             onUpdate(term, value);
                         }}
                     />
-                    {data == null ? asInt : data}
+                    <ClickableNumber
+                        value={data == null ? asInt : data}
+                        int={true}
+                        onChange={(value) => {
+                            const term: Term = {
+                                type: 'int',
+                                value,
+                                is: int,
+                                location: nullLocation,
+                            };
+                            onUpdate(term, value);
+                        }}
+                    />
                 </React.Fragment>
             );
         };
@@ -168,7 +232,19 @@ export const widgetForDecorator = (
                             onUpdate(term, value);
                         }}
                     />
-                    {data == null ? asFloat : data}
+                    <ClickableNumber
+                        value={data == null ? asFloat : data}
+                        int={false}
+                        onChange={(value) => {
+                            const term: Term = {
+                                type: 'float',
+                                value,
+                                is: float,
+                                location: nullLocation,
+                            };
+                            onUpdate(term, value);
+                        }}
+                    />
                 </React.Fragment>
             );
         };

@@ -5,8 +5,6 @@ import {
     getUserDependencies,
     getUserTypeDependencies,
 } from '@jerd/language/src/typing/analyze';
-import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
-import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import * as builtins from '@jerd/language/src/printing/builtins';
 import {
     GlobalEnv,
@@ -14,16 +12,12 @@ import {
     mergeGlobalEnvs,
     newLocal,
     newWithGlobal,
-    Type,
 } from '@jerd/language/src/typing/types';
 import localForage from 'localforage';
 import { idFromName, idName } from '../../language/src/typing/env';
 import { EvalEnv } from './State';
 
-import rawMusic from './plugins/music/music.jd';
-import rawCanvas from './plugins/canvas/canvas.jd';
-import { typeFile } from '../../language/src/typing/typeFile';
-import { parse } from '../../language/src/parsing/parser';
+import { initialEnvWithPlugins } from './initialEnvWithPlugins';
 
 const saveKey = 'jd-repl-cache';
 
@@ -60,18 +54,7 @@ export const initialState = async (): Promise<State> => {
     } else {
         saved = await localForage.getItem(saveKey);
     }
-    const builtinsMap = loadBuiltins();
-    const typedBuiltins: { [key: string]: Type } = {};
-    Object.keys(builtinsMap).forEach((b) => {
-        const v = builtinsMap[b];
-        if (v != null) {
-            typedBuiltins[b] = v;
-        }
-    });
-    let env = loadPrelude(typedBuiltins);
-    env = typeFile(parse(rawMusic), newWithGlobal(env), 'music.jd').env.global;
-    env = typeFile(parse(rawCanvas), newWithGlobal(env), 'canvas.jd').env
-        .global;
+    let env = initialEnvWithPlugins();
     console.log('initial env', env);
     if (saved) {
         try {

@@ -81,7 +81,7 @@ const RenderResult_ = ({
     focused,
 }: {
     focused: boolean;
-    onSetPlugin: (d: Display | null) => void;
+    onSetPlugin?: (d: Display | null) => void;
     plugins: RenderPlugins;
     cell: Cell;
     id: Id | null;
@@ -332,7 +332,7 @@ const RenderResult_ = ({
                 {renderPlugin()}
             </RenderPlugin>
         );
-    } else {
+    } else if (onSetPlugin) {
         const matching = getMatchingPlugins(
             plugins,
             env,
@@ -370,6 +370,8 @@ const RenderResult_ = ({
                 ) : null}
             </div>
         );
+    } else {
+        body = <div>Unable to load plugin 😬</div>;
     }
 
     return (
@@ -377,6 +379,7 @@ const RenderResult_ = ({
             {body}
             {renderPlugin || typeof value !== 'function'
                 ? renderSliders(
+                      id?.hash,
                       sliderData,
                       termAndEnvWithSliders,
                       sliderState,
@@ -427,7 +430,7 @@ export const RenderPlugin = ({
     children: React.ReactNode;
     display: Display | undefined | null;
     plugins: RenderPlugins;
-    onSetPlugin: (name: Display | null) => void;
+    onSetPlugin?: (name: Display | null) => void;
     onPin: null | (() => void);
 }) => {
     const [zoom, setZoom] = React.useState(false);
@@ -495,20 +498,22 @@ export const RenderPlugin = ({
                             </button>
                         ) : null}
                         {plugins[display!.type].name}
-                        <button
-                            css={{
-                                cursor: 'pointer',
-                                fontSize: '50%',
-                                backgroundColor: 'transparent',
-                                border: 'none',
-                                color: 'inherit',
-                                padding: 0,
-                                marginLeft: 8,
-                            }}
-                            onClick={() => onSetPlugin(null)}
-                        >
-                            ╳
-                        </button>
+                        {onSetPlugin ? (
+                            <button
+                                css={{
+                                    cursor: 'pointer',
+                                    fontSize: '50%',
+                                    backgroundColor: 'transparent',
+                                    border: 'none',
+                                    color: 'inherit',
+                                    padding: 0,
+                                    marginLeft: 8,
+                                }}
+                                onClick={() => onSetPlugin(null)}
+                            >
+                                ╳
+                            </button>
+                        ) : null}
                     </span>
                 ) : null}
             </div>
@@ -550,6 +555,7 @@ const getMatchingPlugins = (
 export const RenderResult = React.memo(RenderResult_);
 
 function renderSliders(
+    mainHash: string | undefined,
     sliderData: {
         sliders: {
             [termId: string]: {
@@ -592,12 +598,20 @@ function renderSliders(
                     <div key={hash} style={{ padding: 4 }}>
                         <h4>
                             {termAndEnvWithSliders.env.global.idNames[hash] ||
-                                hash}
+                                (hash === mainHash ? '' : '#' + hash)}
                         </h4>
                         <div style={{ display: 'flex' }}>
                             {idxs.map((idx) => {
                                 const config =
                                     sliderData.sliders[hash][parseInt(idx)];
+                                if (!config) {
+                                    console.warn(
+                                        sliderData.sliders,
+                                        hash,
+                                        parseInt(idx),
+                                    );
+                                    return null;
+                                }
                                 const Widget = config.widget;
                                 return (
                                     <div key={idx} style={{ padding: 4 }}>

@@ -418,6 +418,13 @@ export const ensureIdxUnique = (term: Term) => {
     return duplicates;
 };
 
+export const addLocationIndicesToTerm = (term: Term) => {
+    let idx = 0;
+    const addIdx = (l: Location) => ({ ...l, idx: idx++ });
+
+    return transform(term, transformLocations(addIdx));
+};
+
 export const addLocationIndices = (toplevel: ToplevelT) => {
     let idx = 0;
     const addIdx = (l: Location) => ({ ...l, idx: idx++ });

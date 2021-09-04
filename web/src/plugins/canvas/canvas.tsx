@@ -181,6 +181,7 @@ export const CanvasSceneView = <T,>({
             />
             <div>
                 <button
+                    style={buttonStyle}
                     onClick={() => {
                         setPaused(!paused);
                     }}
@@ -188,6 +189,7 @@ export const CanvasSceneView = <T,>({
                     {paused ? 'Start' : 'Pause'}
                 </button>
                 <button
+                    style={buttonStyle}
                     onClick={() => {
                         state.current = value.initial;
                         const ctx = canvas.current?.getContext('2d');
@@ -204,6 +206,15 @@ export const CanvasSceneView = <T,>({
             </div>
         </div>
     );
+};
+
+const buttonStyle = {
+    border: 'none',
+    color: '#ccc',
+    marginRight: 4,
+    backgroundColor: '#111',
+    padding: '4px 8px',
+    cursor: 'pointer',
 };
 
 const drawableBounds = (geom: Geom) => {

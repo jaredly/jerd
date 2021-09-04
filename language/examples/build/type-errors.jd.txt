@@ -1,38 +1,26 @@
 Fallback binops [object Object] must have same-typed arguments: int#builtin vs string#builtin at 3:1-3:2
 
-Wrong type for arg 0: 
-Found: int#builtin
-but expected string#builtin : 7:7-7:8
+expected string#builtin, found int#builtin
 
-Wrong type for arg 0: 
-Found: string#builtin
-but expected int#builtin : 11:7-11:12
+expected int#builtin, found string#builtin
 
-Wrong type for arg 0: 
-Found: string#builtin
-but expected int#builtin : 18:15-18:22
+expected int#builtin, found string#builtin
 
-Wrong type for arg 0: 
-Found: string#builtin
-but expected int#builtin : 21:7-21:15
+expected int#builtin, found string#builtin
 
-Return type of lambda doesn't fit type declaration
+expected int#builtin, found T#:0
 
-Return type of lambda doesn't fit type declaration
+expected T#:0, found int#builtin
 
 Function is declared as pure, but is not. 1 effects found.
 
-Wrong type for arg 0: 
-Found: T#:0
-but expected string#builtin : 36:30-36:32
+expected string#builtin, found T#:0
 
 expected string#builtin, found int#builtin
 
 expected string#builtin, found int#builtin
 
-Wrong type for arg 0: 
-Found: int#builtin
-but expected string#builtin : 46:18-46:19
+expected string#builtin, found int#builtin
 
 Value of const doesn't match type annotation.
 
@@ -48,7 +36,7 @@ Wrong number of arguments (string#builtin) ={}> void#builtin, 1 vs 2
 
 Type error!UnresolvedIdentifier
 
-Return type of lambda doesn't fit type declaration
+expected string#builtin, found int#builtin
 
 Function declared with explicit effects, but missing at least one: 
 GetString#22024b72
