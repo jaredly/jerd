@@ -548,6 +548,7 @@ const getMatchingPlugins = (
 };
 
 export const RenderResult = React.memo(RenderResult_);
+
 function renderSliders(
     sliderData: {
         sliders: {
@@ -565,53 +566,7 @@ function renderSliders(
         termsInOrder: string[];
     },
     termAndEnvWithSliders: {
-        env: {
-            global: {
-                terms: { [x: string]: Term };
-                rng: () => number;
-                names: { [humanName: string]: Id[] };
-                idNames: { [idName: string]: string };
-                exportedTerms: { [humanName: string]: Id };
-                metaData: {
-                    [idName: string]: {
-                        tags: string[];
-                        author?: string | undefined;
-                        supersedes?: string | undefined;
-                        supersededBy?: string | undefined;
-                        tests?: Id[] | undefined;
-                        basedOn?: string | undefined;
-                        createdMs: number;
-                    };
-                };
-                builtins: { [key: string]: Type };
-                builtinTypes: { [key: string]: number };
-                typeNames: { [humanName: string]: Id[] };
-                types: {
-                    [
-                        idName: string
-                    ]: import('/Users/jared/clone/exploration/jerd/language/src/typing/types').TypeDef;
-                };
-                recordGroups: { [key: string]: string[] };
-                attributeNames: {
-                    [humanName: string]: { id: Id; idx: number }[];
-                };
-                effectNames: { [humanName: string]: string[] };
-                effectConstructors: {
-                    [humanName: string]: { idName: string; idx: number };
-                };
-                effectConstrNames: { [idName: string]: string[] };
-                effects: { [key: string]: { args: Type[]; ret: Type }[] };
-                decoratorNames: { [humanName: string]: Id[] };
-                decorators: {
-                    [
-                        idName: string
-                    ]: import('/Users/jared/clone/exploration/jerd/language/src/typing/types').DecoratorDef;
-                };
-            };
-            local: import('/Users/jared/clone/exploration/jerd/language/src/typing/types').LocalEnv;
-            term: import('/Users/jared/clone/exploration/jerd/language/src/typing/types').TermEnv;
-            depth: number; //     }
-        };
+        env: Env;
         term: Term;
         id: { hash: string; size: number; pos: number };
     },

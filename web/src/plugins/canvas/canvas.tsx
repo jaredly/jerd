@@ -1,4 +1,5 @@
 import React from 'react';
+import { min, modInt } from '../../../../language/src/printing/builtins';
 import { idFromName } from '../../../../language/src/typing/env';
 import { refType } from '../../../../language/src/typing/preset';
 import { Env, nullLocation, Term } from '../../../../language/src/typing/types';
@@ -8,6 +9,7 @@ import {
     CanvasScene_id,
     Color,
     Drawable,
+    Drawable_id,
     Geom,
 } from './canvas-jd';
 
@@ -142,6 +144,8 @@ export const CanvasSceneView = <T,>({
     return (
         <div>
             <canvas
+                width={value.size.x}
+                height={value.size.y}
                 ref={(node) => {
                     if (node) {
                         canvas.current = node;
@@ -153,7 +157,111 @@ export const CanvasSceneView = <T,>({
     );
 };
 
+const drawableBounds = (geom: Geom) => {
+    switch (geom.type) {
+        case 'Polygon': {
+            const minX = geom.points.reduce(
+                (c, v) => Math.min(c, v.x),
+                Infinity,
+            );
+            const minY = geom.points.reduce(
+                (c, v) => Math.min(c, v.y),
+                Infinity,
+            );
+            const maxX = geom.points.reduce(
+                (c, v) => Math.max(c, v.x),
+                -Infinity,
+            );
+            const maxY = geom.points.reduce(
+                (c, v) => Math.max(c, v.y),
+                -Infinity,
+            );
+            return {
+                x: minX,
+                y: minY,
+                width: maxX - minX,
+                height: maxY - minY,
+            };
+        }
+        case 'Rect':
+            return {
+                x: geom.pos.x,
+                y: geom.pos.y,
+                width: geom.size.x,
+                height: geom.size.y,
+            };
+        case 'Ellipse':
+            const mr = Math.max(geom.radius.x, geom.radius.y);
+            return {
+                x: geom.pos.x - mr,
+                y: geom.pos.y - mr,
+                width: mr * 2,
+                height: mr * 2,
+            };
+        case 'Line':
+            const x = Math.min(geom.p1.x, geom.p2.x);
+            const y = Math.min(geom.p1.y, geom.p2.y);
+            const ax = Math.max(geom.p1.x, geom.p2.x);
+            const ay = Math.max(geom.p1.y, geom.p2.y);
+            return { x, y, width: ax - x, height: ay - y };
+    }
+    return { x: 0, y: 0, width: 100, height: 100 };
+};
+
+const expandBounds = (
+    bounds: { x: number; y: number; width: number; height: number },
+    margin: number,
+) => ({
+    x: bounds.x - margin,
+    y: bounds.y - margin,
+    width: bounds.width + margin * 2,
+    height: bounds.height + margin * 2,
+});
+
+const SingleDrawable = ({ value }: { value: Drawable }) => {
+    const [loaded, setLoaded] = React.useState(
+        null as null | HTMLCanvasElement,
+    );
+    const bounds = React.useMemo(
+        () =>
+            value.type === 'Text'
+                ? { x: 0, y: 0, width: 100, height: 100 }
+                : expandBounds(drawableBounds(value.geom), 10),
+        [value],
+    );
+    React.useEffect(() => {
+        if (!loaded) {
+            return;
+        }
+        const ctx = loaded.getContext('2d')!;
+        ctx.save();
+        ctx.clearRect(0, 0, loaded.width, loaded.height);
+        ctx.translate(-bounds.x, -bounds.y);
+        drawShapes(ctx, [value]);
+        ctx.restore();
+    }, [loaded, value]);
+    return (
+        <canvas
+            width={Math.min(bounds.width, 1000)}
+            height={Math.min(bounds.height, 1000)}
+            ref={(node) => {
+                if (node && !loaded) {
+                    setLoaded(node);
+                }
+            }}
+        />
+    );
+};
+
 const plugins: RenderPlugins = {
+    drawable: {
+        id: 'drawable',
+        name: 'Drawable',
+        type: refType(idFromName(Drawable_id)),
+        render: (value: Drawable, evalEnv: EvalEnv) => {
+            return <SingleDrawable value={value} />;
+        },
+    },
     canvas: {
         id: 'canvas',
         name: 'Canvas',

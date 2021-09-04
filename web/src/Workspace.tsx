@@ -203,6 +203,11 @@ export const Workspace = ({ state, setState }: Props) => {
     const state$ = useUpdated(state);
     const focus$ = useUpdated(focus);
 
+    const processAction = React.useCallback(
+        makeReducer(state$, sortedCellIds$, setFocus, focus$, setState),
+        [],
+    );
+
     React.useEffect(() => {
         const fn = (evt: KeyboardEvent) => {
             if (evt.target !== document.body) {
@@ -229,6 +234,24 @@ export const Workspace = ({ state, setState }: Props) => {
                 evt.preventDefault();
                 evt.stopPropagation();
             }
+            if (evt.key === 'o') {
+                processAction({
+                    type: 'add',
+                    position: { type: 'after', id: focus.id },
+                    content: { type: 'raw', text: '' },
+                });
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            if (evt.key === 'O') {
+                processAction({
+                    type: 'add',
+                    position: { type: 'before', id: focus.id },
+                    content: { type: 'raw', text: '' },
+                });
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
             if (evt.key === 'Enter') {
                 evt.preventDefault();
                 evt.stopPropagation();
@@ -238,11 +261,6 @@ export const Workspace = ({ state, setState }: Props) => {
         window.addEventListener('keydown', fn);
         return () => window.removeEventListener('keydown', fn);
     }, []);
-
-    const processAction = React.useCallback(
-        makeReducer(state$, sortedCellIds$, setFocus, focus$, setState),
-        [],
-    );
 
     return (
         <div

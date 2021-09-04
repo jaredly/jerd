@@ -24,7 +24,7 @@ export const typeApply = (
     const typeVbls = suffix.typevbls.map((t) => typeType(env, t));
     let applied = target.is;
 
-    let resArgs = args.map((arg) => typeExpr(env, arg.value));
+    let typedArgs = args.map((arg) => typeExpr(env, arg.value));
 
     if (target.type === 'Ambiguous') {
         // OK! resolve ambiguity pleaseeee
@@ -79,12 +79,12 @@ export const typeApply = (
                     throw new Error(`Type variables not provided`);
                 }
 
-                if (is.args.length !== resArgs.length) {
+                if (is.args.length !== typedArgs.length) {
                     return null;
                 }
                 let matches = true;
                 const args = is.args.map((t, i) => {
-                    const arg = resArgs[i];
+                    const arg = typedArgs[i];
                     if (arg.type === 'Ambiguous') {
                         for (let opt of arg.options) {
                             if (typesEqual(opt.is, t)) {
@@ -113,7 +113,7 @@ export const typeApply = (
         if (!matching.length) {
             throw new LocatedError(
                 target.location,
-                `Ambiguous term doesn't match arguments ${resArgs
+                `Ambiguous term doesn't match arguments ${typedArgs
                     .map((arg) => showType(env, arg.is))
                     .join(', ')}. Options:\n  - ${target.options
                     .map(
@@ -127,7 +127,7 @@ export const typeApply = (
         }
         target = matching[0].option;
         applied = matching[0].applied;
-        resArgs = matching[0].args;
+        typedArgs = matching[0].args;
     } else if (typeVbls.length) {
         // ahhhh it's my old nemesis come back to haunt me.
         // yes indeed I do need to know what the types of these things are
@@ -229,19 +229,26 @@ export const typeApply = (
     // could be the same one for "unresolved term" tbh
 
     // const resArgs: Array<Term> = [];
-    resArgs.forEach((term, i) => {
+    typedArgs.forEach((term, i) => {
         // const t: Term = typeExpr(env, term);
         const err = getTypeError(env, term.is, is.args[i], term.location!);
         if (err !== null) {
-            throw new LocatedError(
-                term.location,
-                `Wrong type for arg ${i}: \nFound: ${showType(
-                    env,
-                    term.is,
-                )}\nbut expected ${showType(env, is.args[i])} : ${showLocation(
-                    term.location,
-                )}`,
-            ).wrap(err);
+            typedArgs[i] = {
+                type: 'TypeError',
+                is: is.args[i],
+                inner: term,
+                location: term.location,
+                message: err.getMessage(),
+            };
+            // throw new LocatedError(
+            //     term.location,
+            //     `Wrong type for arg ${i}: \nFound: ${showType(
+            //         env,
+            //         term.is,
+            //     )}\nbut expected ${showType(env, is.args[i])} : ${showLocation(
+            //         term.location,
+            //     )}`,
+            // ).wrap(err);
         }
     });
 
@@ -256,7 +263,7 @@ export const typeApply = (
             prevEffects.length > 0 &&
             prevEffects.filter((e) => e.type === 'ref').length === 0,
         target,
-        args: resArgs,
+        args: typedArgs,
         is: is.res,
     };
 };

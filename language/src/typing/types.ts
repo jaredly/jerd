@@ -77,6 +77,27 @@ export type TermEnv = {
     localNames: { [unique: number]: string };
 };
 
+export type MetaData = {
+    /**
+     * @deprecated this attribute is deprecated
+     */
+    tags: Array<string>;
+    author?: string;
+    supersedes?: string;
+    supersededBy?: string;
+    // Ok folks, here's our tests. this is our chance to make
+    // then structured at all;
+    tests?: Array<{
+        id: Id;
+        // Do we want to allow options? idk
+        display?: { type: string };
+    }>;
+    // if superseedes is null, this might contain a source that
+    // wasn't replaced.
+    basedOn?: string;
+    createdMs: number;
+};
+
 export type GlobalEnv = {
     rng: () => number;
     names: { [humanName: string]: Array<Id> };
@@ -84,20 +105,7 @@ export type GlobalEnv = {
     terms: { [idName: string]: Term };
     exportedTerms: { [humanName: string]: Id };
     metaData: {
-        [idName: string]: {
-            /**
-             * @deprecated this attribute is deprecated
-             */
-            tags: Array<string>;
-            author?: string;
-            supersedes?: string;
-            supersededBy?: string;
-            tests?: Array<Id>;
-            // if superseedes is null, this might contain a source that
-            // wasn't replaced.
-            basedOn?: string;
-            createdMs: number;
-        };
+        [idName: string]: MetaData;
     };
     builtins: { [key: string]: Type };
 

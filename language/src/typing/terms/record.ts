@@ -242,6 +242,9 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             i = idx;
         } else {
             if (!names[row.id.text]) {
+                // TODO: make sure we're not breaking things here
+                i = -1;
+                id = null;
                 throw new Error(
                     `Unexpected attribute name ${row.id.text} at ${showLocation(
                         row.id.location,

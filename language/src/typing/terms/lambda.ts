@@ -50,18 +50,21 @@ export const typeLambda = (
         argst.push(type);
     });
 
-    const body = typeExpr(inner, expr.body);
+    let body = typeExpr(inner, expr.body);
     if (expr.rettype) {
-        const err = getTypeError(
-            typeInner,
-            body.is,
-            typeType(typeInner, expr.rettype),
-            expr.location,
-        );
+        const expected = typeType(typeInner, expr.rettype);
+        const err = getTypeError(typeInner, body.is, expected, expr.location);
         if (err != null) {
-            throw new TypeError(
-                `Return type of lambda doesn't fit type declaration`,
-            ).wrap(err);
+            body = {
+                type: 'TypeError',
+                inner: body,
+                is: expected,
+                location: body.location,
+                message: err.getMessage(),
+            };
+            // throw new TypeError(
+            //     `Return type of lambda doesn't fit type declaration`,
+            // ).wrap(err);
         }
     }
 

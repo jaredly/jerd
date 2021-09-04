@@ -47,6 +47,7 @@ export const goLeft = (
         if (
             (line[i].end.line < pos.start.line ||
                 line[i].end.column < pos.start.column) &&
+            tree.locs[line[i].idx] &&
             isAtomic(tree.locs[line[i].idx].kind)
         ) {
             return line[i].idx;
@@ -65,7 +66,10 @@ export const goLeft = (
                 // TODO this should error?
                 continue;
             }
-            if (isAtomic(tree.locs[line[i].idx].kind)) {
+            if (
+                tree.locs[line[i].idx] &&
+                isAtomic(tree.locs[line[i].idx].kind)
+            ) {
                 return line[i].idx;
             }
         }
@@ -99,6 +103,7 @@ export const goRight = (
         if (
             (line[i].start.line > pos.end.line ||
                 line[i].start.column > pos.end.column) &&
+            tree.locs[line[i].idx] &&
             isAtomic(tree.locs[line[i].idx].kind)
         ) {
             return line[i].idx;
@@ -115,7 +120,10 @@ export const goRight = (
                 // TODO this should error?
                 continue;
             }
-            if (isAtomic(tree.locs[line[i].idx].kind)) {
+            if (
+                tree.locs[line[i].idx] &&
+                isAtomic(tree.locs[line[i].idx].kind)
+            ) {
                 return line[i].idx;
             }
         }
