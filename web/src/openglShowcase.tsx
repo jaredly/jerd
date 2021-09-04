@@ -1,3 +1,4 @@
+import './polyfill';
 import * as builtins from '@jerd/language/src/printing/builtins';
 // import App from './App';
 // import ASTDebug from './ASTDebug';
