@@ -1,5 +1,18 @@
 // ugh
 
+import { allEnumAttributes } from '../../language/src/printing/glslPrinter';
+import { recordAttributeName } from '../../language/src/printing/typeScriptPrinterSimple';
+import { allRecordMembers } from '../../language/src/printing/typeScriptTypePrinter';
+import { addRecord, idName } from '../../language/src/typing/env';
+import {
+    Env,
+    idsEqual,
+    Reference,
+    refsEqual,
+    TypeReference,
+} from '../../language/src/typing/types';
+import { Vec2, Vec3, Vec4 } from './display/OpenGL';
+
 const createShader = (
     gl: WebGL2RenderingContext,
     kind: number,
@@ -7,6 +20,7 @@ const createShader = (
 ) => {
     const shader = gl.createShader(kind);
     if (!shader) {
+        // TODO: Indicate in the UI that this is probably just the browser limiting stuff
         throw new Error(`no shader`);
     }
     gl.shaderSource(shader, source);
@@ -101,7 +115,8 @@ export const setup = (
     gl: WebGL2RenderingContext,
     fragmentShader: string,
     currentTime: number,
-    mousePos?: { x: number; y: number },
+    mousePos?: { x: number; y: number; button: number },
+    state?: { value: unknown; type: Reference; env: Env },
     bufferShaders: Array<string> = [],
     textures: Array<BufferInfo> = [],
 ) => {
@@ -128,6 +143,8 @@ export const setup = (
     type Bound = {
         utime: WebGLUniformLocation;
         umouse: WebGLUniformLocation;
+        umousebutton: WebGLUniformLocation;
+        ustate: null | ((value: unknown) => void);
         textureLocs: Array<WebGLUniformLocation>;
     };
 
@@ -145,11 +162,31 @@ export const setup = (
         const uresolution = gl.getUniformLocation(program, 'u_resolution');
         gl.uniform2f(uresolution, gl.canvas.width, gl.canvas.height);
 
+        const umousebutton = gl.getUniformLocation(program, 'u_mousebutton')!;
+        if (mousePos) {
+            gl.uniform1i(umousebutton, mousePos.button);
+        }
+
         const umouse = gl.getUniformLocation(program, 'u_mouse')!;
         if (mousePos) {
             gl.uniform2f(umouse, mousePos.x, mousePos.y);
         }
-        return { utime, umouse, textureLocs };
+
+        let ustate = null;
+        if (state) {
+            ustate = getStateLocations(
+                gl,
+                program,
+                state.env,
+                state.type,
+                // state.value,
+            );
+            if (ustate) {
+                ustate(state.value);
+            }
+        }
+
+        return { utime, umouse, umousebutton, textureLocs, ustate };
     };
 
     const bufferPrograms = bufferShaders.map((fragmentShader) => {
@@ -237,6 +274,7 @@ export const setup = (
     return (
         uTime: number,
         mousePos?: { x: number; y: number; button: number },
+        state?: unknown,
     ) => {
         swap();
         if (bufferPrograms.length) {
@@ -247,6 +285,11 @@ export const setup = (
 
                 if (mousePos) {
                     gl.uniform2f(bound.umouse, mousePos.x, mousePos.y);
+                    gl.uniform1i(bound.umousebutton, mousePos.button);
+                }
+
+                if (state && bound.ustate) {
+                    bound.ustate(state);
                 }
 
                 bound.textureLocs.forEach((loc, i) => {
@@ -271,8 +314,15 @@ export const setup = (
 
         gl.uniform1f(bound.utime, uTime);
 
+        // TODO: Need to handle many different state types
+        if (state && bound.ustate) {
+            bound.ustate(state);
+            // gl.uniform2f(bound.ustate, state.x, state.y);
+        }
+
         if (mousePos) {
             gl.uniform2f(bound.umouse, mousePos.x, mousePos.y);
+            gl.uniform1i(bound.umousebutton, mousePos.button);
         }
 
         bound.textureLocs.forEach((loc, i) => {
@@ -290,3 +340,156 @@ const tr = [1.0, 1.0, 0.0];
 const tl = [-1.0, 1.0, 0.0];
 
 var positions = new Float32Array(bl.concat(br, tr, bl, tr, tl));
+
+export const getStateLocations = (
+    gl: WebGL2RenderingContext,
+    program: WebGLProgram,
+    env: Env,
+    type: Reference,
+    prefix: string = 'u_state',
+) => {
+    if (type.type === 'builtin' && type.name === 'float') {
+        const ustate = gl.getUniformLocation(program, prefix)!;
+        return (newState: unknown) => {
+            gl.uniform1f(ustate, newState as number);
+        };
+    } else if (type.type === 'builtin' && type.name === 'int') {
+        const ustate = gl.getUniformLocation(program, prefix)!;
+        return (newState: unknown) => {
+            gl.uniform1i(ustate, newState as number);
+        };
+    } else if (refsEqual(type, Vec2.ref)) {
+        const ustate = gl.getUniformLocation(program, prefix)!;
+        return (newState: unknown) => {
+            if (!newState) {
+                console.warn(`No state`);
+                return;
+            }
+            const state = newState as { type: 'Vec2'; x: number; y: number };
+            gl.uniform2f(ustate, state.x, state.y);
+        };
+    } else if (refsEqual(type, Vec3.ref)) {
+        const ustate = gl.getUniformLocation(program, prefix)!;
+        return (newState: unknown) => {
+            if (!newState) {
+                console.warn(`No state`);
+                return;
+            }
+            const state = newState as {
+                type: 'Vec3';
+                x: number;
+                y: number;
+                z: number;
+            };
+            gl.uniform3f(ustate, state.x, state.y, state.z);
+        };
+    } else if (refsEqual(type, Vec4.ref)) {
+        const ustate = gl.getUniformLocation(program, prefix)!;
+        return (newState: unknown) => {
+            if (!newState) {
+                console.warn(`No state`);
+                return;
+            }
+            const state = newState as {
+                type: 'Vec4';
+                x: number;
+                y: number;
+                z: number;
+                w: number;
+            };
+            gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
+        };
+    } else if (type.type === 'user') {
+        const constr = env.global.types[idName(type.id)];
+        if (constr.type === 'Record') {
+            const attrs = allRecordMembers(env, type.id).map((member) => {
+                const name = recordAttributeName(
+                    env,
+                    { type: 'user', id: member.id },
+                    member.i,
+                );
+                if (member.item.type === 'ref') {
+                    return {
+                        name,
+                        fn: getStateLocations(
+                            gl,
+                            program,
+                            env,
+                            member.item.ref,
+                            `${prefix}.${name}`,
+                        ),
+                    };
+                } else {
+                    throw new Error(`member type not processable`);
+                }
+                // return {name, loc: gl.getUniformLocation(program, `${prefix}.${name}`), type: member.item}
+            });
+            console.log(attrs);
+            // const locations = attrNames.map(name => ({name, loc: gl.getUniformLocation(program, `u_state.${name}`)}))
+            return (newState: unknown) => {
+                const state = newState as any;
+                attrs.forEach((attr) => attr.fn(state[attr.name]));
+                // gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
+            };
+        } else {
+            if (constr.extends.length) {
+                throw new Error(`enum extends not supported atm`);
+            }
+
+            const tag = gl.getUniformLocation(program, `${prefix}.tag`)!;
+            const idNames = constr.items.map((i) => idName(i.ref.id));
+
+            const attrs = allEnumAttributes(env, constr, {}).map(
+                ({ i, id, item }) => {
+                    if (item.type !== 'ref' || item.typeVbls.length) {
+                        throw new Error(`enum item not processable`);
+                    }
+                    const name = recordAttributeName(
+                        env,
+                        { type: 'user', id },
+                        i,
+                    );
+                    return {
+                        id,
+                        name,
+                        fn: getStateLocations(
+                            gl,
+                            program,
+                            env,
+                            item.ref,
+                            `${prefix}.${name}`,
+                        ),
+                    };
+                },
+            );
+
+            // so ... we ... set the tag ... and the ... things
+            console.log(constr);
+            return (newState: unknown) => {
+                if (!newState) {
+                    console.warn('Empty state', newState);
+                    // throw new Error(`Oh no`);
+                    return;
+                }
+                const state = newState as { type: string } & {
+                    [key: string]: unknown;
+                };
+
+                const idx = idNames.indexOf(state.type);
+                if (idx === -1) {
+                    throw new Error(`isRecord but record isnt in enum`);
+                }
+                gl.uniform1i(tag, idx);
+
+                attrs.forEach((attr) => {
+                    // If this attr is for the active enum item
+                    if (idName(attr.id) === state.type) {
+                        attr.fn(state[attr.name]);
+                    }
+                });
+            };
+        }
+    } else {
+        throw new Error('Unable to handle this kind of state');
+    }
+};

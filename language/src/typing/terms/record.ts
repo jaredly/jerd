@@ -13,10 +13,11 @@ import {
     RecordDef,
     RecordBase,
     isRecord,
+    idsEqual,
 } from '../types';
 import { Record } from '../../parsing/parser';
 import { showType } from '../unify';
-import { idFromName, idName } from '../env';
+import { allDefaults, idFromName, idName } from '../env';
 import typeExpr, {
     applyTypeVariablesToRecord,
     showLocation,
@@ -43,6 +44,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     let subTypeIds: Array<Id>;
     let is: Type;
 
+    // TODO: we should resolve the #hash first
     if (env.local.typeVblNames[expr.id.text]) {
         const sym = env.local.typeVblNames[expr.id.text];
         const t = env.local.typeVbls[sym.unique];
@@ -50,11 +52,12 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             type: 'Variable',
             var: sym,
             spread: null as any,
+            location: expr.id.location,
         };
         subTypeIds = [];
         t.subTypes.forEach((id) => {
             const t = env.global.types[idName(id)] as RecordDef;
-            subTypeIds.push(...getAllSubTypes(env.global, t));
+            subTypeIds.push(...getAllSubTypes(env.global, t.extends));
         });
         is = { type: 'var', sym, location: expr.id.location };
     } else {
@@ -78,11 +81,24 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 );
             }
             id = ids[0];
+            if (ids.length > 1) {
+                for (let i of ids) {
+                    const def = env.global.types[idName(i)];
+                    if (
+                        def.type === 'Record' &&
+                        def.typeVbls.length === expr.typeVbls.length
+                    ) {
+                        id = i;
+                        break;
+                    }
+                }
+            }
         }
+        const def = env.global.types[idName(id)] as RecordDef;
         const typeVbls = expr.typeVbls.map((t) => typeType(env, t));
         const t = applyTypeVariablesToRecord(
             env,
-            env.global.types[idName(id)] as RecordDef,
+            def,
             typeVbls,
             expr.location,
             id.hash,
@@ -98,13 +114,19 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
 
         // So we can detect missing items
         // rows.fill(null);
-        base = { rows, ref, type: 'Concrete', spread: null };
+        base = {
+            rows,
+            ref,
+            type: 'Concrete',
+            spread: null,
+            location: expr.id.location,
+        };
         env.global.recordGroups[idName(id)].forEach(
             (name, i) => (names[name] = { i, id: null }),
         );
 
         // TODO: deduplicate
-        subTypeIds = getAllSubTypes(env.global, t);
+        subTypeIds = getAllSubTypes(env.global, t.extends);
         is = {
             type: 'ref',
             ref,
@@ -197,7 +219,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     sub.covered = true;
                     getAllSubTypes(
                         env.global,
-                        subTypeTypes[idName(id)],
+                        subTypeTypes[idName(id)].extends,
                     ).forEach((sid) => {
                         subTypes[idName(sid)].covered = true;
                     });
@@ -220,6 +242,9 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             i = idx;
         } else {
             if (!names[row.id.text]) {
+                // TODO: make sure we're not breaking things here
+                i = -1;
+                id = null;
                 throw new Error(
                     `Unexpected attribute name ${row.id.text} at ${showLocation(
                         row.id.location,
@@ -246,7 +271,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 } at ${showLocation(row.id.location)}`,
             );
         }
-        const v = typeExpr(env, row.value);
+        let v = typeExpr(env, row.value, rowsToMod[i].type);
         const err = getTypeError(
             env,
             v.is,
@@ -254,15 +279,13 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             row.value.location,
         );
         if (err != null) {
-            throw new LocatedError(
-                row.value.location,
-                `Invalid type for attribute ${row.id.text} at ${showLocation(
-                    row.value.location,
-                )}. Expected ${showType(
-                    env,
-                    recordType.items[i],
-                )}, got ${showType(env, v.is)}`,
-            ).wrap(err);
+            v = {
+                type: 'TypeError',
+                is: rowsToMod[i].type,
+                inner: v,
+                location: v.location,
+                message: err.getMessage(),
+            };
         }
         rowsToMod[i].value = v;
     });
@@ -270,15 +293,27 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     // of course, `rows` will also need to be more clever.
     if (base.type === 'Concrete' && base.spread == null) {
         const r = base.ref;
+        const def = env.global.types[idName(r.id)] as RecordDef;
         base.rows.forEach((row, i) => {
-            if (row.value == null) {
-                throw new LocatedError(
-                    expr.location,
-                    `Record missing attribute "${
-                        env.global.recordGroups[idName(r.id)][i]
-                    }" at ${showLocation(expr.location)}`,
-                );
+            if (row.value != null) {
+                return;
             }
+            if (def.defaults) {
+                const found = def.defaults[i + ''];
+                if (found != null) {
+                    // Ok so there is a value, but we don't
+                    // pop it in here just yet.
+                    // That will happen when translating to IR
+                    // row.value = found.value;
+                    return;
+                }
+            }
+            throw new LocatedError(
+                expr.location,
+                `Record missing attribute "${
+                    env.global.recordGroups[idName(r.id)][i]
+                }" at ${showLocation(expr.location)}`,
+            );
         });
     } else if (base.type === 'Variable' && base.spread == null) {
         throw new Error(`Cannot create a new record of a variable type.`);
@@ -302,6 +337,14 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         };
     });
 
+    const defaults =
+        base.type === 'Concrete'
+            ? allDefaults(
+                  env.global,
+                  env.global.types[idName(base.ref.id)] as RecordDef,
+              )
+            : null;
+
     Object.keys(subTypes).forEach((id) => {
         finishedSubTypes[id] = {
             ...subTypes[id],
@@ -310,13 +353,22 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
 
         if (!subTypes[id].covered) {
             subTypes[id].rows.forEach((row, i) => {
-                if (row.value == null) {
-                    throw new Error(
-                        `Record missing attribute from subtype ${id} "${
-                            env.global.recordGroups[id][i]
-                        }" at ${showLocation(expr.location)}`,
-                    );
+                if (row.value != null) {
+                    return;
                 }
+                if (defaults && defaults[`${id}#${i}`]) {
+                    return;
+                }
+                // Ok, so either:
+                // - the subtype record has a default for it, orrr
+                // - the ... hmm ... we might have to go down the line
+                // of inheritance, checking each. Yeah, I think that's right.
+                // const d =
+                throw new Error(
+                    `Record missing attribute from subtype ${id} "${
+                        env.global.recordGroups[id][i]
+                    }" at ${showLocation(expr.location)}`,
+                );
             });
         }
     });

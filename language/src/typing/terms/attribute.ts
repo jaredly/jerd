@@ -2,7 +2,16 @@ import { AttributeSuffix } from '../../parsing/parser';
 import { hasSubType, idFromName, idName } from '../env';
 import { LocatedError } from '../errors';
 import { applyTypeVariablesToRecord, showLocation } from '../typeExpr';
-import { Env, getAllSubTypes, isRecord, Term, UserReference } from '../types';
+import {
+    Env,
+    getAllSubTypes,
+    idsEqual,
+    isRecord,
+    refsEqual,
+    Term,
+    Type,
+    UserReference,
+} from '../types';
 import { showType } from '../unify';
 
 export const typeAttribute = (
@@ -23,9 +32,12 @@ export const typeAttribute = (
     let idx: number;
     let ref: UserReference | null = null;
     if (suffix.id.hash != null) {
-        const [id, num] = suffix.id.hash.slice(1).split('#');
-        ref = { type: 'user', id: idFromName(id) };
-        idx = +num;
+        ({ ref, idx, target } = resolveAttributeFromHash(
+            suffix.id.hash,
+            suffix,
+            target,
+            env,
+        ));
     } else if (suffix.id.text.match(/^\d+$/)) {
         idx = +suffix.id.text;
         if (
@@ -71,7 +83,7 @@ export const typeAttribute = (
         if (idx !== -1) {
             ref = target.is.ref;
         } else {
-            const subTypes = getAllSubTypes(env.global, defn);
+            const subTypes = getAllSubTypes(env.global, defn.extends);
             for (let id of subTypes) {
                 idx = env.global.recordGroups[idName(id)].indexOf(
                     suffix.id.text,
@@ -117,7 +129,12 @@ export const typeAttribute = (
     if (t.type !== 'Record') {
         throw new Error(`Not a record ${idName(ref.id)}`);
     }
+    let refTypeVbls: undefined | Array<Type> = undefined;
     if (target.is.type === 'ref') {
+        // throw new LocatedError(
+        //     suffix.location,
+        //     `Yeah just not supporting non-ref target type at the moment ${target.is.type}`,
+        // );
         t = applyTypeVariablesToRecord(
             env,
             t,
@@ -125,18 +142,117 @@ export const typeAttribute = (
             target.is.location,
             ref.id.hash,
         );
+        refTypeVbls = target.is.typeVbls.length
+            ? target.is.typeVbls
+            : undefined;
     }
+
     if (t.type !== 'Record') {
-        throw new Error(`${idName(ref.id)} is not a record type`);
+        throw new LocatedError(
+            suffix.location,
+            `${idName(ref.id)} is not a record type`,
+        );
     }
 
     return {
         type: 'Attribute',
         target,
         location: suffix.location,
+        idLocation: suffix.id.location,
         inferred: false,
         idx,
         ref,
+        refTypeVbls,
         is: t.items[idx],
     };
 };
+
+function resolveAttributeFromHash(
+    hash: string,
+    suffix: AttributeSuffix,
+    target: Term,
+    env: Env,
+) {
+    const [id, num] = hash.slice(1).split('#');
+    const ref: UserReference = { type: 'user', id: idFromName(id) };
+    const idx = +num;
+    if (target.is.type === 'ref') {
+        if (target.is.ref.type === 'user') {
+            // This is the type of the record at hand that we're trying to get something out of.
+            // If this is a valid attribute, the hash must be equal to the record type, or
+            // an extended record type.
+            const rid = target.is.ref.id;
+            const defn = env.global.types[idName(rid)];
+            if (defn.type === 'Enum') {
+                throw new Error(`can't attribute an enum just yet folks`);
+            }
+            const sub = getAllSubTypes(env.global, defn.extends);
+            // TODO: need to check subtypes / spreads n stuffs
+            // this is wrong
+            if (
+                !refsEqual(ref, target.is.ref) &&
+                !sub.some((id) => idsEqual(id, ref!.id))
+            ) {
+                // console.log(sub, rid, ref);
+                target = {
+                    type: 'TypeError',
+                    is: {
+                        type: 'ref',
+                        ref,
+                        typeVbls: [],
+                        location: target.location,
+                    },
+                    inner: target,
+                    location: target.location,
+                };
+                // throw new LocatedError(
+                //     suffix.location,
+                //     `hashed attribute doesnt line up`,
+                // );
+            }
+        } else {
+            // Honestly, I should have Attribute things just be on UserReferences
+            throw new LocatedError(
+                suffix.location,
+                `No builtin records at the moment`,
+            );
+        }
+    } else if (target.is.type === 'var') {
+        const vbl = env.local.typeVbls[target.is.sym.unique];
+        const allSubTypes = getAllSubTypes(env.global, vbl.subTypes);
+        if (!allSubTypes.find((id) => idsEqual(id, ref.id))) {
+            // console.log(
+            //     `No subtypes for type variable`,
+            //     vbl,
+            //     allSubTypes,
+            //     ref,
+            // );
+            // TODO: include some messaging or something in the
+            // TypeError node type, that would be rad.
+            target = {
+                type: 'TypeError',
+                message: `#${idName(ref.id)} of type variable ${
+                    target.is.sym.name
+                }:${target.is.sym.unique} - valid options: ${allSubTypes
+                    .map(idName)
+                    .join(', ')}`,
+                is: {
+                    type: 'ref',
+                    ref,
+                    typeVbls: [],
+                    location: target.location,
+                },
+                inner: target,
+                location: target.location,
+            };
+        }
+    } else {
+        throw new LocatedError(
+            suffix.location,
+            `Not a record ${showType(env, target.is)} at ${showLocation(
+                suffix.location,
+            )}`,
+        );
+    }
+    return { ref, idx, target };
+}

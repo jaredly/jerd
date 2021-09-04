@@ -179,7 +179,7 @@ export default () => {
                 false,
             );
             const fn = result[idName(main)];
-            console.log(fn);
+            // console.log(fn);
             jsRef.current = fn;
 
             const pp = fileToGlsl(
@@ -187,9 +187,9 @@ export default () => {
                 env,
                 oopts,
                 irOpts,
-                false,
-                true,
-                builtinNames,
+                // false,
+                // true,
+                // builtinNames,
             );
             setOutput(pp.text);
             // @ts-ignore

@@ -15,6 +15,8 @@ import {
     Type,
     TypeVblDecl,
     Location,
+    TypeReference,
+    Id,
 } from './types';
 
 export const builtinLocation: Location = {
@@ -33,9 +35,9 @@ export const builtinType = (
     // effectVbls: [],
 });
 
-export const refType = (id: string, typeVbls: Array<Type> = []): Type => ({
+export const refType = (id: Id, typeVbls: Array<Type> = []): TypeReference => ({
     type: 'ref',
-    ref: { type: 'user', id: idFromName(id) },
+    ref: { type: 'user', id },
     location: builtinLocation,
     typeVbls,
     // effectVbls: [],
@@ -72,6 +74,7 @@ export const pureFunction = (
         type: 'lambda',
         typeVbls,
         effectVbls: [],
+        argNames: args.map((arg) => null),
         args,
         effects: [],
         rest: null,
@@ -117,8 +120,18 @@ export function presetEnv(builtins: { [key: string]: Type }) {
     // env.global.builtins['intToString'] = pureFunction([int], string);
     // env.global.builtins['intToFloat'] = pureFunction([int], float);
 
-    const T: TypeVblDecl = { unique: 10000, subTypes: [] };
-    const Y: TypeVblDecl = { unique: 10001, subTypes: [] };
+    const T: TypeVblDecl = {
+        unique: 10000,
+        subTypes: [],
+        name: 'T',
+        location: nullLocation,
+    };
+    const Y: TypeVblDecl = {
+        unique: 10001,
+        subTypes: [],
+        name: 'Y',
+        location: nullLocation,
+    };
     const Y0: Type = {
         type: 'var',
         sym: { unique: 10001, name: 'Y' },

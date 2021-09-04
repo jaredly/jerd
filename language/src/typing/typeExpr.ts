@@ -15,18 +15,21 @@ import {
     TypeVblDecl,
     typesEqual,
     nullLocation,
+    UserTypeReference,
+    DecoratorDef,
 } from './types';
 import { Expression } from '../parsing/parser';
 import { subEnv, Location } from './types';
 import typeType, { walkType } from './typeType';
 import { showType } from './unify';
-import { void_, string, bool, float } from './preset';
+import { void_, string, bool, float, int } from './preset';
 import {
     hasSubType,
     idFromName,
     idName,
     makeLocal,
     resolveIdentifier,
+    resolveType,
 } from './env';
 import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
@@ -40,6 +43,9 @@ import { typeAs } from './terms/as-suffix';
 import { typeAttribute } from './terms/attribute';
 import { typeArray } from './terms/array';
 import { Loc } from '../printing/ir/types';
+import { enumToPretty } from '../printing/printTsLike';
+import { args, printToString } from '../printing/printer';
+import { typeDecorators } from './terms/decorators';
 
 const expandEffectVars = (
     effects: Array<EffectRef>,
@@ -125,7 +131,7 @@ export const subtTypeVars = (
 };
 
 export const showLocation = (loc: Location | null, startOnly?: boolean) => {
-    if (!loc) {
+    if (!loc || !loc.start) {
         return `<no location>`;
     }
     if (startOnly) {
@@ -198,6 +204,43 @@ export const applyEffectVariables = (
     throw new Error(`Can't apply variables to non-lambdas just yet`);
 };
 
+export const applyTypeVariablesToDecoratorDef = (
+    env: Env,
+    defn: DecoratorDef,
+    vbls: Array<Type>,
+    location: Location | null,
+    selfHash: string,
+): DecoratorDef => {
+    if (defn.typeVbls.length !== vbls.length) {
+        throw new LocatedError(
+            location,
+            `Expected ${defn.typeVbls.length} at ${showLocation(
+                location,
+            )}, found ${vbls.length}`,
+        );
+    }
+    const mapping = createTypeVblMapping(env, defn.typeVbls, vbls);
+    return {
+        ...defn,
+        typeVbls: [],
+        arguments: defn.arguments.map((arg) =>
+            arg.type
+                ? { ...arg, type: subtTypeVars(arg.type, mapping, selfHash) }
+                : arg,
+        ),
+        restArg:
+            defn.restArg && defn.restArg.type
+                ? {
+                      ...defn.restArg,
+                      type: subtTypeVars(defn.restArg.type, mapping, selfHash),
+                  }
+                : defn.restArg,
+        targetType: defn.targetType
+            ? subtTypeVars(defn.targetType, mapping, selfHash)
+            : defn.targetType,
+    };
+};
+
 export const applyTypeVariablesToRecord = (
     env: Env,
     type: RecordDef,
@@ -206,7 +249,8 @@ export const applyTypeVariablesToRecord = (
     selfHash: string,
 ): RecordDef => {
     if (type.typeVbls.length !== vbls.length) {
-        throw new Error(
+        throw new LocatedError(
+            location,
             `Expected ${type.typeVbls.length} at ${showLocation(
                 location,
             )}, found ${vbls.length}`,
@@ -261,10 +305,12 @@ export const applyTypeVariables = (
         };
     }
     // should I go full-on whatsit? maybe not yet.
-    throw new Error(`Can't apply variables to non-lambdas just yet`);
+    throw new Error(
+        `Can't apply variables to non-lambdas just yet ${type.type}`,
+    );
 };
 
-const typeExpr = (env: Env, expr: Expression): Term => {
+const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
     switch (expr.type) {
         case 'float':
             return {
@@ -337,6 +383,7 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                     inner.push({
                         type: 'Let',
                         location: item.location,
+                        idLocation: item.id.location,
                         binding: sym,
                         value,
                         is: type,
@@ -354,8 +401,8 @@ const typeExpr = (env: Env, expr: Expression): Term => {
         }
         case 'If': {
             const cond = typeExpr(env, expr.cond);
-            const yes = typeExpr(env, expr.yes);
-            const no = expr.no ? typeExpr(env, expr.no) : null;
+            const yes = typeExpr(env, expr.yes, expectedType);
+            const no = expr.no ? typeExpr(env, expr.no, expectedType) : null;
             const condErr = getTypeError(
                 env,
                 cond.is,
@@ -431,10 +478,11 @@ const typeExpr = (env: Env, expr: Expression): Term => {
             if (term != null) {
                 return term;
             }
+            console.log(expr);
             throw new UnresolvedIdentifier(expr, env);
         }
         case 'lambda':
-            return typeLambda(env, expr);
+            return typeLambda(env, expr, expectedType);
 
         case 'handle': {
             return typeHandle(env, expr);
@@ -489,15 +537,18 @@ const typeExpr = (env: Env, expr: Expression): Term => {
             return typeRecord(env, expr);
         }
         case 'Enum': {
-            const ids = env.global.typeNames[expr.id.text];
-            if (!ids) {
-                throw new Error(
-                    `No Enum type ${expr.id.text} at ${showLocation(
-                        expr.location,
-                    )}`,
-                );
-            }
-            const id = ids[0];
+            // TODO: make multiple names work
+            const id = resolveType(env, expr.id)[0];
+
+            // const ids = env.global.typeNames[expr.id.text];
+            // if (!ids) {
+            //     throw new Error(
+            //         `No Enum type ${expr.id.text} at ${showLocation(
+            //             expr.location,
+            //         )}`,
+            //     );
+            // }
+            // const id = ids[0];
 
             let t = env.global.types[idName(id)] as EnumDef;
             if (t.type !== 'Enum') {
@@ -514,13 +565,13 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                 ref: { type: 'user', id },
                 location: expr.id.location,
                 typeVbls,
-                // effectVbls: [],
             };
 
             const inner = typeExpr(env, expr.expr);
             try {
                 if (!typeFitsEnum(env, inner.is, is, expr.location)) {
-                    throw new Error(
+                    throw new LocatedError(
+                        expr.location,
                         `Record ${showType(
                             env,
                             inner.is,
@@ -531,9 +582,7 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                     );
                 }
             } catch (err) {
-                throw new Error(
-                    err.message + ' : ' + showLocation(expr.location),
-                );
+                throw new LocatedError(expr.location, err.message);
             }
 
             return {
@@ -577,11 +626,11 @@ const typeExpr = (env: Env, expr: Expression): Term => {
         }
         case 'Decorated': {
             const inner = typeExpr(env, expr.wrapped);
-            if (inner.type === 'lambda') {
-                inner.tags = expr.decorators.map((d) => d.id.text);
-            } else {
-                throw new Error(`Only lambdas can be decorated right now`);
-            }
+            // if (inner.type === 'lambda') {
+            //     inner.tags = expr.decorators.map((d) => d.id.text);
+            // } else {
+            inner.decorators = typeDecorators(env, expr.decorators, inner);
+            // }
             return inner;
         }
         case 'Unary': {
@@ -594,6 +643,16 @@ const typeExpr = (env: Env, expr: Expression): Term => {
                         inner,
                         location: expr.location,
                         is: float,
+                    };
+                }
+
+                if (expr.op === '-' && typesEqual(inner.is, int)) {
+                    return {
+                        type: 'unary',
+                        op: '-',
+                        inner,
+                        location: expr.location,
+                        is: int,
                     };
                 }
 
@@ -652,7 +711,7 @@ export const tupleType = (
     // effectVbls: [],
 });
 
-const typeDef = (
+export const typeDef = (
     env: GlobalEnv,
     ref: Reference,
 ): RecordDef | EnumDef | null => {
@@ -733,7 +792,7 @@ export const typeFitsEnum = (
 export const getEnumSuperTypes = (
     env: Env,
     enumRef: TypeReference,
-): Array<TypeReference> => {
+): Array<UserTypeReference> => {
     let enumDef = typeDef(env.global, enumRef.ref);
     if (enumDef == null) {
         throw new Error(`Unknown type definition ${showType(env, enumRef)}`);
@@ -758,13 +817,17 @@ export const getEnumSuperTypes = (
 export const getEnumReferences = (
     env: Env,
     enumRef: TypeReference,
-): Array<TypeReference> => {
+): Array<UserTypeReference> => {
     let enumDef = typeDef(env.global, enumRef.ref);
     if (enumDef == null) {
         throw new Error(`Unknown type definition ${showType(env, enumRef)}`);
     }
     if (enumDef.type !== 'Enum') {
-        throw new Error(`Not an enum, it's a record ${showType(env, enumRef)}`);
+        if (enumRef.ref.type === 'user') {
+            return [enumRef as UserTypeReference];
+        } else {
+            throw new Error(`builtin record, cant do it`);
+        }
     }
     enumDef = applyTypeVariablesToEnum(
         env,
@@ -825,10 +888,10 @@ export const applyTypeVariablesToEnum = (
         typeVbls: [],
         effectVbls: [], // STOPSHIP effect vbls for enums
         items: type.items.map(
-            (t) => subtTypeVars(t, mapping, selfHash) as TypeReference,
+            (t) => subtTypeVars(t, mapping, selfHash) as UserTypeReference,
         ),
         extends: type.extends.map(
-            (t) => subtTypeVars(t, mapping, selfHash) as TypeReference,
+            (t) => subtTypeVars(t, mapping, selfHash) as UserTypeReference,
         ),
         location: type.location,
     };

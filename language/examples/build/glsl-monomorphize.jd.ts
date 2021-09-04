@@ -3,49 +3,54 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-type Eq#553b4b8e<T#:0> = {
+type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_553b4b8e<T_0> = {
-  type: "553b4b8e";
-  h553b4b8e_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_51ea2a36<T_0> = {
+  type: "51ea2a36";
+  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
 ```
-const IntEq#9275f914 = Eq#553b4b8e<int#builtin>{"=="#553b4b8e#0: intEq#builtin}
+const IntEq#ec95f154 = Eq#51ea2a36<int#builtin>{"=="#51ea2a36#0: intEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: intEq}
 ```
 */
-export const hash_9275f914: t_553b4b8e<number> = ({
-  type: "553b4b8e",
-  h553b4b8e_0: intEq
-} as t_553b4b8e<number>);
+export const hash_ec95f154: t_51ea2a36<number> = ({
+  type: "51ea2a36",
+  h51ea2a36_0: intEq
+} as t_51ea2a36<number>);
 
 /**
 ```
 const identity#d762885a = <T#:0>(x#:0: T#:0): T#:0 ={}> x#:0
+<T>(x#:0: [var]T#:0): [var]T#:0 => x#:0
 ```
 */
 export const hash_d762885a: <T_0>(arg_0: T_0) => T_0 = <T_0>(x: T_0) => x;
 
 /**
 ```
-const FloatEq#c41f7386 = Eq#553b4b8e<float#builtin>{"=="#553b4b8e#0: floatEq#builtin}
+const FloatEq#9ca984ce = Eq#51ea2a36<float#builtin>{"=="#51ea2a36#0: floatEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: floatEq}
 ```
 */
-export const hash_c41f7386: t_553b4b8e<number> = ({
-  type: "553b4b8e",
-  h553b4b8e_0: floatEq
-} as t_553b4b8e<number>);
+export const hash_9ca984ce: t_51ea2a36<number> = ({
+  type: "51ea2a36",
+  h51ea2a36_0: floatEq
+} as t_51ea2a36<number>);
 
 /*
-identity#d762885a<float#builtin>(x: 1.0) ==#c41f7386#553b4b8e#0 1.0
+identity#d762885a<float#builtin>(x: 1.0) ==#9ca984ce#51ea2a36#0 1.0
+assertCall(FloatEq#👨‍🦰.#Eq#🦩🥜👩‍💻😃#0, identity#🤬<float>(1), 1)
 */
-assertCall(hash_c41f7386.h553b4b8e_0, hash_d762885a(1), 1);
+assertCall(hash_9ca984ce.h51ea2a36_0, hash_d762885a(1), 1);
 
 /*
-identity#d762885a<int#builtin>(x: 2) ==#9275f914#553b4b8e#0 2
+identity#d762885a<int#builtin>(x: 2) ==#ec95f154#51ea2a36#0 2
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, identity#🤬<int>(2), 2)
 */
-assertCall(hash_9275f914.h553b4b8e_0, hash_d762885a(2), 2);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_d762885a(2), 2);

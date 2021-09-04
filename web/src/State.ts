@@ -1,16 +1,32 @@
 // Type definitions for state
 
 import { Env, Id, Term, Type } from '@jerd/language/src/typing/types';
+import {
+    ToplevelEffect,
+    ToplevelEnum,
+    ToplevelExpression,
+    ToplevelRecord,
+} from '../../language/src/typing/env';
 import { Traces } from './eval';
 
-export type TopContent =
-    | { type: 'term'; id: Id; name: string }
-    | { type: 'expr'; id: Id }
-    | { type: 'record'; id: Id; name: string; attrs: Array<string> }
-    | { type: 'enum'; id: Id; name: string }
-    | { type: 'effect'; id: Id; name: string; constrNames: Array<string> };
+// hmm so I want
+// - hide
+// - show
+// - show a couple
 
-export type Content = TopContent | { type: 'raw'; text: string };
+export type TopContent =
+    | {
+          type: 'term';
+          id: Id;
+          proposed?: null | ToplevelExpression;
+          tests?: true | Array<Id>;
+      }
+    | { type: 'record'; id: Id; proposed?: null | ToplevelRecord }
+    | { type: 'enum'; id: Id; proposed?: null | ToplevelEnum }
+    | { type: 'effect'; id: Id; proposed?: null | ToplevelEffect };
+
+export type Content = TopContent | RawContent;
+export type RawContent = { type: 'raw'; text: string };
 
 export type Cell = {
     id: string;

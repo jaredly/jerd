@@ -74,6 +74,28 @@ export type Env = {
 
 export type TermEnv = {
     nextTraceId: number;
+    localNames: { [unique: number]: string };
+};
+
+export type MetaData = {
+    /**
+     * @deprecated this attribute is deprecated
+     */
+    tags: Array<string>;
+    author?: string;
+    supersedes?: string;
+    supersededBy?: string;
+    // Ok folks, here's our tests. this is our chance to make
+    // then structured at all;
+    tests?: Array<{
+        id: Id;
+        // Do we want to allow options? idk
+        display?: { type: string };
+    }>;
+    // if superseedes is null, this might contain a source that
+    // wasn't replaced.
+    basedOn?: string;
+    createdMs: number;
 };
 
 export type GlobalEnv = {
@@ -83,13 +105,7 @@ export type GlobalEnv = {
     terms: { [idName: string]: Term };
     exportedTerms: { [humanName: string]: Id };
     metaData: {
-        [idName: string]: {
-            tags: Array<string>;
-            author?: string;
-            supersedes?: string;
-            supersededBy?: string;
-            createdMs: number;
-        };
+        [idName: string]: MetaData;
     };
     builtins: { [key: string]: Type };
 
@@ -115,6 +131,96 @@ export type GlobalEnv = {
             ret: Type;
         }>;
     };
+
+    decoratorNames: { [humanName: string]: Array<Id> };
+    decorators: {
+        [idName: string]: DecoratorDef;
+    };
+};
+
+export const mergeGlobalEnvs = (
+    old: GlobalEnv,
+    newEnv: GlobalEnv,
+): GlobalEnv => ({
+    ...newEnv,
+    builtins: old.builtins,
+    builtinTypes: old.builtinTypes,
+    metaData: { ...old.metaData, ...newEnv.metaData },
+    rng: newEnv.rng,
+    recordGroups: {
+        ...old.recordGroups,
+        ...newEnv.recordGroups,
+    },
+    decoratorNames: mergeNames(
+        old.decoratorNames,
+        newEnv.decoratorNames,
+        idName,
+    ),
+    decorators: {
+        ...old.decorators,
+        ...newEnv.decorators,
+    },
+    attributeNames: mergeNames(
+        old.attributeNames,
+        newEnv.attributeNames,
+        (m) => idName(m.id) + ':' + m.idx,
+    ),
+    typeNames: mergeNames(old.typeNames, newEnv.typeNames, idName),
+    idNames: {
+        ...old.idNames,
+        ...newEnv.idNames,
+    },
+    types: {
+        ...old.types,
+        ...newEnv.types,
+    },
+    names: mergeNames(old.names, newEnv.names, idName),
+    terms: {
+        // In case we added newEnv global terms
+        ...old.terms,
+        ...newEnv.terms,
+    },
+});
+
+export const mergeNames = <T>(
+    a: { [key: string]: Array<T> },
+    b: { [key: string]: Array<T> },
+    toString: (id: T) => string,
+) => {
+    const names = { ...a };
+    Object.keys(b).forEach((name) => {
+        if (!names[name]) {
+            names[name] = b[name];
+            return;
+        }
+        const got: { [key: string]: true } = {};
+        names[name].forEach((k) => (got[toString(k)] = true));
+        names[name] = names[name].concat(
+            b[name].filter((n) => !got[toString(n)]),
+        );
+    });
+    return names;
+};
+
+export type DecoratorDefArg = {
+    argLocation: Location;
+    argName: string;
+    location: Location;
+    type: Type | null;
+};
+export type DecoratorDef = {
+    unique: number;
+    arguments: Array<DecoratorDefArg>;
+    typeVbls: Array<TypeVblDecl>;
+    typeArgs: Array<{ sym: Symbol; location: Location }>;
+    restArg: {
+        argLocation: Location;
+        argName: string;
+        location: Location;
+        type: Type | null;
+    } | null;
+    targetType: Type | null;
+    location: Location;
 };
 
 export type Self =
@@ -169,9 +275,13 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
         effectConstructors: {},
         effectConstrNames: {},
         effects: {},
+
+        decorators: {},
+        decoratorNames: {},
     },
     term: {
         nextTraceId: 0,
+        localNames: {},
     },
     local: {
         unique: { current: 0 },
@@ -202,7 +312,7 @@ export const newWithGlobal = (env: GlobalEnv): Env => ({
     depth: 0,
     global: cloneGlobalEnv(env),
     local: newLocal(),
-    term: { nextTraceId: 0 },
+    term: { nextTraceId: 0, localNames: {} },
 });
 
 export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
@@ -223,6 +333,8 @@ export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
         effectConstructors: { ...env.effectConstructors },
         effectConstrNames: { ...env.effectConstrNames },
         effects: { ...env.effects },
+        decoratorNames: { ...env.decoratorNames },
+        decorators: { ...env.decorators },
     };
 };
 
@@ -233,7 +345,7 @@ export const selfEnv = (env: Env, self: Self): Env => {
             ...env.local,
             self,
         },
-        term: { nextTraceId: 0 },
+        term: { nextTraceId: 0, localNames: {} },
     };
 };
 
@@ -273,6 +385,7 @@ export type Case = {
     args: Array<{ sym: Symbol; type: Type }>;
     k: { sym: Symbol; type: Type };
     body: Term;
+    decorators?: Decorators;
 };
 
 export type EffectReference = {
@@ -297,6 +410,7 @@ export type Handle = {
     // this is the type of the bodies of the cases
     // also of the pure, which is maybe simplest
     is: Type;
+    decorators?: Decorators;
 };
 export type Raise = {
     type: 'raise';
@@ -305,6 +419,7 @@ export type Raise = {
     idx: number;
     args: Array<Term>;
     is: Type;
+    decorators?: Decorators;
 };
 
 export type CPSAble =
@@ -317,6 +432,7 @@ export type CPSAble =
           yes: Term;
           no: Term | null;
           is: Type;
+          decorators?: Decorators;
       }
     | Sequence
     | Apply;
@@ -325,6 +441,7 @@ export type Sequence = {
     location: Location;
     sts: Array<Term | Let>;
     is: Type;
+    decorators?: Decorators;
 };
 export type Apply = {
     type: 'apply';
@@ -335,6 +452,7 @@ export type Apply = {
     hadAllVariableEffects?: boolean;
     args: Array<Term>;
     is: Type; // this matches the return type of target
+    decorators?: Decorators;
 };
 
 // This doesn't do type checking
@@ -356,9 +474,11 @@ export const apply = (
 export type Let = {
     type: 'Let';
     location: Location;
+    idLocation: Location;
     binding: Symbol; // TODO patterns folks
     value: Term;
     is: Type;
+    decorators?: Decorators;
 };
 
 export type Var = {
@@ -366,26 +486,35 @@ export type Var = {
     location: Location;
     sym: Symbol;
     is: Type;
+    decorators?: Decorators;
 };
 
-export const getAllSubTypes = (env: GlobalEnv, t: RecordDef): Array<Id> => {
+export const getAllSubTypes = (
+    env: GlobalEnv,
+    extend: Array<Id>,
+): Array<Id> => {
     return ([] as Array<Id>).concat(
-        ...t.extends.map((id) =>
+        ...extend.map((id) =>
             [id].concat(
-                getAllSubTypes(env, env.types[idName(id)] as RecordDef),
+                getAllSubTypes(
+                    env,
+                    (env.types[idName(id)] as RecordDef).extends,
+                ),
             ),
         ),
     );
 };
 
+export type ConcreteBase<Contents> = {
+    type: 'Concrete';
+    ref: UserReference;
+    rows: Array<Contents>;
+    location: Location;
+    spread: Term | null; // only one spread per type makes sense
+};
 export type RecordBase<Contents> =
-    | {
-          type: 'Concrete';
-          ref: UserReference;
-          rows: Array<Contents>;
-          spread: Term | null; // only one spread per type makes sense
-      }
-    | { type: 'Variable'; var: Symbol; spread: Term };
+    | ConcreteBase<Contents>
+    | { type: 'Variable'; var: Symbol; spread: Term; location: Location };
 
 export type Record = {
     type: 'Record';
@@ -400,6 +529,7 @@ export type Record = {
         };
     };
     location: Location;
+    decorators?: Decorators;
 };
 
 export type ArrayLiteral = {
@@ -407,20 +537,23 @@ export type ArrayLiteral = {
     location: Location;
     items: Array<Term | ArraySpread>;
     is: TypeReference;
+    decorators?: Decorators;
 };
 
 export type ArraySpread = {
     type: 'ArraySpread';
     value: Term;
     location: Location;
+    decorators?: Decorators;
 };
 
-// This is basically a type coersion?
+// This is basically a type coersion? well not when we have to deal with unions explicitly
 export type Enum = {
     type: 'Enum';
     inner: Term;
     is: TypeReference;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type Switch = {
@@ -429,11 +562,14 @@ export type Switch = {
     cases: Array<SwitchCase>;
     is: Type;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type SwitchCase = {
+    location: Location;
     pattern: Pattern;
     body: Term;
+    decorators?: Decorators;
 };
 
 export type Pattern =
@@ -443,28 +579,38 @@ export type Pattern =
     | TuplePattern
     | ArrayPattern
     | EnumPattern
+    | Ignore
     | Binding;
+export type Ignore = {
+    type: 'Ignore';
+    location: Location;
+    decorators?: Decorators;
+};
 export type Binding = {
     type: 'Binding';
     sym: Symbol;
     location: Location;
+    decorators?: Decorators;
 };
 export type AliasPattern = {
     type: 'Alias';
     name: Symbol;
     inner: Pattern;
     location: Location;
+    decorators?: Decorators;
 };
 export type EnumPattern = {
     type: 'Enum';
     ref: TypeReference;
     location: Location;
+    decorators?: Decorators;
 };
 export type RecordPattern = {
     type: 'Record';
     ref: TypeReference;
     items: Array<RecordPatternItem>;
     location: Location;
+    decorators?: Decorators;
 };
 export type RecordPatternItem = {
     // sym: Symbol;
@@ -473,6 +619,7 @@ export type RecordPatternItem = {
     location: Location;
     pattern: Pattern;
     is: Type;
+    decorators?: Decorators;
 };
 export type ArrayPattern = {
     type: 'Array';
@@ -486,11 +633,13 @@ export type ArrayPattern = {
     postItems: Array<Pattern>;
     location: Location;
     is: Type;
+    decorators?: Decorators;
 };
 export type TuplePattern = {
     type: 'Tuple';
     items: Array<Pattern>;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type Unary = {
@@ -499,6 +648,7 @@ export type Unary = {
     inner: Term;
     location: Location;
     is: Type;
+    decorators?: Decorators;
 };
 
 export type TypeError = {
@@ -506,6 +656,8 @@ export type TypeError = {
     is: Type; // this is the type that was needed
     inner: Term; // this has the type that was found
     location: Location;
+    message?: string;
+    decorators?: Decorators;
 };
 
 export type Ambiguous = {
@@ -513,15 +665,47 @@ export type Ambiguous = {
     options: Array<Term>;
     is: AmbiguousType;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type ErrorTerm = Ambiguous | TypeError;
+
+// some-term
+// : some-type
+// = some-pattern
+export type Decorator = {
+    name: { id: Id; location: Location };
+    location: Location;
+    args: Array<DecoratorArg>;
+};
+export type DecoratorArg =
+    | {
+          type: 'Term';
+          term: Term;
+      }
+    | { type: 'Type'; contents: Type }
+    | { type: 'Pattern'; pattern: Pattern };
+
+export type Decorators = Array<Decorator>;
+
+// Term assertions
+(t: Term, p: Pattern, y: Type) => {
+    let tl: Location = t.location;
+    let tt: Type = t.is;
+    let td: undefined | Decorators = t.decorators;
+
+    let p_: Location = p.location;
+    let pd: undefined | Decorators = p.decorators;
+
+    let yl: Location = y.location;
+    let yd: undefined | Decorators = y.decorators;
+};
 
 export type Term =
     | ErrorTerm
     | CPSAble
     | Unary
-    | { type: 'self'; is: Type; location: Location }
+    | { type: 'self'; is: Type; location: Location; decorators?: Decorators }
     // For now, we don't have subtyping
     // but when we do, we'll need like a `subrows: {[id: string]: Array<Term>}`
     | Record
@@ -533,35 +717,44 @@ export type Term =
           args: Array<Term>;
           is: Type;
           location: Location;
+          decorators?: Decorators;
       }
     | ArrayLiteral
     | TupleLiteral
     | TupleAccess
-    | {
-          type: 'Attribute';
-          target: Term;
-          ref: Reference;
-          idx: number;
-          // Shouldn't impact hash
-          inferred: boolean;
-          location: Location;
-          is: Type;
-      }
-    | {
-          type: 'ref';
-          location: Location;
-          ref: Reference;
-          is: Type;
-      }
+    | Attribute
+    | Ref
     | Var
     | Literal
     | Lambda;
+
+export type Ref = {
+    type: 'ref';
+    location: Location;
+    ref: Reference;
+    is: Type;
+    decorators?: Decorators;
+};
+export type Attribute = {
+    type: 'Attribute';
+    target: Term;
+    ref: Reference;
+    refTypeVbls?: Array<Type>;
+    idx: number;
+    // Shouldn't impact hash
+    inferred: boolean;
+    location: Location;
+    idLocation: Location;
+    is: Type;
+    decorators?: Decorators;
+};
 
 export type TupleLiteral = {
     type: 'Tuple';
     is: TypeReference;
     items: Array<Term>;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type TupleAccess = {
@@ -570,6 +763,7 @@ export type TupleAccess = {
     target: Term;
     idx: number;
     location: Location;
+    decorators?: Decorators;
 };
 
 export type Literal = String | Float | Int | Boolean;
@@ -578,32 +772,41 @@ export type Float = {
     location: Location;
     value: number;
     is: Type;
+    decorators?: Decorators;
 };
 export type Int = {
     type: 'int';
     location: Location;
     value: number;
     is: Type;
+    decorators?: Decorators;
 };
 export type String = {
     type: 'string';
     text: string;
     is: Type;
     location: Location;
+    decorators?: Decorators;
 };
 export type Boolean = {
     type: 'boolean';
     value: boolean;
     is: Type;
     location: Location;
+    decorators?: Decorators;
 };
 export type Lambda = {
     type: 'lambda';
     location: Location;
     args: Array<Symbol>;
+    idLocations: Array<Location>;
     body: Term;
     is: LambdaType;
+    /**
+     * @deprecated this field is deprecated
+     */
     tags?: Array<string>;
+    decorators?: Decorators;
 };
 
 // from thih
@@ -637,8 +840,9 @@ export type EnumDef = {
     location: Location;
     typeVbls: Array<TypeVblDecl>;
     effectVbls: Array<number>;
-    extends: Array<TypeReference>;
-    items: Array<TypeReference>;
+    extends: Array<UserTypeReference>;
+    items: Array<UserTypeReference>;
+    decorators?: Decorators;
 };
 
 export type TypeDef = RecordDef | EnumDef;
@@ -651,6 +855,15 @@ export type RecordDef = {
     extends: Array<Id>;
     items: Array<Type>;
     ffi: { tag: string; names: Array<string> } | null;
+    decorators?: Decorators;
+    defaults?: {
+        [idAndNumber: string]: {
+            // Null for the toplevel record
+            id: null | Id;
+            idx: number;
+            value: Term;
+        };
+    };
 };
 
 // | {
@@ -791,22 +1004,36 @@ export const effectsMatch = (
     return true;
 };
 
+export type UserTypeReference = {
+    type: 'ref';
+    ref: UserReference;
+    location: Location;
+    typeVbls: Array<Type>;
+    decorators?: Decorators;
+    // effectVbls: Array<EffectRef>;
+};
 export type TypeReference = {
     type: 'ref';
     ref: Reference;
     location: Location;
     typeVbls: Array<Type>;
+    decorators?: Decorators;
     // effectVbls: Array<EffectRef>;
 };
-export type TypeRef = TypeReference | TypeVar; // will also support vbls at some point I guess
+export type TypeRef = UserTypeReference | TypeReference | TypeVar; // will also support vbls at some point I guess
 
 export type TypeVar = {
     type: 'var';
     sym: Symbol;
     location: Location;
+    decorators?: Decorators;
 };
 
-export type AmbiguousType = { type: 'Ambiguous'; location: Location };
+export type AmbiguousType = {
+    type: 'Ambiguous';
+    location: Location;
+    decorators?: Decorators;
+};
 export type Type = TypeRef | LambdaType | AmbiguousType;
 
 // Here's the basics folks
@@ -817,7 +1044,14 @@ export type Kind =
     | { type: 'concrete' }
     | { type: 'lambda'; arg: Kind; reult: Kind };
 
-export type TypeVblDecl = { subTypes: Array<Id>; unique: number };
+export type TypeVblDecl = {
+    subTypes: Array<Id>;
+    unique: number;
+    // TODO: make these required
+    name?: string;
+    location?: Location;
+    decorators?: Decorators;
+};
 
 export type LambdaType = {
     type: 'lambda';
@@ -826,24 +1060,28 @@ export type LambdaType = {
     // we don't have to be order dependent here.
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
-    // TODO type variables! (handled higher up I guess)
     // TODO optional arguments!
     // TODO modular implicits!
+    // TODO: Make this required, this is just for backwards compat
+    argNames?: Array<null | { text: string; location: Location }>;
     args: Array<Type>;
     effects: Array<EffectRef>;
     rest: Type | null;
     res: Type;
+    decorators?: Decorators;
 };
 
 export type RecordRow = {
     id: Identifier;
     type: Type;
+    decorators?: Decorators;
 };
 
 export type RecordType = {
     type: 'Record';
     items: Array<RecordRow>;
     extends: Array<Reference>;
+    decorators?: Decorators;
 };
 
 export type TypeConstraint =
@@ -857,6 +1095,7 @@ export type EffectDef = {
     type: 'EffectDef';
     constrs: Array<{ args: Array<Type>; ret: Type }>;
     location: Location;
+    decorators?: Decorators;
 };
 
 const emptyEffects: Array<EffectRef> = [];

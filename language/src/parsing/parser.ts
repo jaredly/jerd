@@ -1,4 +1,4 @@
-import { parse } from './grammar';
+import { parse as parseUntyped } from './grammar';
 
 export type Toplevel =
     | Define
@@ -6,6 +6,7 @@ export type Toplevel =
     | Expression
     | StructDef
     | EnumDef
+    | DecoratorDef
     | Decorated;
 
 export type Decorated = {
@@ -25,8 +26,18 @@ export type DecoratedExpression = {
 export type Decorator = {
     type: 'Decorator';
     id: Identifier;
-    args: Array<Expression>;
+    typeVbls: Array<Type>;
+    args: Array<DecoratorArg>;
+    location: Location;
 };
+export type DecoratorArg =
+    | {
+          type: 'Expr';
+          expr: Expression;
+          location: Location;
+      }
+    | { type: 'Pattern'; pattern: Pattern; location: Location }
+    | { type: 'Type'; contnets: Type; location: Location };
 
 export type Effect = {
     type: 'effect';
@@ -44,6 +55,15 @@ export type StructDef = {
     decl: TypeDecl;
 };
 
+export type DecoratorDef = {
+    type: 'DecoratorDef';
+    id: Identifier;
+    typeVbls: Array<TypeVbl> | null;
+    args: Array<{ id: Identifier; type: Type; location: Location }>;
+    targetType: Type | null;
+    location: Location;
+};
+
 export type EnumDef = {
     type: 'EnumDef';
     id: Identifier;
@@ -51,7 +71,13 @@ export type EnumDef = {
     typeVbls: Array<TypeVbl>;
     items: Array<EnumItem>;
 };
-export type EnumItem = EnumExternal | EnumSpread;
+export type EnumItem = EnumExternal | EnumSpread | EnumInternal;
+export type EnumInternal = {
+    type: 'Internal';
+    id: Identifier;
+    location: Location;
+    decl: RecordDecl;
+};
 export type EnumExternal = {
     type: 'External';
     ref: TypeRef;
@@ -70,12 +96,17 @@ export type RecordDecl = {
     items: Array<RecordItem>;
 };
 export type RecordItem = RecordRow | RecordSpread;
-export type RecordSpread = { type: 'Spread'; constr: Identifier };
+export type RecordSpread = {
+    type: 'Spread';
+    constr: Identifier;
+    defaults?: Array<{ id: Identifier; value: Expression }>;
+};
 export type RecordRow = {
     type: 'Row';
     // null if this is being treated as a tuple
     id: string;
     rtype: Type;
+    value?: Expression;
 };
 
 export type Loc = { offset: number; line: number; column: number };
@@ -251,7 +282,7 @@ export type ArrayPattern = {
 };
 export type ArrayPatternSpread = {
     type: 'Spread';
-    inner: Pattern;
+    inner: Pattern | null;
     location: Location;
 };
 
@@ -294,11 +325,16 @@ export type Lambda = {
     typevbls: Array<TypeVbl>;
     effvbls: Array<Identifier>;
     effects: null | Array<Identifier>;
-    args: Array<{ id: Identifier; type: Type }>;
+    args: Array<{ id: Identifier; type: Type | null }>;
     rettype: Type | null;
     body: Expression;
 };
-export type Type = TypeRef | LambdaType;
+export type Type = TypeRef | LambdaType | TupleType;
+export type TupleType = {
+    type: 'tuple';
+    items: Array<Type>;
+    location: Location;
+};
 export type TypeRef = {
     type: 'TypeRef';
     id: Identifier;
@@ -308,7 +344,7 @@ export type TypeRef = {
 };
 export type LambdaType = {
     type: 'lambda';
-    args: Array<Type>;
+    args: Array<{ type: Type; id: Identifier | null; location: Location }>;
     effects: Array<Identifier>;
     effvbls: Array<Identifier>;
     typevbls: Array<TypeVbl>;
@@ -366,7 +402,8 @@ export type Slice = {
     right: Expression | null;
 };
 
-export default (raw: string): Array<Toplevel> => parse(raw);
+export default (raw: string): Array<Toplevel> => parseUntyped(raw);
+export const parse = (raw: string): Array<Toplevel> => parseUntyped(raw);
 export const parseType = (raw: string): Type => {
     const parsed: Array<Toplevel> = parse(`const thing: ${raw} = 1`);
     if (parsed.length !== 1) {

@@ -36,10 +36,12 @@ export const runOpt = (env: Env, expr: Expr, opt: Optimizer2) =>
     opt(
         {
             env,
+            types: {},
             exprs: {},
             opts: {},
             optimize: opt,
             id: { hash: 'nope', size: 1, pos: 0 },
+            notes: null,
         },
         expr,
     );
@@ -76,12 +78,12 @@ export const runFixture = (text: string, optimize: Optimizer2) => {
 
     try {
         const { inOrder, irTerms } = assembleItemsForFile(
-            env,
+            { ...env, typeDefs: {} },
             mains,
             mains.map((main) => idName((main as any).ref.id)),
             {},
             {},
-            toOldOptimize(optimize),
+            optimize,
         );
 
         return { env, irTerms, inOrder };
@@ -123,7 +125,12 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
                 printToString(
                     items([
                         atom('const '),
-                        idToDebug(envWithNames, idFromName(id), false),
+                        idToDebug(
+                            envWithNames,
+                            idFromName(id),
+                            false,
+                            irTerms[id].expr.loc,
+                        ),
                         atom(': '),
                         debugType(envWithNames, irTerms[id].expr.is),
                         // pp.id(getName(env, irTerms, id), id, 'term'),

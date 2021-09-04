@@ -3,36 +3,55 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-type Eq#553b4b8e<T#:0> = {
+type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_553b4b8e<T_0> = {
-  type: "553b4b8e";
-  h553b4b8e_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_51ea2a36<T_0> = {
+  type: "51ea2a36";
+  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
 ```
-const rec arrayEq#7825e3a8 = <T#:0>(
+const rec arrayEq#dec3f634 = <T#:0>(
     one#:0: Array#builtin<T#:0>,
     two#:1: Array#builtin<T#:0>,
-    eq#:2: Eq#553b4b8e<T#:0>,
+    eq#:2: Eq#51ea2a36<T#:0>,
 ): bool#builtin ={}> {
     switch (one#:0, two#:1) {
         ([], []) => true,
-        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#553b4b8e#0(one#:3, two#:5) {
-            7825e3a8#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
+        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#51ea2a36#0(one#:3, two#:5) {
+            dec3f634#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
         } else {
             false;
         },
-        _#:7 => false,
+        _ => false,
+    };
+}
+<T>(one#:0: Array<[var]T#:0>, two#:1: Array<[var]T#:0>, eq#:2: Eq#🦩🥜👩‍💻😃<[var]T#:0>): bool => {
+    const one_i#:11: int = 0;
+    const two_i#:12: int = 0;
+    loop(unbounded) {
+        if len(two#:1) - two_i#:12 == 0 && len(one#:0) - one_i#:11 == 0 {
+            return true;
+        };
+        if len(two#:1) - two_i#:12 >= 1 && len(one#:0) - one_i#:11 >= 1 {
+            if eq#:2.#Eq#🦩🥜👩‍💻😃#0(one#:0[0 + one_i#:11], two#:1[0 + two_i#:12]) {
+                one_i#:11 = one_i#:11 + 1;
+                two_i#:12 = two_i#:12 + 1;
+                continue;
+            } else {
+                return false;
+            };
+        };
+        return false;
     };
 }
 ```
 */
-export const hash_7825e3a8: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_553b4b8e<T_0>) => boolean = <T_0>(one: Array<T_0>, two: Array<T_0>, eq: t_553b4b8e<T_0>) => {
+export const hash_dec3f634: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_51ea2a36<T_0>) => boolean = <T_0>(one: Array<T_0>, two: Array<T_0>, eq: t_51ea2a36<T_0>) => {
   let one_i: number = 0;
   let two_i: number = 0;
 
@@ -42,7 +61,7 @@ export const hash_7825e3a8: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t
     }
 
     if (two.length - two_i >= 1 && one.length - one_i >= 1) {
-      if (eq.h553b4b8e_0(one[0 + one_i], two[0 + two_i])) {
+      if (eq.h51ea2a36_0(one[0 + one_i], two[0 + two_i])) {
         one_i = one_i + 1;
         two_i = two_i + 1;
         continue;
@@ -57,13 +76,14 @@ export const hash_7825e3a8: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t
 
 /**
 ```
-const IntEq#9275f914 = Eq#553b4b8e<int#builtin>{"=="#553b4b8e#0: intEq#builtin}
+const IntEq#ec95f154 = Eq#51ea2a36<int#builtin>{"=="#51ea2a36#0: intEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: intEq}
 ```
 */
-export const hash_9275f914: t_553b4b8e<number> = ({
-  type: "553b4b8e",
-  h553b4b8e_0: intEq
-} as t_553b4b8e<number>);
+export const hash_ec95f154: t_51ea2a36<number> = ({
+  type: "51ea2a36",
+  h51ea2a36_0: intEq
+} as t_51ea2a36<number>);
 
 /**
 ```
@@ -72,6 +92,13 @@ const rec recurse#3306c09c = (n#:0: int#builtin): int#builtin ={}> {
         3306c09c#self(n#:0 -#builtin 1) +#builtin 1;
     } else {
         3;
+    };
+}
+(n#:0: int): int => {
+    if n#:0 > 5 {
+        return recurse#🤏🤸‍♀️🚋(n#:0 - 1) + 1;
+    } else {
+        return 3;
     };
 }
 ```
@@ -86,21 +113,27 @@ export const hash_3306c09c: (arg_0: number) => number = (n: number) => {
 
 /**
 ```
-const ArrayEq#bef2134a = <T#:0>(eq#:0: Eq#553b4b8e<T#:0>): Eq#553b4b8e<Array#builtin<T#:0>> ={}> Eq#553b4b8e<
+const ArrayEq#8715b480 = <T#:0>(eq#:0: Eq#51ea2a36<T#:0>): Eq#51ea2a36<Array#builtin<T#:0>> ={}> Eq#51ea2a36<
     Array#builtin<T#:0>,
 >{
-    "=="#553b4b8e#0: (one#:1: Array#builtin<T#:0>, two#:2: Array#builtin<T#:0>): bool#builtin ={}> len#builtin<
+    "=="#51ea2a36#0: (one#:1: Array#builtin<T#:0>, two#:2: Array#builtin<T#:0>): bool#builtin ={}> len#builtin<
                 T#:0,
             >(one#:1) 
-            ==#9275f914#553b4b8e#0 len#builtin<T#:0>(two#:2) 
-        &&#builtin arrayEq#7825e3a8<T#:0>(one#:1, two#:2, eq#:0),
+            ==#ec95f154#51ea2a36#0 len#builtin<T#:0>(two#:2) 
+        &&#builtin arrayEq#dec3f634<T#:0>(one#:1, two#:2, eq#:0),
+}
+<T>(eq#:0: Eq#🦩🥜👩‍💻😃<[var]T#:0>): Eq#🦩🥜👩‍💻😃<Array<[var]T#:0>> => Eq#🦩🥜👩‍💻😃{TODO SPREADs}{
+    h51ea2a36_0: (one#:1: Array<[var]T#:0>, two#:2: Array<[var]T#:0>): bool => IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0(
+        len<[var]T#:0>(one#:1),
+        len<[var]T#:0>(two#:2),
+    ) && arrayEq#🦢<[var]T#:0>(one#:1, two#:2, eq#:0),
 }
 ```
 */
-export const hash_bef2134a: <T_0>(arg_0: t_553b4b8e<T_0>) => t_553b4b8e<Array<T_0>> = <T_0>(eq$0: t_553b4b8e<T_0>) => ({
-  type: "553b4b8e",
-  h553b4b8e_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_9275f914.h553b4b8e_0(len(one$1), len(two$2)) && hash_7825e3a8(one$1, two$2, eq$0)
-} as t_553b4b8e<Array<T_0>>);
+export const hash_8715b480: <T_0>(arg_0: t_51ea2a36<T_0>) => t_51ea2a36<Array<T_0>> = <T_0>(eq$0: t_51ea2a36<T_0>) => ({
+  type: "51ea2a36",
+  h51ea2a36_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_ec95f154.h51ea2a36_0(len(one$1), len(two$2)) && hash_dec3f634(one$1, two$2, eq$0)
+} as t_51ea2a36<Array<T_0>>);
 
 /**
 ```
@@ -113,6 +146,13 @@ const m#b92dd000 = {
     );
     x#:1 +#builtin 3 +#builtin x#:1;
 }
+((): int => {
+    const result#:2: int;
+    const y#:0: int = recurse#🤏🤸‍♀️🚋(4);
+    result#:2 = y#:0 + 2 + y#:0;
+    const x#:1: int = recurse#🤏🤸‍♀️🚋(result#:2 + 3);
+    return x#:1 + 3 + x#:1;
+})()
 ```
 */
 export const hash_b92dd000: number = (() => {
@@ -125,15 +165,17 @@ export const hash_b92dd000: number = (() => {
 
 /**
 ```
-const ArrayIntEq#4419935c = ArrayEq#bef2134a<int#builtin>(eq: IntEq#9275f914)
+const ArrayIntEq#171f4490 = ArrayEq#8715b480<int#builtin>(eq: IntEq#ec95f154)
+ArrayEq#🧡<int>(IntEq#🦹‍♂️)
 ```
 */
-export const hash_4419935c: t_553b4b8e<Array<T_0>> = hash_bef2134a(hash_9275f914);
+export const hash_171f4490: t_51ea2a36<Array<number>> = hash_8715b480(hash_ec95f154);
 
 /*
-<int#builtin>[1, 2] ==#4419935c#553b4b8e#0 <int#builtin>[1, 2]
+<int#builtin>[1, 2] ==#171f4490#51ea2a36#0 <int#builtin>[1, 2]
+assertCall(ArrayIntEq#💬🥇🚶.#Eq#🦩🥜👩‍💻😃#0, [1, 2], [1, 2])
 */
-assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
+assertCall(hash_171f4490.h51ea2a36_0, [1, 2], [1, 2]);
 
 /*
 {
@@ -141,27 +183,41 @@ assertCall(hash_4419935c.h553b4b8e_0, [1, 2], [1, 2]);
     switch a#:0 {
         [a#:1, ...b#:2] => switch b#:2 {
             [b#:3, ...c#:4] => switch c#:4 {
-                [c#:5] => a#:1 ==#9275f914#553b4b8e#0 1 &&#builtin b#:3 ==#9275f914#553b4b8e#0 2 
-                    &&#builtin c#:5 ==#9275f914#553b4b8e#0 3,
-                _#:6 => false,
+                [c#:5] => a#:1 ==#ec95f154#51ea2a36#0 1 &&#builtin b#:3 ==#ec95f154#51ea2a36#0 2 
+                    &&#builtin c#:5 ==#ec95f154#51ea2a36#0 3,
+                _ => false,
             },
-            _#:7 => false,
+            _ => false,
         },
-        _#:8 => false,
+        _ => false,
     };
 }
+assert(
+    ((): bool => {
+        const a#:0: Array<int> = [1, 2, 3];
+        if len(a#:0) >= 1 {
+            if len(a#:0) - 1 >= 1 {
+                if len(a#:0) - 1 + 1 == 1 {
+                    return IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0(a#:0[0], 1) && IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0(
+                        a#:0[0 + 1],
+                        2,
+                    ) && IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0(a#:0[0 + 1 + 1], 3);
+                };
+                return false;
+            };
+            return false;
+        };
+        return false;
+    })(),
+)
 */
 assert((() => {
   let a: Array<number> = [1, 2, 3];
 
   if (a.length >= 1) {
-    let b_i: number = 1;
-
-    if (a.length - b_i >= 1) {
-      let c: Array<number> = a.slice(1 + b_i);
-
-      if (a.length - (1 + b_i) == 1) {
-        return hash_9275f914.h553b4b8e_0(a[0], 1) && hash_9275f914.h553b4b8e_0(a[0 + b_i], 2) && hash_9275f914.h553b4b8e_0(a[0 + (1 + b_i)], 3);
+    if (a.length - 1 >= 1) {
+      if (a.length - (1 + 1) == 1) {
+        return hash_ec95f154.h51ea2a36_0(a[0], 1) && hash_ec95f154.h51ea2a36_0(a[0 + 1], 2) && hash_ec95f154.h51ea2a36_0(a[0 + (1 + 1)], 3);
       }
 
       return false;
@@ -175,5 +231,6 @@ assert((() => {
 
 /*
 m#b92dd000
+m#😀
 */
 hash_b92dd000;

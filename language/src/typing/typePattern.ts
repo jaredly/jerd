@@ -6,6 +6,7 @@ import {
     getEnumReferences,
     applyTypeVariablesToRecord,
     getEnumSuperTypes,
+    typeDef,
 } from './typeExpr';
 import {
     Env,
@@ -29,6 +30,7 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
     switch (pattern.type) {
         case 'Alias':
             return patternIs(pattern.inner, expected);
+        case 'Ignore':
         case 'Binding':
             return expected;
         case 'string':
@@ -102,7 +104,9 @@ const typePattern = (
                 location: pattern.location,
             };
         case 'id': {
-            if (env.global.typeNames[pattern.text]) {
+            if (pattern.text === '_' && pattern.hash == null) {
+                return { type: 'Ignore', location: pattern.location };
+            } else if (env.global.typeNames[pattern.text]) {
                 // We're interpreting this as a type!
                 // it's a little weird to do it this way
                 // but syntax is dumb
@@ -218,16 +222,21 @@ const typePattern = (
             if (expectedType.type !== 'ref') {
                 throw new Error(`Not a type`);
             }
-            const allReferences = getEnumReferences(env, expectedType);
             let found: TypeReference | null = null;
-            for (let ref of allReferences) {
-                if (refsEqual(ref.ref, { type: 'user', id })) {
-                    found = ref;
-                    break;
+            let enumDef = typeDef(env.global, expectedType.ref);
+            if (enumDef && enumDef.type === 'Record') {
+                found = expectedType;
+            } else {
+                const allReferences = getEnumReferences(env, expectedType);
+                for (let ref of allReferences) {
+                    if (refsEqual(ref.ref, { type: 'user', id })) {
+                        found = ref;
+                        break;
+                    }
                 }
-            }
-            if (!found) {
-                throw new Error(`Enum doesn't match`);
+                if (!found) {
+                    throw new Error(`Enum doesn't match`);
+                }
             }
 
             let t = env.global.types[idName(id)];
@@ -242,13 +251,19 @@ const typePattern = (
                 id.hash,
             );
 
-            subTypeIds = getAllSubTypes(env.global, t);
+            subTypeIds = getAllSubTypes(env.global, t.extends);
 
             env.global.recordGroups[idName(id)].forEach(
                 (name, i) => (names[name] = { i, id: null }),
             );
             const ref: Reference = { type: 'user', id };
-            base = { rows: [], ref, type: 'Concrete', spread: null };
+            base = {
+                rows: [],
+                ref,
+                type: 'Concrete',
+                spread: null,
+                location: pattern.id.location,
+            };
             // }
 
             subTypeIds.forEach((id) => {
@@ -378,7 +393,14 @@ const typePattern = (
                             `Cannot have multiple spreads in the same array pattern`,
                         );
                     }
-                    spread = typePattern(env, item.inner, expectedType);
+                    if (item.inner) {
+                        spread = typePattern(env, item.inner, expectedType);
+                    } else {
+                        spread = {
+                            type: 'Ignore',
+                            location: item.location,
+                        };
+                    }
                 } else if (spread == null) {
                     preItems.push(typePattern(env, item, expectedElement));
                 } else {

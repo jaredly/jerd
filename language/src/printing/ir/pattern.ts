@@ -1,4 +1,10 @@
-import { Env, Type, Pattern } from '../../typing/types';
+import {
+    Env,
+    Type,
+    Pattern,
+    UserTypeReference,
+    UserReference,
+} from '../../typing/types';
 import { showType } from '../../typing/unify';
 import { getEnumReferences } from '../../typing/typeExpr';
 import { idName } from '../../typing/env';
@@ -43,6 +49,8 @@ export const printPattern = (
             ],
             pattern.location,
         );
+    } else if (pattern.type === 'Ignore') {
+        return success;
     } else if (pattern.type === 'Enum') {
         const allReferences = getEnumReferences(env, pattern.ref);
         let tests: Array<Expr> = allReferences.map((ref) => ({
@@ -77,7 +85,25 @@ export const printPattern = (
                     {
                         type: 'Define',
                         sym: pattern.name,
-                        value,
+                        // then it's smallify this enum
+                        value:
+                            pattern.inner.type === 'Enum' ||
+                            // STOPSHIP smallify the enum
+                            //
+                            pattern.inner.type === 'Record'
+                                ? {
+                                      type: 'SpecializeEnum',
+                                      // STOPSHP: carry over the proper type variables
+                                      is: {
+                                          type: 'ref',
+                                          ref: pattern.inner.ref.ref,
+                                          typeVbls: [],
+                                          loc: pattern.inner.location,
+                                      },
+                                      inner: value,
+                                      loc: pattern.inner.location,
+                                  }
+                                : value,
                         is: mapType(type),
                         loc: pattern.location,
                     },
@@ -124,6 +150,8 @@ export const printPattern = (
                     type: 'attribute',
                     target: value,
                     ref: item.ref,
+                    // TODO: hmmmmm
+                    refTypeVbls: [],
                     idx: item.idx,
                     loc: item.location,
                     is: mapType(item.is),
@@ -139,7 +167,8 @@ export const printPattern = (
                     {
                         type: 'IsRecord',
                         value,
-                        ref: pattern.ref.ref,
+                        // TODO this is a bug maybe?
+                        ref: pattern.ref.ref as UserReference,
                         loc: pattern.location,
                         is: bool,
                     },

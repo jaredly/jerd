@@ -3,6 +3,7 @@ import { Id, Reference } from '../../../typing/types';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr } from '../types';
+import { handlerSym } from '../utils';
 import { findCapturedVariables } from './liftlambdas';
 import { Context, isConstant } from './optimize';
 
@@ -89,18 +90,26 @@ export const maxUnique = (expr: Expr) => {
         ...defaultVisitor,
         expr: (expr) => {
             if (expr.type === 'var') {
-                max = Math.max(max, expr.sym.unique);
+                if (expr.sym.unique !== handlerSym.unique) {
+                    max = Math.max(max, expr.sym.unique);
+                }
             }
             if (expr.type === 'lambda') {
                 expr.args.forEach((arg) => {
-                    max = Math.max(max, arg.sym.unique);
+                    // max = Math.max(max, arg.sym.unique);
+                    if (arg.sym.unique !== handlerSym.unique) {
+                        max = Math.max(max, arg.sym.unique);
+                    }
                 });
             }
             return null;
         },
         stmt: (stmt) => {
             if (stmt.type === 'Define' || stmt.type === 'Assign') {
-                max = Math.max(max, stmt.sym.unique);
+                // max = Math.max(max, stmt.sym.unique);
+                if (stmt.sym.unique !== handlerSym.unique) {
+                    max = Math.max(max, stmt.sym.unique);
+                }
             }
             return null;
         },

@@ -16,21 +16,27 @@ import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { hashStyle } from './Cell';
 
-export const Pin = ({
+export type Pin = { id: Id; display: Display };
+
+const Pin_ = ({
     pin,
     env,
     evalEnv,
     plugins,
     onRun,
     onRemove,
+    onArchive,
     onOpen,
+    isFrozen,
 }: {
-    pin: { id: Id; display: Display };
+    pin: Pin;
     env: Env;
     evalEnv: EvalEnv;
     plugins: RenderPlugins;
+    isFrozen: boolean;
     onRun: (id: Id) => void;
-    onRemove: () => void;
+    onRemove: (pin: Pin) => void;
+    onArchive: (pin: Pin) => void;
     onOpen: (content: Content) => void;
 }) => {
     const hash = idName(pin.id);
@@ -62,7 +68,14 @@ export const Pin = ({
     } else {
         const t = env.global.terms[hash];
         const plugin: RenderPluginT = plugins[pin.display.type];
-        const err = getTypeError(env, t.is, plugin.type, nullLocation);
+        const err = getTypeError(
+            env,
+            t.is,
+            plugin.type,
+            nullLocation,
+            undefined,
+            true,
+        );
         if (err == null) {
             body = plugin.render(
                 evalEnv.terms[idName(pin.id)],
@@ -106,12 +119,35 @@ export const Pin = ({
                         fontSize: '50%',
                         backgroundColor: 'transparent',
                         border: 'none',
+                        padding: 0,
+                        marginLeft: 8,
+                        marginRight: 4,
+                        ...(isFrozen
+                            ? {
+                                  color: 'white',
+                                  //   backgroundColor: 'rgba(255,255,255,0.8)',
+                              }
+                            : {
+                                  color: '#ccc',
+                              }),
+                    }}
+                    onClick={() => onArchive(pin)}
+                    className="material-icons"
+                >
+                    ac_unit
+                </button>
+                <button
+                    css={{
+                        cursor: 'pointer',
+                        fontSize: '50%',
+                        backgroundColor: 'transparent',
+                        border: 'none',
                         color: 'inherit',
                         padding: 0,
                         marginLeft: 8,
                         marginRight: 4,
                     }}
-                    onClick={onRemove}
+                    onClick={() => onRemove(pin)}
                 >
                     ╳
                 </button>
@@ -120,16 +156,12 @@ export const Pin = ({
         </div>
     );
 };
+export const Pin = React.memo(Pin_);
 
 const contentForId = (env: Env, id: Id): Content => {
     const name = env.global.idNames[idName(id)];
-    if (name) {
-        return {
-            type: 'term',
-            id,
-            name,
-        };
-    } else {
-        return { type: 'expr', id };
-    }
+    return {
+        type: 'term',
+        id,
+    };
 };

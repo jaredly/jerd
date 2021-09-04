@@ -6,15 +6,16 @@ import { Type } from '../typing/types';
 import typeType from '../typing/typeType';
 // @ts-ignore
 import builtinsRaw from './builtins.ts.txt';
+import { Vec2_id, Vec4_id } from './prelude-types';
 
 export const loadBuiltins = () => {
     const builtins: { [key: string]: Type | null } = {};
     const lines = builtinsRaw.split('\n');
 
     const env = presetEnv({});
-    // lying
-    env.global.types['43802a16'] = {} as any;
-    env.global.types['3b941378'] = {} as any;
+    // lying - this is for sampler2d?
+    env.global.types[Vec2_id] = {} as any;
+    env.global.types[Vec4_id] = {} as any;
 
     lines.forEach((line: string, i: number) => {
         if (!line.startsWith('export const ')) {

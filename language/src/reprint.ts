@@ -5,6 +5,8 @@ import {
     typeRecordDefn,
     withoutLocations,
     ToplevelT,
+    idFromName,
+    ToplevelRecord,
 } from './typing/env';
 import parse, {
     Define,
@@ -54,7 +56,9 @@ export const reprintToplevel = (
               toplevel.location.end.offset,
           )
         : '<no original text>';
-    const reraw = printToString(toplevelToPretty(env, toplevel), 100);
+    const reraw = printToString(toplevelToPretty(env, toplevel), 100, {
+        hideNames: false,
+    });
     let printed: Array<Toplevel>;
     try {
         printed = parse(reraw);
@@ -91,8 +95,9 @@ export const reprintToplevel = (
             printed[0].wrapped.type === 'StructDef'
         ) {
             const tag =
-                printed[0].decorators[0].args.length === 1
-                    ? typeExpr(env, printed[0].decorators[0].args[0])
+                printed[0].decorators[0].args.length === 1 &&
+                printed[0].decorators[0].args[0].type === 'Expr'
+                    ? typeExpr(env, printed[0].decorators[0].args[0].expr)
                     : null;
             if (tag && tag.type !== 'string') {
                 throw new Error(`ffi tag must be a string literal`);
@@ -121,31 +126,42 @@ export const reprintToplevel = (
             if (!defn) {
                 throw new Error(`No enum defn`);
             }
-            nhash = hashObject(defn);
+            nhash = hashObject(defn.defn);
             retyped = {
                 ...toplevel,
                 type: 'EnumDef',
-                def: defn,
+                def: defn.defn,
                 id: { hash: nhash, size: 1, pos: 0 },
+                inner: defn.inline.map(
+                    (inner): ToplevelRecord => ({
+                        type: 'RecordDef',
+                        attrNames: inner.rows,
+                        name: inner.name,
+                        def: inner.defn,
+                        id: idFromName(hashObject(inner.defn)),
+                        location: inner.defn.location,
+                    }),
+                ),
             };
         } else if (toplevel.type === 'Define' && printed[0].type === 'define') {
             const hasSelf = findSelfReference(toplevel.term);
             // console.log('um going again', toplevel.name);
+            const newTerm = typeExpr(
+                {
+                    ...env,
+                    local: {
+                        ...newLocal(),
+                        self: hasSelf ? env.local.self : null,
+                    },
+                    term: { nextTraceId: 0, localNames: {} },
+                },
+                (printed[0] as Define).expr,
+            );
             retyped = {
                 ...toplevel,
                 type: 'Define',
-                id: toplevel.id,
-                term: typeExpr(
-                    {
-                        ...env,
-                        local: {
-                            ...newLocal(),
-                            self: hasSelf ? env.local.self : null,
-                        },
-                        term: { nextTraceId: 0 },
-                    },
-                    (printed[0] as Define).expr,
-                ),
+                id: idFromName(hashObject(newTerm)),
+                term: newTerm,
             };
             nhash = hashObject(retyped.term);
         } else {
@@ -156,7 +172,7 @@ export const reprintToplevel = (
                     {
                         ...env,
                         local: newLocal(),
-                        term: { nextTraceId: 0 },
+                        term: { nextTraceId: 0, localNames: {} },
                     },
                     printed[0] as Expression,
                 ),

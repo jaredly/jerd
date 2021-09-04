@@ -20,7 +20,6 @@ import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { foldConstantAssignments } from './foldConstantAssignments';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
 import { inlineFunctionsCalledWithCapturingLambdas } from './inline';
-import { specializeFunctionsCalledWithLambdas } from './monoconstant';
 import { optimizeRepeatedly } from './optimize';
 import {
     defaultEnv,
@@ -47,7 +46,7 @@ describe('flattenImmediateCalls', () => {
     it('should work', () => {
         expect(runFixture(`{const x = 10; x}`, foldConstantAssignments(true)))
             .toMatchInlineSnapshot(`
-            const expr0#🐮👩‍🦰👶: int = (() => {
+            const expr0#🐮👩‍🦰👶: int = ((): int => {
                 const x#:0: int = 10;
                 return 10;
             })()
@@ -66,11 +65,11 @@ describe('flattenImmediateCalls', () => {
                 foldConstantAssignments(true),
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#🐃🖤🎖️😃: int = (() => {
-                const t#:0: () => int = () => 4;
+            const expr0#🐃🖤🎖️😃: int = ((): int => {
+                const t#:0: () => int = (): int => 4;
                 const m#:1: int = 2;
                 const n#:2: int = 3 + 4 + 2;
-                return (() => 4)() + 2 + n#:2;
+                return ((): int => 4)() + 2 + n#:2;
             })()
         `);
     });
@@ -85,8 +84,8 @@ describe('flattenImmediateCalls', () => {
                 foldConstantAssignments(false),
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#👮‍♀️♠️👱: int = (() => {
-                const t#:0: () => int = () => 4;
+            const expr0#👮‍♀️♠️👱: int = ((): int => {
+                const t#:0: () => int = (): int => 4;
                 return t#:0();
             })()
         `);
@@ -130,7 +129,7 @@ describe('flattenImmediateCalls', () => {
 
         // Before
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🥎: int = (() => {
+            const unnamed#🥎: int = ((): int => {
                 const x#:0: int = 10;
                 const z#:2: int = x#:0 + 14;
                 if true {
@@ -150,7 +149,7 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🦎: int = (() => {
+            const unnamed#🦎: int = ((): int => {
                 const x#:0: int = 10;
                 const z#:2: int = 10 + 14;
                 if true {
@@ -168,7 +167,7 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🛶🏬🧂😃: int = (() => {
+            const unnamed#🛶🏬🧂😃: int = ((): int => {
                 const x#:0: int = 10;
                 const z#:2: int = 10 + 14;
                 if true {
@@ -191,7 +190,7 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🛶🏬🧂😃: int = (() => {
+            const unnamed#🛶🏬🧂😃: int = ((): int => {
                 const x#:0: int = 10;
                 const z#:2: int = 10 + 14;
                 if true {
@@ -225,7 +224,7 @@ describe('flattenImmediateCalls', () => {
                 ]),
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#💏🎂🚔: () => int = (() => {
+            const expr0#💏🎂🚔: () => int = ((): () => int => {
                 const v#:1: int;
                 if 10 > 2 {
                     v#:1 = 10 + 2;
@@ -233,7 +232,7 @@ describe('flattenImmediateCalls', () => {
                     v#:1 = 10 - 2;
                 };
                 v#:1 = v#:1;
-                return () => 10 + v#:1;
+                return (): int => 10 + v#:1;
             })()
         `);
     });
@@ -257,7 +256,7 @@ describe('flattenImmediateCalls', () => {
                 ]),
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#⛽🚌🤾‍♂️😃: () => int = (() => {
+            const expr0#⛽🚌🤾‍♂️😃: () => int = ((): () => int => {
                 const v#:1: int;
                 if 10 > 2 {
                     v#:1 = 10;
@@ -265,7 +264,7 @@ describe('flattenImmediateCalls', () => {
                     v#:1 = 10;
                 };
                 v#:1 = v#:1;
-                return () => 10 + v#:1;
+                return (): int => 10 + v#:1;
             })()
         `);
     });
@@ -296,7 +295,7 @@ describe('flattenImmediateCalls', () => {
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-            const expr0#🧍: () => int = () => {
+            const expr0#🧍: () => int = (): int => {
                 const x#:4: int = 10;
                 const init#:5: int = 4;
                 for (; x#:4 > 0; x#:4 = x#:4 - 1) {

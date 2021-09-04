@@ -246,6 +246,7 @@ export const tailCallRecursion = (
     if (!hasTailCall(body, self)) {
         return body;
     }
+    // TODO: how to infer the bounds of a reduce, when I haven't yet inferred array sizes?
     const bounds = findBounds(body, argNames, self);
     return {
         type: 'Block',

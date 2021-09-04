@@ -1,38 +1,25 @@
 // Print a type to typescript
 
+import generate from '@babel/generator';
+import * as t from '@babel/types';
+import { idName, refName } from '../typing/env';
 import {
-    Env,
-    Symbol,
-    Type as TermType,
-    Reference,
     EffectRef,
+    Env,
     Id,
     RecordDef,
+    Reference,
+    Symbol,
+    Type as TermType,
     TypeVblDecl,
 } from '../typing/types';
-import * as t from '@babel/types';
-import generate from '@babel/generator';
-import { idName, refName } from '../typing/env';
-import { recordAttributeName } from './typeScriptPrinterSimple';
 import { Type } from './ir/types';
 import {
     cpsLambdaToLambda,
     doneLambdaToLambda,
     typeFromTermType,
 } from './ir/utils';
-
-// Can I... misuse babel's AST to produce go?
-// what would get in my way?
-// hm the fact that typescript type annotations might not do the trick?
-// I mean, for go it might be fine.
-// not sure about swift or something like that.
-// can cross that bridge when we want to.
-
-// TODO: I want to abstract this out
-// Into a file that generates an intermediate representation
-// that can then be turned into TypeScript, or Go, or Swift or something.
-// And then the specific "turn it into typescript" bit can be much simpler.
-// But for now I should probably flesh out the language a bit more.
+import { recordAttributeName } from './typeScriptPrinterSimple';
 
 const printSym = (sym: Symbol) => sym.name + '_' + sym.unique;
 
@@ -111,6 +98,15 @@ export const typeToAst = (
             );
         case 'effectful-or-direct':
             return t.tsAnyKeyword();
+        case 'Array':
+            // TODO: If inferred size is an exactly, we could potentially
+            // spell out the tuple type.
+            return t.tsTypeReference(
+                t.identifier('Array'),
+                t.tsTypeParameterInstantiation([
+                    typeToAst(env, opts, type.inner),
+                ]),
+            );
         case 'ref':
             const tvars = type.typeVbls.length
                 ? t.tsTypeParameterInstantiation(
@@ -251,11 +247,16 @@ export const recordMemberSignature = (
 };
 
 export const allRecordMembers = (env: Env, id: Id) => {
-    const constr = env.global.types[idName(id)] as RecordDef;
+    const name = idName(id);
+    const constr = env.global.types[name] as RecordDef;
+    if (constr.type !== 'Record') {
+        throw new Error(`Not a record`);
+    }
     return constr.items
-        .map((item, i) => ({ id, item, i }))
+        .map((item, i: number) => ({ id, item, i }))
         .concat(
             ...constr.extends.map((id) =>
+                // um shouldn't this be recursive?
                 (env.global.types[idName(id)] as RecordDef).items.map(
                     (item, i) => ({
                         id,

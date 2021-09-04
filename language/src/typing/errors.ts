@@ -81,10 +81,10 @@ export class VarMismatch extends LocatedError {
     }
 
     getMessage() {
-        return `Mismatched refs! found ${printToString(
-            symToPretty(this.found),
+        return `Mismatched vars! found ${printToString(
+            symToPretty(null, this.found),
             100,
-        )}, expected ${printToString(symToPretty(this.expected), 100)}`;
+        )}, expected ${printToString(symToPretty(null, this.expected), 100)}`;
     }
 }
 

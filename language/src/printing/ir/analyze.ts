@@ -1,24 +1,28 @@
 // Let's ensure some invariants are met!
 
 import { Location } from '../../parsing/parser';
+import { idName, refName } from '../../typing/env';
 import { LocatedError, UniqueError } from '../../typing/errors';
-import { Symbol } from '../../typing/types';
-import { defaultVisitor, transformExpr } from './transform';
-import { Expr, Loc } from './types';
+import { Env, Symbol, UserReference } from '../../typing/types';
+import { debugExpr } from '../irDebugPrinter';
+import { printToString } from '../printer';
+import { maxUnique } from './optimize/inline';
+import { defaultVisitor, transformExpr, Visitor } from './transform';
+import { Expr, Loc, UserTypeReference } from './types';
 import { handlerSym } from './utils';
 
-export const collectSymDeclarations = (expr: Expr) => {
+export const collectSymDeclarationsVisitor = () => {
     const defined: { [unique: number]: true } = {};
-    const undefinedUses: Array<Location> = [];
+    const undefinedUses: Array<{ sym: Symbol; loc: Location }> = [];
     const decls: Array<{ sym: Symbol; loc: Loc; type: string }> = [];
-    transformExpr(expr, {
+    const visitor: Visitor = {
         ...defaultVisitor,
         stmt: (stmt) => {
             switch (stmt.type) {
                 // Oh wait, assign shouldn't count
                 case 'Assign':
                     if (!defined[stmt.sym.unique]) {
-                        undefinedUses.push(stmt.loc);
+                        undefinedUses.push({ sym: stmt.sym, loc: stmt.loc });
                     }
                     return null;
                 case 'Define':
@@ -41,20 +45,32 @@ export const collectSymDeclarations = (expr: Expr) => {
                 });
             }
             if (expr.type === 'var' && !defined[expr.sym.unique]) {
-                undefinedUses.push(expr.loc);
+                undefinedUses.push({ sym: expr.sym, loc: expr.loc });
             }
             return null;
         },
-    });
-    return { decls, undefinedUses };
+    };
+    return { decls, undefinedUses, defined, visitor };
 };
 
-export const uniquesReallyAreUnique = (expr: Expr) => {
-    // if (1) return [];
-    // hrmmm why not tho...
-    // START HERE: it looks like we make a new locals thing ... for each .. oh right ... hmm
-    // yeah ok ... so we do need to ensure uniqueness ... and not just
-    // OK NEXT STEP: switch to unique.current++ instead of `len` for uniques.
+export const collectSymDeclarations = (expr: Expr) => {
+    const {
+        decls,
+        undefinedUses,
+        defined,
+        visitor,
+    } = collectSymDeclarationsVisitor();
+    transformExpr(expr, visitor);
+    return { decls, undefinedUses, defined };
+};
+
+export const uniquesReallyAreUnique = (expr: Expr, env?: Env) => {
+    const max = maxUnique(expr);
+    if (env && max > env.local.unique.current) {
+        throw new Error(
+            `The max unique is bigger than the current ${max} ${env.local.unique.current}`,
+        );
+    }
     const { decls, undefinedUses } = collectSymDeclarations(expr);
     const seen: { [key: string]: Array<{ sym: Symbol; loc: Loc }> } = {};
     const duplicates = [];
@@ -76,6 +92,9 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
         }
     });
     if (failed.length > 0) {
+        if (env) {
+            console.log(printToString(debugExpr(env, expr), 100));
+        }
         throw new UniqueError(
             seen[failed[0]][1].loc,
             expr,
@@ -87,4 +106,33 @@ export const uniquesReallyAreUnique = (expr: Expr) => {
     //     throw new LocatedError(undefinedUses[0], `Undefined unique usage!`);
     // }
     return undefinedUses;
+};
+
+export const getTypeDependencies = (expr: Expr): Array<UserReference> => {
+    const deps: { [key: string]: UserReference } = {};
+    transformExpr(expr, {
+        ...defaultVisitor,
+        type: (t) => {
+            if (t.type === 'ref' && t.ref.type === 'user') {
+                deps[idName(t.ref.id)] = t.ref;
+            }
+            return null;
+        },
+        // expr: (expr) => {
+        // if (expr.is.type === 'ref' && expr.is.ref.type === 'user') {
+        //     deps[idName(expr.is.ref.id)] = expr.is.ref;
+        // }
+        // if (expr.is.type === 'lambda') {
+        //     expr.is.args.forEach((arg) => {
+        //         if (arg.type === 'ref' && arg.ref.type === 'user') {
+        //             deps[idName(arg.ref.id)] = arg.ref;
+        //         }
+        //     });
+        //     if (expr.is.res.type === 'ref') {
+        //         deps[idName(expr.is.res.ref.)] = expr.is.res.ref;
+        //     }
+        // }
+        // }
+    });
+    return Object.keys(deps).map((k) => deps[k]);
 };

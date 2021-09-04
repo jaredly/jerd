@@ -4,19 +4,22 @@ type handle22024b72 = [(arg_0: (arg_0: handle22024b72, arg_1: string) => void) =
 
 /**
 ```
-type Eq#553b4b8e<T#:0> = {
+type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_553b4b8e<T_0> = {
-  type: "553b4b8e";
-  h553b4b8e_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_51ea2a36<T_0> = {
+  type: "51ea2a36";
+  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
 ```
 const getString#64605d94 = (): string#builtin ={Read#22024b72}> raise!(Read#22024b72.read())
+(handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler, string) => void): void => {
+    TODO raise;
+}
 ```
 */
 export const hash_64605d94:
@@ -37,6 +40,11 @@ const rec provideString#0247dd82 = (
         ) 
         +#builtin "provided",
     pure(v#:2) => v#:2 +#builtin "pure",
+}
+(v#:0: string, fn#:1: nope type: cps-lambda): string => {
+    const result#:5: string;
+    TODO Handle;
+    return result#:5;
 }
 ```
 */
@@ -62,16 +70,22 @@ export const hash_0247dd82: (arg_0: string, arg_1:
 
 /**
 ```
-const StringEq#606c7034 = Eq#553b4b8e<string#builtin>{"=="#553b4b8e#0: stringEq#builtin}
+const StringEq#da00b310 = Eq#51ea2a36<string#builtin>{"=="#51ea2a36#0: stringEq#builtin}
+Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: stringEq}
 ```
 */
-export const hash_606c7034: t_553b4b8e<string> = ({
-  type: "553b4b8e",
-  h553b4b8e_0: stringEq
-} as t_553b4b8e<string>);
+export const hash_da00b310: t_51ea2a36<string> = ({
+  type: "51ea2a36",
+  h51ea2a36_0: stringEq
+} as t_51ea2a36<string>);
 
 /*
 provideString#0247dd82(v: "Yes", fn: getString#64605d94) 
-    ==#606c7034#553b4b8e#0 "Yesgotbackpureprovided"
+    ==#da00b310#51ea2a36#0 "Yesgotbackpureprovided"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    provideString#👩‍🦽🦝😶("Yes", getString#⛷️😛🐠😃),
+    "Yesgotbackpureprovided",
+)
 */
-assertCall(hash_606c7034.h553b4b8e_0, hash_0247dd82("Yes", hash_64605d94), "Yesgotbackpureprovided");
+assertCall(hash_da00b310.h51ea2a36_0, hash_0247dd82("Yes", hash_64605d94), "Yesgotbackpureprovided");

@@ -2,9 +2,13 @@
 
 import hashObjectSum from 'hash-sum';
 import {
+    DecoratorDef,
     Define,
     Effect,
     EnumDef,
+    EnumExternal,
+    EnumInternal,
+    EnumSpread,
     Expression,
     Identifier,
     Location,
@@ -12,6 +16,8 @@ import {
     RecordSpread,
     StructDef,
     Toplevel,
+    Type as ParseType,
+    TypeDecl,
 } from '../parsing/parser';
 import typeExpr, { showLocation } from './typeExpr';
 import typeType, { newEnvWithTypeAndEffectVbls, newTypeVbl } from './typeType';
@@ -19,6 +25,7 @@ import {
     EffectRef,
     Env,
     getAllSubTypes,
+    DecoratorDef as TypedDecoratorDef,
     getEffects,
     GlobalEnv,
     Id,
@@ -36,44 +43,92 @@ import {
     Self,
     selfEnv,
     newLocal,
+    UserTypeReference,
+    newWithGlobal,
+    nullLocation,
+    DecoratorDefArg,
+    UserReference,
 } from './types';
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
 import { getTypeError } from './getTypeError';
+import { env } from 'process';
 
+export type ToplevelEffect = {
+    type: 'Effect';
+    id: Id;
+    effect: EffectDef;
+    location: Location;
+    name: string;
+    constrNames: Array<string>;
+};
+export type ToplevelDefine = {
+    type: 'Define';
+    id: Id;
+    term: Term;
+    location: Location;
+    name: string;
+    tags?: Array<string>;
+};
+export type ToplevelRecord = {
+    type: 'RecordDef';
+    def: RecordDef;
+    id: Id;
+    location: Location;
+    name: string;
+    attrNames: Array<string>;
+};
+export type ToplevelExpression = {
+    type: 'Expression';
+    id: Id;
+    term: Term;
+    location: Location;
+};
+export type ToplevelEnum = {
+    type: 'EnumDef';
+    def: TypeEnumDef;
+    id: Id;
+    location: Location;
+    name: string;
+    inner: Array<ToplevelRecord>;
+};
+export type ToplevelDecorator = {
+    type: 'Decorator';
+    id: Id;
+    name: string;
+    location: Location;
+    defn: TypedDecoratorDef;
+};
 export type ToplevelT =
-    | {
-          type: 'Effect';
-          id: Id;
-          effect: EffectDef;
-          location: Location;
-          name: string;
-          constrNames: Array<string>;
-      }
-    | { type: 'Expression'; term: Term; location: Location }
-    | {
-          type: 'Define';
-          id: Id;
-          term: Term;
-          location: Location;
-          name: string;
-          tags?: Array<string>;
-      }
-    | {
-          type: 'EnumDef';
-          def: TypeEnumDef;
-          id: Id;
-          location: Location;
-          name: string;
-      }
-    | {
-          type: 'RecordDef';
-          def: RecordDef;
-          id: Id;
-          location: Location;
-          name: string;
-          attrNames: Array<string>;
-      };
+    | ToplevelEffect
+    | ToplevelDecorator
+    | ToplevelExpression
+    | ToplevelDefine
+    | ToplevelEnum
+    | ToplevelRecord;
+
+export const addToplevelToEnv = (
+    env: Env,
+    top: ToplevelT,
+): { env: Env; id: Id } => {
+    switch (top.type) {
+        case 'Define':
+            return addDefine(env, top.name, top.term);
+        case 'Expression':
+            return addExpr(env, top.term, null);
+        case 'RecordDef':
+            return addRecord(env, top.name, top.attrNames, top.def);
+        case 'Effect':
+            return addEffect(env, top.name, top.constrNames, top.effect);
+        case 'EnumDef':
+            return addEnum(env, top.name, top.def);
+        case 'Decorator':
+            return addDecoratorToEnv(env, top.name, top.defn);
+        default:
+            const _x: never = top;
+            throw new Error(`Unexpected toplevel type`);
+    }
+};
 
 export const typeToplevelT = (
     env: Env,
@@ -120,8 +175,9 @@ export const typeToplevelT = (
                 throw new Error(`@ffi can only be applied to RecordDef`);
             }
             const tag =
-                item.decorators[0].args.length === 1
-                    ? typeExpr(env, item.decorators[0].args[0])
+                item.decorators[0].args.length === 1 &&
+                item.decorators[0].args[0].type === 'Expr'
+                    ? typeExpr(env, item.decorators[0].args[0].expr)
                     : null;
             if (tag && tag.type !== 'string') {
                 throw new Error(`ffi tag must be a string literal`);
@@ -130,7 +186,7 @@ export const typeToplevelT = (
                 env,
                 item.wrapped,
                 unique,
-                tag ? tag.type : item.wrapped.id.text,
+                tag ? tag.text : item.wrapped.id.text,
             );
             const hash = hashObject(defn);
             return {
@@ -149,10 +205,20 @@ export const typeToplevelT = (
             const hash = hashObject(defn);
             return {
                 type: 'EnumDef',
-                def: defn,
+                def: defn.defn,
                 id: { hash, size: 1, pos: 0 },
                 location: item.location!,
                 name: item.id.text,
+                inner: defn.inline.map(
+                    (inner): ToplevelRecord => ({
+                        type: 'RecordDef',
+                        attrNames: inner.rows,
+                        name: inner.name,
+                        def: inner.defn,
+                        id: idFromName(hashObject(inner.defn)),
+                        location: inner.defn.location,
+                    }),
+                ),
             };
         }
         case 'effect': {
@@ -167,9 +233,20 @@ export const typeToplevelT = (
                 constrNames: item.constrs.map((c) => c.id.text),
             };
         }
+        case 'DecoratorDef':
+            const defn = typeDecoratorInner(env, item);
+            const hash = hashObject(defn);
+            return {
+                type: 'Decorator',
+                defn,
+                id: idFromName(hash),
+                location: item.location,
+                name: item.id.text,
+            };
         default:
             const term = typeExpr(env, item as Expression);
             return {
+                id: idFromName(hashObject(term)),
                 type: 'Expression',
                 term,
                 location: item.location,
@@ -188,7 +265,7 @@ export const typeEffectInner = (env: Env, item: Effect): EffectDef => {
         constrs: item.constrs.map(({ type }) => {
             return {
                 args: type.args
-                    ? type.args.map((a) => typeType(innerEnv, a))
+                    ? type.args.map((a) => typeType(innerEnv, a.type))
                     : [],
                 ret: typeType(innerEnv, type.res),
             };
@@ -250,7 +327,7 @@ export const addEffect = (
     const glob = cloneGlobalEnv(env.global);
     // addToMap(glob.effectNames, name, id);
     if (glob.effectNames[name]) {
-        glob.effectNames[name].unshift(idName(id));
+        // glob.effectNames[name].unshift(idName(id));
         glob.effectNames[name] = [idName(id)].concat(glob.effectNames[name]);
     } else {
         glob.effectNames[name] = [idName(id)];
@@ -267,6 +344,93 @@ export const addEffect = (
     return { env: { ...env, global: glob }, id };
 };
 
+export const addDecoratorToEnv = (
+    env: Env,
+    name: string,
+    defn: TypedDecoratorDef,
+): { id: Id; env: Env } => {
+    env = newWithGlobal(env.global);
+    const hash = hashObject(defn);
+
+    const id = idFromName(hash);
+    if (env.global.decoratorNames[name]) {
+        env.global.decoratorNames[name] = [id].concat(
+            env.global.decoratorNames[name],
+        );
+    } else {
+        env.global.decoratorNames[name] = [id];
+    }
+    env.global.decorators[idName(id)] = defn;
+    env.global.idNames[idName(id)] = name;
+    return { env, id };
+};
+
+export const typeMaybeConstantType = (env: Env, type: ParseType): Type => {
+    if (
+        type.type === 'TypeRef' &&
+        type.id.hash === '#builtin' &&
+        type.id.text === 'Constant' &&
+        type.typeVbls &&
+        type.typeVbls.length === 1
+    ) {
+        return {
+            type: 'ref',
+            ref: { type: 'builtin', name: 'Constant' },
+            typeVbls: [typeType(env, type.typeVbls[0])],
+            location: type.location,
+        };
+    }
+    return typeType(env, type);
+};
+
+export const typeDecoratorInner = (
+    env: Env,
+    item: DecoratorDef,
+): TypedDecoratorDef => {
+    let restArg: null | any = null;
+    let args: Array<DecoratorDefArg> = [];
+    const { typeInner, typeVbls } = newEnvWithTypeAndEffectVbls(
+        env,
+        item.typeVbls || [],
+        [],
+    );
+    if (item.args) {
+        args = item.args.map((arg) => ({
+            argLocation: arg.id.location,
+            argName: arg.id.text,
+            location: arg.location,
+            type: typeMaybeConstantType(typeInner, arg.type),
+        }));
+    } else {
+        restArg = {
+            argLocation: nullLocation,
+            argName: 'args',
+            location: nullLocation,
+            type: null,
+        };
+    }
+    const d: TypedDecoratorDef = {
+        unique: typeInner.global.rng(),
+        typeArgs: [],
+        typeVbls,
+        location: item.location,
+        targetType: item.targetType
+            ? typeMaybeConstantType(typeInner, item.targetType)
+            : null,
+        arguments: args,
+        restArg: restArg,
+    };
+
+    return d;
+};
+
+export const typeDecoratorDef = (
+    env: Env,
+    item: DecoratorDef,
+): { id: Id; env: Env } => {
+    return addDecoratorToEnv(env, item.id.text, typeDecoratorInner(env, item));
+};
+
 export const typeTypeDefn = (
     env: Env,
     defn: StructDef,
@@ -276,14 +440,14 @@ export const typeTypeDefn = (
     return typeRecord(env, defn, ffiTag, unum).env;
 };
 
-export const typeEnumInner = (env: Env, defn: EnumDef) => {
+export const typeEnumInner = (env: Env, defn: EnumDef, ffi?: boolean) => {
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         defn.typeVbls,
         [], // TODO effect vbls
     );
 
-    const typeInnerWithSelf = selfEnv(typeInner, {
+    let typeInnerWithSelf = selfEnv(typeInner, {
         type: 'Type',
         vbls: typeVbls,
         name: defn.id.text,
@@ -291,30 +455,61 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
     // console.log('Type Enum');
     // console.log(defn.items);
 
-    const items = defn.items
-        .filter((x) => x.type === 'External')
-        .map((x) => {
-            const row = typeType(typeInnerWithSelf, x.ref);
-            if (row.type !== 'ref') {
-                throw new Error(`Cannot have a ${row.type} as an enum item.`);
-            }
-            if (row.ref.type !== 'user') {
-                throw new Error(`Cannot have a builtin as an enum item.`);
-            }
-            const t = env.global.types[idName(row.ref.id)];
-            if (t.type !== 'Record') {
-                throw new Error(
-                    `${idName(row.ref.id)} is an enum. use ...spread syntax.`,
-                );
-            }
-            return row as TypeReference;
-        });
-    const extend = defn.items
-        .filter((x) => x.type === 'Spread')
-        .map((x) => {
-            const sub = typeType(typeInnerWithSelf, x.ref) as TypeReference;
-            return sub;
-        });
+    const addedTypes: Array<{
+        name: string;
+        rows: Array<string>;
+        defn: RecordDef;
+    }> = [];
+
+    const items: Array<UserTypeReference> = (defn.items.filter(
+        (x) => x.type !== 'Spread',
+    ) as Array<EnumExternal | EnumInternal>).map((x) => {
+        if (x.type === 'Internal') {
+            const defn = typeRecordDefn(
+                typeInnerWithSelf,
+                {
+                    type: 'StructDef',
+                    id: x.id,
+                    decl: x.decl,
+                    typeVbls: [],
+                    location: x.location,
+                },
+                undefined,
+                ffi ? x.id.text : undefined,
+            );
+            const rowNames = (x.decl.items.filter(
+                (r) => r.type === 'Row',
+            ) as Array<RecordRow>).map((row) => row.id);
+            addedTypes.push({ name: x.id.text, rows: rowNames, defn });
+            // typeInnerWithSelf = nenv;
+            return {
+                type: 'ref',
+                ref: { type: 'user', id: idFromName(hashObject(defn)) },
+                typeVbls: [],
+                location: x.location,
+            };
+        }
+        const row = typeType(typeInnerWithSelf, x.ref);
+        if (row.type !== 'ref') {
+            throw new Error(`Cannot have a ${row.type} as an enum item.`);
+        }
+        if (row.ref.type !== 'user') {
+            throw new Error(`Cannot have a builtin as an enum item.`);
+        }
+        const t = env.global.types[idName(row.ref.id)];
+        if (t.type !== 'Record') {
+            throw new Error(
+                `${idName(row.ref.id)} is an enum. use ...spread syntax.`,
+            );
+        }
+        return row as UserTypeReference;
+    });
+    const extend = (defn.items.filter(
+        (x) => x.type === 'Spread',
+    ) as Array<EnumSpread>).map((x) => {
+        const sub = typeType(typeInnerWithSelf, x.ref) as UserTypeReference;
+        return sub;
+    });
     // console.log(items.length, extend.length);
     const d: TypeEnumDef = {
         type: 'Enum',
@@ -325,12 +520,15 @@ export const typeEnumInner = (env: Env, defn: EnumDef) => {
         items,
     };
 
-    return d;
+    return { inline: addedTypes, defn: d };
 };
 
-export const typeEnumDefn = (env: Env, defn: EnumDef) => {
-    const d = typeEnumInner(env, defn);
-    return addEnum(env, defn.id.text, d);
+export const typeEnumDefn = (env: Env, defn: EnumDef, ffi?: boolean) => {
+    const d = typeEnumInner(env, defn, ffi);
+    d.inline.forEach((inner) => {
+        ({ env } = addRecord(env, inner.name, inner.rows, inner.defn));
+    });
+    return addEnum(env, defn.id.text, d.defn);
 };
 
 export const addEnum = (
@@ -361,13 +559,13 @@ export const idName = (id: Id) => id.hash + (id.pos !== 0 ? '_' + id.pos : '');
 export const refName = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : idName(ref.id);
 
-export const resolveType = (env: Env, id: Identifier): Id => {
+export const resolveType = (env: Env, id: Identifier): Array<Id> => {
     if (id.hash != null) {
         const rawId = id.hash.slice(1);
         if (!env.global.types[rawId]) {
             throw new Error(`Unknown type hash ${rawId}`);
         }
-        return idFromName(rawId);
+        return [idFromName(rawId)];
     }
     // if (
     //     env.local.self &&
@@ -380,9 +578,10 @@ export const resolveType = (env: Env, id: Identifier): Id => {
     if (!env.global.typeNames[id.text]) {
         throw new Error(`Unable to resolve type ${id.text}`);
     }
-    return env.global.typeNames[id.text][0];
+    return env.global.typeNames[id.text];
 };
 
+// ok so ffi records don't have a unique. That's what I want.
 export const typeRecordDefn = (
     env: Env,
     { decl: record, id, typeVbls: typeVblsRaw, location }: StructDef,
@@ -410,6 +609,72 @@ export const typeRecordDefn = (
           }
         : null;
 
+    // STOPSHIP: Need to prevent people supplying two defaults
+    // for the same row.
+    const defaults: {
+        [key: string]: { id: Id | null; idx: number; value: Term };
+    } = {};
+    const items = (record.items.filter(
+        (r) => r.type === 'Row',
+    ) as Array<RecordRow>).map((r, i) => {
+        const res = typeType(typeInnerWithSelf, r.rtype);
+        if (r.value) {
+            const term = typeExpr(env, r.value);
+            if (getEffects(term).length) {
+                throw new LocatedError(
+                    id.location,
+                    `Record defaults can't be effectful`,
+                );
+            }
+            defaults[`${i}`] = {
+                id: null,
+                idx: i,
+                value: term,
+            };
+        }
+        return res;
+    });
+    const extenders = (record.items.filter(
+        (r) => r.type === 'Spread',
+    ) as Array<RecordSpread>)
+        // TODO: only allow ffi to spread into ffi, etc.
+        .map((r) => {
+            const t = resolveType(typeInnerWithSelf, r.constr)[0];
+            const subTypes = getAllSubTypes(env.global, [t]);
+            if (r.defaults && r.defaults.length) {
+                r.defaults.forEach(({ id, value }) => {
+                    // TODO: recognize hashes
+                    for (let st of subTypes) {
+                        const names = env.global.recordGroups[idName(st)];
+                        const idx = names.indexOf(id.text);
+                        if (idx !== -1) {
+                            const term = typeExpr(env, value);
+                            if (getEffects(term).length) {
+                                throw new LocatedError(
+                                    id.location,
+                                    `Record defaults can't be effectful`,
+                                );
+                            }
+                            defaults[`${idName(st)}#${idx}`] = {
+                                id: st,
+                                idx,
+                                value: term,
+                            };
+                            return;
+                        }
+                    }
+                    throw new LocatedError(
+                        id.location,
+                        `Unknown attribute name, doesn't match ${idName(
+                            t,
+                        )} or any subtypes`,
+                    );
+                });
+            }
+            return t;
+        });
+    // const defa
+
     return {
         type: 'Record',
         unique: ffiTag ? 0 : unique != null ? unique : env.global.rng(),
@@ -417,15 +682,9 @@ export const typeRecordDefn = (
         location,
         effectVbls,
         ffi,
-        extends: record.items
-            .filter((r) => r.type === 'Spread')
-            // TODO: only allow ffi to spread into ffi, etc.
-            .map((r) =>
-                resolveType(typeInnerWithSelf, (r as RecordSpread).constr),
-            ),
-        items: record.items
-            .filter((r) => r.type === 'Row')
-            .map((r) => typeType(typeInnerWithSelf, (r as RecordRow).rtype)),
+        extends: extenders,
+        items: items,
+        defaults: Object.keys(defaults).length ? defaults : undefined,
     };
 };
 
@@ -488,37 +747,37 @@ export const typeRecord = (
 export const hashObject = (obj: any): string =>
     hashObjectSum(withoutLocations(obj));
 
-export const withoutLocs = <T>(obj: T): T => {
-    if (!obj) {
-        return obj;
-    }
-    if (Array.isArray(obj)) {
-        return (obj as any).map(withoutLocs);
-    }
-    if (typeof obj === 'object') {
-        const res: any = {};
-        Object.keys(obj).forEach((key) => {
-            if (key === 'loc' || key === 'location') {
-                return;
-            }
-            // It's a symbol, ditch it for the purposes of hashing
-            // @ts-ignore
-            if (key === 'name' && obj.unique != null) {
-                return;
-            }
-            // Whether an attribute target was inferred or not
-            // shouldn't impact the hash.
-            // @ts-ignore
-            if (key === 'inferred' && obj.type === 'Attribute') {
-                return;
-            }
-            // @ts-ignore
-            res[key] = withoutLocs(obj[key]);
-        });
-        return res;
-    }
-    return obj;
-};
+// export const withoutLocs = <T>(obj: T): T => {
+//     if (!obj) {
+//         return obj;
+//     }
+//     if (Array.isArray(obj)) {
+//         return (obj as any).map(withoutLocs);
+//     }
+//     if (typeof obj === 'object') {
+//         const res: any = {};
+//         Object.keys(obj).forEach((key) => {
+//             if (key === 'loc' || key === 'location' || key === 'idLocation') {
+//                 return;
+//             }
+//             // It's a symbol, ditch it for the purposes of hashing
+//             // @ts-ignore
+//             if (key === 'name' && obj.unique != null) {
+//                 return;
+//             }
+//             // Whether an attribute target was inferred or not
+//             // shouldn't impact the hash.
+//             // @ts-ignore
+//             if (key === 'inferred' && obj.type === 'Attribute') {
+//                 return;
+//             }
+//             // @ts-ignore
+//             res[key] = withoutLocs(obj[key]);
+//         });
+//         return res;
+//     }
+//     return obj;
+// };
 
 export const withoutLocations = <T>(obj: T): T => {
     if (!obj) {
@@ -530,7 +789,14 @@ export const withoutLocations = <T>(obj: T): T => {
     if (typeof obj === 'object') {
         const res: any = {};
         Object.keys(obj).forEach((key) => {
-            if (key === 'location') {
+            if (
+                key === 'location' ||
+                key === 'idLocation' ||
+                key === 'idLocations' ||
+                key === 'argLocation' ||
+                key === 'argName' ||
+                key === 'argNames'
+            ) {
                 return;
             }
             // It's a symbol, ditch it for the purposes of hashing
@@ -566,6 +832,10 @@ export const getToplevelAnnotation = (env: Env, item: Define): Type => {
         return {
             type: 'lambda',
             args: item.expr.args.map((arg) => typeType(typeInner, arg.type)),
+            argNames: item.expr.args.map((arg) => ({
+                text: arg.id.text,
+                location: arg.id.location,
+            })),
             res: typeType(typeInner, item.expr.rettype) || void_,
             location: item.expr.location,
             typeVbls,
@@ -587,7 +857,7 @@ export const typeDefineInner = (env: Env, item: Define) => {
         ...env,
         // local: { ...env.local, tmpTypeVbls },
         local: { ...newLocal(), tmpTypeVbls },
-        term: { nextTraceId: 0 },
+        term: { nextTraceId: 0, localNames: {} },
     };
 
     const self: Self | null = item.rec
@@ -666,10 +936,15 @@ export const addDefine = (env: Env, name: string, term: Term) => {
     // }
     glob.idNames[idName(id)] = name;
     glob.terms[hash] = term;
+    // TODO: update metadata
     return { id, env: { ...env, global: glob } };
 };
 
-export const addExpr = (env: Env, term: Term) => {
+export const addExpr = (
+    env: Env,
+    term: Term,
+    pid: Id | null,
+): { id: Id; env: Env } => {
     const hash = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
     if (env.global.terms[hash]) {
@@ -682,6 +957,22 @@ export const addExpr = (env: Env, term: Term) => {
             global: {
                 ...env.global,
                 terms: { ...env.global.terms, [hash]: term },
+                metaData: {
+                    ...env.global.metaData,
+                    [hash]: {
+                        createdMs: Date.now(),
+                        tags: [],
+                        supersedes: pid ? idName(pid) : undefined,
+                    },
+                    ...(pid
+                        ? {
+                              [idName(pid)]: {
+                                  ...env.global.metaData[idName(pid)],
+                                  supersededBy: idName(id),
+                              },
+                          }
+                        : {}),
+                },
             },
         },
     };
@@ -897,12 +1188,8 @@ export const resolveIdentifier = (
             if (env.global.types[first]) {
                 const id = idFromName(first);
                 const t = env.global.types[idName(id)];
-                if (
-                    t.type === 'Record' &&
-                    t.items.length === 0 &&
-                    t.extends.length === 0
-                ) {
-                    return plainRecord(id, location);
+                if (t.type === 'Record' && !hasRequiredItems(env.global, t)) {
+                    return plainRecord(env.global, id, location);
                 }
             }
 
@@ -1007,45 +1294,122 @@ export const resolveIdentifier = (
     if (env.global.typeNames[text]) {
         const id = env.global.typeNames[text][0];
         const t = env.global.types[idName(id)];
-        if (
-            t.type === 'Record' &&
-            t.items.length === 0 &&
-            t.extends.length === 0
-        ) {
-            return plainRecord(id, location);
+        if (t.type === 'Record') {
+            // Ok, so we want to cehck the number of required items
+        }
+        if (t.type === 'Record' && !hasRequiredItems(env.global, t)) {
+            return plainRecord(env.global, id, location);
         }
     }
     return null;
 };
 
-const plainRecord = (id: Id, location: Location): Term => ({
-    type: 'Record',
-    base: {
-        type: 'Concrete',
-        ref: { type: 'user', id },
-        rows: [],
-        spread: null,
-    },
-    location,
-    is: {
-        type: 'ref',
-        ref: { type: 'user', id },
+const hasRequiredItems = (env: GlobalEnv, defn: RecordDef): boolean => {
+    if (defn.items.length === 0 && defn.extends.length === 0) {
+        return false;
+    }
+    const defaults = defn.defaults;
+    if (!defaults) {
+        return true;
+    }
+    const own = defn.items.some((_, i) => !defaults[`${i}`]);
+    if (own) {
+        return true;
+    }
+    if (!defn.extends.length) {
+        return false;
+    }
+    const allSubTypes = getAllSubTypes(env, defn.extends);
+    const together = allDefaults(env, defn, allSubTypes);
+    return allSubTypes.some((id) =>
+        env.types[idName(id)].items.some(
+            (_, i) => !together[`${idName(id)}#${i}`],
+        ),
+    );
+};
+
+export const allDefaults = (
+    env: GlobalEnv,
+    defn: RecordDef,
+    allSubTypes?: Array<Id>,
+) => {
+    const together = { ...defn.defaults };
+    if (!allSubTypes) {
+        allSubTypes = getAllSubTypes(env, defn.extends);
+    }
+    allSubTypes.forEach((id) => {
+        const t = env.types[idName(id)] as RecordDef;
+        const inner = t.defaults;
+        if (inner) {
+            Object.keys(inner).forEach((k) => {
+                if (inner[k].id) {
+                    if (!together[k]) {
+                        together[k] = inner[k];
+                    }
+                } else {
+                    const key = `${idName(id)}#${inner[k].idx}`;
+                    if (!together[key]) {
+                        together[key] = {
+                            ...inner[k],
+                            id,
+                        };
+                    }
+                }
+            });
+        }
+    });
+    return together;
+};
+
+const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
+    const t = env.types[idName(id)] as RecordDef;
+    const subTypes: {
+        [key: string]: {
+            spread: Term | null;
+            covered: boolean;
+            rows: Array<Term | null>;
+        };
+    } = {};
+    getAllSubTypes(env, t.extends).forEach((id) => {
+        const t = env.types[idName(id)] as RecordDef;
+        subTypes[idName(id)] = {
+            spread: null,
+            rows: t.items.map((_) => null),
+            covered: false,
+        };
+    });
+    return {
+        type: 'Record',
+        base: {
+            type: 'Concrete',
+            ref: { type: 'user', id },
+            rows: t.items.map((_) => null),
+            location: location,
+            spread: null,
+        },
         location,
-        typeVbls: [],
-        // effectVbls: [],
-    },
-    subTypes: {},
-});
+        is: {
+            type: 'ref',
+            ref: { type: 'user', id },
+            location,
+            typeVbls: [],
+            // effectVbls: [],
+        },
+        subTypes,
+    };
+};
 
 export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (type.type === 'var') {
         const found = env.local.typeVbls[type.sym.unique];
+        // console.log(type.sym.unique, type, env.local.typeVbls);
+        // if (found.ty)
         for (let sid of found.subTypes) {
             if (idsEqual(id, sid)) {
                 return true;
             }
             const t = env.global.types[idName(sid)] as RecordDef;
-            const allSubTypes = getAllSubTypes(env.global, t);
+            const allSubTypes = getAllSubTypes(env.global, t.extends);
             if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
                 return true;
             }
@@ -1058,6 +1422,6 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
         return true;
     }
     const t = env.global.types[idName(type.ref.id)] as RecordDef;
-    const allSubTypes = getAllSubTypes(env.global, t);
+    const allSubTypes = getAllSubTypes(env.global, t.extends);
     return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };

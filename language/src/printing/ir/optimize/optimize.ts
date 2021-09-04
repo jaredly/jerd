@@ -5,7 +5,7 @@ import { debugExpr } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
 import { uniquesReallyAreUnique } from '../analyze';
 import { defaultVisitor, transformExpr } from '../transform';
-import { Arg, Expr, OutputOptions, Stmt, Tuple } from '../types';
+import { Arg, Expr, OutputOptions, RecordDef, Stmt, Tuple } from '../types';
 import {
     and,
     arrowFunctionExpression,
@@ -21,14 +21,18 @@ import { flattenImmediateAssigns } from './flattenImmediateAssigns';
 import { flattenImmediateCalls2 } from './flattenImmediateCalls2';
 import { flattenRecordSpreads } from './flattenRecordSpread';
 import { foldConstantAssignments } from './foldConstantAssignments';
+import { foldImmediateAttributeAccess } from './foldImmediateAttributeAccess';
+import { foldSimpleMath } from './foldSimpleMath';
 import { foldSingleUseAssignments } from './foldSingleUseAssignments';
+import { inferArraySize, loopSpreadToArraySet } from './inferArraySize';
+import { inferLoopBounds } from './inferLoopBounds';
 import { inlineFunctionsCalledWithCapturingLambdas, inlint } from './inline';
 import { inlineCallsThatReturnFunctions } from './inlineCallsThatReturnFunctions';
 import {
     monoconstant,
     specializeFunctionsCalledWithLambdas,
 } from './monoconstant';
-import { monomorphize } from './monomorphize';
+import { monomorphize, monomorphizeTypes } from './monomorphize';
 import { removeUnusedVariables } from './removeUnusedVariables';
 import { optimizeTailCalls } from './tailCall';
 import { transformRepeatedly } from './utils';
@@ -37,8 +41,27 @@ export type Context = {
     id: Id;
     env: Env;
     exprs: Exprs;
+    types: TypeDefs;
     opts: OutputOptions;
     optimize: Optimizer2;
+    notes: Array<string> | null;
+};
+
+// So these are ... monomorphized types I think?
+export type TypeDefs = {
+    [idName: string]: {
+        typeDef: RecordDef;
+        source: Id;
+    };
+};
+
+export type Exprs = {
+    [idName: string]: {
+        expr: Expr;
+        inline: boolean;
+        source?: { id: Id; kind: string };
+        comment?: string;
+    };
 };
 
 export const toOldOptimize = (opt: Optimizer2): Optimizer => (
@@ -47,7 +70,11 @@ export const toOldOptimize = (opt: Optimizer2): Optimizer => (
     exprs: Exprs,
     expr: Expr,
     id: Id,
-) => opt({ exprs, env, opts: irOpts, id, optimize: opt }, expr);
+) =>
+    opt(
+        { exprs, env, opts: irOpts, id, optimize: opt, types: {}, notes: null },
+        expr,
+    );
 
 export type Optimizer2 = (ctx: Context, expr: Expr) => Expr;
 
@@ -62,16 +89,19 @@ export type Optimizer = (
 export const optimizeRepeatedly = (
     opt: Optimizer2 | Array<Optimizer2>,
 ): Optimizer2 => (ctx: Context, expr: Expr) => {
-    if (Array.isArray(opt)) {
-        opt = combineOpts(opt);
+    if (!Array.isArray(opt)) {
+        opt = [opt];
     }
     for (let i = 0; i < 100; i++) {
-        const newExpr = opt(ctx, expr);
-        if (newExpr === expr) {
+        const start = expr;
+        for (let one of opt) {
+            expr = one(ctx, expr);
+            // console.log(nameForOpt(one));
+            uniquesReallyAreUnique(expr, ctx.env);
+        }
+        if (start === expr) {
             return expr;
         }
-        expr = newExpr;
-        uniquesReallyAreUnique(expr);
     }
     throw new Error(`Optimize failed to converge`);
 };
@@ -94,7 +124,7 @@ export const midOpt = (
 
 export const symName = (sym: Symbol) => sym.unique + '';
 
-export const optimizeDefineNew = (
+export const optimizeDefineNew_ = (
     env: Env,
     expr: Expr,
     id: Id,
@@ -109,13 +139,16 @@ export const optimizeDefineNew = (
         id,
         exprs: exprss,
         opts: {},
+        types: {},
         optimize: opt,
+        notes: null,
     };
 
     try {
         expr = opt(ctx, expr);
-        uniquesReallyAreUnique(expr);
+        uniquesReallyAreUnique(expr, ctx.env);
     } catch (err) {
+        // TODO: extract this out
         console.log('-- oops --');
         console.error(err);
         // Oh no! Inconsistent!
@@ -133,7 +166,7 @@ export const optimizeDefineNew = (
                 // }
                 try {
                     expr = fn(ctx, expr);
-                    uniquesReallyAreUnique(expr);
+                    uniquesReallyAreUnique(expr, ctx.env);
                 } catch (err) {
                     console.log('Offending optimizer');
                     console.log(fn);
@@ -148,8 +181,10 @@ export const optimizeDefineNew = (
             env,
             id,
             exprs: exprss,
+            types: {},
             opts: {},
             optimize: opt,
+            notes: null,
         };
         expr = opt(ctx, orig);
     }
@@ -162,15 +197,6 @@ export const optimizeDefineOld = (ctx: Context, expr: Expr): Expr => {
     expr = optimize(ctx, expr);
     expr = arraySliceLoopToIndex(ctx, expr);
     return expr;
-};
-
-export type Exprs = {
-    [idName: string]: {
-        expr: Expr;
-        inline: boolean;
-        source?: { id: Id; kind: string };
-        comment?: string;
-    };
 };
 
 export const optimizeAggressive = (ctx: Context, expr: Expr): Expr => {
@@ -220,7 +246,7 @@ export const optimize = (ctx: Context, expr: Expr): Expr => {
         // shortestDistanceToSurface
         fromSimpleOpt(flattenIffe),
         removeUnusedVariables,
-        fromSimpleOpt(removeNestedBlocksWithoutDefinesAndCodeAfterReturns),
+        removeNestedBlocksAndCodeAfterReturns,
         fromSimpleOpt(foldConstantTuples),
         fromSimpleOpt(removeSelfAssignments),
         foldConstantAssignments(false),
@@ -230,6 +256,7 @@ export const optimize = (ctx: Context, expr: Expr): Expr => {
         foldConstantAssignments(false),
         removeUnusedVariables,
         fromSimpleOpt(flattenNestedIfs),
+        removeNestedBlocksAndCodeAfterReturns,
         flattenImmediateCalls2,
     ];
     transformers.forEach((t) => (expr = t(ctx, expr)));
@@ -266,8 +293,8 @@ export const flattenNestedIfs = (env: Env, expr: Expr): Expr => {
     });
 };
 
-export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
-    env: Env,
+export const removeNestedBlocksAndCodeAfterReturns = (
+    ctx: Context,
     expr: Expr,
 ): Expr => {
     return transformRepeatedly(expr, {
@@ -297,10 +324,11 @@ export const removeNestedBlocksWithoutDefinesAndCodeAfterReturns = (
                     return;
                 }
                 if (
-                    item.type === 'Block' &&
+                    item.type === 'Block'
+                    //&&
                     // It's ok to have defines if it's the last item in the block
-                    (i === block.items.length - 1 ||
-                        !item.items.some((item) => item.type === 'Define'))
+                    // (i === block.items.length - 1 ||
+                    //     !item.items.some((item) => item.type === 'Define'))
                 ) {
                     changed = true;
                     items.push(...item.items);
@@ -406,11 +434,12 @@ export const simpleOpt = (fn: (env: Env, expr: Expr) => Expr): Optimizer => (
     id,
 ) => fn(env, expr);
 
-const javascriptOpts: Array<Optimizer2> = [
+export const javascriptOpts: Array<Optimizer2> = [
     optimize,
     optimizeTailCalls,
     optimize,
     arraySliceLoopToIndex,
+    foldImmediateAttributeAccess,
 ];
 
 export const ensureToplevelFunctionsAreLambdas = (ctx: Context, expr: Expr) => {
@@ -488,24 +517,132 @@ ok we'll get to that when we need to.
 
 */
 
-const glslOpts: Array<Optimizer2> = [
+const foldConstantsAndLambdas = foldConstantAssignments(true);
+
+export const glslOptsNamed = {
+    // specializeFunctionsCalledWithLambdas,
+    // inlineCallsThatReturnFunctions,
+    // removeNestedBlocksAndCodeAfterReturns,
+    // flattenImmediateCalls2,
+    // foldSingleUseAssignments,
+    // flattenImmediateAssigns,
+    // // flattenImmediateCalls,
+    // removeUnusedVariables,
+
+    // inlineFunctionsCalledWithCapturingLambdas,
+    // ensureToplevelFunctionsAreLambdas,
+    // explicitSpreads,
+    // optimizeTailCalls,
+    // optimize,
+    // arraySliceLoopToIndex,
+    // inlint,
+    // monomorphize,
+    foldConstantsAndLambdas,
     specializeFunctionsCalledWithLambdas,
     inlineCallsThatReturnFunctions,
+    removeNestedBlocksAndCodeAfterReturns,
     flattenImmediateCalls2,
     foldSingleUseAssignments,
-    foldConstantAssignments(true),
+    // foldConstantAssignments(true),
     flattenImmediateAssigns,
     // flattenImmediateCalls,
     removeUnusedVariables,
 
     inlineFunctionsCalledWithCapturingLambdas,
     ensureToplevelFunctionsAreLambdas,
-    inlineCallsThatReturnFunctions,
+    // inlineCallsThatReturnFunctions,
     explicitSpreads,
     optimizeTailCalls,
-    ...javascriptOpts,
+    // ...javascriptOpts,
+    optimize,
+
+    foldSimpleMath,
+    // // fromSimpleOpt(flattenIffe),
+    // removeUnusedVariables,
+    // removeNestedBlocksAndCodeAfterReturns,
+    // // fromSimpleOpt(foldConstantTuples),
+    // // fromSimpleOpt(removeSelfAssignments),
+    // // foldConstantAssignments(false),
+    // foldSingleUseAssignments,
+    // // fromSimpleOpt(flattenNestedIfs),
+    // // fromSimpleOpt(arraySlices),
+    // // foldConstantAssignments(false),
+    // removeUnusedVariables,
+    // // fromSimpleOpt(flattenNestedIfs),
+    // removeNestedBlocksAndCodeAfterReturns,
+    // flattenImmediateCalls2,
+
+    // optimizeTailCalls,
+    // optimize,
+    arraySliceLoopToIndex,
+    foldImmediateAttributeAccess,
     inlint,
     monomorphize,
+    monomorphizeTypes,
     // monoconstant,
-    optimize,
+    // optimize,
+    inferArraySize,
+    loopSpreadToArraySet,
+};
+
+export const nameForOpt = (fn: Function) => {
+    for (let k of Object.keys(glslOptsNamed)) {
+        if ((glslOptsNamed as any)[k] === fn) {
+            return k;
+        }
+    }
+    return fn.name;
+};
+
+export const glslOpts: Array<Optimizer2> = [
+    specializeFunctionsCalledWithLambdas,
+    inlineCallsThatReturnFunctions,
+    removeNestedBlocksAndCodeAfterReturns,
+    flattenImmediateCalls2,
+    foldSingleUseAssignments,
+    foldConstantsAndLambdas,
+    flattenImmediateAssigns,
+    // flattenImmediateCalls,
+    removeUnusedVariables,
+
+    foldSimpleMath,
+
+    inlineFunctionsCalledWithCapturingLambdas,
+    ensureToplevelFunctionsAreLambdas,
+    inlineCallsThatReturnFunctions,
+    explicitSpreads,
+    // inferArraySize,
+    optimizeTailCalls,
+    // ...javascriptOpts,
+
+    // optimizeTailCalls,
+    // optimize,
+    arraySliceLoopToIndex,
+    foldImmediateAttributeAccess,
+
+    inlint,
+    monomorphize,
+    monomorphizeTypes,
+    // monoconstant,
+    // optimize,
+
+    fromSimpleOpt(flattenIffe),
+    removeUnusedVariables,
+    removeNestedBlocksAndCodeAfterReturns,
+    fromSimpleOpt(foldConstantTuples),
+    fromSimpleOpt(removeSelfAssignments),
+    // foldConstantAssignments(false),
+    foldSingleUseAssignments,
+    fromSimpleOpt(flattenNestedIfs),
+    fromSimpleOpt(arraySlices),
+    // foldConstantAssignments(false),
+    removeUnusedVariables,
+    fromSimpleOpt(flattenNestedIfs),
+    removeNestedBlocksAndCodeAfterReturns,
+    flattenImmediateCalls2,
+
+    inferArraySize,
+    loopSpreadToArraySet,
+
+    inferLoopBounds,
 ];

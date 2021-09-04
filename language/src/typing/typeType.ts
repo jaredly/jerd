@@ -1,6 +1,7 @@
 import {
     Identifier,
     LambdaType,
+    Location,
     Type as ParseType,
     TypeVbl,
 } from '../parsing/parser';
@@ -10,8 +11,9 @@ import {
 // because we'll need it in a web ui.
 import { Env, Symbol, subEnv, Type, Id, nullLocation } from './types';
 import { showLocation } from './typeExpr';
-import { idFromName, resolveEffect, symPrefix } from './env';
-import { LocatedError, MismatchedTypeVbl } from './errors';
+import { idFromName, idName, resolveEffect, symPrefix } from './env';
+import { LocatedError } from './errors';
+import { args } from '../printing/printer';
 
 export const walkType = (
     term: Type,
@@ -42,6 +44,9 @@ export const walkType = (
                 effectVbls: term.effectVbls.slice(),
                 location: term.location,
                 args: newArgs,
+                argNames: term.argNames
+                    ? term.argNames.slice()
+                    : newArgs.map((_) => null),
                 effects: term.effects, // STOPSHIP bring them in
                 res: newres || term.res,
                 rest: null, // STOPSHIP handle rest
@@ -62,11 +67,23 @@ export const newTypeVbl = (env: Env): Type => {
     };
 };
 
-const typeType = (env: Env, type: ParseType | null): Type => {
+const typeType = (
+    env: Env,
+    type: ParseType | null,
+    expectedType?: Type | null,
+): Type => {
     if (type == null) {
-        return newTypeVbl(env);
+        return expectedType ? expectedType : newTypeVbl(env);
     }
     switch (type.type) {
+        case 'tuple': {
+            return {
+                type: 'ref',
+                ref: { type: 'builtin', name: `Tuple${type.items.length}` },
+                typeVbls: type.items.map((t) => typeType(env, t)),
+                location: type.location,
+            };
+        }
         case 'TypeRef': {
             const typeVbls = type.typeVbls
                 ? type.typeVbls.map((t) => typeType(env, t))
@@ -165,16 +182,29 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 };
             }
             if (env.global.typeNames[type.id.text] != null) {
-                return {
-                    type: 'ref',
-                    ref: {
-                        type: 'user',
-                        id: env.global.typeNames[type.id.text][0],
-                    },
-                    typeVbls,
-                    // effectVbls,
-                    location: type.location,
-                };
+                const ids = env.global.typeNames[type.id.text];
+                // console.log('looking for', type.id.text, ids);
+                const numTypeVbls = type.typeVbls ? type.typeVbls.length : 0;
+                let id: Id | null = null;
+                for (let i of ids) {
+                    const def = env.global.types[idName(i)];
+                    if (def.typeVbls.length === numTypeVbls) {
+                        id = i;
+                        break;
+                    }
+                }
+                if (id !== null) {
+                    return {
+                        type: 'ref',
+                        ref: {
+                            type: 'user',
+                            id,
+                        },
+                        typeVbls,
+                        // effectVbls,
+                        location: type.location,
+                    };
+                }
             }
             if (env.global.builtinTypes[type.id.text] != null) {
                 return {
@@ -200,7 +230,8 @@ const typeType = (env: Env, type: ParseType | null): Type => {
 
             return {
                 type: 'lambda',
-                args: type.args.map((a) => typeType(typeInner, a)),
+                args: type.args.map((a) => typeType(typeInner, a.type)),
+                argNames: type.args.map((a) => a.id),
                 typeVbls,
                 effectVbls,
                 location: type.location,
@@ -209,6 +240,9 @@ const typeType = (env: Env, type: ParseType | null): Type => {
                 rest: null,
             };
         }
+        default:
+            const _x: never = type;
+            throw new Error(`Unexpected Type ${(type as any).type}`);
     }
 };
 
@@ -239,7 +273,12 @@ export const newEnvWithTypeAndEffectVbls = (
     // });
 
     const typeInner = subEnv(env);
-    const typeVbls: Array<{ unique: number; subTypes: Array<Id> }> = [];
+    const typeVbls: Array<{
+        unique: number;
+        subTypes: Array<Id>;
+        name: string;
+        location: Location;
+    }> = [];
     typevbls.forEach(({ id, subTypes }) => {
         // console.log(id.hash);
         const unique = parseUnique(
@@ -262,7 +301,12 @@ export const newEnvWithTypeAndEffectVbls = (
         });
         typeInner.local.typeVbls[sym.unique] = { subTypes: st };
         typeInner.local.typeVblNames[id.text] = sym;
-        typeVbls.push({ unique: sym.unique, subTypes: st });
+        typeVbls.push({
+            unique: sym.unique,
+            subTypes: st,
+            name: id.text,
+            location: id.location,
+        });
     });
     const effectVbls: Array<number> = [];
     effvbls.forEach((id) => {

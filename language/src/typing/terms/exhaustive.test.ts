@@ -1,15 +1,11 @@
 import {
-    Constructor,
-    Pattern,
-    Matrix,
-    Row,
-    Groups,
-    isUseful,
-    isExhaustive,
     anything,
     constructor,
-    or,
     getUseless,
+    isExhaustive,
+    Matrix,
+    or,
+    Pattern,
 } from './exhaustive';
 
 const groups = {

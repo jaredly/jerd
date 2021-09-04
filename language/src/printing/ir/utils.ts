@@ -1,7 +1,7 @@
 // General thing
 
 import { Location } from '../../parsing/parser';
-import { newSym, refName } from '../../typing/env';
+import { idName, newSym, refName } from '../../typing/env';
 import { LocatedError } from '../../typing/errors';
 import { binOps } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
@@ -16,6 +16,7 @@ import {
     Symbol,
     Term,
     Type as TermType,
+    RecordDef as TermRecordDef,
     TypeVblDecl,
 } from '../../typing/types';
 import { args, atom, id, items, PP, printToString } from '../printer';
@@ -23,6 +24,7 @@ import { refToPretty, symToPretty } from '../printTsLike';
 import { handleArgsForEffects, handlerTypesForEffects } from './cps';
 import { defaultVisitor, transformExpr } from './transform';
 import {
+    Apply,
     Arg,
     Assign,
     Block,
@@ -37,6 +39,7 @@ import {
     Loc,
     MaybeEffLambda,
     OutputOptions,
+    RecordDef,
     Stmt,
     Type,
     typeForLambdaExpression,
@@ -222,6 +225,22 @@ export const parseCPSArgs = (args: Array<Type>) => {
     return { normal, handlers, done };
 };
 
+export const recordDefFromTermType = (
+    env: Env,
+    opts: OutputOptions,
+    defn: TermRecordDef,
+): RecordDef => {
+    return {
+        type: 'Record',
+        unique: defn.unique,
+        location: defn.location,
+        typeVbls: defn.typeVbls,
+        extends: defn.extends,
+        items: defn.items.map((t) => typeFromTermType(env, opts, t)),
+        ffi: defn.ffi,
+    };
+};
+
 export const typeFromTermType = (
     env: Env,
     opts: OutputOptions,
@@ -229,6 +248,14 @@ export const typeFromTermType = (
 ): Type => {
     switch (type.type) {
         case 'ref':
+            if (type.ref.type === 'builtin' && type.ref.name === 'Array') {
+                return {
+                    type: 'Array',
+                    inner: typeFromTermType(env, opts, type.typeVbls[0]),
+                    loc: type.location,
+                    inferredSize: null,
+                };
+            }
             return {
                 type: 'ref',
                 ref: type.ref,
@@ -400,6 +427,7 @@ export const attribute = (
     opts: OutputOptions,
     target: Expr,
     ref: Reference,
+    refTypeVbls: Array<Type>,
     idx: number,
     loc: Loc,
 ): Expr => {
@@ -408,6 +436,7 @@ export const attribute = (
         type: 'attribute',
         target,
         ref,
+        refTypeVbls,
         idx,
         loc,
         is: typeFromTermType(env, opts, decl.items[idx]),
@@ -446,6 +475,13 @@ export const intLiteral = (value: number, loc: Location): Expr => ({
     value,
     loc,
     is: int,
+});
+
+export const floatLiteral = (value: number, loc: Location): Expr => ({
+    type: 'float',
+    value,
+    loc,
+    is: float,
 });
 
 export const ifStatement = (
@@ -573,6 +609,10 @@ export const arrowFunctionExpression = (
     typeVbls?: Array<TypeVblDecl>,
     tags?: Array<string>,
 ): LambdaExpr => {
+    // const e = new Error();
+    // const stack = e.stack!.split('\n').slice(0, 4).join('\n');
+    // console.log(e);
+
     const block = asBlock(body);
     const res = typeForLambdaExpression(block) || void_;
     return {
@@ -587,6 +627,7 @@ export const arrowFunctionExpression = (
             typeVbls,
         ),
         tags,
+        // note: stack,
     };
 };
 
@@ -598,7 +639,7 @@ export const callExpression = (
     args: Array<Expr>,
     loc: Loc,
     typeVbls?: Array<Type>,
-): Expr => {
+): Apply => {
     if (target.is.type === 'cps-lambda') {
         return {
             type: 'apply',
@@ -612,6 +653,27 @@ export const callExpression = (
 
     let tt = expectLambdaType(env, {}, target.is);
     let note = undefined;
+
+    if (typeVbls) {
+        try {
+            tt = applyTypeVariables(
+                env,
+                target.is,
+                typeVbls,
+                undefined,
+                loc,
+            ) as LambdaType;
+        } catch (err) {
+            // console.log(target.is);
+            // console.log(typeVbls);
+            // debugger;
+            throw new LocatedError(
+                loc,
+                `Um Failed to apply type variables.`,
+            ).wrap(err);
+        }
+    }
+
     if (CHECK_CALLS) {
         if (tt.args.length !== args.length) {
             throw new LocatedError(
@@ -620,22 +682,6 @@ export const callExpression = (
                     args.length
                 }\n${showType(env, tt)}`,
             );
-        }
-        if (typeVbls) {
-            try {
-                tt = applyTypeVariables(
-                    env,
-                    target.is,
-                    typeVbls,
-                    undefined,
-                    loc,
-                ) as LambdaType;
-            } catch (err) {
-                throw new LocatedError(
-                    loc,
-                    `Um Failed to apply type variables.`,
-                ).wrap(err);
-            }
         }
         args.forEach((arg, i) => {
             // const err= getTypeError(env, arg.is, tt.args[i], loc)
@@ -690,6 +736,13 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                 ]);
             }
             return refToPretty(env, type.ref, 'type');
+        case 'Array':
+            return items([
+                atom('Array'),
+                atom('<'),
+                typeToPretty(env, type.inner),
+                atom('>'),
+            ]);
         case 'lambda':
             return items([
                 type.note ? atom('[' + type.note + ']') : null,
@@ -722,7 +775,7 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                 typeToPretty(env, type.returnValue),
             ]);
         case 'var':
-            return symToPretty(type.sym);
+            return symToPretty(env, type.sym);
         case 'effect-handler':
             if (type.ref.type === 'builtin') {
                 return atom(type.ref.name);
@@ -730,7 +783,12 @@ export const typeToPretty = (env: Env, type: Type): PP => {
                 return id('handler', refName(type.ref), 'effect-handler');
                 // throw new Error(`effect handler wanted`);
             }
+        case 'done-lambda':
+            return atom('DONE_LAMBDA');
+        case 'effectful-or-direct':
+            return atom('EF_OR_DIRECT');
         default:
+            let _x: never = type;
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);
     }
 };
@@ -762,6 +820,59 @@ export const makeTypeVblMapping = (
     });
 
     return mapping;
+};
+
+export const createTypeVblMapping = (
+    env: Env,
+    typeVbls: Array<TypeVblDecl>,
+    vbls: Array<Type>,
+): { [unique: number]: Type } => {
+    // console.log('create mapping', vbls);
+    const mapping: { [unique: number]: Type } = {};
+    if (vbls.length !== typeVbls.length) {
+        // console.log('the ones', typeVbls);
+        throw new Error(
+            `Wrong number of type variables: ${vbls.length} : ${typeVbls.length}`,
+        );
+    }
+
+    vbls.forEach((typ, i) => {
+        const subs = typeVbls[i].subTypes;
+        if (subs.length) {
+            throw new Error(`We don't handle subtypes here yet`);
+        }
+        // console.log(i, typ, subs);
+        // for (let sub of subs) {
+        //     if (!hasSubType(env, typ, sub)) {
+        //         throw new Error(`Expected a subtype of ${idName(sub)}`);
+        //     }
+        // }
+        mapping[typeVbls[i].unique] = typ;
+    });
+
+    return mapping;
+};
+
+export const applyTypeVariablesToRecord = (
+    env: Env,
+    type: RecordDef,
+    vbls: Array<Type>,
+    location: Location | null,
+    selfHash: string,
+): RecordDef => {
+    if (type.typeVbls.length !== vbls.length) {
+        throw new LocatedError(
+            location,
+            `Expected ${type.typeVbls.length}, found ${vbls.length}`,
+        );
+    }
+    const mapping = createTypeVblMapping(env, type.typeVbls, vbls);
+    return {
+        ...type,
+        typeVbls: [],
+        // TODO: Also extends!!! I mean I guess we can't supply type variables to extends yet, but soon
+        items: type.items.map((t) => subtTypeVars(t, mapping, selfHash)),
+    };
 };
 
 export const applyTypeVariables = (
@@ -844,6 +955,13 @@ export const walkType = (
     const changed = handle(term);
     if (changed) {
         return changed;
+    }
+    if (term.type === 'Array') {
+        const inner = walkType(term.inner, handle);
+        if (inner != null) {
+            return { ...term, inner };
+        }
+        return null;
     }
     if (term.type === 'lambda') {
         const newArgs = term.args.slice();

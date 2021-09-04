@@ -50,6 +50,7 @@ const patternToExPattern = (
         case 'boolean':
             return constructor(pattern.value.toString(), 'boolean', []);
         case 'Binding':
+        case 'Ignore':
             return anything;
         case 'Enum': {
             if (type.type !== 'ref') {
@@ -108,6 +109,7 @@ const patternToExPattern = (
             return tupleToExPattern(type, pattern, groups, env);
         }
         default:
+            const _x: never = pattern;
             throw new Error(`Unhandled pattern ${(pattern as any).type}`);
     }
 };
@@ -143,7 +145,11 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
     //     term.is.type === 'ref' && term.is.ref.type === 'user'
     //         ? term.is.ref.id.hash
     //         : undefined;
-    const cases: Array<{ pattern: Pattern; body: Term }> = [];
+    const cases: Array<{
+        pattern: Pattern;
+        body: Term;
+        location: Location;
+    }> = [];
     let is: Type | null = null;
     expr.cases.forEach((c) => {
         const inner = subEnv(env);
@@ -167,6 +173,7 @@ export const typeSwitch = (env: Env, expr: Switch): Term => {
             }
         }
         cases.push({
+            location: c.location,
             pattern,
             body,
         });
@@ -336,7 +343,7 @@ const recordToExPattern = (
         groups[groupId] = all.map((t) => groupIdForRef(t.ref));
     }
     const defn = env.global.types[groupIdForRef(pattern.ref.ref)] as RecordDef;
-    const subTypes = getAllSubTypes(env.global, defn);
+    const subTypes = getAllSubTypes(env.global, defn.extends);
     const valuesBySubType: {
         [idName: string]: {
             row: Array<ExPattern>;

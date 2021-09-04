@@ -2,19 +2,21 @@
 import { jsx } from '@emotion/react';
 
 import * as React from 'react';
-import { AttributedText } from '@jerd/language/src/printing/printer';
+import { AttributedText, Extra } from '@jerd/language/src/printing/printer';
 import { idName } from '@jerd/language/src/typing/env';
 import { GlobalEnv, Location } from '@jerd/language/src/typing/types';
 import { css } from '@emotion/react';
+import { Selection } from './Cell';
 
 const kindColors: { [key: string]: string } = {
     string: '#ce9178',
     int: '#b5cea8',
     float: '#b5cea8',
+    decorator: '#66f779',
     type: '#4EC9B0',
 };
 
-const stylesForAttributes = (attributes: Array<string>) => {
+const stylesForAttributes = (attributes: Array<string | Extra>) => {
     if (attributes.includes('string')) {
         return { color: '#ce9178' };
     }
@@ -32,6 +34,9 @@ const stylesForAttributes = (attributes: Array<string>) => {
     }
     if (attributes.includes('argName')) {
         return { fontStyle: 'italic', color: '#888' };
+    }
+    if (attributes.includes('error')) {
+        return { textDecoration: 'underline 4px red' };
     }
     return { color: '#aaa' };
 };
@@ -109,12 +114,32 @@ export const renderAttributedTextToHTML = (
                 }</span>`;
             }
             const style = stylesForAttributes(item.attributes);
-            let styleString = `color:${style.color}`;
+            let styleString = '';
+            if (style.color) {
+                styleString = `color:${style.color}`;
+            }
             if (style.fontStyle) {
                 styleString += `;font-style:${style.fontStyle}`;
             }
+            if (style.textDecoration) {
+                styleString += `;text-decoration:${style.textDecoration}`;
+            }
+            if ('type' in item && item.type === 'Group') {
+                return `<span
+                    data-location=${
+                        item.loc ? JSON.stringify(item.loc) : undefined
+                    }
+                    style='${styleString}'
+                    key=${i}
+                >${renderAttributedTextToHTML(
+                    env,
+                    item.contents,
+                    allIds,
+                    idColors,
+                )}</span>`;
+            }
             return `<span style="${styleString}">${escapeHTML(
-                item.text,
+                (item as any).text,
             )}</span>`;
         })
         .join('');
@@ -138,9 +163,37 @@ export const renderAttributedText = (
     allIds?: boolean,
     idColors: Array<string> = colors,
     openable = (id: string, kind: string, loc?: Location) => false,
+    setHover = (hover: Extra, target: HTMLDivElement | null) =>
+        console.log('hover', hover, target),
+    selection: null | {
+        idx: number;
+        marks: Array<number>;
+        active: boolean;
+    } = null,
+    colorMap: { map: { [key: string]: string }; colorAt: number } = {
+        map: {},
+        colorAt: 0,
+    },
 ) => {
-    const colorMap: { [key: string]: string } = {};
-    let colorAt = 0;
+    // TODO: one single selection check should be enough
+    const idx = selection ? selection.idx : null;
+    const marks = selection ? selection.marks : null;
+    const locStyle = (loc: Location | null | undefined) => {
+        if (!loc || loc.idx == null) {
+            return undefined;
+        }
+        if (marks && marks.includes(loc.idx)) {
+            if (loc.idx === idx) {
+                return markAndHlStyle;
+            }
+            return markStyle;
+        }
+        if (selection && !selection.active) {
+            return loc.idx === idx ? hlStyleLight : null;
+        }
+        return loc.idx === idx ? hlStyle : null;
+    };
+
     return text.map((item, i) => {
         if (typeof item === 'string') {
             return <span key={i}>{item}</span>;
@@ -149,18 +202,22 @@ export const renderAttributedText = (
             const showHash =
                 item.id != '' &&
                 (allIds || shouldShowHash(env, item.id, item.kind, item.text));
-            if (item.kind === 'sym' && !colorMap[item.id]) {
-                colorMap[item.id] = idColors[colorAt++ % idColors.length];
+            if (item.kind === 'sym' && !colorMap.map[item.id]) {
+                colorMap.map[item.id] =
+                    idColors[colorMap.colorAt++ % idColors.length];
             }
             return (
                 <span
                     style={{
-                        color: colorForId(item, colorMap),
+                        color: colorForId(item, colorMap.map),
                         cursor: onClick ? 'pointer' : 'inherit',
+                        ...locStyle(item.loc),
                     }}
+                    data-kind={item.kind}
                     data-location={
                         item.loc ? JSON.stringify(item.loc) : undefined
                     }
+                    data-id={item.id}
                     css={
                         openable(item.id, item.kind, item.loc)
                             ? css({
@@ -181,8 +238,15 @@ export const renderAttributedText = (
                         }
                     }}
                     key={i}
-                    title={item.id + ' ' + item.kind}
+                    // title={item.id + ' ' + item.kind}
                 >
+                    {/* {item.loc ? (
+                        <span css={{ color: 'red', fontSize: '50%' }}>
+                            {item.loc.idx}
+                        </span>
+                    ) : (
+                        ''
+                    )} */}
                     {item.text}
                     {showHash ? (
                         <span
@@ -197,14 +261,82 @@ export const renderAttributedText = (
                 </span>
             );
         }
+        if ('type' in item && item.type === 'Group') {
+            const first = item.attributes.find(
+                (x) => typeof x !== 'string',
+            ) as Extra | null;
+            return (
+                <span
+                    data-location={
+                        item.loc ? JSON.stringify(item.loc) : undefined
+                    }
+                    data-kind="group"
+                    onMouseEnter={
+                        first
+                            ? (evt) => {
+                                  setHover(
+                                      first,
+                                      evt.currentTarget as HTMLDivElement,
+                                  );
+                              }
+                            : undefined
+                    }
+                    onMouseLeave={
+                        first
+                            ? (evt) => {
+                                  setHover(first, null);
+                              }
+                            : undefined
+                    }
+                    style={{
+                        ...stylesForAttributes(item.attributes),
+                        ...locStyle(item.loc),
+                    }}
+                    key={i}
+                >
+                    {renderAttributedText(
+                        env,
+                        item.contents,
+                        onClick,
+                        allIds,
+                        idColors,
+                        openable,
+                        setHover,
+                        selection,
+                        colorMap,
+                    )}
+                </span>
+            );
+        }
         return (
             <span
                 data-location={item.loc ? JSON.stringify(item.loc) : undefined}
-                style={stylesForAttributes(item.attributes)}
+                data-kind={'misc'}
+                style={{ ...locStyle(item.loc) }}
                 key={i}
             >
-                {item.text}
+                {(item as any).text}
             </span>
         );
     });
+};
+// const hlColor = 'rgba(255,255,255,0.1)';
+const hlBorder = '2px solid #fa0';
+const hlStyleLight = {
+    // backgroundColor: hlColor,
+    // borderLeft: hlBorder,
+    // borderRight: hlBorder,
+    outline: '2px solid rgba(200, 100, 0, 0.1)',
+};
+const hlStyle = {
+    // backgroundColor: hlColor,
+    // borderLeft: hlBorder,
+    // borderRight: hlBorder,
+    outline: hlBorder,
+};
+const markAndHlStyle = {
+    outline: '2px dashed red',
+};
+const markStyle = {
+    outline: '2px solid red',
 };

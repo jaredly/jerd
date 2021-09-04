@@ -18,7 +18,9 @@ import {
     EffectReference,
     EffectRef,
     Location,
+    nullLocation,
 } from '../../typing/types';
+import { int } from './utils';
 
 export type Loc = Location;
 
@@ -60,18 +62,59 @@ export type OutputOptions = {
 // And then would I have these things be parameterized by the `Type`?
 // rggggggggggggg yeah I mean I guess so?
 
+export type UserTypeReference = {
+    type: 'ref';
+    ref: UserReference;
+    loc: Loc;
+    typeVbls: Array<Type>;
+};
+
+export type TypeReference = {
+    type: 'ref';
+    ref: Reference;
+    loc: Loc;
+    typeVbls: Array<Type>;
+};
+
+export type InferredSize =
+    | {
+          type: 'exactly';
+          size: number;
+      }
+    // | { type: 'expanding' }
+    // If it's in a lambda arg, then this is a ~declaration
+    // otherwise, it's a reference
+    // Oh also it might be an actual variable? no I think that would be the expr
+    | { type: 'variable'; sym: Symbol }
+    | {
+          type: 'multiple';
+          sizes: Array<InferredSize>;
+      }
+    | {
+          type: 'relative';
+          to: InferredSize;
+          offset: InferredSize;
+      }
+    | {
+          type: 'constant';
+          sym: Symbol;
+      };
+
+export type ArrayType = {
+    type: 'Array';
+    loc: Loc;
+    inner: Type;
+    inferredSize: null | InferredSize;
+};
+
 export type Type =
     | {
           type: 'var';
           sym: Symbol;
           loc: Loc;
       }
-    | {
-          type: 'ref';
-          ref: Reference;
-          loc: Loc;
-          typeVbls: Array<Type>;
-      }
+    | TypeReference
+    | ArrayType
     | LambdaType
     | CPSLambdaType
     | DoneLambdaType
@@ -155,6 +198,12 @@ export type Assign = {
 };
 export type ReturnStmt = { type: 'Return'; value: Expr; loc: Loc };
 
+// Ok, so how to calculate the size of the loop?
+// I think the guarentee that we have is that the sym isn't mutated inside of the loop
+// so we have (loop initial value) -> (step) -> (end)
+// Hmmm it might be nice to have a separate loop variable? idk
+// hmmm
+// So for this loop
 export type LoopBounds = {
     end: Expr;
     op: '<=' | '<' | '>' | '>=';
@@ -162,11 +211,78 @@ export type LoopBounds = {
     sym: Symbol;
 };
 
+export const stepSize = (step: Apply): null | number => {
+    if (step.target.type !== 'builtin') {
+        return null;
+    }
+    if (step.args.length !== 2) {
+        return null;
+    }
+    if (step.target.name === '+') {
+        if (step.args[0].type === 'int') {
+            return step.args[0].value;
+        } else if (step.args[1].type == 'int') {
+            return step.args[1].value;
+        }
+        return null;
+    }
+    if (step.target.name === '-') {
+        if (step.args[1].type == 'int') {
+            return -step.args[1].value;
+        }
+    }
+    return null;
+};
+
+// Hmmm it would be nice to have a subset of expr that we could use for stuff like this
+export const loopCount = (
+    bounds: LoopBounds,
+    constants: { [unique: number]: number },
+): null | InferredSize => {
+    const step = stepSize(bounds.step);
+    if (step == null) {
+        return null;
+    }
+    if (step === -1 && bounds.end.type === 'int' && bounds.end.value === 0) {
+        return { type: 'constant', sym: bounds.sym };
+    }
+    if (step === 1 && bounds.end.type === 'int') {
+        if (constants[bounds.sym.unique] != null) {
+            return {
+                type: 'exactly',
+                size: bounds.end.value - constants[bounds.sym.unique],
+            };
+        }
+        // NOTE: This is false actually
+        // return {
+        //     type: 'relative',
+        //     to: { type: 'constant', sym: bounds.sym },
+        //     offset: { type: 'exactly', size: bounds.end.value },
+        // };
+    }
+    return null;
+};
+
+export type Loop = {
+    type: 'Loop';
+    body: Block;
+    loc: Loc;
+    bounds?: LoopBounds;
+};
+export type IfStmt = {
+    type: 'if';
+    cond: Expr;
+    yes: Block;
+    no: Block | null;
+    loc: Loc;
+};
+
 export type Stmt =
     | { type: 'Expression'; expr: Expr; loc: Loc }
+    | { type: 'ArraySet'; sym: Symbol; idx: Expr; value: Expr; loc: Loc }
     | Define
     | Assign
-    | { type: 'if'; cond: Expr; yes: Block; no: Block | null; loc: Loc }
+    | IfStmt
     | { type: 'MatchFail'; loc: Loc }
     | ReturnStmt
     // Do I also want a "for-in" or a "for-range" stmt type?
@@ -175,12 +291,7 @@ export type Stmt =
     // or I could just have Array.forEach
     // Ok but also: optional :somethingsomething: "Bounds"?
     //
-    | {
-          type: 'Loop';
-          body: Block;
-          loc: Loc;
-          bounds?: LoopBounds;
-      }
+    | Loop
     | { type: 'Continue'; loc: Loc }
     | { type: 'Break'; loc: Loc }
     | Block;
@@ -201,6 +312,7 @@ export const returnTypeForStmt = (stmt: Stmt): Type | null => {
         case 'Expression':
         case 'Define':
         case 'Break':
+        case 'ArraySet':
             return null;
         case 'Return':
             return stmt.value.is;
@@ -211,6 +323,7 @@ export const returnTypeForStmt = (stmt: Stmt): Type | null => {
             if (types.length > 1) {
                 for (let i = 1; i < types.length; i++) {
                     if (!typesEqual(types[i], types[0])) {
+                        console.log(types[i], types[0]);
                         throw new Error(
                             `Return types don't agree. This is a compiler error.`,
                         );
@@ -248,8 +361,28 @@ export type Literal =
     | { type: 'float'; value: number; loc: Loc; is: Type };
 export type Var = { type: 'var'; sym: Symbol; loc: Loc; is: Type };
 
+export type Enum = { type: 'Enum'; is: TypeReference; inner: Expr; loc: Loc };
+
+export type SpecializeEnum = {
+    type: 'SpecializeEnum';
+    inner: Expr;
+    // Could either be a smaller enum, or a record
+    is: TypeReference;
+    loc: Location;
+};
+
+export type ArrayExpr = {
+    type: 'array';
+    items: Array<Expr | { type: 'Spread'; value: Expr }>;
+    elType: Type;
+    loc: Loc;
+    is: ArrayType;
+};
+
 export type Expr =
     | Literal
+    | Enum
+    | SpecializeEnum
     | { type: 'unary'; inner: Expr; is: Type; loc: Loc; op: string }
     | { type: 'eqLiteral'; value: Expr; literal: Literal; loc: Loc; is: Type }
     | { type: 'term'; id: Id; loc: Loc; is: Type }
@@ -267,7 +400,7 @@ export type Expr =
     | { type: 'arrayLen'; value: Expr; loc: Loc; is: Type } // TODO this could just be represented with a buitin, right? yeah
     | { type: 'builtin'; name: string; loc: Loc; is: Type }
     // used in switches
-    | { type: 'IsRecord'; value: Expr; ref: Reference; loc: Loc; is: Type }
+    | { type: 'IsRecord'; value: Expr; ref: UserReference; loc: Loc; is: Type }
     | {
           type: 'effectfulOrDirect';
           effectful: boolean;
@@ -301,13 +434,7 @@ export type Expr =
           is: Type;
       }
     | Tuple
-    | {
-          type: 'array';
-          items: Array<Expr | { type: 'Spread'; value: Expr }>;
-          elType: Type;
-          loc: Loc;
-          is: Type;
-      }
+    | ArrayExpr
     | Record
     | { type: 'tupleAccess'; target: Expr; idx: number; loc: Loc; is: Type }
     | { type: 'Trace'; args: Array<Expr>; is: Type; idx: number; loc: Loc }
@@ -315,6 +442,7 @@ export type Expr =
           type: 'attribute';
           target: Expr;
           ref: Reference;
+          refTypeVbls: Array<Type>;
           idx: number;
           loc: Loc;
           is: Type;
@@ -374,6 +502,17 @@ export type LambdaExpr = {
     loc: Loc;
     is: LambdaType | CPSLambdaType;
     tags?: Array<string>;
+    note?: string;
+};
+
+export type RecordDef = {
+    type: 'Record';
+    unique: number;
+    location: Location;
+    typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
+    extends: Array<Id>;
+    items: Array<Type>;
+    ffi: { tag: string; names: Array<string> } | null;
 };
 
 export type Arg = { sym: Symbol; type: Type; loc: Loc };
@@ -412,9 +551,11 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
         if (two.type === 'ref' && two.ref.type === 'builtin') {
             return one.type === 'ref' && refsEqual(two.ref, one.ref);
         }
-        // STOPSHIP: resolve type references
-        // throw new Error(`Need to lookup types sorry`);
         return false;
+    }
+    if (one.type === 'Array') {
+        // STOPSHIP: Check inferred size too
+        return two.type === 'Array' && typesEqual(one.inner, two.inner);
     }
     if (one.type === 'var') {
         return two.type === 'var' && symbolsEqual(one.sym, two.sym);

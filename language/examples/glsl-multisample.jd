@@ -352,7 +352,7 @@ const multiSample = (fn: (GLSLEnv, Vec2) ={}> Vec4): (
 
 @ffi
 @main
-multiSample(
+const ok = multiSample(
     marchNormals(
         (env: GLSLEnv, pos: Vec3): float ={}> {
             const pos = rotate(

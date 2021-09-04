@@ -21,12 +21,20 @@ import typeExpr, {
 } from '../typeExpr';
 import { getTypeError } from '../getTypeError';
 import { idFromName, idName, resolveIdentifier } from '../env';
-import { LocatedError, TypeMismatch, UnresolvedIdentifier } from '../errors';
-import { refName } from '../typePattern';
+import { LocatedError, TypeMismatch } from '../errors';
 import { walkType } from '../typeType';
 import { float, int, numeric, string } from '../preset';
-import { termToPretty } from '../../printing/printTsLike';
-import { printToString } from '../../printing/printer';
+
+// loosest at the top, tightest at the bottom
+const precedence = [
+    ['&'],
+    ['|'],
+    ['='],
+    ['>', '<'],
+    ['+', '-'],
+    ['/', '*'],
+    ['^'],
+];
 
 export const findUnaryOp = (
     env: Env,
@@ -75,6 +83,11 @@ export const findUnaryOp = (
                 idx: idx,
                 is: t.items[idx],
                 location: location,
+                idLocation: location,
+                refTypeVbls:
+                    found.is.type === 'ref' && found.is.typeVbls.length
+                        ? found.is.typeVbls
+                        : undefined,
                 ref: { type: 'user', id },
                 inferred: true,
             };
@@ -121,8 +134,22 @@ const findOp = (
             if (tis.args.length !== 2) {
                 continue;
             }
-            const e1 = getTypeError(env, ltype, tis.args[0], location);
-            const e2 = getTypeError(env, rtype, tis.args[1], location);
+            const e1 = getTypeError(
+                env,
+                ltype,
+                tis.args[0],
+                location,
+                undefined,
+                true,
+            );
+            const e2 = getTypeError(
+                env,
+                rtype,
+                tis.args[1],
+                location,
+                undefined,
+                true,
+            );
             if (e1 || e2) {
                 continue;
             }
@@ -132,6 +159,11 @@ const findOp = (
                 idx: idx,
                 is: t.items[idx],
                 location: location,
+                idLocation: location,
+                refTypeVbls:
+                    found.is.type === 'ref' && found.is.typeVbls.length
+                        ? found.is.typeVbls
+                        : undefined,
                 ref: { type: 'user', id },
                 inferred: true,
             };
@@ -147,9 +179,8 @@ const findMatchingOp = (
     rarg: Term,
     location: Location,
 ) => {
-    for (let { idx, id } of env.global.attributeNames[op]) {
-        // const { idx, id } = env.global.attributeNames[op][0];
-        // console.log(op, idx, id, 'OP');
+    const ops = env.global.attributeNames[op];
+    for (let { idx, id } of ops) {
         const found = findOp(env, id, idx, left.is, rarg.is, location);
         if (found != null) {
             return found;
@@ -165,9 +196,6 @@ const typeNewOp = (
     rarg: Term,
     location: Location,
 ): Term | null => {
-    // const rarg =
-    //     right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
-
     let fn: Term;
     if (op.hash != null) {
         if (op.hash === '#builtin') {
@@ -216,39 +244,14 @@ const typeNewOp = (
             idx: idx,
             is: t.items[idx],
             location: op.location,
+            idLocation: op.location,
+            refTypeVbls:
+                target.is.type === 'ref' && target.is.typeVbls.length
+                    ? target.is.typeVbls
+                    : undefined,
             ref: { type: 'user', id },
             inferred: true,
         };
-        // } else if (id != null) {
-        //     const found = resolveIdentifier(env, id);
-        //     if (!found) {
-        //         throw new UnresolvedIdentifier(id, env);
-        //     }
-        //     if (found.is.type !== 'ref') {
-        //         throw new LocatedError(
-        //             id.location,
-        //             `Identifier isn't a ref ${showType(env, found.is)}`,
-        //         );
-        //     }
-        //     const idx = env.global.recordGroups[refName(found.is.ref)].indexOf(
-        //         op.text,
-        //     );
-        //     if (idx === -1) {
-        //         throw new LocatedError(
-        //             id.location,
-        //             `Record ${refName(found.is.ref)} has no member ${op}`,
-        //         );
-        //     }
-        //     const t = env.global.types[refName(found.is.ref)] as RecordDef;
-        //     fn = {
-        //         type: 'Attribute',
-        //         target: found,
-        //         idx: idx,
-        //         is: t.items[idx],
-        //         location: id.location,
-        //         ref: found.is.ref,
-        //         inferred: true,
-        //     };
     } else if (env.global.attributeNames[op.text]) {
         const found = findMatchingOp(env, op.text, left, rarg, location);
         if (found == null) {
@@ -266,14 +269,41 @@ const typeNewOp = (
         throw new Error(`${op} is not a binary function`);
     }
 
-    const firstErr = getTypeError(env, left.is, fn.is.args[0], left.location);
+    const firstErr = getTypeError(
+        env,
+        left.is,
+        fn.is.args[0],
+        left.location,
+        undefined,
+        true,
+    );
     if (firstErr != null) {
-        throw firstErr;
+        left = {
+            type: 'TypeError',
+            is: fn.is.args[0],
+            location: left.location,
+            inner: left,
+        };
     }
-    const secondErr = getTypeError(env, rarg.is, fn.is.args[1], rarg.location);
+    const secondErr = getTypeError(
+        env,
+        rarg.is,
+        fn.is.args[1],
+        rarg.location,
+        undefined,
+        true,
+    );
     if (secondErr != null) {
-        throw secondErr;
+        rarg = {
+            type: 'TypeError',
+            inner: rarg,
+            location: rarg.location,
+            is: fn.is.args[1],
+        };
     }
+
+    // STOPSHIP: type vbls not actually being really checked 😬
+    const typeVbls = fn.is.typeVbls.length ? [left.is, rarg.is] : [];
 
     return {
         type: 'apply',
@@ -281,7 +311,7 @@ const typeNewOp = (
         target: fn,
         hadAllVariableEffects: false,
         effectVbls: null,
-        typeVbls: [],
+        typeVbls: typeVbls,
         args: [left, rarg],
         is: fn.is.res,
     };
@@ -295,7 +325,7 @@ const typeOp = (
     location: Location,
 ): Term => {
     // Shortcut
-    const rarg =
+    let rarg =
         right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
 
     const result = typeNewOp(env, left, op, rarg, location);
@@ -338,7 +368,13 @@ const typeOp = (
             // OK START EHERE:
             // This is where we would, instead of bailing, say
             // "this is ok, we wrap it in an error term"
-            throw new TypeMismatch(env, left.is, rarg.is, left.location);
+            // throw new TypeMismatch(env, left.is, rarg.is, left.location);
+            rarg = {
+                type: 'TypeError',
+                inner: rarg,
+                is: left.is,
+                location: rarg.location,
+            };
         }
         // STOPSHIP: have an actual solution for strings
         if (
@@ -362,11 +398,23 @@ const typeOp = (
 
     const firstErr = getTypeError(env, left.is, is.args[0], left.location);
     if (firstErr != null) {
-        throw firstErr;
+        left = {
+            type: 'TypeError',
+            is: is.args[0],
+            location: left.location,
+            inner: left,
+        };
+        // throw firstErr;
     }
     const secondErr = getTypeError(env, rarg.is, is.args[1], rarg.location);
     if (secondErr != null) {
-        throw secondErr;
+        // throw secondErr;
+        rarg = {
+            type: 'TypeError',
+            inner: rarg,
+            location: rarg.location,
+            is: is.args[1],
+        };
     }
 
     return {
@@ -385,16 +433,6 @@ const typeOp = (
         is: is.res,
     };
 };
-
-const precedence = [
-    ['&'],
-    ['|'],
-    ['='],
-    ['>', '<'],
-    ['+', '-'],
-    ['/', '*'],
-    ['^'],
-];
 
 export const opPrefixes = ([] as Array<string>).concat(...precedence);
 

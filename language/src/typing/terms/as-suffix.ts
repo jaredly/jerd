@@ -103,6 +103,11 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
             idx: 0,
             ref: asRecord,
             location: target.location,
+            idLocation: target.location,
+            refTypeVbls:
+                target.is.type === 'ref' && target.is.typeVbls.length
+                    ? target.is.typeVbls
+                    : undefined,
             inferred: true,
             is: pureFunction([stype], ttype),
         },

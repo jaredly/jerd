@@ -48,6 +48,7 @@ export const flattenRecordSpread = (
                         type: 'attribute',
                         target,
                         ref: b.ref,
+                        refTypeVbls: [],
                         idx: i,
                         loc: expr.loc,
                         is: typeFromTermType(env, opts, d.items[i]),
@@ -69,6 +70,7 @@ export const flattenRecordSpread = (
                             // and if so, make a variable
                             target,
                             ref: { type: 'user', id: idFromName(k) },
+                            refTypeVbls: [],
                             idx: i,
                             loc: expr.loc,
                             is: typeFromTermType(env, opts, d.items[i]),
@@ -120,6 +122,7 @@ export const flattenRecordSpread = (
                         // and if so, make a variable
                         target,
                         ref: { type: 'user', id: idFromName(k) },
+                        refTypeVbls: [],
                         idx: i,
                         loc: expr.loc,
                         is: typeFromTermType(env, opts, d.items[i]),

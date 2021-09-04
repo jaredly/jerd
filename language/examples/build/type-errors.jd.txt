@@ -1,42 +1,30 @@
 Fallback binops [object Object] must have same-typed arguments: int#builtin vs string#builtin at 3:1-3:2
 
-Wrong type for arg 0: 
-Found: int#builtin
-but expected string#builtin : 7:7-7:8
+expected string#builtin, found int#builtin
 
-Wrong type for arg 0: 
-Found: string#builtin
-but expected int#builtin : 11:7-11:12
+expected int#builtin, found string#builtin
 
-Wrong type for arg 0: 
-Found: string#builtin
-but expected int#builtin : 18:15-18:22
+expected int#builtin, found string#builtin
 
-Wrong type for arg 0: 
-Found: string#builtin
-but expected int#builtin : 21:7-21:15
+expected int#builtin, found string#builtin
 
-Return type of lambda doesn't fit type declaration
+expected int#builtin, found T#:0
 
-Return type of lambda doesn't fit type declaration
+expected T#:0, found int#builtin
 
 Function is declared as pure, but is not. 1 effects found.
 
-Wrong type for arg 0: 
-Found: T#:0
-but expected string#builtin : 36:30-36:32
+expected string#builtin, found T#:0
 
-Type error!TypeMismatch
+expected string#builtin, found int#builtin
 
-Type error!TypeMismatch
+expected string#builtin, found int#builtin
 
-Wrong type for arg 0: 
-Found: int#builtin
-but expected string#builtin : 46:18-46:19
+expected string#builtin, found int#builtin
 
 Value of const doesn't match type annotation.
 
-Type error!TypeMismatch
+expected string#builtin, found int#builtin
 
 Condition of if must be a boolean
 
@@ -46,9 +34,9 @@ Trying to call int#builtin
 
 Wrong number of arguments (string#builtin) ={}> void#builtin, 1 vs 2
 
-Type error!UnresolvedIdentifier2
+Type error!UnresolvedIdentifier
 
-Return type of lambda doesn't fit type declaration
+expected string#builtin, found int#builtin
 
 Function declared with explicit effects, but missing at least one: 
 GetString#22024b72
@@ -62,24 +50,24 @@ All case arms must have the same return type: int#builtin string#builtin
 
 Unknown effect Undef.get
 
-Invalid type for attribute age at 111:26-111:30. Expected int#builtin, got string#builtin
+expected int#builtin, found string#builtin
 
 Multiple values provided for 1 undefined at 113:39-113:42
 
 Record missing attribute "what" at 115:1-115:29
 
-Invalid spread Dog#1de5e9d2
+Invalid spread Dog#74d8e7f1
 
-Expected a subtype of 1de5e9d2
+Expected a subtype of 74d8e7f1
 
-Expected a subtype of 630bfbc6
+Expected a subtype of 6b9d6f5e
 
 Expected 1 at 147:1-147:28, found 0
 
 Wrong number of arguments (string#builtin) ={}> string#builtin, 1 vs 0
 
-Invalid type for attribute item at 152:33-152:47. Expected T#:0, got <T#:0>() ={}> string#builtin
+expected <T#:0>(T#:0) ={}> string#builtin, found <T#:0>() ={}> string#builtin
 
-Invalid type for attribute item at 154:28-154:50. Expected T#:0, got <T#:0>(T#:0) ={}> string#builtin
+expected <T#:0>(T#:0) ={}> T#:0, found <T#:0>(input: T#:0) ={}> string#builtin
 
-Expected a subtype of 06e495ea
+Expected a subtype of 01664794

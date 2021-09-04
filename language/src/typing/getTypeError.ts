@@ -42,8 +42,12 @@ export const getTypeError = (
     expected: Type,
     location: Location,
     mapping: Mapping = nullMapping,
+    allowExpectedVariables?: boolean,
 ): TypeError | null => {
     if (found.type !== expected.type) {
+        if (expected.type === 'var' && allowExpectedVariables) {
+            return null;
+        }
         return new TypeMismatch(env, found, expected, location);
     } else if (found.type === 'var') {
         const e = expected as TypeVar;
@@ -80,6 +84,7 @@ export const getTypeError = (
                 e.typeVbls[i],
                 location,
                 mapping,
+                allowExpectedVariables,
             );
             // TODO: do this better
             if (err !== null) {
@@ -158,6 +163,7 @@ export const getTypeError = (
                 e.args[i],
                 location,
                 mapping,
+                allowExpectedVariables,
             );
             if (err !== null) {
                 return err.wrapped(new MismatchedArgument(env, i, found, e));
@@ -190,7 +196,14 @@ export const getTypeError = (
                 mapping.effects,
             ).wrapped(new TypeMismatch(env, found, expected, location));
         }
-        const res = getTypeError(env, found.res, e.res, location, mapping);
+        const res = getTypeError(
+            env,
+            found.res,
+            e.res,
+            location,
+            mapping,
+            allowExpectedVariables,
+        );
         if (res != null) {
             return res.wrapped(new TypeMismatch(env, found, e, location));
         }

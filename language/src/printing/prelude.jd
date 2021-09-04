@@ -162,6 +162,11 @@ const MulVec3 = Mul<Vec3, Vec3, Vec3>{
 }
 
 @glsl_builtin
+const ScaleVec4_ = Mul<Vec4, float, Vec4>{
+    "*": (v: Vec4, scale: float) => Vec4{x: v.x * scale, y: v.y * scale, z: v.z * scale, w: v.w * scale}
+}
+
+@glsl_builtin
 const ScaleVec3_ = Mul<Vec3, float, Vec3>{
     "*": (v: Vec3, scale: float) => Vec3{x: v.x * scale, y: v.y * scale, z: v.z * scale}
 }
@@ -307,6 +312,19 @@ const max = (v: Vec2, n: float) => Vec2{
 }
 
 @glsl_builtin
+const max = (v: Vec3, n: Vec3) => Vec3{
+    x: max(v.x, n.x),
+    y: max(v.y, n.y),
+    z: max(v.z, n.z),
+}
+
+@glsl_builtin
+const max = (v: Vec2, n: Vec2) => Vec2{
+    x: max(v.x, n.x),
+    y: max(v.y, n.y),
+}
+
+@glsl_builtin
 const round = (v: Vec2) => Vec2{
     x: round(v.x),
     y: round(v.y),
@@ -347,13 +365,12 @@ const opRepLim = ( p: Vec3, c: float, l: Vec3) => {
 const fract = (v: float) => v - floor(v)
 @glsl_builtin
 const fract = (v: Vec3) => Vec3{x: fract(v.x), y: fract(v.y), z: fract(v.z)}
-const abs3 = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 
 const random = (st: Vec2) => {
     fract(sin(dot(st, Vec2{x: 12.9898, y: 78.233})) * 43758.5453123);
 }
 
-const PHI = 1.61803398874989484820459  // Φ = Golden Ratio   
+const PHI = 1.61803398874989484820459;  // Φ = Golden Ratio   
 
 const random3 = (xy: Vec2, seed: float) => {
     fract(tan(distance(xy * PHI, xy) * seed) * xy.x);
@@ -380,8 +397,6 @@ const random2 = (co: Vec2) => {
     fract(sin(sn) * c);
 }
 
-// START HERE: need to resolve ambiguity between
-// [self] and a [term]
 @glsl_builtin
 const abs = (v: Vec3) => Vec3{x: abs(v.x), y: abs(v.y), z: abs(v.z)}
 @glsl_builtin
@@ -394,8 +409,18 @@ const box = (samplePoint: Vec3, pos: Vec3, dims: Vec3) => {
 const lerp = (a: float, b: float, c: float) => c * (b - a) + a
 
 @glsl_builtin
+const mix = (a: Vec2, b: Vec2, c: float) => {
+    Vec2{x: lerp(a.x, b.x, c), y: lerp(a.y, b.y, c)}
+}
+
+@glsl_builtin
 const mix = (a: Vec3, b: Vec3, c: float) => {
     Vec3{x: lerp(a.x, b.x, c), y: lerp(a.y, b.y, c), z: lerp(a.z, b.z, c)}
+}
+
+@glsl_builtin
+const mix = (a: Vec4, b: Vec4, c: float) => {
+    Vec4{x: lerp(a.x, b.x, c), y: lerp(a.y, b.y, c), z: lerp(a.z, b.z, c), w: lerp(a.w, b.w, c)}
 }
 
 @glsl_builtin
@@ -418,7 +443,97 @@ type GLSLBuffer1 = {
     buffer0: (GLSLEnv, Vec2, sampler2D) => Vec4,
 }
 
-// GLSL Tests you see
+@ffi
+type GLSLEnv<T> = {
+    state: T,
+    time: float,
+    resolution: Vec2,
+    camera: Vec3,
+    mouse: Vec2,
+    mouseButton: int,
+}
+
+@ffi
+type Angle<State> = {step: float, update: (state: State, angle: float) => State}
+
+// TODO: Should I have default values baked into here?
+// but then do I get weird behavior for subtyping? BUT I don't
+// have unexplicit subtyping. So it seems like it ought to be ok?
+// like `step: float = 1.0`
+
+@ffi
+type Int<State> = {min: int, max: int, step: int, update: (state: State, value: int) => State}
+
+@ffi
+type Float<State> = {min: float, max: float, step: float, update: (state: State, value: float) => State}
+
+@ffi
+type Options<State> = {names: Array<string>, update: (state: State, idx: int) => State}
+
+@ffi
+type XY<State> = {min: Vec2, max: Vec2, update: (state: State, pos: Vec2) => State}
+
+// hmmmmmmmm what about a "anything goes?"
+// I don't yet have GADTs, so I can't hide an existential type variable.
+// otherwise that would be rad.
+
+enum WidgetConfig<State> {
+  Angle<State>,
+  Float<State>,
+  Int<State>,
+  Options<State>,
+  XY<State>,
+}
+
+@ffi
+type Widget<State> = {name: string, config: WidgetConfig<State>}
+
+@ffi("GLSLScene")
+type GLSLSceneOld<T> = {
+    initial: T,
+    step: (GLSLEnv<T,>, GLSLEnv<T,>) => T,
+    render: (GLSLEnv<T>, Vec2) => Vec4,
+}
+
+@ffi
+type KeyEvent = {
+    key: string,
+    press: bool,
+    ctrlKey: bool,
+    shiftKey: bool,
+    metaKey: bool
+}
+
+@ffi
+type MouseButton = {
+    button: int,
+    down: bool,
+    ctrlKey: bool,
+    shiftKey: bool,
+    metaKey: bool,
+}
+
+enum GLSLEvent {
+    KeyEvent,
+    MouseButton
+    // MouseMove maybe? idk
+}
+
+@ffi
+type GLSLScene<T> = {
+    initial: T,
+    step: (GLSLEnv<T,>, GLSLEnv<T,>, Array<GLSLEvent>) => T,
+    render: (GLSLEnv<T>, Vec2) => Vec4,
+}
+
+const rec reduce = <T, R,>(
+    items: Array<T>,
+    initial: R,
+    fn: (current: R, item: T) => R,
+): R => switch items {
+    [] => initial,
+    [value, ...rest] => reduce#self<T, R>(rest, fn(initial, value), fn)
+}
 
 // type ResultsState = {
 //     passed: float,
@@ -456,3 +571,43 @@ type GLSLBuffer1 = {
 //     }
 // }
 // const testCircle = (passed: bool,)
+
+/* Ok so let's do builtin widgets */
+
+decorator alternates<T>(options: Constant#builtin<Array<(string, T)>>) T;
+decorator slider(min: Constant#builtin<int>, max: Constant#builtin<int>, step: Constant#builtin<int>) Constant#builtin<int>;
+decorator slider(min: Constant#builtin<float>, max: Constant#builtin<float>, step: Constant#builtin<float>) Constant#builtin<float>;
+decorator slider(min: Constant#builtin<Vec2>, max: Constant#builtin<Vec2>) Constant#builtin<Vec2>;
+decorator rgb Constant#builtin<Vec3>;
+decorator rgba Constant#builtin<Vec4>;
+decorator hsl Constant#builtin<Vec3>;
+decorator hsla Constant#builtin<Vec4>;
+decorator title(title: string);
+
+// decorator buffer(num: Constant#builtin<int>) (env: GLSLEnv, pos: Vec2, ...buffer: sampler2d) => Vec4
+// decorator main (env: GLSLEnv, pos: Vec2, ...buffer: sampler2d) => Vec4
+
+// ok I really need to figure out how to parse namespacing thoughhhh
+// should I take a point from ocaml?
+// idk
+
+// @buffer(0)
+// @main
+
+// @unique(0)
+// type Tuple2<A, B> = {
+//     v0: A,
+//     v1: B,
+// };
+
+// @unique(0)
+// type Tuple3<A, B, C> = {
+//     ...Tuple2<A, B>,
+//     v2: C,
+// };
+
+// @unique(0)
+// type Tuple4<A, B, C, D> = {
+//     ...Tuple3<A, B, C>,
+//     v3: D,
+// }

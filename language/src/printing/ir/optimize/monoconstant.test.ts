@@ -31,19 +31,19 @@ describe('specializeFunctionsCalledWithLambdas', () => {
         expect(result).toMatchInlineSnapshot(`
             const expr0_lambda#🧿🕵️‍♀️🌛😃: (int) => int = (
                 m#:0: int,
-            ) => m#:0 - 23
+            ): int => m#:0 - 23
 
             const expr0_lambda#🐬🧑‍🦯💘😃: (int) => int = (
                 m#:0: int,
-            ) => m#:0 + 4
+            ): int => m#:0 + 4
 
             const f_specialization#🦏👨‍🍳🐙😃: (int) => int = (
                 n#:1: int,
-            ) => expr0_lambda#🧿🕵️‍♀️🌛😃(n#:1 / 2) + 2
+            ): int => expr0_lambda#🧿🕵️‍♀️🌛😃(n#:1 / 2) + 2
 
             const f_specialization#👩‍🏫🥬🐶😃: (int) => int = (
                 n#:1: int,
-            ) => expr0_lambda#🐬🧑‍🦯💘😃(n#:1 / 2) + 2
+            ): int => expr0_lambda#🐬🧑‍🦯💘😃(n#:1 / 2) + 2
 
             const expr0#🌯🌨️👨‍👧‍👦: int = f_specialization#👩‍🏫🥬🐶😃(
                 11,
@@ -62,9 +62,9 @@ describe('specializeFunctionsCalledWithLambdas', () => {
         ).toMatchInlineSnapshot(`
             const expr0_lambda#🚇😅🍪😃: (int) => int = (
                 n#:0: int,
-            ) => n#:0 + 1
+            ): int => n#:0 + 1
 
-            const f_specialization#🏐🐞👩‍🎓: () => int = () => {
+            const f_specialization#🏐🐞👩‍🎓: () => int = (): int => {
                 const g#:0: (int) => int = expr0_lambda#🚇😅🍪😃;
                 return g#:0(1) + 2;
             }
@@ -83,14 +83,14 @@ describe('specializeFunctionsCalledWithLambdas', () => {
             specializeFunctionsCalledWithLambdas,
         );
         expect(result).toMatchInlineSnapshot(`
-              const f#😪: ((int) => int) => int = (
-                  g#:0: (int) => int,
-              ) => g#:0(1) + 2
+            const f#😪: ((int) => int) => int = (
+                g#:0: (int) => int,
+            ): int => g#:0(1) + 2
 
-              const expr0#🐾🧏🎎: int = (() => {
-                  const v#:0: int = 10;
-                  return f#😪((n#:1: int) => n#:1 + v#:0);
-              })()
+            const expr0#🐾🧏🎎: int = ((): int => {
+                const v#:0: int = 10;
+                return f#😪((n#:1: int): int => n#:1 + v#:0);
+            })()
         `);
     });
 
@@ -107,13 +107,13 @@ describe('specializeFunctionsCalledWithLambdas', () => {
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-            const expr0_lambda#🐿️: (int) => int = (n#:0: int) => n#:0 + 5
+            const expr0_lambda#🐿️: (int) => int = (n#:0: int): int => n#:0 + 5
 
-            const f_specialization#🥏🐍💺😃: () => int = () => expr0_lambda#🐿️(
+            const f_specialization#🥏🐍💺😃: () => int = (): int => expr0_lambda#🐿️(
                 1,
             ) + 2
 
-            const m_specialization#🤸‍♀️🥕💀: () => int = () => expr0_lambda#🐿️(
+            const m_specialization#🤸‍♀️🥕💀: () => int = (): int => expr0_lambda#🐿️(
                 3,
             ) + 4 + f_specialization#🥏🐍💺😃()
 

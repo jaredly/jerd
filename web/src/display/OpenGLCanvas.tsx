@@ -2,7 +2,9 @@
 /* @jsx jsx */
 import { css, jsx } from '@emotion/react';
 import * as React from 'react';
+import { Env, Reference } from '../../../language/src/typing/types';
 import { setup } from '../setupGLSL';
+import { GLSLEnv2 } from './OpenGL';
 
 export type PlayState = 'playing' | 'paused' | 'recording' | 'transcoding';
 
@@ -108,6 +110,8 @@ export const OpenGLCanvas = ({
     renderTrace,
     initialSize = 200,
     initialZoom = 0.5,
+    // START HERE: Use state if its there....
+    state,
 }: {
     initialSize?: number;
     initialZoom?: number;
@@ -124,17 +128,37 @@ export const OpenGLCanvas = ({
         trace: any,
         mousePos: { x: number; y: number },
     ) => React.ReactNode;
+    state?: {
+        initial: any;
+        step: (env: any, prev: any) => any;
+        stateType: Reference;
+        env: Env;
+    };
 }) => {
     const [zoom, setZoom] = React.useState(initialZoom);
     const [width, setWidth] = React.useState(initialSize);
+    const [height, setHeight] = React.useState(null as null | number);
     const [canvas, setCanvas] = React.useState(
         null as null | HTMLCanvasElement,
     );
+    const [showControls, setShowControls] = React.useState(false);
     const [restartCount, setRestartCount] = React.useState(0);
     const [playState, setPlayState] = React.useState(
         (startPaused ? 'paused' : 'playing') as PlayState,
     );
     const [showSettings, toggleSettings] = React.useState(false);
+
+    const lastStart = React.useRef(startPaused);
+    React.useEffect(() => {
+        if (startPaused !== lastStart.current) {
+            lastStart.current = startPaused;
+            if (playState === 'paused' && !startPaused) {
+                setPlayState('playing');
+            } else if (playState === 'playing' && startPaused) {
+                setPlayState('paused');
+            }
+        }
+    }, [startPaused, playState]);
 
     const [tracing, setTracing] = React.useState(false);
     const [transcodingProgress, setTranscodingProgress] = React.useState({
@@ -148,6 +172,8 @@ export const OpenGLCanvas = ({
     const timer = React.useRef(0);
 
     const [video, setVideo] = React.useState(null as null | string);
+
+    const [downloadUrl, setDownloadUrl] = React.useState(null as null | string);
 
     const [mousePos, setMousePos] = React.useState({ x: 0, y: 0, button: -1 });
     const currentMousePos = React.useRef(mousePos);
@@ -165,7 +191,21 @@ export const OpenGLCanvas = ({
     const restart = () => {
         setRestartCount(restartCount + 1);
         textures.current = [];
+        if (old.current) {
+            old.current.state = state!.initial;
+        }
     };
+
+    const stateRef = React.useRef(state);
+    stateRef.current = state;
+    // console.log('hello state', state);
+
+    const old = React.useRef(
+        null as null | {
+            state: any;
+            ctx: GLSLEnv2<any>;
+        },
+    );
 
     const updateFn = React.useMemo(() => {
         if (!canvas || !shaders) {
@@ -181,10 +221,75 @@ export const OpenGLCanvas = ({
                 shaders[0],
                 timer.current,
                 currentMousePos.current,
+                // lol this is terrible
+                state
+                    ? {
+                          value: old.current
+                              ? old.current.state
+                              : state.initial,
+                          type: state.stateType,
+                          env: state.env,
+                      }
+                    : undefined,
                 shaders.slice(1),
                 textures.current,
             );
-            return update;
+            if (state) {
+                old.current = {
+                    state: old.current ? old.current.state : state.initial,
+                    // let oldState = state ? state.initial : undefined;
+                    // ctx: GLSLEnv2<any> = {
+                    ctx: {
+                        state: old.current
+                            ? old.current.state
+                            : state
+                            ? state.initial
+                            : null,
+                        time: timer.current,
+                        resolution: {
+                            type: 'Vec2',
+                            x: width,
+                            y: height || width,
+                        },
+                        camera: { type: 'Vec3', x: 0, y: 0, z: 0 },
+                        mouse: { type: 'Vec2', x: 0, y: 0 },
+                        mouseButton: -1,
+                    },
+                };
+            }
+            return (
+                time: number,
+                mousePos: { x: number; y: number; button: number },
+            ) => {
+                // let newState: any | undefined = oldState;
+                if (state && old.current) {
+                    if (time > 0) {
+                        const newCtx: GLSLEnv2<any> = {
+                            ...old.current!.ctx,
+                            state: old.current!.state,
+                            time,
+                            mouse: {
+                                type: 'Vec2',
+                                x: mousePos.x,
+                                y: mousePos.y,
+                            },
+                            mouseButton: mousePos.button,
+                        };
+                        const newState = stateRef.current!.step(
+                            newCtx,
+                            old.current!.ctx,
+                        );
+                        // oldCtx = newCtx;
+                        // oldState = newState;
+                        old.current = { ctx: newCtx, state: newState };
+                    }
+                }
+                return update(
+                    time,
+                    mousePos,
+                    old.current ? old.current.state : undefined,
+                );
+            };
         } catch (err) {
             console.log(err);
             onError(err);
@@ -214,34 +319,114 @@ export const OpenGLCanvas = ({
                 setVideo,
             );
 
-            const images: Array<{ name: string; data: Uint8Array }> = [];
+            const images: Array<Uint8Array> = [];
 
             let tid: any;
             let tick = 0;
+
             const fn = () => {
                 updateFn(tick / 60, currentMousePos.current);
                 setTranscodingProgress({
                     start: Date.now(),
                     percent: tick / recordingLength,
                 });
+                // canvas!.toBlob
 
                 const dataUrl = canvas!.toDataURL('image/jpeg');
                 const data = convertDataURIToBinary(dataUrl);
 
-                images.push({
-                    name: `img${tick.toString().padStart(3, '0')}.jpg`,
-                    data,
-                });
+                // TODO: Re-enable this if the user wants to do the slower,
+                // in-browser transcoding.
+                // images.push({
+                //     name: `img${tick.toString().padStart(3, '0')}.jpg`,
+                //     data,
+                // });
+                images.push(data);
 
                 if (tick++ > recordingLength) {
-                    sendRun(images);
-                    setPlayState('transcoding');
-                    setTranscodingProgress({ start: Date.now(), percent: 0 });
+                    // sendRun(images);
+                    // setPlayState('transcoding');
+                    // setTranscodingProgress({ start: Date.now(), percent: 0 });
+                    const tar = require('tinytar').tar;
+
+                    const args = [
+                        '-r',
+                        '60',
+                        '-i',
+                        'image%03d.jpg',
+                        '-c:v',
+                        'libx264',
+                        '-crf',
+                        '18',
+                        '-pix_fmt',
+                        'yuv420p',
+                        // '-vb',
+                        // '20M',
+                    ];
+                    if (zoom !== 1.0) {
+                        args.push(
+                            '-vf',
+                            `scale=iw*${zoom}:ih*${zoom}:flags=neighbor`,
+                        );
+                    }
+                    args.push('video.mp4');
+
+                    const res = tar(
+                        images
+                            .map(
+                                (image, i) =>
+                                    ({
+                                        name: `image${i
+                                            .toString()
+                                            .padStart(3, '0')}.jpg`,
+                                        data: image,
+                                    } as any),
+                            )
+                            .concat([
+                                {
+                                    name: 'run_ffmpeg.bash',
+                                    mode: parseInt('777', 8),
+                                    data: `#!/bin/bash
+                                    set -ex
+                                    ffmpeg ${args
+                                        .map((a) =>
+                                            a[0] === '-' ? a : `"${a}"`,
+                                        )
+                                        .join(' ')}
+                                    `,
+                                },
+                                {
+                                    name: `config.json`,
+                                    data: JSON.stringify({
+                                        zoom,
+                                        recordingLength,
+                                    }),
+                                },
+                            ]),
+                    );
+                    // images.forEach((image, i) => {
+                    //     tar.entry(
+                    //         {
+                    //         },
+                    //     );
+                    // });
+                    // tar.finalize();
+                    // const stream = tar.c({ sync: true }, [images]);
+
+                    const blob = new Blob([res], {
+                        type: 'tar',
+                    });
+
+                    setDownloadUrl(URL.createObjectURL(blob));
+                    // sendRun(images);
+                    // setPlayState('transcoding');
+                    // setTranscodingProgress({ start: Date.now(), percent: 0 });
 
                     return; // done
                 }
                 tid = requestAnimationFrame(fn);
             };
+
             tid = requestAnimationFrame(fn);
             return () => cancelAnimationFrame(tid);
         } else {
@@ -260,24 +445,22 @@ export const OpenGLCanvas = ({
     }, [updateFn, playState, restartCount]);
 
     return (
-        <div
-            onMouseDown={(evt) => {
-                evt.stopPropagation();
-            }}
-            onClick={(evt) => {
-                evt.stopPropagation();
-            }}
-        >
+        <div>
             <div
                 css={{
                     position: 'relative',
                     display: 'inline-block',
-                    [`:hover .hover`]: {
-                        opacity: 1.0,
-                    },
+                    // [`:hover .hover`]: {
+                    //     opacity: 1.0,
+                    // },
                 }}
             >
                 <canvas
+                    onContextMenu={(evt) => {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        setShowControls(!showControls);
+                    }}
                     onMouseMove={(evt) => {
                         const box = (evt.target as HTMLCanvasElement).getBoundingClientRect();
                         setMousePos({
@@ -293,58 +476,23 @@ export const OpenGLCanvas = ({
                     }}
                     style={{
                         width: width,
-                        height: width,
+                        height: height != null ? height : width,
                         imageRendering: 'pixelated',
                     }}
                     // Double size for retina
                     width={width / zoom + ''}
-                    height={width / zoom + ''}
+                    height={(height != null ? height : width) / zoom + ''}
                 />
-                <div css={hover} className="hover">
-                    <IconButton
-                        icon="play_arrow"
-                        selected={playState === 'playing'}
-                        onClick={() => {
-                            if (playState !== 'playing') {
-                                setPlayState('playing');
-                            }
-                        }}
+                {showControls || playState === 'paused' ? (
+                    <HoverPanel
+                        playState={playState}
+                        setPlayState={setPlayState}
+                        timer={timer}
+                        restart={restart}
+                        showSettings={showSettings}
+                        toggleSettings={toggleSettings}
                     />
-                    <IconButton
-                        icon="pause"
-                        selected={playState === 'paused'}
-                        onClick={() => {
-                            if (playState !== 'paused') {
-                                setPlayState('paused');
-                            }
-                        }}
-                    />
-                    <IconButton
-                        icon="replay"
-                        selected={false}
-                        onClick={() => {
-                            timer.current = 0;
-                            if (playState !== 'playing') {
-                                setPlayState('playing');
-                            }
-                            restart();
-                        }}
-                    />
-                    <IconButton
-                        icon="circle"
-                        onClick={() => {
-                            timer.current = 0;
-                            setPlayState('recording');
-                            restart();
-                        }}
-                        selected={playState === 'recording'}
-                    />
-                    <IconButton
-                        icon="settings"
-                        onClick={() => toggleSettings(!showSettings)}
-                        selected={showSettings}
-                    />
-                </div>
+                ) : null}
             </div>
             {showSettings ? (
                 <div>
@@ -356,6 +504,19 @@ export const OpenGLCanvas = ({
                             const value = +evt.target.value;
                             if (!isNaN(value)) {
                                 setWidth(value);
+                            }
+                        }}
+                    />
+                    Height:
+                    <input
+                        style={{ width: 40 }}
+                        value={height == null ? '' : height + ''}
+                        onChange={(evt) => {
+                            const value = +evt.target.value;
+                            if (!isNaN(value) && value > 0) {
+                                setHeight(value);
+                            } else {
+                                setHeight(null);
                             }
                         }}
                     />
@@ -392,13 +553,28 @@ export const OpenGLCanvas = ({
                     <button
                         onClick={() => {
                             navigator.clipboard.writeText(
-                                JSON.stringify({ shaders, zoom, size: width }),
+                                JSON.stringify({
+                                    shaders,
+                                    zoom,
+                                    width,
+                                    height,
+                                }),
                             );
                         }}
                     >
                         Copy as JSON
                     </button>
                 </div>
+            ) : null}
+            {downloadUrl ? (
+                <a
+                    href={downloadUrl}
+                    download={
+                        'animation_' + new Date().toISOString() + '.tar.jdanim'
+                    }
+                >
+                    Download DataURIs
+                </a>
             ) : null}
             {transcodingProgress.start !== 0.0
                 ? `${playState}: ${(transcodingProgress.percent * 100).toFixed(
@@ -409,6 +585,65 @@ export const OpenGLCanvas = ({
         </div>
     );
 };
+
+export const HoverPanel = ({
+    playState,
+    setPlayState,
+    timer,
+    restart,
+    showSettings,
+    toggleSettings,
+}: {
+    playState: PlayState;
+    setPlayState: (s: PlayState) => void;
+    timer: { current: number };
+    restart: () => void;
+    showSettings: boolean;
+    toggleSettings: (s: boolean) => void;
+}) => (
+    <div css={hover} className="hover">
+        {playState === 'playing' ? (
+            <IconButton
+                icon="pause"
+                onClick={() => {
+                    setPlayState('paused');
+                }}
+            />
+        ) : (
+            <IconButton
+                icon="play_arrow"
+                onClick={() => {
+                    setPlayState('playing');
+                }}
+            />
+        )}
+        <IconButton
+            icon="replay"
+            selected={false}
+            onClick={() => {
+                timer.current = 0;
+                if (playState !== 'playing') {
+                    setPlayState('playing');
+                }
+                restart();
+            }}
+        />
+        <IconButton
+            icon="circle"
+            onClick={() => {
+                timer.current = 0;
+                setPlayState('recording');
+                restart();
+            }}
+            selected={playState === 'recording'}
+        />
+        <IconButton
+            icon="settings"
+            onClick={() => toggleSettings(!showSettings)}
+            selected={showSettings}
+        />
+    </div>
+);
 
 const calcEta = ({ start, percent }: { start: number; percent: number }) => {
     const delta = Date.now() - start;
@@ -475,7 +710,7 @@ export const IconButton = ({
 };
 
 const hover = css({
-    opacity: 0,
+    // opacity: 0,
     // backgroundColor: 'rgba(50, 50, 50, 0.1)',
     paddingTop: 2,
     transition: '.3s ease opacity',

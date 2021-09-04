@@ -77,9 +77,9 @@ export const processFile = (
             env,
             { includeCanonicalNames: true },
             irOpts,
-            assert,
-            true,
-            builtinNames,
+            // assert,
+            // true,
+            // builtinNames,
         );
 
         const glslDest = path.join(buildDir, path.basename(fname) + '.glsl');
@@ -185,6 +185,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
                 {
                     type: 'Expression',
                     term: expr,
+                    id: idFromName(hashObject(expr)),
                     location: expr.location!,
                 },
                 hashObject(expr),
@@ -253,6 +254,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
                 def: t,
                 location: t.location!,
                 name: env.global.idNames[idName(id)],
+                inner: [],
             };
         }
         if (reprintToplevel(env, raw, top, tid) === false) {

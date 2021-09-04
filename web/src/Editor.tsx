@@ -1,7 +1,7 @@
 /** @jsx jsx */
 // The editor bit
 
-import { jsx } from '@emotion/react';
+import { jsx, withTheme } from '@emotion/react';
 import * as React from 'react';
 import { parse, SyntaxError } from '@jerd/language/src/parsing/grammar';
 import { Toplevel } from '@jerd/language/src/parsing/parser';
@@ -29,6 +29,7 @@ import {
 import { renderAttributedText } from './Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import {
+    LocatedError,
     TypeError,
     UnresolvedIdentifier,
 } from '@jerd/language/src/typing/errors';
@@ -37,27 +38,41 @@ import { runTerm } from './eval';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import ColorTextarea from './ColorTextarea';
 import { RenderPlugin } from './RenderResult';
+import { Selection } from './Cell';
+import { addLocationIndices } from '../../language/src/typing/analyze';
+import { Action } from './Cells';
 
 type AutoName =
     | { type: 'local'; name: string; defn: { sym: Symbol; type: Type } }
-    | { type: 'global'; name: string; id: Id; term: Term };
+    | { type: 'global'; name: string; id: Array<Id>; term: Term };
 
 const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
     const matchingNames: Array<AutoName> = Object.keys(env.local.localNames)
         .filter((n) => n.toLowerCase().startsWith(name.toLowerCase()))
-        .map((name) => ({
-            type: 'local',
-            name,
-            defn: env.local.locals[env.local.localNames[name]],
-        }));
-    Object.keys(env.global.names)
-        .filter((n) => n.toLowerCase().startsWith(name.toLowerCase()))
-        .map((name) => ({
-            type: 'global',
-            name,
-            id: env.global.names[name],
-            term: env.global.terms[idName(env.global.names[name][0])],
-        }));
+        .map(
+            (name) =>
+                ({
+                    type: 'local',
+                    name,
+                    defn: env.local.locals[env.local.localNames[name]],
+                } as AutoName),
+        )
+        .concat(
+            Object.keys(env.global.names)
+                .filter((n) => n.toLowerCase().startsWith(name.toLowerCase()))
+                .map(
+                    (name) =>
+                        ({
+                            type: 'global',
+                            name,
+                            id: env.global.names[name],
+                            term:
+                                env.global.terms[
+                                    idName(env.global.names[name][0])
+                                ],
+                        } as AutoName),
+                ),
+        );
     if (!matchingNames.length) {
         return <div>No defined names matching {name}</div>;
     }
@@ -66,11 +81,15 @@ const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
             <div>Did you mean...</div>
             {matchingNames.map((n, i) => (
                 <div
-                    key={n.type === 'global' ? idName(n.id) : n.defn.sym.unique}
+                    key={
+                        n.type === 'global'
+                            ? idName(n.id[0])
+                            : n.defn.sym.unique
+                    }
                 >
                     {n.name}#
                     {n.type === 'global'
-                        ? idName(n.id)
+                        ? idName(n.id[0])
                         : ':' + n.defn.sym.unique}
                     {/* {n}#{idName(env.global.names[n])} */}
                 </div>
@@ -79,17 +98,58 @@ const AutoComplete = ({ env, name }: { env: Env; name: string }) => {
     );
 };
 
-const ShowError = ({ err, env }: { err: Error; env: Env }) => {
+const white = (num: number) => {
+    let r = '';
+    for (let i = 0; i < num; i++) {
+        r += ' ';
+    }
+    return r;
+};
+
+const ShowError = ({
+    err,
+    env,
+    text,
+}: {
+    err: Error;
+    env: Env;
+    text: string;
+}) => {
     if (err instanceof UnresolvedIdentifier) {
         return <AutoComplete env={err.env} name={err.id.text} />;
-        // return <div>Unresolved {err.id.text}</div>;
     }
+    const lines = text.split(/\n/g);
     if (err instanceof SyntaxError) {
-        return <div>Syntax error at {showLocation(err.location)}</div>;
+        console.log('syntax error', err);
+        console.log(Object.keys(err));
+        console.log(err.expected, err.found, err.location, err.name);
+        return (
+            <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+                Syntax error at {showLocation(err.location) + '\n'}
+                {lines[err.location.start.line - 1] + '\n'}
+                {white(err.location.start.column - 1) + '^\n'}
+                {lines
+                    .slice(err.location.start.line, err.location.end.line + 2)
+                    .join('\n')}
+            </div>
+        );
+    }
+    if (err instanceof LocatedError && err.loc) {
+        return (
+            <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+                {err.toString()} at {showLocation(err.loc) + '\n'}
+                {lines[err.loc.start.line - 1] + '\n'}
+                {white(err.loc.start.column - 1) + '^\n'}
+                {lines
+                    .slice(err.loc.start.line, err.loc.end.line + 2)
+                    .join('\n')}
+            </div>
+        );
     }
     if (err instanceof TypeError) {
         return <div>{err.toString()}</div>;
     }
+    console.log('error here we are');
     console.log(err);
     return <div>{err.message}</div>;
 };
@@ -108,95 +168,43 @@ export default ({
     evalEnv,
     display,
     plugins,
-    onPin,
+    dispatch,
+    // onPin,
     onSetPlugin,
     maxWidth,
+    selection,
+    setSelection,
+    text,
+    evaled,
+    typed,
+    setText,
+    err,
 }: {
     env: Env;
     maxWidth: number;
+    selection: Selection;
+    setSelection: (fn: (s: Selection) => Selection) => void;
     onSetPlugin: (plugin: Display | null) => void;
-    contents: ToplevelT | string;
-    onClose: () => void;
+    contents: ToplevelT | null;
+    onClose: (term: ToplevelT | null) => void;
     onChange: (term: ToplevelT | string) => void;
-    onPin: (display: Display, id: Id) => void;
+    // onPin: (display: Display, id: Id) => void;
+    dispatch: (action: Action) => void;
     evalEnv: EvalEnv;
     display: Display | null | undefined;
     plugins: RenderPlugins;
+    text: string;
+    evaled: any;
+    typed: ToplevelT | null;
+    setText: (text: string) => void;
+    err: Error | null;
 }) => {
-    const evalCache = React.useRef({} as { [key: string]: any });
-
-    const [traces, setTraces] = React.useState({} as Traces);
-
-    const [text, setText] = React.useState(() => {
-        return typeof contents === 'string'
-            ? contents
-            : printToString(toplevelToPretty(env, contents), 50);
-    });
-
-    const [typed, err]: [ToplevelT | null, Error | null] = React.useMemo(() => {
-        if (text.trim().length === 0) {
-            return [null, null];
-        }
-        try {
-            const parsed: Array<Toplevel> = parse(text);
-            if (parsed.length > 1) {
-                return [
-                    null,
-                    { type: 'error', message: 'multiple toplevel items' },
-                ];
-            }
-            return [
-                typeToplevelT(
-                    newWithGlobal(env.global),
-                    parsed[0],
-                    typeof contents !== 'string' &&
-                        contents.type === 'RecordDef'
-                        ? contents.def.unique
-                        : null,
-                ),
-                null,
-            ];
-        } catch (err) {
-            return [null, err];
-        }
-    }, [text]);
-
-    // TODO: cache these intermediate
-
-    const evaled = React.useMemo(() => {
-        if (typed && (typed.type === 'Expression' || typed.type === 'Define')) {
-            const id =
-                typed.type === 'Expression'
-                    ? { hash: hashObject(typed.term), size: 1, pos: 0 }
-                    : typed.id;
-            const already = evalEnv.terms[idName(id)];
-            // oooh hm should the traces be part of the evalCache? it might want to be...
-            // because we cache these things...
-            // anyway, let's leave this for the moment. it doesn't actually matter just yet
-            if (already) {
-                return already;
-            } else if (evalCache.current[idName(id)] != null) {
-                return evalCache.current[idName(id)];
-            } else {
-                try {
-                    setTraces({});
-                    const v = runTerm(env, typed.term, id, evalEnv)[idName(id)];
-                    evalCache.current[idName(id)] = v;
-                    return v;
-                } catch (err) {
-                    console.log('Failure while evaling', err);
-                    //
-                }
-            }
-        }
-        return null;
-    }, [typed]);
-
     const lastValidResult = React.useRef(null as null | [ToplevelT, any]);
     if (typed != null && evaled != null) {
         lastValidResult.current = [typed, evaled];
     }
 
+    // START HERE: Move this up to Cell.tsx
     const renderPlugin = getRenderPlugin(
         plugins,
         env,
@@ -213,15 +221,36 @@ export default ({
                     value={text}
                     env={env}
                     maxWidth={maxWidth}
-                    contents={contents}
+                    unique={
+                        contents && contents.type === 'RecordDef'
+                            ? contents.def.unique
+                            : null
+                    }
+                    selection={{
+                        idx: selection.idx,
+                        node: selection.node,
+                        pos: 'change',
+                    }}
+                    updateSelection={(newSel) =>
+                        setSelection((s) =>
+                            newSel
+                                ? {
+                                      idx: newSel.idx,
+                                      marks: [],
+                                      node: newSel.node,
+                                      level: 'text',
+                                  }
+                                : { ...s, node: null },
+                        )
+                    }
                     onChange={(text: string) => setText(text)}
                     onKeyDown={(evt: any) => {
                         if (evt.metaKey && evt.key === 'Enter') {
-                            console.log('run it');
+                            console.log('apply and stuff');
                             onChange(typed == null ? text : typed);
                         }
                         if (evt.key === 'Escape') {
-                            onClose();
+                            onClose(typed);
                         }
                     }}
                 />
@@ -252,7 +281,7 @@ export default ({
                     </button>
 
                     <button
-                        onClick={onClose}
+                        onClick={() => onClose(null)}
                         css={{
                             padding: '4px 8px',
                             fontWeight: 200,
@@ -274,7 +303,13 @@ export default ({
             {renderPlugin != null ? (
                 <RenderPlugin
                     // onPin={null}
-                    onPin={() => onPin(display!, getId(typed!))}
+                    onPin={() =>
+                        dispatch({
+                            type: 'pin',
+                            display: display!,
+                            id: getId(typed!),
+                        })
+                    }
                     display={display}
                     plugins={plugins}
                     onSetPlugin={onSetPlugin}
@@ -291,7 +326,7 @@ export default ({
                 }}
             >
                 {err != null ? (
-                    <ShowError err={err} env={env} />
+                    <ShowError err={err} env={env} text={text} />
                 ) : typed == null ? null : (
                     renderAttributedText(
                         env.global,
@@ -349,7 +384,14 @@ const getRenderPlugin = (
     } else {
         return null;
     }
-    const err = getTypeError(env, term.is, plugin.type, nullLocation);
+    const err = getTypeError(
+        env,
+        term.is,
+        plugin.type,
+        nullLocation,
+        undefined,
+        true,
+    );
     if (err == null) {
         return () => plugin.render(evaled, evalEnv, env, term, false);
     }

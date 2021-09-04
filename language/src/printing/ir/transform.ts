@@ -7,9 +7,11 @@ import {
     Block,
     Expr,
     LambdaExpr,
+    LambdaType,
     LoopBounds,
     RecordSubType,
     Stmt,
+    Type,
 } from './types';
 
 // export const transformExpr = (expr: Expr, )
@@ -22,6 +24,7 @@ export type ExprVisitor = (
 export type Visitor = {
     expr: ExprVisitor;
     block: (value: Block) => Block | null | false;
+    type?: (type: Type) => Type | null;
     stmt: (
         value: Stmt,
         visitor: Visitor,
@@ -39,20 +42,7 @@ export const defaultVisitor: Visitor = {
     stmt: (stmt) => null,
 };
 
-// export const transformAny = (v: Expr | Stmt, visitor: Visitor) => {
-//     switch (v.type) {
-//         case 'Expression':
-//            case 'Define':
-//                case 'Assign':
-//                    case 'if':
-//                        case 'MatchFail':
-//                            case 'Return':
-//                                case 'Loop':
-//                                    case 'Continue':
-//                                        case 'Block':
-//                                            return transformOneStmt
-//     }
-// }
+// export const transformExprTypes = (expr: Expr, )
 
 export const transformExpr = (
     expr: Expr,
@@ -70,6 +60,12 @@ export const transformExpr = (
     if (transformed != null) {
         expr = transformed;
     }
+    if (visitor.type) {
+        const is = visitor.type(expr.is);
+        if (is && is !== expr.is) {
+            expr = { ...expr, is: is as any };
+        }
+    }
     level += 1;
     switch (expr.type) {
         case 'string':
@@ -81,6 +77,8 @@ export const transformExpr = (
         case 'genTerm':
         case 'var':
             return expr;
+        case 'Enum':
+        case 'SpecializeEnum':
         case 'unary': {
             const t = transformExpr(expr.inner, visitor, level);
             return t !== expr.inner ? { ...expr, inner: t } : expr;
@@ -261,13 +259,46 @@ export const transformExpr = (
     }
 };
 
+export const transformType = (type: Type, visitor: Visitor, level: number) => {
+    const t = visitor.type ? visitor.type(type) : null;
+    if (t != null) {
+        return t;
+    }
+    // TODO recurse into it
+    return type;
+};
+
 export const transformLambdaExpr = (
     expr: LambdaExpr,
     visitor: Visitor,
     level: number,
 ): LambdaExpr => {
     const body = transformLambdaBody(expr.body, visitor, level + 1);
-    return body !== expr.body ? { ...expr, body } : expr;
+    const res = transformType(expr.res, visitor, level + 1);
+    let changed = false;
+    const args = visitor.type
+        ? expr.args.map((arg) => {
+              const res = transformType(arg.type, visitor, level + 1);
+              if (res === arg.type) {
+                  return arg;
+              }
+              changed = true;
+              return { ...arg, type: res };
+          })
+        : expr.args;
+    return body !== expr.body || res !== expr.res || changed
+        ? {
+              ...expr,
+              body,
+              res,
+              args,
+              is: {
+                  ...(expr.is as LambdaType),
+                  args: args.map((a) => a.type),
+                  res,
+              },
+          }
+        : expr;
 };
 
 export const transformLambdaBody = (
@@ -371,7 +402,12 @@ export const transformOneStmt = (
             const value: Expr | null = stmt.value
                 ? transformExpr(stmt.value, visitor, level)
                 : stmt.value;
-            return value !== stmt.value ? { ...stmt, value } : stmt;
+            const is = visitor.type ? visitor.type(stmt.is) : stmt.is;
+            // Hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+            // so do we just ... hmm ....
+            return value !== stmt.value || (is != null && is !== stmt.is)
+                ? { ...stmt, is: is != null ? is : stmt.is, value }
+                : stmt;
         }
         case 'Return':
         case 'Assign': {
@@ -391,6 +427,13 @@ export const transformOneStmt = (
         case 'MatchFail':
         case 'Break':
             return stmt;
+        case 'ArraySet': {
+            const idx = transformExpr(stmt.idx, visitor, level);
+            const value = transformExpr(stmt.value, visitor, level);
+            return idx !== stmt.idx || value !== stmt.value
+                ? { ...stmt, idx, value }
+                : stmt;
+        }
         case 'if': {
             const cond = transformExpr(stmt.cond, visitor, level);
             const yes = transformBlock(stmt.yes, visitor, level);

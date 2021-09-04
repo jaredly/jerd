@@ -6,7 +6,7 @@
 import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
-import { hashObject, idName } from './typing/env';
+import { hashObject, idName, typeDecoratorDef } from './typing/env';
 import parse, { Toplevel } from './parsing/parser';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
@@ -19,6 +19,7 @@ import {
     Type,
     TypeConstraint,
     typesEqual,
+    TypeError as TypeErrorTerm,
 } from './typing/types';
 import { printToString } from './printing/printer';
 import { termToPretty, typeToPretty } from './printing/printTsLike';
@@ -166,6 +167,8 @@ const processErrors = (fname: string, builtins: { [key: string]: Type }) => {
             env = typeTypeDefn(env, item);
         } else if (item.type === 'EnumDef') {
             env = typeEnumDefn(env, item).env;
+        } else if (item.type === 'DecoratorDef') {
+            env = typeDecoratorDef(env, item).env;
         } else if (item.type === 'Decorated') {
             throw new Error(`Unexpected decorator`);
         } else {
@@ -176,8 +179,28 @@ const processErrors = (fname: string, builtins: { [key: string]: Type }) => {
                 errors.push(err.message);
                 return; // yup
             }
+            const typeErrors: Array<TypeErrorTerm> = [];
+            transform(term, {
+                let: () => null,
+                term: (term) => {
+                    if (term.type === 'TypeError') {
+                        typeErrors.push(term);
+                    }
+                    return null;
+                },
+            });
+            if (typeErrors.length) {
+                errors.push(
+                    `expected ${showType(
+                        env,
+                        typeErrors[0].is,
+                    )}, found ${showType(env, typeErrors[0].inner.is)}`,
+                );
+                return;
+            }
             console.log(item);
-            throw new Error(
+            throw new LocatedError(
+                item.location,
                 `Expected a type error at ${showLocation(
                     item.location,
                 )} : ${printToString(termToPretty(env, term), 100)}`,
@@ -382,6 +405,14 @@ import { Init, loadInit, loadPrelude } from './printing/loadPrelude';
 import { OutputOptions as IOutputOptions } from './printing/ir/types';
 import { reprintToplevel } from './reprint';
 import { processFile } from './processFile';
+import { transform } from './typing/transform';
+import { showType } from './typing/unify';
+import {
+    decoratorExports,
+    typeDeclarations,
+    typeExports,
+} from './printing/typeScriptPrinterSimple';
+import { sortedTypes } from './typing/analyze';
 
 const runTests = () => {
     const raw = fs.readFileSync('examples/inference-tests.jd', 'utf8');
@@ -426,30 +457,105 @@ const watchFiles = (files: Array<string>, fn: () => void) => {
     fn();
 };
 
-if (process.argv[2] === 'go') {
-    console.log('go please');
-    const fnames = process.argv
-        .slice(3)
-        .filter((name) => !name.startsWith('-'));
-    const assert = process.argv.includes('--assert');
-    const run = process.argv.includes('--run');
-    mainGo(expandDirectories(fnames), assert, run);
-} else if (process.argv[2] === 'watch') {
-    // This is just for recompiling something
-    const fnames = process.argv
-        .slice(3)
-        .filter((name) => !name.startsWith('-'));
-    const assert = process.argv.includes('--assert');
-    const run = process.argv.includes('--run');
-    const cache =
-        process.argv.includes('--cache') &&
-        !process.argv.includes('--no-cache');
-    const failFast = process.argv.includes('--fail-fast');
-    const glsl = process.argv.includes('--glsl');
-    const trace = process.argv.includes('--trace');
+import * as t from '@babel/types';
+import generate from '@babel/generator';
 
-    const init = loadInit();
-    watchFiles(fnames, () => {
+const commands: { [key: string]: (args: Array<string>) => void } = {
+    go: (args) => {
+        console.log('go please');
+        const fnames = args.filter((name) => !name.startsWith('-'));
+        const assert = args.includes('--assert');
+        const run = args.includes('--run');
+        mainGo(expandDirectories(fnames), assert, run);
+    },
+    watch: (args) => {
+        // This is just for recompiling something
+        const fnames = args.filter((name) => !name.startsWith('-'));
+        const assert = args.includes('--assert');
+        const run = args.includes('--run');
+        const cache = args.includes('--cache') && !args.includes('--no-cache');
+        const failFast = args.includes('--fail-fast');
+        const glsl = args.includes('--glsl');
+        const trace = args.includes('--trace');
+
+        const init = loadInit();
+        watchFiles(fnames, () => {
+            try {
+                const failed = main(
+                    expandDirectories(fnames),
+                    {
+                        assert,
+                        run,
+                        cache,
+                        failFast,
+                        glsl,
+                        trace,
+                    },
+                    init,
+                );
+                if (failed) {
+                    console.log('Failed');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    },
+    '--test': () => runTests(),
+    pretty: (args) => {
+        const fnames = args.filter((name) => !name.startsWith('-'));
+        const init = loadInit();
+        const initialEnv = newWithGlobal(init.initialEnv);
+        fnames.forEach((fname) => {
+            const raw = fs.readFileSync(fname, 'utf8');
+            const parsed: Array<Toplevel> = parse(raw);
+
+            const { expressions, env } = typeFile(parsed, initialEnv, fname);
+            expressions.forEach((term) => {
+                const text = printToString(termToPretty(env, term), 50);
+                console.log(text);
+            });
+            console.log('ok');
+        });
+    },
+
+    'prelude-types': (args) => {
+        const output = args[0];
+        const input = args[1];
+        const init = loadInit(
+            input ? fs.readFileSync(input, 'utf8') : undefined,
+        );
+        const env = newWithGlobal(init.initialEnv);
+        const items = typeDeclarations(
+            env,
+            {},
+            Object.keys(env.global.effects),
+            sortedTypes(env),
+        );
+        items.push(...typeExports(env));
+        items.push(...decoratorExports(env));
+        const ast = t.file(t.program(items, [], 'script'));
+        const { code } = generate(ast, {
+            sourceMaps: false,
+            sourceFileName: 'prelude.jd',
+        });
+        const preamble = input
+            ? `// AUTOGENERATED by 'node bootstrap.js prelude-types'\n`
+            : `// AUTOGENERATED by 'node bootstrap.js prelude-types'
+        export type sampler2D = {[y: number]: {[x: number]: Vec4}};
+
+        `.replace(/^\s+/gm, '');
+        fs.writeFileSync(output, preamble + code, 'utf8');
+    },
+
+    [':fallback:']: (args) => {
+        const fnames = args.filter((name) => !name.startsWith('-'));
+        const assert = args.includes('--assert');
+        const run = args.includes('--run');
+        const cache = args.includes('--cache') && !args.includes('--no-cache');
+        const failFast = args.includes('--fail-fast');
+        const glsl = args.includes('--glsl');
+        const trace = args.includes('--trace');
         try {
             const failed = main(
                 expandDirectories(fnames),
@@ -461,64 +567,21 @@ if (process.argv[2] === 'go') {
                     glsl,
                     trace,
                 },
-                init,
+                loadInit(),
             );
             if (failed) {
-                console.log('Failed');
+                process.exit(1);
             }
         } catch (err) {
             console.error(err);
-        }
-    });
-} else if (process.argv[2] === '--test') {
-    runTests();
-} else if (process.argv[2] === 'pretty') {
-    const fnames = process.argv
-        .slice(3)
-        .filter((name) => !name.startsWith('-'));
-    const init = loadInit();
-    const initialEnv = newWithGlobal(init.initialEnv);
-    fnames.forEach((fname) => {
-        const raw = fs.readFileSync(fname, 'utf8');
-        const parsed: Array<Toplevel> = parse(raw);
-
-        const { expressions, env } = typeFile(parsed, initialEnv, fname);
-        expressions.forEach((term) => {
-            const text = printToString(termToPretty(env, term), 50);
-            console.log(text);
-        });
-        console.log('ok');
-    });
-} else {
-    const fnames = process.argv
-        .slice(2)
-        .filter((name) => !name.startsWith('-'));
-    const assert = process.argv.includes('--assert');
-    const run = process.argv.includes('--run');
-    const cache =
-        process.argv.includes('--cache') &&
-        !process.argv.includes('--no-cache');
-    const failFast = process.argv.includes('--fail-fast');
-    const glsl = process.argv.includes('--glsl');
-    const trace = process.argv.includes('--trace');
-    try {
-        const failed = main(
-            expandDirectories(fnames),
-            {
-                assert,
-                run,
-                cache,
-                failFast,
-                glsl,
-                trace,
-            },
-            loadInit(),
-        );
-        if (failed) {
             process.exit(1);
         }
-    } catch (err) {
-        console.error(err);
-        process.exit(1);
-    }
+    },
+};
+
+const command = process.argv[2];
+if (commands[command]) {
+    commands[command](process.argv.slice(3));
+} else {
+    commands[':fallback:'](process.argv.slice(2));
 }

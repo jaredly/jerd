@@ -15,6 +15,8 @@ import {
     walkTerm,
     Pattern,
     UserReference,
+    RecordDef,
+    ConcreteBase,
 } from '../../typing/types';
 import {
     binOps,
@@ -32,8 +34,8 @@ import {
     getEnumReferences,
     showLocation,
 } from '../../typing/typeExpr';
-import { idFromName, idName } from '../../typing/env';
-import { LambdaType as ILambdaType } from './types';
+import { allDefaults, idFromName, idName } from '../../typing/env';
+import { ArrayType, LambdaType as ILambdaType, TypeReference } from './types';
 
 import { Loc, Expr, Stmt, OutputOptions, Type } from './types';
 import { callExpression, pureFunction, typeFromTermType } from './utils';
@@ -286,7 +288,18 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 term.location,
             );
         }
+        // const ref = term.base.ref
         case 'Record': {
+            // console.log('MAKING RECORD', term.location, term.base.rows);
+            const defaults =
+                term.base.type === 'Concrete'
+                    ? allDefaults(
+                          env.global,
+                          env.global.types[
+                              idName(term.base.ref.id)
+                          ] as RecordDef,
+                      )
+                    : null;
             return {
                 type: 'record',
                 base:
@@ -299,25 +312,88 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                         : {
                               type: 'Concrete',
                               ref: term.base.ref,
-                              rows: term.base.rows.map((r) =>
-                                  r ? printTerm(env, opts, r) : null,
-                              ),
+                              rows: term.base.rows.map((r, i) => {
+                                  if (r) {
+                                      return printTerm(env, opts, r);
+                                  }
+                                  if (term.base.spread) {
+                                      return null;
+                                  }
+                                  const base = term.base as ConcreteBase<Term>;
+                                  const defn = env.global.types[
+                                      idName(base.ref.id)
+                                  ] as RecordDef;
+                                  if (defn.defaults) {
+                                      const found = defn.defaults[`${i}`];
+                                      if (found) {
+                                          return printTerm(
+                                              env,
+                                              opts,
+                                              found.value,
+                                          );
+                                      }
+                                  }
+                                  throw new Error(
+                                      `Unspecified element ${i} of Record literal.`,
+                                  );
+
+                                  //   r ? printTerm(env, opts, r) : null,
+                              }),
                               spread: term.base.spread
                                   ? printTerm(env, opts, term.base.spread)
                                   : null,
                           },
-                subTypes: Object.keys(term.subTypes).reduce((obj: any, k) => {
-                    const subType = term.subTypes[k];
-                    obj[k] = {
-                        spread: subType.spread
-                            ? printTerm(env, opts, subType.spread)
-                            : null,
-                        rows: subType.rows.map((r) =>
-                            r ? printTerm(env, opts, r) : null,
-                        ),
-                    };
-                    return obj;
-                }, {}),
+                subTypes: Object.keys(term.subTypes).reduce(
+                    (
+                        obj: {
+                            [key: string]: {
+                                spread: Expr | null;
+                                rows: Array<Expr | null>;
+                            };
+                        },
+                        k,
+                    ) => {
+                        const subType = term.subTypes[k];
+                        obj[k] = {
+                            spread: subType.spread
+                                ? printTerm(env, opts, subType.spread)
+                                : null,
+                            rows: subType.rows.map((r, i) => {
+                                if (r) {
+                                    return printTerm(env, opts, r);
+                                }
+                                if (
+                                    subType.spread ||
+                                    term.base.spread ||
+                                    subType.covered
+                                ) {
+                                    return null;
+                                }
+                                if (defaults) {
+                                    const key = `${k}#${i}`;
+                                    if (defaults[key]) {
+                                        return printTerm(
+                                            env,
+                                            opts,
+                                            defaults[key].value,
+                                        );
+                                    }
+                                    console.log(defaults, key);
+                                }
+                                // Hmmm it's ok, it might be covered by a spread?
+                                // Hmmmmm but in that case, I might get things wrong.
+                                // STOPSHIP write a test that covers.
+                                return null;
+                                // throw new LocatedError(
+                                //     term.location,
+                                //     `No value provided for subtype ${k} index ${i}`,
+                                // );
+                            }),
+                        };
+                        return obj;
+                    },
+                    {},
+                ),
                 is: mapType(term.is),
                 loc: term.location,
             };
@@ -331,10 +407,11 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 op: term.op,
             };
         case 'Enum':
-            // @ts-ignore
             return {
-                ...printTerm(env, opts, term.inner),
-                is: mapType(term.is),
+                type: 'Enum',
+                loc: term.location,
+                is: mapType(term.is) as TypeReference,
+                inner: printTerm(env, opts, term.inner),
             };
         case 'TupleAccess': {
             return {
@@ -346,10 +423,20 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             };
         }
         case 'Attribute': {
+            // HACK backfilling for when we didn't track this right 🙃
+            let rtv = term.refTypeVbls || [];
+            if (
+                term.refTypeVbls == null &&
+                term.target.is.type === 'ref' &&
+                term.target.is.typeVbls.length
+            ) {
+                rtv = term.target.is.typeVbls;
+            }
             return {
                 type: 'attribute',
                 target: printTerm(env, opts, term.target),
                 ref: term.ref,
+                refTypeVbls: rtv.map(mapType),
                 idx: term.idx,
                 loc: term.location,
                 is: mapType(term.is),
@@ -387,7 +474,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 ),
                 loc: term.location,
                 elType: mapType(elType),
-                is: mapType(term.is),
+                is: mapType(term.is) as ArrayType,
             };
         }
         case 'Switch': {

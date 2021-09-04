@@ -22,7 +22,11 @@ import { makeLocal, resolveEffect } from '../env';
 import { LocatedError, TypeError } from '../errors';
 import { getTypeError } from '../getTypeError';
 
-export const typeLambda = (env: Env, expr: Lambda): Term => {
+export const typeLambda = (
+    env: Env,
+    expr: Lambda,
+    expectedType?: Type,
+): Term => {
     const { typeInner, typeVbls, effectVbls } = newEnvWithTypeAndEffectVbls(
         env,
         expr.typevbls,
@@ -35,26 +39,35 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
     const args: Array<Symbol> = [];
     const argst: Array<Type> = [];
 
-    expr.args.forEach(({ id, type: rawType }) => {
-        const type = typeType(typeInner, rawType);
+    expr.args.forEach(({ id, type: rawType }, i) => {
+        const expectedArgType =
+            expectedType && expectedType.type === 'lambda'
+                ? expectedType.args[i]
+                : null;
+        const type = typeType(typeInner, rawType, expectedArgType);
         const sym = makeLocal(inner, id, type);
         args.push(sym);
         argst.push(type);
     });
-    const body = typeExpr(inner, expr.body);
+
+    let body = typeExpr(inner, expr.body);
     if (expr.rettype) {
-        const err = getTypeError(
-            typeInner,
-            body.is,
-            typeType(typeInner, expr.rettype),
-            expr.location,
-        );
+        const expected = typeType(typeInner, expr.rettype);
+        const err = getTypeError(typeInner, body.is, expected, expr.location);
         if (err != null) {
-            throw new TypeError(
-                `Return type of lambda doesn't fit type declaration`,
-            ).wrap(err);
+            body = {
+                type: 'TypeError',
+                inner: body,
+                is: expected,
+                location: body.location,
+                message: err.getMessage(),
+            };
+            // throw new TypeError(
+            //     `Return type of lambda doesn't fit type declaration`,
+            // ).wrap(err);
         }
     }
+
     const effects = getEffects(body);
     if (expr.effects != null) {
         const declaredEffects: Array<EffectRef> = expr.effects.map((effName) =>
@@ -81,6 +94,7 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
     return {
         type: 'lambda',
         args,
+        idLocations: expr.args.map((arg) => arg.id.location),
         body,
         location: expr.location,
         is: {
@@ -89,6 +103,10 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
             typeVbls,
             effectVbls,
             effects: dedupEffects(effects),
+            argNames: expr.args.map((arg) => ({
+                text: arg.id.text,
+                location: arg.id.location,
+            })),
             args: argst,
             rest: null,
             res: body.is,
@@ -99,4 +117,4 @@ export const typeLambda = (env: Env, expr: Lambda): Term => {
 export const printEffectRef = (env: Env, e: EffectRef) =>
     e.type === 'ref'
         ? printToString(refToPretty(env, e.ref, 'effect'), 100)
-        : printToString(symToPretty(e.sym), 100);
+        : printToString(symToPretty(env, e.sym), 100);

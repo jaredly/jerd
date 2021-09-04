@@ -13,25 +13,32 @@ import {
     LambdaType,
     Let,
     Pattern,
+    SwitchCase,
     Term,
     Type,
     Var,
 } from './types';
 
-export type Visitor = {
-    toplevel?: (value: ToplevelT) => ToplevelT | null | false;
-    term: (value: Term) => Term | null | false;
-    let: (value: Let) => Let | null | false;
+export type Visitor<Ctx> = {
+    toplevel?: (value: ToplevelT, ctx: Ctx) => ToplevelT | null | false;
+    term: (value: Term, ctx: Ctx) => Term | null | false | [Term | null, Ctx];
+    type?: (value: Type, ctx: Ctx) => Type | null | false;
+    let?: (value: Let, ctx: Ctx) => Let | null | false | [Let | null, Ctx, Ctx];
+    switchCase?: (
+        value: SwitchCase,
+        ctx: Ctx,
+    ) => SwitchCase | null | false | [SwitchCase | null, Ctx];
 };
 
 // Ok so for the moment we're just doing terms, not types.
 // got it.
-export const transformToplevel = (
+export const transformToplevel = <Ctx>(
     t: ToplevelT,
-    visitor: Visitor,
+    visitor: Visitor<Ctx>,
+    ctx: Ctx,
 ): ToplevelT => {
     if (visitor.toplevel) {
-        const transformed = visitor.toplevel(t);
+        const transformed = visitor.toplevel(t, ctx);
         if (transformed === false) {
             return t;
         }
@@ -43,12 +50,13 @@ export const transformToplevel = (
         // TODO when I add types, I'll need to handle this
         case 'EnumDef':
         case 'RecordDef':
+        case 'Decorator':
         case 'Effect': {
             return t;
         }
         case 'Expression':
         case 'Define': {
-            const term = transform(t.term, visitor);
+            const term = transformWithCtx(t.term, visitor, ctx);
             return term !== t.term ? { ...t, term } : t;
         }
         default:
@@ -57,52 +65,127 @@ export const transformToplevel = (
     }
 };
 
-export const transformLet = (l: Let, visitor: Visitor): Let => {
-    const transformed = visitor.let(l);
+export const transformLet = <Ctx>(
+    l: Let,
+    visitor: Visitor<Ctx>,
+    ctx: Ctx,
+): [Let, Ctx] => {
+    const transformed = visitor.let ? visitor.let(l, ctx) : null;
+    let nextCtx = ctx;
     if (transformed === false) {
-        return l;
+        return [l, nextCtx];
     }
     if (transformed != null) {
-        l = transformed;
+        if (Array.isArray(transformed)) {
+            ctx = transformed[1];
+            nextCtx = transformed[2];
+            if (transformed[0] != null) {
+                l = transformed[0];
+            }
+        } else {
+            l = transformed;
+        }
     }
-    const value = transform(l.value, visitor);
-    return value !== l.value ? { ...l, value } : l;
+    const value = transformWithCtx(l.value, visitor, ctx);
+    return [value !== l.value ? { ...l, value } : l, nextCtx];
 };
 
-export const transform = (term: Term, visitor: Visitor): Term => {
-    const transformed = visitor.term(term);
+export const transform = (term: Term, visitor: Visitor<null>) =>
+    transformWithCtx(term, visitor, null);
+
+export const transformTypeWithCtx = <Ctx>(
+    type: Type,
+    visitor: Visitor<Ctx>,
+    ctx: Ctx,
+): Type => {
+    if (!visitor.type) {
+        return type;
+    }
+    const is = visitor.type(type, ctx);
+    if (is === false) {
+        return type;
+    }
+    if (is != null) {
+        type = is;
+    }
+    switch (type.type) {
+        case 'lambda': {
+            const res = transformTypeWithCtx(type.res, visitor, ctx);
+            let changed = false;
+            const args = type.args.map((arg) => {
+                const na = transformTypeWithCtx(arg, visitor, ctx);
+                changed = changed || na !== arg;
+                return na;
+            });
+            return res !== type.res || changed ? { ...type, args, res } : type;
+        }
+        case 'ref': {
+            let changed = false;
+            const typeVbls = type.typeVbls.map((vbl) => {
+                const nw = transformTypeWithCtx(vbl, visitor, ctx);
+                changed = changed || nw !== vbl;
+                return nw;
+            });
+            return changed ? { ...type, typeVbls } : type;
+        }
+    }
+    return type;
+};
+
+export const transformWithCtx = <Ctx>(
+    term: Term,
+    visitor: Visitor<Ctx>,
+    ctx: Ctx,
+): Term => {
+    if (!term) {
+        throw new Error(`No term provided!!`);
+    }
+    const transformed = visitor.term(term, ctx);
     if (transformed === false) {
         return term;
     }
     if (transformed != null) {
-        term = transformed;
+        if (Array.isArray(transformed)) {
+            ctx = transformed[1];
+            if (transformed[0] != null) {
+                term = transformed[0];
+            }
+        } else {
+            term = transformed;
+        }
+    }
+    const is = transformTypeWithCtx(term.is, visitor, ctx);
+    if (is !== term.is) {
+        term = { ...term, is: is as any };
     }
     switch (term.type) {
         case 'raise': {
             let changed = false;
             const args = term.args.map((arg) => {
-                const v = transform(arg, visitor);
+                const v = transformWithCtx(arg, visitor, ctx);
                 changed = changed || v !== arg;
                 return v;
             });
             return changed ? { ...term, args } : term;
         }
         case 'if': {
-            const cond = transform(term.cond, visitor);
-            const yes = transform(term.yes, visitor);
-            const no = term.no ? transform(term.no, visitor) : term.no;
+            const cond = transformWithCtx(term.cond, visitor, ctx);
+            const yes = transformWithCtx(term.yes, visitor, ctx);
+            const no = term.no
+                ? transformWithCtx(term.no, visitor, ctx)
+                : term.no;
             return cond !== term.cond || yes !== term.yes || no !== term.no
                 ? { ...term, yes, no, cond }
                 : term;
         }
         case 'handle': {
-            const target = transform(term.target, visitor);
-            const body = transform(term.pure.body, visitor);
+            const target = transformWithCtx(term.target, visitor, ctx);
+            const body = transformWithCtx(term.pure.body, visitor, ctx);
             const pure =
                 body !== term.pure.body ? { ...term.pure, body } : term.pure;
             let changed = false;
             const cases: Array<Case> = term.cases.map((kase) => {
-                const body = transform(kase.body, visitor);
+                const body = transformWithCtx(kase.body, visitor, ctx);
                 changed = changed || body !== kase.body;
                 return body !== kase.body ? { ...kase, body } : kase;
             });
@@ -113,20 +196,23 @@ export const transform = (term: Term, visitor: Visitor): Term => {
         case 'sequence': {
             let changed = false;
             const sts = term.sts.map((t) => {
-                const tr =
-                    t.type === 'Let'
-                        ? transformLet(t, visitor)
-                        : transform(t, visitor);
+                if (t.type === 'Let') {
+                    const [tr, nextCtx] = transformLet(t, visitor, ctx);
+                    ctx = nextCtx;
+                    changed = changed || tr !== t;
+                    return tr;
+                }
+                const tr = transformWithCtx(t, visitor, ctx);
                 changed = changed || tr !== t;
                 return tr;
             });
             return changed ? { ...term, sts } : term;
         }
         case 'apply': {
-            const target = transform(term.target, visitor);
+            const target = transformWithCtx(term.target, visitor, ctx);
             let changed = false;
             const args = term.args.map((t) => {
-                const tr = transform(t, visitor);
+                const tr = transformWithCtx(t, visitor, ctx);
                 changed = changed || tr !== t;
                 return tr;
             });
@@ -135,14 +221,14 @@ export const transform = (term: Term, visitor: Visitor): Term => {
                 : term;
         }
         case 'lambda': {
-            const body = transform(term.body, visitor);
+            const body = transformWithCtx(term.body, visitor, ctx);
             return body !== term.body ? { ...term, body } : term;
         }
         case 'Record': {
             const subTypes = { ...term.subTypes };
             let base = term.base;
             if (term.base.spread) {
-                const spread = transform(term.base.spread, visitor);
+                const spread = transformWithCtx(term.base.spread, visitor, ctx);
                 if (spread !== term.base.spread) {
                     base = { ...term.base, spread };
                 }
@@ -150,7 +236,9 @@ export const transform = (term: Term, visitor: Visitor): Term => {
             if (term.base.type === 'Concrete') {
                 let changed = false;
                 const rows = term.base.rows.map((term) => {
-                    const res = term ? transform(term, visitor) : null;
+                    const res = term
+                        ? transformWithCtx(term, visitor, ctx)
+                        : null;
                     changed = changed || res !== term;
                     return res;
                 });
@@ -164,11 +252,11 @@ export const transform = (term: Term, visitor: Visitor): Term => {
                 const subType = subTypes[id];
                 const spread =
                     subType.spread != null
-                        ? transform(subType.spread, visitor)
+                        ? transformWithCtx(subType.spread, visitor, ctx)
                         : subTypes.spread;
                 let rchanged = false;
                 const rows = subType.rows.map((row) => {
-                    const r = row ? transform(row, visitor) : null;
+                    const r = row ? transformWithCtx(row, visitor, ctx) : null;
                     rchanged = rchanged || r !== row;
                     return r;
                 });
@@ -184,10 +272,27 @@ export const transform = (term: Term, visitor: Visitor): Term => {
                 : term;
         }
         case 'Switch': {
-            const t = transform(term.term, visitor);
+            const t = transformWithCtx(term.term, visitor, ctx);
             let changed = false;
             const cases = term.cases.map((kase) => {
-                const body = transform(kase.body, visitor);
+                let k2 = visitor.switchCase
+                    ? visitor.switchCase(kase, ctx)
+                    : null;
+                let ct2 = ctx;
+                if (k2 === false) {
+                    return kase;
+                }
+                if (k2 != null) {
+                    if (Array.isArray(k2)) {
+                        if (k2[0] != null) {
+                            kase = k2[0];
+                        }
+                        ct2 = k2[1];
+                    } else {
+                        kase = k2;
+                    }
+                }
+                const body = transformWithCtx(kase.body, visitor, ct2);
                 changed = changed || body !== kase.body;
                 return body !== kase.body ? { ...kase, body } : kase;
             });
@@ -197,13 +302,13 @@ export const transform = (term: Term, visitor: Visitor): Term => {
         }
         case 'unary':
         case 'Enum': {
-            const inner = transform(term.inner, visitor);
+            const inner = transformWithCtx(term.inner, visitor, ctx);
             return inner !== term.inner ? { ...term, inner } : term;
         }
         case 'Trace': {
             let changed = false;
             const args = term.args.map((item) => {
-                const t = transform(item, visitor);
+                const t = transformWithCtx(item, visitor, ctx);
                 changed = changed || t !== item;
                 return t;
             });
@@ -212,7 +317,7 @@ export const transform = (term: Term, visitor: Visitor): Term => {
         case 'Tuple': {
             let changed = false;
             const items = term.items.map((item) => {
-                const t = transform(item, visitor);
+                const t = transformWithCtx(item, visitor, ctx);
                 changed = changed || t !== item;
                 return t;
             });
@@ -222,11 +327,11 @@ export const transform = (term: Term, visitor: Visitor): Term => {
             let changed = false;
             const items = term.items.map((item) => {
                 if (item.type === 'ArraySpread') {
-                    const value = transform(item.value, visitor);
+                    const value = transformWithCtx(item.value, visitor, ctx);
                     changed = changed || value !== item.value;
                     return value !== item.value ? { ...item, value } : item;
                 } else {
-                    const tr = transform(item, visitor);
+                    const tr = transformWithCtx(item, visitor, ctx);
                     changed = changed || tr !== item;
                     return tr;
                 }
@@ -235,17 +340,17 @@ export const transform = (term: Term, visitor: Visitor): Term => {
         }
         case 'TupleAccess':
         case 'Attribute': {
-            const target = transform(term.target, visitor);
+            const target = transformWithCtx(term.target, visitor, ctx);
             return target !== term.target ? { ...term, target } : term;
         }
         case 'TypeError': {
-            const inner = transform(term.inner, visitor);
+            const inner = transformWithCtx(term.inner, visitor, ctx);
             return inner !== term.inner ? { ...term, inner } : term;
         }
         case 'Ambiguous': {
             let changed = false;
             const options = term.options.map((term) => {
-                const n = transform(term, visitor);
+                const n = transformWithCtx(term, visitor, ctx);
                 changed = changed || n !== term;
                 return n;
             });
@@ -279,6 +384,7 @@ export const walkPattern = (
         case 'float':
         case 'int':
         case 'boolean':
+        case 'Ignore':
             return;
         case 'Alias':
             walkPattern(pattern.inner, handle);
@@ -476,6 +582,7 @@ export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
     return {
         type: 'lambda',
         args: args.map((a) => a.sym),
+        idLocations: args.map((a) => a.location),
         is: {
             ...arg.is,
             effects: t.effects,

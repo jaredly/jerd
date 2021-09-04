@@ -2,7 +2,7 @@
 // and I can make this much simpler.
 
 import { Location } from '../parsing/parser';
-import { idName, newSym } from '../typing/env';
+import { idFromName, idName, newSym } from '../typing/env';
 import {
     and,
     applyBuiltin,
@@ -30,7 +30,10 @@ import {
     Let,
     Symbol,
     Type,
+    nullLocation,
 } from '../typing/types';
+import { GLSLEnvId } from './glslPrinter';
+import { GLSLEnv$1_id } from './prelude-types';
 
 const Vec2: Type = builtinType('vec2');
 const Vec3: Type = builtinType('vec3');
@@ -90,6 +93,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         const l: Let = {
             type: 'Let',
             location: builtinLocation,
+            idLocation: builtinLocation,
             is: bool,
             binding: sym,
             value: term,
@@ -101,6 +105,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
     sts.push({
         type: 'Let',
         location: loc,
+        idLocation: loc,
         is: float,
         binding: sizeSym,
         value: applyBuiltin(
@@ -110,23 +115,21 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
                     type: 'Attribute',
                     idx: env.global.attributeNames['x'][0].idx,
                     location: loc,
+                    idLocation: loc,
                     inferred: false,
                     is: float,
                     ref: { type: 'user', id: env.global.typeNames['Vec2'][0] },
                     target: {
                         type: 'Attribute',
-                        target: var_(
-                            envSym,
-                            refType(idName(env.global.typeNames['GLSLEnv'][0])),
-                            loc,
-                        ),
+                        target: var_(envSym, refType(GLSLEnvId), loc),
                         idx: env.global.attributeNames['resolution'][0].idx,
                         location: loc,
+                        idLocation: loc,
                         inferred: false,
                         is: Vec2,
                         ref: {
                             type: 'user',
-                            id: env.global.typeNames['GLSLEnv'][0],
+                            id: GLSLEnvId,
                         },
                     },
                 },
@@ -139,6 +142,7 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
     sts.push({
         type: 'Let',
         location: loc,
+        idLocation: loc,
         is: float,
         binding: rad,
         value: applyBuiltin(
@@ -225,52 +229,12 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         is: Vec4,
     };
 
-    // const text = `
-    // @main
-    // const main = (env: GLSLEnv, coord: Vec2) => {
-    //     int passing = ${};
-    //     if passing
-    //     int failing = ${};
-    // }
-    // `
     return {
         type: 'lambda',
         args: [envSym, fragCoord],
+        idLocations: [nullLocation, nullLocation],
         body: block,
         location: builtinLocation,
-        is: pureFunction(
-            [refType(idName(env.global.typeNames['GLSLEnv'][0])), Vec2],
-            Vec4,
-        ),
+        is: pureFunction([refType(idFromName(GLSLEnv$1_id)), Vec2], Vec4),
     };
 };
-
-/*
-
-const t1 = int(....);
-const t2 = ....;
-
-const passed =
-    t1 * (length(fragCoord - t1pos) < circleSize)
-
-const passed = min(
-    t1 * (length(fragCoord - t1pos) - circleSize),
-    min(
-        t2 * (length(fragCoord - t2pos) - circleSize)
-        ...
-    )
-);
-
-// How do I "delete" something that is off vs on?
-// Or I could just have a ton of ifs.
-const failed = min(
-    t1 * (length(fragCoord - t1pos) - circleSize),
-    min(
-        t2 * (length(fragCoord - t2pos) - circleSize)
-        ...
-    )
-);
-
-
-
-*/

@@ -9,13 +9,14 @@
         "build": "yarn peg && yarn compile",
         "compile": "esbuild --sourcemap --bundle --loader:.jd=text src/main.ts --platform=node --outfile=main.js",
         "watch": "yarn run compile --watch",
+        "prelude-types": "node bootstrap.js prelude-types src/printing/prelude-types.ts",
         "cp-builtins": "cp src/printing/builtins.ts src/printing/builtins.ts.txt",
         "peg": "pegjs --plugin ts-pegjs -o src/parsing/grammar.ts src/parsing/grammar.pegjs",
         "watch-tests": "watchexec -w src -w examples -i build -- node --enable-source-maps bootstrap.js --assert examples --run --cache",
         "watch-tests-old": "watchexec -w main.js -w examples -i build -- node --enable-source-maps main.js --assert examples --run --cache",
         "watch-go": "watchexec    -w main.js -w examples -- node --enable-source-maps main.js go examples --run --assert",
         "ts-examples": "tsc --build examples/build/tsconfig.json",
-        "test": "node --enable-source-maps main.js --assert examples --run",
+        "test": "node --enable-source-maps bootstrap.js --assert examples --run",
         "test-one": "node --enable-source-maps bootstrap.js --assert --run",
         "watch-one": "watchexec -w src -w examples -i build -- node --enable-source-maps bootstrap.js --assert --run --cache",
         "watch-just-one": "node --enable-source-maps bootstrap.js watch --assert --run --cache",
@@ -57,12 +58,16 @@
     "devDependencies": {
         "@babel/core": "^7.12.16",
         "@babel/preset-env": "^7.12.16",
+        "@babel/preset-react": "^7.14.5",
         "@babel/preset-typescript": "^7.12.16",
+        "@testing-library/dom": "^8.1.0",
+        "@testing-library/react": "^12.0.0",
+        "@testing-library/user-event": "^13.2.1",
         "@types/hash-sum": "^1.0.0",
         "@types/jest": "^26.0.20",
         "@types/node": "^14.14.25",
         "@types/seedrandom": "^2.4.28",
         "babel-jest": "^26.6.3",
-        "jest": "^26.6.3"
+        "jest": "^27"
     }
 }

@@ -9,6 +9,12 @@ const z#6a5b05d8 = (n#:0: int#builtin): int#builtin ={}> {
     };
     n#:0 +#builtin 2;
 }
+(n#:0: int): int => {
+    if n#:0 < 10 {
+        log("Ok");
+    };
+    return n#:0 + 2;
+}
 ```
 */
 export const hash_6a5b05d8: (arg_0: number) => number = (n: number) => {
@@ -21,5 +27,6 @@ export const hash_6a5b05d8: (arg_0: number) => number = (n: number) => {
 
 /*
 z#6a5b05d8(n: 3)
+z#👨‍👨‍👧‍👧🦪🍲😃(3)
 */
 hash_6a5b05d8(3);

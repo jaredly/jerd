@@ -7,7 +7,7 @@ const rec arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
     switch (one, two) {
         ([], []) => true,
         ([one, tone, ...rone], [two, ttwo, ...rtwo]) => if eq."=="(one, two) {
-            arrayEq(rone, rtwo, eq)
+            arrayEq<T>(rone, rtwo, eq)
         } else {
             false
         },
@@ -23,7 +23,7 @@ const rec palendrome: <T,>(Array<T>, Eq<T>) => bool = <T,>(one: Array<T>, eq: Eq
         // and then subtract both ... from the `length` calculations...
         // and maybe that's it?
         [first, ...middle, last] => if eq."=="(first, last) {
-            palendrome(middle, eq)
+            palendrome<T>(middle, eq)
         } else {
             false
         },

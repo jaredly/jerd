@@ -1,10 +1,674 @@
 
+Recreate this! https://twitter.com/matthen2/status/1249611168265547776
+
+Ok, we're well on our way.
+Let's get some test cases going though.
+Do they live in metaData? I think so.
+
+- [x] yayy so much goodness. I mean the editing experience leaves a lot to be desired
+- [x] export a pinnable thing, the full dependent env, right?
+  yassssss so good
+- [ ] umm now I really want to be able to persist the slider valuessssss
+
+
+
+BUGS
+- [x] show errors below please! Need to know why it's not working.
+- [x] uhhh why is glsl not using native types anymore??? I should have been keeping track of this... oh it was prelude-types needing to be regenerated.
+- [ ] ok why can't I add vec2s
+  - yeah this isn't great. looks like `persistence` isn't loading binops correctly somehow?
+  - I should really split things up, make a `mergeEnvs` functio nthat lives in language, and knows how to do things.
+
+- [x] if there's a pending, the plugin doesn't show. Maybe I'm not evaluating it?
+- [ ] if the thing doesn't evaluate for a second, the plugin view goes away. I should retain the last valid thing.
+- [x] let's get fps going!
+- [ ] fix pinning. make it work with proposed and sliders and such.
+
+- [ ] ok so somewhere we're not handling unique++ right.
+  because the unique isn't ... ... .. at what point
+
+- [x] ugh ok fix the currently failing tests.
+- [x] enums needs to be able to declare inline records, pleeease
+
+- [ ] Records with Defaults! Let's goooo
+  - [x] example syntax & tests
+  - [x] get it to parse
+  - [x] process the defn
+  - [x] get reprint working
+  - [x] process the record constructors
+    - [x] ensure that the values aren't effectful
+  - [x] oh wait I wanted to do the translation at th IR level,
+        not when type checking.
+  - [x] get the extended version to type check & pass
+
+- I want records to be able to supply /defaults/ for any of the attributes. These defaults ... get inlined at the /ir/ translation level? yeah that sounds fine. so ... in the editing UI they wouldn't be auto-applied, which I like, so that you can add the attribute later if you want. Yeah. 
+  - ok what does the data type look like? this is part of the RecordDef, right? And it'll be an optional attribute
+  - do I want you to be able to supply default values for subTypes? Probably, right? Seems like it could be handy.
+
+- should I do the same thing for function arguments? kinda like why not, right? again, they could be eliminated by the time you get to IR ... same with rest args tbh. yeah that's kinda fun.
+
+
+
+
+
+
+- [x] improve perf, make it super cheap to switch between
+- [ ] why is it selecting the last one? I don't like it
+- [x] add nice keyboard shortcuts to normal mode
+- [ ] get boids working hackily; like with a hardcoded length of 10
+
+
+
+- [ ] let's have decorators be an @ symbol with contenteditable=false, so they're deleted as a unit ... and then when you click on one, it ... could expand to be the full text? or just havethe same popoup dialog that you would get in normal mode. yeah I think that's fine? idk.
+What kinds of things are we likely to want to decorate?
+- orrr do I just collapse them, and you can expand them by clicking and it becomes editable? actually that sounds hard to do right.
+
+
+boiiiiids
+So basically I want to do aggressive opt on the whole GLSLScene,
+and then take the function for render and generate glsl, and the function for step and generate javascript. That sonds doable? I think?
+
+
+## [x] Perf improvements
+I'm rewriting Cell, and refactoring a bunch of stuff.
+
+It seems like non-term things should maybe have the "Proposed" stage as well.
+Ok, so I made the type-level changes. but there's other things to be doing after that.
+
+ohh also I really need to preserve comments at some point.
+
+- [x] We need a better initial focus point.
+- [ ] if we receive the active, and we're in normal mode, get outttt. although maybe it's fine? like we just don't get in there? idk
+- [ ] umm what next. oh yeah 
+- [ ] now we show the rendered stuff again?
+
+OK so now for perf:
+- [ ] when switching between text & not, the term should be the same... I could do useMemo based on the hash? Might be a bit more work, ... hmmm but maybe that's fine? idk
+
+
+Ok I think arrays are doing ~ok. But I need the editor to be a lot more usable so that I can make more fun things.
+So
+- PERF
+- a i c A I
+  - a = cursor at end of selection
+  - i = cursor at start of selection
+  - A = make a new ~thing after this one...
+    - might be a new arg in the current fn
+    - uhh maybe that's it? and maybe that's fine? idk
+  - O o = new stmt in the closest block
+  - ( and [ could be used to enclose the current thing
+  - '+ - * /' could all be "make a binop with the selection as the first arg". Although it would be great to also have a way to 
+
+
+## Arrayssssss
+
+- [ ] lambda types should have arraySizeVbls, let's be honest. Then I'll be able to do monomorphizing when I see a function call that ... has the array argument corresponding to that size ... although propagating array size things might become more complicated. hmm so maybe not?
+
+
+
+
+
+- [x] get tuple types together, for reals its very nice to have
+  - this will mean monomorphizing all tuple types, which is fine.
+
+- [x] working on turning reduce into something that's valid
+  - [x] make variables
+  - [x] propagate them please
+- [x] get reduce working too thankss
+  - [x] ok infer the bound as well! Would be super nice
+  - [ ] write bunch more tests for different incarnations
+  - [ ] figure out why inferring arrays goes so poorly if I do it too early (probably that I'm propagating things I shouldn't).
+    - really, when I set the type of an arg to have a variable size, I need to ensure that
+      the return type has a consistent size ... or else it's bad news. I think.
+  - [ ] get boids going please!!! So will need to infer the length of the js array we're passing in I believe.
+
+- [ ] maybe do loop unwrapping? Shouldn't be too bad if the value of the loop vbl is known 🤔
+
+# THings found during coverage for parser
+
+- ... should be a legal pattern spread, shorthand for ..._
+
+# Widgets the great and terrible
+
+so, using decorators, love it
+one thing I want, is to ... add optional titles to things
+oh hey, I could add another decorator
+yeah, I was thinking "should I add an optional argument or something,
+but I don't yet have support for optional arguments.
+But I could just add another decorator, love it!
+
+Going so well!!!!
+
+- [ ] the decorator widget state should be persisted in the cell, probably. Actually, let's have it persist when pressing a button? Yeah that's fine. Like "set the defaults". And it woudl save it to "display", so it would be carried through to the "pin". So I'll need to make pins respect that.
+- [ ] make the showcase be able to show any arbitrary pin. This will mean /export as much of the env is needed to render it/, and then have the showcase render the sliders too, so fun.
+- [ ] sliders should allow you to input an arbitrary number too
+- [ ] make the alternates dealio!!
+- [ ] ok and then really integrate these decorators into normal mode. Render them with a little icon that opens a popup. And have a command to add a decorator to whatever thing, that autocompletes with things that fit. yessss
+
+# It would be very showy to be able to generate a swift app for my opengl shader bonanzas.
+
+#### Ok but really, to do anything interesting, I really need a Known-Length Array type
+
+It's fine for it to be different from array, we can figure out magic later if we want.
+
+ArrayN<int, 4>
+
+Ok, and things like switches ... should also work, right?
+
+And <A, N>[a, b] does ArrayN, not Array
+
+Ok what's the most basic?
+fixedArray.0 should work fine
+oh ok so how should I do updates?
+I mean, syntactically. Do I just use maps for everything? Sure why not.
+
+Ok, so instantiate an array, map over it (meaning switches need to work), and that's it, right?
+
+
+## Um so counterpoint
+can't I just infer all of that?
+can't I automagically track ... whether a function is called with a certain length array?
+Like I would need to add annotations places
+and stuff
+to be like "this value ... hm type ... um has an indeterminate length or something"
+
+Places to track it...
+
+hrmmmmm ok so the reason I want this is for the bridge between js and jerd
+so I'd need to do the inference in js, and be able to know the way things work
+
+Ok so let's look at a single small example, see if I can manage to infer it.
+What I want is: to do a boids simulation.
+and do magical shader things to it.
+
+Ok so I think I'll do all of this at the IR layer. I can have a separate type in the IR for array w/ inferred length, without changing the public types.
+
+
+
+#
+
+Erghhm should I switch to lezer for parser generating? Given that it supports error recovery.... NOPEaNOPE it would be much harder to work with.
+
+## OKK new plan for widgets
+It's attributes, folks.
+But before I go messing around with the parser, I want to have a robust suite of tests for it. yes.
+
+Anyway, all terms will be allowed to have attributes.
+Attributes are *not* allowed to change the /semantics/ of the code in any way. (e.g. ffi changes the actual code generated, but nothing internal to jerd would be able to observe the difference).
+
+And then the GLSL generator plugin dealio, when collecting the dependency tree of terms, would let you mess with some sliders.
+And so the slider values would be saved as part of the "display" I believe. And those should be propagated to the PIN.
+errr and maybe there should be an undo menu for them? uh maybe at some point.
+Ok, so the plugin finds any widgets, renders them, and when you fiddle with them, it results in the whole shebang being recompiled, right?
+I could get fancy at some point and allow shortcutting, if the widgets evaluate to literals (so like the slider one, not the "switch between any of these code snippets" one)
+Yeah and the code snippets one would ... allow you to store alternatives, and switch the main selected one.
+Like it would be 
+`@alternatives([some_code, other_code]) main_code`
+lovely.
+
+Ok, but I don't yet syntatically support those things,
+and it would also change hashing I think....... hmm....... ugh there's so many hacks in the hashing right now. It's fine.
+
+
+
+## How to make configurable sliders for my GLSL canvas dealio?
+
+So, you want to have some things be sliders
+and you want to indicate, in code, what the parameters should be
+could also be nice to have categorical options
+Anyway, the GLSLEnv state variable looks like
+State {
+  itemRotate: float,
+  speed: float,
+  count: int,
+}
+and your initial state dealio is
+State{itemRotate: PI, speed: 1.0, count: 10}
+
+So where do you specify bounds and stuff?
+hm so when macros are involved, and individual "cell" might produce multiple toplevels. That should be fine, right?
+
+Ok, so I'm thinking:
+
+@GLSLBonanza
+type State = {
+  @initial(0.0)@angle
+  itemRotate: float,
+  @initial(1.0)@slider(0.1, 2.0)
+  speed: float,
+  @initial(5)@bounds(1, 20)
+  count: int,
+}
+
+// This would produce
+State { itemRotate: float, speed: float, count: int }
+initialState = State {itemRotate: 0.0, speed: 1.0, count: 5 }
+widgets = [
+  Widget{name: "itemRotate", config: Angle{update: (state, itemRotate) => State{...state, itemRotate}}},
+  Widgte{name: "speed", config: Float{min: 0.1, max: 2.0, update: (state, speed) => State{...state, speed}}},
+  Widget{name: "count", config: Int{min: 1, max: 20, update: (state, count) => State{...state, count}}}
+]
+
+Where
+type Widget<State> = {name: string, config: WidgetConfig<State>}
+type Angle<State> = {update: (state: State, angle: float) => State}
+// TODO: Should I have default values baked into here?
+// but then do I get weird behavior for subtyping? BUT I don't
+// have unexplicit subtyping. So it seems like it ought to be ok?
+type Float<State> = {min: float, max: float, step: float, update: (state: State, value: float) => State}
+enum WidgetConfig<State> {
+  Angle<State>,
+  Float<State>,
+  Int<State>,
+}
+
+
+OOooooh so what if
+plugins were nestable.
+hmmmmmmm
+yeah idk, I'll probably just hardcode it for the moment.
+
+
+Ok, so thinking about workflow again.
+
+Aaaactually what I really want is:
+to have inline widgets
+that then become out-of-line
+like, this isn't about uniforms (although it could be at some point idk)
+
+So, I kinda think I want widgets represented in the AST.
+Would that be of the term?
+
+
+
+
+
+## Ok probably first thing
+Make it so I can upgrade my term format, without things breaking terribly.
+Because right now, I can't even reparse.
+
+- [x] neeeeed a way to delete ids my goodness
+  - ok so the editing experience isn't terrible. I'm not using the normal mode much though, because there aren't any keyboard affordances, and jumping into it has a HUGE lag. So yeah the first most important thing is make it instantaneous.
+
+START HERE: IMPORTANT PERF FIX
+- [ ] Cell should render the output, not the Editor/RenderItem
+  - does this mean ... that cell owns the the temporary edit text? Yeah that sounds fine.
+
+- [ ] Updating some other thing, such that the something rerenders, shouldn't cause recording to start again
+
+- [ ] make the "enter" menu show up underneath the selection, not at the bottom of everything
+
+Handling Pastes:
+- one thing that happens is that syms don't line up right
+- so maybe, when pasting, I drop all (external) sym IDs?
+  And internal sym IDs should probably be translated to prevent conflicts.
+
+Better text mode
+- [x] don't have the hashes, that's not great. use data-id on the node
+- [x] also lets get at least one test happening.
+- [ ] when selection is inside a thing with an ID, show a hover,
+    that will allow you to change the ID, or remove it if you want.
+- [x] ok and I want to preserve selections between the two views
+- [x] typing non-identifier characters should get you out of the identifier.
+
+- [x] shift-h & l for sibling navigation
+  - [x] um weird bugs I think
+  - [ ] let them go to cousins... if there's nothing to go to?
+- [x] cell-level jk for moving focus between cells
+
+- [ ] let's do a bunch of jest test for partial typing. like inline type errors.
+
+NEXT UP
+- [x] inline
+- [x] when extracting a term, it would be cool to be able to /mark/ some sub-expressions as "have this passed in as an argument".
+  - which means I need some state for "marks"
+  - [x] support marks
+  - [x] have the "extract" respect marks
+  - [ ] clear marks after extraction?
+- [ ] preserve locs please?
+  - I mean I kindof get away with not. but it would be good to do.
+- [x] delete & inline var, if the outer thing is lefts as a sequence w/ single thing, then collapse it please.
+- [x] shift-enter to enter text edit mode
+
+
+Can we only do one renderer? renderToReact and then use innerHTML to get it for contentEditable?
+- [x] try it
+  - oh we don't have `#something`, so it's not locked down
+- [x] let's add `data-id={id}`, so that it can be locked down
+- [ ] when the cursor is on something that has `data-id`, show a thing indicating that you can remove it.
+- [ ] if you /paste/ with an #id, then we can detect that & insert cleverly? maybe?
+
+
+
+- IDX PRESERVATION
+  - when adding locs to a term
+    - first find the max idx
+    - then, go through, and /leave/ in place, any idxes that
+      haven't been seen yet.
+      if it has been, then use maxIdx++
+
+
+- [ ] get all explicit hashes out of the codebase
+  - [x] ensure that @ffi types don't have a random unique
+  - [x] export the prelude as typescript, and depend on that.
+  - [ ] I'll want to have an autofixer or something that ensures we update the generated delio as needed.
+
+- [x] provide a name when extracting things
+- [x] :inline variable:
+- [ ] escape to move up to the term level, then enter to
+  get into the syntax-level focus.
+  - [ ] shift-enter should get into raw text manipulation
+- [ ] give me autocomplete or give me sadness! It's ok to need to trigger it
+  - maybe if parsing fails, try inserting a semicolon after the cursor? or something.
+- [ ] rename the highlighted term (globally probably)
+- [ ] extract all instances of this term in this function ya know
+- [ ] _d_ to delete and inline a local
+- [ ] _c_ to change a local (variable to variable or literal maybe? idk)
+- [ ] _+_ to replace w/ a binop (and _-_ etc)
+
+
+Levels of this working
+- make the term export do text as well
+- version the state dealio
+- if, when loading up, the state is old, say "stop, go back, export with strings"; give option to blow away state
+- import should see strings and reparse them
+
+> have a button to "tostring & reparse all terms". So I can have it defensively programmed first, and then remove that.
+> have a button to "export w/ strings" so I can import w/ strings, and like reparse
+> make hashing much more explicitly type safe n stuff, so I can specify exactly where and what is getting included.
+
+## Fancy Refactors!
+
+- [ ] turn this local variable into a fn argument for this term
+
+## Next steps
+
+- [-] enums?
+      how do we do it
+      you make a union, right? 
+  - [x] passing enums as uniforms
+  - [x] IsRecord
+  - [x] explicit upgrading to enum (needed for glsl, but not for js interestingly)
+    - [x] this is needed in the IR
+  - [x] explicit downgrading from enum (if, as in glsl, it's needed)
+- [x] fix the bug with flatteninig immediate calls
+- [x] get pipe working, ok I mean there's some errors
+- [x] combine the Define & Term content types, and just make name optional
+  - [ ] then we can render them both the same too, but have an editable field at the top for changing the name or something. Also dropdownable, to indicate that there are multiple names.
+    and we can display the metadata like "this supercedes this other one", or "is superceded by this other one"
+  - lol and then I can stop doing "unnamed" ones 🤦‍♂️
+- [x] do the workspace history for real, and show it on a given cell, so you can see the cell's histort too
+- [ ] TEST CASES! Associated with the Term/Etc ID
+- [ ] um now um arrays?
+
+- [ ] also I really want a normal/node-selection mode, so I can do some rad refactorings like "extract this value into a variable" n stuff. all kinds of refactory options.
+
+#### Test Cases
+
+- meta for an item can list test cases
+- cells can opt in to showing test cases
+  - if there's a pending, it will also update the test cases accordingly, and pendingfy them 🤔
+  - they can also choose to only show a specific set of test cases
+- there should be a well-known TestCase type that has a render plugin, and also a render plugin for
+  an array of TestCases.
+- do we specify test cases Display config? Or ... set that up some other way? hmmm ...
+
+#### Alternatives / Variants????
+I should wireframe this.
+
+hmm so I want a widget that displays differently ... when rendering to react vs to editable text.
+with react, it can have a dropdowny thing
+but with editable, it should be spelled out as the full macro invocation.
+
+Ok but I can start with just the basic.
+
+#### NORMAL MODE
+
+Random bugs:
+- [x] var definitions aren't colored?
+- [x] updating a block should update pending if possible
+- [ ] underline superceded things
+
+Navigation:
+- should 'attributes' count as atomic? probably actually ... idk. let's try it.
+- also, when hmmm
+- [x] basic navigation, arrow keys
+- [ ] would be nice to maintain a "target column" for multiple-ups/downs
+- [x] shift-up for navigating to parent
+- [x] right should go for an item that starts after the current end
+- [x] up & down should respect atomic
+- [ ] shift-down should go to child if possible
+- [ ] blocks/sequences don't have locations, and maybe don't have maps? idk
+- [x] attributes don't have locs?
+- [x] hjkl pleeease
+- [ ] after the extract refactor, the vbl name should be focused, so you can rename it.
+      it should probably even be focused w/ the menu up for renaming
+
+OK PLEASE
+- add locs to types n stuff
+
+Things that still need locs:
+- [x] X.attribute (the attribute id bit)
+- [ ] 🤔 hmmmm custom binops aren't working again
+  - ohhhh it's because I'm not counting them as atomic. hmmm
+  - but I'm selecting the "attribute" level so that parentage makes sense
+  - hrmmmmm what if I go "only select rendered things"? hmmm maybe the sourceMap dealio will get it done?
+  - yeah that might be the most ~robust way to go about it
+- [ ] a record row `hello: 20.0,`
+- [ ] fn arg type annotations
+- [ ] fn arg syms
+  - [ ] fn args should have a loc for the thing+ annotation...
+- [x] define syms
+
+Refactor actions!
+- [x] extract to a variable
+- [x] extract to a toplevel
+  - [x] handle locally-used variables correctly
+- [x] rename a variable
+- [ ] inline a variable
+
+Editor actions
+- [ ] cut/copy/paste
+- [ ] UNDO/REDOOOOOO
+- [ ] move up/down a line, or into a function definition
+
+Kinds of things that can be focusable
+- [ ] terms
+- [ ] type annotations
+- [ ] sym declarations
+
+Bugs:
+- [x] I should have non-atoms in the line lists
+- [x] shift-up on custom binops isn't working
+
+REFACTORS:
+- [ ] "pull this out to block-level variable
+- [ ] rename (should be a key binding folks)
+- [ ] move up a block (potentially as a function call if needed)
+- [ ] move out to the toplevel as a new function
+
+
+
+- [ ] hmmm got to be honest about how long an `id` is going to be folks. I guess with hideIds it's fine...
+
+Ok so I think what we need is:
+- node loc idx, which we already have
+- and then a cache that I build that does backlinks, right? and a mapping of "idx to term"
+  - termsByIdx: {[idx: number]: Term}
+  - idxTree: {[idx: number]: {parent: idx, children: Array<idx>}
+Right? And I just build that ... as I'm walking the attributedText bonanza? I mean that makes some sense as a way to do it .... although it's a little weird. like some incidental stuff.
+
+Anyway, I would have a "selection", which would indicate what idx is selected. Or multiple.
+
+Ok yeah let's just write a traversal dealio that makes the idx -> child terms mapping, so that I can know where to tweak things.
+
+- [x] make clicks ... more explicit. So you can ctrl-click something to open it, or right click to maybe open a widget if its available...
+  This will pave the way for clicking to focus.
+    so that I can do tree navigation.
+    BUT we also want a mapping of lineno -> idx
+    so that we can use arrow keys to navigate between lines in a way that makes sense.
+- [x] make a "selectedIdx" state dealio
+- [ ] then make a shortcut for "show refactors" or something. Maybe it's the cmd+shift+p menu? could be.
+
+
+#### Pending Terms
+
+When editing a term, the result should be in "pending", and it shouldn't "commit" until I say so
+- adding the new term to env
+- updating global.names
+- etc.
+- basically what addExpr does or whatever it is.
+- and have the term saved to "pending". So I guess I can just:
+  > when looking up the term to display, if there is a pending use that
+  > places I currently call addExpr, do "set pending"
+  > and then if there's a pending, have a button to make it the new one.
+
+- Maybe don't do pendings until I have test cases set up though? idk.
+
+
+## Editor updating
+
+- [x] show type error on hover
+- [ ] when updating a cell, check other cells and update them too folks
+  - [x] do it for terms
+  - [ ] ok but cells really need to keep track of history, so I can undo it too
+    - hmmmm but hmmm
+    - does it work to just use the workspace history log?
+      that way if I delete a cell, the history doesn't get lost, right? hmmmm
+  - [ ] do it for types 🤔 might need a TypeError for types? Like "this used to take a type variable, and doesn't any longer?" Yeah I think so.... also like I need an "empty" or "hole", for both types and values. I guess with an "empty" I can skip the TypeError for Types, right?
+
+  - ok so what if there was like a "candidate" term type? or maybe not a term type, because I don't want it to impact the hash, right? or maybe it's fine? hmmmmmmmmm
+    ok so maybe it's a thing that would be tracked in metadata? hmm but how. Or just in the cell info or something? 🤔. well it's something to keep in mind.
+- [ ] show deprecation with an underline
+
+### Simplest case: a constant is updated, no type change
+if there's a type change, it just turns into a type error, right?
+### Slightly more complex: a record type is updated in a backwards compatible way...
+well adding a record item only works if there aren't any instances where things are created
+but if not, then we can turn it into a type error dealio
+
+## Can I make snake?
+
+- [ ] arrow keys, need to be able to handle in the /step/ fn, right? Are there other events I want to handle?
+    hmmmmm
+    I guess a reduce is what I'd be doing, right?
+    - [x] make a new GLSLScene2 type
+    - [ ] weep that my js dealio doesn't have the properties of my language, such that I have to duplicate a bunch of things maybe
+    - [ ] or just move to the new version, and require that all current pins get manually updated. Which is fine I guess. Would be nice to have a way to indicate (in prelude.jd) "this deprecates the old version folks" so that I can do my deprecation annotations in the editor 🎉
+- [ ] arrays please?
+  - so I can do a snake game probably?
+
+- [ ] when you click a thing from a term, it opens up as a /sub/ cell. And then if you edit that cell,
+      then it updates all the other things in the main & sub cells.
+      - so I also need TypeErrors
+        - arguments
+        - attributes
+
+
+- [x] monomorphize types with type variables folks
+- [x] get basic scenes working!
+- [x] fix my hacky hardcode of vec2, so that non-vec2 states work
+
+## Inference
+
+- [x] definitely arg annotations
+- [ ] need to indicate somewhere that these were inferred, so that re-parsing can be more flexible with those
+- anything else? hm
+
+
+##
+
+- [ ] it would be nice to be able to support the pipe operator
+- [ ] how far can I get with just optimizations, on doing those array things?
+      or do I have to go ahead and implement ... 
+  - [ ] ok I mean reduceRange works, which is maybe good enough.
+      well it almost works -- need to fix the "generate a lambda"
+      to specialize the return value of the function.
+
+
+- [ ] really want to have "refactor this" (I guess the selection mode has to come first), where you
+      say "change the type of this argument to this other type", and it can suggest a mapping of field names.
+
+
+# Ugh ok data integrity, maybe we can have it
+
+- [x] oh ok so I fixed the immediate "everything dies" issue
+- We have pins,
+  and we have ... cells ...
+  hmmm
+  maybe I want a new workspace concept? workspacev2?
+  because we've got ... 
+  ok so what if I tried to just whole hog architect stuff for
+  saving to the indexeddb
+  in a good way
+
+  - [ ] 1: pull back hard on passing `env` everywhere. Maybe? Once I get to a Term, I should
+        have loaded its dependencies, right?
+        hm
+
+
+
+- Ok so thoughts
+  - I do really like the history idea
+  - what if I auto-update everything I can all the time, but provide really easy undo?
+    also, pins should have history you can page through. Oh yeah. And you can say "break this
+    one out into its own pin"
+  - [x] ok yeah I need the concept of an "archived pin". So it's in the showcase, but it doesn't
+        auto-update anymore.
+        yeah, and then you can like "open the whole showcase"
+    - [ ] have a button to show all archived pins, like ...
+          or maybe instead of "archive" it's "frozen"? And frozen pins are hidden by default? Yeah I like that.
+
+
+Workspace:
+  - pins (including how to display it, might be null actually?)
+  - cells
+
+
+
+
+Maybe set up a server dealio.
+Could we sync directly with github? hmm that sounds more complicated than I really want.
+- uh well isomorphic-git will do git in the browser, which is a little wild
+- hmmmmm
+- ok, so I definitely want to be storing things for much more efficient writing in indexeddb.
+- and then we'd have the option of only loading up /some/ of it
+- BUT this would mean that we wouldn't be passing around the full "env" object, right?
+
+
+- oh a pipe operator might be nice. should we do "fast pipe"? which I think is what roc is doing too?
+  or does it matter, given that I'm not doing inference? orr should I have a placeholder dealio for
+  on-the-fly lambdas like clojure has?
+  like `hello(.., a, b, c)` or something
+  I feel like I have enough other fancy things going on
+  I can just ... do a normal pipe operator, a |> b(c) == b(c)(a)
+  because I'm not currying everything, it makes more sense.
+  -> ?
+  |> ?
+  how tight should it bind?
+  looks like |> would get me the binding level that I want.
+
 # NEXT UP
 
 - make a cmd+p menu, for pulling things up
   - tabbing with a type searches for things that use that type
   - tabbing with a term searches for usages of the term
-- 
+  - so cool
+  - also, wow um yeah I've done a lot of experimentation.
+  - hmmmmmmmm
+  - so I do want a way to mouseover things and have them render
+  - also to be able to give names to things that don't currently have names
+  - or to give names to groups of things?
+- ok I do think I need some kind of namespace support. What should that look like?
+  - orrr do I also want tags or something?
+  - or pins, but more so? so you can archive a pin, or something
+    and also have pins take screenshots?
+
+- I think I want a "cleanup" button to remove all unnamed items that aren't pinned or something 🤔
+  which means that I need a better way to name things, obvs. which is why I think of namespaces.
+  Right, I feel like what I want is to be messing around with a thing, and to be able to say "oh this is a nice one, screenshot this" or something.
+  and then have it be marked as "keep" or something like that. yeah. and then when cleaning up,
+  we'd clean up any superceded non-keep items as well that aren't used by anything? and do that iteratively
 
 - UI improvements! Implement the wireframe.
   - ok but maybe "pins" ... maybe the display configs for a hash should be stored somewhere separate

@@ -16,14 +16,11 @@ import {
     termToTs,
 } from '@jerd/language/src/printing/typeScriptPrinterSimple';
 import { EvalEnv } from './State';
-import {
-    optimizeDefine,
-    optimizeDefineNew,
-} from '@jerd/language/src/printing/ir/optimize/optimize';
+import { javascriptOpts } from '@jerd/language/src/printing/ir/optimize/optimize';
 import { liftEffects } from '@jerd/language/src/printing/pre-ir/lift-effectful';
-import { uniquesReallyAreUnique } from '@jerd/language/src/printing/ir/analyze';
 import { Expr } from '@jerd/language/src/printing/ir/types';
 import { Trace } from './Editor';
+import { optimizeRepeatedly } from '../../language/src/printing/ir/optimize/optimize';
 
 export class TimeoutError extends Error {}
 
@@ -41,7 +38,19 @@ export const termToJS = (
         { limitExecutionTime: withExecutionLimit },
         term,
     );
-    irTerm = optimizeDefineNew(env, irTerm, id, null);
+    const opt = optimizeRepeatedly(javascriptOpts);
+    irTerm = opt(
+        {
+            env,
+            exprs: irTerms,
+            types: {},
+            id,
+            optimize: opt,
+            opts: {},
+            notes: null,
+        },
+        irTerm,
+    );
     // then pop over to glslPrinter and start making things work.
     // try {
     //     uniquesReallyAreUnique(irTerm);

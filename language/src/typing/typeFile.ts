@@ -2,7 +2,13 @@
 
 import { Expression, Toplevel } from '../parsing/parser';
 import typeExpr, { showLocation } from '../typing/typeExpr';
-import { Env, getEffects, newLocal, Term, Type } from '../typing/types';
+import {
+    Env,
+    getEffects,
+    newLocal,
+    Term,
+    TypeError as TypeErrorTerm,
+} from '../typing/types';
 import { showType } from '../typing/unify';
 import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
@@ -13,10 +19,12 @@ import {
     typeEffect,
     idName,
     typeToplevelT,
+    typeDecoratorDef,
 } from '../typing/env';
 
 import { presetEnv } from '../typing/preset';
 import { LocatedError, TypeError } from './errors';
+import { transform } from './transform';
 
 export function typeFile(
     parsed: Toplevel[],
@@ -50,6 +58,8 @@ export function typeFile(
             env = typeTypeDefn(env, item);
         } else if (item.type === 'EnumDef') {
             env = typeEnumDefn(env, item).env;
+        } else if (item.type === 'DecoratorDef') {
+            env = typeDecoratorDef(env, item).env;
         } else if (item.type === 'Decorated') {
             if (item.wrapped.type === 'define') {
                 const { term, env: nenv, id } = typeDefine(env, item.wrapped);
@@ -64,6 +74,10 @@ export function typeFile(
                 }
                 continue;
             }
+
+            if (item.wrapped.type === 'DecoratorDef') {
+                throw new Error(`TODO: Can't decorator decorators just now`);
+            }
             if (item.wrapped.type === 'StructDef') {
                 const unique = item.decorators.filter(
                     (d) => d.id.text === 'unique',
@@ -71,42 +85,63 @@ export function typeFile(
                 const ffi = item.decorators.filter((d) => d.id.text === 'ffi');
                 let unum = undefined;
                 if (unique.length) {
+                    if (unique.length > 1) {
+                        throw new Error(`multiple uniques`);
+                    }
                     if (
                         unique[0].args.length !== 1 ||
-                        unique[0].args[0].type !== 'float'
+                        unique[0].args[0].type !== 'Expr' ||
+                        unique[0].args[0].expr.type !== 'float'
                     ) {
                         throw new LocatedError(
                             item.location,
                             `@unique must have a float argument`,
                         );
                     }
-                    unum = unique[0].args[0].value;
+                    unum = unique[0].args[0].expr.value;
                 }
                 let tag = undefined;
                 if (ffi.length) {
                     tag = item.wrapped.id.text;
                     if (ffi[0].args.length === 1) {
-                        if (ffi[0].args[0].type !== 'string') {
+                        if (
+                            ffi[0].args[0].type !== 'Expr' ||
+                            ffi[0].args[0].expr.type !== 'string'
+                        ) {
                             throw new LocatedError(
                                 item.location,
                                 `ffi arg must be a string`,
                             );
                         }
-                        tag = ffi[0].args[0].text;
+                        tag = ffi[0].args[0].expr.text;
                     }
                 }
                 env = typeTypeDefn(env, item.wrapped, tag, unum);
             } else if (item.decorators[0].id.text === 'typeError') {
-                const args = item.decorators[0].args.map((expr) =>
-                    typeExpr(env, expr),
-                );
-                if (args.length !== 1 || args[0].type !== 'string') {
+                const args = item.decorators[0].args;
+                // if(item)
+                // const args = item.decorators[0].args
+                // .map((expr) => {
+                //     if (expr.type !== 'Expr') {
+                //         throw new Error(`nope`)
+                //     }
+                //     typeExpr(env, expr)
+                // }
+                // );
+                if (
+                    !(
+                        args.length === 1 &&
+                        args[0].type === 'Expr' &&
+                        args[0].expr.type === 'string'
+                    )
+                ) {
                     throw new Error(
-                        `Expected one string arg to @typeExpr ${showLocation(
+                        `Expected one string arg to @typeError ${showLocation(
                             item.location,
                         )}`,
                     );
                 }
+                const str = args[0].expr.text;
                 const expr = toplevelExpr(item.wrapped);
                 if (expr == null) {
                     throw new Error(
@@ -118,31 +153,57 @@ export function typeFile(
                 let t;
                 try {
                     t = typeExpr(env, expr);
+
+                    const typeErrors: Array<TypeErrorTerm> = [];
+                    transform(t, {
+                        let: () => null,
+                        term: (term) => {
+                            if (term.type === 'TypeError') {
+                                typeErrors.push(term);
+                            }
+                            return null;
+                        },
+                    });
+                    if (typeErrors.length) {
+                        const message = `Found ${showType(
+                            env,
+                            typeErrors[0].inner.is,
+                        )}, expected ${showType(env, typeErrors[0].is)}`;
+                        throw new Error(message);
+                    }
                 } catch (err) {
                     const message =
                         err instanceof TypeError ? err.toString() : err.message;
-                    if (message.includes(args[0].text)) {
+                    if (message.includes(str)) {
                         continue; // success
                     } else {
                         console.log(err.stack);
                         throw new LocatedError(
                             item.location,
-                            `Type error doesn't match expectation: "${message}" vs "${args[0].text}"`,
+                            `Type error doesn't match expectation: "${message}" vs "${str}"`,
                         ).wrap(err);
                     }
                 }
-                throw new Error(
+
+                throw new LocatedError(
+                    expr.location,
                     `Expected a type error, but got ${showType(
                         env,
                         t.is,
-                    )} at ${showLocation(expr.location)}\n${printToString(
-                        termToPretty(env, t),
-                        100,
-                    )}`,
+                    )}\n${printToString(termToPretty(env, t), 100)}`,
                 );
+            } else if (item.wrapped.type === 'EnumDef') {
+                const ffi = item.decorators.filter((d) => d.id.text === 'ffi');
+                if (ffi.length) {
+                    env = typeEnumDefn(env, item.wrapped, true).env;
+                } else {
+                    throw new LocatedError(
+                        item.location,
+                        `Unexpected decorator on enum definition`,
+                    );
+                }
             } else {
                 if (
-                    item.wrapped.type === 'EnumDef' ||
                     item.wrapped.type === 'effect' ||
                     item.wrapped.type === 'Decorated'
                 ) {
@@ -185,6 +246,7 @@ const toplevelExpr = (item: Toplevel): Expression | null => {
         case 'StructDef':
         case 'EnumDef':
         case 'Decorated':
+        case 'DecoratorDef':
             return null;
         default:
             return item;

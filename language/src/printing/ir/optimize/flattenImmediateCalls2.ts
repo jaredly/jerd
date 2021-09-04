@@ -35,6 +35,7 @@ import {
     var_,
     void_,
 } from '../utils';
+import { replaceTypeVariablesInLambda } from './monomorphize';
 import { Context, isConstant } from './optimize';
 
 // When we see an immediate call,
@@ -243,6 +244,11 @@ export const flattenLambda = (
     resultSym?: Symbol | false,
 ) => {
     const extras: Array<Stmt> = [];
+
+    target = target.is.typeVbls.length
+        ? replaceTypeVariablesInLambda(target, expr.typeVbls)
+        : target;
+
     const ta = target.args;
     expr.args.forEach((arg, i) => {
         // HACK(handlers): This should only happen with the hacky handlers variable.
@@ -285,7 +291,12 @@ export const flattenImmediateCalls2 = (ctx: Context, expr: Expr) => {
     return transformExpr(expr, {
         ...defaultVisitor,
         expr: (expr) => {
-            if (expr.type === 'apply' && expr.target.type === 'lambda') {
+            // TODO handle type variables
+            if (
+                expr.type === 'apply' &&
+                expr.target.type === 'lambda' &&
+                expr.typeVbls.length === 0
+            ) {
                 // If there are no args, we just check for a single-return body
                 if (expr.target.args.length === 0) {
                     if (
@@ -331,7 +342,9 @@ export const flattenImmediateCalls2 = (ctx: Context, expr: Expr) => {
             if (
                 stmt.type === 'Return' &&
                 stmt.value.type === 'apply' &&
-                stmt.value.target.type === 'lambda'
+                stmt.value.target.type === 'lambda' &&
+                // TODO: handle type vbls!
+                stmt.value.typeVbls.length === 0
             ) {
                 const extras: Array<Stmt> = [];
                 const ta = stmt.value.target.args;

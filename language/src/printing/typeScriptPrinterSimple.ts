@@ -7,7 +7,7 @@ import {
     sortTerms,
 } from '../typing/analyze';
 import { hashObject, idFromName, idName, refName } from '../typing/env';
-import { binOps, bool } from '../typing/preset';
+import { binOps, bool, int } from '../typing/preset';
 import {
     EffectRef,
     Env,
@@ -25,7 +25,13 @@ import {
 import { typeScriptPrelude } from './fileToTypeScript';
 import { walkPattern, walkTerm, wrapWithAssert } from '../typing/transform';
 import * as ir from './ir/intermediateRepresentation';
-import { Exprs, optimize, optimizeDefineNew } from './ir/optimize/optimize';
+import {
+    Exprs,
+    javascriptOpts,
+    optimize,
+    optimizeRepeatedly,
+    TypeDefs,
+} from './ir/optimize/optimize';
 import {
     Loc,
     Type as IRType,
@@ -56,6 +62,7 @@ import { uniquesReallyAreUnique } from './ir/analyze';
 import { LocatedError } from '../typing/errors';
 import { Location } from '../parsing/parser';
 import { showViolation, validate } from './ir/validate';
+import { debugExpr } from './irDebugPrinter';
 
 const reservedSyms = ['default', 'async', 'await'];
 
@@ -257,7 +264,7 @@ export const _termToTs = (
                         termToTs(env, opts, term.args[1]),
                     );
                 }
-                return t.binaryExpression(
+                const exp = t.binaryExpression(
                     // @ts-ignore
                     term.target.name === '++' ? '+' : term.target.name,
                     termToTs(env, opts, term.args[0]),
@@ -265,6 +272,16 @@ export const _termToTs = (
                     // termToTs(env, opts, term.target),
                     // term.args.map((arg) => termToTs(env, opts, arg)),
                 );
+                const a0 = term.args[0].is;
+                if (
+                    a0.type === 'ref' &&
+                    a0.ref.type === 'builtin' &&
+                    a0.ref.name === 'int' &&
+                    '/' === term.target.name
+                ) {
+                    return t.binaryExpression('|', exp, t.numericLiteral(0));
+                }
+                return exp;
             }
             return maybeWithComment(
                 t.callExpression(
@@ -617,6 +634,10 @@ export const _termToTs = (
         }
         case 'genTerm':
             throw new Error(`No genTerms in typescript yet`);
+        case 'Enum':
+        case 'SpecializeEnum':
+            // js doesn't need explicit casting to or from enum
+            return termToTs(env, opts, term.inner);
         default:
             let _v: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
@@ -650,13 +671,24 @@ export const recordAttributeName = (
     env: Env,
     ref: Reference | string,
     idx: number,
+    typeDefs?: TypeDefs,
 ) => {
     if (typeof ref !== 'string' && ref.type === 'builtin') {
         return `${ref.name}_${idx}`;
     }
     const id = typeof ref === 'string' ? ref : idName(ref.id);
+    if (typeDefs && typeDefs[id]) {
+        const t = typeDefs[id].typeDef;
+        if (t.ffi) {
+            return t.ffi.names[idx];
+        }
+        if (typeof ref === 'string') {
+            return `h${ref}_${idx}`;
+        }
+        return `h${idName(ref.id)}_${idx}`;
+    }
     const t = env.global.types[id] as RecordDef;
-    if (t.ffi) {
+    if (t && t.ffi) {
         return t.ffi.names[idx];
     }
     if (typeof ref === 'string') {
@@ -750,6 +782,8 @@ export const stmtToTs = (
                 ),
                 stmt.loc,
             );
+        default:
+            throw new Error(`Unahdneld stmt type`);
     }
 };
 
@@ -785,18 +819,129 @@ export const lambdaBodyToTs = (
 const printRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : ref.id.hash;
 
-export const fileToTypescript = (
-    expressions: Array<Term>,
+const flat = <T>(v: Array<Array<T>>) => ([] as Array<T>).concat(...v);
+
+export const decoratorExports = (env: Env) => {
+    return flat(
+        flat(
+            Object.keys(env.global.decoratorNames).map((name) => {
+                return env.global.decoratorNames[name].map(
+                    (id, i): Array<t.Statement> => {
+                        const decl = env.global.decorators[idName(id)];
+                        const args = decl.typeVbls.length
+                            ? decl.typeVbls.map((_, i) => 'T' + i)
+                            : null;
+                        const suffixed = name + (i === 0 ? '' : '$' + i);
+                        return [
+                            t.exportNamedDeclaration(
+                                t.variableDeclaration('const', [
+                                    t.variableDeclarator(
+                                        t.identifier(suffixed + '_id'),
+                                        t.stringLiteral(idName(id)),
+                                    ),
+                                ]),
+                            ),
+                            // t.exportNamedDeclaration(
+                            //     t.tsTypeAliasDeclaration(
+                            //         t.identifier(suffixed),
+                            //         args
+                            //             ? t.tsTypeParameterDeclaration(
+                            //                   args.map((n) =>
+                            //                       t.tSTypeParameter(
+                            //                           null,
+                            //                           null,
+                            //                           n,
+                            //                       ),
+                            //                   ),
+                            //               )
+                            //             : null,
+                            //         t.tsTypeReference(
+                            //             t.identifier('t_' + idName(id)),
+                            //             args
+                            //                 ? t.tsTypeParameterInstantiation(
+                            //                       args.map((n) =>
+                            //                           t.tsTypeReference(
+                            //                               t.identifier(n),
+                            //                           ),
+                            //                       ),
+                            //                   )
+                            //                 : null,
+                            //         ),
+                            //     ),
+                            // ),
+                        ];
+                    },
+                );
+            }),
+        ),
+    );
+};
+
+export const typeExports = (env: Env) => {
+    return flat(
+        flat(
+            Object.keys(env.global.typeNames).map((name) => {
+                return env.global.typeNames[name].map(
+                    (id, i): Array<t.Statement> => {
+                        const decl = env.global.types[idName(id)];
+                        const args = decl.typeVbls.length
+                            ? decl.typeVbls.map((_, i) => 'T' + i)
+                            : null;
+                        const suffixed = name + (i === 0 ? '' : '$' + i);
+                        return [
+                            t.exportNamedDeclaration(
+                                t.variableDeclaration('const', [
+                                    t.variableDeclarator(
+                                        t.identifier(suffixed + '_id'),
+                                        t.stringLiteral(idName(id)),
+                                    ),
+                                ]),
+                            ),
+                            t.exportNamedDeclaration(
+                                t.tsTypeAliasDeclaration(
+                                    t.identifier(suffixed),
+                                    args
+                                        ? t.tsTypeParameterDeclaration(
+                                              args.map((n) =>
+                                                  t.tSTypeParameter(
+                                                      null,
+                                                      null,
+                                                      n,
+                                                  ),
+                                              ),
+                                          )
+                                        : null,
+                                    t.tsTypeReference(
+                                        t.identifier('t_' + idName(id)),
+                                        args
+                                            ? t.tsTypeParameterInstantiation(
+                                                  args.map((n) =>
+                                                      t.tsTypeReference(
+                                                          t.identifier(n),
+                                                      ),
+                                                  ),
+                                              )
+                                            : null,
+                                    ),
+                                ),
+                            ),
+                        ];
+                    },
+                );
+            }),
+        ),
+    );
+};
+
+export const typeDeclarations = (
     env: Env,
     opts: OutputOptions,
-    irOpts: IOutputOptions,
-    assert: boolean,
-    includeImport: boolean,
-    builtinNames: Array<string>,
+    effectIds: Array<string>,
+    allTypes: Array<string>,
 ) => {
-    const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
+    const items: Array<t.Statement> = [];
 
-    Object.keys(env.global.effects).forEach((r) => {
+    effectIds.forEach((r) => {
         const id = idFromName(r);
         const constrs = env.global.effects[r];
         items.push(
@@ -821,26 +966,6 @@ export const fileToTypescript = (
             ),
         );
     });
-
-    const orderedTerms = expressionDeps(
-        env,
-        expressions.concat(
-            Object.keys(env.global.exportedTerms).map((name) => ({
-                type: 'ref',
-                ref: {
-                    type: 'user',
-                    id: env.global.exportedTerms[name],
-                },
-                location: nullLocation,
-                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
-            })),
-        ),
-    );
-
-    const allTypes = expressionTypeDeps(
-        env,
-        orderedTerms.map((t) => env.global.terms[t]),
-    );
 
     allTypes.forEach((r) => {
         const constr = env.global.types[r];
@@ -881,7 +1006,7 @@ export const fileToTypescript = (
             return;
         }
         const comment = printToString(recordToPretty(env, id, constr), 100);
-        const subTypes = getAllSubTypes(env.global, constr);
+        const subTypes = getAllSubTypes(env.global, constr.extends);
         items.push(
             t.addComment(
                 t.tsTypeAliasDeclaration(
@@ -932,6 +1057,49 @@ export const fileToTypescript = (
         );
     });
 
+    return items;
+};
+
+export const fileToTypescript = (
+    expressions: Array<Term>,
+    env: Env,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    assert: boolean,
+    includeImport: boolean,
+    builtinNames: Array<string>,
+) => {
+    const items = typeScriptPrelude(opts.scope, includeImport, builtinNames);
+
+    const orderedTerms = expressionDeps(
+        env,
+        expressions.concat(
+            Object.keys(env.global.exportedTerms).map((name) => ({
+                type: 'ref',
+                ref: {
+                    type: 'user',
+                    id: env.global.exportedTerms[name],
+                },
+                location: nullLocation,
+                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
+            })),
+        ),
+    );
+
+    const allTypes = expressionTypeDeps(
+        env,
+        orderedTerms.map((t) => env.global.terms[t]),
+    );
+
+    items.push(
+        ...typeDeclarations(
+            env,
+            opts,
+            Object.keys(env.global.effects),
+            allTypes,
+        ),
+    );
+
     // const irOpts = {
     // limitExecutionTime: opts.limitExecutionTime,
     // };
@@ -945,7 +1113,7 @@ export const fileToTypescript = (
 
         const id = idFromName(idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
-        const comment = printToString(declarationToPretty(senv, id, term), 100);
+        let comment = printToString(declarationToPretty(senv, id, term), 100);
         senv.local.unique.current = maxUnique(term) + 1;
         term = liftEffects(senv, term);
         // TODO: This is too easy to miss. Bake it in somewhere.
@@ -956,7 +1124,9 @@ export const fileToTypescript = (
         } catch (err) {
             const outer = new LocatedError(
                 term.location,
-                `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+                `Failed while typing for js ${idRaw} : ${
+                    env.global.idNames[idRaw] || 'no name'
+                }`,
             ).wrap(err);
             //     .toString();
             // // console.error( outer);
@@ -980,12 +1150,28 @@ export const fileToTypescript = (
         //     irTerm = optimizeAggressive(senv, irTerms, irTerm, id);
         // }
         if (opts.optimize) {
-            irTerm = optimizeDefineNew(senv, irTerm, id, null);
+            const opt = optimizeRepeatedly(javascriptOpts);
+            irTerm = opt(
+                {
+                    env: senv,
+                    exprs: irTerms,
+                    types: {},
+                    id,
+                    optimize: opt,
+                    opts: {},
+                    notes: null,
+                },
+                irTerm,
+            );
+            // irTerm = optimizeDefineNew(senv, irTerm, id, null);
         }
         // then pop over to glslPrinter and start making things work.
         uniquesReallyAreUnique(irTerm);
         // console.log('otho');
         irTerms[idRaw] = { expr: irTerm, inline: false };
+
+        comment += '\n' + printToString(debugExpr(senv, irTerm), 100);
+
         items.push(
             declarationToTs(
                 senv,
@@ -998,25 +1184,55 @@ export const fileToTypescript = (
     });
 
     expressions.forEach((term) => {
-        const comment = printToString(termToPretty(env, term), 100);
+        const idRaw = hashObject(term);
+        const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
+        // let comment = printToString(declarationToPretty(senv, id, term), 100);
+        senv.local.unique.current = maxUnique(term) + 1;
+
+        let comment = printToString(termToPretty(senv, term), 100);
         if (assert && typesEqual(term.is, bool)) {
             term = wrapWithAssert(term);
         }
-        term = liftEffects(env, term);
-        const irTerm = ir.printTerm(env, irOpts, term);
+        term = liftEffects(senv, term);
+        let irTerm = ir.printTerm(senv, irOpts, term);
+        uniquesReallyAreUnique(irTerm);
+
+        if (opts.optimize) {
+            const opt = optimizeRepeatedly(javascriptOpts);
+            irTerm = opt(
+                {
+                    env: senv,
+                    exprs: irTerms,
+                    types: {},
+                    id: idFromName(hashObject(term)),
+                    optimize: opt,
+                    opts: {},
+                    notes: null,
+                },
+                irTerm,
+            );
+            // irTerm = optimizeDefineNew(senv, irTerm, id, null);
+        }
+
+        // then pop over to glslPrinter and start making things work.
+        uniquesReallyAreUnique(irTerm);
+        comment += '\n' + printToString(debugExpr(senv, irTerm), 100);
+
         items.push(
             t.addComment(
                 t.expressionStatement(
                     termToTs(
-                        env,
+                        senv,
                         opts,
                         optimize(
                             {
-                                env,
+                                env: senv,
                                 exprs: {},
+                                types: {},
                                 id: idFromName(hashObject(term)),
                                 opts: {},
                                 optimize: optimize,
+                                notes: null,
                             },
                             irTerm,
                         ),
