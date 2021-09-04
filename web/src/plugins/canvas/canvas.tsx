@@ -172,6 +172,7 @@ export const CanvasSceneView = <T,>({
             <canvas
                 width={value.size.x}
                 height={value.size.y}
+                style={{ maxWidth: '100vw' }}
                 ref={(node) => {
                     if (node) {
                         canvas.current = node;

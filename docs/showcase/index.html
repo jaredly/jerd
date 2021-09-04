@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf8" />
 <title>Jerd Showcase</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.gstatic.com" />
 <link
     href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@200;300;400&display=swap"
@@ -24,6 +25,11 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+    }
+    @media (max-width: 400px) {
+        #root > div {
+            align-items: stretch;
+        }
     }
 </style>
 <body>

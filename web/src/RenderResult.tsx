@@ -588,7 +588,9 @@ function renderSliders(
     >,
 ) {
     return (
-        <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <div
+            style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}
+        >
             {Object.keys(sliderData.sliders).map((hash) => {
                 const idxs = Object.keys(sliderData.sliders[hash]);
                 if (!idxs.length) {
@@ -600,7 +602,7 @@ function renderSliders(
                             {termAndEnvWithSliders.env.global.idNames[hash] ||
                                 (hash === mainHash ? '' : '#' + hash)}
                         </h4>
-                        <div style={{ display: 'flex' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                             {idxs.map((idx) => {
                                 const config =
                                     sliderData.sliders[hash][parseInt(idx)];

@@ -9,6 +9,7 @@ Do they live in metaData? I think so.
 - [x] export a pinnable thing, the full dependent env, right?
   yassssss so good
 - [ ] umm now I really want to be able to persist the slider valuessssss
+  - hm that would require a little bit more jiggering; or ... hm ... yeah because sliders don't know how to "save" and "restore" their state just yet. but that'd be very cool.
 
 
 
