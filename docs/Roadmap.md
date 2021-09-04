@@ -1,6 +1,15 @@
 
 Recreate this! https://twitter.com/matthen2/status/1249611168265547776
 
+Ok, we're well on our way.
+Let's get some test cases going though.
+Do they live in metaData? I think so.
+
+- [x] yayy so much goodness. I mean the editing experience leaves a lot to be desired
+- [ ] export a pinnable thing, the full dependent env, right?
+
+
+
 BUGS
 - [x] show errors below please! Need to know why it's not working.
 - [x] uhhh why is glsl not using native types anymore??? I should have been keeping track of this... oh it was prelude-types needing to be regenerated.
@@ -14,6 +23,7 @@ BUGS
 - [ ] fix pinning. make it work with proposed and sliders and such.
 
 - [ ] ok so somewhere we're not handling unique++ right.
+  because the unique isn't ... ... .. at what point
 
 - [x] ugh ok fix the currently failing tests.
 - [x] enums needs to be able to declare inline records, pleeease
@@ -399,6 +409,7 @@ Levels of this working
   - they can also choose to only show a specific set of test cases
 - there should be a well-known TestCase type that has a render plugin, and also a render plugin for
   an array of TestCases.
+- do we specify test cases Display config? Or ... set that up some other way? hmmm ...
 
 #### Alternatives / Variants????
 I should wireframe this.

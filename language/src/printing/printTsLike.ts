@@ -679,9 +679,16 @@ export const _termToPretty = (env: Env, term: Term): PP => {
         case 'apply':
             const asInfo = getAsInfo(term);
             if (asInfo != null) {
+                const innerBin =
+                    asInfo.value.type === 'apply' &&
+                    ((asInfo.value.args.length === 2 &&
+                        isBinOp(env, asInfo.value.target)) ||
+                        getAsInfo(asInfo.value) != null);
                 return items(
                     [
+                        innerBin ? atom('(') : null,
                         termToPretty(env, asInfo.value),
+                        innerBin ? atom(')') : null,
                         atom(' '),
                         idPretty('as', idName(asInfo.id), 'as'),
                         atom(' '),

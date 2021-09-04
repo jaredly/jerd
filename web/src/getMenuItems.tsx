@@ -103,7 +103,12 @@ export const getMenuItems = ({
                           if (cell.content.type !== 'term') {
                               return;
                           }
-                          const text = generateExport(env, cell.content.id);
+                          const text = generateExport(
+                              env,
+                              cell.content.id,
+                              undefined,
+                              cell.display,
+                          );
                           navigator.clipboard.writeText(text);
                       },
                   },
@@ -117,6 +122,7 @@ export const getMenuItems = ({
                               env,
                               cell.content.id,
                               false,
+                              cell.display,
                           );
                           navigator.clipboard.writeText(text);
                       },
