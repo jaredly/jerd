@@ -133,7 +133,11 @@ const typePattern = (
                     );
                 }
                 if (decl.type === 'Enum') {
-                    const allEnums = getEnumSuperTypes(env, expectedType);
+                    const allEnums = getEnumSuperTypes(
+                        env,
+                        expectedType,
+                        pattern.location,
+                    );
                     let found = null;
                     for (let ref of allEnums) {
                         if (refsEqual(ref.ref, { type: 'user', id })) {

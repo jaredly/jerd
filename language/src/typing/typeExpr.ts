@@ -792,13 +792,20 @@ export const typeFitsEnum = (
 export const getEnumSuperTypes = (
     env: Env,
     enumRef: TypeReference,
+    location: Location,
 ): Array<UserTypeReference> => {
     let enumDef = typeDef(env.global, enumRef.ref);
     if (enumDef == null) {
-        throw new Error(`Unknown type definition ${showType(env, enumRef)}`);
+        throw new LocatedError(
+            location,
+            `Unknown type definition ${showType(env, enumRef)}`,
+        );
     }
     if (enumDef.type !== 'Enum') {
-        throw new Error(`Not an enum, it's a record ${showType(env, enumRef)}`);
+        throw new LocatedError(
+            location,
+            `Not an enum, it's a record ${showType(env, enumRef)}`,
+        );
     }
     enumDef = applyTypeVariablesToEnum(
         env,
@@ -810,7 +817,7 @@ export const getEnumSuperTypes = (
         return enumDef.extends;
     }
     return enumDef.extends.concat(
-        ...enumDef.extends.map((r) => getEnumSuperTypes(env, r)),
+        ...enumDef.extends.map((r) => getEnumSuperTypes(env, r, location)),
     );
 };
 

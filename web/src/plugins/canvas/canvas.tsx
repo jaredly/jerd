@@ -68,6 +68,9 @@ export const drawShapes = (
     ctx: CanvasRenderingContext2D,
     shapes: Array<Drawable>,
 ) => {
+    if (!shapes) {
+        return;
+    }
     shapes.forEach((shape) => {
         if (shape.type === 'Fill') {
             ctx.beginPath();
@@ -150,6 +153,9 @@ export const CanvasSceneView = <T,>({
                 ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             }
             drawShapes(ctx, value.draw(state.current));
+            if (fps <= 0) {
+                return;
+            }
             if (fps >= 60.0) {
                 tid = requestAnimationFrame(fn);
             } else {
