@@ -392,11 +392,14 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                     inner.push(typeExpr(innerEnv, item));
                 }
             }
+            const last = inner.length ? inner[inner.length - 1] : null;
             return {
                 type: 'sequence',
                 sts: inner,
                 location: expr.location,
-                is: inner.length ? inner[inner.length - 1].is : void_,
+                // TODO: I think I should just make the `is` of Let be void_, right?
+                // not sure if that would break something else though.
+                is: last && last.type !== 'Let' ? last.is : void_,
             };
         }
         case 'If': {

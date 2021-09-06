@@ -3,6 +3,9 @@ import { printToString } from '../printing/printer';
 import { toplevelToPretty } from '../printing/printTsLike';
 import { addToplevelToEnv, typeToplevelT } from './env';
 import { presetEnv } from './preset';
+import { transformToplevel } from './transform';
+import { showLocation } from './typeExpr';
+import { TypeError } from './types';
 
 const process = (raw: string) => {
     let env = presetEnv({});
@@ -14,12 +17,31 @@ const process = (raw: string) => {
         throw err;
     }
     const result: Array<string> = [];
+    const errors: Array<TypeError> = [];
     toplevels.forEach((rawTop) => {
         const top = typeToplevelT(env, rawTop);
+        transformToplevel(
+            top,
+            {
+                term: (term, _) => {
+                    if (term.type === 'TypeError') {
+                        errors.push(term);
+                    }
+                    return null;
+                },
+            },
+            null,
+        );
         env = addToplevelToEnv(env, top).env;
         result.push(printToString(toplevelToPretty(env, top), 100));
     });
-    return result.join(';\n');
+    return (
+        result.join(';\n') +
+        (errors.length
+            ? `\n// TYPE ERRORS\n - ` +
+              errors.map((err) => showLocation(err.location)).join('\n - ')
+            : '')
+    );
 };
 
 describe('basic toplevels', () => {
@@ -145,7 +167,9 @@ describe('expression types', () => {
             const res = (2 + @what () => 20)`),
         ).toMatchInlineSnapshot(`
             "decorator what#6f08788e;
-            const res#6c004d82 = 2 +#builtin @what#6f08788e (): int#builtin ={}> 20"
+            const res#6c004d82 = 2 +#builtin @what#6f08788e (): int#builtin ={}> 20
+            // TYPE ERRORS
+             - 3:36-3:44"
         `));
 
     it('apply suffix', () =>
@@ -236,6 +260,14 @@ describe('expression types', () => {
                 float#builtin,
             > ={}> (a#:0, b#:1);
             const m#4fb5f0cc = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10"
+        `));
+
+    it(`blocks with just a const should ... have a void type?`, () =>
+        expect(process(`const n = (): void => {const x = 10 }`))
+            .toMatchInlineSnapshot(`
+            "const n#36351150 = (): void#builtin ={}> {
+                const x#:0 = 10;
+            }"
         `));
 
     it('blocks', () =>

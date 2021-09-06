@@ -115,6 +115,7 @@ export const CanvasSceneView = <T,>({
     const canvas = React.useRef(null as null | HTMLCanvasElement);
     const [loaded, setLoaded] = React.useState(false);
     const state = React.useRef(value.initial);
+    const initial$ = React.useRef(value.initial);
 
     const [paused, setPaused] = React.useState(startPaused);
 
@@ -143,6 +144,10 @@ export const CanvasSceneView = <T,>({
         const ctx = canvas.current.getContext('2d');
         if (!ctx) {
             return;
+        }
+        if (value.initial !== initial$.current) {
+            initial$.current = value.initial;
+            state.current = value.initial;
         }
         const fps = value.fps;
         // let state = value.initial;

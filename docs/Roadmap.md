@@ -9,7 +9,23 @@ Do they live in metaData? I think so.
 - [x] export a pinnable thing, the full dependent env, right?
   yassssss so good
 - [ ] umm now I really want to be able to persist the slider valuessssss
-  - hm that would require a little bit more jiggering; or ... hm ... yeah because sliders don't know how to "save" and "restore" their state just yet. but that'd be very cool.
+  - hm that would require a little bit more jiggering; or ... hm ... yeah because sliders don't know how to "save" and "restore" their state just yet. but that'd be very cool. Yeah I can just do the same preemptive term-rewriting, right? I mean it might be annoying, we'll see
+- [ ] hrmmmm I reeeeally want default values for functions. buuut question is, how do they work?
+      what happens is: they don't impact the type at all. So if you have a function of type T, you know nothing about default args, and have no way of accessing them. Only if what you call is ... a literal ... that you have ready access to ... hmm .... that's maybe a little wonky if for example you pop it into a tuple, and when you get it out you can't use the default arguments. Also to have /type/checking need to resolve the variable, potentially multiple times .... but I think that's fine.
+      Ok, and then same story, once we hit the IR, function arguments are injected the same way you might expect. hmm this /also/ means that, by construction, you can totally access local scope within the default arguments, because they won't be able to be applied in a case where they aren't accessible. Right? Like you have to be accessing the function in the same scope. That's super rad.
+      So: the lambda expr needs a `defaults` list.
+
+
+BIG Usability issues:
+- [ ] it looks like { const x = 10 } has type int, which is bad.
+- [ ] oh I apparently can't rename terms in a cell. Figure out what to do there.
+- [ ] dontttt propage terms that have errors in them!
+- [ ] when I refuse to execute something because it has TypeErrors, show a useful thing!
+- [x] when you select a node fully and type to replace it, it should remove the surrounding span & any formatting.
+- [ ] selecting some things and typing should remove the selection, always folks.
+- [ ] my execution time limit doesn't seem to be working, figure that out
+- [ ] there are a lot of ways that my new thing might error, and I really need to catch them
+- [ ] I might want a `SimpleScene` type that doesn't have state, but does have bounds ...
 
 
 
