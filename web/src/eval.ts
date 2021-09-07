@@ -112,7 +112,12 @@ const runWithExecutionLimit = (
                 // Checking the time is probably a little expensive
                 if (executionLimit.ticks % 100 === 0) {
                     if (Date.now() > executionLimit.maxTime) {
-                        throw new TimeoutError('Execution took too long');
+                        if (
+                            confirm('Execution is taking a long time -- abort?')
+                        ) {
+                            throw new TimeoutError('Execution took too long');
+                        }
+                        executionLimit.maxTime = Date.now() + 10 * 1000;
                     }
                 }
             },
@@ -190,7 +195,7 @@ export const runTerm = (
             // @ts-ignore
             evalEnv.source[dep] = code;
             evalEnv.executionLimit.enabled = true;
-            evalEnv.executionLimit.maxTime = Date.now() + 200;
+            evalEnv.executionLimit.maxTime = Date.now() + 2000;
             evalEnv.executionLimit.ticks = 0;
             try {
                 const result = runWithExecutionLimit(

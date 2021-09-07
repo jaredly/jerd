@@ -1,4 +1,19 @@
 
+We need a new plan for time limits. If I'm doing something computationally intensive, 
+ooooh am I going to bring my go compilation target back online so I can run eulers-spirals as a server? hmmmmmmmm. Then I could get really high fidelity dealios. yeah that would be super fun.
+I mean I think I could?
+Also, I wonder if I could beef up performance by turning on some optimizations.
+
+## Better sliders, can rely on other sliders
+
+- [ ] allow sliders to rely on other constants, and math expressions thanks.
+  - I mean I guess I don't actually have to do this right now, but it sure would be nice.
+- [ ] auto-infer slider title if we're being assigned to a value?
+
+At some point I should think about a hazel-esque thing where you can type arbitrary jerd expressions into the slider box, and it knows what variables are in scope for that expression, etc.
+
+## Default function arguments!! Yes please and thanks.
+
 Recreate this! https://twitter.com/matthen2/status/1249611168265547776
 
 Ok, we're well on our way.
@@ -24,6 +39,8 @@ BIG Usability issues:
 - [x] when you select a node fully and type to replace it, it should remove the surrounding span & any formatting.
 - [ ] selecting some things and typing should remove the selection, always folks.
 - [ ] my execution time limit doesn't seem to be working, figure that out
+  - oof, ok it's the drawing time that's taking too long, not sure how to sort that out.
+  - I mean I could do some time slicing, or like keep track of "how long it takes to render N segments", and if it looks like we'd be over budget let them know we're going off auto.
 - [ ] there are a lot of ways that my new thing might error, and I really need to catch them
 - [ ] I might want a `SimpleScene` type that doesn't have state, but does have bounds ...
 

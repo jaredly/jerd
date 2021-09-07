@@ -349,9 +349,6 @@ const RenderResult_ = ({
                     padding: 8,
                 }}
             >
-                {typeof value === 'function'
-                    ? null
-                    : JSON.stringify(value, null, 2)}
                 {matching && matching.length ? (
                     <div>
                         <h4>Available render plugins</h4>
@@ -368,6 +365,9 @@ const RenderResult_ = ({
                         ))}
                     </div>
                 ) : null}
+                {typeof value === 'function'
+                    ? null
+                    : JSON.stringify(value, null, 2)}
             </div>
         );
     } else {
@@ -376,7 +376,6 @@ const RenderResult_ = ({
 
     return (
         <div>
-            {body}
             {renderPlugin || typeof value !== 'function'
                 ? renderSliders(
                       id?.hash,
@@ -386,6 +385,7 @@ const RenderResult_ = ({
                       setSliderState,
                   )
                 : null}
+            {body}
         </div>
     );
 };
