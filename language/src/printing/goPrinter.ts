@@ -331,25 +331,26 @@ export const typeToGo = (env: Env, opts: OutputOptions, type: ir.Type): PP => {
         case 'Array':
             if (type.inferredSize === null) {
                 return items([
+                    atom('[]'),
                     typeToGo(env, opts, type.inner),
-                    atom('['),
-                    atom('NULL'),
-                    atom(']'),
+                    // atom('['),
+                    // atom('NULL'),
+                    // atom(']'),
                 ]);
             }
             if (type.inferredSize.type === 'exactly') {
                 return items([
-                    typeToGo(env, opts, type.inner),
                     atom('['),
                     atom(type.inferredSize.size.toString()),
                     atom(']'),
+                    typeToGo(env, opts, type.inner),
                 ]);
             }
             return items([
-                typeToGo(env, opts, type.inner),
                 atom('['),
                 debugInferredSize(env, opts, type.inferredSize),
                 atom(']'),
+                typeToGo(env, opts, type.inner),
             ]);
         default:
             return atom(`invalid_${type.type.replace(/-/g, '_')}`);
@@ -716,6 +717,19 @@ export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 (s) => s.type !== 'Spread',
             ) as Array<Expr>;
             if (elems.length < expr.items.length) {
+                if (
+                    expr.items[0].type === 'Spread' &&
+                    elems.length === expr.items.length - 1
+                ) {
+                    return items([
+                        atom('append'),
+                        args(
+                            [expr.items[0].value]
+                                .concat(expr.items.slice(1) as Array<Expr>)
+                                .map((item) => termToGo(env, opts, item)),
+                        ),
+                    ]);
+                }
                 return items([
                     atom('ArrayWithSpreads'),
                     args(
@@ -739,9 +753,13 @@ export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 // throw new Error(`Array spread not supported in glsl`);
             }
             return items([
-                typeToGo(env, opts, expr.is.inner),
                 atom('[]'),
-                args(elems.map((item) => termToGo(env, opts, item))),
+                typeToGo(env, opts, expr.is.inner),
+                args(
+                    elems.map((item) => termToGo(env, opts, item)),
+                    '{',
+                    '}',
+                ),
             ]);
         case 'arrayIndex':
             return items([

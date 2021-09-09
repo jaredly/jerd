@@ -11,4 +11,6 @@ type Hello = {
 
 Hello{age: world(20, 17), name: "whatsit"};
 (2, 3);
-// [1, 2]
+[1, 2];
+const m = [1,2];
+[...m, 3];
