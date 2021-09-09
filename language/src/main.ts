@@ -21,6 +21,7 @@ import {
     typesEqual,
     TypeError as TypeErrorTerm,
 } from './typing/types';
+import * as preset from './typing/preset';
 import { printToString } from './printing/printer';
 import { termToPretty, typeToPretty } from './printing/printTsLike';
 import {
@@ -261,7 +262,17 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
         const raw = fs.readFileSync(fname, 'utf8');
         const parsed: Array<Toplevel> = parse(raw);
 
-        let initialEnv = presetEnv({});
+        const math = ['sin', 'cos', 'tan'];
+        const builtins: { [key: string]: Type } = {};
+        math.forEach((name) => {
+            builtins[name] = preset.pureFunction([preset.float], preset.float);
+        });
+        builtins['intToFloat'] = preset.pureFunction(
+            [preset.int],
+            preset.float,
+        );
+
+        let initialEnv = presetEnv(builtins);
         const { expressions, env } = typeFile(parsed, initialEnv, fname);
         const text = printToString(fileToGo(expressions, env, assert), 100);
 

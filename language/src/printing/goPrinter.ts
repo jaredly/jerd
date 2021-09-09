@@ -85,6 +85,7 @@ import {
     float,
     hasUndefinedReferences,
     int,
+    intLiteral,
     pureFunction,
     recordDefFromTermType,
     showType,
@@ -290,6 +291,18 @@ export const refToGo = (
     isType: boolean,
 ) => {
     if (ref.type === 'builtin') {
+        if (['sin', 'cos', 'tan'].includes(ref.name)) {
+            return atom(
+                `math.${ref.name[0].toUpperCase() + ref.name.slice(1)}`,
+            );
+        }
+        if (isType && ref.name === 'float') {
+            return atom('float64');
+        }
+        if (isType && ref.name === 'int') {
+            return atom('int64');
+        }
+
         return atom(ref.name);
     }
     return idToGo(env, opts, ref.id, isType);
@@ -348,7 +361,7 @@ export const typeToGo = (env: Env, opts: OutputOptions, type: ir.Type): PP => {
             }
             return items([
                 atom('['),
-                debugInferredSize(env, opts, type.inferredSize),
+                // debugInferredSize(env, opts, type.inferredSize),
                 atom(']'),
                 typeToGo(env, opts, type.inner),
             ]);
@@ -500,6 +513,15 @@ export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             }
             if (expr.name === 'atan2') {
                 return atom('atan');
+            }
+            if (expr.name === 'cos') {
+                return atom('math.Cos');
+            }
+            if (expr.name === 'sin') {
+                return atom('math.Sin');
+            }
+            if (expr.name === 'intToFloat') {
+                return atom('float64');
             }
             return atom(expr.name);
         case 'attribute':
@@ -819,7 +841,7 @@ export const declarationToGo = (
                 ),
                 '(',
                 ')',
-                false,
+                true,
             ),
             atom(' '),
             irTypesEqual(term.res, void_)
@@ -859,7 +881,7 @@ export const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
                 return items([
                     atom('for '),
                     items([
-                        atom('(; '),
+                        atom('; '),
                         symToGo(env, opts, stmt.bounds.sym),
                         atom(' '),
                         atom(stmt.bounds.op),
@@ -876,7 +898,7 @@ export const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
                         // symToGo(env, opts, stmt.bounds.sym),
                         // atom(' = '),
                         // termToGo(env, opts, stmt.bounds.step),
-                        atom(')'),
+                        atom(''),
                     ]),
                     atom(' '),
                     stmtToGo(env, opts, stmt.body),
@@ -923,15 +945,17 @@ export const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
             }
             if (!stmt.value) {
                 return items([
-                    typeToGo(env, opts, stmt.is),
-                    atom(' '),
+                    atom('var '),
                     symToGo(env, opts, stmt.sym),
+                    atom(' '),
+                    typeToGo(env, opts, stmt.is),
                 ]);
             }
             return items([
-                typeToGo(env, opts, stmt.is),
-                atom(' '),
+                atom('var '),
                 symToGo(env, opts, stmt.sym),
+                atom(' '),
+                typeToGo(env, opts, stmt.is),
                 atom(' = '),
                 termToGo(env, opts, stmt.value),
             ]);
@@ -1038,7 +1062,7 @@ export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
             apply.args.map((arg) => termToGo(env, opts, arg)),
             '(',
             ')',
-            false,
+            true,
         ),
     ]);
 };
@@ -1169,7 +1193,7 @@ export const fileToGo = (
     });
     // console.log('MAIN IR', irTerms[idName(mainTerm)]);
     return pp.items(
-        [atom('import (\n"fmt"\n)\n')].concat(
+        [atom('import "fmt"\nimport "math"\n')].concat(
             items.concat([atom(`\nfunc main() { V${mainHash}(); }`)]),
         ),
     );

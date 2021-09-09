@@ -285,7 +285,10 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
                   args([atom(`"${recordDef.ffi.tag}"`)]),
                   atom(' '),
               ])
-            : null,
+            : items([
+                  atom('@unique'),
+                  args([atom(recordDef.unique.toString())]),
+              ]),
         atom('type ', ['keyword']),
         idToPretty(env, id, 'record'),
         typeVblDeclsToPretty(env, recordDef.typeVbls),
