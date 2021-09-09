@@ -383,9 +383,11 @@ export const typeMaybeConstantType = (env: Env, type: ParseType): Type => {
     return typeType(env, type);
 };
 
+// TODO: 
 export const typeDecoratorInner = (
     env: Env,
     item: DecoratorDef,
+    unique?: number,
 ): TypedDecoratorDef => {
     let restArg: null | any = null;
     let args: Array<DecoratorDefArg> = [];
@@ -410,7 +412,7 @@ export const typeDecoratorInner = (
         };
     }
     const d: TypedDecoratorDef = {
-        unique: typeInner.global.rng(),
+        unique: unique != null ? unique : typeInner.global.rng(),
         typeArgs: [],
         typeVbls,
         location: item.location,

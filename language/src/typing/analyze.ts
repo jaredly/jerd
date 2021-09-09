@@ -549,6 +549,32 @@ export const getUserTypeDependencies = (term: Term): Array<Id> => {
     ) as Array<UserReference>).map((r) => r.id);
 };
 
+export const getUsedDecorators = (terms: Array<Term>): Array<Id> => {
+    const all: { [key: string]: Id } = {};
+    // TODO: Maybe I should have a "map decorator" bit?
+    terms.forEach((term) =>
+        transform(term, {
+            type: (t) => {
+                if (term.decorators) {
+                    term.decorators.forEach((dec) => {
+                        all[idName(dec.name.id)] = dec.name.id;
+                    });
+                }
+                return null;
+            },
+            term: (term) => {
+                if (term.decorators) {
+                    term.decorators.forEach((dec) => {
+                        all[idName(dec.name.id)] = dec.name.id;
+                    });
+                }
+                return null;
+            },
+        }),
+    );
+    return Object.keys(all).map((k) => all[k]);
+};
+
 export const expressionDeps = (env: Env, terms: Array<Term>): Array<string> => {
     const allDeps: { [key: string]: Array<Id> } = {};
     terms.forEach((term) =>

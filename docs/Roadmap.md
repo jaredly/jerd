@@ -31,9 +31,20 @@ const drawSomething = (p: Vec2) ={Draw}> {
 // lol ok it, uh, wouldn't. Which is very interesting.
 
 Ok yeah, so let's go with the "svg" route.
-Ok, let's actually formalize the "go drawable" dealio here.
+Ok, let's actually formalize the "go drawable" dealio here. How can we get go "backends" (to use the Roc term) to work?
 
 
+- [-] get export actually working
+  - [x] fix type dependency tracking
+  - [x] export decorators if needed
+  - [ ] we need reproducable parsing for decorators! handle `@unique` on decorator definitions, and print them out as well.
+- [ ] get go generation to complete
+- [ ] make a go type generator! This will be about the point where I want much smarter enum packing, I imagine.
+  - I'll generate go types into a go-backends package, which can then use those types.
+- [ ] fix the go printer in whatever ways needed
+
+
+And then the go generator can be like "import this go-backends package, and `func main() { backend.run(myToplevelDealio )}`
 
 
 

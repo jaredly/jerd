@@ -3,6 +3,7 @@ import {
     idFromName,
     ToplevelT,
     ToplevelDefine,
+    ToplevelDecorator,
 } from '@jerd/language/src/typing/env';
 import {
     Env,
@@ -18,6 +19,7 @@ import * as pp from '@jerd/language/src/printing/printer';
 import {
     expressionDeps,
     expressionTypeDeps,
+    getUsedDecorators,
 } from '@jerd/language/src/typing/analyze';
 import { Display } from './State';
 
@@ -66,16 +68,31 @@ export const generateExport = (
             }
         },
     );
-    const items = typesInOrder.concat(depsInOrder).map((top) => {
-        if (top.type === 'Define' && idsEqual(id, top.id) && display) {
-            return pp.items([
-                pp.atom(`@display("${display.type}")\n`),
-                termToPretty(env, top.term),
-            ]);
-        } else {
-            return toplevelToPretty(env, top);
-        }
-    });
+
+    const decorators = getUsedDecorators(depsInOrder.map((t) => t.term)).map(
+        (id): ToplevelDecorator => ({
+            type: 'Decorator',
+            defn: env.global.decorators[idName(id)],
+            id,
+            location: nullLocation,
+            name: env.global.idNames[idName(id)],
+        }),
+    );
+
+    const items = typesInOrder
+        .concat(decorators)
+        .concat(depsInOrder)
+        .map((top) => {
+            if (top.type === 'Define' && idsEqual(id, top.id) && display) {
+                return pp.items([
+                    pp.atom(`@display("${display.type}")\n`),
+                    termToPretty(env, top.term),
+                ]);
+            } else {
+                return toplevelToPretty(env, top);
+            }
+        });
+
     return items
         .map((item) => pp.printToString(item, 100, { hideIds }))
         .join(';\n\n');
