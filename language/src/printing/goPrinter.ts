@@ -1199,3 +1199,41 @@ export const fileToGo = (
     );
     //, mainType: irTerms[idName(mainTerm)].expr.is };
 };
+
+/*
+func main() {
+	width := 1000
+	height := 1000
+	points := Vae2070ac(0, 0.0, 10.0, 0.0, T08f7c2ac{0.0, 0.0}, []T08f7c2ac{}, 200)
+	r := vector.NewRasterizer(width, height)
+	r.DrawOp = draw.Src
+	for i, point := range points {
+		if i == 0 {
+			r.MoveTo(float32(point.x), float32(point.y))
+		} else {
+			r.LineTo(float32(point.x), float32(point.y))
+		}
+	}
+	// r.MoveTo(1, 2)
+	// r.LineTo(20, 2)
+	// r.QuadTo(40.5, 15, 10, 20)
+	r.ClosePath()
+
+	dst := image.NewAlpha(image.Rect(0, 0, width, height))
+	r.Draw(dst, dst.Bounds(), image.Black, image.Point{500.0, 500.0})
+	w, _ := os.OpenFile("hello.png", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	defer w.Close()
+	png.Encode(w, dst)
+}
+
+
+
+
+
+
+
+
+
+
+
+*/

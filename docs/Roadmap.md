@@ -4,6 +4,14 @@
 We have euler-spiral-calc working just fine, which is super cool.
 We just need a way to hand it off to a thing that draws stuff, right?
 
+ok so I have hacked my way around a golang drawing dealio ..
+.. I'm not convinced it's a ton faster, though 🤔.
+I mean I'm still doing the "generate a very large array, then draw it". I really need to figure out how to combine those two.
+hmmmmmmmmmmmmmmmmmmmmmmmmmm what if I passed around a `ctx` variable as the first argument of all functions, and host-side thunk mappers could have access to it?
+That way it could be deep in the stack somewhere, and just call a thing. hmmm. that might be very nice.
+and it would only be done for functions that can have effects, right? I think so.
+
+Ok now that I've got the IR ... hmm ... I should try adding effects back in from the ground up. So that the IR will be well-formed.
 
 
 We need a new plan for time limits. If I'm doing something computationally intensive, 
