@@ -1,4 +1,11 @@
 
+# Generating some go here, it's pretty fun.
+
+We have euler-spiral-calc working just fine, which is super cool.
+We just need a way to hand it off to a thing that draws stuff, right?
+
+
+
 We need a new plan for time limits. If I'm doing something computationally intensive, 
 ooooh am I going to bring my go compilation target back online so I can run eulers-spirals as a server? hmmmmmmmm. Then I could get really high fidelity dealios. yeah that would be super fun.
 I mean I think I could?
