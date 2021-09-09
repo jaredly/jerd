@@ -17,7 +17,6 @@ import { minus, plus } from './arraySlices';
 import { Context, Optimizer2 } from './optimize';
 
 export const inferLoopBounds: Optimizer2 = (ctx: Context, expr: Expr) => {
-    console.log('Inferring bounds now');
     // Ok, so I find a loop that's unbounded
     // and by the way I'm collecting constants
     const constants: { [unique: number]: number } = {};

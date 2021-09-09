@@ -51,6 +51,7 @@ import {
     Env,
     expressionTypeDeps,
     getAllRecordAttributes,
+    makeTermExpr,
     makeZeroValue,
 } from './glslPrinter';
 // import { GoTester } from './GoTester';
@@ -773,7 +774,7 @@ export const declarationToGo = (
             term.note
                 ? atom(`/* ${term.note} */\n`)
                 : items([atom('/* '), debugExpr(env, term), atom(' */\n')]),
-            typeToGo(env, opts, term.res),
+            atom('func'),
             atom(' '),
             idToGo(env, opts, idFromName(idRaw), false),
             term.is.typeVbls.length
@@ -788,15 +789,17 @@ export const declarationToGo = (
             args(
                 term.args.map((arg) =>
                     items([
-                        typeToGo(env, opts, arg.type),
-                        atom(' '),
                         symToGo(env, opts, arg.sym),
+                        atom(' '),
+                        typeToGo(env, opts, arg.type),
                     ]),
                 ),
                 '(',
                 ')',
                 false,
             ),
+            atom(' '),
+            typeToGo(env, opts, term.res),
             atom(' '),
             block(term.body.items.map((item) => stmtToGo(env, opts, item))),
         ]);
@@ -1018,17 +1021,45 @@ export const fileToGo = (
     const irOpts: IOutputOptions = {};
     const includeComments = true;
 
-    const expressionIds: Array<Id> = expressions.map((term, i) => {
-        const hash = hashObject(term);
-        env.global.terms[hash] = term;
-        env.global.idNames[hash] = `toplevel_${i}`;
-        return idFromName(hash);
-    });
+    const mainTerm: Term = {
+        type: 'lambda',
+        args: [],
+        body: {
+            type: 'sequence',
+            is: preset.void_,
+            location: nullLocation,
+            sts: expressions,
+        },
+        idLocations: [],
+        is: {
+            type: 'lambda',
+            args: [],
+            res: preset.void_,
+            effectVbls: [],
+            effects: [],
+            location: nullLocation,
+            rest: null,
+            typeVbls: [],
+        },
+        location: nullLocation,
+    };
+
+    const mainHash = hashObject(mainTerm);
+    env.global.terms[mainHash] = mainTerm;
+    env.global.idNames[mainHash] = `main`;
+    // return idFromName(hash);
+
+    // const expressionIds: Array<Id> = expressions.map((term, i) => {
+    //     const hash = hashObject(term);
+    //     env.global.terms[hash] = term;
+    //     env.global.idNames[hash] = `toplevel_${i}`;
+    //     return idFromName(hash);
+    // });
 
     const { inOrder, irTerms } = assembleItemsForFile(
         env,
-        expressions,
-        expressionIds.map(idName),
+        [makeTermExpr(idFromName(mainHash), env)],
+        [mainHash],
         {},
         {},
         defaultOptimizer,
@@ -1091,6 +1122,8 @@ export const fileToGo = (
         );
     });
     // console.log('MAIN IR', irTerms[idName(mainTerm)]);
-    return { items, invalidLocs };
+    return pp.items(
+        items.concat([atom(`\nfunc main() { print(V${mainHash}()); }`)]),
+    );
     //, mainType: irTerms[idName(mainTerm)].expr.is };
 };
