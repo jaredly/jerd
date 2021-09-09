@@ -85,9 +85,31 @@ export const findBounds = (
     body: Block,
     argNames: Array<Symbol>,
     id: Id,
-): undefined | { bounds: LoopBounds; body: Block; after: Block } => {
-    const item = body.items[0];
-    if (body.items.length !== 1 || item.type !== 'if' || !item.no) {
+):
+    | undefined
+    | {
+          bounds: LoopBounds;
+          body: Block;
+          after: Block;
+          prefix: Array<Stmt>;
+      } => {
+    console.log('finding bounds');
+    // OH if the first one is "checkExecutionLimit", let it slide.
+    let item = body.items[0];
+    let expectedSize = 1;
+    const prefix: Array<Stmt> = [];
+    if (
+        item.type === 'Expression' &&
+        item.expr.type === 'apply' &&
+        item.expr.target.type === 'builtin' &&
+        item.expr.target.name === 'checkExecutionLimit'
+    ) {
+        prefix.push(item);
+        item = body.items[1];
+        expectedSize = 2;
+    }
+    if (body.items.length !== expectedSize || item.type !== 'if' || !item.no) {
+        console.log('body not an if', body.items.length, item.type, item);
         return;
     }
     const cond = item.cond;
@@ -97,6 +119,7 @@ export const findBounds = (
         cond.target.type !== 'builtin' ||
         !cmps.includes(cond.target.name)
     ) {
+        console.log('conidtion bad', cond);
         return;
     }
 
@@ -106,6 +129,7 @@ export const findBounds = (
     const no = noRes.calls.length && !noRes.hasLoop;
     // must be either one or the other
     if (yes === no) {
+        console.log('tail call must only be in one');
         return;
     }
 
@@ -138,6 +162,7 @@ export const findBounds = (
 
     // must be either one or the other
     if (leftConst === rightConst) {
+        console.log(`left or right must be constnat`);
         return;
     }
 
@@ -147,6 +172,7 @@ export const findBounds = (
         right.type === 'var' && nonConst.includes(right.sym.unique);
 
     if (leftNonConst === rightNonConst) {
+        console.log(`the other must not be const`);
         return;
     }
 
@@ -191,6 +217,7 @@ export const findBounds = (
     });
 
     if (step === false || step === null) {
+        console.log(`no step found`);
         return;
     }
 
@@ -201,6 +228,7 @@ export const findBounds = (
             op: op as any,
             step,
         },
+        prefix,
         body: yes ? item.yes : item.no!,
         after: yes ? item.no : item.yes!,
     };
@@ -252,6 +280,7 @@ export const tailCallRecursion = (
         type: 'Block',
         loc: body.loc,
         items: ([
+            ...(bounds ? bounds.prefix : []),
             // This is where we would define any de-slicers
             {
                 type: 'Loop',

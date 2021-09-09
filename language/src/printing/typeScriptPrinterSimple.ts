@@ -708,6 +708,25 @@ export const stmtToTs = (
         case 'Break':
             return withLocation(t.breakStatement(), stmt.loc);
         case 'Loop':
+            if (stmt.bounds) {
+                return withLocation(
+                    t.forStatement(
+                        null,
+                        t.binaryExpression(
+                            stmt.bounds.op,
+                            t.identifier(printSym(env, opts, stmt.bounds.sym)),
+                            termToTs(env, opts, stmt.bounds.end),
+                        ),
+                        t.assignmentExpression(
+                            '=',
+                            t.identifier(printSym(env, opts, stmt.bounds.sym)),
+                            termToTs(env, opts, stmt.bounds.step),
+                        ),
+                        blockToTs(env, opts, stmt.body),
+                    ),
+                    stmt.loc,
+                );
+            }
             return withLocation(
                 t.whileStatement(
                     withLocation(t.booleanLiteral(true), stmt.loc),

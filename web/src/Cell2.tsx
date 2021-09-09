@@ -17,6 +17,7 @@ import {
     Selection,
     updatePending,
     updateProposed,
+    ViewSource,
 } from './Cell';
 import {
     Cell,
@@ -154,6 +155,7 @@ const CellView_ = ({
     plugins,
     getHistory,
 }: CellProps) => {
+    const [showSource, setShowSource] = React.useState(false);
     const [state, updateLocal] = React.useReducer(
         reducer,
         {},
@@ -443,10 +445,8 @@ const CellView_ = ({
             onToggleSource={() => 'todo'}
             menuItems={getMenuItems({
                 dispatch,
-                // onMove,
-                // onDuplicate,
                 setCollapsed,
-                setShowSource: () => 'todo show source',
+                setShowSource: () => setShowSource(!showSource),
                 term: termForToplevel(toplevel),
                 showSource: false,
                 showGLSL: false,
@@ -472,6 +472,13 @@ const CellView_ = ({
                     env={env}
                     evalEnv={evalEnv}
                     dispatch={dispatch}
+                />
+            ) : null}
+            {termAndValue && showSource && cell.content.type === 'term' ? (
+                <ViewSource
+                    hash={idName(cell.content.id)}
+                    env={env}
+                    term={termAndValue[0][0]}
                 />
             ) : null}
         </CellWrapper>

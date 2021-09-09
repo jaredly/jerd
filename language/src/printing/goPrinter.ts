@@ -1,735 +1,1096 @@
 // Printing Go! I think
 
-// import { idName, idFromName } from '../typing/env';
-// import { isType } from '../typing/getTypeError';
-// import { binOps, bool, pureFunction, void_ } from '../typing/preset';
-// import { showLocation } from '../typing/typeExpr';
+import { parse } from '../parsing/grammar';
+import { Location, Toplevel } from '../parsing/parser';
+import {
+    expressionDeps,
+    populateTypeDependencyMap,
+    sortAllDeps,
+    sortAllDepsPlain,
+} from '../typing/analyze';
+import {
+    addDefine,
+    addEffect,
+    addEnum,
+    addExpr,
+    addRecord,
+    hashObject,
+    idFromName,
+    idName,
+    ToplevelT,
+    typeToplevelT,
+} from '../typing/env';
+import { LocatedError } from '../typing/errors';
+import * as preset from '../typing/preset';
+import { applyTypeVariablesToRecord } from '../typing/typeExpr';
+// import { bool } from '../typing/preset';
+import {
+    GlobalEnv,
+    Env as TermEnv,
+    // LocalEnv,
+    getAllSubTypes,
+    // getAllSubTypes,
+    Id,
+    idsEqual,
+    nullLocation,
+    RecordDef as TermRecordDef,
+    Reference,
+    selfEnv,
+    Symbol,
+    Term,
+    Type,
+    typesEqual,
+    LocalEnv,
+    EnumDef,
+} from '../typing/types';
+import {
+    allEnumAttributes,
+    assembleItemsForFile,
+    debugInferredSize,
+    defaultOptimizer,
+    Env,
+    expressionTypeDeps,
+    getAllRecordAttributes,
+    makeZeroValue,
+} from './glslPrinter';
+// import { GoTester } from './GoTester';
+import { getTypeDependencies, uniquesReallyAreUnique } from './ir/analyze';
+import * as ir from './ir/intermediateRepresentation';
+import { toplevelRecordAttribute } from './ir/optimize/inline';
+import {
+    Context,
+    Exprs,
+    // GoOpts,
+    isConstant,
+    Optimizer,
+    Optimizer2,
+    optimizeRepeatedly,
+    TypeDefs,
+} from './ir/optimize/optimize';
+import { defaultVisitor, transformExpr } from './ir/transform';
+import {
+    Apply,
+    Expr,
+    InferredSize,
+    Loc,
+    OutputOptions as IOutputOptions,
+    Record,
+    RecordDef,
+} from './ir/types';
+import {
+    builtin,
+    float,
+    hasUndefinedReferences,
+    int,
+    pureFunction,
+    recordDefFromTermType,
+    showType,
+    typeFromTermType,
+    void_,
+} from './ir/utils';
+import { debugExpr, debugType, debugTypeDef } from './irDebugPrinter';
+import { liftEffects } from './pre-ir/lift-effectful';
 // import {
-//     apply,
-//     Env,
-//     getAllSubTypes,
-//     Id,
-//     isBuiltin,
-//     LambdaType,
-//     RecordDef,
-//     Symbol,
-//     Term,
-//     // Type,
-// } from '../typing/types';
-// import { walkType } from '../typing/typeType';
-// import * as ir from './ir/intermediateRepresentation';
-// import {
-//     goOptimizations,
-//     optimize,
-//     removeUnusedVariables,
-// } from './ir/optimize';
-// import { Record, Type } from './ir/types';
-// import {
-//     callExpression,
-//     handlersType,
-//     lambdaTypeFromTermType,
-//     typeFromTermType,
-// } from './ir/utils';
-// import { builtin } from './ir/utils';
-// import {
-//     PP,
-//     items,
-//     args,
-//     block,
-//     atom,
-//     id as idPretty,
-//     printToString,
-// } from './printer';
-// // import { declarationToAST } from './typeScriptPrinter';
+//     // GoEnv$1_id,
+//     Mat4_id,
+//     Vec2_id,
+//     Vec3_id,
+//     Vec4_id,
+// } from './prelude-types';
+import * as pp from './printer';
+import { args, atom, block, items, PP, printToString } from './printer';
+import { declarationToPretty } from './printTsLike';
+import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
+import { allRecordMembers } from './typeScriptTypePrinter';
 
-// export type OutputOptions = {};
+// Ok now that we have the IR, this will be much different.
 
-// export const HashToString = (hash: string) => `Hash_${hash}`;
-// export const IdToString = (id: Id) => HashToString(idName(id));
-// const symToGo = (sym: Symbol) => atom(`${sym.name}_${sym.unique}`);
+export type OutputOptions = {
+    // readonly scope?: string;
+    // readonly noTypes?: boolean;
+    // readonly limitExecutionTime?: boolean;
+    // readonly discriminant?: string;
+    // readonly optimize?: boolean;
+    // readonly optimizeAggressive?: boolean;
+    readonly includeCanonicalNames?: boolean;
+    readonly showAllUniques?: boolean;
+};
 
-// export const fileToGo = (
-//     expressions: Array<Term>,
-//     env: Env,
-//     assert: boolean,
-// ) => {
-//     // const ast = fileToTypescript(expressions, env, {}, )
-//     const result: Array<PP> = [];
-//     result.push(atom(`type handlers = []interface{}`));
-//     result.push(
-//         atom(`
-//     func assertEqual(one, two interface{}) {
-//         if one != two {
-//             println("Failed!")
-//         } else {
-//             println("Passed!")
-//         }
-//     }
-//     func assert(val bool) {
-//         if !val {
-//             println("Failed!")
-//         } else {
-//             println("Passed!")
-//         }
-//     }
-//     `),
-//     );
+export const idNameToGo = (name: string, isType: boolean) => {
+    const prefix = isType ? 'T' : 'V';
+    return atom(prefix + name);
+};
 
-//     Object.keys(env.global.types).forEach((hash) => {
-//         const defn = env.global.types[hash];
-//         if (defn.type === 'Record') {
-//             result.push(recordTypeToGo(env, {}, idFromName(hash), defn));
-//             result.push(recordTypeToInterface(env, {}, idFromName(hash), defn));
-//         }
-//     });
+export const idToGo = (
+    env: Env,
+    opts: OutputOptions,
+    id: Id,
+    isType: boolean,
+) => {
+    const idRaw = idName(id);
+    // if (isType && builtinTypes[idRaw] != null) {
+    //     return atom(builtinTypes[idRaw].name);
+    // }
+    const readableName = env.global.idNames[idRaw];
+    if (opts.includeCanonicalNames && readableName) {
+        return atom(readableName + '_' + idRaw);
+    }
+    return idNameToGo(idRaw, isType);
+};
 
-//     Object.keys(env.global.terms).forEach((hash) => {
-//         const term = env.global.terms[hash];
-//         let irTerm = ir.printTerm(env, {}, term);
-//         irTerm = optimize(env, irTerm);
-//         irTerm = goOptimizations(env, irTerm);
+export const enumToGo = (
+    env: Env,
+    constr: EnumDef,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    id: Id,
+) => {
+    if (constr.extends.length) {
+        throw new Error(`no extends yet`);
+    }
+    const items = constr.items;
 
-//         result.push(defnToGo(env, {}, hash, irTerm));
-//     });
-//     result.push(
-//         items([
-//             atom('func main() '),
-//             block(
-//                 expressions.map((expr) => {
-//                     if (assert && isType(env, expr.is, bool)) {
-//                         expr = wrapWithAssert(expr);
-//                     }
-//                     const t = termToGo(
-//                         env,
-//                         {},
-//                         optimize(env, ir.printTerm(env, {}, expr)),
-//                     );
-//                     if (isType(env, expr.is, void_)) {
-//                         return t;
-//                     } else {
-//                         return items([atom('_ = '), t]);
-//                     }
-//                 }),
-//                 '',
-//             ),
-//         ]),
-//     );
-//     return result.map((item) => printToString(item, 100)).join('\n\n');
-// };
+    const allAllItems = allEnumAttributes(env, constr, irOpts);
 
-// // TODO move this to an optimize pass that converts to "{as any}" and "{as type}"
-// // also, attributes might want to be "variable" and "concrete"?
-// // alternatively, I could make all go attribute access be functions. although that would
-// // sacrifice some speed I imagine?
-// export const handleArgTypeVariables = (
-//     env: Env,
-//     opts: OutputOptions,
-//     arg: ir.Expr,
-//     origType: Type,
-//     type: Type,
-// ): PP => {
-//     if (origType.type === 'var' && type.type !== 'var') {
-//         // hrmm
-//         // do I need a "type cast" thing for the IR? maybe?
-//         // like, I could get away with PP probably
-//         return items([
-//             atom('(interface{})('),
-//             termToGo(env, opts, arg),
-//             atom(')'),
-//         ]);
-//     }
-//     if (type.type === 'var' && origType.type !== 'var') {
-//         return items([
-//             termToGo(env, opts, arg),
-//             atom('.('),
-//             typeToGo(env, opts, origType),
-//             atom(')'),
-//         ]);
-//     }
-//     if (origType.type === 'lambda') {
-//         let hadVar = false;
-//         walkType(origType, (t) => {
-//             if (t.type === 'var') {
-//                 hadVar = true;
-//             }
-//             return null;
-//         });
-//         let hasVar = false;
-//         walkType(type, (t) => {
-//             if (t.type === 'var') {
-//                 hasVar = true;
-//             }
-//             return null;
-//         });
-//         if (hadVar && !hasVar) {
-//             const t = type as LambdaType;
-//             // Hash_73d0baf5 becomes
-//             // func (arg interface{}) interface{} {
-//             //   (interface{})(Hash_73d0baf5(arg.(int)))
-//             // }
-//             const argVbls = origType.args.map((_, i) => ({
-//                 name: `arg_${i}`,
-//                 unique: env.local.unique.current++,
-//             }));
-//             return items([
-//                 atom('func '),
-//                 args(
-//                     origType.args.map((arg, i) =>
-//                         items([
-//                             symToGo(argVbls[i]),
-//                             atom(' '),
-//                             typeToGo(env, opts, arg),
-//                         ]),
-//                     ),
-//                 ),
-//                 atom(' '),
-//                 typeToGo(env, opts, origType.res),
-//                 atom(' '),
-//                 block(
-//                     [
-//                         items([
-//                             atom('return '),
-//                             handleArgTypeVariables(
-//                                 env,
-//                                 opts,
-//                                 callExpression(
-//                                     arg,
-//                                     lambdaTypeFromTermType(t),
-//                                     typeFromTermType(t.res),
-//                                     origType.args.map((t, i) => ({
-//                                         type: 'var',
-//                                         sym: argVbls[i],
-//                                         loc: null,
-//                                         is: typeFromTermType(t),
-//                                     })),
-//                                     null,
-//                                     lambdaTypeFromTermType(origType),
-//                                 ),
-//                                 // arg,
-//                                 origType.res,
-//                                 t.res,
-//                             ),
-//                         ]),
-//                     ],
-//                     '',
-//                 ),
-//             ]);
+    return pp.items([
+        atom('struct '),
+        idToGo(env, opts, id, true),
+        block([
+            atom(`int tag`),
+            ...allAllItems.map(({ id, item, i }) =>
+                pp.items([
+                    typeToGo(env, opts, item),
+                    atom(' '),
+                    atom(
+                        recordAttributeName(
+                            env,
+                            { type: 'user', id },
+                            i,
+                            env.typeDefs,
+                        ),
+                    ),
+                ]),
+            ),
+            // ...([] as Array<PP>).concat(
+            //     ...constr.items.map((tref, i) => {
+            //         if (tref.ref.type !== 'user') {
+            //             throw new Error(`nope builtin`);
+            //         }
+            //         const r = env.global.types[
+            //             idName(tref.ref.id)
+            //         ] as TermRecordDef;
+            //         if (r.type !== 'Record') {
+            //             throw new Error('nope');
+            //         }
+            //         return getAllRecordAttributes(
+            //             env,
+            //             irOpts,
+            //             tref.ref.id,
+            //             recordDefFromTermType(env, irOpts, r),
+            //         ).map(({ id, item, i }) =>
+            //         );
+            //     }),
+            // ),
+        ]),
+        atom(';'),
+    ]);
+    // constr.extends
+};
 
-//             // return atom('convert_convert');
-//         }
-//         // return atom(`ok${origType.typeVbls.length}_vs_${t.typeVbls.length}`);
-//         // let hadVar = false
-//         // origType.args.forEach((arg, i) => {
-//         //     hadVar
-//         // })
-//     }
-//     // ugh now I need to know the concrete types of things...
-//     // is this too much work?
-//     // am I going down a weird rabbit hole?
-//     // should I get back to javascript-land?
-//     // probably javascript land, ftr.
+export const typeDefToGo = (
+    env: Env,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    key: string,
+): PP | null => {
+    const constr = env.global.types[key];
+    const id = idFromName(key);
+    if (constr.type === 'Enum') {
+        return enumToGo(env, constr, opts, irOpts, id);
+        // return atom(
+        //     `// skipping ${printToString(
+        //         idToGo(env, opts, id, true),
+        //         100,
+        //     )}, enums not supported`,
+        // );
+    }
+    if (constr.typeVbls.length) {
+        // No type vbls allowed sorry
+        return atom(
+            `// skipping ${printToString(
+                idToGo(env, opts, id, true),
+                1000,
+            )}, contains type variables`,
+        );
+    }
+    if (!constr.items.length) {
+        return null;
+    }
+    // if (builtinTypes[key]) {
+    //     return null;
+    // }
+    const irConstr = recordDefFromTermType(env, irOpts, constr);
+    return items([
+        atom(
+            `/* ${printToString(
+                debugTypeDef(env, id, irConstr, env.typeDefs),
+                100,
+            )} */\n`,
+        ),
+        recordToGo(env, irConstr, opts, irOpts, id),
+    ]);
+};
 
-//     return termToGo(env, opts, arg);
-// };
+export const recordToGo = (
+    env: Env,
+    constr: RecordDef,
+    opts: OutputOptions,
+    irOpts: IOutputOptions,
+    id: Id,
+) => {
+    const subTypes = getAllSubTypes(env.global, constr.extends);
 
-// export const typeToGo = (env: Env, opts: OutputOptions, type: Type): PP => {
-//     switch (type.type) {
-//         case 'ref': {
-//             if (type.ref.type === 'builtin') {
-//                 // if it really is void (for []void{}, for example), we can pretend it's an int
-//                 return atom(type.ref.name === 'void' ? 'int' : type.ref.name);
-//             } else {
-//                 return atom(IdToString(type.ref.id));
-//             }
-//         }
+    return pp.items([
+        atom('struct '),
+        idToGo(env, opts, id, true),
+        block([
+            ...getAllRecordAttributes(
+                env,
+                irOpts,
+                id,
+                constr,
+            ).map(({ i, item, id }) =>
+                pp.items([
+                    typeToGo(env, opts, item),
+                    atom(' '),
+                    atom(
+                        recordAttributeName(
+                            env,
+                            { type: 'user', id },
+                            i,
+                            env.typeDefs,
+                        ),
+                    ),
+                ]),
+            ),
+        ]),
+        atom(';'),
+    ]);
+};
 
-//         case 'lambda':
-//             // Is this the right place to make this adjustment?
-//             // We'll have to do it in a number of places, I imagine.
-//             return items([
-//                 atom('func '),
-//                 args(
-//                     type.args
-//                         .map((t) => typeToGo(env, opts, t))
-//                         .concat(
-//                             type.effects.length
-//                                 ? [
-//                                       typeToGo(env, opts, handlersType),
-//                                       typeToGo(
-//                                           env,
-//                                           opts,
-//                                           pureFunction(
-//                                               [handlersType, type.res],
-//                                               void_,
-//                                           ),
-//                                       ),
-//                                       //   typeToGo(env, opts, type.res),
-//                                   ]
-//                                 : [],
-//                         ),
-//                 ),
-//                 atom(' '),
-//                 type.effects.length === 0 && !isVoid(type.res)
-//                     ? typeToGo(env, opts, type.res)
-//                     : null,
-//             ]);
+export const refToGo = (
+    env: Env,
+    opts: OutputOptions,
+    ref: Reference,
+    isType: boolean,
+) => {
+    if (ref.type === 'builtin') {
+        return atom(ref.name);
+    }
+    return idToGo(env, opts, ref.id, isType);
+};
 
-//         case 'var':
-//             return atom('interface{}');
-//     }
-// };
+export const symToGo = (env: Env, opts: OutputOptions, sym: Symbol) => {
+    // return atom(`${sym.name}_${sym.unique}`);
+    return atom(printSym(env, opts, sym));
+};
 
-// // hrmmmmmm I'm really wanting the babel AST representation ..... so that I can do things
-// // like the typescriptOptimize pass.
-// // hrmmmmmm.
-// // ok, hm.
-// /*
-// so type annotations can be left alone
+const reservedSyms = ['const', 'sample'];
 
-// then we'll have arrow functions (go can deal and add a return, its fine)
-// call()
-// if
-// attribute
+const printSym = (env: Env, opts: OutputOptions, sym: Symbol) =>
+    !opts.showAllUniques &&
+    env.local.localNames[sym.name] === sym.unique &&
+    !reservedSyms.includes(sym.name)
+        ? sym.name
+        : // TODO: Need to fix this to ensure we have
+          // hygene
+          sym.name + '_' + sym.unique;
 
-// */
+export const typeToGo = (env: Env, opts: OutputOptions, type: ir.Type): PP => {
+    switch (type.type) {
+        case 'ref':
+            if (type.typeVbls.length) {
+                return items([
+                    refToGo(env, opts, type.ref, true),
+                    args(
+                        type.typeVbls.map((t) => typeToGo(env, opts, t)),
+                        '[',
+                        ']',
+                    ),
+                ]);
+            }
+            return refToGo(env, opts, type.ref, true);
+        case 'var':
+            // return atom(JSON.stringify(type));
+            return items([atom('invalid_var:'), symToGo(env, opts, type.sym)]);
+        case 'Array':
+            if (type.inferredSize === null) {
+                return items([
+                    typeToGo(env, opts, type.inner),
+                    atom('['),
+                    atom('NULL'),
+                    atom(']'),
+                ]);
+            }
+            if (type.inferredSize.type === 'exactly') {
+                return items([
+                    typeToGo(env, opts, type.inner),
+                    atom('['),
+                    atom(type.inferredSize.size.toString()),
+                    atom(']'),
+                ]);
+            }
+            return items([
+                typeToGo(env, opts, type.inner),
+                atom('['),
+                debugInferredSize(env, opts, type.inferredSize),
+                atom(']'),
+            ]);
+        default:
+            return atom(`invalid_${type.type.replace(/-/g, '_')}`);
+    }
+};
 
-// const isVoid = (t: Type) =>
-//     t.type === 'ref' && t.ref.type === 'builtin' && t.ref.name === 'void';
+/**
 
-// const defnToGo = (
-//     env: Env,
-//     opts: OutputOptions,
-//     hash: string,
-//     term: ir.Expr,
-// ) => {
-//     if (term.type === 'lambda') {
-//         return items([
-//             atom('func '),
-//             atom(HashToString(hash)),
-//             args(
-//                 term.args.map((arg) =>
-//                     items([
-//                         symToGo(arg.sym),
-//                         atom(' '),
-//                         typeToGo(env, opts, arg.type),
-//                     ]),
-//                 ),
-//             ),
-//             atom(' '),
-//             isVoid(term.res) ? null : typeToGo(env, opts, term.res),
-//             atom(' '),
-//             lambdaBodyToGo(env, opts, term.body),
-//             // term.body.type === 'Block'
-//             // block([items([atom('return '), termToGo(env, opts, term.body)])]),
-//         ]);
-//     } else {
-//         return items([
-//             atom('var '),
-//             atom(HashToString(hash)),
-//             atom(' = '),
-//             termToGo(env, opts, term),
-//         ]);
-//     }
-// };
+// Expressions
+//
+//
 
-// const lambdaBodyToGo = (
-//     env: Env,
-//     opts: OutputOptions,
-//     body: ir.Block | ir.Expr,
-// ): PP => {
-//     if (body.type === 'Block') {
-//         return block(
-//             body.items.map((s) => stmtToGo(env, opts, s)),
-//             '',
-//         );
-//     } else {
-//         return block([items([atom('return '), termToGo(env, opts, body)])], '');
-//     }
-// };
 
-// const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
-//     switch (stmt.type) {
-//         case 'Block':
-//             return lambdaBodyToGo(env, opts, stmt);
-//         case 'MatchFail':
-//             return items([atom('panic'), args([atom('"Match fail"')])]);
-//         case 'Return':
-//             return items([atom('return '), termToGo(env, opts, stmt.value)]);
-//         // TODO include type here? could be good
-//         case 'Define':
-//             if (!stmt.value) {
-//                 return items([
-//                     atom('var '),
-//                     symToGo(stmt.sym),
-//                     atom(' '),
-//                     typeToGo(env, opts, stmt.is),
-//                 ]);
-//             }
-//             return items([
-//                 symToGo(stmt.sym),
-//                 atom(' := '),
-//                 termToGo(env, opts, stmt.value),
-//             ]);
-//         case 'Expression':
-//             return termToGo(env, opts, stmt.expr);
-//         case 'Assign':
-//             return items([
-//                 symToGo(stmt.sym),
-//                 atom(' = '),
-//                 termToGo(env, opts, stmt.value),
-//             ]);
-//         case 'Loop':
-//             return items([atom('for '), lambdaBodyToGo(env, opts, stmt.body)]);
-//         case 'Continue':
-//             return atom('continue');
-//         case 'if':
-//             return items([
-//                 atom('if '),
-//                 termToGo(env, opts, stmt.cond),
-//                 atom(' '),
-//                 lambdaBodyToGo(env, opts, stmt.yes),
-//                 ...(stmt.no
-//                     ? [atom(' else '), lambdaBodyToGo(env, opts, stmt.no)]
-//                     : []),
-//             ]);
-//         default:
-//             let _x: never = stmt;
-//             throw new Error(`Unknown stmt ${(stmt as any).type}`);
-//     }
-// };
 
-// const termToGo = (env: Env, opts: OutputOptions, term: ir.Expr): PP => {
-//     switch (term.type) {
-//         case 'string':
-//             return atom(`"${term.value}"`);
-//         case 'int':
-//         case 'float':
-//         case 'boolean':
-//             return atom(`${term.value}`);
-//         case 'lambda':
-//             return items([
-//                 atom('func '),
-//                 args(
-//                     term.args.map((arg) =>
-//                         items([
-//                             symToGo(arg.sym),
-//                             atom(' '),
-//                             typeToGo(env, opts, arg.type),
-//                         ]),
-//                     ),
-//                 ),
-//                 atom(' '),
-//                 isVoid(term.res) ? null : typeToGo(env, opts, term.res),
-//                 atom(' '),
-//                 lambdaBodyToGo(env, opts, term.body),
-//             ]);
-//         case 'apply':
-//             if (
-//                 term.target.type === 'builtin' &&
-//                 binOps.includes(term.target.name)
-//             ) {
-//                 return items([
-//                     termToGo(env, opts, term.args[0]),
-//                     atom(' '),
-//                     atom(term.target.name === '++' ? '+' : term.target.name),
-//                     atom(' '),
-//                     termToGo(env, opts, term.args[1]),
-//                 ]);
-//             }
-//             if (term.args.length !== term.targetType.args.length) {
-//                 throw new Error(
-//                     `Wrong function args length in 'apply', found ${
-//                         term.args.length
-//                     } but targetType only has ${
-//                         term.targetType.args.length
-//                     } at ${showLocation(term.loc)}`,
-//                 );
-//             }
-//             return items([
-//                 termToGo(env, opts, term.target),
-//                 args(
-//                     term.args.map((arg, i) =>
-//                         handleArgTypeVariables(
-//                             env,
-//                             opts,
-//                             arg,
-//                             // term.
-//                             // hrmmmmmm actually maybe I need to know what the type is
-//                             // currently?
-//                             term.targetType.args[i],
-//                             term.concreteType.args[i],
-//                         ),
-//                     ),
-//                 ),
-//                 term.targetType.res.type === 'var' &&
-//                 term.concreteType.res.type !== 'var'
-//                     ? // TODO pipe through the ids of things
-//                       items([
-//                           atom('.('),
-//                           typeToGo(env, opts, term.res),
-//                           atom(')'),
-//                       ])
-//                     : null,
-//             ]);
-//         case 'var':
-//             return symToGo(term.sym);
-//         case 'builtin':
-//             return atom(term.name);
-//         case 'term':
-//             // ok if this is um
-//             // term.
-//             return atom(IdToString(term.id));
-//         case 'arrayLen':
-//             return items([
-//                 atom('len'),
-//                 args([termToGo(env, opts, term.value)]),
-//             ]);
-//         case 'eqLiteral':
-//             return items([
-//                 termToGo(env, opts, term.value),
-//                 atom(' == '),
-//                 termToGo(env, opts, term.literal),
-//             ]);
-//         case 'arrayIndex':
-//             return items([
-//                 termToGo(env, opts, term.value),
-//                 atom('['),
-//                 termToGo(env, opts, term.idx),
-//                 atom(']'),
-//             ]);
-//         case 'slice':
-//             return items([
-//                 termToGo(env, opts, term.value),
-//                 atom('['),
-//                 termToGo(env, opts, term.start),
-//                 atom(':'),
-//                 term.end != null ? termToGo(env, opts, term.end) : null,
-//                 // termToGo(env, opts, term.start)
-//                 atom(']'),
-//             ]);
-//         case 'array':
-//             return items([
-//                 atom('[]'),
-//                 typeToGo(env, opts, term.elType),
-//                 args(
-//                     term.items
-//                         .filter((t) => t.type !== 'Spread')
-//                         .map((item) => termToGo(env, opts, item as ir.Expr)),
-//                     '{',
-//                     '}',
-//                 ),
-//             ]);
-//         case 'attribute': {
-//             // huh maybe I do want types all over the place
-//             // because I need to know whether to
-//             // coerce this to something...
-//             return items([
-//                 termToGo(env, opts, term.target),
-//                 atom('.'),
-//                 // @ts-ignore
-//                 atom(attributeId(term.ref.id, term.idx)),
-//             ]);
-//         }
-//         case 'record':
-//             if (term.base.type === 'Concrete') {
-//                 const d = env.global.types[
-//                     idName(term.base.ref.id)
-//                 ] as RecordDef;
-//                 // eek I need to not rerun `spread` a ton of times.
-//                 // here's where I make a lambda I think?
-//                 // oof no its too late for that.
-//                 // hrmmm what's the right level for this...
-//                 // maybe I need a "expand all spreads" optimize step?
-//                 // yeah that sounds like it might do the trick.
-//                 // and then languages like this that don't do spreads
-//                 // don't have to worry about it.
-//                 // yup I think that's the right call.
-//                 return items([
-//                     atom(IdToString(term.base.ref.id)),
-//                     args(
-//                         getFlattenedRecordItems(
-//                             env,
-//                             term,
-//                         ).map(({ id, i, value }) =>
-//                             items([
-//                                 atom(attributeId(id, i)),
-//                                 atom(': '),
-//                                 termToGo(env, opts, value),
-//                             ]),
-//                         ),
-//                         '{',
-//                         '}',
-//                     ),
-//                 ]);
-//             } else {
-//                 return atom('"Nope var record"');
-//             }
-//         default:
-//             // let _x: never = term;
-//             return atom(`panic("Nope ${term.type}")`);
-//     }
-// };
+*/
 
-// const patternToGo = (param: any) => {
-//     if (param.type === 'Identifier') {
-//         return atom(`${param.name} interface{}`);
-//     }
-//     return atom('what int');
-// };
+const builtinTypes: {
+    [key: string]: {
+        name: string;
+        args: Array<{ sub: string | null; idx: number }>;
+    };
+} = {};
 
-// // const typeToGo = (ann: t.TSTypeAnnotation) => {
-// //     if (!ann) {
-// //         return atom('');
-// //     }
-// //     if (!ann.typeAnnotation) {
-// //         return atom('errorz');
-// //     }
-// //     if (ann.typeAnnotation.type === 'TSStringKeyword') {
-// //         return atom('string');
-// //     }
-// //     // oops
-// //     if (ann.typeAnnotation.type === 'TSNumberKeyword') {
-// //         return atom('int');
-// //     }
-// //     return atom('error');
-// // };
+export const printRecord = (
+    env: Env,
+    opts: OutputOptions,
+    record: Record,
+): PP => {
+    if (record.base.type === 'Variable') {
+        throw new Error('var record');
+    }
+    const base = record.base;
+    const idRaw = idName(record.base.ref.id);
+    if (builtinTypes[idRaw]) {
+        let args: Array<ir.Expr> = [];
+        if (!builtinTypes[idRaw].args.length) {
+            throw new Error('nope custom record atm');
+        }
+        args = builtinTypes[idRaw].args.map(
+            (arg): ir.Expr => {
+                if (arg.sub) {
+                    const item = record.subTypes[arg.sub].rows[arg.idx];
+                    if (item) {
+                        return item;
+                    }
+                    // const spread = findSpreadForSub(record, arg.sub)
+                    const spread =
+                        record.subTypes[arg.sub].spread || record.base.spread;
+                    // OOOOOH BUG BUG
+                    // Turns out we need spreads to be ordered
+                    // because if we spread multiple things
+                    // that have some overlap
+                    // then we have a consistency error
+                    // Ok so yeah need to walk through spreads
+                    // Seeing if any of them will provide the thing I'm missing.
+                    if (!spread) {
+                        console.log(record.base);
+                        throw new LocatedError(
+                            record.loc,
+                            `Invalid state: missing spread for record item ${idRaw} ${arg.sub} ${arg.idx}`,
+                        );
+                    }
+                    return {
+                        type: 'tupleAccess',
+                        target: spread,
+                        idx: arg.idx,
+                        loc: record.loc,
+                        // STOPSHIP: fix this tho
+                        is: void_,
+                    };
+                }
+                const item = base.rows[arg.idx];
+                if (item) {
+                    return item;
+                }
+                if (!base.spread) {
+                    throw new Error(`no spread`);
+                }
+                return {
+                    type: 'tupleAccess',
+                    target: base.spread,
+                    idx: arg.idx,
+                    loc: record.loc,
+                    // STOPSHIP: fix this tho
+                    is: void_,
+                };
+            },
+        );
+        return items([
+            atom(builtinTypes[idRaw].name),
+            pp.args(
+                args.map((arg) => termToGo(env, opts, arg)),
+                '(',
+                ')',
+                false,
+            ),
+        ]);
+    }
+    // hmm so I need a canonical ordering for these items
+    // if (record.subTypes)
+    // return atom(`nope_record${idRaw}`);
+    if (record.base.spread) {
+        throw new Error(`Unexpected spread`);
+    }
+    const args = record.base.rows.map((row) => {
+        if (!row) {
+            throw new Error(`empty row for record`);
+        }
+        return termToGo(env, opts, row);
+    });
+    if (Object.keys(record.subTypes).length) {
+        throw new Error(`subtypes not yet supported`);
+    }
 
-// // const toGoPretty = (node: t.Statement) => {
-// //     switch (node.type) {
-// //         case 'VariableDeclaration': {
-// //             return node.declarations.map((decl) => {
-// //                 if (decl.id.type !== 'Identifier') {
-// //                     throw new Error('decl not id');
-// //                 }
-// //                 const init = decl.init!;
-// //                 if (init.type === 'ArrowFunctionExpression') {
-// //                     return items([
-// //                         atom('func '),
-// //                         atom(decl.id.name),
-// //                         args(init.params.map((param) => patternToGo(param))),
-// //                         atom(' '),
-// //                         typeToGo(init.returnType as t.TSTypeAnnotation),
-// //                         atom(' '),
-// //                         block([]),
-// //                     ]);
-// //                 } else {
-// //                     return atom('// yes ' + (decl.id as t.Identifier).name);
-// //                 }
-// //             });
-// //         }
-// //     }
+    return items([
+        idToGo(env, opts, idFromName(idRaw), true),
+        pp.args(args, '(', ')', false),
+    ]);
+};
 
-// //     return [atom('// Ok folks')];
-// // };
+export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
+    switch (expr.type) {
+        case 'record':
+            return printRecord(env, opts, expr);
+        case 'term':
+            return idToGo(env, opts, expr.id, false);
+        case 'genTerm':
+            return idNameToGo(expr.id, false);
+        case 'unary':
+            return items([atom(expr.op), termToGo(env, opts, expr.inner)]);
+        case 'float':
+            return atom(expr.value.toFixed(5).replace(/0+$/, '0'));
+        case 'boolean':
+            return atom(expr.value + '');
+        case 'int':
+        case 'string':
+            return atom(expr.value.toString());
+        case 'var':
+            return symToGo(env, opts, expr.sym);
+        case 'apply':
+            return printApply(env, opts, expr);
+        case 'builtin':
+            // fixup ln vs log
+            if (expr.name === 'ln') {
+                return atom('log');
+            }
+            if (expr.name === 'atan2') {
+                return atom('atan');
+            }
+            return atom(expr.name);
+        case 'attribute':
+            // hrm special-case matrices I guess
+            // unless ... I pretend that `mat4` is just `Tuple<Vec4, Vec4, Vec4, Vec4>`?
+            // That would be ideal actually....
+            // TODO: Please refactor this!
+            // if (ir.typesEqual(expr.target.is, Mat4)) {
+            //     return items([
+            //         termToGo(env, opts, expr.target),
+            //         atom('['),
+            //         atom(expr.idx.toString()),
+            //         atom(']'),
+            //     ]);
+            // }
+            const target =
+                expr.target.type === 'SpecializeEnum'
+                    ? expr.target.inner
+                    : expr.target;
+            return items([
+                termToGo(env, opts, target),
+                atom('.'),
+                atom(
+                    recordAttributeName(env, expr.ref, expr.idx, env.typeDefs),
+                ),
+            ]);
+        case 'tuple': {
+            // hrmmm
+            // ok, turn tuples into something else.
+            // and then tuple access turns into normal record access and stuff
+            return atom('tuples_not_supported');
+        }
+        case 'tupleAccess':
+            return items([
+                termToGo(env, opts, expr.target),
+                atom('['),
+                atom(expr.idx.toString()),
+                atom(']'),
+            ]);
+        case 'lambda':
+            expr.args.forEach((arg) => {
+                if (env.local.localNames[arg.sym.name] == null) {
+                    env.local.localNames[arg.sym.name] = arg.sym.unique;
+                }
+            });
+            return items([
+                atom('lambda-woops'),
+                args(expr.args.map((arg) => symToGo(env, opts, arg.sym))),
+                stmtToGo(env, opts, expr.body),
+            ]);
+        case 'eqLiteral':
+            return items([
+                termToGo(env, opts, expr.value),
+                atom(' == '),
+                termToGo(env, opts, expr.literal),
+            ]);
+        // Traces aren't supported in glsl, they just pass through.
+        case 'Trace':
+            return termToGo(env, opts, expr.args[0]);
+        case 'IsRecord': {
+            if (
+                expr.value.is.type !== 'ref' ||
+                expr.value.is.ref.type !== 'user'
+            ) {
+                throw new Error(`isRecord only for user refs`);
+            }
+            const constr = env.global.types[idName(expr.value.is.ref.id)];
+            if (constr.type !== 'Enum') {
+                throw new Error(`expected enum`);
+            }
+            if (constr.extends.length) {
+                throw new Error(`extends enum not supported`);
+            }
+            const idNames = constr.items.map((i) => idName(i.ref.id));
+            const idx = idNames.indexOf(idName(expr.ref.id));
+            if (idx === -1) {
+                throw new Error(`isRecord but record isnt in enum`);
+            }
+            return items([
+                termToGo(env, opts, expr.value),
+                atom('.tag'),
+                atom(' == '),
+                atom(`${idx}`),
+            ]);
+        }
+        case 'SpecializeEnum': {
+            if (expr.is.ref.type === 'builtin') {
+                throw new Error('nope folks');
+            }
+            const constr = env.global.types[idName(expr.is.ref.id)];
+            if (constr.type === 'Record') {
+                const attrs = allRecordMembers(env, expr.is.ref.id);
+                return items([
+                    idToGo(env, opts, expr.is.ref.id, true),
+                    args(
+                        attrs.map(({ id, item, i }) =>
+                            termToGo(env, opts, {
+                                type: 'attribute',
+                                target: expr.inner,
+                                // STOPSHIP: pass opts here
+                                is: typeFromTermType(env, {}, item),
+                                loc: expr.loc,
+                                ref: { type: 'user', id },
+                                refTypeVbls: [],
+                                idx: i,
+                            }),
+                        ),
+                    ),
+                ]);
+            } else {
+                throw new Error('NOT IMPL');
+            }
+        }
+        case 'Enum': {
+            if (expr.is.ref.type === 'builtin') {
+                throw new Error(`no builtin enums`);
+            }
+            const constr = env.global.types[idName(expr.is.ref.id)] as EnumDef;
+            if (constr.type !== 'Enum') {
+                throw new Error(`Not an enum`);
+            }
+            const attrs = allEnumAttributes(env, constr, {});
+            // We're upgrading to an enum.
+            if (
+                expr.inner.type === 'record' &&
+                expr.inner.base.type === 'Concrete' &&
+                expr.inner.is.type === 'ref' &&
+                expr.inner.is.ref.type === 'user'
+            ) {
+                const idNames = constr.items.map((i) => idName(i.ref.id));
+                const idx = idNames.indexOf(idName(expr.inner.is.ref.id));
+                if (idx === -1) {
+                    throw new Error(`isRecord but record isnt in enum`);
+                }
 
-// export const attributeId = (id: Id, idx: number) => `H${idName(id)}_${idx}`;
+                const iid = expr.inner.is.ref.id;
+                const name = idToGo(env, opts, expr.is.ref.id, true);
+                const rows = expr.inner.base.rows;
+                return items([
+                    name,
+                    args(
+                        [atom(idx.toString())].concat(
+                            attrs.map(({ i, id, item }) =>
+                                termToGo(
+                                    env,
+                                    opts,
+                                    idsEqual(id, iid)
+                                        ? rows[i]!
+                                        : // STOPSHIP: irOpts here????
+                                          makeZeroValue(
+                                              env,
+                                              {},
+                                              item,
+                                              expr.loc,
+                                          ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ]);
+            } else if (
+                expr.inner.type === 'var' ||
+                expr.inner.type === 'term'
+            ) {
+                if (
+                    expr.inner.is.type !== 'ref' ||
+                    expr.inner.is.ref.type !== 'user'
+                ) {
+                    throw new Error(`Not a user erf`);
+                }
+                const idNames = constr.items.map((i) => idName(i.ref.id));
+                const idx = idNames.indexOf(idName(expr.inner.is.ref.id));
+                if (idx === -1) {
+                    throw new Error(`isRecord but record isnt in enum`);
+                }
 
-// export const recordTypeToInterface = (
-//     env: Env,
-//     opts: OutputOptions,
-//     id: Id,
-//     defn: RecordDef,
-// ): PP => {
-//     // TODO TODO TODO the things from subtypes
-//     return items([
-//         atom('type '),
-//         atom('I_' + IdToString(id)),
-//         atom(' interface '),
-//         block(
-//             defn.items.map((item, i) =>
-//                 items([
-//                     atom(attributeId(id, i)),
-//                     atom('() '),
-//                     typeToGo(env, opts, item),
-//                 ]),
-//             ),
-//         ),
-//     ]);
-// };
+                const iid = expr.inner.is.ref.id;
+                const name = idToGo(env, opts, expr.is.ref.id, true);
+                return items([
+                    name,
+                    args(
+                        [atom(idx.toString())].concat(
+                            attrs.map(({ i, id, item }) =>
+                                termToGo(
+                                    env,
+                                    opts,
+                                    idsEqual(id, iid)
+                                        ? {
+                                              type: 'attribute',
+                                              target: expr.inner,
+                                              ref: { type: 'user', id },
+                                              refTypeVbls: [],
+                                              idx: i,
+                                              loc: expr.inner.loc,
+                                              is: item,
+                                          }
+                                        : // STOPSHIP: irOpts here????
+                                          makeZeroValue(
+                                              env,
+                                              {},
+                                              item,
+                                              expr.loc,
+                                          ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ]);
+            } else {
+                return atom('nope_enum_upgrade');
+            }
+        }
+        case 'array':
+            const elems = expr.items.filter(
+                (s) => s.type !== 'Spread',
+            ) as Array<Expr>;
+            if (elems.length < expr.items.length) {
+                return items([
+                    atom('ArrayWithSpreads'),
+                    args(
+                        [atom(JSON.stringify(expr.is.inferredSize))],
+                        '<',
+                        '>',
+                    ),
+                    args(
+                        expr.items.map((i) =>
+                            i.type === 'Spread'
+                                ? items([
+                                      atom('...'),
+                                      termToGo(env, opts, i.value),
+                                  ])
+                                : termToGo(env, opts, i),
+                        ),
+                        '[',
+                        ']',
+                    ),
+                ]);
+                // throw new Error(`Array spread not supported in glsl`);
+            }
+            return items([
+                typeToGo(env, opts, expr.is.inner),
+                atom('[]'),
+                args(elems.map((item) => termToGo(env, opts, item))),
+            ]);
+        case 'arrayIndex':
+            return items([
+                termToGo(env, opts, expr.value),
+                atom('['),
+                termToGo(env, opts, expr.idx),
+                atom(']'),
+            ]);
+        case 'arrayLen':
+            // if (
+            //     expr.value.is.type === 'Array' &&
+            //     expr.value.is.inferredSize &&
+            //     expr.value.is.inferredSize.type === 'exactly'
+            // ) {
+            //     return atom(expr.value.is.inferredSize.size.toString());
+            // }
+            return items([termToGo(env, opts, expr.value), atom('.length()')]);
+        default:
+            return atom('nope_term_' + expr.type);
+    }
+    // return atom(`vec4(1.0,0.0,0.0,1.0)`);
+    // return atom('nope' + expr.type);
+};
 
-// // hrmmmmm why are some things not populated? 🤔
-// const assertPresent = (v: ir.Expr | null): ir.Expr => {
-//     if (!v) {
-//         throw new Error(`Null expr`);
-//     }
-//     return v;
-// };
+export const declarationToGo = (
+    env: Env,
+    opts: OutputOptions,
+    idRaw: string,
+    term: Expr,
+    comment: string | null,
+): PP => {
+    if (term.type === 'lambda') {
+        return items([
+            comment ? atom('/*' + comment + '*/\n') : null,
+            term.note
+                ? atom(`/* ${term.note} */\n`)
+                : items([atom('/* '), debugExpr(env, term), atom(' */\n')]),
+            typeToGo(env, opts, term.res),
+            atom(' '),
+            idToGo(env, opts, idFromName(idRaw), false),
+            term.is.typeVbls.length
+                ? args(
+                      term.is.typeVbls.map((t) =>
+                          atom(t.name ? t.name : `T${t.unique}`),
+                      ),
+                      '<',
+                      '>',
+                  )
+                : null,
+            args(
+                term.args.map((arg) =>
+                    items([
+                        typeToGo(env, opts, arg.type),
+                        atom(' '),
+                        symToGo(env, opts, arg.sym),
+                    ]),
+                ),
+                '(',
+                ')',
+                false,
+            ),
+            atom(' '),
+            block(term.body.items.map((item) => stmtToGo(env, opts, item))),
+        ]);
+    } else {
+        // if (!isBuiltin(term.is) || isLiteral(term)) {
+        //     fail it folks
+        // }
+        return addComment(
+            items([
+                items([atom('/*'), debugExpr(env, term), atom('*/')]),
+                atom('const '),
+                typeToGo(env, opts, term.is),
+                atom(' '),
+                idToGo(env, opts, idFromName(idRaw), false),
+                // atom('V' + idRaw),
+                atom(' = '),
+                termToGo(env, opts, term),
+                atom(';'),
+            ]),
+            comment,
+        );
+    }
+};
 
-// const getFlattenedRecordItems = (
-//     env: Env,
-//     record: Record,
-// ): Array<{ id: Id; i: number; value: ir.Expr }> => {
-//     if (record.base.type === 'Variable') {
-//         throw new Error('npe');
-//     }
-//     const id = record.base.ref.id;
-//     const d = env.global.types[idName(id)] as RecordDef;
-//     return record.base.rows
-//         .map((value, i) => ({ id, i, value: value }))
-//         .concat(
-//             ...Object.keys(record.subTypes).map((k) =>
-//                 record.subTypes[k].rows.map((value, i) => ({
-//                     id: idFromName(k),
-//                     i,
-//                     value: value,
-//                 })),
-//             ),
-//         )
-//         .filter((x) => x.value != null) as Array<{
-//         id: Id;
-//         i: number;
-//         value: ir.Expr;
-//     }>;
-// };
+export const addComment = (value: PP, comment: string | null) =>
+    comment ? items([atom(`/* ${comment} */\n`), value]) : value;
 
-// const getAllRecordItems = (env: Env, id: Id) => {
-//     const d = env.global.types[idName(id)] as RecordDef;
-//     return d.items
-//         .map((type, i) => ({ id, i, type }))
-//         .concat(
-//             ...getAllSubTypes(env.global, d).map((sub) => {
-//                 const d = env.global.types[idName(sub)] as RecordDef;
-//                 return d.items.map((type, i) => ({
-//                     id: sub,
-//                     i,
-//                     type,
-//                 }));
-//             }),
-//         );
-// };
+export const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
+    switch (stmt.type) {
+        case 'Loop':
+            if (stmt.bounds) {
+                return items([
+                    atom('for '),
+                    items([
+                        atom('(; '),
+                        symToGo(env, opts, stmt.bounds.sym),
+                        atom(' '),
+                        atom(stmt.bounds.op),
+                        atom(' '),
+                        termToGo(env, opts, stmt.bounds.end),
+                        atom('; '),
+                        stmtToGo(env, opts, {
+                            type: 'Assign',
+                            sym: stmt.bounds.sym,
+                            is: int,
+                            loc: stmt.loc,
+                            value: stmt.bounds.step,
+                        }),
+                        // symToGo(env, opts, stmt.bounds.sym),
+                        // atom(' = '),
+                        // termToGo(env, opts, stmt.bounds.step),
+                        atom(')'),
+                    ]),
+                    atom(' '),
+                    stmtToGo(env, opts, stmt.body),
+                ]);
+            }
+            return items([
+                atom('for '),
+                atom('(int i=0; i<10000; i++) '),
+                stmtToGo(env, opts, stmt.body),
+            ]);
+        // return items([
+        //     atom('while '),
+        //     atom('(true) '),
+        //     stmtToGo(env, opts, stmt.body),
+        // ]);
+        case 'Continue':
+            return atom('continue');
+        case 'Break':
+            return atom('break');
+        case 'if':
+            return items([
+                atom('if ('),
+                termToGo(env, opts, stmt.cond),
+                atom(') '),
+                stmtToGo(env, opts, stmt.yes),
+                ...(stmt.no
+                    ? [atom(' else '), stmtToGo(env, opts, stmt.no)]
+                    : []),
+            ]);
+        case 'Block':
+            return block(stmt.items.map((s) => stmtToGo(env, opts, s)));
+        case 'Return':
+            return items([atom('return '), termToGo(env, opts, stmt.value)]);
+        case 'Define':
+            if (env.local.localNames[stmt.sym.name] == null) {
+                env.local.localNames[stmt.sym.name] = stmt.sym.unique;
+            }
+            if (!stmt.value) {
+                return items([
+                    typeToGo(env, opts, stmt.is),
+                    atom(' '),
+                    symToGo(env, opts, stmt.sym),
+                ]);
+            }
+            return items([
+                typeToGo(env, opts, stmt.is),
+                atom(' '),
+                symToGo(env, opts, stmt.sym),
+                atom(' = '),
+                termToGo(env, opts, stmt.value),
+            ]);
+        case 'Assign': {
+            if (
+                stmt.value.type === 'apply' &&
+                stmt.value.target.type === 'builtin' &&
+                ['+', '-'].includes(stmt.value.target.name) &&
+                stmt.value.args.length === 2 &&
+                stmt.value.args[0].type === 'var' &&
+                stmt.value.args[0].sym.unique === stmt.sym.unique
+            ) {
+                const op = stmt.value.target.name;
+                if (
+                    stmt.value.args[1].type === 'int' &&
+                    stmt.value.args[1].value === 1
+                ) {
+                    return items([
+                        symToGo(env, opts, stmt.sym),
+                        atom(`${op}${op}`),
+                    ]);
+                }
+                return items([
+                    symToGo(env, opts, stmt.sym),
+                    atom(` ${op}= `),
+                    termToGo(env, opts, stmt.value.args[1]),
+                ]);
+            }
 
-// export const recordTypeToGo = (
-//     env: Env,
-//     opts: OutputOptions,
-//     id: Id,
-//     defn: RecordDef,
-// ): PP => {
-//     return items([
-//         atom('type '),
-//         atom(IdToString(id)),
-//         atom(' struct '),
-//         block(
-//             // TODO use getAllRecordItmes
-//             defn.items
-//                 .map((item, i) =>
-//                     items([
-//                         atom(attributeId(id, i)),
-//                         atom(' '),
-//                         typeToGo(env, opts, item),
-//                     ]),
-//                 )
-//                 .concat(
-//                     ...getAllSubTypes(env.global, defn).map((sub) => {
-//                         const d = env.global.types[idName(sub)] as RecordDef;
-//                         return d.items.map((item, i) =>
-//                             items([
-//                                 atom(attributeId(sub, i)),
-//                                 atom(' '),
-//                                 typeToGo(env, opts, item),
-//                             ]),
-//                         );
-//                     }),
-//                 ),
-//         ),
-//     ]);
-// };
+            return items([
+                symToGo(env, opts, stmt.sym),
+                atom(' = '),
+                termToGo(env, opts, stmt.value),
+            ]);
+        }
+        case 'MatchFail':
+            return atom('// match fail');
+        case 'Expression':
+            return atom('// no-op expression');
+        case 'ArraySet':
+            return items([
+                symToGo(env, opts, stmt.sym),
+                atom('['),
+                termToGo(env, opts, stmt.idx),
+                atom('] = '),
+                termToGo(env, opts, stmt.value),
+            ]);
+        default:
+            const _x: never = stmt;
+            return atom(`nope_stmt_${(_x as any).type}`);
+    }
+};
+
+export const binops = [
+    // 'mod',
+    'modInt',
+    '>',
+    '<',
+    '>=',
+    '<=',
+    '+',
+    '-',
+    '/',
+    '*',
+    '==',
+    '|',
+    '||',
+    '&&',
+    '^',
+];
+export const isBinop = (op: string) => binops.includes(op);
+
+// op === 'mod' ||
+const asBinop = (op: string) => (op === 'modInt' ? '%' : op);
+
+export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
+    if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {
+        if (apply.args.length === 1) {
+            return items([
+                atom(apply.target.name),
+                termToGo(env, opts, apply.args[0]),
+            ]);
+        }
+        if (apply.args.length !== 2) {
+            throw new LocatedError(
+                apply.loc,
+                `Call to binop ${apply.target.name} needs 2 args, not ${apply.args.length}`,
+            );
+        }
+        return items([
+            atom('('),
+            termToGo(env, opts, apply.args[0]),
+            atom(' '),
+            atom(asBinop(apply.target.name)),
+            atom(' '),
+            termToGo(env, opts, apply.args[1]),
+            atom(')'),
+        ]);
+    }
+    return items([
+        termToGo(env, opts, apply.target),
+        args(
+            apply.args.map((arg) => termToGo(env, opts, arg)),
+            '(',
+            ')',
+            false,
+        ),
+    ]);
+};
+
+export const fileToGo = (
+    expressions: Array<Term>,
+    tenv: TermEnv,
+    assert: boolean,
+) => {
+    const env: Env = { ...tenv, typeDefs: {} };
+    const items: Array<PP> = []; // shaderTop(bufferCount);
+    const opts: OutputOptions = {};
+    const irOpts: IOutputOptions = {};
+    const includeComments = true;
+
+    const expressionIds: Array<Id> = expressions.map((term, i) => {
+        const hash = hashObject(term);
+        env.global.terms[hash] = term;
+        env.global.idNames[hash] = `toplevel_${i}`;
+        return idFromName(hash);
+    });
+
+    const { inOrder, irTerms } = assembleItemsForFile(
+        env,
+        expressions,
+        expressionIds.map(idName),
+        {},
+        {},
+        defaultOptimizer,
+    );
+
+    const allTypes = expressionTypeDeps(
+        env,
+        inOrder
+            .map((t) => (irTerms[t] ? irTerms[t].expr : null))
+            .filter(Boolean) as Array<Expr>,
+    );
+
+    allTypes.forEach((r) => {
+        if (env.global.types[r]) {
+            const printed = typeDefToGo(env, opts, irOpts, r);
+            if (printed) {
+                items.push(printed);
+            }
+        } else if (env.typeDefs[r]) {
+            const printed = recordToGo(
+                env,
+                env.typeDefs[r].typeDef,
+                opts,
+                irOpts,
+                idFromName(r),
+            );
+            items.push(printed);
+        }
+    });
+
+    const invalidLocs: Array<Location> = [];
+
+    inOrder.forEach((name) => {
+        // const loc = hasInvalidGLSL(irTerms[name].expr, name);
+        // if (loc) {
+        //     invalidLocs.push(loc);
+        // }
+
+        const senv = env.global.terms[name]
+            ? selfEnv(env, {
+                  type: 'Term',
+                  name,
+                  ann: env.global.terms[name].is,
+              })
+            : env;
+        items.push(
+            declarationToGo(
+                // Empty out the localNames
+                // { ...senv, local: { ...senv.local, localNames: {} } },
+                { ...senv, typeDefs: env.typeDefs },
+                opts,
+                name,
+                irTerms[name].expr,
+                includeComments
+                    ? irTerms[name].comment
+                        ? '*\n```\n' + irTerms[name].comment + '\n```\n'
+                        : ' -- generated -- '
+                    : null,
+            ),
+        );
+    });
+    // console.log('MAIN IR', irTerms[idName(mainTerm)]);
+    return { items, invalidLocs };
+    //, mainType: irTerms[idName(mainTerm)].expr.is };
+};

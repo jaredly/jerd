@@ -103,6 +103,15 @@ export const addIz = (one: InferredSize, two: InferredSize): InferredSize => {
     return { type: 'relative', to: one, offset: two };
 };
 
+/**
+ * Transform a = [...a, b]
+ * into
+ * a[idx] = b
+ *
+ * hmmmmmmmmm so what if it doesn't have an inferred size? hmmmm
+ *
+ * ok but wait, this is actually fine for turning into golang. So maybe let's just try it? idk.
+ */
 export const loopSpreadToArraySet: Optimizer2 = (
     context: Context,
     expr: Expr,

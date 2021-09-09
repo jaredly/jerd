@@ -32,16 +32,17 @@ export const termToJS = (
     asReturn?: boolean,
     withExecutionLimit: boolean = true,
 ) => {
-    term = liftEffects(env, term);
+    const senv = selfEnv(env, { type: 'Term', name: idName(id), ann: term.is });
+    term = liftEffects(senv, term);
     let irTerm = ir.printTerm(
-        env,
+        senv,
         { limitExecutionTime: withExecutionLimit },
         term,
     );
     const opt = optimizeRepeatedly(javascriptOpts);
     irTerm = opt(
         {
-            env,
+            env: senv,
             exprs: irTerms,
             types: {},
             id,
@@ -62,7 +63,7 @@ export const termToJS = (
     // }
     irTerms[idName(id)] = { expr: irTerm, inline: false };
     let termAst: any = termToTs(
-        env,
+        senv,
         {
             scope: 'jdScope',
             limitExecutionTime: withExecutionLimit,

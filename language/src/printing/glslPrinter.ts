@@ -20,7 +20,7 @@ import {
     ToplevelT,
     typeToplevelT,
 } from '../typing/env';
-import { LocatedError } from '../typing/errors';
+import { LocatedError, TypeError } from '../typing/errors';
 import * as preset from '../typing/preset';
 import { applyTypeVariablesToRecord } from '../typing/typeExpr';
 // import { bool } from '../typing/preset';
@@ -1149,6 +1149,9 @@ export const assembleItemsForFile = (
                 );
             }
         } catch (err) {
+            if (!(err instanceof TypeError)) {
+                throw err;
+            }
             const outer = new LocatedError(
                 term.location,
                 `Failed while typing for glsl ${idRaw} : ${
@@ -1187,6 +1190,10 @@ export const assembleItemsForFile = (
                 );
             }
         } catch (err) {
+            if (!(err instanceof TypeError)) {
+                console.error(`Unexpected error`, err);
+                throw err;
+            }
             const ctx = {
                 env: senv,
                 opts: irOpts,
@@ -1242,6 +1249,9 @@ export const assembleItemsForFile = (
                 );
             }
         } catch (err) {
+            if (!(err instanceof TypeError)) {
+                throw err;
+            }
             const outer = new LocatedError(
                 term.location,
                 `Failed while typing ${idRaw} : ${
@@ -1610,7 +1620,7 @@ export const enumToGLSL = (
 };
 
 type RecordAttribute = { item: ir.Type; i: number; id: Id };
-const getAllRecordAttributes = (
+export const getAllRecordAttributes = (
     env: TermEnv,
     opts: IOutputOptions,
     id: Id,

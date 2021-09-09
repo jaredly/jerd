@@ -7,6 +7,18 @@ import { Apply, Expr } from '../types';
 import { builtin, callExpression, int, pureFunction } from '../utils';
 import { symName } from './optimize';
 
+/**
+ * Turn
+ * const a = [1,2,3,4]
+ * const b = a[2:]
+ * const c = b[1]
+ *
+ * into
+ *
+ * const a = [1,2,3,4]
+ * c = a[3]
+ */
+
 export const plus = (env: Env, one: Expr, two: Expr, loc: Location): Apply => {
     return callExpression(
         env,

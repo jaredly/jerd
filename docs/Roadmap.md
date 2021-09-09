@@ -4,6 +4,29 @@ ooooh am I going to bring my go compilation target back online so I can run eule
 I mean I think I could?
 Also, I wonder if I could beef up performance by turning on some optimizations.
 
+
+- [ ] do a little bit of perf analysis on my euler-spiral, see how it's doing.
+
+
+hermmmm ok interesting, in the online editor, it's not going to be able to do the same aggressive inlining and optimizations...
+- [x] ... although the "turn this into a loop" should be doable as-is....
+
+- [ ] ohhh it was the execution limit. hmm I wonder if the limit would be better handled as a transform()? Instead of an IR "outputoption"? That would probably be cleaner, and you could apply it after all the magic has happened 🤔
+- [ ] 
+
+It would be verrry cool to be able to get "array.push" working for languages that have that.
+So it would be something like "newArray = oldArray.slice" and then every "equals to spread" would be a push. It's very similar to what I'm doing with inferred fixed size arrays ...... I wonder if there's a way to unify these things? Like, have it be in a single format, and then print differently depending on whether the array length is known?
+
+
+Ok, so thinking about this drawing thing
+it would be reeeeally cool, if I could use an effect setup, so I'm drawing the lines in real time, instead of constructing this supermassive array and then looping over it.
+And so I'd have this effect, which the harness would then handle
+but, it would be reeeally cool if I could inline the effect handler (given that it's synchronous).
+
+Ok anyway, how do I get some nice quality renders of this stuff?
+I mean I'm sure all the array spreads aren't helping.
+
+
 ## Better sliders, can rely on other sliders
 
 - [ ] allow sliders to rely on other constants, and math expressions thanks.

@@ -176,7 +176,9 @@ const processErrors = (fname: string, builtins: { [key: string]: Type }) => {
             try {
                 term = typeExpr(env, item);
             } catch (err) {
-                errors.push(err.message);
+                if (err instanceof Error) {
+                    errors.push(err.message);
+                }
                 return; // yup
             }
             const typeErrors: Array<TypeErrorTerm> = [];
@@ -261,7 +263,7 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
 
         let initialEnv = presetEnv({});
         const { expressions, env } = typeFile(parsed, initialEnv, fname);
-        const text = 'DISABLED'; // fileToGo(expressions, env, assert);
+        const text = printToString(fileToGo(expressions, env, assert), 100);
 
         const name = path.basename(fname).slice(0, -3);
 
@@ -398,7 +400,7 @@ const main = (fnames: Array<string>, flags: Flags, init: Init) => {
 
 import { execSync, spawnSync } from 'child_process';
 import { LocatedError, TypeError } from './typing/errors';
-// import { fileToGo } from './printing/goPrinter';
+import { fileToGo } from './printing/goPrinter';
 import { getTypeError } from './typing/getTypeError';
 import { loadBuiltins } from './printing/loadBuiltins';
 import { Init, loadInit, loadPrelude } from './printing/loadPrelude';

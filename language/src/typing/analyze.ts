@@ -636,6 +636,14 @@ export const populateTypeDependencyMap = (
                     if (item.type === 'ref' && item.ref.type === 'user') {
                         tDeps.push(item.ref.id);
                     }
+                    if (item.type === 'ref' && item.typeVbls.length) {
+                        // TODO: If there was a lambda type, we'd want to crawl that too.
+                        item.typeVbls.forEach((r) =>
+                            r.type === 'ref' && r.ref.type === 'user'
+                                ? tDeps.push(r.ref.id)
+                                : null,
+                        );
+                    }
                 });
             } else {
                 typeDef.extends.forEach((ref) => {

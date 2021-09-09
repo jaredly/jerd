@@ -452,7 +452,7 @@ const sourceStyle: Interpolation<Theme> = {
     borderRadius: '4px',
 };
 
-const ViewSource = ({
+export const ViewSource = ({
     env,
     term,
     hash,

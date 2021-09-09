@@ -443,6 +443,14 @@ describe('expression types', () => {
 });
 
 describe('Decorators', () => {
+    // describe('Slider depend on other slider', () => {
+    //     // ok but so I also want to test the logic that gets me to a slider, right?
+    //     // like, verifying that the arguments of the slider are parsed correctly.
+    //     // Which means I need to bring some logic from web over into language.
+    //     // expect(process(`
+    //     // `))
+    // })
+
     // ooh fun we can do type checking! That is cool
     // like yeah why not
     // ok
