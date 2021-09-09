@@ -11,6 +11,33 @@ hmmmmmmmmmmmmmmmmmmmmmmmmmm what if I passed around a `ctx` variable as the firs
 That way it could be deep in the stack somewhere, and just call a thing. hmmm. that might be very nice.
 and it would only be done for functions that can have effects, right? I think so.
 
+- [x] do some basic inlining
+  - ok that didn't help appreciably
+- [ ] ok, so what /would/ it look like to get effects going?
+- [ ] I could also try out rust, because that sounds fun too.
+  - although rust would want me to convert array spreads to pushes first, which is another step.
+
+
+Ok, so the basic effects example that I want to work:
+
+```
+const drawSomething = (p: Vec2) ={Draw}> {
+  raise!(Draw.circle(p, 5.0, ));
+  raise!(Draw.)
+}
+```
+
+// Ok but I really should check to see if this would be much faster.
+// lol ok it, uh, wouldn't. Which is very interesting.
+
+Ok yeah, so let's go with the "svg" route.
+Ok, let's actually formalize the "go drawable" dealio here.
+
+
+
+
+
+
 Ok now that I've got the IR ... hmm ... I should try adding effects back in from the ground up. So that the IR will be well-formed.
 
 

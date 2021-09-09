@@ -91,7 +91,8 @@ export function typeFile(
                     if (
                         unique[0].args.length !== 1 ||
                         unique[0].args[0].type !== 'Expr' ||
-                        unique[0].args[0].expr.type !== 'float'
+                        (unique[0].args[0].expr.type !== 'float' &&
+                            unique[0].args[0].expr.type !== 'int')
                     ) {
                         throw new LocatedError(
                             item.location,
@@ -172,8 +173,10 @@ export function typeFile(
                         throw new Error(message);
                     }
                 } catch (err) {
-                    const message =
-                        err instanceof TypeError ? err.toString() : err.message;
+                    if (!(err instanceof TypeError)) {
+                        throw err;
+                    }
+                    const message = err.toString();
                     if (message.includes(str)) {
                         continue; // success
                     } else {

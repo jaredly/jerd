@@ -1,4 +1,9 @@
-import { idName, idFromName, ToplevelT } from '@jerd/language/src/typing/env';
+import {
+    idName,
+    idFromName,
+    ToplevelT,
+    ToplevelDefine,
+} from '@jerd/language/src/typing/env';
 import {
     Env,
     Id,
@@ -22,9 +27,21 @@ export const generateExport = (
     hideIds: boolean = true,
     display?: Display | null,
 ) => {
-    const typesInOrder: Array<ToplevelT> = expressionTypeDeps(env, [
+    const depsInOrder: Array<ToplevelDefine> = expressionDeps(env, [
         env.global.terms[idName(id)],
-    ]).map(
+    ])
+        .concat([idName(id)])
+        .map((idRaw) => ({
+            type: 'Define',
+            id: idFromName(idRaw),
+            term: env.global.terms[idRaw],
+            location: nullLocation,
+            name: env.global.idNames[idRaw],
+        }));
+    const typesInOrder: Array<ToplevelT> = expressionTypeDeps(
+        env,
+        depsInOrder.map((t) => t.term),
+    ).map(
         (idRaw): ToplevelT => {
             const defn = env.global.types[idRaw];
             const name = env.global.idNames[idRaw];
@@ -49,17 +66,6 @@ export const generateExport = (
             }
         },
     );
-    const depsInOrder: Array<ToplevelT> = expressionDeps(env, [
-        env.global.terms[idName(id)],
-    ])
-        .concat([idName(id)])
-        .map((idRaw) => ({
-            type: 'Define',
-            id: idFromName(idRaw),
-            term: env.global.terms[idRaw],
-            location: nullLocation,
-            name: env.global.idNames[idRaw],
-        }));
     const items = typesInOrder.concat(depsInOrder).map((top) => {
         if (top.type === 'Define' && idsEqual(id, top.id) && display) {
             return pp.items([

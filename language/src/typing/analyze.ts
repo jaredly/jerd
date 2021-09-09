@@ -492,21 +492,38 @@ export const allLiteral = (env: Env, type: Type): boolean => {
 
 export const getTypeDependencies = (term: Term): Array<Reference> => {
     const deps: { [key: string]: Reference } = {};
-    walkTerm(term, (term) => {
-        if (term.is.type === 'ref') {
-            deps[refName(term.is.ref)] = term.is.ref;
-        }
-        if (term.is.type === 'lambda') {
-            term.is.args.forEach((arg) => {
-                if (arg.type === 'ref') {
-                    deps[refName(arg.ref)] = arg.ref;
-                }
-            });
-            if (term.is.res.type === 'ref') {
-                deps[refName(term.is.res.ref)] = term.is.res.ref;
+    transform(term, {
+        term: (t) => {
+            if (t.type === 'Record' && t.base.type === 'Concrete') {
+                deps[refName(t.base.ref)] = t.base.ref;
             }
-        }
+            return null;
+        },
+        type: (t) => {
+            if (t.type === 'ref') {
+                deps[refName(t.ref)] = t.ref;
+            }
+            // if (t.type === 'lambda') {
+            //     t.args.forEach(arg => {})
+            // }
+            return null;
+        },
     });
+    // walkTerm(term, (term) => {
+    //     if (term.is.type === 'ref') {
+    //         deps[refName(term.is.ref)] = term.is.ref;
+    //     }
+    //     if (term.is.type === 'lambda') {
+    //         term.is.args.forEach((arg) => {
+    //             if (arg.type === 'ref') {
+    //                 deps[refName(arg.ref)] = arg.ref;
+    //             }
+    //         });
+    //         if (term.is.res.type === 'ref') {
+    //             deps[refName(term.is.res.ref)] = term.is.res.ref;
+    //         }
+    //     }
+    // });
     return Object.keys(deps).map((k) => deps[k]);
 };
 
@@ -563,6 +580,7 @@ export const expressionTypeDeps = (env: Env, terms: Array<Term>) => {
             populateTypeDependencyMap(env, allDeps, id),
         ),
     );
+    console.log(allDeps);
 
     return sortAllDeps(allDeps);
 };

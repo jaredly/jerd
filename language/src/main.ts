@@ -267,6 +267,7 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
         math.forEach((name) => {
             builtins[name] = preset.pureFunction([preset.float], preset.float);
         });
+        builtins['PI'] = preset.float;
         builtins['intToFloat'] = preset.pureFunction(
             [preset.int],
             preset.float,
