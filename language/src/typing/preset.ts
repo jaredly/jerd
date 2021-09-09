@@ -253,6 +253,13 @@ export const intLiteral = (value: number, location: Location): Term => ({
     is: int,
 });
 
+export const stringLiteral = (text: string, location: Location): Term => ({
+    type: 'string',
+    text,
+    location,
+    is: string,
+});
+
 export const applyBuiltin = (
     name: string,
     args: Array<Term>,

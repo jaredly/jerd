@@ -42,6 +42,7 @@ import {
     typesEqual,
     LocalEnv,
     EnumDef,
+    apply,
 } from '../typing/types';
 import {
     allEnumAttributes,
@@ -77,6 +78,7 @@ import {
     OutputOptions as IOutputOptions,
     Record,
     RecordDef,
+    typesEqual as irTypesEqual,
 } from './ir/types';
 import {
     builtin,
@@ -802,7 +804,9 @@ export const declarationToGo = (
                 false,
             ),
             atom(' '),
-            typeToGo(env, opts, term.res),
+            irTypesEqual(term.res, void_)
+                ? null
+                : typeToGo(env, opts, term.res),
             atom(' '),
             block(term.body.items.map((item) => stmtToGo(env, opts, item))),
         ]);
@@ -887,6 +891,13 @@ export const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
         case 'Block':
             return block(stmt.items.map((s) => stmtToGo(env, opts, s)));
         case 'Return':
+            if (irTypesEqual(stmt.value.is, void_)) {
+                return items([
+                    termToGo(env, opts, stmt.value),
+                    atom('\n'),
+                    atom('return'),
+                ]);
+            }
             return items([atom('return '), termToGo(env, opts, stmt.value)]);
         case 'Define':
             if (env.local.localNames[stmt.sym.name] == null) {
@@ -941,7 +952,8 @@ export const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
         case 'MatchFail':
             return atom('// match fail');
         case 'Expression':
-            return atom('// no-op expression');
+            return termToGo(env, opts, stmt.expr);
+        // return atom('// no-op expression');
         case 'ArraySet':
             return items([
                 symToGo(env, opts, stmt.sym),
@@ -1031,7 +1043,20 @@ export const fileToGo = (
             type: 'sequence',
             is: preset.void_,
             location: nullLocation,
-            sts: expressions,
+            sts: expressions.map((expr) =>
+                apply(
+                    preset.builtin(
+                        'fmt.Printf',
+                        preset.pureFunction(
+                            [preset.string, preset.string],
+                            preset.void_,
+                        ),
+                        nullLocation,
+                    ),
+                    [preset.stringLiteral('%#v\n', nullLocation), expr],
+                    nullLocation,
+                ),
+            ),
         },
         idLocations: [],
         is: {
@@ -1127,9 +1152,7 @@ export const fileToGo = (
     // console.log('MAIN IR', irTerms[idName(mainTerm)]);
     return pp.items(
         [atom('import (\n"fmt"\n)\n')].concat(
-            items.concat([
-                atom(`\nfunc main() { fmt.Printf("%#v\\n", V${mainHash}()); }`),
-            ]),
+            items.concat([atom(`\nfunc main() { V${mainHash}(); }`)]),
         ),
     );
     //, mainType: irTerms[idName(mainTerm)].expr.is };
