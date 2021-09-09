@@ -286,6 +286,8 @@ const mainGo = (fnames: Array<string>, assert: boolean, run: boolean) => {
                 // return false;
             } else {
                 console.log(`✅ all clear ${chalk.blue(fname)}`);
+                console.log(stdout);
+                console.log(stderr);
                 // return true;
             }
         }
