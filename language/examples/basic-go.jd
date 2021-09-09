@@ -1,0 +1,12 @@
+
+const hello = (n: int) => n + 2;
+
+const world = (n: int, m: int) => hello(m) - n
+
+@ffi
+type Hello = {
+	age: int,
+	name: string,
+}
+
+Hello{age: world(20, 17), name: "whatsit"}

@@ -154,14 +154,13 @@ export const enumToGo = (
     const allAllItems = allEnumAttributes(env, constr, irOpts);
 
     return pp.items([
-        atom('struct '),
+        atom('type '),
         idToGo(env, opts, id, true),
+        atom(' struct '),
         block([
             atom(`int tag`),
             ...allAllItems.map(({ id, item, i }) =>
                 pp.items([
-                    typeToGo(env, opts, item),
-                    atom(' '),
                     atom(
                         recordAttributeName(
                             env,
@@ -170,6 +169,8 @@ export const enumToGo = (
                             env.typeDefs,
                         ),
                     ),
+                    atom(' '),
+                    typeToGo(env, opts, item),
                 ]),
             ),
             // ...([] as Array<PP>).concat(
@@ -252,8 +253,9 @@ export const recordToGo = (
     const subTypes = getAllSubTypes(env.global, constr.extends);
 
     return pp.items([
-        atom('struct '),
+        atom('type '),
         idToGo(env, opts, id, true),
+        atom(' struct '),
         block([
             ...getAllRecordAttributes(
                 env,
@@ -262,8 +264,6 @@ export const recordToGo = (
                 constr,
             ).map(({ i, item, id }) =>
                 pp.items([
-                    typeToGo(env, opts, item),
-                    atom(' '),
                     atom(
                         recordAttributeName(
                             env,
@@ -272,6 +272,8 @@ export const recordToGo = (
                             env.typeDefs,
                         ),
                     ),
+                    atom(' '),
+                    typeToGo(env, opts, item),
                 ]),
             ),
         ]),
@@ -438,8 +440,8 @@ export const printRecord = (
             atom(builtinTypes[idRaw].name),
             pp.args(
                 args.map((arg) => termToGo(env, opts, arg)),
-                '(',
-                ')',
+                '{',
+                '}',
                 false,
             ),
         ]);
@@ -462,7 +464,7 @@ export const printRecord = (
 
     return items([
         idToGo(env, opts, idFromName(idRaw), true),
-        pp.args(args, '(', ')', false),
+        pp.args(args, '{', '}', false),
     ]);
 };
 
@@ -481,8 +483,9 @@ export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
         case 'boolean':
             return atom(expr.value + '');
         case 'int':
-        case 'string':
             return atom(expr.value.toString());
+        case 'string':
+            return atom(JSON.stringify(expr.value.toString()));
         case 'var':
             return symToGo(env, opts, expr.sym);
         case 'apply':
@@ -1123,7 +1126,11 @@ export const fileToGo = (
     });
     // console.log('MAIN IR', irTerms[idName(mainTerm)]);
     return pp.items(
-        items.concat([atom(`\nfunc main() { print(V${mainHash}()); }`)]),
+        [atom('import (\n"fmt"\n)\n')].concat(
+            items.concat([
+                atom(`\nfunc main() { fmt.Printf("%#v\\n", V${mainHash}()); }`),
+            ]),
+        ),
     );
     //, mainType: irTerms[idName(mainTerm)].expr.is };
 };
