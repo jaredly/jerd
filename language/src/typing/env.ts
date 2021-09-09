@@ -368,7 +368,7 @@ export const addDecoratorToEnv = (
 export const typeMaybeConstantType = (env: Env, type: ParseType): Type => {
     if (
         type.type === 'TypeRef' &&
-        type.id.hash === '#builtin' &&
+        (type.id.hash === '#builtin' || !type.id.hash) &&
         type.id.text === 'Constant' &&
         type.typeVbls &&
         type.typeVbls.length === 1
@@ -383,7 +383,7 @@ export const typeMaybeConstantType = (env: Env, type: ParseType): Type => {
     return typeType(env, type);
 };
 
-// TODO: 
+// TODO:
 export const typeDecoratorInner = (
     env: Env,
     item: DecoratorDef,
@@ -429,8 +429,13 @@ export const typeDecoratorInner = (
 export const typeDecoratorDef = (
     env: Env,
     item: DecoratorDef,
+    unique?: number,
 ): { id: Id; env: Env } => {
-    return addDecoratorToEnv(env, item.id.text, typeDecoratorInner(env, item));
+    return addDecoratorToEnv(
+        env,
+        item.id.text,
+        typeDecoratorInner(env, item, unique),
+    );
 };
 
 export const typeTypeDefn = (

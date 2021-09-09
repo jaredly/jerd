@@ -66,6 +66,7 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
         case 'Decorator': {
             return items(
                 [
+                    atom(`@unique(${JSON.stringify(toplevel.defn.unique)}) `),
                     atom('decorator '),
                     id(
                         toplevel.name,
@@ -287,7 +288,8 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
               ])
             : items([
                   atom('@unique'),
-                  args([atom(recordDef.unique.toString())]),
+                  args([atom(JSON.stringify(recordDef.unique))]),
+                  atom(' '),
               ]),
         atom('type ', ['keyword']),
         idToPretty(env, id, 'record'),

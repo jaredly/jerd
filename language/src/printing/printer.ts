@@ -20,7 +20,7 @@ export const items = (
     attributes,
 });
 export const args = (
-    contents: Array<PP>,
+    contents: Array<PP | null>,
     left = '(',
     right = ')',
     trailing = true,
@@ -28,7 +28,7 @@ export const args = (
     rest?: PP,
 ): PP => ({
     type: 'args',
-    contents,
+    contents: contents.filter((m) => m != null) as Array<PP>,
     left,
     right,
     trailing,
@@ -36,12 +36,12 @@ export const args = (
     rest,
 });
 export const block = (
-    contents: Array<PP>,
+    contents: Array<PP | null>,
     sep: string = ';',
     loc?: Location,
 ): PP => ({
     type: 'block',
-    contents,
+    contents: contents.filter((c) => c != null) as Array<PP>,
     sep,
     loc,
 });
