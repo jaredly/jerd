@@ -37,11 +37,28 @@ Ok, let's actually formalize the "go drawable" dealio here. How can we get go "b
 - [-] get export actually working
   - [x] fix type dependency tracking
   - [x] export decorators if needed
-  - [ ] we need reproducable parsing for decorators! handle `@unique` on decorator definitions, and print them out as well.
+  - [x] we need reproducable parsing for decorators! handle `@unique` on decorator definitions, and print them out as well.
 - [ ] get go generation to complete
 - [ ] make a go type generator! This will be about the point where I want much smarter enum packing, I imagine.
   - I'll generate go types into a go-backends package, which can then use those types.
 - [ ] fix the go printer in whatever ways needed
+
+
+Hrmrmmmmmmmm so
+How do I make sure I'm not defining my types multiple places?
+That is to say:
+- I'm exporting the types in canvas.jd to go-backends/drawable
+- Then when I generate the go code for the /term/ in the web ui, I need to /not/ export go types for the types in canvas.jd, and instead use go's module referencing & importing bonanza.
+- a, much hackier option, would be to make a types.go file, and /copy/ the backend impl into our new thing, and just copy things with abandon. But that would be much simpler, maybe I'll do that for the moment.
+
+Ok, so the basics are:
+- generate a types.go file into all my go-backends, why not
+- then I can develop the backend.go file
+- when building with a backend, I just copy the backend.go file over. I might have to parse the backend.go file to determine which types actually get used... hmmm ....
+
+
+
+
 
 
 And then the go generator can be like "import this go-backends package, and `func main() { backend.run(myToplevelDealio )}`
