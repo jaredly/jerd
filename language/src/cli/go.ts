@@ -48,14 +48,31 @@ export const mainGo = (
             path.join(buildDir, name, 'go.mod'),
             `module github.com/jaredly/jerd/language/example/build/go/${name}\n\ngo 1.15\n\n`,
         );
+        // TODO: Adjust this based on the requested backend
+        fs.writeFileSync(
+            path.join(buildDir, name, 'drawable.go'),
+            fs.readFileSync(`./examples/go-backends/drawable/drawable.go`),
+        );
         if (run) {
             const { stdout, error, stderr, status } = spawnSync(
                 'go',
-                ['run', dest],
-                { stdio: 'pipe', encoding: 'utf8' },
+                ['run', '.'],
+                {
+                    cwd: path.join(buildDir, name),
+                    stdio: 'pipe',
+                    encoding: 'utf8',
+                    env: {
+                        GO111MODULE: 'on',
+                        ...process.env,
+                    },
+                },
             );
             if (status !== 0) {
-                console.log(`❌ Execution failed ${chalk.blue(fname)}`);
+                console.log(
+                    `❌ Execution failed ${chalk.blue(
+                        fname,
+                    )}: status ${status}`,
+                );
                 console.log('---------------');
                 console.log(stdout);
                 console.log(stderr);
@@ -63,9 +80,7 @@ export const mainGo = (
                 // return false;
             } else {
                 console.log(`✅ all clear ${chalk.blue(fname)}`);
-                console.log(stdout);
-                console.log(stderr);
-                // return true;
+                console.log(path.join(buildDir, name));
             }
         }
     }

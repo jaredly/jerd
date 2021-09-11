@@ -584,6 +584,8 @@ decorator hsl Constant#builtin<Vec3>;
 decorator hsla Constant#builtin<Vec4>;
 decorator title(title: string);
 
+decorator display(id: string);
+
 // decorator buffer(num: Constant#builtin<int>) (env: GLSLEnv, pos: Vec2, ...buffer: sampler2d) => Vec4
 // decorator main (env: GLSLEnv, pos: Vec2, ...buffer: sampler2d) => Vec4
 

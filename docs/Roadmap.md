@@ -57,6 +57,56 @@ Ok, so the basics are:
 - when building with a backend, I just copy the backend.go file over. I might have to parse the backend.go file to determine which types actually get used... hmmm ....
 
 
+ohhhhhh how do I do type variables 🤔.
+do I make some pseudo-go code or something?
+(ok I don't actually have to deal with this just yet, but it does concern me. Or wait maybe I'll just use `interface{}`).
+
+
+
+## Ok, so thinking about '@display's that are written in /jerd/:
+
+because I still think it's useful to have the term return a `Drawable`, instead of inline converting it to an svg string;
+BUT what if we had a way to define `@display`s inline, that then delegated to lower-level displays.
+
+like the 'drawableToSvg` would pass a string on to an svg native-defined drawable.
+
+
+```ts
+
+@svg // this means that it delegates to the svg displayPlugin.
+// now, what if the svg displayPlugin takes arguments ... how do I supply them?
+@displayPlugin
+const drawableToSvg = (drawable: Drawable, size: Vec2 = getBounds(drawable)): string => {
+  // yeah go for it
+}
+```
+
+but like,
+so I feel like a cool ~endpoint would be to make the UI powerful enough that any term that evaluates to `Displayable` will work.
+And then there are some native-builtin functions that can return the opaque Displayable type.
+
+So you'd have `displayOpenGl: <T>(GLSLScene<T>) => Displayable`.
+And then a cell would, in order to tell you what can be displayed, just find functions from (returnType) to (Displayable).
+And then composition becomes super easy.
+BUT
+
+currently my GLSLScene renderer requires that you provide the struct as a toplevel literal. What's the right way to relax that requirement?
+
+I mean I could just do tree-walking evaluation until I got to the literal I'm looking for, and then hand things off ......
+So that would mean writing a virtual machine for my language. Which probably isn't the worst, idk.
+Oh would I operate at the level of Terms, or Exprs? Honestly I think the Terms level would be nicer?
+
+Ok so yeah I think that's kindof a reasonable approach? idk.
+
+Ok, anyway, we won't be doing `@displayPlugin`, right?
+I mean I could do it as a stop-gap.
+like
+`@displayPlugin("image:svg") const myFn = (a: A): string => {...}`
+it would certainly be a simpler change.
+it doesn't allow for multiple levels of composition, but that's fine. And we'd only allow one-argument functions, which is also fine.
+
+
+
 
 
 

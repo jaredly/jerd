@@ -1,5 +1,6 @@
 // Printing Go! I think
 
+import { enumAliasesToGo, typeAliasesToGo } from '../cli/generateGoTypes';
 import { parse } from '../parsing/grammar';
 import { Location, Toplevel } from '../parsing/parser';
 import {
@@ -167,7 +168,7 @@ export const enumToGo = (
         idToGo(env, opts, id, true),
         atom(' struct '),
         block([
-            atom(`tag int32`),
+            atom(`tag int`),
             ...allAllItems.map(({ id, item, i }) => {
                 const name = recordAttributeName(
                     env,
@@ -239,7 +240,12 @@ export const typeDefToGo = (
         );
     }
     if (!constr.items.length) {
-        return null;
+        return items([
+            atom(`type `),
+            idToGo(env, opts, id, true),
+            atom(' '),
+            atom('bool;'),
+        ]);
     }
     // if (builtinTypes[key]) {
     //     return null;
@@ -1103,6 +1109,88 @@ export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     ]);
 };
 
+export const getMainTerm = (env: Env, expressions: Array<Term>): Term => {
+    console.log(env.global.decoratorNames);
+    console.log(expressions[0].decorators);
+    const displayDecorator = env.global.decoratorNames['display'][0];
+    if (
+        expressions.length === 1 &&
+        expressions[0].decorators &&
+        expressions[0].decorators.length === 1 &&
+        idsEqual(expressions[0].decorators[0].name.id, displayDecorator)
+    ) {
+        const args = expressions[0].decorators[0].args;
+        if (
+            args.length !== 1 ||
+            args[0].type !== 'Term' ||
+            args[0].term.type !== 'string'
+        ) {
+            throw new Error(`@display expected to have a string.`);
+        }
+        const displayName = args[0].term.text;
+        // we're doing a display folks
+        return {
+            type: 'lambda',
+            args: [],
+            body: {
+                type: 'apply',
+                args: [expressions[0]],
+                target: {
+                    type: 'ref',
+                    ref: { type: 'builtin', name: displayName },
+                    location: nullLocation,
+                    is: preset.pureFunction([expressions[0].is], preset.void_),
+                },
+                location: nullLocation,
+                effectVbls: null,
+                is: preset.void_,
+                typeVbls: [],
+            },
+            is: preset.pureFunction([], preset.void_),
+            location: nullLocation,
+            idLocations: [],
+        };
+    } else {
+        // just print everything out, it's fine
+        env.usedImports['fmt'] = true;
+        return {
+            type: 'lambda',
+            args: [],
+            body: {
+                type: 'sequence',
+                is: preset.void_,
+                location: nullLocation,
+                sts: expressions.map((expr) =>
+                    apply(
+                        preset.builtin(
+                            'fmt.Printf',
+                            preset.pureFunction(
+                                [preset.string, preset.string],
+                                preset.void_,
+                            ),
+                            nullLocation,
+                        ),
+                        [preset.stringLiteral('%#v\n', nullLocation), expr],
+                        nullLocation,
+                    ),
+                ),
+            },
+            idLocations: [],
+            is: {
+                type: 'lambda',
+                args: [],
+                res: preset.void_,
+                effectVbls: [],
+                effects: [],
+                location: nullLocation,
+                rest: null,
+                typeVbls: [],
+            },
+            location: nullLocation,
+        };
+    }
+};
+
 export const fileToGo = (
     expressions: Array<Term>,
     tenv: TermEnv,
@@ -1114,42 +1202,7 @@ export const fileToGo = (
     const irOpts: IOutputOptions = {};
     const includeComments = true;
 
-    env.usedImports['fmt'] = true;
-    const mainTerm: Term = {
-        type: 'lambda',
-        args: [],
-        body: {
-            type: 'sequence',
-            is: preset.void_,
-            location: nullLocation,
-            sts: expressions.map((expr) =>
-                apply(
-                    preset.builtin(
-                        'fmt.Printf',
-                        preset.pureFunction(
-                            [preset.string, preset.string],
-                            preset.void_,
-                        ),
-                        nullLocation,
-                    ),
-                    [preset.stringLiteral('%#v\n', nullLocation), expr],
-                    nullLocation,
-                ),
-            ),
-        },
-        idLocations: [],
-        is: {
-            type: 'lambda',
-            args: [],
-            res: preset.void_,
-            effectVbls: [],
-            effects: [],
-            location: nullLocation,
-            rest: null,
-            typeVbls: [],
-        },
-        location: nullLocation,
-    };
+    const mainTerm = getMainTerm(env, expressions);
 
     const mainHash = hashObject(mainTerm);
     env.global.terms[mainHash] = mainTerm;
@@ -1196,6 +1249,32 @@ export const fileToGo = (
             items.push(printed);
         }
     });
+    items.push(
+        ...(typeAliasesToGo(env, opts, irOpts, allTypes).filter(
+            (n) => n != null,
+        ) as Array<PP>),
+    );
+
+    items.push(...enumAliasesToGo(env, allTypes));
+    // Object.keys(env.global.types).forEach((idRaw) => {
+    //     const name = env.global.idNames[idRaw] || `T${idRaw}`;
+    //     const defn = env.global.types[idRaw];
+    //     if (defn.type === 'Enum') {
+    //         defn.items.forEach((t, idx) => {
+    //             const subName =
+    //                 env.global.idNames[idName(t.ref.id)] ||
+    //                 `T${idName(t.ref.id)}`;
+    //             items.push(
+    //                 pp.items([
+    //                     atom(`const `),
+    //                     atom(`${name}_${subName}`),
+    //                     atom(' int = '),
+    //                     atom(idx.toString()),
+    //                 ]),
+    //             );
+    //         });
+    //     }
+    // });
 
     const invalidLocs: Array<Location> = [];
 

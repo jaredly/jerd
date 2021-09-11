@@ -1,6 +1,11 @@
 // This only really for testing
 
-import { Decorator, Expression, Toplevel } from '../parsing/parser';
+import {
+    DecoratedExpression,
+    Decorator,
+    Expression,
+    Toplevel,
+} from '../parsing/parser';
 import typeExpr, { showLocation } from '../typing/typeExpr';
 import {
     Env,
@@ -237,7 +242,7 @@ export function typeFile(
                     );
                 }
                 // HACK HACK
-                const term = typeExpr(env, item.wrapped);
+                const term = typeExpr(env, item as DecoratedExpression);
                 if (getEffects(term).length > 0) {
                     throw new Error(
                         `Term at ${showLocation(

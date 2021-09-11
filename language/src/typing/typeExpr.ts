@@ -156,6 +156,7 @@ export const applyEffectVariables = (
         const mapping: { [unique: number]: Array<EffectRef> } = {};
 
         if (type.effectVbls.length !== 1) {
+            console.log(type.effectVbls);
             throw new LocatedError(
                 loc || type.location,
                 `Multiple effect variables not yet supported: ${
