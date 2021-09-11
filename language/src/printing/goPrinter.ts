@@ -1109,7 +1109,10 @@ export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     ]);
 };
 
-export const getMainTerm = (env: Env, expressions: Array<Term>): Term => {
+export const getMainTerm = (
+    env: Env,
+    expressions: Array<Term>,
+): { mainTerm: Term; displayName: string | null } => {
     console.log(env.global.decoratorNames);
     console.log(expressions[0].decorators);
     const displayDecorator = env.global.decoratorNames['display'][0];
@@ -1130,63 +1133,72 @@ export const getMainTerm = (env: Env, expressions: Array<Term>): Term => {
         const displayName = args[0].term.text;
         // we're doing a display folks
         return {
-            type: 'lambda',
-            args: [],
-            body: {
-                type: 'apply',
-                args: [expressions[0]],
-                target: {
-                    type: 'ref',
-                    ref: { type: 'builtin', name: displayName },
+            mainTerm: {
+                type: 'lambda',
+                args: [],
+                body: {
+                    type: 'apply',
+                    args: [expressions[0]],
+                    target: {
+                        type: 'ref',
+                        ref: { type: 'builtin', name: displayName },
+                        location: nullLocation,
+                        is: preset.pureFunction(
+                            [expressions[0].is],
+                            preset.void_,
+                        ),
+                    },
                     location: nullLocation,
-                    is: preset.pureFunction([expressions[0].is], preset.void_),
+                    effectVbls: null,
+                    is: preset.void_,
+                    typeVbls: [],
                 },
+                is: preset.pureFunction([], preset.void_),
                 location: nullLocation,
-                effectVbls: null,
-                is: preset.void_,
-                typeVbls: [],
+                idLocations: [],
             },
-            is: preset.pureFunction([], preset.void_),
-            location: nullLocation,
-            idLocations: [],
+            displayName,
         };
     } else {
         // just print everything out, it's fine
         env.usedImports['fmt'] = true;
         return {
-            type: 'lambda',
-            args: [],
-            body: {
-                type: 'sequence',
-                is: preset.void_,
-                location: nullLocation,
-                sts: expressions.map((expr) =>
-                    apply(
-                        preset.builtin(
-                            'fmt.Printf',
-                            preset.pureFunction(
-                                [preset.string, preset.string],
-                                preset.void_,
-                            ),
-                            nullLocation,
-                        ),
-                        [preset.stringLiteral('%#v\n', nullLocation), expr],
-                        nullLocation,
-                    ),
-                ),
-            },
-            idLocations: [],
-            is: {
+            mainTerm: {
                 type: 'lambda',
                 args: [],
-                res: preset.void_,
-                effectVbls: [],
-                effects: [],
+                body: {
+                    type: 'sequence',
+                    is: preset.void_,
+                    location: nullLocation,
+                    sts: expressions.map((expr) =>
+                        apply(
+                            preset.builtin(
+                                'fmt.Printf',
+                                preset.pureFunction(
+                                    [preset.string, preset.string],
+                                    preset.void_,
+                                ),
+                                nullLocation,
+                            ),
+                            [preset.stringLiteral('%#v\n', nullLocation), expr],
+                            nullLocation,
+                        ),
+                    ),
+                },
+                idLocations: [],
+                is: {
+                    type: 'lambda',
+                    args: [],
+                    res: preset.void_,
+                    effectVbls: [],
+                    effects: [],
+                    location: nullLocation,
+                    rest: null,
+                    typeVbls: [],
+                },
                 location: nullLocation,
-                rest: null,
-                typeVbls: [],
             },
-            location: nullLocation,
+            displayName: null,
         };
     }
 };
@@ -1202,7 +1214,7 @@ export const fileToGo = (
     const irOpts: IOutputOptions = {};
     const includeComments = true;
 
-    const mainTerm = getMainTerm(env, expressions);
+    const { mainTerm, displayName } = getMainTerm(env, expressions);
 
     const mainHash = hashObject(mainTerm);
     env.global.terms[mainHash] = mainTerm;
@@ -1312,11 +1324,16 @@ export const fileToGo = (
         );
     });
     // console.log('MAIN IR', irTerms[idName(mainTerm)]);
-    return pp.items(
-        Object.keys(env.usedImports)
-            .map((name) => atom(`import "${name}"\n`))
-            .concat(items.concat([atom(`\nfunc main() { V${mainHash}(); }`)])),
-    );
+    return {
+        pretty: pp.items(
+            Object.keys(env.usedImports)
+                .map((name) => atom(`import "${name}"\n`))
+                .concat(
+                    items.concat([atom(`\nfunc main() { V${mainHash}(); }`)]),
+                ),
+        ),
+        displayName,
+    };
     //, mainType: irTerms[idName(mainTerm)].expr.is };
 };
 

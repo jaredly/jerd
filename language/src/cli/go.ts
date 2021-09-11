@@ -36,7 +36,8 @@ export const mainGo = (
 
         let initialEnv = presetEnv(builtins);
         const { expressions, env } = typeFile(parsed, initialEnv, fname);
-        const text = printToString(fileToGo(expressions, env, assert), 100);
+        const { pretty, displayName } = fileToGo(expressions, env, assert);
+        const text = printToString(pretty, 100);
 
         const name = path.basename(fname).slice(0, -3);
 
@@ -48,11 +49,14 @@ export const mainGo = (
             path.join(buildDir, name, 'go.mod'),
             `module github.com/jaredly/jerd/language/example/build/go/${name}\n\ngo 1.15\n\n`,
         );
-        // TODO: Adjust this based on the requested backend
-        fs.writeFileSync(
-            path.join(buildDir, name, 'drawable.go'),
-            fs.readFileSync(`./examples/go-backends/drawable/drawable.go`),
-        );
+        if (displayName) {
+            fs.writeFileSync(
+                path.join(buildDir, name, `${displayName}.go`),
+                fs.readFileSync(
+                    `./examples/go-backends/${displayName}/${displayName}.go`,
+                ),
+            );
+        }
         if (run) {
             const { stdout, error, stderr, status } = spawnSync(
                 'go',
