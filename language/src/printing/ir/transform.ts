@@ -146,6 +146,18 @@ export const transformExpr = (
             });
             return changed ? { ...expr, items } : expr;
         }
+        case 'arrayAppend': {
+            const value = transformExpr(expr.value, visitor, level);
+            let changed = value !== expr.value;
+            const items = expr.items.map((item) => {
+                const ni = transformExpr(item, visitor, level);
+                changed = changed || ni !== item;
+                return ni;
+            });
+            return changed ? { ...expr, value, items } : expr;
+        }
+
+        case 'arrayCopy':
         case 'arrayLen':
         case 'IsRecord': {
             const value = transformExpr(expr.value, visitor, level);

@@ -373,6 +373,18 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
                 undefined,
                 expr.loc,
             );
+        case 'arrayAppend':
+            return items([
+                debugExpr(env, expr.value),
+                atom('.*push*'),
+                args(expr.items.map((item) => debugExpr(env, item))),
+            ]);
+        case 'arrayCopy':
+            return items([
+                atom('*arrayCopy*('),
+                debugExpr(env, expr.value),
+                atom(')'),
+            ]);
     }
 };
 

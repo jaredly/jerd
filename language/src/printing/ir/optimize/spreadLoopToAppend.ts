@@ -70,8 +70,30 @@ export const spreadLoopToAppend: Optimizer2 = (ctx: Context, expr: Expr) => {
             // TODO replace all references after the block with the new sym name
             const sym = newSym(ctx.env, spread.sym.name);
             const items: Array<Stmt> = [];
+            let past = false;
             block.items.forEach((item) => {
+                if (past) {
+                    const res = transformStmt(item, {
+                        ...defaultVisitor,
+                        expr: (expr) => {
+                            if (
+                                expr.type === 'var' &&
+                                expr.sym.unique === spread.sym.unique
+                            ) {
+                                return { ...expr, sym };
+                            }
+                            return null;
+                        },
+                    });
+                    if (Array.isArray(res)) {
+                        items.push(...res);
+                    } else {
+                        items.push(res);
+                    }
+                    return;
+                }
                 if (item === loop) {
+                    past = true;
                     items.push({
                         type: 'Define',
                         value: {
