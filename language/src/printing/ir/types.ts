@@ -405,6 +405,14 @@ export type Expr =
       }
     | {
           type: 'arrayAppend';
+          // oohh should I just make this
+          // a `Symbol`, to not mess around?
+          // although Symbols don't have locs.
+          // So a `VarExpr`?
+          // To be specific.
+          // Also, I do think this should be
+          // a Statement-level thing,
+          // not an Expr-level
           value: Expr;
           is: Type;
           loc: Loc;

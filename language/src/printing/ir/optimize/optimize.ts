@@ -34,6 +34,7 @@ import {
 } from './monoconstant';
 import { monomorphize, monomorphizeTypes } from './monomorphize';
 import { removeUnusedVariables } from './removeUnusedVariables';
+import { spreadLoopToAppend } from './spreadLoopToAppend';
 import { optimizeTailCalls } from './tailCall';
 import { transformRepeatedly } from './utils';
 
@@ -440,6 +441,7 @@ export const javascriptOpts: Array<Optimizer2> = [
     optimize,
     arraySliceLoopToIndex,
     foldImmediateAttributeAccess,
+    spreadLoopToAppend,
 ];
 
 export const ensureToplevelFunctionsAreLambdas = (ctx: Context, expr: Expr) => {
@@ -553,7 +555,6 @@ export const glslOptsNamed = {
     // inlineCallsThatReturnFunctions,
     explicitSpreads,
     optimizeTailCalls,
-    // ...javascriptOpts,
     optimize,
 
     foldSimpleMath,
@@ -613,7 +614,6 @@ export const glslOpts: Array<Optimizer2> = [
     explicitSpreads,
     // inferArraySize,
     optimizeTailCalls,
-    // ...javascriptOpts,
 
     // optimizeTailCalls,
     // optimize,

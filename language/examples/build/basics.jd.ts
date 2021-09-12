@@ -4,7 +4,7 @@ type handle22024b72 = [(arg_0: (arg_0: handle22024b72, arg_1: string) => void) =
 
 /**
 ```
-type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
@@ -58,6 +58,38 @@ const freturn#38ab4eac = (): string#builtin ={}> "yes"
 ```
 */
 export const hash_38ab4eac: () => string = () => "yes";
+
+/**
+```
+const rec tailMe#77e26344 = (num#:0: int#builtin, collect#:1: Array#builtin<int#builtin>): Array#builtin<
+    int#builtin,
+> ={}> {
+    if num#:0 <=#builtin 0 {
+        collect#:1;
+    } else {
+        77e26344#self(num#:0 -#builtin 1, <int#builtin>[...collect#:1, num#:0]);
+    };
+}
+(num#:0: int, collect#:1: Array<int>): Array<int> => {
+    const collect#:4: Array<int> = *arrayCopy*(collect#:1);
+    for (; num#:0 > 0; num#:0 = num#:0 - 1) {
+        collect#:4.*push*(num#:0);
+        continue;
+    };
+    return collect#:4;
+}
+```
+*/
+export const hash_77e26344: (arg_0: number, arg_1: Array<number>) => Array<number> = (num: number, collect: Array<number>) => {
+  let collect$4: Array<number> = collect.slice();
+
+  for (; num > 0; num = num - 1) {
+    collect$4.push(num);
+    continue;
+  }
+
+  return collect$4;
+};
 
 /**
 ```
@@ -342,3 +374,15 @@ assertCall(
 assertCall(hash_da00b310.h51ea2a36_0, hash_8366c3ec("hi")("Passed in", (arg: string, handlers: Handlers, done$1: (arg_0: Handlers, arg_1: string) => void) => {
   done$1(handlers, arg + "-m");
 }), "Passed in-m");
+
+/*
+tailMe#77e26344(num: 20, collect: <int#builtin>[])
+tailMe#🦽🖐️🕕😃(20, [])
+*/
+hash_77e26344(20, []);
+
+/*
+tailMe#77e26344(num: 1, collect: <int#builtin>[])
+tailMe#🦽🖐️🕕😃(1, [])
+*/
+hash_77e26344(1, []);

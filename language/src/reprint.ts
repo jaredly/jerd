@@ -99,14 +99,21 @@ export const reprintToplevel = (
                 printed[0].decorators[0].args[0].type === 'Expr'
                     ? typeExpr(env, printed[0].decorators[0].args[0].expr)
                     : null;
-            if (tag && tag.type !== 'string') {
-                throw new Error(`ffi tag must be a string literal`);
+            let ffi = undefined;
+            if (printed[0].decorators[0].id.text === 'ffi') {
+                ffi =
+                    tag && tag.type === 'string'
+                        ? tag.text
+                        : printed[0].wrapped.id.text;
             }
+            // if (tag && tag.type !== 'string') {
+            //     throw new Error(`ffi tag must be a string literal`);
+            // }
             const defn = typeRecordDefn(
                 env,
                 printed[0].wrapped,
                 toplevel.def.unique,
-                tag ? tag.text : printed[0].wrapped.id.text,
+                ffi,
             );
             if (!defn) {
                 throw new Error(`No record defn`);

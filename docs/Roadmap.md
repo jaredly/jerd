@@ -4,6 +4,9 @@
 First off though, doing euler-spiral.jd to javascript, and benchmarking it against go, would be cool.
 And then writing a `spreadLoopToAppend` optimizer, that would run in js + rust, but not go or glsl. And see how much better the nodejs got.
 
+- [x] get spreadLoopToAppend goig
+- [ ] arrayAppend should be called arrayPush and should be a Stmt, not an Expr
+
 ## Prep for rust
 
 I would like to start producing rust, so as to be able to compare go, rust, and nodejs.

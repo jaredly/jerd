@@ -81,3 +81,15 @@ provideStringWithArg("hi")("Passed in", (arg: string) ={GetString}> arg ++ "-m")
 
 // How to assert type errors?
 // yeah it would definitely be good to be able to do that.
+
+const rec tailMe = (num: int, collect: Array<int>): Array<int> => {
+    if num <= 0 {
+        collect
+    } else {
+        tailMe(num - 1, [...collect, num])
+    }
+}
+
+tailMe(20, <int>[])
+
+tailMe(1, <int>[])

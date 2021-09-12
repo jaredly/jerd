@@ -59,7 +59,7 @@ import { effectConstructorType } from './ir/cps';
 import { getEnumReferences, showLocation } from '../typing/typeExpr';
 import { defaultVisitor, transformExpr } from './ir/transform';
 import { uniquesReallyAreUnique } from './ir/analyze';
-import { LocatedError } from '../typing/errors';
+import { LocatedError, TypeError } from '../typing/errors';
 import { Location } from '../parsing/parser';
 import { showViolation, validate } from './ir/validate';
 import { debugExpr } from './irDebugPrinter';
@@ -638,6 +638,22 @@ export const _termToTs = (
         case 'SpecializeEnum':
             // js doesn't need explicit casting to or from enum
             return termToTs(env, opts, term.inner);
+        case 'arrayCopy':
+            return t.callExpression(
+                t.memberExpression(
+                    termToTs(env, opts, term.value),
+                    t.identifier('slice'),
+                ),
+                [],
+            );
+        case 'arrayAppend':
+            return t.callExpression(
+                t.memberExpression(
+                    termToTs(env, opts, term.value),
+                    t.identifier('push'),
+                ),
+                term.items.map((item) => termToTs(env, opts, item)),
+            );
         default:
             let _v: never = term;
             throw new Error(`Cannot print ${(term as any).type} to TypeScript`);
@@ -1141,6 +1157,9 @@ export const fileToTypescript = (
         try {
             uniquesReallyAreUnique(irTerm);
         } catch (err) {
+            if (!(err instanceof TypeError)) {
+                throw err;
+            }
             const outer = new LocatedError(
                 term.location,
                 `Failed while typing for js ${idRaw} : ${

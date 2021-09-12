@@ -199,7 +199,7 @@ export function typeFile(
                         throw new Error(message);
                     }
                 } catch (err) {
-                    if (!(err instanceof TypeError)) {
+                    if (!(err instanceof Error)) {
                         throw err;
                     }
                     const message = err.toString();
