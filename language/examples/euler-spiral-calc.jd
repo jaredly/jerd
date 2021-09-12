@@ -1,0 +1,76 @@
+@unique(1.0)type Mul#02cc25c4<A#:0, B#:1, C#:2> = {
+    "*": (A#:0, B#:1) ={}> C#:2,
+};
+
+@unique(0.0)type AddSub#3d436b7e<A#:0, B#:1, C#:2> = {
+    "+": (A#:0, B#:1) ={}> C#:2,
+    "-": (A#:0, B#:1) ={}> C#:2,
+};
+
+@unique(2.0)type As#As<T#:10000, Y#:10001> = {
+    as: (T#:10000) ={}> Y#:10001,
+};
+
+@ffi("Vec2") type Vec2#08f7c2ac = {
+    x: float#builtin,
+    y: float#builtin,
+};
+
+const vec2#fa534764 = (x#:0: float#builtin, y#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+    x#08f7c2ac#0: x#:0,
+    y#08f7c2ac#1: y#:1,
+};
+
+const thetaPos2#b03288dc = (theta#:0: float#builtin): Vec2#08f7c2ac ={}> vec2#fa534764(
+    x: cos#builtin(theta#:0),
+    y: sin#builtin(theta#:0),
+);
+
+const Vec2float#db41487e = Mul#02cc25c4<Vec2#08f7c2ac, float#builtin, Vec2#08f7c2ac>{
+    "*"#02cc25c4#0: (v#:0: Vec2#08f7c2ac, scale#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+        x#08f7c2ac#0: v#:0.x#08f7c2ac#0 *#builtin scale#:1,
+        y#08f7c2ac#1: v#:0.y#08f7c2ac#1 *#builtin scale#:1,
+    },
+};
+
+const AddSubVec2#04f14e9c = AddSub#3d436b7e<Vec2#08f7c2ac, Vec2#08f7c2ac, Vec2#08f7c2ac>{
+    "+"#3d436b7e#0: (one#:0: Vec2#08f7c2ac, two#:1: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+        x#08f7c2ac#0: one#:0.x#08f7c2ac#0 +#builtin two#:1.x#08f7c2ac#0,
+        y#08f7c2ac#1: one#:0.y#08f7c2ac#1 +#builtin two#:1.y#08f7c2ac#1,
+    },
+    "-"#3d436b7e#1: (one#:2: Vec2#08f7c2ac, two#:3: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+        x#08f7c2ac#0: one#:2.x#08f7c2ac#0 -#builtin two#:3.x#08f7c2ac#0,
+        y#08f7c2ac#1: one#:2.y#08f7c2ac#1 -#builtin two#:3.y#08f7c2ac#1,
+    },
+};
+
+const IntAsFloat#6f186ad1 = As#As<int#builtin, float#builtin>{as#As#0: intToFloat#builtin};
+
+const rec accurateSpiral#ae2070ac = (
+    at#:0: int#builtin,
+    by#:1: float#builtin,
+    length#:2: float#builtin,
+    theta#:3: float#builtin,
+    pos#:4: Vec2#08f7c2ac,
+    points#:5: Array#builtin<Vec2#08f7c2ac>,
+    max#:6: int#builtin,
+): Array#builtin<Vec2#08f7c2ac> ={}> {
+    if at#:0 >=#builtin max#:6 {
+        points#:5;
+    } else {
+        const next#:7 = theta#:3 +#builtin by#:1 *#builtin at#:0 as#6f186ad1 float#builtin;
+        const nextPos#:8 = pos#:4 
+            +#04f14e9c#3d436b7e#0 thetaPos2#b03288dc(theta#:3) *#db41487e#02cc25c4#0 length#:2;
+        accurateSpiral#self(
+            at#:0 +#builtin 1,
+            by#:1,
+            length#:2,
+            next#:7,
+            nextPos#:8,
+            <Vec2#08f7c2ac>[...points#:5, nextPos#:8],
+            max#:6,
+        );
+    };
+}
+
+accurateSpiral#ae2070ac(0, 3.14159 / 10.0, 1.0, 0.0, Vec2{x: 0.0, y: 0.0}, <Vec2>[], 200);

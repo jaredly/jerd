@@ -1,4 +1,20 @@
 
+## Compare node to go
+
+First off though, doing euler-spiral.jd to javascript, and benchmarking it against go, would be cool.
+And then writing a `spreadLoopToAppend` optimizer, that would run in js + rust, but not go or glsl. And see how much better the nodejs got.
+
+## Prep for rust
+
+I would like to start producing rust, so as to be able to compare go, rust, and nodejs.
+In order to stem the tide of copy/pasting, I think I should make another visitor pattern style thing, so that `blockToX` could be re-used between all the languages that have c-style blocks. And `returnToX` would be common as well.
+
+
+## Sliders in Go CLIs
+
+When generating the go, it would be very cool if sliders (decorator widgets) turned into cli arguments. Of course, they would only accept literals, which I hope won't always be a limitation for my web ui, but currently is there as well.
+
+
 # Generating some go here, it's pretty fun.
 
 We have euler-spiral-calc working just fine, which is super cool.

@@ -1,0 +1,295 @@
+@ffi("Vec2") type Vec2#08f7c2ac = {
+    x: float#builtin,
+    y: float#builtin,
+};
+
+@ffi("Arc") type Arc#443a6bbd = {
+    center: Vec2#08f7c2ac,
+    startAngle: float#builtin,
+    endAngle: float#builtin,
+    counterClockwise: bool#builtin = false,
+};
+
+@ffi("EllipsePath") type EllipsePath#92791c88 = {
+    ...Arc#443a6bbd,
+    radius: Vec2#08f7c2ac,
+    rotation: float#builtin,
+};
+
+@ffi("Rounded") type Rounded#b7a4f230 = {
+    c1: Vec2#08f7c2ac,
+    c2: Vec2#08f7c2ac,
+    radius: float#builtin,
+};
+
+@ffi("Bezier") type Bezier#37a1f256 = {
+    c1: Vec2#08f7c2ac,
+    c2: Vec2#08f7c2ac,
+    c3: Vec2#08f7c2ac,
+    c4: Vec2#08f7c2ac,
+    end: Vec2#08f7c2ac,
+};
+
+@ffi("Quadratic") type Quadratic#5c0c4fd8 = {
+    control: Vec2#08f7c2ac,
+    end: Vec2#08f7c2ac,
+};
+
+enum PathPart#33159eb4 {
+    Vec2#08f7c2ac,
+    Quadratic#5c0c4fd8,
+    Bezier#37a1f256,
+    Rounded#b7a4f230,
+    Arc#443a6bbd,
+    EllipsePath#92791c88,
+};
+
+@ffi("End") type End#830ad468 = {};
+
+@ffi("Start") type Start#098d99e8 = {};
+
+@ffi("Center") type Center#1189540a = {};
+
+@ffi("Right") type Right#5cfc662e = {};
+
+@ffi("Left") type Left#43051e9e = {};
+
+@ffi("Rgba") type Rgba#52033f94 = {
+    r: float#builtin,
+    g: float#builtin,
+    b: float#builtin,
+    a: float#builtin = 1.0,
+};
+
+@ffi("CSS") type CSS#742a31c2 = {
+    value: string#builtin,
+};
+
+@ffi("Square") type Square#155bb0ac = {};
+
+@ffi("Round") type Round#51486760 = {};
+
+@ffi("Butt") type Butt#1ac05bf8 = {};
+
+@ffi("Path") type Path#ddadd8a8 = {
+    start: Vec2#08f7c2ac,
+    closed: bool#builtin = false,
+    parts: Array#builtin<PathPart#33159eb4>,
+};
+
+@ffi("Rect") type Rect#126fdf00 = {
+    pos: Vec2#08f7c2ac,
+    size: Vec2#08f7c2ac,
+    rotation: float#builtin = 0.0,
+};
+
+@ffi("Polygon") type Polygon#cafe28b8 = {
+    points: Array#builtin<Vec2#08f7c2ac>,
+    closed: bool#builtin = true,
+};
+
+@ffi("Line") type Line#565da092 = {
+    p1: Vec2#08f7c2ac,
+    p2: Vec2#08f7c2ac,
+};
+
+@ffi("Ellipse") type Ellipse#098fbabc = {
+    pos: Vec2#08f7c2ac,
+    radius: Vec2#08f7c2ac,
+    rotation: float#builtin = 0.0,
+};
+
+enum TextAlign#eaefd106 {
+    Left#43051e9e,
+    Right#5cfc662e,
+    Center#1189540a,
+    Start#098d99e8,
+    End#830ad468,
+};
+
+enum Color#1fe34118 {
+    CSS#742a31c2,
+    Rgba#52033f94,
+};
+
+enum LineCap#5e11f0b9 {
+    Butt#1ac05bf8,
+    Round#51486760,
+    Square#155bb0ac,
+};
+
+enum Geom#619d2fc4 {
+    Ellipse#098fbabc,
+    Line#565da092,
+    Polygon#cafe28b8,
+    Rect#126fdf00,
+    Path#ddadd8a8,
+};
+
+@ffi("Text") type Text#d86ebaa8 = {
+    text: string#builtin,
+    color: Color#1fe34118,
+    pos: Vec2#08f7c2ac,
+    stroke: float#builtin = 0.0,
+    font: string#builtin = "",
+    textAlign: TextAlign#eaefd106 = TextAlign#eaefd106:Start#098d99e8,
+};
+
+@ffi("Stroke") type Stroke#adcc8cc6 = {
+    geom: Geom#619d2fc4,
+    color: Color#1fe34118,
+    width: float#builtin = 1.0,
+    lineCaps: LineCap#5e11f0b9 = LineCap#5e11f0b9:Round#51486760,
+};
+
+@ffi("Fill") type Fill#3bd0cc4c = {
+    geom: Geom#619d2fc4,
+    color: Color#1fe34118,
+};
+
+enum Drawable#56de3b71 {
+    Fill#3bd0cc4c,
+    Stroke#adcc8cc6,
+    Text#d86ebaa8,
+};
+
+@unique(2) type As#As<T#:10000, Y#:10001> = {
+    as: (T#:10000) ={}> Y#:10001,
+};
+
+@unique(0) type AddSub#3d436b7e<A#:0, B#:1, C#:2> = {
+    "+": (A#:0, B#:1) ={}> C#:2,
+    "-": (A#:0, B#:1) ={}> C#:2,
+};
+
+@unique(1) type Mul#02cc25c4<A#:0, B#:1, C#:2> = {
+    "*": (A#:0, B#:1) ={}> C#:2,
+};
+
+@unique(0.17852990309013597) decorator slider#4e421b50(
+    min: Constant#builtin<int#builtin>,
+    max: Constant#builtin<int#builtin>,
+    step: Constant#builtin<int#builtin>,
+) Constant#builtin<int#builtin>;
+
+@unique(0.6800506892126144) decorator title#1b6d573e(title: string#builtin);
+
+@unique(0.5425139598776044) decorator slider#b981a438(
+    min: Constant#builtin<float#builtin>,
+    max: Constant#builtin<float#builtin>,
+    step: Constant#builtin<float#builtin>,
+) Constant#builtin<float#builtin>;
+
+const vec2#fa534764 = (x#:0: float#builtin, y#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+    x#08f7c2ac#0: x#:0,
+    y#08f7c2ac#1: y#:1,
+};
+
+const thetaPos2#b03288dc = (theta#:0: float#builtin): Vec2#08f7c2ac ={}> vec2#fa534764(
+    x: cos#builtin(theta#:0),
+    y: sin#builtin(theta#:0),
+);
+
+const Vec2float#db41487e = Mul#02cc25c4<Vec2#08f7c2ac, float#builtin, Vec2#08f7c2ac>{
+    "*"#02cc25c4#0: (v#:0: Vec2#08f7c2ac, scale#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+        x#08f7c2ac#0: v#:0.x#08f7c2ac#0 *#builtin scale#:1,
+        y#08f7c2ac#1: v#:0.y#08f7c2ac#1 *#builtin scale#:1,
+    },
+};
+
+const AddSubVec2#04f14e9c = AddSub#3d436b7e<Vec2#08f7c2ac, Vec2#08f7c2ac, Vec2#08f7c2ac>{
+    "+"#3d436b7e#0: (one#:0: Vec2#08f7c2ac, two#:1: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+        x#08f7c2ac#0: one#:0.x#08f7c2ac#0 +#builtin two#:1.x#08f7c2ac#0,
+        y#08f7c2ac#1: one#:0.y#08f7c2ac#1 +#builtin two#:1.y#08f7c2ac#1,
+    },
+    "-"#3d436b7e#1: (one#:2: Vec2#08f7c2ac, two#:3: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+        x#08f7c2ac#0: one#:2.x#08f7c2ac#0 -#builtin two#:3.x#08f7c2ac#0,
+        y#08f7c2ac#1: one#:2.y#08f7c2ac#1 -#builtin two#:3.y#08f7c2ac#1,
+    },
+};
+
+const IntAsFloat#6f186ad1 = As#As<int#builtin, float#builtin>{as#As#0: intToFloat#builtin};
+
+const rec accurateSpiral#ae2070ac = (
+    at#:0: int#builtin,
+    by#:1: float#builtin,
+    length#:2: float#builtin,
+    theta#:3: float#builtin,
+    pos#:4: Vec2#08f7c2ac,
+    points#:5: Array#builtin<Vec2#08f7c2ac>,
+    max#:6: int#builtin,
+): Array#builtin<Vec2#08f7c2ac> ={}> {
+    if at#:0 >=#builtin max#:6 {
+        points#:5;
+    } else {
+        const next#:7 = theta#:3 +#builtin by#:1 *#builtin at#:0 as#6f186ad1 float#builtin;
+        const nextPos#:8 = pos#:4 
+            +#04f14e9c#3d436b7e#0 thetaPos2#b03288dc(theta#:3) *#db41487e#02cc25c4#0 length#:2;
+        accurateSpiral#self(
+            at#:0 +#builtin 1,
+            by#:1,
+            length#:2,
+            next#:7,
+            nextPos#:8,
+            <Vec2#08f7c2ac>[...points#:5, nextPos#:8],
+            max#:6,
+        );
+    };
+};
+
+const vec2#fd62385c = (x#:0: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+    x#08f7c2ac#0: x#:0,
+    y#08f7c2ac#1: x#:0,
+};
+
+const drawSpiralCustom#4b373c17 = (
+    A#:0: int#builtin,
+    B#:1: int#builtin,
+    C#:2: int#builtin,
+    pos#:3: Vec2#08f7c2ac,
+    length#:4: float#builtin,
+): Drawable#56de3b71 ={}> {
+    const bottom#:5 = A#:0 *#builtin B#:1 +#builtin C#:2;
+    const result#:6 = accurateSpiral#ae2070ac(
+        at: bottom#:5,
+        by: A#:0 as#6f186ad1 float#builtin *#builtin PI#builtin 
+            /#builtin bottom#:5 as#6f186ad1 float#builtin,
+        length#:4,
+        theta: (bottom#:5 as#6f186ad1 float#builtin +#builtin 1.0) /#builtin 2.0 
+                *#builtin A#:0 as#6f186ad1 float#builtin 
+            *#builtin PI#builtin,
+        pos#:3,
+        points: <Vec2#08f7c2ac>[],
+        max: bottom#:5 *#builtin 4,
+    );
+    Drawable#56de3b71:Stroke#adcc8cc6{
+        geom#adcc8cc6#0: Geom#619d2fc4:Polygon#cafe28b8{
+            points#cafe28b8#0: result#:6,
+            closed#cafe28b8#1: false,
+        },
+        color#adcc8cc6#1: Color#1fe34118:CSS#742a31c2{value#742a31c2#0: "red"},
+    };
+};
+
+decorator display(id: string);
+
+@display("drawable")
+{
+    const C#:0 = @slider#4e421b50(min: 1, max: 100, step: 1) @title#1b6d573e(
+        title: "C: number of superspiral",
+    ) 5;
+    const W#:1 = @slider#4e421b50(min: 1, max: 100, step: 1) @title#1b6d573e(
+        title: "W: superspiral arrangement",
+    ) 32;
+    const B#:2 = @slider#4e421b50(min: 1, max: 20, step: 1) @title#1b6d573e(
+        title: "B: segments per spiral",
+    ) 7;
+    const Aoff#:3 = @slider#4e421b50(min: 0, max: 100, step: 1) @title#1b6d573e(
+        title: "A: spirals per superspiral",
+    ) 8;
+    const length#:4 = @slider#b981a438(min: 1.0, max: 10.0, step: 1.0) @title#1b6d573e(
+        title: "segment length",
+    ) 3.0;
+    const A#:5 = C#:0 *#builtin 1 +#builtin W#:1 +#builtin Aoff#:3 *#builtin C#:0 *#builtin 8;
+    drawSpiralCustom#4b373c17(A#:5, B#:2, C#:0, pos: vec2#fd62385c(x: 0.0), length#:4);
+}
