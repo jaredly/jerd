@@ -104,20 +104,20 @@ RecordItem = id:IdTextOrString _ ":" _ type:Type value:(_ "=" _ Expression)? {re
 
 DecoratorDef = "decorator " id:Identifier
     typeVbls:TypeVbls?
-    args:("("
-    DecDefArgs?
+    args:("(" _
+    DecDefArgs? _
 ")")? targetType:(__ Type)? {
     return {
         type: 'DecoratorDef',
         id,
         typeVbls,
-        args: args ? args[1] || [] : null,
+        args: args ? args[2] || [] : null,
         targetType: targetType ? targetType[1] : null,
         location: location(),
     }
 }
 
-DecDefArgs = first:DecDefArg rest:(_ "," _ DecDefArg)* {
+DecDefArgs = first:DecDefArg rest:(_ "," _ DecDefArg)* _ ","? {
     return [first].concat(rest.map((r: any) => r[3]))
 }
 

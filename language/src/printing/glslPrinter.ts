@@ -68,6 +68,7 @@ import {
     RecordDef,
 } from './ir/types';
 import {
+    bool,
     builtin,
     float,
     hasUndefinedReferences,
@@ -75,6 +76,7 @@ import {
     pureFunction,
     recordDefFromTermType,
     showType,
+    string,
     typeFromTermType,
     void_,
 } from './ir/utils';
@@ -984,6 +986,22 @@ export const makeZeroValue = (
     switch (item.type) {
         case 'var':
             throw new Error(`STOPSHIP can't zero value a var`);
+        case 'Array':
+            if (item.inferredSize != null) {
+                throw new Error(`Can't do zero value for a sized array.`);
+            }
+            return {
+                type: 'array',
+                is: {
+                    type: 'Array',
+                    inferredSize: null,
+                    inner: item.inner,
+                    loc,
+                },
+                items: [],
+                loc,
+                elType: item.inner,
+            };
         case 'ref':
             if (item.ref.type === 'builtin') {
                 switch (item.ref.name) {
@@ -991,6 +1009,10 @@ export const makeZeroValue = (
                         return { type: 'float', loc, is: float, value: 0 };
                     case 'int':
                         return { type: 'int', loc, is: int, value: 0 };
+                    case 'bool':
+                        return { type: 'boolean', value: false, loc, is: bool };
+                    case 'string':
+                        return { type: 'string', value: '', loc, is: string };
                 }
             } else {
                 const constr = env.global.types[idName(item.ref.id)];

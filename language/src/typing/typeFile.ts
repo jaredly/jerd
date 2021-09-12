@@ -1,6 +1,11 @@
 // This only really for testing
 
-import { Expression, Toplevel } from '../parsing/parser';
+import {
+    DecoratedExpression,
+    Decorator,
+    Expression,
+    Toplevel,
+} from '../parsing/parser';
 import typeExpr, { showLocation } from '../typing/typeExpr';
 import {
     Env,
@@ -25,6 +30,37 @@ import {
 import { presetEnv } from '../typing/preset';
 import { LocatedError, TypeError } from './errors';
 import { transform } from './transform';
+
+export const uniqueDecorator = (
+    decorators: Array<Decorator>,
+): { decorators: Array<Decorator>; unique: null | number } => {
+    const uniques = decorators.filter((d) => d.id.text === 'unique');
+    if (uniques.length > 1) {
+        throw new LocatedError(
+            uniques[1].location,
+            `Can't have multiple uniques`,
+        );
+    }
+    if (!uniques.length) {
+        return { decorators, unique: null };
+    }
+    const others = decorators.filter((d) => d.id.text !== 'unique');
+    const unique = uniques[0];
+    if (unique.args.length !== 1) {
+        throw new LocatedError(unique.location, `Unique takes 1 argument`);
+    }
+    const arg = unique.args[0];
+    if (
+        arg.type !== 'Expr' ||
+        !(arg.expr.type === 'int' || arg.expr.type === 'float')
+    ) {
+        throw new LocatedError(
+            unique.location,
+            `Unique takes 1 numeric argument`,
+        );
+    }
+    return { unique: arg.expr.value, decorators: others };
+};
 
 export function typeFile(
     parsed: Toplevel[],
@@ -76,31 +112,21 @@ export function typeFile(
             }
 
             if (item.wrapped.type === 'DecoratorDef') {
-                throw new Error(`TODO: Can't decorator decorators just now`);
-            }
-            if (item.wrapped.type === 'StructDef') {
-                const unique = item.decorators.filter(
-                    (d) => d.id.text === 'unique',
-                );
-                const ffi = item.decorators.filter((d) => d.id.text === 'ffi');
-                let unum = undefined;
-                if (unique.length) {
-                    if (unique.length > 1) {
-                        throw new Error(`multiple uniques`);
-                    }
-                    if (
-                        unique[0].args.length !== 1 ||
-                        unique[0].args[0].type !== 'Expr' ||
-                        (unique[0].args[0].expr.type !== 'float' &&
-                            unique[0].args[0].expr.type !== 'int')
-                    ) {
-                        throw new LocatedError(
-                            item.location,
-                            `@unique must have a float argument`,
-                        );
-                    }
-                    unum = unique[0].args[0].expr.value;
+                const { unique, decorators } = uniqueDecorator(item.decorators);
+                if (decorators.length) {
+                    throw new Error(
+                        `Decorators can only have the 'unique' decorator`,
+                    );
                 }
+                if (unique !== null) {
+                    env = typeDecoratorDef(env, item.wrapped, unique).env;
+                } else {
+                    throw new Error(`Impossible`);
+                }
+            } else if (item.wrapped.type === 'StructDef') {
+                const { unique, decorators } = uniqueDecorator(item.decorators);
+                const ffi = decorators.filter((d) => d.id.text === 'ffi');
+                const unum = unique != null ? unique : undefined;
                 let tag = undefined;
                 if (ffi.length) {
                     tag = item.wrapped.id.text;
@@ -216,7 +242,7 @@ export function typeFile(
                     );
                 }
                 // HACK HACK
-                const term = typeExpr(env, item.wrapped);
+                const term = typeExpr(env, item as DecoratedExpression);
                 if (getEffects(term).length > 0) {
                     throw new Error(
                         `Term at ${showLocation(

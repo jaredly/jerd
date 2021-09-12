@@ -368,7 +368,7 @@ export const addDecoratorToEnv = (
 export const typeMaybeConstantType = (env: Env, type: ParseType): Type => {
     if (
         type.type === 'TypeRef' &&
-        type.id.hash === '#builtin' &&
+        (type.id.hash === '#builtin' || !type.id.hash) &&
         type.id.text === 'Constant' &&
         type.typeVbls &&
         type.typeVbls.length === 1
@@ -383,10 +383,13 @@ export const typeMaybeConstantType = (env: Env, type: ParseType): Type => {
     return typeType(env, type);
 };
 
+// TODO:
 export const typeDecoratorInner = (
     env: Env,
     item: DecoratorDef,
+    unique?: number,
 ): TypedDecoratorDef => {
+    console.log(`DEC`, item.id.text);
     let restArg: null | any = null;
     let args: Array<DecoratorDefArg> = [];
     const { typeInner, typeVbls } = newEnvWithTypeAndEffectVbls(
@@ -410,7 +413,7 @@ export const typeDecoratorInner = (
         };
     }
     const d: TypedDecoratorDef = {
-        unique: typeInner.global.rng(),
+        unique: unique != null ? unique : typeInner.global.rng(),
         typeArgs: [],
         typeVbls,
         location: item.location,
@@ -427,8 +430,13 @@ export const typeDecoratorInner = (
 export const typeDecoratorDef = (
     env: Env,
     item: DecoratorDef,
+    unique?: number,
 ): { id: Id; env: Env } => {
-    return addDecoratorToEnv(env, item.id.text, typeDecoratorInner(env, item));
+    return addDecoratorToEnv(
+        env,
+        item.id.text,
+        typeDecoratorInner(env, item, unique),
+    );
 };
 
 export const typeTypeDefn = (

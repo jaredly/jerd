@@ -85,6 +85,7 @@ export const typeDecorators = (
         } else {
             const ids = env.global.decoratorNames[dec.id.text];
             if (!ids) {
+                console.log(env.global.decoratorNames);
                 throw new Error(`No decorators named ${dec.id.text}`);
             }
             let id: Id | null = null;

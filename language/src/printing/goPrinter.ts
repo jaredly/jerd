@@ -1,5 +1,6 @@
 // Printing Go! I think
 
+import { enumAliasesToGo, typeAliasesToGo } from '../cli/generateGoTypes';
 import { parse } from '../parsing/grammar';
 import { Location, Toplevel } from '../parsing/parser';
 import {
@@ -49,7 +50,6 @@ import {
     assembleItemsForFile,
     debugInferredSize,
     defaultOptimizer,
-    Env,
     expressionTypeDeps,
     getAllRecordAttributes,
     makeTermExpr,
@@ -107,6 +107,11 @@ import { declarationToPretty } from './printTsLike';
 import { maxUnique, recordAttributeName } from './typeScriptPrinterSimple';
 import { allRecordMembers } from './typeScriptTypePrinter';
 
+export type Env = TermEnv & {
+    typeDefs: TypeDefs;
+    usedImports: { [key: string]: boolean };
+};
+
 // Ok now that we have the IR, this will be much different.
 
 export type OutputOptions = {
@@ -156,26 +161,32 @@ export const enumToGo = (
 
     const allAllItems = allEnumAttributes(env, constr, irOpts);
 
+    const seen: { [key: string]: boolean } = {};
+
     return pp.items([
         atom('type '),
         idToGo(env, opts, id, true),
         atom(' struct '),
         block([
-            atom(`int tag`),
-            ...allAllItems.map(({ id, item, i }) =>
-                pp.items([
-                    atom(
-                        recordAttributeName(
-                            env,
-                            { type: 'user', id },
-                            i,
-                            env.typeDefs,
-                        ),
-                    ),
+            atom(`tag int`),
+            ...allAllItems.map(({ id, item, i }) => {
+                const name = recordAttributeName(
+                    env,
+                    { type: 'user', id },
+                    i,
+                    env.typeDefs,
+                );
+                if (seen[name]) {
+                    return null;
+                }
+                seen[name] = true;
+
+                return pp.items([
+                    atom(name),
                     atom(' '),
                     typeToGo(env, opts, item),
-                ]),
-            ),
+                ]);
+            }),
             // ...([] as Array<PP>).concat(
             //     ...constr.items.map((tref, i) => {
             //         if (tref.ref.type !== 'user') {
@@ -229,7 +240,12 @@ export const typeDefToGo = (
         );
     }
     if (!constr.items.length) {
-        return null;
+        return items([
+            atom(`type `),
+            idToGo(env, opts, id, true),
+            atom(' '),
+            atom('bool;'),
+        ]);
     }
     // if (builtinTypes[key]) {
     //     return null;
@@ -292,6 +308,7 @@ export const refToGo = (
 ) => {
     if (ref.type === 'builtin') {
         if (['sin', 'cos', 'tan'].includes(ref.name)) {
+            env.usedImports['math'] = true;
             return atom(
                 `math.${ref.name[0].toUpperCase() + ref.name.slice(1)}`,
             );
@@ -509,15 +526,23 @@ export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
         case 'builtin':
             // fixup ln vs log
             if (expr.name === 'ln') {
-                return atom('log');
+                env.usedImports['math'] = true;
+                return atom('math.Log');
             }
             if (expr.name === 'atan2') {
-                return atom('atan');
+                env.usedImports['math'] = true;
+                return atom('math.Atan');
+            }
+            if (expr.name === 'PI') {
+                env.usedImports['math'] = true;
+                return atom('math.Pi');
             }
             if (expr.name === 'cos') {
+                env.usedImports['math'] = true;
                 return atom('math.Cos');
             }
             if (expr.name === 'sin') {
+                env.usedImports['math'] = true;
                 return atom('math.Sin');
             }
             if (expr.name === 'intToFloat') {
@@ -663,23 +688,40 @@ export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
                 return items([
                     name,
                     args(
-                        [atom(idx.toString())].concat(
+                        ([
+                            pp.items([atom('tag: '), atom(idx.toString())]),
+                        ] as Array<PP | null>).concat(
                             attrs.map(({ i, id, item }) =>
-                                termToGo(
-                                    env,
-                                    opts,
-                                    idsEqual(id, iid)
-                                        ? rows[i]!
-                                        : // STOPSHIP: irOpts here????
-                                          makeZeroValue(
-                                              env,
-                                              {},
-                                              item,
-                                              expr.loc,
+                                idsEqual(id, iid)
+                                    ? pp.items([
+                                          atom(
+                                              recordAttributeName(
+                                                  env,
+                                                  { type: 'user', id },
+                                                  i,
+                                                  env.typeDefs,
+                                              ),
                                           ),
-                                ),
+                                          atom(': '),
+
+                                          termToGo(
+                                              env,
+                                              opts,
+                                              rows[i]!,
+                                              // : // STOPSHIP: irOpts here????
+                                              //   makeZeroValue(
+                                              //       env,
+                                              //       {},
+                                              //       item,
+                                              //       expr.loc,
+                                              //   ),
+                                          ),
+                                      ])
+                                    : null,
                             ),
                         ),
+                        '{',
+                        '}',
                     ),
                 ]);
             } else if (
@@ -1067,52 +1109,112 @@ export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     ]);
 };
 
+export const getMainTerm = (
+    env: Env,
+    expressions: Array<Term>,
+): { mainTerm: Term; displayName: string | null } => {
+    console.log(env.global.decoratorNames);
+    console.log(expressions[0].decorators);
+    const displayDecorator = env.global.decoratorNames['display'][0];
+    if (
+        expressions.length === 1 &&
+        expressions[0].decorators &&
+        expressions[0].decorators.length === 1 &&
+        idsEqual(expressions[0].decorators[0].name.id, displayDecorator)
+    ) {
+        const args = expressions[0].decorators[0].args;
+        if (
+            args.length !== 1 ||
+            args[0].type !== 'Term' ||
+            args[0].term.type !== 'string'
+        ) {
+            throw new Error(`@display expected to have a string.`);
+        }
+        const displayName = args[0].term.text;
+        // we're doing a display folks
+        return {
+            mainTerm: {
+                type: 'lambda',
+                args: [],
+                body: {
+                    type: 'apply',
+                    args: [expressions[0]],
+                    target: {
+                        type: 'ref',
+                        ref: { type: 'builtin', name: displayName },
+                        location: nullLocation,
+                        is: preset.pureFunction(
+                            [expressions[0].is],
+                            preset.void_,
+                        ),
+                    },
+                    location: nullLocation,
+                    effectVbls: null,
+                    is: preset.void_,
+                    typeVbls: [],
+                },
+                is: preset.pureFunction([], preset.void_),
+                location: nullLocation,
+                idLocations: [],
+            },
+            displayName,
+        };
+    } else {
+        // just print everything out, it's fine
+        env.usedImports['fmt'] = true;
+        return {
+            mainTerm: {
+                type: 'lambda',
+                args: [],
+                body: {
+                    type: 'sequence',
+                    is: preset.void_,
+                    location: nullLocation,
+                    sts: expressions.map((expr) =>
+                        apply(
+                            preset.builtin(
+                                'fmt.Printf',
+                                preset.pureFunction(
+                                    [preset.string, preset.string],
+                                    preset.void_,
+                                ),
+                                nullLocation,
+                            ),
+                            [preset.stringLiteral('%#v\n', nullLocation), expr],
+                            nullLocation,
+                        ),
+                    ),
+                },
+                idLocations: [],
+                is: {
+                    type: 'lambda',
+                    args: [],
+                    res: preset.void_,
+                    effectVbls: [],
+                    effects: [],
+                    location: nullLocation,
+                    rest: null,
+                    typeVbls: [],
+                },
+                location: nullLocation,
+            },
+            displayName: null,
+        };
+    }
+};
+
 export const fileToGo = (
     expressions: Array<Term>,
     tenv: TermEnv,
     assert: boolean,
 ) => {
-    const env: Env = { ...tenv, typeDefs: {} };
+    const env: Env = { ...tenv, typeDefs: {}, usedImports: {} };
     const items: Array<PP> = []; // shaderTop(bufferCount);
     const opts: OutputOptions = {};
     const irOpts: IOutputOptions = {};
     const includeComments = true;
 
-    const mainTerm: Term = {
-        type: 'lambda',
-        args: [],
-        body: {
-            type: 'sequence',
-            is: preset.void_,
-            location: nullLocation,
-            sts: expressions.map((expr) =>
-                apply(
-                    preset.builtin(
-                        'fmt.Printf',
-                        preset.pureFunction(
-                            [preset.string, preset.string],
-                            preset.void_,
-                        ),
-                        nullLocation,
-                    ),
-                    [preset.stringLiteral('%#v\n', nullLocation), expr],
-                    nullLocation,
-                ),
-            ),
-        },
-        idLocations: [],
-        is: {
-            type: 'lambda',
-            args: [],
-            res: preset.void_,
-            effectVbls: [],
-            effects: [],
-            location: nullLocation,
-            rest: null,
-            typeVbls: [],
-        },
-        location: nullLocation,
-    };
+    const { mainTerm, displayName } = getMainTerm(env, expressions);
 
     const mainHash = hashObject(mainTerm);
     env.global.terms[mainHash] = mainTerm;
@@ -1159,6 +1261,32 @@ export const fileToGo = (
             items.push(printed);
         }
     });
+    items.push(
+        ...(typeAliasesToGo(env, opts, irOpts, allTypes).filter(
+            (n) => n != null,
+        ) as Array<PP>),
+    );
+
+    items.push(...enumAliasesToGo(env, allTypes));
+    // Object.keys(env.global.types).forEach((idRaw) => {
+    //     const name = env.global.idNames[idRaw] || `T${idRaw}`;
+    //     const defn = env.global.types[idRaw];
+    //     if (defn.type === 'Enum') {
+    //         defn.items.forEach((t, idx) => {
+    //             const subName =
+    //                 env.global.idNames[idName(t.ref.id)] ||
+    //                 `T${idName(t.ref.id)}`;
+    //             items.push(
+    //                 pp.items([
+    //                     atom(`const `),
+    //                     atom(`${name}_${subName}`),
+    //                     atom(' int = '),
+    //                     atom(idx.toString()),
+    //                 ]),
+    //             );
+    //         });
+    //     }
+    // });
 
     const invalidLocs: Array<Location> = [];
 
@@ -1179,7 +1307,11 @@ export const fileToGo = (
             declarationToGo(
                 // Empty out the localNames
                 // { ...senv, local: { ...senv.local, localNames: {} } },
-                { ...senv, typeDefs: env.typeDefs },
+                {
+                    ...senv,
+                    typeDefs: env.typeDefs,
+                    usedImports: env.usedImports,
+                },
                 opts,
                 name,
                 irTerms[name].expr,
@@ -1192,48 +1324,61 @@ export const fileToGo = (
         );
     });
     // console.log('MAIN IR', irTerms[idName(mainTerm)]);
-    return pp.items(
-        [atom('import "fmt"\nimport "math"\n')].concat(
-            items.concat([atom(`\nfunc main() { V${mainHash}(); }`)]),
+    return {
+        pretty: pp.items(
+            Object.keys(env.usedImports)
+                .map((name) => atom(`import "${name}"\n`))
+                .concat(
+                    items.concat([atom(`\nfunc main() { V${mainHash}(); }`)]),
+                ),
         ),
-    );
+        displayName,
+    };
     //, mainType: irTerms[idName(mainTerm)].expr.is };
 };
 
 /*
+
+import (
+	"image/color"
+
+	"math"
+
+	"github.com/tdewolff/canvas"
+	"github.com/tdewolff/canvas/renderers"
+)
+
+
 func main() {
-	width := 1000
-	height := 1000
-	points := Vae2070ac(0, 0.0, 10.0, 0.0, T08f7c2ac{0.0, 0.0}, []T08f7c2ac{}, 200)
-	r := vector.NewRasterizer(width, height)
-	r.DrawOp = draw.Src
+	width := 1000.0
+	height := 1000.0
+	points := Vae2070ac(0, math.Pi*5.0/501.0, 10.0, 0.0, T08f7c2ac{500.0, 500.0}, []T08f7c2ac{}, 20000)
+
+	c := canvas.New(width, height)
+	ctx := canvas.NewContext(c)
+
+	ctx.SetStrokeWidth(1.0)
+	ctx.SetStrokeColor(color.RGBA{255, 0, 0, 255})
+
 	for i, point := range points {
 		if i == 0 {
-			r.MoveTo(float32(point.x), float32(point.y))
+			ctx.MoveTo((point.x), (point.y))
 		} else {
-			r.LineTo(float32(point.x), float32(point.y))
+			ctx.LineTo((point.x), (point.y))
 		}
 	}
-	// r.MoveTo(1, 2)
-	// r.LineTo(20, 2)
-	// r.QuadTo(40.5, 15, 10, 20)
-	r.ClosePath()
+	ctx.Stroke()
 
-	dst := image.NewAlpha(image.Rect(0, 0, width, height))
-	r.Draw(dst, dst.Bounds(), image.Black, image.Point{500.0, 500.0})
-	w, _ := os.OpenFile("hello.png", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
-	defer w.Close()
-	png.Encode(w, dst)
+	renderers.Write("hello.png", c, canvas.DPMM(8.0))
 }
 
 
+// And here's the go.mod:
 
+module jaredforsyth.com/example
 
+go 1.15
 
-
-
-
-
-
+require github.com/tdewolff/canvas v0.0.0-20210908183126-b9a5e3a05434
 
 */

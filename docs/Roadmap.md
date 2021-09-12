@@ -1,4 +1,20 @@
 
+## Compare node to go
+
+First off though, doing euler-spiral.jd to javascript, and benchmarking it against go, would be cool.
+And then writing a `spreadLoopToAppend` optimizer, that would run in js + rust, but not go or glsl. And see how much better the nodejs got.
+
+## Prep for rust
+
+I would like to start producing rust, so as to be able to compare go, rust, and nodejs.
+In order to stem the tide of copy/pasting, I think I should make another visitor pattern style thing, so that `blockToX` could be re-used between all the languages that have c-style blocks. And `returnToX` would be common as well.
+
+
+## Sliders in Go CLIs
+
+When generating the go, it would be very cool if sliders (decorator widgets) turned into cli arguments. Of course, they would only accept literals, which I hope won't always be a limitation for my web ui, but currently is there as well.
+
+
 # Generating some go here, it's pretty fun.
 
 We have euler-spiral-calc working just fine, which is super cool.
@@ -31,9 +47,87 @@ const drawSomething = (p: Vec2) ={Draw}> {
 // lol ok it, uh, wouldn't. Which is very interesting.
 
 Ok yeah, so let's go with the "svg" route.
-Ok, let's actually formalize the "go drawable" dealio here.
+Ok, let's actually formalize the "go drawable" dealio here. How can we get go "backends" (to use the Roc term) to work?
 
 
+- [-] get export actually working
+  - [x] fix type dependency tracking
+  - [x] export decorators if needed
+  - [x] we need reproducable parsing for decorators! handle `@unique` on decorator definitions, and print them out as well.
+- [ ] get go generation to complete
+- [ ] make a go type generator! This will be about the point where I want much smarter enum packing, I imagine.
+  - I'll generate go types into a go-backends package, which can then use those types.
+- [ ] fix the go printer in whatever ways needed
+
+
+Hrmrmmmmmmmm so
+How do I make sure I'm not defining my types multiple places?
+That is to say:
+- I'm exporting the types in canvas.jd to go-backends/drawable
+- Then when I generate the go code for the /term/ in the web ui, I need to /not/ export go types for the types in canvas.jd, and instead use go's module referencing & importing bonanza.
+- a, much hackier option, would be to make a types.go file, and /copy/ the backend impl into our new thing, and just copy things with abandon. But that would be much simpler, maybe I'll do that for the moment.
+
+Ok, so the basics are:
+- generate a types.go file into all my go-backends, why not
+- then I can develop the backend.go file
+- when building with a backend, I just copy the backend.go file over. I might have to parse the backend.go file to determine which types actually get used... hmmm ....
+
+
+ohhhhhh how do I do type variables 🤔.
+do I make some pseudo-go code or something?
+(ok I don't actually have to deal with this just yet, but it does concern me. Or wait maybe I'll just use `interface{}`).
+
+
+
+## Ok, so thinking about '@display's that are written in /jerd/:
+
+because I still think it's useful to have the term return a `Drawable`, instead of inline converting it to an svg string;
+BUT what if we had a way to define `@display`s inline, that then delegated to lower-level displays.
+
+like the 'drawableToSvg` would pass a string on to an svg native-defined drawable.
+
+
+```ts
+
+@svg // this means that it delegates to the svg displayPlugin.
+// now, what if the svg displayPlugin takes arguments ... how do I supply them?
+@displayPlugin
+const drawableToSvg = (drawable: Drawable, size: Vec2 = getBounds(drawable)): string => {
+  // yeah go for it
+}
+```
+
+but like,
+so I feel like a cool ~endpoint would be to make the UI powerful enough that any term that evaluates to `Displayable` will work.
+And then there are some native-builtin functions that can return the opaque Displayable type.
+
+So you'd have `displayOpenGl: <T>(GLSLScene<T>) => Displayable`.
+And then a cell would, in order to tell you what can be displayed, just find functions from (returnType) to (Displayable).
+And then composition becomes super easy.
+BUT
+
+currently my GLSLScene renderer requires that you provide the struct as a toplevel literal. What's the right way to relax that requirement?
+
+I mean I could just do tree-walking evaluation until I got to the literal I'm looking for, and then hand things off ......
+So that would mean writing a virtual machine for my language. Which probably isn't the worst, idk.
+Oh would I operate at the level of Terms, or Exprs? Honestly I think the Terms level would be nicer?
+
+Ok so yeah I think that's kindof a reasonable approach? idk.
+
+Ok, anyway, we won't be doing `@displayPlugin`, right?
+I mean I could do it as a stop-gap.
+like
+`@displayPlugin("image:svg") const myFn = (a: A): string => {...}`
+it would certainly be a simpler change.
+it doesn't allow for multiple levels of composition, but that's fine. And we'd only allow one-argument functions, which is also fine.
+
+
+
+
+
+
+
+And then the go generator can be like "import this go-backends package, and `func main() { backend.run(myToplevelDealio )}`
 
 
 
