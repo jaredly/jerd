@@ -107,6 +107,13 @@ export type ArrayType = {
     inferredSize: null | InferredSize;
 };
 
+export type VoidType = {
+    type: 'ref';
+    ref: { type: 'builtin'; name: 'void' };
+    loc: Loc;
+    typeVbls: [];
+};
+
 export type Type =
     | {
           type: 'var';
@@ -396,6 +403,14 @@ export type Expr =
           loc: Loc;
           is: Type;
       }
+    | {
+          type: 'arrayAppend';
+          value: Expr;
+          is: Type;
+          loc: Loc;
+          items: Array<Expr>;
+      }
+    | { type: 'arrayCopy'; value: Expr; is: ArrayType; loc: Loc }
     | { type: 'arrayIndex'; value: Expr; idx: Expr; loc: Loc; is: Type }
     | { type: 'arrayLen'; value: Expr; loc: Loc; is: Type } // TODO this could just be represented with a buitin, right? yeah
     | { type: 'builtin'; name: string; loc: Loc; is: Type }
