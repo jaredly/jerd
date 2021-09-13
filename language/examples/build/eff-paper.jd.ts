@@ -8,7 +8,7 @@ type handle7b45d75e = [(arg_0: (arg_0: handle7b45d75e, arg_1: number) => void) =
 
 /**
 ```
-type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
@@ -20,7 +20,7 @@ type t_51ea2a36<T_0> = {
 
 /**
 ```
-type As#As<T#:10000, Y#:10001> = {
+@unique(2) type As#As<T#:10000, Y#:10001> = {
     as: (T#:10000) ={}> Y#:10001,
 }
 ```

@@ -3,7 +3,19 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-type Eq#51ea2a36<T#:0> = {
+@unique(0.7650832933732973) type Addable#8a685834<T#:0> = {
+    "+": (T#:0, T#:0) ={}> T#:0,
+}
+```
+*/
+type t_8a685834<T_0> = {
+  type: "8a685834";
+  h8a685834_0: (arg_0: T_0, arg_1: T_0) => T_0;
+};
+
+/**
+```
+@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
@@ -11,18 +23,6 @@ type Eq#51ea2a36<T#:0> = {
 type t_51ea2a36<T_0> = {
   type: "51ea2a36";
   h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
-};
-
-/**
-```
-type Addable#18095078<T#:0> = {
-    "+": (T#:0, T#:0) ={}> T#:0,
-}
-```
-*/
-type t_18095078<T_0> = {
-  type: "18095078";
-  h18095078_0: (arg_0: T_0, arg_1: T_0) => T_0;
 };
 
 /**
@@ -175,26 +175,26 @@ export const hash_a4c2a3f0: (arg_0: [number, number]) => number = (t: [number, n
 
 /**
 ```
-const IntArrayAddable#5f3b6e78 = Addable#18095078<Array#builtin<int#builtin>>{
-    "+"#18095078#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
+const IntArrayAddable#63dd2eb1 = Addable#8a685834<Array#builtin<int#builtin>>{
+    "+"#8a685834#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
         int#builtin,
     > ={}> concat#builtin<int#builtin>(a#:0, b#:1),
 }
-Addable#💗🦂🧑‍🦽{TODO SPREADs}{
-    h18095078_0: (a#:0: Array<int>, b#:1: Array<int>): Array<int> => concat<int>(a#:0, b#:1),
+Addable#🤧{TODO SPREADs}{
+    h8a685834_0: (a#:0: Array<int>, b#:1: Array<int>): Array<int> => concat<int>(a#:0, b#:1),
 }
 ```
 */
-export const hash_5f3b6e78: t_18095078<Array<number>> = ({
-  type: "18095078",
-  h18095078_0: (a: Array<number>, b: Array<number>) => concat(a, b)
-} as t_18095078<Array<number>>);
+export const hash_63dd2eb1: t_8a685834<Array<number>> = ({
+  type: "8a685834",
+  h8a685834_0: (a: Array<number>, b: Array<number>) => concat(a, b)
+} as t_8a685834<Array<number>>);
 
 /*
-<int#builtin>[1] +#5f3b6e78#18095078#0 <int#builtin>[2, 3]
-IntArrayAddable#🍑🥂🐕‍🦺😃.#Addable#💗🦂🧑‍🦽#0([1], [2, 3])
+<int#builtin>[1] +#63dd2eb1#8a685834#0 <int#builtin>[2, 3]
+IntArrayAddable#🍜🛣️🐍😃.#Addable#🤧#0([1], [2, 3])
 */
-hash_5f3b6e78.h18095078_0([1], [2, 3]);
+hash_63dd2eb1.h8a685834_0([1], [2, 3]);
 
 /*
 goToTown#a4c2a3f0(t: (2, 3)) ==#ec95f154#51ea2a36#0 2

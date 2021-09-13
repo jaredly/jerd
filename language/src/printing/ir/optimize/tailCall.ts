@@ -93,7 +93,7 @@ export const findBounds = (
           after: Block;
           prefix: Array<Stmt>;
       } => {
-    console.log('finding bounds');
+    // console.log('finding bounds');
     // OH if the first one is "checkExecutionLimit", let it slide.
     let item = body.items[0];
     let expectedSize = 1;
@@ -109,7 +109,7 @@ export const findBounds = (
         expectedSize = 2;
     }
     if (body.items.length !== expectedSize || item.type !== 'if' || !item.no) {
-        console.log('body not an if', body.items.length, item.type, item);
+        // console.log('body not an if', body.items.length, item.type, item);
         return;
     }
     const cond = item.cond;
@@ -119,7 +119,7 @@ export const findBounds = (
         cond.target.type !== 'builtin' ||
         !cmps.includes(cond.target.name)
     ) {
-        console.log('conidtion bad', cond);
+        // console.log('conidtion bad', cond);
         return;
     }
 
@@ -129,7 +129,7 @@ export const findBounds = (
     const no = noRes.calls.length && !noRes.hasLoop;
     // must be either one or the other
     if (yes === no) {
-        console.log('tail call must only be in one');
+        // console.log('tail call must only be in one');
         return;
     }
 
@@ -162,7 +162,7 @@ export const findBounds = (
 
     // must be either one or the other
     if (leftConst === rightConst) {
-        console.log(`left or right must be constnat`);
+        // console.log(`left or right must be constnat`);
         return;
     }
 
@@ -172,7 +172,7 @@ export const findBounds = (
         right.type === 'var' && nonConst.includes(right.sym.unique);
 
     if (leftNonConst === rightNonConst) {
-        console.log(`the other must not be const`);
+        // console.log(`the other must not be const`);
         return;
     }
 
@@ -217,7 +217,7 @@ export const findBounds = (
     });
 
     if (step === false || step === null) {
-        console.log(`no step found`);
+        // console.log(`no step found`);
         return;
     }
 

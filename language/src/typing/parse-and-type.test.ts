@@ -52,7 +52,7 @@ describe('basic toplevels', () => {
     });
     it('basic record', () =>
         expect(process(`type X = { y: int, z: float }`)).toMatchInlineSnapshot(`
-            "type X#0cf8aa06 = {
+            "@unique(0.5661807692527293) type X#0cf8aa06 = {
                 y: int#builtin,
                 z: float#builtin,
             }"
@@ -66,14 +66,14 @@ describe('basic toplevels', () => {
                 type M = {n: float}
 				type Z = {...X, a: int, b: string} `),
         ).toMatchInlineSnapshot(`
-            "type X#0cf8aa06 = {
+            "@unique(0.5661807692527293) type X#0cf8aa06 = {
                 y: int#builtin,
                 z: float#builtin,
             };
             @ffi(\\"M\\") type M#bf02d0e8 = {
                 n: float#builtin,
             };
-            type Z#0f2e3ee8 = {
+            @unique(0.8408403012585762) type Z#0f2e3ee8 = {
                 ...X#0cf8aa06,
                 a: int#builtin,
                 b: string#builtin,
@@ -88,11 +88,11 @@ describe('basic toplevels', () => {
 				type Z = {...Y, age: int}
 				enum All { X, Y, Z }`),
         ).toMatchInlineSnapshot(`
-            "type X#740adea4 = {};
-            type Y#74d8e7f1 = {
+            "@unique(0.5661807692527293) type X#740adea4 = {};
+            @unique(0.8408403012585762) type Y#74d8e7f1 = {
                 name: string#builtin,
             };
-            type Z#00ec7168 = {
+            @unique(0.14972816008023876) type Z#00ec7168 = {
                 ...Y#74d8e7f1,
                 age: int#builtin,
             };
@@ -134,7 +134,7 @@ describe('type descriptions', () => {
             }
         `),
         ).toMatchInlineSnapshot(`
-            "type Something#c8389130<A#:0, B#:1> = {
+            "@unique(0.5661807692527293) type Something#c8389130<A#:0, B#:1> = {
                 one: A#:0,
                 two: B#:1,
                 three: <C#:2, D#:3>(name: C#:2, age: D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
@@ -166,7 +166,7 @@ describe('expression types', () => {
             decorator what;
             const res = (2 + @what () => 20)`),
         ).toMatchInlineSnapshot(`
-            "decorator what#6f08788e;
+            "@unique(0.5661807692527293) decorator what#6f08788e;
             const res#6c004d82 = 2 +#builtin @what#6f08788e (): int#builtin ={}> 20
             // TYPE ERRORS
              - 3:36-3:44"
@@ -190,7 +190,7 @@ describe('expression types', () => {
             const m = (p: Person) => (p.name, p.age);
     `),
         ).toMatchInlineSnapshot(`
-            "type Person#69e137a8 = {
+            "@unique(0.5661807692527293) type Person#69e137a8 = {
                 name: string#builtin,
                 age: int#builtin,
             };
@@ -419,11 +419,11 @@ describe('expression types', () => {
     `),
         ).toMatchInlineSnapshot(`
             "const a#007742f3 = switch 23 {1 => false, 2 => false, 23 => true, _ => false};
-            type Person#69e137a8 = {
+            @unique(0.5661807692527293) type Person#69e137a8 = {
                 name: string#builtin,
                 age: int#builtin,
             };
-            type Company#503a4e65 = {
+            @unique(0.8408403012585762) type Company#503a4e65 = {
                 name: string#builtin,
                 people: Array#builtin<Person#69e137a8>,
                 ages: Tuple2#builtin<int#builtin, float#builtin>,
@@ -503,43 +503,43 @@ describe('Decorators', () => {
         const oneThing = @alternates<float>([("hello", 2.0), ("sadness", -2.0)]) 23.0;
         `),
         ).toMatchInlineSnapshot(`
-            "type Vec2#4284214c = {
+            "@unique(0.5661807692527293) type Vec2#4284214c = {
                 x: float#builtin,
                 y: float#builtin,
             };
-            type Vec3#53b2e6a0 = {
+            @unique(0.8408403012585762) type Vec3#53b2e6a0 = {
                 x: float#builtin,
                 y: float#builtin,
                 z: float#builtin,
             };
-            type Vec4#ad03f718 = {
+            @unique(0.14972816008023876) type Vec4#ad03f718 = {
                 ...Vec3#53b2e6a0,
                 w: float#builtin,
             };
-            decorator alternates#2d1ef174<T#:0>(
+            @unique(0.5383562320075749) decorator alternates#2d1ef174<T#:0>(
                 options: Constant#builtin<Array#builtin<Tuple2#builtin<string#builtin, T#:0>>>,
             ) T#:0;
-            decorator slider#1d9fcfd2(
+            @unique(0.969424254802974) decorator slider#1d9fcfd2(
                 min: Constant#builtin<float#builtin>,
                 max: Constant#builtin<float#builtin>,
                 step: Constant#builtin<float#builtin>,
             ) Constant#builtin<float#builtin>;
-            decorator slider#4e421b50(
+            @unique(0.17852990309013597) decorator slider#4e421b50(
                 min: Constant#builtin<int#builtin>,
                 max: Constant#builtin<int#builtin>,
                 step: Constant#builtin<int#builtin>,
             ) Constant#builtin<int#builtin>;
-            decorator slider#6478682c(
+            @unique(0.5425139598776044) decorator slider#6478682c(
                 min: Constant#builtin<Vec2#4284214c>,
                 max: Constant#builtin<Vec2#4284214c>,
             ) Constant#builtin<Vec2#4284214c>;
-            decorator rgb#0ef62c04 Constant#builtin<Vec3#53b2e6a0>;
-            decorator rgba#560a8e78 Constant#builtin<Vec4#ad03f718>;
-            decorator hsl#374c649c Constant#builtin<Vec3#53b2e6a0>;
-            decorator hsla#86c652ec Constant#builtin<Vec4#ad03f718>;
-            decorator something#bee55956;
-            decorator hello#677e1867;
-            type Person#73c36f7c = {
+            @unique(0.02344979974183657) decorator rgb#0ef62c04 Constant#builtin<Vec3#53b2e6a0>;
+            @unique(0.7119657471718334) decorator rgba#560a8e78 Constant#builtin<Vec4#ad03f718>;
+            @unique(0.8926787556192042) decorator hsl#374c649c Constant#builtin<Vec3#53b2e6a0>;
+            @unique(0.3140197780427882) decorator hsla#86c652ec Constant#builtin<Vec4#ad03f718>;
+            @unique(0.04992760107696806) decorator something#bee55956;
+            @unique(0.6800506892126144) decorator hello#677e1867;
+            @unique(0.053905825369221054) type Person#73c36f7c = {
                 name: string#builtin,
                 age: int#builtin,
             };

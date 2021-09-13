@@ -3,7 +3,7 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```

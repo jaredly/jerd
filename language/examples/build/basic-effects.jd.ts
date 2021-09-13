@@ -6,7 +6,7 @@ type handle6ddb76fe = [(arg_0: number, arg_1: string, arg_2: (arg_0: handle6ddb7
 
 /**
 ```
-type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```

@@ -147,6 +147,7 @@ export const typeApply = (
             target.is,
             typeVbls,
             '<self>',
+            target.location,
         ) as LambdaType;
         // console.log(
         //     'Applying type variables',

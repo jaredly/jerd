@@ -11,6 +11,8 @@ import {
     Drawable,
     Drawable_id,
     Geom,
+    RawSvg,
+    RawSvg_id,
 } from './canvas-jd';
 
 export const geomPath = (ctx: CanvasRenderingContext2D, geom: Geom) => {
@@ -325,6 +327,16 @@ const SingleDrawable = ({ value }: { value: Drawable }) => {
     );
 };
 
+const ShowSvgBlob = ({ raw }: { raw: string }) => {
+    const url = React.useMemo(() => {
+        const blob = new Blob([raw], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        return url;
+    }, [raw]);
+
+    return <img src={url} />;
+};
+
 const plugins: RenderPlugins = {
     drawable: {
         id: 'drawable',
@@ -332,6 +344,14 @@ const plugins: RenderPlugins = {
         type: refType(idFromName(Drawable_id)),
         render: (value: Drawable, evalEnv: EvalEnv) => {
             return <SingleDrawable value={value} />;
+        },
+    },
+    rawSvg: {
+        id: 'rawSvg',
+        name: 'Raw SVG',
+        type: refType(idFromName(RawSvg_id)),
+        render: (value: RawSvg, _, __, ___, ____) => {
+            return <ShowSvgBlob raw={value.text} />;
         },
     },
     canvas: {

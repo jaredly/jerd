@@ -207,6 +207,9 @@ export function typeFile(
                         continue; // success
                     } else {
                         console.log(err.stack);
+                        if (!(err instanceof TypeError)) {
+                            throw err;
+                        }
                         throw new LocatedError(
                             item.location,
                             `Type error doesn't match expectation: "${message}" vs "${str}"`,

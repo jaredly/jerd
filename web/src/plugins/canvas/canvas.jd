@@ -128,4 +128,95 @@ type CanvasScene<State> = {
 	clear: bool = true,
 	fps: float = 60.0,
 	size: Vec2 = Vec2{x: 200.0, y: 200.0},
+};
+
+@ffi
+type RawSvg = {text: string};
+
+// TO svg
+
+const byMax = (p1: Vec2, p2: Vec2) => vec2(max(p1.x, p2.x), max(p1.y, p2.y));
+const byMin = (p1: Vec2, p2: Vec2) => vec2(min(p1.x, p2.x), min(p1.y, p2.y));
+
+const geomBounds = (geom: Geom) => {
+	switch geom {
+		Rect{pos, size} => (pos, size),
+		Line{p1, p2} => {
+			const tl = byMin(p1, p2);
+			const br = byMax(p1, p2);
+			(tl, br - tl)
+		},
+		Polygon{points} => {
+			switch points {
+				[first, ...rest] =>  {
+					const both = reduce<Vec2, (Vec2, Vec2)>(rest, (first, first), (current: (Vec2, Vec2), item: Vec2) => (byMin(current.0, item), byMax(current.1, item)));
+					(both.0, both.1 - both.0)
+				},
+				_ => (vec2(0.0), vec2(0.0))
+			}
+		},
+		_ => (vec2(0.0), vec2(0.0))
+	}
+};
+
+const drawableBounds = (d: Drawable) => {
+	switch d {
+		Fill{geom} => geomBounds(geom),
+		Stroke{geom} => geomBounds(geom),
+		_ => (vec2(0.0), vec2(0.0))
+	}
 }
+
+const svgPreamble = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>";
+const svg = (pos: Vec2, size: Vec2, contents: string) => "<svg width='" + size.x as string + "' height='" + size.y as string + "' viewBox='" + pos.x as string + " " + pos.y as string + " " + size.x as string + " " + size.y as string + "' xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg'>" + contents + "</svg>"
+
+const lineCapString = As<LineCap, string>{
+	"as": (cap: LineCap) => switch cap {
+		Butt => "butt",
+		Round => "round",
+		Square => "square"
+	}
+};
+
+const vecToString = As<Vec2, string>{
+	as: (pos: Vec2) => pos.x as string + "," + pos.y as string
+};
+
+const pointsToPath = (points: Array<Vec2>, closed: bool) => {
+		switch points {
+			[first, ...rest] => reduce<Vec2, string>(rest, "M" + first as string, (current: string, item: Vec2) => current + " L" + item as string) + if closed { " Z" } else { "" },
+			_ => ""
+		}
+}
+
+const colorString = As<Color, string>{
+	as: (color: Color) => switch color {
+		CSS{value} => value,
+		Rgba{r,g,b,a} => "rgba(" + r as string + "," + g as string + "," + b as string + "," + a as string + ")"
+	}
+};
+
+// const formatPath = 
+
+const geomToString = (geom: Geom, attrs: string) => switch geom {
+	Rect{pos, size} => "<rect x='" + pos.x as string + "' y='" + pos.y as string + "' width='" + size.x as string + "' height='" + size.y as string + "' " + attrs + " />",
+	// Path{start, parts, closed} => "<path d='" + formatPath(start, parts, closed) + "' " + attrs + " />",
+	Polygon{points, closed} => "<path d='" + pointsToPath(points, closed) + "' " + attrs + " />",
+	_ => "unsupported geom"
+}
+
+const drawableToSvg = (drawable: Drawable) => {
+	const bounds = drawableBounds(drawable);
+	svg(bounds.0, bounds.1, switch drawable {
+		Stroke{geom, width, color, lineCaps} => {
+			const attrs = "fill='none' stroke-width='" + width as string + "' stroke='" + color as string + "' line-cap='" + lineCaps as string + "'";
+			geomToString(geom, attrs)
+		},
+		Fill{geom, color} => {
+			const attrs = "fill='" + color as string + "' stroke='none'";
+			geomToString(geom, attrs)
+		},
+		_ => "text not supported"
+	})
+}
+

@@ -48,7 +48,7 @@ type t_51a53bbe = {
 
 /**
 ```
-type Mul#02cc25c4<A#:0, B#:1, C#:2> = {
+@unique(1) type Mul#02cc25c4<A#:0, B#:1, C#:2> = {
     "*": (A#:0, B#:1) ={}> C#:2,
 }
 ```
@@ -60,7 +60,7 @@ type t_02cc25c4<T_0, T_1, T_2> = {
 
 /**
 ```
-type AddSub#3d436b7e<A#:0, B#:1, C#:2> = {
+@unique(0) type AddSub#3d436b7e<A#:0, B#:1, C#:2> = {
     "+": (A#:0, B#:1) ={}> C#:2,
     "-": (A#:0, B#:1) ={}> C#:2,
 }
@@ -74,7 +74,7 @@ type t_3d436b7e<T_0, T_1, T_2> = {
 
 /**
 ```
-type Div#3b763160<A#:0, B#:1, C#:2> = {
+@unique(2) type Div#3b763160<A#:0, B#:1, C#:2> = {
     "/": (A#:0, B#:1) ={}> C#:2,
 }
 ```
@@ -86,7 +86,7 @@ type t_3b763160<T_0, T_1, T_2> = {
 
 /**
 ```
-type Neg#616f559e<A#:0, B#:1> = {
+@unique(3) type Neg#616f559e<A#:0, B#:1> = {
     "-": (A#:0) ={}> B#:1,
 }
 ```
@@ -795,7 +795,7 @@ const rec shortestDistanceToSurface#929b75fc = (
 ```
 */
 export const hash_929b75fc: (arg_0: number, arg_1: t_40e2c712, arg_2: t_40e2c712, arg_3: number, arg_4: number, arg_5: number) => number = (iTime: number, eye: t_40e2c712, marchingDirection: t_40e2c712, start: number, end: number, stepsLeft: number) => {
-  while (true) {
+  for (; stepsLeft > 0; stepsLeft = stepsLeft - 1) {
     let dist: number = hash_c2ce4130(iTime, hash_ab6a3504.h3d436b7e_0(eye, hash_47332321.h02cc25c4_0(start, marchingDirection)));
 
     if (dist < hash_ec7f8d1c) {

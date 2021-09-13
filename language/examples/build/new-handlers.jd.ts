@@ -6,7 +6,7 @@ type handle1da337a2 = [(arg_0: (arg_0: handle1da337a2, arg_1: string) => void) =
 
 /**
 ```
-type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```

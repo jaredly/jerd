@@ -52,8 +52,11 @@ const optionForTerms = (
     name: string,
     env: Env,
     onOpen: (c: Content) => void,
-): Option => {
+): null | Option => {
     const ids = env.global.names[name];
+    if (!ids) {
+        return null;
+    }
     const tops: Array<ToplevelT> = ids.map((id) => ({
         type: 'Define',
         name,
@@ -243,16 +246,20 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
         // TODO: sort by added date
         // env.global.metaData
         if (state.input == '') {
-            return names.slice(-10).map((n) => optionForTerms(n, env, onOpen));
+            return names
+                .slice(-10)
+                .map((n) => optionForTerms(n, env, onOpen))
+                .filter((n) => n != null) as Array<Option>;
         }
         return names
             .filter((n) => n.toLowerCase().includes(needle))
             .map((n) => optionForTerms(n, env, onOpen))
+            .filter((n) => n != null)
             .concat(
                 typeNames
                     .filter((n) => n.toLowerCase().includes(needle))
                     .map((n) => optionForTypes(n, env, onOpen)),
-            );
+            ) as Array<Option>;
     }, [env, state.input, state.refered]);
 
     const toplevel: ToplevelT | undefined = React.useMemo(():

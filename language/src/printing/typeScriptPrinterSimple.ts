@@ -1007,16 +1007,20 @@ export const typeDeclarations = (
         const id = idFromName(r);
         if (constr.type === 'Enum') {
             const comment = printToString(enumToPretty(env, id, constr), 100);
-            const refs = getEnumReferences(env, {
-                type: 'ref',
-                ref: { type: 'user', id },
-                typeVbls: constr.typeVbls.map((t, i) => ({
-                    type: 'var',
-                    sym: { name: 'T', unique: t.unique },
+            const refs = getEnumReferences(
+                env,
+                {
+                    type: 'ref',
+                    ref: { type: 'user', id },
+                    typeVbls: constr.typeVbls.map((t, i) => ({
+                        type: 'var',
+                        sym: { name: 'T', unique: t.unique },
+                        location: constr.location,
+                    })),
                     location: constr.location,
-                })),
-                location: constr.location,
-            });
+                },
+                constr.location,
+            );
             items.push(
                 t.addComment(
                     t.tsTypeAliasDeclaration(

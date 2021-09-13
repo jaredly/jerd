@@ -62,7 +62,7 @@ const patternToExPattern = (
                 );
             }
             // const groupId = groupIdForRef(type.ref);
-            const all = getEnumReferences(env, pattern.ref);
+            const all = getEnumReferences(env, pattern.ref, pattern.location);
             // if (!groups[groupId]) {
             //     groups[groupId] = all.map((t) => groupIdForRef(t.ref));
             // }
@@ -339,7 +339,7 @@ const recordToExPattern = (
     }
     const groupId = groupIdForRef(type.ref);
     if (!groups[groupId]) {
-        const all = getEnumReferences(env, type);
+        const all = getEnumReferences(env, type, pattern.location);
         groups[groupId] = all.map((t) => groupIdForRef(t.ref));
     }
     const defn = env.global.types[groupIdForRef(pattern.ref.ref)] as RecordDef;

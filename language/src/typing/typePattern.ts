@@ -154,7 +154,11 @@ const typePattern = (
                     };
                 }
 
-                const allReferences = getEnumReferences(env, expectedType);
+                const allReferences = getEnumReferences(
+                    env,
+                    expectedType,
+                    pattern.location,
+                );
 
                 let found = null;
                 for (let ref of allReferences) {
@@ -231,7 +235,11 @@ const typePattern = (
             if (enumDef && enumDef.type === 'Record') {
                 found = expectedType;
             } else {
-                const allReferences = getEnumReferences(env, expectedType);
+                const allReferences = getEnumReferences(
+                    env,
+                    expectedType,
+                    pattern.location,
+                );
                 for (let ref of allReferences) {
                     if (refsEqual(ref.ref, { type: 'user', id })) {
                         found = ref;

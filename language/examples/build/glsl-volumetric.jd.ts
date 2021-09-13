@@ -66,7 +66,7 @@ type t_205100f4 = {
 
 /**
 ```
-type As#As<T#:10000, Y#:10001> = {
+@unique(2) type As#As<T#:10000, Y#:10001> = {
     as: (T#:10000) ={}> Y#:10001,
 }
 ```
@@ -78,7 +78,7 @@ type t_As<T_10000, T_10001> = {
 
 /**
 ```
-type Neg#616f559e<A#:0, B#:1> = {
+@unique(3) type Neg#616f559e<A#:0, B#:1> = {
     "-": (A#:0) ={}> B#:1,
 }
 ```
@@ -90,7 +90,7 @@ type t_616f559e<T_0, T_1> = {
 
 /**
 ```
-type Mul#02cc25c4<A#:0, B#:1, C#:2> = {
+@unique(1) type Mul#02cc25c4<A#:0, B#:1, C#:2> = {
     "*": (A#:0, B#:1) ={}> C#:2,
 }
 ```
@@ -102,7 +102,7 @@ type t_02cc25c4<T_0, T_1, T_2> = {
 
 /**
 ```
-type AddSub#3d436b7e<A#:0, B#:1, C#:2> = {
+@unique(0) type AddSub#3d436b7e<A#:0, B#:1, C#:2> = {
     "+": (A#:0, B#:1) ={}> C#:2,
     "-": (A#:0, B#:1) ={}> C#:2,
 }
@@ -116,7 +116,7 @@ type t_3d436b7e<T_0, T_1, T_2> = {
 
 /**
 ```
-type Div#3b763160<A#:0, B#:1, C#:2> = {
+@unique(2) type Div#3b763160<A#:0, B#:1, C#:2> = {
     "/": (A#:0, B#:1) ={}> C#:2,
 }
 ```
@@ -361,7 +361,7 @@ const rec shortestDistanceToSurface#ae6adf54 = (
 ```
 */
 export const hash_ae6adf54: (arg_0: (arg_0: number, arg_1: t_40e2c712) => number, arg_1: number, arg_2: t_40e2c712, arg_3: t_40e2c712, arg_4: number, arg_5: number, arg_6: number) => number = (sceneSDF: (arg_0: number, arg_1: t_40e2c712) => number, iTime: number, eye: t_40e2c712, marchingDirection: t_40e2c712, start: number, end: number, stepsLeft: number) => {
-  while (true) {
+  for (; stepsLeft > 0; stepsLeft = stepsLeft - 1) {
     let dist: number = sceneSDF(iTime, hash_ab6a3504.h3d436b7e_0(eye, hash_47332321.h02cc25c4_0(start, marchingDirection)));
 
     if (dist < hash_ec7f8d1c) {
@@ -1111,7 +1111,7 @@ const rec volumetric#47107bdb = (
 ```
 */
 export const hash_47107bdb: (arg_0: (arg_0: number, arg_1: t_40e2c712) => number, arg_1: number, arg_2: t_08f7c2ac, arg_3: t_40e2c712, arg_4: t_40e2c712, arg_5: number, arg_6: t_40e2c712, arg_7: number, arg_8: number, arg_9: number) => number = (sceneSDF: (arg_0: number, arg_1: t_40e2c712) => number, iTime: number, seed: t_08f7c2ac, light$3: t_40e2c712, eye$4: t_40e2c712, dist$5: number, dir: t_40e2c712, current: number, left$8: number, total: number) => {
-  while (true) {
+  for (; left$8 > 0; left$8 = left$8 - 1) {
     current = current + hash_16706720(sceneSDF, iTime, light$3, eye$4, dist$5, hash_6f186ad1.hAs_0(left$8) / total, dir, left$8);
     continue;
   }

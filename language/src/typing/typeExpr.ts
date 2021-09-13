@@ -220,7 +220,7 @@ export const applyTypeVariablesToDecoratorDef = (
             )}, found ${vbls.length}`,
         );
     }
-    const mapping = createTypeVblMapping(env, defn.typeVbls, vbls);
+    const mapping = createTypeVblMapping(env, defn.typeVbls, vbls, location!);
     return {
         ...defn,
         typeVbls: [],
@@ -257,7 +257,7 @@ export const applyTypeVariablesToRecord = (
             )}, found ${vbls.length}`,
         );
     }
-    const mapping = createTypeVblMapping(env, type.typeVbls, vbls);
+    const mapping = createTypeVblMapping(env, type.typeVbls, vbls, location!);
     return {
         ...type,
         typeVbls: [],
@@ -270,6 +270,7 @@ export const applyTypeVariables = (
     type: Type,
     vbls: Array<Type>,
     selfHash?: string,
+    location?: Location,
 ): Type => {
     // console.log(
     //     `Applying ${showType(env, type)} with vbls ${vbls.map(showType).join(', ')}`,
@@ -280,7 +281,8 @@ export const applyTypeVariables = (
         const mapping: { [unique: number]: Type } = {};
         if (vbls.length !== t.typeVbls.length) {
             console.log('the variables', t.typeVbls);
-            throw new Error(
+            throw new LocatedError(
+                location || type.location,
                 `Wrong number of type variables: ${vbls.length} : ${t.typeVbls.length}`,
             );
         }
@@ -586,7 +588,8 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                     );
                 }
             } catch (err) {
-                throw new LocatedError(expr.location, err.message);
+                throw err;
+                // throw new LocatedError(expr.location, err.message).wrap(err);
             }
 
             return {
@@ -748,11 +751,15 @@ export const typeFitsEnum = (
 
     const selfHash =
         enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined;
-    const allReferences = getEnumReferences(env, enumRef);
+    const allReferences = getEnumReferences(env, enumRef, recordType.location);
 
     if (t.type === 'Enum') {
         // The "found" type is an enum.
-        const innerReferences = getEnumReferences(env, recordType);
+        const innerReferences = getEnumReferences(
+            env,
+            recordType,
+            recordType.location,
+        );
         for (let ref of innerReferences) {
             let found = false;
             const errs: Array<TypeError> = [];
@@ -816,6 +823,7 @@ export const getEnumSuperTypes = (
         enumDef,
         enumRef.typeVbls,
         enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined,
+        location,
     );
     if (!enumDef.extends.length) {
         return enumDef.extends;
@@ -828,6 +836,7 @@ export const getEnumSuperTypes = (
 export const getEnumReferences = (
     env: Env,
     enumRef: TypeReference,
+    location: Location,
 ): Array<UserTypeReference> => {
     let enumDef = typeDef(env.global, enumRef.ref);
     if (enumDef == null) {
@@ -845,13 +854,14 @@ export const getEnumReferences = (
         enumDef,
         enumRef.typeVbls,
         enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined,
+        location,
     );
     if (!enumDef.extends.length) {
         return enumDef.items;
     }
     // console.log(enumDef);
     return enumDef.items.concat(
-        ...enumDef.extends.map((r) => getEnumReferences(env, r)),
+        ...enumDef.extends.map((r) => getEnumReferences(env, r, location)),
     );
 };
 
@@ -859,12 +869,14 @@ export const createTypeVblMapping = (
     env: Env,
     typeVbls: Array<TypeVblDecl>,
     vbls: Array<Type>,
+    location: Location,
 ): { [unique: number]: Type } => {
     // console.log('create mapping', vbls);
     const mapping: { [unique: number]: Type } = {};
     if (vbls.length !== typeVbls.length) {
         // console.log('the ones', typeVbls);
-        throw new Error(
+        throw new LocatedError(
+            location,
             `Wrong number of type variables: ${vbls.length} : ${typeVbls.length}`,
         );
     }
@@ -888,11 +900,12 @@ export const applyTypeVariablesToEnum = (
     type: EnumDef,
     vbls: Array<Type>,
     selfHash: string | undefined,
+    location: Location,
 ): EnumDef => {
     if (vbls.length === 0 && type.typeVbls.length === 0) {
         return type;
     }
-    const mapping = createTypeVblMapping(env, type.typeVbls, vbls);
+    const mapping = createTypeVblMapping(env, type.typeVbls, vbls, location);
 
     return {
         type: 'Enum',

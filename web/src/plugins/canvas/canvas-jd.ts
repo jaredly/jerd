@@ -15,6 +15,103 @@ type t_08f7c2ac = {
 
 /**
 ```
+@ffi("Arc") type Arc#443a6bbd = {
+    center: Vec2#08f7c2ac,
+    startAngle: float#builtin,
+    endAngle: float#builtin,
+    counterClockwise: bool#builtin = false,
+}
+```
+*/
+type t_443a6bbd = {
+  type: "Arc";
+  center: t_08f7c2ac;
+  startAngle: number;
+  endAngle: number;
+  counterClockwise: boolean;
+};
+
+/**
+```
+@ffi("EllipsePath") type EllipsePath#92791c88 = {
+    ...Arc#443a6bbd,
+    radius: Vec2#08f7c2ac,
+    rotation: float#builtin,
+}
+```
+*/
+type t_92791c88 = {
+  type: "EllipsePath";
+  radius: t_08f7c2ac;
+  rotation: number;
+  center: t_08f7c2ac;
+  startAngle: number;
+  endAngle: number;
+  counterClockwise: boolean;
+};
+
+/**
+```
+@ffi("Rounded") type Rounded#b7a4f230 = {
+    c1: Vec2#08f7c2ac,
+    c2: Vec2#08f7c2ac,
+    radius: float#builtin,
+}
+```
+*/
+type t_b7a4f230 = {
+  type: "Rounded";
+  c1: t_08f7c2ac;
+  c2: t_08f7c2ac;
+  radius: number;
+};
+
+/**
+```
+@ffi("Bezier") type Bezier#37a1f256 = {
+    c1: Vec2#08f7c2ac,
+    c2: Vec2#08f7c2ac,
+    c3: Vec2#08f7c2ac,
+    c4: Vec2#08f7c2ac,
+    end: Vec2#08f7c2ac,
+}
+```
+*/
+type t_37a1f256 = {
+  type: "Bezier";
+  c1: t_08f7c2ac;
+  c2: t_08f7c2ac;
+  c3: t_08f7c2ac;
+  c4: t_08f7c2ac;
+  end: t_08f7c2ac;
+};
+
+/**
+```
+@ffi("Quadratic") type Quadratic#5c0c4fd8 = {
+    control: Vec2#08f7c2ac,
+    end: Vec2#08f7c2ac,
+}
+```
+*/
+type t_5c0c4fd8 = {
+  type: "Quadratic";
+  control: t_08f7c2ac;
+  end: t_08f7c2ac;
+};
+
+/*enum PathPart#33159eb4 {
+    Vec2#08f7c2ac,
+    Quadratic#5c0c4fd8,
+    Bezier#37a1f256,
+    Rounded#b7a4f230,
+    Arc#443a6bbd,
+    EllipsePath#92791c88,
+}*/
+type t_33159eb4 = t_08f7c2ac | t_5c0c4fd8 | t_37a1f256 | t_b7a4f230 | t_443a6bbd | t_92791c88;
+
+/**
+```
 @ffi("End") type End#830ad468 = {}
 ```
 */
@@ -224,24 +321,6 @@ type t_619d2fc4 = t_098fbabc | t_565da092 | t_cafe28b8 | t_126fdf00 | t_ddadd8a8
 
 /**
 ```
-@ffi("Arc") type Arc#443a6bbd = {
-    center: Vec2#08f7c2ac,
-    startAngle: float#builtin,
-    endAngle: float#builtin,
-    counterClockwise: bool#builtin = false,
-}
-```
-*/
-type t_443a6bbd = {
-  type: "Arc";
-  center: t_08f7c2ac;
-  startAngle: number;
-  endAngle: number;
-  counterClockwise: boolean;
-};
-
-/**
-```
 @ffi("Text") type Text#d86ebaa8 = {
     text: string#builtin,
     color: Color#1fe34118,
@@ -296,71 +375,14 @@ type t_3bd0cc4c = {
 
 /**
 ```
-@ffi("EllipsePath") type EllipsePath#92791c88 = {
-    ...Arc#443a6bbd,
-    radius: Vec2#08f7c2ac,
-    rotation: float#builtin,
+@ffi("RawSvg") type RawSvg#712f3578 = {
+    text: string#builtin,
 }
 ```
 */
-type t_92791c88 = {
-  type: "EllipsePath";
-  radius: t_08f7c2ac;
-  rotation: number;
-  center: t_08f7c2ac;
-  startAngle: number;
-  endAngle: number;
-  counterClockwise: boolean;
-};
-
-/**
-```
-@ffi("Rounded") type Rounded#b7a4f230 = {
-    c1: Vec2#08f7c2ac,
-    c2: Vec2#08f7c2ac,
-    radius: float#builtin,
-}
-```
-*/
-type t_b7a4f230 = {
-  type: "Rounded";
-  c1: t_08f7c2ac;
-  c2: t_08f7c2ac;
-  radius: number;
-};
-
-/**
-```
-@ffi("Bezier") type Bezier#37a1f256 = {
-    c1: Vec2#08f7c2ac,
-    c2: Vec2#08f7c2ac,
-    c3: Vec2#08f7c2ac,
-    c4: Vec2#08f7c2ac,
-    end: Vec2#08f7c2ac,
-}
-```
-*/
-type t_37a1f256 = {
-  type: "Bezier";
-  c1: t_08f7c2ac;
-  c2: t_08f7c2ac;
-  c3: t_08f7c2ac;
-  c4: t_08f7c2ac;
-  end: t_08f7c2ac;
-};
-
-/**
-```
-@ffi("Quadratic") type Quadratic#5c0c4fd8 = {
-    control: Vec2#08f7c2ac,
-    end: Vec2#08f7c2ac,
-}
-```
-*/
-type t_5c0c4fd8 = {
-  type: "Quadratic";
-  control: t_08f7c2ac;
-  end: t_08f7c2ac;
+type t_712f3578 = {
+  type: "RawSvg";
+  text: string;
 };
 
 /**
@@ -392,19 +414,9 @@ type t_1e1c730c<T_0> = {
 }*/
 type t_56de3b71 = t_3bd0cc4c | t_adcc8cc6 | t_d86ebaa8;
 
-/*enum PathPart#33159eb4 {
-    Vec2#08f7c2ac,
-    Quadratic#5c0c4fd8,
-    Bezier#37a1f256,
-    Rounded#b7a4f230,
-    Arc#443a6bbd,
-    EllipsePath#92791c88,
-}*/
-type t_33159eb4 = t_08f7c2ac | t_5c0c4fd8 | t_37a1f256 | t_b7a4f230 | t_443a6bbd | t_92791c88;
-
 /**
 ```
-type Some#Some<T#:10000> = {
+@unique(0) type Some#Some<T#:10000> = {
     contents: T#:10000,
 }
 ```
@@ -416,7 +428,7 @@ type t_Some<T_10000> = {
 
 /**
 ```
-type None#None = {}
+@unique(1) type None#None = {}
 ```
 */
 type t_None = {
@@ -425,7 +437,7 @@ type t_None = {
 
 /**
 ```
-type As#As<T#:10000, Y#:10001> = {
+@unique(2) type As#As<T#:10000, Y#:10001> = {
     as: (T#:10000) ={}> Y#:10001,
 }
 ```
@@ -502,3 +514,5 @@ export const Drawable_id = "56de3b71";
 export type Drawable = t_56de3b71;
 export const CanvasScene_id = "1e1c730c";
 export type CanvasScene<T0> = t_1e1c730c<T0>;
+export const RawSvg_id = "712f3578";
+export type RawSvg = t_712f3578;

@@ -1,4 +1,44 @@
 
+## Comparing implementations, what to do:
+
+
+## Raw SVGs in the UI
+- remove the old version of drawabletoSvg -- need a way to remove terms. Check whether it's used by any active cell...
+- [ ] hmmm
+
+## String Interpolation
+
+What if: all strings could contain '\n' and ${} interpolation? I don't think I want to give up \` as a character though. Seems to handy. Also, maybe ' isn't needed as well? I mean it's annoying to need to escape all ". Maybe I'll do like rust, and have `r#"..."#`? idk.
+Anyway, interpolation: Can I get the best of both worlds of: the value is inline so it's clear what's going in, and you can control the formatting with like %0.2f?
+I mean and format strings can be nice too though. hmm.
+Ok, but anyway... for now, I can add ${} and multilineness to strings, and we'll go from there.
+Rules:
+Multiline strings have the opening whitespace trimmed up to the level of the opening `"`.
+So
+```ts
+const x = "hello
+            folks"
+is "hello\n folks"
+while
+const x = "hello
+    folks
+      stuff"
+is "hello\nfolks\nstuff"
+```
+Does that sound reasonable? idk. Autoformatting will fix it.
+
+Ok, and then the rules for interpolation:
+`"Hello ${name}, are you ${age}?"`, the $ will be underlined/loc'd to a specific `As`; because this expands to
+`"Hello " + name as string + ", are you " + age as string + "?"`
+Ok, but what about `%0.2f`? I mean we could just have a stdlib `fixed` function.
+Are there other formatting magicals that I'd want to use on the regular?
+ohh a `debug(anyType)` that just exists. I'll want to codegen that... hmm how do I make that work with generics? ... oh this is the famous typeclasses again.
+but yeah, so maybe it's `.debug(mything)` which will attempt to intuit a globally available implementation to a type that has a `.debug` function, where the argument type matches what you're passing in. And so if I'm just autogenning `.debug` impls 
+
+- [ ] parse interpolated strings. It's a list of pairs Array<(String, Expr, AsImpl)> with FinalString
+- [ ] print them back out, with the hash for the AsImpl going on the $ I think? Unless I want it to be on the inside of the ${}. like `${#abcde hello}`. I don't love that as much. Yeah let's just go with `$#abcd{hello}`.
+- [ ] make it work in my printer dealios!
+
 ## Compare node to go
 
 First off though, doing euler-spiral.jd to javascript, and benchmarking it against go, would be cool.

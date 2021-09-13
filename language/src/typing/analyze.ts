@@ -457,7 +457,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
             env.global.builtins;
             const defn = env.global.types[idName(type.ref.id)];
             if (defn.type === 'Enum') {
-                return !getEnumReferences(env, type).some(
+                return !getEnumReferences(env, type, type.location).some(
                     (t) => !allLiteral(env, t),
                 );
             } else {
