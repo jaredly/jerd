@@ -338,7 +338,7 @@ export default ({
                             renderAttributedText(
                                 env.global,
                                 printToAttributedText(
-                                    toplevelToPretty(env, parsed),
+                                    toplevelToPretty(env, parsed, true),
                                     maxWidth,
                                     undefined,
                                     sourceMap,

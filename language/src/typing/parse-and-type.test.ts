@@ -68,7 +68,7 @@ describe('template strings', () => {
 
     it('should handle escapes and newlines correctly', () => {
         expect(process(`const x = "Yes\\nFo\tlk\ns"`)).toMatchInlineSnapshot(
-            `const x#7b1224d0 = "Yes\\\\nFo\\tlk\\ns"`,
+            `const x#74ea1858 = "Yes\\nFo\\tlk\\ns"`,
         );
     });
 

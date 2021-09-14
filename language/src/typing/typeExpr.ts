@@ -443,7 +443,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
         case 'string':
             return {
                 type: 'string',
-                text: expr.text,
+                text: fixString(expr.text),
                 location: expr.location,
                 is: string,
             };

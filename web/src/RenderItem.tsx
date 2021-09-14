@@ -107,7 +107,7 @@ Props) => {
                 : null;
         const sourceMap: SourceMap = {};
         const attributedText = printToAttributedText(
-            toplevelToPretty(env, top),
+            toplevelToPretty(env, top, true),
             maxWidth,
             undefined,
             sourceMap,

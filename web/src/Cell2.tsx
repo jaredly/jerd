@@ -391,6 +391,7 @@ const CellView_ = ({
                             toplevelToPretty(
                                 env,
                                 getToplevel(env, cell.content as TopContent),
+                                true,
                             ),
                             50,
                         ),

@@ -43,7 +43,11 @@ import {
     id,
 } from './printer';
 
-export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
+export const toplevelToPretty = (
+    env: Env,
+    toplevel: ToplevelT,
+    hideUnique = false,
+): PP => {
     switch (toplevel.type) {
         case 'Define': {
             const glob = cloneGlobalEnv(env.global);
@@ -66,7 +70,13 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
         case 'Decorator': {
             return items(
                 [
-                    atom(`@unique(${JSON.stringify(toplevel.defn.unique)}) `),
+                    hideUnique
+                        ? null
+                        : atom(
+                              `@unique(${JSON.stringify(
+                                  toplevel.defn.unique,
+                              )}) `,
+                          ),
                     atom('decorator '),
                     id(
                         toplevel.name,
@@ -160,6 +170,7 @@ export const toplevelToPretty = (env: Env, toplevel: ToplevelT): PP => {
                 // },
                 toplevel.id,
                 toplevel.def,
+                hideUnique,
             );
         }
         case 'EnumDef': {
@@ -268,7 +279,12 @@ export const declarationToPretty = (env: Env, id: Id, term: Term): PP => {
     ]);
 };
 
-export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
+export const recordToPretty = (
+    env: Env,
+    id: Id,
+    recordDef: RecordDef,
+    hideUnique = false,
+) => {
     const names = env.global.recordGroups[idName(id)];
     const baseDefaults: { [idx: number]: Term } = {};
     if (recordDef.defaults) {
@@ -286,6 +302,8 @@ export const recordToPretty = (env: Env, id: Id, recordDef: RecordDef) => {
                   args([atom(`"${recordDef.ffi.tag}"`)]),
                   atom(' '),
               ])
+            : hideUnique
+            ? null
             : items([
                   atom('@unique'),
                   args([atom(JSON.stringify(recordDef.unique))]),

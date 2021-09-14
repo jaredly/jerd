@@ -53,6 +53,7 @@ import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
 import { getTypeError } from './getTypeError';
 import { env } from 'process';
+import { uniqueDecorator } from './typeFile';
 
 export type ToplevelEffect = {
     type: 'Effect';
@@ -168,37 +169,70 @@ export const typeToplevelT = (
             };
         }
         case 'Decorated': {
-            if (item.decorators[0].id.text !== 'ffi') {
-                throw new LocatedError(item.location, `Unexpected decorated`);
+            if (item.wrapped.type === 'DecoratorDef') {
+                const { unique, decorators } = uniqueDecorator(item.decorators);
+                if (decorators.length) {
+                    throw new Error(
+                        `Decorators can only have the 'unique' decorator`,
+                    );
+                }
+                if (unique === null) {
+                    throw new Error(`Impossible`);
+                }
+                const defn = typeDecoratorInner(env, item.wrapped, unique);
+                return {
+                    type: 'Decorator',
+                    defn,
+                    id: idFromName(hashObject(defn)),
+                    location: item.location,
+                    name: item.wrapped.id.text,
+                };
             }
-            if (item.wrapped.type !== 'StructDef') {
-                throw new Error(`@ffi can only be applied to RecordDef`);
+            if (item.wrapped.type === 'StructDef') {
+                const { unique, decorators } = uniqueDecorator(item.decorators);
+                const ffi = decorators.filter((d) => d.id.text === 'ffi');
+                // const unum = unique != null ? unique : undefined;
+                let tag = undefined;
+                if (ffi.length) {
+                    tag = item.wrapped.id.text;
+                    if (ffi[0].args.length === 1) {
+                        if (
+                            ffi[0].args[0].type !== 'Expr' ||
+                            ffi[0].args[0].expr.type !== 'string'
+                        ) {
+                            throw new LocatedError(
+                                item.location,
+                                `ffi arg must be a string`,
+                            );
+                        }
+                        tag = ffi[0].args[0].expr.text;
+                    } else if (ffi[0].args.length > 1) {
+                        throw new Error(`@ffi only expectes one argument`);
+                    }
+                    if (ffi.length > 1) {
+                        throw new Error(`multiple ffi decorators`);
+                    }
+                }
+                if (decorators.length !== ffi.length) {
+                    throw new Error(`Unhandled decorators`);
+                }
+                // env = typeTypeDefn(env, item.wrapped, tag, unum);
+                const defn = typeRecordDefn(env, item.wrapped, unique, tag);
+                const hash = hashObject(defn);
+                return {
+                    type: 'RecordDef',
+                    def: defn,
+                    id: { hash, size: 1, pos: 0 },
+                    location: item.location!,
+                    name: item.wrapped.id.text,
+                    attrNames: (item.wrapped.decl.items.filter(
+                        (x) => x.type === 'Row',
+                    ) as Array<RecordRow>).map((x) => x.id),
+                };
             }
-            const tag =
-                item.decorators[0].args.length === 1 &&
-                item.decorators[0].args[0].type === 'Expr'
-                    ? typeExpr(env, item.decorators[0].args[0].expr)
-                    : null;
-            if (tag && tag.type !== 'string') {
-                throw new Error(`ffi tag must be a string literal`);
-            }
-            const defn = typeRecordDefn(
-                env,
-                item.wrapped,
-                unique,
-                tag ? tag.text : item.wrapped.id.text,
+            throw new Error(
+                `Decorators not supported for toplevels other than Struct and DecoratorDef`,
             );
-            const hash = hashObject(defn);
-            return {
-                type: 'RecordDef',
-                def: defn,
-                id: { hash, size: 1, pos: 0 },
-                location: item.location!,
-                name: item.wrapped.id.text,
-                attrNames: (item.wrapped.decl.items.filter(
-                    (x) => x.type === 'Row',
-                ) as Array<RecordRow>).map((x) => x.id),
-            };
         }
         case 'EnumDef': {
             const defn = typeEnumInner(env, item);

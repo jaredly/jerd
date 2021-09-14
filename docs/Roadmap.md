@@ -15,6 +15,17 @@ Yeah I think that would do the trick?
 Anyway, I need to
 - [ ] when a term is deprecated, *show it* using css. Like printTsLike should do something about it.
 
+OK, so how does deprecation work?
+- wheck clicking the button to "overwrite" the current cell with the new contents, the default behavior should be to "deprecate the old one", if the /name hasn't changed/. Yeah I mean maybe I don't need to do anything special, only have deprecating if you're in the same cell.
+
+- [x] proposed needs to have a `name` attribute. hmm. ok it already has this.
+- [ ] I need a way to just rename a term. Maybe if you just edit the name, and the hash stays the same?
+- [ ] 
+
+- [ ] I really want to be able to hover an id-having thing, and have it popup the definition for me.
+- [ ] clicking the id when in text mode shouldn't just /remove/ the id, it should bring up an autocomplete box so you can pick a different one, or optionally remove it.
+
+
 Also, ambiguity shouldn't sink the ship.
 
 ## Raw SVGs in the UI
