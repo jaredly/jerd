@@ -138,7 +138,7 @@ export const updateProposed = (
         if (
             proposedToplevel != null &&
             (proposedToplevel.type === 'Define' ||
-                proposedToplevel?.type === 'Expression')
+                proposedToplevel.type === 'Expression')
         ) {
             const id = idFromName(hashObject(proposedToplevel.term));
             if (idsEqual(id, cell.content.id)) {
@@ -161,12 +161,7 @@ export const updateProposed = (
                         ...cell,
                         content: {
                             ...cell.content,
-                            proposed: {
-                                type: 'Expression',
-                                location: proposedToplevel.location,
-                                term: proposedToplevel.term,
-                                id: id,
-                            },
+                            proposed: proposedToplevel,
                         },
                     },
                 });
@@ -210,22 +205,7 @@ export function acceptProposed(
 ): (() => void) | undefined {
     return () => {
         if (cell.content.type === 'term' && cell.content.proposed) {
-            const name = env.global.idNames[idName(cell.content.id)];
-            const top: ToplevelT = name
-                ? {
-                      type: 'Define',
-                      term: cell.content.proposed.term,
-                      name,
-                      id: cell.content.id,
-                      location: nullLocation,
-                  }
-                : {
-                      type: 'Expression',
-                      id: cell.content.proposed.id,
-                      term: cell.content.proposed.term,
-                      location: nullLocation,
-                  };
-            onSetToplevel(top);
+            onSetToplevel(cell.content.proposed);
         }
     };
 }

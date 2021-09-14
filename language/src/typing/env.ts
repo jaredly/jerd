@@ -965,19 +965,32 @@ export const typeDefine = (
     return { hash, term, env: { ...env, global: glob }, id };
 };
 
-export const addDefine = (env: Env, name: string, term: Term) => {
+export const addDefine = (
+    env: Env,
+    name: string,
+    term: Term,
+    idToOverride?: Id,
+) => {
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
     const glob = cloneGlobalEnv(env.global);
     addToMap(glob.names, name, id);
-    // if (!glob.names[name]) {
-    //     glob.names[name] = [id];
-    // } else {
-    //     glob.names[name].unshift(id);
-    // }
     glob.idNames[idName(id)] = name;
     glob.terms[hash] = term;
-    // TODO: update metadata
+    glob.metaData[hash] = {
+        createdMs: Date.now(),
+        tags: [],
+        supersedes: idToOverride ? idName(idToOverride) : undefined,
+    };
+    if (idToOverride) {
+        glob.metaData[idName(idToOverride)] = {
+            ...(glob.metaData[idName(idToOverride)] || {
+                createdMs: Date.now(),
+                tags: [],
+            }),
+            supersededBy: hash,
+        };
+    }
     return { id, env: { ...env, global: glob } };
 };
 

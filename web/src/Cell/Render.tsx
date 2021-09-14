@@ -64,86 +64,93 @@ for (let i = 0; i < colorsRaw.length; i += 6) {
     colors.push('#' + colorsRaw.slice(i, i + 6));
 }
 
-const colorForId = (
+const styleForId = (
     item: { kind: string; id: string; text: string },
     colorMap: { [key: string]: string },
 ) => {
     if (item.kind === 'sym') {
-        return colorMap[item.id] || '#9CDCFE';
+        return { color: colorMap[item.id] || '#9CDCFE' };
+    }
+    if (item.kind === 'term-deprecated') {
+        return {
+            color: `#c36d00`,
+            fontStyle: 'italic',
+            borderBottom: '2px dotted #c36d00',
+        };
     }
     if (item.kind === 'term') {
-        return 'rgb(138,220,255)';
+        return { color: 'rgb(138,220,255)' };
     }
-    return kindColors[item.kind];
+    return { color: kindColors[item.kind] };
 };
 
-export const renderAttributedTextToHTML = (
-    env: GlobalEnv,
-    text: Array<AttributedText>,
-    allIds?: boolean,
-    idColors: Array<string> = colors,
-    openable = (_: string, __: string, ___?: Location) => false,
-): string => {
-    const colorMap: { [key: string]: string } = {};
-    let colorAt = 0;
-    return text
-        .map((item, i) => {
-            if (typeof item === 'string') {
-                return escapeHTML(item);
-            }
-            if ('kind' in item) {
-                const showHash =
-                    item.id != '' &&
-                    (allIds ||
-                        shouldShowHash(env, item.id, item.kind, item.text));
-                if (!colorMap[item.id] && item.kind === 'sym') {
-                    colorMap[item.id] = idColors[colorAt++ % idColors.length];
-                }
-                return `<span style="color:${colorForId(item, colorMap)}"${
-                    openable(item.id, item.kind, item.loc)
-                        ? ` class="${css({
-                              ':hover': {
-                                  textDecoration: 'underline',
-                              },
-                          })}"`
-                        : ''
-                }>${escapeHTML(item.text)}${
-                    showHash
-                        ? `<span style="color: #777; cursor: ew-resize" contenteditable="false" data-hash="${item.id}">#</span>`
-                        : ''
-                }</span>`;
-            }
-            const style = stylesForAttributes(item.attributes);
-            let styleString = '';
-            if (style.color) {
-                styleString = `color:${style.color}`;
-            }
-            if (style.fontStyle) {
-                styleString += `;font-style:${style.fontStyle}`;
-            }
-            if (style.textDecoration) {
-                styleString += `;text-decoration:${style.textDecoration}`;
-            }
-            if ('type' in item && item.type === 'Group') {
-                return `<span
-                    data-location=${
-                        item.loc ? JSON.stringify(item.loc) : undefined
-                    }
-                    style='${styleString}'
-                    key=${i}
-                >${renderAttributedTextToHTML(
-                    env,
-                    item.contents,
-                    allIds,
-                    idColors,
-                )}</span>`;
-            }
-            return `<span style="${styleString}">${escapeHTML(
-                (item as any).text,
-            )}</span>`;
-        })
-        .join('');
-};
+// export const renderAttributedTextToHTML = (
+//     env: GlobalEnv,
+//     text: Array<AttributedText>,
+//     allIds?: boolean,
+//     idColors: Array<string> = colors,
+//     openable = (_: string, __: string, ___?: Location) => false,
+// ): string => {
+//     const colorMap: { [key: string]: string } = {};
+//     let colorAt = 0;
+//     return text
+//         .map((item, i) => {
+//             if (typeof item === 'string') {
+//                 return escapeHTML(item);
+//             }
+//             if ('kind' in item) {
+//                 const showHash =
+//                     item.id != '' &&
+//                     (allIds ||
+//                         shouldShowHash(env, item.id, item.kind, item.text));
+//                 if (!colorMap[item.id] && item.kind === 'sym') {
+//                     colorMap[item.id] = idColors[colorAt++ % idColors.length];
+//                 }
+//                 return `<span style="color:${colorForId(item, colorMap)}"${
+//                     openable(item.id, item.kind, item.loc)
+//                         ? ` class="${css({
+//                               ':hover': {
+//                                   textDecoration: 'underline',
+//                               },
+//                           })}"`
+//                         : ''
+//                 }>${escapeHTML(item.text)}${
+//                     showHash
+//                         ? `<span style="color: #777; cursor: ew-resize" contenteditable="false" data-hash="${item.id}">#</span>`
+//                         : ''
+//                 }</span>`;
+//             }
+//             const style = stylesForAttributes(item.attributes);
+//             let styleString = '';
+//             if (style.color) {
+//                 styleString = `color:${style.color}`;
+//             }
+//             if (style.fontStyle) {
+//                 styleString += `;font-style:${style.fontStyle}`;
+//             }
+//             if (style.textDecoration) {
+//                 styleString += `;text-decoration:${style.textDecoration}`;
+//             }
+//             if ('type' in item && item.type === 'Group') {
+//                 return `<span
+//                     data-location=${
+//                         item.loc ? JSON.stringify(item.loc) : undefined
+//                     }
+//                     style='${styleString}'
+//                     key=${i}
+//                 >${renderAttributedTextToHTML(
+//                     env,
+//                     item.contents,
+//                     allIds,
+//                     idColors,
+//                 )}</span>`;
+//             }
+//             return `<span style="${styleString}">${escapeHTML(
+//                 (item as any).text,
+//             )}</span>`;
+//         })
+//         .join('');
+// };
 
 const escapeHTML = (e: string) =>
     e.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -209,9 +216,9 @@ export const renderAttributedText = (
             return (
                 <span
                     style={{
-                        color: colorForId(item, colorMap.map),
-                        cursor: onClick ? 'pointer' : 'inherit',
+                        ...styleForId(item, colorMap.map),
                         ...locStyle(item.loc),
+                        cursor: onClick ? 'pointer' : 'inherit',
                     }}
                     data-kind={item.kind}
                     data-location={

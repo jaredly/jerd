@@ -816,7 +816,16 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                 term.location,
             );
         case 'ref':
-            return refToPretty(env, term.ref, 'term', term.location);
+            const deprecatedBy =
+                term.ref.type === 'user'
+                    ? env.global.metaData[idName(term.ref.id)]?.supersededBy
+                    : null;
+            return refToPretty(
+                env,
+                term.ref,
+                deprecatedBy ? 'term-deprecated' : 'term',
+                term.location,
+            );
         case 'var':
             return symToPretty(env, term.sym, term.location);
         case 'Switch':

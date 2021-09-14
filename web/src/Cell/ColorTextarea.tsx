@@ -6,7 +6,7 @@ import { Toplevel } from '@jerd/language/src/parsing/parser';
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
 import { typeToplevelT, ToplevelT } from '@jerd/language/src/typing/env';
-import { renderAttributedText, renderAttributedTextToHTML } from './Render';
+import { renderAttributedText } from './Render';
 import { Env, Location, newWithGlobal } from '@jerd/language/src/typing/types';
 import {
     addLocationIndices,
@@ -388,15 +388,6 @@ export default ({
                                 }
                             },
                         );
-
-                        // node.innerHTML = renderAttributedTextToHTML(
-                        //     env.global,
-                        //     printToAttributedText(
-                        //         toplevelToPretty(env, parsed),
-                        //         maxWidth,
-                        //     ),
-                        //     true,
-                        // );
                     } else {
                         node.innerText = value;
                     }

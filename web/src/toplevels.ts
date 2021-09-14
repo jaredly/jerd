@@ -11,29 +11,34 @@ import {
     idName,
     addEffect,
     ToplevelT,
+    ToplevelDefine,
 } from '@jerd/language/src/typing/env';
-import { EnumDef, Env, nullLocation } from '@jerd/language/src/typing/types';
+import {
+    EnumDef,
+    Env,
+    Id,
+    nullLocation,
+} from '@jerd/language/src/typing/types';
 import { Content, TopContent } from './State';
 
 export const getToplevel = (env: Env, content: TopContent): ToplevelT => {
     if (content.type === 'term') {
+        if (content.proposed) {
+            return content.proposed;
+        }
         const name = env.global.idNames[idName(content.id)];
         if (name == null) {
             return {
                 type: 'Expression',
-                id: content.proposed ? content.proposed.id : content.id,
-                term: content.proposed
-                    ? content.proposed.term
-                    : env.global.terms[idName(content.id)],
+                id: content.id,
+                term: env.global.terms[idName(content.id)],
                 location: nullLocation,
             };
         } else {
             return {
                 type: 'Define',
                 name: name,
-                term: content.proposed
-                    ? content.proposed.term
-                    : env.global.terms[idName(content.id)],
+                term: env.global.terms[idName(content.id)],
                 id: content.id,
                 location: nullLocation,
             };
@@ -86,20 +91,33 @@ export const getToplevel = (env: Env, content: TopContent): ToplevelT => {
     throw new Error(`unsupported toplevel`);
 };
 
+const getPidToOverride = (
+    env: Env,
+    term: ToplevelDefine,
+    prevContent: undefined | Content,
+): Id | undefined => {
+    if (!prevContent || prevContent.type !== 'term') {
+        return;
+    }
+    const prevName = env.global.idNames[idName(prevContent.id)];
+    if (prevName === term.name) {
+        return prevContent.id;
+    }
+    return;
+};
+
 export const updateToplevel = (
     env: Env,
     term: ToplevelT,
     prevContent?: Content,
 ): { env: Env; content: Content } => {
     if (term.type === 'Expression') {
-        const pid = null;
-        // prevContent.type === 'expr' || prevContent.type === 'term'
-        //     ? prevContent.id
-        //     : null;
+        const pid = prevContent?.type === 'term' ? prevContent.id : null;
         let { id, env: nenv } = addExpr(env, term.term, pid);
         return { content: { type: 'term', id: id }, env: nenv };
     } else if (term.type === 'Define') {
-        const { id, env: nenv } = addDefine(env, term.name, term.term);
+        const pid = getPidToOverride(env, term, prevContent);
+        const { id, env: nenv } = addDefine(env, term.name, term.term, pid);
         return {
             content: { type: 'term', id: id },
             env: nenv,

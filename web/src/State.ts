@@ -2,6 +2,7 @@
 
 import { Env, Id, Term, Type } from '@jerd/language/src/typing/types';
 import {
+    ToplevelDefine,
     ToplevelEffect,
     ToplevelEnum,
     ToplevelExpression,
@@ -18,7 +19,7 @@ export type TopContent =
     | {
           type: 'term';
           id: Id;
-          proposed?: null | ToplevelExpression;
+          proposed?: null | ToplevelDefine | ToplevelExpression;
           tests?: true | Array<Id>;
       }
     | { type: 'record'; id: Id; proposed?: null | ToplevelRecord }

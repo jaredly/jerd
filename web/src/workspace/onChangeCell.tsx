@@ -128,8 +128,9 @@ function updateOtherCells(
         // QQQQ: Do I update the proposed, and the currently accepted one?
         // Or just the proposed?
         // For now, we'll only update the proposed.
-        if (otherCell.content.proposed) {
-            const term = otherCell.content.proposed.term;
+        const proposed = otherCell.content.proposed;
+        if (proposed) {
+            const term = proposed.term;
             const newTerm = transform(term, {
                 let: (_) => null,
                 term: (term) => {
@@ -153,13 +154,17 @@ function updateOtherCells(
                             ...otherCell,
                             content: {
                                 ...otherCell.content,
-                                proposed: {
-                                    type: 'Expression',
-                                    // @ts-ignore // TODO: Update proposed for all kinds of things
+                                // TODO: retain name of thing
+                                propose: {
+                                    ...proposed,
                                     term: newTerm,
                                     id: idFromName(hashObject(newTerm)),
                                     location: newTerm.location,
                                 },
+                                // proposed: {
+                                //     type: 'Expression',
+                                //     // @ts-ignore // TODO: Update proposed for all kinds of things
+                                // },
                             },
                         },
                     },
