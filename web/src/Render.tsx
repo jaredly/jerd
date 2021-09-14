@@ -312,7 +312,10 @@ export const renderAttributedText = (
             <span
                 data-location={item.loc ? JSON.stringify(item.loc) : undefined}
                 data-kind={'misc'}
-                style={{ ...locStyle(item.loc) }}
+                style={{
+                    ...stylesForAttributes(item.attributes),
+                    ...locStyle(item.loc),
+                }}
                 key={i}
             >
                 {(item as any).text}
