@@ -30,6 +30,29 @@ type t_9983dd9e = {
 
 /**
 ```
+@unique(2) type As#As<T#:10000, Y#:10001> = {
+    as: (T#:10000) ={}> Y#:10001,
+}
+```
+*/
+type t_As<T_10000, T_10001> = {
+  type: "As";
+  hAs_0: (arg_0: T_10000) => T_10001;
+};
+
+/**
+```
+const IntAsString#1175499e = As#As<int#builtin, string#builtin>{as#As#0: intToString#builtin}
+As#😉{TODO SPREADs}{hAs_0: intToString}
+```
+*/
+export const hash_1175499e: t_As<number, string> = ({
+  type: "As",
+  hAs_0: intToString
+} as t_As<number, string>);
+
+/**
+```
 const rec provideString#1d302ade = (responseValue#:0: string#builtin): (
     fn: () ={GetString#22024b72}> string#builtin,
 ) ={}> string#builtin ={}> (fn#:1: () ={GetString#22024b72}> string#builtin): string#builtin ={}> {
@@ -84,6 +107,27 @@ export const hash_0a1f1488: t_9983dd9e = ({
   h9983dd9e_0: "Jerd",
   h9983dd9e_1: 13
 } as t_9983dd9e);
+
+/**
+```
+const personAsString#79a22ce4 = As#As<Person#9983dd9e, string#builtin>{
+    as#As#0: (person#:0: Person#9983dd9e): string#builtin ={}> "${person#:0.name#9983dd9e#0} (age $#1175499e{person#:0.age#9983dd9e#1})",
+}
+As#😉{TODO SPREADs}{
+    hAs_0: (person#:0: Person#🚣‍♀️): string => stringConcat(
+        stringConcat(
+            person#:0.#Person#🚣‍♀️#0,
+            stringConcat(" (age ", IntAsString#🚣‍♀️🦸‍♀️👨‍💼.#As#😉#0(person#:0.#Person#🚣‍♀️#1)),
+        ),
+        ")",
+    ),
+}
+```
+*/
+export const hash_79a22ce4: t_As<t_9983dd9e, string> = ({
+  type: "As",
+  hAs_0: (person: t_9983dd9e) => person.h9983dd9e_0 + (" (age " + hash_1175499e.hAs_0(person.h9983dd9e_1)) + ")"
+} as t_As<t_9983dd9e, string>);
 
 /**
 ```

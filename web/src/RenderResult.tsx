@@ -365,9 +365,7 @@ const RenderResult_ = ({
                         ))}
                     </div>
                 ) : null}
-                {typeof value === 'function'
-                    ? null
-                    : JSON.stringify(value, null, 2)}
+                {showJsValue(value)}
             </div>
         );
     } else {
@@ -388,6 +386,32 @@ const RenderResult_ = ({
             {body}
         </div>
     );
+};
+
+const showJsValue = (value: unknown): string => {
+    if (typeof value === 'function') {
+        return `(function with ${value.length} arguments)`;
+    }
+    if (['number', 'string', 'boolean'].includes(typeof value)) {
+        return JSON.stringify(value);
+    }
+    if (Array.isArray(value)) {
+        return `[ ${value.slice(0, 10).map(showJsValue).join(', ')}${
+            value.length > 10 ? ` ... (${value.length - 10} more items)` : ''
+        }]`;
+    }
+    if (value === undefined) {
+        return `undefined`;
+    }
+    if (typeof value !== 'object') {
+        return JSON.stringify(value);
+    }
+    if (value == null) {
+        return `null`;
+    }
+    return `{ ${Object.keys(value)
+        .map((k) => `${k}: ${showJsValue((value as any)[k])}`)
+        .join(', ')} }`;
 };
 
 export const getPlugin = (

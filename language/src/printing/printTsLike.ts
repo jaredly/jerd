@@ -1060,12 +1060,15 @@ export const _termToPretty = (env: Env, term: Term): PP => {
             );
         case 'TemplateString':
             return items([
-                atom('"'),
+                atom('"', ['string']),
                 items(
                     term.pairs.map((pair) =>
                         items([
                             pair.prefix != ''
-                                ? atom(JSON.stringify(pair.prefix).slice(1, -1))
+                                ? atom(
+                                      JSON.stringify(pair.prefix).slice(1, -1),
+                                      ['string'],
+                                  )
                                 : null,
                             pair.id
                                 ? idPretty(
@@ -1082,9 +1085,9 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     ),
                 ),
                 term.suffix
-                    ? atom(JSON.stringify(term.suffix).slice(1, -1))
+                    ? atom(JSON.stringify(term.suffix).slice(1, -1), ['string'])
                     : null,
-                atom('"'),
+                atom('"', ['string']),
             ]);
         default:
             let _x: never = term;

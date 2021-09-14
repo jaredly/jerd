@@ -57,9 +57,13 @@ const process = (raw: string) => {
 
 describe('template strings', () => {
     it('should parse a normal string', () => {
-        expect(process(`const x = "hello"`)).toMatchInlineSnapshot(
-            `const x#4fbd99d4 = "hello"`,
-        );
+        expect(
+            process(`const x = "hello";
+            const y = ""`),
+        ).toMatchInlineSnapshot(`
+            const x#4fbd99d4 = "hello";
+            const y#99874370 = ""
+        `);
     });
 
     it('should handle escapes and newlines correctly', () => {

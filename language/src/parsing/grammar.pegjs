@@ -434,7 +434,7 @@ Float "float"
 Int "int"
 	= _ "-"? [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 
-TemplateString = "\"" contents:StringContents+ "\"" {
+TemplateString = "\"" contents:StringContents* "\"" {
     const parts: Array<string | any> = [];
     let last = false
     contents.forEach((item: any) => {
@@ -447,6 +447,9 @@ TemplateString = "\"" contents:StringContents+ "\"" {
         last = typeof item === 'string'
         parts.push(item)
     })
+    if (!parts.length) {
+        return {type: 'string', text: '', location: location()}
+    }
     if (parts.length === 1 && typeof parts[0] === 'string') {
         return {type: 'string', text: parts[0], location: location()}
     }

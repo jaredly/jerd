@@ -533,6 +533,14 @@ export const getDependencies = (term: Term): Array<Reference> => {
         if (term.type === 'ref') {
             deps[refName(term.ref)] = term.ref;
         }
+        if (term.type === 'TemplateString') {
+            term.pairs.forEach((pair) => {
+                if (pair.id) {
+                    const ref: UserReference = { type: 'user', id: pair.id };
+                    deps[refName(ref)] = ref;
+                }
+            });
+        }
     });
     return Object.keys(deps).map((k) => deps[k]);
 };

@@ -498,6 +498,9 @@ function peg$parse(input: string, options?: IParseOptions) {
           last = typeof item === 'string'
           parts.push(item)
       })
+      if (!parts.length) {
+          return {type: 'string', text: '', location: location()}
+      }
       if (parts.length === 1 && typeof parts[0] === 'string') {
           return {type: 'string', text: parts[0], location: location()}
       }
@@ -8458,13 +8461,9 @@ function peg$parse(input: string, options?: IParseOptions) {
     if (s1 !== peg$FAILED) {
       s2 = [];
       s3 = peg$parseStringContents();
-      if (s3 !== peg$FAILED) {
-        while (s3 !== peg$FAILED) {
-          s2.push(s3);
-          s3 = peg$parseStringContents();
-        }
-      } else {
-        s2 = peg$FAILED;
+      while (s3 !== peg$FAILED) {
+        s2.push(s3);
+        s3 = peg$parseStringContents();
       }
       if (s2 !== peg$FAILED) {
         if (input.charCodeAt(peg$currPos) === 34) {
