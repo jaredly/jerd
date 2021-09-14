@@ -16,6 +16,20 @@ type t_51ea2a36<T_0> = {
 
 /**
 ```
+@unique(0.7650832933732973) type Person#9983dd9e = {
+    name: string#builtin,
+    age: int#builtin,
+}
+```
+*/
+type t_9983dd9e = {
+  type: "9983dd9e";
+  h9983dd9e_0: string;
+  h9983dd9e_1: number;
+};
+
+/**
+```
 const rec provideString#1d302ade = (responseValue#:0: string#builtin): (
     fn: () ={GetString#22024b72}> string#builtin,
 ) ={}> string#builtin ={}> (fn#:1: () ={GetString#22024b72}> string#builtin): string#builtin ={}> {
@@ -58,6 +72,18 @@ const freturn#38ab4eac = (): string#builtin ={}> "yes"
 ```
 */
 export const hash_38ab4eac: () => string = () => "yes";
+
+/**
+```
+const me#0a1f1488 = Person#9983dd9e{name#9983dd9e#0: "Jerd", age#9983dd9e#1: 13}
+Person#🚣‍♀️{TODO SPREADs}{h9983dd9e_0: "Jerd", h9983dd9e_1: 13}
+```
+*/
+export const hash_0a1f1488: t_9983dd9e = ({
+  type: "9983dd9e",
+  h9983dd9e_0: "Jerd",
+  h9983dd9e_1: 13
+} as t_9983dd9e);
 
 /**
 ```
@@ -386,3 +412,33 @@ tailMe#77e26344(num: 1, collect: <int#builtin>[])
 tailMe#🦽🖐️🕕😃(1, [])
 */
 hash_77e26344(1, []);
+
+/*
+"Hello $#1175499e{10}" ==#da00b310#51ea2a36#0 "Hello 10"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    stringConcat("Hello ", IntAsString#🚣‍♀️🦸‍♀️👨‍💼.#As#😉#0(10)),
+    "Hello 10",
+)
+*/
+assertCall(hash_da00b310.h51ea2a36_0, "Hello " + hash_1175499e.hAs_0(10), "Hello 10");
+
+/*
+"Hello $#1175499e{10 +#builtin 2} folks" ==#da00b310#51ea2a36#0 "Hello 12 folks"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    stringConcat(stringConcat("Hello ", IntAsString#🚣‍♀️🦸‍♀️👨‍💼.#As#😉#0(10 + 2)), " folks"),
+    "Hello 12 folks",
+)
+*/
+assertCall(hash_da00b310.h51ea2a36_0, "Hello " + hash_1175499e.hAs_0(10 + 2) + " folks", "Hello 12 folks");
+
+/*
+"Who's there? $#79a22ce4{me#0a1f1488}" ==#da00b310#51ea2a36#0 "Who's there? Jerd (age 13)"
+assertCall(
+    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    stringConcat("Who's there? ", personAsString#🙎‍♂️💫🪐😃.#As#😉#0(me#💯🎏🤙)),
+    "Who's there? Jerd (age 13)",
+)
+*/
+assertCall(hash_da00b310.h51ea2a36_0, "Who's there? " + hash_79a22ce4.hAs_0(hash_0a1f1488), "Who's there? Jerd (age 13)");

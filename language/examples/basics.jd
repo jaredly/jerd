@@ -90,6 +90,21 @@ const rec tailMe = (num: int, collect: Array<int>): Array<int> => {
     }
 }
 
-tailMe(20, <int>[])
+tailMe(20, <int,>[])
 
-tailMe(1, <int>[])
+tailMe(1, <int,>[])
+
+// Template strings sometimes!
+"Hello ${10}" == "Hello 10"
+
+"Hello ${10 + 2} folks" == "Hello 12 folks"
+
+type Person = {name: string, age: int};
+const personAsString = As<Person, string>{
+    as: (person: Person) => "${person.name} (age ${person.age})"
+};
+
+const me = Person{name: "Jerd", age: 13};
+
+"Who's there? ${me}" == "Who's there? Jerd (age 13)"
+

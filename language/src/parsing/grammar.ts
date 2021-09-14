@@ -498,6 +498,9 @@ function peg$parse(input: string, options?: IParseOptions) {
           last = typeof item === 'string'
           parts.push(item)
       })
+      if (parts.length === 1 && typeof parts[0] === 'string') {
+          return {type: 'string', text: parts[0], location: location()}
+      }
       return {type: 'template-string', contents: parts, location: location() }
   };
   const peg$c159 = "$";

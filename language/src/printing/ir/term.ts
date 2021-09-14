@@ -17,6 +17,7 @@ import {
     UserReference,
     RecordDef,
     ConcreteBase,
+    Id,
 } from '../../typing/types';
 import {
     binOps,
@@ -38,7 +39,13 @@ import { allDefaults, idFromName, idName } from '../../typing/env';
 import { ArrayType, LambdaType as ILambdaType, TypeReference } from './types';
 
 import { Loc, Expr, Stmt, OutputOptions, Type } from './types';
-import { callExpression, pureFunction, typeFromTermType } from './utils';
+import {
+    callExpression,
+    pureFunction,
+    typeFromTermType,
+    string as irString,
+    stringLiteral,
+} from './utils';
 
 import { maybeWrapPureFunction } from '../../typing/transform';
 import {
@@ -57,6 +64,8 @@ import { printHandle } from './handle';
 import { termToPretty } from '../printTsLike';
 import { printToString } from '../printer';
 import { LocatedError } from '../../typing/errors';
+import { Location } from '../../parsing/parser';
+import { asRecord } from '../../typing/terms/as-suffix';
 
 // hrmmmmmmmm should I define new types for the IR?
 // urhghhhhghghhggh
@@ -398,6 +407,40 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                 loc: term.location,
             };
         }
+        case 'TemplateString': {
+            // Ok so we don't need something special for this
+            let res: Expr | null = null;
+            term.pairs.forEach((pair) => {
+                const contents = printTerm(env, opts, pair.contents);
+                const expr = pair.id
+                    ? makeAs(env, pair.id, contents)
+                    : contents;
+                const pexpr =
+                    pair.prefix != ''
+                        ? concatStrings(
+                              stringLiteral(pair.prefix, pair.location),
+                              expr,
+                              pair.location,
+                          )
+                        : expr;
+                if (res == null) {
+                    res = pexpr;
+                } else {
+                    res = concatStrings(res, pexpr, pair.location);
+                }
+            });
+            if (!res) {
+                throw new Error(`template string with no pairs? illegal`);
+            }
+            if (term.suffix != '') {
+                res = concatStrings(
+                    res,
+                    stringLiteral(term.suffix, term.location),
+                    term.location,
+                );
+            }
+            return res;
+        }
         case 'unary':
             return {
                 type: 'unary',
@@ -552,6 +595,47 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             let _x: never = term;
             throw new Error(`Cannot print ${(term as any).type} to IR`);
     }
+};
+
+const concatStrings = (one: Expr, two: Expr, loc: Location): Expr => ({
+    type: 'apply',
+    // 'string concat'
+    target: builtin(
+        'stringConcat',
+        loc,
+        pureFunction([irString, irString], irString),
+    ),
+    is: irString,
+    loc,
+    typeVbls: [],
+    args: [one, two],
+});
+
+const makeAs = (env: Env, id: Id, expr: Expr) => {
+    return callExpression(
+        env,
+        {
+            type: 'attribute',
+            idx: 0,
+            is: pureFunction([expr.is], irString),
+            loc: expr.loc,
+            ref: asRecord,
+            refTypeVbls: [expr.is, irString],
+            target: {
+                type: 'term',
+                id,
+                is: {
+                    type: 'ref',
+                    ref: asRecord,
+                    loc: expr.loc,
+                    typeVbls: [expr.is, irString],
+                },
+                loc: expr.loc,
+            },
+        },
+        [expr],
+        expr.loc,
+    );
 };
 
 const showEffectRef = (eff: EffectRef) => {

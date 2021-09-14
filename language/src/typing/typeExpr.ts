@@ -373,7 +373,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                 contents: Term;
                 location: Location;
                 prefix: string;
-                id: Id;
+                id: Id | null;
             }> = [];
             let prefix: null | string = null;
             expr.contents.forEach((item) => {
@@ -386,7 +386,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                 } else {
                     const contents = typeExpr(env, item.inner);
                     const goalType = asType(contents.is, string, item.location);
-                    let id: Id;
+                    let id: Id | null;
                     // Ok, here's where we figure out the `As`
                     if (item.hash) {
                         const t = env.global.terms[item.hash.slice(1)];
@@ -407,17 +407,21 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                         }
                         id = idFromName(item.hash.slice(1));
                     } else {
-                        const ref = findAs(env, goalType, item.location);
-                        if (ref == null) {
-                            throw new LocatedError(
-                                item.location,
-                                `Unable to find a suitable implementation of 'As' to convert this ${showType(
-                                    env,
-                                    contents.is,
-                                )} to a string`,
-                            );
+                        if (typesEqual(contents.is, string)) {
+                            id = null;
+                        } else {
+                            const ref = findAs(env, goalType, item.location);
+                            if (ref == null) {
+                                throw new LocatedError(
+                                    item.location,
+                                    `Unable to find a suitable implementation of 'As' to convert this ${showType(
+                                        env,
+                                        contents.is,
+                                    )} to a string`,
+                                );
+                            }
+                            id = ref.id;
                         }
-                        id = ref.id;
                     }
 
                     pairs.push({

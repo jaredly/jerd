@@ -1064,12 +1064,17 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                 items(
                     term.pairs.map((pair) =>
                         items([
-                            idPretty(
-                                '$',
-                                idName(pair.id),
-                                'template-string',
-                                pair.location,
-                            ),
+                            pair.prefix != ''
+                                ? atom(JSON.stringify(pair.prefix).slice(1, -1))
+                                : null,
+                            pair.id
+                                ? idPretty(
+                                      '$',
+                                      idName(pair.id),
+                                      'template-string',
+                                      pair.location,
+                                  )
+                                : atom('$'),
                             atom('{'),
                             termToPretty(env, pair.contents),
                             atom('}'),

@@ -252,6 +252,16 @@ export const _termToTs = (
         case 'apply':
             if (
                 term.target.type === 'builtin' &&
+                term.target.name === 'stringConcat'
+            ) {
+                return t.binaryExpression(
+                    '+',
+                    termToTs(env, opts, term.args[0]),
+                    termToTs(env, opts, term.args[1]),
+                );
+            }
+            if (
+                term.target.type === 'builtin' &&
                 binOps.includes(term.target.name) &&
                 term.target.name !== '^' &&
                 term.args.length === 2

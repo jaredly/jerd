@@ -791,7 +791,7 @@ export type TemplateString = {
     type: 'TemplateString';
     pairs: Array<{
         prefix: string;
-        id: Id;
+        id: null | Id;
         location: Location;
         contents: Term;
     }>;

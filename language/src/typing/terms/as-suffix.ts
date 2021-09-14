@@ -7,7 +7,7 @@ import { Env, Location, Term, Type, UserReference } from '../types';
 import typeType from '../typeType';
 import { showType } from '../unify';
 
-const asRecord: UserReference = {
+export const asRecord: UserReference = {
     type: 'user',
     id: { hash: 'As', pos: 0, size: 1 },
 };

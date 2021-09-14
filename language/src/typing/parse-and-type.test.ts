@@ -64,7 +64,7 @@ describe('template strings', () => {
 
     it('should handle escapes and newlines correctly', () => {
         expect(process(`const x = "Yes\\nFo\tlk\ns"`)).toMatchInlineSnapshot(
-            `const x#74ea1858 = "Yes\\nFo\\tlk\\ns"`,
+            `const x#7b1224d0 = "Yes\\\\nFo\\tlk\\ns"`,
         );
     });
 
@@ -78,7 +78,7 @@ describe('template strings', () => {
             const intAsString#a9eb4f54 = As#As<int#builtin, string#builtin>{
                 as#As#0: (i#:0: int#builtin): string#builtin ={}> "an int",
             };
-            const x#348f5e90 = "$#a9eb4f54{10}"
+            const x#348f5e90 = "hello $#a9eb4f54{10}"
         `);
     });
 });
