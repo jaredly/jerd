@@ -1,12 +1,27 @@
 
-## Comparing implementations, what to do:
+## Comparing implementations, what to do (go vs node vs rust):
+### Prep for rust
 
+I would like to start producing rust, so as to be able to compare go, rust, and nodejs.
+In order to stem the tide of copy/pasting, I think I should make another visitor pattern style thing, so that `blockToX` could be re-used between all the languages that have c-style blocks. And `returnToX` would be common as well.
+
+## Need to be able to delete a term from the UI.
+Or really, to say "this one is deprecated" would probably be sufficient.
+When parsing, I think a `@deprecates(xyz)` could be cool.
+Yeah I think that would do the trick?
+
+ START HEREEE
+
+Anyway, I need to
+- [ ] when a term is deprecated, *show it* using css. Like printTsLike should do something about it.
+
+Also, ambiguity shouldn't sink the ship.
 
 ## Raw SVGs in the UI
 - remove the old version of drawabletoSvg -- need a way to remove terms. Check whether it's used by any active cell...
 - [ ] hmmm
 
-## String Interpolation
+## String Interpolation 🎉🎉
 
 What if: all strings could contain '\n' and ${} interpolation? I don't think I want to give up \` as a character though. Seems to handy. Also, maybe ' isn't needed as well? I mean it's annoying to need to escape all ". Maybe I'll do like rust, and have `r#"..."#`? idk.
 Anyway, interpolation: Can I get the best of both worlds of: the value is inline so it's clear what's going in, and you can control the formatting with like %0.2f?
@@ -46,11 +61,6 @@ And then writing a `spreadLoopToAppend` optimizer, that would run in js + rust, 
 
 - [x] get spreadLoopToAppend goig
 - [ ] arrayAppend should be called arrayPush and should be a Stmt, not an Expr
-
-## Prep for rust
-
-I would like to start producing rust, so as to be able to compare go, rust, and nodejs.
-In order to stem the tide of copy/pasting, I think I should make another visitor pattern style thing, so that `blockToX` could be re-used between all the languages that have c-style blocks. And `returnToX` would be common as well.
 
 
 ## Sliders in Go CLIs
