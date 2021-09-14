@@ -144,7 +144,7 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
         if (state.refered.length) {
             let options: Array<Option> | null = null;
             state.refered.forEach((r) => {
-                if (!r.toplevel) {
+                if (!r || !r.toplevel) {
                     return;
                 }
                 if (r.toplevel.type === 'Define') {
@@ -294,10 +294,15 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
 
     return (
         <div
+            onMouseDown={(evt) => {
+                if (evt.target === evt.currentTarget) {
+                    onClose();
+                }
+            }}
             css={{
                 position: 'fixed',
                 inset: 0,
-                backgroundColor: 'rgba(0,0,0,0.1)',
+                backgroundColor: 'rgba(0,0,0,0.2)',
                 display: 'flex',
                 padding: 30,
                 flexDirection: 'column',
@@ -356,11 +361,16 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                             //           ];
                             evt.preventDefault();
                             evt.stopPropagation();
+                            if (!r) {
+                                return;
+                            }
                             setState((s) => ({
                                 ...s,
                                 input: '',
                                 refered: s.refered.concat([
-                                    state.hashIdx > 0 && r.subOptions
+                                    state.hashIdx > 0 &&
+                                    r.subOptions &&
+                                    r.subOptions.length > state.hashIdx
                                         ? r.subOptions[state.hashIdx]
                                         : r,
                                 ]),
