@@ -40,15 +40,15 @@ import {
     EvalEnv,
     RenderPlugins,
     RenderPluginT,
-} from './State';
+} from '../State';
 import { showType } from '@jerd/language/src/typing/unify';
-import { envWithTerm } from './display/OpenGL';
-import { sortAllDepsPlain } from '../../language/src/typing/analyze';
-import { widgetForDecorator } from './display/Decorators';
-import { transform } from '../../language/src/typing/transform';
-import { runTerm } from './eval';
-import { LocatedError } from '../../language/src/typing/errors';
-import { Action } from './Cells';
+import { envWithTerm } from '../display/OpenGL';
+import { sortAllDepsPlain } from '@jerd/language/src/typing/analyze';
+import { widgetForDecorator } from '../display/Decorators';
+import { transform } from '@jerd/language/src/typing/transform';
+import { runTerm } from '../eval';
+import { LocatedError } from '@jerd/language/src/typing/errors';
+import { Action } from '../workspace/Cells';
 
 /*
 

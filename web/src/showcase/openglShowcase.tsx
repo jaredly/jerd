@@ -1,27 +1,27 @@
-import './polyfill';
+import '../polyfill';
 import * as builtins from '@jerd/language/src/printing/builtins';
 // import App from './App';
 // import ASTDebug from './ASTDebug';
 // import GLSL from './GLSL';
 import * as React from 'react';
 import { render } from 'react-dom';
-import { parse } from '../../language/src/parsing/parser';
-import { addLocationIndices } from '../../language/src/typing/analyze';
+import { parse } from '@jerd/language/src/parsing/parser';
+import { addLocationIndices } from '@jerd/language/src/typing/analyze';
 import {
     addToplevelToEnv,
     idName,
     ToplevelExpression,
     typeToplevelT,
-} from '../../language/src/typing/env';
-import { Env, Id, newWithGlobal } from '../../language/src/typing/types';
-import { defaultPlugins } from './defaultPlugins';
-import { OpenGLCanvas } from './display/OpenGLCanvas';
-import { runTerm } from './eval';
-import { initialEnvWithPlugins } from './initialEnvWithPlugins';
-import { newEvalEnv } from './persistence';
-import './polyfill';
-import { RenderResult } from './RenderResult';
-import { EvalEnv } from './State';
+} from '@jerd/language/src/typing/env';
+import { Env, Id, newWithGlobal } from '@jerd/language/src/typing/types';
+import { defaultPlugins } from '../defaultPlugins';
+import { OpenGLCanvas } from '../display/OpenGLCanvas';
+import { runTerm } from '../eval';
+import { initialEnvWithPlugins } from '../initialEnvWithPlugins';
+import { newEvalEnv } from '../persistence';
+import '../polyfill';
+import { RenderResult } from '../Cell/RenderResult';
+import { EvalEnv } from '../State';
 
 // Get the shader data somehow
 

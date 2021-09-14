@@ -1,6 +1,6 @@
-import { Location } from '../../language/src/parsing/parser';
-import { handlerSym } from '../../language/src/printing/ir/utils';
-import { SourceItem, SourceMap } from '../../language/src/printing/printer';
+import { Location } from '@jerd/language/src/parsing/parser';
+import { handlerSym } from '@jerd/language/src/printing/ir/utils';
+import { SourceItem, SourceMap } from '@jerd/language/src/printing/printer';
 import {
     ensureIdxUnique,
     getTermByIdx,
@@ -12,9 +12,9 @@ import {
     replaceAtIdx,
     transformWithBindings,
     usedLocalVariables,
-} from '../../language/src/typing/analyze';
-import { hashObject, idFromName, idName } from '../../language/src/typing/env';
-import { transform } from '../../language/src/typing/transform';
+} from '@jerd/language/src/typing/analyze';
+import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
+import { transform } from '@jerd/language/src/typing/transform';
 import {
     Env,
     getEffects,
@@ -25,7 +25,7 @@ import {
     Symbol,
     Term,
     Type,
-} from '../../language/src/typing/types';
+} from '@jerd/language/src/typing/types';
 import { MenuItem } from './CellWrapper';
 import { Selection } from './Cell';
 import { SelectionPos } from './Cell2';

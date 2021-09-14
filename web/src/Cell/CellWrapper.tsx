@@ -2,10 +2,10 @@
 import { jsx } from '@emotion/react';
 // Ok
 import * as React from 'react';
-import { printToAttributedText } from '../../language/src/printing/printer';
-import { termToPretty } from '../../language/src/printing/printTsLike';
-import { idName } from '../../language/src/typing/env';
-import { Env, Id } from '../../language/src/typing/types';
+import { printToAttributedText } from '@jerd/language/src/printing/printer';
+import { termToPretty } from '@jerd/language/src/printing/printTsLike';
+import { idName } from '@jerd/language/src/typing/env';
+import { Env, Id } from '@jerd/language/src/typing/types';
 import { renderAttributedText } from './Render';
 
 // const maxWidth = 80;

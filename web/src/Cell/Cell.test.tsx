@@ -3,17 +3,17 @@
 import * as React from 'react';
 import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CellView } from './Cell';
+import { Cell2 } from './Cell2';
 import {
     addDefine,
     addExpr,
     idFromName,
     typeToplevelT,
-} from '../../language/src/typing/env';
-import { newEnv } from '../../language/src/typing/types';
-import { parse } from '../../language/src/parsing/grammar';
-import { newEvalEnv } from './persistence';
-import { presetEnv } from '../../language/src/typing/preset';
+} from '@jerd/language/src/typing/env';
+import { newEnv } from '@jerd/language/src/typing/types';
+import { parse } from '@jerd/language/src/parsing/grammar';
+import { newEvalEnv } from '../persistence';
+import { presetEnv } from '@jerd/language/src/typing/preset';
 
 const renderCell = (raw: string) => {
     let env = presetEnv({});
@@ -26,7 +26,7 @@ const renderCell = (raw: string) => {
     env = nenv;
 
     render(
-        <CellView
+        <Cell2
             maxWidth={1000}
             cell={{
                 id: 'cid',

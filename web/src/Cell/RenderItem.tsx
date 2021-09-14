@@ -25,18 +25,18 @@ import {
     getTermByIdx,
     isAtomic,
     makeIdxTree,
-} from '../../language/src/typing/analyze';
-import { showType } from '../../language/src/typing/unify';
+} from '@jerd/language/src/typing/analyze';
+import { showType } from '@jerd/language/src/typing/unify';
 import { Selection } from './Cell';
 import { SelectionPos } from './Cell2';
-import { Action, Position } from './Cells';
+import { Action, Position } from '../workspace/Cells';
 import { MenuItem } from './CellWrapper';
-import { runTerm } from './eval';
-import { FilterMenu } from './FilterMenu';
+import { runTerm } from '../eval';
+import { FilterMenu } from '../FilterMenu';
 import { bindKeys } from './KeyBindings';
 import { renderAttributedText } from './Render';
 import { RenderResult } from './RenderResult';
-import { onClick, renderScrub, Scrub, ScrubItem } from './Scrubbers/Scrub';
+import { onClick, renderScrub, Scrub, ScrubItem } from '../Scrubbers/Scrub';
 import {
     Cell,
     Content,
@@ -44,9 +44,9 @@ import {
     EvalEnv,
     RenderPlugins,
     TopContent,
-} from './State';
-import { getToplevel } from './toplevels';
-import { useUpdated } from './Workspace';
+} from '../State';
+import { getToplevel } from '../toplevels';
+import { useUpdated } from '../workspace/Workspace';
 
 export type Props = {
     env: Env;

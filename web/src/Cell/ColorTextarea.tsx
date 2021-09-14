@@ -11,7 +11,7 @@ import { Env, Location, newWithGlobal } from '@jerd/language/src/typing/types';
 import {
     addLocationIndices,
     getTermByIdx,
-} from '../../language/src/typing/analyze';
+} from '@jerd/language/src/typing/analyze';
 import { render, flushSync } from 'react-dom';
 import { Global } from '@emotion/react';
 import { Selection } from './Cell';

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Env } from '@jerd/language/src/typing/types';
-import { Trace } from '../Editor';
-import { hashStyle } from '../Cell';
+import { Trace } from '../Cell/Editor';
+import { hashStyle } from '../Cell/Cell';
 import { Vec4 } from './OpenGL';
 
 export const ShowTrace = ({

@@ -6,7 +6,7 @@ import {
     HistoryUpdate,
     State,
     Workspace as WorkspaceT,
-} from './App';
+} from '../App';
 import Cells, {
     Action,
     activeWorkspace,
@@ -18,17 +18,17 @@ import Cells, {
     modActiveWorkspace,
     Position,
 } from './Cells';
-import { onChangeCell } from './onChangeCell';
+import { onChangeCell } from '../onChangeCell';
 
-import { runTerm } from './eval';
-import Library from './Library';
-import { Cell, Content } from './State';
+import { runTerm } from '../eval';
+import Library from '../Library';
+import { Cell, Content } from '../State';
 import { Pin } from './Pin';
 import { QuickMenu } from './QuickMenu';
-import { idName } from '../../language/src/typing/env';
-import { Id } from '../../language/src/typing/types';
-import { stateToString } from './persistence';
-import { defaultPlugins } from './defaultPlugins';
+import { idName } from '@jerd/language/src/typing/env';
+import { Id } from '@jerd/language/src/typing/types';
+import { stateToString } from '../persistence';
+import { defaultPlugins } from '../defaultPlugins';
 
 export type Props = {
     state: State;

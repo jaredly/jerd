@@ -12,11 +12,11 @@ import Cells, {
     contentMatches,
     genId,
     modActiveWorkspace,
-} from './Cells';
+} from './workspace/Cells';
 import { saveState, stateToString } from './persistence';
 import { Cell, Content, Display, EvalEnv, RenderPlugins } from './State';
 import { getToplevel } from './toplevels';
-import { Workspace } from './Workspace';
+import { Workspace } from './workspace/Workspace';
 
 // Yea
 

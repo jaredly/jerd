@@ -21,7 +21,7 @@ import {
     expressionTypeDeps,
     getUsedDecorators,
 } from '@jerd/language/src/typing/analyze';
-import { Display } from './State';
+import { Display } from '../State';
 
 export const generateExport = (
     env: Env,

@@ -5,7 +5,7 @@ import { Env, idsEqual, Location, Term } from '../../language/src/typing/types';
 import { transform } from '../../language/src/typing/transform';
 import { getTypeError } from '../../language/src/typing/getTypeError';
 import { getToplevel, updateToplevel } from './toplevels';
-import { updateEvalEnv, modActiveWorkspace } from './Cells';
+import { updateEvalEnv, modActiveWorkspace } from './workspace/Cells';
 
 // What things am I updating?
 // - cells

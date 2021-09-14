@@ -27,29 +27,29 @@ import {
     RawContent,
     RenderPlugins,
     TopContent,
-} from './State';
-import { runTerm } from './eval';
-import { HistoryUpdate, Workspace } from './App';
+} from '../State';
+import { runTerm } from '../eval';
+import { HistoryUpdate, Workspace } from '../App';
 import {
     Env,
     GlobalEnv,
     Id,
     newWithGlobal,
     nullLocation,
-} from '../../language/src/typing/types';
-import { WorkspacePicker } from './WorkspacePicker';
-import { sortCells } from './Workspace';
-import { Action as TopAction } from './Cells';
-import { parse, Toplevel } from '../../language/src/parsing/parser';
-import { addLocationIndices } from '../../language/src/typing/analyze';
-import { getToplevel, updateToplevel } from './toplevels';
+} from '../../../language/src/typing/types';
+import { WorkspacePicker } from '../workspace/WorkspacePicker';
+import { sortCells } from '../workspace/Workspace';
+import { Action as TopAction } from '../workspace/Cells';
+import { parse, Toplevel } from '../../../language/src/parsing/parser';
+import { addLocationIndices } from '../../../language/src/typing/analyze';
+import { getToplevel, updateToplevel } from '../toplevels';
 import { CellWrapper } from './CellWrapper';
 import { cellTitle } from './cellTitle';
-import { getMenuItems } from './getMenuItems';
+import { getMenuItems } from '../actions/getMenuItems';
 import ColorTextarea from './ColorTextarea';
 import { RenderItem } from './RenderItem';
-import { printToString } from '../../language/src/printing/printer';
-import { toplevelToPretty } from '../../language/src/printing/printTsLike';
+import { printToString } from '../../../language/src/printing/printer';
+import { toplevelToPretty } from '../../../language/src/printing/printTsLike';
 import { RenderResult } from './RenderResult';
 
 // hrmmmm can I move the selection dealio up a level? Should I? hmm I do like each cell managing its own cursor, tbh.
@@ -136,6 +136,9 @@ const parseRaw = (raw: string, global: GlobalEnv): TypeResult => {
             ),
         };
     } catch (err) {
+        if (!(err instanceof Error)) {
+            return { type: 'error', err: new Error(`Unknown error`) };
+        }
         return { type: 'error', err };
     }
 };
@@ -469,7 +472,7 @@ const CellView_ = ({
                     term={termAndValue[0][0]}
                     value={termAndValue[1]}
                     plugins={plugins}
-                    id={cell.content.id}
+                    id={(cell.content as any).id}
                     env={env}
                     evalEnv={evalEnv}
                     dispatch={dispatch}

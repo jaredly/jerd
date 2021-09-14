@@ -13,7 +13,7 @@ import {
     typeToplevelT,
     ToplevelT,
 } from '@jerd/language/src/typing/env';
-import { renderAttributedText } from './Render';
+import { renderAttributedText } from './Cell/Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
@@ -71,8 +71,8 @@ export default () => {
                 toplevels,
                 {
                     type: 'error',
-                    message: err.message,
-                    location: err.location,
+                    message: (err as any).message,
+                    location: (err as any).location,
                 },
             ];
         }

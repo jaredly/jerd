@@ -26,7 +26,7 @@ import { idName } from '../../language/src/typing/env';
 import { Env, Id } from '../../language/src/typing/types';
 import { State } from './App';
 import { compileGLSL } from './display/OpenGL';
-import { renderAttributedText } from './Render';
+import { renderAttributedText } from './Cell/Render';
 
 const getName = (opt: any) => {
     return (

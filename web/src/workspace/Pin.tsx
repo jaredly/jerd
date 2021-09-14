@@ -10,11 +10,11 @@ import {
     EvalEnv,
     RenderPlugins,
     RenderPluginT,
-} from './State';
+} from '../State';
 
 import { idName } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
-import { hashStyle } from './Cell';
+import { hashStyle } from '../Cell/Cell';
 
 export type Pin = { id: Id; display: Display };
 

@@ -32,7 +32,7 @@ import {
     RenderPlugins,
     TopContent,
 } from '../State';
-import { Position } from '../Cells';
+import { Position } from '../workspace/Cells';
 
 export type FloatScrub = {
     original: Float;

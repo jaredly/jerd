@@ -13,19 +13,19 @@ import { jsx } from '@emotion/react';
 // - um probably some refactoring commands? idk
 
 import * as React from 'react';
-import { printToAttributedText } from '../../language/src/printing/printer';
-import { toplevelToPretty } from '../../language/src/printing/printTsLike';
-import { idFromName, idName, ToplevelT } from '../../language/src/typing/env';
+import { printToAttributedText } from '@jerd/language/src/printing/printer';
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
+import { idFromName, idName, ToplevelT } from '@jerd/language/src/typing/env';
 import {
     Env,
     idsEqual,
     nullLoc,
     nullLocation,
-} from '../../language/src/typing/types';
-import { Index, Indices } from './App';
-import { HashIcon } from './HashIcon';
-import { renderAttributedText } from './Render';
-import { Content } from './State';
+} from '@jerd/language/src/typing/types';
+import { Index, Indices } from '../App';
+import { HashIcon } from '../HashIcon';
+import { renderAttributedText } from '../Cell/Render';
+import { Content } from '../State';
 
 export type Props = {
     env: Env;

@@ -14,7 +14,7 @@ import { idName } from '@jerd/language/src/typing/env';
 import { Env } from '@jerd/language/src/typing/types';
 import { hashStyle } from './Cell';
 import { renderAttributedText } from './Render';
-import { Cell } from './State';
+import { Cell } from '../State';
 
 export const cellTitle = (
     env: Env,
