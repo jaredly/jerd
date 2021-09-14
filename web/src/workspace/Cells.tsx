@@ -233,29 +233,6 @@ export const calculateOrder = (
     }
 };
 
-export const updateEvalEnv = (env: Env, id: Id, evalEnv: EvalEnv): EvalEnv => {
-    let results: any = {};
-    try {
-        const term = env.global.terms[idName(id)];
-        if (!term) {
-            throw new Error(`No term ${idName(id)}`);
-        }
-
-        results = runTerm(env, term, id, evalEnv);
-    } catch (err) {
-        console.log(`Failed to run!`);
-        console.log(err);
-        return evalEnv;
-    }
-    return {
-        ...evalEnv,
-        terms: {
-            ...evalEnv.terms,
-            ...results,
-        },
-    };
-};
-
 export const activeWorkspace = (state: State) =>
     state.workspaces[state.activeWorkspace];
 
