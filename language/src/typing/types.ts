@@ -725,7 +725,7 @@ export type Term =
     | Attribute
     | Ref
     | Var
-    | Literal
+    | LiteralWithTemplateString
     | Lambda;
 
 export type Ref = {
@@ -767,6 +767,12 @@ export type TupleAccess = {
 };
 
 export type Literal = String | Float | Int | Boolean;
+export type LiteralWithTemplateString =
+    | String
+    | TemplateString
+    | Float
+    | Int
+    | Boolean;
 export type Float = {
     type: 'float';
     location: Location;
@@ -778,6 +784,19 @@ export type Int = {
     type: 'int';
     location: Location;
     value: number;
+    is: Type;
+    decorators?: Decorators;
+};
+export type TemplateString = {
+    type: 'TemplateString';
+    pairs: Array<{
+        prefix: string;
+        id: Id;
+        location: Location;
+        contents: Term;
+    }>;
+    suffix: string;
+    location: Location;
     is: Type;
     decorators?: Decorators;
 };
@@ -1199,6 +1218,10 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
             );
         case 'Tuple':
             return emptyEffects.concat(...t.items.map(getEffects));
+        case 'TemplateString':
+            return emptyEffects.concat(
+                ...t.pairs.map((i) => getEffects(i.contents)),
+            );
         default:
             let _x: never = t;
             throw new Error('Unhandled term');
@@ -1311,6 +1334,9 @@ export const walkTerm = (
         case 'self':
         case 'ref':
         case 'var':
+            return;
+        case 'TemplateString':
+            term.pairs.forEach((item) => walkTerm(item.contents, handle));
             return;
         default:
             let _x: never = term;

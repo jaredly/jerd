@@ -31,7 +31,7 @@ import { Context } from 'vm';
 import { Expr } from './ir/types';
 import { debugExpr, hashToEmoji } from './irDebugPrinter';
 
-export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
+export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {
     test(value) {
         return value && typeof value === 'string';
     },
@@ -40,7 +40,7 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
     },
 };
 
-expect.addSnapshotSerializer(snapshotSerializer);
+expect.addSnapshotSerializer(rawSnapshotSerializer);
 
 const init = loadInit();
 const process = (raw: string) => {

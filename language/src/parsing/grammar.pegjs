@@ -189,7 +189,7 @@ ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:Lab
 }
 AttributeSuffix = "." id:MaybeQuotedIdentifier {return {type: 'Attribute', id, location: location()}}
 
-Apsub = Literal / Lambda / Block / Handle / Raise / Trace / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / TupleLiteral / Identifier
+Apsub = LiteralWithTemplateString / Lambda / Block / Handle / Raise / Trace / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / TupleLiteral / Identifier
 
 // TODO
 // / TraitCall
@@ -271,7 +271,7 @@ Pattern = inner:PatternInner as_:(__ "as" __ Identifier)? {
     }
     return inner
 }
-PatternInner = ArrayPattern / RecordPattern / TuplePattern / Literal / Identifier
+PatternInner = ArrayPattern / RecordPattern / TuplePattern / LiteralWithString / Identifier
 ArrayPattern = "[" _ items:ArrayPatternItems? _ "]" {return {type: 'Array', location: location(), items: items || []}}
 
 ArrayPatternItems = first:ArrayPatternItem rest:(_ "," _ ArrayPatternItem)* ","? {
@@ -424,14 +424,44 @@ TupleType = "(" first:Type rest:(_ "," _ Type)+ ")" {
 
 // ==== Literals ====
 
-Literal = Boolean / Float / Int / String 
+Literal = Boolean / Float / Int
+LiteralWithString = Literal / String 
+LiteralWithTemplateString = Literal / TemplateString 
 
 Boolean = v:("true" / "false") ![0-9a-zA-Z_] {return {type: 'boolean', location: location(), value: v === "true"}}
 Float "float"
     = _ "-"? [0-9]+ "." [0-9]+ {return {type: 'float', value: parseFloat(text()), location: location()}}
 Int "int"
 	= _ "-"? [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
-String = "\"" ( "\\" . / [^"\\])* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
+
+TemplateString = "\"" contents:StringContents+ "\"" {
+    const parts: Array<string | any> = [];
+    let last = false
+    contents.forEach((item: any) => {
+        if (typeof item === 'string') {
+            if (last) {
+                parts[parts.length - 1] += item
+                return
+            } 
+        }
+        last = typeof item === 'string'
+        parts.push(item)
+    })
+    return {type: 'template-string', contents: parts, location: location() }
+}
+
+// how do we parse this?
+// At each char: try to 
+StringContents = TemplatePart / stringChar
+
+TemplatePart = "$" hash:OpHash? "{" _ inner:Expression _ "}" {
+    return {hash, inner, location: location()}
+}
+
+String = "\"" stringChar* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
+stringChar = ( escapedChar / [^"\\])
+escapedChar = "\\" . {return text()}
+
 IdentifierWithoutHash = text:IdText {
     return {type: "id", text, location: location(), }}
 Identifier = text:IdText hash:IdHash? {

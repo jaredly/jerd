@@ -323,6 +323,17 @@ export const transformWithCtx = <Ctx>(
             });
             return changed ? { ...term, items } : term;
         }
+        case 'TemplateString': {
+            let changed = false;
+            const pairs = term.pairs.map((item) => {
+                const contents = transformWithCtx(item.contents, visitor, ctx);
+                changed = changed || contents !== item.contents;
+                return contents !== item.contents
+                    ? { ...item, contents }
+                    : item;
+            });
+            return changed ? { ...term, pairs } : term;
+        }
         case 'Array': {
             let changed = false;
             const items = term.items.map((item) => {
@@ -495,6 +506,9 @@ export const walkTerm = (
         case 'TupleAccess':
         case 'Attribute':
             walkTerm(term.target, handle);
+            return;
+        case 'TemplateString':
+            term.pairs.forEach((item) => walkTerm(item.contents, handle));
             return;
         case 'string':
         case 'int':

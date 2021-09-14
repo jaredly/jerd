@@ -389,7 +389,6 @@ export const typeDecoratorInner = (
     item: DecoratorDef,
     unique?: number,
 ): TypedDecoratorDef => {
-    console.log(`DEC`, item.id.text);
     let restArg: null | any = null;
     let args: Array<DecoratorDefArg> = [];
     const { typeInner, typeVbls } = newEnvWithTypeAndEffectVbls(

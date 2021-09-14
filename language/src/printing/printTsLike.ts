@@ -1058,6 +1058,8 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     { type: 'Error', expected: term.is, found: term.inner.is },
                 ],
             );
+        case 'TemplateString':
+            return items([atom('"')]);
         default:
             let _x: never = term;
             return atom(

@@ -162,6 +162,7 @@ export type Expression =
     | Block
     | Record
     | Enum
+    | TemplateString
     | ArrayLiteral
     | TupleLiteral
     | Handle;
@@ -366,7 +367,18 @@ export type Identifier = {
 };
 export type Float = { type: 'float'; value: number; location: Location };
 export type Int = { type: 'int'; value: number; location: Location };
-export type String = { type: 'string'; text: string; location: Location };
+export type TemplateString = {
+    type: 'template-string';
+    contents: Array<
+        string | { hash: string | null; inner: Expression; location: Location }
+    >;
+    location: Location;
+};
+export type String = {
+    type: 'string';
+    text: string;
+    location: Location;
+};
 export type Boolean = { type: 'boolean'; value: boolean; location: Location };
 export type WithSuffix = {
     type: 'WithSuffix';

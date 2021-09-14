@@ -3,26 +3,66 @@ import { idFromName, symPrefix } from '../env';
 import { LocatedError } from '../errors';
 import { getTypeError } from '../getTypeError';
 import { pureFunction } from '../preset';
-import { findAs } from '../typeExpr';
-import { Env, Term, Type, UserReference } from '../types';
+import { Env, Location, Term, Type, UserReference } from '../types';
 import typeType from '../typeType';
 import { showType } from '../unify';
+
+const asRecord: UserReference = {
+    type: 'user',
+    id: { hash: 'As', pos: 0, size: 1 },
+};
+
+export const findAs = (
+    env: Env,
+    goalType: Type,
+    // stype: Type,
+    // ttype: Type,
+    location: Location,
+): UserReference | null => {
+    // const goalType: Type = {
+    //     type: 'ref',
+    //     ref: asRecord,
+    //     typeVbls: [stype, ttype],
+    //     // effectVbls: [],
+    //     location,
+    // };
+    let found = null;
+    Object.keys(env.global.terms).some((k) => {
+        const t = env.global.terms[k];
+        if (getTypeError(env, goalType, t.is, location) == null) {
+            found = idFromName(k);
+            return true;
+        } else if (
+            t.type === 'ref' &&
+            t.ref.type === 'user' &&
+            t.ref.id.hash === 'As'
+        ) {
+            console.log('got the as', t);
+        }
+    });
+    if (found == null) {
+        return null;
+    }
+    return { type: 'user', id: found };
+};
+
+export const asType = (
+    fromType: Type,
+    toType: Type,
+    location: Location,
+): Type => ({
+    type: 'ref',
+    ref: asRecord,
+    typeVbls: [fromType, toType],
+    // effectVbls: [],
+    location: location,
+});
 
 export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
     const ttype = typeType(env, suffix.t);
     const stype = target.is;
     // Look for an `As` that fits!
-    const asRecord: UserReference = {
-        type: 'user',
-        id: { hash: 'As', pos: 0, size: 1 },
-    };
-    const goalType: Type = {
-        type: 'ref',
-        ref: asRecord,
-        typeVbls: [stype, ttype],
-        // effectVbls: [],
-        location: target.location,
-    };
+    const goalType = asType(stype, ttype, target.location);
     let foundImpl: Term;
     if (suffix.hash != null) {
         if (suffix.hash.startsWith(symPrefix)) {
@@ -72,7 +112,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
             };
         }
     } else {
-        const ref = findAs(env, stype, ttype, suffix.location);
+        const ref = findAs(env, goalType, suffix.location);
         if (ref == null) {
             // STOPSHIP: make a "type error" node type.
             // repls and stuff can allow compiling with them,

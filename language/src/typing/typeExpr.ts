@@ -17,6 +17,7 @@ import {
     nullLocation,
     UserTypeReference,
     DecoratorDef,
+    Id,
 } from './types';
 import { Expression } from '../parsing/parser';
 import { subEnv, Location } from './types';
@@ -39,7 +40,7 @@ import { typeSwitch } from './terms/switch';
 import { findUnaryOp, typeOps } from './terms/ops';
 import { LocatedError, TypeError, UnresolvedIdentifier } from './errors';
 import { getTypeError } from './getTypeError';
-import { typeAs } from './terms/as-suffix';
+import { asType, findAs, typeAs } from './terms/as-suffix';
 import { typeAttribute } from './terms/attribute';
 import { typeArray } from './terms/array';
 import { Loc } from '../printing/ir/types';
@@ -313,6 +314,9 @@ export const applyTypeVariables = (
     );
 };
 
+const fixString = (v: string) =>
+    JSON.parse(`"${v.replace(/\n/, '\\n').replace(/\t/, '\\t')}"`);
+
 const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
     switch (expr.type) {
         case 'float':
@@ -347,6 +351,90 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                 value: expr.value,
                 location: expr.location,
                 is: bool,
+            };
+        case 'template-string':
+            if (
+                expr.contents.length === 1 &&
+                typeof expr.contents[0] === 'string'
+            ) {
+                return {
+                    type: 'string',
+                    text: fixString(expr.contents[0]),
+                    location: expr.location,
+                    is: string,
+                };
+            }
+            console.log(expr.contents);
+            // if (expr.contents.length)
+            // return {
+            //     type: 'template-string',
+            // }
+            const pairs: Array<{
+                contents: Term;
+                location: Location;
+                prefix: string;
+                id: Id;
+            }> = [];
+            let prefix: null | string = null;
+            expr.contents.forEach((item) => {
+                if (typeof item === 'string') {
+                    if (prefix == null) {
+                        prefix = item;
+                    } else {
+                        prefix += item;
+                    }
+                } else {
+                    const contents = typeExpr(env, item.inner);
+                    const goalType = asType(contents.is, string, item.location);
+                    let id: Id;
+                    // Ok, here's where we figure out the `As`
+                    if (item.hash) {
+                        const t = env.global.terms[item.hash.slice(1)];
+                        if (!t) {
+                            throw new LocatedError(
+                                item.location,
+                                `Unknown term hash ${item.hash.slice(1)}`,
+                            );
+                        }
+                        const err = getTypeError(
+                            env,
+                            t.is,
+                            goalType,
+                            item.location,
+                        );
+                        if (err != null) {
+                            throw err;
+                        }
+                        id = idFromName(item.hash.slice(1));
+                    } else {
+                        const ref = findAs(env, goalType, item.location);
+                        if (ref == null) {
+                            throw new LocatedError(
+                                item.location,
+                                `Unable to find a suitable implementation of 'As' to convert this ${showType(
+                                    env,
+                                    contents.is,
+                                )} to a string`,
+                            );
+                        }
+                        id = ref.id;
+                    }
+
+                    pairs.push({
+                        prefix: prefix == null ? '' : fixString(prefix),
+                        contents,
+                        location: item.location,
+                        id,
+                    });
+                    prefix = null;
+                }
+            });
+            return {
+                type: 'TemplateString',
+                is: string,
+                location: expr.location,
+                pairs,
+                suffix: prefix != null ? fixString(prefix) : '',
             };
         case 'string':
             return {
@@ -919,43 +1007,6 @@ export const applyTypeVariablesToEnum = (
         ),
         location: type.location,
     };
-};
-
-export const findAs = (
-    env: Env,
-    stype: Type,
-    ttype: Type,
-    location: Location,
-): UserReference | null => {
-    const asRecord: UserReference = {
-        type: 'user',
-        id: { hash: 'As', pos: 0, size: 1 },
-    };
-    const goalType: Type = {
-        type: 'ref',
-        ref: asRecord,
-        typeVbls: [stype, ttype],
-        // effectVbls: [],
-        location,
-    };
-    let found = null;
-    Object.keys(env.global.terms).some((k) => {
-        const t = env.global.terms[k];
-        if (getTypeError(env, goalType, t.is, location) == null) {
-            found = idFromName(k);
-            return true;
-        } else if (
-            t.type === 'ref' &&
-            t.ref.type === 'user' &&
-            t.ref.id.hash === 'As'
-        ) {
-            console.log('got the as', t);
-        }
-    });
-    if (found == null) {
-        return null;
-    }
-    return { type: 'user', id: found };
 };
 
 export default typeExpr;

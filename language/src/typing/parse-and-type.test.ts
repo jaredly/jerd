@@ -7,6 +7,17 @@ import { transformToplevel } from './transform';
 import { showLocation } from './typeExpr';
 import { TypeError } from './types';
 
+export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {
+    test(value) {
+        return value && typeof value === 'string';
+    },
+    print(value, _, __) {
+        return value as string;
+    },
+};
+
+expect.addSnapshotSerializer(rawSnapshotSerializer);
+
 const process = (raw: string) => {
     let env = presetEnv({});
     let toplevels;
@@ -44,18 +55,46 @@ const process = (raw: string) => {
     );
 };
 
+describe('template strings', () => {
+    it('should parse a normal string', () => {
+        expect(process(`const x = "hello"`)).toMatchInlineSnapshot(
+            `const x#4fbd99d4 = "hello"`,
+        );
+    });
+
+    it('should handle escapes and newlines correctly', () => {
+        expect(process(`const x = "Yes\\nFo\tlk\ns"`)).toMatchInlineSnapshot(
+            `const x#74ea1858 = "Yes\\nFo\\tlk\\ns"`,
+        );
+    });
+
+    it('should parse a template string', () => {
+        expect(
+            process(`
+        const intAsString = As<int, string>{as: (i: int) => "an int"};
+        const x = "hello \${10}"
+        `),
+        ).toMatchInlineSnapshot(`
+            const intAsString#a9eb4f54 = As#As<int#builtin, string#builtin>{
+                as#As#0: (i#:0: int#builtin): string#builtin ={}> "an int",
+            };
+            const x#348f5e90 = "
+        `);
+    });
+});
+
 describe('basic toplevels', () => {
     it('basic define', () => {
         expect(process(`const x = 10`)).toMatchInlineSnapshot(
-            `"const x#6e9352f2 = 10"`,
+            `const x#6e9352f2 = 10`,
         );
     });
     it('basic record', () =>
         expect(process(`type X = { y: int, z: float }`)).toMatchInlineSnapshot(`
-            "@unique(0.5661807692527293) type X#0cf8aa06 = {
+            @unique(0.5661807692527293) type X#0cf8aa06 = {
                 y: int#builtin,
                 z: float#builtin,
-            }"
+            }
         `));
 
     it('record inherit', () =>
@@ -66,18 +105,18 @@ describe('basic toplevels', () => {
                 type M = {n: float}
 				type Z = {...X, a: int, b: string} `),
         ).toMatchInlineSnapshot(`
-            "@unique(0.5661807692527293) type X#0cf8aa06 = {
+            @unique(0.5661807692527293) type X#0cf8aa06 = {
                 y: int#builtin,
                 z: float#builtin,
             };
-            @ffi(\\"M\\") type M#bf02d0e8 = {
+            @ffi("M") type M#bf02d0e8 = {
                 n: float#builtin,
             };
             @unique(0.8408403012585762) type Z#0f2e3ee8 = {
                 ...X#0cf8aa06,
                 a: int#builtin,
                 b: string#builtin,
-            }"
+            }
         `));
 
     it('enum', () =>
@@ -88,7 +127,7 @@ describe('basic toplevels', () => {
 				type Z = {...Y, age: int}
 				enum All { X, Y, Z }`),
         ).toMatchInlineSnapshot(`
-            "@unique(0.5661807692527293) type X#740adea4 = {};
+            @unique(0.5661807692527293) type X#740adea4 = {};
             @unique(0.8408403012585762) type Y#74d8e7f1 = {
                 name: string#builtin,
             };
@@ -100,12 +139,12 @@ describe('basic toplevels', () => {
                 X#740adea4,
                 Y#74d8e7f1,
                 Z#00ec7168,
-            }"
+            }
         `));
 
     it('math expr', () =>
         expect(process(`10 + 21 * -(32 / 11) - 34`)).toMatchInlineSnapshot(
-            `"10 +#builtin 21 *#builtin -(32 /#builtin 11) -#builtin 34"`,
+            `10 +#builtin 21 *#builtin -(32 /#builtin 11) -#builtin 34`,
         ));
 
     it('effect', () =>
@@ -116,10 +155,10 @@ describe('basic toplevels', () => {
                     Set: (string) => void, // TODO: Remove the need for this final comma
                 }`),
         ).toMatchInlineSnapshot(`
-            "effect SetGet#1da337a2 {
+            effect SetGet#1da337a2 {
                 Get: () => string#builtin,
                 Set: (string#builtin) => void#builtin,
-            }"
+            }
         `));
 });
 
@@ -134,11 +173,11 @@ describe('type descriptions', () => {
             }
         `),
         ).toMatchInlineSnapshot(`
-            "@unique(0.5661807692527293) type Something#c8389130<A#:0, B#:1> = {
+            @unique(0.5661807692527293) type Something#c8389130<A#:0, B#:1> = {
                 one: A#:0,
                 two: B#:1,
                 three: <C#:2, D#:3>(name: C#:2, age: D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
-            }"
+            }
         `);
     });
 });
@@ -151,13 +190,13 @@ describe('expression types', () => {
             const z = -x
     `),
         ).toMatchInlineSnapshot(`
-            "const x#6e9352f2 = 10;
-            const z#636c02a6 = -x#6e9352f2"
+            const x#6e9352f2 = 10;
+            const z#636c02a6 = -x#6e9352f2
         `));
 
     it('binOp', () =>
         expect(process(`const res = 2 +#builtin 3`)).toMatchInlineSnapshot(
-            `"const res#23157700 = 2 +#builtin 3"`,
+            `const res#23157700 = 2 +#builtin 3`,
         ));
 
     it('decorator', () =>
@@ -166,10 +205,10 @@ describe('expression types', () => {
             decorator what;
             const res = (2 + @what () => 20)`),
         ).toMatchInlineSnapshot(`
-            "@unique(0.5661807692527293) decorator what#6f08788e;
+            @unique(0.5661807692527293) decorator what#6f08788e;
             const res#6c004d82 = 2 +#builtin @what#6f08788e (): int#builtin ={}> 20
             // TYPE ERRORS
-             - 3:36-3:44"
+             - 3:36-3:44
         `));
 
     it('apply suffix', () =>
@@ -179,8 +218,8 @@ describe('expression types', () => {
             const n = x(23)
     `),
         ).toMatchInlineSnapshot(`
-            "const x#7bdaefe0 = (m#:0: int#builtin): int#builtin ={}> 2 +#builtin 3 *#builtin m#:0;
-            const n#56070c14 = x#7bdaefe0(m: 23)"
+            const x#7bdaefe0 = (m#:0: int#builtin): int#builtin ={}> 2 +#builtin 3 *#builtin m#:0;
+            const n#56070c14 = x#7bdaefe0(m: 23)
         `));
 
     it('attribute suffix', () =>
@@ -190,19 +229,19 @@ describe('expression types', () => {
             const m = (p: Person) => (p.name, p.age);
     `),
         ).toMatchInlineSnapshot(`
-            "@unique(0.5661807692527293) type Person#69e137a8 = {
+            @unique(0.5661807692527293) type Person#69e137a8 = {
                 name: string#builtin,
                 age: int#builtin,
             };
             const m#6ef797af = (p#:0: Person#69e137a8): Tuple2#builtin<string#builtin, int#builtin> ={}> (
                 p#:0.name#69e137a8#0,
                 p#:0.age#69e137a8#1,
-            )"
+            )
         `));
 
     it('index suffix attr', () =>
         expect(process(`const res = (1, 2).0 == 1`)).toMatchInlineSnapshot(
-            `"const res#5a1f2ea3 = (1, 2).0 ==#builtin 1"`,
+            `const res#5a1f2ea3 = (1, 2).0 ==#builtin 1`,
         ));
 
     // Ok we don't handle indexes yet
@@ -217,10 +256,10 @@ describe('expression types', () => {
         const IntAsFloat = As<int, float>{as: (v: int) => 1.0};
         const m = 1 as float`),
         ).toMatchInlineSnapshot(`
-            "const IntAsFloat#16da6c1c = As#As<int#builtin, float#builtin>{
+            const IntAsFloat#16da6c1c = As#As<int#builtin, float#builtin>{
                 as#As#0: (v#:0: int#builtin): float#builtin ={}> 1.0,
             };
-            const m#7364b376 = 1 as#16da6c1c float#builtin"
+            const m#7364b376 = 1 as#16da6c1c float#builtin
         `));
 
     it('literals', () =>
@@ -232,10 +271,10 @@ describe('expression types', () => {
     const d = true;
     `),
         ).toMatchInlineSnapshot(`
-            "const a#675b665e = 1;
+            const a#675b665e = 1;
             const b#7cff9872 = 2.3;
-            const c#4fbd99d4 = \\"hello\\";
-            const d#2ad7b724 = true"
+            const c#4fbd99d4 = "hello";
+            const d#2ad7b724 = true
         `));
 
     it('lambdas', () =>
@@ -250,7 +289,7 @@ describe('expression types', () => {
             const m = (fn: (one: int, two: float) => string) => 10;
     `),
         ).toMatchInlineSnapshot(`
-            "const a#9dacbedc = (): int#builtin ={}> 23;
+            const a#9dacbedc = (): int#builtin ={}> 23;
             const b#7ca0aaf8 = (): int#builtin ={}> {
                 const m#:0 = 2;
                 m#:0 /#builtin 1;
@@ -259,15 +298,15 @@ describe('expression types', () => {
                 int#builtin,
                 float#builtin,
             > ={}> (a#:0, b#:1);
-            const m#4fb5f0cc = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10"
+            const m#4fb5f0cc = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10
         `));
 
     it(`blocks with just a const should ... have a void type?`, () =>
         expect(process(`const n = (): void => {const x = 10 }`))
             .toMatchInlineSnapshot(`
-            "const n#36351150 = (): void#builtin ={}> {
+            const n#36351150 = (): void#builtin ={}> {
                 const x#:0 = 10;
-            }"
+            }
         `));
 
     it('blocks', () =>
@@ -284,7 +323,7 @@ describe('expression types', () => {
             }
     `),
         ).toMatchInlineSnapshot(`
-            "const n#8b0ae7d4 = {
+            const n#8b0ae7d4 = {
                 const m#:0 = 23;
                 2;
                 {
@@ -292,7 +331,7 @@ describe('expression types', () => {
                     3;
                 };
                 m#:0 ==#builtin 23;
-            }"
+            }
         `));
 
     it('handle n stuff', () =>
@@ -329,7 +368,7 @@ describe('expression types', () => {
         }
     `),
         ).toMatchInlineSnapshot(`
-            "effect Stdio#1da337a2 {
+            effect Stdio#1da337a2 {
                 read: () => string#builtin,
                 write: (string#builtin) => void#builtin,
             };
@@ -354,26 +393,24 @@ describe('expression types', () => {
             const inner#0320c524 = (name#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
                 raise!(
                     Stdio#1da337a2.write(
-                        raise!(Stdio#1da337a2.read()) ++#builtin \\" and \\" 
+                        raise!(Stdio#1da337a2.read()) ++#builtin " and " 
                             ++#builtin raise!(Stdio#1da337a2.read()),
                     ),
                 );
                 raise!(Stdio#1da337a2.read());
             };
             const test1#6d63aeba = (): string#builtin ={}> {
-                respondWith#1fb7cba0(responseValue: \\"<read>\\")<string#builtin>{}(
-                    \\"what\\",
-                    (): string#builtin ={Stdio#1da337a2}> inner#0320c524(name: \\"Yes\\"),
+                respondWith#1fb7cba0(responseValue: "<read>")<string#builtin>{}(
+                    "what",
+                    (): string#builtin ={Stdio#1da337a2}> inner#0320c524(name: "Yes"),
                 );
-            }"
+            }
         `));
 
     it('trace', () =>
         expect(
             process(`const m = trace!(34, 43, "what")`),
-        ).toMatchInlineSnapshot(
-            `"const m#240f45d4 = trace!(34, 43, \\"what\\")"`,
-        ));
+        ).toMatchInlineSnapshot(`const m#240f45d4 = trace!(34, 43, "what")`));
 
     it('if', () =>
         expect(
@@ -385,7 +422,7 @@ describe('expression types', () => {
             }
     `),
         ).toMatchInlineSnapshot(`
-            "const m#dedddefc = if 2 >#builtin 1 {
+            const m#dedddefc = if 2 >#builtin 1 {
                 34;
             } else {
                 12;
@@ -393,7 +430,7 @@ describe('expression types', () => {
             const n#3dde6200 = {
                 if 2 >#builtin 1 {};
                 43;
-            }"
+            }
         `));
 
     it('switch', () =>
@@ -418,7 +455,7 @@ describe('expression types', () => {
             }
     `),
         ).toMatchInlineSnapshot(`
-            "const a#007742f3 = switch 23 {1 => false, 2 => false, 23 => true, _ => false};
+            const a#007742f3 = switch 23 {1 => false, 2 => false, 23 => true, _ => false};
             @unique(0.5661807692527293) type Person#69e137a8 = {
                 name: string#builtin,
                 age: int#builtin,
@@ -432,13 +469,13 @@ describe('expression types', () => {
                 Company#503a4e65,
             };
             const b#3778db64 = (m#:0: Companies#779076b4): bool#builtin ={}> switch m#:0 {
-                Company#503a4e65{name: \\"hello\\", ages: (_, 23.0)} => false,
-                Company#503a4e65{name: \\"things\\", people: []} => true,
-                Company#503a4e65{people: [Person#69e137a8{name: \\"yes\\"}, ..._]} => true,
+                Company#503a4e65{name: "hello", ages: (_, 23.0)} => false,
+                Company#503a4e65{name: "things", people: []} => true,
+                Company#503a4e65{people: [Person#69e137a8{name: "yes"}, ..._]} => true,
                 Company#503a4e65{people: [..._, Person#69e137a8{name: _, age: 23}]} => false,
-                Company#503a4e65{people: [Person#69e137a8{name: \\"start\\"}, ..._, Person#69e137a8{name: \\"end\\"}]} => true,
+                Company#503a4e65{people: [Person#69e137a8{name: "start"}, ..._, Person#69e137a8{name: "end"}]} => true,
                 _ => true,
-            }"
+            }
         `));
 });
 
@@ -503,7 +540,7 @@ describe('Decorators', () => {
         const oneThing = @alternates<float>([("hello", 2.0), ("sadness", -2.0)]) 23.0;
         `),
         ).toMatchInlineSnapshot(`
-            "@unique(0.5661807692527293) type Vec2#4284214c = {
+            @unique(0.5661807692527293) type Vec2#4284214c = {
                 x: float#builtin,
                 y: float#builtin,
             };
@@ -544,16 +581,16 @@ describe('Decorators', () => {
                 age: int#builtin,
             };
             const m#2629f072 = @something#bee55956 10.0;
-            const n#19984ade = @hello#677e1867 Person#73c36f7c{name#73c36f7c#0: \\"hi\\", age#73c36f7c#1: 10};
+            const n#19984ade = @hello#677e1867 Person#73c36f7c{name#73c36f7c#0: "hi", age#73c36f7c#1: 10};
             const goForIt#98cdba02 = (pos#:0: Vec2#4284214c): float#builtin ={}> {
                 pos#:0.x#4284214c#0 *#builtin @slider#1d9fcfd2(min: 0.0, max: 10.0, step: 0.1) 2.3;
             };
             const oneThing#b1904fe4 = @alternates#2d1ef174(
-                options: <Tuple2#builtin<string#builtin, int#builtin>>[(\\"hello\\", 2), (\\"sadness\\", -2)],
+                options: <Tuple2#builtin<string#builtin, int#builtin>>[("hello", 2), ("sadness", -2)],
             ) 23;
             const oneThing#243d9adb = @alternates#2d1ef174(
-                options: <Tuple2#builtin<string#builtin, float#builtin>>[(\\"hello\\", 2.0), (\\"sadness\\", -2.0)],
-            ) 23.0"
+                options: <Tuple2#builtin<string#builtin, float#builtin>>[("hello", 2.0), ("sadness", -2.0)],
+            ) 23.0
         `);
     });
 });
