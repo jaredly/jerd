@@ -78,7 +78,7 @@ describe('template strings', () => {
             const intAsString#a9eb4f54 = As#As<int#builtin, string#builtin>{
                 as#As#0: (i#:0: int#builtin): string#builtin ={}> "an int",
             };
-            const x#348f5e90 = "
+            const x#348f5e90 = "$#a9eb4f54{10}"
         `);
     });
 });
