@@ -5,7 +5,9 @@ import { Location, locToEnd, locToStart, Type } from '../typing/types';
 
 // Doesn't need to be terribly fancy.
 
-export type Extra = { type: 'Error'; expected: Type; found: Type };
+export type Extra =
+    | { type: 'Error'; expected: Type; found: Type }
+    | { type: 'id'; id: string; isType: boolean };
 
 export const items = (
     items: Array<PP | null>,

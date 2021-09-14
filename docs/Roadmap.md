@@ -16,7 +16,7 @@ Anyway, I need to
 - [x] when a term is deprecated, *show it* using css. Like printTsLike should do something about it.
 
 OK, so how does deprecation work?
-- wheck clicking the button to "overwrite" the current cell with the new contents, the default behavior should be to "deprecate the old one", if the /name hasn't changed/. Yeah I mean maybe I don't need to do anything special, only have deprecating if you're in the same cell.
+- when clicking the button to "overwrite" the current cell with the new contents, the default behavior should be to "deprecate the old one", if the /name hasn't changed/. Yeah I mean maybe I don't need to do anything special, only have deprecating if you're in the same cell.
 
 - [x] I don't want the `@unique` rendered in the web for types...
 - [x] proposed needs to have a `name` attribute. hmm. ok it already has this.

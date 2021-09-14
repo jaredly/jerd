@@ -170,8 +170,7 @@ export const renderAttributedText = (
     allIds?: boolean,
     idColors: Array<string> = colors,
     openable = (id: string, kind: string, loc?: Location) => false,
-    setHover = (hover: Extra, target: HTMLDivElement | null) =>
-        console.log('hover', hover, target),
+    setHover = (hover: Extra, target: HTMLDivElement | null) => {},
     selection: null | {
         idx: number;
         marks: Array<number>;
@@ -213,6 +212,17 @@ export const renderAttributedText = (
                 colorMap.map[item.id] =
                     idColors[colorMap.colorAt++ % idColors.length];
             }
+            const extra: Extra | null =
+                item.id !== ''
+                    ? {
+                          type: 'id',
+                          id: item.id,
+                          isType:
+                              item.kind !== 'term' &&
+                              item.kind !== 'term-deprecated' &&
+                              item.kind !== 'template-string',
+                      }
+                    : null;
             return (
                 <span
                     style={{
@@ -233,6 +243,23 @@ export const renderAttributedText = (
                                   },
                               })
                             : ''
+                    }
+                    onMouseEnter={
+                        extra
+                            ? (evt) => {
+                                  setHover(
+                                      extra,
+                                      evt.currentTarget as HTMLDivElement,
+                                  );
+                              }
+                            : undefined
+                    }
+                    onMouseLeave={
+                        extra
+                            ? (evt) => {
+                                  setHover(extra, null);
+                              }
+                            : undefined
                     }
                     onMouseDown={(evt) => {}}
                     onClick={(evt) => {

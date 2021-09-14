@@ -15,6 +15,7 @@ import {
     hashObject,
     idFromName,
     idName,
+    ToplevelRecord,
     ToplevelT,
 } from '@jerd/language/src/typing/env';
 import { Env, Id, Location, Term } from '@jerd/language/src/typing/types';
@@ -421,34 +422,114 @@ const menuOverlay: Interpolation<Theme> = {
     backgroundColor: 'rgba(0,0,0,0.8)',
 };
 
+const getTopLevel = (
+    env: Env,
+    hash: string,
+    isType: boolean,
+): [React.ReactNode, ToplevelT] | null => {
+    const [idRaw, second] = hash.split('#');
+    const id = idFromName(idRaw);
+    const name = env.global.idNames[idRaw];
+    if (!isType) {
+        const term = env.global.terms[idRaw];
+        if (!term) {
+            return null;
+        }
+        if (name) {
+            return [
+                null,
+                { type: 'Define', name, term, id, location: term.location },
+            ];
+        } else {
+            return [
+                null,
+                { type: 'Expression', term, id, location: term.location },
+            ];
+        }
+    }
+    const defn = env.global.types[idRaw];
+    if (!defn) {
+        return null;
+    }
+    if (defn.type === 'Enum') {
+        return [
+            null,
+            {
+                type: 'EnumDef',
+                id,
+                name: name || 'unknown',
+                def: defn,
+                inner: [],
+                location: defn.location,
+            },
+        ];
+    }
+    const prefix = second ? (
+        <div css={{ marginBottom: 8 }}>
+            Attribute #{second}:{' '}
+            <span style={{ color: 'orange' }}>
+                {env.global.recordGroups[idRaw][+second]}
+            </span>
+        </div>
+    ) : null;
+    return [
+        prefix,
+        {
+            type: 'RecordDef',
+            id,
+            name: name || 'unknown',
+            def: defn,
+            attrNames: env.global.recordGroups[idRaw],
+            location: defn.location,
+        },
+    ];
+};
+
 const renderHover = (env: Env, hover: [Extra, HTMLDivElement]) => {
     const box = hover[1].getBoundingClientRect();
     const pbox = hover[1].offsetParent!.getBoundingClientRect();
-    return (
-        <div
-            css={{
-                position: 'absolute',
-                backgroundColor: 'black',
-                fontFamily: 'monospace',
-                whiteSpace: 'pre-wrap',
-                color: 'white',
-                padding: 8,
-                pointerEvents: 'none',
-            }}
-            style={{
-                top: box.bottom - pbox.top + 4,
-                left: box.left - pbox.left,
-            }}
-        >
-            Expected:
-            <br />
-            {showType(env, hover[0].expected)}
-            <br />
-            Found:
-            <br />
-            {showType(env, hover[0].found)}
-        </div>
-    );
+    const pos = {
+        top: box.bottom - pbox.top + 4,
+        left: box.left - pbox.left,
+    };
+    if (hover[0].type === 'id') {
+        const id = hover[0].id;
+        if (id.startsWith(':') || id === 'builtin') {
+            return;
+        }
+        const top = getTopLevel(env, id, hover[0].isType);
+        const pretty = top ? (
+            <div>
+                {top[0]}
+                {renderAttributedText(
+                    env.global,
+                    printToAttributedText(
+                        toplevelToPretty(env, top[1], true),
+                        100,
+                    ),
+                )}
+            </div>
+        ) : (
+            <strong>Unable to find definition for {id}</strong>
+        );
+        return (
+            <div
+                css={{
+                    zIndex: 1000,
+                    position: 'absolute',
+                    backgroundColor: 'black',
+                    fontFamily: 'monospace',
+                    whiteSpace: 'pre-wrap',
+                    color: 'white',
+                    padding: 8,
+                    pointerEvents: 'none',
+                }}
+                style={pos}
+            >
+                {pretty}
+            </div>
+        );
+    }
 };
 
 export const RenderItem = React.memo(RenderItem_);
