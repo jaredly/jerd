@@ -34,7 +34,6 @@ import {
     RenderPlugins,
     RenderPluginT,
 } from '../State';
-import { showType } from '@jerd/language/src/typing/unify';
 import { envWithTerm } from '../display/OpenGL';
 import { sortAllDepsPlain } from '@jerd/language/src/typing/analyze';
 import { transform } from '@jerd/language/src/typing/transform';
@@ -43,6 +42,15 @@ import { LocatedError } from '@jerd/language/src/typing/errors';
 import { Action } from '../workspace/Cells';
 import { findSliders } from '@jerd/language/src/typing/findSliders';
 import { widgetForDecorator } from '../display/Decorators';
+import {
+    hsla_id,
+    hsl_id,
+    rgba_id,
+    rgb_id,
+    slider$1_id,
+    slider$2_id,
+    slider_id,
+} from '@jerd/language/src/printing/prelude-types';
 
 /*
 

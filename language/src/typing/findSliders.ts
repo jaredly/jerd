@@ -12,17 +12,27 @@ import { hashObject, idFromName, idName } from './env';
 import { transform } from './transform';
 import { Decorator, Env, Id, Term } from './types';
 
-export function findSliders(env: Env, term: Term) {
+const defaultWidgetIds = [
+    slider$2_id,
+    slider$1_id,
+    slider_id,
+    rgba_id,
+    rgb_id,
+    hsl_id,
+    hsla_id,
+];
+
+export function findSliders(
+    env: Env,
+    term: Term,
+    widgetIds: Array<string> = defaultWidgetIds,
+) {
     const topId = idFromName(hashObject(term));
     const termDeps: { [source: string]: Array<string> } = {};
     const found: {
         [termId: string]: {
             [idx: number]: {
                 title: string | null;
-                // widget: React.FunctionComponent<{
-                //     data: any;
-                //     onUpdate: (term: Term, data: any) => void;
-                // }>;
                 term: Term;
                 decorator: Decorator;
             };
@@ -32,22 +42,13 @@ export function findSliders(env: Env, term: Term) {
     const crawlTerm = (term: Term, id: Id) => {
         const hash = idName(id);
         if (found[hash]) {
-            return; // already traversed
+            return;
         }
         found[hash] = {};
         termDeps[hash] = [];
         transform(term, {
             term: (t) => {
                 if (t.decorators) {
-                    const widgetIds = [
-                        slider$2_id,
-                        slider$1_id,
-                        slider_id,
-                        rgba_id,
-                        rgb_id,
-                        hsl_id,
-                        hsla_id,
-                    ];
                     const widget = t.decorators.filter((d) =>
                         widgetIds.includes(idName(d.name.id)),
                     );
