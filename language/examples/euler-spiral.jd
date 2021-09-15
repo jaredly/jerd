@@ -277,7 +277,7 @@ decorator display(id: string);
 {
     const C#:0 = @slider#4e421b50(min: 1, max: 100, step: 1) @title#1b6d573e(
         title: "C: number of superspiral",
-    ) 5;
+    ) 65;
     const W#:1 = @slider#4e421b50(min: 1, max: 100, step: 1) @title#1b6d573e(
         title: "W: superspiral arrangement",
     ) 32;

@@ -10,8 +10,6 @@ Or really, to say "this one is deprecated" would probably be sufficient.
 When parsing, I think a `@deprecates(xyz)` could be cool.
 Yeah I think that would do the trick?
 
- START HEREEE
-
 Anyway, I need to
 - [x] when a term is deprecated, *show it* using css. Like printTsLike should do something about it.
 
@@ -22,8 +20,27 @@ OK, so how does deprecation work?
 - [x] proposed needs to have a `name` attribute. hmm. ok it already has this.
 - [x] I need a way to just rename a term. Maybe if you just edit the name, and the hash stays the same?
 
-- [ ] I really want to be able to hover an id-having thing, and have it popup the definition for me.
+- [x] I really want to be able to hover an id-having thing, and have it popup the definition for me.
+  - [x] show which record attribute we're on
 - [ ] clicking the id when in text mode shouldn't just /remove/ the id, it should bring up an autocomplete box so you can pick a different one, or optionally remove it.
+
+
+START HERE:
+
+Ok, let's start working on: the go built dealio should use sliders for cli args.
+
+
+
+
+- [ ] why is this one thing showing up as deprecated?
+
+
+- [ ] ohhk, so there's "terms can have tests", but in /this/ case, what I want is to say
+    "how would this proposed change impact the other things on this workspace"?
+
+
+- [ ] typing `#` should bring up autocomplete, everyyytime
+  - 
 
 
 Also, ambiguity shouldn't sink the ship.

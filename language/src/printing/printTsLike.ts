@@ -31,6 +31,7 @@ import {
     newWithGlobal,
     idsEqual,
     getAllSubTypes,
+    UserReference,
 } from '../typing/types';
 import {
     PP,
@@ -816,10 +817,7 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                 term.location,
             );
         case 'ref':
-            const deprecatedBy =
-                term.ref.type === 'user'
-                    ? env.global.metaData[idName(term.ref.id)]?.supersededBy
-                    : null;
+            const deprecatedBy = getDeprecatedBy(env, term.ref);
             return refToPretty(
                 env,
                 term.ref,
@@ -1124,6 +1122,18 @@ export const _termToPretty = (env: Env, term: Term): PP => {
             );
     }
 };
+
+function getDeprecatedBy(env: Env, ref: Reference) {
+    if (ref.type !== 'user') {
+        return null;
+    }
+
+    const meta = env.global.metaData[idName(ref.id)];
+    if (meta) {
+        return meta.supersededBy;
+    }
+    return null;
+}
 
 const switchCaseToPretty = (env: Env, kase: SwitchCase): PP =>
     items(

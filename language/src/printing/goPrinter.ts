@@ -1209,7 +1209,7 @@ export const fileToGo = (
     assert: boolean,
 ) => {
     const env: Env = { ...tenv, typeDefs: {}, usedImports: {} };
-    const items: Array<PP> = []; // shaderTop(bufferCount);
+    const items: Array<PP> = [];
     const opts: OutputOptions = {};
     const irOpts: IOutputOptions = {};
     const includeComments = true;
@@ -1219,14 +1219,6 @@ export const fileToGo = (
     const mainHash = hashObject(mainTerm);
     env.global.terms[mainHash] = mainTerm;
     env.global.idNames[mainHash] = `main`;
-    // return idFromName(hash);
-
-    // const expressionIds: Array<Id> = expressions.map((term, i) => {
-    //     const hash = hashObject(term);
-    //     env.global.terms[hash] = term;
-    //     env.global.idNames[hash] = `toplevel_${i}`;
-    //     return idFromName(hash);
-    // });
 
     const { inOrder, irTerms } = assembleItemsForFile(
         env,
@@ -1268,34 +1260,8 @@ export const fileToGo = (
     );
 
     items.push(...enumAliasesToGo(env, allTypes));
-    // Object.keys(env.global.types).forEach((idRaw) => {
-    //     const name = env.global.idNames[idRaw] || `T${idRaw}`;
-    //     const defn = env.global.types[idRaw];
-    //     if (defn.type === 'Enum') {
-    //         defn.items.forEach((t, idx) => {
-    //             const subName =
-    //                 env.global.idNames[idName(t.ref.id)] ||
-    //                 `T${idName(t.ref.id)}`;
-    //             items.push(
-    //                 pp.items([
-    //                     atom(`const `),
-    //                     atom(`${name}_${subName}`),
-    //                     atom(' int = '),
-    //                     atom(idx.toString()),
-    //                 ]),
-    //             );
-    //         });
-    //     }
-    // });
-
-    const invalidLocs: Array<Location> = [];
 
     inOrder.forEach((name) => {
-        // const loc = hasInvalidGLSL(irTerms[name].expr, name);
-        // if (loc) {
-        //     invalidLocs.push(loc);
-        // }
-
         const senv = env.global.terms[name]
             ? selfEnv(env, {
                   type: 'Term',
@@ -1305,8 +1271,6 @@ export const fileToGo = (
             : env;
         items.push(
             declarationToGo(
-                // Empty out the localNames
-                // { ...senv, local: { ...senv.local, localNames: {} } },
                 {
                     ...senv,
                     typeDefs: env.typeDefs,
@@ -1323,7 +1287,7 @@ export const fileToGo = (
             ),
         );
     });
-    // console.log('MAIN IR', irTerms[idName(mainTerm)]);
+
     return {
         pretty: pp.items(
             Object.keys(env.usedImports)
@@ -1334,51 +1298,4 @@ export const fileToGo = (
         ),
         displayName,
     };
-    //, mainType: irTerms[idName(mainTerm)].expr.is };
 };
-
-/*
-
-import (
-	"image/color"
-
-	"math"
-
-	"github.com/tdewolff/canvas"
-	"github.com/tdewolff/canvas/renderers"
-)
-
-
-func main() {
-	width := 1000.0
-	height := 1000.0
-	points := Vae2070ac(0, math.Pi*5.0/501.0, 10.0, 0.0, T08f7c2ac{500.0, 500.0}, []T08f7c2ac{}, 20000)
-
-	c := canvas.New(width, height)
-	ctx := canvas.NewContext(c)
-
-	ctx.SetStrokeWidth(1.0)
-	ctx.SetStrokeColor(color.RGBA{255, 0, 0, 255})
-
-	for i, point := range points {
-		if i == 0 {
-			ctx.MoveTo((point.x), (point.y))
-		} else {
-			ctx.LineTo((point.x), (point.y))
-		}
-	}
-	ctx.Stroke()
-
-	renderers.Write("hello.png", c, canvas.DPMM(8.0))
-}
-
-
-// And here's the go.mod:
-
-module jaredforsyth.com/example
-
-go 1.15
-
-require github.com/tdewolff/canvas v0.0.0-20210908183126-b9a5e3a05434
-
-*/
