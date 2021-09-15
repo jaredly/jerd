@@ -3,7 +3,16 @@
 env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js go  --run examples/euler-spiral.jd
 ```
 - [x] deduplicate that one thing
-- [ ] add location indicates! Pleeease folks
+- [x] add location indicates! Pleeease folks
+- [ ] turn the slider dealios into GLOBALS?
+  - we need a way to not necessarily override, right?
+    now I guess current sliders will only slider literals.
+    so for the moment, I can 
+    - [ ] replace the slider term with a global reference,
+    - [ ] make a toplevel `var _slider_hash_idx = 10`
+    - [ ] have the cli args set the toplevel var if it's provided.
+- [ ] also the SVG writer dealio should accept a cli arg as the filename, if provided.
+  - might be a little hacky...
 
 # GO SLIDERS
 basically, if there are sliders, accept them as CLI arguments.

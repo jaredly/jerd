@@ -1222,7 +1222,7 @@ export const fileToGo = (
     env.global.idNames[mainHash] = `main`;
 
     const sliderData = findSliders(env, mainTerm);
-    console.log(sliderData.found);
+    // console.log(sliderData.found);
 
     const { inOrder, irTerms } = assembleItemsForFile(
         env,

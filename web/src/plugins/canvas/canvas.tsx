@@ -334,7 +334,7 @@ const ShowSvgBlob = ({ raw }: { raw: string }) => {
         return url;
     }, [raw]);
 
-    return <img src={url} />;
+    return <img style={{ maxWidth: '100vw' }} src={url} />;
 };
 
 const plugins: RenderPlugins = {

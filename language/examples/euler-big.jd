@@ -1,0 +1,494 @@
+@ffi("Vec2") type Vec2#08f7c2ac = {
+    x: float#builtin,
+    y: float#builtin,
+};
+
+@ffi("Arc") type Arc#443a6bbd = {
+    center: Vec2#08f7c2ac,
+    startAngle: float#builtin,
+    endAngle: float#builtin,
+    counterClockwise: bool#builtin = false,
+};
+
+@ffi("EllipsePath") type EllipsePath#92791c88 = {
+    ...Arc#443a6bbd,
+    radius: Vec2#08f7c2ac,
+    rotation: float#builtin,
+};
+
+@ffi("Rounded") type Rounded#b7a4f230 = {
+    c1: Vec2#08f7c2ac,
+    c2: Vec2#08f7c2ac,
+    radius: float#builtin,
+};
+
+@ffi("Bezier") type Bezier#37a1f256 = {
+    c1: Vec2#08f7c2ac,
+    c2: Vec2#08f7c2ac,
+    c3: Vec2#08f7c2ac,
+    c4: Vec2#08f7c2ac,
+    end: Vec2#08f7c2ac,
+};
+
+@ffi("Quadratic") type Quadratic#5c0c4fd8 = {
+    control: Vec2#08f7c2ac,
+    end: Vec2#08f7c2ac,
+};
+
+enum PathPart#33159eb4 {
+    Vec2#08f7c2ac,
+    Quadratic#5c0c4fd8,
+    Bezier#37a1f256,
+    Rounded#b7a4f230,
+    Arc#443a6bbd,
+    EllipsePath#92791c88,
+};
+
+@ffi("End") type End#830ad468 = {};
+
+@ffi("Start") type Start#098d99e8 = {};
+
+@ffi("Center") type Center#1189540a = {};
+
+@ffi("Right") type Right#5cfc662e = {};
+
+@ffi("Left") type Left#43051e9e = {};
+
+@ffi("Rgba") type Rgba#52033f94 = {
+    r: float#builtin,
+    g: float#builtin,
+    b: float#builtin,
+    a: float#builtin = 1.0,
+};
+
+@ffi("CSS") type CSS#742a31c2 = {
+    value: string#builtin,
+};
+
+@ffi("Square") type Square#155bb0ac = {};
+
+@ffi("Round") type Round#51486760 = {};
+
+@ffi("Butt") type Butt#1ac05bf8 = {};
+
+@ffi("Path") type Path#ddadd8a8 = {
+    start: Vec2#08f7c2ac,
+    closed: bool#builtin = false,
+    parts: Array#builtin<PathPart#33159eb4>,
+};
+
+@ffi("Rect") type Rect#126fdf00 = {
+    pos: Vec2#08f7c2ac,
+    size: Vec2#08f7c2ac,
+    rotation: float#builtin = 0.0,
+};
+
+@ffi("Polygon") type Polygon#cafe28b8 = {
+    points: Array#builtin<Vec2#08f7c2ac>,
+    closed: bool#builtin = true,
+};
+
+@ffi("Line") type Line#565da092 = {
+    p1: Vec2#08f7c2ac,
+    p2: Vec2#08f7c2ac,
+};
+
+@ffi("Ellipse") type Ellipse#098fbabc = {
+    pos: Vec2#08f7c2ac,
+    radius: Vec2#08f7c2ac,
+    rotation: float#builtin = 0.0,
+};
+
+enum TextAlign#eaefd106 {
+    Left#43051e9e,
+    Right#5cfc662e,
+    Center#1189540a,
+    Start#098d99e8,
+    End#830ad468,
+};
+
+enum Color#1fe34118 {
+    CSS#742a31c2,
+    Rgba#52033f94,
+};
+
+enum LineCap#5e11f0b9 {
+    Butt#1ac05bf8,
+    Round#51486760,
+    Square#155bb0ac,
+};
+
+enum Geom#619d2fc4 {
+    Ellipse#098fbabc,
+    Line#565da092,
+    Polygon#cafe28b8,
+    Rect#126fdf00,
+    Path#ddadd8a8,
+};
+
+@ffi("Text") type Text#d86ebaa8 = {
+    text: string#builtin,
+    color: Color#1fe34118,
+    pos: Vec2#08f7c2ac,
+    stroke: float#builtin = 0.0,
+    font: string#builtin = "",
+    textAlign: TextAlign#eaefd106 = TextAlign#eaefd106:Start#098d99e8,
+};
+
+@ffi("Stroke") type Stroke#adcc8cc6 = {
+    geom: Geom#619d2fc4,
+    color: Color#1fe34118,
+    width: float#builtin = 1.0,
+    lineCaps: LineCap#5e11f0b9 = LineCap#5e11f0b9:Round#51486760,
+};
+
+@ffi("Fill") type Fill#3bd0cc4c = {
+    geom: Geom#619d2fc4,
+    color: Color#1fe34118,
+};
+
+@ffi("RawSvg") type RawSvg#712f3578 = {
+    text: string#builtin,
+};
+
+enum Drawable#56de3b71 {
+    Fill#3bd0cc4c,
+    Stroke#adcc8cc6,
+    Text#d86ebaa8,
+};
+
+@unique(1) type Mul#02cc25c4<A#:0, B#:1, C#:2> = {
+    "*": (A#:0, B#:1) ={}> C#:2,
+};
+
+@unique(0) type AddSub#3d436b7e<A#:0, B#:1, C#:2> = {
+    "+": (A#:0, B#:1) ={}> C#:2,
+    "-": (A#:0, B#:1) ={}> C#:2,
+};
+
+@unique(2) type As#As<T#:10000, Y#:10001> = {
+    as: (T#:10000) ={}> Y#:10001,
+};
+
+@unique(0.17852990309013597) decorator slider#4e421b50(
+    min: Constant#builtin<int#builtin>,
+    max: Constant#builtin<int#builtin>,
+    step: Constant#builtin<int#builtin>,
+) Constant#builtin<int#builtin>;
+
+@unique(0.6800506892126144) decorator title#1b6d573e(title: string#builtin);
+
+@unique(0.5425139598776044) decorator slider#b981a438(
+    min: Constant#builtin<float#builtin>,
+    max: Constant#builtin<float#builtin>,
+    step: Constant#builtin<float#builtin>,
+) Constant#builtin<float#builtin>;
+
+const FloatAsString#5f7b38a6 = As#As<float#builtin, string#builtin>{as#As#0: floatToString#builtin};
+
+const vec2#fa534764 = (x#:0: float#builtin, y#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+    x#08f7c2ac#0: x#:0,
+    y#08f7c2ac#1: y#:1,
+};
+
+const vecToString#743abd69 = As#As<Vec2#08f7c2ac, string#builtin>{
+    as#As#0: (pos#:0: Vec2#08f7c2ac): string#builtin ={}> pos#:0.x#08f7c2ac#0 as#5f7b38a6 string#builtin 
+            +#builtin "," 
+        +#builtin pos#:0.y#08f7c2ac#1 as#5f7b38a6 string#builtin,
+};
+
+const rec reduce#469be38c = <T#:0, R#:1>(
+    items#:0: Array#builtin<T#:0>,
+    initial#:1: R#:1,
+    fn#:2: (current: R#:1, item: T#:0) ={}> R#:1,
+): R#:1 ={}> switch items#:0 {
+    [] => initial#:1,
+    [value#:3, ...rest#:4] => reduce#self<T#:0, R#:1>(rest#:4, fn#:2(initial#:1, value#:3), fn#:2),
+};
+
+const vec2#fd62385c = (x#:0: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+    x#08f7c2ac#0: x#:0,
+    y#08f7c2ac#1: x#:0,
+};
+
+const AddSubVec2#04f14e9c = AddSub#3d436b7e<Vec2#08f7c2ac, Vec2#08f7c2ac, Vec2#08f7c2ac>{
+    "+"#3d436b7e#0: (one#:0: Vec2#08f7c2ac, two#:1: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+        x#08f7c2ac#0: one#:0.x#08f7c2ac#0 +#builtin two#:1.x#08f7c2ac#0,
+        y#08f7c2ac#1: one#:0.y#08f7c2ac#1 +#builtin two#:1.y#08f7c2ac#1,
+    },
+    "-"#3d436b7e#1: (one#:2: Vec2#08f7c2ac, two#:3: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+        x#08f7c2ac#0: one#:2.x#08f7c2ac#0 -#builtin two#:3.x#08f7c2ac#0,
+        y#08f7c2ac#1: one#:2.y#08f7c2ac#1 -#builtin two#:3.y#08f7c2ac#1,
+    },
+};
+
+const byMax#d032c3da = (p1#:0: Vec2#08f7c2ac, p2#:1: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> vec2#fa534764(
+    x: max#builtin(p1#:0.x#08f7c2ac#0, p2#:1.x#08f7c2ac#0),
+    y: max#builtin(p1#:0.y#08f7c2ac#1, p2#:1.y#08f7c2ac#1),
+);
+
+const byMin#36f82394 = (p1#:0: Vec2#08f7c2ac, p2#:1: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> vec2#fa534764(
+    x: min#builtin(p1#:0.x#08f7c2ac#0, p2#:1.x#08f7c2ac#0),
+    y: min#builtin(p1#:0.y#08f7c2ac#1, p2#:1.y#08f7c2ac#1),
+);
+
+const thetaPos2#b03288dc = (theta#:0: float#builtin): Vec2#08f7c2ac ={}> vec2#fa534764(
+    x: cos#builtin(theta#:0),
+    y: sin#builtin(theta#:0),
+);
+
+const Vec2float#db41487e = Mul#02cc25c4<Vec2#08f7c2ac, float#builtin, Vec2#08f7c2ac>{
+    "*"#02cc25c4#0: (v#:0: Vec2#08f7c2ac, scale#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+        x#08f7c2ac#0: v#:0.x#08f7c2ac#0 *#builtin scale#:1,
+        y#08f7c2ac#1: v#:0.y#08f7c2ac#1 *#builtin scale#:1,
+    },
+};
+
+const IntAsFloat#6f186ad1 = As#As<int#builtin, float#builtin>{as#As#0: intToFloat#builtin};
+
+const pointsToPath#0920c160 = (points#:0: Array#builtin<Vec2#08f7c2ac>, closed#:1: bool#builtin): string#builtin ={}> {
+    switch points#:0 {
+        [first#:2, ...rest#:3] => reduce#469be38c<Vec2#08f7c2ac, string#builtin>(
+                items: rest#:3,
+                initial: "M" +#builtin first#:2 as#743abd69 string#builtin,
+                fn: (current#:4: string#builtin, item#:5: Vec2#08f7c2ac): string#builtin ={}> current#:4 
+                        +#builtin " L" 
+                    +#builtin item#:5 as#743abd69 string#builtin,
+            ) 
+            +#builtin if closed#:1 {
+                " Z";
+            } else {
+                "";
+            },
+        _ => "",
+    };
+};
+
+const geomBounds#5010c5aa = (geom#:0: Geom#619d2fc4): Tuple2#builtin<Vec2#08f7c2ac, Vec2#08f7c2ac> ={}> {
+    switch geom#:0 {
+        Rect#126fdf00{pos: pos#:1, size: size#:2} => (pos#:1, size#:2),
+        Line#565da092{p1: p1#:3, p2: p2#:4} => {
+            const tl#:5 = byMin#36f82394(p1#:3, p2#:4);
+            const br#:6 = byMax#d032c3da(p1#:3, p2#:4);
+            (tl#:5, br#:6 -#04f14e9c#3d436b7e#1 tl#:5);
+        },
+        Polygon#cafe28b8{points: points#:7} => {
+            switch points#:7 {
+                [first#:8, ...rest#:9] => {
+                    const both#:12 = reduce#469be38c<
+                        Vec2#08f7c2ac,
+                        Tuple2#builtin<Vec2#08f7c2ac, Vec2#08f7c2ac>,
+                    >(
+                        items: rest#:9,
+                        initial: (first#:8, first#:8),
+                        fn: (
+                            current#:10: Tuple2#builtin<Vec2#08f7c2ac, Vec2#08f7c2ac>,
+                            item#:11: Vec2#08f7c2ac,
+                        ): Tuple2#builtin<Vec2#08f7c2ac, Vec2#08f7c2ac> ={}> (
+                            byMin#36f82394(p1: current#:10.0, p2: item#:11),
+                            byMax#d032c3da(p1: current#:10.1, p2: item#:11),
+                        ),
+                    );
+                    (both#:12.0, both#:12.1 -#04f14e9c#3d436b7e#1 both#:12.0);
+                },
+                _ => (vec2#fd62385c(x: 0.0), vec2#fd62385c(x: 0.0)),
+            };
+        },
+        _ => (vec2#fd62385c(x: 0.0), vec2#fd62385c(x: 0.0)),
+    };
+};
+
+const rec accurateSpiral#ae2070ac = (
+    at#:0: int#builtin,
+    by#:1: float#builtin,
+    length#:2: float#builtin,
+    theta#:3: float#builtin,
+    pos#:4: Vec2#08f7c2ac,
+    points#:5: Array#builtin<Vec2#08f7c2ac>,
+    max#:6: int#builtin,
+): Array#builtin<Vec2#08f7c2ac> ={}> {
+    if at#:0 >=#builtin max#:6 {
+        points#:5;
+    } else {
+        const next#:7 = theta#:3 +#builtin by#:1 *#builtin at#:0 as#6f186ad1 float#builtin;
+        const nextPos#:8 = pos#:4 
+            +#04f14e9c#3d436b7e#0 thetaPos2#b03288dc(theta#:3) *#db41487e#02cc25c4#0 length#:2;
+        accurateSpiral#self(
+            at#:0 +#builtin 1,
+            by#:1,
+            length#:2,
+            next#:7,
+            nextPos#:8,
+            <Vec2#08f7c2ac>[...points#:5, nextPos#:8],
+            max#:6,
+        );
+    };
+};
+
+const geomToString#5a83818a = (geom#:0: Geom#619d2fc4, attrs#:1: string#builtin): string#builtin ={}> switch geom#:0 {
+    Rect#126fdf00{pos: pos#:2, size: size#:3} => "<rect x='" 
+                                            +#builtin pos#:2.x#08f7c2ac#0 as#5f7b38a6 string#builtin 
+                                        +#builtin "' y='" 
+                                    +#builtin pos#:2.y#08f7c2ac#1 as#5f7b38a6 string#builtin 
+                                +#builtin "' width='" 
+                            +#builtin size#:3.x#08f7c2ac#0 as#5f7b38a6 string#builtin 
+                        +#builtin "' height='" 
+                    +#builtin size#:3.y#08f7c2ac#1 as#5f7b38a6 string#builtin 
+                +#builtin "' " 
+            +#builtin attrs#:1 
+        +#builtin " />",
+    Polygon#cafe28b8{points: points#:4, closed: closed#:5} => "<path d='" 
+                    +#builtin pointsToPath#0920c160(points#:4, closed#:5) 
+                +#builtin "' " 
+            +#builtin attrs#:1 
+        +#builtin " />",
+    _ => "unsupported geom",
+};
+
+const lineCapString#4854f536 = As#As<LineCap#5e11f0b9, string#builtin>{
+    as#As#0: (cap#:0: LineCap#5e11f0b9): string#builtin ={}> switch cap#:0 {
+        Butt#1ac05bf8 => "butt",
+        Round#51486760 => "round",
+        Square#155bb0ac => "square",
+    },
+};
+
+const colorString#1f9d2a34 = As#As<Color#1fe34118, string#builtin>{
+    as#As#0: (color#:0: Color#1fe34118): string#builtin ={}> switch color#:0 {
+        CSS#742a31c2{value: value#:1} => value#:1,
+        Rgba#52033f94{r: r#:2, g: g#:3, b: b#:4, a: a#:5} => "rgba(" 
+                                        +#builtin r#:2 as#5f7b38a6 string#builtin 
+                                    +#builtin "," 
+                                +#builtin g#:3 as#5f7b38a6 string#builtin 
+                            +#builtin "," 
+                        +#builtin b#:4 as#5f7b38a6 string#builtin 
+                    +#builtin "," 
+                +#builtin a#:5 as#5f7b38a6 string#builtin 
+            +#builtin ")",
+    },
+};
+
+const svg#bd13d7e0 = (pos#:0: Vec2#08f7c2ac, size#:1: Vec2#08f7c2ac, contents#:2: string#builtin): string#builtin ={}> "<svg width='" 
+                                                        +#builtin size#:1.x#08f7c2ac#0 as#5f7b38a6 string#builtin 
+                                                    +#builtin "' height='" 
+                                                +#builtin size#:1.y#08f7c2ac#1 as#5f7b38a6 string#builtin 
+                                            +#builtin "' viewBox='" 
+                                        +#builtin pos#:0.x#08f7c2ac#0 as#5f7b38a6 string#builtin 
+                                    +#builtin " " 
+                                +#builtin pos#:0.y#08f7c2ac#1 as#5f7b38a6 string#builtin 
+                            +#builtin " " 
+                        +#builtin size#:1.x#08f7c2ac#0 as#5f7b38a6 string#builtin 
+                    +#builtin " " 
+                +#builtin size#:1.y#08f7c2ac#1 as#5f7b38a6 string#builtin 
+            +#builtin "' xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg'>" 
+        +#builtin contents#:2 
+    +#builtin "</svg>";
+
+const drawableBounds#7161dbb2 = (d#:0: Drawable#56de3b71): Tuple2#builtin<
+    Vec2#08f7c2ac,
+    Vec2#08f7c2ac,
+> ={}> {
+    switch d#:0 {
+        Fill#3bd0cc4c{geom: geom#:1} => geomBounds#5010c5aa(geom#:1),
+        Stroke#adcc8cc6{geom: geom#:2} => geomBounds#5010c5aa(geom#:2),
+        _ => (vec2#fd62385c(x: 0.0), vec2#fd62385c(x: 0.0)),
+    };
+};
+
+const drawSpiralCustom#42ceaef0 = (
+    A#:0: int#builtin,
+    B#:1: int#builtin,
+    C#:2: int#builtin,
+    pos#:3: Vec2#08f7c2ac,
+    length#:4: float#builtin,
+): Drawable#56de3b71 ={}> {
+    const bottom#:5 = A#:0 *#builtin B#:1 +#builtin C#:2;
+    const result#:6 = accurateSpiral#ae2070ac(
+        at: bottom#:5,
+        by: A#:0 as#6f186ad1 float#builtin *#builtin PI#builtin 
+            /#builtin bottom#:5 as#6f186ad1 float#builtin,
+        length#:4,
+        theta: (bottom#:5 as#6f186ad1 float#builtin +#builtin 1.0) /#builtin 2.0 
+                *#builtin A#:0 as#6f186ad1 float#builtin 
+            *#builtin PI#builtin,
+        pos#:3,
+        points: <Vec2#08f7c2ac>[],
+        max: bottom#:5 *#builtin 3,
+    );
+    Drawable#56de3b71:Stroke#adcc8cc6{
+        geom#adcc8cc6#0: Geom#619d2fc4:Polygon#cafe28b8{
+            points#cafe28b8#0: result#:6,
+            closed#cafe28b8#1: false,
+        },
+        color#adcc8cc6#1: Color#1fe34118:CSS#742a31c2{value#742a31c2#0: "red"},
+    };
+};
+
+const drawableToSvg#fcff27d8 = (drawable#:0: Drawable#56de3b71): string#builtin ={}> {
+    const bounds#:1 = drawableBounds#7161dbb2(d: drawable#:0);
+    svg#bd13d7e0(
+        pos: bounds#:1.0,
+        size: bounds#:1.1,
+        contents: switch drawable#:0 {
+            Stroke#adcc8cc6{geom: geom#:2, width: width#:3, color: color#:4, lineCaps: lineCaps#:5} => {
+                const attrs#:6 = "fill='none' stroke-width='" 
+                                        +#builtin width#:3 as#5f7b38a6 string#builtin 
+                                    +#builtin "' stroke='" 
+                                +#builtin color#:4 as#1f9d2a34 string#builtin 
+                            +#builtin "' line-cap='" 
+                        +#builtin lineCaps#:5 as#4854f536 string#builtin 
+                    +#builtin "'";
+                geomToString#5a83818a(geom#:2, attrs#:6);
+            },
+            Fill#3bd0cc4c{geom: geom#:7, color: color#:8} => {
+                const attrs#:9 = "fill='" +#builtin color#:8 as#1f9d2a34 string#builtin 
+                    +#builtin "' stroke='none'";
+                geomToString#5a83818a(geom#:7, attrs#:9);
+            },
+            _ => "text not supported",
+        },
+    );
+};
+
+decorator display(id: string);
+
+@display("rawSvg")
+{
+    const s0p1#:0 = @slider#4e421b50(min: 1, max: 20, step: 1) @title#1b6d573e(
+        title: "s0p1: segments per spiral",
+    ) 1;
+    const s1p2#:1 = @slider#4e421b50(min: 0, max: 100, step: 1) @title#1b6d573e(
+        title: "s1p2: spirals per superspiral",
+    ) 1;
+    const D#:2 = @slider#4e421b50(min: 0, max: 100, step: 1) @title#1b6d573e(
+        title: "s2p3: supers per duper",
+    ) 1;
+    const s3p4#:3 = @slider#4e421b50(min: 1, max: 100, step: 1) @title#1b6d573e(title: "s3p4") 1;
+    const D0#:4 = @slider#4e421b50(min: 1, max: 108, step: 1) @title#1b6d573e(title: "s4p5") 1;
+    const r3#:5 = @slider#4e421b50(min: 0, max: 17, step: 1) 0;
+    const W#:6 = s3p4#:3 *#builtin D0#:4 *#builtin 8 +#builtin r3#:5;
+    const C#:7 = W#:6 *#builtin D#:2 *#builtin 8 +#builtin D0#:4;
+    const length#:8 = @slider#b981a438(min: 1.0, max: 10.0, step: 1.0) @title#1b6d573e(
+        title: "segment length",
+    ) 3.0;
+    const rotation#:9 = @slider#4e421b50(min: 0, max: 3, step: 1) @title#1b6d573e(
+        title: "rotation",
+    ) 0;
+    const configuration#:10 = @slider#4e421b50(min: 0, max: 1, step: 1) @title#1b6d573e(
+        title: "configuration",
+    ) 0;
+    const orientation#:11 = rotation#:9 *#builtin 2 +#builtin configuration#:10;
+    const A#:12 = C#:7 *#builtin orientation#:11 +#builtin W#:6 
+        +#builtin s1p2#:1 *#builtin C#:7 *#builtin 8;
+    RawSvg#712f3578{
+        text#712f3578#0: drawableToSvg#fcff27d8(
+            drawable: drawSpiralCustom#42ceaef0(
+                A#:12,
+                B: s0p1#:0,
+                C#:7,
+                pos: vec2#fd62385c(x: 0.0),
+                length#:8,
+            ),
+        ),
+    };
+}
