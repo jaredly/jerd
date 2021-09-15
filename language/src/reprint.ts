@@ -9,6 +9,7 @@ import {
     ToplevelRecord,
 } from './typing/env';
 import parse, {
+    DecoratedExpression,
     Define,
     Expression,
     Location,
@@ -171,7 +172,10 @@ export const reprintToplevel = (
                 term: newTerm,
             };
             nhash = hashObject(retyped.term);
-        } else {
+        } else if (
+            printed[0].type === 'Decorated' &&
+            printed[0].wrapped.type === 'Expression'
+        ) {
             retyped = {
                 ...toplevel,
                 type: 'Expression',
@@ -181,10 +185,29 @@ export const reprintToplevel = (
                         local: newLocal(),
                         term: { nextTraceId: 0, localNames: {} },
                     },
-                    printed[0] as Expression,
+                    {
+                        ...printed[0],
+                        wrapped: printed[0].wrapped.expr,
+                    } as DecoratedExpression,
                 ),
             };
             nhash = hashObject(retyped.term);
+        } else if (printed[0].type === 'Expression') {
+            retyped = {
+                ...toplevel,
+                type: 'Expression',
+                term: typeExpr(
+                    {
+                        ...env,
+                        local: newLocal(),
+                        term: { nextTraceId: 0, localNames: {} },
+                    },
+                    printed[0].expr,
+                ),
+            };
+            nhash = hashObject(retyped.term);
+        } else {
+            throw new Error(`Unexpected toplevel type ${printed[0].type}`);
         }
         if (nhash != hash) {
             console.log(
@@ -231,6 +254,7 @@ export const reprintToplevel = (
         // console.log(chalk.yellow('AST'));
         // console.log(JSON.stringify(withoutLocations(printed)));
         console.error(err.toString());
+        console.error(err.stack);
         console.log(
             `Expression at ${showLocation(
                 toplevel.location,

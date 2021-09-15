@@ -1,4 +1,8 @@
 
+```bash
+env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js go  --run examples/euler-spiral.jd
+```
+
 ## Comparing implementations, what to do (go vs node vs rust):
 ### Prep for rust
 

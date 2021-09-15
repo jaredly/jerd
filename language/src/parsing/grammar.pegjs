@@ -18,7 +18,9 @@ DecoratedToplevel = decorators:(Decorator _)* top:Toplevel {
     } : top
 }
 
-Toplevel = StructDef / EnumDef / Effect / DecoratorDef / Statement
+Toplevel = StructDef / EnumDef / Effect / DecoratorDef / Define / ToplevelExpression
+
+ToplevelExpression = expr:Expression { return {type: 'Expression', expr }}
 
 Statement = Define / Expression
 

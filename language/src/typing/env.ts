@@ -2,6 +2,7 @@
 
 import hashObjectSum from 'hash-sum';
 import {
+    DecoratedExpression,
     DecoratorDef,
     Define,
     Effect,
@@ -122,6 +123,14 @@ export const addToplevelToEnv = (
         case 'Effect':
             return addEffect(env, top.name, top.constrNames, top.effect);
         case 'EnumDef':
+            top.inner.forEach((record) => {
+                ({ env } = addRecord(
+                    env,
+                    record.name,
+                    record.attrNames,
+                    record.def,
+                ));
+            });
             return addEnum(env, top.name, top.def);
         case 'Decorator':
             return addDecoratorToEnv(env, top.name, top.defn);
@@ -169,70 +178,121 @@ export const typeToplevelT = (
             };
         }
         case 'Decorated': {
-            if (item.wrapped.type === 'DecoratorDef') {
-                const { unique, decorators } = uniqueDecorator(item.decorators);
-                if (decorators.length) {
-                    throw new Error(
-                        `Decorators can only have the 'unique' decorator`,
+            switch (item.wrapped.type) {
+                case 'DecoratorDef': {
+                    const { unique, decorators } = uniqueDecorator(
+                        item.decorators,
                     );
+                    if (decorators.length) {
+                        throw new Error(
+                            `Decorators can only have the 'unique' decorator`,
+                        );
+                    }
+                    if (unique === null) {
+                        throw new Error(`Impossible`);
+                    }
+                    const defn = typeDecoratorInner(env, item.wrapped, unique);
+                    return {
+                        type: 'Decorator',
+                        defn,
+                        id: idFromName(hashObject(defn)),
+                        location: item.location,
+                        name: item.wrapped.id.text,
+                    };
                 }
-                if (unique === null) {
-                    throw new Error(`Impossible`);
-                }
-                const defn = typeDecoratorInner(env, item.wrapped, unique);
-                return {
-                    type: 'Decorator',
-                    defn,
-                    id: idFromName(hashObject(defn)),
-                    location: item.location,
-                    name: item.wrapped.id.text,
-                };
-            }
-            if (item.wrapped.type === 'StructDef') {
-                const { unique, decorators } = uniqueDecorator(item.decorators);
-                const ffi = decorators.filter((d) => d.id.text === 'ffi');
-                // const unum = unique != null ? unique : undefined;
-                let tag = undefined;
-                if (ffi.length) {
-                    tag = item.wrapped.id.text;
-                    if (ffi[0].args.length === 1) {
-                        if (
-                            ffi[0].args[0].type !== 'Expr' ||
-                            ffi[0].args[0].expr.type !== 'string'
-                        ) {
-                            throw new LocatedError(
-                                item.location,
-                                `ffi arg must be a string`,
-                            );
+                case 'StructDef': {
+                    const { unique, decorators } = uniqueDecorator(
+                        item.decorators,
+                    );
+                    const ffi = decorators.filter((d) => d.id.text === 'ffi');
+                    // const unum = unique != null ? unique : undefined;
+                    let tag = undefined;
+                    if (ffi.length) {
+                        tag = item.wrapped.id.text;
+                        if (ffi[0].args.length === 1) {
+                            if (
+                                ffi[0].args[0].type !== 'Expr' ||
+                                ffi[0].args[0].expr.type !== 'string'
+                            ) {
+                                throw new LocatedError(
+                                    item.location,
+                                    `ffi arg must be a string`,
+                                );
+                            }
+                            tag = ffi[0].args[0].expr.text;
+                        } else if (ffi[0].args.length > 1) {
+                            throw new Error(`@ffi only expectes one argument`);
                         }
-                        tag = ffi[0].args[0].expr.text;
-                    } else if (ffi[0].args.length > 1) {
-                        throw new Error(`@ffi only expectes one argument`);
+                        if (ffi.length > 1) {
+                            throw new Error(`multiple ffi decorators`);
+                        }
                     }
-                    if (ffi.length > 1) {
-                        throw new Error(`multiple ffi decorators`);
+                    if (decorators.length !== ffi.length) {
+                        throw new Error(`Unhandled decorators`);
+                    }
+                    // env = typeTypeDefn(env, item.wrapped, tag, unum);
+                    const defn = typeRecordDefn(env, item.wrapped, unique, tag);
+                    const hash = hashObject(defn);
+                    return {
+                        type: 'RecordDef',
+                        def: defn,
+                        id: { hash, size: 1, pos: 0 },
+                        location: item.location!,
+                        name: item.wrapped.id.text,
+                        attrNames: (item.wrapped.decl.items.filter(
+                            (x) => x.type === 'Row',
+                        ) as Array<RecordRow>).map((x) => x.id),
+                    };
+                }
+                case 'Expression':
+                    const term = typeExpr(env, {
+                        ...item,
+                        wrapped: item.wrapped.expr,
+                    } as DecoratedExpression);
+                    return {
+                        id: idFromName(hashObject(term)),
+                        type: 'Expression',
+                        term,
+                        location: item.location,
+                    };
+                case 'EnumDef': {
+                    const ffi = item.decorators.filter(
+                        (d) => d.id.text === 'ffi',
+                    );
+                    if (ffi.length) {
+                        const defn = typeEnumInner(env, item.wrapped, true);
+                        const hash = hashObject(defn);
+                        return {
+                            type: 'EnumDef',
+                            def: defn.defn,
+                            id: { hash, size: 1, pos: 0 },
+                            location: item.location!,
+                            name: item.wrapped.id.text,
+                            inner: defn.inline.map(
+                                (inner): ToplevelRecord => ({
+                                    type: 'RecordDef',
+                                    attrNames: inner.rows,
+                                    name: inner.name,
+                                    def: inner.defn,
+                                    id: idFromName(hashObject(inner.defn)),
+                                    location: inner.defn.location,
+                                }),
+                            ),
+                        };
+                    } else {
+                        throw new LocatedError(
+                            item.location,
+                            `Unexpected decorator on enum definition`,
+                        );
                     }
                 }
-                if (decorators.length !== ffi.length) {
-                    throw new Error(`Unhandled decorators`);
-                }
-                // env = typeTypeDefn(env, item.wrapped, tag, unum);
-                const defn = typeRecordDefn(env, item.wrapped, unique, tag);
-                const hash = hashObject(defn);
-                return {
-                    type: 'RecordDef',
-                    def: defn,
-                    id: { hash, size: 1, pos: 0 },
-                    location: item.location!,
-                    name: item.wrapped.id.text,
-                    attrNames: (item.wrapped.decl.items.filter(
-                        (x) => x.type === 'Row',
-                    ) as Array<RecordRow>).map((x) => x.id),
-                };
+
+                default:
+                    console.log(item.decorators);
+                    throw new Error(
+                        `Decorators not supported for toplevels other than Struct and DecoratorDef (found ${item.wrapped.type})`,
+                    );
             }
-            throw new Error(
-                `Decorators not supported for toplevels other than Struct and DecoratorDef`,
-            );
         }
         case 'EnumDef': {
             const defn = typeEnumInner(env, item);
@@ -277,13 +337,13 @@ export const typeToplevelT = (
                 location: item.location,
                 name: item.id.text,
             };
-        default:
-            const term = typeExpr(env, item as Expression);
+        case 'Expression':
+            const term = typeExpr(env, item.expr);
             return {
                 id: idFromName(hashObject(term)),
                 type: 'Expression',
                 term,
-                location: item.location,
+                location: item.expr.location,
             };
     }
 };
@@ -576,6 +636,7 @@ export const addEnum = (
     env: Env,
     name: string,
     d: TypeEnumDef,
+    // inner: Array<ToplevelRecord>,
 ): { id: Id; env: Env } => {
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };

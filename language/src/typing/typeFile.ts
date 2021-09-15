@@ -1,6 +1,7 @@
 // This only really for testing
 
 import {
+    Decorated,
     DecoratedExpression,
     Decorator,
     Expression,
@@ -11,6 +12,7 @@ import {
     Env,
     getEffects,
     newLocal,
+    newWithGlobal,
     Term,
     TypeError as TypeErrorTerm,
 } from '../typing/types';
@@ -25,11 +27,15 @@ import {
     idName,
     typeToplevelT,
     typeDecoratorDef,
+    addToplevelToEnv,
+    typeDefineInner,
+    addDefine,
 } from '../typing/env';
 
 import { presetEnv } from '../typing/preset';
 import { LocatedError, TypeError } from './errors';
 import { transform } from './transform';
+import { addLocationIndices, addLocationIndicesToTerm } from './analyze';
 
 export const uniqueDecorator = (
     decorators: Array<Decorator>,
@@ -75,197 +81,31 @@ export function typeFile(
 
     // const out = prelude.slice();
     for (const item of parsed) {
-        // Clear out the locals. This is definitely not the
-        // right way to do this lol.
-        env = { ...env, local: newLocal() };
-
-        if (item.type === 'define') {
-            // console.log('>> A define', item.id.text);
-            const { term, env: nenv, id } = typeDefine(env, item);
-            env = nenv;
-            env.global.metaData[idName(id)] = {
-                tags: [],
-                createdMs: Date.now(),
-            };
-            // console.log('< unified type', showType(env, term.is));
-        } else if (item.type === 'effect') {
-            env = typeEffect(env, item);
-        } else if (item.type === 'StructDef') {
-            env = typeTypeDefn(env, item);
-        } else if (item.type === 'EnumDef') {
-            env = typeEnumDefn(env, item).env;
-        } else if (item.type === 'DecoratorDef') {
-            env = typeDecoratorDef(env, item).env;
-        } else if (item.type === 'Decorated') {
-            if (item.wrapped.type === 'define') {
-                const { term, env: nenv, id } = typeDefine(env, item.wrapped);
-                env = nenv;
-                const tags = item.decorators.map((d) => d.id.text);
-                env.global.metaData[idName(id)] = {
-                    tags,
-                    createdMs: Date.now(),
-                };
-                if (tags.includes('ffi')) {
-                    env.global.exportedTerms[item.wrapped.id.text] = id;
-                }
-                continue;
+        if (
+            item.type === 'Decorated' &&
+            item.decorators.length > 0 &&
+            item.decorators[0].id.text === 'typeError'
+        ) {
+            handleTypeError(env, item);
+            continue;
+        }
+        if (item.type === 'Decorated' && item.wrapped.type === 'define') {
+            const term = typeDefineInner(env, item.wrapped);
+            const res = addDefine(env, item.wrapped.id.text, term);
+            env = res.env;
+            const tags = item.decorators.map((d) => d.id.text);
+            env.global.metaData[idName(res.id)].tags = tags;
+            if (tags.includes('ffi')) {
+                env.global.exportedTerms[item.wrapped.id.text] = res.id;
             }
+            continue;
+        }
 
-            if (item.wrapped.type === 'DecoratorDef') {
-                const { unique, decorators } = uniqueDecorator(item.decorators);
-                if (decorators.length) {
-                    throw new Error(
-                        `Decorators can only have the 'unique' decorator`,
-                    );
-                }
-                if (unique !== null) {
-                    env = typeDecoratorDef(env, item.wrapped, unique).env;
-                } else {
-                    throw new Error(`Impossible`);
-                }
-            } else if (item.wrapped.type === 'StructDef') {
-                const { unique, decorators } = uniqueDecorator(item.decorators);
-                const ffi = decorators.filter((d) => d.id.text === 'ffi');
-                const unum = unique != null ? unique : undefined;
-                let tag = undefined;
-                if (ffi.length) {
-                    tag = item.wrapped.id.text;
-                    if (ffi[0].args.length === 1) {
-                        if (
-                            ffi[0].args[0].type !== 'Expr' ||
-                            ffi[0].args[0].expr.type !== 'string'
-                        ) {
-                            throw new LocatedError(
-                                item.location,
-                                `ffi arg must be a string`,
-                            );
-                        }
-                        tag = ffi[0].args[0].expr.text;
-                    }
-                }
-                env = typeTypeDefn(env, item.wrapped, tag, unum);
-            } else if (item.decorators[0].id.text === 'typeError') {
-                const args = item.decorators[0].args;
-                // if(item)
-                // const args = item.decorators[0].args
-                // .map((expr) => {
-                //     if (expr.type !== 'Expr') {
-                //         throw new Error(`nope`)
-                //     }
-                //     typeExpr(env, expr)
-                // }
-                // );
-                if (
-                    !(
-                        args.length === 1 &&
-                        args[0].type === 'Expr' &&
-                        args[0].expr.type === 'string'
-                    )
-                ) {
-                    throw new Error(
-                        `Expected one string arg to @typeError ${showLocation(
-                            item.location,
-                        )}`,
-                    );
-                }
-                const str = args[0].expr.text;
-                const expr = toplevelExpr(item.wrapped);
-                if (expr == null) {
-                    throw new Error(
-                        `Expected typeError to be on an expression ${showLocation(
-                            item.location,
-                        )}`,
-                    );
-                }
-                let t;
-                try {
-                    t = typeExpr(env, expr);
-
-                    const typeErrors: Array<TypeErrorTerm> = [];
-                    transform(t, {
-                        let: () => null,
-                        term: (term) => {
-                            if (term.type === 'TypeError') {
-                                typeErrors.push(term);
-                            }
-                            return null;
-                        },
-                    });
-                    if (typeErrors.length) {
-                        const message = `Found ${showType(
-                            env,
-                            typeErrors[0].inner.is,
-                        )}, expected ${showType(env, typeErrors[0].is)}`;
-                        throw new Error(message);
-                    }
-                } catch (err) {
-                    if (!(err instanceof Error)) {
-                        throw err;
-                    }
-                    const message = err.toString();
-                    if (message.includes(str)) {
-                        continue; // success
-                    } else {
-                        console.log(err.stack);
-                        if (!(err instanceof TypeError)) {
-                            throw err;
-                        }
-                        throw new LocatedError(
-                            item.location,
-                            `Type error doesn't match expectation: "${message}" vs "${str}"`,
-                        ).wrap(err);
-                    }
-                }
-
-                throw new LocatedError(
-                    expr.location,
-                    `Expected a type error, but got ${showType(
-                        env,
-                        t.is,
-                    )}\n${printToString(termToPretty(env, t), 100)}`,
-                );
-            } else if (item.wrapped.type === 'EnumDef') {
-                const ffi = item.decorators.filter((d) => d.id.text === 'ffi');
-                if (ffi.length) {
-                    env = typeEnumDefn(env, item.wrapped, true).env;
-                } else {
-                    throw new LocatedError(
-                        item.location,
-                        `Unexpected decorator on enum definition`,
-                    );
-                }
-            } else {
-                if (
-                    item.wrapped.type === 'effect' ||
-                    item.wrapped.type === 'Decorated'
-                ) {
-                    throw new LocatedError(
-                        item.location,
-                        `Unhandled decorator`,
-                    );
-                }
-                // HACK HACK
-                const term = typeExpr(env, item as DecoratedExpression);
-                if (getEffects(term).length > 0) {
-                    throw new Error(
-                        `Term at ${showLocation(
-                            term.location,
-                        )} has toplevel effects.`,
-                    );
-                }
-                expressions.push(term);
-            }
+        const toplevel = typeToplevelT(newWithGlobal(env.global), item, null);
+        if (toplevel.type === 'Expression') {
+            expressions.push(toplevel.term);
         } else {
-            // A standalone expression
-            const term = typeExpr(env, item);
-            if (getEffects(term).length > 0) {
-                throw new Error(
-                    `Term at ${showLocation(
-                        term.location,
-                    )} has toplevel effects.`,
-                );
-            }
-            expressions.push(term);
+            env = addToplevelToEnv(env, toplevel).env;
         }
     }
     return { expressions, env };
@@ -280,7 +120,80 @@ const toplevelExpr = (item: Toplevel): Expression | null => {
         case 'Decorated':
         case 'DecoratorDef':
             return null;
-        default:
-            return item;
+        case 'Expression':
+            return item.expr;
     }
+};
+
+const handleTypeError = (env: Env, item: Decorated) => {
+    const args = item.decorators[0].args;
+    if (
+        !(
+            args.length === 1 &&
+            args[0].type === 'Expr' &&
+            args[0].expr.type === 'string'
+        )
+    ) {
+        throw new Error(
+            `Expected one string arg to @typeError ${showLocation(
+                item.location,
+            )}`,
+        );
+    }
+    const str = args[0].expr.text;
+    if (item.wrapped.type !== 'Expression') {
+        throw new Error(
+            `Expected typeError to be on an expression ${showLocation(
+                item.location,
+            )}`,
+        );
+    }
+    const expr = item.wrapped.expr;
+    let t;
+    try {
+        t = typeExpr(env, expr);
+
+        const typeErrors: Array<TypeErrorTerm> = [];
+        transform(t, {
+            let: () => null,
+            term: (term) => {
+                if (term.type === 'TypeError') {
+                    typeErrors.push(term);
+                }
+                return null;
+            },
+        });
+        if (typeErrors.length) {
+            const message = `Found ${showType(
+                env,
+                typeErrors[0].inner.is,
+            )}, expected ${showType(env, typeErrors[0].is)}`;
+            throw new Error(message);
+        }
+    } catch (err) {
+        if (!(err instanceof Error)) {
+            throw err;
+        }
+        const message = err.toString();
+        if (message.includes(str)) {
+            return;
+        } else {
+            console.log(err.stack);
+            if (!(err instanceof TypeError)) {
+                throw err;
+            }
+            throw new LocatedError(
+                item.location,
+                `Type error doesn't match expectation: "${message}" vs "${str}"`,
+            ).wrap(err);
+        }
+    }
+
+    throw new LocatedError(
+        expr.location,
+        `Expected a type error, but got ${showType(env, t.is)}\n${printToString(
+            termToPretty(env, t),
+            100,
+        )}`,
+    );
 };
