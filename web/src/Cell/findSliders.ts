@@ -1,6 +1,12 @@
-import * as React from 'react';
+// import * as React from 'react';
 import { idName, idFromName, hashObject } from '@jerd/language/src/typing/env';
-import { Env, Id, Term, Location } from '@jerd/language/src/typing/types';
+import {
+    Env,
+    Id,
+    Term,
+    Location,
+    Decorator,
+} from '@jerd/language/src/typing/types';
 import {
     hsla_id,
     hsl_id,
@@ -11,7 +17,7 @@ import {
     slider_id,
     title_id,
 } from '@jerd/language/src/printing/prelude-types';
-import { widgetForDecorator } from '../display/Decorators';
+// import { widgetForDecorator } from '../display/Decorators';
 import { transform } from '@jerd/language/src/typing/transform';
 
 export function findSliders(env: Env, term: Term) {
@@ -21,11 +27,12 @@ export function findSliders(env: Env, term: Term) {
         [termId: string]: {
             [idx: number]: {
                 title: string | null;
-                widget: React.FunctionComponent<{
-                    data: any;
-                    onUpdate: (term: Term, data: any) => void;
-                }>;
-                loc: Location;
+                // widget: React.FunctionComponent<{
+                //     data: any;
+                //     onUpdate: (term: Term, data: any) => void;
+                // }>;
+                term: Term;
+                decorator: Decorator;
             };
         };
     } = {};
@@ -66,14 +73,11 @@ export function findSliders(env: Env, term: Term) {
                     // console.log(title, widget);
                     if (widget.length) {
                         const decorator = widget[0];
-                        const w = widgetForDecorator(decorator, t);
-                        if (w) {
-                            found[hash][t.location.idx!] = {
-                                title,
-                                loc: t.location,
-                                widget: w,
-                            };
-                        }
+                        found[hash][t.location.idx!] = {
+                            title,
+                            decorator: decorator,
+                            term: t,
+                        };
                     }
                 }
                 if (t.type === 'ref' && t.ref.type === 'user') {

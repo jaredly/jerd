@@ -14,6 +14,7 @@ import {
     typesEqual,
     Location,
     idsEqual,
+    Decorator,
 } from '@jerd/language/src/typing/types';
 import {
     GLSLBuffer1_id,
@@ -41,6 +42,7 @@ import { runTerm } from '../eval';
 import { LocatedError } from '@jerd/language/src/typing/errors';
 import { Action } from '../workspace/Cells';
 import { findSliders } from './findSliders';
+import { widgetForDecorator } from '../display/Decorators';
 
 /*
 
@@ -100,11 +102,33 @@ const RenderResult_ = ({
     );
 
     const sliderData = React.useMemo(() => {
-        const topId = idFromName(hashObject(term));
+        // const topId = idFromName(hashObject(term));
         const { found, termDeps } = findSliders(env, term);
+        const widgets: {
+            [key: string]: {
+                [idx: number]: React.FunctionComponent<{
+                    data: any;
+                    onUpdate: (term: Term, data: any) => void;
+                }>;
+            };
+        } = {};
+        Object.keys(found).forEach((k) => {
+            widgets[k] = {};
+            Object.keys(found[k]).forEach((idx) => {
+                const { decorator, term } = found[k][+idx];
+                const widget = widgetForDecorator(decorator, term);
+                if (widget) {
+                    widgets[k][+idx] = widget;
+                }
+            });
+        });
         // crawlTerm(term, topId);
         // console.log('found', found);
-        return { sliders: found, termsInOrder: sortAllDepsPlain(termDeps) };
+        return {
+            sliders: found,
+            widgets,
+            termsInOrder: sortAllDepsPlain(termDeps),
+        };
     }, [term]);
 
     const termAndEnvWithSliders = React.useMemo(() => {
@@ -507,12 +531,17 @@ function renderSliders(
             [termId: string]: {
                 [idx: number]: {
                     title: string | null;
-                    widget: React.FunctionComponent<{
-                        data: any;
-                        onUpdate: (term: Term, data: any) => void;
-                    }>;
-                    loc: Location;
+                    term: Term;
+                    decorator: Decorator;
                 };
+            };
+        };
+        widgets: {
+            [termId: string]: {
+                [idx: number]: React.FunctionComponent<{
+                    data: any;
+                    onUpdate: (term: Term, data: any) => void;
+                }>;
             };
         };
         termsInOrder: string[];
@@ -560,7 +589,8 @@ function renderSliders(
                                     );
                                     return null;
                                 }
-                                const Widget = config.widget;
+                                const Widget =
+                                    sliderData.widgets[hash][parseInt(idx)];
                                 return (
                                     <div key={idx} style={{ padding: 4 }}>
                                         {config.title ? (
@@ -575,27 +605,32 @@ function renderSliders(
                                                 {config.title}
                                             </div>
                                         ) : null}
-                                        <Widget
-                                            data={
-                                                sliderState[hash] &&
-                                                sliderState[hash][+idx]
-                                                    ? sliderState[hash][+idx]
-                                                          .options
-                                                    : null
-                                            }
-                                            onUpdate={(newTerm, data) => {
-                                                setSliderState((state) => ({
-                                                    ...state,
-                                                    [hash]: {
-                                                        ...state[hash],
-                                                        [idx]: {
-                                                            options: data,
-                                                            replacement: newTerm,
+                                        {Widget ? (
+                                            <Widget
+                                                data={
+                                                    sliderState[hash] &&
+                                                    sliderState[hash][+idx]
+                                                        ? sliderState[hash][
+                                                              +idx
+                                                          ].options
+                                                        : null
+                                                }
+                                                onUpdate={(newTerm, data) => {
+                                                    setSliderState((state) => ({
+                                                        ...state,
+                                                        [hash]: {
+                                                            ...state[hash],
+                                                            [idx]: {
+                                                                options: data,
+                                                                replacement: newTerm,
+                                                            },
                                                         },
-                                                    },
-                                                }));
-                                            }}
-                                        />
+                                                    }));
+                                                }}
+                                            />
+                                        ) : (
+                                            'No widget yet defined for this decorator'
+                                        )}
                                     </div>
                                 );
                             })}
