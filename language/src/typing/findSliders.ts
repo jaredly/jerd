@@ -1,12 +1,3 @@
-// import * as React from 'react';
-import { idName, idFromName, hashObject } from '@jerd/language/src/typing/env';
-import {
-    Env,
-    Id,
-    Term,
-    Location,
-    Decorator,
-} from '@jerd/language/src/typing/types';
 import {
     hsla_id,
     hsl_id,
@@ -16,9 +7,10 @@ import {
     slider$2_id,
     slider_id,
     title_id,
-} from '@jerd/language/src/printing/prelude-types';
-// import { widgetForDecorator } from '../display/Decorators';
-import { transform } from '@jerd/language/src/typing/transform';
+} from '../printing/prelude-types';
+import { hashObject, idFromName, idName } from './env';
+import { transform } from './transform';
+import { Decorator, Env, Id, Term } from './types';
 
 export function findSliders(env: Env, term: Term) {
     const topId = idFromName(hashObject(term));

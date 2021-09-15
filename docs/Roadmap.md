@@ -29,6 +29,8 @@ START HERE:
 
 Ok, let's start working on: the go built dealio should use sliders for cli args.
 
+- [ ] ok but also I really want sliders to be able to depend on constants (and other sliders)
+  This would just require ... I mean, I probably want to just hack it, instead of allowing arbitrary resolution of stuff. Like, you can directly access a variable that's a slider, but we won't track renames and whatnots. So that we don't have to re-crawl the term after modifying it, right?
 
 
 

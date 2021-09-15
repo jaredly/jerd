@@ -41,7 +41,7 @@ import { transform } from '@jerd/language/src/typing/transform';
 import { runTerm } from '../eval';
 import { LocatedError } from '@jerd/language/src/typing/errors';
 import { Action } from '../workspace/Cells';
-import { findSliders } from './findSliders';
+import { findSliders } from '@jerd/language/src/typing/findSliders';
 import { widgetForDecorator } from '../display/Decorators';
 
 /*
