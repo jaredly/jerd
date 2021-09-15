@@ -364,7 +364,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                     is: string,
                 };
             }
-            console.log(expr.contents);
+            // console.log(expr.contents);
             // if (expr.contents.length)
             // return {
             //     type: 'template-string',

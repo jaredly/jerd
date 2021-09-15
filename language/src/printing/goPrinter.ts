@@ -22,6 +22,7 @@ import {
     typeToplevelT,
 } from '../typing/env';
 import { LocatedError } from '../typing/errors';
+import { findSliders } from '../typing/findSliders';
 import * as preset from '../typing/preset';
 import { applyTypeVariablesToRecord } from '../typing/typeExpr';
 // import { bool } from '../typing/preset';
@@ -1113,8 +1114,8 @@ export const getMainTerm = (
     env: Env,
     expressions: Array<Term>,
 ): { mainTerm: Term; displayName: string | null } => {
-    console.log(env.global.decoratorNames);
-    console.log(expressions[0].decorators);
+    // console.log(env.global.decoratorNames);
+    // console.log(expressions[0].decorators);
     const displayDecorator = env.global.decoratorNames['display'][0];
     if (
         expressions.length === 1 &&
@@ -1219,6 +1220,9 @@ export const fileToGo = (
     const mainHash = hashObject(mainTerm);
     env.global.terms[mainHash] = mainTerm;
     env.global.idNames[mainHash] = `main`;
+
+    const sliderData = findSliders(env, mainTerm);
+    console.log(sliderData.found);
 
     const { inOrder, irTerms } = assembleItemsForFile(
         env,
