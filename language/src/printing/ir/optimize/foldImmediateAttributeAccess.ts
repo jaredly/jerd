@@ -1,4 +1,5 @@
 import { idName } from '../../../typing/env';
+import { LocatedError } from '../../../typing/errors';
 import { idsEqual, refsEqual } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr } from '../types';
@@ -6,8 +7,8 @@ import { Context } from './optimize';
 
 // Ohhh this is a case where we monomorphized the .... op
 // ... and somehow it didn't translate to the attribute it looks like....
-export const foldImmediateAttributeAccess = (ctx: Context, expr: Expr) =>
-    transformExpr(expr, {
+export const foldImmediateAttributeAccess = (ctx: Context, outer: Expr) =>
+    transformExpr(outer, {
         ...defaultVisitor,
         expr: (expr) => {
             if (expr.type !== 'attribute') {
@@ -40,9 +41,24 @@ export const foldImmediateAttributeAccess = (ctx: Context, expr: Expr) =>
             if (expr.ref.type !== 'user') {
                 return null;
             }
+            // WHYYYYYYYYYYYYYYYYY OK so somehow
+            // our "specialize a record based on ... type variables"
+            // is working before ... but not after.
+            // maybe
+            // hmm. so refTypeVbls, are they being applied correctly?
             const sub = target.subTypes[idName(expr.ref.id)];
             if (!sub) {
-                throw new Error(
+                console.log(target.subTypes, expr.ref.id, target.loc);
+                require('fs').writeFileSync(
+                    './env.dump.json',
+                    JSON.stringify(
+                        { env: ctx.env, target, expr, outer },
+                        null,
+                        2,
+                    ),
+                );
+                throw new LocatedError(
+                    expr.loc,
                     `UNEXPECTED ${expr.ref.id.hash} attribute of ${target.base.ref.id.hash}`,
                 );
             }

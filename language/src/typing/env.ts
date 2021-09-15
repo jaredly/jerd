@@ -892,6 +892,7 @@ export const withoutLocations = <T>(obj: T): T => {
         const res: any = {};
         Object.keys(obj).forEach((key) => {
             if (
+                key === 'loc' ||
                 key === 'location' ||
                 key === 'idLocation' ||
                 key === 'idLocations' ||

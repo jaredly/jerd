@@ -227,15 +227,15 @@ export const transformWithCtx = <Ctx>(
         case 'Record': {
             const subTypes = { ...term.subTypes };
             let base = term.base;
-            if (term.base.spread) {
-                const spread = transformWithCtx(term.base.spread, visitor, ctx);
-                if (spread !== term.base.spread) {
-                    base = { ...term.base, spread };
+            if (base.spread) {
+                const spread = transformWithCtx(base.spread, visitor, ctx);
+                if (spread !== base.spread) {
+                    base = { ...base, spread };
                 }
             }
-            if (term.base.type === 'Concrete') {
+            if (base.type === 'Concrete') {
                 let changed = false;
-                const rows = term.base.rows.map((term) => {
+                const rows = base.rows.map((term) => {
                     const res = term
                         ? transformWithCtx(term, visitor, ctx)
                         : null;
@@ -243,7 +243,7 @@ export const transformWithCtx = <Ctx>(
                     return res;
                 });
                 if (changed) {
-                    base = { ...term.base, rows };
+                    base = { ...base, rows };
                 }
             }
             // const subTypes = term.subTypes
@@ -253,19 +253,18 @@ export const transformWithCtx = <Ctx>(
                 const spread =
                     subType.spread != null
                         ? transformWithCtx(subType.spread, visitor, ctx)
-                        : subTypes.spread;
-                let rchanged = false;
+                        : null;
+                let rchanged = spread !== subType.spread;
                 const rows = subType.rows.map((row) => {
                     const r = row ? transformWithCtx(row, visitor, ctx) : null;
                     rchanged = rchanged || r !== row;
                     return r;
                 });
-                changed = changed || spread !== subType.spread || rchanged;
+                changed = changed || rchanged;
                 // @ts-ignore
-                subTypes[id] =
-                    spread !== subType.spread || rchanged
-                        ? { ...subType, spread, rows }
-                        : subType;
+                if (rchanged) {
+                    subTypes[id] = { ...subType, spread, rows };
+                }
             });
             return base !== term.base || changed
                 ? { ...term, subTypes, base }

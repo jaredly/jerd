@@ -47,7 +47,11 @@ export const enumAliasesToGo = (env: Env, ids: Array<string>) => {
     ids.forEach((idRaw) => {
         const name = env.global.idNames[idRaw] || `T${idRaw}`;
         const defn = env.global.types[idRaw];
-        if (defn.type === 'Enum') {
+        // if (!defn) {
+        //     throw new Error(`No enum ${idRaw}`)
+        // }
+        // UMM: Why would it not be defined?
+        if (defn && defn.type === 'Enum') {
             defn.items.forEach((t, idx) => {
                 const subName =
                     env.global.idNames[idName(t.ref.id)] ||

@@ -2,6 +2,11 @@
 ```bash
 env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js go  --run examples/euler-spiral.jd
 ```
+- [x] deduplicate that one thing
+- [ ] add location indicates! Pleeease folks
+
+# GO SLIDERS
+basically, if there are sliders, accept them as CLI arguments.
 
 ## Comparing implementations, what to do (go vs node vs rust):
 ### Prep for rust

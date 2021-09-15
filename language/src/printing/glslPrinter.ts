@@ -1187,18 +1187,28 @@ export const assembleItemsForFile = (
         // irTerm = optimizeDefine(senv, irTerm, id, irTerms);
 
         const preOpt = irTerm;
-        irTerm = optimization(
-            {
-                env: senv,
-                opts: irOpts,
-                exprs: irTerms,
-                id,
-                types: env.typeDefs,
-                optimize: optimization,
-                notes: null,
-            },
-            irTerm,
-        );
+        try {
+            irTerm = optimization(
+                {
+                    env: senv,
+                    opts: irOpts,
+                    exprs: irTerms,
+                    id,
+                    types: env.typeDefs,
+                    optimize: optimization,
+                    notes: null,
+                },
+                irTerm,
+            );
+        } catch (err) {
+            console.error(`Tried to optimize, but it failed`);
+            console.log('id', idRaw);
+            require('fs').writeFileSync(
+                './irTerm.json',
+                JSON.stringify(irTerm, null, 2),
+            );
+            throw err;
+        }
 
         try {
             const undefinedUses = uniquesReallyAreUnique(irTerm);

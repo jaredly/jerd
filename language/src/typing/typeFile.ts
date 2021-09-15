@@ -30,6 +30,7 @@ import {
     addToplevelToEnv,
     typeDefineInner,
     addDefine,
+    hashObject,
 } from '../typing/env';
 
 import { presetEnv } from '../typing/preset';
@@ -90,7 +91,8 @@ export function typeFile(
             continue;
         }
         if (item.type === 'Decorated' && item.wrapped.type === 'define') {
-            const term = typeDefineInner(env, item.wrapped);
+            let term = typeDefineInner(env, item.wrapped);
+            term = addLocationIndicesToTerm(term);
             const res = addDefine(env, item.wrapped.id.text, term);
             env = res.env;
             const tags = item.decorators.map((d) => d.id.text);
@@ -101,7 +103,18 @@ export function typeFile(
             continue;
         }
 
-        const toplevel = typeToplevelT(newWithGlobal(env.global), item, null);
+        let toplevel = typeToplevelT(newWithGlobal(env.global), item, null);
+        const added = addLocationIndices(toplevel);
+        if (hashObject(added) !== hashObject(toplevel)) {
+            throw new Error(`Different`);
+        }
+        if (toplevel.type === 'Define' && toplevel.name === 'accurateSpiral') {
+            require('fs').writeFileSync('./pre.json', JSON.stringify(toplevel));
+            require('fs').writeFileSync('./post.json', JSON.stringify(added));
+        }
+        toplevel = added;
+        // WHYYYYY IS THIS BREAKING THIGNS
+        // toplevel = addLocationIndices(toplevel);
         if (toplevel.type === 'Expression') {
             expressions.push(toplevel.term);
         } else {
@@ -110,20 +123,6 @@ export function typeFile(
     }
     return { expressions, env };
 }
-
-const toplevelExpr = (item: Toplevel): Expression | null => {
-    switch (item.type) {
-        case 'define':
-        case 'effect':
-        case 'StructDef':
-        case 'EnumDef':
-        case 'Decorated':
-        case 'DecoratorDef':
-            return null;
-        case 'Expression':
-            return item.expr;
-    }
-};
 
 const handleTypeError = (env: Env, item: Decorated) => {
     const args = item.decorators[0].args;
