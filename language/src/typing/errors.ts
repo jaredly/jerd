@@ -53,7 +53,7 @@ export class UnresolvedIdentifier extends LocatedError {
     env: Env;
     hint?: Type;
     constructor(id: Identifier, env: Env, hint?: Type) {
-        super(id.location);
+        super(id.location, `Identifier ${id.text} ${id.hash}`);
         this.id = id;
         this.env = env;
         this.hint = hint;

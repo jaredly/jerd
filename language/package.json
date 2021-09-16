@@ -20,6 +20,8 @@
         "test-one": "node --enable-source-maps bootstrap.js --assert --run",
         "watch-one": "watchexec -w src -w examples -i build -- node --enable-source-maps bootstrap.js --assert --run --cache",
         "watch-just-one": "node --enable-source-maps bootstrap.js watch --assert --run --cache",
+        "go-canvas": "node --enable-source-maps bootstrap.js go-types ../web/src/plugins/canvas/canvas.jd examples/go-backends/types.go",
+        "euler-big": "env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js go  --run examples/euler-big.jd",
         "sn": "jest -u"
     },
     "bin": {

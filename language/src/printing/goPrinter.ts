@@ -476,7 +476,7 @@ export const printRecord = (
                 args.map((arg) => termToGo(env, opts, arg)),
                 '{',
                 '}',
-                false,
+                true,
             ),
         ]);
     }
@@ -498,7 +498,7 @@ export const printRecord = (
 
     return items([
         idToGo(env, opts, idFromName(idRaw), true),
-        pp.args(args, '{', '}', false),
+        pp.args(args, '{', '}', true),
     ]);
 };
 
@@ -949,7 +949,7 @@ export const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
             }
             return items([
                 atom('for '),
-                atom('(int i=0; i<10000; i++) '),
+                atom('i := 0; i<10000; i++ '),
                 stmtToGo(env, opts, stmt.body),
             ]);
         // return items([

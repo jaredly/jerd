@@ -62,9 +62,7 @@ export const mainGo = (
         if (displayName) {
             fs.writeFileSync(
                 path.join(buildDir, name, `${displayName}.go`),
-                fs.readFileSync(
-                    `./examples/go-backends/${displayName}/${displayName}.go`,
-                ),
+                fs.readFileSync(`./examples/go-backends/${displayName}.go`),
             );
         }
         if (run) {

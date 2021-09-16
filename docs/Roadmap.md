@@ -1,4 +1,15 @@
 
+# GO version fo euler-big
+
+- [ ] get it compiling
+  - [x] figure out the maxUnique issue
+  - [ ] make a `containsInvalidGo`, re-using stuff from glsl where possible
+    - [ ] no generics allowed, for example
+    - [ ] maybe that's it for now?
+  - [ ] figure out why this function isn't being optimized.
+
+
+
 ```bash
 env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js go  --run examples/euler-spiral.jd
 ```

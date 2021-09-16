@@ -6,8 +6,8 @@
     "scripts": {
         "build": "esbuild src/run.tsx --loader:.jd=text --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --outdir=../docs",
         "start": "esbuild src/run.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --sourcemap --platform=browser --servedir=. --outdir=. --serve=:4343 --external:fs --external:events --external:constants",
-        "start-showcase": "esbuild src/openglShowcase.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --servedir=../docs/showcase --outdir=../docs/showcase --serve=:4344 --external:fs --external:events --external:constants",
-        "build-showcase": "esbuild src/openglShowcase.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --outdir=../docs/showcase --external:fs --external:events --external:constants",
+        "start-showcase": "esbuild src/showcase/openglShowcase.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --servedir=../docs/showcase --outdir=../docs/showcase --serve=:4344 --external:fs --external:events --external:constants",
+        "build-showcase": "esbuild src/showcase/openglShowcase.tsx --loader:.jd=text --define:process.cwd=\"cwd\" --bundle --define:process.env=\"{}\" --define:process.env.NODE_ENV=\\\"development\\\" --minify --sourcemap --platform=browser --outdir=../docs/showcase --external:fs --external:events --external:constants",
         "music": "node ../language/bootstrap.js prelude-types ../web/src/plugins/music/music-jd.ts ../web/src/plugins/music/music.jd",
         "canvas": "node ../language/bootstrap.js prelude-types ../web/src/plugins/canvas/canvas-jd.ts ../web/src/plugins/canvas/canvas.jd"
     },

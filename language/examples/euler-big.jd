@@ -452,25 +452,25 @@ const drawableToSvg#fcff27d8 = (drawable#:0: Drawable#56de3b71): string#builtin 
 
 decorator display(id: string);
 
-@display("rawSvg")
+@display("drawable")
 {
     const s0p1#:0 = @slider#4e421b50(min: 1, max: 20, step: 1) @title#1b6d573e(
         title: "s0p1: segments per spiral",
-    ) 1;
+    ) 5;
     const s1p2#:1 = @slider#4e421b50(min: 0, max: 100, step: 1) @title#1b6d573e(
         title: "s1p2: spirals per superspiral",
-    ) 1;
+    ) 2;
     const D#:2 = @slider#4e421b50(min: 0, max: 100, step: 1) @title#1b6d573e(
         title: "s2p3: supers per duper",
     ) 1;
-    const s3p4#:3 = @slider#4e421b50(min: 1, max: 100, step: 1) @title#1b6d573e(title: "s3p4") 1;
-    const D0#:4 = @slider#4e421b50(min: 1, max: 108, step: 1) @title#1b6d573e(title: "s4p5") 1;
-    const r3#:5 = @slider#4e421b50(min: 0, max: 17, step: 1) 0;
+    const s3p4#:3 = @slider#4e421b50(min: 1, max: 100, step: 1) @title#1b6d573e(title: "s3p4") 3;
+    const D0#:4 = @slider#4e421b50(min: 1, max: 108, step: 1) @title#1b6d573e(title: "s4p5") 40;
+    const r3#:5 = @slider#4e421b50(min: 0, max: 17, step: 1) 7;
     const W#:6 = s3p4#:3 *#builtin D0#:4 *#builtin 8 +#builtin r3#:5;
     const C#:7 = W#:6 *#builtin D#:2 *#builtin 8 +#builtin D0#:4;
     const length#:8 = @slider#b981a438(min: 1.0, max: 10.0, step: 1.0) @title#1b6d573e(
         title: "segment length",
-    ) 3.0;
+    ) 1.0;
     const rotation#:9 = @slider#4e421b50(min: 0, max: 3, step: 1) @title#1b6d573e(
         title: "rotation",
     ) 0;
@@ -480,15 +480,16 @@ decorator display(id: string);
     const orientation#:11 = rotation#:9 *#builtin 2 +#builtin configuration#:10;
     const A#:12 = C#:7 *#builtin orientation#:11 +#builtin W#:6 
         +#builtin s1p2#:1 *#builtin C#:7 *#builtin 8;
-    RawSvg#712f3578{
-        text#712f3578#0: drawableToSvg#fcff27d8(
-            drawable: drawSpiralCustom#42ceaef0(
+    // RawSvg#712f3578{
+    //     text#712f3578#0: drawableToSvg#fcff27d8(
+    //         drawable: 
+            drawSpiralCustom#42ceaef0(
                 A#:12,
                 B: s0p1#:0,
                 C#:7,
                 pos: vec2#fd62385c(x: 0.0),
                 length#:8,
-            ),
-        ),
-    };
+            )
+    //     ),
+    // };
 }

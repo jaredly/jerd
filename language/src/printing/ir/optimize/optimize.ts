@@ -93,12 +93,26 @@ export const optimizeRepeatedly = (
     if (!Array.isArray(opt)) {
         opt = [opt];
     }
+    uniquesReallyAreUnique(expr, ctx.env);
     for (let i = 0; i < 100; i++) {
         const start = expr;
         for (let one of opt) {
+            const pre = expr;
             expr = one(ctx, expr);
-            // console.log(nameForOpt(one));
-            uniquesReallyAreUnique(expr, ctx.env);
+            try {
+                uniquesReallyAreUnique(expr, ctx.env);
+            } catch (err) {
+                console.log(`FAILED while doing`, nameForOpt(one), i);
+                require('fs').writeFileSync(
+                    'pre.json',
+                    JSON.stringify(pre, null, 2),
+                );
+                require('fs').writeFileSync(
+                    'post.json',
+                    JSON.stringify(expr, null, 2),
+                );
+                throw err;
+            }
         }
         if (start === expr) {
             return expr;
