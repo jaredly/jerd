@@ -1,4 +1,25 @@
 
+# Editor basic decency
+
+- when parsing a file with IDs, such as a gist, we should notice the hashes that types and terms claim to have, and if the actual hash is different, make note, and use it as a substitute going forward.
+- on the other hand, when parsing in the editor, ignore the hash that a define claims to have. Also, when in the editor, but not in batch mode, we should try to auto-resolve errors where possible. So if an ID is specified, but there's a type error, and a different term with the same method fits, then swap it out, and keep track of swaps we make so we can inform the user.
+
+I probably want to do an env dump, and then make a script to "clean up" then env, rectifying hashes, flushing deprecations (making the most recent thing as the thing that deprecates the others), etc.o
+
+- GOT TO autocomplete, my goodness. Absolute must.
+- and then, go through and do a thorough reconning, figuring out how I can gracefully fail during type checking wherever possible.
+
+- ALSOOO if a term has TypeErrors in it, dont add it to the env!!!!
+
+
+Ok but also I want to be able to export the slider config (as a json blob to clipboard), and import it (copy from clipboard or something), and also when exporting to 
+
+oh noessssss we lost all the data again
+ok I gotta have this backing up somewhere.
+ayyyy having exported to a gist means I have the code saved!! Love it.
+
+NEXT UP: please let me import a .jd file.
+
 # GO version fo euler-big
 
 - [ ] get it compiling

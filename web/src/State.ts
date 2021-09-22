@@ -28,6 +28,11 @@ export type TopContent =
 
 export type Content = TopContent | RawContent;
 export type RawContent = { type: 'raw'; text: string };
+// | { type: 'markdown'; text: string };
+
+export const getTopContent = (content: Content): null | TopContent =>
+    content.type === 'raw' ? null : content;
+// || content.type === 'markdown'
 
 export type Cell = {
     id: string;

@@ -149,6 +149,9 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                 }
                 if (r.toplevel.type === 'Define') {
                     const to = index.termsToTerms.to[idName(r.toplevel.id)];
+                    if (!to) {
+                        return;
+                    }
                     if (options == null) {
                         options = to.map((id) => {
                             const name =

@@ -108,10 +108,10 @@ export function typeFile(
         if (hashObject(added) !== hashObject(toplevel)) {
             throw new Error(`Different`);
         }
-        if (toplevel.type === 'Define' && toplevel.name === 'accurateSpiral') {
-            require('fs').writeFileSync('./pre.json', JSON.stringify(toplevel));
-            require('fs').writeFileSync('./post.json', JSON.stringify(added));
-        }
+        // if (toplevel.type === 'Define' && toplevel.name === 'accurateSpiral') {
+        //     // require('fs').writeFileSync('./pre.json', JSON.stringify(toplevel));
+        //     // require('fs').writeFileSync('./post.json', JSON.stringify(added));
+        // }
         toplevel = added;
         // WHYYYYY IS THIS BREAKING THIGNS
         // toplevel = addLocationIndices(toplevel);

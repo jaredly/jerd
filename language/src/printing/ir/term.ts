@@ -582,11 +582,13 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
             );
         }
         case 'Ambiguous':
+            console.log(term);
             throw new LocatedError(
                 term.location,
                 `Cannot print ambiguous term to IR. Must resolve before printing.`,
             );
         case 'TypeError':
+            console.log(term);
             throw new LocatedError(
                 term.location,
                 `Cannot print type error term to IR. Must resolve before printing.`,

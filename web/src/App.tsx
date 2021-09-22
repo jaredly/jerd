@@ -14,7 +14,14 @@ import Cells, {
     modActiveWorkspace,
 } from './workspace/Cells';
 import { saveState, stateToString } from './persistence';
-import { Cell, Content, Display, EvalEnv, RenderPlugins } from './State';
+import {
+    Cell,
+    Content,
+    Display,
+    EvalEnv,
+    getTopContent,
+    RenderPlugins,
+} from './State';
 import { getToplevel } from './toplevels';
 import { Workspace } from './workspace/Workspace';
 
@@ -85,8 +92,9 @@ export default ({ initial }: { initial: State }) => {
             .map((k) => {
                 const c =
                     state.workspaces[state.activeWorkspace].cells[k].content;
-                if (c.type !== 'raw') {
-                    const top = getToplevel(state.env, c);
+                const topContent = getTopContent(c);
+                if (topContent != null) {
+                    const top = getToplevel(state.env, topContent);
                     return printToString(
                         toplevelToPretty(state.env, top),
                         100,

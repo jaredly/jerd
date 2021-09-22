@@ -22,9 +22,9 @@ import { Pin } from './Pin';
 import { QuickMenu } from './QuickMenu';
 import { idName } from '@jerd/language/src/typing/env';
 import { Id } from '@jerd/language/src/typing/types';
-import { stateToString } from '../persistence';
 import { defaultPlugins } from '../defaultPlugins';
 import { makeReducer } from './makeReducer';
+import { ImportExport } from './ImportExport';
 
 export type Props = {
     state: State;
@@ -344,68 +344,6 @@ export const Workspace = ({ state, setState }: Props) => {
                     onOpen={onOpen}
                 />
             ) : null}
-        </div>
-    );
-};
-
-export const ImportExport = ({
-    state,
-    setState,
-}: {
-    state: State;
-    setState: (s: State) => void;
-}) => {
-    const [url, setUrl] = React.useState(null as string | null);
-    return (
-        <div
-            css={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                color: 'white',
-            }}
-        >
-            <div>
-                <button
-                    onClick={() => {
-                        const blob = new Blob([stateToString(state)]);
-                        const url = URL.createObjectURL(blob);
-                        setUrl(url);
-                    }}
-                >
-                    Export
-                </button>
-                {url ? (
-                    <a
-                        href={url}
-                        download={`jerd-ide-dump-${new Date().toISOString()}.json`}
-                    >
-                        Download dump
-                    </a>
-                ) : null}
-            </div>
-            <div>
-                Import:{' '}
-                <input
-                    type="file"
-                    onChange={(evt) => {
-                        if (
-                            !evt.target.files ||
-                            evt.target.files.length !== 1
-                        ) {
-                            console.log('no files! or wrong', evt.target.files);
-                            return;
-                        }
-                        const file = evt.target.files[0];
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            const data = JSON.parse(reader.result as string);
-                            setState(data);
-                        };
-                        reader.readAsText(file, 'utf8');
-                    }}
-                />
-            </div>
         </div>
     );
 };
