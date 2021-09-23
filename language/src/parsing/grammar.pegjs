@@ -364,7 +364,7 @@ EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
 binopWithHash = op:binop hash:OpHash? {
     return {text: op, hash, location: location()}
 }
-binop = !"//" [+*^/<>=|&-]+ {return text()}
+binop = $(!"//" [+*^/<>=|&-]+)
 // binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<=" / ">=" / "=="  / "<" / ">" 
 
 Binop = Expression
@@ -467,8 +467,8 @@ TemplatePart = "$" hash:OpHash? "{" _ inner:Expression _ "}" {
 }
 
 String = "\"" stringChar* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
-stringChar = ( escapedChar / [^"\\])
-escapedChar = "\\" . {return text()}
+stringChar = $( escapedChar / [^"\\])
+escapedChar = "\\" .
 
 IdentifierWithoutHash = text:IdText {
     return {type: "id", text, location: location(), }}
@@ -476,14 +476,12 @@ Identifier = text:IdText hash:IdHash? {
     return {type: "id", text, location: location(), hash}}
 MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {
     return {type: "id", text: text.type === 'string' ? text.text : text, location: location(), hash}}
-IdText = !"enum" [0-9a-zA-Z_]+ {return text()}
+IdText = $(!"enum" [0-9a-zA-Z_]+)
 IdTextOrString = IdText / String
-IdHash = SymHash {return text() } / OpHash {return text()} / BuiltinHash {return text()}
-// IdHash = ("#" ":"? [0-9a-zA-Z]+ ("#" [0-9]+)?) {return text()}
-// TermHash = 
-SymHash = "#" ":" [0-9]+ {return text()}
-OpHash = ("#" [0-9a-zA-Z]+)+ {return text()}
-BuiltinHash = "#" "builtin" {return text()}
+IdHash = $SymHash / $OpHash / $BuiltinHash
+SymHash = $("#" ":" [0-9]+)
+OpHash = $("#" [0-9a-zA-Z]+)+
+BuiltinHash = $("#" "builtin")
 
 newline = "\n"
 nonnewline = [ \t\r]* (comment [ \t\r]*)*
