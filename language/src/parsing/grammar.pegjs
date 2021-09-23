@@ -432,9 +432,9 @@ LiteralWithTemplateString = Literal / TemplateString
 
 Boolean = v:("true" / "false") ![0-9a-zA-Z_] {return {type: 'boolean', location: location(), value: v === "true"}}
 Float "float"
-    = _ "-"? [0-9]+ "." [0-9]+ {return {type: 'float', value: parseFloat(text()), location: location()}}
+    = _ contents:$("-"? [0-9]+ "." [0-9]+) {return {type: 'float', value: parseFloat(text()), location: location()}}
 Int "int"
-	= _ "-"? [0-9]+ { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
+	= _ contents:$("-"? [0-9]+) { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
 
 TemplateString = "\"" contents:StringContents* "\"" {
     const parts: Array<string | any> = [];
@@ -466,7 +466,7 @@ TemplatePart = "$" hash:OpHash? "{" _ inner:Expression _ "}" {
     return {hash, inner, location: location()}
 }
 
-String = "\"" stringChar* "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
+String = "\"" contents:($(stringChar*)) "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
 stringChar = $( escapedChar / [^"\\])
 escapedChar = "\\" .
 
@@ -490,6 +490,6 @@ _ "whitespace"
 __ "whitespace"
   = [ \t\n\r]+ (comment _)*
 comment = multiLineComment / lineComment
-multiLineComment = "/*" (!"*/" .)* "*/"
-lineComment = "//" (!"\n" .)* "\n"
-finalLineComment = "//" (!"\n" .)*
+multiLineComment = $("/*" (!"*/" .)* "*/")
+lineComment = $("//" (!"\n" .)* "\n")
+finalLineComment = $("//" (!"\n" .)*)
