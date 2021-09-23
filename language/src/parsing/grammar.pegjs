@@ -5,7 +5,7 @@ File = _ tops:Toplevels? _ finalLineComment? {
 
 // TODO: Toplevels should end with a semicolon! Or at least be separated by them.
 // That would be much more consistent and sensical.
-Toplevels = first:DecoratedToplevel rest:(nonnewline ';'? nonnewline newline _ DecoratedToplevel)* _ ";"? {
+Toplevels = first:DecoratedToplevel rest:(_nonnewline ';'? _nonnewline newline _ DecoratedToplevel)* _ ";"? {
     return [first].concat(rest.map((r: any) => r[5]))
 }
 
@@ -484,7 +484,7 @@ OpHash = $("#" [0-9a-zA-Z]+)+
 BuiltinHash = $("#" "builtin")
 
 newline = "\n"
-nonnewline = [ \t\r]* (comment [ \t\r]*)*
+_nonnewline = [ \t\r]* (comment [ \t\r]*)*
 _ "whitespace"
   = [ \t\n\r]* (comment _)*
 __ "whitespace"
