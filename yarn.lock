@@ -4861,6 +4861,11 @@ path@^0.12.7:
     process "^0.11.1"
     util "^0.10.3"
 
+peggy@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/peggy/-/peggy-1.2.0.tgz#657ba45900cbef1dc9f52356704bdbb193c2021c"
+  integrity sha512-PQ+NKpAobImfMprYQtc4Egmyi29bidRGEX0kKjCU5uuW09s0Cthwqhfy7mLkwcB4VcgacE5L/ZjruD/kOPCUUw==
+
 pegjs@^0.10.0:
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/pegjs/-/pegjs-0.10.0.tgz#cf8bafae6eddff4b5a7efb185269eaaf4610ddbd"
