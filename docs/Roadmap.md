@@ -1,4 +1,12 @@
 
+# Let's make some things much nicer, ok?
+
+- autogenerate actually correct typescript types for our parsed whatsit.
+- um, profit? yeah I actually can't remember where I was going with this one. I mean doing this makes it easier to think about a recovering parser, I think, but that's not what I'm doing just yet.
+- let's start from scratch with the type checker, so as to be maximally recovery-oriented? I think.
+
+
+
 # Editor basic decency
 
 - when parsing a file with IDs, such as a gist, we should notice the hashes that types and terms claim to have, and if the actual hash is different, make note, and use it as a substitute going forward.
@@ -10,6 +18,10 @@ I probably want to do an env dump, and then make a script to "clean up" then env
 - and then, go through and do a thorough reconning, figuring out how I can gracefully fail during type checking wherever possible.
 
 - ALSOOO if a term has TypeErrors in it, dont add it to the env!!!!
+
+Hmmmm I'm definitely wanting:
+- the ability to have a cell that is "this term with this set of slider values"
+- also I want markdown cells
 
 
 Ok but also I want to be able to export the slider config (as a json blob to clipboard), and import it (copy from clipboard or something), and also when exporting to 

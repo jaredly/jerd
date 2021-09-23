@@ -2,6 +2,7 @@ import fs from 'fs';
 import * as peggy from 'peggy';
 import * as t from '@babel/types';
 import generate from '@babel/generator';
+// @ts-ignore
 import plugin from 'ts-pegjs';
 
 /*
@@ -46,6 +47,9 @@ for a choice: the type is
 */
 
 const orNull = (type: t.TSType) => t.tsUnionType([type, t.tsNullKeyword()]);
+
+const typesEqual = (one: t.TSType, two: t.TSType) =>
+    t.isNodesEquivalent(one, two);
 
 const processExpression = (
     expr: peggy.ast.Expression | peggy.ast.Named,
@@ -132,7 +136,6 @@ const processExpression = (
         }
         case 'group':
             if (ctx.type === 'inner' && expr.expression.type === 'sequence') {
-                // let found = null as null | [string, number, boolean];
                 let found = null as null | [t.TSType, t.Expression];
                 expr.expression.elements.forEach((el, i) => {
                     // skip it
@@ -149,22 +152,6 @@ const processExpression = (
                         vbl,
                     });
                     found = [type, inner ? inner : vbl];
-                    // if (el.type === 'rule_ref' && el.name.match(/^[A-Z]/)) {
-                    //     if (found) {
-                    //         throw new Error(`only one`);
-                    //     }
-                    //     found = [el.name, i, false];
-                    // }
-                    // if (
-                    //     el.type === 'optional' &&
-                    //     el.expression.type === 'rule_ref' &&
-                    //     el.expression.name.match(/^[A-Z]/)
-                    // ) {
-                    //     if (found) {
-                    //         throw new Error(`only one`);
-                    //     }
-                    //     found = [el.expression.name, i, true];
-                    // }
                 });
                 if (found == null) {
                     console.log(expr.expression.elements.map((m) => m.type));
@@ -173,26 +160,6 @@ const processExpression = (
                     );
                 }
                 return found;
-                // if (found[2]) {
-                //     return [
-                //         orNull(
-                //             t.tsTypeReference(t.identifier(found[0])),
-                //         ),
-                //         t.memberExpression(
-                //             ctx.vbl,
-                //             t.numericLiteral(found[1]),
-                //             true,
-                //         ),
-                //     ];
-                // }
-                // return [
-                //     t.tsTypeReference(t.identifier(found[0])),
-                //     t.memberExpression(
-                //         ctx.vbl,
-                //         t.numericLiteral(found[1]),
-                //         true,
-                //     ),
-                // ];
             }
             throw new Error(`toplevel group or something`);
         case 'labeled':
@@ -215,6 +182,21 @@ const processExpression = (
                     ]);
                 }
             });
+            if (
+                attributes.length === 2 &&
+                attributes[0][0] === 'first' &&
+                attributes[1][0] === 'rest' &&
+                attributes[1][1].type === 'TSArrayType' &&
+                typesEqual(attributes[0][1], attributes[1][1].elementType)
+            ) {
+                return [
+                    attributes[1][1],
+                    t.arrayExpression([
+                        attributes[0][2],
+                        t.spreadElement(attributes[1][2]),
+                    ]),
+                ];
+            }
             const typeName = attributes.some((s) => s[0] === 'type')
                 ? '$type'
                 : 'type';
@@ -344,7 +326,6 @@ alls.map(([rule, type, expr]) => {
 // fs.writeFileSync('./src/parsing/grammar-new.pegjs', grammarFile.join('\n\n'));
 const jsOut = peggy.generate(grammarFile.join('\n\n'), {
     output: 'source',
-    // format: 'es',
     plugins: [plugin],
 });
 fs.writeFileSync(
