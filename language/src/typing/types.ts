@@ -380,6 +380,61 @@ export const subEnv = (env: Env): Env => {
     };
 };
 
+/********************** TYPE STUFF  *********** */
+
+export type ToplevelEffect = {
+    type: 'Effect';
+    id: Id;
+    effect: EffectDef;
+    location: Location;
+    name: string;
+    constrNames: Array<string>;
+};
+export type ToplevelDefine = {
+    type: 'Define';
+    id: Id;
+    term: Term;
+    location: Location;
+    name: string;
+    tags?: Array<string>;
+};
+export type ToplevelRecord = {
+    type: 'RecordDef';
+    def: RecordDef;
+    id: Id;
+    location: Location;
+    name: string;
+    attrNames: Array<string>;
+};
+export type ToplevelExpression = {
+    type: 'Expression';
+    id: Id;
+    term: Term;
+    location: Location;
+};
+export type ToplevelEnum = {
+    type: 'EnumDef';
+    def: EnumDef;
+    id: Id;
+    location: Location;
+    name: string;
+    inner: Array<ToplevelRecord>;
+};
+export type ToplevelDecorator = {
+    type: 'Decorator';
+    id: Id;
+    name: string;
+    location: Location;
+    defn: DecoratorDef;
+};
+export type ToplevelT =
+    | ToplevelEffect
+    | ToplevelDecorator
+    | ToplevelExpression
+    | ToplevelDefine
+    | ToplevelEnum
+    | ToplevelRecord;
+
 export type Case = {
     constr: number; // the index
     args: Array<{ sym: Symbol; type: Type }>;

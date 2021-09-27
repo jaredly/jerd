@@ -8,7 +8,7 @@
         "prepare": "yarn build",
         "build": "yarn peg && yarn compile",
         "compile": "esbuild --bundle --external:@babel/core --external:@babel/types --loader:.jd=text src/main.ts --platform=node --outfile=main.js",
-        "start": "node bootstrap.mjs ../language/src/typing/types.ts ../language/src/typing/auto-transform.ts",
+        "start": "node bootstrap.js ../language/src/typing/types.ts ../language/src/typing/auto-transform.ts",
         "sn": "jest -u"
     },
     "jest": {

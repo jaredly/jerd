@@ -49,65 +49,14 @@ import {
     nullLocation,
     DecoratorDefArg,
     UserReference,
+    ToplevelT,
+    ToplevelRecord,
 } from './types';
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
 import { getTypeError } from './getTypeError';
 import { env } from 'process';
 import { uniqueDecorator } from './typeFile';
-
-export type ToplevelEffect = {
-    type: 'Effect';
-    id: Id;
-    effect: EffectDef;
-    location: Location;
-    name: string;
-    constrNames: Array<string>;
-};
-export type ToplevelDefine = {
-    type: 'Define';
-    id: Id;
-    term: Term;
-    location: Location;
-    name: string;
-    tags?: Array<string>;
-};
-export type ToplevelRecord = {
-    type: 'RecordDef';
-    def: RecordDef;
-    id: Id;
-    location: Location;
-    name: string;
-    attrNames: Array<string>;
-};
-export type ToplevelExpression = {
-    type: 'Expression';
-    id: Id;
-    term: Term;
-    location: Location;
-};
-export type ToplevelEnum = {
-    type: 'EnumDef';
-    def: TypeEnumDef;
-    id: Id;
-    location: Location;
-    name: string;
-    inner: Array<ToplevelRecord>;
-};
-export type ToplevelDecorator = {
-    type: 'Decorator';
-    id: Id;
-    name: string;
-    location: Location;
-    defn: TypedDecoratorDef;
-};
-export type ToplevelT =
-    | ToplevelEffect
-    | ToplevelDecorator
-    | ToplevelExpression
-    | ToplevelDefine
-    | ToplevelEnum
-    | ToplevelRecord;
 
 export const addToplevelToEnv = (
     env: Env,
