@@ -20,7 +20,7 @@
         "react-colorful": "^5.2.2",
         "react-dom": "^17.0.1",
         "react-textarea-autosize": "^8.3.2",
-        "tinytar": "^0.1.0",
+        "tinytar": "jaredly/tinytar#tinytar-v0.1.0-gitpkg",
         "tone": "^14.7.77"
     },
     "jest": {

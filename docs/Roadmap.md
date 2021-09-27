@@ -1,10 +1,12 @@
 
 # Let's make some things much nicer, ok?
 
-- autogenerate actually correct typescript types for our parsed whatsit.
+- [x] autogenerate actually correct typescript types for our parsed whatsit.
 - um, profit? yeah I actually can't remember where I was going with this one. I mean doing this makes it easier to think about a recovering parser, I think, but that's not what I'm doing just yet.
 - let's start from scratch with the type checker, so as to be maximally recovery-oriented? I think.
 
+- [ ] autogenerate the `transform` impl from the typescript types for the AST.
+  As config, provide the tyeps that you want to transform (Term, Type, Let, ToplevelT, Location, Pattern)
 
 
 # Editor basic decency
