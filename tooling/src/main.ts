@@ -122,7 +122,7 @@ const makeIndividualTransformer = (
         if (visitorTypes.includes(type.typeName.name)) {
             return `
                 const ${newName} = transform${type.typeName.name}(${vbl}, visitor, ctx);
-                changed${level} = changed${level} || ${newName} !== ${vbl}`;
+                changed${level} = changed${level} || ${newName} !== ${vbl};`;
         }
         if (type.typeName.name === 'Array') {
             const inner = makeIndividualTransformer(
@@ -158,6 +158,85 @@ const makeIndividualTransformer = (
     return null;
 };
 
+const objectTransformer = (
+    vbl: string,
+    newName: string,
+    level: number,
+    type: t.TSTypeLiteral,
+) => {
+    const transformers: Array<string> = [];
+    const sliders: Array<string> = [];
+    type.members.forEach((member) => {
+        if (member.type !== 'TSPropertySignature') {
+            throw new Error(`Can't process a ${member.type}`);
+        }
+        if (member.key.type !== 'Identifier') {
+            throw new Error(`unexpected key ${member.key.type}`);
+        }
+        if (!member.typeAnnotation) {
+            throw new Error(`No annotation`);
+        }
+        const newNameInner = `${newName}$${member.key.name}`;
+        const individual = makeIndividualTransformer(
+            `${vbl}.${member.key.name}`,
+            newNameInner,
+            level + 1,
+            member.typeAnnotation.typeAnnotation,
+            member.optional,
+        );
+        if (individual) {
+            transformers.push(individual);
+            sliders.push(`${member.key.name}: ${newNameInner}`);
+        }
+    });
+    if (!transformers.length) {
+        return null;
+    }
+    return `
+            let ${newName} = ${vbl};
+            {
+                let changed${level + 1} = false;
+                ${transformers.join('\n\n                ')}
+                if (changed${level + 1}) {
+                    ${newName} =  {...node, ${sliders.join(', ')}};
+                    changed${level} = true;
+                }
+            }
+            `;
+};
+
+const unionTransformer = (
+    vbl: string,
+    newName: string,
+    level: number,
+    type: t.TSUnionType,
+) => {
+    const allTypes: Array<[string, t.TSTypeLiteral]> = [];
+    getAllUnionTypeMembers(allTypes, type);
+    const individualCases = allTypes.map(([name, defn]) => {
+        const transformer = objectTransformer(
+            `node`,
+            `newNode`,
+            level + 1,
+            defn,
+        );
+        if (!transformer) {
+            return `case '${name}': break;`;
+        }
+        return `case '${name}': {
+                let changed${level + 1} = false;
+                ${transformer}
+                ${newName} = newNode;
+                break;
+            }`;
+    });
+    return `
+        let ${newName} = ${vbl};
+        switch (${vbl}.type) {
+            ${individualCases.join('\n\n            ')}
+        }`;
+};
+
 const makeTransformer = (name: string) => {
     const defn = types[name];
     if (!defn) {
@@ -166,38 +245,14 @@ const makeTransformer = (name: string) => {
     const allTypes: Array<[string, t.TSTypeLiteral]> = [];
     getAllUnionTypeMembers(allTypes, defn);
     const individualCases = allTypes.map(([name, defn]) => {
-        const transformers: Array<string> = [];
-        const sliders: Array<string> = [];
-        defn.members.forEach((member) => {
-            if (member.type !== 'TSPropertySignature') {
-                throw new Error(`Can't process a ${member.type}`);
-            }
-            if (member.key.type !== 'Identifier') {
-                throw new Error(`unexpected key ${member.key.type}`);
-            }
-            if (!member.typeAnnotation) {
-                throw new Error(`No annotation`);
-            }
-            const newName = `node$${member.key.name}`;
-            const individual = makeIndividualTransformer(
-                `node.${member.key.name}`,
-                newName,
-                0,
-                member.typeAnnotation.typeAnnotation,
-                member.optional,
-            );
-            if (individual) {
-                transformers.push(individual);
-                sliders.push(`${member.key.name}: ${newName}`);
-            }
-        });
-        if (!transformers.length) {
+        const transformer = objectTransformer(`node`, `newNode`, 0, defn);
+        if (!transformer) {
             return `case '${name}': break;`;
         }
         return `case '${name}': {
                 let changed0 = false;
-                ${transformers.join(';\n\n                ')}
-                node = changed0 ? {...node, ${sliders.join(', ')}} : node;
+                ${transformer}
+                node = newNode;
                 break;
             }`;
     });
