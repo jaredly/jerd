@@ -25,7 +25,7 @@ body.forEach((stmt) => {
     }
 });
 
-const visitorTypes = ['Term', 'Pattern', 'Let', 'Toplevel', 'Type'];
+const visitorTypes = ['Term', 'Pattern', 'Let', 'ToplevelT', 'Type'];
 /*
 Ok, so general plan:
 make a `transform{X}` function, that does `(value: X, visitor: Visitor<Ctx>, ctx: Ctx) => X`
@@ -89,8 +89,76 @@ const getAllUnionTypeMembers = (
     throw new Error(`Unexpected type ${t.type}`);
 };
 
+const makeIndividualTransformer = (
+    vbl: string,
+    newName: string,
+    type: t.TSType,
+    optional?: null | boolean,
+): string | null => {
+    if (optional) {
+        const inner = makeIndividualTransformer(
+            vbl,
+            newName + '$$',
+            type,
+            false,
+        );
+        if (!inner) {
+            return null;
+        }
+        return `
+        let ${newName} = undefined;
+        if (${vbl} != null) {
+            ${inner}
+            ${newName} = ${newName}$$;
+        }
+        `;
+    }
+    if (type.type === 'TSTypeReference') {
+        if (type.typeName.type !== 'Identifier') {
+            throw new Error(`qualified?`);
+        }
+        if (visitorTypes.includes(type.typeName.name)) {
+            return `
+                const ${newName} = transform${type.typeName.name}(${vbl}, visitor, ctx);
+                changed = changed || ${newName} !== ${vbl}`;
+        }
+        if (type.typeName.name === 'Array') {
+            const inner = makeIndividualTransformer(
+                `${newName}$item`,
+                'result',
+                type.typeParameters!.params[0],
+            );
+            if (inner) {
+                return `
+                    const ${newName} = ${vbl}.map((${newName}$item) => {
+                        ${inner}
+                        return result
+                    })
+                `;
+            }
+        }
+        // OTHERWISE: if this type eventually includes a thing that needs changing,
+        // it'll be quite a hassle.
+    }
+    if (type.type === 'TSArrayType') {
+        const inner = makeIndividualTransformer(
+            `${newName}$item`,
+            'result',
+            type.elementType,
+        );
+        if (inner) {
+            return `
+                const ${newName} = ${vbl}.map((${newName}$item) => {
+                    ${inner}
+                    return result
+                })
+            `;
+        }
+    }
+    return null;
+};
+
 const makeTransformer = (name: string) => {
-    const lowerName = name.toLowerCase();
     const defn = types[name];
     if (!defn) {
         throw new Error(`Not a type ${name}`);
@@ -98,7 +166,8 @@ const makeTransformer = (name: string) => {
     const allTypes: Array<[string, t.TSTypeLiteral]> = [];
     getAllUnionTypeMembers(allTypes, defn);
     const individualCases = allTypes.map(([name, defn]) => {
-        const transformers = [];
+        const transformers: Array<string> = [];
+        const sliders: Array<string> = [];
         defn.members.forEach((member) => {
             if (member.type !== 'TSPropertySignature') {
                 throw new Error(`Can't process a ${member.type}`);
@@ -106,16 +175,42 @@ const makeTransformer = (name: string) => {
             if (member.key.type !== 'Identifier') {
                 throw new Error(`unexpected key ${member.key.type}`);
             }
+            if (!member.typeAnnotation) {
+                throw new Error(`No annotation`);
+            }
+            // if (name === 'apply') {
+            //     console.log(
+            //         member.key.name,
+            //         member.typeAnnotation.typeAnnotation,
+            //     );
+            // }
+            const newName = `node$${member.key.name}`;
+            const individual = makeIndividualTransformer(
+                `node.${member.key.name}`,
+                newName,
+                member.typeAnnotation.typeAnnotation,
+                member.optional,
+            );
+            if (individual) {
+                transformers.push(individual);
+                sliders.push(`${member.key.name}: ${newName}`);
+            }
         });
+        if (!transformers.length) {
+            return `case '${name}': break;`;
+        }
         return `case '${name}': {
-            
-        }`;
+                let changed = false;
+                ${transformers.join(';\n\n                ')}
+                node = changed ? {...node, ${sliders.join(', ')}} : node;
+                break;
+            }`;
     });
-    return `const transform${name} => <Ctx>(node: ${name}, visitor: Visitor<Ctx>, ctx: Ctx): ${name} => {
+    return `const transform${name} = <Ctx>(node: ${name}, visitor: Visitor<Ctx>, ctx: Ctx): ${name} => {
         if (!node) {
             throw new Error('No ${name} provided');
         }
-        const transformed = visitor.${lowerName}(node, ctx);
+        const transformed = visitor.${name} ? visitor.${name}(node, ctx) : null;
         if (transformed === false) {
             return node;
         }
@@ -130,9 +225,32 @@ const makeTransformer = (name: string) => {
             }
         }
         switch (node.type) {
-            ${individualCases}
+            ${individualCases.join('\n\n            ')}
         }
+        // TODO: HERE do the post-traversal
+        if (visitor.${name}Post) {
+            const transformed = visitor.${name}Post(node, ctx);
+            if (transformed != null) {
+                node = transformed;
+            }
+        }
+        return node;
     }`;
 };
 
-visitorTypes.forEach(makeTransformer);
+const prelude = `import {${visitorTypes.join(', ')}} from './types';
+
+export type Visitor<Ctx> = {
+    ${visitorTypes
+        .map(
+            (name) =>
+                `${name}?: (node: ${name}, ctx: Ctx) => null | false | ${name} | [${name}, Ctx]
+                ${name}Post?: (node: ${name}, ctx: Ctx) => null | ${name}`,
+        )
+        .join(',\n    ')}
+}
+`;
+fs.writeFileSync(
+    outFile,
+    prelude + visitorTypes.map(makeTransformer).join('\n\n'),
+);
