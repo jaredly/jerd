@@ -92,13 +92,15 @@ const getAllUnionTypeMembers = (
 const makeIndividualTransformer = (
     vbl: string,
     newName: string,
+    level: number,
     type: t.TSType,
     optional?: null | boolean,
 ): string | null => {
     if (optional) {
         const inner = makeIndividualTransformer(
             vbl,
-            newName + '$$',
+            newName + `$${level}$`,
+            level,
             type,
             false,
         );
@@ -109,7 +111,7 @@ const makeIndividualTransformer = (
         let ${newName} = undefined;
         if (${vbl} != null) {
             ${inner}
-            ${newName} = ${newName}$$;
+            ${newName} = ${newName}$${level}$;
         }
         `;
     }
@@ -120,20 +122,30 @@ const makeIndividualTransformer = (
         if (visitorTypes.includes(type.typeName.name)) {
             return `
                 const ${newName} = transform${type.typeName.name}(${vbl}, visitor, ctx);
-                changed = changed || ${newName} !== ${vbl}`;
+                changed${level} = changed${level} || ${newName} !== ${vbl}`;
         }
         if (type.typeName.name === 'Array') {
             const inner = makeIndividualTransformer(
-                `${newName}$item`,
+                `${newName}$item${level}`,
                 'result',
+                level + 1,
                 type.typeParameters!.params[0],
             );
             if (inner) {
                 return `
-                    const ${newName} = ${vbl}.map((${newName}$item) => {
+                let ${newName} = ${vbl};
+                {
+
+                    let changed${level + 1} = false;
+                    const arr${level} = ${vbl}.map((${newName}$item${level}) => {
                         ${inner}
                         return result
                     })
+                    if (changed${level + 1}) {
+                        ${newName} = arr${level};
+                        changed${level} = true;
+                    }
+                }
                 `;
             }
         }
@@ -141,19 +153,7 @@ const makeIndividualTransformer = (
         // it'll be quite a hassle.
     }
     if (type.type === 'TSArrayType') {
-        const inner = makeIndividualTransformer(
-            `${newName}$item`,
-            'result',
-            type.elementType,
-        );
-        if (inner) {
-            return `
-                const ${newName} = ${vbl}.map((${newName}$item) => {
-                    ${inner}
-                    return result
-                })
-            `;
-        }
+        throw new Error(`expected Array<X>, not X[]`);
     }
     return null;
 };
@@ -178,16 +178,11 @@ const makeTransformer = (name: string) => {
             if (!member.typeAnnotation) {
                 throw new Error(`No annotation`);
             }
-            // if (name === 'apply') {
-            //     console.log(
-            //         member.key.name,
-            //         member.typeAnnotation.typeAnnotation,
-            //     );
-            // }
             const newName = `node$${member.key.name}`;
             const individual = makeIndividualTransformer(
                 `node.${member.key.name}`,
                 newName,
+                0,
                 member.typeAnnotation.typeAnnotation,
                 member.optional,
             );
@@ -200,9 +195,9 @@ const makeTransformer = (name: string) => {
             return `case '${name}': break;`;
         }
         return `case '${name}': {
-                let changed = false;
+                let changed0 = false;
                 ${transformers.join(';\n\n                ')}
-                node = changed ? {...node, ${sliders.join(', ')}} : node;
+                node = changed0 ? {...node, ${sliders.join(', ')}} : node;
                 break;
             }`;
     });
