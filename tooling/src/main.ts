@@ -7,7 +7,7 @@ import babel from '@babel/core';
 import fs from 'fs';
 import generate from '@babel/generator';
 
-const [_, __, inFile, outFile] = process.argv;
+const [_, __, inFile, outFile, visitorTypesRaw] = process.argv;
 const ast = babel.parse(fs.readFileSync(inFile, 'utf8'), {
     filename: inFile,
     presets: ['@babel/preset-typescript'],
@@ -30,14 +30,7 @@ body.forEach((stmt) => {
     }
 });
 
-const visitorTypes = [
-    'Term',
-    'Pattern',
-    'Let',
-    'ToplevelT',
-    'Type',
-    'Location',
-];
+const visitorTypes = visitorTypesRaw.split(',');
 /*
 Ok, so general plan:
 make a `transform{X}` function, that does `(value: X, visitor: Visitor<Ctx>, ctx: Ctx) => X`
@@ -310,6 +303,7 @@ const unionTransformer = (
 ) => {
     const allTypes: Array<[string, t.TSTypeLiteral]> = [];
     // console.log('---> getting');
+    let hasCases = false;
     const cases: Array<string> = [];
     const processType = (type: t.TSType, last: boolean) => {
         if (type.type === 'TSUnionType') {
@@ -373,6 +367,9 @@ const unionTransformer = (
                     ${newName} = ${newName}$${level}node;
                     break;
                 }`);
+                hasCases = true;
+            } else {
+                cases.push(`case '${name}': break;`);
             }
         }
     };
@@ -396,7 +393,7 @@ const unionTransformer = (
     //             break;
     //         }`;
     // });
-    if (!cases.length) {
+    if (!hasCases) {
         return null; // `const ${newName} = ${vbl};`;
     }
     return `
