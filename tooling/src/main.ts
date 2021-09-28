@@ -1,6 +1,7 @@
 import * as t from '@babel/types';
 import babel from '@babel/core';
 import fs from 'fs';
+import generate from '@babel/generator';
 
 const [_, __, inFile, outFile] = process.argv;
 const ast = babel.parse(fs.readFileSync(inFile, 'utf8'), {
@@ -245,7 +246,9 @@ const objectTransformer = (
             );
             if (individual) {
                 transformers.push(`
-                const spread = {};
+                const spread: {[key: string]: ${
+                    generate(member.typeAnnotation!.typeAnnotation).code
+                }} = {};
                 Object.keys(${vbl}).forEach(key => {
                     ${individual}
                     spread[key] = ${newNameInner}
@@ -288,7 +291,7 @@ const objectTransformer = (
                 let changed${level + 1} = false;
                 ${transformers.join('\n\n                ')}
                 if (changed${level + 1}) {
-                    ${newName} =  {...node, ${sliders.join(', ')}};
+                    ${newName} =  {...${newName}, ${sliders.join(', ')}};
                     changed${level} = true;
                 }
             }
